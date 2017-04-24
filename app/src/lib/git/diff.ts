@@ -120,20 +120,6 @@ async function getImageDiff(repository: Repository, file: FileChange, commitish:
   }
 }
 
-/**
- * normalize the line endings in the diff so that the CodeMirror editor
- * will display the unified diff correctly
- */
-function formatLineEnding(text: string): string {
-  if (text.endsWith('\n')) {
-    return text
-  } else if (text.endsWith('\r')) {
-    return text + '\n'
-  } else {
-    return text + '\r\n'
-  }
-}
-
 export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
   if (diff.isBinary) {
     const extension = Path.extname(file.path)
@@ -148,14 +134,9 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
     }
   }
 
-  let diffText = ''
-  diff.hunks.forEach(hunk => {
-    hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
-  })
-
   return {
     kind: DiffType.Text,
-    text: diffText,
+    text: diff.contents,
     hunks: diff.hunks,
   }
 }

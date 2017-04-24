@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Path from 'path'
+import { clamp } from '../../lib/clamp'
 
 interface IPathTextProps {
   /**
@@ -60,22 +61,6 @@ interface IPathTextState extends IPathDisplayState {
    * to fit inside the available space.
    */
   readonly longestFit: number
-}
-
-/** 
- * Helper function to coerce a number into a valid range.
- * 
- * Ensures that the returned value is at least min and at most
- * (inclusive) max.
- */
-function clamp(value: number, min: number, max: number): number {
-  if (value < min) {
-    return min
-  } else if (value > max) {
-    return max
-  } else {
-    return value
-  }
 }
 
 /**

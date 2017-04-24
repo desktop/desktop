@@ -1,4 +1,4 @@
-import { app, Menu, MenuItem, ipcMain, BrowserWindow } from 'electron'
+import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater } from 'electron'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
@@ -173,6 +173,17 @@ app.on('ready', () => {
       mainWindow.sendAppMenu()
     }
   })
+
+  ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMainEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
+    // This API's only implemented on macOS right now.
+    if (__DARWIN__) {
+      getMainWindow().showCertificateTrustDialog(certificate, message)
+    }
+  })
+
+  autoUpdater.on('error', err => {
+    getMainWindow().sendAutoUpdaterError(err)
+  })
 })
 
 app.on('activate', () => {
@@ -185,6 +196,12 @@ app.on('web-contents-created', (event, contents) => {
     event.preventDefault()
     sharedProcess!.console.log(`Prevented new window to: ${url}`)
   })
+})
+
+app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+  callback(false)
+
+  getMainWindow().sendCertificateError(certificate, error, url)
 })
 
 function createWindow() {

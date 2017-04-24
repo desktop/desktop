@@ -1,4 +1,4 @@
-import { remote } from 'electron'
+import { remote, ipcRenderer } from 'electron'
 
 // Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
 // use with `remote`.
@@ -54,7 +54,13 @@ class UpdateStore {
       }
     }
 
-    autoUpdater.on('error', this.onAutoUpdaterError)
+    // We're using our own error event instead of `autoUpdater`s so that we can
+    // properly serialize the `Error` object for transport over IPC. See
+    // https://github.com/desktop/desktop/issues/1266.
+    ipcRenderer.on('auto-updater-error', (event: Electron.IpcRendererEvent, error: Error) => {
+      this.onAutoUpdaterError(error)
+    })
+
     autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
     autoUpdater.on('update-available', this.onUpdateAvailable)
     autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
@@ -65,7 +71,6 @@ class UpdateStore {
     // let's just avoid it.
     if (!process.env.TEST_ENV) {
       window.addEventListener('beforeunload', () => {
-        autoUpdater.removeListener('error', this.onAutoUpdaterError)
         autoUpdater.removeListener('checking-for-update', this.onCheckingForUpdate)
         autoUpdater.removeListener('update-available', this.onUpdateAvailable)
         autoUpdater.removeListener('update-not-available', this.onUpdateNotAvailable)
@@ -161,6 +166,9 @@ class UpdateStore {
 
   /** Quit and install the update. */
   public quitAndInstallUpdate() {
+    // This is synchronous so that we can ensure the app will let itself be quit
+    // before we call the function to quit.
+    // tslint:disable-next-line:no-sync-functions
     sendWillQuitSync()
     autoUpdater.quitAndInstall()
   }

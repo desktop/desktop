@@ -24,3 +24,9 @@ export async function reset(repository: Repository, mode: GitResetMode, ref: str
   await git([ 'reset', modeFlag, ref, '--' ], repository.path, 'reset')
   return true
 }
+
+/** Unstage all paths. */
+export async function unstageAll(repository: Repository): Promise<true> {
+  await git([ 'reset', '--', '.' ], repository.path, 'unstageAll')
+  return true
+}

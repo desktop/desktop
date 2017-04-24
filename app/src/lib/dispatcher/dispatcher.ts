@@ -19,6 +19,7 @@ import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
+import { isGitOnPath } from '../open-shell'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -459,11 +460,6 @@ export class Dispatcher {
     return this.appStore._undoCommit(repository, commit)
   }
 
-  /** Clear the contextual commit message. */
-  public clearContextualCommitMessage(repository: Repository): Promise<void> {
-    return this.appStore._clearContextualCommitMessage(repository)
-  }
-
   /**
    * Set the width of the repository sidebar to the given
    * value. This affects the changes and history sidebar
@@ -609,9 +605,14 @@ export class Dispatcher {
     return this.appStore._ignore(repository, pattern)
   }
 
-  /** Opens a terminal window with path as the working directory */
-  public openShell(path: string) {
-    return this.appStore._openShell(path)
+  /** Opens a Git-enabled terminal setting the working directory to the repository path */
+  public async openShell(path: string): Promise<void> {
+    const gitFound = await isGitOnPath()
+    if (gitFound) {
+      this.appStore._openShell(path)
+    } else {
+      this.appStore._showPopup({ type: PopupType.InstallGit, path })
+    }
   }
 
   /**

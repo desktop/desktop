@@ -13,6 +13,8 @@ import {
   IBranchesState,
   PossibleSelections,
   SelectionType,
+  ICheckoutProgress,
+  Progress,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -63,6 +65,7 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
+  getRemotes,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -142,10 +145,11 @@ export class AppStore {
     this.signInStore = signInStore
     this.showWelcomeFlow = !hasShownWelcomeFlow()
 
-    this.windowState = getWindowState(remote.getCurrentWindow())
+    const window = remote.getCurrentWindow()
+    this.windowState = getWindowState(window)
 
     ipcRenderer.on('window-state-changed', (_, args) => {
-      this.windowState = args as WindowState
+      this.windowState = getWindowState(window)
       this.emitUpdate()
     })
 
@@ -252,9 +256,11 @@ export class AppStore {
       localCommitSHAs: [],
       aheadBehind: null,
       remote: null,
-      pushPullInProgress: false,
+      isPushPullFetchInProgress: false,
       isCommitting: false,
       lastFetched: null,
+      checkoutProgress: null,
+      pushPullFetchProgress: null,
     }
   }
 
@@ -305,13 +311,13 @@ export class AppStore {
     if (!repository) { return null }
 
     if (repository instanceof CloningRepository) {
-      const cloningState = this.cloningRepositoriesStore.getRepositoryState(repository)
-      if (!cloningState) { return null }
+      const progress = this.cloningRepositoriesStore.getRepositoryState(repository)
+      if (!progress) { return null }
 
       return {
         type: SelectionType.CloningRepository,
         repository,
-        state: cloningState,
+        progress,
       }
     }
 
@@ -919,6 +925,8 @@ export class AppStore {
 
     await this.refreshAuthor(repository)
 
+    await gitStore.loadContextualCommitMessage()
+
     const section = state.selectedSection
     if (section === RepositorySection.History) {
       return this.refreshHistorySection(repository)
@@ -1007,12 +1015,38 @@ export class AppStore {
     return await this._checkoutBranch(repository, name)
   }
 
+  private updateCheckoutProgress(repository: Repository, checkoutProgress: ICheckoutProgress | null) {
+    this.updateRepositoryState(repository, state => ({ checkoutProgress }))
+
+    if (this.selectedRepository === repository) {
+      this.emitUpdate()
+    }
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(repository: Repository, name: string): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => checkoutBranch(repository, name))
+    const kind = 'checkout'
 
-    await this._refreshRepository(repository)
+    await gitStore.performFailableOperation(() => {
+      return checkoutBranch(repository, name, (progress) => {
+        this.updateCheckoutProgress(repository, progress)
+      })
+    })
+
+    try {
+      this.updateCheckoutProgress(repository, {
+        kind,
+        title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
+        value: 1,
+        targetBranch: name,
+      })
+
+      await this._refreshRepository(repository)
+    } finally {
+      this.updateCheckoutProgress(repository, null)
+    }
+
     return repository
   }
 
@@ -1104,35 +1138,104 @@ export class AppStore {
     return this._refreshRepository(repository)
   }
 
-  public async _push(repository: Repository, account: Account | null): Promise<void> {
-    return this.withPushPull(repository, async () => {
-      const gitStore = this.getGitStore(repository)
-      const remote = gitStore.remote
-      if (!remote) {
-        this._showPopup({
-          type: PopupType.PublishRepository,
-          repository,
-        })
-        return
-      }
 
+  private updatePushPullFetchProgress(repository: Repository, pushPullFetchProgress: Progress | null) {
+    this.updateRepositoryState(repository, state => ({ pushPullFetchProgress }))
+
+    if (this.selectedRepository === repository) {
+      this.emitUpdate()
+    }
+  }
+
+  public async _push(repository: Repository, account: Account | null): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    const remote = gitStore.remote
+    if (!remote) {
+      this._showPopup({ type: PopupType.PublishRepository, repository })
+      return
+    }
+
+    return this.withPushPull(repository, async () => {
       const state = this.getRepositoryState(repository)
       if (state.branchesState.tip.kind === TipState.Unborn) {
-        return Promise.reject(new Error('The current branch is unborn.'))
+        throw new Error('The current branch is unborn.')
       }
 
       if (state.branchesState.tip.kind === TipState.Detached) {
-        return Promise.reject(new Error('The current repository is in a detached HEAD state.'))
+        throw new Error('The current repository is in a detached HEAD state.')
       }
 
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
-        return gitStore.performFailableOperation(() => {
-          const setUpstream = branch.upstream ? false : true
-          return pushRepo(repository, account, remote.name, branch.name, setUpstream)
-            .then(() => this._refreshRepository(repository))
-            .then(() => this.fetch(repository, account))
+        const setUpstream = branch.upstream ? false : true
+
+        const pushTitle = `Pushing to ${remote.name}`
+
+        // Emit an initial progress even before our push begins
+        // since we're doing some work to get remotes up front.
+        this.updatePushPullFetchProgress(repository, {
+          kind: 'push',
+          title: pushTitle,
+          value: 0,
+          remote: remote.name,
+          branch: branch.name,
         })
+
+        const remotes = await getRemotes(repository)
+
+        // Let's say that a push takes roughly twice as long as a fetch,
+        // this is of course highly inaccurate.
+        let pushWeight = 2.5
+        let fetchWeight = 1 * remotes.length
+
+        // Let's leave 10% at the end for refreshing
+        const refreshWeight = 0.1
+
+        // Scale pull and fetch weights to be between 0 and 0.9.
+        const scale = (1 / ((pushWeight + fetchWeight)) * (1 - refreshWeight))
+
+        pushWeight *= scale
+        fetchWeight *= scale
+
+        await gitStore.performFailableOperation(async () => {
+
+          await pushRepo(repository, account, remote.name, branch.name, setUpstream, (progress) => {
+            this.updatePushPullFetchProgress(repository, {
+              ...progress,
+              title: pushTitle,
+              value: pushWeight * progress.value,
+            })
+          })
+
+          await gitStore.fetchRemotes(account, remotes, false, (fetchProgress) => {
+            this.updatePushPullFetchProgress(repository, {
+              ...fetchProgress,
+              value: pushWeight + fetchProgress.value * fetchWeight,
+            })
+          })
+
+          const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+          const refreshStartProgress = pushWeight + fetchWeight
+
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            value: refreshStartProgress,
+          })
+
+          await this._refreshRepository(repository)
+
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            description: 'Fast-forwarding branches',
+            value: refreshStartProgress + refreshWeight * 0.5,
+          })
+
+          await this.fastForwardBranches(repository)
+        })
+
+        this.updatePushPullFetchProgress(repository, null)
       }
     })
   }
@@ -1156,15 +1259,15 @@ export class AppStore {
   private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
     const state = this.getRepositoryState(repository)
     // Don't allow concurrent network operations.
-    if (state.pushPullInProgress) { return }
+    if (state.isPushPullFetchInProgress) { return }
 
-    this.updateRepositoryState(repository, state => ({ pushPullInProgress: true }))
+    this.updateRepositoryState(repository, state => ({ isPushPullFetchInProgress: true }))
     this.emitUpdate()
 
     try {
       await fn()
     } finally {
-      this.updateRepositoryState(repository, state => ({ pushPullInProgress: false }))
+      this.updateRepositoryState(repository, state => ({ isPushPullFetchInProgress: false }))
       this.emitUpdate()
     }
   }
@@ -1174,6 +1277,7 @@ export class AppStore {
     return this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
+
       if (!remote) {
         return Promise.reject(new Error('The repository has no remotes.'))
       }
@@ -1181,18 +1285,83 @@ export class AppStore {
       const state = this.getRepositoryState(repository)
 
       if (state.branchesState.tip.kind === TipState.Unborn) {
-        return Promise.reject(new Error('The current branch is unborn.'))
+        throw new Error('The current branch is unborn.')
       }
 
       if (state.branchesState.tip.kind === TipState.Detached) {
-        return Promise.reject(new Error('The current repository is in a detached HEAD state.'))
+        throw new Error('The current repository is in a detached HEAD state.')
       }
 
       if (state.branchesState.tip.kind === TipState.Valid) {
-        const branch = state.branchesState.tip.branch
-        return gitStore.performFailableOperation(() => pullRepo(repository, account, remote.name, branch.name))
-          .then(() => this._refreshRepository(repository))
-          .then(() => this.fetch(repository, account))
+
+        const title = `Pulling ${remote.name}`
+        const kind = 'pull'
+        this.updatePushPullFetchProgress(repository, {
+          kind,
+          title,
+          value: 0,
+          remote: remote.name,
+        })
+
+        try {
+          const otherRemotes = (await getRemotes(repository))
+            .filter(r => r.name !== remote.name)
+
+          // Let's say that a pull takes twice as long as a fetch,
+          // this is of course highly inaccurate.
+          let pullWeight = 2
+          let fetchWeight = 1 * otherRemotes.length
+
+          // Let's leave 10% at the end for refreshing
+          const refreshWeight = 0.1
+
+          // Scale pull and fetch weights to be between 0 and 0.9.
+          const scale = (1 / ((pullWeight + fetchWeight)) * (1 - refreshWeight))
+
+          pullWeight *= scale
+          fetchWeight *= scale
+
+          await gitStore.performFailableOperation(() =>
+            pullRepo(repository, account, remote.name, progress => {
+              this.updatePushPullFetchProgress(repository, {
+                ...progress,
+                value: progress.value * pullWeight,
+              })
+            }))
+
+          const fetchStartProgress = fetchWeight
+
+          await gitStore.fetchRemotes(account, otherRemotes, false, progress => {
+            this.updatePushPullFetchProgress(repository, {
+              ...progress,
+              title: progress.title,
+              description: progress.description,
+              value: fetchStartProgress + progress.value * fetchWeight,
+            })
+          })
+
+          const refreshStartProgress = pullWeight + fetchWeight
+          const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            value: refreshStartProgress,
+          })
+
+          await this._refreshRepository(repository)
+
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            description: 'Fast-forwarding branches',
+            value: refreshStartProgress + refreshWeight * 0.5,
+          })
+
+          await this.fastForwardBranches(repository)
+        } finally {
+          this.updatePushPullFetchProgress(repository, null)
+        }
       }
     })
   }
@@ -1278,11 +1447,6 @@ export class AppStore {
     return this._refreshRepository(repository)
   }
 
-  public _clearContextualCommitMessage(repository: Repository): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    return gitStore.clearContextualCommitMessage()
-  }
-
   /**
    * Fetch a specific refspec for the repository.
    *
@@ -1307,11 +1471,40 @@ export class AppStore {
   private async performFetch(repository: Repository, account: Account | null, backgroundTask: boolean): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
-      await gitStore.fetch(account, backgroundTask)
-      await this.fastForwardBranches(repository)
-    })
 
-    return this._refreshRepository(repository)
+      try {
+        const fetchWeight = 0.9
+        const refreshWeight = 0.1
+
+        await gitStore.fetchAll(account, backgroundTask, (progress) => {
+          this.updatePushPullFetchProgress(repository, {
+            ...progress,
+            value: progress.value * fetchWeight,
+          })
+        })
+
+        const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+
+        this.updatePushPullFetchProgress(repository, {
+          kind: 'generic',
+          title: refreshTitle,
+          value: fetchWeight,
+        })
+
+        await this._refreshRepository(repository)
+
+        this.updatePushPullFetchProgress(repository, {
+          kind: 'generic',
+          title: refreshTitle,
+          description: 'Fast-forwarding branches',
+          value: fetchWeight + (refreshWeight * 0.5),
+        })
+
+        await this.fastForwardBranches(repository)
+      } finally {
+        this.updatePushPullFetchProgress(repository, null)
+      }
+    })
   }
 
   public _endWelcomeFlow(): Promise<void> {

@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, Menu, app } from 'electron'
+import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 
 import { SharedProcess } from '../shared-process/shared-process'
@@ -60,20 +60,20 @@ export class AppWindow {
     this.window = new BrowserWindow(windowOptions)
     savedWindowState.manage(this.window)
 
+    let quitting = false
+    app.on('before-quit', () => {
+      quitting = true
+    })
+
+    ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
+      quitting = true
+      event.returnValue = true
+    })
+
     // on macOS, when the user closes the window we really just hide it. This
     // lets us activate quickly and keep all our interesting logic in the
     // renderer.
     if (__DARWIN__) {
-      let quitting = false
-      app.on('before-quit', () => {
-        quitting = true
-      })
-
-      ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
-        quitting = true
-        event.returnValue = true
-      })
-
       this.window.on('close', e => {
         if (!quitting) {
           e.preventDefault()
@@ -235,6 +235,18 @@ export class AppWindow {
     }
   }
 
+  /** Send a certificate error to the renderer. */
+  public sendCertificateError(certificate: Electron.Certificate, error: string, url: string) {
+    this.window.webContents.send('certificate-error', { certificate, error, url })
+  }
+
+  public showCertificateTrustDialog(certificate: Electron.Certificate, message: string) {
+    // The Electron type definitions don't include `showCertificateTrustDialog`
+    // yet.
+    const d = dialog as any
+    d.showCertificateTrustDialog(this.window, { certificate, message }, () => {})
+  }
+
   /** Report the exception to the renderer. */
   public sendException(error: Error) {
     // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
@@ -245,6 +257,18 @@ export class AppWindow {
       name: error.name,
     }
     this.window.webContents.send('main-process-exception', friendlyError)
+  }
+
+  /** Report an auto updater error to the renderer. */
+  public sendAutoUpdaterError(error: Error) {
+    // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
+    // we'll just manually copy the properties we care about.
+    const friendlyError = {
+      stack: error.stack,
+      message: error.message,
+      name: error.name,
+    }
+    this.window.webContents.send('auto-updater-error', friendlyError)
   }
 
   /**
