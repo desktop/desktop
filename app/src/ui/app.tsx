@@ -35,6 +35,7 @@ import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository, CloneRepository } from './add-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
+import { InstallGit } from './install-git'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
 import { Publish } from './publish-repository'
@@ -162,6 +163,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     let hasDefaultBranch = false
     let hasPublishedBranch = false
     let networkActionInProgress = false
+    let tipStateIsUnknown = false
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
       repositorySelected = true
@@ -173,6 +175,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       hasDefaultBranch = Boolean(defaultBranch)
 
       onBranch = tip.kind === TipState.Valid
+      tipStateIsUnknown = tip.kind === TipState.Unknown
 
       // If we are:
       //  1. on the default branch, or
@@ -189,7 +192,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onNonDefaultBranch = true
       }
 
-      networkActionInProgress = selectedState.state.pushPullInProgress
+      networkActionInProgress = selectedState.state.isPushPullFetchInProgress
     }
 
     // These are IDs for menu items that are entirely _and only_
@@ -225,6 +228,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
       setMenuEnabled('push', !networkActionInProgress)
       setMenuEnabled('pull', !networkActionInProgress)
+      setMenuEnabled('create-branch', !tipStateIsUnknown)
     } else {
       for (const id of repositoryScopedIDs) {
         setMenuEnabled(id, false)
@@ -375,7 +379,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private showAddLocalRepo = () => {
-    this.props.dispatcher.closeFoldout()
     return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
 
@@ -469,7 +472,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           // instead and that's taken care of in the onWindowKeyUp function.
           if (this.state.appMenuState.length > 1) {
             this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-            this.props.dispatcher.closeFoldout()
+            this.props.dispatcher.closeFoldout(FoldoutType.AppMenu)
           }
         }
 
@@ -517,7 +520,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         if (this.lastKeyPressed === 'Alt') {
           if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
             this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-            this.props.dispatcher.closeFoldout()
+            this.props.dispatcher.closeFoldout(FoldoutType.AppMenu)
           } else {
             this.props.dispatcher.showFoldout({
               type: FoldoutType.AppMenu,
@@ -646,10 +649,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onMenuBarLostFocus = () => {
-    if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
-      this.props.dispatcher.closeFoldout()
-      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-    }
+    // Note: This event is emitted in an animation frame separate from
+    // that of the AppStore. See onLostFocusWithin inside of the AppMenuBar
+    // for more details. This means that it's possible that the current
+    // app state in this component's state might be out of date so take
+    // caution when considering app state in this method.
+    this.props.dispatcher.closeFoldout(FoldoutType.AppMenu)
+    this.props.dispatcher.setAppMenuState(menu => menu.withReset())
   }
 
   private renderTitlebar() {
@@ -796,21 +802,28 @@ export class App extends React.Component<IAppProps, IAppState> {
                 dispatcher={this.props.dispatcher} />
       case PopupType.CreateBranch: {
         const state = this.props.appStore.getRepositoryState(popup.repository)
-
-        const tip = state.branchesState.tip
-        const currentBranch = tip.kind === TipState.Valid
-          ? tip.branch
-          : null
-
+        const branchesState = state.branchesState
         const repository = popup.repository
 
+        if (branchesState.tip.kind === TipState.Unknown) {
+          this.props.dispatcher.closePopup()
+          return null
+        }
+
         return <CreateBranch
-                currentBranch={currentBranch}
-                branches={state.branchesState.allBranches}
+                tip={branchesState.tip}
+                defaultBranch={branchesState.defaultBranch}
+                allBranches={branchesState.allBranches}
                 repository={repository}
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       }
+      case PopupType.InstallGit:
+        return (
+          <InstallGit
+           onDismissed={this.onPopupDismissed}
+           path={popup.path} />
+        )
       case PopupType.About:
         return (
           <About
@@ -908,7 +921,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
       ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
-      : this.props.dispatcher.closeFoldout()
+      : this.props.dispatcher.closeFoldout(FoldoutType.Repository)
   }
 
   private renderRepositoryToolbarButton() {
@@ -956,13 +969,16 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const state = selection.state
     const remoteName = state.remote ? state.remote.name : null
+    const progress = state.pushPullFetchProgress
+
     return <PushPullButton
       dispatcher={this.props.dispatcher}
       repository={selection.repository}
       aheadBehind={state.aheadBehind}
       remoteName={remoteName}
       lastFetched={state.lastFetched}
-      networkActionInProgress={state.pushPullInProgress}
+      networkActionInProgress={state.isPushPullFetchInProgress}
+      progress={progress}
     />
   }
 
@@ -973,19 +989,24 @@ export class App extends React.Component<IAppProps, IAppState> {
     // manages to delete the last repository while the drop down is
     // open we'll just bail here.
     if (!selection || selection.type !== SelectionType.Repository) {
-      return null
+      return
+    }
+
+    // We explicitly disable the menu item in this scenario so this
+    // should never happen.
+    if (selection.state.branchesState.tip.kind === TipState.Unknown) {
+      return
     }
 
     const repository = selection.repository
 
-    this.props.dispatcher.closeFoldout()
     return this.props.dispatcher.showPopup({ type: PopupType.CreateBranch, repository })
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
       ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
-      : this.props.dispatcher.closeFoldout()
+      : this.props.dispatcher.closeFoldout(FoldoutType.Branch)
   }
 
   private renderBranchToolbarButton(): JSX.Element | null {
@@ -1042,7 +1063,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}
-                                    state={selectedState.state}/>
+                                    progress={selectedState.progress}/>
     } else if (selectedState.type === SelectionType.MissingRepository) {
       return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher} accounts={this.state.accounts} />
     } else {
@@ -1071,7 +1092,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onSelectionChanged = (repository: Repository | CloningRepository) => {
     this.props.dispatcher.selectRepository(repository)
-    this.props.dispatcher.closeFoldout()
+    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
   }
 }
 

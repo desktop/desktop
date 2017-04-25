@@ -150,14 +150,14 @@ export class RepositoriesStore {
       } else {
         const owner = newGitHubRepo.owner
         const existingOwner = yield db.owners
-          .where('login')
-          .equalsIgnoreCase(owner.login)
+          .where('[endpoint+login]')
+          .equals([ owner.endpoint, owner.login.toLowerCase() ])
           .limit(1)
           .first()
         if (existingOwner) {
           ownerID = existingOwner.id
         } else {
-          ownerID = yield db.owners.add({ login: owner.login, endpoint: owner.endpoint })
+          ownerID = yield db.owners.add({ login: owner.login.toLowerCase(), endpoint: owner.endpoint })
         }
       }
 
