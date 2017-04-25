@@ -163,6 +163,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     let hasDefaultBranch = false
     let hasPublishedBranch = false
     let networkActionInProgress = false
+    let tipStateIsUnknown = false
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
       repositorySelected = true
@@ -174,6 +175,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       hasDefaultBranch = Boolean(defaultBranch)
 
       onBranch = tip.kind === TipState.Valid
+      tipStateIsUnknown = tip.kind === TipState.Unknown
 
       // If we are:
       //  1. on the default branch, or
@@ -226,6 +228,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
       setMenuEnabled('push', !networkActionInProgress)
       setMenuEnabled('pull', !networkActionInProgress)
+      setMenuEnabled('create-branch', !tipStateIsUnknown)
     } else {
       for (const id of repositoryScopedIDs) {
         setMenuEnabled(id, false)
@@ -797,17 +800,18 @@ export class App extends React.Component<IAppProps, IAppState> {
                 dispatcher={this.props.dispatcher} />
       case PopupType.CreateBranch: {
         const state = this.props.appStore.getRepositoryState(popup.repository)
-
-        const tip = state.branchesState.tip
-        const currentBranch = tip.kind === TipState.Valid
-          ? tip.branch
-          : null
-
+        const branchesState = state.branchesState
         const repository = popup.repository
 
+        if (branchesState.tip.kind === TipState.Unknown) {
+          this.props.dispatcher.closePopup()
+          return null
+        }
+
         return <CreateBranch
-                currentBranch={currentBranch}
-                branches={state.branchesState.allBranches}
+                tip={branchesState.tip}
+                defaultBranch={branchesState.defaultBranch}
+                allBranches={branchesState.allBranches}
                 repository={repository}
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
@@ -983,7 +987,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     // manages to delete the last repository while the drop down is
     // open we'll just bail here.
     if (!selection || selection.type !== SelectionType.Repository) {
-      return null
+      return
+    }
+
+    // We explicitly disable the menu item in this scenario so this
+    // should never happen.
+    if (selection.state.branchesState.tip.kind === TipState.Unknown) {
+      return
     }
 
     const repository = selection.repository

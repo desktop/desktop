@@ -983,7 +983,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createBranch(repository: Repository, name: string, startPoint: string): Promise<Repository> {
+  public async _createBranch(repository: Repository, name: string, startPoint?: string): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
     const createResult = await gitStore.performFailableOperation(() => createBranch(repository, name, startPoint))
 
