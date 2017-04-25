@@ -2,7 +2,7 @@ import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater } from 'electr
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
-import { parseURL, URLActionType } from '../lib/parse-url'
+import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
@@ -15,13 +15,6 @@ let sharedProcess: SharedProcess | null = null
 const launchTime = Date.now()
 
 let readyTime: number | null = null
-
-/**
- * The URL action with which the app was launched. On macOS, we could receive an
- * `open-url` command before the app ready event, so we stash it away and handle
- * it when we're ready.
- */
-let launchURLAction: URLActionType | null = null
 
 process.on('uncaughtException', (error: Error) => {
   getLogger().error('Uncaught exception on main process', error)
@@ -78,8 +71,6 @@ app.on('will-finish-launching', () => {
       // macOS. See https://github.com/desktop/desktop/issues/973.
       window.focus()
       window.sendURLAction(action)
-    } else {
-      launchURLAction = action
     }
   })
 })
