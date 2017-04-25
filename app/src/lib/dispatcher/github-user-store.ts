@@ -187,15 +187,15 @@ export class GitHubUserStore {
     const db = this.database
     let addedUser: IGitHubUser | null = null
     await this.database.transaction('rw', this.database.users, function*() {
-      const existing: IGitHubUser | null = yield db.users.where('[endpoint+login]')
-        .equals([ user.endpoint, user.login.toLowerCase() ])
-        .limit(1)
-        .first()
-      if (existing) {
+      const existing: ReadonlyArray<IGitHubUser> = yield db.users.where('[endpoint+login]')
+        .equals([ user.endpoint, user.login ])
+        .toArray()
+      const match = existing.find(e => e.email === user.email)
+      if (match) {
         if (overwriteEmail) {
-          user = { ...user, id: existing.id }
+          user = { ...user, id: match.id }
         } else {
-          user = { ...user, id: existing.id, email: existing.email }
+          user = { ...user, id: match.id, email: match.email }
         }
       }
 
