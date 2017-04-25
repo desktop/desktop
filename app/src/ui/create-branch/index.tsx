@@ -70,10 +70,12 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
       const defaultBranch = this.props.defaultBranch
 
       if (!defaultBranch || defaultBranch.name === currentBranch.name) {
+        const readMoreLink = <LinkButton uri='https://help.github.com/articles/setting-the-default-branch/'>Read more about default branches.</LinkButton>
         return (
           <p>
             Your new branch will be based on your currently checked out
-            branch ({currentBranch.name}). 
+            branch ({currentBranch.name}). This branch is the default branch
+            for your repository. {readMoreLink}
           </p>
         )
       } else {
