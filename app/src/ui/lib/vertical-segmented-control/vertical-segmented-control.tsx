@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createUniqueId, releaseUniqueId } from './id-pool'
+import { createUniqueId, releaseUniqueId } from '../id-pool'
 
 interface ISegmentedItem {
   readonly title: string
