@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
 import { DialogHeader } from './header'
+import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 
 /**
  * The time (in milliseconds) from when the dialog is mounted
@@ -106,6 +107,13 @@ interface IDialogState {
    * grace period or not.
    */
   readonly isAppearing: boolean
+
+  /**
+   * An optional id for the h1 element that contains the title of this
+   * dialog. Used to aid in accessibility. Undefined if the dialog does
+   * not have a title or the component has not yet been mounted.
+   */
+  readonly titleId?: string
 }
 
 /**
@@ -146,6 +154,23 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     return this.props.dismissable === undefined || this.props.dismissable
   }
 
+  private updateTitleId() {
+    if (this.state.titleId) {
+      releaseUniqueId(this.state.titleId)
+      this.setState({ titleId: undefined })
+    }
+
+    if (this.props.title) {
+      this.setState({
+        titleId: createUniqueId(`Dialog_${this.props.id}_${this.props.title}`)
+      })
+    }
+  }
+
+  public componentWillMount() {
+    this.updateTitleId()
+  }
+
   public componentDidMount() {
     // This cast to any is necessary since React doesn't know about the
     // dialog element yet.
@@ -157,6 +182,16 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   public componentWillUnmount() {
     this.clearDismissGraceTimeout()
+
+    if (this.state.titleId) {
+      releaseUniqueId(this.state.titleId)
+    }
+  }
+
+  public componentDidUpdate() {
+    if (!this.props.title && this.state.titleId) {
+      this.updateTitleId()      
+    }
   }
 
   private onDialogCancel = (e: Event) => {
@@ -245,6 +280,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     return (
       <DialogHeader
         title={this.props.title}
+        titleId={this.state.titleId}
         dismissable={this.isDismissable()}
         onDismissed={this.onDismiss}
         type={this.props.type}
@@ -265,7 +301,9 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         ref={this.onDialogRef}
         id={this.props.id}
         onClick={this.onDialogClick}
-        className={className}>
+        className={className}
+        aria-labelledby={this.state.titleId}
+      >
           {this.renderHeader()}
 
           <form onSubmit={this.onSubmit} autoFocus>
