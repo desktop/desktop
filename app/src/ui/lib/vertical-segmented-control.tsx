@@ -32,6 +32,20 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
     )
   }
 
+  private onKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
+    if (event.key === 'ArrowUp') {
+      if (this.props.selectedIndex > 0) {
+        this.props.onSelectionChanged(this.props.selectedIndex - 1)
+      }
+      event.preventDefault()
+    } else if (event.key === 'ArrowDown') {
+      if (this.props.selectedIndex < this.props.items.length - 1) {
+        this.props.onSelectionChanged(this.props.selectedIndex + 1)
+      }
+      event.preventDefault()
+    }
+  }
+
   public render() {
 
     if (!this.props.items.length) {
@@ -46,7 +60,7 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
     return (
       <div className='vertical-segmented-control'>
         {label}
-        <ul className='vertical-segmented-control'>
+        <ul className='vertical-segmented-control' tabIndex={0} onKeyDown={this.onKeyDown}>
           {this.props.items.map((item, index) =>
             this.renderItem(item, index, index === selectedIndex))}
         </ul>
@@ -75,13 +89,12 @@ class SegmentedItem extends React.Component<ISegmentedItemProps, void> {
       : undefined
 
     const className = this.props.isSelected ? 'selected' : undefined
-    const tabIndex = this.props.isSelected ? 0 : -1
 
     return (
       <li
         className={className}
         role='button'
-        tabIndex={tabIndex}
+        tabIndex={-1}
         onClick={this.onClick}
       >
         <div className='title'>{this.props.title}</div>
