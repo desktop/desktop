@@ -68,21 +68,21 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
     this.state = { }
   }
 
-  private updateListId() {
+  private updateListId(label: string | undefined) {
     if (this.state.listId) {
       releaseUniqueId(this.state.listId)
       this.setState({ listId: undefined })
     }
 
-    if (this.props.label) {
+    if (label) {
       this.setState({
-        listId: createUniqueId(`VerticalSegmentedControl_${this.props.label}`)
+        listId: createUniqueId(`VerticalSegmentedControl_${label}`),
       })
     }
   }
 
   public componentWillMount() {
-    this.updateListId()
+    this.updateListId(this.props.label)
   }
 
   public componentWillUnmount() {
@@ -91,9 +91,9 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
     }
   }
 
-  public componentWillReceiveProps(props: IVerticalSegmentedControlProps) {
-    if (this.props.label !== props.label) {
-      this.updateListId()
+  public componentWillReceiveProps(nextProps: IVerticalSegmentedControlProps) {
+    if (this.props.label !== nextProps.label) {
+      this.updateListId(nextProps.label)
     }
   }
 

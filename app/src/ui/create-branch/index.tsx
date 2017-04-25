@@ -70,9 +70,9 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     }
   }
 
-  public componentWillReceiveProps(props: ICreateBranchProps) {
+  public componentWillReceiveProps(nextProps: ICreateBranchProps) {
     this.setState({
-      startPoint: getStartPoint(props, this.state.startPoint)
+      startPoint: getStartPoint(nextProps, this.state.startPoint),
     })
   }
 
