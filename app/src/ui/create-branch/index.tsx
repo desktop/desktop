@@ -173,7 +173,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
 
   public render() {
     const proposedName = this.state.proposedName
-    const disabled = !proposedName.length || !!this.state.currentError
+    const disabled = !proposedName.length || !!this.state.currentError || /^\s*$/.test(this.state.proposedName)
     const error = this.state.currentError
 
     return (
