@@ -2,15 +2,48 @@ import * as React from 'react'
 import { createUniqueId, releaseUniqueId } from '../id-pool'
 import { SegmentedItem } from './segmented-item'
 
+/**
+ * An item which is rendered as a choice in the segmented control.
+ */
 export interface ISegmentedItem {
+  /**
+   * The title for the segmented item. This should be kept short.
+   */
   readonly title: string
+
+  /**
+   * An optional description which explains the consequences of
+   * selecting this item.
+   */
   readonly description?: string
 }
 
 interface IVerticalSegmentedControlProps {
+  /**
+   * An optional label for the segmented control. Will be rendered
+   * as a legend element inside a field group. Consumers are strongly
+   * encouraged to use this in order to aid accessibility.
+   */
   readonly label?: string
+
+  /**
+   * A set of items to be rendered as choices in the segmented control.
+   * An item must have a title and may (encouraged) also have a description
+   * which explains what the consequences of selecting the items are.
+   */
   readonly items: ReadonlyArray<ISegmentedItem>
+
+  /**
+   * The currently selected item, denoted by its position in the items
+   * array.
+   */
   readonly selectedIndex: number
+
+  /**
+   * A function that's called whenever the selected item index changes, either
+   * as a result of a click using a pointer device or as a result of the user
+   * hitting an up/down while the component has focus.
+   */
   readonly onSelectionChanged: (selectedIndex: number) => void
 }
 
