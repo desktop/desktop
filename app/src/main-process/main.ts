@@ -57,6 +57,24 @@ if (shouldQuit) {
   app.quit()
 }
 
+app.on('will-finish-launching', () => {
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+
+    const action = parseURL(url)
+    // NB: If the app was launched by an `open-url` command, the app won't be
+    // ready yet and so handling the URL action is a not great idea. We'll stash
+    // it away and handle it when we're ready.
+    if (app.isReady()) {
+      const window = getMainWindow()
+      // This manual focus call _shouldn't_ be necessary, but is for Chrome on
+      // macOS. See https://github.com/desktop/desktop/issues/973.
+      window.focus()
+      window.sendURLAction(action)
+    }
+  })
+})
+
 app.on('ready', () => {
   const now = Date.now()
   readyTime = now - launchTime
@@ -73,17 +91,6 @@ app.on('ready', () => {
   sharedProcess.register()
 
   createWindow()
-
-  app.on('open-url', (event, url) => {
-    event.preventDefault()
-
-    const action = parseURL(url)
-    const window = getMainWindow()
-    // This manual focus call _shouldn't_ be necessary, but is for Chrome on
-    // macOS. See https://github.com/desktop/desktop/issues/973.
-    window.focus()
-    window.sendURLAction(action)
-  })
 
   const menu = buildDefaultMenu(sharedProcess)
   Menu.setApplicationMenu(menu)
