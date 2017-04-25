@@ -93,8 +93,6 @@ class SegmentedItem extends React.Component<ISegmentedItemProps, void> {
     return (
       <li
         className={className}
-        role='button'
-        tabIndex={-1}
         onClick={this.onClick}
       >
         <div className='title'>{this.props.title}</div>
