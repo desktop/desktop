@@ -162,7 +162,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
     if (this.props.title) {
       this.setState({
-        titleId: createUniqueId(`Dialog_${this.props.id}_${this.props.title}`)
+        titleId: createUniqueId(`Dialog_${this.props.id}_${this.props.title}`),
       })
     }
   }
@@ -190,7 +190,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   public componentDidUpdate() {
     if (!this.props.title && this.state.titleId) {
-      this.updateTitleId()      
+      this.updateTitleId()
     }
   }
 
