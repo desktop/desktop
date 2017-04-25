@@ -24,7 +24,11 @@ interface ICreateBranchProps {
   readonly allBranches: ReadonlyArray<Branch>
 }
 
-type StartPoint = 'current-branch' | 'default-branch' | 'HEAD'
+enum StartPoint {
+  CurrentBranch,
+  DefaultBranch,
+  Head,
+}
 
 interface ICreateBranchState {
   readonly currentError: Error | null
@@ -40,24 +44,24 @@ enum SelectedBranch {
 }
 
 function getStartPoint(props: ICreateBranchProps, preferred: StartPoint): StartPoint {
-  if (preferred === 'default-branch' && props.defaultBranch) {
+  if (preferred === StartPoint.DefaultBranch && props.defaultBranch) {
     return preferred
   }
 
-  if (preferred === 'current-branch' && props.tip.kind === TipState.Valid) {
+  if (preferred === StartPoint.CurrentBranch && props.tip.kind === TipState.Valid) {
     return preferred
   }
 
-  if (preferred === 'HEAD') {
+  if (preferred === StartPoint.Head) {
     return preferred
   }
 
   if (props.defaultBranch) {
-    return 'default-branch'
+    return StartPoint.DefaultBranch
   } else if (props.tip.kind === TipState.Valid) {
-    return 'current-branch'
+    return StartPoint.CurrentBranch
   } else {
-    return 'HEAD'
+    return StartPoint.Head
   }
 }
 
@@ -70,7 +74,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
       currentError: null,
       proposedName: '',
       sanitizedName: '',
-      startPoint: getStartPoint(props, 'default-branch'),
+      startPoint: getStartPoint(props, StartPoint.DefaultBranch),
       loading: false,
     }
   }
@@ -127,7 +131,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
         ]
 
         const startPoint = this.state.startPoint
-        const selectedIndex = startPoint === 'default-branch' ? 0 : 1
+        const selectedIndex = startPoint === StartPoint.DefaultBranch ? 0 : 1
 
         return (
           <Row>
@@ -148,9 +152,9 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
 
   private onBaseBranchChanged = (selection: SelectedBranch) => {
     if (selection === SelectedBranch.DefaultBranch) {
-      this.setState({ startPoint: 'default-branch' })
+      this.setState({ startPoint: StartPoint.DefaultBranch })
     } else if (selection === SelectedBranch.CurrentBranch) {
-      this.setState({ startPoint: 'current-branch' })
+      this.setState({ startPoint: StartPoint.CurrentBranch })
     } else {
       throw new Error(`Unknown branch selection: ${selection}`)
     }
@@ -223,7 +227,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
 
     let startPoint = undefined
 
-    if (this.state.startPoint === 'default-branch') {
+    if (this.state.startPoint === StartPoint.DefaultBranch) {
       // This really shouldn't happen, we take all kinds of precautions
       // to make sure the startPoint state is valid given the current props.
       if (!this.props.defaultBranch) {
