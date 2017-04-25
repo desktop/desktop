@@ -206,16 +206,16 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       case ToolbarButtonStyle.Standard:
         return (
           <div className='text'>
-            {title}
             {description}
+            {title}
           </div>
         )
 
       case ToolbarButtonStyle.Subtitle:
         return (
           <div className='text'>
-            {description}
             <div className='title'>{this.props.title}</div>
+            {description}
           </div>
         )
 
