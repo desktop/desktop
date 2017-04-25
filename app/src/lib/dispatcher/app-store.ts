@@ -10,6 +10,7 @@ import {
   Popup,
   PopupType,
   Foldout,
+  FoldoutType,
   IBranchesState,
   PossibleSelections,
   SelectionType,
@@ -956,6 +957,11 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _showPopup(popup: Popup): Promise<void> {
+
+    // Always close the app menu when showing a pop up. This is only
+    // applicable on Windows where we draw a custom app menu.
+    this._closeFoldout(FoldoutType.AppMenu)
+
     this.currentPopup = popup
     this.emitUpdate()
   }
@@ -975,11 +981,18 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _closeFoldout(): Promise<void> {
+  public async _closeFoldout(foldout: FoldoutType): Promise<void> {
+
+    if (!this.currentFoldout) {
+      return
+    }
+
+    if (foldout !== undefined && this.currentFoldout.type !== foldout) {
+      return
+    }
+
     this.currentFoldout = null
     this.emitUpdate()
-
-    return Promise.resolve()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
