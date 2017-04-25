@@ -647,10 +647,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onMenuBarLostFocus = () => {
-    if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
-      this.props.dispatcher.closeFoldout()
-      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-    }
+    // Note: This event is emitted in an animation frame separate from
+    // that of the AppStore. See onLostFocusWithin inside of the AppMenuBar
+    // for more details. This means that it's possible that the current
+    // app state in this component's state might be out of date so take
+    // caution when considering app state in this method.
+    this.props.dispatcher.closeFoldout(FoldoutType.AppMenu)
+    this.props.dispatcher.setAppMenuState(menu => menu.withReset())
   }
 
   private renderTitlebar() {
