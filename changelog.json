@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.0.36": [
+
+    ],
     "0.0.35": [
       "[New] Show push/pull/fetch progress - #1238",
       "[Fixed] macOS: Add the Zoom menu item - #1260",
