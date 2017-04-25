@@ -376,7 +376,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private showAddLocalRepo = () => {
-    this.props.dispatcher.closeFoldout()
     return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
 
@@ -470,7 +469,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           // instead and that's taken care of in the onWindowKeyUp function.
           if (this.state.appMenuState.length > 1) {
             this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-            this.props.dispatcher.closeFoldout()
+            this.props.dispatcher.closeFoldout(FoldoutType.AppMenu)
           }
         }
 
@@ -518,7 +517,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         if (this.lastKeyPressed === 'Alt') {
           if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
             this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-            this.props.dispatcher.closeFoldout()
+            this.props.dispatcher.closeFoldout(FoldoutType.AppMenu)
           } else {
             this.props.dispatcher.showFoldout({
               type: FoldoutType.AppMenu,
@@ -918,7 +917,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
       ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
-      : this.props.dispatcher.closeFoldout()
+      : this.props.dispatcher.closeFoldout(FoldoutType.Repository)
   }
 
   private renderRepositoryToolbarButton() {
@@ -991,14 +990,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repository = selection.repository
 
-    this.props.dispatcher.closeFoldout()
     return this.props.dispatcher.showPopup({ type: PopupType.CreateBranch, repository })
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
       ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
-      : this.props.dispatcher.closeFoldout()
+      : this.props.dispatcher.closeFoldout(FoldoutType.Branch)
   }
 
   private renderBranchToolbarButton(): JSX.Element | null {
@@ -1084,7 +1082,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onSelectionChanged = (repository: Repository | CloningRepository) => {
     this.props.dispatcher.selectRepository(repository)
-    this.props.dispatcher.closeFoldout()
+    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
   }
 }
 

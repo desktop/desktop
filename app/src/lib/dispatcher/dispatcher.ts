@@ -300,7 +300,7 @@ export class Dispatcher {
   }
 
   /** Close the current foldout. */
-  public closeFoldout(foldout?: FoldoutType): Promise<void> {
+  public closeFoldout(foldout: FoldoutType): Promise<void> {
     return this.appStore._closeFoldout(foldout)
   }
 
