@@ -101,7 +101,7 @@
       width: 9px;
       height: 12px;
       flex-shrink: 0;
-      position: relative;      
+      position: relative;
     }
 
     .text {
@@ -110,18 +110,18 @@
       flex-grow: 1;
       min-width: 0;
       margin-right: var(--spacing);
-      position: relative;      
+      position: relative;
     }
 
     .title {
       font-weight: var(--font-weight-semibold);
-      position: relative;      
+      position: relative;
     }
 
     .description {
       color: var(--toolbar-button-secondary-color);
       font-size: var(--font-size-sm);
-      position: relative;      
+      position: relative;
     }
 
     .title, .description { @include ellipsis }
