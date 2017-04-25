@@ -960,9 +960,7 @@ export class AppStore {
 
     // Always close the app menu when showing a pop up. This is only
     // applicable on Windows where we draw a custom app menu.
-    if (this.currentFoldout && this.currentFoldout.type === FoldoutType.AppMenu) {
-      this.currentFoldout = null
-    }
+    this._closeFoldout(FoldoutType.AppMenu)
 
     this.currentPopup = popup
     this.emitUpdate()
