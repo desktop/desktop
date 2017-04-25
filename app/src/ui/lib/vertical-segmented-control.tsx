@@ -13,16 +13,23 @@ interface IVerticalSegmentedControlProps {
 }
 
 export class VerticalSegmentedControl extends React.Component<IVerticalSegmentedControlProps, void> {
-  private onItemClick = (item: ISegmentedItem) => {
-    const itemIndex = this.props.items.indexOf(item)
-
-    if (itemIndex !== this.props.selectedIndex) {
-      this.props.onSelectionChanged(itemIndex)
+  private onItemClick = (index: number) => {
+    if (index !== this.props.selectedIndex) {
+      this.props.onSelectionChanged(index)
     }
   }
 
   private renderItem(item: ISegmentedItem, index: number, selected: boolean) {
-    return SegmentedItem(item, index, selected, this.onItemClick)
+    return (
+      <SegmentedItem
+        key={index}
+        title={item.title}
+        description={item.description}
+        index={index}
+        isSelected={selected}
+        onClick={this.onItemClick}
+      />
+    )
   }
 
   public render() {
@@ -48,18 +55,38 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
   }
 }
 
-const SegmentedItem = (item: ISegmentedItem, index: number, selected: boolean, onClick: (index: ISegmentedItem) => void) => {
-    const description = item.description
-      ? <p>{item.description}</p>
+interface ISegmentedItemProps {
+  readonly index: number
+  readonly title: string
+  readonly description?: string
+  readonly isSelected: boolean
+  readonly onClick: (index: number) => void
+}
+
+class SegmentedItem extends React.Component<ISegmentedItemProps, void> {
+
+  private onClick = () => {
+    this.props.onClick(this.props.index)
+  }
+
+  public render() {
+    const description = this.props.description
+      ? <p>{this.props.description}</p>
       : undefined
 
-    const className = selected ? 'selected' : undefined
-    const tabIndex = selected ? 0 : -1
+    const className = this.props.isSelected ? 'selected' : undefined
+    const tabIndex = this.props.isSelected ? 0 : -1
 
     return (
-      <li key={index} className={className} role='button' tabIndex={tabIndex}>
-        <div className='title'>{item.title}</div>
+      <li
+        className={className}
+        role='button'
+        tabIndex={tabIndex}
+        onClick={this.onClick}
+      >
+        <div className='title'>{this.props.title}</div>
         {description}
       </li>
     )
+  }
 }
