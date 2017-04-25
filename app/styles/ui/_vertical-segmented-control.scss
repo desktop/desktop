@@ -1,3 +1,5 @@
+@import "../mixins";
+
 .vertical-segmented-control {
 
   // Reset styles for fieldset
@@ -9,6 +11,7 @@
   legend {
     margin-bottom: var(--spacing-third);
     padding: 0;
+    @include ellipsis;
   }
 
   ul {
@@ -63,6 +66,7 @@
       .title {
         font-weight: var(--font-weight-semibold);
         margin-bottom: var(--spacing-half);
+        @include ellipsis;
       }
 
       p {
