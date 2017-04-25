@@ -10,6 +10,7 @@ import {
   Popup,
   PopupType,
   Foldout,
+  FoldoutType,
   IBranchesState,
   PossibleSelections,
   SelectionType,
@@ -975,11 +976,18 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _closeFoldout(): Promise<void> {
+  public async _closeFoldout(foldout?: FoldoutType): Promise<void> {
+
+    if (!this.currentFoldout) {
+      return
+    }
+
+    if (foldout !== undefined && this.currentFoldout.type !== foldout) {
+      return
+    }
+
     this.currentFoldout = null
     this.emitUpdate()
-
-    return Promise.resolve()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

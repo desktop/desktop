@@ -300,8 +300,8 @@ export class Dispatcher {
   }
 
   /** Close the current foldout. */
-  public closeFoldout(): Promise<void> {
-    return this.appStore._closeFoldout()
+  public closeFoldout(foldout?: FoldoutType): Promise<void> {
+    return this.appStore._closeFoldout(foldout)
   }
 
   /** Create a new branch from the given starting point and check it out. */
