@@ -304,7 +304,12 @@ export class Dispatcher {
     return this.appStore._closeFoldout()
   }
 
-  /** Create a new branch from the given starting point and check it out. */
+  /** 
+   * Create a new branch from the given starting point and check it out.
+   * 
+   * If the startPoint argument is omitted the new branch will be created based
+   * off of the current state of HEAD.
+   */
   public createBranch(repository: Repository, name: string, startPoint?: string): Promise<Repository> {
     return this.appStore._createBranch(repository, name, startPoint)
   }
