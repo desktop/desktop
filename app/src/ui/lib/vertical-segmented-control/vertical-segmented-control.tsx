@@ -2,7 +2,7 @@ import * as React from 'react'
 import { createUniqueId, releaseUniqueId } from '../id-pool'
 import { SegmentedItem } from './segmented-item'
 
-interface ISegmentedItem {
+export interface ISegmentedItem {
   readonly title: string
   readonly description?: string
 }
@@ -23,6 +23,10 @@ interface IVerticalSegmentedControlState {
   readonly listId?: string
 }
 
+/**
+ * A component for presenting a small number of choices to the user. Equivalent
+ * of a radio button group but styled as a vertically oriented segmented control.
+ */
 export class VerticalSegmentedControl extends React.Component<IVerticalSegmentedControlProps, IVerticalSegmentedControlState> {
   private listRef: HTMLUListElement | null = null
 
