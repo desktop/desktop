@@ -1,11 +1,39 @@
 import * as React from 'react'
 
 interface ISegmentedItemProps {
+  /**
+   * An id for the item, used to assist in accessibility
+   */
   readonly id: string
+
+  /**
+   * The index of the item among the other choices in the segmented
+   * control. This is passed along to the onClick handler to differentiate
+   * between clicked items.
+   */
   readonly index: number
+
+  /**
+   * The title for the segmented item. This should be kept short.
+   */
   readonly title: string
+
+  /**
+   * An optional description which explains the consequences of
+   * selecting this item.
+   */
   readonly description?: string
+
+  /**
+   * Whether or not the item is currently the active selection among the
+   * other choices in the segmented control.
+   */
   readonly isSelected: boolean
+
+  /**
+   * A function that's called when a user clicks on the item using
+   * a pointer device.
+   */
   readonly onClick: (index: number) => void
 }
 
