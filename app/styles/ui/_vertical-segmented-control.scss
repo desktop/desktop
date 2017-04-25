@@ -65,7 +65,6 @@
 
       .title {
         font-weight: var(--font-weight-semibold);
-        margin-bottom: var(--spacing-half);
         @include ellipsis;
       }
 
