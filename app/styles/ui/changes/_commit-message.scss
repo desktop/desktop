@@ -3,19 +3,10 @@
 /** A React component holding the commit message entry */
 #commit-message {
 
-  // Reset fieldset
-  padding: 0;
-  margin: 0;
-  border: 0;
-  border-style: none;
-  min-width: 0;
-
   border-top: 1px solid var(--box-border-color);
   flex-direction: column;
   flex-shrink: 0;
   margin-top: auto;
-
-  & > legend { display: none; }
 
   display: flex;
   background-color: var(--box-alt-background-color);
