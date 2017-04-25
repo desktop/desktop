@@ -1,8 +1,12 @@
 .vertical-segmented-control {
 
-  label {
+  border: none;
+  margin: 0;
+  padding: 0;
+
+  legend {
     margin-bottom: var(--spacing-third);
-    display: block;
+    padding: 0;
   }
 
   ul {
