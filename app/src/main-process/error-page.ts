@@ -1,3 +1,4 @@
+/* tslint:disable:no-sync-functions */
 import { BrowserWindow } from 'electron'
 
 import * as Fs from 'fs'
