@@ -305,7 +305,7 @@ export class Dispatcher {
   }
 
   /** Create a new branch from the given starting point and check it out. */
-  public createBranch(repository: Repository, name: string, startPoint: string): Promise<Repository> {
+  public createBranch(repository: Repository, name: string, startPoint?: string): Promise<Repository> {
     return this.appStore._createBranch(repository, name, startPoint)
   }
 

@@ -4,8 +4,13 @@ import { Branch, BranchType } from '../../models/branch'
 import { Account } from '../../models/account'
 
 /** Create a new branch from the given start point. */
-export async function createBranch(repository: Repository, name: string, startPoint: string): Promise<true> {
-  await git([ 'branch', name, startPoint ], repository.path, 'createBranch')
+export async function createBranch(repository: Repository, name: string, startPoint?: string): Promise<true> {
+  
+  const args = startPoint
+    ? [ 'branch', name, startPoint ]
+    : [ 'branch', name ]
+  
+  await git(args, repository.path, 'createBranch')
   return true
 }
 
