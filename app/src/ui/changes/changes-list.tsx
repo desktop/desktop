@@ -110,12 +110,12 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
 
     return (
       <div className='changes-list-container file-list'>
-        <div id='select-all' className='header'>
-          <Checkbox value={this.includeAllValue} onChange={this.onIncludeAllChanged}/>
-
-          <label className='changed-files-count'>
-            {filesDescription}
-          </label>
+        <div className='header'>
+          <Checkbox
+            label={filesDescription}
+            value={this.includeAllValue}
+            onChange={this.onIncludeAllChanged}
+          />
         </div>
 
         <List id='changes-list'
