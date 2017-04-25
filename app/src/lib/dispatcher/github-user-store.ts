@@ -116,10 +116,16 @@ export class GitHubUserStore {
 
     this.requestsInFlight.add(key)
 
-    let gitUser: IGitHubUser | null = await this.database.users.where('[endpoint+email]')
-      .equals([ account.endpoint, email.toLowerCase() ])
-      .limit(1)
-      .first()
+    let gitUser: IGitHubUser | null = null
+    // We don't have email addresses for all the users in our database, e.g., if
+    // the user has no public email. In that case, the email field is an empty
+    // string. But we don't ever wanna match against that.
+    if (email.length > 0) {
+      gitUser = await this.database.users.where('[endpoint+email]')
+        .equals([ account.endpoint, email.toLowerCase() ])
+        .limit(1)
+        .first()
+    }
 
     // TODO: Invalidate the stored user in the db after ... some reasonable time
     // period.
