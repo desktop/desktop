@@ -136,7 +136,7 @@ export class GitHubUserStore {
     this.requestsInFlight.delete(key)
 
     if (gitUser) {
-      this.cacheUser(gitUser)
+      await this.cacheUser(gitUser)
       this.emitUpdate()
     } else {
       this.failedRequests.add(key)
