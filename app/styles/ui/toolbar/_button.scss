@@ -32,6 +32,11 @@
 
     &:focus {
       background-color: var(--toolbar-button-focus-background-color);
+
+      // Prevent the focus-ring from getting clipped by UI elements
+      // outside of the toolbar
+      outline-offset: -4px;
+
       // Reset
       border-color: var(--toolbar-button-border-color);
       box-shadow: none;
