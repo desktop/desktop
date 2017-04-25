@@ -65,9 +65,14 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
     }
   }
 
+  private getListItemId(index: number) {
+    return `${this.state.listId}_Item_${index}`
+  }
+
   private renderItem(item: ISegmentedItem, index: number, selected: boolean) {
     return (
       <SegmentedItem
+        id={this.getListItemId(index)}
         key={index}
         title={item.title}
         description={item.description}
@@ -113,6 +118,8 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
       ? <legend onClick={this.onLegendClick}>{this.props.label}</legend>
       : undefined
 
+    const activeDescendant = this.getListItemId(selectedIndex)
+
     // Using a fieldset with a legend seems to be the way to go here since
     // we can't use a label to point to a list (https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable).
     // See http://stackoverflow.com/a/13273907/2114
@@ -125,6 +132,8 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
           className='vertical-segmented-control'
           tabIndex={0}
           onKeyDown={this.onKeyDown}
+          role='radiogroup'
+          aria-activedescendant={activeDescendant}
         >
           {this.props.items.map((item, index) =>
             this.renderItem(item, index, index === selectedIndex))}
@@ -135,6 +144,7 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
 }
 
 interface ISegmentedItemProps {
+  readonly id: string
   readonly index: number
   readonly title: string
   readonly description?: string
@@ -153,12 +163,16 @@ class SegmentedItem extends React.Component<ISegmentedItemProps, void> {
       ? <p>{this.props.description}</p>
       : undefined
 
-    const className = this.props.isSelected ? 'selected' : undefined
+    const isSelected = this.props.isSelected
+    const className = isSelected ? 'selected' : undefined
 
     return (
       <li
         className={className}
         onClick={this.onClick}
+        role='radio'
+        id={this.props.id}
+        aria-checked={isSelected ? 'true': 'false'}
       >
         <div className='title'>{this.props.title}</div>
         {description}
