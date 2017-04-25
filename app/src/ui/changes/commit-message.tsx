@@ -182,7 +182,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     const buttonEnabled = this.canCommit() && !this.props.isCommitting
 
     return (
-      <div id='commit-message'>
+      <fieldset id='commit-message' aria-label='Create commit'>
         <div className='summary'>
           {this.renderAvatar()}
 
@@ -213,7 +213,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
         >
           <div title={`Commit to ${branchName}`}>Commit to <strong>{branchName}</strong></div>
         </Button>
-      </div>
+      </fieldset>
     )
   }
 }
