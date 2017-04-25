@@ -10,7 +10,6 @@
   }
 
   ul {
-    border: var(--base-border);
     list-style: none;
     padding: 0;
     margin: 0;
@@ -23,17 +22,30 @@
 
     li {
       padding: var(--spacing);
+      border-left: var(--base-border);
+      border-right: var(--base-border);
+      border-top: var(--base-border);
+      border-bottom: none;
 
-      &:not(:last-child) {
+      &:last-child {
         border-bottom: var(--base-border);
       }
 
       &.selected {
         color: var(--box-selected-active-text-color);
         background: var(--box-selected-active-background-color);
+        border-color: var(--box-selected-active-background-color);
 
         p {
           color: var(--box-selected-active-text-color);
+        }
+
+        // The list item that immediately follows a selected item
+        // should have its top border be the same color as the background
+        // of the selected one. This makes for crisp division between
+        // selected and non-selected without a gray border to interfere.
+        & + li {
+          border-top-color: var(--box-selected-active-background-color);
         }
       }
 
