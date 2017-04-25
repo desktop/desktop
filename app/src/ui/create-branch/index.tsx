@@ -127,7 +127,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
         return (
           <Row>
             <VerticalSegmentedControl
-              label='Create branch based on...'
+              label='Create branch based on…'
               items={items}
               selectedIndex={selectedIndex}
               onSelectionChanged={this.onBaseBranchChanged}
