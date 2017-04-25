@@ -147,9 +147,9 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
   }
 
   private onBaseBranchChanged = (selection: SelectedBranch) => {
-    if (selection === SelectedBranch.CurrentBranch) {
+    if (selection === SelectedBranch.DefaultBranch) {
       this.setState({ startPoint: 'default-branch' })
-    } else if (selection === SelectedBranch.DefaultBranch) {
+    } else if (selection === SelectedBranch.CurrentBranch) {
       this.setState({ startPoint: 'current-branch' })
     } else {
       throw new Error(`Unknown branch selection: ${selection}`)
