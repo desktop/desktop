@@ -35,18 +35,6 @@
     }
   }
 
-  .usage-opt-out {
-    .header {
-      display: flex;
-    }
-
-    .header-icon {
-      width: 32px;
-      height: 32px;
-      margin-right: 10px;
-    }
-  }
-
   input, button {
     font-size: var(--font-size-md);
     height: auto;
