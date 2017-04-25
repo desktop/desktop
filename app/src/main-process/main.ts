@@ -254,6 +254,11 @@ function createWindow() {
       loadTime: window.loadTime!,
       rendererReadyTime: window.rendererReadyTime!,
     })
+
+    if (launchURLAction) {
+      window.sendURLAction(launchURLAction)
+      launchURLAction = null
+    }
   })
 
   window.load()
