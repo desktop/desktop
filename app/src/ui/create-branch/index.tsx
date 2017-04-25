@@ -34,6 +34,11 @@ interface ICreateBranchState {
   readonly loading: boolean
 }
 
+enum SelectedBranch {
+  DefaultBranch = 0,
+  CurrentBranch = 1,
+}
+
 function getStartPoint(props: ICreateBranchProps, preferred: StartPoint): StartPoint {
   if (preferred === 'default-branch' && props.defaultBranch) {
     return preferred
@@ -141,11 +146,13 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     }
   }
 
-  private onBaseBranchChanged = (selectedIndex: number) => {
-    if (selectedIndex === 0) {
+  private onBaseBranchChanged = (selection: SelectedBranch) => {
+    if (selection === SelectedBranch.CurrentBranch) {
       this.setState({ startPoint: 'default-branch' })
-    } else if (selectedIndex === 1) {
+    } else if (selection === SelectedBranch.DefaultBranch) {
       this.setState({ startPoint: 'current-branch' })
+    } else {
+      throw new Error(`Unknown branch selection: ${selection}`)
     }
   }
 
