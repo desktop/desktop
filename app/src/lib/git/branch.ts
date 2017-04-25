@@ -11,13 +11,12 @@ import { Account } from '../../models/account'
  * @param startPoint - A committish string that the new branch should be based
  *                     on, or undefined if the branch should be created based
  *                     off of the current state of HEAD
-*/
+ */
 export async function createBranch(repository: Repository, name: string, startPoint?: string): Promise<true> {
-  
   const args = startPoint
     ? [ 'branch', name, startPoint ]
     : [ 'branch', name ]
-  
+
   await git(args, repository.path, 'createBranch')
   return true
 }
