@@ -6,6 +6,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
+import { Progress } from '../../lib/app-state'
 
 interface IPushPullButtonProps {
   /**
@@ -23,6 +24,8 @@ interface IPushPullButtonProps {
   /** The date of the last fetch. */
   readonly lastFetched: Date | null
 
+  readonly progress: Progress | null
+
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
@@ -33,23 +36,41 @@ interface IPushPullButtonProps {
  */
 export class PushPullButton extends React.Component<IPushPullButtonProps, void> {
   public render() {
+
+    const progress = this.props.progress
+
+    const title = progress ? progress.title : this.getTitle()
+
+    const description = progress
+      ? progress.description || 'Hang on…'
+      : this.getDescription()
+
+    const progressValue = progress
+      ? progress.value
+      : undefined
+
+    const disabled = this.props.networkActionInProgress || !!this.props.progress
+
     return (
       <ToolbarButton
-        title={this.getTitle()}
-        description={this.getDescription()}
+        title={title}
+        description={description}
+        progressValue={progressValue}
         className='push-pull-button'
         icon={this.getIcon()}
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
         style={ToolbarButtonStyle.Subtitle}
         onClick={this.performAction}
-        disabled={this.props.networkActionInProgress}>
+        disabled={disabled}>
         {this.renderAheadBehind()}
       </ToolbarButton>
     )
   }
 
   private renderAheadBehind() {
-    if (!this.props.aheadBehind) { return null }
+    if (!this.props.aheadBehind || this.props.progress) {
+      return null
+    }
 
     const { ahead, behind } = this.props.aheadBehind
     if (ahead === 0 && behind === 0) { return null }
@@ -84,7 +105,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
     const actionName = (function () {
       if (behind > 0) { return 'Pull' }
       if (ahead > 0) { return 'Push' }
-      return 'Update'
+      return 'Fetch'
     })()
 
     return `${actionName} ${this.props.remoteName}`

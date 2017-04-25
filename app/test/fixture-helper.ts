@@ -1,3 +1,5 @@
+/* tslint:disable:no-sync-functions */
+
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
 

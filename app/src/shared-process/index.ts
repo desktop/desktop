@@ -42,7 +42,7 @@ async function updateAccounts() {
     const api = new API(account)
     const newAccount = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatarUrl, newAccount.id, newAccount.name)
+    return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatar_url, newAccount.id, newAccount.name)
   })
   broadcastUpdate()
 }

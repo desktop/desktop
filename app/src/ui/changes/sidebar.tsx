@@ -175,7 +175,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
 
   public render() {
     const changesState = this.props.changes
-    const selectedFile = changesState.selectedFile
+    const selectedFileID = changesState.selectedFileID
 
     // TODO: I think user will expect the avatar to match that which
     // they have configured in GitHub.com as well as GHE so when we add
@@ -193,7 +193,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           workingDirectory={changesState.workingDirectory}
-          selectedFile={selectedFile}
+          selectedFileID={selectedFileID}
           onFileSelectionChanged={this.onFileSelectionChanged}
           onCreateCommit={this.onCreateCommit}
           onIncludeChanged={this.onIncludeChanged}

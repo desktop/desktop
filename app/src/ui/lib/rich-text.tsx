@@ -52,7 +52,9 @@ export class RichText extends React.Component<IRichTextProps, void> {
     })
 
     return (
-      <div className={this.props.className}>{ elements }</div>
+      <div className={this.props.className}>
+        { elements }
+      </div>
     )
   }
 }

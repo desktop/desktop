@@ -230,10 +230,10 @@ export class Dispatcher {
 
   /** Select the repository. */
   public async selectRepository(repository: Repository | CloningRepository): Promise<Repository | null> {
-    const repo = this.appStore._selectRepository(repository)
+    let repo = await this.appStore._selectRepository(repository)
 
     if (repository instanceof Repository) {
-      await this.refreshGitHubRepositoryInfo(repository)
+      repo = await this.refreshGitHubRepositoryInfo(repository)
     }
 
     return repo
@@ -300,12 +300,17 @@ export class Dispatcher {
   }
 
   /** Close the current foldout. */
-  public closeFoldout(): Promise<void> {
-    return this.appStore._closeFoldout()
+  public closeFoldout(foldout: FoldoutType): Promise<void> {
+    return this.appStore._closeFoldout(foldout)
   }
 
-  /** Create a new branch from the given starting point and check it out. */
-  public createBranch(repository: Repository, name: string, startPoint: string): Promise<Repository> {
+  /** 
+   * Create a new branch from the given starting point and check it out.
+   * 
+   * If the startPoint argument is omitted the new branch will be created based
+   * off of the current state of HEAD.
+   */
+  public createBranch(repository: Repository, name: string, startPoint?: string): Promise<Repository> {
     return this.appStore._createBranch(repository, name, startPoint)
   }
 

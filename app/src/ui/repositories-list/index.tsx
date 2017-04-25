@@ -5,6 +5,7 @@ import { groupRepositories, IRepositoryListItem, Repositoryish, RepositoryGroupI
 import { Dispatcher } from '../../lib/dispatcher'
 import { FilterList } from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
+import { FoldoutType } from '../../lib/app-state'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
@@ -57,7 +58,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
   private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       if (filter.length === 0) {
-        this.props.dispatcher.closeFoldout()
+        this.props.dispatcher.closeFoldout(FoldoutType.Repository)
         event.preventDefault()
       }
     }

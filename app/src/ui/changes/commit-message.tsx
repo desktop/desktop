@@ -211,7 +211,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           onClick={this.onSubmit}
           disabled={!buttonEnabled}
         >
-          <div>Commit to <strong>{branchName}</strong></div>
+          <div title={`Commit to ${branchName}`}>Commit to <strong>{branchName}</strong></div>
         </Button>
       </div>
     )
