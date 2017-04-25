@@ -957,6 +957,13 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _showPopup(popup: Popup): Promise<void> {
+
+    // Always close the app menu when showing a pop up. This is only
+    // applicable on Windows where we draw a custom app menu.
+    if (this.currentFoldout && this.currentFoldout.type === FoldoutType.AppMenu) {
+      this.currentFoldout = null
+    }
+
     this.currentPopup = popup
     this.emitUpdate()
   }
