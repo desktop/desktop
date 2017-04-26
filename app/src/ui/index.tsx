@@ -117,8 +117,8 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
       // in the repository - drop the branch argument in this case so a clone will
       // checkout the default branch when it clones
       const branchToClone = (pr && branch) ? undefined : branch
-      openRepository(url, branchToClone)
-        .then(repository => handleCloneInDesktopOptions(repository, action.args))
+      const repository = await openRepository(url, branchToClone)
+      handleCloneInDesktopOptions(repository, action.args)
       break
 
     default:
