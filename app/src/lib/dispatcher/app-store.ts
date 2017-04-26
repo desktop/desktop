@@ -906,12 +906,13 @@ export class AppStore {
     // When refreshing we *always* check the status so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
-    await this._loadStatus(repository)
+    await Promise.all([
+      this._loadStatus(repository),
+      gitStore.loadBranches(),
+    ])
 
     await Promise.all([
-      gitStore.loadBranches(),
       gitStore.loadCurrentRemote(),
-      // gitStore.calculateAheadBehindForCurrentBranch(),
       gitStore.updateLastFetched(),
       this.refreshAuthor(repository),
       gitStore.loadContextualCommitMessage(),
