@@ -1,13 +1,11 @@
 /* tslint:disable:no-sync-functions */
-import { BrowserWindow } from 'electron'
+import { app, BrowserWindow } from 'electron'
 
 import * as Fs from 'fs'
 import * as Path from 'path'
 import * as Os from 'os'
 import * as url from 'url'
 
-import { getVersion } from '../ui/lib/app-proxy'
-import { getOperatingSystem } from '../lib/operating-system'
 import { getLogger } from '../lib/logging/main'
 
 function htmlEscape(input: string): string {
@@ -18,12 +16,13 @@ function htmlEscape(input: string): string {
 }
 
 /**
- * Display a static page embedded with the error information, so that
- * a user can provide details to our support channels.
+ * Display a static page embedded with the error information, so that a user
+ * can provide details to our support channels.
  *
- * Note: because of the dynamic error, we dump a generated file to the
- * TEMP directory, and drop the existing styles file alongside so that
- * the error dialog looks somewhat familiar.
+ * Note: because of the unknown application state, this method generates a
+ * static file to the user's TEMP directory, with the existing styles file
+ * alongside so that the error dialog looks consistent with the rest of the
+ * application.
  *
  * @param error The error to display on the page
  */
@@ -54,7 +53,10 @@ export function showFallbackPage(error: Error) {
   const errorContent = error.stack || error.message
   const escapedErrorContent = htmlEscape(errorContent)
 
-  const content = `Version: ${getVersion()}\nOS: ${getOperatingSystem()}\n Error: ${escapedErrorContent}`
+  const content = `
+  <strong>Version:</strong> ${app.getVersion()}<br />
+  <strong>Platform:</strong> ${process.platform}<br />
+  <strong>Error:</strong> ${escapedErrorContent}`
 
   const formattedBody = source.replace('<!--{{content}}-->', content)
 
@@ -72,4 +74,7 @@ export function showFallbackPage(error: Error) {
     protocol: 'file:',
     slashes: true,
   }))
+
+  // ensure we have focus
+  window.show()
 }
