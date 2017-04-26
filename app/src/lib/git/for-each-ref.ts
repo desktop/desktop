@@ -5,12 +5,13 @@ import { Branch, BranchType } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
 
 /** Get all the branches. */
-export async function getBranches(repository: Repository, prefix: string, type: BranchType): Promise<ReadonlyArray<Branch>> {
+export async function getBranches(repository: Repository, ...prefixes: string[]): Promise<ReadonlyArray<Branch>> {
 
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
 
   const format = [
+    '%(refname)',
     '%(refname:short)',
     '%(upstream:short)',
     '%(objectname)', // SHA
@@ -20,33 +21,43 @@ export async function getBranches(repository: Repository, prefix: string, type: 
     '%(body)',
     `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
   ].join('%00')
-  const result = await git([ 'for-each-ref', `--format=${format}`, prefix ], repository.path, 'getBranches')
+
+  if (!prefixes || !prefixes.length) {
+    prefixes = [ 'refs/heads', 'refs/remotes' ]
+  }
+
+  const result = await git([ 'for-each-ref', `--format=${format}`, ...prefixes ], repository.path, 'getBranches')
   const names = result.stdout
   const lines = names.split(delimiterString)
 
   // Remove the trailing newline
   lines.splice(-1, 1)
 
-  const branches = lines.map(line => {
-    const pieces = line.split('\0')
-
+  const branches = lines.map((line, ix) => {
     // preceding newline character after first row
-    const name = pieces[0].trim()
-    const upstream = pieces[1]
-    const sha = pieces[2]
+    const pieces = (ix > 0 ? line.substr(1) : line ).split('\0')
 
-    const authorIdentity = pieces[3]
+    const ref = pieces[0]
+    const name = pieces[1]
+    const upstream = pieces[2]
+    const sha = pieces[3]
+
+    const authorIdentity = pieces[4]
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
     if (!author) {
       throw new Error(`Couldn't parse author identity ${authorIdentity}`)
     }
 
-    const parentSHAs = pieces[4].split(' ')
-    const summary = pieces[5]
-    const body = pieces[6]
+    const parentSHAs = pieces[5].split(' ')
+    const summary = pieces[6]
+    const body = pieces[7]
 
     const tip = new Commit(sha, summary, body, author, parentSHAs)
+
+    const type = ref.startsWith('refs/head')
+      ? BranchType.Local
+      : BranchType.Remote
 
     return new Branch(name, upstream.length > 0 ? upstream : null, tip, type)
   })
@@ -68,7 +79,7 @@ export async function getCurrentBranch(repository: Repository): Promise<Branch |
   // New branches have a `heads/` prefix.
   name = name.replace(/^heads\//, '')
 
-  const branches = await getBranches(repository, `refs/heads/${name}`, BranchType.Local)
+  const branches = await getBranches(repository, `refs/heads/${name}`)
 
-  return branches[0]
+  return branches[0] || null
 }
