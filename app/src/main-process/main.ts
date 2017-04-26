@@ -1,6 +1,5 @@
 import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater } from 'electron'
 
-
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL, URLActionType } from '../lib/parse-url'
@@ -269,8 +268,6 @@ function createWindow() {
 
   mainWindow = window
 }
-
-
 
 /** Get the main window, creating it if necessary. */
 function getMainWindow(): AppWindow {
