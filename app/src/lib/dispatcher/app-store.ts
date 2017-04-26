@@ -26,7 +26,7 @@ import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
-import { Tip, TipState } from '../../models/tip'
+import { TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
@@ -51,7 +51,6 @@ import { fatalError } from '../fatal-error'
 
 import {
   getGitDir,
-  getStatus,
   getAuthorIdentity,
   pull as pullRepo,
   push as pushRepo,
@@ -67,7 +66,6 @@ import {
   createCommit,
   checkoutBranch,
   getRemotes,
-  getCommit,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -686,44 +684,10 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadStatus(repository: Repository, clearPartialState: boolean = false): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    const status = await gitStore.performFailableOperation(() => getStatus(repository))
-    if (!status) { return }
+    const status = await gitStore.loadStatus()
 
-    const aheadBehind = status.branchAheadBehind
-
-    if (aheadBehind) {
-      this.updateRepositoryState(repository, state => ({ aheadBehind }))
-    }
-
-    const { currentBranch, currentTip } = status
-
-    if (currentBranch || currentTip) {
-
-      let tip: Tip
-
-      if (currentTip && currentBranch) {
-        const branchTipCommit = await gitStore.performFailableOperation(() => getCommit(repository, currentTip))
-
-        if (!branchTipCommit) {
-          throw new Error(`Could not load commit ${currentTip}`)
-        }
-
-        const branch = new Branch(
-          currentBranch,
-          status.currentUpstreamBranch || null,
-          branchTipCommit,
-          BranchType.Local
-        )
-        tip = { kind: TipState.Valid, branch }
-      } else if (currentTip && !currentBranch) {
-        tip = { kind: TipState.Detached, currentSha: currentTip }
-      } else if (currentBranch) {
-        tip = { kind: TipState.Unborn }
-      } else {
-        tip = { kind: TipState.Unknown }
-      }
-
-      this.updateBranchesState(repository, (state) => ({ ...state, tip }))
+    if (!status) {
+      return
     }
 
     this.updateChangesState(repository, state => {
@@ -939,21 +903,19 @@ export class AppStore {
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
 
-    await gitStore.loadCurrentAndDefaultBranch()
-
-    await Promise.all([
-      gitStore.loadBranches(),
-      gitStore.loadCurrentRemote(),
-      gitStore.calculateAheadBehindForCurrentBranch(),
-      gitStore.updateLastFetched(),
-      this.refreshAuthor(repository),
-      gitStore.loadContextualCommitMessage(),
-    ])
-
     // When refreshing we *always* check the status so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
     await this._loadStatus(repository)
+
+    await Promise.all([
+      gitStore.loadBranches(),
+      gitStore.loadCurrentRemote(),
+      // gitStore.calculateAheadBehindForCurrentBranch(),
+      gitStore.updateLastFetched(),
+      this.refreshAuthor(repository),
+      gitStore.loadContextualCommitMessage(),
+    ])
 
     const section = state.selectedSection
     if (section === RepositorySection.History) {

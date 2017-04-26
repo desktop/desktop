@@ -243,6 +243,7 @@ export class GitStore {
       this._defaultBranch = null
     }
 
+    this.emitUpdate()
     this.loadRecentBranches()
 
     const commits = allBranchesWithUpstream.map(b => b.tip)
@@ -466,6 +467,51 @@ export class GitStore {
     }
 
     this.emitUpdate()
+  }
+
+  public async loadStatus(): Promise<IStatusResult | null> {
+    const status = await this.performFailableOperation(() =>
+      getStatus(this.repository))
+
+    if (!status) {
+      return null
+    }
+
+    const aheadBehind = status.branchAheadBehind
+
+    if (aheadBehind) {
+      this._aheadBehind = aheadBehind
+    }
+
+    const { currentBranch, currentTip } = status
+
+    if (currentBranch || currentTip) {
+
+      if (currentTip && currentBranch) {
+        const branchTipCommit = await this.performFailableOperation(() =>
+          getCommit(this.repository, currentTip))
+
+        if (!branchTipCommit) {
+          throw new Error(`Could not load commit ${currentTip}`)
+        }
+
+        const branch = new Branch(
+          currentBranch,
+          status.currentUpstreamBranch || null,
+          branchTipCommit,
+          BranchType.Local
+        )
+        this._tip = { kind: TipState.Valid, branch }
+      } else if (currentTip && !currentBranch) {
+        this._tip = { kind: TipState.Detached, currentSha: currentTip }
+      } else if (currentBranch) {
+        this._tip = { kind: TipState.Unborn }
+      } else {
+        this._tip = { kind: TipState.Unknown }
+      }
+    }
+
+    return status
   }
 
   /**
