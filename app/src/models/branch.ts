@@ -2,8 +2,8 @@ import { Commit } from './commit'
 import { removeRemotePrefix } from '../lib/remove-remote-prefix'
 
 export enum BranchType {
-  Local,
-  Remote,
+  Local = 0,
+  Remote = 1,
 }
 
 /** A branch as loaded from Git. */
