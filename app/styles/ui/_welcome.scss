@@ -23,6 +23,14 @@
   }
 
   #sign-in-enterprise {
+    .welcome-title {
+      margin-bottom: 0;
+    }
+
+    .sign-in-form {
+      margin-top: 0;
+    }
+
     .actions {
       display: inline;
       margin-top: var(--spacing);
@@ -57,10 +65,10 @@
     .text-box-component {
       margin-bottom: var(--spacing);
     }
+  }
 
-    .actions {
-      margin-top: var(--spacing-double);
-    }
+  .actions {
+    margin-top: var(--spacing);
   }
 }
 
