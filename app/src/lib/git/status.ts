@@ -61,7 +61,7 @@ export function mapStatus(rawStatus: string): FileStatus {
  *  and fail gracefully if the location is not a Git repository
  */
 export async function getStatus(repository: Repository): Promise<IStatusResult> {
-  const result = await git([ 'status', '--untracked-files=all', '--porcelain=2', '-z' ], repository.path, 'getStatus')
+  const result = await git([ 'status', '--untracked-files=all', '--branch', '--porcelain=2', '-z' ], repository.path, 'getStatus')
 
   const files = new Array<WorkingDirectoryFileChange>()
 
