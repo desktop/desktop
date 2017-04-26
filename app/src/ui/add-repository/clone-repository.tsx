@@ -23,6 +23,9 @@ interface ICloneRepositoryProps {
 
   /** The logged in accounts. */
   readonly accounts: ReadonlyArray<Account>
+
+  /** The initial URL or `owner/name` shortcut to use. */
+  readonly initialURL: string | null
 }
 
 interface ICloneRepositoryState {
@@ -50,7 +53,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     super(props)
 
     this.state = {
-      url: '',
+      url: props.initialURL || '',
       path: getDefaultDir(),
       loading: false,
       error: null,
