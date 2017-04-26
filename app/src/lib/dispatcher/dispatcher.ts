@@ -856,7 +856,7 @@ export class Dispatcher {
     }
   }
 
-  private openRepository(url: string, branch?: string): Promise<Repository | null> {
+  private async openRepository(url: string, branch?: string): Promise<Repository | null> {
     const state = this.appStore.getState()
     const repositories = state.repositories
     const existingRepository = repositories.find(r => {
@@ -870,10 +870,10 @@ export class Dispatcher {
     })
 
     if (existingRepository) {
-      return this.selectRepository(existingRepository).then(repo => {
-        if (!repo || !branch) { return repo }
-        return this.checkoutBranch(repo, branch)
-      })
+      const repo = await this.selectRepository(existingRepository)
+
+      if (!repo || !branch) { return repo }
+      return this.checkoutBranch(repo, branch)
     }
 
     return this.cloneRepository(url, branch)
