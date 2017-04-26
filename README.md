@@ -10,9 +10,9 @@ is written in [TypeScript](http://www.typescriptlang.org) and uses
 
 Download the installer for your OS:
 
- - [macOS](https://desktop.githubusercontent.com/releases/0.0.35-d8087235/GitHubDesktop.zip)
- - [Windows](https://desktop.githubusercontent.com/releases/0.0.35-d8087235/GitHubDesktopSetup.exe)
- - [Windows machine-wide install](https://desktop.githubusercontent.com/releases/0.0.35-d8087235/GitHubDesktopSetup.msi)
+ - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
+ - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
+ - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?msi=1)
 
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
