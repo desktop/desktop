@@ -161,23 +161,22 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
   }
 
   private renderWarning() {
-    if (/^\s*$/.test(this.state.proposedName)) {
-      return (
-        <Row className='warning-helper-text'>
-          <Octicon symbol={OcticonSymbol.alert} />
-          Branch name cannot be empty
-        </Row>
-      )
+    if (/^\s+$/.test(this.state.proposedName)) {
+      return this.renderWarningMessage('  Branch name cannot be empty')
     } else if (this.state.proposedName !== this.state.sanitizedName) {
-      return (
-        <Row className='warning-helper-text'>
-          <Octicon symbol={OcticonSymbol.alert} />
-          Will be created as {this.state.sanitizedName}
-        </Row>
-      )
+      return this.renderWarningMessage(`Will be created as ${this.state.sanitizedName}`)
     } else {
       return null
     }
+  }
+
+  private renderWarningMessage(message: string) {
+    return (
+      <Row className='warning-helper-text'>
+        <Octicon symbol={OcticonSymbol.alert} />
+        {message}
+      </Row>
+    )
   }
 
   public render() {
