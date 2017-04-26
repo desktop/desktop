@@ -44,7 +44,7 @@ After cloning the repository, the typical workflow to get up running
 is as follows:
 
 * Run `npm install` to get all required dependencies on your machine.
-* Run `npm run build:dev` to make a development build of the app.
+* Run `npm run build:dev` to create a development build of the app.
 * Run `npm start` to launch the application. Changes will be compiled in the
   background. The app can then be reloaded to see the changes (Ctrl/Command+R).
 
@@ -69,7 +69,7 @@ in order to only run the tests that match that string.
 npm run test:unit -- --grep CloneProgressParser
 ```
 
-This example will run all tests matching `CloneProgressParser`.
+This example will run all test names containing `CloneProgressParser`.
 
 ## Debugging
 
