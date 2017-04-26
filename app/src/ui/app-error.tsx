@@ -140,7 +140,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
             This has been reported to the team, but if you encounter this repeatedly please report this issue to the GitHub Desktop <LinkButton uri='https://github.com/desktop/desktop/issues'>issue tracker</LinkButton>.
           </p>
           {errorDetails}
-          <p>Due to this error, the application will now exit and needs to be restarted.</p>
+          <p>Due to this error, the application will now quit and will need to be restarted.</p>
         </div>
       )
     }
@@ -193,7 +193,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     if (unhandled) {
       return (
         <ButtonGroup>
-          <Button onClick={this.closeAndExit} type='submit'>Exit</Button>
+          <Button onClick={this.closeAndExit} type='submit'>Quit</Button>
         </ButtonGroup>
       )
     }
