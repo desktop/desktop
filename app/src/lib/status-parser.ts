@@ -1,5 +1,12 @@
+export interface IStatusHeader {
+  readonly kind: 'header'
+  readonly value: string
+}
+
 /** A representation of a parsed status entry from git status */
 export interface IStatusEntry {
+  readonly kind: 'entry'
+
   /** The path to the file relative to the repository root */
   readonly path: string,
 
@@ -11,8 +18,8 @@ export interface IStatusEntry {
 }
 
 /** Parses output from git status --porcelain -z into file status entries */
-export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusEntry> {
-  const entries = new Array<IStatusEntry>()
+export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeader | IStatusEntry> {
+  const entries = new Array<IStatusEntry | IStatusHeader>()
 
   // See https://git-scm.com/docs/git-status
   //
@@ -32,21 +39,66 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusEntry
   let field: string | undefined
 
   while (field = fields.shift()) {
-    // The status field is two letters followed by a space
-    // and then comes the path.
-    const statusCode = field.substr(0, 2)
-    const path = field.substr(3)
 
-    let oldPath: string | undefined = undefined
-
-    // In the case of renames there's one more field separated
-    // by a null character which holds the source/original path
-    // before the rename.
-    if (statusCode.startsWith('R') || statusCode.startsWith('C')) {
-      oldPath = fields.shift()
+    if (field.startsWith('# ') && field.length > 2) {
+      entries.push({ kind: 'header', value: field.substr(2) })
+      continue
     }
 
-    entries.push({ path, statusCode, oldPath })
+    const entryKind = field.substr(0, 1)
+
+    // 1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>
+    // 2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>
+    if (entryKind === '1' || entryKind === '2') {
+
+
+      if (entryKind === '1') {
+        // Ordinary changed entries
+        const match = field.match(/^(\d) ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
+
+        if (!match) {
+          throw new Error(`Failed to parse status line for changed entry: ${field}`)
+        }
+
+        entries.push({
+          kind: 'entry',
+          statusCode: match[2],
+          path: match[9],
+        })
+      } else {
+        // Renamed or copied entries
+        const match = field.match(/^(\d) ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([RC]\d+) (.*?)$/)
+
+        if (!match) {
+          throw new Error(`Failed to parse status line for renamed or copied entry: ${field}`)
+        }
+
+        const oldPath = fields.shift()
+
+        if (!oldPath) {
+          throw new Error('Failed to parse renamed or copied entry, could not parse old path')
+        }
+
+        entries.push({
+          kind: 'entry',
+          statusCode: match[9],
+          oldPath,
+          path: match[10],
+        })
+      }
+    } else if (entryKind === 'u') {
+      // Unmerged entries
+    } else if (entryKind === '?') {
+      // Untracked
+      const path = field.substr(2)
+      entries.push({
+        kind: 'entry',
+        statusCode: '??',
+        path,
+      })
+    } else if (entryKind === '!') {
+      // Ignored, we don't care about these for now
+    }
   }
 
   return entries

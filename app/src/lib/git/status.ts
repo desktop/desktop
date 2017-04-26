@@ -34,7 +34,10 @@ export class StatusResult {
  */
 export function mapStatus(rawStatus: string): FileStatus {
 
-  const status = rawStatus.trim()
+  // TODO: This is due to the fact that porcelain V2 changed from
+  // using space to using a dot when either side is unmodified.
+  // We should probably parse this properly.
+  const status = rawStatus.replace('.', '')
 
   if (status === 'M') { return FileStatus.Modified }      // modified
   if (status === 'A') { return FileStatus.New }           // added
@@ -67,15 +70,18 @@ export function mapStatus(rawStatus: string): FileStatus {
  *  and fail gracefully if the location is not a Git repository
  */
 export async function getStatus(repository: Repository): Promise<StatusResult> {
-  const result = await git([ 'status', '--untracked-files=all', '--porcelain', '-z' ], repository.path, 'getStatus')
-  const entries = parsePorcelainStatus(result.stdout)
+  const result = await git([ 'status', '--untracked-files=all', '--porcelain=2', '-z' ], repository.path, 'getStatus')
 
-  const files = entries.map(({ path, statusCode, oldPath }) => {
-    const status = mapStatus(statusCode)
-    const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
+  const files = new Array<WorkingDirectoryFileChange>()
 
-    return new WorkingDirectoryFileChange(path, status, selection, oldPath)
-  })
+  for (const entry of parsePorcelainStatus(result.stdout)) {
+    if (entry.kind === 'entry') {
+      const status = mapStatus(entry.statusCode)
+      const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
+
+      files.push(new WorkingDirectoryFileChange(entry.path, status, selection, entry.oldPath))
+    }
+  }
 
   return StatusResult.FromStatus(new WorkingDirectoryStatus(files, true))
 }
