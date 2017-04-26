@@ -53,11 +53,23 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     super(props)
 
     this.state = {
-      url: props.initialURL || '',
+      url: '',
       path: getDefaultDir(),
       loading: false,
       error: null,
       lastParsedIdentifier: null,
+    }
+  }
+
+  public componentDidMount() {
+    if (this.props.initialURL) {
+      this.onURLChanged(this.props.initialURL)
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: ICloneRepositoryProps) {
+    if (nextProps.initialURL && nextProps.initialURL !== this.props.initialURL) {
+      this.onURLChanged(nextProps.initialURL)
     }
   }
 
