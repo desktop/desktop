@@ -32,7 +32,7 @@
     }
 
     .sign-in-footer {
-      margin-top: var(--spacing-double);  
+      margin-top: var(--spacing-double);
     }
 
     .actions {
@@ -44,6 +44,12 @@
   #configure-git-user .form-component {
     div:last-child {
       margin-top: var(--spacing);
+    }
+  }
+
+  #usage-opt-out {
+    .welcome-title {
+      margin: 0;  
     }
   }
 
