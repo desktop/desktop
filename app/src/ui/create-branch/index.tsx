@@ -162,7 +162,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
 
   private renderWarning() {
     if (/^\s+$/.test(this.state.proposedName)) {
-      return this.renderWarningMessage('  Branch name cannot be empty')
+      return this.renderWarningMessage('Branch name cannot be empty')
     } else if (this.state.proposedName !== this.state.sanitizedName) {
       return this.renderWarningMessage(`Will be created as ${this.state.sanitizedName}`)
     } else {
