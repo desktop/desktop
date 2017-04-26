@@ -3,29 +3,20 @@ import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '
 import { parsePorcelainStatus } from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
+import { IAheadBehind } from './rev-list'
 
 /** The encapsulation of the result from 'git status' */
-export class StatusResult {
+export interface IStatusResult {
+  readonly currentBranch?: string
+  readonly currentUpstreamBranch?: string
+  readonly currentTip?: string
+  readonly branchAheadBehind?: IAheadBehind
+
   /** true if the repository exists at the given location */
-  public readonly exists: boolean
+  readonly exists: boolean
 
   /** the absolute path to the repository's working directory */
-  public readonly workingDirectory: WorkingDirectoryStatus
-
-  /** factory method when 'git status' is unsuccessful */
-  public static NotFound(): StatusResult {
-    return new StatusResult(false, new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true))
-  }
-
-  /** factory method for a successful 'git status' result  */
-  public static FromStatus(status: WorkingDirectoryStatus): StatusResult {
-    return new StatusResult(true, status)
-  }
-
-  public constructor(exists: boolean, workingDirectory: WorkingDirectoryStatus) {
-    this.exists = exists
-    this.workingDirectory = workingDirectory
-  }
+  readonly workingDirectory: WorkingDirectoryStatus
 }
 
 /**
@@ -69,10 +60,15 @@ export function mapStatus(rawStatus: string): FileStatus {
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
  */
-export async function getStatus(repository: Repository): Promise<StatusResult> {
+export async function getStatus(repository: Repository): Promise<IStatusResult> {
   const result = await git([ 'status', '--untracked-files=all', '--porcelain=2', '-z' ], repository.path, 'getStatus')
 
   const files = new Array<WorkingDirectoryFileChange>()
+
+  let currentBranch: string | undefined = undefined
+  let currentUpstreamBranch: string | undefined = undefined
+  let currentTip: string | undefined = undefined
+  let branchAheadBehind: IAheadBehind | undefined = undefined
 
   for (const entry of parsePorcelainStatus(result.stdout)) {
     if (entry.kind === 'entry') {
@@ -80,8 +76,38 @@ export async function getStatus(repository: Repository): Promise<StatusResult> {
       const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
       files.push(new WorkingDirectoryFileChange(entry.path, status, selection, entry.oldPath))
+    } else if (entry.kind === 'header') {
+      let m: RegExpMatchArray | null
+      const value = entry.value
+
+      // This intentionally does not match branch.oid initial
+      if (m = value.match(/^branch\.oid ([a-f0-9]+)$/)) {
+        currentTip = m[1]
+      } else if (m = value.match(/^branch.head (.*?)$/)) {
+        if (m[1] !== 'detached') {
+          currentBranch = m[1]
+        }
+      } else if (m = value.match(/^branch.upstream (.*?)$/)) {
+        currentUpstreamBranch = m[1]
+      } else if (m = value.match(/^branch.ab \+(\d+) -(\d+)$/)) {
+        const ahead = parseInt(m[1], 10)
+        const behind = parseInt(m[2], 10)
+
+        if (!isNaN(ahead) && !isNaN(behind)) {
+          branchAheadBehind = { ahead, behind }
+        }
+      }
     }
   }
 
-  return StatusResult.FromStatus(new WorkingDirectoryStatus(files, true))
+  const workingDirectory = new WorkingDirectoryStatus(files, true)
+
+  return {
+    currentBranch,
+    currentTip,
+    currentUpstreamBranch,
+    branchAheadBehind,
+    exists: true,
+    workingDirectory,
+  }
 }
