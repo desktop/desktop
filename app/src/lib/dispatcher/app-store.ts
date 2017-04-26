@@ -636,7 +636,17 @@ export class AppStore {
 
     // doing this that the current user can be found by any of their email addresses
     for (const account of accounts) {
-      const userAssociations: ReadonlyArray<IGitHubUser> = account.emails.map(email => ({ ...account, email: email.email }))
+      const userAssociations: ReadonlyArray<IGitHubUser> = account.emails.map(email => (
+        // NB: We're not using object spread here because `account` has more
+        // keys than we want.
+        {
+          endpoint: account.endpoint,
+          email: email.email,
+          login: account.login,
+          avatarURL: account.avatarURL,
+          name: account.name,
+        }
+      ))
 
       for (const user of userAssociations) {
         this.gitHubUserStore.cacheUser(user)
