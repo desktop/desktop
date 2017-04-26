@@ -535,6 +535,21 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     if (diff.kind === DiffType.Text) {
+
+      if (diff.hunks.length === 0) {
+        if (this.props.file.status === FileStatus.New) {
+          return <div className='panel'>
+             The file is empty
+            </div>
+        }
+
+        if (this.props.file.status === FileStatus.Renamed) {
+          return <div className='panel'>
+             The file was renamed but not changed
+            </div>
+        }
+      }
+
       return this.renderTextDiff(diff)
     }
 
