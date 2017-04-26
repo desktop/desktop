@@ -16,7 +16,8 @@ describe('git/for-each-ref', () => {
 
   describe('getBranches', () => {
     it('fetches branches using for-each-ref', async () => {
-      const branches = await getBranches(repository!, 'refs/heads', BranchType.Local)
+      const branches = (await getBranches(repository!))
+        .filter(b => b.type === BranchType.Local)
 
       expect(branches.length).to.equal(3)
 
@@ -46,7 +47,7 @@ describe('git/for-each-ref', () => {
 
     it('should return empty list for empty repo', async () => {
       const repo = await setupEmptyRepository()
-      const branches = await getBranches(repo, '', BranchType.Local)
+      const branches = await getBranches(repo)
       expect(branches.length).to.equal(0)
     })
   })
