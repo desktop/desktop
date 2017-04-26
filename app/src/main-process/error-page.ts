@@ -6,6 +6,8 @@ import * as Path from 'path'
 import * as Os from 'os'
 import * as url from 'url'
 
+import { getVersion } from '../ui/lib/app-proxy'
+import { getOperatingSystem } from '../lib/operating-system'
 import { getLogger } from '../lib/logging/main'
 
 function htmlEscape(input: string): string {
@@ -49,10 +51,12 @@ export function showFallbackPage(error: Error) {
   }
 
   const source = data.toString()
-  const content = error.stack || error.message
-  const escapedContent = htmlEscape(content)
+  const errorContent = error.stack || error.message
+  const escapedErrorContent = htmlEscape(errorContent)
 
-  const formattedBody = source.replace('<!--{{content}}-->', escapedContent)
+  const content = `Version: ${getVersion()}\nOS: ${getOperatingSystem()}\n Error: ${escapedErrorContent}`
+
+  const formattedBody = source.replace('<!--{{content}}-->', content)
 
   const outputFile = Path.join(tmpdir, 'desktop-error-page.html')
   try {
