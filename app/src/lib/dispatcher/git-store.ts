@@ -13,6 +13,7 @@ import { IFetchProgress } from '../app-state'
 import { IAppShell } from '../../lib/dispatcher/app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
 import { structuralEquals } from '../../lib/equality'
+import { compare } from '../../lib/compare'
 
 import {
   reset,
@@ -23,7 +24,6 @@ import {
   fetchRefspec,
   getRecentBranches,
   getBranches,
-  getTip,
   deleteBranch,
   IAheadBehind,
   getBranchAheadBehind,
@@ -32,6 +32,9 @@ import {
   setRemoteURL,
   removeFromIndex,
   checkoutPaths,
+  getStatus,
+  IStatusResult,
+  getCommit,
 } from '../git'
 
 /** The number of commits to load from history per batch. */
@@ -197,49 +200,19 @@ export class GitStore {
   /** The list of ordered SHAs. */
   public get history(): ReadonlyArray<string> { return this._history }
 
-  /** Load the current and default branches. */
-  public async loadCurrentAndDefaultBranch() {
-
-    const currentTip = await this.performFailableOperation(() => getTip(this.repository))
-    if (!currentTip) { return }
-
-    this._tip = currentTip
-
-    let defaultBranchName: string | null = 'master'
-    const gitHubRepository = this.repository.gitHubRepository
-    if (gitHubRepository && gitHubRepository.defaultBranch) {
-      defaultBranchName = gitHubRepository.defaultBranch
-    }
-
-    if (this._tip.kind === TipState.Valid) {
-      const currentBranch = this._tip.branch
-
-      // If the current branch is the default branch, we can skip looking it up.
-      if (currentBranch.name === defaultBranchName) {
-        this._defaultBranch = currentBranch
-      } else {
-        this._defaultBranch = await this.loadBranch(defaultBranchName)
-      }
-    }
-    this.emitUpdate()
-  }
-
   /** Load all the branches. */
   public async loadBranches() {
-    let localBranches = await this.performFailableOperation(() => getBranches(this.repository, 'refs/heads', BranchType.Local))
-    if (!localBranches) {
-      localBranches = []
-    }
+    const allBranches = await this.performFailableOperation(() =>
+      getBranches(this.repository)
+    ) || []
 
-    let remoteBranches = await this.performFailableOperation(() => getBranches(this.repository, 'refs/remotes', BranchType.Remote))
-    if (!remoteBranches) {
-      remoteBranches = []
-    }
+    const localBranches = allBranches.filter(b => b.type === BranchType.Local)
+    const remoteBranches = allBranches.filter(b => b.type === BranchType.Remote)
 
     const upstreamBranchesAdded = new Set<string>()
-    const allBranches = new Array<Branch>()
+    const allBranchesWithUpstream = new Array<Branch>()
     localBranches.forEach(branch => {
-      allBranches.push(branch)
+      allBranchesWithUpstream.push(branch)
 
       if (branch.upstream) {
         upstreamBranchesAdded.add(branch.upstream)
@@ -251,16 +224,28 @@ export class GitStore {
       // we don't need to add it again.
       if (upstreamBranchesAdded.has(branch.name)) { return }
 
-      allBranches.push(branch)
+      allBranchesWithUpstream.push(branch)
     })
 
-    this._allBranches = allBranches
+    this._allBranches = allBranchesWithUpstream
 
-    this.emitUpdate()
+    let defaultBranchName: string | null = 'master'
+    const gitHubRepository = this.repository.gitHubRepository
+    if (gitHubRepository && gitHubRepository.defaultBranch) {
+      defaultBranchName = gitHubRepository.defaultBranch
+    }
+
+    if (defaultBranchName) {
+      this._defaultBranch = allBranchesWithUpstream
+        .sort((x, y) => compare(x.type, y.type))
+        .find(b => b.name === defaultBranchName) || null
+    } else {
+      this._defaultBranch = null
+    }
 
     this.loadRecentBranches()
 
-    const commits = allBranches.map(b => b.tip)
+    const commits = allBranchesWithUpstream.map(b => b.tip)
 
     for (const commit of commits) {
       this.commits.set(commit.sha, commit)
@@ -268,24 +253,6 @@ export class GitStore {
 
     this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
-  }
-
-  /**
-   * Try to load a branch using its name. This will prefer local branches over
-   * remote branches.
-   */
-  private async loadBranch(branchName: string): Promise<Branch | null> {
-    const localBranches = await this.performFailableOperation(() => getBranches(this.repository, `refs/heads/${branchName}`, BranchType.Local))
-    if (localBranches && localBranches.length) {
-      return localBranches[0]
-    }
-
-    const remoteBranches = await this.performFailableOperation(() => getBranches(this.repository, `refs/remotes/${branchName}`, BranchType.Remote))
-    if (remoteBranches && remoteBranches.length) {
-      return remoteBranches[0]
-    }
-
-    return null
   }
 
   /** The current branch. */
