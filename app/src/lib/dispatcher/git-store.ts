@@ -202,9 +202,14 @@ export class GitStore {
 
   /** Load all the branches. */
   public async loadBranches() {
-    const allBranches = await this.performFailableOperation(() =>
-      getBranches(this.repository)
-    ) || []
+    const [ allBranches, recentBranchNames ] = await Promise.all([
+      this.performFailableOperation(() => getBranches(this.repository)) || [],
+      this.performFailableOperation(() => getRecentBranches(this.repository, RecentBranchesLimit)),
+    ])
+
+    if (!allBranches) {
+      return
+    }
 
     const localBranches = allBranches.filter(b => b.type === BranchType.Local)
     const remoteBranches = allBranches.filter(b => b.type === BranchType.Remote)
@@ -244,7 +249,27 @@ export class GitStore {
     }
 
     this.emitUpdate()
-    this.loadRecentBranches()
+
+    if (recentBranchNames && recentBranchNames.length) {
+      const branchesByName = allBranchesWithUpstream
+        .reduce((map, branch) =>
+          map.set(branch.name, branch), new Map<string, Branch>())
+
+      const recentBranches = new Array<Branch>()
+        for (const name of recentBranchNames) {
+          const branch = branchesByName.get(name)
+          if (!branch) {
+            // This means the recent branch has been deleted. That's fine.
+            continue
+          }
+
+          recentBranches.push(branch)
+        }
+
+      this._recentBranches = recentBranches
+    } else {
+      this._recentBranches = []
+    }
 
     const commits = allBranchesWithUpstream.map(b => b.tip)
 
@@ -268,17 +293,17 @@ export class GitStore {
   /** The most recently checked out branches. */
   public get recentBranches(): ReadonlyArray<Branch> { return this._recentBranches }
 
-  /** Load the recent branches. */
-  private async loadRecentBranches() {
-    const recentBranches = await this.performFailableOperation(() => getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit))
-    if (recentBranches) {
-      this._recentBranches = recentBranches
-    } else {
-      this._recentBranches = []
-    }
+  // /** Load the recent branches. */
+  // private async loadRecentBranches() {
+  //   const recentBranches = await this.performFailableOperation(() => getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit))
+  //   if (recentBranches) {
+  //     this._recentBranches = recentBranches
+  //   } else {
+  //     this._recentBranches = []
+  //   }
 
-    this.emitUpdate()
-  }
+  //   this.emitUpdate()
+  // }
 
   /** Load the local commits. */
   public async loadLocalCommits(branch: Branch): Promise<void> {
