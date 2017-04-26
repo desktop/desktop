@@ -1,11 +1,8 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
-import { Branch } from '../../models/branch'
 
 /** Get the `limit` most recently checked out branches. */
-export async function getRecentBranches(repository: Repository, branches: ReadonlyArray<Branch>, limit: number): Promise<ReadonlyArray<Branch>> {
-  const branchesByName = branches.reduce((map, branch) => map.set(branch.name, branch), new Map<string, Branch>())
-
+export async function getRecentBranches(repository: Repository, limit: number): Promise<ReadonlyArray<string>> {
   // "git reflog show" is just an alias for "git log -g --abbrev-commit --pretty=oneline"
   // but by using log we can give it a max number which should prevent us from balling out
   // of control when there's ginormous reflogs around (as in e.g. github/github).
@@ -14,7 +11,7 @@ export async function getRecentBranches(repository: Repository, branches: Readon
 
   if (result.exitCode === 128) {
     // error code 128 is returned if the branch is unborn
-    return new Array<Branch>()
+    return []
   }
 
   const output = result.stdout
@@ -32,16 +29,5 @@ export async function getRecentBranches(repository: Repository, branches: Readon
     }
   }
 
-  const recentBranches = new Array<Branch>()
-  for (const name of names) {
-    const branch = branchesByName.get(name)
-    if (!branch) {
-      // This means the recent branch has been deleted. That's fine.
-      continue
-    }
-
-    recentBranches.push(branch)
-  }
-
-  return recentBranches
+  return [ ...names ]
 }
