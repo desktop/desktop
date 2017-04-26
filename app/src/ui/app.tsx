@@ -118,8 +118,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setMenuVisible(visibleItem, true)
 
-      if (status === UpdateStatus.UpdateReady) {
-        this.props.dispatcher.showPopup({ type: PopupType.UpdateAvailable })
+      if (!(__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') && status === UpdateStatus.UpdateReady) {
+        this.props.dispatcher.setUpdateBannerVisibility(true)
       }
     })
 
@@ -719,6 +719,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     showCertificateTrustDialog(certificate, 'Could not securely connect to the server, because its certificate is not trusted. Attackers might be trying to steal your information.\n\nTo connect unsafely, which may put your data at risk, you can “Always trust” the certificate and try again.')
   }
 
+  private onUpdateAvailableDismissed = () => {
+    this.props.dispatcher.setUpdateBannerVisibility(false)
+  }
+
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
     if (this.state.errors.length) { return null }
@@ -742,8 +746,6 @@ export class App extends React.Component<IAppProps, IAppState> {
                 dispatcher={this.props.dispatcher}
                 files={popup.files}
                 onDismissed={this.onPopupDismissed}/>
-      case PopupType.UpdateAvailable:
-        return <UpdateAvailable dispatcher={this.props.dispatcher}/>
       case PopupType.Preferences:
         return <Preferences
                 dispatcher={this.props.dispatcher}
@@ -900,6 +902,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <div id='desktop-app-contents'>
         {this.renderToolbar()}
+        {this.renderUpdateBanner()}
         {this.renderRepository()}
         {this.renderPopup()}
         {this.renderAppError()}
@@ -1027,6 +1030,20 @@ export class App extends React.Component<IAppProps, IAppState> {
         repository={selection.repository}
         repositoryState={selection.state}
       />
+    )
+  }
+
+  private renderUpdateBanner() {
+    if (!this.state.isUpdateAvailableBannerVisible) {
+      return null
+    }
+
+    const releaseNotesUri = 'https://desktop.github.com/release-notes/tng/'
+
+    return (
+      <UpdateAvailable
+        releaseNotesLink={releaseNotesUri}
+        onDismissed={this.onUpdateAvailableDismissed}/>
     )
   }
 

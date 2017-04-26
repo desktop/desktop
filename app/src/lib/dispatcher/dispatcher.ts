@@ -477,6 +477,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the update banner's visibility
+   */
+  public setUpdateBannerVisibility(isVisible: boolean) {
+    return this.appStore._setUpdateBannerVisibility(isVisible)
+  }
+
+  /**
    * Reset the width of the repository sidebar to its default
    * value. This affects the changes and history sidebar
    * as well as the first toolbar section which contains
