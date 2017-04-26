@@ -13,8 +13,8 @@ export async function getTip(repository: Repository): Promise<Tip> {
   if (revParse.exitCode === 128) {
     // fatal: ambiguous argument 'HEAD': unknown revision or path not in the
     // working tree.
-    const symbolicRef = await git([ 'symbolic-ref', 'HEAD' ], repository.path, 'getTip')
-    const ref = symbolicRef.stdout.replace('refs/heads/', '').trim()
+    const symbolicRef = await git([ 'symbolic-ref', 'HEAD', '--short' ], repository.path, 'getTip')
+    const ref = symbolicRef.stdout.trim()
     return {
       kind: TipState.Unborn,
       ref,
