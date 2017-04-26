@@ -1,15 +1,15 @@
 # Contributing to GitHub Desktop
 
 Please take some time out to read these resources before you start contributing
-changes to GitHub Desktop.
+to GitHub Desktop.
 
 ## Setup
 
-You will need to install these tools:
+You will need to install these tools are installed on your machine:
 
  - [Nodejs](https://nodejs.org) - v7 is preferred as it's the version embedded into Electron
     - **Windows developers**: *Make sure you allow the Node.js installer to add
-      node to the PATH, it'll make life much easier for you.*
+      node to the PATH, it makes life much easier.*
  - Python 2.7 - [Windows](https://www.python.org/downloads/windows/), [macOS](https://www.python.org/downloads/mac-osx/)
     - **Windows developers**: *Let Python install into the default suggested path
       (`c:\Python27`), otherwise you'll have to configure node-gyp manually with
@@ -20,8 +20,8 @@ You will need to install these tools:
     - *Visual Studio 2017 support has not been tested yet - waiting on
       `node-gyp` support to be generally available.*
 
-With these things installed, open a shell and validate you have access to these
-commands and that the versions look similar:
+With these things installed, open a shell and validate you have these commands
+available and that the versions look similar:
 
 ```
 > node -v
