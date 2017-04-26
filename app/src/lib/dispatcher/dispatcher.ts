@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import * as Url from 'url'
 
 import { ipcRenderer, remote, shell } from 'electron'
 import { Disposable } from 'event-kit'
@@ -14,7 +13,7 @@ import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
-import { IAPIUser, getEndpointForRepository, getAccountForEndpoint } from '../../lib/api'
+import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
 import { v4 as guid } from 'uuid'
@@ -25,7 +24,6 @@ import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
 import { isGitOnPath } from '../open-shell'
 import { URLActionType, IOpenRepositoryArgs } from '../parse-url'
-import { getDefaultDir, setDefaultDir } from '../../ui/lib/default-dir'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
 
 /**
@@ -72,6 +70,12 @@ export class Dispatcher {
   private appStore: AppStore
 
   private readonly errorHandlers = new Array<ErrorHandler>()
+
+  /**
+   * The function to resolve a promise which is being awaited as part of the
+   * Open in Desktop flow.
+   */
+  private nextCloneResolve: ((repo: Repository | null) => void) | null
 
   public constructor(appStore: AppStore) {
     this.appStore = appStore
@@ -298,6 +302,12 @@ export class Dispatcher {
 
   /** Close the current popup. */
   public closePopup(): Promise<void> {
+    const state = this.appStore.getState()
+    if (state.currentPopup && state.currentPopup.type === PopupType.CloneRepository && this.nextCloneResolve) {
+      this.nextCloneResolve(null)
+      this.nextCloneResolve = null
+    }
+
     return this.appStore._closePopup()
   }
 
@@ -419,7 +429,13 @@ export class Dispatcher {
     const { promise, repository } = this.appStore._clone(url, path, { account })
     await this.selectRepository(repository)
     const success = await promise
-    if (!success) { return }
+    if (!success) {
+      if (this.nextCloneResolve) {
+        this.nextCloneResolve(null)
+        this.nextCloneResolve = null
+      }
+      return
+    }
 
     // In the background the shared process has updated the repository list.
     // To ensure a smooth transition back, we should lookup the new repository
@@ -430,6 +446,11 @@ export class Dispatcher {
     if (found) {
       const updatedRepository = await this.updateRepositoryMissing(found, false)
       await this.selectRepository(updatedRepository)
+
+      if (this.nextCloneResolve) {
+        this.nextCloneResolve(updatedRepository)
+        this.nextCloneResolve = null
+      }
     }
  }
 
@@ -808,9 +829,11 @@ export class Dispatcher {
         // a forked PR will provide both these values, despite the branch not existing
         // in the repository - drop the branch argument in this case so a clone will
         // checkout the default branch when it clones
-        const branchToClone = (pr && branch) ? undefined : branch
+        const branchToClone = (pr && branch) ? null : (branch || null)
         const repository = await this.openRepository(url, branchToClone)
-        this.handleCloneInDesktopOptions(repository, action.args)
+        if (repository) {
+          this.handleCloneInDesktopOptions(repository, action.args)
+        }
         break
 
       default:
@@ -818,28 +841,7 @@ export class Dispatcher {
     }
   }
 
-  private cloneRepository(url: string, branch?: string): Promise<Repository | null> {
-    const cloneLocation = getDefaultDir()
-
-    const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
-    const path: string | null = remote.dialog.showSaveDialog({
-      buttonLabel: 'Clone',
-      defaultPath: Path.join(cloneLocation, defaultName),
-    })
-    if (!path) { return Promise.resolve(null) }
-
-    setDefaultDir(Path.resolve(path, '..'))
-
-    const state = this.appStore.getState()
-    const account = getAccountForEndpoint(state.accounts, getEndpointForRepository(url))
-
-    return this.clone(url, path, { account, branch })
-  }
-
-  private async handleCloneInDesktopOptions(repository: Repository | null, args: IOpenRepositoryArgs): Promise<void> {
-    // skip this if the clone failed for whatever reason
-    if (!repository) { return }
-
+  private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryArgs): Promise<void> {
     const { filepath, pr, branch } = args
 
     // we need to refetch for a forked PR and check that out
@@ -856,7 +858,7 @@ export class Dispatcher {
     }
   }
 
-  private async openRepository(url: string, branch?: string): Promise<Repository | null> {
+  private async openRepository(url: string, branch: string | null): Promise<Repository | null> {
     const state = this.appStore.getState()
     const repositories = state.repositories
     const existingRepository = repositories.find(r => {
@@ -871,11 +873,14 @@ export class Dispatcher {
 
     if (existingRepository) {
       const repo = await this.selectRepository(existingRepository)
-
       if (!repo || !branch) { return repo }
-      return this.checkoutBranch(repo, branch)
-    }
 
-    return this.cloneRepository(url, branch)
+      return this.checkoutBranch(repo, branch)
+    } else {
+      // tslint:disable-next-line:promise-must-complete
+      const clonePromise = new Promise<Repository | null>(resolve => this.nextCloneResolve = resolve)
+      this.showPopup({ type: PopupType.CloneRepository, initialURL: url })
+      return clonePromise
+    }
   }
 }
