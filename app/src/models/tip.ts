@@ -16,7 +16,7 @@ export interface IUnbornRepository {
    /**
     * The symbolic reference that the unborn repository points to currently.
     *
-    * Typically this will be "master" but a user can easily create detached
+    * Typically this will be "master" but a user can easily create orphaned
     * branches externally.
     */
    readonly ref: string
