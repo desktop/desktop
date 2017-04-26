@@ -1,5 +1,9 @@
-import { ipcRenderer, remote } from 'electron'
+import * as Path from 'path'
+import * as Url from 'url'
+
+import { ipcRenderer, remote, shell } from 'electron'
 import { Disposable } from 'event-kit'
+
 import { Account, IAccount } from '../../models/account'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
@@ -10,7 +14,7 @@ import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
-import { IAPIUser } from '../../lib/api'
+import { IAPIUser, getEndpointForRepository, getAccountForEndpoint } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
 import { v4 as guid } from 'uuid'
@@ -20,6 +24,9 @@ import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
 import { isGitOnPath } from '../open-shell'
+import { URLActionType, IOpenRepositoryArgs } from '../parse-url'
+import { getDefaultDir, setDefaultDir } from '../../ui/lib/default-dir'
+import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -304,9 +311,9 @@ export class Dispatcher {
     return this.appStore._closeFoldout(foldout)
   }
 
-  /** 
+  /**
    * Create a new branch from the given starting point and check it out.
-   * 
+   *
    * If the startPoint argument is omitted the new branch will be created based
    * off of the current state of HEAD.
    */
@@ -779,5 +786,96 @@ export class Dispatcher {
   /** Update the repository's path. */
   private async updateRepositoryPath(repository: Repository, path: string): Promise<void> {
     await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-path', repository, path })
+  }
+
+  public async dispatchURLAction(action: URLActionType): Promise<void> {
+    switch (action.name) {
+      case 'oauth':
+        try {
+          const user = await requestAuthenticatedUser(action.args.code)
+          if (user) {
+            resolveOAuthRequest(user)
+          } else {
+            rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
+          }
+        } catch (e) {
+          rejectOAuthRequest(e)
+        }
+        break
+
+      case 'open-repository':
+        const { pr, url, branch } = action.args
+        // a forked PR will provide both these values, despite the branch not existing
+        // in the repository - drop the branch argument in this case so a clone will
+        // checkout the default branch when it clones
+        const branchToClone = (pr && branch) ? undefined : branch
+        const repository = await this.openRepository(url, branchToClone)
+        this.handleCloneInDesktopOptions(repository, action.args)
+        break
+
+      default:
+        console.log(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
+    }
+  }
+
+  private cloneRepository(url: string, branch?: string): Promise<Repository | null> {
+    const cloneLocation = getDefaultDir()
+
+    const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
+    const path: string | null = remote.dialog.showSaveDialog({
+      buttonLabel: 'Clone',
+      defaultPath: Path.join(cloneLocation, defaultName),
+    })
+    if (!path) { return Promise.resolve(null) }
+
+    setDefaultDir(Path.resolve(path, '..'))
+
+    const state = this.appStore.getState()
+    const account = getAccountForEndpoint(state.accounts, getEndpointForRepository(url))
+
+    return this.clone(url, path, { account, branch })
+  }
+
+  private async handleCloneInDesktopOptions(repository: Repository | null, args: IOpenRepositoryArgs): Promise<void> {
+    // skip this if the clone failed for whatever reason
+    if (!repository) { return }
+
+    const { filepath, pr, branch } = args
+
+    // we need to refetch for a forked PR and check that out
+    if (pr && branch) {
+      await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
+      await this.checkoutBranch(repository, branch)
+    }
+
+    if (filepath) {
+      const fullPath = Path.join(repository.path, filepath)
+      // because Windows uses different path separators here
+      const normalized = Path.normalize(fullPath)
+      shell.openItem(normalized)
+    }
+  }
+
+  private openRepository(url: string, branch?: string): Promise<Repository | null> {
+    const state = this.appStore.getState()
+    const repositories = state.repositories
+    const existingRepository = repositories.find(r => {
+      if (r instanceof Repository) {
+        const gitHubRepository = r.gitHubRepository
+        if (!gitHubRepository) { return false }
+        return gitHubRepository.cloneURL === url
+      } else {
+        return false
+      }
+    })
+
+    if (existingRepository) {
+      return this.selectRepository(existingRepository).then(repo => {
+        if (!repo || !branch) { return repo }
+        return this.checkoutBranch(repo, branch)
+      })
+    }
+
+    return this.cloneRepository(url, branch)
   }
 }
