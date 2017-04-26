@@ -133,4 +133,12 @@
       transition: transform .3s var(--easing-ease-out-quint);
     }
   }
+
+  &.has-progress > button {
+    // The default disabled opacity for button is 0.6 but when we're showing
+    // progress we want the text to be slightly legible so we'll make it
+    // opaque. Since a toolbar button with progress also shows a spinner
+    // there's plenty of indication that it can't be used.
+    &:disabled { opacity: 1; }
+  }
 }

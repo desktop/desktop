@@ -270,6 +270,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       role: 'window',
       submenu: [
         { role: 'minimize' },
+        { role: 'zoom' },
         { role: 'close' },
         { type: 'separator' },
         { role: 'front' },

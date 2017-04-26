@@ -22,7 +22,9 @@ export class FileList extends React.Component<IFileListProps, void> {
     const status = file.status
     const fileStatus = mapStatus(status)
 
-    const listItemPadding = 5 + 5
+
+
+    const listItemPadding = 10 * 2
     const statusWidth = 16
     const filePathPadding = 5
     const availablePathWidth = this.props.availableWidth - listItemPadding - filePathPadding - statusWidth

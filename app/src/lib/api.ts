@@ -28,17 +28,38 @@ const Scopes = [
 const NoteURL = 'https://desktop.github.com/'
 
 /**
+ * The plugins we'll use with Octokat.
+ *
+ * Most notably, this doesn't include:
+ *   - hypermedia
+ *   - camel-case
+ * Both take a _lot_ of time in post-processing and are unnecessary.
+ */
+const OctokatPlugins = [
+  require('octokat/dist/node/plugins/object-chainer'),
+  require('octokat/dist/node/plugins/path-validator'),
+  require('octokat/dist/node/plugins/authorization'),
+  require('octokat/dist/node/plugins/preview-apis'),
+  require('octokat/dist/node/plugins/use-post-instead-of-patch'),
+
+  require('octokat/dist/node/plugins/simple-verbs'),
+  require('octokat/dist/node/plugins/fetch-all'),
+
+  require('octokat/dist/node/plugins/read-binary'),
+  require('octokat/dist/node/plugins/pagination'),
+]
+
+/**
  * Information about a repository as returned by the GitHub API.
  */
 export interface IAPIRepository {
-  readonly cloneUrl: string
-  readonly htmlUrl: string
+  readonly clone_url: string
+  readonly html_url: string
   readonly name: string
   readonly owner: IAPIUser
   readonly private: boolean
   readonly fork: boolean
-  readonly stargazersCount: number
-  readonly defaultBranch: string
+  readonly default_branch: string
 }
 
 /**
@@ -57,7 +78,7 @@ export interface IAPIUser {
   readonly url: string
   readonly type: 'user' | 'org'
   readonly login: string
-  readonly avatarUrl: string
+  readonly avatar_url: string
   readonly name: string
 }
 
@@ -160,7 +181,11 @@ export class API {
 
   public constructor(account: Account) {
     this.account = account
-    this.client = new Octokat({ token: account.token, rootURL: account.endpoint })
+    this.client = new Octokat({
+      token: account.token,
+      rootURL: account.endpoint,
+      plugins: OctokatPlugins,
+    })
   }
 
   /**
