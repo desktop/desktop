@@ -52,7 +52,7 @@ if (!process.env.TEST_ENV) {
 
 process.on('uncaughtException', (error: Error) => {
   reportError(error, getVersion())
-  getLogger().error('Uncaught exception on UI', error)
+  getLogger().error('Uncaught exception on renderer process', error)
   postUnhandledError(error)
 })
 
