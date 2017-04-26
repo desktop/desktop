@@ -169,7 +169,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
 
     const unhandled = isUncaughtError(error)
-    const title = unhandled ? 'Unhandled Error' : 'Error'
+    const title = unhandled ? 'Unhandled Exception' : 'Error'
 
     return (
       <Dialog
