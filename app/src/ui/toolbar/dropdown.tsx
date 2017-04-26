@@ -281,7 +281,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     )
 
     return (
-      <div className={className}>
+      <div className={className} onKeyDown={this.props.onKeyDown}>
         {this.renderDropdownContents()}
         <ToolbarButton
           ref={this.onRef}
@@ -294,7 +294,6 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
           style={this.props.style}
           iconClassName={this.props.iconClassName}
           disabled={this.props.disabled}
-          onKeyDown={this.props.onKeyDown}
           tabIndex={this.props.tabIndex}
           progressValue={this.props.progressValue}
         >

@@ -20,6 +20,9 @@ export class GitHubUserStore {
 
   private readonly database: GitHubUserDatabase
 
+  /** The requests which have failed. We shouldn't keep trying them. */
+  private readonly failedRequests = new Set<string>()
+
   /**
    * The etag for the last mentionables request. Keyed by the GitHub repository
    * `dbID`.
@@ -99,6 +102,7 @@ export class GitHubUserStore {
     const endpoint = repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint()
     const key = `${endpoint}+${email.toLowerCase()}`
     if (this.requestsInFlight.has(key)) { return }
+    if (this.failedRequests.has(key)) { return }
 
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
@@ -123,12 +127,14 @@ export class GitHubUserStore {
       gitUser = await this.findUserWithAPI(account, gitHubRepository, sha, email)
     }
 
+    this.requestsInFlight.delete(key)
+
     if (gitUser) {
       this.cacheUser(gitUser)
+      this.emitUpdate()
+    } else {
+      this.failedRequests.add(key)
     }
-
-    this.requestsInFlight.delete(key)
-    this.emitUpdate()
   }
 
   private async findUserWithAPI(account: Account, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitHubUser | null> {
@@ -139,7 +145,7 @@ export class GitHubUserStore {
         return {
           email,
           login: apiCommit.author.login,
-          avatarURL: apiCommit.author.avatarUrl,
+          avatarURL: apiCommit.author.avatar_url,
           endpoint: account.endpoint,
           name: apiCommit.author.name,
         }
@@ -151,7 +157,7 @@ export class GitHubUserStore {
       return {
         email,
         login: matchingUser.login,
-        avatarURL: matchingUser.avatarUrl,
+        avatarURL: matchingUser.avatar_url,
         endpoint: account.endpoint,
         name: matchingUser.name,
       }
