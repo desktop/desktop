@@ -2,7 +2,9 @@ import { expect, use as chaiUse } from 'chai'
 import { setupEmptyRepository, setupFixtureRepository } from '../../fixture-helper'
 import { getTip } from '../../../src/lib/git'
 import { Repository } from '../../../src/models/repository'
-import { TipState, IDetachedHead, IValidBranch } from '../../../src/models/tip'
+import { TipState, IDetachedHead, IValidBranch, IUnbornRepository } from '../../../src/models/tip'
+
+import { GitProcess } from 'dugite'
 
 chaiUse(require('chai-datetime'))
 
@@ -15,6 +17,21 @@ describe('git/branch', () => {
       const tip = result!
 
       expect(tip.kind).to.equal(TipState.Unborn)
+      const unborn = tip as IUnbornRepository
+      expect(unborn.ref).to.equal('master')
+    })
+
+    it('returns correct ref if checkout occurs', async () => {
+      const repository = await setupEmptyRepository()
+
+      await GitProcess.exec([ 'checkout', '-b', 'not-master' ], repository.path)
+
+      const result = await getTip(repository)
+      const tip = result!
+
+      expect(tip.kind).to.equal(TipState.Unborn)
+      const unborn = tip as IUnbornRepository
+      expect(unborn.ref).to.equal('not-master')
     })
 
     it('returns detached for arbitrary checkout', async () => {

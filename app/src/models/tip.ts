@@ -13,6 +13,7 @@ export interface IUnknownRepository {
 
 export interface IUnbornRepository {
    readonly kind: TipState.Unborn
+   readonly ref: string
 }
 
 export interface IDetachedHead {
