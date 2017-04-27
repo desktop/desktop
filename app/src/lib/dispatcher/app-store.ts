@@ -912,6 +912,7 @@ export class AppStore {
       this._loadStatus(repository),
       gitStore.loadBranches(),
     ])
+
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
     if (section === RepositorySection.History) {
