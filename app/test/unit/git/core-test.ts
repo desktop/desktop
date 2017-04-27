@@ -1,3 +1,5 @@
+/* tslint:disable:no-sync-functions */
+
 import { expect } from 'chai'
 import { GitError } from 'dugite'
 

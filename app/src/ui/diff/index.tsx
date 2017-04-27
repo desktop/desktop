@@ -502,6 +502,8 @@ export class Diff extends React.Component<IDiffProps, void> {
         scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
         mode: getDiffMode(),
         styleSelectedText: true,
+        lineSeparator: '\n',
+        specialChars: /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff\r]/,
       }
 
       return (
@@ -533,6 +535,21 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     if (diff.kind === DiffType.Text) {
+
+      if (diff.hunks.length === 0) {
+        if (this.props.file.status === FileStatus.New) {
+          return <div className='panel'>
+             The file is empty
+            </div>
+        }
+
+        if (this.props.file.status === FileStatus.Renamed) {
+          return <div className='panel'>
+             The file was renamed but not changed
+            </div>
+        }
+      }
+
       return this.renderTextDiff(diff)
     }
 

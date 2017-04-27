@@ -10,7 +10,7 @@
     }
   }
 
-  .toolbar-button:not(.open) > button {
+  .toolbar-dropdown:not(.open) > .toolbar-button > button {
     color: var(--toolbar-button-secondary-color);
 
     &:hover,&:focus {

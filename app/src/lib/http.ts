@@ -14,7 +14,7 @@ export async function deserialize<T>(response: Response): Promise<T | null> {
     const json = await response.json()
     return json as T
   } catch (e) {
-    console.error('Unable to deserialize JSON string to object', e)
+    console.error('Unable to deserialize JSON string to object', e, response)
     return null
   }
 }

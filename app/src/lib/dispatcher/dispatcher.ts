@@ -13,12 +13,13 @@ import { Commit } from '../../models/commit'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
-import { v4 as guid } from 'uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
+import { isGitOnPath } from '../open-shell'
+import { uuid } from '../uuid'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -88,7 +89,7 @@ export class Dispatcher {
   private send<T>(name: string, args: Object): Promise<T> {
     return new Promise<T>((resolve, reject) => {
 
-      const requestGuid = guid()
+      const requestGuid = uuid()
       ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
         const response: IPCResponse<T> = args[0]
         if (response.type === 'result') {
@@ -229,10 +230,10 @@ export class Dispatcher {
 
   /** Select the repository. */
   public async selectRepository(repository: Repository | CloningRepository): Promise<Repository | null> {
-    const repo = this.appStore._selectRepository(repository)
+    let repo = await this.appStore._selectRepository(repository)
 
     if (repository instanceof Repository) {
-      await this.refreshGitHubRepositoryInfo(repository)
+      repo = await this.refreshGitHubRepositoryInfo(repository)
     }
 
     return repo
@@ -299,12 +300,17 @@ export class Dispatcher {
   }
 
   /** Close the current foldout. */
-  public closeFoldout(): Promise<void> {
-    return this.appStore._closeFoldout()
+  public closeFoldout(foldout: FoldoutType): Promise<void> {
+    return this.appStore._closeFoldout(foldout)
   }
 
-  /** Create a new branch from the given starting point and check it out. */
-  public createBranch(repository: Repository, name: string, startPoint: string): Promise<Repository> {
+  /** 
+   * Create a new branch from the given starting point and check it out.
+   * 
+   * If the startPoint argument is omitted the new branch will be created based
+   * off of the current state of HEAD.
+   */
+  public createBranch(repository: Repository, name: string, startPoint?: string): Promise<Repository> {
     return this.appStore._createBranch(repository, name, startPoint)
   }
 
@@ -459,11 +465,6 @@ export class Dispatcher {
     return this.appStore._undoCommit(repository, commit)
   }
 
-  /** Clear the contextual commit message. */
-  public clearContextualCommitMessage(repository: Repository): Promise<void> {
-    return this.appStore._clearContextualCommitMessage(repository)
-  }
-
   /**
    * Set the width of the repository sidebar to the given
    * value. This affects the changes and history sidebar
@@ -473,6 +474,13 @@ export class Dispatcher {
    */
   public setSidebarWidth(width: number): Promise<void> {
     return this.appStore._setSidebarWidth(width)
+  }
+
+  /**
+   * Set the update banner's visibility
+   */
+  public setUpdateBannerVisibility(isVisible: boolean) {
+    return this.appStore._setUpdateBannerVisibility(isVisible)
   }
 
   /**
@@ -598,9 +606,14 @@ export class Dispatcher {
     return this.appStore._ignore(repository, pattern)
   }
 
-  /** Opens a terminal window with path as the working directory */
-  public openShell(path: string) {
-    return this.appStore._openShell(path)
+  /** Opens a Git-enabled terminal setting the working directory to the repository path */
+  public async openShell(path: string): Promise<void> {
+    const gitFound = await isGitOnPath()
+    if (gitFound) {
+      this.appStore._openShell(path)
+    } else {
+      this.appStore._showPopup({ type: PopupType.InstallGit, path })
+    }
   }
 
   /**

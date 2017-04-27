@@ -1,5 +1,4 @@
 import { shell } from 'electron'
-import { v4 as guid } from 'uuid'
 import { Account } from '../models/account'
 import { fatalError } from './fatal-error'
 import {
@@ -7,6 +6,7 @@ import {
   requestOAuthToken,
   fetchUser,
 } from './api'
+import { uuid } from './uuid'
 
 interface IOAuthState {
   readonly state: string
@@ -31,7 +31,7 @@ export function askUserToOAuth(endpoint: string) {
   // functions.
   // tslint:disable-next-line:promise-must-complete
   return new Promise<Account>((resolve, reject) => {
-    oauthState = { state: guid(), endpoint, resolve, reject }
+    oauthState = { state: uuid(), endpoint, resolve, reject }
 
     const oauthURL = getOAuthAuthorizationURL(endpoint, oauthState.state)
     shell.openExternal(oauthURL)

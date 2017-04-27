@@ -1,12 +1,12 @@
 import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
-import { v4 as guid } from 'uuid'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
 import { HTTPMethod, request, deserialize } from './http'
 import { AuthenticationMode } from './2fa'
+import { uuid } from './uuid'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -28,17 +28,38 @@ const Scopes = [
 const NoteURL = 'https://desktop.github.com/'
 
 /**
+ * The plugins we'll use with Octokat.
+ *
+ * Most notably, this doesn't include:
+ *   - hypermedia
+ *   - camel-case
+ * Both take a _lot_ of time in post-processing and are unnecessary.
+ */
+const OctokatPlugins = [
+  require('octokat/dist/node/plugins/object-chainer'),
+  require('octokat/dist/node/plugins/path-validator'),
+  require('octokat/dist/node/plugins/authorization'),
+  require('octokat/dist/node/plugins/preview-apis'),
+  require('octokat/dist/node/plugins/use-post-instead-of-patch'),
+
+  require('octokat/dist/node/plugins/simple-verbs'),
+  require('octokat/dist/node/plugins/fetch-all'),
+
+  require('octokat/dist/node/plugins/read-binary'),
+  require('octokat/dist/node/plugins/pagination'),
+]
+
+/**
  * Information about a repository as returned by the GitHub API.
  */
 export interface IAPIRepository {
-  readonly cloneUrl: string
-  readonly htmlUrl: string
+  readonly clone_url: string
+  readonly html_url: string
   readonly name: string
   readonly owner: IAPIUser
   readonly private: boolean
   readonly fork: boolean
-  readonly stargazersCount: number
-  readonly defaultBranch: string
+  readonly default_branch: string
 }
 
 /**
@@ -57,7 +78,7 @@ export interface IAPIUser {
   readonly url: string
   readonly type: 'user' | 'org'
   readonly login: string
-  readonly avatarUrl: string
+  readonly avatar_url: string
   readonly name: string
 }
 
@@ -160,7 +181,11 @@ export class API {
 
   public constructor(account: Account) {
     this.account = account
-    this.client = new Octokat({ token: account.token, rootURL: account.endpoint })
+    this.client = new Octokat({
+      token: account.token,
+      rootURL: account.endpoint,
+      plugins: OctokatPlugins,
+    })
   }
 
   /**
@@ -299,6 +324,8 @@ export class API {
     }
 
     const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
+    if (!response.ok) { return null }
+
     const users = await deserialize<ReadonlyArray<IAPIMentionableUser>>(response)
     if (!users) { return null }
 
@@ -338,7 +365,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
     'client_secret': ClientSecret,
     'note': note,
     'note_url': NoteURL,
-    'fingerprint': guid(),
+    'fingerprint': uuid(),
   }, headers)
 
   if (response.status === 401) {
@@ -409,10 +436,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
         'Content-Type': 'application/json',
       },
     })
-
-    if (response.status !== 200) {
-      return null
-    }
+    if (!response.ok) { return null }
 
     const body = await deserialize<IServerMetadata>(response)
     if (!body || body.verifiable_password_authentication === undefined) {
@@ -521,6 +545,7 @@ export async function requestOAuthToken(endpoint: string, state: string, code: s
     'code': code,
     'state': state,
   })
+  if (!response.ok) { return null }
 
   const body = await deserialize<IAPIAccessToken>(response)
   if (body) {

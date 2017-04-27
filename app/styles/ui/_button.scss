@@ -40,7 +40,6 @@
   }
 
   &:focus {
-    outline: none;
     border: 1px solid var(--button-focus-border-color);
     background-color: var(--button-hover-background);
     box-shadow: 0 0 0 2px var(--text-field-focus-shadow-color);
