@@ -202,43 +202,22 @@ export class GitStore {
 
   /** Load all the branches. */
   public async loadBranches() {
-    const [ allBranches, recentBranchNames ] = await Promise.all([
+    const [ localAndRemoteBranches, recentBranchNames ] = await Promise.all([
       this.performFailableOperation(() => getBranches(this.repository)) || [],
       this.performFailableOperation(() => getRecentBranches(this.repository, RecentBranchesLimit)),
     ])
 
-    if (!allBranches) {
+    if (!localAndRemoteBranches) {
       return
     }
 
-    const localBranches = allBranches.filter(b => b.type === BranchType.Local)
-    const remoteBranches = allBranches.filter(b => b.type === BranchType.Remote)
-
-    const upstreamBranchesAdded = new Set<string>()
-    const allBranchesWithUpstream = new Array<Branch>()
-    localBranches.forEach(branch => {
-      allBranchesWithUpstream.push(branch)
-
-      if (branch.upstream) {
-        upstreamBranchesAdded.add(branch.upstream)
-      }
-    })
-
-    remoteBranches.forEach(branch => {
-      // This means we already added the local branch of this remote branch, so
-      // we don't need to add it again.
-      if (upstreamBranchesAdded.has(branch.name)) { return }
-
-      allBranchesWithUpstream.push(branch)
-    })
-
-    this._allBranches = allBranchesWithUpstream
+    this._allBranches = this.mergeRemoteAndLocalBranches(localAndRemoteBranches)
 
     this.refreshDefaultBranch()
     this.refreshRecentBranches(recentBranchNames)
     this.emitUpdate()
 
-    const commits = allBranchesWithUpstream.map(b => b.tip)
+    const commits = this._allBranches.map(b => b.tip)
 
     for (const commit of commits) {
       this.commits.set(commit.sha, commit)
@@ -246,6 +225,47 @@ export class GitStore {
 
     this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
+  }
+
+  /**
+   * Takes a list of local and remote branches and filters out "duplicate"
+   * remote branches, i.e. remote branches that we already have a local
+   * branch tracking.
+   */
+  private mergeRemoteAndLocalBranches(branches: ReadonlyArray<Branch>): ReadonlyArray<Branch> {
+    const localBranches = new Array<Branch>()
+    const remoteBranches = new Array<Branch>()
+
+    for (const branch of branches) {
+      if (branch.type === BranchType.Local) {
+        localBranches.push(branch)
+      } else if (branch.type === BranchType.Remote) {
+        remoteBranches.push(branch)
+      }
+    }
+
+    const upstreamBranchesAdded = new Set<string>()
+    const allBranchesWithUpstream = new Array<Branch>()
+
+    for (const branch of localBranches) {
+      allBranchesWithUpstream.push(branch)
+
+      if (branch.upstream) {
+        upstreamBranchesAdded.add(branch.upstream)
+      }
+    }
+
+    for (const branch of remoteBranches) {
+      // This means we already added the local branch of this remote branch, so
+      // we don't need to add it again.
+      if (upstreamBranchesAdded.has(branch.name)) {
+        continue
+      }
+
+      allBranchesWithUpstream.push(branch)
+    }
+
+    return allBranchesWithUpstream
   }
 
   private refreshDefaultBranch() {
