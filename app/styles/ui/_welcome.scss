@@ -49,7 +49,7 @@
 
   #usage-opt-out {
     .welcome-title {
-      margin: 0;  
+      margin: 0;
     }
   }
 
@@ -115,7 +115,6 @@
 
 .welcome-left {
   padding: var(--spacing-quad);
-  padding-top: calc(var(--spacing-quad) * 1.5);
 
   @media screen and (min-width: 1366px) {
     zoom: 1.2;
