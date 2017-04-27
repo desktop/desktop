@@ -17,12 +17,12 @@ if (process.env.NODE_ENV === 'production') {
 
 const express = require('express')
 const webpack = require('webpack')
-const config = require('../app/webpack.development')
+
 const configs = require('../app/webpack.development')
 const [ mainConfig, sharedConfig, rendererConfig, askPassConfig ] = configs
 
 const server = express()
-const compiler = webpack(configs)
+const compiler = webpack(rendererConfig)
 const port = process.env.PORT || 3000
 
 server.use(require('webpack-dev-middleware')(compiler, {
