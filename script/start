@@ -2,16 +2,22 @@
 
 'use strict'
 
-const run = require('./run')
-
-if (process.env.NODE_ENV === 'production') {
+function startApp() {
   const runningApp = run()
-
   if (!runningApp) {
     console.error("Couldn't launch the app. You probably need to build it first. Run `npm run build:dev`.")
     process.exit(1)
   }
 
+  runningApp.on('close', () => {
+    process.exit(0)
+  })
+}
+
+const run = require('./run')
+
+if (process.env.NODE_ENV === 'production') {
+  startApp()
   return
 }
 
@@ -40,14 +46,5 @@ server.listen(port, 'localhost', err => {
   }
 
   console.log(`Server running at http://localhost:${port}`)
-
-  const runningApp = run()
-  if (!runningApp) {
-    console.error("Couldn't launch the app. You probably need to build it first. Run `npm run build:dev`.")
-    process.exit(1)
-  }
-
-  runningApp.on('close', () => {
-    process.exit(0)
-  })
+  startApp()
 })
