@@ -155,11 +155,23 @@ function copyDependencies () {
     }
   }
 
+  const oldDevDependencies = originalPackage.devDependencies
+  const newDevDependencies = { }
+
+  if (!isProductionBuild) {
+    for (var [name, spec] of Object.entries(oldDevDependencies)) {
+      if (externals.indexOf(name) !== -1) {
+        newDevDependencies[name] = spec
+      }
+    }
+  }
+
   // The product name changes depending on whether it's a prod build or dev
   // build, so that we can have them running side by side.
   const updatedPackage = Object.assign({}, originalPackage, {
     productName: distInfo.getProductName(),
     dependencies: newDependencies,
+    devDependencies: newDevDependencies,
   })
 
   if (isProductionBuild) {
@@ -168,7 +180,20 @@ function copyDependencies () {
 
   fs.writeFileSync(path.join(outRoot, 'package.json'), JSON.stringify(updatedPackage))
 
+  if (Object.keys(newDependencies).length || Object.keys(newDevDependencies).length) {
+    console.log('  Installing npm dependencies…')
+    cp.execSync('npm install', { cwd: outRoot, env: process.env })
+  }
 
+  if (!isProductionBuild) {
+    console.log('  Installing 7zip (dependency for electron-devtools-installer)')
+    
+    const sevenZipSource = path.resolve(projectRoot, 'app/node_modules/7zip')
+    const sevenZipDestination = path.resolve(outRoot, 'node_modules/7zip')
+    
+    fs.mkdirpSync(sevenZipDestination)
+    fs.copySync(sevenZipSource, sevenZipDestination)
+  }
 
   console.log('  Copying git environment…')
   const gitDir = path.resolve(outRoot, 'git')
