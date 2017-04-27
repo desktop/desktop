@@ -8,7 +8,6 @@
 
   display: flex;
   flex-direction: row;
-  z-index: 1;
 
   @include darwin {
     height: var(--darwin-title-bar-height);
@@ -116,6 +115,7 @@
   }
 
   position: fixed;
+  z-index: 1;
 
   .window-controls {
     svg {
