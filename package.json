@@ -19,7 +19,7 @@
     "build:dev": "npm run compile:dev && cross-env NODE_ENV=development node script/build",
     "build:prod": "npm run compile:prod && cross-env NODE_ENV=production node script/build",
     "package": "node script/package",
-    "clean": "rimraf build",
+    "clean": "rimraf out",
     "rebuild:dev": "npm run clean && npm run build:dev",
     "rebuild:prod": "npm run clean && npm run build:prod",
     "clean:tslint": "rimraf tslint-rules/*.js",
