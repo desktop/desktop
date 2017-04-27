@@ -513,7 +513,8 @@ export class GitStore {
     if (currentBranch || currentTip) {
 
       if (currentTip && currentBranch) {
-        const branchTipCommit = await this.performFailableOperation(() =>
+        const cachedCommit = this.commits.get(currentTip)
+        const branchTipCommit = cachedCommit || await this.performFailableOperation(() =>
           getCommit(this.repository, currentTip))
 
         if (!branchTipCommit) {
