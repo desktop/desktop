@@ -30,7 +30,7 @@ describe('parsePorcelainStatus', () => {
   it('parses renames', () => {
 
     const entries = parsePorcelainStatus([
-      '2 R. N... 100644 100644 100644 2de0487c2d3e977f5f560b746833f9d7f9a054fd 2de0487c2d3e977f5f560b746833f9d7f9a054fd R100 old\0new',
+      '2 R. N... 100644 100644 100644 2de0487c2d3e977f5f560b746833f9d7f9a054fd 2de0487c2d3e977f5f560b746833f9d7f9a054fd R100 new\0old',
       '2 RM N... 100644 100644 100644 a3cba7afce66ef37a228e094273c27141db21f36 a3cba7afce66ef37a228e094273c27141db21f36 R100 to\0from'
     ].join('\0') + '\0') as ReadonlyArray<IStatusEntry>
 
