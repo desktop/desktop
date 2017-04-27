@@ -78,7 +78,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
 
       entries.push({
         kind: 'entry',
-        statusCode: match[8],
+        statusCode: match[1],
         oldPath,
         path: match[9],
       })
