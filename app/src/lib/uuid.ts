@@ -7,7 +7,7 @@ import { randomBytes as nodeCryptoGetRandomBytes } from 'crypto'
 //
 // See
 //  https://github.com/kelektiv/node-uuid/issues/189
-const guid = require('uuid/v4') as (options?: { random?: (count: number) => Buffer }) => string
+const guid = require('uuid/v4') as (options?: { random?: Buffer }) => string
 
 /**
  * Fills a buffer with the required number of random bytes.
@@ -37,5 +37,5 @@ function getRandomBytes(count: number): Buffer {
  * Node.JS.
  */
 export function uuid() {
-  return guid({ random: getRandomBytes })
+  return guid({ random: getRandomBytes(16) })
 }
