@@ -27,8 +27,10 @@ export function mapStatus(rawStatus: string): FileStatus {
 
   // TODO: This is due to the fact that porcelain V2 changed from
   // using space to using a dot when either side is unmodified.
-  // We should probably parse this properly.
-  const status = rawStatus.replace('.', '')
+  // We should probably parse this properly. We still trim the space
+  // since mapStatus is used from log.ts as well which passes
+  // porcelain v1 status codes.
+  const status = rawStatus.replace(/[ .]/, '')
 
   if (status === 'M') { return FileStatus.Modified }      // modified
   if (status === 'A') { return FileStatus.New }           // added
