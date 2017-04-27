@@ -160,20 +160,28 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     }
   }
 
-  private renderSanitizedName() {
-    if (this.state.proposedName === this.state.sanitizedName) { return null }
+  private renderWarning() {
+    if (/^\s+$/.test(this.state.proposedName)) {
+      return this.renderWarningMessage('Branch name cannot be empty')
+    } else if (this.state.proposedName !== this.state.sanitizedName) {
+      return this.renderWarningMessage(`Will be created as ${this.state.sanitizedName}`)
+    } else {
+      return null
+    }
+  }
 
+  private renderWarningMessage(message: string) {
     return (
       <Row className='warning-helper-text'>
         <Octicon symbol={OcticonSymbol.alert} />
-        Will be created as {this.state.sanitizedName}
+        {message}
       </Row>
     )
   }
 
   public render() {
     const proposedName = this.state.proposedName
-    const disabled = !proposedName.length || !!this.state.currentError
+    const disabled = !proposedName.length || !!this.state.currentError || /^\s*$/.test(this.state.proposedName)
     const error = this.state.currentError
 
     return (
@@ -195,7 +203,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
               onChange={this.onBranchNameChange} />
           </Row>
 
-          {this.renderSanitizedName()}
+          {this.renderWarning()}
 
           {this.renderBranchSelection()}
         </DialogContent>
