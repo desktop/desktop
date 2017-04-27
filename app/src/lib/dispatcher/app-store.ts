@@ -42,7 +42,7 @@ import { AppMenu, IMenu } from '../../models/app-menu'
 import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
-import { StatsStore } from '../stats'
+import { StatsStore, ILaunchStats } from '../stats'
 import { SignInStore } from './sign-in-store'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
@@ -1654,6 +1654,10 @@ export class AppStore {
 
   public _reportStats() {
     return this.statsStore.reportStats(this.accounts)
+  }
+
+  public _recordLaunchStats(stats: ILaunchStats): Promise<void> {
+    return this.statsStore.recordLaunchStats(stats)
   }
 
   public async _ignore(repository: Repository, pattern: string): Promise<void> {

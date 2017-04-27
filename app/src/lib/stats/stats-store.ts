@@ -1,4 +1,6 @@
 import * as OS from 'os'
+import * as Fs from 'fs'
+import * as Path from 'path'
 import { UAParser } from 'ua-parser-js'
 import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
 import { getDotComAPIEndpoint } from '../api'

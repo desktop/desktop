@@ -15,6 +15,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
+import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
 import { isGitOnPath } from '../open-shell'
@@ -578,6 +579,11 @@ export class Dispatcher {
   /** Merge the named branch into the current branch. */
   public mergeBranch(repository: Repository, branch: string): Promise<void> {
     return this.appStore._mergeBranch(repository, branch)
+  }
+
+  /** Record the given launch stats. */
+  public recordLaunchStats(stats: ILaunchStats): Promise<void> {
+    return this.appStore._recordLaunchStats(stats)
   }
 
   /** Report any stats if needed. */
