@@ -47,4 +47,15 @@ describe('parsePorcelainStatus', () => {
     expect(entries[i].path).to.equal('to')
     expect(entries[i].oldPath).to.equal('from')
   })
+
+  it('ignores ignored files', () => {
+    // We don't run status with --ignored so this shouldn't be a problem
+    // but we test it all the same
+
+    const entries = parsePorcelainStatus([
+      '! foo',
+    ].join('\0') + '\0') as ReadonlyArray<IStatusEntry>
+
+    expect(entries.length).to.equal(0)
+  })
 })
