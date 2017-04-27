@@ -6,7 +6,7 @@ const webpack = require('webpack')
 const merge = require('webpack-merge')
 
 const config = {
-  devtool: 'cheap-module-source-map',
+  devtool: 'cheap-module-eval-source-map',
 }
 
 const mainConfig = merge({}, common.main, config)
