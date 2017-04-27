@@ -128,10 +128,10 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
         {basicAuth ? <hr className='short-rule' /> : null}
         {basicAuth ? null : <p>Your GitHub Enterprise instance requires you to sign in with your browser.</p>}
 
-        <p className='sign-in-footer'>
+        <div className='sign-in-footer'>
           {basicAuth ? browserSignInLink : browserSignInButton}
           {basicAuth ? null : this.renderActions()}
-        </p>
+        </div>
       </div>
     )
   }
