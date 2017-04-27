@@ -54,68 +54,84 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
     const entryKind = field.substr(0, 1)
 
     if (entryKind === ChangedEntryType) {
-      // Ordinary changed entries
-      // 1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>
-      const match = field.match(/^1 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
-
-      if (!match) {
-        throw new Error(`Failed to parse status line for changed entry: ${field}`)
-      }
-
-      entries.push({
-        kind: 'entry',
-        statusCode: match[1],
-        path: match[8],
-      })
+      entries.push(parseChangedEntry(field))
     } else if (entryKind === RenamedOrCopiedEntryType) {
-      // Renamed or copied entries
-      // 2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>
-      const match = field.match(/^2 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([RC]\d+) (.*?)$/)
-
-      if (!match) {
-        throw new Error(`Failed to parse status line for renamed or copied entry: ${field}`)
-      }
-
-      const oldPath = fields.shift()
-
-      if (!oldPath) {
-        throw new Error('Failed to parse renamed or copied entry, could not parse old path')
-      }
-
-      entries.push({
-        kind: 'entry',
-        statusCode: match[1],
-        oldPath,
-        path: match[9],
-      })
+      entries.push(parsedRenamedOrCopiedEntry(field, fields.shift()))
     } else if (entryKind === UnmergedEntryType) {
-      // Unmerged entries
-      // u <xy> <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>
-      const match = field.match(/^u ([DAU]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
-
-      if (!match) {
-        throw new Error(`Failed to parse status line for unmerged entry: ${field}`)
-      }
-
-      entries.push({
-        kind: 'entry',
-        statusCode: match[1],
-        path: match[10],
-      })
+      entries.push(parseUnmergedEntry(field))
     } else if (entryKind === UntrackedEntryType) {
-      // Untracked
-      const path = field.substr(2)
-      entries.push({
-        kind: 'entry',
-        // NOTE: We return ?? instead of ? here to play nice with mapStatus,
-        // might want to consider changing this (and mapStatus) in the future.
-        statusCode: '??',
-        path,
-      })
+      entries.push(parseUntrackedEntry(field))
     } else if (entryKind === IgnoredEntryType) {
       // Ignored, we don't care about these for now
     }
   }
 
   return entries
+}
+
+// 1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>
+const changedEntryRe = /^1 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/
+
+function parseChangedEntry(field: string): IStatusEntry {
+  const match = changedEntryRe.exec(field)
+
+  if (!match) {
+    throw new Error(`Failed to parse status line for changed entry: ${field}`)
+  }
+
+  return {
+    kind: 'entry',
+    statusCode: match[1],
+    path: match[8],
+  }
+}
+
+// 2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>
+const renamedOrCopiedEntryRe = /^2 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([RC]\d+) (.*?)$/
+
+function parsedRenamedOrCopiedEntry(field: string, oldPath: string | undefined): IStatusEntry {
+  const match = renamedOrCopiedEntryRe.exec(field)
+
+  if (!match) {
+    throw new Error(`Failed to parse status line for renamed or copied entry: ${field}`)
+  }
+
+  if (!oldPath) {
+    throw new Error('Failed to parse renamed or copied entry, could not parse old path')
+  }
+
+  return {
+    kind: 'entry',
+    statusCode: match[1],
+    oldPath,
+    path: match[9],
+  }
+}
+
+// u <xy> <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>
+const unmergedEntryRe = /^u ([DAU]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/
+
+function parseUnmergedEntry(field: string): IStatusEntry {
+  const match = unmergedEntryRe.exec(field)
+
+  if (!match) {
+    throw new Error(`Failed to parse status line for unmerged entry: ${field}`)
+  }
+
+  return {
+    kind: 'entry',
+    statusCode: match[1],
+    path: match[10],
+  }
+}
+
+function parseUntrackedEntry(field: string): IStatusEntry {
+  const path = field.substr(2)
+  return {
+    kind: 'entry',
+    // NOTE: We return ?? instead of ? here to play nice with mapStatus,
+    // might want to consider changing this (and mapStatus) in the future.
+    statusCode: '??',
+    path,
+  }
 }
