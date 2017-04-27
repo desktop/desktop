@@ -121,10 +121,7 @@
     button {
       &:hover {
         background-color: #e5e5e5;
-
-        svg {
-          fill: #000;
-        }
+        color: #000;
 
         &:active {
           background-color: #cccccc;
