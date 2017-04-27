@@ -234,23 +234,7 @@ export class GitStore {
 
     this._allBranches = allBranchesWithUpstream
 
-    let defaultBranchName: string | null = 'master'
-    const gitHubRepository = this.repository.gitHubRepository
-    if (gitHubRepository && gitHubRepository.defaultBranch) {
-      defaultBranchName = gitHubRepository.defaultBranch
-    }
-
-    if (defaultBranchName) {
-      // Find the default branch among all of our branches, giving
-      // priority to local branches by sorting them before remotes
-      this._defaultBranch = allBranchesWithUpstream
-        .filter(b => b.name === defaultBranchName)
-        .sort((x, y) => compare(x.type, y.type))
-        .shift() || null
-    } else {
-      this._defaultBranch = null
-    }
-
+    this.updateDefaultBranch()
     this.emitUpdate()
 
     if (recentBranchNames && recentBranchNames.length) {
@@ -282,6 +266,25 @@ export class GitStore {
 
     this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
+  }
+
+  private updateDefaultBranch() {
+    let defaultBranchName: string | null = 'master'
+    const gitHubRepository = this.repository.gitHubRepository
+    if (gitHubRepository && gitHubRepository.defaultBranch) {
+      defaultBranchName = gitHubRepository.defaultBranch
+    }
+
+    if (defaultBranchName) {
+      // Find the default branch among all of our branches, giving
+      // priority to local branches by sorting them before remotes
+      this._defaultBranch = this._allBranches
+        .filter(b => b.name === defaultBranchName)
+        .sort((x, y) => compare(x.type, y.type))
+        .shift() || null
+    } else {
+      this._defaultBranch = null
+    }
   }
 
   /** The current branch. */
