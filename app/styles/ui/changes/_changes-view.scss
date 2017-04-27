@@ -17,6 +17,8 @@
 
     .path {
       flex-grow: 1;
+      display: flex;
+      min-width: 0;
     }
 
     @include octicon-status;
@@ -27,6 +29,14 @@
       position: relative;
       top: 1px;
     }
+  }
+
+  .panel {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
   }
 }
 
