@@ -101,6 +101,8 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
       const path = field.substr(2)
       entries.push({
         kind: 'entry',
+        // NOTE: We return ?? instead of ? here to play nice with mapStatus,
+        // might want to consider changing this (and mapStatus) in the future.
         statusCode: '??',
         path,
       })
