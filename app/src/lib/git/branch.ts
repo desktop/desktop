@@ -3,9 +3,21 @@ import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { Account } from '../../models/account'
 
-/** Create a new branch from the given start point. */
-export async function createBranch(repository: Repository, name: string, startPoint: string): Promise<true> {
-  await git([ 'branch', name, startPoint ], repository.path, 'createBranch')
+/** 
+ * Create a new branch from the given start point.
+ * 
+ * @param repository - The repository in which to create the new branch
+ * @param name       - The name of the new branch
+ * @param startPoint - A committish string that the new branch should be based
+ *                     on, or undefined if the branch should be created based
+ *                     off of the current state of HEAD
+ */
+export async function createBranch(repository: Repository, name: string, startPoint?: string): Promise<true> {
+  const args = startPoint
+    ? [ 'branch', name, startPoint ]
+    : [ 'branch', name ]
+
+  await git(args, repository.path, 'createBranch')
   return true
 }
 

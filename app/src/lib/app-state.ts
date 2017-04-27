@@ -7,13 +7,12 @@ import { Branch } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
-import { CloningRepository, ICloningRepositoryState, IGitHubUser, SignInState } from './dispatcher'
+import { CloningRepository, IGitHubUser, SignInState } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
 
-export { ICloningRepositoryState }
 export { ICommitMessage }
 export { IAheadBehind }
 
@@ -24,7 +23,7 @@ export enum SelectionType {
 }
 
 export type PossibleSelections = { type: SelectionType.Repository, repository: Repository, state: IRepositoryState } |
-                                 { type: SelectionType.CloningRepository, repository: CloningRepository, state: ICloningRepositoryState } |
+                                 { type: SelectionType.CloningRepository, repository: CloningRepository, progress: ICloneProgress } |
                                  { type: SelectionType.MissingRepository, repository: Repository }
 
 /** All of the shared app state. */
@@ -102,13 +101,15 @@ export interface IAppState {
    * Alt key is pressed. Only applicable on non-macOS platforms.
    */
   readonly highlightAccessKeys: boolean
+
+  /** Whether we should show the update banner */
+  readonly isUpdateAvailableBannerVisible: boolean
 }
 
 export enum PopupType {
   RenameBranch = 1,
   DeleteBranch,
   ConfirmDiscardChanges,
-  UpdateAvailable,
   Preferences,
   MergeBranch,
   RepositorySettings,
@@ -127,7 +128,6 @@ export enum PopupType {
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
-                    { type: PopupType.UpdateAvailable } |
                     { type: PopupType.Preferences } |
                     { type: PopupType.MergeBranch, repository: Repository } |
                     { type: PopupType.RepositorySettings, repository: Repository } |
@@ -180,26 +180,6 @@ export enum RepositorySection {
   History
 }
 
-/** 
- * An object describing the progression of a branch checkout operation
- */
-export interface ICheckoutProgress {
-  /** The branch that's currently being checked out */
-  readonly targetBranch: string
-
-  /** 
-   * The overall progress of the operation, represented as a fraction between
-   * 0 and 1.
-   */
-  readonly progressValue: number
-
-  /**
-   * An informative text for user consumption indicating the current operation
-   * state.
-   */
-  readonly progressText: string
-}
-
 export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
@@ -238,7 +218,7 @@ export interface IRepositoryState {
   readonly aheadBehind: IAheadBehind | null
 
   /** Is a push/pull/update in progress? */
-  readonly pushPullInProgress: boolean
+  readonly isPushPullFetchInProgress: boolean
 
   /** Is a commit in progress? */
   readonly isCommitting: boolean
@@ -249,10 +229,122 @@ export interface IRepositoryState {
   /**
    * If we're currently working on switching to a new branch this
    * provides insight into the progress of that operation.
-   * 
+   *
    * null if no current branch switch operation is in flight.
    */
   readonly checkoutProgress: ICheckoutProgress | null
+
+  /**
+   * If we're currently working on pushing a branch, fetching
+   * from a remote or pulling a branch this provides insight
+   * into the progress of that operation.
+   *
+   * null if no such operation is in flight.
+   */
+  readonly pushPullFetchProgress: Progress | null
+}
+
+export type Progress = IGenericProgress
+  | ICheckoutProgress
+  | IFetchProgress
+  | IPullProgress
+  | IPushProgress
+
+/**
+ * Base interface containing all the properties that progress events
+ * need to support.
+ */
+interface IProgress {
+
+  /**
+   * The overall progress of the operation, represented as a fraction between
+   * 0 and 1.
+   */
+  readonly value: number
+
+  /**
+   * An informative text for user consumption indicating the current operation
+   * state. This will be high level such as 'Pushing origin' or
+   * 'Fetching upstream' and will typically persist over a number of progress
+   * events. For more detailed information about the progress see
+   * the description field
+   */
+  readonly title: string
+
+  /**
+   * An informative text for user consumption. In the case of git progress this
+   * will usually be the last raw line of output from git.
+   */
+  readonly description?: string
+}
+
+/**
+ * An object describing progression of an operation that can't be
+ * directly mapped or attributed to either one of the more specific
+ * progress events (Fetch, Checkout etc). An example of this would be
+ * our own refreshing of internal repository state that takes part
+ * after fetch, push and pull.
+ */
+export interface IGenericProgress extends IProgress {
+  kind: 'generic'
+}
+
+/**
+ * An object describing the progression of a branch checkout operation
+ */
+export interface ICheckoutProgress extends IProgress {
+  kind: 'checkout'
+
+  /** The branch that's currently being checked out */
+  readonly targetBranch: string
+}
+
+/**
+ * An object describing the progression of a fetch operation
+ */
+export interface IFetchProgress extends IProgress {
+  kind: 'fetch'
+
+  /**
+   * The remote that's being fetched
+   */
+  readonly remote: string,
+}
+
+/**
+ * An object describing the progression of a pull operation
+ */
+export interface IPullProgress extends IProgress {
+  kind: 'pull'
+
+  /**
+   * The remote that's being pulled from
+   */
+  readonly remote: string,
+}
+
+/**
+ * An object describing the progression of a pull operation
+ */
+export interface IPushProgress extends IProgress {
+  kind: 'push'
+
+  /**
+   * The remote that's being pushed to
+   */
+  readonly remote: string,
+
+  /**
+   * The branch that's being pushed
+   */
+  readonly branch: string,
+}
+
+/**
+ * An object describing the progression of a fetch operation
+ */
+export interface ICloneProgress extends IProgress {
+  kind: 'clone'
 }
 
 export interface IBranchesState {
@@ -304,10 +396,10 @@ export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
 
   /**
-   * The selected file. Note that this must be the same instance as is in
+   * The ID of the selected file. The file itself can be looked up in
    * `workingDirectory`.
    */
-  readonly selectedFile: WorkingDirectoryFileChange | null
+  readonly selectedFileID: string | null
 
   readonly diff: IDiff | null
 

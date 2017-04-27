@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
+import { FoldoutType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchList } from './branch-list'
@@ -27,7 +28,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private onItemClick = (item: Branch) => {
-    this.props.dispatcher.closeFoldout()
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
     const currentBranch = this.props.currentBranch
 
@@ -39,7 +40,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       if (filter.length === 0) {
-        this.props.dispatcher.closeFoldout()
+        this.props.dispatcher.closeFoldout(FoldoutType.Branch)
         event.preventDefault()
       }
     }

@@ -124,9 +124,16 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {
-      return <Changes repository={this.props.repository}
-                      dispatcher={this.props.dispatcher}
-                      changes={this.props.state.changesState} />
+      const changesState = this.props.state.changesState
+      const selectedFileID = changesState.selectedFileID
+      const selectedFile = selectedFileID ? changesState.workingDirectory.findFileWithID(selectedFileID) : null
+      const diff = changesState.diff
+      return <Changes
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        file={selectedFile}
+        diff={diff}
+      />
     } else if (selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
         dispatcher={this.props.dispatcher}
