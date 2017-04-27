@@ -111,12 +111,6 @@ export class StatsStore {
     }
   }
 
-  /** Record the given launch stats. */
-  public async recordLaunchStats(stats: ILaunchStats) {
-    Fs.appendFileSync(Path.resolve(OS.homedir(), 'desktop-launch-stats'), JSON.stringify({ date: new Date().toJSON(), ...stats }) + '\n')
-    await this.db.launches.add(stats)
-  }
-
   /** Clear the stored daily stats. */
   private async clearDailyStats() {
     await this.db.launches.clear()

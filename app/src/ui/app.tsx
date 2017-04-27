@@ -138,7 +138,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       console.info(`Load time: ${stats.loadTime}ms`)
       console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
 
-      this.props.dispatcher.recordLaunchStats(stats)
       this.props.dispatcher.reportStats()
 
       setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
