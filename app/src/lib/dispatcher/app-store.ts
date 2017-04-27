@@ -910,21 +910,24 @@ export class AppStore {
       this._loadStatus(repository),
       gitStore.loadBranches(),
     ])
+    const section = state.selectedSection
+    let refreshSectionPromise: Promise<void>
+    if (section === RepositorySection.History) {
+      refreshSectionPromise = this.refreshHistorySection(repository)
+    } else if (section === RepositorySection.Changes) {
+      refreshSectionPromise = this.refreshChangesSection(repository, { includingStatus: false, clearPartialState: false })
+    } else {
+      return assertNever(section, `Unknown section: ${section}`)
+    }
 
     await Promise.all([
       gitStore.loadCurrentRemote(),
       gitStore.updateLastFetched(),
       this.refreshAuthor(repository),
       gitStore.loadContextualCommitMessage(),
+      refreshSectionPromise,
     ])
 
-    const section = state.selectedSection
-    if (section === RepositorySection.History) {
-      return this.refreshHistorySection(repository)
-    } else if (section === RepositorySection.Changes) {
-      return this.refreshChangesSection(repository, { includingStatus: false, clearPartialState: false })
-    } else {
-      return assertNever(section, `Unknown section: ${section}`)
     }
   }
 
