@@ -28,11 +28,13 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, void> {
         </p>
 
         <Form  onSubmit={this.finish}>
-          <Checkbox
-            label='Yes, submit anonymized usage data'
-            value={this.props.optOut ? CheckboxValue.Off : CheckboxValue.On}
-            onChange={this.onChange}
-          />
+          <Row>
+            <Checkbox
+              label='Yes, submit anonymized usage data'
+              value={this.props.optOut ? CheckboxValue.Off : CheckboxValue.On}
+              onChange={this.onChange}
+            />
+          </Row>
 
           <Row className='actions'>
             <Button type='submit'>Finish</Button>
