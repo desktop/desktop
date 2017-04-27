@@ -51,7 +51,6 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
     // 2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>
     if (entryKind === '1' || entryKind === '2') {
 
-
       if (entryKind === '1') {
         // Ordinary changed entries
         const match = field.match(/^(\d) ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
@@ -88,6 +87,18 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
       }
     } else if (entryKind === 'u') {
       // Unmerged entries
+      // u <xy> <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>
+      const match = field.match(/^(\d) ([DAU]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
+
+      if (!match) {
+        throw new Error(`Failed to parse status line for unmerged entry: ${field}`)
+      }
+
+      entries.push({
+        kind: 'entry',
+        statusCode: match[2],
+        path: match[11],
+      })
     } else if (entryKind === '?') {
       // Untracked
       const path = field.substr(2)
