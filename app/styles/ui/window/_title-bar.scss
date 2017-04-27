@@ -118,14 +118,6 @@
   z-index: 1;
 
   .window-controls {
-    svg {
-
-      // Note that this assumes that the background is dark (in the case of the
-      // welcome flow.) We'll eventually want to have a special case for dark
-      // vs. light backgrounds once this style needs to appear on a light bg.
-      fill: #fff;
-    }
-
     button {
       &:hover {
         background-color: #e5e5e5;
