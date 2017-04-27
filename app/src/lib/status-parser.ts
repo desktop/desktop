@@ -17,6 +17,12 @@ export interface IStatusEntry {
   readonly oldPath?: string
 }
 
+const ChangedEntryType = '1'
+const RenamedOrCopiedEntryType = '2'
+const UnmergedEntryType = 'u'
+const UntrackedEntryType = '?'
+const IgnoredEntryType = '!'
+
 /** Parses output from git status --porcelain -z into file status entries */
 export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeader | IStatusEntry> {
   const entries = new Array<IStatusEntry | IStatusHeader>()
@@ -47,7 +53,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
 
     const entryKind = field.substr(0, 1)
 
-    if (entryKind === '1') {
+    if (entryKind === ChangedEntryType) {
       // Ordinary changed entries
       // 1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>
       const match = field.match(/^1 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
@@ -61,7 +67,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
         statusCode: match[1],
         path: match[8],
       })
-    } else if (entryKind === '2') {
+    } else if (entryKind === RenamedOrCopiedEntryType) {
       // Renamed or copied entries
       // 2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>
       const match = field.match(/^2 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([RC]\d+) (.*?)$/)
@@ -82,7 +88,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
         oldPath,
         path: match[9],
       })
-    } else if (entryKind === 'u') {
+    } else if (entryKind === UnmergedEntryType) {
       // Unmerged entries
       // u <xy> <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>
       const match = field.match(/^u ([DAU]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
@@ -96,7 +102,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
         statusCode: match[1],
         path: match[10],
       })
-    } else if (entryKind === '?') {
+    } else if (entryKind === UntrackedEntryType) {
       // Untracked
       const path = field.substr(2)
       entries.push({
@@ -106,7 +112,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
         statusCode: '??',
         path,
       })
-    } else if (entryKind === '!') {
+    } else if (entryKind === IgnoredEntryType) {
       // Ignored, we don't care about these for now
     }
   }
