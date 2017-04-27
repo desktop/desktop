@@ -429,13 +429,7 @@ export class Dispatcher {
     const { promise, repository } = this.appStore._clone(url, path, { account })
     await this.selectRepository(repository)
     const success = await promise
-    if (!success) {
-      if (this.nextCloneResolve) {
-        this.nextCloneResolve(null)
-        this.nextCloneResolve = null
-      }
-      return
-    }
+    if (!success) { return }
 
     // In the background the shared process has updated the repository list.
     // To ensure a smooth transition back, we should lookup the new repository
@@ -446,25 +440,34 @@ export class Dispatcher {
     if (found) {
       const updatedRepository = await this.updateRepositoryMissing(found, false)
       await this.selectRepository(updatedRepository)
-
-      if (this.nextCloneResolve) {
-        this.nextCloneResolve(updatedRepository)
-        this.nextCloneResolve = null
-      }
     }
  }
 
   /** Clone the repository to the path. */
   public async clone(url: string, path: string, options: { account: Account | null, branch?: string }): Promise<Repository | null> {
+    const resolve = this.nextCloneResolve
+    this.nextCloneResolve = null
+
     const { promise, repository } = this.appStore._clone(url, path, options)
     await this.selectRepository(repository)
     const success = await promise
     // TODO: this exit condition is not great, bob
-    if (!success) { return Promise.resolve(null) }
+    if (!success) {
+      if (resolve) {
+        resolve(null)
+      }
+
+      return null
+    }
 
     const addedRepositories = await this.addRepositories([ path ])
     const addedRepository = addedRepositories[0]
     await this.selectRepository(addedRepository)
+
+    if (resolve) {
+      resolve(addedRepository)
+    }
+
     return addedRepository
   }
 
