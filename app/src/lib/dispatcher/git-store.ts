@@ -520,11 +520,7 @@ export class GitStore {
       return null
     }
 
-    const aheadBehind = status.branchAheadBehind
-
-    if (aheadBehind) {
-      this._aheadBehind = aheadBehind
-    }
+    this._aheadBehind = status.branchAheadBehind || null
 
     const { currentBranch, currentTip } = status
 
@@ -546,13 +542,13 @@ export class GitStore {
           BranchType.Local
         )
         this._tip = { kind: TipState.Valid, branch }
-      } else if (currentTip && !currentBranch) {
+      } else if (currentTip) {
         this._tip = { kind: TipState.Detached, currentSha: currentTip }
       } else if (currentBranch) {
         this._tip = { kind: TipState.Unborn, ref: currentBranch }
-      } else {
-        this._tip = { kind: TipState.Unknown }
       }
+    } else {
+      this._tip = { kind: TipState.Unknown }
     }
 
     return status
