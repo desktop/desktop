@@ -929,8 +929,6 @@ export class AppStore {
       gitStore.loadContextualCommitMessage(),
       refreshSectionPromise,
     ])
-
-    }
   }
 
   /**
