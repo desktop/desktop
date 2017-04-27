@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { parsePorcelainStatus, IStatusEntry } from '../../src/lib/status-parser'
+import { parsePorcelainStatus, IStatusEntry, IStatusHeader } from '../../src/lib/status-parser'
 
 describe('parsePorcelainStatus', () => {
   it('parses a standard status', () => {
@@ -57,5 +57,26 @@ describe('parsePorcelainStatus', () => {
     ].join('\0') + '\0') as ReadonlyArray<IStatusEntry>
 
     expect(entries.length).to.equal(0)
+  })
+
+  it('parses status headers', () => {
+    // We don't run status with --ignored so this shouldn't be a problem
+    // but we test it all the same
+
+    const entries = parsePorcelainStatus([
+      '# branch.oid 2de0487c2d3e977f5f560b746833f9d7f9a054fd',
+      '# branch.head master',
+      '# branch.upstream origin/master',
+      '# branch.ab +1 -0',
+    ].join('\0') + '\0') as ReadonlyArray<IStatusHeader>
+
+    expect(entries.length).to.equal(4)
+
+    let i = 0
+
+    expect(entries[i++].value).to.equal('branch.oid 2de0487c2d3e977f5f560b746833f9d7f9a054fd')
+    expect(entries[i++].value).to.equal('branch.head master')
+    expect(entries[i++].value).to.equal('branch.upstream origin/master')
+    expect(entries[i++].value).to.equal('branch.ab +1 -0')
   })
 })
