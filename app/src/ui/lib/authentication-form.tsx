@@ -102,7 +102,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
       <div className='actions'>
         {this.props.supportsBasicAuth ?
           <Button type='submit' disabled={signInDisabled}>
-            Sign in {this.props.loading ? <Loading/> : null }
+            {this.props.loading ? <Loading/> : null } Sign in
           </Button>
           : null}
         {this.props.additionalButtons}

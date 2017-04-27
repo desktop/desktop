@@ -60,8 +60,7 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
 
         <div className='actions'>
           <Button type='submit' disabled={disableSubmission}>
-            Continue
-            {this.props.loading ? <Loading/> : null}
+            {this.props.loading ? <Loading/> : null} Continue
           </Button>
           {this.props.additionalButtons}
         </div>
