@@ -235,28 +235,8 @@ export class GitStore {
     this._allBranches = allBranchesWithUpstream
 
     this.refreshDefaultBranch()
+    this.refreshRecentBranches(recentBranchNames)
     this.emitUpdate()
-
-    if (recentBranchNames && recentBranchNames.length) {
-      const branchesByName = allBranchesWithUpstream
-        .reduce((map, branch) =>
-          map.set(branch.name, branch), new Map<string, Branch>())
-
-      const recentBranches = new Array<Branch>()
-        for (const name of recentBranchNames) {
-          const branch = branchesByName.get(name)
-          if (!branch) {
-            // This means the recent branch has been deleted. That's fine.
-            continue
-          }
-
-          recentBranches.push(branch)
-        }
-
-      this._recentBranches = recentBranches
-    } else {
-      this._recentBranches = []
-    }
 
     const commits = allBranchesWithUpstream.map(b => b.tip)
 
@@ -285,6 +265,30 @@ export class GitStore {
     } else {
       this._defaultBranch = null
     }
+  }
+
+  private refreshRecentBranches(recentBranchNames: ReadonlyArray<string> | undefined) {
+    if (!recentBranchNames || !recentBranchNames.length) {
+      this._recentBranches = []
+      return
+    }
+
+    const branchesByName = this._allBranches
+      .reduce((map, branch) =>
+        map.set(branch.name, branch), new Map<string, Branch>())
+
+    const recentBranches = new Array<Branch>()
+      for (const name of recentBranchNames) {
+        const branch = branchesByName.get(name)
+        if (!branch) {
+          // This means the recent branch has been deleted. That's fine.
+          continue
+        }
+
+        recentBranches.push(branch)
+      }
+
+    this._recentBranches = recentBranches
   }
 
   /** The current branch. */
