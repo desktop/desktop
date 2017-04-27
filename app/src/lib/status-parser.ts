@@ -47,44 +47,36 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
 
     const entryKind = field.substr(0, 1)
 
-    // 1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>
-    // 2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>
-    if (entryKind === '1' || entryKind === '2') {
-
-      if (entryKind === '1') {
-        // Ordinary changed entries
-        const match = field.match(/^(\d) ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
-
-        if (!match) {
-          throw new Error(`Failed to parse status line for changed entry: ${field}`)
-        }
-
-        entries.push({
-          kind: 'entry',
-          statusCode: match[2],
-          path: match[9],
-        })
-      } else {
-        // Renamed or copied entries
-        const match = field.match(/^(\d) ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([RC]\d+) (.*?)$/)
-
-        if (!match) {
-          throw new Error(`Failed to parse status line for renamed or copied entry: ${field}`)
-        }
-
-        const oldPath = fields.shift()
-
-        if (!oldPath) {
-          throw new Error('Failed to parse renamed or copied entry, could not parse old path')
-        }
-
-        entries.push({
-          kind: 'entry',
-          statusCode: match[9],
-          oldPath,
-          path: match[10],
-        })
+    if (entryKind === '1') {
+      // Ordinary changed entries
+      // 1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>
+      const match = field.match(/^1 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
+      if (!match) {
+        throw new Error(`Failed to parse status line for changed entry: ${field}`)
       }
+
+      entries.push({
+        kind: 'entry',
+        statusCode: match[2],
+        path: match[9],
+      })
+    } else if (entryKind === '2') {
+      // Renamed or copied entries
+      // 2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>
+      const match = field.match(/^2 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([RC]\d+) (.*?)$/)
+
+      if (!match) {
+        throw new Error(`Failed to parse status line for renamed or copied entry: ${field}`)
+      }
+
+      const oldPath = fields.shift()
+
+      if (!oldPath) {
+        throw new Error('Failed to parse renamed or copied entry, could not parse old path')
+      }
+
+      entries.push({
+        kind: 'entry',
     } else if (entryKind === 'u') {
       // Unmerged entries
       // u <xy> <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>
