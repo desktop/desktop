@@ -234,7 +234,7 @@ export class GitStore {
 
     this._allBranches = allBranchesWithUpstream
 
-    this.updateDefaultBranch()
+    this.refreshDefaultBranch()
     this.emitUpdate()
 
     if (recentBranchNames && recentBranchNames.length) {
@@ -268,7 +268,7 @@ export class GitStore {
     this.emitUpdate()
   }
 
-  private updateDefaultBranch() {
+  private refreshDefaultBranch() {
     let defaultBranchName: string | null = 'master'
     const gitHubRepository = this.repository.gitHubRepository
     if (gitHubRepository && gitHubRepository.defaultBranch) {
