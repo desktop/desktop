@@ -17,6 +17,7 @@ describe('parsePorcelainStatus', () => {
     let i = 0
     expect(entries[i].statusCode).to.equal('.D')
     expect(entries[i].path).to.equal('deleted')
+    i++
 
     expect(entries[i].statusCode).to.equal('.M')
     expect(entries[i].path).to.equal('modified')
@@ -24,7 +25,6 @@ describe('parsePorcelainStatus', () => {
 
     expect(entries[i].statusCode).to.equal('??')
     expect(entries[i].path).to.equal('untracked')
-    i++
   })
 
   it('parses renames', () => {
@@ -44,7 +44,7 @@ describe('parsePorcelainStatus', () => {
     i++
 
     expect(entries[i].statusCode).to.equal('RM')
-    expect(entries[i].path).to.equal('from')
-    expect(entries[i].oldPath).to.equal('to')
+    expect(entries[i].path).to.equal('to')
+    expect(entries[i].oldPath).to.equal('from')
   })
 })
