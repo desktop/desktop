@@ -19,7 +19,7 @@ export class AppWindow {
   private _rendererReadyTime: number | null = null
 
   private minWidth = 960
-  private minHeight = 960
+  private minHeight = 660
 
   public constructor(sharedProcess: SharedProcess) {
     if (!windowStateKeeper) {
