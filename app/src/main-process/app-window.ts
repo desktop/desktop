@@ -18,6 +18,9 @@ export class AppWindow {
   private _loadTime: number | null = null
   private _rendererReadyTime: number | null = null
 
+  private minWidth = 960
+  private minHeight = 960
+
   public constructor(sharedProcess: SharedProcess) {
     if (!windowStateKeeper) {
       // `electron-window-state` requires Electron's `screen` module, which can
@@ -27,8 +30,8 @@ export class AppWindow {
     }
 
     const savedWindowState = windowStateKeeper({
-      defaultWidth: 960,
-      defaultHeight: 660,
+      defaultWidth: this.minWidth,
+      defaultHeight: this.minHeight,
     })
 
     const windowOptions: Electron.BrowserWindowOptions = {
@@ -36,8 +39,8 @@ export class AppWindow {
       y: savedWindowState.y,
       width: savedWindowState.width,
       height: savedWindowState.height,
-      minWidth: 960,
-      minHeight: 650,
+      minWidth: this.minWidth,
+      minHeight: this.minWidth,
       show: false,
       // This fixes subpixel aliasing on Windows
       // See https://github.com/atom/atom/commit/683bef5b9d133cb194b476938c77cc07fd05b972
