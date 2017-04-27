@@ -51,6 +51,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
       // Ordinary changed entries
       // 1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>
       const match = field.match(/^1 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
+
       if (!match) {
         throw new Error(`Failed to parse status line for changed entry: ${field}`)
       }
@@ -77,6 +78,10 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
 
       entries.push({
         kind: 'entry',
+        statusCode: match[9],
+        oldPath,
+        path: match[10],
+      })
     } else if (entryKind === 'u') {
       // Unmerged entries
       // u <xy> <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>
