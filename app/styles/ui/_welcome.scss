@@ -88,7 +88,7 @@
 }
 
 .welcome-title {
-  font-size: 42px;
+  font-size: var(--font-size-xxl);
   font-weight: var(--font-weight-light);
   line-height: 1.25;
   margin-bottom: var(--spacing);
