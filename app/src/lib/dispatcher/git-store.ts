@@ -530,7 +530,7 @@ export class GitStore {
       } else if (currentTip && !currentBranch) {
         this._tip = { kind: TipState.Detached, currentSha: currentTip }
       } else if (currentBranch) {
-        this._tip = { kind: TipState.Unborn }
+        this._tip = { kind: TipState.Unborn, ref: currentBranch }
       } else {
         this._tip = { kind: TipState.Unknown }
       }
