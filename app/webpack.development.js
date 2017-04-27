@@ -35,13 +35,4 @@ const rendererConfig = merge({}, common.renderer, config, {
   ]
 })
 
-const sharedConfig = merge({}, common.shared, config, {
-  entry: {
-    shared: ['webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr', common.shared.entry.shared]
-  },
-  plugins: [
-    new webpack.HotModuleReplacementPlugin(),
-  ]
-})
-
 module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig ]
