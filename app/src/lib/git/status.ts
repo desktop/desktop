@@ -85,11 +85,11 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
       // This intentionally does not match branch.oid initial
       if (m = value.match(/^branch\.oid ([a-f0-9]+)$/)) {
         currentTip = m[1]
-      } else if (m = value.match(/^branch.head (.*?)$/)) {
+      } else if (m = value.match(/^branch.head (.*)/)) {
         if (m[1] !== 'detached') {
           currentBranch = m[1]
         }
-      } else if (m = value.match(/^branch.upstream (.*?)$/)) {
+      } else if (m = value.match(/^branch.upstream (.*)/)) {
         currentUpstreamBranch = m[1]
       } else if (m = value.match(/^branch.ab \+(\d+) -(\d+)$/)) {
         const ahead = parseInt(m[1], 10)
