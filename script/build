@@ -166,16 +166,10 @@ function copyDependencies () {
     delete updatedPackage.devDependencies
   }
 
-  let destination = path.join(outRoot, 'package.json')
-  fs.removeSync(destination)
-  fs.writeFileSync(destination, JSON.stringify(updatedPackage))
+  fs.writeFileSync(path.join(outRoot, 'package.json'), JSON.stringify(updatedPackage))
 
 
 
-  // if (isProductionBuild) {
-  //   console.log('Pruning dev dependencies…')
-  //   cp.execSync('npm prune --production', {cwd: outRoot, env: process.env})
-  // }
   console.log('  Copying git environment…')
   const gitDir = path.resolve(outRoot, 'git')
   fs.mkdirpSync(gitDir)
