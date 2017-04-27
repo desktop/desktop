@@ -58,8 +58,8 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
 
       entries.push({
         kind: 'entry',
-        statusCode: match[2],
-        path: match[9],
+        statusCode: match[1],
+        path: match[8],
       })
     } else if (entryKind === '2') {
       // Renamed or copied entries
@@ -78,9 +78,9 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
 
       entries.push({
         kind: 'entry',
-        statusCode: match[9],
+        statusCode: match[8],
         oldPath,
-        path: match[10],
+        path: match[9],
       })
     } else if (entryKind === 'u') {
       // Unmerged entries
@@ -93,8 +93,8 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
 
       entries.push({
         kind: 'entry',
-        statusCode: match[2],
-        path: match[11],
+        statusCode: match[1],
+        path: match[10],
       })
     } else if (entryKind === '?') {
       // Untracked
