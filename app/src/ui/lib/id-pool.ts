@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid'
+import { uuid } from '../../lib/uuid'
 
 const activeIds = new Set<string>()
 const poolPrefix = '__'

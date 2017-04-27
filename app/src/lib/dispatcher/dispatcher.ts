@@ -13,13 +13,13 @@ import { Commit } from '../../models/commit'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
-import { v4 as guid } from 'uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
 import { isGitOnPath } from '../open-shell'
+import { uuid } from '../uuid'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -89,7 +89,7 @@ export class Dispatcher {
   private send<T>(name: string, args: Object): Promise<T> {
     return new Promise<T>((resolve, reject) => {
 
-      const requestGuid = guid()
+      const requestGuid = uuid()
       ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
         const response: IPCResponse<T> = args[0]
         if (response.type === 'result') {
