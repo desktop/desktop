@@ -296,18 +296,6 @@ export class GitStore {
   /** The most recently checked out branches. */
   public get recentBranches(): ReadonlyArray<Branch> { return this._recentBranches }
 
-  // /** Load the recent branches. */
-  // private async loadRecentBranches() {
-  //   const recentBranches = await this.performFailableOperation(() => getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit))
-  //   if (recentBranches) {
-  //     this._recentBranches = recentBranches
-  //   } else {
-  //     this._recentBranches = []
-  //   }
-
-  //   this.emitUpdate()
-  // }
-
   /** Load the local commits. */
   public async loadLocalCommits(branch: Branch): Promise<void> {
     let localCommits: ReadonlyArray<Commit> | undefined
