@@ -48,10 +48,10 @@ export function mapStatus(rawStatus: string): FileStatus {
   if (status === '??') { return FileStatus.New }          // untracked
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
-  if (status.match(/R[0-9]{3}/)) { return FileStatus.Renamed }
+  if (status.match(/R[0-9]+/)) { return FileStatus.Renamed }
 
   // git log -C --name-status will return a CXXX - where XXX is a percentage
-  if (status.match(/C[0-9]{3}/)) { return FileStatus.Copied }
+  if (status.match(/C[0-9]+/)) { return FileStatus.Copied }
 
   return FileStatus.Modified
 }
