@@ -23,7 +23,7 @@ const replacements = {
 }
 
 const commonConfig = {
-  externals: [ '7zip', 'dugite' ],
+  externals: [ '7zip' ],
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', 'out'),

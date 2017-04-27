@@ -170,16 +170,16 @@ function copyDependencies () {
   fs.removeSync(destination)
   fs.writeFileSync(destination, JSON.stringify(updatedPackage))
 
-  destination = path.join(outRoot, 'node_modules')
-  fs.removeSync(destination)
-  fs.mkdirpSync(destination)
 
-  fs.copySync(path.join(projectRoot, 'app', 'node_modules', 'dugite'), path.join(destination, 'dugite'))
 
   // if (isProductionBuild) {
   //   console.log('Pruning dev dependencies…')
   //   cp.execSync('npm prune --production', {cwd: outRoot, env: process.env})
   // }
+  console.log('  Copying git environment…')
+  const gitDir = path.resolve(outRoot, 'git')
+  fs.mkdirpSync(gitDir)
+  fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 }
 
 function updateLicenseDump (callback) {

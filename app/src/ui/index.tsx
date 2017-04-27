@@ -26,6 +26,10 @@ if (__DEV__) {
   installDevGlobals()
 }
 
+// Tell dugite where to find the git environment,
+// see https://github.com/desktop/dugite/pull/85
+process.env['LOCAL_GIT_DIRECTORY'] = Path.resolve(__dirname, 'git')
+
 // We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
 // This allows us to not have to override default accessibility driven focus
 // styles for buttons in the case when a user clicks on a button. This also
