@@ -1,6 +1,4 @@
 import * as OS from 'os'
-import * as Fs from 'fs'
-import * as Path from 'path'
 import { UAParser } from 'ua-parser-js'
 import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
 import { getDotComAPIEndpoint } from '../api'
@@ -113,7 +111,6 @@ export class StatsStore {
 
   /** Record the given launch stats. */
   public async recordLaunchStats(stats: ILaunchStats) {
-    Fs.appendFileSync(Path.resolve(OS.homedir(), 'desktop-launch-stats'), JSON.stringify({ date: new Date().toJSON(), ...stats }) + '\n')
     await this.db.launches.add(stats)
   }
 
