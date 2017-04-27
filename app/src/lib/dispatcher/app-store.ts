@@ -132,6 +132,7 @@ export class AppStore {
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
+  private isUpdateAvailableBannerVisible: boolean = false
 
   private readonly statsStore: StatsStore
 
@@ -355,6 +356,7 @@ export class AppStore {
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
+      isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
     }
   }
 
@@ -1646,6 +1648,12 @@ export class AppStore {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  public _setUpdateBannerVisibility(visibility: boolean) {
+    this.isUpdateAvailableBannerVisible = visibility
+
+    this.emitUpdate()
   }
 
   public _reportStats() {
