@@ -241,9 +241,12 @@ export class GitStore {
     }
 
     if (defaultBranchName) {
+      // Find the default branch among all of our branches, giving
+      // priority to local branches by sorting them before remotes
       this._defaultBranch = allBranchesWithUpstream
+        .filter(b => b.name === defaultBranchName)
         .sort((x, y) => compare(x.type, y.type))
-        .find(b => b.name === defaultBranchName) || null
+        .shift() || null
     } else {
       this._defaultBranch = null
     }

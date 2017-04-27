@@ -1,6 +1,8 @@
 import { Commit } from './commit'
 import { removeRemotePrefix } from '../lib/remove-remote-prefix'
 
+// NOTE: The values here matter as they are used to sort
+// local and remote branches, Local should come before Remote
 export enum BranchType {
   Local = 0,
   Remote = 1,
