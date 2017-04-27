@@ -86,7 +86,7 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
       if (m = value.match(/^branch\.oid ([a-f0-9]+)$/)) {
         currentTip = m[1]
       } else if (m = value.match(/^branch.head (.*)/)) {
-        if (m[1] !== 'detached') {
+        if (m[1] !== '(detached)') {
           currentBranch = m[1]
         }
       } else if (m = value.match(/^branch.upstream (.*)/)) {
