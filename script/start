@@ -26,7 +26,7 @@ const compiler = webpack(configs)
 const port = process.env.PORT || 3000
 
 server.use(require('webpack-dev-middleware')(compiler, {
-  publicPath: sharedConfig.output.publicPath,
+  publicPath: rendererConfig.output.publicPath,
   noInfo: true
 }))
 
