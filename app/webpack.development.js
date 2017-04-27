@@ -7,9 +7,6 @@ const merge = require('webpack-merge')
 
 const config = {
   devtool: 'cheap-module-source-map',
-  output: {
-    publicPath: 'http://localhost:3000/build/'
-  },
 }
 
 const mainConfig = merge({}, common.main, config)
@@ -18,6 +15,9 @@ const askPassConfig = merge({}, common.askPass, config)
 const rendererConfig = merge({}, common.renderer, config, {
   entry: {
     renderer: ['webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr', common.renderer.entry.renderer]
+  },
+  output: {
+    publicPath: 'http://localhost:3000/build/'
   },
   module: {
     rules: [
@@ -35,7 +35,6 @@ const rendererConfig = merge({}, common.renderer, config, {
   ]
 })
 
-const sharedConfig = merge({}, common.shared, config, {
-})
+const sharedConfig = merge({}, common.shared, config, { })
 
 module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig ]
