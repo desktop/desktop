@@ -88,7 +88,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusHeade
     } else if (entryKind === 'u') {
       // Unmerged entries
       // u <xy> <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>
-      const match = field.match(/^(\d) ([DAU]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
+      const match = field.match(/^u ([DAU]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/)
 
       if (!match) {
         throw new Error(`Failed to parse status line for unmerged entry: ${field}`)
