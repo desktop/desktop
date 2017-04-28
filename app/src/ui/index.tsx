@@ -164,7 +164,7 @@ async function handleCloneInDesktopOptions(repository: Repository | null, args: 
   }
 }
 
-function openRepository(url: string, branch?: string): Promise<Repository | null> {
+async function openRepository(url: string, branch?: string): Promise<Repository | null> {
   const state = appStore.getState()
   const repositories = state.repositories
   const existingRepository = repositories.find(r => {
@@ -178,10 +178,9 @@ function openRepository(url: string, branch?: string): Promise<Repository | null
   })
 
   if (existingRepository) {
-    return dispatcher.selectRepository(existingRepository).then(repo => {
-      if (!repo || !branch) { return repo }
-      return dispatcher.checkoutBranch(repo, branch)
-    })
+    const repo = await dispatcher.selectRepository(existingRepository)
+    if (!repo || !branch) { return repo }
+    dispatcher.checkoutBranch(repo, branch)
   }
 
   return cloneRepository(url, branch)
