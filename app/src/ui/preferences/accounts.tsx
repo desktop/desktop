@@ -51,7 +51,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
           <div className='name'>{account.name}</div>
           <div className='login'>@{account.login}</div>
         </div>
-        <Button onClick={this.logout(account)}>Log Out</Button>
+        <Button onClick={this.logout(account)}>{__DARWIN__ ? 'Log Out' : 'Log out'}</Button>
       </Row>
     )
   }
