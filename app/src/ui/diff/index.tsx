@@ -366,7 +366,10 @@ export class Diff extends React.Component<IDiffProps, void> {
 
       if (diffLine.noTrailingNewLine) {
         noNewlineReactContainer = document.createElement('span')
-        ReactDOM.render(<Octicon symbol={narrowNoNewlineSymbol} />, noNewlineReactContainer)
+        ReactDOM.render(
+          <Octicon symbol={narrowNoNewlineSymbol} />,
+          noNewlineReactContainer
+        )
         diffLineElement.appendChild(noNewlineReactContainer)
       }
 
