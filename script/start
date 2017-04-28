@@ -2,6 +2,11 @@
 
 'use strict'
 
+const run = require('./run')
+const express = require('express')
+const webpack = require('webpack')
+const configs = require('../app/webpack.development')
+
 function startApp() {
   const runningApp = run()
   if (!runningApp) {
@@ -14,17 +19,11 @@ function startApp() {
   })
 }
 
-const run = require('./run')
-
 if (process.env.NODE_ENV === 'production') {
   startApp()
   return
 }
 
-const express = require('express')
-const webpack = require('webpack')
-
-const configs = require('../app/webpack.development')
 const [ mainConfig, sharedConfig, rendererConfig, askPassConfig ] = configs
 
 const server = express()
