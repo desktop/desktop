@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { List } from '../list'
+import { List, SelectionSource } from '../list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
 import  * as classNames from 'classnames'
@@ -54,12 +54,8 @@ interface IAutocompletionState<T> {
 
 /**
  * The height of the autocompletion result rows.
- *
- * We're rendering emojis at 20x20px and each row
- * has a 1px border at the bottom, making 31 the
- * ideal height for fitting the emoji images.
  */
-const RowHeight = 31
+const RowHeight = 29
 
 /**
  * The amount to offset on the Y axis so that the popup is displayed below the
@@ -85,9 +81,6 @@ interface IAutocompletingTextInputState<T> {
 export abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HTMLTextAreaElement> extends React.Component<IAutocompletingTextInputProps<ElementType>, IAutocompletingTextInputState<Object>> {
   private element: ElementType | null = null
   private autocompletionList: List | null = null
-
-  /** The row to scroll to. -1 means the list shouldn't scroll. */
-  private scrollToRow = -1
 
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
@@ -122,9 +115,6 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     const items = state.items
     if (!items.length) { return null }
 
-    const scrollToRow = this.scrollToRow
-    this.scrollToRow = -1
-
     const element = this.element!
     let coordinates = getCaretCoordinates(element, state.range.start)
     coordinates = { top: coordinates.top - element.scrollTop, left: coordinates.left - element.scrollLeft }
@@ -146,7 +136,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     // Magic number warning! The autocompletion-popup container adds a border
     // which we have to account for in case we want to show N number of items
     // without overflowing and triggering the scrollbar.
-    const noOverflowItemHeight = (RowHeight * items.length) + 2
+    const noOverflowItemHeight = (RowHeight * items.length)
 
     const height = Math.min(noOverflowItemHeight, maxHeight)
 
@@ -155,22 +145,45 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     // remains the same. Additionally we need to be aware that different
     // providers can use different sorting behaviors which also might affect
     // rendering.
-    const searchText = this.state.autocompletionState
-      ? this.state.autocompletionState.rangeText
-      : undefined
+    const searchText = state.rangeText
+
+    const className = classNames(
+      'autocompletion-popup',
+      state.provider.kind,
+    )
 
     return (
-      <div className='autocompletion-popup' style={{ top, left, height }}>
+      <div className={className} style={{ top, left, height }}>
         <List ref={this.storeAutocompletionListRef}
               rowCount={items.length}
               rowHeight={RowHeight}
               selectedRow={selectedRow}
               rowRenderer={this.renderItem}
-              scrollToRow={scrollToRow}
+              scrollToRow={selectedRow}
+              selectOnHover={true}
+              focusOnHover={false}
               onRowClick={this.insertCompletionOnClick}
+              onSelectionChanged={this.onSelectionChanged}
               invalidationProps={searchText}/>
       </div>
     )
+  }
+
+  private onSelectionChanged = (row: number, source: SelectionSource) => {
+    const currentAutoCompletionState = this.state.autocompletionState
+
+    if (!currentAutoCompletionState) {
+      return
+    }
+
+    const newSelectedItem = currentAutoCompletionState.items[row]
+
+    const newAutoCompletionState = {
+      ...currentAutoCompletionState,
+      selectedItem: newSelectedItem,
+    }
+
+    this.setState({ autocompletionState: newAutoCompletionState })
   }
 
   private insertCompletionOnClick = (row: number): void => {
@@ -276,7 +289,6 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
       event.preventDefault()
 
       const nextRow = this.autocompletionList!.nextSelectableRow(direction, selectedRow)
-      this.scrollToRow = nextRow
       const newSelectedItem = currentAutoCompletionState.items[nextRow]
 
       const newAutoCompletionState = {

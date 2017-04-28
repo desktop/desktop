@@ -9,6 +9,13 @@ export class AutocompletingInput extends AutocompletingTextInput<HTMLInputElemen
 
 /** An interface which defines the protocol for an autocompletion provider. */
 export interface IAutocompletionProvider<T> {
+
+  /**
+   * The type of auto completion provided this instance implements. Used
+   * for variable width auto completion popups depending on type.
+   */
+  kind: 'emoji' | 'user' | 'issue'
+
   /**
    * Get the regex which it used to capture text for the provider. The text
    * captured in the first group will then be passed to `getAutocompletionItems`
