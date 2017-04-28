@@ -11,6 +11,7 @@
     "strictNullChecks": true,
     "sourceMap": true,
     "jsx": "react",
+    "strict": true,
     "outDir": "./out"
   },
   "exclude": [
