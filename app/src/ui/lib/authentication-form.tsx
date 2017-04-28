@@ -119,7 +119,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
           </LinkButton>
 
   const browserSignInButton =
-    <Button className='primary-button' onClick={this.signInWithBrowser}>
+    <Button type='submit' onClick={this.signInWithBrowser}>
       Sign in using your browser
     </Button>
 
