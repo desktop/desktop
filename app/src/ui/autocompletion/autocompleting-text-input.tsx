@@ -142,7 +142,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     // Magic number warning! The autocompletion-popup container adds a border
     // which we have to account for in case we want to show N number of items
     // without overflowing and triggering the scrollbar.
-    const noOverflowItemHeight = (RowHeight * items.length) + 2
+    const noOverflowItemHeight = (RowHeight * items.length)
 
     const height = Math.min(noOverflowItemHeight, maxHeight)
 
