@@ -1,12 +1,12 @@
 import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
-import { v4 as guid } from 'uuid'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
 import { HTTPMethod, request, deserialize } from './http'
 import { AuthenticationMode } from './2fa'
+import { uuid } from './uuid'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -365,7 +365,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
     'client_secret': ClientSecret,
     'note': note,
     'note_url': NoteURL,
-    'fingerprint': guid(),
+    'fingerprint': uuid(),
   }, headers)
 
   if (response.status === 401) {

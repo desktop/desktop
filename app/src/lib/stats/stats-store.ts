@@ -5,7 +5,7 @@ import { getDotComAPIEndpoint } from '../api'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
-import { v4 as generateGUID } from 'uuid'
+import { uuid } from '../uuid'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -41,7 +41,7 @@ export class StatsStore {
 
     let guid = localStorage.getItem(StatsGUIDKey)
     if (!guid) {
-      guid = generateGUID()
+      guid = uuid()
       localStorage.setItem(StatsGUIDKey, guid)
     }
 

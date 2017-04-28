@@ -62,9 +62,13 @@ We do this by making the methods look unappealing:
 ### Application Code
 
 We should be using asynchronous core APIs throughout the application, unless
-there's a compelling reason and no asynchronous alternative. And in those cases
-the method should be suffixed with `Sync` to make it clear to the caller what's
-happening.
+there's a compelling reason and no asynchronous alternative. In those cases the
+method should be suffixed with `Sync` to make it clear to the caller what's
+happening. We also fall back to `Sync` methods for readability in tests.
+
+For more information about this, we added a `tslint` rule in
+[#1249](https://github.com/desktop/desktop/pull/1249) to verify our usage of
+synchronous functions across the codebase.
 
 ### Scripts
 

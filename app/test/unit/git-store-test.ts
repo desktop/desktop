@@ -34,7 +34,7 @@ describe('GitStore', () => {
     Fs.writeFileSync(filePath, 'WRITING SOME NEW WORDS\n')
 
     // setup requires knowing about the current tip
-    await gitStore.loadCurrentAndDefaultBranch()
+    await gitStore.loadStatus()
 
     // ignore the file
     await gitStore.ignore(file)
