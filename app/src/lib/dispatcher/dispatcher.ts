@@ -71,12 +71,6 @@ export class Dispatcher {
 
   private readonly errorHandlers = new Array<ErrorHandler>()
 
-  /**
-   * The function to resolve a promise which is being awaited as part of the
-   * Open in Desktop flow.
-   */
-  private nextCloneResolve: ((repo: Repository | null) => void) | null
-
   public constructor(appStore: AppStore) {
     this.appStore = appStore
 
@@ -303,9 +297,9 @@ export class Dispatcher {
   /** Close the current popup. */
   public closePopup(): Promise<void> {
     const state = this.appStore.getState()
-    if (state.currentPopup && state.currentPopup.type === PopupType.CloneRepository && this.nextCloneResolve) {
-      this.nextCloneResolve(null)
-      this.nextCloneResolve = null
+    const currentPopup = state.currentPopup
+    if (currentPopup && currentPopup.type === PopupType.CloneRepository && currentPopup.resolve) {
+      currentPopup.resolve(null)
     }
 
     return this.appStore._closePopup()
@@ -445,8 +439,12 @@ export class Dispatcher {
 
   /** Clone the repository to the path. */
   public async clone(url: string, path: string, options: { account: Account | null, branch?: string }): Promise<Repository | null> {
-    const resolve = this.nextCloneResolve
-    this.nextCloneResolve = null
+    const state = this.appStore.getState()
+    const popupState = state.currentPopup
+    let resolve: ((repository: Repository | null) => void) | null = null
+    if (popupState && popupState.type === PopupType.CloneRepository) {
+      resolve = popupState.resolve || null
+    }
 
     const { promise, repository } = this.appStore._clone(url, path, options)
     await this.selectRepository(repository)
@@ -887,9 +885,10 @@ export class Dispatcher {
 
       return this.checkoutBranch(repo, branch)
     } else {
+      let resolve: ((repository: Repository | null) => void) | null = null
       // tslint:disable-next-line:promise-must-complete
-      const clonePromise = new Promise<Repository | null>(resolve => this.nextCloneResolve = resolve)
-      this.showPopup({ type: PopupType.CloneRepository, initialURL: url })
+      const clonePromise = new Promise<Repository | null>(resolve_ => resolve = resolve_)
+      this.showPopup({ type: PopupType.CloneRepository, initialURL: url, resolve: resolve! })
       return clonePromise
     }
   }
