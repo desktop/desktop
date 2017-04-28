@@ -10,13 +10,40 @@
   display: flex;
   position: absolute;
   z-index: var(--popup-z-index);
-  width: 200px;
+  width: 250px;
+
+  border-radius: var(--border-radius);
+  overflow: hidden; // To get those sweet rounded corners
+
+  &.emoji { width: 200px; }
+  &.user { width: 220px; }
+  &.issue { width: 300px; }
 
   background-color: var(--background-color);
-  border: var(--base-border);
-  border-radius: var(--border-radius);
 
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+
+  .list-item
+  {
+    border-bottom: none;
+
+    &:not(:first-child) {
+      border-top: var(--base-border);
+    }
+
+    &.selected {
+      --text-color: var(--box-selected-active-text-color);
+      --text-secondary-color: var(--box-selected-active-text-color);
+
+      color: var(--text-color);
+      background-color: var(--box-selected-active-background-color);
+      border-top-color: var(--box-selected-active-background-color);
+
+      & + .list-item {
+        border-top-color: var(--box-selected-active-background-color);      
+      }
+    }
+  }
 }
 
 .autocompletion-item {
@@ -40,13 +67,13 @@
 
     height: 100%;
     width: 100%;
+    align-items: center;
 
     .icon {
       flex-shrink: 0;
       height: 20px;
       width: 20px;
       margin-right: var(--spacing-half);
-      vertical-align: middle;
     }
 
     .title {
@@ -58,23 +85,25 @@
   .issue {
     display: flex;
     flex-grow: 1;
+    align-items: center;
 
     height: 100%;
     width: 100%;
 
     .number {
-      color: var(--text-secondary-color);
       margin-right: var(--spacing-half);
     }
 
     .title {
       @include ellipsis;
+      font-weight: var(--font-weight-semibold);
     }
   }
 
   .user {
     display: flex;
     flex-grow: 1;
+    align-items: center;
 
     height: 100%;
     width: 100%;

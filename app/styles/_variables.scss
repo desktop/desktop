@@ -74,6 +74,7 @@
   --font-size-md: 14px;
   --font-size-lg: 28px;
   --font-size-xl: 32px;
+  --font-size-xxl: 42px;
 
   /** Extra small font size, be very conservative with the use of this */
   --font-size-xs: 9px;
@@ -165,6 +166,7 @@
   --spacing: 10px;
   --spacing-double: calc(var(--spacing) * 2);
   --spacing-triple: calc(var(--spacing) * 3);
+  --spacing-quad: calc(var(--spacing) * 4);
   --spacing-half: calc(var(--spacing) / 2);
   --spacing-third: calc(var(--spacing) / 3);
 

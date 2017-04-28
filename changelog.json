@@ -1,7 +1,20 @@
 {
   "releases": {
-    "0.0.36": [
+    "0.0.37": [
 
+    ],
+    "0.0.36": [
+      "[Fixed] Bugs around associating an email address with a GitHub user - #975",
+      "[Fixed] Use the correct reference name for an unborn branch - #1283",
+      "[Fixed] Better diffs for renamed files - #980",
+      "[Fixed] Typo in Create Branch - #1303",
+      "[Fixed] Don't allow whitespace-only branch names - #1288",
+      "[Improved] Focus ring polish - #1287",
+      "[Improved] Less intrusive update notifications - #1136",
+      "[Improved] Faster launch time on Windows - #1309",
+      "[Improved] Faster git information refreshing - #1305",
+      "[Improved] More consistent use of sentence case on Windows - #1316",
+      "[Improved] Autocomplete polish - #1241"
     ],
     "0.0.35": [
       "[New] Show push/pull/fetch progress - #1238",

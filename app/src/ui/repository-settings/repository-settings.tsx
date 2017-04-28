@@ -81,7 +81,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
 
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
           <span>Remote</span>
-          <span>Ignored Files</span>
+          <span>{ __DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
         </TabBar>
 
         {this.renderActiveTab()}

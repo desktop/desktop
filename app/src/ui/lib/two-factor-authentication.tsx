@@ -77,10 +77,12 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
 
           {errors}
 
-          <Button type='submit' disabled={signInDisabled}>Verify</Button>
-          {this.props.additionalButtons}
-
-          {this.props.loading ? <Loading/> : null}
+          <div className='actions'>
+            <Button type='submit' disabled={signInDisabled}>
+              {this.props.loading ? <Loading/> : null} Verify
+            </Button>
+            {this.props.additionalButtons}
+          </div>
         </Form>
       </div>
     )

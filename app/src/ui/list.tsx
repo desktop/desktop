@@ -162,6 +162,13 @@ interface IListProps {
 
   /** Whether or not selection should follow pointer device */
   readonly selectOnHover?: boolean
+
+  /** 
+   * Whether or not to explicitly move focus to a row if it was selected
+   * by hovering (has no effect if selectOnHover is not set). Defaults to
+   * true if not defined.
+   */
+  readonly focusOnHover?: boolean
 }
 
 interface IListState {
@@ -360,7 +367,11 @@ export class List extends React.Component<IListProps, IListState> {
 
   private scrollRowToVisible(row: number) {
     this.scrollToRow = row
-    this.focusRow = row
+
+    if (this.props.focusOnHover !== false) {
+      this.focusRow = row
+    }
+
     this.forceUpdate()
   }
 
