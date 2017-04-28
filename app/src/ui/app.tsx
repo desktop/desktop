@@ -803,20 +803,11 @@ export class App extends React.Component<IAppProps, IAppState> {
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       case PopupType.CreateBranch: {
-        const state = this.props.appStore.getRepositoryState(popup.repository)
-        const branchesState = state.branchesState
-        const repository = popup.repository
-
-        if (branchesState.tip.kind === TipState.Unknown) {
-          this.props.dispatcher.closePopup()
-          return null
-        }
-
         return <CreateBranch
-                tip={branchesState.tip}
-                defaultBranch={branchesState.defaultBranch}
-                allBranches={branchesState.allBranches}
-                repository={repository}
+                tip={popup.tip}
+                defaultBranch={popup.defaultBranch}
+                allBranches={popup.allBranches}
+                repository={popup.repository}
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       }
@@ -995,15 +986,23 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
+    const branchesState = selection.state.branchesState
+
     // We explicitly disable the menu item in this scenario so this
     // should never happen.
-    if (selection.state.branchesState.tip.kind === TipState.Unknown) {
+    if (branchesState.tip.kind === TipState.Unknown) {
       return
     }
 
     const repository = selection.repository
 
-    return this.props.dispatcher.showPopup({ type: PopupType.CreateBranch, repository })
+    return this.props.dispatcher.showPopup({
+      type: PopupType.CreateBranch,
+      repository,
+      tip: branchesState.tip,
+      defaultBranch: branchesState.defaultBranch,
+      allBranches: branchesState.allBranches,
+    })
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
