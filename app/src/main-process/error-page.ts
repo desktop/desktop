@@ -6,13 +6,6 @@ import * as Path from 'path'
 
 import { getLogger } from '../lib/logging/main'
 
-function htmlEscape(input: string): string {
-    input = input.replace(/&/g, '&amp;')
-    input = input.replace(/</g, '&lt;')
-    input = input.replace(/>/g, '&gt;')
-    return input
-}
-
 /**
  * Display a static page embedded with the error information, so that a user
  * can provide details to our support channels.
@@ -38,12 +31,19 @@ export function showFallbackPage(error: Error) {
 
   const source = data.toString()
   const errorContent = error.stack || error.message
-  const escapedErrorContent = htmlEscape(errorContent)
 
-  const content = `
-  <strong>Version:</strong> ${app.getVersion()}<br />
-  <strong>Platform:</strong> ${process.platform}<br />
-  <strong>Error:</strong> ${escapedErrorContent}`
+  const content = `<p class='stack'>
+    <strong>Version:</strong> ${app.getVersion()}<br />
+    <strong>Platform:</strong> ${process.platform}<br />
+    <strong>Error:</strong> <span id='error-content'></span>
+  </p>
+  <script>
+    var rawText = \`${errorContent}\`;
+    var element = document.createElement('div');
+    element.textContent = rawText;
+    var sanitized = element.innerHTML;
+    document.getElementById('error-content').innerHTML = sanitized;
+  </script>`
 
   const formattedBody = source.replace('<!--{{content}}-->', content)
 
