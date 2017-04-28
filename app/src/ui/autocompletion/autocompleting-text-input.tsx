@@ -82,9 +82,6 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
   private element: ElementType | null = null
   private autocompletionList: List | null = null
 
-  /** The row to scroll to. -1 means the list shouldn't scroll. */
-  private scrollToRow = -1
-
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
 
@@ -117,9 +114,6 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
     const items = state.items
     if (!items.length) { return null }
-
-    const scrollToRow = this.scrollToRow
-    this.scrollToRow = -1
 
     const element = this.element!
     let coordinates = getCaretCoordinates(element, state.range.start)
@@ -165,7 +159,8 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
               rowHeight={RowHeight}
               selectedRow={selectedRow}
               rowRenderer={this.renderItem}
-              scrollToRow={scrollToRow}
+              scrollToRow={selectedRow}
+              selectOnHover={true}
               onRowClick={this.insertCompletionOnClick}
               invalidationProps={searchText}/>
       </div>
@@ -275,7 +270,6 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
       event.preventDefault()
 
       const nextRow = this.autocompletionList!.nextSelectableRow(direction, selectedRow)
-      this.scrollToRow = nextRow
       const newSelectedItem = currentAutoCompletionState.items[nextRow]
 
       const newAutoCompletionState = {
