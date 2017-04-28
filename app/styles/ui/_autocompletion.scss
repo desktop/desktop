@@ -22,14 +22,27 @@
   background-color: var(--background-color);
 
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+
   .list-item
   {
+    border-bottom: none;
+
+    &:not(:first-child) {
+      border-top: var(--base-border);
+    }
+
     &.selected {
       --text-color: var(--box-selected-active-text-color);
       --text-secondary-color: var(--box-selected-active-text-color);
+
       color: var(--text-color);
       background-color: var(--box-selected-active-background-color);
-      border-bottom-color: var(--box-selected-active-background-color);
+      border-top-color: var(--box-selected-active-background-color);
+
+      & + .list-item {
+        border-top-color: var(--box-selected-active-background-color);      
+      }
+    }
   }
 }
 
@@ -78,12 +91,12 @@
     width: 100%;
 
     .number {
-      font-weight: var(--font-weight-semibold);
       margin-right: var(--spacing-half);
     }
 
     .title {
       @include ellipsis;
+      font-weight: var(--font-weight-semibold);
     }
   }
 
