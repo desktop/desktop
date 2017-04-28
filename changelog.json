@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.0.37": [
+
+    ],
     "0.0.36": [
       "[Fixed] Bugs around associating an email address with a GitHub user - #975",
       "[Fixed] Use the correct reference name for an unborn branch - #1283",
