@@ -368,7 +368,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         noNewlineReactContainer = document.createElement('span')
         noNewlineReactContainer.setAttribute('title', 'No newline at end of file')
         ReactDOM.render(
-          <Octicon symbol={narrowNoNewlineSymbol} />,
+          <Octicon symbol={narrowNoNewlineSymbol} className='no-newline' />,
           noNewlineReactContainer
         )
         diffLineElement.appendChild(noNewlineReactContainer)
