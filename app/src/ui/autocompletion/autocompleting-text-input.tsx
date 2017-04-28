@@ -151,12 +151,15 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     // remains the same. Additionally we need to be aware that different
     // providers can use different sorting behaviors which also might affect
     // rendering.
-    const searchText = this.state.autocompletionState
-      ? this.state.autocompletionState.rangeText
-      : undefined
+    const searchText = state.rangeText
+
+    const className = classNames(
+      'autocompletion-popup',
+      state.provider.kind,
+    )
 
     return (
-      <div className='autocompletion-popup' style={{ top, left, height }}>
+      <div className={className} style={{ top, left, height }}>
         <List ref={this.storeAutocompletionListRef}
               rowCount={items.length}
               rowHeight={RowHeight}
