@@ -117,16 +117,17 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private renderSignInTab(tab: PublishTab) {
+    const signInTitle = __DARWIN__ ? 'Sign In' : 'Sign in'
     switch (tab) {
       case PublishTab.DotCom:
         return (
-          <CallToAction actionTitle='Sign In' onAction={this.signInDotCom}>
+          <CallToAction actionTitle={signInTitle} onAction={this.signInDotCom}>
             <div>Sign in to your GitHub.com account to access your repositories.</div>
           </CallToAction>
         )
       case PublishTab.Enterprise:
         return (
-          <CallToAction actionTitle='Sign In' onAction={this.signInEnterprise}>
+          <CallToAction actionTitle={signInTitle} onAction={this.signInEnterprise}>
             <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
           </CallToAction>
         )
