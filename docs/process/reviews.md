@@ -1,14 +1,31 @@
-# Code Reviews
+# The Review Process
 
-Some notes on how the Desktop core team review incoming pull requests
+This is the typical flow:
 
-## The Flow
+1. **Contributor** opens pull request.
+1. When it's ready for review, they comment on it saying so and add the `ready-for-review` label.
+1. Suddenly a wild **reviewer** appears!
+1. **Reviewer** assigns the PR to themselves.
+1. **Reviewer** leaves line comments with suggestions or questions.
+1. When the **reviewer** is done they comment on the PR with an emoji, meme,
+   pokémon, or words to that effect.
+1. The **contributor** responds to feedback, makes changes, etc.
+1. When the **contributor** is ready for the **reviewer** to re-review, they
+   comment on the PR with an emoji, meme, pokémon or words to that effect.
+1. Goto 6 until both parties are happy with the PR.
+1. The **reviewer** hits the big green merge button and deletes the branch (if
+    applicable).
+
+The rest of this document goes into more details around this flow.
+
+## Notes for Contributors
 
 ### Work-in-Progress
 
-You should open pull requests early, especially for large changes. This means
-continuous integration tests are run earlier on, and any regressions can be
-caught before humans get involved.
+We recommend open pull requests early - ideally as soon as you have something to
+show. This is especially helpful for large pieces of work, as continuous
+integration tests are run earlier on, and regressions can be caught before
+humans get involved.
 
 Until the code is ready for review, you can prefix the PR title with [WIP] to
 indicate that it's under development.
@@ -24,18 +41,14 @@ understand quickly what's changed.
 We're not that fussy about the history, but to make reviewing easier here's
 some general tips:
 
- - make small, meaningful commits -
- - write good commit messages - these help the reviewer to understand the changes
+ - make small, meaningful and logical commits - these make the review process easier
+ - [write good commit messages](https://chris.beams.io/posts/git-commit/) -
+   these help the reviewer to understand the changes
+ - keep up to date with `master` - not only does this address potential merge
+   conflicts, it ensures you're integrating with the latest code
 
-Please also keep your branch up to date with `master` to ensure everything
-integrates nicely - we prefer you merge `master` into your branch, but for small
+When merging, we prefer you merge `master` into your branch, but for small
 PRs a rebase is fine.
-
-### Tell Us When It's Ready
-
-Feeling like it's ready to be reviewed? Add a comment to the Pull Request to
-the effect of "Ready for review! :dog:" - this let's us know it's time to start
-with a thorough review.
 
 ### At Least One Assignee
 

@@ -32,6 +32,11 @@
 
     &:focus {
       background-color: var(--toolbar-button-focus-background-color);
+
+      // Prevent the focus-ring from getting clipped by UI elements
+      // outside of the toolbar
+      outline-offset: -4px;
+
       // Reset
       border-color: var(--toolbar-button-border-color);
       box-shadow: none;
@@ -96,7 +101,7 @@
       width: 9px;
       height: 12px;
       flex-shrink: 0;
-      position: relative;      
+      position: relative;
     }
 
     .text {
@@ -105,18 +110,18 @@
       flex-grow: 1;
       min-width: 0;
       margin-right: var(--spacing);
-      position: relative;      
+      position: relative;
     }
 
     .title {
       font-weight: var(--font-weight-semibold);
-      position: relative;      
+      position: relative;
     }
 
     .description {
       color: var(--toolbar-button-secondary-color);
       font-size: var(--font-size-sm);
-      position: relative;      
+      position: relative;
     }
 
     .title, .description { @include ellipsis }
@@ -132,5 +137,13 @@
       pointer-events: none;
       transition: transform .3s var(--easing-ease-out-quint);
     }
+  }
+
+  &.has-progress > button {
+    // The default disabled opacity for button is 0.6 but when we're showing
+    // progress we want the text to be slightly legible so we'll make it
+    // opaque. Since a toolbar button with progress also shows a spinner
+    // there's plenty of indication that it can't be used.
+    &:disabled { opacity: 1; }
   }
 }

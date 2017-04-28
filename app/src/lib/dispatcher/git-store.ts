@@ -8,6 +8,7 @@ import { Tip, TipState } from '../../models/tip'
 import { Account } from '../../models/account'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
+import { IFetchProgress } from '../app-state'
 
 import { IAppShell } from '../../lib/dispatcher/app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
@@ -409,18 +410,65 @@ export class GitStore {
     return this._contextualCommitMessage
   }
 
-  /**
-   * Fetch, using the given account for authentication.
-   *
-   * @param account        - The account to use for authentication if needed.
-   * @param backgroundTask - Was the fetch done as part of a background task?
-   */
-  public async fetch(account: Account | null, backgroundTask: boolean): Promise<void> {
-    const remotes = await getRemotes(this.repository)
 
-    for (const remote of remotes) {
-      await this.performFailableOperation(() => fetchRepo(this.repository, account, remote.name), { backgroundTask })
+  /**
+   * Fetch all remotes, using the given account for authentication.
+   *
+   * @param account          - The account to use for authentication if needed.
+   * @param backgroundTask   - Was the fetch done as part of a background task?
+   * @param progressCallback - A function that's called with information about
+   *                           the overall fetch progress.
+   */
+  public async fetchAll(account: Account | null, backgroundTask: boolean, progressCallback?: (fetchProgress: IFetchProgress) => void): Promise<void> {
+    const remotes = await getRemotes(this.repository)
+    return this.fetchRemotes(account, remotes, backgroundTask, progressCallback)
+  }
+
+  /**
+   * Fetch the specified remotes, using the given account for authentication.
+   *
+   * @param account          - The account to use for authentication if needed.
+   * @param remotes          - The remotes to fetch from.
+   * @param backgroundTask   - Was the fetch done as part of a background task?
+   * @param progressCallback - A function that's called with information about
+   *                           the overall fetch progress.
+   */
+  public async fetchRemotes(account: Account | null, remotes: ReadonlyArray<IRemote>, backgroundTask: boolean, progressCallback?: (fetchProgress: IFetchProgress) => void): Promise<void> {
+
+    if (!remotes.length) {
+      return
     }
+
+    const weight = 1 / remotes.length
+
+    for (let i = 0; i < remotes.length; i++) {
+      const remote = remotes[i]
+      const startProgressValue = i * weight
+
+      await this.fetchRemote(account, remote.name, backgroundTask, (progress) => {
+        if (progress && progressCallback) {
+          progressCallback({
+            ...progress,
+            value: startProgressValue + (progress.value * weight),
+          })
+        }
+      })
+    }
+  }
+
+  /**
+   * Fetch a remote, using the given account for authentication.
+   *
+   * @param account          - The account to use for authentication if needed.
+   * @param remote           - The name of the remote to fetch from.
+   * @param backgroundTask   - Was the fetch done as part of a background task?
+   * @param progressCallback - A function that's called with information about
+   *                           the overall fetch progress.
+   */
+  public async fetchRemote(account: Account | null, remote: string, backgroundTask: boolean, progressCallback?: (fetchProgress: IFetchProgress) => void): Promise<void> {
+    await this.performFailableOperation(() => {
+      return fetchRepo(this.repository, account, remote, progressCallback)
+    }, { backgroundTask })
   }
 
   /**

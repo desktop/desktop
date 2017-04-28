@@ -6,7 +6,7 @@ import { Repository } from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
 import { Dispatcher } from '../../lib/dispatcher'
-import { IHistoryState } from '../../lib/app-state'
+import { IHistoryState as IAppHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
@@ -18,7 +18,7 @@ export { HistorySidebar } from './sidebar'
 interface IHistoryProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
-  readonly history: IHistoryState
+  readonly history: IAppHistoryState
   readonly emoji: Map<string, string>
   readonly commits: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
@@ -26,12 +26,33 @@ interface IHistoryProps {
   readonly gitHubUsers: Map<string, IGitHubUser>
 }
 
+interface IHistoryState {
+  readonly isExpanded: boolean,
+}
+
 /** The History component. Contains the commit list, commit summary, and diff. */
-export class History extends React.Component<IHistoryProps, void> {
+export class History extends React.Component<IHistoryProps, IHistoryState> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
+
+  public constructor(props: IHistoryProps) {
+    super(props)
+
+    this.state = {
+      isExpanded: false,
+    }
+  }
 
   private onFileSelected = (file: FileChange) => {
     this.props.dispatcher.changeHistoryFileSelection(this.props.repository, file)
+  }
+
+  public componentWillUpdate(nextProps: IHistoryProps) {
+    // Reset isExpanded if we're switching commits.
+    if (nextProps.history.selection.sha !== this.props.history.selection.sha) {
+      if (this.state.isExpanded) {
+        this.setState({ isExpanded: false })
+      }
+    }
   }
 
   public componentWillUnmount() {
@@ -79,7 +100,13 @@ export class History extends React.Component<IHistoryProps, void> {
       repository={this.props.repository}
       isLocal={isLocal}
       gitHubUser={gitHubUser}
+      onExpandChanged={this.onExpandChanged}
+      isExpanded={this.state.isExpanded}
     />
+  }
+
+  private onExpandChanged = (isExpanded: boolean) => {
+    this.setState({ isExpanded })
   }
 
   private onCommitSummaryReset = () => {
@@ -120,8 +147,10 @@ export class History extends React.Component<IHistoryProps, void> {
       return <NoCommitSelected/>
     }
 
+    const className = this.state.isExpanded ? 'expanded' : 'collapsed'
+
     return (
-      <div id='history'>
+      <div id='history' className={className}>
         {this.renderCommitSummary(commit)}
         <div id='commit-details'>
           <Resizable

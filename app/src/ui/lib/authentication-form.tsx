@@ -64,8 +64,6 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
       <Form className='sign-in-form' onSubmit={this.signIn}>
         {this.renderUsernamePassword()}
 
-        {this.renderError()}
-
         {this.renderSignInWithBrowser()}
       </Form>
     )
@@ -91,6 +89,8 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
           labelLinkText='Forgot password?'
           labelLinkUri={this.props.forgotPasswordUrl}/>
 
+        {this.renderError()}
+
         {this.renderActions()}
       </div>
     )
@@ -100,9 +100,12 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length || this.props.loading)
     return (
       <div className='actions'>
-        {this.props.supportsBasicAuth ? <Button type='submit' disabled={signInDisabled}>Sign in</Button> : null}
+        {this.props.supportsBasicAuth ?
+          <Button type='submit' disabled={signInDisabled}>
+            {this.props.loading ? <Loading/> : null } Sign in
+          </Button>
+          : null}
         {this.props.additionalButtons}
-        {this.props.loading ? <Loading/> : null}
       </div>
     )
   }
@@ -116,18 +119,19 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
           </LinkButton>
 
   const browserSignInButton =
-    <Button className='primary-button'  onClick={this.signInWithBrowser}>
+    <Button type='submit' onClick={this.signInWithBrowser}>
       Sign in using your browser
     </Button>
 
     return (
       <div>
         {basicAuth ? <hr className='short-rule' /> : null}
+        {basicAuth ? null : <p>Your GitHub Enterprise instance requires you to sign in with your browser.</p>}
 
-        <p className='sign-in-footer'>
+        <div className='sign-in-footer'>
           {basicAuth ? browserSignInLink : browserSignInButton}
           {basicAuth ? null : this.renderActions()}
-        </p>
+        </div>
       </div>
     )
   }
@@ -147,7 +151,10 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     this.setState({ password: event.currentTarget.value })
   }
 
-  private signInWithBrowser = () => {
+  private signInWithBrowser = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    if (event) {
+      event.preventDefault()
+    }
     this.props.onBrowserSignInRequested()
   }
 

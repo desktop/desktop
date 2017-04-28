@@ -5,10 +5,14 @@ import { getDotComAPIEndpoint } from '../api'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
+import { uuid } from '../uuid'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
 const LastDailyStatsReportKey = 'last-daily-stats-report'
+
+/** The localStorage key for the stats GUID. */
+const StatsGUIDKey = 'stats-guid'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -17,10 +21,13 @@ type DailyStats = { version: string } & ILaunchStats & IDailyMeasures
 
 /** The store for the app's stats. */
 export class StatsStore {
-  private db: StatsDatabase
+  private readonly db: StatsDatabase
 
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
+
+  /** The GUID for uniquely identifying installations. */
+  private readonly guid: string
 
   public constructor(db: StatsDatabase) {
     this.db = db
@@ -31,6 +38,14 @@ export class StatsStore {
     } else {
       this.optOut = false
     }
+
+    let guid = localStorage.getItem(StatsGUIDKey)
+    if (!guid) {
+      guid = uuid()
+      localStorage.setItem(StatsGUIDKey, guid)
+    }
+
+    this.guid = guid
   }
 
   /** Should the app report its daily stats? */
@@ -118,6 +133,7 @@ export class StatsStore {
       ...launchStats,
       ...dailyMeasures,
       ...userType,
+      guid: this.guid,
     }
   }
 

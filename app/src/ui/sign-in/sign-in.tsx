@@ -196,11 +196,10 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             labelLinkUri={state.forgotPasswordUrl}
           />
         </Row>
-        <Row className='sign-in-with-browser'>
-          <Row>
-            <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
-          </Row>
 
+        <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
+
+        <Row className='sign-in-with-browser'>
           <LinkButton className='link-with-icon' onClick={this.onSignInWithBrowser}>
             Sign in using your browser
             <Octicon symbol={OcticonSymbol.linkExternal} />

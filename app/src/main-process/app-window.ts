@@ -18,6 +18,9 @@ export class AppWindow {
   private _loadTime: number | null = null
   private _rendererReadyTime: number | null = null
 
+  private minWidth = 960
+  private minHeight = 660
+
   public constructor(sharedProcess: SharedProcess) {
     if (!windowStateKeeper) {
       // `electron-window-state` requires Electron's `screen` module, which can
@@ -27,8 +30,8 @@ export class AppWindow {
     }
 
     const savedWindowState = windowStateKeeper({
-      defaultWidth: 960,
-      defaultHeight: 660,
+      defaultWidth: this.minWidth,
+      defaultHeight: this.minHeight,
     })
 
     const windowOptions: Electron.BrowserWindowOptions = {
@@ -36,8 +39,8 @@ export class AppWindow {
       y: savedWindowState.y,
       width: savedWindowState.width,
       height: savedWindowState.height,
-      minWidth: 960,
-      minHeight: 650,
+      minWidth: this.minWidth,
+      minHeight: this.minHeight,
       show: false,
       // This fixes subpixel aliasing on Windows
       // See https://github.com/atom/atom/commit/683bef5b9d133cb194b476938c77cc07fd05b972
@@ -60,20 +63,20 @@ export class AppWindow {
     this.window = new BrowserWindow(windowOptions)
     savedWindowState.manage(this.window)
 
+    let quitting = false
+    app.on('before-quit', () => {
+      quitting = true
+    })
+
+    ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
+      quitting = true
+      event.returnValue = true
+    })
+
     // on macOS, when the user closes the window we really just hide it. This
     // lets us activate quickly and keep all our interesting logic in the
     // renderer.
     if (__DARWIN__) {
-      let quitting = false
-      app.on('before-quit', () => {
-        quitting = true
-      })
-
-      ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
-        quitting = true
-        event.returnValue = true
-      })
-
       this.window.on('close', e => {
         if (!quitting) {
           e.preventDefault()
@@ -257,6 +260,18 @@ export class AppWindow {
       name: error.name,
     }
     this.window.webContents.send('main-process-exception', friendlyError)
+  }
+
+  /** Report an auto updater error to the renderer. */
+  public sendAutoUpdaterError(error: Error) {
+    // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
+    // we'll just manually copy the properties we care about.
+    const friendlyError = {
+      stack: error.stack,
+      message: error.message,
+      name: error.name,
+    }
+    this.window.webContents.send('auto-updater-error', friendlyError)
   }
 
   /**

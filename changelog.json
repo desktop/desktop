@@ -1,7 +1,43 @@
 {
   "releases": {
-    "0.0.34": [
+    "0.0.36": [
 
+    ],
+    "0.0.35": [
+      "[New] Show push/pull/fetch progress - #1238",
+      "[Fixed] macOS: Add the Zoom menu item - #1260",
+      "[Fixed] macOS: Don't show the titlebar while full screened - #1247",
+      "[Fixed] Windows: Updates would make the app unresponsive - #1269",
+      "[Fixed] Windows: Keyboard navigation in menus - #1293",
+      "[Fixed] Windows: Repositories list item not working - #1293",
+      "[Fixed] Auto updater errors not being propagated properly - #1266",
+      "[Fixed] Only show the current branch tooltip on the branches button - #1275",
+      "[Fixed] Double path truncation - #1270",
+      "[Fixed] Sometimes toggling a file's checkbox would get undone - #1248",
+      "[Fixed] Uncaught exception when internet connectivity was lost - #1048",
+      "[Fixed] Cloned repositories wouldn't be associated with their GitHub repository - #1285",
+      "[Improved] Better performance on large repositories - #1281",
+      "[Improved] Commit summary is now expandable when the summary is long - #519",
+      "[Improved] The SHA in historical commits is now selectable - #1154",
+      "[Improved] The Create Branch dialog was polished and refined - #1137"
+    ],
+    "0.0.34": [
+      "[New] macOS: Users can choose whether to accept untrusted certificates - #671",
+      "[New] Windows: Users are prompted to install git when opening a shell if it is not installed - #813",
+      "[New] Checkout progress is shown if branch switching takes a while - #1208",
+      "[New] Commit summary and description are automatically populated for merge conflicts - #1228",
+      "[Fixed] Cloning repositories while not signed in - #1163",
+      "[Fixed] Merge commits are now created as merge commits - #1216",
+      "[Fixed] Display of diffs with /r newline - #1234",
+      "[Fixed] Windows: Maximized windows are no longer positioned slightly off screen - #1202",
+      "[Fixed] JSON parse errors - #1243",
+      "[Fixed] GitHub Enterprise repositories were not associated with the proper Enterprise repository - #1242",
+      "[Fixed] Timestamps in the Branches list would wrap - #1255",
+      "[Fixed] Merges created from pulling wouldn't use the right git author - #1262",
+      "[Improved] Check for update errors are suppressed if they happen in the background - #1104, #1195",
+      "[Improved] The shortcut to show the repositories list is now command or control-T - #1220",
+      "[Improved] Command or control-W now closes open dialogs - #949",
+      "[Improved] Less memory usage while parsing large diffs - #1235"
     ],
     "0.0.33": [
       "[Fixed] Update Now wouldn't update now - #1209"

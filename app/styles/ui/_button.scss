@@ -27,10 +27,13 @@
   }
 
   &:disabled { opacity: 0.6; }
+
+  .octicon {
+    vertical-align: middle;
+  }
 }
 
-.button-component[type='submit'],
-.primary-button {
+.button-component[type='submit'] {
   background-color: var(--button-background);
   color: var(--button-text-color);
   border: 1px solid var(--button-background);
@@ -41,7 +44,6 @@
   }
 
   &:focus {
-    outline: none;
     border: 1px solid var(--button-focus-border-color);
     background-color: var(--button-hover-background);
     box-shadow: 0 0 0 2px var(--text-field-focus-shadow-color);

@@ -1,6 +1,7 @@
 .horizontal-rule {
   text-align: center;
   position: relative;
+  margin-bottom: var(--spacing-half);
   width: 100%;
 
   &:after {

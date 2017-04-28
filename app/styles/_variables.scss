@@ -74,6 +74,7 @@
   --font-size-md: 14px;
   --font-size-lg: 28px;
   --font-size-xl: 32px;
+  --font-size-xxl: 42px;
 
   /** Extra small font size, be very conservative with the use of this */
   --font-size-xs: 9px;
@@ -120,7 +121,7 @@
    * implement a hover state since this will conflict with
    * selection and active selection
    */
-  --box-hover-text-color: $darkGray;
+  --box-hover-text-color: $black;
 
   /**
    * Background color for when a user hovers over a boxe with a
@@ -128,7 +129,7 @@
    * implement a hover state since this will conflict with
    * selection and active selection
    */
-  --box-hover-background-color: $darkGray;
+  --box-hover-background-color: $lightGray;
 
   /**
    * Text color for selected boxes without keyboard focus
