@@ -63,10 +63,6 @@
     padding: var(--spacing-half) var(--spacing);
   }
 
-  p {
-    max-width: 500px;
-  }
-
   .form-component {
     .text-box-component {
       margin-bottom: var(--spacing);
@@ -142,8 +138,7 @@
 }
 
 .skip-action-container {
-  position: absolute;
-  bottom: var(--spacing-quad);
+  margin-top: var(--spacing-quad);
 
   .skip-button {
     color: var(--text-secondary-color);
@@ -154,4 +149,8 @@
   height: auto;
   max-height: 100%;
   width: 100%;
+}
+
+.welcome-content {
+  max-width: 500px;
 }
