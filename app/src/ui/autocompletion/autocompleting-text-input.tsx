@@ -54,12 +54,8 @@ interface IAutocompletionState<T> {
 
 /**
  * The height of the autocompletion result rows.
- *
- * We're rendering emojis at 20x20px and each row
- * has a 1px border at the bottom, making 31 the
- * ideal height for fitting the emoji images.
  */
-const RowHeight = 31
+const RowHeight = 29
 
 /**
  * The amount to offset on the Y axis so that the popup is displayed below the
