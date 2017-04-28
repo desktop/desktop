@@ -3,8 +3,6 @@ import { app, BrowserWindow } from 'electron'
 
 import * as Fs from 'fs'
 import * as Path from 'path'
-import * as Os from 'os'
-import * as url from 'url'
 
 import { getLogger } from '../lib/logging/main'
 
@@ -28,17 +26,6 @@ function htmlEscape(input: string): string {
  */
 export function showFallbackPage(error: Error) {
   const logger = getLogger()
-  const tmpdir = Os.tmpdir()
-
-  const stylesInput = Path.join(__dirname, 'styles.css')
-  const stylesOutput = Path.join(tmpdir, 'styles.css')
-  try {
-    const stylesheet = Fs.readFileSync(stylesInput, 'utf-8')
-    Fs.writeFileSync(stylesOutput, stylesheet)
-  } catch (e) {
-    // in dev mode we don't have access to these styles, so there's no need
-    // to try and apply these here - just show _something_ in the dialog
-  }
 
   const errorTemplate = Path.join(__dirname, 'error.html')
   let data: Buffer | null = null
@@ -60,20 +47,10 @@ export function showFallbackPage(error: Error) {
 
   const formattedBody = source.replace('<!--{{content}}-->', content)
 
-  const outputFile = Path.join(tmpdir, 'desktop-error-page.html')
-  try {
-    Fs.writeFileSync(outputFile, formattedBody)
-  } catch (e) {
-    logger.error(`Unable to write file at path '${outputFile}'`, e)
-    return
-  }
+  const dataUriContents = new Buffer(formattedBody).toString('base64')
 
   const window = new BrowserWindow()
-  window.loadURL(url.format({
-    pathname: outputFile,
-    protocol: 'file:',
-    slashes: true,
-  }))
+  window.loadURL(`data:text/html;base64,${dataUriContents}`)
 
   // ensure we have focus
   window.show()
