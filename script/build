@@ -180,6 +180,8 @@ function copyDependencies () {
 
   fs.writeFileSync(path.join(outRoot, 'package.json'), JSON.stringify(updatedPackage))
 
+  fs.removeSync(path.resolve(outRoot, 'node_modules'))
+
   if (Object.keys(newDependencies).length || Object.keys(newDevDependencies).length) {
     console.log('  Installing npm dependencies…')
     cp.execSync('npm install', { cwd: outRoot, env: process.env })
@@ -197,6 +199,7 @@ function copyDependencies () {
 
   console.log('  Copying git environment…')
   const gitDir = path.resolve(outRoot, 'git')
+  fs.removeSync(gitDir)
   fs.mkdirpSync(gitDir)
   fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 }
