@@ -22,6 +22,7 @@ import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection/selection-strategy'
 import { DragDropSelection } from './selection/drag-drop-selection-strategy'
 import { RangeSelection } from './selection/range-selection-strategy'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 import { fatalError } from '../../lib/fatal-error'
 
@@ -357,7 +358,15 @@ export class Diff extends React.Component<IDiffProps, void> {
     if (diffLine) {
       const diffLineElement = element.children[0] as HTMLSpanElement
 
-      const reactContainer = document.createElement('span')
+      let noNewlineReactContainer: HTMLSpanElement | null = null
+
+      if (diffLine.noTrailingNewLine) {
+        noNewlineReactContainer = document.createElement('span')
+        ReactDOM.render(<Octicon symbol={OcticonSymbol.noNewline} />, noNewlineReactContainer)
+        diffLineElement.appendChild(noNewlineReactContainer)
+      }
+
+      const gutterReactContainer = document.createElement('span')
 
       let isIncluded = false
       if (this.props.file instanceof WorkingDirectoryFileChange) {
@@ -377,7 +386,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           isSelectionEnabled={this.isSelectionEnabled}
           onMouseDown={this.onGutterMouseDown}
           onMouseMove={this.onGutterMouseMove} />,
-        reactContainer,
+        gutterReactContainer,
         function (this: DiffLineGutter) {
           if (this !== undefined) {
             cache.set(index, this)
@@ -403,7 +412,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         diffLineElement.addEventListener('mouseleave', onMouseLeaveLine)
       }
 
-      element.insertBefore(reactContainer, diffLineElement)
+      element.insertBefore(gutterReactContainer, diffLineElement)
 
       // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
       // the line delete event once we've been called once or the component has been
@@ -422,7 +431,11 @@ export class Diff extends React.Component<IDiffProps, void> {
       const gutterCleanup = new Disposable(() => {
         this.cachedGutterElements.delete(index)
 
-        ReactDOM.unmountComponentAtNode(reactContainer)
+        ReactDOM.unmountComponentAtNode(gutterReactContainer)
+
+        if (noNewlineReactContainer) {
+          ReactDOM.unmountComponentAtNode(noNewlineReactContainer)
+        }
 
         if (!this.props.readOnly) {
           diffLineElement.removeEventListener('mousemove', onMouseMoveLine)
