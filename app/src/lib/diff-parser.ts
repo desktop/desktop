@@ -357,7 +357,9 @@ export class DiffParser {
         linesConsumed += hunk.lines.length
       } while (this.peek())
 
-      const contents = this.text.substring(headerEnd + 1, this.le)
+      const contents = this.text
+        .substring(headerEnd + 1, this.le)
+        .replace(/\n\\ No newline at end of file/g, '')
 
       return { header, contents, hunks, isBinary: headerInfo.isBinary }
     } finally {
