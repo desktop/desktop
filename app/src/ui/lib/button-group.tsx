@@ -1,21 +1,25 @@
 import * as React from 'react'
 import { Button, IButtonProps } from './button'
 
+interface IButtonGroupProps {
+  readonly children?: ReadonlyArray<JSX.Element>
+}
+
 /**
  * A component for rendering primary and secondary buttons in
  * a dialog, form or foldout in the platform specific order.
- * 
+ *
  * Ie, on Windows we expect the button order to be Ok, Cancel
  * whereas on Mac we expect it to be Cancel, Ok. This component,
  * coupled with the button-group-order tslint rule ensures that
  * we adhere to platform conventions.
- * 
+ *
  * See https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/
- * 
+ *
  * Non-button content in this component is prohibited and will
  * not render.
  */
-export class ButtonGroup extends React.Component<void, void> {
+export class ButtonGroup extends React.Component<IButtonGroupProps, void> {
   public render() {
 
     const buttons = new Array<React.ReactElement<IButtonProps>>()
