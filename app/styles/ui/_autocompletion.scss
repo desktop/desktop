@@ -12,12 +12,14 @@
   z-index: var(--popup-z-index);
   width: 250px;
 
+  border-radius: var(--border-radius);
+  overflow: hidden; // To get those sweet rounded corners
+
   &.emoji { width: 200px; }
   &.user { width: 220px; }
   &.issue { width: 300px; }
 
   background-color: var(--background-color);
-  border-radius: var(--border-radius);
 
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
 }
