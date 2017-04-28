@@ -151,7 +151,10 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     this.setState({ password: event.currentTarget.value })
   }
 
-  private signInWithBrowser = () => {
+  private signInWithBrowser = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    if (event) {
+      event.preventDefault()
+    }
     this.props.onBrowserSignInRequested()
   }
 
