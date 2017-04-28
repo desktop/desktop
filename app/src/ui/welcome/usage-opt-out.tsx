@@ -6,7 +6,6 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Form } from '../lib/form'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
-import { Octicon, OcticonSymbol } from '../octicons'
 
 const SamplesURL = 'https://desktop.github.com/samples/'
 
@@ -21,28 +20,28 @@ interface IUsageOptOutProps {
 export class UsageOptOut extends React.Component<IUsageOptOutProps, void> {
   public render() {
     return (
-      <Form className='usage-opt-out' onSubmit={this.finish}>
-        <div className='header'>
-          <Octicon className='header-icon' symbol={OcticonSymbol.graph}/>
-          <Octicon className='header-icon' symbol={OcticonSymbol.pulse}/>
-          <Octicon className='header-icon' symbol={OcticonSymbol.radioTower}/>
-        </div>
+      <div className='usage-opt-out'>
+        <h1 className='welcome-title'>Help make GitHub Desktop better!</h1>
 
-        <div>
+        <p>
           Would you like to help us improve GitHub Desktop by periodically submitting <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>?
-        </div>
+        </p>
 
-        <Checkbox
-          label='Yes, submit anonymized usage data'
-          value={this.props.optOut ? CheckboxValue.Off : CheckboxValue.On}
-          onChange={this.onChange}
-        />
+        <Form  onSubmit={this.finish}>
+          <Row>
+            <Checkbox
+              label='Yes, submit anonymized usage data'
+              value={this.props.optOut ? CheckboxValue.Off : CheckboxValue.On}
+              onChange={this.onChange}
+            />
+          </Row>
 
-        <Row>
-          <Button type='submit'>Finish</Button>
-          <Button onClick={this.cancel}>Cancel</Button>
-        </Row>
-      </Form>
+          <Row className='actions'>
+            <Button type='submit'>Finish</Button>
+            <Button onClick={this.cancel}>Cancel</Button>
+          </Row>
+        </Form>
+      </div>
     )
   }
 

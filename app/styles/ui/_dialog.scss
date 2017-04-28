@@ -276,7 +276,8 @@ dialog {
     width: 400px;
 
     .sign-in-with-browser {
-      justify-content: center;
+      display: block;
+      text-align: center;
     }
 
     .forgot-password-row, .what-is-this-row {
