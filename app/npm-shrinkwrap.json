@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.31",
+  "version": "0.0.36",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -415,6 +415,11 @@
       "resolved": "https://registry.npmjs.org/humanize-plus/-/humanize-plus-1.8.2.tgz",
       "dev": true
     },
+    "iconv-lite": {
+      "version": "0.4.16",
+      "from": "iconv-lite@>=0.4.13 <0.5.0",
+      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.16.tgz"
+    },
     "inflight": {
       "version": "1.0.6",
       "from": "inflight@>=1.0.4 <2.0.0",
@@ -646,6 +651,23 @@
       "from": "promise@>=7.1.1 <8.0.0",
       "resolved": "https://registry.npmjs.org/promise/-/promise-7.1.1.tgz"
     },
+    "prop-types": {
+      "version": "15.5.8",
+      "from": "prop-types@>=15.5.7 <16.0.0",
+      "resolved": "https://registry.npmjs.org/prop-types/-/prop-types-15.5.8.tgz",
+      "dependencies": {
+        "core-js": {
+          "version": "1.2.7",
+          "from": "core-js@^1.0.0",
+          "resolved": "https://registry.npmjs.org/core-js/-/core-js-1.2.7.tgz"
+        },
+        "fbjs": {
+          "version": "0.8.12",
+          "from": "fbjs@^0.8.9",
+          "resolved": "https://registry.npmjs.org/fbjs/-/fbjs-0.8.12.tgz"
+        }
+      }
+    },
     "pseudomap": {
       "version": "1.0.2",
       "from": "pseudomap@>=1.0.1 <2.0.0",
@@ -668,14 +690,26 @@
       "dev": true
     },
     "react": {
-      "version": "15.4.2",
-      "from": "react@>=15.4.2 <16.0.0",
-      "resolved": "https://registry.npmjs.org/react/-/react-15.4.2.tgz"
+      "version": "15.5.4",
+      "from": "react@latest",
+      "resolved": "https://registry.npmjs.org/react/-/react-15.5.4.tgz",
+      "dependencies": {
+        "core-js": {
+          "version": "1.2.7",
+          "from": "core-js@>=1.0.0 <2.0.0",
+          "resolved": "https://registry.npmjs.org/core-js/-/core-js-1.2.7.tgz"
+        },
+        "fbjs": {
+          "version": "0.8.12",
+          "from": "fbjs@>=0.8.9 <0.9.0",
+          "resolved": "https://registry.npmjs.org/fbjs/-/fbjs-0.8.12.tgz"
+        }
+      }
     },
     "react-addons-css-transition-group": {
-      "version": "15.4.2",
+      "version": "15.5.2",
       "from": "react-addons-css-transition-group@latest",
-      "resolved": "https://registry.npmjs.org/react-addons-css-transition-group/-/react-addons-css-transition-group-15.4.2.tgz"
+      "resolved": "https://registry.npmjs.org/react-addons-css-transition-group/-/react-addons-css-transition-group-15.5.2.tgz"
     },
     "react-addons-perf": {
       "version": "15.4.2",
@@ -684,9 +718,9 @@
       "dev": true
     },
     "react-addons-shallow-compare": {
-      "version": "15.4.2",
+      "version": "15.5.2",
       "from": "react-addons-shallow-compare@latest",
-      "resolved": "https://registry.npmjs.org/react-addons-shallow-compare/-/react-addons-shallow-compare-15.4.2.tgz"
+      "resolved": "https://registry.npmjs.org/react-addons-shallow-compare/-/react-addons-shallow-compare-15.5.2.tgz"
     },
     "react-addons-test-utils": {
       "version": "15.4.2",
@@ -695,9 +729,21 @@
       "dev": true
     },
     "react-dom": {
-      "version": "15.4.2",
-      "from": "react-dom@>=15.4.2 <16.0.0",
-      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.4.2.tgz"
+      "version": "15.5.4",
+      "from": "react-dom@latest",
+      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.5.4.tgz",
+      "dependencies": {
+        "core-js": {
+          "version": "1.2.7",
+          "from": "core-js@^1.0.0",
+          "resolved": "https://registry.npmjs.org/core-js/-/core-js-1.2.7.tgz"
+        },
+        "fbjs": {
+          "version": "0.8.12",
+          "from": "fbjs@^0.8.9",
+          "resolved": "https://registry.npmjs.org/fbjs/-/fbjs-0.8.12.tgz"
+        }
+      }
     },
     "react-virtualized": {
       "version": "8.8.1",
