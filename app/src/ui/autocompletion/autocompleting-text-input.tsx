@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { List } from '../list'
+import { List, SelectionSource } from '../list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
 import  * as classNames from 'classnames'
@@ -161,10 +161,29 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
               rowRenderer={this.renderItem}
               scrollToRow={selectedRow}
               selectOnHover={true}
+              focusOnHover={false}
               onRowClick={this.insertCompletionOnClick}
+              onSelectionChanged={this.onSelectionChanged}
               invalidationProps={searchText}/>
       </div>
     )
+  }
+
+  private onSelectionChanged = (row: number, source: SelectionSource) => {
+    const currentAutoCompletionState = this.state.autocompletionState
+
+    if (!currentAutoCompletionState) {
+      return
+    }
+
+    const newSelectedItem = currentAutoCompletionState.items[row]
+
+    const newAutoCompletionState = {
+      ...currentAutoCompletionState,
+      selectedItem: newSelectedItem,
+    }
+
+    this.setState({ autocompletionState: newAutoCompletionState })
   }
 
   private insertCompletionOnClick = (row: number): void => {
