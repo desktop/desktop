@@ -10,7 +10,7 @@ export interface IDatabaseOwner {
 }
 
 export interface IDatabaseGitHubRepository {
-  id?: number
+  readonly id?: number | null
   readonly ownerID: number
   readonly name: string
   readonly private: boolean | null
