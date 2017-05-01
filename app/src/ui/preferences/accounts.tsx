@@ -7,6 +7,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { DialogContent } from '../dialog'
 import { Avatar } from '../lib/avatar'
 import { CallToAction } from '../lib/call-to-action'
+import { lookupEmail } from '../../lib/email'
 
 interface IAccountsProps {
   readonly dotComAccount: Account | null
@@ -36,7 +37,8 @@ export class Accounts extends React.Component<IAccountsProps, void> {
   }
 
   private renderAccount(account: Account) {
-    const email = account.emails.length ? account.emails[0].email : ''
+    const foundEmail = lookupEmail(account.emails)
+    const email = foundEmail ? foundEmail.email : ''
 
     const avatarUser: IAvatarUser = {
       name: account.name,

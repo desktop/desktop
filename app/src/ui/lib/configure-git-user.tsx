@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
 import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
+import { lookupEmail } from '../../lib/email'
 import { CommitListItem } from '../history/commit-list-item'
 import { Account } from '../../models/account'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -49,7 +50,8 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
     }
 
     if ((!email || !email.length) && user) {
-      email = user.emails[0].email
+      const foundEmail = lookupEmail(user.emails)
+      email = foundEmail ? foundEmail.email : ''
     }
 
     const avatarURL = email ? this.avatarURLForEmail(email) : null
