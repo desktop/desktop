@@ -2,6 +2,8 @@ import * as React from 'react'
 import { Button, IButtonProps } from './button'
 
 interface IButtonGroupProps {
+  readonly children?: ReadonlyArray<JSX.Element>
+
   /**
    * Does the button group perform a destructive action? On macOS, this controls
    * whether the submit button belongs on the left or right. This has no effect

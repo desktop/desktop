@@ -15,9 +15,9 @@
  * The example above will trigger a tslint error since we want to enforce
  * a consistent order of Ok/Cancel-style buttons (the button captions vary)
  * such that the primary action precedes any secondary actions.
- * 
+ *
  * See https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/
- * 
+ *
  * We've opted for using the Windows order of OK, Cancel in our codebase, the
  * actual order at runtime will vary depending on platform.
  *
@@ -93,7 +93,7 @@ class ButtonGroupOrderWalker extends Lint.RuleWalker {
     }
 
     const buttonsWithTypeAttr = buttons.map(b => {
-      const typeAttr = b.attributes.find(a =>
+      const typeAttr = b.attributes.properties.find(a =>
         a.kind === ts.SyntaxKind.JsxAttribute && a.name.getText() === 'type'
       ) as ts.JsxAttribute | undefined
 
