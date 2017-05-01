@@ -21,7 +21,7 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, void> {
   public render() {
     return (
       <div className='usage-opt-out'>
-        <h1 className='welcome-title'>Help make GitHub Desktop better!</h1>
+        <h1 className='welcome-title'>Make GitHub Desktop&nbsp;better!</h1>
 
         <p>
           Would you like to help us improve GitHub Desktop by periodically submitting <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>?
