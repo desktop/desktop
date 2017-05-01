@@ -156,8 +156,7 @@ function createPathDisplayState(normalizedPath: string, length?: number): IPathD
     return { normalizedPath, directoryText: '', fileText: '', length }
   }
 
-  const normalizedFileName = Path.basename(normalizedPath)
-  const normalizedDirectory = normalizedPath.substr(0, normalizedPath.length - normalizedFileName.length)
+  const { normalizedFileName, normalizedDirectory } = extract(normalizedPath)
 
   // Happy path when it already fits, we already know the length of the directory
   if (length >= normalizedPath.length) {
