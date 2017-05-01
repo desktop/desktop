@@ -26,7 +26,7 @@ interface IWindowControlState {
  * every time there's a change in the window state but _may_ send duplicate
  * or out-of-bound events communicating the _current_ state as well.
  */
-export class WindowControls extends React.Component<void, IWindowControlState> {
+export class WindowControls extends React.Component<{}, IWindowControlState> {
 
   public componentWillMount() {
     this.setState({ windowState: getWindowState(remote.getCurrentWindow()) })
@@ -38,7 +38,7 @@ export class WindowControls extends React.Component<void, IWindowControlState> {
     ipcRenderer.removeListener(windowStateChannelName, this.onWindowStateChanged)
   }
 
-  public shouldComponentUpdate(nextProps: void, nextState: IWindowControlState) {
+  public shouldComponentUpdate(nextProps: {}, nextState: IWindowControlState) {
     return nextState.windowState !== this.state.windowState
   }
 
@@ -52,7 +52,7 @@ export class WindowControls extends React.Component<void, IWindowControlState> {
 
     return (
       <button aria-label={name} title={title} tabIndex={-1} className={className} onClick={onClick}>
-        <svg aria-hidden='true' role='img' version='1.1' width='10' height='10'>
+        <svg aria-hidden='true' aria-role='img' version='1.1' width='10' height='10'>
           <path d={path}></path>
         </svg>
       </button>)

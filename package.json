@@ -19,16 +19,13 @@
     "build:dev": "npm run compile:dev && cross-env NODE_ENV=development node script/build",
     "build:prod": "npm run compile:prod && cross-env NODE_ENV=production node script/build",
     "package": "node script/package",
-    "clean": "rimraf out",
-    "rebuild:dev": "npm run clean && npm run build:dev",
-    "rebuild:prod": "npm run clean && npm run build:prod",
     "clean:tslint": "rimraf tslint-rules/*.js",
     "compile:tslint": "tsc -p tslint-rules",
     "lint": "npm run compile:tslint && tslint \"./app/src/**/*.ts\" \"./app/src/**/*.tsx\" \"./app/test/**/*.ts\" \"./app/test/**/*.tsx\"",
     "publish": "node script/publish",
-    "clean-slate": "npm run clean && rimraf node_modules app/node_modules && npm install",
-    "rebuild-hard:dev": "npm run clean-slate && npm run rebuild:dev",
-    "rebuild-hard:prod": "npm run clean-slate && npm run rebuild:prod"
+    "clean-slate": "rimraf out node_modules app/node_modules && npm install",
+    "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
+    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod"
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -37,8 +34,8 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">= 6",
-    "npm": ">= 3"
+    "node": ">= 7",
+    "npm": ">= 4"
   },
   "dependencies": {
     "@niik/tslint-microsoft-contrib": "^2.0.14",
@@ -50,6 +47,7 @@
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "chai-datetime": "^1.4.1",
+    "clean-webpack-plugin": "^0.1.16",
     "cross-env": "^3.2.3",
     "css-loader": "^0.26.2",
     "electron": "1.6.7",
@@ -75,7 +73,7 @@
     "ts-loader": "^2.0.3",
     "ts-node": "^1.7.3",
     "tslint": "^3.14.0",
-    "typescript": "2.2.2",
+    "typescript": "2.3.1",
     "vrsource-tslint-rules": "^0.12.0",
     "webpack": "^2.4.1",
     "webpack-dev-middleware": "^1.10.1",
@@ -95,10 +93,10 @@
     "@types/keytar": "^3.0.30",
     "@types/mocha": "^2.2.29",
     "@types/node": "^6.0.31",
-    "@types/react": "15.0.16",
+    "@types/react": "^15.0.23",
     "@types/react-addons-css-transition-group": "^15.0.1",
     "@types/react-addons-test-utils": "^0.14.17",
-    "@types/react-dom": "^0.14.23",
+    "@types/react-dom": "^15.5.0",
     "@types/react-virtualized": "0.0.3",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
