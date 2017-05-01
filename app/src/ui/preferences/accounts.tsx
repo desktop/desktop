@@ -51,7 +51,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
           <div className='name'>{account.name}</div>
           <div className='login'>@{account.login}</div>
         </div>
-        <Button onClick={this.logout(account)}>Log Out</Button>
+        <Button onClick={this.logout(account)}>{__DARWIN__ ? 'Sign Out' : 'Sign out'}</Button>
       </Row>
     )
   }
@@ -65,18 +65,19 @@ export class Accounts extends React.Component<IAccountsProps, void> {
   }
 
   private renderSignIn(type: SignInType) {
+    const signInTitle = __DARWIN__ ? 'Sign In' : 'Sign in'
     switch (type) {
       case SignInType.DotCom: {
 
         return (
-          <CallToAction actionTitle='Sign In' onAction={this.onDotComSignIn}>
+          <CallToAction actionTitle={signInTitle} onAction={this.onDotComSignIn}>
             <div>Sign in to your GitHub.com account to access your repositories.</div>
           </CallToAction>
         )
       }
       case SignInType.Enterprise:
         return (
-          <CallToAction actionTitle='Sign In' onAction={this.onEnterpriseSignIn}>
+          <CallToAction actionTitle={signInTitle} onAction={this.onEnterpriseSignIn}>
             <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
           </CallToAction>
         )

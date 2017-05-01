@@ -19,6 +19,8 @@ export interface IIssueHit {
 
 /** The autocompletion provider for issues in a GitHub repository. */
 export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIssueHit> {
+  public readonly kind = 'issue'
+
   private readonly issuesStore: IssuesStore
   private readonly repository: GitHubRepository
   private readonly dispatcher: Dispatcher

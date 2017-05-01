@@ -1,7 +1,7 @@
 #configure-git-user {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  .form-component {
+    margin: var(--spacing-double) 0;
+  }
 
   // Styles for the commit list that's shown in the Configure Git component.
   // The styles in the `&:before` block are for the graident overlay on top

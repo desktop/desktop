@@ -114,14 +114,14 @@
     border-bottom: none;
   }
 
-  .window-controls {
-    svg {
-      fill: #000;
-    }
+  position: fixed;
+  z-index: 1;
 
+  .window-controls {
     button {
       &:hover {
         background-color: #e5e5e5;
+        color: #000;
 
         &:active {
           background-color: #cccccc;

@@ -120,10 +120,19 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     this.props.dispatcher.endWelcomeFlow()
   }
 
+
   public render() {
+   const WelcomeImageUri = `file:///${__dirname}/static/illustration.svg`
+
     return (
       <UiView id='welcome'>
-        {this.getComponentForCurrentStep()}
+        <div className='welcome-left'>
+          {this.getComponentForCurrentStep()}
+        </div>
+
+        <div className='welcome-right'>
+         <img className='welcome-graphic' src={WelcomeImageUri} />
+        </div>
       </UiView>
     )
   }

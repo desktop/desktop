@@ -3,8 +3,9 @@
 const common = require('./webpack.common')
 
 const webpack = require('webpack')
-const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
+const merge = require('webpack-merge')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const BabelPlugin = require('babel-webpack-plugin')
 
 let branchName = ''
 if (process.platform === 'darwin') {
@@ -22,35 +23,42 @@ if (branchName && branchName.length > 0) {
 }
 
 const config = {
-  devtool: 'cheap-module-source-map',
-  entry: common.entry,
-  output: common.output,
+  devtool: 'source-map',
   plugins: [
-    ...common.plugins,
-    new webpack.optimize.OccurrenceOrderPlugin(true),
-    new webpack.DefinePlugin(Object.assign({}, {
-      __DEV__: false,
-      __RELEASE_ENV__: JSON.stringify(environment)
-    }, common.replacements))
+    new BabelPlugin({
+      test: /\.js$/,
+      sourceMaps: true,
+      compact: true, 
+      minified: true,
+      comments: false,
+      presets: ['babili'],
+    })
   ],
-  module: common.module,
-  resolve: common.resolve,
-  target: common.target,
-  externals: common.externals,
-  node: common.node
 }
 
-// This will cause the compiled CSS to be output to a
-// styles.css and a <link rel="stylesheet"> tag to be
-// appended to the index.html HEAD at compile time
-config.module.loaders.push({
-  test: /\.(scss|css)$/,
-  loader: ExtractTextPlugin.extract('style-loader', 'css-loader!sass-loader')
+const mainConfig = merge({}, common.main, config)
+const sharedConfig = merge({}, common.shared, config)
+const askPassConfig = merge({}, common.askPass, config)
+
+const rendererConfig = merge({}, common.renderer, config, {
+  module: {
+    rules: [
+      // This will cause the compiled CSS to be output to a
+      // styles.css and a <link rel="stylesheet"> tag to be
+      // appended to the index.html HEAD at compile time
+      {
+        test: /\.(scss|css)$/,
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: [ 'css-loader', 'sass-loader' ]
+        })
+      },
+    ],
+  },
+  plugins: [
+    // Necessary to be able to use ExtractTextPlugin as a loader.
+    new ExtractTextPlugin('styles.css'),
+  ]
 })
 
-// Necessary to be able to use ExtractTextPlugin as a loader.
-config.plugins.push(new ExtractTextPlugin('styles.css'))
-
-config.target = webpackTargetElectronRenderer(config)
-
-module.exports = config
+module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig ]

@@ -241,7 +241,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     return (
       <Row>
         <Select
-          label='Git Ignore'
+          label={ __DARWIN__ ? 'Git Ignore' : 'Git ignore' }
           value={this.state.gitIgnore}
           onChange={this.onGitIgnoreChange}
         >

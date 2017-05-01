@@ -37,6 +37,14 @@
       // `padding-left` here means mouse move events are not raised
       padding-left: var(--spacing-half);
     }
+
+    svg.no-newline {
+      height: 8px;
+      fill: var(--error-color);
+      display: inline-block;
+      margin-left: 3px;
+      margin-bottom: -1px;
+    }
   }
 
   &-code > div:last-of-type {

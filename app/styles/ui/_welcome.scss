@@ -1,88 +1,155 @@
 #welcome {
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
+  flex-direction: row;
+  font-size: var(--font-size-md);
 
   #start {
     display: flex;
     flex-direction: column;
-    align-items: center;
   }
 
   #sign-in-dot-com {
     display: flex;
     flex-direction: column;
-    align-items: center;
+
+    .form-component {
+      display: block;
+    }
+
+    .actions {
+      margin-top: var(--spacing-double);
+    }
   }
 
-  #configure-git {
-    width: 432px;
+  #sign-in-enterprise {
+    .sign-in-form {
+      margin-top: 0;
+    }
 
-    .description {
-      text-align: center;
+    .sign-in-footer {
+      margin-top: var(--spacing-double);
+    }
+
+    .actions {
+      display: inline;
+      margin-top: var(--spacing);
+    }
+  }
+
+  #configure-git-user .form-component {
+    div:last-child {
+      margin-top: var(--spacing);
+    }
+  }
+
+  #usage-opt-out {
+    .welcome-title {
+      margin: 0;
+    }
+  }
+
+  input, button {
+    font-size: var(--font-size-md);
+    height: auto;
+  }
+
+  input {
+    padding: var(--spacing-half);
+  }
+
+  button {
+    margin-right: var(--spacing);
+    padding: var(--spacing-half) var(--spacing);
+  }
+
+  p {
+    max-width: 500px;
+  }
+
+  .form-component {
+    .text-box-component {
+      margin-bottom: var(--spacing);
     }
   }
 
   .actions {
-    display: flex;
-    flex-direction: row;
-    margin: var(--spacing-double) 0;
-
-    button {
-      margin: 0 var(--spacing-half);
-      flex: 1;
-    }
-  }
-
-  .usage-opt-out {
-    width: 300px;
-
-    .header {
-      display: flex;
-      justify-content: center;
-    }
-
-    .header-icon {
-      width: 32px;
-      height: 32px;
-      margin: 10px;
-    }
+    margin-top: var(--spacing);
   }
 }
 
 .welcome-title,
 .welcome-text {
-  font-weight: var(--font-weight-light);
   margin: 0;
-  text-align: center;
 }
 
 .welcome-title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-light);
+  line-height: 1.25;
+  margin-bottom: var(--spacing);
 }
 
 .welcome-text {
-  font-size: var(--font-size-md);
-  width: 430px;
+  margin: var(--spacing) 0;
 }
 
 .welcome-button {
-  font-size: var(--font-size);
   font-weight: var(--font-weight-semibold);
-  padding: var(--spacing) 0;
-  width: 200px;
+  margin: var(--spacing) 0;
 }
 
 .sign-in-field {
   width: 100%;
 }
 
-.sign-in-footer {
-  text-align: center;
+.welcome-left,
+.welcome-right {
+  flex-grow: 1;
+  width: 50%;
 }
 
-.sign-in-form {
+.welcome-left {
+  padding: var(--spacing-quad);
+
+  @media screen and (min-width: 1366px) {
+    zoom: 1.2;
+  }
+
+  @media screen and (min-width: 1400px) {
+    zoom: 1.3;
+  }
+
+  @media screen and (min-width: 1600px) {
+    zoom: 1.4;
+  }
+
+  @media screen and (min-width: 1800px) {
+    zoom: 1.5;
+  }
+}
+
+.welcome-right {
+  background-color: #33383d;
+  justify-content: center;
+  align-items: center;
   display: flex;
-  flex-direction: column;
-  margin: var(--spacing-double) auto;
-  width: 320px;
+  padding: var(--spacing-quad);
+  position: relative;
+  overflow: hidden;
+}
+
+.skip-action-container {
+  position: absolute;
+  bottom: var(--spacing-quad);
+
+  .skip-button {
+    color: var(--text-secondary-color);
+  }
+}
+
+.welcome-graphic {
+  height: auto;
+  max-height: 100%;
+  width: 100%;
 }
