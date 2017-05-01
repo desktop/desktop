@@ -28,7 +28,7 @@ export class DeleteBranch extends React.Component<IDeleteBranchProps, void> {
           <p>This cannot be undone.</p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
+          <ButtonGroup destructive>
             <Button type='submit'>Cancel</Button>
             <Button onClick={this.deleteBranch}>Delete</Button>
           </ButtonGroup>
