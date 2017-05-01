@@ -946,7 +946,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
-    const foldoutStyle = {
+    const foldoutStyle: React.CSSProperties = {
       position: 'absolute',
       marginLeft: 0,
       minWidth: this.state.sidebarWidth,

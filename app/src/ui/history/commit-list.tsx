@@ -2,7 +2,6 @@ import * as React from 'react'
 import { Commit } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List } from '../list'
-import { CommitFacadeListItem } from './commit-facade-list-item'
 import { IGitHubUser } from '../../lib/dispatcher'
 
 const RowHeight = 48
@@ -24,17 +23,17 @@ export class CommitList extends React.Component<ICommitListProps, void> {
   private renderCommit = (row: number) => {
     const sha = this.props.history[row]
     const commit = this.props.commits.get(sha)
-    if (commit) {
-      const gitHubUser = this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
-      let avatarUser = null
-      if (gitHubUser) {
-        avatarUser = { ...commit.author, avatarURL: gitHubUser.avatarURL }
-      }
-
-      return <CommitListItem key={commit.sha} commit={commit} user={avatarUser} emoji={this.props.emoji}/>
-    } else {
-      return <CommitFacadeListItem key={row}/>
+    if (!commit) {
+      return null
     }
+
+    const gitHubUser = this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
+    let avatarUser = null
+    if (gitHubUser) {
+      avatarUser = { ...commit.author, avatarURL: gitHubUser.avatarURL }
+    }
+
+    return <CommitListItem key={commit.sha} commit={commit} user={avatarUser} emoji={this.props.emoji}/>
   }
 
   private onRowChanged = (row: number) => {

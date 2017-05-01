@@ -90,22 +90,45 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
   private getComponentForCurrentStep() {
     const step = this.state.currentStep
-    const advance = (step: WelcomeStep) => this.advanceToStep(step)
-    const done = () => this.done()
     const signInState = this.props.signInState
-    const props = { dispatcher: this.props.dispatcher, advance, done }
 
     switch (step) {
-      case WelcomeStep.Start: return <Start {...props}/>
-      case WelcomeStep.SignInToDotCom: return <SignInDotCom {...props} signInState={signInState} />
-      case WelcomeStep.SignInToEnterprise: return <SignInEnterprise {...props} signInState={signInState} />
-      case WelcomeStep.ConfigureGit: return <ConfigureGit {...props} accounts={this.props.appStore.getState().accounts}/>
-      case WelcomeStep.UsageOptOut: return <UsageOptOut {...props} optOut={this.props.appStore.getStatsOptOut()}/>
+      case WelcomeStep.Start:
+        return <Start advance={this.advanceToStep}/>
+
+      case WelcomeStep.SignInToDotCom:
+        return <SignInDotCom
+          dispatcher={this.props.dispatcher}
+          advance={this.advanceToStep}
+          signInState={signInState}
+        />
+
+      case WelcomeStep.SignInToEnterprise:
+        return <SignInEnterprise
+          dispatcher={this.props.dispatcher}
+          advance={this.advanceToStep}
+          signInState={signInState}
+        />
+
+      case WelcomeStep.ConfigureGit:
+        return <ConfigureGit
+          advance={this.advanceToStep}
+          accounts={this.props.appStore.getState().accounts}
+        />
+
+      case WelcomeStep.UsageOptOut:
+        return <UsageOptOut
+          dispatcher={this.props.dispatcher}
+          advance={this.advanceToStep}
+          optOut={this.props.appStore.getStatsOptOut()}
+          done={this.done}
+        />
+
       default: return assertNever(step, `Unknown welcome step: ${step}`)
     }
   }
 
-  private advanceToStep(step: WelcomeStep) {
+  private advanceToStep = (step: WelcomeStep) => {
 
     if (step === WelcomeStep.SignInToDotCom) {
       this.props.dispatcher.beginDotComSignIn()
@@ -116,7 +139,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     this.setState({ currentStep: step })
   }
 
-  private done() {
+  private done = () => {
     this.props.dispatcher.endWelcomeFlow()
   }
 
