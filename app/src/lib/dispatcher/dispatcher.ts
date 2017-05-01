@@ -296,12 +296,6 @@ export class Dispatcher {
 
   /** Close the current popup. */
   public closePopup(): Promise<void> {
-    const state = this.appStore.getState()
-    const currentPopup = state.currentPopup
-    if (currentPopup && currentPopup.type === PopupType.CloneRepository && currentPopup.resolve) {
-      currentPopup.resolve(null)
-    }
-
     return this.appStore._closePopup()
   }
 

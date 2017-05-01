@@ -983,6 +983,13 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(): Promise<void> {
+    const currentPopup = this.currentPopup
+    if (!currentPopup) { return Promise.resolve() }
+
+    if (currentPopup.type === PopupType.CloneRepository && currentPopup.resolve) {
+      currentPopup.resolve(null)
+    }
+
     this.currentPopup = null
     this.emitUpdate()
 
