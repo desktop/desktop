@@ -1,7 +1,6 @@
-import * as Path from 'path'
-
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import * as Path from 'path'
 
 import { ipcRenderer } from 'electron'
 
