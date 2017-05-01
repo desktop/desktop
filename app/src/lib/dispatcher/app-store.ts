@@ -991,7 +991,7 @@ export class AppStore {
     if (!currentPopup) { return Promise.resolve() }
 
     if (currentPopup.type === PopupType.CloneRepository) {
-      this._continueOpenInDesktop(() => Promise.resolve(null))
+      this._completeOpenInDesktop(() => Promise.resolve(null))
     }
 
     this.currentPopup = null
@@ -1712,6 +1712,10 @@ export class AppStore {
     return this.signInStore.setTwoFactorOTP(otp)
   }
 
+  /**
+   * Start an Open in Desktop flow. This will return a new promise which will
+   * resolve when `_completeOpenInDesktop` is called.
+   */
   public _startOpenInDesktop(fn: () => void): Promise<Repository | null> {
     // tslint:disable-next-line:promise-must-complete
     const p = new Promise<Repository | null>(resolve => this.resolveOpenInDesktop = resolve)
@@ -1719,7 +1723,11 @@ export class AppStore {
     return p
   }
 
-  public async _continueOpenInDesktop(fn: () => Promise<Repository | null>): Promise<Repository | null> {
+  /**
+   * Complete any active Open in Desktop flow with the repository returned by
+   * the given function.
+   */
+  public async _completeOpenInDesktop(fn: () => Promise<Repository | null>): Promise<Repository | null> {
     const resolve = this.resolveOpenInDesktop
     this.resolveOpenInDesktop = null
 

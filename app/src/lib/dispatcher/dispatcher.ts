@@ -433,7 +433,7 @@ export class Dispatcher {
 
   /** Clone the repository to the path. */
   public async clone(url: string, path: string, options: { account: Account | null, branch?: string }): Promise<Repository | null> {
-    return this.appStore._continueOpenInDesktop(async () => {
+    return this.appStore._completeOpenInDesktop(async () => {
       const { promise, repository } = this.appStore._clone(url, path, options)
       await this.selectRepository(repository)
       const success = await promise
