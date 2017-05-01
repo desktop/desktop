@@ -73,5 +73,17 @@ describe('PathText', () => {
       expect(normalizedFileName).to.equal('path')
       expect(normalizedDirectory).to.equal('some/submodule/')
     })
+
+    it('converts tracked submodule correctly', () => {
+      const { normalizedFileName, normalizedDirectory } = extract('some/submodule/path')
+      expect(normalizedFileName).to.equal('path')
+      expect(normalizedDirectory).to.equal('some/submodule/')
+    })
+
+    it('converts file path correctly', () => {
+      const { normalizedFileName, normalizedDirectory } = extract('some/repository/path.tsx')
+      expect(normalizedFileName).to.equal('path.tsx')
+      expect(normalizedDirectory).to.equal('some/repository/')
+    })
   })
 })
