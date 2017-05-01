@@ -82,10 +82,11 @@ export async function unhandledExceptionHandler(error: Error, dispatcher: Dispat
 
   const metadata = e.metadata
   if (metadata.uncaught) {
-      await dispatcher.presentError(error)
-      return null
+    await dispatcher.presentError(error)
+    return null
   }
-   return error
+
+  return error
 }
 
 /** Handle errors that happen as a result of a background task. */
