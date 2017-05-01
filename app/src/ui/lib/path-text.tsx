@@ -36,7 +36,7 @@ interface IPathDisplayState {
 }
 
 interface IPathTextState extends IPathDisplayState {
-  /** 
+  /**
    * The maximum available width for the path. This corresponds
    * to the availableWidth prop if one was specified, if not it's
    * calculated at render time.
@@ -92,7 +92,7 @@ export function truncateMid(value: string, length: number) {
 
 /**
  * String truncation for paths.
- * 
+ *
  * This method takes a path and returns it truncated (if necessary)
  * to the exact number of characters specified by the length
  * parameter.
@@ -138,6 +138,10 @@ export function truncatePath(path: string, length: number) {
  * @param normalizedPath The normalized path (i.e. no '.' or '..' characters in path)
  */
 export function extract(normalizedPath: string): { normalizedFileName: string, normalizedDirectory: string } {
+  // for untracked submodules, the status entry is returned as a directory,
+  // with a trailing / which causes the directory to be trimmed in a weird way
+  // below. let's try and resolve this here
+  normalizedPath = normalizedPath.endsWith('/') ? normalizedPath.substr(0, normalizedPath.length - 1) : normalizedPath
 
   const normalizedFileName = Path.basename(normalizedPath)
   const normalizedDirectory = normalizedPath.substr(0, normalizedPath.length - normalizedFileName.length)
@@ -218,7 +222,7 @@ function createState(path: string, length?: number): IPathTextState {
 /**
  * A component for displaying a path (rooted or relative) with truncation
  * if necessary.
- * 
+ *
  * If the path needs to be truncated this component will set its title element
  * to the full path such that it can be seen by hovering the path text.
  */
