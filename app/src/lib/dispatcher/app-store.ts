@@ -136,6 +136,9 @@ export class AppStore {
 
   private readonly statsStore: StatsStore
 
+  /** The function to resolve the current Open in Desktop flow. */
+  private resolveOpenInDesktop: ((repository: Repository | null) => void) | null = null
+
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore, signInStore: SignInStore) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
@@ -987,8 +990,8 @@ export class AppStore {
     const currentPopup = this.currentPopup
     if (!currentPopup) { return Promise.resolve() }
 
-    if (currentPopup.type === PopupType.CloneRepository && currentPopup.resolve) {
-      currentPopup.resolve(null)
+    if (currentPopup.type === PopupType.CloneRepository) {
+      this._continueOpenInDesktop(() => Promise.resolve(null))
     }
 
     this.currentPopup = null
@@ -1707,5 +1710,24 @@ export class AppStore {
 
   public _setSignInOTP(otp: string): Promise<void> {
     return this.signInStore.setTwoFactorOTP(otp)
+  }
+
+  public _startOpenInDesktop(fn: () => void): Promise<Repository | null> {
+    // tslint:disable-next-line:promise-must-complete
+    const p = new Promise<Repository | null>(resolve => this.resolveOpenInDesktop = resolve)
+    fn()
+    return p
+  }
+
+  public async _continueOpenInDesktop(fn: () => Promise<Repository | null>): Promise<Repository | null> {
+    const resolve = this.resolveOpenInDesktop
+    this.resolveOpenInDesktop = null
+
+    const result = await fn()
+    if (resolve) {
+      resolve(result)
+    }
+
+    return result
   }
 }

@@ -433,34 +433,21 @@ export class Dispatcher {
 
   /** Clone the repository to the path. */
   public async clone(url: string, path: string, options: { account: Account | null, branch?: string }): Promise<Repository | null> {
-    const state = this.appStore.getState()
-    const popupState = state.currentPopup
-    let resolve: ((repository: Repository | null) => void) | null = null
-    if (popupState && popupState.type === PopupType.CloneRepository) {
-      resolve = popupState.resolve || null
-    }
-
-    const { promise, repository } = this.appStore._clone(url, path, options)
-    await this.selectRepository(repository)
-    const success = await promise
-    // TODO: this exit condition is not great, bob
-    if (!success) {
-      if (resolve) {
-        resolve(null)
+    return this.appStore._continueOpenInDesktop(async () => {
+      const { promise, repository } = this.appStore._clone(url, path, options)
+      await this.selectRepository(repository)
+      const success = await promise
+      // TODO: this exit condition is not great, bob
+      if (!success) {
+        return null
       }
 
-      return null
-    }
+      const addedRepositories = await this.addRepositories([ path ])
+      const addedRepository = addedRepositories[0]
+      await this.selectRepository(addedRepository)
 
-    const addedRepositories = await this.addRepositories([ path ])
-    const addedRepository = addedRepositories[0]
-    await this.selectRepository(addedRepository)
-
-    if (resolve) {
-      resolve(addedRepository)
-    }
-
-    return addedRepository
+      return addedRepository
+    })
   }
 
   /** Rename the branch to a new name. */
@@ -879,11 +866,9 @@ export class Dispatcher {
 
       return this.checkoutBranch(repo, branch)
     } else {
-      let resolve: ((repository: Repository | null) => void) | null = null
-      // tslint:disable-next-line:promise-must-complete
-      const clonePromise = new Promise<Repository | null>(resolve_ => resolve = resolve_)
-      this.showPopup({ type: PopupType.CloneRepository, initialURL: url, resolve: resolve! })
-      return clonePromise
+      return this.appStore._startOpenInDesktop(() => {
+        this.showPopup({ type: PopupType.CloneRepository, initialURL: url })
+      })
     }
   }
 }
