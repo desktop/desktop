@@ -132,6 +132,19 @@ export function truncatePath(path: string, length: number) {
   return `${pre}…${post}`
 }
 
+/**
+ * Extract the filename and directory from a given normalized path
+ *
+ * @param normalizedPath The normalized path (i.e. no '.' or '..' characters in path)
+ */
+export function extract(normalizedPath: string): { normalizedFileName: string, normalizedDirectory: string } {
+
+  const normalizedFileName = Path.basename(normalizedPath)
+  const normalizedDirectory = normalizedPath.substr(0, normalizedPath.length - normalizedFileName.length)
+
+  return { normalizedFileName, normalizedDirectory }
+}
+
 function createPathDisplayState(normalizedPath: string, length?: number): IPathDisplayState {
   length = length === undefined ? normalizedPath.length : length
 
