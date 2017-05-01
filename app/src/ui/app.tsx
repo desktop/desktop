@@ -133,12 +133,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
     this.checkForUpdates()
 
-    ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
+    ipcRenderer.on('launch-timing-stats', async (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
       console.info(`App ready time: ${stats.mainReadyTime}ms`)
       console.info(`Load time: ${stats.loadTime}ms`)
       console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
 
-      this.props.dispatcher.recordLaunchStats(stats)
+      await this.props.dispatcher.recordLaunchStats(stats)
       this.props.dispatcher.reportStats()
 
       setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
