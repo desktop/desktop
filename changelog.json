@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.0.38": [
+
+    ],
     "0.0.37": [
       "[Fixed] Better display of the 'no newline at end of file' indicator - #1253",
       "[Fixed] macOS: Destructive dialogs now use the expected button order - #1315",
