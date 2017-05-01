@@ -143,22 +143,65 @@ function copyStaticResources () {
 
 function copyDependencies () {
   const originalPackage = require(path.join(projectRoot, 'app', 'package.json'))
+
+  const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
+  const externals = commonConfig.externals
+  const oldDependencies = originalPackage.dependencies
+  const newDependencies = { }
+
+  for (var [name, spec] of Object.entries(oldDependencies)) {
+    if (externals.indexOf(name) !== -1) {
+      newDependencies[name] = spec
+    }
+  }
+
+  const oldDevDependencies = originalPackage.devDependencies
+  const newDevDependencies = { }
+
+  if (!isProductionBuild) {
+    for (var [name, spec] of Object.entries(oldDevDependencies)) {
+      if (externals.indexOf(name) !== -1) {
+        newDevDependencies[name] = spec
+      }
+    }
+  }
+
   // The product name changes depending on whether it's a prod build or dev
   // build, so that we can have them running side by side.
-  const updatedPackage = Object.assign({}, originalPackage, { productName: distInfo.getProductName() })
-
-  let destination = path.join(outRoot, 'package.json')
-  fs.removeSync(destination)
-  fs.writeFileSync(destination, JSON.stringify(updatedPackage))
-
-  destination = path.join(outRoot, 'node_modules')
-  fs.removeSync(destination)
-  fs.copySync(path.join(projectRoot, 'app', 'node_modules'), destination)
+  const updatedPackage = Object.assign({}, originalPackage, {
+    productName: distInfo.getProductName(),
+    dependencies: newDependencies,
+    devDependencies: newDevDependencies,
+  })
 
   if (isProductionBuild) {
-    console.log('Pruning dev dependencies…')
-    cp.execSync('npm prune --production', {cwd: outRoot, env: process.env})
+    delete updatedPackage.devDependencies
   }
+
+  fs.writeFileSync(path.join(outRoot, 'package.json'), JSON.stringify(updatedPackage))
+
+  fs.removeSync(path.resolve(outRoot, 'node_modules'))
+
+  if (Object.keys(newDependencies).length || Object.keys(newDevDependencies).length) {
+    console.log('  Installing npm dependencies…')
+    cp.execSync('npm install', { cwd: outRoot, env: process.env })
+  }
+
+  if (!isProductionBuild) {
+    console.log('  Installing 7zip (dependency for electron-devtools-installer)')
+    
+    const sevenZipSource = path.resolve(projectRoot, 'app/node_modules/7zip')
+    const sevenZipDestination = path.resolve(outRoot, 'node_modules/7zip')
+    
+    fs.mkdirpSync(sevenZipDestination)
+    fs.copySync(sevenZipSource, sevenZipDestination)
+  }
+
+  console.log('  Copying git environment…')
+  const gitDir = path.resolve(outRoot, 'git')
+  fs.removeSync(gitDir)
+  fs.mkdirpSync(gitDir)
+  fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 }
 
 function updateLicenseDump (callback) {

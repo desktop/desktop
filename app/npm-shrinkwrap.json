@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.31",
+  "version": "0.0.35",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -15,9 +15,9 @@
       "dev": true
     },
     "ajv": {
-      "version": "4.11.6",
+      "version": "4.11.7",
       "from": "ajv@>=4.9.1 <5.0.0",
-      "resolved": "https://registry.npmjs.org/ajv/-/ajv-4.11.6.tgz"
+      "resolved": "https://registry.npmjs.org/ajv/-/ajv-4.11.7.tgz"
     },
     "ansi-html": {
       "version": "0.0.6",
@@ -228,9 +228,9 @@
       "resolved": "https://registry.npmjs.org/dom-matches/-/dom-matches-2.0.0.tgz"
     },
     "dugite": {
-      "version": "1.24.0",
-      "from": "dugite@1.24.0",
-      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.24.0.tgz"
+      "version": "1.25.0",
+      "from": "dugite@latest",
+      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.25.0.tgz"
     },
     "ecc-jsbn": {
       "version": "0.1.1",
@@ -351,9 +351,9 @@
       "resolved": "https://registry.npmjs.org/fstream/-/fstream-1.0.11.tgz"
     },
     "getpass": {
-      "version": "0.1.6",
+      "version": "0.1.7",
       "from": "getpass@>=0.1.1 <0.2.0",
-      "resolved": "https://registry.npmjs.org/getpass/-/getpass-0.1.6.tgz",
+      "resolved": "https://registry.npmjs.org/getpass/-/getpass-0.1.7.tgz",
       "dependencies": {
         "assert-plus": {
           "version": "1.0.0",
@@ -414,6 +414,11 @@
       "from": "humanize-plus@>=1.8.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/humanize-plus/-/humanize-plus-1.8.2.tgz",
       "dev": true
+    },
+    "iconv-lite": {
+      "version": "0.4.16",
+      "from": "iconv-lite@>=0.4.13 <0.5.0",
+      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.16.tgz"
     },
     "inflight": {
       "version": "1.0.6",
@@ -637,9 +642,9 @@
       "resolved": "https://registry.npmjs.org/performance-now/-/performance-now-0.2.0.tgz"
     },
     "progress": {
-      "version": "1.1.8",
-      "from": "progress@>=1.1.8 <2.0.0",
-      "resolved": "https://registry.npmjs.org/progress/-/progress-1.1.8.tgz"
+      "version": "2.0.0",
+      "from": "progress@>=2.0.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/progress/-/progress-2.0.0.tgz"
     },
     "promise": {
       "version": "7.1.1",
@@ -746,9 +751,9 @@
       "resolved": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.0.3.tgz"
     },
     "sshpk": {
-      "version": "1.11.0",
+      "version": "1.13.0",
       "from": "sshpk@>=1.7.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/sshpk/-/sshpk-1.11.0.tgz",
+      "resolved": "https://registry.npmjs.org/sshpk/-/sshpk-1.13.0.tgz",
       "dependencies": {
         "assert-plus": {
           "version": "1.0.0",
@@ -793,11 +798,13 @@
       "version": "0.8.3",
       "from": "temp@>=0.8.3 <0.9.0",
       "resolved": "https://registry.npmjs.org/temp/-/temp-0.8.3.tgz",
+      "dev": true,
       "dependencies": {
         "rimraf": {
           "version": "2.2.8",
           "from": "rimraf@>=2.2.6 <2.3.0",
-          "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.2.8.tgz"
+          "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.2.8.tgz",
+          "dev": true
         }
       }
     },
