@@ -50,6 +50,7 @@
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "chai-datetime": "^1.4.1",
+    "clean-webpack-plugin": "^0.1.16",
     "cross-env": "^3.2.3",
     "css-loader": "^0.26.2",
     "electron": "1.6.7",
