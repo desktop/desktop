@@ -166,13 +166,18 @@ export class StatsStore {
   /** Calculate the average launch stats. */
   private async getAverageLaunchStats(): Promise<ILaunchStats> {
     const launches: ReadonlyArray<ILaunchStats> | undefined = await this.db.launches.toArray()
+    if (!launches || !launches.length) {
+      return {
+        mainReadyTime: -1,
+        loadTime: -1,
+        rendererReadyTime: -1,
+      }
+    }
+
     const start: ILaunchStats = {
       mainReadyTime: 0,
       loadTime: 0,
       rendererReadyTime: 0,
-    }
-    if (!launches || !launches.length) {
-      return start
     }
 
     const totals = launches.reduce((running, current) => {
