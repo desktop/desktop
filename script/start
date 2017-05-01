@@ -2,17 +2,36 @@
 
 'use strict'
 
+const run = require('./run')
 const express = require('express')
 const webpack = require('webpack')
-const config = require('../app/webpack.development')
-const run = require('./run')
+const configs = require('../app/webpack.development')
+
+function startApp() {
+  const runningApp = run()
+  if (!runningApp) {
+    console.error("Couldn't launch the app. You probably need to build it first. Run `npm run build:dev`.")
+    process.exit(1)
+  }
+
+  runningApp.on('close', () => {
+    process.exit(0)
+  })
+}
+
+if (process.env.NODE_ENV === 'production') {
+  startApp()
+  return
+}
+
+const [ mainConfig, sharedConfig, rendererConfig, askPassConfig ] = configs
 
 const server = express()
-const compiler = webpack(config)
+const compiler = webpack(rendererConfig)
 const port = process.env.PORT || 3000
 
 server.use(require('webpack-dev-middleware')(compiler, {
-  publicPath: config.output.publicPath,
+  publicPath: rendererConfig.output.publicPath,
   noInfo: true
 }))
 
@@ -26,14 +45,5 @@ server.listen(port, 'localhost', err => {
   }
 
   console.log(`Server running at http://localhost:${port}`)
-
-  const runningApp = run()
-  if (!runningApp) {
-    console.error("Couldn't launch the app. You probably need to build it first. Run `npm run build:dev`.")
-    process.exit(1)
-  }
-
-  runningApp.on('close', () => {
-    process.exit(0)
-  })
+  startApp()
 })

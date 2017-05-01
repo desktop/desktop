@@ -174,6 +174,10 @@ export function formatPatch(file: WorkingDirectoryFileChange, diff: ITextDiff): 
           assertNever(line.type, `Unsupported line type ${line.type}`)
         }
       }
+
+      if (line.noTrailingNewLine) {
+        hunkBuf += '\ No newline at end of file\n'
+      }
     })
 
     // Skip writing this hunk if all there is is context lines.
