@@ -161,12 +161,12 @@ export class RepositoriesStore {
         }
       }
 
-      const info: any = {
+      const info: IDatabaseGitHubRepository = {
         private: newGitHubRepo.private,
         fork: newGitHubRepo.fork,
         htmlURL: newGitHubRepo.htmlURL,
         name: newGitHubRepo.name,
-        ownerID,
+        ownerID: ownerID!,
         cloneURL: newGitHubRepo.cloneURL,
         defaultBranch: newGitHubRepo.defaultBranch,
       }
