@@ -3,6 +3,13 @@ import { Button, IButtonProps } from './button'
 
 interface IButtonGroupProps {
   readonly children?: ReadonlyArray<JSX.Element>
+
+  /**
+   * Does the button group perform a destructive action? On macOS, this controls
+   * whether the submit button belongs on the left or right. This has no effect
+   * on other OSes.
+   */
+  readonly destructive?: boolean
 }
 
 /**
@@ -37,7 +44,7 @@ export class ButtonGroup extends React.Component<IButtonGroupProps, void> {
     // _should_ ensure that it's always Ok, Cancel in markup but
     // we're a little bit more lax here.
     if (buttons.length > 1) {
-      if (__DARWIN__ && buttons[0].props.type === 'submit') {
+      if (__DARWIN__ && buttons[0].props.type === 'submit' && this.props.destructive !== true) {
         buttons.reverse()
       } else if (__WIN32__ && buttons[buttons.length - 1].props.type === 'submit') {
         buttons.reverse()

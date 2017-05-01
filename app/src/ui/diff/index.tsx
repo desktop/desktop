@@ -22,10 +22,15 @@ import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection/selection-strategy'
 import { DragDropSelection } from './selection/drag-drop-selection-strategy'
 import { RangeSelection } from './selection/range-selection-strategy'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 import { fatalError } from '../../lib/fatal-error'
 
 import { RangeSelectionSizePixels } from './edge-detection'
+
+// This is a custom version of the no-newline octicon that's exactly as
+// tall as it needs to be (8px) which helps with aligning it on the line.
+const narrowNoNewlineSymbol = new OcticonSymbol(16, 8, 'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z')
 
 /** The props for the Diff component. */
 interface IDiffProps {
@@ -357,7 +362,19 @@ export class Diff extends React.Component<IDiffProps, void> {
     if (diffLine) {
       const diffLineElement = element.children[0] as HTMLSpanElement
 
-      const reactContainer = document.createElement('span')
+      let noNewlineReactContainer: HTMLSpanElement | null = null
+
+      if (diffLine.noTrailingNewLine) {
+        noNewlineReactContainer = document.createElement('span')
+        noNewlineReactContainer.setAttribute('title', 'No newline at end of file')
+        ReactDOM.render(
+          <Octicon symbol={narrowNoNewlineSymbol} className='no-newline' />,
+          noNewlineReactContainer
+        )
+        diffLineElement.appendChild(noNewlineReactContainer)
+      }
+
+      const gutterReactContainer = document.createElement('span')
 
       let isIncluded = false
       if (this.props.file instanceof WorkingDirectoryFileChange) {
@@ -377,7 +394,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           isSelectionEnabled={this.isSelectionEnabled}
           onMouseDown={this.onGutterMouseDown}
           onMouseMove={this.onGutterMouseMove} />,
-        reactContainer,
+        gutterReactContainer,
         function (this: DiffLineGutter) {
           if (this !== undefined) {
             cache.set(index, this)
@@ -403,7 +420,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         diffLineElement.addEventListener('mouseleave', onMouseLeaveLine)
       }
 
-      element.insertBefore(reactContainer, diffLineElement)
+      element.insertBefore(gutterReactContainer, diffLineElement)
 
       // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
       // the line delete event once we've been called once or the component has been
@@ -422,7 +439,11 @@ export class Diff extends React.Component<IDiffProps, void> {
       const gutterCleanup = new Disposable(() => {
         this.cachedGutterElements.delete(index)
 
-        ReactDOM.unmountComponentAtNode(reactContainer)
+        ReactDOM.unmountComponentAtNode(gutterReactContainer)
+
+        if (noNewlineReactContainer) {
+          ReactDOM.unmountComponentAtNode(noNewlineReactContainer)
+        }
 
         if (!this.props.readOnly) {
           diffLineElement.removeEventListener('mousemove', onMouseMoveLine)
