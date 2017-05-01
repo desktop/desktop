@@ -19,15 +19,13 @@
     "build:dev": "npm run compile:dev && cross-env NODE_ENV=development node script/build",
     "build:prod": "npm run compile:prod && cross-env NODE_ENV=production node script/build",
     "package": "node script/package",
-    "rebuild:dev": "npm run build:dev",
-    "rebuild:prod": "npm run build:prod",
     "clean:tslint": "rimraf tslint-rules/*.js",
     "compile:tslint": "tsc -p tslint-rules",
     "lint": "npm run compile:tslint && tslint \"./app/src/**/*.ts\" \"./app/src/**/*.tsx\" \"./app/test/**/*.ts\" \"./app/test/**/*.tsx\"",
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
-    "rebuild-hard:dev": "npm run clean-slate && npm run rebuild:dev",
-    "rebuild-hard:prod": "npm run clean-slate && npm run rebuild:prod"
+    "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
+    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod"
   },
   "author": {
     "name": "GitHub, Inc.",
