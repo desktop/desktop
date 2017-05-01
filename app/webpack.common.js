@@ -2,6 +2,7 @@
 
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 
@@ -22,11 +23,13 @@ const replacements = {
   'process.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV),
 }
 
+const outputDir = 'out'
+
 const commonConfig = {
   externals: [ '7zip' ],
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, '..', 'out'),
+    path: path.resolve(__dirname, '..', outputDir),
     libraryTarget: 'commonjs2'
   },
   module: {
@@ -54,6 +57,7 @@ const commonConfig = {
     ],
   },
   plugins: [
+    new CleanWebpackPlugin([ outputDir ]),
     // This saves us a bunch of bytes by pruning locales (which we don't use)
     // from moment.
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
