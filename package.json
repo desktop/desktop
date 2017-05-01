@@ -37,8 +37,8 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">= 6",
-    "npm": ">= 3"
+    "node": ">= 7",
+    "npm": ">= 4"
   },
   "dependencies": {
     "@niik/tslint-microsoft-contrib": "^2.0.14",
