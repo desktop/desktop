@@ -339,6 +339,7 @@ export enum AuthorizationResponseKind {
   Failed,
   TwoFactorAuthenticationRequired,
   UserRequiresVerification,
+  PersonalAccessTokenBlocked,
   Error,
 }
 
@@ -346,7 +347,8 @@ export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized
                                     { kind: AuthorizationResponseKind.Failed, response: Response } |
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
                                     { kind: AuthorizationResponseKind.Error, response: Response } |
-                                    { kind: AuthorizationResponseKind.UserRequiresVerification }
+                                    { kind: AuthorizationResponseKind.UserRequiresVerification } |
+                                    { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
 
 /**
  * Create an authorization with the given login, password, and one-time
