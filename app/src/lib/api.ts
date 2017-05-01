@@ -390,6 +390,15 @@ export async function createAuthorization(endpoint: string, login: string, passw
     return { kind: AuthorizationResponseKind.Failed, response }
   }
 
+  if (response.status === 403) {
+    // as per the OAuth Authorization API:
+    // https://developer.github.com/v3/oauth_authorizations/#oauth-authorizations-api
+    //
+    // > You can only access this API via Basic Authentication using your
+    // >username and password, not tokens.
+    return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
+  }
+
   if (response.status === 422) {
     const apiError = await deserialize<IAPIError>(response)
     if (apiError) {
