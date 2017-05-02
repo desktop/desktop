@@ -32,6 +32,10 @@
     .commit-summary-description-scroll-view {
       max-height: none;
       overflow: auto;
+
+      &:before {
+        content: none;
+      }
     }
   }
 
@@ -40,7 +44,7 @@
       // When the body is collapsed we skip the bottom padding, this makes
       // it much more clear to the user that there's more to read. With a
       // bottom padding it appears as if it's all there is.
-      padding-bottom: 0;
+      // padding-bottom: 0;
     }
   }
 
@@ -80,7 +84,17 @@
 
   &-description-scroll-view {
     overflow: hidden;
-    max-height: 60px;
+    max-height: 50px;
+
+    &:before {
+      content: "";
+      background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.75) 90%);
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
   }
 
   // Enable text selection inside the title and description elements.
