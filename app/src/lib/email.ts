@@ -14,12 +14,12 @@ export function lookupEmail(emails: ReadonlyArray<IEmail>): IEmail | null {
     return null
   }
 
-  const noreplyExists = visibleEmails.find(email => email.email.toLowerCase().endsWith('@users.noreply.github.com')) || null
+  const noreplyExists = visibleEmails.find(e => e.email.toLowerCase().endsWith('@users.noreply.github.com'))
   if (noreplyExists) {
     return noreplyExists
   }
 
-  const primaryExists = visibleEmails.find(email => email.primary) || null
+  const primaryExists = visibleEmails.find(e => e.primary)
   if (primaryExists) {
     return primaryExists
   }
