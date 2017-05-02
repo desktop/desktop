@@ -67,4 +67,25 @@ describe('emails', () => {
     expect(result).to.not.equal(null)
     expect(result!.email).to.equal('github-primary@example.com')
   })
+
+  it('uses first email if no primary found', () => {
+    const emails: IEmail[] = [
+      {
+        email: 'shiftkey@example.com',
+        primary: false,
+        verified: true,
+        visibility: 'public',
+      },
+      {
+        email: 'github-primary@example.com',
+        primary: false,
+        verified: true,
+        visibility: 'public',
+      },
+    ]
+
+    const result = lookupEmail(emails)
+    expect(result).to.not.equal(null)
+    expect(result!.email).to.equal('shiftkey@example.com')
+  })
 })
