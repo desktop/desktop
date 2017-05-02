@@ -33,6 +33,7 @@ interface IChangesSidebarProps {
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
 }
 
@@ -156,6 +157,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     let child: JSX.Element | null = null
     if (commit) {
       child = <UndoCommit
+        isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
         commit={commit}
         onUndo={this.onUndo}
         emoji={this.props.emoji}/>
