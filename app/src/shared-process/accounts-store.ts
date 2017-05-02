@@ -24,8 +24,8 @@ export class AccountsStore {
   /**
    * Add the account to the store.
    */
-  public addAccount(account: Account) {
-    this.secureStore.setItem(getKeyForAccount(account), account.login, account.token)
+  public async addAccount(account: Account): Promise<void> {
+    await this.secureStore.setItem(getKeyForAccount(account), account.login, account.token)
 
     this.accounts.push(account)
 
@@ -35,8 +35,8 @@ export class AccountsStore {
   /**
    * Remove the account from the store.
    */
-  public removeAccount(account: Account) {
-    this.secureStore.deleteItem(getKeyForAccount(account), account.login)
+  public async removeAccount(account: Account): Promise<void> {
+    await this.secureStore.deleteItem(getKeyForAccount(account), account.login)
 
     this.accounts = this.accounts.filter(a => a.id !== account.id)
 
