@@ -23,6 +23,7 @@ interface IUndoCommitProps {
 export class UndoCommit extends React.Component<IUndoCommitProps, void> {
   public render() {
     const disabled = this.props.isPushPullFetchInProgress
+    const title = disabled ? 'Undo is disabled while the repository is being updated' : undefined
 
     const authorDate = this.props.commit.author.date
     return (
@@ -34,7 +35,7 @@ export class UndoCommit extends React.Component<IUndoCommitProps, void> {
             className='summary'
             text={this.props.commit.summary} />
         </div>
-        <div className='actions'>
+        <div className='actions' title={title}>
           <Button size='small' disabled={disabled} onClick={this.props.onUndo}>Undo</Button>
         </div>
       </div>
