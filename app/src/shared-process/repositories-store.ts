@@ -168,6 +168,7 @@ export class RepositoriesStore {
         name: newGitHubRepo.name,
         ownerID,
         cloneURL: newGitHubRepo.cloneURL,
+        defaultBranch: newGitHubRepo.defaultBranch,
       }
 
       if (existingGitHubRepo) {
