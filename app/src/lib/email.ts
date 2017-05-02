@@ -8,21 +8,22 @@ import { IEmail } from '../models/email'
  * @param emails array of email addresses associated with an account
  */
 export function lookupEmail(emails: ReadonlyArray<IEmail>): IEmail | null {
-  const visibleEmails = emails.filter(email => email.visibility !== 'private')
 
-  if (!visibleEmails.length) {
+  if (emails.length === 0) {
     return null
   }
 
-  const noreplyExists = visibleEmails.find(e => e.email.toLowerCase().endsWith('@users.noreply.github.com'))
-  if (noreplyExists) {
-    return noreplyExists
+  const primary = emails.find(e => e.primary)
+  if (primary) {
+    if (primary.visibility === 'public') {
+      return primary
+    }
+
+    const noReply = emails.find(e => e.email.toLowerCase().endsWith('@users.noreply.github.com'))
+    if (noReply) {
+      return noReply
+    }
   }
 
-  const primaryExists = visibleEmails.find(e => e.primary)
-  if (primaryExists) {
-    return primaryExists
-  }
-
-  return visibleEmails[0]
+  return emails[0]
 }

@@ -8,19 +8,7 @@ describe('emails', () => {
     expect(lookupEmail([])).to.equal(null)
   })
 
-  it('ignores private emails', () => {
-    const emails: IEmail[] = [
-      {
-        email: 'my-private-email@example.com',
-        primary: true,
-        verified: true,
-        visibility: 'private',
-      },
-    ]
-    expect(lookupEmail(emails)).to.equal(null)
-  })
-
-  it('uses noreply emails if found', () => {
+  it('uses noreply email when primary is private', () => {
     const emails: IEmail[] = [
       {
         email: 'shiftkey@example.com',
@@ -47,7 +35,7 @@ describe('emails', () => {
     expect(result!.email).to.equal('shiftkey@users.noreply.github.com')
   })
 
-  it('uses primary if found', () => {
+  it('uses primary if public', () => {
     const emails: IEmail[] = [
       {
         email: 'shiftkey@example.com',
