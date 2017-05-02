@@ -60,19 +60,20 @@ export class AccountsStore {
   /**
    * Load the users into memory from storage.
    */
-  public loadFromStore() {
+  public async loadFromStore(): Promise<void> {
     const raw = this.dataStore.getItem('users')
     if (!raw || !raw.length) {
       return
     }
 
     const rawAccounts: ReadonlyArray<IAccount> = JSON.parse(raw)
-    const accountsWithTokens = rawAccounts.map(account => {
+    const accountsWithTokens = rawAccounts.map(async account => {
       const accountWithoutToken = new Account(account.login, account.endpoint, '', account.emails, account.avatarURL, account.id, account.name)
-      const token = this.secureStore.getItem(getKeyForAccount(accountWithoutToken), account.login)
+      const token = await this.secureStore.getItem(getKeyForAccount(accountWithoutToken), account.login)
       return accountWithoutToken.withToken(token || '')
     })
-    this.accounts = accountsWithTokens
+
+    this.accounts = await Promise.all(accountsWithTokens)
   }
 
   private save() {

@@ -2,7 +2,7 @@ import { getKeyForEndpoint } from '../lib/auth'
 import * as TokenStore from '../shared-process/token-store'
 
 /** Parse the GIT_ASKPASS prompt and determine the appropriate response. */
-export function responseForPrompt(prompt: string): string | null {
+export async function responseForPrompt(prompt: string): Promise<string | null> {
   const username: string | null = process.env.DESKTOP_USERNAME
   if (!username || !username.length) { return null }
 
@@ -14,7 +14,7 @@ export function responseForPrompt(prompt: string): string | null {
 
     const key = getKeyForEndpoint(endpoint)
     const token = TokenStore.getItem(key, username)
-    return token
+    return await token
   }
 
   return null
