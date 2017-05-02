@@ -1,4 +1,9 @@
 .toolbar-dropdown {
+
+  // Make sure the contents shrink beyond their intrinsic width
+  // See https://css-tricks.com/flexbox-truncated-text/
+  min-width: 0;
+
   &>.toolbar-button {
     width: 100%;
     height: 100%;
