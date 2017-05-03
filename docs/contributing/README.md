@@ -134,7 +134,7 @@ This section lists the labels we use to help us track and manage issues and pull
 
 #### Type of Issue and Issue State
 
-| Label name | `desktop/desktop` :mag_right: | Description |
+| Label name | :mag_right: | Description |
 | --- | --- | --- |
 | `enhancement` | [search](https://github.com/desktop/desktop/labels/enhancement) | Feature requests. |
 | `bug` | [search](https://github.com/desktop/desktop/labels/bug)  | Confirmed bugs or reports that are very likely to be bugs. |
@@ -146,7 +146,7 @@ This section lists the labels we use to help us track and manage issues and pull
 
 #### Topics
 
-| Label name | `desktop/desktop` :mag_right: | Description |
+| Label name | :mag_right: | Description |
 | --- | --- | --- |
 | `up-for-grabs` | [search](https://github.com/desktop/desktop/labels/up-for-grabs)  | Issues marked as ideal for external contributors. |
 | `polish` | [search](https://github.com/desktop/desktop/labels/polish) | Issues not critical to the application but would provide a better experience if resolved. |
@@ -155,6 +155,6 @@ This section lists the labels we use to help us track and manage issues and pull
 
 #### Workflow
 
-| Label name | `desktop/desktop` :mag_right: | Description |
+| Label name | :mag_right: | Description |
 | --- | --- | --- |
 | `ready-for-review` | [search](https://github.com/desktop/desktop/labels/ready-for-review)  | Pull Requests that are ready to be reviewed by the maintainers. |
