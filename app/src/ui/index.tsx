@@ -125,6 +125,7 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
           rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
         }
       } catch (e) {
+        getLogger().error('Index: url-action for OAuth flow rejected', e)
         rejectOAuthRequest(e)
       }
       break

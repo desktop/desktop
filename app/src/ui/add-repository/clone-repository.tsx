@@ -13,6 +13,7 @@ import { parseOwnerAndName, IRepositoryIdentifier } from '../../lib/remote-parsi
 import { findAccountForRemote } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
+import { getLogger } from '../../lib/logging/renderer'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -201,8 +202,9 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
     try {
       this.cloneImpl(cloneDetails.url, path, cloneDetails.account)
-    } catch (error) {
-      this.setState({ loading: false, error })
+    } catch (e) {
+      getLogger().error(`CloneRepostiory: clone failed to complete to ${path}`, e)
+      this.setState({ loading: false, error: e })
     }
   }
 
