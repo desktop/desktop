@@ -263,7 +263,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'create-branch': return this.showCreateBranch()
       case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
-      case 'create-repository': return this.createRepository()
+      case 'create-repository': return this.showCreateRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
       case 'check-for-updates': return this.checkForUpdates()
@@ -383,13 +383,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
 
-  private createRepository() {
+  private showCreateRepository = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.CreateRepository,
     })
   }
 
-  private showCloneRepo() {
+  private showCloneRepo = () => {
     return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
   }
 
@@ -1065,7 +1065,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderRepository() {
     const state = this.state
     if (state.repositories.length > 0) {
-      return <BlankSlateView/>
+      return <BlankSlateView
+        onCreate={this.showCreateRepository}
+        onClone={this.showCloneRepo}
+        onAdd={this.showAddLocalRepo}
+      />
     }
 
     const selectedState = state.selectedState
