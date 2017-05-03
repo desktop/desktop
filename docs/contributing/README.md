@@ -4,10 +4,11 @@
 
 The following is a set of guidelines for contributing to GitHub Desktop and its
 related projects, which are hosted in the [Desktop Organization](https://github.com/desktop)
-on GitHub.
-
-These are just guidelines, not rules. Use your best judgment, and feel free to
+on GitHub. These are just guidelines, not rules. Use your best judgment, and feel free to
 propose changes to this document in a pull request.
+
+Note that GitHub Desktop is currently a public beta, so everything is likely to
+change over time as we learn and refine how we work with the community.
 
 #### Table Of Contents
 
