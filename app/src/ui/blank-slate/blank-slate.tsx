@@ -13,7 +13,7 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
       <UiView id='blank-slate'>
         <div className='header'>
           <div className='title'>{__DARWIN__ ? 'No Repositories Found' : 'No repositories Found'}</div>
-          <div className='subtitle'>
+          <div>
             It's time to add a repository to GitHub Desktop!
             Once a repository is added, then you'll be able to COMMIT ALL THE THINGS!
           </div>
