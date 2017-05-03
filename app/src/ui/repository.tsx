@@ -71,7 +71,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         issuesStore={this.props.issuesStore}
         availableWidth={availableWidth}
         gitHubUserStore={this.props.gitHubUserStore}
-        isCommitting={this.props.state.isCommitting} />
+        isCommitting={this.props.state.isCommitting}
+        isPushPullFetchInProgress={this.props.state.isPushPullFetchInProgress} />
     )
   }
 

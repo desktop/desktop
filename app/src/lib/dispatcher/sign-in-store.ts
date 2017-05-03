@@ -334,6 +334,12 @@ export class SignInStore {
           loading: false,
           error: new Error(getUnverifiedUserErrorMessage(username)),
         })
+      } else if (response.kind === AuthorizationResponseKind.PersonalAccessTokenBlocked) {
+        this.setState({
+          ...currentState,
+          loading: false,
+          error: new Error('A personal access token cannot be used to login to GitHub Desktop.'),
+        })
       } else {
         return assertNever(response, `Unsupported response: ${response}`)
       }
@@ -521,6 +527,9 @@ export class SignInStore {
           break
         case AuthorizationResponseKind.UserRequiresVerification:
           this.emitError(new Error(getUnverifiedUserErrorMessage(currentState.username)))
+          break
+        case AuthorizationResponseKind.PersonalAccessTokenBlocked:
+          this.emitError(new Error('A personal access token cannot be used to login to GitHub Desktop.'))
           break
         default:
           return assertNever(response, `Unknown response: ${response}`)

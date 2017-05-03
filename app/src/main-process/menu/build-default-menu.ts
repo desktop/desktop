@@ -150,6 +150,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       { type: 'separator' },
       {
+        label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
+        role: 'togglefullscreen',
+      },
+      { type: 'separator' },
+      {
         label: '&Reload',
         accelerator: 'CmdOrCtrl+R',
         click (item: any, focusedWindow: Electron.BrowserWindow) {
@@ -157,10 +162,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
             focusedWindow.reload()
           }
         },
-      },
-      {
-        label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
-        role: 'togglefullscreen',
+        visible: __RELEASE_ENV__ !== 'production',
       },
       {
         label: __DARWIN__ ? 'Toggle Developer Tools' : '&Toggle developer tools',
@@ -178,6 +180,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click (item: any, focusedWindow: Electron.BrowserWindow) {
           sharedProcess.show()
         },
+        visible: __RELEASE_ENV__ !== 'production',
       },
     ],
   })
