@@ -17,7 +17,6 @@ interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly onSelectionChanged: (repository: Repositoryish) => void
   readonly dispatcher: Dispatcher
-  readonly loading: boolean
   readonly repositories: ReadonlyArray<Repositoryish>
 }
 
@@ -65,10 +64,6 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
   }
 
   public render() {
-    if (this.props.loading) {
-      return this.loading()
-    }
-
     if (this.props.repositories.length < 1) {
       return this.noRepositories()
     }
@@ -108,15 +103,6 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
       <div className='repository-list'>
         <div className='filter-list'>
           <div className='sidebar-message'>No repositories</div>
-        </div>
-      </div>)
-  }
-
-  private loading() {
-    return (
-      <div className='repository-list'>
-        <div className='filter-list'>
-          <div className='sidebar-message'>Loading…</div>
         </div>
       </div>)
   }

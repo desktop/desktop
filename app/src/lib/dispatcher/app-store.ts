@@ -348,7 +348,6 @@ export class AppStore {
       currentPopup: this.currentPopup,
       currentFoldout: this.currentFoldout,
       errors: this.errors,
-      loading: this.loading,
       showWelcomeFlow: this.showWelcomeFlow,
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
