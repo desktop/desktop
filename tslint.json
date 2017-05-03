@@ -34,7 +34,6 @@
     ],
     "no-construct": true,
     "no-default-export": true,
-    "no-duplicate-key": true,
     "no-duplicate-variable": true,
     "no-eval": true,
     "no-internal-module": true,
