@@ -4,11 +4,20 @@ import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IBlankSlateProps {
+  /** A function to call when the user chooses to create a repository. */
   readonly onCreate: () => void
+
+  /** A function to call when the user chooses to clone a repository. */
   readonly onClone: () => void
+
+  /** A function to call when the user chooses to add a local repository. */
   readonly onAdd: () => void
 }
 
+/**
+ * The blank slate view. This is shown when the user hasn't added any
+ * repositories to the app.
+ */
 export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
   public render() {
     return (
