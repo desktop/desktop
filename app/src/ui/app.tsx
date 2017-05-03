@@ -41,6 +41,7 @@ import { getVersion, getName } from './lib/app-proxy'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
+import { BlankSlateView } from './blank-slate'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1062,7 +1063,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderRepository() {
-    const selectedState = this.state.selectedState
+    const state = this.state
+    if (state.repositories.length > 0) {
+      return <BlankSlateView/>
+    }
+
+    const selectedState = state.selectedState
     if (!selectedState) {
       return <NoRepositorySelected/>
     }
