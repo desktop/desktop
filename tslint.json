@@ -40,7 +40,7 @@
     "no-invalid-this": true,
     "no-stateless-class": true,
     "no-sync-functions": true,
-    "no-trailing-whitespace": true,
+    "no-trailing-whitespace": [ true, "ignore-comments", "ignore-jsdoc" ],
     "no-unused-expression": true,
     "no-unused-variable": [true, "react"],
     "no-use-before-declare": true,
