@@ -288,7 +288,17 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     },
   }
 
-  const helpItems = [ contactSupportItem ]
+  const submitIssueItem: Electron.MenuItemOptions = {
+    label: __DARWIN__ ? 'Report Issue...' : 'Report issue...',
+    click() {
+      shell.openExternal('https://github.com/desktop/desktop/issues/new')
+    },
+  }
+
+  const helpItems = [
+    contactSupportItem,
+    submitIssueItem,
+  ]
 
   if (__DEV__) {
     const throwUnhandledError: Electron.MenuItemOptions = {
