@@ -71,7 +71,7 @@
     "style-loader": "^0.16.1",
     "to-camel-case": "^1.0.0",
     "ts-loader": "^2.0.3",
-    "ts-node": "^1.7.3",
+    "ts-node": "^3.0.2",
     "tslint": "^3.14.0",
     "typescript": "2.3.2",
     "vrsource-tslint-rules": "^0.12.0",
