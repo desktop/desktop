@@ -13,8 +13,7 @@ export async function responseForPrompt(prompt: string): Promise<string | null> 
     if (!endpoint || !endpoint.length) { return null }
 
     const key = getKeyForEndpoint(endpoint)
-    const token = TokenStore.getItem(key, username)
-    return await token
+    return await TokenStore.getItem(key, username)
   }
 
   return null
