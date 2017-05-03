@@ -1064,7 +1064,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepository() {
     const state = this.state
-    if (state.repositories.length > 0) {
+    if (state.repositories.length < 1) {
       return <BlankSlateView
         onCreate={this.showCreateRepository}
         onClone={this.showCloneRepo}
