@@ -1,7 +1,16 @@
 {
   "releases": {
-    "0.0.37": [
+    "0.0.38": [
 
+    ],
+    "0.0.37": [
+      "[Fixed] Better display of the 'no newline at end of file' indicator - #1253",
+      "[Fixed] macOS: Destructive dialogs now use the expected button order - #1315",
+      "[Fixed] Display of submodule paths - #785",
+      "[Fixed] Incomplete stats submission - #1337",
+      "[Improved] Redesigned welcome flow - #1254",
+      "[Improved] App launch time - #1225",
+      "[Improved] Handle uncaught exceptions - #1106"
     ],
     "0.0.36": [
       "[Fixed] Bugs around associating an email address with a GitHub user - #975",

@@ -12,12 +12,18 @@ import { Repository } from '../models/repository'
 import { getDefaultDir, setDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
+import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { reportError } from './lib/exception-reporting'
 import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
-import { defaultErrorHandler, createMissingRepositoryHandler, backgroundTaskHandler } from '../lib/dispatcher'
+import {
+  defaultErrorHandler,
+  createMissingRepositoryHandler,
+  backgroundTaskHandler,
+  unhandledExceptionHandler,
+} from '../lib/dispatcher'
 import { getEndpointForRepository, getAccountForEndpoint } from '../lib/api'
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
@@ -49,12 +55,9 @@ if (!process.env.TEST_ENV) {
 }
 
 process.on('uncaughtException', (error: Error) => {
-  getLogger().error('Uncaught exception on UI', error)
   reportError(error, getVersion())
-})
-
-ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
-  reportError(error, getVersion())
+  getLogger().error('Uncaught exception on renderer process', error)
+  postUnhandledError(error)
 })
 
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
@@ -75,9 +78,20 @@ const appStore = new AppStore(
 
 const dispatcher = new Dispatcher(appStore)
 
+function postUnhandledError(error: Error) {
+  dispatcher.postError(new ErrorWithMetadata(error, { uncaught: true }))
+}
+
+// NOTE: we consider all main-process-exceptions coming through here to be unhandled
+ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
+  reportError(error, getVersion())
+  postUnhandledError(error)
+})
+
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
+dispatcher.registerErrorHandler(unhandledExceptionHandler)
 
 dispatcher.loadInitialState().then(() => {
   const now = Date.now()
@@ -169,7 +183,7 @@ async function handleCloneInDesktopOptions(repository: Repository | null, args: 
   }
 }
 
-function openRepository(url: string, branch?: string): Promise<Repository | null> {
+async function openRepository(url: string, branch?: string): Promise<Repository | null> {
   const state = appStore.getState()
   const repositories = state.repositories
   const existingRepository = repositories.find(r => {
@@ -183,10 +197,9 @@ function openRepository(url: string, branch?: string): Promise<Repository | null
   })
 
   if (existingRepository) {
-    return dispatcher.selectRepository(existingRepository).then(repo => {
-      if (!repo || !branch) { return repo }
-      return dispatcher.checkoutBranch(repo, branch)
-    })
+    const repo = await dispatcher.selectRepository(existingRepository)
+    if (!repo || !branch) { return repo }
+    dispatcher.checkoutBranch(repo, branch)
   }
 
   return cloneRepository(url, branch)

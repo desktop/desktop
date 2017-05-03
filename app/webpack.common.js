@@ -2,6 +2,7 @@
 
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 
@@ -22,11 +23,13 @@ const replacements = {
   'process.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV),
 }
 
+const outputDir = 'out'
+
 const commonConfig = {
   externals: [ '7zip' ],
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, '..', 'out'),
+    path: path.resolve(__dirname, '..', outputDir),
     libraryTarget: 'commonjs2'
   },
   module: {
@@ -54,6 +57,7 @@ const commonConfig = {
     ],
   },
   plugins: [
+    new CleanWebpackPlugin([ outputDir ], { verbose: false }),
     // This saves us a bunch of bytes by pruning locales (which we don't use)
     // from moment.
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
@@ -98,6 +102,13 @@ const sharedConfig = merge({}, commonConfig, {
   entry: { shared: path.resolve(__dirname, 'src/shared-process/index') },
   target: 'electron-renderer',
   plugins: [
+    new HtmlWebpackPlugin({
+      'template': path.join(__dirname, 'static', 'error.html'),
+      // without this we overwrite index.html
+      'filename': 'error.html',
+      // we don't need any scripts to run on this page
+      'excludeChunks': [ 'main', 'renderer', 'shared', 'ask-pass' ]
+    }),
     new HtmlWebpackPlugin({
       'filename': 'shared.html',
       'chunks': ['shared']

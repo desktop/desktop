@@ -73,6 +73,22 @@ export function createMissingRepositoryHandler(appStore: AppStore): ErrorHandler
   }
 }
 
+/** Trap and handle uncaught errors to ensure the app exits cleanly */
+export async function unhandledExceptionHandler(error: Error, dispatcher: Dispatcher) {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const metadata = e.metadata
+  if (metadata.uncaught) {
+    await dispatcher.presentError(error)
+    return null
+  }
+
+  return error
+}
+
 /** Handle errors that happen as a result of a background task. */
 export async function backgroundTaskHandler(error: Error, dispatcher: Dispatcher): Promise<Error | null> {
   const e = asErrorWithMetadata(error)

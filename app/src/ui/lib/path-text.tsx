@@ -36,7 +36,7 @@ interface IPathDisplayState {
 }
 
 interface IPathTextState extends IPathDisplayState {
-  /** 
+  /**
    * The maximum available width for the path. This corresponds
    * to the availableWidth prop if one was specified, if not it's
    * calculated at render time.
@@ -92,7 +92,7 @@ export function truncateMid(value: string, length: number) {
 
 /**
  * String truncation for paths.
- * 
+ *
  * This method takes a path and returns it truncated (if necessary)
  * to the exact number of characters specified by the length
  * parameter.
@@ -132,6 +132,23 @@ export function truncatePath(path: string, length: number) {
   return `${pre}…${post}`
 }
 
+/**
+ * Extract the filename and directory from a given normalized path
+ *
+ * @param normalizedPath The normalized path (i.e. no '.' or '..' characters in path)
+ */
+export function extract(normalizedPath: string): { normalizedFileName: string, normalizedDirectory: string } {
+  // for untracked submodules, the status entry is returned as a directory,
+  // with a trailing / which causes the directory to be trimmed in a weird way
+  // below. let's try and resolve this here
+  normalizedPath = normalizedPath.endsWith('/') ? normalizedPath.substr(0, normalizedPath.length - 1) : normalizedPath
+
+  const normalizedFileName = Path.basename(normalizedPath)
+  const normalizedDirectory = normalizedPath.substr(0, normalizedPath.length - normalizedFileName.length)
+
+  return { normalizedFileName, normalizedDirectory }
+}
+
 function createPathDisplayState(normalizedPath: string, length?: number): IPathDisplayState {
   length = length === undefined ? normalizedPath.length : length
 
@@ -139,8 +156,7 @@ function createPathDisplayState(normalizedPath: string, length?: number): IPathD
     return { normalizedPath, directoryText: '', fileText: '', length }
   }
 
-  const normalizedFileName = Path.basename(normalizedPath)
-  const normalizedDirectory = normalizedPath.substr(0, normalizedPath.length - normalizedFileName.length)
+  const { normalizedFileName, normalizedDirectory } = extract(normalizedPath)
 
   // Happy path when it already fits, we already know the length of the directory
   if (length >= normalizedPath.length) {
@@ -205,7 +221,7 @@ function createState(path: string, length?: number): IPathTextState {
 /**
  * A component for displaying a path (rooted or relative) with truncation
  * if necessary.
- * 
+ *
  * If the path needs to be truncated this component will set its title element
  * to the full path such that it can be seen by hovering the path text.
  */

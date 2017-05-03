@@ -48,8 +48,9 @@ is as follows:
 * Run `npm start` to launch the application. Changes will be compiled in the
   background. The app can then be reloaded to see the changes (Ctrl/Command+R).
 
-If you've made changes in the main-process folder you need to run `npm run
-rebuild:dev` and then `npm run start` for these changes to be reflected.
+If you've made changes in the `main-process` folder you need to run `npm run
+build:dev` to rebuild the package, and then `npm start` for these changes to be
+reflected in the running app.
 
 If you're still encountering issues with building, refer to our
 [troubleshooting](./docs/contributing/troubleshooting.md) guide for more common

@@ -344,6 +344,7 @@ export enum AuthorizationResponseKind {
   Failed,
   TwoFactorAuthenticationRequired,
   UserRequiresVerification,
+  PersonalAccessTokenBlocked,
   Error,
 }
 
@@ -351,7 +352,8 @@ export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized
                                     { kind: AuthorizationResponseKind.Failed, response: Response } |
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
                                     { kind: AuthorizationResponseKind.Error, response: Response } |
-                                    { kind: AuthorizationResponseKind.UserRequiresVerification }
+                                    { kind: AuthorizationResponseKind.UserRequiresVerification } |
+                                    { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -391,6 +393,15 @@ export async function createAuthorization(endpoint: string, login: string, passw
     }
 
     return { kind: AuthorizationResponseKind.Failed, response }
+  }
+
+  if (response.status === 403) {
+    const body = await response.json()
+    if (body.message === 'This API can only be accessed with username and password Basic Auth') {
+      // Authorization API does not support providing personal access tokens
+      return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
+    }
+    return { kind: AuthorizationResponseKind.Error, response }
   }
 
   if (response.status === 422) {

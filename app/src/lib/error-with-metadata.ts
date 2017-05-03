@@ -1,6 +1,9 @@
 export interface IErrorMetadata {
   /** Was the action which caused this error part of a background task? */
   readonly backgroundTask?: boolean
+
+  /** Was the error raised by the `uncaughtException` event on `process` */
+  readonly uncaught?: boolean
 }
 
 /** An error which contains additional metadata. */
