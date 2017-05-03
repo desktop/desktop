@@ -150,7 +150,9 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     return (
       <UiView id='welcome'>
         <div className='welcome-left'>
-          {this.getComponentForCurrentStep()}
+          <div className='welcome-content'>
+            {this.getComponentForCurrentStep()}
+          </div>
         </div>
 
         <div className='welcome-right'>
