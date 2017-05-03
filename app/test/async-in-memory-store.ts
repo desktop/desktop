@@ -12,20 +12,17 @@ export class AsyncInMemoryStore {
 
   public setItem(key: string, loginOrValue: string, secureValue?: string): Promise<void> {
     if (secureValue) {
-      this.store[this.secureKey(key, loginOrValue)] = secureValue
+      const internalKey = this.secureKey(key, loginOrValue)
+      this.store[internalKey] = secureValue
     } else {
       this.store[key] = loginOrValue
     }
-
     return Promise.resolve()
   }
 
   public getItem(key: string, login?: string): Promise<string | null> {
-    if (login) {
-      return Promise.resolve(this.store[this.secureKey(key, login)])
-    } else {
-      return Promise.resolve(this.store[key])
-    }
+    const internalKey = login ? this.secureKey(key, login) : key
+    return Promise.resolve(this.store[internalKey])
   }
 
   public deleteItem(key: string, login: string): Promise<boolean> {
