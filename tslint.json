@@ -1,7 +1,7 @@
 {
   "rulesDirectory": [
     "node_modules/vrsource-tslint-rules/rules",
-    "node_modules/@niik/tslint-microsoft-contrib/",
+    "node_modules/tslint-microsoft-contrib/",
     "tslint-rules/"
   ],
   "rules": {
