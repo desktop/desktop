@@ -1,11 +1,12 @@
 # GitHub Desktop Documentation
 
-This is the [GitHub Desktop](https://github.com/desktop/desktop) product development documentation.
+This is the [GitHub Desktop](https://github.com/desktop/desktop) development
+documentation.
 
 ## Contributing
 
-If you are interested in participating and contributing to the project, you
-should read these resources to get familiar with how things work:
+If you are interested in contributing to the project, you should read these
+resources to get familiar with how things work:
 
  - **[How Can I Contribute?](../CONTRIBUTING.md#how-can-i-contribute)** -
     details about how you can participate
@@ -21,7 +22,8 @@ should read these resources to get familiar with how things work:
 
 Details about how the team is organizing and shipping GitHub Desktop:
 
- - **[Issue Triage](process/issue-triage.md)** - how we address issues reported by users
+ - **[Issue Triage](process/issue-triage.md)** - how we address issues reported
+    by users
  - **[Review Process](process/reviews.md)** - how we review contributions
  - **[Releasing updates](process/releasing-updates.md)** - how we deploy things
  - **[Roadmap](process/roadmap.md)** - how we plan for the future
@@ -32,4 +34,6 @@ These documents contain more details about the internals of GitHub Desktop
 and how things work:
 
  - **[Dialogs](technical/dialogs.md)** - details about the dialog component API
- - **[Windows menu bar](technical/windows-menu-bar.md)** - Electron doesn't provide inbuilt support for styling the menu for Windows, so we've created our own custom components to achieve this.
+ - **[Windows menu bar](technical/windows-menu-bar.md)** - Electron doesn't
+    provide inbuilt support for styling the menu for Windows, so we've created
+    our own custom components to achieve this.
