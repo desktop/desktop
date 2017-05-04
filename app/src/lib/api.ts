@@ -8,6 +8,8 @@ import { HTTPMethod, request, deserialize } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 
+import { getLogger } from '../lib/logging/renderer'
+
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 
@@ -213,6 +215,7 @@ export class API {
     try {
       return await this.client.repos(owner, name).fetch()
     } catch (e) {
+      getLogger().error(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
       return null
     }
   }
@@ -235,6 +238,7 @@ export class API {
       const commit = await this.client.repos(owner, name).commits(sha).fetch()
       return commit
     } catch (e) {
+      getLogger().error(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
       return null
     }
   }
@@ -248,6 +252,7 @@ export class API {
       const user = result.items[0]
       return user
     } catch (e) {
+      getLogger().error(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
       return null
     }
   }
@@ -455,8 +460,8 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
     }
 
     return body
-  } catch (error) {
-    console.error(`Failed to load metadata from ${url}: ${error}`)
+  } catch (e) {
+    getLogger().error(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
     return null
   }
 }
@@ -467,9 +472,7 @@ async function getNote(): Promise<string> {
   try {
     localUsername = await username()
   } catch (e) {
-    console.log(`Error getting username:`)
-    console.error(e)
-    console.log(`We'll just use 'unknown'.`)
+    getLogger().error(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
