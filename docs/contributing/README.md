@@ -30,7 +30,7 @@ change over time as we learn and refine how we work with the community.
 
 This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code.
-Please report unacceptable behavior to [desktop@github.com](mailto:desktop@github.com).
+Please report unacceptable behavior to [opensource+desktop@github.com](mailto:opensource+desktop@github.com).
 
 ### The Beta Roadmap
 
@@ -48,7 +48,7 @@ reports :mag_right:.
 Before creating bug reports, please check [this list](#before-submitting-a-bug-report)
 as you might find out that you don't need to create one. When you are creating
 a bug report, please [include as many details as possible](#how-do-i-submit-a-good-bug-report).
-Fill out [the required template](.github/ISSUE_TEMPLATE.md), the information it
+Fill out [the required template](../../.github/ISSUE_TEMPLATE.md), the information it
 asks for helps us resolve issues faster.
 
 #### Before Submitting A Bug Report
@@ -83,8 +83,8 @@ community understand your suggestion :pencil: and find related suggestions
 Before creating enhancement suggestions, please check [this list](#before-submitting-an-enhancement-suggestion)
 as you might find out that you don't need to create one. When you are creating
 an enhancement suggestion, please [include as many details as possible](#how-do-i-submit-a-good-enhancement-suggestion).
-Fill in [the template](ISSUE_TEMPLATE.md), including the steps that you imagine
-you would take if the feature you're requesting existed.
+Fill in [the template](../../.github/ISSUE_TEMPLATE.md), including the steps
+that you imagine you would take if the feature you're requesting existed.
 
 #### Before Submitting An Enhancement Suggestion
 
@@ -131,7 +131,8 @@ interested in picking this up.
 
 ### Issue and Pull Request Labels
 
-This section lists the labels we use to help us track and manage issues and pull requests.
+This section lists the labels we use to help us track and manage issues and
+pull requests.
 
 #### Type of Issue and Issue State
 
@@ -151,7 +152,7 @@ This section lists the labels we use to help us track and manage issues and pull
 | --- | --- | --- |
 | `up-for-grabs` | [search](https://github.com/desktop/desktop/labels/up-for-grabs)  | Issues marked as ideal for external contributors. |
 | `polish` | [search](https://github.com/desktop/desktop/labels/polish) | Issues not critical to the application but would provide a better experience if resolved. |
-| `tech-debt` | [search](https://github.com/desktop/desktop/labels/tech-debt) | Issues to capture cleanup work dependent on external factors. |
+| `tech-debt` | [search](https://github.com/desktop/desktop/labels/tech-debt) | Issues related to code or architecture decisions. |
 | `design` | [search](https://github.com/desktop/desktop/labels/design)  | Issues that require some design input from the maintainers as part of completing the work. |
 
 #### Workflow
