@@ -35,7 +35,7 @@ interface ICreateBranchState {
   readonly proposedName: string
   readonly sanitizedName: string
   readonly startPoint: StartPoint
-  readonly loading: boolean
+  readonly isCreatingBranch: boolean
 }
 
 enum SelectedBranch {
@@ -75,7 +75,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
       proposedName: '',
       sanitizedName: '',
       startPoint: getStartPoint(props, StartPoint.DefaultBranch),
-      loading: false,
+      isCreatingBranch: false,
     }
   }
 
@@ -190,8 +190,8 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
         title='Create a branch'
         onSubmit={this.createBranch}
         onDismissed={this.props.onDismissed}
-        loading={this.state.loading}
-        disabled={this.state.loading}
+        loading={this.state.isCreatingBranch}
+        disabled={this.state.isCreatingBranch}
       >
         {error ? <DialogError>{error.message}</DialogError> : null}
 
@@ -247,7 +247,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     }
 
     if (name.length > 0) {
-      this.setState({ loading: true })
+      this.setState({ isCreatingBranch: true })
       await this.props.dispatcher.createBranch(this.props.repository, name, startPoint)
       this.props.onDismissed()
     }
