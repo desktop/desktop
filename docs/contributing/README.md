@@ -34,7 +34,15 @@ Please report unacceptable behavior to [opensource+desktop@github.com](mailto:op
 
 ### The Beta Roadmap
 
-_TODO_
+Currently GitHub Desktop is in a public beta, and the team is focused on
+triaging reported issues and working towards a 1.0 milestone - where the
+application can be used in place of the classic Mac and Windows applications.
+You can follow this progress progress under the [Milestones](https://github.com/desktop/desktop/milestones)
+tab.
+
+We're still thinking about where we want to take GitHub Desktop after we reach
+this 1.0 milestone. If you have ideas or suggestions please read the [Suggesting Enhancements](#suggesting-enhancements)
+section below to understand how to contribute your feedback.
 
 ## How Can I Contribute?
 
