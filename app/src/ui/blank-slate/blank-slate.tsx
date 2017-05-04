@@ -32,7 +32,7 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
         <div className='content'>
           <div className='callout'>
             <Octicon symbol={OcticonSymbol.plus}/>
-            <span>Create a new project and publish it to GitHub</span>
+            <div>Create a new project and publish it to GitHub</div>
             <Button onClick={this.props.onCreate}>
               {__DARWIN__ ? 'Create New Repository' : 'Create new repository'}
             </Button>
@@ -40,7 +40,7 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
 
           <div className='callout'>
             <Octicon symbol={OcticonSymbol.repoClone}/>
-            <span>Clone an existing project from GitHub to your computer</span>
+            <div>Clone an existing project from GitHub to your computer</div>
             <Button onClick={this.props.onClone}>
               {__DARWIN__ ? 'Clone a Repository' : 'Clone a repository'}
             </Button>
@@ -48,7 +48,7 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
 
           <div className='callout'>
             <Octicon symbol={OcticonSymbol.deviceDesktop}/>
-            <span>Add an existing project on your computer and publish it to GitHub</span>
+            <div>Add an existing project on your computer and publish it to GitHub</div>
             <Button onClick={this.props.onAdd}>
               {__DARWIN__ ? 'Add a Local Repository' : 'Add a local repository'}
             </Button>
