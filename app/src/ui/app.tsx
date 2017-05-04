@@ -736,21 +736,28 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     switch (popup.type) {
       case PopupType.RenameBranch:
-        return <RenameBranch dispatcher={this.props.dispatcher}
+        return <RenameBranch
+                key='rename-branch'
+                dispatcher={this.props.dispatcher}
                 repository={popup.repository}
                 branch={popup.branch}/>
       case PopupType.DeleteBranch:
-        return <DeleteBranch dispatcher={this.props.dispatcher}
+        return <DeleteBranch
+                key='delete-branch'
+                dispatcher={this.props.dispatcher}
                 repository={popup.repository}
                 branch={popup.branch}
                 onDismissed={this.onPopupDismissed}/>
       case PopupType.ConfirmDiscardChanges:
-        return <DiscardChanges repository={popup.repository}
+        return <DiscardChanges
+                key='discard-changes'
+                repository={popup.repository}
                 dispatcher={this.props.dispatcher}
                 files={popup.files}
                 onDismissed={this.onPopupDismissed}/>
       case PopupType.Preferences:
         return <Preferences
+                key='preferences'
                 dispatcher={this.props.dispatcher}
                 appStore={this.props.appStore}
                 dotComAccount={this.getDotComAccount()}
@@ -766,6 +773,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           : null
 
         return <Merge
+                key='merge-branch'
                 dispatcher={this.props.dispatcher}
                 repository={repository}
                 allBranches={state.branchesState.allBranches}
@@ -780,6 +788,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         const state = this.props.appStore.getRepositoryState(repository)
 
         return <RepositorySettings
+                key='repository-settings'
                 remote={state.remote}
                 dispatcher={this.props.dispatcher}
                 repository={repository}
@@ -787,26 +796,29 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       case PopupType.SignIn:
         return <SignIn
+                key='sign-in'
                 signInState={this.state.signInState}
                 dispatcher={this.props.dispatcher}
                 onDismissed={this.onSignInDialogDismissed}/>
       case PopupType.AddRepository:
         return <AddExistingRepository
+                key='add-existing-repository'
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       case PopupType.CreateRepository:
         return (
           <CreateRepository
+            key='create-repository'
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher} />
         )
       case PopupType.CloneRepository:
         return <CloneRepository
-          accounts={this.state.accounts}
-          initialURL={popup.initialURL}
-          onDismissed={this.onPopupDismissed}
-          dispatcher={this.props.dispatcher}
-        />
+                key='clone-repository'
+                accounts={this.state.accounts}
+                initialURL={popup.initialURL}
+                onDismissed={this.onPopupDismissed}
+                dispatcher={this.props.dispatcher} />
       case PopupType.CreateBranch: {
         const state = this.props.appStore.getRepositoryState(popup.repository)
         const branchesState = state.branchesState
@@ -818,6 +830,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
 
         return <CreateBranch
+                key='create-branch'
                 tip={branchesState.tip}
                 defaultBranch={branchesState.defaultBranch}
                 allBranches={branchesState.allBranches}
@@ -828,12 +841,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.InstallGit:
         return (
           <InstallGit
+           key='install-git'
            onDismissed={this.onPopupDismissed}
            path={popup.path} />
         )
       case PopupType.About:
         return (
           <About
+           key='about'
            onDismissed={this.onPopupDismissed}
            applicationName={getName()}
            applicationVersion={getVersion()}
@@ -844,6 +859,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.PublishRepository:
         return (
           <Publish
+            key='publish'
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             accounts={this.state.accounts}
@@ -853,6 +869,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.UntrustedCertificate:
         return (
           <UntrustedCertificate
+            key='untrusted-certificate'
             certificate={popup.certificate}
             url={popup.url}
             onDismissed={this.onPopupDismissed}
@@ -861,7 +878,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.Acknowledgements:
         return (
-          <Acknowledgements onDismissed={this.onPopupDismissed}/>
+          <Acknowledgements
+            key='acknowledgements'
+            onDismissed={this.onPopupDismissed}
+          />
         )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)

@@ -175,6 +175,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       <Dialog
         id='app-error'
         type='error'
+        key='error'
         title={title}
         dismissable={!unhandled}
         onDismissed={this.onDismissed}
