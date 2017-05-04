@@ -41,6 +41,7 @@ import { getVersion, getName } from './lib/app-proxy'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
+import { BlankSlateView } from './blank-slate'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -262,7 +263,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'create-branch': return this.showCreateBranch()
       case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
-      case 'create-repository': return this.createRepository()
+      case 'create-repository': return this.showCreateRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
       case 'check-for-updates': return this.checkForUpdates()
@@ -382,13 +383,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
 
-  private createRepository() {
+  private showCreateRepository = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.CreateRepository,
     })
   }
 
-  private showCloneRepo() {
+  private showCloneRepo = () => {
     return this.props.dispatcher.showPopup({
       type: PopupType.CloneRepository,
       initialURL: null,
@@ -922,8 +923,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       onSelectionChanged={this.onSelectionChanged}
       dispatcher={this.props.dispatcher}
       repositories={this.state.repositories}
-      loading={this.state.loading}
-      />
+    />
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
@@ -1067,7 +1067,16 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderRepository() {
-    const selectedState = this.state.selectedState
+    const state = this.state
+    if (state.repositories.length < 1) {
+      return <BlankSlateView
+        onCreate={this.showCreateRepository}
+        onClone={this.showCloneRepo}
+        onAdd={this.showAddLocalRepo}
+      />
+    }
+
+    const selectedState = state.selectedState
     if (!selectedState) {
       return <NoRepositorySelected/>
     }
