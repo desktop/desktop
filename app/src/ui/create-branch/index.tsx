@@ -35,6 +35,7 @@ interface ICreateBranchState {
   readonly proposedName: string
   readonly sanitizedName: string
   readonly startPoint: StartPoint
+
   /**
    * Whether or not the dialog is currently creating a branch. This affects
    * the dialog loading state as well as the rendering of the branch selector.
