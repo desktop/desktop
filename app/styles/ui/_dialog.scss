@@ -53,6 +53,7 @@ dialog {
     &-leave {
       opacity: 1;
       transform: scale(1);
+      pointer-events: none;
 
       &::backdrop {
         opacity: 0.4;
