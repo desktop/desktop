@@ -22,7 +22,7 @@ export class AsyncInMemoryStore {
 
   public getItem(key: string, login?: string): Promise<string | null> {
     const internalKey = login ? this.secureKey(key, login) : key
-    return Promise.resolve(this.store[internalKey])
+    return Promise.resolve(this.store[internalKey] || null)
   }
 
   public deleteItem(key: string, login: string): Promise<boolean> {
