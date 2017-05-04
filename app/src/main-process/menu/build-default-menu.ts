@@ -1,4 +1,4 @@
-import { shell, Menu, ipcMain } from 'electron'
+import { shell, Menu, ipcMain, app } from 'electron'
 import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
@@ -296,9 +296,18 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     },
   }
 
+  const showLogsItem: Electron.MenuItemOptions = {
+    label: __DARWIN__ ? 'Show Logs In Finder' : 'Show logs in explorer',
+    click() {
+      const path = app.getPath('userData')
+      shell.showItemInFolder(path)
+    },
+  }
+
   const helpItems = [
     contactSupportItem,
     submitIssueItem,
+    showLogsItem,
   ]
 
   if (__DEV__) {
