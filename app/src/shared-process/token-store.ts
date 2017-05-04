@@ -1,13 +1,13 @@
 import * as keytar from 'keytar'
 
 export function setItem(key: string, login: string, value: string) {
-  keytar.replacePassword(key, login, value)
+  return keytar.setPassword(key, login, value)
 }
 
-export function getItem(key: string, login: string): string | null {
+export function getItem(key: string, login: string) {
   return keytar.getPassword(key, login)
 }
 
 export function deleteItem(key: string, login: string) {
-  keytar.deletePassword(key, login)
+  return keytar.deletePassword(key, login)
 }
