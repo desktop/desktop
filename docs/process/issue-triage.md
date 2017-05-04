@@ -33,13 +33,6 @@ work should proceed:
  - user experience - ensure things are consistent, discoverable
  - quality - ensure the change does not adversely affect other features
 
-## Proposals
-
-Suggestions for new features or significant changes to the app should be
-proposed to the core team. This allows for discussion to evaluate options,
-discuss approaches before any code is written. Proposals could contain mockups
-to help illustrate features.
-
 e.g. GitHub Desktop should support worktrees as a first class feature.
 
 ## Out-of-scope

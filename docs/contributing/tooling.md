@@ -1,6 +1,6 @@
 # Tooling Support for GitHub Desktop
 
-## [Atom](https://atom.io/)
+### [Atom](https://atom.io/)
 
 Recommended packages:
 
@@ -12,7 +12,7 @@ Recommended packages:
 * [linter](https://atom.io/packages/linter) and
   [linter-tslint](https://atom.io/packages/linter-tslint) - shows linter errors and warning in the editor
 
-## [Visual Studio Code](https://code.visualstudio.com/)
+### [Visual Studio Code](https://code.visualstudio.com/)
 
 The Desktop repository includes a list of recommended extensions:
 
