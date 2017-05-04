@@ -75,6 +75,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   public constructor(props: IAppProps) {
     super(props)
 
+    setTimeout(() => this.props.dispatcher.setUpdateBannerVisibility(true), 3000)
+
     this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
       this.setState(state)
