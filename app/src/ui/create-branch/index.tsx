@@ -36,6 +36,8 @@ interface ICreateBranchState {
   readonly sanitizedName: string
   readonly startPoint: StartPoint
   readonly isCreatingBranch: boolean
+  readonly tipAtCreateStart: IUnbornRepository | IDetachedHead | IValidBranch
+  readonly defaultBranchAtCreateStart: Branch | null
 }
 
 enum SelectedBranch {
@@ -76,6 +78,8 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
       sanitizedName: '',
       startPoint: getStartPoint(props, StartPoint.DefaultBranch),
       isCreatingBranch: false,
+      tipAtCreateStart: props.tip,
+      defaultBranchAtCreateStart: props.defaultBranch,
     }
   }
 
@@ -83,10 +87,20 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     this.setState({
       startPoint: getStartPoint(nextProps, this.state.startPoint),
     })
+
+    if (!this.state.isCreatingBranch) {
+      this.setState({
+        tipAtCreateStart: nextProps.tip,
+        defaultBranchAtCreateStart: nextProps.defaultBranch,
+      })
+    }
   }
 
   private renderBranchSelection() {
-    const tip = this.props.tip
+    const tip = this.state.isCreatingBranch
+      ? this.state.tipAtCreateStart
+      : this.props.tip
+
     const tipKind = tip.kind
 
     if (tip.kind === TipState.Detached) {
@@ -107,7 +121,9 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     } else if (tip.kind === TipState.Valid) {
 
       const currentBranch = tip.branch
-      const defaultBranch = this.props.defaultBranch
+      const defaultBranch = this.state.isCreatingBranch
+        ? this.props.defaultBranch
+        : this.state.defaultBranchAtCreateStart
 
       if (!defaultBranch || defaultBranch.name === currentBranch.name) {
         const defaultBranchLink = <LinkButton uri='https://help.github.com/articles/setting-the-default-branch/'>default branch</LinkButton>
