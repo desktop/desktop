@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { ipcRenderer, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
@@ -41,6 +40,7 @@ import { getVersion, getName } from './lib/app-proxy'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
+import { CSSTransitionGroup } from 'react-transition-group'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -874,14 +874,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderPopup() {
     return (
-      <ReactCSSTransitionGroup
+      <CSSTransitionGroup
         transitionName='modal'
         component='div'
         transitionEnterTimeout={dialogTransitionEnterTimeout}
         transitionLeaveTimeout={dialogTransitionLeaveTimeout}
       >
         {this.currentPopupContent()}
-      </ReactCSSTransitionGroup>
+      </CSSTransitionGroup>
     )
   }
 
