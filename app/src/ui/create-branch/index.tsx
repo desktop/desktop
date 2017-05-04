@@ -35,8 +35,32 @@ interface ICreateBranchState {
   readonly proposedName: string
   readonly sanitizedName: string
   readonly startPoint: StartPoint
+  /**
+   * Whether or not the dialog is currently creating a branch. This affects
+   * the dialog loading state as well as the rendering of the branch selector.
+   * 
+   * When the dialog is creating a branch we take the tip and defaultBranch
+   * as they were in props at the time of creation and stick them in state
+   * so that we can maintain the layout of the branch selection parts even
+   * as the Tip changes during creation.
+   * 
+   * Note: once branch creation has been initiated this value stays at true
+   * and will never revert to being false. If the branch creation operation
+   * fails this dialog will still be dismissed and an error dialog will be
+   * shown in its place.
+   */
   readonly isCreatingBranch: boolean
+
+  /**
+   * The tip of the current repository, captured from props at the start
+   * of the create branch operation.
+   */
   readonly tipAtCreateStart: IUnbornRepository | IDetachedHead | IValidBranch
+
+  /**
+   * The default branch of the current repository, captured from props at the
+   * start of the create branch operation.
+   */
   readonly defaultBranchAtCreateStart: Branch | null
 }
 
