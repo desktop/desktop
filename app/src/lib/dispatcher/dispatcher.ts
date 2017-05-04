@@ -1,5 +1,8 @@
-import { ipcRenderer, remote } from 'electron'
+import * as Path from 'path'
+
+import { ipcRenderer, remote, shell } from 'electron'
 import { Disposable } from 'event-kit'
+
 import { Account, IAccount } from '../../models/account'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
@@ -20,6 +23,8 @@ import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
 import { isGitOnPath } from '../open-shell'
 import { uuid } from '../uuid'
+import { URLActionType, IOpenRepositoryArgs } from '../parse-url'
+import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -304,9 +309,9 @@ export class Dispatcher {
     return this.appStore._closeFoldout(foldout)
   }
 
-  /** 
+  /**
    * Create a new branch from the given starting point and check it out.
-   * 
+   *
    * If the startPoint argument is omitted the new branch will be created based
    * off of the current state of HEAD.
    */
@@ -428,16 +433,21 @@ export class Dispatcher {
 
   /** Clone the repository to the path. */
   public async clone(url: string, path: string, options: { account: Account | null, branch?: string }): Promise<Repository | null> {
-    const { promise, repository } = this.appStore._clone(url, path, options)
-    await this.selectRepository(repository)
-    const success = await promise
-    // TODO: this exit condition is not great, bob
-    if (!success) { return Promise.resolve(null) }
+    return this.appStore._completeOpenInDesktop(async () => {
+      const { promise, repository } = this.appStore._clone(url, path, options)
+      await this.selectRepository(repository)
+      const success = await promise
+      // TODO: this exit condition is not great, bob
+      if (!success) {
+        return null
+      }
 
-    const addedRepositories = await this.addRepositories([ path ])
-    const addedRepository = addedRepositories[0]
-    await this.selectRepository(addedRepository)
-    return addedRepository
+      const addedRepositories = await this.addRepositories([ path ])
+      const addedRepository = addedRepositories[0]
+      await this.selectRepository(addedRepository)
+
+      return addedRepository
+    })
   }
 
   /** Rename the branch to a new name. */
@@ -786,5 +796,79 @@ export class Dispatcher {
   /** Update the repository's path. */
   private async updateRepositoryPath(repository: Repository, path: string): Promise<void> {
     await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-path', repository, path })
+  }
+
+  public async dispatchURLAction(action: URLActionType): Promise<void> {
+    switch (action.name) {
+      case 'oauth':
+        try {
+          const user = await requestAuthenticatedUser(action.args.code)
+          if (user) {
+            resolveOAuthRequest(user)
+          } else {
+            rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
+          }
+        } catch (e) {
+          rejectOAuthRequest(e)
+        }
+        break
+
+      case 'open-repository':
+        const { pr, url, branch } = action.args
+        // a forked PR will provide both these values, despite the branch not existing
+        // in the repository - drop the branch argument in this case so a clone will
+        // checkout the default branch when it clones
+        const branchToClone = (pr && branch) ? null : (branch || null)
+        const repository = await this.openRepository(url, branchToClone)
+        if (repository) {
+          this.handleCloneInDesktopOptions(repository, action.args)
+        }
+        break
+
+      default:
+        console.log(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
+    }
+  }
+
+  private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryArgs): Promise<void> {
+    const { filepath, pr, branch } = args
+
+    // we need to refetch for a forked PR and check that out
+    if (pr && branch) {
+      await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
+      await this.checkoutBranch(repository, branch)
+    }
+
+    if (filepath) {
+      const fullPath = Path.join(repository.path, filepath)
+      // because Windows uses different path separators here
+      const normalized = Path.normalize(fullPath)
+      shell.openItem(normalized)
+    }
+  }
+
+  private async openRepository(url: string, branch: string | null): Promise<Repository | null> {
+    const state = this.appStore.getState()
+    const repositories = state.repositories
+    const existingRepository = repositories.find(r => {
+      if (r instanceof Repository) {
+        const gitHubRepository = r.gitHubRepository
+        if (!gitHubRepository) { return false }
+        return gitHubRepository.cloneURL === url
+      } else {
+        return false
+      }
+    })
+
+    if (existingRepository) {
+      const repo = await this.selectRepository(existingRepository)
+      if (!repo || !branch) { return repo }
+
+      return this.checkoutBranch(repo, branch)
+    } else {
+      return this.appStore._startOpenInDesktop(() => {
+        this.showPopup({ type: PopupType.CloneRepository, initialURL: url })
+      })
+    }
   }
 }

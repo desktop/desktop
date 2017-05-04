@@ -136,6 +136,9 @@ export class AppStore {
 
   private readonly statsStore: StatsStore
 
+  /** The function to resolve the current Open in Desktop flow. */
+  private resolveOpenInDesktop: ((repository: Repository | null) => void) | null = null
+
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore, signInStore: SignInStore) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
@@ -972,6 +975,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _showPopup(popup: Popup): Promise<void> {
+    this._closePopup()
 
     // Always close the app menu when showing a pop up. This is only
     // applicable on Windows where we draw a custom app menu.
@@ -983,6 +987,13 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(): Promise<void> {
+    const currentPopup = this.currentPopup
+    if (!currentPopup) { return Promise.resolve() }
+
+    if (currentPopup.type === PopupType.CloneRepository) {
+      this._completeOpenInDesktop(() => Promise.resolve(null))
+    }
+
     this.currentPopup = null
     this.emitUpdate()
 
@@ -1699,5 +1710,32 @@ export class AppStore {
 
   public _setSignInOTP(otp: string): Promise<void> {
     return this.signInStore.setTwoFactorOTP(otp)
+  }
+
+  /**
+   * Start an Open in Desktop flow. This will return a new promise which will
+   * resolve when `_completeOpenInDesktop` is called.
+   */
+  public _startOpenInDesktop(fn: () => void): Promise<Repository | null> {
+    // tslint:disable-next-line:promise-must-complete
+    const p = new Promise<Repository | null>(resolve => this.resolveOpenInDesktop = resolve)
+    fn()
+    return p
+  }
+
+  /**
+   * Complete any active Open in Desktop flow with the repository returned by
+   * the given function.
+   */
+  public async _completeOpenInDesktop(fn: () => Promise<Repository | null>): Promise<Repository | null> {
+    const resolve = this.resolveOpenInDesktop
+    this.resolveOpenInDesktop = null
+
+    const result = await fn()
+    if (resolve) {
+      resolve(result)
+    }
+
+    return result
   }
 }

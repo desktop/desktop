@@ -133,7 +133,7 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.RepositorySettings, repository: Repository } |
                     { type: PopupType.AddRepository } |
                     { type: PopupType.CreateRepository } |
-                    { type: PopupType.CloneRepository } |
+                    { type: PopupType.CloneRepository, initialURL: string | null } |
                     { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.SignIn } |
                     { type: PopupType.About } |

@@ -389,7 +389,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private showCloneRepo() {
-    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
+    return this.props.dispatcher.showPopup({
+      type: PopupType.CloneRepository,
+      initialURL: null,
+    })
   }
 
   private showBranches() {
@@ -799,9 +802,11 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.CloneRepository:
         return <CloneRepository
-                accounts={this.state.accounts}
-                onDismissed={this.onPopupDismissed}
-                dispatcher={this.props.dispatcher} />
+          accounts={this.state.accounts}
+          initialURL={popup.initialURL}
+          onDismissed={this.onPopupDismissed}
+          dispatcher={this.props.dispatcher}
+        />
       case PopupType.CreateBranch: {
         const state = this.props.appStore.getRepositoryState(popup.repository)
         const branchesState = state.branchesState
