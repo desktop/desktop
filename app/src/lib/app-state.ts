@@ -4,7 +4,7 @@ import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
 import { IAheadBehind } from './git'
 import { Branch } from '../models/branch'
-import { Tip, IUnbornRepository, IDetachedHead, IValidBranch } from '../models/tip'
+import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, IGitHubUser, SignInState } from './dispatcher'
@@ -134,7 +134,7 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.AddRepository } |
                     { type: PopupType.CreateRepository } |
                     { type: PopupType.CloneRepository } |
-                    { type: PopupType.CreateBranch, repository: Repository, tip: IUnbornRepository | IDetachedHead | IValidBranch, defaultBranch: Branch | null, allBranches: ReadonlyArray<Branch> } |
+                    { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.SignIn } |
                     { type: PopupType.About } |
                     { type: PopupType.InstallGit, path: string } |
