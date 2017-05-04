@@ -24,8 +24,8 @@ export class AccountsStore {
   /**
    * Add the account to the store.
    */
-  public addAccount(account: Account) {
-    this.secureStore.setItem(getKeyForAccount(account), account.login, account.token)
+  public async addAccount(account: Account): Promise<void> {
+    await this.secureStore.setItem(getKeyForAccount(account), account.login, account.token)
 
     this.accounts.push(account)
 
@@ -35,8 +35,8 @@ export class AccountsStore {
   /**
    * Remove the account from the store.
    */
-  public removeAccount(account: Account) {
-    this.secureStore.deleteItem(getKeyForAccount(account), account.login)
+  public async removeAccount(account: Account): Promise<void> {
+    await this.secureStore.deleteItem(getKeyForAccount(account), account.login)
 
     this.accounts = this.accounts.filter(a => a.id !== account.id)
 
@@ -60,19 +60,20 @@ export class AccountsStore {
   /**
    * Load the users into memory from storage.
    */
-  public loadFromStore() {
+  public async loadFromStore(): Promise<void> {
     const raw = this.dataStore.getItem('users')
     if (!raw || !raw.length) {
       return
     }
 
     const rawAccounts: ReadonlyArray<IAccount> = JSON.parse(raw)
-    const accountsWithTokens = rawAccounts.map(account => {
+    const accountsWithTokens = rawAccounts.map(async account => {
       const accountWithoutToken = new Account(account.login, account.endpoint, '', account.emails, account.avatarURL, account.id, account.name)
-      const token = this.secureStore.getItem(getKeyForAccount(accountWithoutToken), account.login)
+      const token = await this.secureStore.getItem(getKeyForAccount(accountWithoutToken), account.login)
       return accountWithoutToken.withToken(token || '')
     })
-    this.accounts = accountsWithTokens
+
+    this.accounts = await Promise.all(accountsWithTokens)
   }
 
   private save() {

@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -117,7 +117,7 @@
     },
     "byline": {
       "version": "4.2.2",
-      "from": "byline@>=4.2.2 <5.0.0",
+      "from": "byline@4.2.2",
       "resolved": "https://registry.npmjs.org/byline/-/byline-4.2.2.tgz"
     },
     "caseless": {
@@ -132,7 +132,7 @@
     },
     "classnames": {
       "version": "2.2.5",
-      "from": "classnames@>=2.2.5 <3.0.0",
+      "from": "classnames@>=2.2.3 <3.0.0",
       "resolved": "https://registry.npmjs.org/classnames/-/classnames-2.2.5.tgz"
     },
     "co": {
@@ -210,7 +210,7 @@
     },
     "devtron": {
       "version": "1.4.0",
-      "from": "devtron@>=1.4.0 <2.0.0",
+      "from": "devtron@latest",
       "resolved": "https://registry.npmjs.org/devtron/-/devtron-1.4.0.tgz",
       "dev": true
     },
@@ -247,7 +247,7 @@
     },
     "electron-debug": {
       "version": "1.1.0",
-      "from": "electron-debug@>=1.1.0 <2.0.0",
+      "from": "https://registry.npmjs.org/electron-debug/-/electron-debug-1.1.0.tgz",
       "resolved": "https://registry.npmjs.org/electron-debug/-/electron-debug-1.1.0.tgz",
       "dev": true
     },
@@ -332,13 +332,20 @@
     },
     "front-matter": {
       "version": "2.1.2",
-      "from": "front-matter@>=2.1.2 <3.0.0",
+      "from": "front-matter@2.1.2",
       "resolved": "https://registry.npmjs.org/front-matter/-/front-matter-2.1.2.tgz"
     },
     "fs-extra": {
-      "version": "2.1.2",
-      "from": "fs-extra@>=2.0.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-2.1.2.tgz"
+      "version": "3.0.0",
+      "from": "fs-extra@3.0.0",
+      "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-3.0.0.tgz",
+      "dependencies": {
+        "jsonfile": {
+          "version": "3.0.0",
+          "from": "jsonfile@>=3.0.0 <4.0.0",
+          "resolved": "https://registry.npmjs.org/jsonfile/-/jsonfile-3.0.0.tgz"
+        }
+      }
     },
     "fs.realpath": {
       "version": "1.0.0",
@@ -427,7 +434,7 @@
     },
     "inherits": {
       "version": "2.0.3",
-      "from": "inherits@>=2.0.0 <3.0.0",
+      "from": "inherits@>=2.0.1 <2.1.0",
       "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.3.tgz"
     },
     "is-stream": {
@@ -521,9 +528,9 @@
       }
     },
     "keytar": {
-      "version": "3.0.2",
-      "from": "keytar@>=3.0.2 <4.0.0",
-      "resolved": "https://registry.npmjs.org/keytar/-/keytar-3.0.2.tgz"
+      "version": "4.0.2",
+      "from": "keytar@4.0.2",
+      "resolved": "https://registry.npmjs.org/keytar/-/keytar-4.0.2.tgz"
     },
     "loader-utils": {
       "version": "1.1.0",
@@ -582,9 +589,9 @@
       "resolved": "https://registry.npmjs.org/moment/-/moment-2.18.1.tgz"
     },
     "nan": {
-      "version": "2.3.2",
-      "from": "nan@2.3.2",
-      "resolved": "https://registry.npmjs.org/nan/-/nan-2.3.2.tgz"
+      "version": "2.5.1",
+      "from": "nan@2.5.1",
+      "resolved": "https://registry.npmjs.org/nan/-/nan-2.5.1.tgz"
     },
     "node-fetch": {
       "version": "1.6.3",
@@ -608,7 +615,7 @@
     },
     "octokat": {
       "version": "0.6.4",
-      "from": "octokat@>=0.6.4 <0.7.0",
+      "from": "octokat@0.6.4",
       "resolved": "https://registry.npmjs.org/octokat/-/octokat-0.6.4.tgz"
     },
     "once": {
@@ -653,7 +660,7 @@
     },
     "prop-types": {
       "version": "15.5.8",
-      "from": "prop-types@>=15.5.7 <16.0.0",
+      "from": "https://registry.npmjs.org/prop-types/-/prop-types-15.5.8.tgz",
       "resolved": "https://registry.npmjs.org/prop-types/-/prop-types-15.5.8.tgz"
     },
     "pseudomap": {
@@ -689,7 +696,7 @@
     },
     "react-addons-perf": {
       "version": "15.4.2",
-      "from": "react-addons-perf@>=15.4.2 <16.0.0",
+      "from": "react-addons-perf@latest",
       "resolved": "https://registry.npmjs.org/react-addons-perf/-/react-addons-perf-15.4.2.tgz",
       "dev": true
     },
@@ -711,7 +718,7 @@
     },
     "react-virtualized": {
       "version": "8.11.4",
-      "from": "react-virtualized@>=8.8.1 <9.0.0",
+      "from": "https://registry.npmjs.org/react-virtualized/-/react-virtualized-8.11.4.tgz",
       "resolved": "https://registry.npmjs.org/react-virtualized/-/react-virtualized-8.11.4.tgz"
     },
     "regenerator-runtime": {
@@ -790,7 +797,7 @@
     },
     "style-loader": {
       "version": "0.13.2",
-      "from": "style-loader@>=0.13.2 <0.14.0",
+      "from": "style-loader@0.13.2",
       "resolved": "https://registry.npmjs.org/style-loader/-/style-loader-0.13.2.tgz",
       "dev": true
     },
@@ -815,7 +822,7 @@
     },
     "textarea-caret": {
       "version": "3.0.2",
-      "from": "textarea-caret@>=3.0.2 <4.0.0",
+      "from": "textarea-caret@3.0.2",
       "resolved": "https://registry.npmjs.org/textarea-caret/-/textarea-caret-3.0.2.tgz"
     },
     "tough-cookie": {
@@ -836,22 +843,27 @@
     },
     "ua-parser-js": {
       "version": "0.7.12",
-      "from": "ua-parser-js@>=0.7.12 <0.8.0",
+      "from": "ua-parser-js@latest",
       "resolved": "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.12.tgz"
+    },
+    "universalify": {
+      "version": "0.1.0",
+      "from": "universalify@>=0.1.0 <0.2.0",
+      "resolved": "https://registry.npmjs.org/universalify/-/universalify-0.1.0.tgz"
     },
     "untildify": {
       "version": "3.0.2",
-      "from": "untildify@>=3.0.2 <4.0.0",
+      "from": "untildify@latest",
       "resolved": "https://registry.npmjs.org/untildify/-/untildify-3.0.2.tgz"
     },
     "username": {
       "version": "2.3.0",
-      "from": "username@>=2.3.0 <3.0.0",
+      "from": "username@2.3.0",
       "resolved": "https://registry.npmjs.org/username/-/username-2.3.0.tgz"
     },
     "uuid": {
       "version": "3.0.1",
-      "from": "uuid@>=3.0.1 <4.0.0",
+      "from": "uuid@latest",
       "resolved": "https://registry.npmjs.org/uuid/-/uuid-3.0.1.tgz"
     },
     "verror": {
@@ -877,12 +889,12 @@
     },
     "wicg-focus-ring": {
       "version": "1.0.1",
-      "from": "wicg-focus-ring@>=1.0.1 <2.0.0",
+      "from": "wicg-focus-ring@latest",
       "resolved": "https://registry.npmjs.org/wicg-focus-ring/-/wicg-focus-ring-1.0.1.tgz"
     },
     "winston": {
       "version": "2.3.1",
-      "from": "winston@>=2.3.1 <3.0.0",
+      "from": "winston@2.3.1",
       "resolved": "https://registry.npmjs.org/winston/-/winston-2.3.1.tgz"
     },
     "winston-daily-rotate-file": {

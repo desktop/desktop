@@ -5,7 +5,7 @@ export interface IDataStore {
 
 
 export interface ISecureStore {
-  setItem(key: string, login: string, value: string): void
-  getItem(key: string, login: string): string | null
-  deleteItem(key: string, login: string): void
+  setItem(key: string, login: string, value: string): Promise<void>
+  getItem(key: string, login: string): Promise<string | null>
+  deleteItem(key: string, login: string): Promise<boolean>
 }
