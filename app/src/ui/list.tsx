@@ -384,7 +384,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   public componentDidUpdate() {
     // If this state is set it means that someone just used arrow keys (or pgup/down)
-    // to change the selected row. When this happens we need to explcitly shift
+    // to change the selected row. When this happens we need to explicitly shift
     // keyboard focus to the newly selected item. If focusItem is null then
     // we're probably just loading more items and we'll catch it on the next
     // render pass.
@@ -553,7 +553,7 @@ export class List extends React.Component<IListProps, IListState> {
    * react-virtualized Grid component in order for us to be
    * able to have nice looking scrollbars on Windows.
    *
-   * The fake scroll bar syncronizes its position
+   * The fake scroll bar synchronizes its position
    *
    * NB: Should only be used on win32 platforms and needs to
    * be coupled with styling that hides scroll bars on Grid
