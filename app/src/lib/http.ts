@@ -34,7 +34,7 @@ export function request(endpoint: string, authorization: string | null, method: 
   const headers: any = Object.assign({}, {
     'Accept': 'application/vnd.github.v3+json, application/json',
     'Content-Type': 'application/json',
-    'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
+    'User-Agent': getUserAgent(),
   }, customHeaders)
 
   if (authorization) {
@@ -48,4 +48,9 @@ export function request(endpoint: string, authorization: string | null, method: 
   }
 
   return fetch(url, options)
+}
+
+/** Get the user agent to use for all requests. */
+export function getUserAgent() {
+  return `GitHubDesktop/${appProxy.getVersion()}`
 }
