@@ -6,21 +6,22 @@ export class AccountsStore {
   private dataStore: IDataStore
   private secureStore: ISecureStore
 
-  private accounts: Account[]
+  private accounts: Account[] = []
 
-  private loaded = false
+  /** A promise that will resolve when the accounts have been loaded. */
+  private loadingPromise: Promise<void>
 
   public constructor(dataStore: IDataStore, secureStore: ISecureStore) {
     this.dataStore = dataStore
     this.secureStore = secureStore
-    this.accounts = []
+    this.loadingPromise = this.loadFromStore()
   }
 
   /**
    * Get the list of accounts in the cache.
    */
   public async getAll(): Promise<ReadonlyArray<Account>> {
-    await this.loadFromStoreIfNeeded()
+    await this.loadingPromise
 
     return this.accounts.slice()
   }
@@ -29,7 +30,7 @@ export class AccountsStore {
    * Add the account to the store.
    */
   public async addAccount(account: Account): Promise<void> {
-    await this.loadFromStoreIfNeeded()
+    await this.loadingPromise
 
     await this.secureStore.setItem(getKeyForAccount(account), account.login, account.token)
 
@@ -42,7 +43,7 @@ export class AccountsStore {
    * Remove the account from the store.
    */
   public async removeAccount(account: Account): Promise<void> {
-    await this.loadFromStoreIfNeeded()
+    await this.loadingPromise
 
     await this.secureStore.deleteItem(getKeyForAccount(account), account.login)
 
@@ -55,7 +56,7 @@ export class AccountsStore {
    * Update the users in the store by mapping over them.
    */
   public async map(fn: (account: Account) => Promise<Account>) {
-    await this.loadFromStoreIfNeeded()
+    await this.loadingPromise
 
     const accounts = new Array<Account>()
     for (const account of this.accounts) {
@@ -70,9 +71,7 @@ export class AccountsStore {
   /**
    * Load the users into memory from storage.
    */
-  private async loadFromStoreIfNeeded(): Promise<void> {
-    if (this.loaded) { return }
-
+  private async loadFromStore(): Promise<void> {
     const raw = this.dataStore.getItem('users')
     if (!raw || !raw.length) {
       return
@@ -86,8 +85,6 @@ export class AccountsStore {
     })
 
     this.accounts = await Promise.all(accountsWithTokens)
-
-    this.loaded = true
   }
 
   private save() {
