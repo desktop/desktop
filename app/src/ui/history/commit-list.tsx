@@ -58,15 +58,6 @@ export class CommitList extends React.Component<ICommitListProps, void> {
     return this.props.history.findIndex(s => s === sha)
   }
 
-  public forceUpdate() {
-    super.forceUpdate()
-
-    const list = this.list
-    if (list) {
-      list.forceUpdate()
-    }
-  }
-
   private onListRef = (ref: List) => {
     this.list = ref
   }
