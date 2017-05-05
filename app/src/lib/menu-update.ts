@@ -14,7 +14,7 @@ export interface IMenuItemState {
 /**
  * Utility class for coalescing updates to menu items
  */
-class MenuUpdateRequest {
+export class MenuUpdateRequest {
 
   private _state: { [id: string]: IMenuItemState } = { }
 
