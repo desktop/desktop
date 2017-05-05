@@ -31,11 +31,10 @@
 
     text-align: center;
 
-    padding: 0 60px;
+    padding: 0 var(--spacing-quad);
 
     div {
-      margin: var(--spacing);
-      font-size: var(--font-size-md);
+      margin: var(--spacing) 0;
     }
 
     .octicon {
