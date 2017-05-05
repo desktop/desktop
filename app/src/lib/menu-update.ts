@@ -5,6 +5,7 @@ import { Repository } from '../models/repository'
 import { CloningRepository } from './dispatcher'
 import { TipState } from '../models/tip'
 import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
+import { AppMenu, MenuItem } from '../models/app-menu'
 
 export interface IMenuItemState {
   readonly visible?: boolean,
@@ -14,9 +15,9 @@ export interface IMenuItemState {
 /**
  * Utility class for coalescing updates to menu items
  */
-export class MenuUpdateRequest {
+class MenuStateBuilder {
 
-  private _state: { [id: string]: IMenuItemState } = { }
+  private readonly _state = new Map<MenuIDs, IMenuItemState>()
 
   /**
    * Returns an object where each key is a MenuID and the values
@@ -25,12 +26,12 @@ export class MenuUpdateRequest {
    * visible/hidden.
    */
   public get state() {
-    return this._state
+    return new Map<MenuIDs, IMenuItemState>(this._state)
   }
 
   private updateMenuItem<K extends keyof IMenuItemState>(id: MenuIDs, state: Pick<IMenuItemState, K>) {
-    const currentState = this._state[id] || { }
-    this._state[id] = merge(currentState, state)
+    const currentState = this._state.get(id) || { }
+    this._state.set(id, merge(currentState, state))
   }
 
   /** Set the state of the given menu item id to enabled */
@@ -78,14 +79,19 @@ function isRepositoryHostedOnGitHub(repository: Repository | CloningRepository) 
   return repository.gitHubRepository.htmlURL !== null
 }
 
-/**
- * Update the menu state in the main process.
- * 
- * This function will set the enabledness and visibility of menu items
- * in the main process based on the AppState. All changes will be
- * batched together into one ipc message.
- */
-export function updateMenuState(state: IAppState) {
+function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
+  if (state.visible !== undefined && menuItem.visible !== state.visible) {
+    return false
+  }
+
+  if (state.enabled !== undefined && menuItem.type !== 'separator' && menuItem.enabled !== state.enabled) {
+    return false
+  }
+
+  return true
+}
+
+function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   const selectedState = state.selectedState
   const isHostedOnGitHub = selectedState
     ? isRepositoryHostedOnGitHub(selectedState.repository)
@@ -146,39 +152,72 @@ export function updateMenuState(state: IAppState) {
     'show-branches-list',
   ]
 
-  const menuState = new MenuUpdateRequest()
+  const menuStateBuilder = new MenuStateBuilder()
 
   const windowOpen = state.windowState !== 'hidden'
   const repositoryActive = windowOpen && repositorySelected
   if (repositoryActive) {
     for (const id of repositoryScopedIDs) {
-      menuState.enable(id)
+      menuStateBuilder.enable(id)
     }
 
-    menuState.setEnabled('rename-branch', onNonDefaultBranch)
-    menuState.setEnabled('delete-branch', onNonDefaultBranch)
-    menuState.setEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
-    menuState.setEnabled('merge-branch', onBranch)
-    menuState.setEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
+    menuStateBuilder.setEnabled('rename-branch', onNonDefaultBranch)
+    menuStateBuilder.setEnabled('delete-branch', onNonDefaultBranch)
+    menuStateBuilder.setEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
+    menuStateBuilder.setEnabled('merge-branch', onBranch)
+    menuStateBuilder.setEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
 
-    menuState.setEnabled('view-repository-on-github', isHostedOnGitHub)
-    menuState.setEnabled('push', !networkActionInProgress)
-    menuState.setEnabled('pull', !networkActionInProgress)
-    menuState.setEnabled('create-branch', !tipStateIsUnknown)
+    menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
+    menuStateBuilder.setEnabled('push', !networkActionInProgress)
+    menuStateBuilder.setEnabled('pull', !networkActionInProgress)
+    menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
   } else {
     for (const id of repositoryScopedIDs) {
-      menuState.disable(id)
+      menuStateBuilder.disable(id)
     }
 
-    menuState.disable('rename-branch')
-    menuState.disable('delete-branch')
-    menuState.disable('update-branch')
-    menuState.disable('merge-branch')
-    menuState.disable('compare-branch')
+    menuStateBuilder.disable('rename-branch')
+    menuStateBuilder.disable('delete-branch')
+    menuStateBuilder.disable('update-branch')
+    menuStateBuilder.disable('merge-branch')
+    menuStateBuilder.disable('compare-branch')
 
-    menuState.disable('view-repository-on-github')
-    menuState.disable('push')
-    menuState.disable('pull')
+    menuStateBuilder.disable('view-repository-on-github')
+    menuStateBuilder.disable('push')
+    menuStateBuilder.disable('pull')
+  }
+
+  return menuStateBuilder.state
+}
+
+/**
+ * Update the menu state in the main process.
+ * 
+ * This function will set the enabledness and visibility of menu items
+ * in the main process based on the AppState. All changes will be
+ * batched together into one ipc message.
+ */
+export function updateMenuState(state: IAppState, currentAppMenu: AppMenu | null) {
+  console.time('updateMenuState')
+  const menuState = getMenuState(state)
+
+  // Try to avoid updating sending the IPC message at all
+  // if we have a current app menu that we can compare against.
+  if (currentAppMenu) {
+
+    for (const [ id, menuItemState ] of menuState.entries()) {
+
+      const appMenuItem = currentAppMenu.getItemById(id)
+
+      if (appMenuItem && menuItemStateEqual(menuItemState, appMenuItem)) {
+        menuState.delete(id)
+      }
+    }
+  }
+  console.timeEnd('updateMenuState')
+
+  if (menuState.size === 0) {
+    return
   }
 
   ipcUpdateMenuState(menuState)

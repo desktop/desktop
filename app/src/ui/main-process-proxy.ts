@@ -1,10 +1,11 @@
 import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
-import { MenuUpdateRequest } from '../lib/menu-update'
+import { MenuIDs } from '../main-process/menu'
+import { IMenuItemState } from '../lib/menu-update'
 
 /** Set the menu item's enabledness. */
-export function updateMenuState(request: MenuUpdateRequest) {
-  ipcRenderer.send('update-menu-state', request.state)
+export function updateMenuState(state: Map<MenuIDs, IMenuItemState>) {
+  ipcRenderer.send('update-menu-state', state)
 }
 
 /** Tell the main process that the renderer is ready. */

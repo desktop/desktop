@@ -42,7 +42,6 @@ import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
-import { updateMenuState } from '../lib/menu-update'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -80,7 +79,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
       this.setState(state)
-      updateMenuState(state)
     })
 
     props.appStore.onDidError(error => {
