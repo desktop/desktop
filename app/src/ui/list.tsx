@@ -395,7 +395,11 @@ export class List extends React.Component<IListProps, IListState> {
       this.forceUpdate()
     } else {
 
-      // No we need to figure out whether 
+      // No we need to figure out whether anything changed in such a way that
+      // the Grid has to update regardless of its props. Previously we passed
+      // our selectedRow and invalidationProps down to Grid and figured that
+      // it, being a pure component, would do the right thing but that's not
+      // quite the case since invalidationProps is a complex object.
       if (prevProps.selectedRow !== this.props.selectedRow || !shallowEquals(prevProps.invalidationProps, this.props.invalidationProps)) {
         this.forceUpdate()
       }
