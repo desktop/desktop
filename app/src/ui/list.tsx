@@ -433,6 +433,10 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
+  private onFocusedItemRef = (element: HTMLDivElement | null) => {
+    this.focusItem = element
+  }
+
   private renderRow = (params: IRowRendererParams) => {
     const rowIndex = params.rowIndex
     const selectable = this.canSelectRow(rowIndex)
@@ -448,7 +452,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     // We only need to keep a reference to the focused element
     const ref = focused
-      ? (c: HTMLDivElement) => { this.focusItem = c }
+      ? this.onFocusedItemRef
       : undefined
 
     const element = this.props.rowRenderer(params.rowIndex)
