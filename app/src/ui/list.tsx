@@ -527,7 +527,7 @@ export class List extends React.Component<IListProps, IListState> {
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
     // it with keyboard navigation and select an item.
-    const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : null
+    const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : -1
 
     return (
       <Grid
@@ -544,13 +544,9 @@ export class List extends React.Component<IListProps, IListState> {
         onScroll={this.onScroll}
         scrollToRow={scrollToRow}
         overscanRowCount={4}
-        // Grid doesn't actually _do_ anything with
-        // `selectedRow`. We're just passing it through so that
-        // Grid will re-render when it changes.
-        selectedRow={this.props.selectedRow}
         style={this.gridStyle}
         tabIndex={tabIndex}
-        invalidationProps={this.props.invalidationProps}/>
+      />
     )
   }
 
