@@ -278,7 +278,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
 
   private onMenuClose = (item: ISubmenuItem, source: 'keyboard' | 'pointer' | 'item-executed') => {
 
-    if (source === 'pointer') {
+    if (source === 'pointer' || source === 'item-executed') {
       this.restoreFocusOrBlur()
     }
 
@@ -379,6 +379,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
             .withSelectedItem(menuItemForAccessKey)
             .withOpenedMenu(menuItemForAccessKey, true))
         } else {
+          this.restoreFocusOrBlur()
           this.props.dispatcher.executeMenuItem(menuItemForAccessKey)
         }
 
