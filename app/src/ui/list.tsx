@@ -383,7 +383,7 @@ export class List extends React.Component<IListProps, IListState> {
     this.forceUpdate()
   }
 
-  public componentDidUpdate(prevProps: IListProps) {
+  public componentDidUpdate(prevProps: IListProps, prevState: IListState) {
     // If this state is set it means that someone just used arrow keys (or pgup/down)
     // to change the selected row. When this happens we need to explicitly shift
     // keyboard focus to the newly selected item. If focusItem is null then
@@ -395,13 +395,27 @@ export class List extends React.Component<IListProps, IListState> {
       this.forceUpdate()
     } else if (this.grid) {
 
-      // No we need to figure out whether anything changed in such a way that
-      // the Grid has to update regardless of its props. Previously we passed
-      // our selectedRow and invalidationProps down to Grid and figured that
-      // it, being a pure component, would do the right thing but that's not
-      // quite the case since invalidationProps is a complex object.
-      if (prevProps.selectedRow !== this.props.selectedRow || !shallowEquals(prevProps.invalidationProps, this.props.invalidationProps)) {
-        this.grid.forceUpdate()
+      // A non-exhaustive set of checks to see if our current update has already
+      // triggered a re-render of the Grid. In order to do this perfectly we'd
+      // have to do a shallow compare on all the props we pass to Grid but
+      // this should cover the majority of cases.
+      const gridHasUpdatedAlready =
+        this.props.rowCount !== prevProps.rowCount ||
+        this.state.width !== prevState.width ||
+        this.state.height !== prevState.height
+
+      if (!gridHasUpdatedAlready) {
+        const selectedRowChanged = prevProps.selectedRow !== this.props.selectedRow
+        const invalidationPropsChanged = !shallowEquals(prevProps.invalidationProps, this.props.invalidationProps)
+
+        // No we need to figure out whether anything changed in such a way that
+        // the Grid has to update regardless of its props. Previously we passed
+        // our selectedRow and invalidationProps down to Grid and figured that
+        // it, being a pure component, would do the right thing but that's not
+        // quite the case since invalidationProps is a complex object.
+        if (selectedRowChanged || invalidationPropsChanged) {
+          this.grid.forceUpdate()
+        }
       }
     }
   }
