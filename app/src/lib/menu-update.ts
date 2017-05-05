@@ -198,7 +198,6 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
  * batched together into one ipc message.
  */
 export function updateMenuState(state: IAppState, currentAppMenu: AppMenu | null) {
-  console.time('updateMenuState')
   const menuState = getMenuState(state)
 
   // Try to avoid updating sending the IPC message at all
@@ -214,7 +213,6 @@ export function updateMenuState(state: IAppState, currentAppMenu: AppMenu | null
       }
     }
   }
-  console.timeEnd('updateMenuState')
 
   if (menuState.size === 0) {
     return
