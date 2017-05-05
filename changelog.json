@@ -1,7 +1,10 @@
 {
   "releases": {
-    "0.0.39": [
+    "0.0.40": [
 
+    ],
+    "0.0.39": [
+      "[Fixed] An uncaught exception when adding a user - #1394"
     ],
     "0.0.38": [
       "[New] Shiny new icon! - #1221",
