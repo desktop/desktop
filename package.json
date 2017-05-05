@@ -93,7 +93,7 @@
     "@types/keytar": "^4.0.0",
     "@types/mocha": "^2.2.29",
     "@types/node": "^6.0.31",
-    "@types/react": "^15.0.23",
+    "@types/react": "15.0.23",
     "@types/react-addons-css-transition-group": "^15.0.1",
     "@types/react-addons-test-utils": "^0.14.17",
     "@types/react-dom": "^15.5.0",
