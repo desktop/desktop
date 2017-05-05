@@ -379,6 +379,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
             .withSelectedItem(menuItemForAccessKey)
             .withOpenedMenu(menuItemForAccessKey, true))
         } else {
+          this.restoreFocusOrBlur()
           this.props.dispatcher.executeMenuItem(menuItemForAccessKey)
         }
 
