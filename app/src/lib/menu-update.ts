@@ -11,10 +11,19 @@ export interface IMenuItemState {
   readonly enabled?: boolean
 }
 
-export class MenuUpdateRequest {
+/**
+ * Utility class for coalescing updates to menu items
+ */
+class MenuUpdateRequest {
 
   private _state: { [id: string]: IMenuItemState } = { }
 
+  /**
+   * Returns an object where each key is a MenuID and the values
+   * are IMenuItemState instances containing information about
+   * whether a particular menu item should be enabled/disabled or
+   * visible/hidden.
+   */
   public get state() {
     return this._state
   }
@@ -24,31 +33,37 @@ export class MenuUpdateRequest {
     this._state[id] = merge(currentState, state)
   }
 
+  /** Set the state of the given menu item id to enabled */
   public enable(id: MenuIDs): this {
     this.updateMenuItem(id, { enabled: true })
     return this
   }
 
+  /** Set the state of the given menu item id to disabled */
   public disable(id: MenuIDs): this {
     this.updateMenuItem(id, { enabled: false })
     return this
   }
 
+  /** Set the enabledness of the given menu item id */
   public setEnabled(id: MenuIDs, enabled: boolean): this {
     this.updateMenuItem(id, { enabled })
     return this
   }
 
+  /** Set the state of the given menu item id to visible */
   public show(id: MenuIDs): this {
     this.updateMenuItem(id, { visible: true })
     return this
   }
 
+  /** Set the state of the given menu item id to hidden */
   public hide(id: MenuIDs): this {
     this.updateMenuItem(id, { visible: false })
     return this
   }
 
+  /** Set the visibility of the given menu item id */
   public setVisible(id: MenuIDs, visible: boolean): this {
     this.updateMenuItem(id, { visible: visible })
     return this
@@ -63,6 +78,13 @@ function isRepositoryHostedOnGitHub(repository: Repository | CloningRepository) 
   return repository.gitHubRepository.htmlURL !== null
 }
 
+/**
+ * Update the menu state in the main process.
+ * 
+ * This function will set the enabledness and visibility of menu items
+ * in the main process based on the AppState. All changes will be
+ * batched together into one ipc message.
+ */
 export function updateMenuState(state: IAppState) {
   const selectedState = state.selectedState
   const isHostedOnGitHub = selectedState
