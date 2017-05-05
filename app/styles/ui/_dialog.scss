@@ -33,6 +33,7 @@ dialog {
     &-enter {
       opacity: 1;
       transform: scale(0.75);
+      pointer-events: none;
 
       &::backdrop {
         opacity: 0;
