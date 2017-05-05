@@ -6,40 +6,11 @@ import { MenuEvent } from './menu-event'
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template = new Array<Electron.MenuItemOptions>()
 
-  const updateMenuItems: Electron.MenuItemOptions[] = [
-    {
-      label: __DARWIN__ ? 'Check for Updates…' : '&Check for updates…',
-      id: 'check-for-updates',
-      visible: true,
-      click: emit('check-for-updates'),
-    },
-    {
-      label: __DARWIN__ ? 'Checking for Updates…' : 'Checking for updates…',
-      id: 'checking-for-updates',
-      visible: false,
-      enabled: false,
-    },
-    {
-      label: __DARWIN__ ? 'Downloading Update…' : 'Downloading update…',
-      id: 'downloading-update',
-      visible: false,
-      enabled: false,
-    },
-    {
-      label: __DARWIN__ ? 'Quit and Install Update' : '&Quit and install update',
-      id: 'quit-and-install-update',
-      visible: false,
-      click: emit('quit-and-install-update'),
-    },
-  ]
-
   if (__DARWIN__) {
     template.push({
       label: 'GitHub Desktop',
       submenu: [
         { label: 'About GitHub Desktop', click: emit('show-about') },
-        { type: 'separator' },
-        ...updateMenuItems,
         { type: 'separator' },
         {
           label: 'Preferences…',
@@ -320,8 +291,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     template.push({
       label: '&Help',
       submenu: [
-        ...updateMenuItems,
-        { type: 'separator' },
         ...helpItems,
         { type: 'separator' },
         { label: '&About GitHub Desktop', click: emit('show-about') },

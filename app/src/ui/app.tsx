@@ -95,34 +95,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     updateStore.onDidChange(state => {
       const status = state.status
 
-      const visibleItem = (function () {
-        switch (status) {
-          case UpdateStatus.CheckingForUpdates: return 'checking-for-updates'
-          case UpdateStatus.UpdateReady: return 'quit-and-install-update'
-          case UpdateStatus.UpdateNotAvailable: return 'check-for-updates'
-          case UpdateStatus.UpdateAvailable: return 'downloading-update'
-        }
-
-        return assertNever(status, `Unknown update state: ${status}`)
-      })() as MenuIDs
-
-      const menuItems = new Set([
-        'checking-for-updates',
-        'downloading-update',
-        'check-for-updates',
-        'quit-and-install-update',
-      ]) as Set<MenuIDs>
-
-      const menuState = new MenuUpdateRequest()
-
-      menuItems.delete(visibleItem)
-      for (const item of menuItems) {
-        menuState.hide(item)
-      }
-
-      menuState.show(visibleItem)
-      updateMenuState(menuState)
-
       if (!(__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') && status === UpdateStatus.UpdateReady) {
         this.props.dispatcher.setUpdateBannerVisibility(true)
       }
@@ -274,8 +246,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'create-repository': return this.showCreateRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
-      case 'check-for-updates': return this.checkForUpdates()
-      case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
       case 'open-working-directory': return this.openWorkingDirectory()
