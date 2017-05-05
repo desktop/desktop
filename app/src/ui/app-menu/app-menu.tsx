@@ -130,8 +130,11 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
         this.focusPane = depth + 1
       }
     } else if (item.type !== 'separator') {
-      this.props.dispatcher.executeMenuItem(item)
+      // Send the close event before actually executing the item so that
+      // the menu can restore focus to the previously selected element
+      // (if any).
       this.props.onClose({ type: 'item-executed' })
+      this.props.dispatcher.executeMenuItem(item)
     }
   }
 
