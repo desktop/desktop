@@ -47,7 +47,6 @@ export interface IAppState {
    */
   readonly windowState: WindowState
   readonly showWelcomeFlow: boolean
-  readonly loading: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
 

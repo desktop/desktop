@@ -341,16 +341,9 @@
       "resolved": "https://registry.npmjs.org/front-matter/-/front-matter-2.1.2.tgz"
     },
     "fs-extra": {
-      "version": "3.0.0",
-      "from": "fs-extra@3.0.0",
-      "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-3.0.0.tgz",
-      "dependencies": {
-        "jsonfile": {
-          "version": "3.0.0",
-          "from": "jsonfile@>=3.0.0 <4.0.0",
-          "resolved": "https://registry.npmjs.org/jsonfile/-/jsonfile-3.0.0.tgz"
-        }
-      }
+      "version": "2.1.2",
+      "from": "fs-extra@2.1.2",
+      "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-2.1.2.tgz"
     },
     "fs.realpath": {
       "version": "1.0.0",
@@ -850,11 +843,6 @@
       "version": "0.7.12",
       "from": "ua-parser-js@latest",
       "resolved": "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.12.tgz"
-    },
-    "universalify": {
-      "version": "0.1.0",
-      "from": "universalify@>=0.1.0 <0.2.0",
-      "resolved": "https://registry.npmjs.org/universalify/-/universalify-0.1.0.tgz"
     },
     "untildify": {
       "version": "3.0.2",
