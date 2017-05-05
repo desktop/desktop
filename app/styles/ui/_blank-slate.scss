@@ -3,13 +3,13 @@
   justify-content: center;
 
   .header {
-    max-width: 490px;
+    max-width: 400px;
     align-self: center;
 
     text-align: center;
 
     .title {
-      font-size: var(--font-size-lg);
+      font-size: var(--font-size-md);
       font-weight: var(--font-weight-semibold);
     }
   }
