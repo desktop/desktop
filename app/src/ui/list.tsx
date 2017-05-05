@@ -396,6 +396,12 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   public componentWillUnmount() {
+
+    if (this.updateSizeTimeoutId !== null) {
+      clearImmediate(this.updateSizeTimeoutId)
+      this.updateSizeTimeoutId = null
+    }
+
     if (this.resizeObserver) {
       this.resizeObserver.disconnect()
     }
