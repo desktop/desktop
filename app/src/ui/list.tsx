@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as classNames from 'classnames'
 import { Grid, AutoSizer } from 'react-virtualized'
+import { shallowEquals } from '../lib/equality'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -382,7 +383,7 @@ export class List extends React.Component<IListProps, IListState> {
     this.forceUpdate()
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate(prevProps: IListProps) {
     // If this state is set it means that someone just used arrow keys (or pgup/down)
     // to change the selected row. When this happens we need to explicitly shift
     // keyboard focus to the newly selected item. If focusItem is null then
@@ -392,6 +393,12 @@ export class List extends React.Component<IListProps, IListState> {
       this.focusItem.focus()
       this.focusRow = -1
       this.forceUpdate()
+    } else {
+
+      // No we need to figure out whether 
+      if (prevProps.selectedRow !== this.props.selectedRow || !shallowEquals(prevProps.invalidationProps, this.props.invalidationProps)) {
+        this.forceUpdate()
+      }
     }
   }
 
