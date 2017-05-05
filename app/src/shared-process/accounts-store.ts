@@ -8,6 +8,8 @@ export class AccountsStore {
 
   private accounts: Account[]
 
+  private loaded = false
+
   public constructor(dataStore: IDataStore, secureStore: ISecureStore) {
     this.dataStore = dataStore
     this.secureStore = secureStore
@@ -17,7 +19,9 @@ export class AccountsStore {
   /**
    * Get the list of accounts in the cache.
    */
-  public getAll(): ReadonlyArray<Account> {
+  public async getAll(): Promise<ReadonlyArray<Account>> {
+    await this.loadFromStoreIfNeeded()
+
     return this.accounts.slice()
   }
 
@@ -25,6 +29,8 @@ export class AccountsStore {
    * Add the account to the store.
    */
   public async addAccount(account: Account): Promise<void> {
+    await this.loadFromStoreIfNeeded()
+
     await this.secureStore.setItem(getKeyForAccount(account), account.login, account.token)
 
     this.accounts.push(account)
@@ -36,6 +42,8 @@ export class AccountsStore {
    * Remove the account from the store.
    */
   public async removeAccount(account: Account): Promise<void> {
+    await this.loadFromStoreIfNeeded()
+
     await this.secureStore.deleteItem(getKeyForAccount(account), account.login)
 
     this.accounts = this.accounts.filter(a => a.id !== account.id)
@@ -47,6 +55,8 @@ export class AccountsStore {
    * Update the users in the store by mapping over them.
    */
   public async map(fn: (account: Account) => Promise<Account>) {
+    await this.loadFromStoreIfNeeded()
+
     const accounts = new Array<Account>()
     for (const account of this.accounts) {
       const newAccount = await fn(account)
@@ -60,7 +70,9 @@ export class AccountsStore {
   /**
    * Load the users into memory from storage.
    */
-  public async loadFromStore(): Promise<void> {
+  private async loadFromStoreIfNeeded(): Promise<void> {
+    if (this.loaded) { return }
+
     const raw = this.dataStore.getItem('users')
     if (!raw || !raw.length) {
       return
@@ -74,6 +86,8 @@ export class AccountsStore {
     })
 
     this.accounts = await Promise.all(accountsWithTokens)
+
+    this.loaded = true
   }
 
   private save() {
