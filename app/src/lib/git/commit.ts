@@ -13,7 +13,7 @@ export async function createCommit(repository: Repository, message: string, file
   await stageFiles(repository, files)
 
   try {
-    await git([ 'commit', '-F',  '-' ] , repository.path, 'createCommit', { stdin: message })
+    await git([ 'commit', '--cleanup=strip', '-F',  '-' ] , repository.path, 'createCommit', { stdin: message })
     return true
   } catch (e) {
     // Commit failures could come from a pre-commit hook rejection. So display
