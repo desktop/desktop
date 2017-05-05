@@ -117,7 +117,6 @@ export class Dispatcher {
 
   private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {
     const state: { repositories: ReadonlyArray<IRepository>, accounts: ReadonlyArray<IAccount> } = args[0].state
-    debugger
     const inflatedAccounts = state.accounts.map(Account.fromJSON)
     const inflatedRepositories = state.repositories.map(Repository.fromJSON)
     this.appStore._loadFromSharedProcess(inflatedAccounts, inflatedRepositories)
