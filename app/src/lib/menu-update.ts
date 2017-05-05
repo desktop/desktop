@@ -20,7 +20,7 @@ class MenuStateBuilder {
   private readonly _state = new Map<MenuIDs, IMenuItemState>()
 
   /**
-   * Returns an object where each key is a MenuID and the values
+   * Returns an Map where each key is a MenuID and the values
    * are IMenuItemState instances containing information about
    * whether a particular menu item should be enabled/disabled or
    * visible/hidden.
