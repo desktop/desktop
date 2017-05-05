@@ -393,7 +393,7 @@ export class List extends React.Component<IListProps, IListState> {
       this.focusItem.focus()
       this.focusRow = -1
       this.forceUpdate()
-    } else {
+    } else if (this.grid) {
 
       // No we need to figure out whether anything changed in such a way that
       // the Grid has to update regardless of its props. Previously we passed
@@ -401,9 +401,7 @@ export class List extends React.Component<IListProps, IListState> {
       // it, being a pure component, would do the right thing but that's not
       // quite the case since invalidationProps is a complex object.
       if (prevProps.selectedRow !== this.props.selectedRow || !shallowEquals(prevProps.invalidationProps, this.props.invalidationProps)) {
-        if (this.grid) {
-          this.grid.forceUpdate()
-        }
+        this.grid.forceUpdate()
       }
     }
   }
