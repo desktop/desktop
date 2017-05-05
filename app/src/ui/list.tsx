@@ -401,7 +401,9 @@ export class List extends React.Component<IListProps, IListState> {
       // it, being a pure component, would do the right thing but that's not
       // quite the case since invalidationProps is a complex object.
       if (prevProps.selectedRow !== this.props.selectedRow || !shallowEquals(prevProps.invalidationProps, this.props.invalidationProps)) {
-        this.forceUpdate()
+        if (this.grid) {
+          this.grid.forceUpdate()
+        }
       }
     }
   }
