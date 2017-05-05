@@ -409,7 +409,7 @@ export class List extends React.Component<IListProps, IListState> {
         const invalidationPropsChanged = !shallowEquals(
             prevProps.invalidationProps, this.props.invalidationProps)
 
-        // No we need to figure out whether anything changed in such a way that
+        // Now we need to figure out whether anything changed in such a way that
         // the Grid has to update regardless of its props. Previously we passed
         // our selectedRow and invalidationProps down to Grid and figured that
         // it, being a pure component, would do the right thing but that's not
