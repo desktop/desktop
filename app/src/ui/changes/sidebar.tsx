@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
@@ -12,6 +12,7 @@ import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocomplet
 import { ICommitMessage } from '../../lib/app-state'
 import { ClickSource } from '../list'
 import { WorkingDirectoryFileChange } from '../../models/status'
+import { CSSTransitionGroup } from 'react-transition-group'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -164,14 +165,14 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     }
 
     return (
-      <ReactCSSTransitionGroup
+      <CSSTransitionGroup
         transitionName='undo'
         transitionAppear={true}
         transitionAppearTimeout={UndoCommitAnimationTimeout}
         transitionEnterTimeout={UndoCommitAnimationTimeout}
         transitionLeaveTimeout={UndoCommitAnimationTimeout}>
         {child}
-      </ReactCSSTransitionGroup>
+      </CSSTransitionGroup>
     )
   }
 
