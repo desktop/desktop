@@ -7,8 +7,8 @@ environment:
   nodejs_version: "7"
 
 cache:
-  - node_modules -> appveyor.yml
-  - '%USERPROFILE%\.electron -> appveyor.yml'
+  - node_modules
+  - '%USERPROFILE%\.electron'
 
 branches:
   only:
