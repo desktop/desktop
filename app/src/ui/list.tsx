@@ -193,6 +193,13 @@ export class List extends React.Component<IListProps, IListState> {
   private focusRow = -1
 
   /**
+   * The style prop for our child Grid. We keep this here in order
+   * to not create a new object on each render and thus forcing
+   * the Grid to re-render even though nothing has changed.
+   */
+  private gridStyle: React.CSSProperties = { overflowX: 'hidden' }
+
+  /**
    * On Win32 we use a fake scroll bar. This variable keeps track of
    * which of the actual scroll container and the fake scroll container
    * received the scroll event first to avoid bouncing back and forth
@@ -535,7 +542,7 @@ export class List extends React.Component<IListProps, IListState> {
         // `selectedRow`. We're just passing it through so that
         // Grid will re-render when it changes.
         selectedRow={this.props.selectedRow}
-        style={{ overflowX: 'hidden' }}
+        style={this.gridStyle}
         tabIndex={tabIndex}
         invalidationProps={this.props.invalidationProps}/>
     )
