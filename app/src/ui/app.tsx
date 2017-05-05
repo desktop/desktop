@@ -14,7 +14,7 @@ import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton, BranchDropdown } from './toolbar'
 import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
-import { setMenuEnabled, setMenuVisible, showCertificateTrustDialog } from './main-process-proxy'
+import { updateMenuState, showCertificateTrustDialog } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -42,6 +42,7 @@ import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
+import { MenuUpdateRequest } from '../lib/menu-update'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -112,12 +113,15 @@ export class App extends React.Component<IAppProps, IAppState> {
         'quit-and-install-update',
       ]) as Set<MenuIDs>
 
+      const menuState = new MenuUpdateRequest()
+
       menuItems.delete(visibleItem)
       for (const item of menuItems) {
-        setMenuVisible(item, false)
+        menuState.hide(item)
       }
 
-      setMenuVisible(visibleItem, true)
+      menuState.show(visibleItem)
+      updateMenuState(menuState)
 
       if (!(__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') && status === UpdateStatus.UpdateReady) {
         this.props.dispatcher.setUpdateBannerVisibility(true)
@@ -213,38 +217,42 @@ export class App extends React.Component<IAppProps, IAppState> {
       'show-branches-list',
     ]
 
+    const menuState = new MenuUpdateRequest()
+
     const windowOpen = state.windowState !== 'hidden'
     const repositoryActive = windowOpen && repositorySelected
     if (repositoryActive) {
       for (const id of repositoryScopedIDs) {
-        setMenuEnabled(id, true)
+        menuState.enable(id)
       }
 
-      setMenuEnabled('rename-branch', onNonDefaultBranch)
-      setMenuEnabled('delete-branch', onNonDefaultBranch)
-      setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
-      setMenuEnabled('merge-branch', onBranch)
-      setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
+      menuState.setEnabled('rename-branch', onNonDefaultBranch)
+      menuState.setEnabled('delete-branch', onNonDefaultBranch)
+      menuState.setEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
+      menuState.setEnabled('merge-branch', onBranch)
+      menuState.setEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
 
-      setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
-      setMenuEnabled('push', !networkActionInProgress)
-      setMenuEnabled('pull', !networkActionInProgress)
-      setMenuEnabled('create-branch', !tipStateIsUnknown)
+      menuState.setEnabled('view-repository-on-github', isHostedOnGitHub)
+      menuState.setEnabled('push', !networkActionInProgress)
+      menuState.setEnabled('pull', !networkActionInProgress)
+      menuState.setEnabled('create-branch', !tipStateIsUnknown)
     } else {
       for (const id of repositoryScopedIDs) {
-        setMenuEnabled(id, false)
+        menuState.disable(id)
       }
 
-      setMenuEnabled('rename-branch', false)
-      setMenuEnabled('delete-branch', false)
-      setMenuEnabled('update-branch', false)
-      setMenuEnabled('merge-branch', false)
-      setMenuEnabled('compare-branch', false)
+      menuState.disable('rename-branch')
+      menuState.disable('delete-branch')
+      menuState.disable('update-branch')
+      menuState.disable('merge-branch')
+      menuState.disable('compare-branch')
 
-      setMenuEnabled('view-repository-on-github', false)
-      setMenuEnabled('push', false)
-      setMenuEnabled('pull', false)
+      menuState.disable('view-repository-on-github')
+      menuState.disable('push')
+      menuState.disable('pull')
     }
+
+    updateMenuState(menuState)
   }
 
   private onMenuEvent(name: MenuEvent): any {

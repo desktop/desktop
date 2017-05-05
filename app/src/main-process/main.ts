@@ -9,6 +9,7 @@ import { fatalError } from '../lib/fatal-error'
 
 import { showFallbackPage } from './error-page'
 import { getLogger } from '../lib/logging/main'
+import { IMenuItemState } from '../lib/menu-update'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -127,37 +128,33 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, { id, enabled }: { id: string, enabled: boolean }) => {
-    const menuItem = findMenuItemByID(menu, id)
-    if (menuItem) {
-      // Only send the updated app menu when the state actually changes
-      // or we might end up introducing a never ending loop between
-      // the renderer and the main process
-      if (menuItem.enabled !== enabled) {
-        menuItem.enabled = enabled
-        if (mainWindow) {
-          mainWindow.sendAppMenu()
-        }
-      }
-    } else {
-      fatalError(`Unknown menu id: ${id}`)
-    }
-  })
+  ipcMain.on('update-menu', (event: Electron.IpcMainEvent, items: { [id: string]: IMenuItemState }) => {
+    let sendMenuChangedEvent = false
 
-  ipcMain.on('set-menu-visible', (event: Electron.IpcMainEvent, { id, visible }: { id: string, visible: boolean }) => {
-    const menuItem = findMenuItemByID(menu, id)
-    if (menuItem) {
-      // Only send the updated app menu when the state actually changes
-      // or we might end up introducing a never ending loop between
-      // the renderer and the main process
-      if (menuItem.visible !== visible) {
-        menuItem.visible = visible
-        if (mainWindow) {
-          mainWindow.sendAppMenu()
+    for (const id of Object.keys(items)) {
+      const menuItem = findMenuItemByID(menu, id)
+      const state = items[id]
+
+      if (menuItem) {
+        // Only send the updated app menu when the state actually changes
+        // or we might end up introducing a never ending loop between
+        // the renderer and the main process
+        if (state.enabled !== undefined && menuItem.enabled !== state.enabled) {
+          menuItem.enabled = state.enabled
+          sendMenuChangedEvent = true
         }
+
+        if (state.visible !== undefined && menuItem.visible !== state.visible) {
+          menuItem.visible = state.visible
+          sendMenuChangedEvent = true
+        }
+      } else {
+        fatalError(`Unknown menu id: ${id}`)
       }
-    } else {
-      fatalError(`Unknown menu id: ${id}`)
+    }
+
+    if (sendMenuChangedEvent && mainWindow) {
+      mainWindow.sendAppMenu()
     }
   })
 
