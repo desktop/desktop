@@ -128,7 +128,7 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('update-menu', (event: Electron.IpcMainEvent, items: { [id: string]: IMenuItemState }) => {
+  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: { [id: string]: IMenuItemState }) => {
     let sendMenuChangedEvent = false
 
     for (const id of Object.keys(items)) {

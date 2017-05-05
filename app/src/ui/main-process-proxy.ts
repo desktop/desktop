@@ -4,7 +4,7 @@ import { MenuUpdateRequest } from '../lib/menu-update'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(request: MenuUpdateRequest) {
-  ipcRenderer.send('update-menu', request.state)
+  ipcRenderer.send('update-menu-state', request.state)
 }
 
 /** Tell the main process that the renderer is ready. */
