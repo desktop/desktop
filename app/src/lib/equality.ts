@@ -21,7 +21,7 @@ export function shallowEquals(x: any, y: any) {
   }
 
   // After this we know that neither side is null or undefined
-  if (typeof x !== 'object' || x === null || typeof y !== 'object' || y === null) {
+  if (x === null || y === null || typeof x !== 'object' || typeof y !== 'object') {
     return false
   }
 
