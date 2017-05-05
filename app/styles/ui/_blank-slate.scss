@@ -14,11 +14,14 @@
     }
   }
 
-  .content {
+  .content,
+  .footer {
     display: flex;
     flex-direction: row;
     align-self: center;
+  }
 
+  .content {
     margin: var(--spacing-double);
   }
 
