@@ -59,10 +59,7 @@ register('ping', () => {
   return Promise.resolve('pong')
 })
 
-register('get-accounts', async () => {
-  const accounts = await accountsStore.getAll()
-  return accounts
-})
+register('get-accounts', () => accountsStore.getAll())
 
 register('add-account', async ({ account }: IAddAccountAction) => {
   await accountsStore.addAccount(Account.fromJSON(account))
