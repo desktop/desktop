@@ -28,8 +28,6 @@ process.on('uncaughtException', (error: Error) => {
 })
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
-accountsStore.loadFromStore()
-
 const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
 
@@ -61,20 +59,19 @@ register('ping', () => {
   return Promise.resolve('pong')
 })
 
-register('get-accounts', () => {
-  return Promise.resolve(accountsStore.getAll())
+register('get-accounts', async () => {
+  const accounts = await accountsStore.getAll()
+  return accounts
 })
 
 register('add-account', async ({ account }: IAddAccountAction) => {
-  accountsStore.addAccount(Account.fromJSON(account))
+  await accountsStore.addAccount(Account.fromJSON(account))
   await updateAccounts()
-  return Promise.resolve()
 })
 
 register('remove-account', async ({ account }: IRemoveAccountAction) => {
-  accountsStore.removeAccount(Account.fromJSON(account))
+  await accountsStore.removeAccount(Account.fromJSON(account))
   broadcastUpdate()
-  return Promise.resolve()
 })
 
 register('add-repositories', async ({ paths }: IAddRepositoriesAction) => {
