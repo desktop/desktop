@@ -64,7 +64,6 @@ function isRepositoryHostedOnGitHub(repository: Repository | CloningRepository) 
 }
 
 export function updateMenuState(state: IAppState) {
-  console.time('updateMenuState')
   const selectedState = state.selectedState
   const isHostedOnGitHub = selectedState
     ? isRepositoryHostedOnGitHub(selectedState.repository)
@@ -159,8 +158,6 @@ export function updateMenuState(state: IAppState) {
     menuState.disable('push')
     menuState.disable('pull')
   }
-  console.timeEnd('updateMenuState')
-  console.time('updateMenuState dispatch')
+
   ipcUpdateMenuState(menuState)
-  console.timeEnd('updateMenuState dispatch')
 }
