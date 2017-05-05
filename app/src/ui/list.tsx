@@ -406,7 +406,8 @@ export class List extends React.Component<IListProps, IListState> {
 
       if (!gridHasUpdatedAlready) {
         const selectedRowChanged = prevProps.selectedRow !== this.props.selectedRow
-        const invalidationPropsChanged = !shallowEquals(prevProps.invalidationProps, this.props.invalidationProps)
+        const invalidationPropsChanged = !shallowEquals(
+            prevProps.invalidationProps, this.props.invalidationProps)
 
         // No we need to figure out whether anything changed in such a way that
         // the Grid has to update regardless of its props. Previously we passed
