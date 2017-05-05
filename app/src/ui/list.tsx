@@ -427,7 +427,7 @@ export class List extends React.Component<IListProps, IListState> {
     const focused = rowIndex === this.focusRow
     const className = classNames('list-item', { selected })
 
-    // An unselectable row shouldn't have any tabIndex (as -1 means
+    // An unselectable row shouldn't have any tabIndex (as 0 means
     // it's given focus by clicking).
     let tabIndex: number | undefined = undefined
     if (selectable) {
