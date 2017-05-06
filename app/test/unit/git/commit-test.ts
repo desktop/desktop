@@ -77,7 +77,6 @@ describe('git/commit', () => {
       expect(commits[0].body.length).to.equal(0)
     })
 
-
     it('can commit for empty repository', async () => {
 
       const repo = await setupEmptyRepository()
