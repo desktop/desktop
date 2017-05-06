@@ -73,7 +73,7 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
             label='Authentication code'
             disabled={textEntryDisabled}
             autoFocus={true}
-            onChange={this.onOTPChange}/>
+            onValueChanged={this.onOTPChange}/>
 
           {errors}
 
@@ -88,8 +88,8 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     )
   }
 
-  private onOTPChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({ otp: event.currentTarget.value })
+  private onOTPChange = (text: string) => {
+    this.setState({ otp: text })
   }
 
   private signIn = () => {
