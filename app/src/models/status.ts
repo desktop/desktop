@@ -2,6 +2,27 @@ import { DiffSelection } from './diff'
 import { OcticonSymbol } from '../ui/octicons'
 import { assertNever } from '../lib/fatal-error'
 
+export enum GitFileStatus {
+  // M
+  Modified,
+  // A
+  Added,
+  // D
+  Deleted,
+  // R
+  Renamed,
+  // C
+  Copied,
+  // U
+  UpdatedButUnmerged,
+  // .
+  Unchanged,
+  // ?
+  Untracked,
+  // !
+  Ignored
+}
+
 /** the state of the changed file in the working directory */
 export enum AppFileStatus {
   New,
@@ -11,6 +32,40 @@ export enum AppFileStatus {
   Conflicted,
   Copied,
 }
+
+type OrdinaryChange = {
+   /** how we should represent the file in the application */
+  readonly kind: AppFileStatus,
+  /** the staged status of the file (if known) */
+  readonly staged?: GitFileStatus,
+  /** the unstaged status of the file (if known) */
+  readonly unstaged?: GitFileStatus,
+}
+
+type RenamedOrCopiedChange = {
+  readonly kind: AppFileStatus.Renamed | AppFileStatus.Copied,
+  /** the staged status of the file (if known) */
+  readonly staged?: GitFileStatus,
+  /** the unstaged status of the file (if known) */
+  readonly unstaged?: GitFileStatus,
+}
+
+type UnmergedChange = {
+  readonly kind: AppFileStatus.Conflicted,
+  /** the first character of the short code ("ours")  */
+  readonly us: GitFileStatus,
+  /** the second character of the short code ("theirs")  */
+  readonly them: GitFileStatus,
+}
+
+type UntrackedChange = {
+  readonly kind: AppFileStatus.New,
+}
+
+export type FileStatus = OrdinaryChange |
+  RenamedOrCopiedChange |
+  UnmergedChange |
+  UntrackedChange
 
 /**
  * Converts a given FileStatus value to a human-readable string to be
