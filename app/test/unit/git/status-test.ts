@@ -6,7 +6,7 @@ import { expect } from 'chai'
 import { Repository } from '../../../src/models/repository'
 import { getStatus } from '../../../src/lib/git/status'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
-import { FileStatus } from '../../../src/models/status'
+import { AppFileStatus } from '../../../src/models/status'
 import { GitProcess } from 'dugite'
 
 import * as fs from 'fs-extra'
@@ -35,7 +35,7 @@ describe('git/status', () => {
 
       const file = files[0]
       expect(file.path).to.equal('README.md')
-      expect(file.status).to.equal(FileStatus.Modified)
+      expect(file.status).to.equal(AppFileStatus.Modified)
     })
 
     it('returns an empty array when there are no changes', async () => {
@@ -58,7 +58,7 @@ describe('git/status', () => {
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
-      expect(files[0].status).to.equal(FileStatus.Renamed)
+      expect(files[0].status).to.equal(AppFileStatus.Renamed)
       expect(files[0].oldPath).to.equal('foo')
       expect(files[0].path).to.equal('bar')
     })
@@ -75,11 +75,11 @@ describe('git/status', () => {
 
       expect(files.length).to.equal(2)
 
-      expect(files[0].status).to.equal(FileStatus.Modified)
+      expect(files[0].status).to.equal(AppFileStatus.Modified)
       expect(files[0].oldPath).to.be.undefined
       expect(files[0].path).to.equal('CONTRIBUTING.md')
 
-      expect(files[1].status).to.equal(FileStatus.Copied)
+      expect(files[1].status).to.equal(AppFileStatus.Copied)
       expect(files[1].oldPath).to.equal('CONTRIBUTING.md')
       expect(files[1].path).to.equal('docs/OVERVIEW.md')
     })

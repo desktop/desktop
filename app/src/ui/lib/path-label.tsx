@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { FileStatus } from '../../models/status'
+import { AppFileStatus } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from './path-text'
 
@@ -10,7 +10,7 @@ interface IPathLabelProps {
   /** the previous path of the file, if applicable */
   readonly oldPath?: string,
   /** the type of change applied to the file */
-  readonly status: FileStatus
+  readonly status: AppFileStatus
 
   readonly availableWidth?: number
 }
@@ -33,7 +33,7 @@ export class PathLabel extends React.Component<IPathLabelProps, void> {
     }
 
     const status = this.props.status
-    const renderBothPaths = status === FileStatus.Renamed || status === FileStatus.Copied
+    const renderBothPaths = status === AppFileStatus.Renamed || status === AppFileStatus.Copied
 
     const availableWidth = this.props.availableWidth
     if (renderBothPaths && this.props.oldPath) {

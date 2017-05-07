@@ -1,12 +1,12 @@
 import { git } from './core'
-import { FileStatus, WorkingDirectoryFileChange } from '../../models/status'
+import { AppFileStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { DiffSelectionType } from '../../models/diff'
 import { applyPatchToIndex } from './apply'
 
 export async function addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
 
-  if (file.status === FileStatus.New || file.status === FileStatus.Copied) {
+  if (file.status === AppFileStatus.New || file.status === AppFileStatus.Copied) {
     // NOTE:
     // copied files are considered untracked content which are already staged,
     // and this only occurs when the old file is modified and also staged in
@@ -14,7 +14,7 @@ export async function addFileToIndex(repository: Repository, file: WorkingDirect
     // file, which means it won't be seen in the commit as a copy - just a new
     // file - and that's okay...
     await git([ 'add', '--', file.path ], repository.path, 'addFileToIndex')
-  } else if (file.status === FileStatus.Renamed && file.oldPath) {
+  } else if (file.status === AppFileStatus.Renamed && file.oldPath) {
     await git([ 'add', '--', file.path ], repository.path, 'addFileToIndex')
     await git([ 'add', '-u', '--', file.oldPath ], repository.path, 'addFileToIndex')
   } else {

@@ -1,5 +1,5 @@
 import { git } from './core'
-import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
+import { WorkingDirectoryStatus, WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
 import { parsePorcelainStatus } from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
@@ -23,7 +23,7 @@ export interface IStatusResult {
  * map the raw status text from Git to an app-friendly value
  * shamelessly borrowed from GitHub Desktop (Windows)
  */
-export function mapStatus(rawStatus: string): FileStatus {
+export function mapStatus(rawStatus: string): AppFileStatus {
 
   // TODO: This is due to the fact that porcelain V2 changed from
   // using space to using a dot when either side is unmodified.
@@ -32,30 +32,30 @@ export function mapStatus(rawStatus: string): FileStatus {
   // porcelain v1 status codes.
   const status = rawStatus.replace(/[ .]/, '')
 
-  if (status === 'M') { return FileStatus.Modified }      // modified
-  if (status === 'A') { return FileStatus.New }           // added
-  if (status === 'D') { return FileStatus.Deleted }       // deleted
-  if (status === 'R') { return FileStatus.Renamed }       // renamed
-  if (status === 'C') { return FileStatus.Copied }        // copied
-  if (status === 'AM') { return FileStatus.New }          // added in index, modified in working directory
-  if (status === 'RM') { return FileStatus.Renamed }      // renamed in index, modified in working directory
-  if (status === 'RD') { return FileStatus.Conflicted }   // renamed in index, deleted in working directory
-  if (status === 'DD') { return FileStatus.Conflicted }   // Unmerged, both deleted
-  if (status === 'AU') { return FileStatus.Conflicted }   // Unmerged, added by us
-  if (status === 'UD') { return FileStatus.Conflicted }   // Unmerged, deleted by them
-  if (status === 'UA') { return FileStatus.Conflicted }   // Unmerged, added by them
-  if (status === 'DU') { return FileStatus.Conflicted }   // Unmerged, deleted by us
-  if (status === 'AA') { return FileStatus.Conflicted }   // Unmerged, added by both
-  if (status === 'UU') { return FileStatus.Conflicted }   // Unmerged, both modified
-  if (status === '??') { return FileStatus.New }          // untracked
+  if (status === 'M') { return AppFileStatus.Modified }      // modified
+  if (status === 'A') { return AppFileStatus.New }           // added
+  if (status === 'D') { return AppFileStatus.Deleted }       // deleted
+  if (status === 'R') { return AppFileStatus.Renamed }       // renamed
+  if (status === 'C') { return AppFileStatus.Copied }        // copied
+  if (status === 'AM') { return AppFileStatus.New }          // added in index, modified in working directory
+  if (status === 'RM') { return AppFileStatus.Renamed }      // renamed in index, modified in working directory
+  if (status === 'RD') { return AppFileStatus.Conflicted }   // renamed in index, deleted in working directory
+  if (status === 'DD') { return AppFileStatus.Conflicted }   // Unmerged, both deleted
+  if (status === 'AU') { return AppFileStatus.Conflicted }   // Unmerged, added by us
+  if (status === 'UD') { return AppFileStatus.Conflicted }   // Unmerged, deleted by them
+  if (status === 'UA') { return AppFileStatus.Conflicted }   // Unmerged, added by them
+  if (status === 'DU') { return AppFileStatus.Conflicted }   // Unmerged, deleted by us
+  if (status === 'AA') { return AppFileStatus.Conflicted }   // Unmerged, added by both
+  if (status === 'UU') { return AppFileStatus.Conflicted }   // Unmerged, both modified
+  if (status === '??') { return AppFileStatus.New }          // untracked
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
-  if (status.match(/R[0-9]+/)) { return FileStatus.Renamed }
+  if (status.match(/R[0-9]+/)) { return AppFileStatus.Renamed }
 
   // git log -C --name-status will return a CXXX - where XXX is a percentage
-  if (status.match(/C[0-9]+/)) { return FileStatus.Copied }
+  if (status.match(/C[0-9]+/)) { return AppFileStatus.Copied }
 
-  return FileStatus.Modified
+  return AppFileStatus.Modified
 }
 
 /**

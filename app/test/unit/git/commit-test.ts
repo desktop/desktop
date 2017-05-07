@@ -14,7 +14,7 @@ import {
 
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 import { GitProcess } from 'dugite'
-import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
+import { AppFileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
 import { DiffSelectionType, DiffSelection, ITextDiff, DiffType } from '../../../src/models/diff'
 
 import * as fs from 'fs-extra'
@@ -125,7 +125,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withRangeSelection(0, 5, true)
 
-      const file = new WorkingDirectoryFileChange(newFileName, FileStatus.New, selection)
+      const file = new WorkingDirectoryFileChange(newFileName, AppFileStatus.New, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ file ])
@@ -147,7 +147,7 @@ describe('git/commit', () => {
       // verify that the file is now tracked
       const fileChange = status.workingDirectory.files.find(f => f.path === newFileName)
       expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(FileStatus.Modified)
+      expect(fileChange!.status).to.equal(AppFileStatus.Modified)
     })
 
     it('can commit second hunk from modified file', async () => {
@@ -157,7 +157,7 @@ describe('git/commit', () => {
       const modifiedFile = 'modified-file.md'
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
+      const file = new WorkingDirectoryFileChange(modifiedFile, AppFileStatus.Modified, unselectedFile)
 
       const diff = await getTextDiff(repository!, file)
 
@@ -187,7 +187,7 @@ describe('git/commit', () => {
       // verify that the file is still marked as modified
       const fileChange = status.workingDirectory.files.find(f => f.path === modifiedFile)
       expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(FileStatus.Modified)
+      expect(fileChange!.status).to.equal(AppFileStatus.Modified)
     })
 
     it('can commit single delete from modified file', async () => {
@@ -196,7 +196,7 @@ describe('git/commit', () => {
       const fileName = 'modified-file.md'
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const modifiedFile = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, unselectedFile)
+      const modifiedFile = new WorkingDirectoryFileChange(fileName, AppFileStatus.Modified, unselectedFile)
 
       const diff = await getTextDiff(repository!, modifiedFile)
 
@@ -206,7 +206,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withRangeSelection(secondRemovedLine, 1, true)
 
-      const file = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, selection)
+      const file = new WorkingDirectoryFileChange(fileName, AppFileStatus.Modified, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ file ])
@@ -229,7 +229,7 @@ describe('git/commit', () => {
       const modifiedFile = 'modified-file.md'
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
+      const file = new WorkingDirectoryFileChange(modifiedFile, AppFileStatus.Modified, unselectedFile)
 
       const diff = await getTextDiff(repository!, file)
 
@@ -237,7 +237,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.All)
         .withRangeSelection(diff.hunks[1].unifiedDiffStart, diff.hunks[1].unifiedDiffEnd - diff.hunks[1].unifiedDiffStart, false)
 
-      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, AppFileStatus.Modified, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ updatedFile ])
@@ -259,7 +259,7 @@ describe('git/commit', () => {
       // verify that the file is still marked as modified
       const fileChange = status.workingDirectory.files.find(f => f.path === modifiedFile)
       expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(FileStatus.Modified)
+      expect(fileChange!.status).to.equal(AppFileStatus.Modified)
     })
 
     it('can commit some lines from deleted file', async () => {
@@ -271,7 +271,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withRangeSelection(0, 5, true)
 
-      const file = new WorkingDirectoryFileChange(deletedFile, FileStatus.Deleted, selection)
+      const file = new WorkingDirectoryFileChange(deletedFile, AppFileStatus.Deleted, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ file ])
@@ -293,7 +293,7 @@ describe('git/commit', () => {
       // verify that the file is now tracked
       const fileChange = status.workingDirectory.files.find(f => f.path === deletedFile)
       expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(FileStatus.Deleted)
+      expect(fileChange!.status).to.equal(AppFileStatus.Deleted)
     })
 
     it('can commit renames with modifications', async () => {
@@ -340,7 +340,7 @@ describe('git/commit', () => {
 
       expect(files.length).to.equal(1)
       expect(files[0].path).to.contain('bar')
-      expect(files[0].status).to.equal(FileStatus.Renamed)
+      expect(files[0].status).to.equal(AppFileStatus.Renamed)
 
       const selection = files[0].selection
         .withSelectNone()
@@ -395,7 +395,7 @@ describe('git/commit', () => {
 
       expect(files.length).to.equal(1)
       expect(files[0].path).to.equal('foo')
-      expect(files[0].status).to.equal(FileStatus.Conflicted)
+      expect(files[0].status).to.equal(AppFileStatus.Conflicted)
 
       const selection = files[0].selection.withSelectAll()
       const selectedFile = files[0].withSelection(selection)

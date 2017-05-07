@@ -11,7 +11,7 @@ import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
-import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
+import { FileChange, WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
 import { DiffSelection, DiffType, IDiff, IImageDiff, ITextDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
@@ -494,11 +494,11 @@ export class Diff extends React.Component<IDiffProps, void> {
                 previous={imageDiff.previous} />
     }
 
-    if (imageDiff.current && this.props.file.status === FileStatus.New) {
+    if (imageDiff.current && this.props.file.status === AppFileStatus.New) {
       return <NewImageDiff current={imageDiff.current} />
     }
 
-    if (imageDiff.previous && this.props.file.status === FileStatus.Deleted) {
+    if (imageDiff.previous && this.props.file.status === AppFileStatus.Deleted) {
       return <DeletedImageDiff previous={imageDiff.previous} />
     }
 
@@ -558,13 +558,13 @@ export class Diff extends React.Component<IDiffProps, void> {
     if (diff.kind === DiffType.Text) {
 
       if (diff.hunks.length === 0) {
-        if (this.props.file.status === FileStatus.New) {
+        if (this.props.file.status === AppFileStatus.New) {
           return <div className='panel'>
              The file is empty
             </div>
         }
 
-        if (this.props.file.status === FileStatus.Renamed) {
+        if (this.props.file.status === AppFileStatus.Renamed) {
           return <div className='panel'>
              The file was renamed but not changed
             </div>

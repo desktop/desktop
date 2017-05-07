@@ -3,7 +3,7 @@ import { OcticonSymbol } from '../ui/octicons'
 import { assertNever } from '../lib/fatal-error'
 
 /** the state of the changed file in the working directory */
-export enum FileStatus {
+export enum AppFileStatus {
   New,
   Modified,
   Deleted,
@@ -20,14 +20,14 @@ export enum FileStatus {
  *
  * Used in file lists.
  */
-export function mapStatus(status: FileStatus): string {
+export function mapStatus(status: AppFileStatus): string {
   switch (status) {
-    case FileStatus.New: return 'New'
-    case FileStatus.Modified: return 'Modified'
-    case FileStatus.Deleted: return 'Deleted'
-    case FileStatus.Renamed: return 'Renamed'
-    case FileStatus.Conflicted: return 'Conflicted'
-    case FileStatus.Copied: return 'Copied'
+    case AppFileStatus.New: return 'New'
+    case AppFileStatus.Modified: return 'Modified'
+    case AppFileStatus.Deleted: return 'Deleted'
+    case AppFileStatus.Renamed: return 'Renamed'
+    case AppFileStatus.Conflicted: return 'Conflicted'
+    case AppFileStatus.Copied: return 'Copied'
   }
 
   return assertNever(status, `Unknown file status ${status}`)
@@ -39,15 +39,15 @@ export function mapStatus(status: FileStatus): string {
  *
  * Used in file lists.
  */
-export function iconForStatus(status: FileStatus): OcticonSymbol {
+export function iconForStatus(status: AppFileStatus): OcticonSymbol {
 
   switch (status) {
-    case FileStatus.New: return OcticonSymbol.diffAdded
-    case FileStatus.Modified: return OcticonSymbol.diffModified
-    case FileStatus.Deleted: return OcticonSymbol.diffRemoved
-    case FileStatus.Renamed: return OcticonSymbol.diffRenamed
-    case FileStatus.Conflicted: return OcticonSymbol.alert
-    case FileStatus.Copied: return OcticonSymbol.diffAdded
+    case AppFileStatus.New: return OcticonSymbol.diffAdded
+    case AppFileStatus.Modified: return OcticonSymbol.diffModified
+    case AppFileStatus.Deleted: return OcticonSymbol.diffRemoved
+    case AppFileStatus.Renamed: return OcticonSymbol.diffRenamed
+    case AppFileStatus.Conflicted: return OcticonSymbol.alert
+    case AppFileStatus.Copied: return OcticonSymbol.diffAdded
   }
 
   return assertNever(status, `Unknown file status ${status}`)
@@ -61,9 +61,9 @@ export class FileChange {
   public readonly oldPath?: string
 
   /** the status of the change to the file */
-  public readonly status: FileStatus
+  public readonly status: AppFileStatus
 
-  public constructor(path: string, status: FileStatus, oldPath?: string) {
+  public constructor(path: string, status: AppFileStatus, oldPath?: string) {
     this.path = path
     this.status = status
     this.oldPath = oldPath
@@ -81,7 +81,7 @@ export class WorkingDirectoryFileChange extends FileChange {
   /** contains the selection details for this file - all, nothing or partial */
   public readonly selection: DiffSelection
 
-  public constructor(path: string, status: FileStatus, selection: DiffSelection, oldPath?: string) {
+  public constructor(path: string, status: AppFileStatus, selection: DiffSelection, oldPath?: string) {
     super(path, status, oldPath)
 
     this.selection = selection

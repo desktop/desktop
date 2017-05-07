@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Path from 'path'
 
-import { FileStatus, mapStatus, iconForStatus } from '../../models/status'
+import { AppFileStatus, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
@@ -11,7 +11,7 @@ const GitIgnoreFileName = '.gitignore'
 
 interface IChangedFileProps {
   readonly path: string
-  readonly status: FileStatus
+  readonly status: AppFileStatus
   readonly oldPath?: string
   readonly include: boolean | null
   readonly onIncludeChanged: (path: string, include: boolean) => void
