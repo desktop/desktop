@@ -1,5 +1,11 @@
 import { git } from './core'
-import { WorkingDirectoryStatus, WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
+import {
+  WorkingDirectoryStatus,
+  WorkingDirectoryFileChange,
+  AppFileStatus,
+  FileStatus,
+  GitFileStatus,
+} from '../../models/status'
 import { parsePorcelainStatus } from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
@@ -59,6 +65,120 @@ export function mapStatus(rawStatus: string): AppFileStatus {
 }
 
 /**
+ * map the raw status text from Git to an app-friendly value
+ * shamelessly borrowed from GitHub Desktop (Windows)
+ */
+export function mapStatusV2(rawStatus: string): FileStatus {
+
+  // TODO: This is due to the fact that porcelain V2 changed from
+  // using space to using a dot when either side is unmodified.
+  // We should probably parse this properly. We still trim the space
+  // since mapStatus is used from log.ts as well which passes
+  // porcelain v1 status codes.
+  const status = rawStatus.replace(/[ .]/, '')
+
+  if (status === 'M') { return { kind: AppFileStatus.Modified } }
+  if (status === 'A') { return { kind: AppFileStatus.New } }
+  if (status === 'D') { return { kind: AppFileStatus.Deleted } }
+  if (status === 'R') { return { kind: AppFileStatus.Renamed } }
+  if (status === 'C') { return { kind: AppFileStatus.Copied } }
+
+  if (status === 'AM') {
+    return {
+      kind: AppFileStatus.New,
+      staged: GitFileStatus.Added,
+      unstaged: GitFileStatus.Modified,
+    }
+  }
+
+  if (status === 'RM') {
+    return {
+      kind: AppFileStatus.Renamed,
+      staged: GitFileStatus.Renamed,
+      unstaged: GitFileStatus.Modified,
+    }
+  }
+
+  if (status === 'RD') {
+    // renamed in index, deleted in working directory
+    // TODO: review this and see whether "Conflicted" is still the right code
+    return {
+      kind: AppFileStatus.Conflicted,
+      staged: GitFileStatus.Renamed,
+      unstaged: GitFileStatus.Deleted,
+    }
+  }
+
+  if (status === 'DD') {
+    return {
+      kind: AppFileStatus.Conflicted,
+      us: GitFileStatus.Deleted,
+      them: GitFileStatus.Deleted,
+    }
+  }
+
+  if (status === 'AU') {
+    return {
+      kind: AppFileStatus.Conflicted,
+      us: GitFileStatus.Added,
+      them: GitFileStatus.Modified,
+    }
+  }
+
+  if (status === 'UD') {
+    return {
+      kind: AppFileStatus.Conflicted,
+      us: GitFileStatus.Modified,
+      them: GitFileStatus.Deleted,
+    }
+  }
+
+  if (status === 'UA') {
+    return {
+      kind: AppFileStatus.Conflicted,
+      us: GitFileStatus.Modified,
+      them: GitFileStatus.Added,
+    }
+  }
+
+  if (status === 'DU') {
+    return {
+      kind: AppFileStatus.Conflicted,
+      us: GitFileStatus.Deleted,
+      them: GitFileStatus.Modified,
+    }
+  }
+
+  if (status === 'AA') {
+    return {
+      kind: AppFileStatus.Conflicted,
+      us: GitFileStatus.Added,
+      them: GitFileStatus.Added,
+    }
+  }
+
+    if (status === 'UU') {
+    return {
+      kind: AppFileStatus.Conflicted,
+      us: GitFileStatus.Modified,
+      them: GitFileStatus.Modified,
+    }
+  }
+
+  if (status === '??') {
+    return { kind: AppFileStatus.New }
+  }
+
+  // git log -M --name-status will return a RXXX - where XXX is a percentage
+  if (status.match(/R[0-9]+/)) { return { kind: AppFileStatus.Renamed } }
+
+  // git log -C --name-status will return a CXXX - where XXX is a percentage
+  if (status.match(/C[0-9]+/)) { return { kind: AppFileStatus.Copied } }
+
+  return { kind: AppFileStatus.Modified }
+}
+
+/**
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
  */
@@ -74,10 +194,12 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
 
   for (const entry of parsePorcelainStatus(result.stdout)) {
     if (entry.kind === 'entry') {
-      const status = mapStatus(entry.statusCode)
+      const status = mapStatusV2(entry.statusCode)
+      // for now we just poke at the existing summary
+      const summary = status.kind
       const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
-      files.push(new WorkingDirectoryFileChange(entry.path, status, selection, entry.oldPath))
+      files.push(new WorkingDirectoryFileChange(entry.path, summary, selection, entry.oldPath))
     } else if (entry.kind === 'header') {
       let m: RegExpMatchArray | null
       const value = entry.value

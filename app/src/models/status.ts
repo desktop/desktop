@@ -2,6 +2,8 @@ import { DiffSelection } from './diff'
 import { OcticonSymbol } from '../ui/octicons'
 import { assertNever } from '../lib/fatal-error'
 
+// NOTE: 'U' is considered "Updated but unmerged", and is a valid code here,
+// but instead we mark this as "Modified" when surfacing conflicts.
 export enum GitFileStatus {
   // M
   Modified,
@@ -13,8 +15,6 @@ export enum GitFileStatus {
   Renamed,
   // C
   Copied,
-  // U
-  UpdatedButUnmerged,
   // .
   Unchanged,
   // ?
