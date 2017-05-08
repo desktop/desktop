@@ -51,7 +51,7 @@ describe('App', () => {
 
   it('renders', () => {
     const app = TestUtils.renderIntoDocument(
-      <App dispatcher={dispatcher!} appStore={appStore!}/>
+      <App dispatcher={dispatcher!} appStore={appStore!} startTime={0}/>
     ) as React.Component<any, any>
     const node = ReactDOM.findDOMNode(app)
     expect(node).not.to.equal(null)
