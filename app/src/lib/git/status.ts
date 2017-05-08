@@ -28,12 +28,19 @@ export interface IStatusResult {
 
 function convertToAppStatus(status: string): AppFileStatus {
   switch (status) {
-    case 'new': return AppFileStatus.New
-    case 'modified': return AppFileStatus.Modified
-    case 'deleted': return AppFileStatus.Deleted
-    case 'renamed': return AppFileStatus.Renamed
-    case 'copied': return AppFileStatus.Copied
-    case 'conflicted': return AppFileStatus.Conflicted
+    case 'added':
+    case 'untracked':
+      return AppFileStatus.New
+    case 'modified':
+      return AppFileStatus.Modified
+    case 'deleted':
+      return AppFileStatus.Deleted
+    case 'renamed':
+      return AppFileStatus.Renamed
+    case 'copied':
+      return AppFileStatus.Copied
+    case 'conflicted':
+      return AppFileStatus.Conflicted
   }
 
   return fatalError(`Unknown file status ${status}`)
@@ -48,7 +55,7 @@ function convertToAppStatus(status: string): AppFileStatus {
 function mapStatus(status: string): FileStatus {
   if (status === '??') {
     return {
-      kind: 'new',
+      kind: 'untracked',
       staged: GitFileStatus.Untracked,
       unstaged: GitFileStatus.Untracked,
     }
@@ -72,7 +79,7 @@ function mapStatus(status: string): FileStatus {
 
   if (status === '.A') {
     return {
-      kind: 'new',
+      kind: 'added',
       staged: GitFileStatus.Unchanged,
       unstaged: GitFileStatus.Added,
     }
@@ -80,7 +87,7 @@ function mapStatus(status: string): FileStatus {
 
   if (status === 'A.') {
     return {
-      kind: 'new',
+      kind: 'added',
       staged: GitFileStatus.Added,
       unstaged: GitFileStatus.Unchanged,
     }
@@ -136,7 +143,7 @@ function mapStatus(status: string): FileStatus {
 
   if (status === 'AM') {
     return {
-      kind: 'new',
+      kind: 'added',
       staged: GitFileStatus.Added,
       unstaged: GitFileStatus.Modified,
     }
