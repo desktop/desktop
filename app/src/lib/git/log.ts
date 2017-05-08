@@ -22,17 +22,6 @@ function mapStatus(rawStatus: string): AppFileStatus {
   if (status === 'D') { return AppFileStatus.Deleted }       // deleted
   if (status === 'R') { return AppFileStatus.Renamed }       // renamed
   if (status === 'C') { return AppFileStatus.Copied }        // copied
-  if (status === 'AM') { return AppFileStatus.New }          // added in index, modified in working directory
-  if (status === 'RM') { return AppFileStatus.Renamed }      // renamed in index, modified in working directory
-  if (status === 'RD') { return AppFileStatus.Conflicted }   // renamed in index, deleted in working directory
-  if (status === 'DD') { return AppFileStatus.Conflicted }   // Unmerged, both deleted
-  if (status === 'AU') { return AppFileStatus.Conflicted }   // Unmerged, added by us
-  if (status === 'UD') { return AppFileStatus.Conflicted }   // Unmerged, deleted by them
-  if (status === 'UA') { return AppFileStatus.Conflicted }   // Unmerged, added by them
-  if (status === 'DU') { return AppFileStatus.Conflicted }   // Unmerged, deleted by us
-  if (status === 'AA') { return AppFileStatus.Conflicted }   // Unmerged, added by both
-  if (status === 'UU') { return AppFileStatus.Conflicted }   // Unmerged, both modified
-  if (status === '??') { return AppFileStatus.New }          // untracked
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
   if (status.match(/R[0-9]+/)) { return AppFileStatus.Renamed }
