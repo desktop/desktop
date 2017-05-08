@@ -151,9 +151,6 @@ function mapStatus(status: string): FileStatus {
   }
 
   if (status === 'RD') {
-    // renamed in index, deleted in working directory
-    // TODO: review this and see whether "Conflicted" is still the right code
-    //       because it doesn't align with the T Y P E S created before this
     return {
       kind: 'renamed',
       staged: GitFileStatus.Renamed,
