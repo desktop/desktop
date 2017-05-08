@@ -124,6 +124,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         primaryButtonText = 'Continue'
         break
       case SignInStep.TwoFactorAuthentication:
+        // ensure user has entered non-whitespace characters
+        const codeProvided = /\S+/.test(this.state.otpToken)
+        disableSubmit = !codeProvided
         primaryButtonText = 'Sign in'
         break
       case SignInStep.Authentication:
@@ -196,9 +199,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             labelLinkUri={state.forgotPasswordUrl}
           />
         </Row>
-        <Row>
-          <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
-        </Row>
+
+        <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
+
         <Row className='sign-in-with-browser'>
           <LinkButton className='link-with-icon' onClick={this.onSignInWithBrowser}>
             Sign in using your browser

@@ -320,11 +320,7 @@ export class SignInStore {
       })
     } else {
       if (response.kind === AuthorizationResponseKind.Error) {
-        if (response.response.error) {
-          this.emitError(response.response.error)
-        } else {
-          this.emitError(new Error(`The server responded with an error while attempting to authenticate (${response.response.statusCode})\n\n${response.response.body}`))
-        }
+        this.emitError(new Error(`The server responded with an error while attempting to authenticate (${response.response.status})\n\n${response.response.statusText}`))
         this.setState({ ...currentState, loading: false })
       } else if (response.kind === AuthorizationResponseKind.Failed) {
         this.setState({
@@ -337,6 +333,12 @@ export class SignInStore {
           ...currentState,
           loading: false,
           error: new Error(getUnverifiedUserErrorMessage(username)),
+        })
+      } else if (response.kind === AuthorizationResponseKind.PersonalAccessTokenBlocked) {
+        this.setState({
+          ...currentState,
+          loading: false,
+          error: new Error('A personal access token cannot be used to login to GitHub Desktop.'),
         })
       } else {
         return assertNever(response, `Unsupported response: ${response}`)
@@ -521,15 +523,13 @@ export class SignInStore {
           })
           break
         case AuthorizationResponseKind.Error:
-          const error = response.response.error
-          if (error) {
-            this.emitError(error)
-          } else {
-            this.emitError(new Error(`The server responded with an error (${response.response.statusCode})\n\n${response.response.body}`))
-          }
+          this.emitError(new Error(`The server responded with an error (${response.response.status})\n\n${response.response.statusText}`))
           break
         case AuthorizationResponseKind.UserRequiresVerification:
           this.emitError(new Error(getUnverifiedUserErrorMessage(currentState.username)))
+          break
+        case AuthorizationResponseKind.PersonalAccessTokenBlocked:
+          this.emitError(new Error('A personal access token cannot be used to login to GitHub Desktop.'))
           break
         default:
           return assertNever(response, `Unknown response: ${response}`)

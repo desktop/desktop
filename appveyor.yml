@@ -7,8 +7,8 @@ environment:
   nodejs_version: "7"
 
 cache:
-  - node_modules -> appveyor.yml
-  - '%USERPROFILE%\.electron -> appveyor.yml'
+  - node_modules
+  - '%USERPROFILE%\.electron'
 
 branches:
   only:
@@ -20,12 +20,8 @@ skip_tags: true
 version: "{build}"
 
 install:
-  - ps: Install-Product node $env:nodejs_version x64
+  - ps: Install-Product node $env:nodejs_version $env:platform
   - npm install -g npm
-  - ps: $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
-  - ps: $fileContent += $env:PRIVATE_KEY.Replace(' ', "`n")
-  - ps: $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
-  - ps: Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
   - git submodule update --init --recursive
   - npm prune
   - cd app && npm prune && cd ..
@@ -36,6 +32,8 @@ build_script:
   - npm run build:prod
 
 test_script:
+  - node --version
+  - npm --version
   - npm run test:setup
   - ./script/test-appveyor.bat
 

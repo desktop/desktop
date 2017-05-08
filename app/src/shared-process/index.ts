@@ -15,7 +15,7 @@ import {
   IUpdateRepositoryPathAction,
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
-import { reportError } from '../lib/exception-reporting'
+import { reportError } from '../ui/lib/exception-reporting'
 import { getVersion } from '../ui/lib/app-proxy'
 
 import { getLogger } from '../lib/logging/renderer'
@@ -28,8 +28,6 @@ process.on('uncaughtException', (error: Error) => {
 })
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
-accountsStore.loadFromStore()
-
 const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
 
@@ -42,7 +40,7 @@ async function updateAccounts() {
     const api = new API(account)
     const newAccount = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatarUrl, newAccount.id, newAccount.name)
+    return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatar_url, newAccount.id, newAccount.name)
   })
   broadcastUpdate()
 }
@@ -61,20 +59,16 @@ register('ping', () => {
   return Promise.resolve('pong')
 })
 
-register('get-accounts', () => {
-  return Promise.resolve(accountsStore.getAll())
-})
+register('get-accounts', () => accountsStore.getAll())
 
 register('add-account', async ({ account }: IAddAccountAction) => {
-  accountsStore.addAccount(Account.fromJSON(account))
+  await accountsStore.addAccount(Account.fromJSON(account))
   await updateAccounts()
-  return Promise.resolve()
 })
 
 register('remove-account', async ({ account }: IRemoveAccountAction) => {
-  accountsStore.removeAccount(Account.fromJSON(account))
+  await accountsStore.removeAccount(Account.fromJSON(account))
   broadcastUpdate()
-  return Promise.resolve()
 })
 
 register('add-repositories', async ({ paths }: IAddRepositoriesAction) => {

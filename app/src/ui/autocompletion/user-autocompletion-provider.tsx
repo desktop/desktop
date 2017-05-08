@@ -15,6 +15,8 @@ export interface IUserHit {
 
 /** The autocompletion provider for user mentions in a GitHub repository. */
 export class UserAutocompletionProvider implements IAutocompletionProvider<IUserHit> {
+  public readonly kind = 'user'
+
   private readonly gitHubUserStore: GitHubUserStore
   private readonly repository: GitHubRepository
 

@@ -1,5 +1,8 @@
-import { ipcRenderer, remote } from 'electron'
+import * as Path from 'path'
+
+import { ipcRenderer, remote, shell } from 'electron'
 import { Disposable } from 'event-kit'
+
 import { Account, IAccount } from '../../models/account'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
@@ -13,12 +16,15 @@ import { Commit } from '../../models/commit'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
-import { v4 as guid } from 'uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
+import { isGitOnPath } from '../open-shell'
+import { uuid } from '../uuid'
+import { URLActionType, IOpenRepositoryArgs } from '../parse-url'
+import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -88,7 +94,7 @@ export class Dispatcher {
   private send<T>(name: string, args: Object): Promise<T> {
     return new Promise<T>((resolve, reject) => {
 
-      const requestGuid = guid()
+      const requestGuid = uuid()
       ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
         const response: IPCResponse<T> = args[0]
         if (response.type === 'result') {
@@ -110,8 +116,8 @@ export class Dispatcher {
   }
 
   private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {
-    const state: { repositories: ReadonlyArray<IRepository>, account: ReadonlyArray<IAccount> } = args[0].state
-    const inflatedAccounts = state.account.map(Account.fromJSON)
+    const state: { repositories: ReadonlyArray<IRepository>, accounts: ReadonlyArray<IAccount> } = args[0].state
+    const inflatedAccounts = state.accounts.map(Account.fromJSON)
     const inflatedRepositories = state.repositories.map(Repository.fromJSON)
     this.appStore._loadFromSharedProcess(inflatedAccounts, inflatedRepositories)
   }
@@ -229,10 +235,10 @@ export class Dispatcher {
 
   /** Select the repository. */
   public async selectRepository(repository: Repository | CloningRepository): Promise<Repository | null> {
-    const repo = this.appStore._selectRepository(repository)
+    let repo = await this.appStore._selectRepository(repository)
 
     if (repository instanceof Repository) {
-      await this.refreshGitHubRepositoryInfo(repository)
+      repo = await this.refreshGitHubRepositoryInfo(repository)
     }
 
     return repo
@@ -299,12 +305,17 @@ export class Dispatcher {
   }
 
   /** Close the current foldout. */
-  public closeFoldout(): Promise<void> {
-    return this.appStore._closeFoldout()
+  public closeFoldout(foldout: FoldoutType): Promise<void> {
+    return this.appStore._closeFoldout(foldout)
   }
 
-  /** Create a new branch from the given starting point and check it out. */
-  public createBranch(repository: Repository, name: string, startPoint: string): Promise<Repository> {
+  /**
+   * Create a new branch from the given starting point and check it out.
+   *
+   * If the startPoint argument is omitted the new branch will be created based
+   * off of the current state of HEAD.
+   */
+  public createBranch(repository: Repository, name: string, startPoint?: string): Promise<Repository> {
     return this.appStore._createBranch(repository, name, startPoint)
   }
 
@@ -422,16 +433,21 @@ export class Dispatcher {
 
   /** Clone the repository to the path. */
   public async clone(url: string, path: string, options: { account: Account | null, branch?: string }): Promise<Repository | null> {
-    const { promise, repository } = this.appStore._clone(url, path, options)
-    await this.selectRepository(repository)
-    const success = await promise
-    // TODO: this exit condition is not great, bob
-    if (!success) { return Promise.resolve(null) }
+    return this.appStore._completeOpenInDesktop(async () => {
+      const { promise, repository } = this.appStore._clone(url, path, options)
+      await this.selectRepository(repository)
+      const success = await promise
+      // TODO: this exit condition is not great, bob
+      if (!success) {
+        return null
+      }
 
-    const addedRepositories = await this.addRepositories([ path ])
-    const addedRepository = addedRepositories[0]
-    await this.selectRepository(addedRepository)
-    return addedRepository
+      const addedRepositories = await this.addRepositories([ path ])
+      const addedRepository = addedRepositories[0]
+      await this.selectRepository(addedRepository)
+
+      return addedRepository
+    })
   }
 
   /** Rename the branch to a new name. */
@@ -459,11 +475,6 @@ export class Dispatcher {
     return this.appStore._undoCommit(repository, commit)
   }
 
-  /** Clear the contextual commit message. */
-  public clearContextualCommitMessage(repository: Repository): Promise<void> {
-    return this.appStore._clearContextualCommitMessage(repository)
-  }
-
   /**
    * Set the width of the repository sidebar to the given
    * value. This affects the changes and history sidebar
@@ -473,6 +484,13 @@ export class Dispatcher {
    */
   public setSidebarWidth(width: number): Promise<void> {
     return this.appStore._setSidebarWidth(width)
+  }
+
+  /**
+   * Set the update banner's visibility
+   */
+  public setUpdateBannerVisibility(isVisible: boolean) {
+    return this.appStore._setUpdateBannerVisibility(isVisible)
   }
 
   /**
@@ -598,9 +616,14 @@ export class Dispatcher {
     return this.appStore._ignore(repository, pattern)
   }
 
-  /** Opens a terminal window with path as the working directory */
-  public openShell(path: string) {
-    return this.appStore._openShell(path)
+  /** Opens a Git-enabled terminal setting the working directory to the repository path */
+  public async openShell(path: string): Promise<void> {
+    const gitFound = await isGitOnPath()
+    if (gitFound) {
+      this.appStore._openShell(path)
+    } else {
+      this.appStore._showPopup({ type: PopupType.InstallGit, path })
+    }
   }
 
   /**
@@ -627,7 +650,7 @@ export class Dispatcher {
 
   /** Set whether the user has opted out of stats reporting. */
   public setStatsOptOut(optOut: boolean): Promise<void> {
-    return this.appStore._setStatsOptOut(optOut)
+    return this.appStore.setStatsOptOut(optOut)
   }
 
   /**
@@ -777,5 +800,79 @@ export class Dispatcher {
 
   public async setAppFocusState(isFocused: boolean): Promise<void> {
     await this.appStore._setAppFocusState(isFocused);
+  }
+
+  public async dispatchURLAction(action: URLActionType): Promise<void> {
+    switch (action.name) {
+      case 'oauth':
+        try {
+          const user = await requestAuthenticatedUser(action.args.code)
+          if (user) {
+            resolveOAuthRequest(user)
+          } else {
+            rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
+          }
+        } catch (e) {
+          rejectOAuthRequest(e)
+        }
+        break
+
+      case 'open-repository':
+        const { pr, url, branch } = action.args
+        // a forked PR will provide both these values, despite the branch not existing
+        // in the repository - drop the branch argument in this case so a clone will
+        // checkout the default branch when it clones
+        const branchToClone = (pr && branch) ? null : (branch || null)
+        const repository = await this.openRepository(url, branchToClone)
+        if (repository) {
+          this.handleCloneInDesktopOptions(repository, action.args)
+        }
+        break
+
+      default:
+        console.log(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
+    }
+  }
+
+  private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryArgs): Promise<void> {
+    const { filepath, pr, branch } = args
+
+    // we need to refetch for a forked PR and check that out
+    if (pr && branch) {
+      await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
+      await this.checkoutBranch(repository, branch)
+    }
+
+    if (filepath) {
+      const fullPath = Path.join(repository.path, filepath)
+      // because Windows uses different path separators here
+      const normalized = Path.normalize(fullPath)
+      shell.openItem(normalized)
+    }
+  }
+
+  private async openRepository(url: string, branch: string | null): Promise<Repository | null> {
+    const state = this.appStore.getState()
+    const repositories = state.repositories
+    const existingRepository = repositories.find(r => {
+      if (r instanceof Repository) {
+        const gitHubRepository = r.gitHubRepository
+        if (!gitHubRepository) { return false }
+        return gitHubRepository.cloneURL === url
+      } else {
+        return false
+      }
+    })
+
+    if (existingRepository) {
+      const repo = await this.selectRepository(existingRepository)
+      if (!repo || !branch) { return repo }
+
+      return this.checkoutBranch(repo, branch)
+    } else {
+      return this.appStore._startOpenInDesktop(() => {
+        this.showPopup({ type: PopupType.CloneRepository, initialURL: url })
+      })
+    }
   }
 }

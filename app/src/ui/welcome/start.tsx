@@ -1,12 +1,8 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { LinkButton } from '../lib/link-button'
-import { Button } from '../lib/button'
 
 const CreateAccountURL = 'https://github.com/join?source=github-desktop'
-
-const WelcomeImageUri = `file:///${__dirname}/static/space.png`
-const WelcomeImageDimensions = { width: 552, height: 307 }
 
 interface IStartProps {
   readonly advance: (step: WelcomeStep) => void
@@ -17,19 +13,35 @@ export class Start extends React.Component<IStartProps, void> {
   public render() {
     return (
       <div id='start'>
-        <img src={WelcomeImageUri} style={WelcomeImageDimensions}/>
+        <h1 className='welcome-title'>
+          Welcome to GitHub&nbsp;Desktop
+        </h1>
+        <p className='welcome-text'>
+          GitHub Desktop is a seamless way to contribute to projects on GitHub
+          and GitHub Enterprise. Sign in below to get started with your existing
+          projects.
+        </p>
 
-        <h1 className='welcome-title'>Welcome to GitHub Desktop</h1>
-        <h2 className='welcome-text'>Get started by signing into GitHub.com or your GitHub Enterprise server.</h2>
-        <div className='actions'>
-          <Button type='submit' className='welcome-button' onClick={this.signInToDotCom}>GitHub.com</Button>
-          <Button type='submit' className='welcome-button' onClick={this.signInToEnterprise}>GitHub Enterprise</Button>
+        <p className='welcome-text'>
+          New to GitHub? <LinkButton uri={CreateAccountURL}>Create your free account.</LinkButton>
+        </p>
+
+        <hr className='short-rule' />
+
+        <div>
+          <LinkButton className='welcome-button' onClick={this.signInToDotCom}>
+            Sign into GitHub.com
+          </LinkButton>
         </div>
 
         <div>
-          <LinkButton uri={CreateAccountURL}>Create an account</LinkButton>
-          {' or '}
-          <LinkButton onClick={this.skip}>skip this step</LinkButton>
+          <LinkButton className='welcome-button' onClick={this.signInToEnterprise}>
+            Sign into GitHub Enterprise
+          </LinkButton>
+        </div>
+
+        <div className='skip-action-container'>
+          <LinkButton className='skip-button' onClick={this.skip}>Skip this step</LinkButton>
         </div>
       </div>
     )

@@ -5,6 +5,7 @@ import { groupRepositories, IRepositoryListItem, Repositoryish, RepositoryGroupI
 import { Dispatcher } from '../../lib/dispatcher'
 import { FilterList } from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
+import { FoldoutType } from '../../lib/app-state'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
@@ -16,7 +17,6 @@ interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly onSelectionChanged: (repository: Repositoryish) => void
   readonly dispatcher: Dispatcher
-  readonly loading: boolean
   readonly repositories: ReadonlyArray<Repositoryish>
 }
 
@@ -57,17 +57,13 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
   private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       if (filter.length === 0) {
-        this.props.dispatcher.closeFoldout()
+        this.props.dispatcher.closeFoldout(FoldoutType.Repository)
         event.preventDefault()
       }
     }
   }
 
   public render() {
-    if (this.props.loading) {
-      return this.loading()
-    }
-
     if (this.props.repositories.length < 1) {
       return this.noRepositories()
     }
@@ -107,15 +103,6 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
       <div className='repository-list'>
         <div className='filter-list'>
           <div className='sidebar-message'>No repositories</div>
-        </div>
-      </div>)
-  }
-
-  private loading() {
-    return (
-      <div className='repository-list'>
-        <div className='filter-list'>
-          <div className='sidebar-message'>Loading…</div>
         </div>
       </div>)
   }

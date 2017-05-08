@@ -150,31 +150,32 @@ export class RepositoriesStore {
       } else {
         const owner = newGitHubRepo.owner
         const existingOwner = yield db.owners
-          .where('login')
-          .equalsIgnoreCase(owner.login)
+          .where('[endpoint+login]')
+          .equals([ owner.endpoint, owner.login.toLowerCase() ])
           .limit(1)
           .first()
         if (existingOwner) {
           ownerID = existingOwner.id
         } else {
-          ownerID = yield db.owners.add({ login: owner.login, endpoint: owner.endpoint })
+          ownerID = yield db.owners.add({ login: owner.login.toLowerCase(), endpoint: owner.endpoint })
         }
       }
 
-      const info: any = {
+      let updatedInfo = {
         private: newGitHubRepo.private,
         fork: newGitHubRepo.fork,
         htmlURL: newGitHubRepo.htmlURL,
         name: newGitHubRepo.name,
-        ownerID,
+        ownerID: ownerID!,
         cloneURL: newGitHubRepo.cloneURL,
+        defaultBranch: newGitHubRepo.defaultBranch,
       }
 
       if (existingGitHubRepo) {
-        info.id = existingGitHubRepo.id
+        updatedInfo = { ...updatedInfo, id: existingGitHubRepo.id }
       }
 
-      gitHubRepositoryID = yield db.gitHubRepositories.put(info)
+      gitHubRepositoryID = yield db.gitHubRepositories.put(updatedInfo)
       yield db.repositories.update(localRepo.id, { gitHubRepositoryID })
     })
 

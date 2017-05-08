@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
@@ -12,6 +12,7 @@ import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocomplet
 import { ICommitMessage } from '../../lib/app-state'
 import { ClickSource } from '../list'
 import { WorkingDirectoryFileChange } from '../../models/status'
+import { CSSTransitionGroup } from 'react-transition-group'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -33,6 +34,7 @@ interface IChangesSidebarProps {
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
 }
 
@@ -156,26 +158,27 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     let child: JSX.Element | null = null
     if (commit) {
       child = <UndoCommit
+        isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
         commit={commit}
         onUndo={this.onUndo}
         emoji={this.props.emoji}/>
     }
 
     return (
-      <ReactCSSTransitionGroup
+      <CSSTransitionGroup
         transitionName='undo'
         transitionAppear={true}
         transitionAppearTimeout={UndoCommitAnimationTimeout}
         transitionEnterTimeout={UndoCommitAnimationTimeout}
         transitionLeaveTimeout={UndoCommitAnimationTimeout}>
         {child}
-      </ReactCSSTransitionGroup>
+      </CSSTransitionGroup>
     )
   }
 
   public render() {
     const changesState = this.props.changes
-    const selectedFile = changesState.selectedFile
+    const selectedFileID = changesState.selectedFileID
 
     // TODO: I think user will expect the avatar to match that which
     // they have configured in GitHub.com as well as GHE so when we add
@@ -193,7 +196,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           workingDirectory={changesState.workingDirectory}
-          selectedFile={selectedFile}
+          selectedFileID={selectedFileID}
           onFileSelectionChanged={this.onFileSelectionChanged}
           onCreateCommit={this.onCreateCommit}
           onIncludeChanged={this.onIncludeChanged}

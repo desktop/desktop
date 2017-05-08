@@ -1,7 +1,102 @@
 {
   "releases": {
-    "0.0.32": [
+    "0.0.40": [
 
+    ],
+    "0.0.39": [
+      "[Fixed] An uncaught exception when adding a user - #1394"
+    ],
+    "0.0.38": [
+      "[New] Shiny new icon! - #1221",
+      "[New] More helpful blank slate view - #871",
+      "[Fixed] Don't allow Undo while pushing/pulling/fetching - #1047",
+      "[Fixed] Updating the default branch on GitHub wouldn't be reflected in the app - #1028 #1314",
+      "[Fixed] Long repository names would overflow their container - #1331",
+      "[Fixed] Removed development menu items in production builds - #1031 #1251 #1323 #1340",
+      "[Fixed] Create Branch no longer changes as it's animating closed - #1304",
+      "[Fixed] Windows: Cut / Copy / Paste menu items not working - #1379",
+      "[Improved] Show a better error message when the user tries to authenticate with a personal access token - #1313",
+      "[Improved] Link to the repository New Issue page from the Help menu - #1349",
+      "[Improved] Clone in Desktop opens the Clone dialog - #918"
+    ],
+    "0.0.37": [
+      "[Fixed] Better display of the 'no newline at end of file' indicator - #1253",
+      "[Fixed] macOS: Destructive dialogs now use the expected button order - #1315",
+      "[Fixed] Display of submodule paths - #785",
+      "[Fixed] Incomplete stats submission - #1337",
+      "[Improved] Redesigned welcome flow - #1254",
+      "[Improved] App launch time - #1225",
+      "[Improved] Handle uncaught exceptions - #1106"
+    ],
+    "0.0.36": [
+      "[Fixed] Bugs around associating an email address with a GitHub user - #975",
+      "[Fixed] Use the correct reference name for an unborn branch - #1283",
+      "[Fixed] Better diffs for renamed files - #980",
+      "[Fixed] Typo in Create Branch - #1303",
+      "[Fixed] Don't allow whitespace-only branch names - #1288",
+      "[Improved] Focus ring polish - #1287",
+      "[Improved] Less intrusive update notifications - #1136",
+      "[Improved] Faster launch time on Windows - #1309",
+      "[Improved] Faster git information refreshing - #1305",
+      "[Improved] More consistent use of sentence case on Windows - #1316",
+      "[Improved] Autocomplete polish - #1241"
+    ],
+    "0.0.35": [
+      "[New] Show push/pull/fetch progress - #1238",
+      "[Fixed] macOS: Add the Zoom menu item - #1260",
+      "[Fixed] macOS: Don't show the titlebar while full screened - #1247",
+      "[Fixed] Windows: Updates would make the app unresponsive - #1269",
+      "[Fixed] Windows: Keyboard navigation in menus - #1293",
+      "[Fixed] Windows: Repositories list item not working - #1293",
+      "[Fixed] Auto updater errors not being propagated properly - #1266",
+      "[Fixed] Only show the current branch tooltip on the branches button - #1275",
+      "[Fixed] Double path truncation - #1270",
+      "[Fixed] Sometimes toggling a file's checkbox would get undone - #1248",
+      "[Fixed] Uncaught exception when internet connectivity was lost - #1048",
+      "[Fixed] Cloned repositories wouldn't be associated with their GitHub repository - #1285",
+      "[Improved] Better performance on large repositories - #1281",
+      "[Improved] Commit summary is now expandable when the summary is long - #519",
+      "[Improved] The SHA in historical commits is now selectable - #1154",
+      "[Improved] The Create Branch dialog was polished and refined - #1137"
+    ],
+    "0.0.34": [
+      "[New] macOS: Users can choose whether to accept untrusted certificates - #671",
+      "[New] Windows: Users are prompted to install git when opening a shell if it is not installed - #813",
+      "[New] Checkout progress is shown if branch switching takes a while - #1208",
+      "[New] Commit summary and description are automatically populated for merge conflicts - #1228",
+      "[Fixed] Cloning repositories while not signed in - #1163",
+      "[Fixed] Merge commits are now created as merge commits - #1216",
+      "[Fixed] Display of diffs with /r newline - #1234",
+      "[Fixed] Windows: Maximized windows are no longer positioned slightly off screen - #1202",
+      "[Fixed] JSON parse errors - #1243",
+      "[Fixed] GitHub Enterprise repositories were not associated with the proper Enterprise repository - #1242",
+      "[Fixed] Timestamps in the Branches list would wrap - #1255",
+      "[Fixed] Merges created from pulling wouldn't use the right git author - #1262",
+      "[Improved] Check for update errors are suppressed if they happen in the background - #1104, #1195",
+      "[Improved] The shortcut to show the repositories list is now command or control-T - #1220",
+      "[Improved] Command or control-W now closes open dialogs - #949",
+      "[Improved] Less memory usage while parsing large diffs - #1235"
+    ],
+    "0.0.33": [
+      "[Fixed] Update Now wouldn't update now - #1209"
+    ],
+    "0.0.32": [
+      "[New] You can now disable stats reporting from Preferences > Advanced - #1120",
+      "[New] Acknowledgements are now available from About - #810",
+      "[New] Open pull requests from dot com in the app - #808",
+      "[Fixed] Don't show background fetch errors - #875",
+      "[Fixed] No more surprise and delight - #620",
+      "[Fixed] Can't discard renamed files - #1177",
+      "[Fixed] Logging out of one account would log out of all accounts - #1192",
+      "[Fixed] Renamed files truncation - #695",
+      "[Fixed] Git on Windows now integrates with the system certificate store - #706",
+      "[Fixed] Cloning with an account/repoository shortcut would always fail - #1150",
+      "[Fixed] OS version reporting - #1130",
+      "[Fixed] Publish a new repository would always fail - #1046",
+      "[Fixed] Authentication would fail for the first repository after logging in - #1118",
+      "[Fixed] Don't flood the user with errors if a repository disappears on disk - #1132",
+      "[Improved] The Merge dialog uses the Branches list instead of a drop down menu - #749",
+      "[Improved] Lots of design polish - #1188, #1183, #1170, #1184, #1181, #1179, #1142, #1125"
     ],
     "0.0.31": [
       "[New] Prompt user to login when authentication error occurs - #903",

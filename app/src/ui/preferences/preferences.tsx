@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher, AppStore } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
+import { Advanced } from './advanced'
 import { Git } from './git'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
@@ -12,6 +13,7 @@ import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
+  readonly appStore: AppStore
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
   readonly onDismissed: () => void
@@ -19,13 +21,15 @@ interface IPreferencesProps {
 
 enum PreferencesTab {
   Accounts = 0,
-  Git
+  Git,
+  Advanced
 }
 
 interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
-  readonly committerName: string,
+  readonly committerName: string
   readonly committerEmail: string
+  readonly isOptedOut: boolean
 }
 
 /** The app-level preferences component. */
@@ -37,12 +41,14 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       selectedIndex: PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
+      isOptedOut: false,
     }
   }
 
   public async componentWillMount() {
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
+    const isOptedOut = this.props.appStore.getStatsOptOut()
 
     if (!committerName || !committerEmail) {
       const account = this.props.dotComAccount || this.props.enterpriseAccount
@@ -62,7 +68,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
-    this.setState({ committerName, committerEmail })
+    this.setState({ committerName, committerEmail, isOptedOut })
   }
 
   public render() {
@@ -76,6 +82,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedIndex}>
           <span>Accounts</span>
           <span>Git</span>
+          <span>Advanced</span>
         </TabBar>
 
         {this.renderActiveTab()}
@@ -117,14 +124,23 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
           onEmailChanged={this.onCommitterEmailChanged}
         />
       }
+      case PreferencesTab.Advanced: {
+        return <Advanced
+          onOptOutSet={this.onOptOutSet}
+          isOptedOut={this.state.isOptedOut}
+        />
+      }
       default: return assertNever(index, `Unknown tab index: ${index}`)
     }
+  }
+
+  private onOptOutSet = (isOptedOut: boolean) => {
+    this.setState({ isOptedOut })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
     this.setState({ committerName })
   }
-
 
   private onCommitterEmailChanged = (committerEmail: string) => {
     this.setState({ committerEmail })
@@ -134,6 +150,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     const index = this.state.selectedIndex
     switch (index) {
       case PreferencesTab.Accounts: return null
+      case PreferencesTab.Advanced:
       case PreferencesTab.Git: {
         return (
           <DialogFooter>
@@ -151,6 +168,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
   private onSave = async () => {
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
+    this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
 
     this.props.onDismissed()
   }

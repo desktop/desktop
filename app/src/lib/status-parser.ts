@@ -1,5 +1,14 @@
+type StatusItem = IStatusHeader | IStatusEntry
+
+export interface IStatusHeader {
+  readonly kind: 'header'
+  readonly value: string
+}
+
 /** A representation of a parsed status entry from git status */
 export interface IStatusEntry {
+  readonly kind: 'entry'
+
   /** The path to the file relative to the repository root */
   readonly path: string,
 
@@ -10,9 +19,15 @@ export interface IStatusEntry {
   readonly oldPath?: string
 }
 
+const ChangedEntryType = '1'
+const RenamedOrCopiedEntryType = '2'
+const UnmergedEntryType = 'u'
+const UntrackedEntryType = '?'
+const IgnoredEntryType = '!'
+
 /** Parses output from git status --porcelain -z into file status entries */
-export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusEntry> {
-  const entries = new Array<IStatusEntry>()
+export function parsePorcelainStatus(output: string): ReadonlyArray<StatusItem> {
+  const entries = new Array<StatusItem>()
 
   // See https://git-scm.com/docs/git-status
   //
@@ -32,22 +47,93 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusEntry
   let field: string | undefined
 
   while (field = fields.shift()) {
-    // The status field is two letters followed by a space
-    // and then comes the path.
-    const statusCode = field.substr(0, 2)
-    const path = field.substr(3)
 
-    let oldPath: string | undefined = undefined
-
-    // In the case of renames there's one more field separated
-    // by a null character which holds the source/original path
-    // before the rename.
-    if (statusCode.startsWith('R') || statusCode.startsWith('C')) {
-      oldPath = fields.shift()
+    if (field.startsWith('# ') && field.length > 2) {
+      entries.push({ kind: 'header', value: field.substr(2) })
+      continue
     }
 
-    entries.push({ path, statusCode, oldPath })
+    const entryKind = field.substr(0, 1)
+
+    if (entryKind === ChangedEntryType) {
+      entries.push(parseChangedEntry(field))
+    } else if (entryKind === RenamedOrCopiedEntryType) {
+      entries.push(parsedRenamedOrCopiedEntry(field, fields.shift()))
+    } else if (entryKind === UnmergedEntryType) {
+      entries.push(parseUnmergedEntry(field))
+    } else if (entryKind === UntrackedEntryType) {
+      entries.push(parseUntrackedEntry(field))
+    } else if (entryKind === IgnoredEntryType) {
+      // Ignored, we don't care about these for now
+    }
   }
 
   return entries
+}
+
+// 1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>
+const changedEntryRe = /^1 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/
+
+function parseChangedEntry(field: string): IStatusEntry {
+  const match = changedEntryRe.exec(field)
+
+  if (!match) {
+    throw new Error(`Failed to parse status line for changed entry: ${field}`)
+  }
+
+  return {
+    kind: 'entry',
+    statusCode: match[1],
+    path: match[8],
+  }
+}
+
+// 2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>
+const renamedOrCopiedEntryRe = /^2 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([RC]\d+) (.*?)$/
+
+function parsedRenamedOrCopiedEntry(field: string, oldPath: string | undefined): IStatusEntry {
+  const match = renamedOrCopiedEntryRe.exec(field)
+
+  if (!match) {
+    throw new Error(`Failed to parse status line for renamed or copied entry: ${field}`)
+  }
+
+  if (!oldPath) {
+    throw new Error('Failed to parse renamed or copied entry, could not parse old path')
+  }
+
+  return {
+    kind: 'entry',
+    statusCode: match[1],
+    oldPath,
+    path: match[9],
+  }
+}
+
+// u <xy> <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>
+const unmergedEntryRe = /^u ([DAU]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([a-f0-9]+) (.*?)$/
+
+function parseUnmergedEntry(field: string): IStatusEntry {
+  const match = unmergedEntryRe.exec(field)
+
+  if (!match) {
+    throw new Error(`Failed to parse status line for unmerged entry: ${field}`)
+  }
+
+  return {
+    kind: 'entry',
+    statusCode: match[1],
+    path: match[10],
+  }
+}
+
+function parseUntrackedEntry(field: string): IStatusEntry {
+  const path = field.substr(2)
+  return {
+    kind: 'entry',
+    // NOTE: We return ?? instead of ? here to play nice with mapStatus,
+    // might want to consider changing this (and mapStatus) in the future.
+    statusCode: '??',
+    path,
+  }
 }

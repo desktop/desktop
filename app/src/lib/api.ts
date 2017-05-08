@@ -1,20 +1,23 @@
 import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
-import { v4 as guid } from 'uuid'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
-import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
+import { HTTPMethod, request, deserialize, getUserAgent } from './http'
 import { AuthenticationMode } from './2fa'
+import { uuid } from './uuid'
+
+import { getLogger } from '../lib/logging/renderer'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 
-const ClientID = 'de0e3c7e9973e1c4dd77'
+const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
-if (!ClientSecret || !ClientSecret.length) {
-  console.warn(`DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
+
+if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
+  console.warn(`DESKTOP_OAUTH_CLIENT_ID and/or DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
 }
 
 /** The OAuth scopes we need. */
@@ -27,17 +30,38 @@ const Scopes = [
 const NoteURL = 'https://desktop.github.com/'
 
 /**
+ * The plugins we'll use with Octokat.
+ *
+ * Most notably, this doesn't include:
+ *   - hypermedia
+ *   - camel-case
+ * Both take a _lot_ of time in post-processing and are unnecessary.
+ */
+const OctokatPlugins = [
+  require('octokat/dist/node/plugins/object-chainer'),
+  require('octokat/dist/node/plugins/path-validator'),
+  require('octokat/dist/node/plugins/authorization'),
+  require('octokat/dist/node/plugins/preview-apis'),
+  require('octokat/dist/node/plugins/use-post-instead-of-patch'),
+
+  require('octokat/dist/node/plugins/simple-verbs'),
+  require('octokat/dist/node/plugins/fetch-all'),
+
+  require('octokat/dist/node/plugins/read-binary'),
+  require('octokat/dist/node/plugins/pagination'),
+]
+
+/**
  * Information about a repository as returned by the GitHub API.
  */
 export interface IAPIRepository {
-  readonly cloneUrl: string
-  readonly htmlUrl: string
+  readonly clone_url: string
+  readonly html_url: string
   readonly name: string
   readonly owner: IAPIUser
   readonly private: boolean
   readonly fork: boolean
-  readonly stargazersCount: number
-  readonly defaultBranch: string
+  readonly default_branch: string
 }
 
 /**
@@ -56,7 +80,7 @@ export interface IAPIUser {
   readonly url: string
   readonly type: 'user' | 'org'
   readonly login: string
-  readonly avatarUrl: string
+  readonly avatar_url: string
   readonly name: string
 }
 
@@ -159,7 +183,12 @@ export class API {
 
   public constructor(account: Account) {
     this.account = account
-    this.client = new Octokat({ token: account.token, rootURL: account.endpoint })
+    this.client = new Octokat({
+      token: account.token,
+      rootURL: account.endpoint,
+      plugins: OctokatPlugins,
+      userAgent: getUserAgent(),
+    })
   }
 
   /**
@@ -187,6 +216,7 @@ export class API {
     try {
       return await this.client.repos(owner, name).fetch()
     } catch (e) {
+      getLogger().error(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
       return null
     }
   }
@@ -209,6 +239,7 @@ export class API {
       const commit = await this.client.repos(owner, name).commits(sha).fetch()
       return commit
     } catch (e) {
+      getLogger().error(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
       return null
     }
   }
@@ -222,6 +253,7 @@ export class API {
       const user = result.items[0]
       return user
     } catch (e) {
+      getLogger().error(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
       return null
     }
   }
@@ -267,19 +299,23 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
-  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<IHTTPResponse> {
+  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
     return request(this.account.endpoint, `token ${this.account.token}`, method, path, body, customHeaders)
   }
 
-  /** Get the allowed poll interval for fetching. */
-  public async getFetchPollInterval(owner: string, name: string): Promise<number> {
+  /**
+   * Get the allowed poll interval for fetching. If an error occurs it will
+   * return null.
+   */
+  public async getFetchPollInterval(owner: string, name: string): Promise<number | null> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
     const response = await this.authenticatedRequest('HEAD', path)
-    const interval = getHeader(response, 'x-poll-interval')
+    const interval = response.headers.get('x-poll-interval')
     if (interval) {
-      return parseInt(interval, 10)
+      const parsed = parseInt(interval, 10)
+      return isNaN(parsed) ? null : parsed
     }
-    return 0
+    return null
   }
 
   /** Fetch the mentionable users for the repository. */
@@ -294,10 +330,12 @@ export class API {
     }
 
     const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
-    const users = deserialize<ReadonlyArray<IAPIMentionableUser>>(response.body)
+    if (!response.ok) { return null }
+
+    const users = await deserialize<ReadonlyArray<IAPIMentionableUser>>(response)
     if (!users) { return null }
 
-    const responseEtag = getHeader(response, 'etag')
+    const responseEtag = response.headers.get('etag')
     return { users, etag: responseEtag || '' }
   }
 }
@@ -307,14 +345,16 @@ export enum AuthorizationResponseKind {
   Failed,
   TwoFactorAuthenticationRequired,
   UserRequiresVerification,
+  PersonalAccessTokenBlocked,
   Error,
 }
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
-                                    { kind: AuthorizationResponseKind.Failed, response: IHTTPResponse } |
+                                    { kind: AuthorizationResponseKind.Failed, response: Response } |
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
-                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponse } |
-                                    { kind: AuthorizationResponseKind.UserRequiresVerification }
+                                    { kind: AuthorizationResponseKind.Error, response: Response } |
+                                    { kind: AuthorizationResponseKind.UserRequiresVerification } |
+                                    { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -333,11 +373,11 @@ export async function createAuthorization(endpoint: string, login: string, passw
     'client_secret': ClientSecret,
     'note': note,
     'note_url': NoteURL,
-    'fingerprint': guid(),
+    'fingerprint': uuid(),
   }, headers)
 
-  if (response.statusCode === 401) {
-    const otpResponse = getHeader(response, 'x-github-otp')
+  if (response.status === 401) {
+    const otpResponse = response.headers.get('x-github-otp')
     if (otpResponse) {
       const pieces = otpResponse.split(';')
       if (pieces.length === 2) {
@@ -356,8 +396,17 @@ export async function createAuthorization(endpoint: string, login: string, passw
     return { kind: AuthorizationResponseKind.Failed, response }
   }
 
-  if (response.statusCode === 422) {
-    const apiError = deserialize<IAPIError>(response.body)
+  if (response.status === 403) {
+    const body = await response.json()
+    if (body.message === 'This API can only be accessed with username and password Basic Auth') {
+      // Authorization API does not support providing personal access tokens
+      return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
+    }
+    return { kind: AuthorizationResponseKind.Error, response }
+  }
+
+  if (response.status === 422) {
+    const apiError = await deserialize<IAPIError>(response)
     if (apiError) {
       for (const error of apiError.errors) {
         const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
@@ -369,7 +418,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
     }
   }
 
-  const body = deserialize<IAPIAuthorization>(response.body)
+  const body = await deserialize<IAPIAuthorization>(response)
   if (body) {
     const token = body.token
     if (token && typeof token === 'string' && token.length) {
@@ -404,20 +453,16 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
         'Content-Type': 'application/json',
       },
     })
+    if (!response.ok) { return null }
 
-    if (response.status !== 200) {
-      return null
-    }
-
-    const text = await response.text()
-    const body = deserialize<IServerMetadata>(text)
+    const body = await deserialize<IServerMetadata>(response)
     if (!body || body.verifiable_password_authentication === undefined) {
       return null
     }
 
     return body
-  } catch (error) {
-    console.error(`Failed to load metadata from ${url}: ${error}`)
+  } catch (e) {
+    getLogger().error(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
     return null
   }
 }
@@ -428,9 +473,7 @@ async function getNote(): Promise<string> {
   try {
     localUsername = await username()
   } catch (e) {
-    console.log(`Error getting username:`)
-    console.error(e)
-    console.log(`We'll just use 'unknown'.`)
+    getLogger().error(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
@@ -517,8 +560,9 @@ export async function requestOAuthToken(endpoint: string, state: string, code: s
     'code': code,
     'state': state,
   })
+  if (!response.ok) { return null }
 
-  const body = deserialize<IAPIAccessToken>(response.body)
+  const body = await deserialize<IAPIAccessToken>(response)
   if (body) {
     return body.access_token
   }

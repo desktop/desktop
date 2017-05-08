@@ -26,7 +26,11 @@
     box-shadow: 0 0 0 1px var(--secondary-button-focus-shadow-color);
   }
 
-  &:disabled { opacity: 0.3; }
+  &:disabled { opacity: 0.6; }
+
+  .octicon {
+    vertical-align: middle;
+  }
 }
 
 .button-component[type='submit'] {
@@ -40,7 +44,6 @@
   }
 
   &:focus {
-    outline: none;
     border: 1px solid var(--button-focus-border-color);
     background-color: var(--button-hover-background);
     box-shadow: 0 0 0 2px var(--text-field-focus-shadow-color);

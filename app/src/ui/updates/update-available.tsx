@@ -1,12 +1,11 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
-import { Dispatcher } from '../../lib/dispatcher'
+import { LinkButton } from '../lib/link-button'
 import { updateStore } from '../lib/update-store'
-import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IUpdateAvailableProps {
-  readonly dispatcher: Dispatcher
+  readonly releaseNotesLink: string,
+  readonly onDismissed: () => void
 }
 
 /**
@@ -14,25 +13,28 @@ interface IUpdateAvailableProps {
  * option of moving into the future or being a luddite.
  */
 export class UpdateAvailable extends React.Component<IUpdateAvailableProps, void> {
+
   public render() {
     return (
-      <Dialog
+      <div
         id='update-available'
-        title={__DARWIN__ ? 'Update Available' : 'Update available'}
+        className='active'
         onSubmit={this.updateNow}
-        onDismissed={this.dismiss}
       >
-        <DialogContent>
-          GitHub Desktop will be updated after it restarts!
-        </DialogContent>
+        <Octicon
+          className='icon'
+          symbol={OcticonSymbol.desktopDownload} />
 
-        <DialogFooter>
-          <ButtonGroup>
-            <Button type='submit'>{__DARWIN__ ? 'Update Now' : 'Update now'}</Button>
-            <Button onClick={this.dismiss}>Cancel</Button>
-          </ButtonGroup>
-        </DialogFooter>
-      </Dialog>
+        <span>
+          An updated version of GitHub Desktop is available and will be installed at the next launch. See <LinkButton uri={this.props.releaseNotesLink}>what's new</LinkButton> or <LinkButton onClick={this.updateNow}>restart now</LinkButton>.
+        </span>
+
+        <a
+          className='close'
+          onClick={this.dismiss}>
+          <Octicon symbol={OcticonSymbol.x} />
+        </a>
+      </div>
     )
   }
 
@@ -41,6 +43,6 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps, void
   }
 
   private dismiss = () => {
-    this.props.dispatcher.closePopup()
+    this.props.onDismissed()
   }
 }
