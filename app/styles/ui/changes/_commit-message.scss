@@ -33,6 +33,15 @@
 
   .commit-button {
     margin-top: var(--spacing);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .octicon {
+      flex-shrink: 0;
+      flex-grow: 0;
+      margin-right: var(--spacing-half);
+    }
 
     /* Due to some weirdo bug in Chrome that affects Windows
      * and possible other platforms we can't change the opacity
