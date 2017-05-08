@@ -84,7 +84,7 @@ export class Dispatcher {
   public async loadInitialState(): Promise<void> {
     const users = await this.loadUsers()
     const repositories = await this.loadRepositories()
-    this.appStore._loadFromSharedProcess(users, repositories)
+    this.appStore._loadFromSharedProcess(users, repositories, true)
   }
 
   private dispatchToSharedProcess<T>(action: Action): Promise<T> {
@@ -119,7 +119,7 @@ export class Dispatcher {
     const state: { repositories: ReadonlyArray<IRepository>, accounts: ReadonlyArray<IAccount> } = args[0].state
     const inflatedAccounts = state.accounts.map(Account.fromJSON)
     const inflatedRepositories = state.repositories.map(Repository.fromJSON)
-    this.appStore._loadFromSharedProcess(inflatedAccounts, inflatedRepositories)
+    this.appStore._loadFromSharedProcess(inflatedAccounts, inflatedRepositories, false)
   }
 
   /** Get the users */
