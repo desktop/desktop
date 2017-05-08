@@ -57,7 +57,10 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
 
   public render() {
     const textEntryDisabled = this.props.loading
-    const signInDisabled = !this.state.otp.length || this.props.loading
+
+    // ensure user has entered non-whitespace characters
+    const codeProvided = /\S+/.test(this.state.otp)
+    const signInDisabled = !codeProvided || this.props.loading
     const errors =  this.props.error
       ? <Errors>{this.props.error.message}</Errors>
       : null
@@ -73,7 +76,7 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
             label='Authentication code'
             disabled={textEntryDisabled}
             autoFocus={true}
-            onChange={this.onOTPChange}/>
+            onValueChanged={this.onOTPChange}/>
 
           {errors}
 
@@ -88,8 +91,8 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     )
   }
 
-  private onOTPChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({ otp: event.currentTarget.value })
+  private onOTPChange = (text: string) => {
+    this.setState({ otp: text })
   }
 
   private signIn = () => {

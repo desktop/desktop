@@ -124,6 +124,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         primaryButtonText = 'Continue'
         break
       case SignInStep.TwoFactorAuthentication:
+        // ensure user has entered non-whitespace characters
+        const codeProvided = /\S+/.test(this.state.otpToken)
+        disableSubmit = !codeProvided
         primaryButtonText = 'Sign in'
         break
       case SignInStep.Authentication:
