@@ -42,6 +42,7 @@ import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
+import { sendReady } from './main-process-proxy'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -51,12 +52,20 @@ const SendStatsInterval = 1000 * 60 * 60 * 4
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
+  readonly startTime: number
 }
 
 export const dialogTransitionEnterTimeout = 250
 export const dialogTransitionLeaveTimeout = 100
 
+/**
+ * The time to delay (in ms) from when we've loaded the initial state to showing
+ * the window.
+ */
+const ReadyDelay = 100
+
 export class App extends React.Component<IAppProps, IAppState> {
+  private loading = true
 
   /**
    * Used on non-macOS platforms to support the Alt key behavior for
@@ -75,6 +84,15 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   public constructor(props: IAppProps) {
     super(props)
+
+    props.dispatcher.loadInitialState().then(() => {
+      const now = Date.now()
+      console.info('loaded', now - props.startTime)
+
+      this.loading = false
+      this.forceUpdate()
+
+    })
 
     this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
@@ -1133,6 +1151,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   public render() {
+    if (this.loading) {
+      return null
+    }
+
     return (
       <div id='desktop-app-chrome'>
         {this.renderTitlebar()}

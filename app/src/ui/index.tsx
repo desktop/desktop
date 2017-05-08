@@ -8,7 +8,6 @@ import { App } from './app'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import { SelectionType } from '../lib/app-state'
-import { sendReady } from './main-process-proxy'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { reportError } from './lib/exception-reporting'
 import { getVersion } from './lib/app-proxy'
@@ -88,11 +87,6 @@ dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 dispatcher.registerErrorHandler(unhandledExceptionHandler)
 
-dispatcher.loadInitialState().then(() => {
-  const now = Date.now()
-  sendReady(now - startTime)
-})
-
 document.body.classList.add(`platform-${process.platform}`)
 
 ipcRenderer.on('focus', () => {
@@ -114,6 +108,6 @@ ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { ac
 })
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore} startTime={startTime}/>,
   document.getElementById('desktop-app-container')!
 )
