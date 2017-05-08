@@ -1,3 +1,5 @@
+import { FileStatus, GitFileStatus } from '../models/status'
+
 type StatusItem = IStatusHeader | IStatusEntry
 
 export interface IStatusHeader {
@@ -135,5 +137,196 @@ function parseUntrackedEntry(field: string): IStatusEntry {
     // might want to consider changing this (and mapStatus) in the future.
     statusCode: '??',
     path,
+  }
+}
+
+
+/**
+ * Map the raw status text from Git to a structure we can work with in the app.
+ *
+ * This relies on the porcelain v2 format and status codes, so for
+ * interoperability the existing v1 code is still around for now.
+ */
+export function mapStatus(status: string): FileStatus {
+
+  if (status === '??') {
+    return {
+      kind: 'untracked',
+      staged: GitFileStatus.Untracked,
+      unstaged: GitFileStatus.Untracked,
+    }
+  }
+
+  if (status === '.M') {
+    return {
+      kind: 'ordinary',
+      type: 'modified',
+      staged: GitFileStatus.Unchanged,
+      unstaged: GitFileStatus.Modified,
+    }
+  }
+
+  if (status === 'M.') {
+    return {
+      kind: 'ordinary',
+      type: 'modified',
+      staged: GitFileStatus.Modified,
+      unstaged: GitFileStatus.Unchanged,
+    }
+  }
+
+  if (status === '.A') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      staged: GitFileStatus.Unchanged,
+      unstaged: GitFileStatus.Added,
+    }
+  }
+
+  if (status === 'A.') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      staged: GitFileStatus.Added,
+      unstaged: GitFileStatus.Unchanged,
+    }
+  }
+
+  if (status === '.D') {
+    return {
+      kind: 'ordinary',
+      type: 'deleted',
+      staged: GitFileStatus.Unchanged,
+      unstaged: GitFileStatus.Deleted,
+    }
+  }
+
+  if (status === 'D.') {
+    return {
+      kind: 'ordinary',
+      type: 'deleted',
+      staged: GitFileStatus.Deleted,
+      unstaged: GitFileStatus.Unchanged,
+    }
+  }
+
+  if (status === 'R.') {
+    return {
+      kind: 'renamed',
+      staged: GitFileStatus.Renamed,
+      unstaged: GitFileStatus.Unchanged,
+    }
+  }
+
+  if (status === '.R') {
+    return {
+      kind: 'renamed',
+      staged: GitFileStatus.Unchanged,
+      unstaged: GitFileStatus.Renamed,
+    }
+  }
+
+  if (status === 'C.') {
+    return {
+      kind: 'copied',
+      staged: GitFileStatus.Renamed,
+      unstaged: GitFileStatus.Unchanged,
+    }
+  }
+
+  if (status === '.C') {
+    return {
+      kind: 'copied',
+      staged: GitFileStatus.Unchanged,
+      unstaged: GitFileStatus.Renamed,
+    }
+  }
+
+  if (status === 'AM') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      staged: GitFileStatus.Added,
+      unstaged: GitFileStatus.Modified,
+    }
+  }
+
+  if (status === 'RM') {
+    return {
+      kind: 'renamed',
+      staged: GitFileStatus.Renamed,
+      unstaged: GitFileStatus.Modified,
+    }
+  }
+
+  if (status === 'RD') {
+    return {
+      kind: 'renamed',
+      staged: GitFileStatus.Renamed,
+      unstaged: GitFileStatus.Deleted,
+    }
+  }
+
+  if (status === 'DD') {
+    return {
+      kind: 'conflicted',
+      us: GitFileStatus.Deleted,
+      them: GitFileStatus.Deleted,
+    }
+  }
+
+  if (status === 'AU') {
+    return {
+      kind: 'conflicted',
+      us: GitFileStatus.Added,
+      them: GitFileStatus.Modified,
+    }
+  }
+
+  if (status === 'UD') {
+    return {
+      kind: 'conflicted',
+      us: GitFileStatus.Modified,
+      them: GitFileStatus.Deleted,
+    }
+  }
+
+  if (status === 'UA') {
+    return {
+      kind: 'conflicted',
+      us: GitFileStatus.Modified,
+      them: GitFileStatus.Added,
+    }
+  }
+
+  if (status === 'DU') {
+    return {
+      kind: 'conflicted',
+      us: GitFileStatus.Deleted,
+      them: GitFileStatus.Modified,
+    }
+  }
+
+  if (status === 'AA') {
+    return {
+      kind: 'conflicted',
+      us: GitFileStatus.Added,
+      them: GitFileStatus.Added,
+    }
+  }
+
+    if (status === 'UU') {
+    return {
+      kind: 'conflicted',
+      us: GitFileStatus.Modified,
+      them: GitFileStatus.Modified,
+    }
+  }
+
+  // TODO: what should we do if we can't parse this value?
+  return {
+    kind: 'ordinary',
+    type: 'modified',
   }
 }

@@ -6,7 +6,7 @@ import {
   FileStatus,
   GitFileStatus,
 } from '../../models/status'
-import { parsePorcelainStatus } from '../status-parser'
+import { parsePorcelainStatus, mapStatus } from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from './rev-list'
@@ -51,195 +51,6 @@ function convertToAppStatus(status: FileStatus): AppFileStatus {
 }
 
 /**
- * Map the raw status text from Git to a structure we can work with in the app.
- *
- * This relies on the porcelain v2 format and status codes, so for
- * interoperability the existing v1 code is still around for now.
- */
-function mapStatus(status: string): FileStatus {
-  if (status === '??') {
-    return {
-      kind: 'untracked',
-      staged: GitFileStatus.Untracked,
-      unstaged: GitFileStatus.Untracked,
-    }
-  }
-
-  if (status === '.M') {
-    return {
-      kind: 'ordinary',
-      type: 'modified',
-      staged: GitFileStatus.Unchanged,
-      unstaged: GitFileStatus.Modified,
-    }
-  }
-
-  if (status === 'M.') {
-    return {
-      kind: 'ordinary',
-      type: 'modified',
-      staged: GitFileStatus.Modified,
-      unstaged: GitFileStatus.Unchanged,
-    }
-  }
-
-  if (status === '.A') {
-    return {
-      kind: 'ordinary',
-      type: 'added',
-      staged: GitFileStatus.Unchanged,
-      unstaged: GitFileStatus.Added,
-    }
-  }
-
-  if (status === 'A.') {
-    return {
-      kind: 'ordinary',
-      type: 'added',
-      staged: GitFileStatus.Added,
-      unstaged: GitFileStatus.Unchanged,
-    }
-  }
-
-  if (status === '.D') {
-    return {
-      kind: 'ordinary',
-      type: 'deleted',
-      staged: GitFileStatus.Unchanged,
-      unstaged: GitFileStatus.Deleted,
-    }
-  }
-
-  if (status === 'D.') {
-    return {
-      kind: 'ordinary',
-      type: 'deleted',
-      staged: GitFileStatus.Deleted,
-      unstaged: GitFileStatus.Unchanged,
-    }
-  }
-
-  if (status === 'R.') {
-    return {
-      kind: 'renamed',
-      staged: GitFileStatus.Renamed,
-      unstaged: GitFileStatus.Unchanged,
-    }
-  }
-
-  if (status === '.R') {
-    return {
-      kind: 'renamed',
-      staged: GitFileStatus.Unchanged,
-      unstaged: GitFileStatus.Renamed,
-    }
-  }
-
-  if (status === 'C.') {
-    return {
-      kind: 'copied',
-      staged: GitFileStatus.Renamed,
-      unstaged: GitFileStatus.Unchanged,
-    }
-  }
-
-  if (status === '.C') {
-    return {
-      kind: 'copied',
-      staged: GitFileStatus.Unchanged,
-      unstaged: GitFileStatus.Renamed,
-    }
-  }
-
-  if (status === 'AM') {
-    return {
-      kind: 'ordinary',
-      type: 'added',
-      staged: GitFileStatus.Added,
-      unstaged: GitFileStatus.Modified,
-    }
-  }
-
-  if (status === 'RM') {
-    return {
-      kind: 'renamed',
-      staged: GitFileStatus.Renamed,
-      unstaged: GitFileStatus.Modified,
-    }
-  }
-
-  if (status === 'RD') {
-    return {
-      kind: 'renamed',
-      staged: GitFileStatus.Renamed,
-      unstaged: GitFileStatus.Deleted,
-    }
-  }
-
-  if (status === 'DD') {
-    return {
-      kind: 'conflicted',
-      us: GitFileStatus.Deleted,
-      them: GitFileStatus.Deleted,
-    }
-  }
-
-  if (status === 'AU') {
-    return {
-      kind: 'conflicted',
-      us: GitFileStatus.Added,
-      them: GitFileStatus.Modified,
-    }
-  }
-
-  if (status === 'UD') {
-    return {
-      kind: 'conflicted',
-      us: GitFileStatus.Modified,
-      them: GitFileStatus.Deleted,
-    }
-  }
-
-  if (status === 'UA') {
-    return {
-      kind: 'conflicted',
-      us: GitFileStatus.Modified,
-      them: GitFileStatus.Added,
-    }
-  }
-
-  if (status === 'DU') {
-    return {
-      kind: 'conflicted',
-      us: GitFileStatus.Deleted,
-      them: GitFileStatus.Modified,
-    }
-  }
-
-  if (status === 'AA') {
-    return {
-      kind: 'conflicted',
-      us: GitFileStatus.Added,
-      them: GitFileStatus.Added,
-    }
-  }
-
-    if (status === 'UU') {
-    return {
-      kind: 'conflicted',
-      us: GitFileStatus.Modified,
-      them: GitFileStatus.Modified,
-    }
-  }
-
-  // TODO: what should we do if we can't parse this value?
-  return {
-    kind: 'ordinary',
-    type: 'modified',
-  }
-}
-
-/**
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
  */
@@ -256,6 +67,23 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
   for (const entry of parsePorcelainStatus(result.stdout)) {
     if (entry.kind === 'entry') {
       const status = mapStatus(entry.statusCode)
+
+      if (status.kind === 'ordinary') {
+        if (status.staged === GitFileStatus.Added
+            && status.unstaged === GitFileStatus.Deleted) {
+          // we can safely avoid drawing this file in the app
+          continue
+        }
+      }
+
+      if (status.kind === 'untracked') {
+        const existingEntry = files.findIndex(p => p.path === entry.path)
+        if (existingEntry > -1) {
+          // a previous entry for this path exists, remove it
+          files.splice(existingEntry, 1)
+        }
+      }
+
       // for now we just poke at the existing summary
       const summary = convertToAppStatus(status)
       const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
