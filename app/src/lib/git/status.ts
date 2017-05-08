@@ -214,12 +214,6 @@ function mapStatus(status: string): FileStatus {
     }
   }
 
-  // git log -M --name-status will return a RXXX - where XXX is a percentage
-  if (status.match(/R[0-9]+/)) { return { kind: 'renamed' } }
-
-  // git log -C --name-status will return a CXXX - where XXX is a percentage
-  if (status.match(/C[0-9]+/)) { return { kind: 'copied' } }
-
   return { kind: 'modified' }
 }
 
