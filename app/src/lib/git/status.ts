@@ -142,14 +142,6 @@ function mapStatus(status: string): FileStatus {
     }
   }
 
-  if (status === 'AD') {
-    return {
-      kind: 'exclude',
-      staged: GitFileStatus.Added,
-      unstaged: GitFileStatus.Deleted,
-    }
-  }
-
   if (status === 'RM') {
     return {
       kind: 'renamed',

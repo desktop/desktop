@@ -62,15 +62,10 @@ type UntrackedChange = {
   readonly kind: 'new',
 }
 
-type ExcludeChange = {
-  readonly kind: 'exclude'
-}
-
 export type FileStatus = OrdinaryChange |
   RenamedOrCopiedChange |
   UnmergedChange |
-  UntrackedChange |
-  ExcludeChange
+  UntrackedChange
 
 /**
  * Converts a given FileStatus value to a human-readable string to be
