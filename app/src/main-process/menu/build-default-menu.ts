@@ -297,7 +297,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   }
 
   const showLogsItem: Electron.MenuItemOptions = {
-    label: __DARWIN__ ? 'Show Logs In Finder' : 'Show logs in explorer',
+    label: __DARWIN__ ? 'Show Logs In Finder' : 'S&how logs in Explorer',
     click() {
       const path = app.getPath('userData')
       shell.showItemInFolder(path)
