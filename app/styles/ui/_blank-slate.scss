@@ -9,7 +9,7 @@
     text-align: center;
 
     .title {
-      font-size: var(--font-size-md);
+      font-size: var(--font-size-lg);
       font-weight: var(--font-weight-semibold);
     }
   }
@@ -22,7 +22,7 @@
   }
 
   .content {
-    margin: var(--spacing-double);
+    margin: var(--spacing-quad) var(--spacing-double);
   }
 
   .callout {
