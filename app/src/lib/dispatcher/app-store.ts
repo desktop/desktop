@@ -90,7 +90,6 @@ export class AppStore {
   private currentBackgroundFetcher: BackgroundFetcher | null = null
 
   private repositoryState = new Map<number, IRepositoryState>()
-  private loading = false
   private showWelcomeFlow = false
 
   private currentPopup: Popup | null = null
@@ -635,7 +634,6 @@ export class AppStore {
   public _loadFromSharedProcess(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>) {
     this.accounts = accounts
     this.repositories = repositories
-    this.loading = this.repositories.length === 0 && this.accounts.length === 0
 
     // doing this that the current user can be found by any of their email addresses
     for (const account of accounts) {
