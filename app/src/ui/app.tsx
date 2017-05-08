@@ -92,6 +92,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.loading = false
       this.forceUpdate()
 
+      window.setTimeout(() => {
+        const now = Date.now()
+        sendReady(now - props.startTime)
+      }, ReadyDelay)
     })
 
     this.state = props.appStore.getState()
