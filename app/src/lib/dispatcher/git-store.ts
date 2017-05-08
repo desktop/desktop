@@ -550,6 +550,8 @@ export class GitStore {
       this._tip = { kind: TipState.Unknown }
     }
 
+    this.emitUpdate()
+
     return status
   }
 
