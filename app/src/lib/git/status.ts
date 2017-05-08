@@ -40,45 +40,6 @@ function convertToAppStatus(status: string): AppFileStatus {
 }
 
 /**
- * map the raw status text from Git to an app-friendly value
- * shamelessly borrowed from GitHub Desktop (Windows)
- */
-export function mapStatus(rawStatus: string): AppFileStatus {
-
-  // TODO: This is due to the fact that porcelain V2 changed from
-  // using space to using a dot when either side is unmodified.
-  // We should probably parse this properly. We still trim the space
-  // since mapStatus is used from log.ts as well which passes
-  // porcelain v1 status codes.
-  const status = rawStatus.replace(/[ .]/, '')
-
-  if (status === 'M') { return AppFileStatus.Modified }      // modified
-  if (status === 'A') { return AppFileStatus.New }           // added
-  if (status === 'D') { return AppFileStatus.Deleted }       // deleted
-  if (status === 'R') { return AppFileStatus.Renamed }       // renamed
-  if (status === 'C') { return AppFileStatus.Copied }        // copied
-  if (status === 'AM') { return AppFileStatus.New }          // added in index, modified in working directory
-  if (status === 'RM') { return AppFileStatus.Renamed }      // renamed in index, modified in working directory
-  if (status === 'RD') { return AppFileStatus.Conflicted }   // renamed in index, deleted in working directory
-  if (status === 'DD') { return AppFileStatus.Conflicted }   // Unmerged, both deleted
-  if (status === 'AU') { return AppFileStatus.Conflicted }   // Unmerged, added by us
-  if (status === 'UD') { return AppFileStatus.Conflicted }   // Unmerged, deleted by them
-  if (status === 'UA') { return AppFileStatus.Conflicted }   // Unmerged, added by them
-  if (status === 'DU') { return AppFileStatus.Conflicted }   // Unmerged, deleted by us
-  if (status === 'AA') { return AppFileStatus.Conflicted }   // Unmerged, added by both
-  if (status === 'UU') { return AppFileStatus.Conflicted }   // Unmerged, both modified
-  if (status === '??') { return AppFileStatus.New }          // untracked
-
-  // git log -M --name-status will return a RXXX - where XXX is a percentage
-  if (status.match(/R[0-9]+/)) { return AppFileStatus.Renamed }
-
-  // git log -C --name-status will return a CXXX - where XXX is a percentage
-  if (status.match(/C[0-9]+/)) { return AppFileStatus.Copied }
-
-  return AppFileStatus.Modified
-}
-
-/**
  * Map the raw status text from Git to a structure we can work with in the app.
  *
  * This relies on the porcelain v2 format and status codes, so for
