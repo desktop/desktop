@@ -45,26 +45,108 @@ function convertToAppStatus(status: string): AppFileStatus {
  * This relies on the porcelain v2 format and status codes, so for
  * interoperability the existing v1 code is still around for now.
  */
-export function mapStatusV2(rawStatus: string): FileStatus {
+function mapStatus(status: string): FileStatus {
+  if (status === '??') {
+    return {
+      kind: 'new',
+      staged: GitFileStatus.Untracked,
+      unstaged: GitFileStatus.Untracked,
+    }
+  }
 
-  // TODO: This is due to the fact that porcelain V2 changed from
-  // using space to using a dot when either side is unmodified.
-  // We should probably parse this properly. We still trim the space
-  // since mapStatus is used from log.ts as well which passes
-  // porcelain v1 status codes.
-  const status = rawStatus.replace(/[ .]/, '')
+  if (status === '.M') {
+    return {
+      kind: 'modified',
+      staged: GitFileStatus.Unchanged,
+      unstaged: GitFileStatus.Modified,
+    }
+  }
 
-  if (status === 'M') { return { kind: 'modified' } }
-  if (status === 'A') { return { kind: 'new' } }
-  if (status === 'D') { return { kind: 'deleted' } }
-  if (status === 'R') { return { kind: 'renamed' } }
-  if (status === 'C') { return { kind: 'copied' } }
+  if (status === 'M.') {
+    return {
+      kind: 'modified',
+      staged: GitFileStatus.Modified,
+      unstaged: GitFileStatus.Unchanged,
+    }
+  }
+
+  if (status === '.A') {
+    return {
+      kind: 'new',
+      staged: GitFileStatus.Unchanged,
+      unstaged: GitFileStatus.Added,
+    }
+  }
+
+  if (status === 'A.') {
+    return {
+      kind: 'new',
+      staged: GitFileStatus.Added,
+      unstaged: GitFileStatus.Unchanged,
+    }
+  }
+
+  if (status === '.D') {
+    return {
+      kind: 'deleted',
+      staged: GitFileStatus.Unchanged,
+      unstaged: GitFileStatus.Deleted,
+    }
+  }
+
+  if (status === 'D.') {
+    return {
+      kind: 'deleted',
+      staged: GitFileStatus.Deleted,
+      unstaged: GitFileStatus.Unchanged,
+    }
+  }
+
+  if (status === 'R.') {
+    return {
+      kind: 'renamed',
+      staged: GitFileStatus.Renamed,
+      unstaged: GitFileStatus.Unchanged,
+    }
+  }
+
+  if (status === '.R') {
+    return {
+      kind: 'renamed',
+      staged: GitFileStatus.Unchanged,
+      unstaged: GitFileStatus.Renamed,
+    }
+  }
+
+  if (status === 'C.') {
+    return {
+      kind: 'copied',
+      staged: GitFileStatus.Renamed,
+      unstaged: GitFileStatus.Unchanged,
+    }
+  }
+
+  if (status === '.C') {
+    return {
+      kind: 'copied',
+      staged: GitFileStatus.Unchanged,
+      unstaged: GitFileStatus.Renamed,
+    }
+  }
 
   if (status === 'AM') {
     return {
       kind: 'new',
       staged: GitFileStatus.Added,
       unstaged: GitFileStatus.Modified,
+    }
+  }
+
+  if (status === 'AD') {
+    return {
+      kind: 'exclude',
+      staged: GitFileStatus.Added,
+      unstaged: GitFileStatus.Deleted,
     }
   }
 
@@ -143,10 +225,6 @@ export function mapStatusV2(rawStatus: string): FileStatus {
     }
   }
 
-  if (status === '??') {
-    return { kind: 'new' }
-  }
-
   // git log -M --name-status will return a RXXX - where XXX is a percentage
   if (status.match(/R[0-9]+/)) { return { kind: 'renamed' } }
 
@@ -172,7 +250,7 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
 
   for (const entry of parsePorcelainStatus(result.stdout)) {
     if (entry.kind === 'entry') {
-      const status = mapStatusV2(entry.statusCode)
+      const status = mapStatus(entry.statusCode)
       // for now we just poke at the existing summary
       const summary = convertToAppStatus(status.kind)
       const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
