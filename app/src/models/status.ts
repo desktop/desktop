@@ -28,14 +28,14 @@ export enum AppFileStatus {
   New,
   Modified,
   Deleted,
-  Renamed,
-  Conflicted,
   Copied,
+  Renamed,
+  Conflicted
 }
 
 type OrdinaryChange = {
    /** how we should represent the file in the application */
-  readonly kind: AppFileStatus,
+  readonly kind: 'new' | 'modified' | 'deleted',
   /** the staged status of the file (if known) */
   readonly staged?: GitFileStatus,
   /** the unstaged status of the file (if known) */
@@ -43,7 +43,7 @@ type OrdinaryChange = {
 }
 
 type RenamedOrCopiedChange = {
-  readonly kind: AppFileStatus.Renamed | AppFileStatus.Copied,
+  readonly kind: 'renamed' | 'copied',
   /** the staged status of the file (if known) */
   readonly staged?: GitFileStatus,
   /** the unstaged status of the file (if known) */
@@ -51,7 +51,7 @@ type RenamedOrCopiedChange = {
 }
 
 type UnmergedChange = {
-  readonly kind: AppFileStatus.Conflicted,
+  readonly kind: 'conflicted',
   /** the first character of the short code ("ours")  */
   readonly us: GitFileStatus,
   /** the second character of the short code ("theirs")  */
@@ -59,13 +59,18 @@ type UnmergedChange = {
 }
 
 type UntrackedChange = {
-  readonly kind: AppFileStatus.New,
+  readonly kind: 'new',
+}
+
+type ExcludeChange = {
+  readonly kind: 'exclude'
 }
 
 export type FileStatus = OrdinaryChange |
   RenamedOrCopiedChange |
   UnmergedChange |
-  UntrackedChange
+  UntrackedChange |
+  ExcludeChange
 
 /**
  * Converts a given FileStatus value to a human-readable string to be

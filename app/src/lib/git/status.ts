@@ -10,6 +10,7 @@ import { parsePorcelainStatus } from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { IAheadBehind } from './rev-list'
+import { fatalError } from '../../lib/fatal-error'
 
 /** The encapsulation of the result from 'git status' */
 export interface IStatusResult {
@@ -23,6 +24,19 @@ export interface IStatusResult {
 
   /** the absolute path to the repository's working directory */
   readonly workingDirectory: WorkingDirectoryStatus
+}
+
+function convertToAppStatus(status: string): AppFileStatus {
+  switch (status) {
+    case 'new': return AppFileStatus.New
+    case 'modified': return AppFileStatus.Modified
+    case 'deleted': return AppFileStatus.Deleted
+    case 'renamed': return AppFileStatus.Renamed
+    case 'copied': return AppFileStatus.Copied
+    case 'conflicted': return AppFileStatus.Conflicted
+  }
+
+  return fatalError(`Unknown file status ${status}`)
 }
 
 /**
@@ -65,8 +79,10 @@ export function mapStatus(rawStatus: string): AppFileStatus {
 }
 
 /**
- * map the raw status text from Git to an app-friendly value
- * shamelessly borrowed from GitHub Desktop (Windows)
+ * Map the raw status text from Git to a structure we can work with in the app.
+ *
+ * This relies on the porcelain v2 format and status codes, so for
+ * interoperability the existing v1 code is still around for now.
  */
 export function mapStatusV2(rawStatus: string): FileStatus {
 
@@ -77,15 +93,15 @@ export function mapStatusV2(rawStatus: string): FileStatus {
   // porcelain v1 status codes.
   const status = rawStatus.replace(/[ .]/, '')
 
-  if (status === 'M') { return { kind: AppFileStatus.Modified } }
-  if (status === 'A') { return { kind: AppFileStatus.New } }
-  if (status === 'D') { return { kind: AppFileStatus.Deleted } }
-  if (status === 'R') { return { kind: AppFileStatus.Renamed } }
-  if (status === 'C') { return { kind: AppFileStatus.Copied } }
+  if (status === 'M') { return { kind: 'modified' } }
+  if (status === 'A') { return { kind: 'new' } }
+  if (status === 'D') { return { kind: 'deleted' } }
+  if (status === 'R') { return { kind: 'renamed' } }
+  if (status === 'C') { return { kind: 'copied' } }
 
   if (status === 'AM') {
     return {
-      kind: AppFileStatus.New,
+      kind: 'new',
       staged: GitFileStatus.Added,
       unstaged: GitFileStatus.Modified,
     }
@@ -93,7 +109,7 @@ export function mapStatusV2(rawStatus: string): FileStatus {
 
   if (status === 'RM') {
     return {
-      kind: AppFileStatus.Renamed,
+      kind: 'renamed',
       staged: GitFileStatus.Renamed,
       unstaged: GitFileStatus.Modified,
     }
@@ -102,8 +118,9 @@ export function mapStatusV2(rawStatus: string): FileStatus {
   if (status === 'RD') {
     // renamed in index, deleted in working directory
     // TODO: review this and see whether "Conflicted" is still the right code
+    //       because it doesn't align with the T Y P E S created before this
     return {
-      kind: AppFileStatus.Conflicted,
+      kind: 'renamed',
       staged: GitFileStatus.Renamed,
       unstaged: GitFileStatus.Deleted,
     }
@@ -111,7 +128,7 @@ export function mapStatusV2(rawStatus: string): FileStatus {
 
   if (status === 'DD') {
     return {
-      kind: AppFileStatus.Conflicted,
+      kind: 'conflicted',
       us: GitFileStatus.Deleted,
       them: GitFileStatus.Deleted,
     }
@@ -119,7 +136,7 @@ export function mapStatusV2(rawStatus: string): FileStatus {
 
   if (status === 'AU') {
     return {
-      kind: AppFileStatus.Conflicted,
+      kind: 'conflicted',
       us: GitFileStatus.Added,
       them: GitFileStatus.Modified,
     }
@@ -127,7 +144,7 @@ export function mapStatusV2(rawStatus: string): FileStatus {
 
   if (status === 'UD') {
     return {
-      kind: AppFileStatus.Conflicted,
+      kind: 'conflicted',
       us: GitFileStatus.Modified,
       them: GitFileStatus.Deleted,
     }
@@ -135,7 +152,7 @@ export function mapStatusV2(rawStatus: string): FileStatus {
 
   if (status === 'UA') {
     return {
-      kind: AppFileStatus.Conflicted,
+      kind: 'conflicted',
       us: GitFileStatus.Modified,
       them: GitFileStatus.Added,
     }
@@ -143,7 +160,7 @@ export function mapStatusV2(rawStatus: string): FileStatus {
 
   if (status === 'DU') {
     return {
-      kind: AppFileStatus.Conflicted,
+      kind: 'conflicted',
       us: GitFileStatus.Deleted,
       them: GitFileStatus.Modified,
     }
@@ -151,7 +168,7 @@ export function mapStatusV2(rawStatus: string): FileStatus {
 
   if (status === 'AA') {
     return {
-      kind: AppFileStatus.Conflicted,
+      kind: 'conflicted',
       us: GitFileStatus.Added,
       them: GitFileStatus.Added,
     }
@@ -159,23 +176,23 @@ export function mapStatusV2(rawStatus: string): FileStatus {
 
     if (status === 'UU') {
     return {
-      kind: AppFileStatus.Conflicted,
+      kind: 'conflicted',
       us: GitFileStatus.Modified,
       them: GitFileStatus.Modified,
     }
   }
 
   if (status === '??') {
-    return { kind: AppFileStatus.New }
+    return { kind: 'new' }
   }
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
-  if (status.match(/R[0-9]+/)) { return { kind: AppFileStatus.Renamed } }
+  if (status.match(/R[0-9]+/)) { return { kind: 'renamed' } }
 
   // git log -C --name-status will return a CXXX - where XXX is a percentage
-  if (status.match(/C[0-9]+/)) { return { kind: AppFileStatus.Copied } }
+  if (status.match(/C[0-9]+/)) { return { kind: 'copied' } }
 
-  return { kind: AppFileStatus.Modified }
+  return { kind: 'modified' }
 }
 
 /**
@@ -196,7 +213,7 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
     if (entry.kind === 'entry') {
       const status = mapStatusV2(entry.statusCode)
       // for now we just poke at the existing summary
-      const summary = status.kind
+      const summary = convertToAppStatus(status.kind)
       const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
       files.push(new WorkingDirectoryFileChange(entry.path, summary, selection, entry.oldPath))
