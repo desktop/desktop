@@ -26,21 +26,25 @@ export interface IStatusResult {
   readonly workingDirectory: WorkingDirectoryStatus
 }
 
-function convertToAppStatus(status: string): AppFileStatus {
-  switch (status) {
-    case 'added':
-    case 'untracked':
-      return AppFileStatus.New
-    case 'modified':
-      return AppFileStatus.Modified
-    case 'deleted':
-      return AppFileStatus.Deleted
-    case 'renamed':
-      return AppFileStatus.Renamed
-    case 'copied':
-      return AppFileStatus.Copied
-    case 'conflicted':
-      return AppFileStatus.Conflicted
+function convertToAppStatus(status: FileStatus): AppFileStatus {
+
+  if (status.kind === 'ordinary') {
+    switch (status.type) {
+      case 'added':
+        return AppFileStatus.New
+      case 'modified':
+        return AppFileStatus.Modified
+      case 'deleted':
+        return AppFileStatus.Deleted
+    }
+  } else if (status.kind === 'copied') {
+    return AppFileStatus.Copied
+  } else if (status.kind === 'renamed') {
+    return AppFileStatus.Renamed
+  } else if (status.kind === 'conflicted') {
+    return AppFileStatus.Conflicted
+  } else if (status.kind === 'untracked') {
+    return AppFileStatus.New
   }
 
   return fatalError(`Unknown file status ${status}`)
@@ -63,7 +67,8 @@ function mapStatus(status: string): FileStatus {
 
   if (status === '.M') {
     return {
-      kind: 'modified',
+      kind: 'ordinary',
+      type: 'modified',
       staged: GitFileStatus.Unchanged,
       unstaged: GitFileStatus.Modified,
     }
@@ -71,7 +76,8 @@ function mapStatus(status: string): FileStatus {
 
   if (status === 'M.') {
     return {
-      kind: 'modified',
+      kind: 'ordinary',
+      type: 'modified',
       staged: GitFileStatus.Modified,
       unstaged: GitFileStatus.Unchanged,
     }
@@ -79,7 +85,8 @@ function mapStatus(status: string): FileStatus {
 
   if (status === '.A') {
     return {
-      kind: 'added',
+      kind: 'ordinary',
+      type: 'added',
       staged: GitFileStatus.Unchanged,
       unstaged: GitFileStatus.Added,
     }
@@ -87,7 +94,8 @@ function mapStatus(status: string): FileStatus {
 
   if (status === 'A.') {
     return {
-      kind: 'added',
+      kind: 'ordinary',
+      type: 'added',
       staged: GitFileStatus.Added,
       unstaged: GitFileStatus.Unchanged,
     }
@@ -95,7 +103,8 @@ function mapStatus(status: string): FileStatus {
 
   if (status === '.D') {
     return {
-      kind: 'deleted',
+      kind: 'ordinary',
+      type: 'deleted',
       staged: GitFileStatus.Unchanged,
       unstaged: GitFileStatus.Deleted,
     }
@@ -103,7 +112,8 @@ function mapStatus(status: string): FileStatus {
 
   if (status === 'D.') {
     return {
-      kind: 'deleted',
+      kind: 'ordinary',
+      type: 'deleted',
       staged: GitFileStatus.Deleted,
       unstaged: GitFileStatus.Unchanged,
     }
@@ -143,7 +153,8 @@ function mapStatus(status: string): FileStatus {
 
   if (status === 'AM') {
     return {
-      kind: 'added',
+      kind: 'ordinary',
+      type: 'added',
       staged: GitFileStatus.Added,
       unstaged: GitFileStatus.Modified,
     }
@@ -221,7 +232,11 @@ function mapStatus(status: string): FileStatus {
     }
   }
 
-  return { kind: 'modified' }
+  // TODO: what should we do if we can't parse this value?
+  return {
+    kind: 'ordinary',
+    type: 'modified',
+  }
 }
 
 /**
@@ -242,7 +257,7 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
     if (entry.kind === 'entry') {
       const status = mapStatus(entry.statusCode)
       // for now we just poke at the existing summary
-      const summary = convertToAppStatus(status.kind)
+      const summary = convertToAppStatus(status)
       const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
       files.push(new WorkingDirectoryFileChange(entry.path, summary, selection, entry.oldPath))

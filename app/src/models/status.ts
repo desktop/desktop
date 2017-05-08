@@ -34,8 +34,9 @@ export enum AppFileStatus {
 }
 
 type OrdinaryChange = {
+  readonly kind: 'ordinary'
    /** how we should represent the file in the application */
-  readonly kind: 'added' | 'modified' | 'deleted',
+  readonly type: 'added' | 'modified' | 'deleted',
   /** the staged status of the file (if known) */
   readonly staged?: GitFileStatus,
   /** the unstaged status of the file (if known) */
