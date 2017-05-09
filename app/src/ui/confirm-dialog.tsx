@@ -39,14 +39,9 @@ export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirm
   }
 
   private onCheckboxChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const dontAskAgainSelected = event.currentTarget.checked
-    const fn = this.props.functionToRunWhenThisNeedsABetterNameButMyIneptitudePreventsItIsTrue
+    const dontAskAgain = !event.currentTarget.checked
 
-    if (!fn) {
-      return
-    }
-
-    fn(dontAskAgainSelected)
+    this.setState({ dontAskAgain })
   }
 
   private askToNotBeAnnoyed() {
