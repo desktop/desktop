@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.0.37",
+  "version": "0.0.39",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -34,7 +34,7 @@
     "react-addons-shallow-compare": "^15.5.2",
     "react-dom": "^15.5.4",
     "react-transition-group": "^1.1.3",
-    "react-virtualized": "^8.8.1",
+    "react-virtualized": "^9.7.5",
     "textarea-caret": "^3.0.2",
     "ua-parser-js": "^0.7.12",
     "untildify": "^3.0.2",
