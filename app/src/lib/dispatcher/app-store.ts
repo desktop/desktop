@@ -1663,6 +1663,10 @@ export class AppStore {
     return Promise.resolve()
   }
 
+  public getConfirmRepoRemovalSetting(): boolean {
+    return true
+  }
+
   public _setUpdateBannerVisibility(visibility: boolean) {
     this.isUpdateAvailableBannerVisible = visibility
 
