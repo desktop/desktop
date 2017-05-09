@@ -1665,7 +1665,13 @@ export class AppStore {
   }
 
   public getConfirmRepoRemovalSetting(): boolean {
-    return true
+    const value = localStorage.getItem(confirmOnRepoRemovalKey)
+
+    if (!value) {
+      return false
+    }
+
+    return parseInt(value) === 1 ? true : false
   }
 
   public _setUpdateBannerVisibility(visibility: boolean) {
