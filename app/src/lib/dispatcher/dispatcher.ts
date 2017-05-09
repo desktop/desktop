@@ -799,7 +799,7 @@ export class Dispatcher {
   }
 
   public async setAppFocusState(isFocused: boolean): Promise<void> {
-    await this.appStore._setAppFocusState(isFocused);
+    await this.appStore._setAppFocusState(isFocused)
   }
 
   public async dispatchURLAction(action: URLActionType): Promise<void> {
