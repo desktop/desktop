@@ -42,7 +42,7 @@ import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
-import { ConfirmationDialog } from '../ui/confirmation-dialog'
+import { ConfirmDialog } from '../ui/confirm-dialog'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -446,6 +446,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.removeRepositories([ repository ])
   }
 
+  private saveDontAskAgainForRepoRemovalResponse = (dontAskAgain: boolean) => {
+    console.log('Will not ask again')
+  }
+
   private getRepository(): Repository | CloningRepository | null {
     const state = this.state.selectedState
     if (!state) { return null}
@@ -775,11 +779,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.RemoveRepository:
         return (
-          <ConfirmationDialog
+          <ConfirmDialog
             dispatcher={this.props.dispatcher}
             onConfirmation={this.onConfirmRepoRemoval}
             title='Remove Repository'
             message='Are you sure you would like to remove this repository?'
+            thisNeedsABetterNameButMyIneptitudePreventsIt={true}
+            functionToRunWhenThisNeedsABetterNameButMyIneptitudePreventsItIsTrue={this.saveDontAskAgainForRepoRemovalResponse}
           />
         )
       default:
