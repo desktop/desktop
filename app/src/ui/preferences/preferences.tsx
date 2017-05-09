@@ -49,6 +49,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
 
   public async componentWillMount() {
     const isOptedOut = this.props.appStore.getStatsOptOut()
+    const confirmRepoRemoval = this.props.appStore.getConfirmRepoRemovalSetting()
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
 
