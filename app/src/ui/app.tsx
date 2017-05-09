@@ -783,13 +783,15 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.RemoveRepository:
+        const showTheQuestion = this.props.appStore.getConfirmRepoRemovalSetting()
+
         return (
           <ConfirmDialog
             dispatcher={this.props.dispatcher}
             onConfirmation={this.onConfirmRepoRemoval}
             title='Remove Repository'
             message='Are you sure you would like to remove this repository?'
-            thisNeedsABetterNameButMyIneptitudePreventsIt={true}
+            thisNeedsABetterNameButMyIneptitudePreventsIt={showTheQuestion}
             functionToRunWhenThisNeedsABetterNameButMyIneptitudePreventsItIsTrue={this.saveDontAskAgainForRepoRemovalResponse}
           />
         )
