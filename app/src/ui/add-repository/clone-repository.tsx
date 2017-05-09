@@ -131,7 +131,12 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     if (!directory) { return }
 
     const path = directory[0]
-    this.updatePath(path)
+    const lastParsedIdentifier = this.state.lastParsedIdentifier
+    if (lastParsedIdentifier) {
+      this.updatePath(Path.join(path, lastParsedIdentifier.name))
+    } else {
+      this.updatePath(path)
+    }
   }
 
   private updatePath(newPath: string) {
