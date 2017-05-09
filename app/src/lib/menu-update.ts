@@ -8,7 +8,6 @@ import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
 
 export interface IMenuItemState {
-  readonly visible?: boolean,
   readonly enabled?: boolean
 }
 
@@ -51,24 +50,6 @@ class MenuStateBuilder {
     this.updateMenuItem(id, { enabled })
     return this
   }
-
-  /** Set the state of the given menu item id to visible */
-  public show(id: MenuIDs): this {
-    this.updateMenuItem(id, { visible: true })
-    return this
-  }
-
-  /** Set the state of the given menu item id to hidden */
-  public hide(id: MenuIDs): this {
-    this.updateMenuItem(id, { visible: false })
-    return this
-  }
-
-  /** Set the visibility of the given menu item id */
-  public setVisible(id: MenuIDs, visible: boolean): this {
-    this.updateMenuItem(id, { visible: visible })
-    return this
-  }
 }
 
 function isRepositoryHostedOnGitHub(repository: Repository | CloningRepository) {
@@ -80,10 +61,6 @@ function isRepositoryHostedOnGitHub(repository: Repository | CloningRepository) 
 }
 
 function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
-  if (state.visible !== undefined && menuItem.visible !== state.visible) {
-    return false
-  }
-
   if (state.enabled !== undefined && menuItem.type !== 'separator' && menuItem.enabled !== state.enabled) {
     return false
   }

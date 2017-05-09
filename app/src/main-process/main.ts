@@ -143,11 +143,6 @@ app.on('ready', () => {
           menuItem.enabled = state.enabled
           sendMenuChangedEvent = true
         }
-
-        if (state.visible !== undefined && menuItem.visible !== state.visible) {
-          menuItem.visible = state.visible
-          sendMenuChangedEvent = true
-        }
       } else {
         fatalError(`Unknown menu id: ${id}`)
       }
