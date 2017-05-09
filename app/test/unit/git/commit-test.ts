@@ -8,6 +8,7 @@ import {
   getStatus,
   createCommit,
   getCommits,
+  getCommit,
   getChangedFiles,
   getWorkingDirectoryDiff,
 } from '../../../src/lib/git'
@@ -71,10 +72,10 @@ describe('git/commit', () => {
 
       await createCommit(repository!, message, files)
 
-      const commits = await getCommits(repository!, 'HEAD', 1)
-      expect(commits.length).to.equal(1)
-      expect(commits[0].summary).to.equal('Special commit')
-      expect(commits[0].body).to.equal('# this is a comment\n')
+      const commit = await getCommit(repository!, 'HEAD')
+      expect(commit).to.not.be.null
+      expect(commit!.summary).to.equal('Special commit')
+      expect(commit!.body).to.equal('# this is a comment\n')
     })
 
     it('can commit for empty repository', async () => {
