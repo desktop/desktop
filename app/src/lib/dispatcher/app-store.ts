@@ -176,8 +176,11 @@ export class AppStore {
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
 
-    const rootDir = getAppPath()
-    this.emojiStore.read(rootDir).then(() => this.emitUpdate())
+    // The only thing more important than emoji is fast load time.
+    requestIdleCallback(() => {
+      const rootDir = getAppPath()
+      this.emojiStore.read(rootDir).then(() => this.emitUpdate())
+    })
   }
 
   private emitAuthenticate(account: Account) {
