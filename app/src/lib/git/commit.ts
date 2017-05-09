@@ -1,10 +1,13 @@
 import { git, GitError } from './core'
 import { stageFiles } from './add'
+import { mergeExists } from './merge'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
 
 export async function createCommit(repository: Repository, message: string, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<boolean> {
+  const isMerge = await mergeExists(repository)
+
   // Clear the staging area, our diffs reflect the difference between the
   // working directory and the last commit (if any) so our commits should
   // do the same thing.
@@ -12,8 +15,12 @@ export async function createCommit(repository: Repository, message: string, file
 
   await stageFiles(repository, files)
 
+  const args = isMerge
+    ? [ 'commit', '--cleanup=strip', '-F',  '-' ]
+    : [ 'commit', '-F',  '-' ]
+
   try {
-    await git([ 'commit', '--cleanup=strip', '-F',  '-' ] , repository.path, 'createCommit', { stdin: message })
+    await git(args, repository.path, 'createCommit', { stdin: message })
     return true
   } catch (e) {
     // Commit failures could come from a pre-commit hook rejection. So display
