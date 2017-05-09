@@ -12,7 +12,7 @@ export interface ILogger {
 }
 
 /** resolve the log file location based on the current environment */
-function getLogFilePath(directory: string): string {
+export function getLogFilePath(directory: string): string {
   const environment = process.env.NODE_ENV || 'production'
   const fileName = `desktop.${environment}.log`
   return Path.join(directory, fileName)
