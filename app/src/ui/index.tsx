@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
