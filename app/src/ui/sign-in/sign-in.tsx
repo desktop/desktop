@@ -17,6 +17,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
 import {
+  AuthenticationMode,
   getWelcomeMessage,
  } from '../../lib/2fa'
 
@@ -213,12 +214,18 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   private renderTwoFactorAuthenticationStep(state: ITwoFactorAuthenticationState) {
+    let resendLink = null
+
+    if (state.type === AuthenticationMode.Sms) {
+      resendLink = <LinkButton className='resend-sms-link'>Resend SMS Code</LinkButton>
+    }
+
     return (
       <DialogContent>
         <p>
           { getWelcomeMessage(state.type) }
         </p>
-        <Row>
+        <Row className='flex-d-column'>
           <TextBox
             label='Authentication code'
             value={this.state.otpToken}
@@ -226,7 +233,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             labelLinkText={`What's this?`}
             labelLinkUri='https://help.github.com/articles/providing-your-2fa-authentication-code/'
           />
+          {resendLink}
         </Row>
+
       </DialogContent>
     )
   }

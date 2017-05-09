@@ -9,4 +9,8 @@
   .button-component {
     align-self: flex-end;
   }
+
+  &.flex-d-column {
+    flex-direction: column;
+  }
 }

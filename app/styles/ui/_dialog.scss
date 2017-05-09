@@ -293,6 +293,10 @@ dialog {
       font-size: var(--font-size-sm);
       justify-content: flex-end;
     }
+
+    .resend-sms-link {
+      margin-top: var(--spacing-half);  
+    }
   }
 }
 
