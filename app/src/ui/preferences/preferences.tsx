@@ -144,6 +144,10 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     this.setState({ isOptedOut })
   }
 
+  private onConfirmRepoRemovalSet = (confirmRepoRemoval: boolean) => {
+    this.setState({ confirmRepoRemoval })
+  }
+
   private onCommitterNameChanged = (committerName: string) => {
     this.setState({ committerName })
   }
