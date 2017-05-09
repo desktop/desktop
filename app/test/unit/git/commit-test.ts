@@ -58,25 +58,6 @@ describe('git/commit', () => {
       expect(commits[0].summary).to.equal('Special commit')
     })
 
-    it('commit will strip commentary', async () => {
-      fs.writeFileSync(path.join(repository!.path, 'README.md'), 'Hi world\n')
-
-      const status = await getStatus(repository!)
-      const files = status.workingDirectory.files
-      expect(files.length).to.equal(1)
-
-      const message = `Special commit
-
-# this is a comment`
-
-      await createCommit(repository!, message, files)
-
-      const commits = await getCommits(repository!, 'HEAD', 1)
-      expect(commits.length).to.equal(1)
-      expect(commits[0].summary).to.equal('Special commit')
-      expect(commits[0].body.length).to.equal(0)
-    })
-
     it('can commit for empty repository', async () => {
 
       const repo = await setupEmptyRepository()
