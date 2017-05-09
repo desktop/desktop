@@ -1674,6 +1674,15 @@ export class AppStore {
     return parseInt(value) === 1 ? true : false
   }
 
+  public _setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
+    const valueToInsert = value ? '1' : '0'
+
+    localStorage.setItem(confirmOnRepoRemovalKey, valueToInsert)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
   public _setUpdateBannerVisibility(visibility: boolean) {
     this.isUpdateAvailableBannerVisible = visibility
 
