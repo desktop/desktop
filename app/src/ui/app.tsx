@@ -90,10 +90,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.loading = false
       this.forceUpdate()
 
-      window.setTimeout(() => {
+      requestIdleCallback(() => {
         const now = Date.now()
         sendReady(now - props.startTime)
-      }, ReadyDelay)
+      }, { timeout: ReadyDelay })
     })
 
     this.state = props.appStore.getState()
