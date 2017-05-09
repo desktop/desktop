@@ -451,8 +451,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.removeRepositories([ repository ])
   }
 
-  private saveDontAskAgainForRepoRemovalResponse = (dontAskAgain: boolean) => {
-    console.log('Will not ask again')
+  private saveDontAskAgainForRepoRemovalResponse = async (dontAskAgain: boolean) => {
+    await this.props.dispatcher.setConfirmRepoRemovalSetting(dontAskAgain)
   }
 
   private getRepository(): Repository | CloningRepository | null {
