@@ -24,7 +24,7 @@ import {
   fetchRefspec,
   getRecentBranches,
   getBranches,
-  deleteBranch,
+  deleteRef,
   IAheadBehind,
   getBranchAheadBehind,
   getCommits,
@@ -215,7 +215,6 @@ export class GitStore {
 
     this.refreshDefaultBranch()
     this.refreshRecentBranches(recentBranchNames)
-    this.emitUpdate()
 
     const commits = this._allBranches.map(b => b.tip)
 
@@ -364,15 +363,9 @@ export class GitStore {
     // For an initial commit, just delete the reference but leave HEAD. This
     // will make the branch unborn again.
     let success: true | undefined = undefined
-    if (!commit.parentSHAs.length) {
-
-      if (this.tip.kind === TipState.Valid) {
-        const branch = this.tip.branch
-        success = await this.performFailableOperation(() => deleteBranch(this.repository, branch, null))
-      } else {
-        console.error(`Can't undo ${commit.sha} because it doesn't have any parents and there's no current branch. How on earth did we get here?!`)
-        return Promise.resolve()
-      }
+    if (commit.parentSHAs.length === 0) {
+      success = await this.performFailableOperation(() => deleteRef(this.repository, 'HEAD',
+      'Reverting first commit'))
     } else {
       success = await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0]))
     }
@@ -550,6 +543,8 @@ export class GitStore {
     } else {
       this._tip = { kind: TipState.Unknown }
     }
+
+    this.emitUpdate()
 
     return status
   }

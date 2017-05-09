@@ -10,8 +10,6 @@ export type MenuEvent =
   'create-repository' |
   'rename-branch' |
   'delete-branch' |
-  'check-for-updates' |
-  'quit-and-install-update' |
   'show-preferences' |
   'choose-repository' |
   'open-working-directory' |

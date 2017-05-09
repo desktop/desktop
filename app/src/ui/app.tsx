@@ -6,7 +6,7 @@ import { RepositoryView } from './repository'
 import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
-import { MenuEvent, MenuIDs } from '../main-process/menu'
+import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, Popup, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
 import { RenameBranch } from './rename-branch'
@@ -14,7 +14,7 @@ import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton, BranchDropdown } from './toolbar'
 import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
-import { setMenuEnabled, setMenuVisible, showCertificateTrustDialog } from './main-process-proxy'
+import { showCertificateTrustDialog } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -80,8 +80,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
       this.setState(state)
-
-      this.updateMenu(state)
     })
 
     props.appStore.onDidError(error => {
@@ -94,31 +92,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     updateStore.onDidChange(state => {
       const status = state.status
-
-      const visibleItem = (function () {
-        switch (status) {
-          case UpdateStatus.CheckingForUpdates: return 'checking-for-updates'
-          case UpdateStatus.UpdateReady: return 'quit-and-install-update'
-          case UpdateStatus.UpdateNotAvailable: return 'check-for-updates'
-          case UpdateStatus.UpdateAvailable: return 'downloading-update'
-        }
-
-        return assertNever(status, `Unknown update state: ${status}`)
-      })() as MenuIDs
-
-      const menuItems = new Set([
-        'checking-for-updates',
-        'downloading-update',
-        'check-for-updates',
-        'quit-and-install-update',
-      ]) as Set<MenuIDs>
-
-      menuItems.delete(visibleItem)
-      for (const item of menuItems) {
-        setMenuVisible(item, false)
-      }
-
-      setMenuVisible(visibleItem, true)
 
       if (!(__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') && status === UpdateStatus.UpdateReady) {
         this.props.dispatcher.setUpdateBannerVisibility(true)
@@ -155,99 +128,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private updateMenu(state: IAppState) {
-    const selectedState = state.selectedState
-    const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
-
-    let repositorySelected = false
-    let onNonDefaultBranch = false
-    let onBranch = false
-    let hasDefaultBranch = false
-    let hasPublishedBranch = false
-    let networkActionInProgress = false
-    let tipStateIsUnknown = false
-
-    if (selectedState && selectedState.type === SelectionType.Repository) {
-      repositorySelected = true
-
-      const branchesState = selectedState.state.branchesState
-      const tip = branchesState.tip
-      const defaultBranch = branchesState.defaultBranch
-
-      hasDefaultBranch = Boolean(defaultBranch)
-
-      onBranch = tip.kind === TipState.Valid
-      tipStateIsUnknown = tip.kind === TipState.Unknown
-
-      // If we are:
-      //  1. on the default branch, or
-      //  2. on an unborn branch, or
-      //  3. on a detached HEAD
-      // there's not much we can do.
-      if (tip.kind === TipState.Valid) {
-        if (defaultBranch !== null) {
-          onNonDefaultBranch = tip.branch.name !== defaultBranch.name
-        }
-
-        hasPublishedBranch = !!tip.branch.upstream
-      } else {
-        onNonDefaultBranch = true
-      }
-
-      networkActionInProgress = selectedState.state.isPushPullFetchInProgress
-    }
-
-    // These are IDs for menu items that are entirely _and only_
-    // repository-scoped. They're always enabled if we're in a repository and
-    // always disabled if we're not.
-    const repositoryScopedIDs: ReadonlyArray<MenuIDs> = [
-      'branch',
-      'repository',
-      'remove-repository',
-      'open-in-shell',
-      'open-working-directory',
-      'show-repository-settings',
-      'create-branch',
-      'show-changes',
-      'show-history',
-      'show-repository-list',
-      'show-branches-list',
-    ]
-
-    const windowOpen = state.windowState !== 'hidden'
-    const repositoryActive = windowOpen && repositorySelected
-    if (repositoryActive) {
-      for (const id of repositoryScopedIDs) {
-        setMenuEnabled(id, true)
-      }
-
-      setMenuEnabled('rename-branch', onNonDefaultBranch)
-      setMenuEnabled('delete-branch', onNonDefaultBranch)
-      setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
-      setMenuEnabled('merge-branch', onBranch)
-      setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
-
-      setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
-      setMenuEnabled('push', !networkActionInProgress)
-      setMenuEnabled('pull', !networkActionInProgress)
-      setMenuEnabled('create-branch', !tipStateIsUnknown)
-    } else {
-      for (const id of repositoryScopedIDs) {
-        setMenuEnabled(id, false)
-      }
-
-      setMenuEnabled('rename-branch', false)
-      setMenuEnabled('delete-branch', false)
-      setMenuEnabled('update-branch', false)
-      setMenuEnabled('merge-branch', false)
-      setMenuEnabled('compare-branch', false)
-
-      setMenuEnabled('view-repository-on-github', false)
-      setMenuEnabled('push', false)
-      setMenuEnabled('pull', false)
-    }
-  }
-
   private onMenuEvent(name: MenuEvent): any {
 
     // Don't react to menu events when an error dialog is shown.
@@ -267,8 +147,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'create-repository': return this.showCreateRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
-      case 'check-for-updates': return this.checkForUpdates()
-      case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
       case 'open-working-directory': return this.openWorkingDirectory()
