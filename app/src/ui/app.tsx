@@ -42,6 +42,7 @@ import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
+import { ConfirmationDialog } from '../ui/confirmation-dialog'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -888,7 +889,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.RemoveRepository:
         return (
-          <div>Removing</div>
+          <ConfirmationDialog
+            dispatcher={this.props.dispatcher}
+            onConfirmation={this.onConfirmRepoRemoval}
+            title='Remove Repository'
+            message='Are you sure you would like to remove this repository?'
+          />
         )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
