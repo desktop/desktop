@@ -35,7 +35,7 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
   }
 
   private onConfirmRepoRemovalChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const value = !event.currentTarget.checked
+    const value = event.currentTarget.checked
 
     this.setState({ confirmRepoRemoval: value })
     this.props.onConfirmRepoRemovalSet(value)
