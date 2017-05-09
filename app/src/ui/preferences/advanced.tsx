@@ -5,7 +5,9 @@ import { LinkButton } from '../lib/link-button'
 
 interface IAdvancedPreferencesProps {
   readonly isOptedOut: boolean,
+  readonly confirmRepoRemoval: boolean,
   readonly onOptOutSet: (checked: boolean) => void
+  readonly onConfirmRepoRemovalSet: (checked: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
