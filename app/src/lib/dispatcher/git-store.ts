@@ -215,7 +215,6 @@ export class GitStore {
 
     this.refreshDefaultBranch()
     this.refreshRecentBranches(recentBranchNames)
-    this.emitUpdate()
 
     const commits = this._allBranches.map(b => b.tip)
 
@@ -550,6 +549,8 @@ export class GitStore {
     } else {
       this._tip = { kind: TipState.Unknown }
     }
+
+    this.emitUpdate()
 
     return status
   }
