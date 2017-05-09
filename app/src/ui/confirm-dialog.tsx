@@ -19,6 +19,16 @@ interface IConfirmDialogState {
 }
 
 export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirmDialogState> {
+  public constructor(props: IConfirmDialogProps) {
+    super(props)
+
+    const dontAsk = props.thisNeedsABetterNameButMyIneptitudePreventsIt
+
+    this.state = {
+      dontAskAgain: dontAsk ? dontAsk : false,
+    }
+  }
+
   private cancel = () => {
     this.props.dispatcher.closePopup()
   }
