@@ -43,6 +43,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       committerName: '',
       committerEmail: '',
       isOptedOut: false,
+      confirmRepoRemoval: false,
     }
   }
 
