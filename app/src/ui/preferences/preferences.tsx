@@ -30,6 +30,7 @@ interface IPreferencesState {
   readonly committerName: string
   readonly committerEmail: string
   readonly isOptedOut: boolean
+  readonly confirmRepoRemoval: boolean
 }
 
 /** The app-level preferences component. */
