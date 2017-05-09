@@ -7,7 +7,7 @@ import {
   mergeExists,
   getStatus,
   createCommit,
-  getCommits,
+  getCommit,
 } from '../../../src/lib/git'
 
 import { setupEmptyRepository } from '../../fixture-helper'
@@ -63,10 +63,10 @@ describe('git/merge', () => {
 
       await createCommit(repo, message, files)
 
-      const commits = await getCommits(repo, 'HEAD', 1)
-      expect(commits.length).to.equal(1)
-      expect(commits[0].summary).to.equal('Special commit')
-      expect(commits[0].body.length).to.equal(0)
+      const commit = await getCommit(repo, 'HEAD')
+      expect(commit).to.not.be.null
+      expect(commit!.summary).to.equal('Special commit')
+      expect(commit!.body.length).to.equal(0)
     })
   })
 })
