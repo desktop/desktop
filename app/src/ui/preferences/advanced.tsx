@@ -47,6 +47,10 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
           label='Yes, submit anonymized usage data'
           value={this.state.reportingOptOut ? CheckboxValue.Off : CheckboxValue.On}
           onChange={this.onReportingOptOutChanged} />
+        <Checkbox
+          label='Yes, confirm before repository removal'
+          value={this.state.confirmRepoRemoval ? CheckboxValue.On : CheckboxValue.Off}
+          onChange={this.onConfirmRepoRemovalChanged} />
       </DialogContent>
     )
   }
