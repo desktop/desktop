@@ -294,8 +294,8 @@ dialog {
       justify-content: flex-end;
     }
 
-    .resend-sms-link {
-      margin-top: var(--spacing-half);  
+    .resend-sms-link-row {
+      margin-top: calc(var(--spacing-half) * -1);
     }
   }
 }

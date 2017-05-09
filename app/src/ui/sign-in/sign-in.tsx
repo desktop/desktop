@@ -225,7 +225,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         <p>
           { getWelcomeMessage(state.type) }
         </p>
-        <Row className='flex-d-column'>
+
+        <Row>
           <TextBox
             label='Authentication code'
             value={this.state.otpToken}
@@ -233,9 +234,11 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             labelLinkText={`What's this?`}
             labelLinkUri='https://help.github.com/articles/providing-your-2fa-authentication-code/'
           />
-          {resendLink}
         </Row>
 
+        <Row className='resend-sms-link-row'>
+          {resendLink}
+        </Row>
       </DialogContent>
     )
   }
