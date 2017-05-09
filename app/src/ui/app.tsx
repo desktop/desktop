@@ -428,12 +428,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private removeRepository() {
     const repository = this.getRepository()
+    const askForConfirmation = this.props.appStore.getConfirmRepoRemovalSetting()
 
     if (!repository) {
       return
     }
 
-    this.props.dispatcher.showPopup({ type: PopupType.RemoveRepository, repository })
+    if (askForConfirmation) {
+      this.props.dispatcher.showPopup({ type: PopupType.RemoveRepository, repository })
+    } else {
+      this.props.dispatcher.removeRepositories([ repository ])
+    }
   }
 
   private onConfirmRepoRemoval = () => {
