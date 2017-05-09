@@ -27,7 +27,7 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
     }
   }
 
-  private onChange = (event: React.FormEvent<HTMLInputElement>) => {
+  private onReportingOptOutChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const value = !event.currentTarget.checked
 
     this.setState({ reportingOptOut: value })
@@ -46,7 +46,7 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
         <Checkbox
           label='Yes, submit anonymized usage data'
           value={this.state.reportingOptOut ? CheckboxValue.Off : CheckboxValue.On}
-          onChange={this.onChange} />
+          onChange={this.onReportingOptOutChanged} />
       </DialogContent>
     )
   }
