@@ -34,6 +34,12 @@ export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirm
   }
 
   private onConfirmed = () => {
+    const fn = this.props.functionToRunWhenThisNeedsABetterNameButMyIneptitudePreventsItIsTrue
+
+    if (fn) {
+      fn(this.state.dontAskAgain)
+    }
+
     this.props.onConfirmation()
     this.props.dispatcher.closePopup()
   }
