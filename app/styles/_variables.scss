@@ -13,7 +13,8 @@
   $darkBlue: #005CC5;
   $blue: #0366d6;
   $yellow: #ffd33d;
-  $lightYellow: #f6a623;
+  $darkYellow: #745d00;
+  $lightYellow: #fff5b1;
   $red: #d73a49;
   $lightRed: #f04747;
   $green: #28a745;
@@ -274,6 +275,10 @@
   --error-color: $red;
   --form-error-background: #fddede;
   --form-error-border-color: #d3b2b2;
+
+  // Colors for form warnings
+  --warning-color: $darkYellow;
+  --form-warning-background: $lightYellow;
 
   /** Dialog */
   --dialog-warning-color: $lightYellow;
