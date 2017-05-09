@@ -130,8 +130,10 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       }
       case PreferencesTab.Advanced: {
         return <Advanced
-          onOptOutSet={this.onOptOutSet}
           isOptedOut={this.state.isOptedOut}
+          confirmRepoRemoval={this.state.confirmRepoRemoval}
+          onOptOutSet={this.onOptOutSet}
+          onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
         />
       }
       default: return assertNever(index, `Unknown tab index: ${index}`)
