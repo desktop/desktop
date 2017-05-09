@@ -5,7 +5,7 @@ import { Button } from '../ui/lib/button'
 import { Checkbox, CheckboxValue } from '../ui/lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../ui/dialog'
 
-interface IConfirmDialog {
+interface IConfirmDialogProps {
   readonly dispatcher: Dispatcher
   readonly title: string
   readonly message: string
@@ -14,7 +14,11 @@ interface IConfirmDialog {
   readonly onConfirmation: () => void
 }
 
-export class ConfirmDialog extends React.Component<IConfirmDialog, void> {
+interface IConfirmDialogState {
+  readonly dontAskAgain: boolean,
+}
+
+export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirmDialogState> {
   private cancel = () => {
     this.props.dispatcher.closePopup()
   }
