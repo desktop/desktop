@@ -78,6 +78,7 @@ const sidebarWidthConfigKey: string = 'sidebar-width'
 
 const defaultCommitSummaryWidth: number = 250
 const commitSummaryWidthConfigKey: string = 'commit-summary-width'
+const confirmOnRepoRemovalKey: string = 'confirmRepoRemoval'
 
 export class AppStore {
   private emitter = new Emitter()
