@@ -131,7 +131,12 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     if (!directory) { return }
 
     const path = directory[0]
-    this.setState({ path })
+    this.updatePath(path)
+  }
+
+  private updatePath(newPath: string) {
+    this.setState({ path: newPath })
+    this.checkPathValid(newPath)
   }
 
   private checkPathValid(newPath: string) {
@@ -178,8 +183,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.setState({ path })
-    this.checkPathValid(path)
+    this.updatePath(path)
   }
 
   /**
