@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogFooter } from '../ui/dialog'
 
 interface IConfirmationDialog {
   readonly dispatcher: Dispatcher
+  readonly title: string
+  readonly message: string
   readonly onConfirmation: () => void
 }
 
@@ -14,21 +16,27 @@ export class ConfirmationDialog extends React.Component<IConfirmationDialog, voi
     this.props.dispatcher.closePopup()
   }
 
+  private onConfirmed = () => {
+    this.props.onConfirmation()
+    this.props.dispatcher.closePopup()
+  }
+
   public render() {
     return (
       <Dialog
-        title={ __DARWIN__ ? 'Mac OS' : 'Windows' }
+        title={this.props.title}
         onDismissed={this.cancel}
-        onSubmit={this.props.onConfirmation}
+        onSubmit={this.onConfirmed}
       >
-      <DialogContent>
-      </DialogContent>
-      <DialogFooter>
-        <ButtonGroup>
-          <Button type='submit'>Yes</Button>
-          <Button onClick={this.cancel}>No</Button>
-        </ButtonGroup>
-      </DialogFooter>
+        <DialogContent>
+          {this.props.message}
+        </DialogContent>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit'>Yes</Button>
+            <Button onClick={this.cancel}>No</Button>
+          </ButtonGroup>
+        </DialogFooter>
       </Dialog>
     )
   }
