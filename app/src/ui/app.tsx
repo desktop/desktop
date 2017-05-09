@@ -554,7 +554,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    this.props.dispatcher.removeRepositories([ repository ])
+    this.props.dispatcher.showPopup({ type: PopupType.RemoveRepository, repository })
+
+    //this.props.dispatcher.removeRepositories([ repository ])
   }
 
   private getRepository(): Repository | CloningRepository | null {
@@ -883,6 +885,10 @@ export class App extends React.Component<IAppProps, IAppState> {
             key='acknowledgements'
             onDismissed={this.onPopupDismissed}
           />
+        )
+      case PopupType.RemoveRepository:
+        return (
+          <div>Removing</div>
         )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
