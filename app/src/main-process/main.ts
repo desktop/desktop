@@ -47,7 +47,7 @@ if (__WIN32__ && process.argv.length > 1) {
   }
 }
 
-const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
+const isDuplicateInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
   // Someone tried to run a second instance, we should focus our window.
   if (mainWindow) {
     if (mainWindow.isMinimized()) {
@@ -64,7 +64,7 @@ const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
   }
 })
 
-if (shouldQuit) {
+if (isDuplicateInstance) {
   app.quit()
 }
 
@@ -89,6 +89,8 @@ app.on('will-finish-launching', () => {
 })
 
 app.on('ready', () => {
+  if (isDuplicateInstance) { return }
+
   const now = Date.now()
   readyTime = now - launchTime
 
