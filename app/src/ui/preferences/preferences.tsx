@@ -48,9 +48,9 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
   }
 
   public async componentWillMount() {
+    const isOptedOut = this.props.appStore.getStatsOptOut()
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
-    const isOptedOut = this.props.appStore.getStatsOptOut()
 
     if (!committerName || !committerEmail) {
       const account = this.props.dotComAccount || this.props.enterpriseAccount
