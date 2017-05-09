@@ -86,9 +86,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     super(props)
 
     props.dispatcher.loadInitialState().then(() => {
-      const now = Date.now()
-      console.info('loaded', now - props.startTime)
-
       this.loading = false
       this.forceUpdate()
 
