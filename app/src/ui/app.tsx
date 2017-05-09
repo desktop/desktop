@@ -60,7 +60,8 @@ export const dialogTransitionLeaveTimeout = 100
 
 /**
  * The time to delay (in ms) from when we've loaded the initial state to showing
- * the window.
+ * the window. This is try to give Chromium enough time to flush our latest DOM
+ * changes. See https://github.com/desktop/desktop/issues/1398.
  */
 const ReadyDelay = 100
 
