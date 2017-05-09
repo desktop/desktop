@@ -50,6 +50,6 @@
      * the contents of the button in a block element and put
      * ellipsis on that instead. See commit 67fad24ed
      */
-    div { @include ellipsis }
+    > span { @include ellipsis }
   }
 }
