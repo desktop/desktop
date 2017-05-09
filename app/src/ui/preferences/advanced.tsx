@@ -12,6 +12,7 @@ interface IAdvancedPreferencesProps {
 
 interface IAdvancedPreferencesState {
   readonly reportingOptOut: boolean
+  readonly confirmRepoRemoval: boolean
 }
 
 const SamplesURL = 'https://desktop.github.com/samples/'
@@ -22,6 +23,7 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
 
     this.state = {
       reportingOptOut: this.props.isOptedOut,
+      confirmRepoRemoval: this.props.confirmRepoRemoval,
     }
   }
 
