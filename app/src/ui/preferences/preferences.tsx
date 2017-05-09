@@ -178,7 +178,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
   private onSave = async () => {
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
-    this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
+    await this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
 
     this.props.onDismissed()
   }
