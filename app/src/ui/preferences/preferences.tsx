@@ -179,6 +179,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
     await this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
+    await this.props.dispatcher.setConfirmRepoRemovalSetting(this.state.confirmRepoRemoval)
 
     this.props.onDismissed()
   }
