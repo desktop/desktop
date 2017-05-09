@@ -556,8 +556,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.showPopup({ type: PopupType.RemoveRepository, repository })
+  }
 
-    //this.props.dispatcher.removeRepositories([ repository ])
+  private onConfirmRepoRemoval = () => {
+    const repository = this.getRepository()
+
+    if (!repository) {
+      return
+    }
+
+    this.props.dispatcher.removeRepositories([ repository ])
   }
 
   private getRepository(): Repository | CloningRepository | null {
