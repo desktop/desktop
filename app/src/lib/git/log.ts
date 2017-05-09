@@ -48,7 +48,7 @@ export async function getCommits(repository: Repository, revisionRange: string, 
     const summary = pieces[1]
     const body = pieces[2]
     const authorIdentity = pieces[3]
-    const parentSHAs = pieces[4].split(' ')
+    const parentSHAs = pieces[4].split(' ').filter(sha => sha.length > 0)
 
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
