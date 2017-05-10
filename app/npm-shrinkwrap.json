@@ -612,9 +612,9 @@
       "resolved": "https://registry.npmjs.org/object-assign/-/object-assign-4.1.1.tgz"
     },
     "octokat": {
-      "version": "0.6.4",
-      "from": "octokat@0.6.4",
-      "resolved": "https://registry.npmjs.org/octokat/-/octokat-0.6.4.tgz"
+      "version": "0.7.0",
+      "from": "octokat@0.7.0",
+      "resolved": "https://registry.npmjs.org/octokat/-/octokat-0.7.0.tgz"
     },
     "once": {
       "version": "1.4.0",
