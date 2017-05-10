@@ -1439,9 +1439,11 @@ export class AppStore {
       await gitStore.loadCurrentRemote()
       return this._push(repository, account)
     } catch (e) {
-
       if (e.message) {
-        // for the sake of shipping this
+        // for the sake of shipping this it looks like octokat.js just throws
+        // with the entire JSON body as the error message - that's fine, just
+        // needs some thought later the next time we need to do something like
+        // this
         const json = JSON.parse(e.message)
         if (json.message) {
           throw new Error(json.message)
