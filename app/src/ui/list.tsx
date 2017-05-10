@@ -182,7 +182,7 @@ interface IListState {
 
 // https://wicg.github.io/ResizeObserver/#resizeobserverentry
 interface IResizeObserverEntry {
-  readonly target: Element
+  readonly target: HTMLElement
   readonly contentRect: ClientRect
 };
 
@@ -240,7 +240,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onResized = (target: Element, contentRect: ClientRect) => {
+  private onResized = (target: HTMLElement, contentRect: ClientRect) => {
     this.updateSizeTimeoutId = null
 
     // In a perfect world the contentRect would be enough. Unfortunately,
