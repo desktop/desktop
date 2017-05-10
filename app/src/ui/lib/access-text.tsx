@@ -18,6 +18,10 @@ interface IAccessTextProps {
   readonly highlight?: boolean,
 }
 
+function unescape(accessText: string) {
+  return accessText.replace('&&', '&')
+}
+
 /**
  * A platform helper function which optionally highlights access keys (letters
  * prefixed with &) on Windows. On non-Windows platform access key prefixes
@@ -42,7 +46,7 @@ export class AccessText extends React.Component<IAccessTextProps, void> {
     const elements = new Array<JSX.Element>()
 
     if (m[1]) {
-      elements.push(<span key={1}>{m[1].replace('&&', '&')}</span>)
+      elements.push(<span key={1} aria-hidden={true}>{unescape(m[1])}</span>)
     }
 
     const className = classNames(
@@ -50,12 +54,14 @@ export class AccessText extends React.Component<IAccessTextProps, void> {
       { highlight: this.props.highlight }
     )
 
-    elements.push(<span key={2} className={className}>{m[2]}</span>)
+    elements.push(<span aria-hidden={true} key={2} className={className}>{m[2]}</span>)
 
     if (m[3]) {
-      elements.push(<span key={3}>{m[3].replace('&&', '&')}</span>)
+      elements.push(<span key={3} aria-hidden={true}>{unescape(m[3])}</span>)
     }
 
-    return <span>{elements}</span>
+    const plainText = (m[1] ? unescape(m[1]) : '') + m[2] + (m[3] ? unescape(m[3]): '')
+
+    return <span aria-label={plainText}>{elements}</span>
   }
 }
