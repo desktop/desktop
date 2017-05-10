@@ -226,10 +226,20 @@ export class API {
     return this.client.user.fetch()
   }
 
+  private async getEmailsFromAPI(): Promise<ReadonlyArray<IAPIEmail>> {
+    const isDotCom = this.account.endpoint === getDotComAPIEndpoint()
+
+    const result = isDotCom
+      ? await this.client.user.publicEmails.fetch()
+      : await this.client.user.emails.fetch()
+
+    const emails: ReadonlyArray<IAPIEmail> = result.items
+    return emails
+  }
+
   /** Fetch the current user's emails. */
   public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
-    const result = await this.client.user.emails.fetch()
-    const emails: ReadonlyArray<IAPIEmail> = result.items
+    const emails = await this.getEmailsFromAPI()
     return emails.map(convertEmailAddress)
   }
 
