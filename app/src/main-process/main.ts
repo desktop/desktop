@@ -2,12 +2,14 @@ import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater } from 'electr
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
-import { parseURL } from '../lib/parse-url'
+import { parseURL, URLActionType } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
+import { showFallbackPage } from './error-page'
 import { getLogger } from '../lib/logging/main'
+import { IMenuItemState } from '../lib/menu-update'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -15,6 +17,13 @@ let sharedProcess: SharedProcess | null = null
 const launchTime = Date.now()
 
 let readyTime: number | null = null
+
+/**
+ * The URL action with which the app was launched. On macOS, we could receive an
+ * `open-url` command before the app ready event, so we stash it away and handle
+ * it when we're ready.
+ */
+let launchURLAction: URLActionType | null = null
 
 process.on('uncaughtException', (error: Error) => {
   getLogger().error('Uncaught exception on main process', error)
@@ -27,6 +36,8 @@ process.on('uncaughtException', (error: Error) => {
 
   if (mainWindow) {
     mainWindow.sendException(error)
+  } else {
+    showFallbackPage(error)
   }
 })
 
@@ -36,7 +47,7 @@ if (__WIN32__ && process.argv.length > 1) {
   }
 }
 
-const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
+const isDuplicateInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
   // Someone tried to run a second instance, we should focus our window.
   if (mainWindow) {
     if (mainWindow.isMinimized()) {
@@ -53,11 +64,33 @@ const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
   }
 })
 
-if (shouldQuit) {
+if (isDuplicateInstance) {
   app.quit()
 }
 
+app.on('will-finish-launching', () => {
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+
+    const action = parseURL(url)
+    // NB: If the app was launched by an `open-url` command, the app won't be
+    // ready yet and so handling the URL action is a not great idea. We'll stash
+    // it away and handle it when we're ready.
+    if (app.isReady()) {
+      const window = getMainWindow()
+      // This manual focus call _shouldn't_ be necessary, but is for Chrome on
+      // macOS. See https://github.com/desktop/desktop/issues/973.
+      window.focus()
+      window.sendURLAction(action)
+    } else {
+      launchURLAction = action
+    }
+  })
+})
+
 app.on('ready', () => {
+  if (isDuplicateInstance) { return }
+
   const now = Date.now()
   readyTime = now - launchTime
 
@@ -73,17 +106,6 @@ app.on('ready', () => {
   sharedProcess.register()
 
   createWindow()
-
-  app.on('open-url', (event, url) => {
-    event.preventDefault()
-
-    const action = parseURL(url)
-    const window = getMainWindow()
-    // This manual focus call _shouldn't_ be necessary, but is for Chrome on
-    // macOS. See https://github.com/desktop/desktop/issues/973.
-    window.focus()
-    window.sendURLAction(action)
-  })
 
   const menu = buildDefaultMenu(sharedProcess)
   Menu.setApplicationMenu(menu)
@@ -108,37 +130,28 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, { id, enabled }: { id: string, enabled: boolean }) => {
-    const menuItem = findMenuItemByID(menu, id)
-    if (menuItem) {
-      // Only send the updated app menu when the state actually changes
-      // or we might end up introducing a never ending loop between
-      // the renderer and the main process
-      if (menuItem.enabled !== enabled) {
-        menuItem.enabled = enabled
-        if (mainWindow) {
-          mainWindow.sendAppMenu()
-        }
-      }
-    } else {
-      fatalError(`Unknown menu id: ${id}`)
-    }
-  })
+  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: { [id: string]: IMenuItemState }) => {
+    let sendMenuChangedEvent = false
 
-  ipcMain.on('set-menu-visible', (event: Electron.IpcMainEvent, { id, visible }: { id: string, visible: boolean }) => {
-    const menuItem = findMenuItemByID(menu, id)
-    if (menuItem) {
-      // Only send the updated app menu when the state actually changes
-      // or we might end up introducing a never ending loop between
-      // the renderer and the main process
-      if (menuItem.visible !== visible) {
-        menuItem.visible = visible
-        if (mainWindow) {
-          mainWindow.sendAppMenu()
+    for (const id of Object.keys(items)) {
+      const menuItem = findMenuItemByID(menu, id)
+      const state = items[id]
+
+      if (menuItem) {
+        // Only send the updated app menu when the state actually changes
+        // or we might end up introducing a never ending loop between
+        // the renderer and the main process
+        if (state.enabled !== undefined && menuItem.enabled !== state.enabled) {
+          menuItem.enabled = state.enabled
+          sendMenuChangedEvent = true
         }
+      } else {
+        fatalError(`Unknown menu id: ${id}`)
       }
-    } else {
-      fatalError(`Unknown menu id: ${id}`)
+    }
+
+    if (sendMenuChangedEvent && mainWindow) {
+      mainWindow.sendAppMenu()
     }
   })
 
@@ -238,6 +251,11 @@ function createWindow() {
       loadTime: window.loadTime!,
       rendererReadyTime: window.rendererReadyTime!,
     })
+
+    if (launchURLAction) {
+      window.sendURLAction(launchURLAction)
+      launchURLAction = null
+    }
   })
 
   window.load()

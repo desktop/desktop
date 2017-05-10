@@ -5,6 +5,7 @@ import { GitHubRepository, IGitHubRepository } from './github-repository'
 /** The data-only interface for Repository for transport across IPC. */
 export interface IRepository {
   readonly id: number
+  /** The working directory of this repository */
   readonly path: string
   readonly gitHubRepository: IGitHubRepository | null
 
@@ -15,6 +16,7 @@ export interface IRepository {
 /** A local repository. */
 export class Repository implements IRepository {
   public readonly id: number
+  /** The working directory of this repository */
   public readonly path: string
   public readonly gitHubRepository: GitHubRepository | null
 

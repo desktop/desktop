@@ -5,7 +5,7 @@ import { getDotComAPIEndpoint } from '../api'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
-import { v4 as generateGUID } from 'uuid'
+import { uuid } from '../uuid'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -41,7 +41,7 @@ export class StatsStore {
 
     let guid = localStorage.getItem(StatsGUIDKey)
     if (!guid) {
-      guid = generateGUID()
+      guid = uuid()
       localStorage.setItem(StatsGUIDKey, guid)
     }
 
@@ -165,12 +165,21 @@ export class StatsStore {
 
   /** Calculate the average launch stats. */
   private async getAverageLaunchStats(): Promise<ILaunchStats> {
-    const launches = await this.db.launches.toArray()
+    const launches: ReadonlyArray<ILaunchStats> | undefined = await this.db.launches.toArray()
+    if (!launches || !launches.length) {
+      return {
+        mainReadyTime: -1,
+        loadTime: -1,
+        rendererReadyTime: -1,
+      }
+    }
+
     const start: ILaunchStats = {
       mainReadyTime: 0,
       loadTime: 0,
       rendererReadyTime: 0,
     }
+
     const totals = launches.reduce((running, current) => {
       return {
         mainReadyTime: running.mainReadyTime + current.mainReadyTime,
@@ -188,19 +197,28 @@ export class StatsStore {
 
   /** Get the daily measures. */
   private async getDailyMeasures(): Promise<IDailyMeasures> {
-    const measures: IDailyMeasures = await this.db.dailyMeasures.limit(1).first()
+    let measures: IDailyMeasures | undefined = await this.db.dailyMeasures.limit(1).first()
+    if (!measures) {
+      measures = this.getDefaultDailyMeasures()
+    }
+
     return measures
+  }
+
+  private getDefaultDailyMeasures(): IDailyMeasures {
+    return {
+      commits: 0,
+    }
   }
 
   /** Record that a commit was accomplished. */
   public async recordCommit() {
     const db = this.db
+    const defaultMeasures = this.getDefaultDailyMeasures()
     await this.db.transaction('rw', this.db.dailyMeasures, function*() {
       let measures: IDailyMeasures | null = yield db.dailyMeasures.limit(1).first()
       if (!measures) {
-        measures = {
-          commits: 0,
-        }
+        measures = defaultMeasures
       }
 
       let newMeasures: IDailyMeasures = {

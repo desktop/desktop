@@ -1,12 +1,14 @@
 import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
-import { v4 as guid } from 'uuid'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
-import { HTTPMethod, request, deserialize } from './http'
+import { HTTPMethod, request, deserialize, getUserAgent } from './http'
 import { AuthenticationMode } from './2fa'
+import { uuid } from './uuid'
+
+import { getLogger } from '../lib/logging/renderer'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -185,6 +187,7 @@ export class API {
       token: account.token,
       rootURL: account.endpoint,
       plugins: OctokatPlugins,
+      userAgent: getUserAgent(),
     })
   }
 
@@ -213,6 +216,7 @@ export class API {
     try {
       return await this.client.repos(owner, name).fetch()
     } catch (e) {
+      getLogger().error(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
       return null
     }
   }
@@ -235,6 +239,7 @@ export class API {
       const commit = await this.client.repos(owner, name).commits(sha).fetch()
       return commit
     } catch (e) {
+      getLogger().error(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
       return null
     }
   }
@@ -248,6 +253,7 @@ export class API {
       const user = result.items[0]
       return user
     } catch (e) {
+      getLogger().error(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
       return null
     }
   }
@@ -339,6 +345,7 @@ export enum AuthorizationResponseKind {
   Failed,
   TwoFactorAuthenticationRequired,
   UserRequiresVerification,
+  PersonalAccessTokenBlocked,
   Error,
 }
 
@@ -346,7 +353,8 @@ export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized
                                     { kind: AuthorizationResponseKind.Failed, response: Response } |
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
                                     { kind: AuthorizationResponseKind.Error, response: Response } |
-                                    { kind: AuthorizationResponseKind.UserRequiresVerification }
+                                    { kind: AuthorizationResponseKind.UserRequiresVerification } |
+                                    { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -365,7 +373,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
     'client_secret': ClientSecret,
     'note': note,
     'note_url': NoteURL,
-    'fingerprint': guid(),
+    'fingerprint': uuid(),
   }, headers)
 
   if (response.status === 401) {
@@ -386,6 +394,15 @@ export async function createAuthorization(endpoint: string, login: string, passw
     }
 
     return { kind: AuthorizationResponseKind.Failed, response }
+  }
+
+  if (response.status === 403) {
+    const body = await response.json()
+    if (body.message === 'This API can only be accessed with username and password Basic Auth') {
+      // Authorization API does not support providing personal access tokens
+      return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
+    }
+    return { kind: AuthorizationResponseKind.Error, response }
   }
 
   if (response.status === 422) {
@@ -444,8 +461,8 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
     }
 
     return body
-  } catch (error) {
-    console.error(`Failed to load metadata from ${url}: ${error}`)
+  } catch (e) {
+    getLogger().error(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
     return null
   }
 }
@@ -456,9 +473,7 @@ async function getNote(): Promise<string> {
   try {
     localUsername = await username()
   } catch (e) {
-    console.log(`Error getting username:`)
-    console.error(e)
-    console.log(`We'll just use 'unknown'.`)
+    getLogger().error(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`

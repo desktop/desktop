@@ -10,8 +10,10 @@ export async function reportError(error: Error, version: string) {
   const data = new FormData()
   data.append('name', error.name)
   data.append('message', error.message)
-  data.append('stack', error.stack)
   data.append('version', version)
+  if (error.stack) {
+    data.append('stack', error.stack)
+  }
 
   const options = {
     method: 'POST',

@@ -340,6 +340,13 @@ export class AppMenu {
   }
 
   /**
+   * Retrieves a menu item by its id.
+   */
+  public getItemById(id: string): MenuItem | undefined {
+    return this.menuItemById.get(id)
+  }
+
+  /**
    * Merges the current AppMenu state with a new menu while
    * attempting to maintain selection state.
    */

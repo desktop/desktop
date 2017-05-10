@@ -1,7 +1,63 @@
 {
   "releases": {
-    "0.0.35": [
+    "0.0.40": [
 
+    ],
+    "0.0.39": [
+      "[Fixed] An uncaught exception when adding a user - #1394"
+    ],
+    "0.0.38": [
+      "[New] Shiny new icon! - #1221",
+      "[New] More helpful blank slate view - #871",
+      "[Fixed] Don't allow Undo while pushing/pulling/fetching - #1047",
+      "[Fixed] Updating the default branch on GitHub wouldn't be reflected in the app - #1028 #1314",
+      "[Fixed] Long repository names would overflow their container - #1331",
+      "[Fixed] Removed development menu items in production builds - #1031 #1251 #1323 #1340",
+      "[Fixed] Create Branch no longer changes as it's animating closed - #1304",
+      "[Fixed] Windows: Cut / Copy / Paste menu items not working - #1379",
+      "[Improved] Show a better error message when the user tries to authenticate with a personal access token - #1313",
+      "[Improved] Link to the repository New Issue page from the Help menu - #1349",
+      "[Improved] Clone in Desktop opens the Clone dialog - #918"
+    ],
+    "0.0.37": [
+      "[Fixed] Better display of the 'no newline at end of file' indicator - #1253",
+      "[Fixed] macOS: Destructive dialogs now use the expected button order - #1315",
+      "[Fixed] Display of submodule paths - #785",
+      "[Fixed] Incomplete stats submission - #1337",
+      "[Improved] Redesigned welcome flow - #1254",
+      "[Improved] App launch time - #1225",
+      "[Improved] Handle uncaught exceptions - #1106"
+    ],
+    "0.0.36": [
+      "[Fixed] Bugs around associating an email address with a GitHub user - #975",
+      "[Fixed] Use the correct reference name for an unborn branch - #1283",
+      "[Fixed] Better diffs for renamed files - #980",
+      "[Fixed] Typo in Create Branch - #1303",
+      "[Fixed] Don't allow whitespace-only branch names - #1288",
+      "[Improved] Focus ring polish - #1287",
+      "[Improved] Less intrusive update notifications - #1136",
+      "[Improved] Faster launch time on Windows - #1309",
+      "[Improved] Faster git information refreshing - #1305",
+      "[Improved] More consistent use of sentence case on Windows - #1316",
+      "[Improved] Autocomplete polish - #1241"
+    ],
+    "0.0.35": [
+      "[New] Show push/pull/fetch progress - #1238",
+      "[Fixed] macOS: Add the Zoom menu item - #1260",
+      "[Fixed] macOS: Don't show the titlebar while full screened - #1247",
+      "[Fixed] Windows: Updates would make the app unresponsive - #1269",
+      "[Fixed] Windows: Keyboard navigation in menus - #1293",
+      "[Fixed] Windows: Repositories list item not working - #1293",
+      "[Fixed] Auto updater errors not being propagated properly - #1266",
+      "[Fixed] Only show the current branch tooltip on the branches button - #1275",
+      "[Fixed] Double path truncation - #1270",
+      "[Fixed] Sometimes toggling a file's checkbox would get undone - #1248",
+      "[Fixed] Uncaught exception when internet connectivity was lost - #1048",
+      "[Fixed] Cloned repositories wouldn't be associated with their GitHub repository - #1285",
+      "[Improved] Better performance on large repositories - #1281",
+      "[Improved] Commit summary is now expandable when the summary is long - #519",
+      "[Improved] The SHA in historical commits is now selectable - #1154",
+      "[Improved] The Create Branch dialog was polished and refined - #1137"
     ],
     "0.0.34": [
       "[New] macOS: Users can choose whether to accept untrusted certificates - #671",

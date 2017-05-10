@@ -161,20 +161,21 @@ export class RepositoriesStore {
         }
       }
 
-      const info: any = {
+      let updatedInfo = {
         private: newGitHubRepo.private,
         fork: newGitHubRepo.fork,
         htmlURL: newGitHubRepo.htmlURL,
         name: newGitHubRepo.name,
-        ownerID,
+        ownerID: ownerID!,
         cloneURL: newGitHubRepo.cloneURL,
+        defaultBranch: newGitHubRepo.defaultBranch,
       }
 
       if (existingGitHubRepo) {
-        info.id = existingGitHubRepo.id
+        updatedInfo = { ...updatedInfo, id: existingGitHubRepo.id }
       }
 
-      gitHubRepositoryID = yield db.gitHubRepositories.put(info)
+      gitHubRepositoryID = yield db.gitHubRepositories.put(updatedInfo)
       yield db.repositories.update(localRepo.id, { gitHubRepositoryID })
     })
 

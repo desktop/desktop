@@ -11,6 +11,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
+import { Loading } from '../lib/loading'
 import { structuralEquals } from '../../lib/equality'
 
 interface ICommitMessageProps {
@@ -181,6 +182,10 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     const branchName = this.props.branch ? this.props.branch : 'master'
     const buttonEnabled = this.canCommit() && !this.props.isCommitting
 
+    const loading = this.props.isCommitting
+      ? <Loading />
+      : undefined
+
     return (
       <div id='commit-message' role='group' aria-label='Create commit'>
         <div className='summary'>
@@ -211,7 +216,10 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           onClick={this.onSubmit}
           disabled={!buttonEnabled}
         >
-          <div title={`Commit to ${branchName}`}>Commit to <strong>{branchName}</strong></div>
+          {loading}
+          <span title={`Commit to ${branchName}`}>
+            {loading ? 'Committing' : 'Commit'} to <strong>{branchName}</strong>
+          </span>
         </Button>
       </div>
     )

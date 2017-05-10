@@ -116,10 +116,17 @@ export class GitHubUserStore {
 
     this.requestsInFlight.add(key)
 
-    let gitUser: IGitHubUser | null = await this.database.users.where('[endpoint+email]')
-      .equals([ account.endpoint, email.toLowerCase() ])
-      .limit(1)
-      .first()
+    let gitUser: IGitHubUser | null = null
+    // We don't have email addresses for all the users in our database, e.g., if
+    // the user has no public email. In that case, the email field is an empty
+    // string. So searching with an empty email is gonna give us results, but
+    // not results that are meaningful.
+    if (email.length > 0) {
+      gitUser = await this.database.users.where('[endpoint+email]')
+        .equals([ account.endpoint, email.toLowerCase() ])
+        .limit(1)
+        .first()
+    }
 
     // TODO: Invalidate the stored user in the db after ... some reasonable time
     // period.
@@ -130,7 +137,7 @@ export class GitHubUserStore {
     this.requestsInFlight.delete(key)
 
     if (gitUser) {
-      this.cacheUser(gitUser)
+      await this.cacheUser(gitUser)
       this.emitUpdate()
     } else {
       this.failedRequests.add(key)
@@ -181,15 +188,15 @@ export class GitHubUserStore {
     const db = this.database
     let addedUser: IGitHubUser | null = null
     await this.database.transaction('rw', this.database.users, function*() {
-      const existing: IGitHubUser | null = yield db.users.where('[endpoint+login]')
-        .equals([ user.endpoint, user.login.toLowerCase() ])
-        .limit(1)
-        .first()
-      if (existing) {
+      const existing: ReadonlyArray<IGitHubUser> = yield db.users.where('[endpoint+login]')
+        .equals([ user.endpoint, user.login ])
+        .toArray()
+      const match = existing.find(e => e.email === user.email)
+      if (match) {
         if (overwriteEmail) {
-          user = { ...user, id: existing.id }
+          user = { ...user, id: match.id }
         } else {
-          user = { ...user, id: existing.id, email: existing.email }
+          user = { ...user, id: match.id, email: match.email }
         }
       }
 

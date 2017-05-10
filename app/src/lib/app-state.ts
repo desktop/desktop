@@ -46,8 +46,14 @@ export interface IAppState {
    * The current state of the Window, ie maximized, minimized full-screen etc.
    */
   readonly windowState: WindowState
+
+  /**
+   * A value indicating whether or not the current application
+   * window has focus.
+   */
+  readonly appIsFocused: boolean
+
   readonly showWelcomeFlow: boolean
-  readonly loading: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
 
@@ -101,13 +107,15 @@ export interface IAppState {
    * Alt key is pressed. Only applicable on non-macOS platforms.
    */
   readonly highlightAccessKeys: boolean
+
+  /** Whether we should show the update banner */
+  readonly isUpdateAvailableBannerVisible: boolean
 }
 
 export enum PopupType {
   RenameBranch = 1,
   DeleteBranch,
   ConfirmDiscardChanges,
-  UpdateAvailable,
   Preferences,
   MergeBranch,
   RepositorySettings,
@@ -126,13 +134,12 @@ export enum PopupType {
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
-                    { type: PopupType.UpdateAvailable } |
                     { type: PopupType.Preferences } |
                     { type: PopupType.MergeBranch, repository: Repository } |
                     { type: PopupType.RepositorySettings, repository: Repository } |
                     { type: PopupType.AddRepository } |
                     { type: PopupType.CreateRepository } |
-                    { type: PopupType.CloneRepository } |
+                    { type: PopupType.CloneRepository, initialURL: string | null } |
                     { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.SignIn } |
                     { type: PopupType.About } |

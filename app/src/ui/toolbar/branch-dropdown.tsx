@@ -80,8 +80,8 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
       // TODO: this is bad and I feel bad
       return null
     } else if (tip.kind === TipState.Unborn) {
-      title = 'master'
-      tooltip = 'Current branch is master'
+      title = tip.ref
+      tooltip = `Current branch is ${tip.ref}`
       canOpen = false
     } else if (tip.kind === TipState.Detached) {
       title = `On ${tip.currentSha.substr(0,7)}`

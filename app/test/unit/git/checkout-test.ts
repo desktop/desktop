@@ -1,8 +1,10 @@
 import { expect, use as chaiUse } from 'chai'
 import { setupEmptyRepository, setupFixtureRepository } from '../../fixture-helper'
 import { Repository } from '../../../src/models/repository'
-import { checkoutBranch, getTip } from '../../../src/lib/git'
+import { checkoutBranch } from '../../../src/lib/git'
 import { TipState, IValidBranch } from '../../../src/models/tip'
+import { GitStore } from '../../../src/lib/dispatcher/git-store'
+import { shell } from '../../test-app-shell'
 
 chaiUse(require('chai-datetime'))
 
@@ -27,7 +29,11 @@ describe('git/checkout', () => {
 
     await checkoutBranch(repository, 'commit-with-long-description')
 
-    const tip = await getTip(repository)
+    const store = new GitStore(repository, shell)
+    await store.loadStatus()
+    const tip = store.tip
+
+
     expect(tip.kind).to.equal(TipState.Valid)
 
     const validBranch = tip as IValidBranch
