@@ -26,20 +26,23 @@ export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirm
     }
   }
 
+  private persistState = () => {
+    const fn = this.props.functionToRunWhenThisNeedsABetterNameButMyIneptitudePreventsItIsTrue
+
+    if (fn) {
+      fn(this.state.dontAskAgainChecked)
+    }
+  }
+
   private cancel = () => {
+    this.persistState()
     this.props.dispatcher.closePopup()
   }
 
   private onConfirmed = () => {
-    const fn = this.props.functionToRunWhenThisNeedsABetterNameButMyIneptitudePreventsItIsTrue
-
-    if (fn) {
-    }
-
+    this.persistState()
     this.props.onConfirmation()
     this.props.dispatcher.closePopup()
-  }
-
   }
 
   private onCheckboxChanged = (event: React.FormEvent<HTMLInputElement>) => {
