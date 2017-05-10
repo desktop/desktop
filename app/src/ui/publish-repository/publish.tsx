@@ -167,6 +167,9 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private publishRepository = async () => {
+
+    this.setState({ error: null })
+
     const tab = this.state.currentTab
     const account = this.getAccountForTab(tab)
     if (!account) {
