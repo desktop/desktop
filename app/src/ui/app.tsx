@@ -428,7 +428,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private removeRepository() {
     const repository = this.getRepository()
-    const askForConfirmation = this.props.appStore.getConfirmRepoRemovalSetting()
+    const askForConfirmation = this.props.appStore.getConfirmBeforeRemovingRepoSetting()
 
     if (!repository) {
       return

@@ -1664,7 +1664,7 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public getConfirmRepoRemovalSetting(): boolean {
+  public getConfirmBeforeRemovingRepoSetting(): boolean {
     const value = localStorage.getItem(confirmOnRepoRemovalKey)
 
     if (!value) {
