@@ -40,20 +40,12 @@ export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirm
     this.props.dispatcher.closePopup()
   }
 
-  private onCheckboxChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const dontAskAgain = !event.currentTarget.checked
-
-    this.setState({ dontAskAgain })
   }
 
+  private onCheckboxChanged = (event: React.FormEvent<HTMLInputElement>) => {
+    const dontAskAgainChecked = event.currentTarget.checked
 
-    return (
-      <Checkbox
-        label='Do not ask again'
-        value={CheckboxValue.Off}
-        onChange={this.onCheckboxChanged}
-      />
-    )
+    this.setState({ dontAskAgainChecked })
   }
 
   public render() {
@@ -67,6 +59,11 @@ export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirm
           {this.props.message}
         </DialogContent>
         <DialogFooter>
+        <Checkbox
+          label='Do not ask again'
+          value={this.state.dontAskAgainChecked ? CheckboxValue.On : CheckboxValue.Off}
+          onChange={this.onCheckboxChanged}
+        />
           <ButtonGroup>
             <Button type='submit'>Yes</Button>
             <Button onClick={this.cancel}>No</Button>
