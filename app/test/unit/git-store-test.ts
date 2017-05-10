@@ -3,7 +3,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { setupEmptyRepository } from '../fixture-helper'
+import { setupEmptyRepository, setupConflictedRepo } from '../fixture-helper'
 import * as Fs from 'fs'
 import * as Path from 'path'
 import { GitProcess } from 'dugite'
@@ -114,5 +114,21 @@ describe('GitStore', () => {
     const context = gitStore.contextualCommitMessage
     expect(context).to.not.be.null
     expect(context!.summary).to.equal(message)
+  })
+
+  it('hides commented out lines from MERGE_MSG', async () => {
+    const repo = await setupConflictedRepo()
+    const gitStore = new GitStore(repo, shell)
+
+    const after = await getStatus(repo)
+
+    const branchName = after!.currentBranch
+
+    await gitStore.loadContextualCommitMessage()
+
+    const context = gitStore.contextualCommitMessage
+    expect(context).to.not.be.null
+    expect(context!.summary).to.equal(`Merge branch 'master' into ${branchName}`)
+    expect(context!.description).to.be.null
   })
 })

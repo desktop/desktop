@@ -751,9 +751,17 @@ export class GitStore {
             return
           }
 
+          let description: string | null = pieces[2].split('\n')
+            .filter(line => line[0] !== '#')
+            .join('\n')
+
+          if (description.length === 0) {
+            description = null
+          }
+
           resolve({
             summary: pieces[1],
-            description: pieces[2],
+            description,
           })
         }
       })

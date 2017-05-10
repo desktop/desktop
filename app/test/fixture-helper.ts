@@ -53,3 +53,28 @@ export async function setupEmptyRepository(): Promise<Repository> {
 
   return new Repository(repoPath, -1, null, false)
 }
+
+export async function setupConflictedRepo(): Promise<Repository> {
+  const repo = await setupEmptyRepository()
+  const filePath = Path.join(repo.path, 'foo')
+
+  FSE.writeFileSync(filePath, '')
+  await GitProcess.exec([ 'add', 'foo' ], repo.path)
+  await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+
+  await GitProcess.exec([ 'branch', 'other-branch' ], repo.path)
+
+  FSE.writeFileSync(filePath, 'b1')
+  await GitProcess.exec([ 'add', 'foo' ], repo.path)
+  await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+
+  await GitProcess.exec([ 'checkout', 'other-branch' ], repo.path)
+
+  FSE.writeFileSync(filePath, 'b2')
+  await GitProcess.exec([ 'add', 'foo' ], repo.path)
+  await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+
+  await GitProcess.exec([ 'merge', 'master' ], repo.path)
+
+  return repo
+}
