@@ -192,7 +192,6 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     } catch (e) {
       this.setState({ error: e })
     }
-
   }
 
   private onTabClicked = (index: PublishTab) => {
