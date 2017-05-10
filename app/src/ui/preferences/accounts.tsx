@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
 import { IAvatarUser } from '../../models/avatar'
-import { lookupEmail } from '../../lib/email'
+import { lookupPreferredEmail } from '../../lib/email'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
@@ -37,7 +37,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
   }
 
   private renderAccount(account: Account) {
-    const found = lookupEmail(account.emails)
+    const found = lookupPreferredEmail(account.emails)
     const email = found ? found.email : ''
 
     const avatarUser: IAvatarUser = {
