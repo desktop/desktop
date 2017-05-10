@@ -9,7 +9,6 @@ interface IConfirmDialogProps {
   readonly dispatcher: Dispatcher
   readonly title: string
   readonly message: string
-  readonly thisNeedsABetterNameButMyIneptitudePreventsIt?: boolean
   readonly functionToRunWhenThisNeedsABetterNameButMyIneptitudePreventsItIsTrue?: (dontAskAgain: boolean) => void
   readonly onConfirmation: () => void
 }
@@ -22,7 +21,6 @@ export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirm
   public constructor(props: IConfirmDialogProps) {
     super(props)
 
-    const dontAsk = props.thisNeedsABetterNameButMyIneptitudePreventsIt
 
     this.state = {
       dontAskAgain: dontAsk ? dontAsk : false,
@@ -50,10 +48,6 @@ export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirm
     this.setState({ dontAskAgain })
   }
 
-  private askToNotBeAnnoyed() {
-    if (!this.props.thisNeedsABetterNameButMyIneptitudePreventsIt) {
-      return null
-    }
 
     return (
       <Checkbox
@@ -75,7 +69,6 @@ export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirm
           {this.props.message}
         </DialogContent>
         <DialogFooter>
-          {this.askToNotBeAnnoyed()}
           <ButtonGroup>
             <Button type='submit'>Yes</Button>
             <Button onClick={this.cancel}>No</Button>
