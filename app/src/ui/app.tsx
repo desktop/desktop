@@ -451,10 +451,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.removeRepositories([ repository ])
   }
 
-  private saveDontAskAgainForRepoRemovalResponse = async (dontAskAgain: boolean) => {
-    await this.props.dispatcher.setConfirmRepoRemovalSetting(dontAskAgain)
-  }
-
   private getRepository(): Repository | CloningRepository | null {
     const state = this.state.selectedState
     if (!state) { return null}
@@ -795,7 +791,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onConfirmation={this.onConfirmRepoRemoval}
             title='Remove Repository'
             message='Are you sure you would like to remove this repository?'
-            functionToRunWhenThisNeedsABetterNameButMyIneptitudePreventsItIsTrue={this.saveDontAskAgainForRepoRemovalResponse}
           />
         )
       default:
