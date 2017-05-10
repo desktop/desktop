@@ -260,7 +260,7 @@ export class List extends React.Component<IListProps, IListState> {
     // bounding rectangle on Windows which we know will give us sane pixels.
     const { width, height } = __DARWIN__
       ? contentRect
-      : target.getBoundingClientRect()
+      : { width: target.offsetWidth, height: target.offsetHeight }
 
     if (this.state.width !== width || this.state.height !== height) {
       this.setState({ width, height })
