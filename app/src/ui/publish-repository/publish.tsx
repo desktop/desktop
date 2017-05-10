@@ -177,7 +177,14 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     const settings = this.state.publishSettings
 
     try {
-      await this.props.dispatcher.publishRepository(this.props.repository, settings.name, settings.description, settings.private, account, settings.org)
+      await this.props.dispatcher.publishRepository(
+        this.props.repository,
+        settings.name,
+        settings.description,
+        settings.private,
+        account,
+        settings.org)
+
       this.props.onDismissed()
     } catch (e) {
       this.setState({ error: e })
