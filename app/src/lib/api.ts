@@ -231,6 +231,7 @@ export class API {
 
     const result = isDotCom
       ? await this.client.user.publicEmails.fetch()
+      // GitHub Enterprise does not have the concept of private emails
       : await this.client.user.emails.fetch()
 
     const emails: ReadonlyArray<IAPIEmail> = result.items
