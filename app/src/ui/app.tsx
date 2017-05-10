@@ -93,6 +93,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       requestIdleCallback(() => {
         const now = Date.now()
         sendReady(now - props.startTime)
+
+        // Loading emoji is super important but maybe less important that
+        // loading the app. So defer it until we have some breathing space.
+        requestIdleCallback(() => {
+          props.appStore.loadEmoji()
+        })
       }, { timeout: ReadyDelay })
     })
 
