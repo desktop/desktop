@@ -567,8 +567,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     // window controls need to disable dragging so we add a 3px tall element which
     // disables drag while still letting users drag the app by the titlebar below
     // those 3px.
-    const resizeHandle = __WIN32__
-      ? <div className='resize-handle' />
+    const topResizeHandle = __WIN32__
+      ? <div className='resize-handle top' />
+      : null
+
+    // And a 3px wide element on the left hand side.
+    const leftResizeHandle = __WIN32__
+      ? <div className='resize-handle left' />
       : null
 
     const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
@@ -579,9 +584,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <div className={titleBarClass} id='desktop-app-title-bar'>
+        {topResizeHandle}
+        {leftResizeHandle}
         {appIcon}
         {this.renderAppMenuBar()}
-        {resizeHandle}
         {winControls}
       </div>
     )
