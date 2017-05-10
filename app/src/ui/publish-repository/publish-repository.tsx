@@ -4,7 +4,6 @@ import { API, IAPIUser } from '../../lib/api'
 import { TextBox } from '../lib/text-box'
 import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
-import { Errors } from '../lib/errors'
 import { Row } from '../lib/row'
 import { merge } from '../../lib/merge'
 
@@ -14,13 +13,6 @@ interface IPublishRepositoryProps {
 
   /** The settings to use when publishing the repository. */
   readonly settings: IPublishRepositorySettings
-
-  /**
-   * An error which, if present, is presented to the
-   * user in close proximity to the actions or input fields
-   * related to the current step.
-   */
-  readonly error: Error | null
 
   /** The function called when any of the publish settings are changed. */
   readonly onSettingsChanged: (settings: IPublishRepositorySettings) => void
@@ -118,9 +110,6 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   public render() {
     return (
       <DialogContent>
-
-        {this.props.error ? <Errors>{this.props.error.message}</Errors> : null}
-
         <Row>
           <TextBox label='Name' value={this.props.settings.name} autoFocus={true} onChange={this.onNameChange}/>
         </Row>

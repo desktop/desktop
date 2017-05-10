@@ -5,7 +5,7 @@ import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
-import { Dialog, DialogFooter, DialogContent } from '../dialog'
+import { Dialog, DialogFooter, DialogContent, DialogError } from '../dialog'
 import { TabBar } from '../tab-bar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
@@ -36,6 +36,11 @@ interface IPublishState {
   /** The settings for publishing the repository. */
   readonly publishSettings: IPublishRepositorySettings
 
+  /**
+   * An error which, if present, is presented to the
+   * user in close proximity to the actions or input fields
+   * related to the current step.
+   */
   readonly error: Error | null
 }
 
@@ -80,6 +85,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
           <span>Enterprise</span>
         </TabBar>
 
+        {this.state.error ? <DialogError>{this.state.error.message}</DialogError> : null}
+
         {this.renderContent()}
         {this.renderFooter()}
       </Dialog>
@@ -93,7 +100,6 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       return <PublishRepository
         account={account}
         settings={this.state.publishSettings}
-        error={this.state.error}
         onSettingsChanged={this.onSettingsChanged}/>
     } else {
       return (
