@@ -6,6 +6,7 @@ import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
 import { uuid } from '../uuid'
+import { Repository } from '../../models/repository'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -65,7 +66,7 @@ export class StatsStore {
   }
 
   /** Report any stats which are eligible for reporting. */
-  public async reportStats(accounts: ReadonlyArray<Account>) {
+  public async reportStats(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>) {
     if (this.optOut) { return }
 
     // Never report stats while in dev or test. They could be pretty crazy.
@@ -84,7 +85,7 @@ export class StatsStore {
     }
 
     const now = Date.now()
-    const stats = await this.getDailyStats(accounts)
+    const stats = await this.getDailyStats(accounts, repositories)
     const options = {
       method: 'POST',
       headers: {
@@ -121,10 +122,11 @@ export class StatsStore {
   }
 
   /** Get the daily stats. */
-  private async getDailyStats(accounts: ReadonlyArray<Account>): Promise<DailyStats> {
+  private async getDailyStats(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
     const dailyMeasures = await this.getDailyMeasures()
     const userType = this.determineUserType(accounts)
+    const repositoryCounts = this.categorizedRepositoryCounts(repositories)
 
     return {
       version: getVersion(),
@@ -134,6 +136,14 @@ export class StatsStore {
       ...dailyMeasures,
       ...userType,
       guid: this.guid,
+      ...repositoryCounts,
+    }
+  }
+
+  private categorizedRepositoryCounts(repositories: ReadonlyArray<Repository>) {
+    return {
+      repositoryCount: repositories.length,
+      gitHubRepositoryCount: repositories.filter(r => r.gitHubRepository).length,
     }
   }
 
