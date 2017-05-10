@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
@@ -89,10 +89,13 @@ dispatcher.registerErrorHandler(unhandledExceptionHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
+dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
+
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState
   if (!state || state.type !== SelectionType.Repository) { return }
 
+  dispatcher.setAppFocusState(true)
   dispatcher.refreshRepository(state.repository)
 })
 
@@ -101,6 +104,7 @@ ipcRenderer.on('blur', () => {
   // when someone uses Alt+Tab to switch application since we won't
   // get the onKeyUp event for the Alt key in that case.
   dispatcher.setAccessKeyHighlightState(false)
+  dispatcher.setAppFocusState(false)
 })
 
 ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {

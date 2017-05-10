@@ -798,6 +798,10 @@ export class Dispatcher {
     await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-path', repository, path })
   }
 
+  public async setAppFocusState(isFocused: boolean): Promise<void> {
+    await this.appStore._setAppFocusState(isFocused)
+  }
+
   public async dispatchURLAction(action: URLActionType): Promise<void> {
     switch (action.name) {
       case 'oauth':
