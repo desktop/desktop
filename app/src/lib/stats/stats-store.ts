@@ -7,6 +7,7 @@ import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
 import { uuid } from '../uuid'
 import { Repository } from '../../models/repository'
+import { merge } from '../../lib/merge'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -221,26 +222,26 @@ export class StatsStore {
     }
   }
 
-  /** Record that a commit was accomplished. */
-  public async recordCommit() {
+  private async updateDailyMeasures<K extends keyof IDailyMeasures>(fn: (measures: IDailyMeasures) => Pick<IDailyMeasures, K>): Promise<void> {
     const db = this.db
     const defaultMeasures = this.getDefaultDailyMeasures()
     await this.db.transaction('rw', this.db.dailyMeasures, function*() {
-      let measures: IDailyMeasures | null = yield db.dailyMeasures.limit(1).first()
-      if (!measures) {
-        measures = defaultMeasures
+      const measures: IDailyMeasures | null = yield db.dailyMeasures.limit(1).first()
+      const measuresWithDefaults = {
+        ...defaultMeasures,
+        ...measures,
       }
-
-      let newMeasures: IDailyMeasures = {
-        commits: measures.commits + 1,
-      }
-
-      if (measures.id) {
-        newMeasures = { ...newMeasures, id: measures.id }
-      }
+      const newMeasures = merge(measuresWithDefaults, fn(measuresWithDefaults))
 
       return db.dailyMeasures.put(newMeasures)
     })
+  }
+
+  /** Record that a commit was accomplished. */
+  public recordCommit(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commits: m.commits + 1,
+    }))
   }
 
   /** Set whether the user has opted out of stats reporting. */
