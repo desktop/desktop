@@ -1,11 +1,11 @@
 import { expect } from 'chai'
 
 import { IEmail } from '../../src/models/email'
-import { lookupEmail } from '../../src/lib/email'
+import { lookupPreferredEmail } from '../../src/lib/email'
 
 describe('emails', () => {
   it('returns null for empty list', () => {
-    expect(lookupEmail([])).to.equal(null)
+    expect(lookupPreferredEmail([])).to.equal(null)
   })
 
   it('looks for noreply email first', () => {
@@ -27,7 +27,7 @@ describe('emails', () => {
       },
     ]
 
-    const result = lookupEmail(emails)
+    const result = lookupPreferredEmail(emails)
     expect(result).to.not.equal(null)
     expect(result!.email).to.equal('shiftkey@users.noreply.github.com')
   })
@@ -46,7 +46,7 @@ describe('emails', () => {
       },
     ]
 
-    const result = lookupEmail(emails)
+    const result = lookupPreferredEmail(emails)
     expect(result).to.not.equal(null)
     expect(result!.email).to.equal('github-primary@example.com')
   })
@@ -65,7 +65,7 @@ describe('emails', () => {
       },
     ]
 
-    const result = lookupEmail(emails)
+    const result = lookupPreferredEmail(emails)
     expect(result).to.not.equal(null)
     expect(result!.email).to.equal('shiftkey@example.com')
   })

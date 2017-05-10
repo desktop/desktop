@@ -10,7 +10,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogFooter } from '../dialog'
 import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
-import { lookupEmail } from '../../lib/email'
+import { lookupPreferredEmail } from '../../lib/email'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -61,7 +61,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
         }
 
         if (!committerEmail) {
-          const found = lookupEmail(account.emails)
+          const found = lookupPreferredEmail(account.emails)
           if (found) {
             committerEmail = found.email
           }
