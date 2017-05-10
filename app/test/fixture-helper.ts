@@ -54,6 +54,14 @@ export async function setupEmptyRepository(): Promise<Repository> {
   return new Repository(repoPath, -1, null, false)
 }
 
+/**
+ * Setup a repository and create a merge conflict
+ *
+ * The current branch will be 'other-branch' and the merged branch will be
+ * 'master' in your test harness.
+ *
+ * The conflicted file will be 'foo'.
+ */
 export async function setupConflictedRepo(): Promise<Repository> {
   const repo = await setupEmptyRepository()
   const filePath = Path.join(repo.path, 'foo')

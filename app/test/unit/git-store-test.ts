@@ -120,15 +120,11 @@ describe('GitStore', () => {
     const repo = await setupConflictedRepo()
     const gitStore = new GitStore(repo, shell)
 
-    const after = await getStatus(repo)
-
-    const branchName = after!.currentBranch
-
     await gitStore.loadContextualCommitMessage()
 
     const context = gitStore.contextualCommitMessage
     expect(context).to.not.be.null
-    expect(context!.summary).to.equal(`Merge branch 'master' into ${branchName}`)
+    expect(context!.summary).to.equal(`Merge branch 'master' into other-branch`)
     expect(context!.description).to.be.null
   })
 })
