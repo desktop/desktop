@@ -4,7 +4,7 @@ import * as Querystring from 'querystring'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
-import { HTTPMethod, request, deserialize } from './http'
+import { HTTPMethod, request, deserialize, getUserAgent } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 
@@ -187,6 +187,7 @@ export class API {
       token: account.token,
       rootURL: account.endpoint,
       plugins: OctokatPlugins,
+      userAgent: getUserAgent(),
     })
   }
 

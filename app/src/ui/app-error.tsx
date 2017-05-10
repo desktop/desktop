@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 
 import { Button } from './lib/button'
 import { ButtonGroup } from './lib/button-group'
@@ -11,6 +10,7 @@ import { GitError as GitErrorType } from 'dugite'
 import { Popup, PopupType } from '../lib/app-state'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { remote } from 'electron'
+import { CSSTransitionGroup } from 'react-transition-group'
 
 /**
  * Inspect the error metadata to see if this is an uncaught error
@@ -175,6 +175,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       <Dialog
         id='app-error'
         type='error'
+        key='error'
         title={title}
         dismissable={!unhandled}
         onDismissed={this.onDismissed}
@@ -210,14 +211,14 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
   public render() {
     return (
-      <ReactCSSTransitionGroup
+      <CSSTransitionGroup
         transitionName='modal'
         component='div'
         transitionEnterTimeout={dialogTransitionEnterTimeout}
         transitionLeaveTimeout={dialogTransitionLeaveTimeout}
       >
         {this.renderDialog()}
-      </ReactCSSTransitionGroup>
+      </CSSTransitionGroup>
     )
   }
 }

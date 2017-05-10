@@ -33,19 +33,28 @@ dialog {
     &-enter {
       opacity: 1;
       transform: scale(0.75);
+      pointer-events: none;
+
+      &::backdrop {
+        opacity: 0;
+      }
     }
-
-
 
     &-enter-active {
       opacity: 1;
       transform: scale(1);
       transition: transform 250ms var(--easing-ease-out-back);
+
+      &::backdrop {
+        opacity: 0.4;
+        transition: opacity 100ms ease-in;
+      }
     }
 
     &-leave {
       opacity: 1;
       transform: scale(1);
+      pointer-events: none;
 
       &::backdrop {
         opacity: 0.4;

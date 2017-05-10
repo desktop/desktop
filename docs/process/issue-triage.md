@@ -2,7 +2,7 @@
 
 Incoming issues should be grouped into one of these buckets:
 
-## Defects
+## Bugs
 
 These are problems with the current app that are identified by users. These
 should be reviewed to ensure they:
@@ -11,11 +11,13 @@ should be reviewed to ensure they:
  - have instructions sufficient to reproduce the issue
  - have details about the impact and severity of the issue
 
-Once enough detail has been captured, these should be prioritised by the team.
-Severe bugs or bugs affecting many users would be prioritised above minor or low
-impact bugs. Depending on the estimate for the work required, some bugs may not
-necessarily need to be done by the core team. These could be marked as
-`up-for-grabs` so that external contributors could get involved.
+We will use the `more-information-needed` and `reproduction-required` labels to
+indicate when issues are incomplete.
+
+Once enough detail has been captured about the issue, and it can be reproduced
+by one of the maintainers, these should be prioritised by the team. Severe bugs
+or bugs affecting many users would be prioritised above minor or low impact
+bugs.
 
 ## Enhancements
 
@@ -33,18 +35,14 @@ work should proceed:
  - user experience - ensure things are consistent, discoverable
  - quality - ensure the change does not adversely affect other features
 
-## Proposals
-
-Suggestions for new features or significant changes to the app should be
-proposed to the core team. This allows for discussion to evaluate options,
-discuss approaches before any code is written. Proposals could contain mockups
-to help illustrate features.
-
 e.g. GitHub Desktop should support worktrees as a first class feature.
+
+For work that we may evaluate post-1.0, we will label the issue `future-work`
+and close it out, to keep our short-term backlog under control.
 
 ## Out-of-scope
 
 We anticipate ideas or suggestions that don't align with how we see the
-application evolving, so we may close issues.
+application evolving, so we may close issues with an explanation of why.
 
 e.g. GitHub Desktop should support working with Mercurial repositories.

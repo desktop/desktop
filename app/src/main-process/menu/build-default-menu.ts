@@ -1,62 +1,34 @@
-import { shell, Menu, ipcMain } from 'electron'
+import { shell, Menu, ipcMain, app } from 'electron'
 import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template = new Array<Electron.MenuItemOptions>()
-
-  const updateMenuItems: Electron.MenuItemOptions[] = [
-    {
-      label: __DARWIN__ ? 'Check for Updates…' : '&Check for updates…',
-      id: 'check-for-updates',
-      visible: true,
-      click: emit('check-for-updates'),
-    },
-    {
-      label: __DARWIN__ ? 'Checking for Updates…' : 'Checking for updates…',
-      id: 'checking-for-updates',
-      visible: false,
-      enabled: false,
-    },
-    {
-      label: __DARWIN__ ? 'Downloading Update…' : 'Downloading update…',
-      id: 'downloading-update',
-      visible: false,
-      enabled: false,
-    },
-    {
-      label: __DARWIN__ ? 'Quit and Install Update' : '&Quit and install update',
-      id: 'quit-and-install-update',
-      visible: false,
-      click: emit('quit-and-install-update'),
-    },
-  ]
+  const separator: Electron.MenuItemOptions = { type: 'separator' }
 
   if (__DARWIN__) {
     template.push({
       label: 'GitHub Desktop',
       submenu: [
         { label: 'About GitHub Desktop', click: emit('show-about') },
-        { type: 'separator' },
-        ...updateMenuItems,
-        { type: 'separator' },
+        separator,
         {
           label: 'Preferences…',
           id: 'preferences',
           accelerator: 'CmdOrCtrl+,',
           click: emit('show-preferences'),
         },
-        { type: 'separator' },
+        separator,
         {
           role: 'services',
           submenu: [],
         },
-        { type: 'separator' },
+        separator,
         { role: 'hide' },
         { role: 'hideothers' },
         { role: 'unhide' },
-        { type: 'separator' },
+        separator,
         { role: 'quit' },
       ],
     })
@@ -76,7 +48,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         accelerator: 'CmdOrCtrl+Shift+N',
         click: emit('create-branch'),
       },
-      { type: 'separator' },
+      separator,
       {
         label: __DARWIN__ ? 'Add Local Repository…' : 'Add &local repository…',
         accelerator: 'CmdOrCtrl+O',
@@ -94,14 +66,14 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     const fileItems = fileMenu.submenu as Electron.MenuItemOptions[]
 
     fileItems.push(
-      { type: 'separator' },
+      separator,
       {
         label: '&Options…',
         id: 'preferences',
         accelerator: 'CmdOrCtrl+,',
         click: emit('show-preferences'),
       },
-      { type: 'separator' },
+      separator,
       { role: 'quit' }
     )
   }
@@ -113,7 +85,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     submenu: [
       { role: 'undo', label: __DARWIN__ ? 'Undo' : '&Undo' },
       { role: 'redo', label: __DARWIN__ ? 'Redo' : '&Redo' },
-      { type: 'separator' },
+      separator,
       { role: 'cut', label: __DARWIN__ ? 'Cut' : 'Cu&t' },
       { role: 'copy', label: __DARWIN__ ? 'Copy' : '&Copy' },
       { role: 'paste', label: __DARWIN__ ? 'Paste' : '&Paste' },
@@ -148,12 +120,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         accelerator: 'CmdOrCtrl+B',
         click: emit('show-branches'),
       },
-      { type: 'separator' },
+      separator,
       {
         label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
         role: 'togglefullscreen',
       },
-      { type: 'separator' },
+      separator,
       {
         label: '&Reload',
         accelerator: 'CmdOrCtrl+R',
@@ -206,7 +178,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         id: 'remove-repository',
         click: emit('remove-repository'),
       },
-      { type: 'separator' },
+      separator,
       {
         id: 'view-repository-on-github',
         label: __DARWIN__ ? 'View on GitHub' : '&View on GitHub',
@@ -224,7 +196,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
       },
-      { type: 'separator' },
+      separator,
       {
         label: __DARWIN__ ? 'Repository Settings…' : 'Repository &settings…',
         id: 'show-repository-settings',
@@ -247,7 +219,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         id: 'delete-branch',
         click: emit('delete-branch'),
       },
-      { type: 'separator' },
+      separator,
       {
         label: __DARWIN__ ? 'Update from default branch' : '&Update from default branch',
         id: 'update-branch',
@@ -258,7 +230,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         id: 'merge-branch',
         click: emit('merge-branch'),
       },
-      { type: 'separator' },
+      separator,
       {
         label: __DARWIN__ ? 'Compare on GitHub' : '&Compare on GitHub',
         id: 'compare-branch',
@@ -275,7 +247,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         { role: 'minimize' },
         { role: 'zoom' },
         { role: 'close' },
-        { type: 'separator' },
+        separator,
         { role: 'front' },
       ],
     })
@@ -288,7 +260,26 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     },
   }
 
-  const helpItems = [ contactSupportItem ]
+  const submitIssueItem: Electron.MenuItemOptions = {
+    label: __DARWIN__ ? 'Report Issue...' : 'Report issue...',
+    click() {
+      shell.openExternal('https://github.com/desktop/desktop/issues/new')
+    },
+  }
+
+  const showLogsItem: Electron.MenuItemOptions = {
+    label: __DARWIN__ ? 'Show Logs In Finder' : 'S&how logs in Explorer',
+    click() {
+      const path = app.getPath('userData')
+      shell.showItemInFolder(path)
+    },
+  }
+
+  const helpItems = [
+    contactSupportItem,
+    submitIssueItem,
+    showLogsItem,
+  ]
 
   if (__DEV__) {
     const throwUnhandledError: Electron.MenuItemOptions = {
@@ -310,10 +301,8 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     template.push({
       label: '&Help',
       submenu: [
-        ...updateMenuItems,
-        { type: 'separator' },
         ...helpItems,
-        { type: 'separator' },
+        separator,
         { label: '&About GitHub Desktop', click: emit('show-about') },
       ],
     })

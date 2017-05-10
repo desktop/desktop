@@ -3,7 +3,9 @@
 This is the typical flow:
 
 1. **Contributor** opens pull request.
-1. When it's ready for review, they comment on it saying so and add the `ready-for-review` label.
+1. When it's ready for review, they comment on it saying so.
+1. A member of the maintainer team will give it a quick look over and
+   add the `ready-for-review` label.
 1. Suddenly a wild **reviewer** appears!
 1. **Reviewer** assigns the PR to themselves.
 1. **Reviewer** leaves line comments with suggestions or questions.

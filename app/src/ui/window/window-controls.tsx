@@ -52,7 +52,7 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
 
     return (
       <button aria-label={name} title={title} tabIndex={-1} className={className} onClick={onClick}>
-        <svg aria-hidden='true' aria-role='img' version='1.1' width='10' height='10'>
+        <svg aria-hidden='true' version='1.1' width='10' height='10'>
           <path d={path}></path>
         </svg>
       </button>)
