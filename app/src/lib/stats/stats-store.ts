@@ -219,6 +219,7 @@ export class StatsStore {
   private getDefaultDailyMeasures(): IDailyMeasures {
     return {
       commits: 0,
+      openShellCount: 0,
     }
   }
 
@@ -241,6 +242,13 @@ export class StatsStore {
   public recordCommit(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       commits: m.commits + 1,
+    }))
+  }
+
+  /** Record that the user opened a shell. */
+  public recordOpenShell(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      openShellCount: m.openShellCount + 1,
     }))
   }
 
