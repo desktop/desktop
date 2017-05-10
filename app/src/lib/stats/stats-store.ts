@@ -19,6 +19,11 @@ const StatsGUIDKey = 'stats-guid'
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
 
+const DefaultDailyMeasures: IDailyMeasures = {
+  commits: 0,
+  openShellCount: 0,
+}
+
 type DailyStats = { version: string } & ILaunchStats & IDailyMeasures
 
 /** The store for the app's stats. */
@@ -208,24 +213,16 @@ export class StatsStore {
 
   /** Get the daily measures. */
   private async getDailyMeasures(): Promise<IDailyMeasures> {
-    let measures: IDailyMeasures | undefined = await this.db.dailyMeasures.limit(1).first()
-    if (!measures) {
-      measures = this.getDefaultDailyMeasures()
-    }
-
-    return measures
-  }
-
-  private getDefaultDailyMeasures(): IDailyMeasures {
+    const measures: IDailyMeasures | undefined = await this.db.dailyMeasures.limit(1).first()
     return {
-      commits: 0,
-      openShellCount: 0,
+      ...DefaultDailyMeasures,
+      ...measures,
     }
   }
 
   private async updateDailyMeasures<K extends keyof IDailyMeasures>(fn: (measures: IDailyMeasures) => Pick<IDailyMeasures, K>): Promise<void> {
     const db = this.db
-    const defaultMeasures = this.getDefaultDailyMeasures()
+    const defaultMeasures = DefaultDailyMeasures
     await this.db.transaction('rw', this.db.dailyMeasures, function*() {
       const measures: IDailyMeasures | null = yield db.dailyMeasures.limit(1).first()
       const measuresWithDefaults = {
