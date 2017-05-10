@@ -13,7 +13,12 @@ import {
   getWorkingDirectoryDiff,
 } from '../../../src/lib/git'
 
-import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
+import {
+  setupFixtureRepository,
+  setupEmptyRepository,
+  setupConflictedRepo,
+} from '../../fixture-helper'
+
 import { GitProcess } from 'dugite'
 import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
 import { DiffSelectionType, DiffSelection, ITextDiff, DiffType } from '../../../src/models/diff'
@@ -383,26 +388,8 @@ describe('git/commit', () => {
 
   describe('createCommit with a merge conflict', () => {
     it('creates a merge commit', async () => {
-      const repo = await setupEmptyRepository()
+      const repo = await setupConflictedRepo()
       const filePath = path.join(repo.path, 'foo')
-
-      fs.writeFileSync(filePath, '')
-      await GitProcess.exec([ 'add', 'foo' ], repo.path)
-      await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
-
-      await GitProcess.exec([ 'branch', 'other-branch' ], repo.path)
-
-      fs.writeFileSync(filePath, 'b1')
-      await GitProcess.exec([ 'add', 'foo' ], repo.path)
-      await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
-
-      await GitProcess.exec([ 'checkout', 'other-branch' ], repo.path)
-
-      fs.writeFileSync(filePath, 'b2')
-      await GitProcess.exec([ 'add', 'foo' ], repo.path)
-      await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
-
-      await GitProcess.exec([ 'merge', 'master' ], repo.path)
 
       const inMerge = fs.existsSync(path.join(repo.path, '.git', 'MERGE_HEAD'))
       expect(inMerge).to.equal(true)
