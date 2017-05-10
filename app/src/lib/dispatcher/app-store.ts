@@ -48,6 +48,7 @@ import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 import { structuralEquals } from '../equality'
 import { fatalError } from '../fatal-error'
+import { updateMenuState } from '../menu-update'
 
 import {
   getGitDir,
@@ -204,7 +205,10 @@ export class AppStore {
 
   private emitUpdateNow() {
     this.emitQueued = false
-    this.emitter.emit('did-update', this.getState())
+    const state = this.getState()
+
+    this.emitter.emit('did-update', state)
+    updateMenuState(state, this.appMenu)
   }
 
   /**
