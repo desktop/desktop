@@ -751,10 +751,12 @@ export class GitStore {
             return
           }
 
+          // exclude any commented-out lines from the MERGE_MSG body
           let description: string | null = pieces[2].split('\n')
             .filter(line => line[0] !== '#')
             .join('\n')
 
+          // join with no elements will return an empty string
           if (description.length === 0) {
             description = null
           }
