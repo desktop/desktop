@@ -14,16 +14,15 @@ interface IConfirmDialogProps {
 }
 
 interface IConfirmDialogState {
-  readonly dontAskAgain: boolean,
+  readonly dontAskAgainChecked: boolean,
 }
 
 export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirmDialogState> {
   public constructor(props: IConfirmDialogProps) {
     super(props)
 
-
     this.state = {
-      dontAskAgain: dontAsk ? dontAsk : false,
+      dontAskAgainChecked: false,
     }
   }
 
@@ -35,7 +34,6 @@ export class ConfirmDialog extends React.Component<IConfirmDialogProps, IConfirm
     const fn = this.props.functionToRunWhenThisNeedsABetterNameButMyIneptitudePreventsItIsTrue
 
     if (fn) {
-      fn(this.state.dontAskAgain)
     }
 
     this.props.onConfirmation()
