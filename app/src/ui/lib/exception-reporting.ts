@@ -1,7 +1,11 @@
+import { getVersion } from './app-proxy'
+import { getOS } from '../../lib/get-os'
+import { getGUID } from '../../lib/stats'
+
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 
 /** Report the error to Central. */
-export async function reportError(error: Error, version: string) {
+export async function reportError(error: Error) {
   if (__DEV__ || process.env.TEST_ENV) {
     console.error(`An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`)
     return
@@ -10,10 +14,14 @@ export async function reportError(error: Error, version: string) {
   const data = new FormData()
   data.append('name', error.name)
   data.append('message', error.message)
-  data.append('version', version)
   if (error.stack) {
     data.append('stack', error.stack)
   }
+
+  data.append('version', getVersion())
+  data.append('osVersion', getOS())
+  data.append('platform', process.platform)
+  data.append('guid', getGUID())
 
   const options = {
     method: 'POST',
