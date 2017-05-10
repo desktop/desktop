@@ -1011,8 +1011,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   public render() {
+
+    const className = this.state.appIsFocused
+      ? 'focused'
+      : 'blurred'
+
     return (
-      <div id='desktop-app-chrome'>
+      <div id='desktop-app-chrome' className={className}>
         {this.renderTitlebar()}
         {this.state.showWelcomeFlow ? this.renderWelcomeFlow() : this.renderApp()}
       </div>

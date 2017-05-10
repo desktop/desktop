@@ -130,6 +130,12 @@ export class AppStore {
    */
   private highlightAccessKeys: boolean = false
 
+  /**
+   * A value indicating whether or not the current application
+   * window has focus.
+   */
+  private appIsFocused: boolean = false
+
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
@@ -350,6 +356,7 @@ export class AppStore {
         ...this.cloningRepositoriesStore.repositories,
       ],
       windowState: this.windowState,
+      appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
       currentPopup: this.currentPopup,
@@ -1713,6 +1720,17 @@ export class AppStore {
 
   public _setSignInOTP(otp: string): Promise<void> {
     return this.signInStore.setTwoFactorOTP(otp)
+  }
+
+  public _setAppFocusState(isFocused: boolean): Promise<void> {
+    const changed = this.appIsFocused !== isFocused
+    this.appIsFocused = isFocused
+
+    if (changed) {
+      this.emitUpdate()
+    }
+
+    return Promise.resolve()
   }
 
   /**

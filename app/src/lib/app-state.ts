@@ -46,6 +46,13 @@ export interface IAppState {
    * The current state of the Window, ie maximized, minimized full-screen etc.
    */
   readonly windowState: WindowState
+
+  /**
+   * A value indicating whether or not the current application
+   * window has focus.
+   */
+  readonly appIsFocused: boolean
+
   readonly showWelcomeFlow: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
