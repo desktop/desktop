@@ -35,6 +35,8 @@ interface IPublishState {
 
   /** The settings for publishing the repository. */
   readonly publishSettings: IPublishRepositorySettings
+
+  readonly error: Error | null
 }
 
 /**
@@ -61,6 +63,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     this.state = {
       currentTab: startingTab,
       publishSettings,
+      error: null,
     }
   }
 
@@ -90,6 +93,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       return <PublishRepository
         account={account}
         settings={this.state.publishSettings}
+        error={this.state.error}
         onSettingsChanged={this.onSettingsChanged}/>
     } else {
       return (
@@ -162,7 +166,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
-  private publishRepository = () => {
+  private publishRepository = async () => {
     const tab = this.state.currentTab
     const account = this.getAccountForTab(tab)
     if (!account) {
@@ -171,8 +175,14 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     }
 
     const settings = this.state.publishSettings
-    this.props.dispatcher.publishRepository(this.props.repository, settings.name, settings.description, settings.private, account, settings.org)
-    this.props.onDismissed()
+
+    try {
+      await this.props.dispatcher.publishRepository(this.props.repository, settings.name, settings.description, settings.private, account, settings.org)
+      this.props.onDismissed()
+    } catch (e) {
+      this.setState({ error: e })
+    }
+
   }
 
   private onTabClicked = (index: PublishTab) => {
