@@ -1629,6 +1629,8 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _openShell(path: string) {
+    this.statsStore.recordOpenShell()
+
     return openShell(path)
   }
 
