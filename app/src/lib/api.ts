@@ -114,13 +114,6 @@ export interface IAPIEmail {
   readonly visibility: 'public' | 'private' | null
 }
 
-function convertEmailAddress(email: IAPIEmail): IEmail {
-  return {
-    ...email,
-    visibility: email.visibility || 'public',
-  }
-}
-
 /** Information about an issue as returned by the GitHub API. */
 export interface IAPIIssue {
   readonly number: number
