@@ -1680,16 +1680,6 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public getConfirmBeforeRemovingRepoSetting(): boolean {
-    const value = localStorage.getItem(confirmOnRepoRemovalKey)
-
-    if (!value) {
-      return false
-    }
-
-    return parseInt(value) === 1 ? true : false
-  }
-
   public _setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
     const valueToInsert = value ? '1' : '0'
 
