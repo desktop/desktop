@@ -32,6 +32,9 @@ interface IAboutProps {
   readonly usernameForUpdateCheck: string
 
   readonly onShowAcknowledgements: () => void
+
+  /** A function to call when the user wants to see Terms and Conditions. */
+  readonly onShowTermsAndConditions: () => void
 }
 
 interface IAboutState {
@@ -232,7 +235,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
             Version {version} ({releaseNotesLink})
           </p>
           <p className='no-padding'>
-            <LinkButton uri='https://desktop.github.com/eula/'>End-User License Agreement</LinkButton>
+            <LinkButton onClick={this.props.onShowTermsAndConditions}>Terms and Conditions</LinkButton>
           </p>
           <p>
             <LinkButton onClick={this.props.onShowAcknowledgements}>Acknowledgements</LinkButton>

@@ -807,6 +807,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.Acknowledgements })
   }
 
+  private showTermsAndConditions = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.TermsAndConditions })
+  }
+
   private renderPopup() {
     return (
       <CSSTransitionGroup
