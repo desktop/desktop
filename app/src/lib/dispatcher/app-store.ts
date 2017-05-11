@@ -78,6 +78,8 @@ const sidebarWidthConfigKey: string = 'sidebar-width'
 
 const defaultCommitSummaryWidth: number = 250
 const commitSummaryWidthConfigKey: string = 'commit-summary-width'
+
+const confirmRepoRemovalDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 
 export class AppStore {
@@ -140,6 +142,7 @@ export class AppStore {
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
   private isUpdateAvailableBannerVisible: boolean = false
+  private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
 
   private readonly statsStore: StatsStore
 
