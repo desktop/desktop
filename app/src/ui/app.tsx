@@ -821,6 +821,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <ConfirmDialog
+            key='remove-repository-confirmation'
             title='Remove Repository'
             message='Are you sure you want to remove this repository?'
             onConfirmation={this.onConfirmRepoRemoval}
