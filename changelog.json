@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.5.1": [
+
+    ],
     "0.5.0": [
       "[Added] Menu item for showing the app logs - #1349",
       "[Fixed] Don't let the two-factor authentication dialog be submitted while it's empty - #1386",
