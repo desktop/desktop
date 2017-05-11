@@ -686,8 +686,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         return <Preferences
                 key='preferences'
                 dispatcher={this.props.dispatcher}
-                appStore={this.props.appStore}
                 dotComAccount={this.getDotComAccount()}
+                confirmRepoRemoval={this.state.confirmRepoRemoval}
+                optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
                 enterpriseAccount={this.getEnterpriseAccount()}
                 onDismissed={this.onPopupDismissed}/>
       case PopupType.MergeBranch: {
