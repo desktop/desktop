@@ -1636,6 +1636,8 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _openShell(path: string) {
+    this.statsStore.recordOpenShell()
+
     return openShell(path)
   }
 
@@ -1677,7 +1679,7 @@ export class AppStore {
   }
 
   public _reportStats() {
-    return this.statsStore.reportStats(this.accounts)
+    return this.statsStore.reportStats(this.accounts, this.repositories)
   }
 
   public _recordLaunchStats(stats: ILaunchStats): Promise<void> {
