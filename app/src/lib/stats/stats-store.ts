@@ -6,6 +6,8 @@ import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
 import { uuid } from '../uuid'
+import { Repository } from '../../models/repository'
+import { merge } from '../../lib/merge'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -16,6 +18,11 @@ const StatsGUIDKey = 'stats-guid'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
+
+const DefaultDailyMeasures: IDailyMeasures = {
+  commits: 0,
+  openShellCount: 0,
+}
 
 type DailyStats = { version: string } & ILaunchStats & IDailyMeasures
 
@@ -65,7 +72,7 @@ export class StatsStore {
   }
 
   /** Report any stats which are eligible for reporting. */
-  public async reportStats(accounts: ReadonlyArray<Account>) {
+  public async reportStats(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>) {
     if (this.optOut) { return }
 
     // Never report stats while in dev or test. They could be pretty crazy.
@@ -84,7 +91,7 @@ export class StatsStore {
     }
 
     const now = Date.now()
-    const stats = await this.getDailyStats(accounts)
+    const stats = await this.getDailyStats(accounts, repositories)
     const options = {
       method: 'POST',
       headers: {
@@ -121,10 +128,11 @@ export class StatsStore {
   }
 
   /** Get the daily stats. */
-  private async getDailyStats(accounts: ReadonlyArray<Account>): Promise<DailyStats> {
+  private async getDailyStats(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
     const dailyMeasures = await this.getDailyMeasures()
     const userType = this.determineUserType(accounts)
+    const repositoryCounts = this.categorizedRepositoryCounts(repositories)
 
     return {
       version: getVersion(),
@@ -134,6 +142,14 @@ export class StatsStore {
       ...dailyMeasures,
       ...userType,
       guid: this.guid,
+      ...repositoryCounts,
+    }
+  }
+
+  private categorizedRepositoryCounts(repositories: ReadonlyArray<Repository>) {
+    return {
+      repositoryCount: repositories.length,
+      gitHubRepositoryCount: repositories.filter(r => r.gitHubRepository).length,
     }
   }
 
@@ -197,40 +213,40 @@ export class StatsStore {
 
   /** Get the daily measures. */
   private async getDailyMeasures(): Promise<IDailyMeasures> {
-    let measures: IDailyMeasures | undefined = await this.db.dailyMeasures.limit(1).first()
-    if (!measures) {
-      measures = this.getDefaultDailyMeasures()
-    }
-
-    return measures
-  }
-
-  private getDefaultDailyMeasures(): IDailyMeasures {
+    const measures: IDailyMeasures | undefined = await this.db.dailyMeasures.limit(1).first()
     return {
-      commits: 0,
+      ...DefaultDailyMeasures,
+      ...measures,
     }
   }
 
-  /** Record that a commit was accomplished. */
-  public async recordCommit() {
+  private async updateDailyMeasures<K extends keyof IDailyMeasures>(fn: (measures: IDailyMeasures) => Pick<IDailyMeasures, K>): Promise<void> {
     const db = this.db
-    const defaultMeasures = this.getDefaultDailyMeasures()
+    const defaultMeasures = DefaultDailyMeasures
     await this.db.transaction('rw', this.db.dailyMeasures, function*() {
-      let measures: IDailyMeasures | null = yield db.dailyMeasures.limit(1).first()
-      if (!measures) {
-        measures = defaultMeasures
+      const measures: IDailyMeasures | null = yield db.dailyMeasures.limit(1).first()
+      const measuresWithDefaults = {
+        ...defaultMeasures,
+        ...measures,
       }
-
-      let newMeasures: IDailyMeasures = {
-        commits: measures.commits + 1,
-      }
-
-      if (measures.id) {
-        newMeasures = { ...newMeasures, id: measures.id }
-      }
+      const newMeasures = merge(measuresWithDefaults, fn(measuresWithDefaults))
 
       return db.dailyMeasures.put(newMeasures)
     })
+  }
+
+  /** Record that a commit was accomplished. */
+  public recordCommit(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commits: m.commits + 1,
+    }))
+  }
+
+  /** Record that the user opened a shell. */
+  public recordOpenShell(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      openShellCount: m.openShellCount + 1,
+    }))
   }
 
   /** Set whether the user has opted out of stats reporting. */

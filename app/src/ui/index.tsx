@@ -2,13 +2,12 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import { SelectionType } from '../lib/app-state'
-import { sendReady } from './main-process-proxy'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { reportError } from './lib/exception-reporting'
 import { getVersion } from './lib/app-proxy'
@@ -88,17 +87,15 @@ dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 dispatcher.registerErrorHandler(unhandledExceptionHandler)
 
-dispatcher.loadInitialState().then(() => {
-  const now = Date.now()
-  sendReady(now - startTime)
-})
-
 document.body.classList.add(`platform-${process.platform}`)
+
+dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState
   if (!state || state.type !== SelectionType.Repository) { return }
 
+  dispatcher.setAppFocusState(true)
   dispatcher.refreshRepository(state.repository)
 })
 
@@ -107,6 +104,7 @@ ipcRenderer.on('blur', () => {
   // when someone uses Alt+Tab to switch application since we won't
   // get the onKeyUp event for the Alt key in that case.
   dispatcher.setAccessKeyHighlightState(false)
+  dispatcher.setAppFocusState(false)
 })
 
 ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
@@ -114,6 +112,6 @@ ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { ac
 })
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore} startTime={startTime}/>,
   document.getElementById('desktop-app-container')!
 )

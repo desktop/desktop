@@ -114,13 +114,6 @@ export interface IAPIEmail {
   readonly visibility: 'public' | 'private' | null
 }
 
-function convertEmailAddress(email: IAPIEmail): IEmail {
-  return {
-    ...email,
-    visibility: email.visibility || 'public',
-  }
-}
-
 /** Information about an issue as returned by the GitHub API. */
 export interface IAPIIssue {
   readonly number: number
@@ -228,9 +221,15 @@ export class API {
 
   /** Fetch the current user's emails. */
   public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
-    const result = await this.client.user.emails.fetch()
+    const isDotCom = this.account.endpoint === getDotComAPIEndpoint()
+
+    const result = isDotCom
+      ? await this.client.user.publicEmails.fetch()
+      // GitHub Enterprise does not have the concept of private emails
+      : await this.client.user.emails.fetch()
+
     const emails: ReadonlyArray<IAPIEmail> = result.items
-    return emails.map(convertEmailAddress)
+    return emails
   }
 
   /** Fetch a commit from the repository. */
@@ -434,11 +433,16 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
   const octo = new Octokat({ token, rootURL: endpoint })
   const user = await octo.user.fetch()
 
-  const response =  await octo.user.emails.fetch()
-  const emails: ReadonlyArray<IAPIEmail> = response.items
-  const formattedEmails = emails.map(convertEmailAddress)
+  const isDotCom = endpoint === getDotComAPIEndpoint()
 
-  return new Account(user.login, endpoint, token, formattedEmails, user.avatarUrl, user.id, user.name)
+  const result = isDotCom
+    ? await octo.user.publicEmails.fetch()
+    // GitHub Enterprise does not have the concept of private emails
+    : await octo.user.emails.fetch()
+
+  const emails: ReadonlyArray<IAPIEmail> = result.items
+
+  return new Account(user.login, endpoint, token, emails, user.avatarUrl, user.id, user.name)
 }
 
 /** Get metadata from the server. */

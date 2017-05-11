@@ -43,6 +43,7 @@ import { UntrustedCertificate } from './untrusted-certificate'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
 import { ConfirmDialog } from '../ui/confirm-dialog'
+import { sendReady } from './main-process-proxy'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -52,12 +53,21 @@ const SendStatsInterval = 1000 * 60 * 60 * 4
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
+  readonly startTime: number
 }
 
 export const dialogTransitionEnterTimeout = 250
 export const dialogTransitionLeaveTimeout = 100
 
+/**
+ * The time to delay (in ms) from when we've loaded the initial state to showing
+ * the window. This is try to give Chromium enough time to flush our latest DOM
+ * changes. See https://github.com/desktop/desktop/issues/1398.
+ */
+const ReadyDelay = 100
+
 export class App extends React.Component<IAppProps, IAppState> {
+  private loading = true
 
   /**
    * Used on non-macOS platforms to support the Alt key behavior for
@@ -76,6 +86,22 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   public constructor(props: IAppProps) {
     super(props)
+
+    props.dispatcher.loadInitialState().then(() => {
+      this.loading = false
+      this.forceUpdate()
+
+      requestIdleCallback(() => {
+        const now = Date.now()
+        sendReady(now - props.startTime)
+
+        // Loading emoji is super important but maybe less important that
+        // loading the app. So defer it until we have some breathing space.
+        requestIdleCallback(() => {
+          props.appStore.loadEmoji()
+        })
+      }, { timeout: ReadyDelay })
+    })
 
     this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
@@ -583,8 +609,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     // window controls need to disable dragging so we add a 3px tall element which
     // disables drag while still letting users drag the app by the titlebar below
     // those 3px.
-    const resizeHandle = __WIN32__
-      ? <div className='resize-handle' />
+    const topResizeHandle = __WIN32__
+      ? <div className='resize-handle top' />
+      : null
+
+    // And a 3px wide element on the left hand side.
+    const leftResizeHandle = __WIN32__
+      ? <div className='resize-handle left' />
       : null
 
     const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
@@ -595,9 +626,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <div className={titleBarClass} id='desktop-app-title-bar'>
+        {topResizeHandle}
+        {leftResizeHandle}
         {appIcon}
         {this.renderAppMenuBar()}
-        {resizeHandle}
         {winControls}
       </div>
     )
@@ -1042,8 +1074,16 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   public render() {
+    if (this.loading) {
+      return null
+    }
+
+    const className = this.state.appIsFocused
+      ? 'focused'
+      : 'blurred'
+
     return (
-      <div id='desktop-app-chrome'>
+      <div id='desktop-app-chrome' className={className}>
         {this.renderTitlebar()}
         {this.state.showWelcomeFlow ? this.renderWelcomeFlow() : this.renderApp()}
       </div>
