@@ -66,7 +66,6 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
-  getRemotes,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -1216,12 +1215,10 @@ export class AppStore {
           branch: branch.name,
         })
 
-        const remotes = await getRemotes(repository)
-
         // Let's say that a push takes roughly twice as long as a fetch,
         // this is of course highly inaccurate.
         let pushWeight = 2.5
-        let fetchWeight = 1 * remotes.length
+        let fetchWeight = 1
 
         // Let's leave 10% at the end for refreshing
         const refreshWeight = 0.1
@@ -1242,7 +1239,7 @@ export class AppStore {
             })
           })
 
-          await gitStore.fetchRemotes(account, remotes, false, (fetchProgress) => {
+          await gitStore.fetchRemotes(account, [ remote ], false, (fetchProgress) => {
             this.updatePushPullFetchProgress(repository, {
               ...fetchProgress,
               value: pushWeight + fetchProgress.value * fetchWeight,
@@ -1339,13 +1336,10 @@ export class AppStore {
         })
 
         try {
-          const otherRemotes = (await getRemotes(repository))
-            .filter(r => r.name !== remote.name)
-
           // Let's say that a pull takes twice as long as a fetch,
           // this is of course highly inaccurate.
           let pullWeight = 2
-          let fetchWeight = 1 * otherRemotes.length
+          let fetchWeight = 1
 
           // Let's leave 10% at the end for refreshing
           const refreshWeight = 0.1
@@ -1363,17 +1357,6 @@ export class AppStore {
                 value: progress.value * pullWeight,
               })
             }))
-
-          const fetchStartProgress = fetchWeight
-
-          await gitStore.fetchRemotes(account, otherRemotes, false, progress => {
-            this.updatePushPullFetchProgress(repository, {
-              ...progress,
-              title: progress.title,
-              description: progress.description,
-              value: fetchStartProgress + progress.value * fetchWeight,
-            })
-          })
 
           const refreshStartProgress = pullWeight + fetchWeight
           const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
