@@ -23,6 +23,7 @@ export class ConfirmDialog extends React.Component<IConfirmDialogProps, void> {
   public render() {
     return (
       <Dialog
+        type='warning'
         title={this.props.title}
         onDismissed={this.cancel}
         onSubmit={this.onConfirmed}
