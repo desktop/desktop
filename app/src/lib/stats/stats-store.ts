@@ -1,20 +1,16 @@
-import * as OS from 'os'
-import { UAParser } from 'ua-parser-js'
 import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
 import { getDotComAPIEndpoint } from '../api'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
-import { uuid } from '../uuid'
+import { getOS } from '../get-os'
+import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
 const LastDailyStatsReportKey = 'last-daily-stats-report'
-
-/** The localStorage key for the stats GUID. */
-const StatsGUIDKey = 'stats-guid'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -33,9 +29,6 @@ export class StatsStore {
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
 
-  /** The GUID for uniquely identifying installations. */
-  private readonly guid: string
-
   public constructor(db: StatsDatabase) {
     this.db = db
 
@@ -45,14 +38,6 @@ export class StatsStore {
     } else {
       this.optOut = false
     }
-
-    let guid = localStorage.getItem(StatsGUIDKey)
-    if (!guid) {
-      guid = uuid()
-      localStorage.setItem(StatsGUIDKey, guid)
-    }
-
-    this.guid = guid
   }
 
   /** Should the app report its daily stats? */
@@ -136,12 +121,12 @@ export class StatsStore {
 
     return {
       version: getVersion(),
-      osVersion: this.getOS(),
+      osVersion: getOS(),
       platform: process.platform,
       ...launchStats,
       ...dailyMeasures,
       ...userType,
-      guid: this.guid,
+      guid: getGUID(),
       ...repositoryCounts,
     }
   }
@@ -150,21 +135,6 @@ export class StatsStore {
     return {
       repositoryCount: repositories.length,
       gitHubRepositoryCount: repositories.filter(r => r.gitHubRepository).length,
-    }
-  }
-
-  private getOS() {
-    if (__DARWIN__) {
-      // On macOS, OS.release() gives us the kernel version which isn't terribly
-      // meaningful to any human being, so we'll parse the User Agent instead.
-      // See https://github.com/desktop/desktop/issues/1130.
-      const parser = new UAParser()
-      const os = parser.getOS()
-      return `${os.name} ${os.version}`
-    } else if (__WIN32__) {
-      return `Windows ${OS.release()}`
-    } else {
-      return `${OS.type()} ${OS.release()}`
     }
   }
 
