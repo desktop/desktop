@@ -376,6 +376,7 @@ export class AppStore {
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
+      confirmRepoRemoval: this.confirmRepoRemoval,
     }
   }
 
