@@ -28,7 +28,7 @@ export class ConfirmDialog extends React.Component<IConfirmDialogProps, void> {
         onSubmit={this.onConfirmed}
       >
         <DialogContent>
-          {this.props.message}
+          <p>{this.props.message}</p>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
