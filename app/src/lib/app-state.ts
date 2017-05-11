@@ -110,6 +110,9 @@ export interface IAppState {
 
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
+
+  /** Whether we should show a confirmation dialog */
+  readonly confirmRepoRemoval: boolean
 }
 
 export enum PopupType {
