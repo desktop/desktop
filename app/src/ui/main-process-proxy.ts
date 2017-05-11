@@ -63,7 +63,7 @@ export interface IMenuItem {
 
 /** Show the given menu items in a contextual menu. */
 export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
-  ipcRenderer.once('contextual-menu-action', (event: Electron.IpcRendererEvent, index: number) => {
+  ipcRenderer.once('contextual-menu-action', (event: Electron.IpcMessageEvent, index: number) => {
     const item = items[index]
     const action = item.action
     if (action) {
