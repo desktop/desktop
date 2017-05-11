@@ -78,7 +78,7 @@ const sidebarWidthConfigKey: string = 'sidebar-width'
 
 const defaultCommitSummaryWidth: number = 250
 const commitSummaryWidthConfigKey: string = 'commit-summary-width'
-const confirmOnRepoRemovalKey: string = 'confirmRepoRemoval'
+const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 
 export class AppStore {
   private emitter = new Emitter()
@@ -1683,7 +1683,6 @@ export class AppStore {
   public _setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
     const valueToInsert = value ? '1' : '0'
 
-    localStorage.setItem(confirmOnRepoRemovalKey, valueToInsert)
     this.emitUpdate()
 
     return Promise.resolve()
