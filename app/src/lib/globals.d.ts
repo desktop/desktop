@@ -21,3 +21,31 @@ declare const __RELEASE_ENV__: 'production' | 'beta' | 'test' | 'development'
  * for more information.
  */
 declare function requestIdleCallback(fn: () => void, options?: { timeout: number }): number
+
+// these changes should be pushed into the Electron declarations
+
+declare namespace NodeJS {
+  // tslint:disable-next-line:interface-name
+  interface Process extends EventEmitter {
+    once(event: 'uncaughtException', listener: (error: Error) => void): this
+    on(event: 'uncaughtException', listener: (error: Error) => void): this
+  }
+}
+
+declare namespace Electron {
+  // tslint:disable-next-line:interface-name
+  interface MenuItem {
+    readonly accelerator?: Electron.Accelerator
+    readonly submenu?: Electron.Menu
+    readonly role?: string
+    readonly type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
+  }
+
+  // these methods have been marked with optional parameters, where we hadn't assumed this before
+  // tslint:disable-next-line:interface-name
+  interface App extends EventEmitter {
+    makeSingleInstance(callback: (argv: string[], workingDirectory: string) => void): boolean
+
+    on(event: 'open-url', listener: (event: Electron.Event, url: string) => void): this
+  }
+}
