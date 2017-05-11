@@ -699,6 +699,9 @@ export class AppStore {
     this.sidebarWidth = parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) || defaultSidebarWidth
     this.commitSummaryWidth = parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) || defaultCommitSummaryWidth
 
+    const confirmRepoRemovalValue = localStorage.getItem(confirmRepoRemovalKey)
+    this.confirmRepoRemoval = confirmRepoRemovalValue ? parseInt(confirmRepoRemovalValue) === 1 : false
+
     if (initialLoad) {
       // For the intitial load, synchronously emit the update so that the window
       // is drawn with the initial state before we show it.
