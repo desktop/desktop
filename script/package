@@ -27,6 +27,13 @@ function packageOSX () {
   console.log(`Zipped to ${dest}`)
 }
 
+function cleanupCertificates() {
+  if (process.env.APPVEYOR) {
+    const scriptPath = path.resolve(__dirname, 'cleanup-windows-certificate.ps1')
+    cp.execSync(`powershell ${scriptPath}`)
+  }
+}
+
 function packageWindows () {
   const electronInstaller = require('electron-winstaller')
   const outputDir = path.join(distPath, '..', 'installer')
@@ -75,9 +82,11 @@ function packageWindows () {
     .then(() => {
       console.log(`Installers created in ${outputDir}`)
       cp.execSync(`powershell ${cleanupCertificatePath}`)
+      cleanupCertificatePath()
     })
     .catch(e => {
       cp.execSync(`powershell ${cleanupCertificatePath}`)
+      cleanupCertificatePath()
       console.error(`Error packaging: ${e}`)
       process.exit(1)
     })
