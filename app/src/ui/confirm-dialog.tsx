@@ -11,10 +11,6 @@ interface IConfirmDialogProps {
 }
 
 export class ConfirmDialog extends React.Component<IConfirmDialogProps, void> {
-  public constructor(props: IConfirmDialogProps) {
-    super(props)
-  }
-
   private cancel = () => {
     this.props.onDismissed()
   }
