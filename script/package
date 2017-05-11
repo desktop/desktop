@@ -27,6 +27,13 @@ function packageOSX () {
   console.log(`Zipped to ${dest}`)
 }
 
+function setupCertificate() {
+  if (process.env.APPVEYOR) {
+    const scriptPath = path.join(__dirname, 'setup-windows-certificate.ps1')    
+    cp.execSync(`powershell ${scriptPath}`)
+  }
+}
+
 function cleanupCertificates() {
   if (process.env.APPVEYOR) {
     const scriptPath = path.resolve(__dirname, 'cleanup-windows-certificate.ps1')
@@ -37,12 +44,6 @@ function cleanupCertificates() {
 function packageWindows () {
   const electronInstaller = require('electron-winstaller')
   const outputDir = path.join(distPath, '..', 'installer')
-  const setupCertificatePath = path.join(__dirname, 'setup-windows-certificate.ps1')
-  const cleanupCertificatePath = path.join(__dirname, 'cleanup-windows-certificate.ps1')
-
-  if (process.env.APPVEYOR) {
-    cp.execSync(`powershell ${setupCertificatePath}`)
-  }
 
   const iconSource = path.join(__dirname, '..', 'app', 'static', 'logos', 'icon-logo.ico')
 
