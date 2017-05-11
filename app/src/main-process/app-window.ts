@@ -111,9 +111,11 @@ export class AppWindow {
       const now = Date.now()
       this._loadTime = now - startLoad
 
-      this.window.webContents.setVisualZoomLevelLimits(1, 1)
-
       this.maybeEmitDidLoad()
+    })
+
+    this.window.webContents.on('did-finish-load', () => {
+      this.window.webContents.setVisualZoomLevelLimits(1, 1)
     })
 
     this.window.webContents.on('did-fail-load', () => {
