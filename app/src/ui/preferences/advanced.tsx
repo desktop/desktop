@@ -2,6 +2,7 @@ import * as React from 'react'
 import { DialogContent } from '../dialog'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
+import { Row } from '../../ui/lib/row'
 
 interface IAdvancedPreferencesProps {
   readonly isOptedOut: boolean,
@@ -44,20 +45,18 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
   public render() {
     return (
       <DialogContent>
-        <div>
-          Would you like to help us improve GitHub Desktop by periodically submitting <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>?
-        </div>
-
-        <br />
-
-        <Checkbox
-          label='Yes, submit anonymized usage data'
-          value={this.state.reportingOptOut ? CheckboxValue.Off : CheckboxValue.On}
-          onChange={this.onReportingOptOutChanged} />
-        <Checkbox
-          label='Yes, confirm before repository removal'
-          value={this.state.confirmRepoRemoval ? CheckboxValue.On : CheckboxValue.Off}
-          onChange={this.onConfirmRepoRemovalChanged} />
+        <Row>
+          <Checkbox
+            label={this.reportDesktopUsageLabel()}
+            value={this.state.reportingOptOut ? CheckboxValue.Off : CheckboxValue.On}
+            onChange={this.onReportingOptOutChanged} />
+        </Row>
+        <Row>
+          <Checkbox
+            label='Show confirmation dialog before removing repositories'
+            value={this.state.confirmRepoRemoval ? CheckboxValue.On : CheckboxValue.Off}
+            onChange={this.onConfirmRepoRemovalChanged} />
+        </Row>
       </DialogContent>
     )
   }
