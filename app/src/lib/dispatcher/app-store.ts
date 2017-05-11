@@ -1511,7 +1511,7 @@ export class AppStore {
         const fetchWeight = 0.9
         const refreshWeight = 0.1
 
-        await gitStore.fetchAll(account, backgroundTask, (progress) => {
+        await gitStore.fetch(account, backgroundTask, (progress) => {
           this.updatePushPullFetchProgress(repository, {
             ...progress,
             value: progress.value * fetchWeight,
