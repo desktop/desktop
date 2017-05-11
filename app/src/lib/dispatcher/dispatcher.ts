@@ -838,7 +838,7 @@ export class Dispatcher {
    * Sets the user's preference so that confirmation to remove repo is not asked
    */
   public setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
-    return this.appStore._setConfirmRepoRemovalSetting(value)
+    return this.appStore._setConfirmRepoRemoval(value)
   }
 
   private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryArgs): Promise<void> {
