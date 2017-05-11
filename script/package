@@ -44,7 +44,7 @@ function packageWindows () {
     process.exit(1)
   }
 
-  const splashScreenPath = path.resolve(__dirname, '../static/win32/installer-splash.gif')
+  const splashScreenPath = path.resolve(__dirname, '../app/static/logos/win32-installer-splash.gif')
 
   if (!fs.existsSync(splashScreenPath)) {
     console.error(`expected setup splash screen gif not found at location: ${splashScreenPath}`)
