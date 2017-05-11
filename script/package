@@ -34,7 +34,7 @@ function setupCertificate() {
   }
 }
 
-function cleanupCertificates() {
+function cleanupCertificate() {
   if (process.env.APPVEYOR) {
     const scriptPath = path.resolve(__dirname, 'cleanup-windows-certificate.ps1')
     cp.execSync(`powershell ${scriptPath}`)
@@ -44,6 +44,8 @@ function cleanupCertificates() {
 function packageWindows () {
   const electronInstaller = require('electron-winstaller')
   const outputDir = path.resolve(distPath, '../installer')
+
+  setupCertificate()
 
   const iconSource = path.resolve(__dirname, '../app/static/logos/icon-logo.ico')
 
