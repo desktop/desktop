@@ -161,7 +161,7 @@ export class AppStore {
     const window = remote.getCurrentWindow()
     this.windowState = getWindowState(window)
 
-    ipcRenderer.on('window-state-changed', (_, args) => {
+    ipcRenderer.on('window-state-changed', (event: Electron.IpcMessageEvent, args: any[]) => {
       this.windowState = getWindowState(window)
       this.emitUpdate()
     })
