@@ -49,8 +49,7 @@ function packageWindows () {
   const iconUrl = 'https://www.dropbox.com/s/l69699nsdv2hl64/icon-logo.ico?dl=1'
 
   const options = {
-    // https://msdn.microsoft.com/en-us/library/windows/desktop/dd378459(v=vs.85).aspx#how
-    name: 'GitHub.Desktop',
+    name: 'GitHubDesktop',
     appDirectory: distPath,
     outputDirectory: outputDir,
     authors: distInfo.getCompanyName(),
