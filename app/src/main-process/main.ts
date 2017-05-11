@@ -70,6 +70,11 @@ if (isDuplicateInstance) {
 
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
+
+    // TODO
+    // both of these parameters we had assumed would be defined
+    if (!event || !url) { return }
+
     event.preventDefault()
 
     const action = parseURL(url)
@@ -195,6 +200,13 @@ app.on('ready', () => {
   })
 
   autoUpdater.on('error', err => {
+
+    // TODO
+    // we expected this event to be populated here but it is not
+    if (!err) {
+      return
+    }
+
     getMainWindow().sendAutoUpdaterError(err)
   })
 })
@@ -204,7 +216,17 @@ app.on('activate', () => {
 })
 
 app.on('web-contents-created', (event, contents) => {
+
+  // TODO
+  // we expected this event to be populated here but it is not
+  if (!contents) { return }
+
   contents.on('new-window', (event, url) => {
+
+    // TODO
+    // we expected this event to be populated here but it is not
+    if (!event) { return }
+
     // Prevent links or window.open from opening new windows
     event.preventDefault()
     sharedProcess!.console.log(`Prevented new window to: ${url}`)
@@ -212,6 +234,14 @@ app.on('web-contents-created', (event, contents) => {
 })
 
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+
+  // TODO
+  // we expected this event to be populated here but it is not
+
+  if (!callback || !certificate || !error || !url) {
+    return
+  }
+
   callback(false)
 
   getMainWindow().sendCertificateError(certificate, error, url)

@@ -78,6 +78,11 @@ export class AppWindow {
     // renderer.
     if (__DARWIN__) {
       this.window.on('close', e => {
+
+        // TODO
+        // we expected this event to be populated here but it is not
+        if (!e) { return }
+
         if (!quitting) {
           e.preventDefault()
           this.window.hide()
