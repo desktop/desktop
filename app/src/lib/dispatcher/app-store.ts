@@ -1684,7 +1684,7 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public _setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
+  public _setConfirmRepoRemoval(value: boolean): Promise<void> {
     const valueToInsert = value ? '1' : '0'
 
     this.emitUpdate()
