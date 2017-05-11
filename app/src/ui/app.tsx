@@ -821,10 +821,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <ConfirmDialog
-            dispatcher={this.props.dispatcher}
-            onConfirmation={this.onConfirmRepoRemoval}
             title='Remove Repository'
             message='Are you sure you would like to remove this repository?'
+            onConfirmation={this.onConfirmRepoRemoval}
+            onDismissed={this.onPopupDismissed}
           />
         )
       default:
