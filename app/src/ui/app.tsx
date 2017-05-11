@@ -454,13 +454,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private removeRepository() {
     const repository = this.getRepository()
-    const askForConfirmation = this.props.appStore.getConfirmBeforeRemovingRepoSetting()
+    const appState = this.props.appStore.getState()
+    const showConfirmDialog = appState.confirmRepoRemoval
 
     if (!repository) {
       return
     }
 
-    if (askForConfirmation) {
+    if (showConfirmDialog) {
       this.props.dispatcher.showPopup({ type: PopupType.RemoveRepository, repository })
     } else {
       this.props.dispatcher.removeRepositories([ repository ])
@@ -811,9 +812,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.RemoveRepository:
-        const showTheQuestion = this.props.appStore.getConfirmBeforeRemovingRepoSetting()
+        const appState = this.props.appStore.getState()
+        const showConfirmDialog = appState.confirmRepoRemoval
 
-        if (!showTheQuestion) {
+        if (!showConfirmDialog) {
           return null
         }
 
