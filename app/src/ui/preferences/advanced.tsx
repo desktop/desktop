@@ -42,6 +42,14 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
     this.props.onConfirmRepoRemovalSet(value)
   }
 
+  public reportDesktopUsageLabel() {
+    return (
+      <span>
+        Help GitHub Desktop improve by submitting <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>
+      </span>
+    )
+  }
+
   public render() {
     return (
       <DialogContent>
