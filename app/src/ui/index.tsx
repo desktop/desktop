@@ -76,7 +76,7 @@ function postUnhandledError(error: Error) {
 }
 
 // NOTE: we consider all main-process-exceptions coming through here to be unhandled
-ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
+ipcRenderer.on('main-process-exception', (event: Electron.IpcMessageEvent, error: Error) => {
   reportError(error)
   postUnhandledError(error)
 })
@@ -106,7 +106,7 @@ ipcRenderer.on('blur', () => {
   dispatcher.setAppFocusState(false)
 })
 
-ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
+ipcRenderer.on('url-action', (event: Electron.IpcMessageEvent, { action }: { action: URLActionType }) => {
   dispatcher.dispatchURLAction(action)
 })
 

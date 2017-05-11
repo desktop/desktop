@@ -166,7 +166,7 @@ export class AppStore {
       this.emitUpdate()
     })
 
-    ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
+    ipcRenderer.on('app-menu', (event: Electron.IpcMessageEvent, { menu }: { menu: IMenu }) => {
       this.setAppMenu(menu)
     })
 

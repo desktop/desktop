@@ -113,7 +113,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       props.dispatcher.postError(error)
     })
 
-    ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
+    ipcRenderer.on('menu-event', (event: Electron.IpcMessageEvent, { name }: { name: MenuEvent }) => {
       this.onMenuEvent(name)
     })
 
@@ -135,7 +135,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
     this.checkForUpdates()
 
-    ipcRenderer.on('launch-timing-stats', async (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
+    ipcRenderer.on('launch-timing-stats', async (event: Electron.IpcMessageEvent, { stats }: { stats: ILaunchStats }) => {
       console.info(`App ready time: ${stats.mainReadyTime}ms`)
       console.info(`Load time: ${stats.loadTime}ms`)
       console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
@@ -146,7 +146,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
     })
 
-    ipcRenderer.on('certificate-error', (event: Electron.IpcRendererEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {
+    ipcRenderer.on('certificate-error', (event: Electron.IpcMessageEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {
       this.props.dispatcher.showPopup({
         type: PopupType.UntrustedCertificate,
         certificate,
