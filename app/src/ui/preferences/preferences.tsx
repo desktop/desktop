@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { Dispatcher, AppStore } from '../../lib/dispatcher'
+import { Dispatcher } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Advanced } from './advanced'
@@ -14,10 +14,11 @@ import { lookupPreferredEmail } from '../../lib/email'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
-  readonly appStore: AppStore
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
   readonly onDismissed: () => void
+  readonly optOutOfUsageTracking: boolean
+  readonly confirmRepoRemoval: boolean
 }
 
 enum PreferencesTab {
@@ -49,9 +50,8 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
   }
 
   public async componentWillMount() {
-    const appState = this.props.appStore.getState()
-    const isOptedOut = this.props.appStore.getStatsOptOut()
-    const confirmRepoRemoval = appState.confirmRepoRemoval
+    const isOptedOut = this.props.optOutOfUsageTracking
+    const confirmRepoRemoval = this.props.confirmRepoRemoval
 
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
