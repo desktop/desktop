@@ -12,9 +12,14 @@ interface ITermsAndConditionsProps {
 export class TermsAndConditions extends React.Component<ITermsAndConditionsProps, void> {
 
   private dialogContainerRef: HTMLDivElement | null = null
+  private closeButtonRef: HTMLButtonElement | null = null
 
   private onDialogContainerRef = (element: HTMLDivElement | null) => {
     this.dialogContainerRef = element
+  }
+
+  private onCloseButtonRef = (element: HTMLButtonElement | null) => {
+    this.closeButtonRef = element
   }
 
   public componentDidMount() {
@@ -24,6 +29,11 @@ export class TermsAndConditions extends React.Component<ITermsAndConditionsProps
     // want that so let's just reset it.
     if (this.dialogContainerRef) {
       this.dialogContainerRef.scrollTop = 0
+    }
+
+    // And let's just move focus to the close button.
+    if (this.closeButtonRef) {
+      this.closeButtonRef.focus()
     }
   }
 
@@ -231,7 +241,7 @@ export class TermsAndConditions extends React.Component<ITermsAndConditionsProps
 
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit'>Close</Button>
+            <Button type='submit' onButtonRef={this.onCloseButtonRef}>Close</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
