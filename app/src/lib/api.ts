@@ -143,6 +143,7 @@ interface IAPIAccessToken {
  * Details: https://developer.github.com/v3/#client-errors
  */
 interface IError {
+  readonly message: string
   readonly resource: string
   readonly field: string
 }
@@ -265,10 +266,27 @@ export class API {
 
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository> {
-    if (org) {
-      return this.client.orgs(org.login).repos.create({ name, description, private: private_ })
-    } else {
-      return this.client.user.repos.create({ name, description, private: private_ })
+    try {
+      if (org) {
+        return this.client.orgs(org.login).repos.create({ name, description, private: private_ })
+      } else {
+        return this.client.user.repos.create({ name, description, private: private_ })
+      }
+    } catch (e) {
+      if (e.message) {
+        // for the sake of shipping this it looks like octokat.js just throws
+        // with the entire JSON body as the error message - that's fine, just
+        // needs some thought later the next time we need to do something like
+        // this
+        const message: string = e.message
+
+        const error = await deserialize<IError>(message)
+        if (error) {
+          throw new Error(error.message)
+        }
+      }
+
+      throw e
     }
   }
 
