@@ -55,7 +55,7 @@ function getWindowsStandalonePath () {
 }
 
 function getWindowsFullNugetPackageName () {
-  return `${getName()}-${getVersion()}-full.nupkg`
+  return `${getProductName()}-${getVersion()}-full.nupkg`
 }
 
 function getWindowsFullNugetPackagePath () {
