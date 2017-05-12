@@ -82,10 +82,10 @@ function packageWindows () {
     .createWindowsInstaller(options)
     .then(() => {
       console.log(`Installers created in ${outputDir}`)
-      cleanupCertificate()
+      cleanupCertificatePath()
     })
     .catch(e => {
-      cleanupCertificate()
+      cleanupCertificatePath()
       console.error(`Error packaging: ${e}`)
       process.exit(1)
     })
