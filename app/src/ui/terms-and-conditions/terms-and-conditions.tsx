@@ -19,45 +19,139 @@ export class TermsAndConditions extends React.Component<ITermsAndConditionsProps
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          <p>These GitHub Open Source Applications Terms and Conditions ("Application Terms") are a legal agreement between you (either as an individual or on behalf of an entity) and GitHub, Inc. regarding your use of GitHub's applications, such as GitHub Desktop™ and associated documentation ("Software"). These Application Terms apply to the executable code version of the Software. Source code for the Software is available separately and free of charge under open source software license agreements. If you do not agree to all of the terms in these Application Terms, do not download, install, use, or copy the Software.</p>
+          <p>
+            These GitHub Open Source Applications Terms and Conditions
+            ("Application Terms") are a legal agreement between you (either as
+            an individual or on behalf of an entity) and GitHub, Inc. regarding
+            your use of GitHub's applications, such as GitHub Desktop™ and
+            associated documentation ("Software"). These Application Terms apply
+            to the executable code version of the Software. Source code for the
+            Software is available separately and free of charge under open
+            source software license agreements. If you do not agree to all of
+            the terms in these Application Terms, do not download, install, use,
+            or copy the Software.
+          </p>
 
           <h2>Connecting to GitHub</h2>
 
-          <p>If you configure the Software to work with one or more accounts on the GitHub.com website or with an instance of GitHub Enterprise, your use of the Software will also be governed your applicable GitHub.com website Terms of Service and/or the license agreement applicable to your instance of GitHub Enterprise ("GitHub Terms").</p>
+          <p>
+            If you configure the Software to work with one or more accounts on
+            the GitHub.com website or with an instance of GitHub Enterprise,
+            your use of the Software will also be governed your applicable
+            GitHub.com website Terms of Service and/or the license agreement
+            applicable to your instance of GitHub Enterprise ("GitHub Terms").
+          </p>
 
-          <p>Any use of the Software that violates your applicable GitHub Terms will also be a violation of these Application Terms.</p>
+          <p>
+            Any use of the Software that violates your applicable GitHub Terms
+            will also be a violation of these Application Terms.
+          </p>
 
           <h2>Open Source Licenses and Notices</h2>
 
-          <p>The open source license for the Software is included in the "Open Source Notices" documentation that is included with the Software. That documentation also includes copies of all applicable open source licenses.</p>
+          <p>
+            The open source license for the Software is included in the "Open
+            Source Notices" documentation that is included with the Software.
+            That documentation also includes copies of all applicable open
+            source licenses.
+          </p>
 
-          <p>To the extent the terms of the licenses applicable to open source components require GitHub to make an offer to provide source code in connection with the Software, such offer is hereby made, and you may exercise it by contacting GitHub: <LinkButton uri='https://github.com/contact'>https://github.com/contact</LinkButton>.</p>
+          <p>
+            To the extent the terms of the licenses applicable to open source
+            components require GitHub to make an offer to provide source code in
+            connection with the Software, such offer is hereby made, and you may
+            exercise it by contacting GitHub: <LinkButton uri='https://github.com/contact'>
+            https://github.com/contact</LinkButton>.
+          </p>
 
-          <p>Unless otherwise agreed to in writing with GitHub, your agreement with GitHub will always include, at a minimum, these Application Terms. Open source software licenses for the Software's source code constitute separate written agreements. To the limited extent that the open source software licenses expressly supersede these Application Terms, the open source licenses govern your agreement with GitHub for the use of the Software or specific included components of the Software.</p>
+          <p>
+            Unless otherwise agreed to in writing with GitHub, your agreement
+            with GitHub will always include, at a minimum, these Application
+            Terms. Open source software licenses for the Software's source code
+            constitute separate written agreements. To the limited extent that
+            the open source software licenses expressly supersede these
+            Application Terms, the open source licenses govern your agreement
+            with GitHub for the use of the Software or specific included
+            components of the Software.
+          </p>
 
           <h2>GitHub's Logos</h2>
 
-          <p>The license grant included with the Software is not for GitHub's trademarks, which include the Software logo designs. GitHub reserves all trademark and copyright rights in and to all GitHub trademarks. GitHub's logos include, for instance, the stylized designs that include "logo" in the file title in the "logos" folder.</p>
+          <p>
+            The license grant included with the Software is not for GitHub's
+            trademarks, which include the Software logo designs. GitHub reserves
+            all trademark and copyright rights in and to all GitHub trademarks.
+            GitHub's logos include, for instance, the stylized designs that
+            include "logo" in the file title in the "logos" folder.
+          </p>
 
-          <p>The names GitHub, GitHub Desktop, GitHub for Mac, GitHub for Windows, Atom, the Octocat, and related GitHub logos and/or stylized names are trademarks of GitHub. You agree not to display or use these trademarks in any manner without GitHub's prior, written permission, except as allowed by GitHub's Logos and Usage Policy: <LinkButton uri='https://github.com/logos'>https://github.com/logos</LinkButton>.</p>
+          <p>
+            The names GitHub, GitHub Desktop, GitHub for Mac, GitHub for
+            Windows, Atom, the Octocat, and related GitHub logos and/or stylized
+            names are trademarks of GitHub. You agree not to display or use
+            these trademarks in any manner without GitHub's prior, written
+            permission, except as allowed by GitHub's Logos and Usage Policy: <LinkButton uri='https://github.com/logos'>https://github.com/logos</LinkButton>.
+          </p>
 
           <h2>Privacy</h2>
 
-          <p>The Software may collect personal information. You may control what information the Software collects in the settings panel. If the Software does collect personal information on GitHub's behalf, GitHub will process that information in accordance with the <LinkButton uri='https://help.github.com/articles/github-privacy-statement/'>GitHub Privacy Statement</LinkButton>.</p>
+          <p>
+            The Software may collect personal information. You may control what
+            information the Software collects in the settings panel. If the
+            Software does collect personal information on GitHub's behalf,
+            GitHub will process that information in accordance with the
+            <LinkButton uri='https://help.github.com/articles/github-privacy-statement/'>GitHub Privacy Statement</LinkButton>.
+          </p>
 
           <h2>Additional Services</h2>
 
           <h3>Auto-Update Services</h3>
 
-          <p>You have the option to use the GitHub auto-update service ("Service"). If you choose to use the Service, GitHub will automatically update the Software when a new version is available.</p>
+          <p>
+            You have the option to use the GitHub auto-update service
+            ("Service"). If you choose to use the Service, GitHub will
+            automatically update the Software when a new version is available.
+          </p>
 
           <h3>Disclaimers and Limitations of Liability</h3>
 
-          <p>THE SERVICE IS PROVIDED ON AN "AS IS" BASIS, AND NO WARRANTY, EITHER EXPRESS OR IMPLIED, IS GIVEN. YOUR USE OF THE SERVICE IS AT YOUR SOLE RISK. GitHub does not warrant that (i) the Service will meet your specific requirements; (ii) the Service is fully compatible with any particular platform; (iii) your use of the Service will be uninterrupted, timely, secure, or error-free; (iv) the results that may be obtained from the use of the Service will be accurate or reliable; (v) the quality of any products, services, information, or other material purchased or obtained by you through the Service will meet your expectations; or (vi) any errors in the Service will be corrected.</p>
+          <p>
+            THE SERVICE IS PROVIDED ON AN "AS IS" BASIS, AND NO WARRANTY, EITHER
+            EXPRESS OR IMPLIED, IS GIVEN. YOUR USE OF THE SERVICE IS AT YOUR
+            SOLE RISK. GitHub does not warrant that (i) the Service will meet
+            your specific requirements; (ii) the Service is fully compatible
+            with any particular platform; (iii) your use of the Service will be
+            uninterrupted, timely, secure, or error-free; (iv) the results that
+            may be obtained from the use of the Service will be accurate or
+            reliable; (v) the quality of any products, services, information, or
+            other material purchased or obtained by you through the Service will
+            meet your expectations; or (vi) any errors in the Service will be
+            corrected.
+          </p>
 
-          <p>YOU EXPRESSLY UNDERSTAND AND AGREE THAT GITHUB SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL OR EXEMPLARY DAMAGES, INCLUDING BUT NOT LIMITED TO, DAMAGES FOR LOSS OF PROFITS, GOODWILL, USE, DATA OR OTHER INTANGIBLE LOSSES (EVEN IF GITHUB HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES) RELATED TO THE SERVICE, including, for example: (i) the use or the inability to use the Service; (ii) the cost of procurement of substitute goods and services resulting from any goods, data, information or services purchased or obtained or messages received or transactions entered into through or from the Service; (iii) unauthorized access to or alteration of your transmissions or data; (iv) statements or conduct of any third-party on the Service; (v) or any other matter relating to the Service.</p>
+          <p>
+            YOU EXPRESSLY UNDERSTAND AND AGREE THAT GITHUB SHALL NOT BE LIABLE
+            FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL OR
+            EXEMPLARY DAMAGES, INCLUDING BUT NOT LIMITED TO, DAMAGES FOR LOSS OF
+            PROFITS, GOODWILL, USE, DATA OR OTHER INTANGIBLE LOSSES (EVEN IF
+            GITHUB HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES) RELATED
+            TO THE SERVICE, including, for example: (i) the use or the inability
+            to use the Service; (ii) the cost of procurement of substitute goods
+            and services resulting from any goods, data, information or services
+            purchased or obtained or messages received or transactions entered
+            into through or from the Service; (iii) unauthorized access to or
+            alteration of your transmissions or data; (iv) statements or conduct
+            of any third-party on the Service; (v) or any other matter relating
+            to the Service.
+          </p>
 
-          <p>GitHub reserves the right at any time and from time to time to modify or discontinue, temporarily or permanently, the Service (or any part thereof) with or without notice. GitHub shall not be liable to you or to any third-party for any price change, suspension or discontinuance of the Service.</p>
+          <p>
+            GitHub reserves the right at any time and from time to time to
+            modify or discontinue, temporarily or permanently, the Service (or
+            any part thereof) with or without notice. GitHub shall not be liable
+            to you or to any third-party for any price change, suspension or
+            discontinuance of the Service.
+          </p>
 
           <h2>Miscellanea</h2>
 
