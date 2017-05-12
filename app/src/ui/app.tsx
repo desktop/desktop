@@ -468,13 +468,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private onConfirmRepoRemoval = () => {
-    const repository = this.getRepository()
-
-    if (!repository) {
-      return
-    }
-
+  private onConfirmRepoRemoval = (repository: Repository) => {
     this.props.dispatcher.removeRepositories([ repository ])
   }
 
