@@ -95,6 +95,9 @@ export interface IToolbarButtonProps {
    * operation is currently in flight.
    */
   readonly progressValue?: number
+
+  readonly role?: string
+  readonly ariaExpanded?: boolean
 }
 
 /**
@@ -160,6 +163,8 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
           disabled={this.props.disabled}
           onMouseEnter={this.props.onMouseEnter}
           tabIndex={this.props.tabIndex}
+          role={this.props.role}
+          ariaExpanded={this.props.ariaExpanded}
         >
           {progress}
           {icon}

@@ -186,6 +186,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         onKeyDown={this.onKeyDown}
         disabled={disabled}
         tabIndex={-1}
+        buttonRole='menuitem'
       >
         <MenuListItem
           item={item}

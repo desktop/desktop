@@ -119,6 +119,9 @@ export interface IToolbarDropdownProps {
    * operation is currently in flight.
    */
   readonly progressValue?: number
+
+  readonly role?: string
+  readonly buttonRole?: string
 }
 
 interface IToolbarDropdownState {
@@ -280,8 +283,17 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
       this.props.className
     )
 
+    const ariaExpanded = this.props.dropdownState === 'open'
+      ? 'true'
+      : 'false'
+
     return (
-      <div className={className} onKeyDown={this.props.onKeyDown}>
+      <div
+        className={className}
+        onKeyDown={this.props.onKeyDown}
+        role={this.props.role}
+        aria-expanded={ariaExpanded}
+      >
         {this.renderDropdownContents()}
         <ToolbarButton
           ref={this.onRef}
@@ -296,6 +308,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
           disabled={this.props.disabled}
           tabIndex={this.props.tabIndex}
           progressValue={this.props.progressValue}
+          role={this.props.buttonRole}
         >
           {this.props.children}
           {this.renderDropdownArrow()}
