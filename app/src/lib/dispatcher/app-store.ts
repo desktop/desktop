@@ -1687,11 +1687,9 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public _setConfirmRepoRemoval(value: boolean): Promise<void> {
-    const valueToInsert = value ? '1' : '0'
-
-    this.confirmRepoRemoval = value
-    localStorage.setItem(confirmRepoRemovalKey, valueToInsert)
+  public _setConfirmRepoRemoval(confirmRepoRemoval: boolean): Promise<void> {
+    this.confirmRepoRemoval = confirmRepoRemoval
+    localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
     this.emitUpdate()
 
     return Promise.resolve()
