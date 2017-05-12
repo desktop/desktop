@@ -44,16 +44,25 @@ function packageWindows () {
     process.exit(1)
   }
 
+  const splashScreenPath = path.resolve(__dirname, '../app/static/logos/win32-installer-splash.gif')
+
+  if (!fs.existsSync(splashScreenPath)) {
+    console.error(`expected setup splash screen gif not found at location: ${splashScreenPath}`)
+    process.exit(1)
+  }
+
   // TODO: change this when the repository is public
   // 'https://raw.githubusercontent.com/desktop/desktop/master/app/static/logos/icon-logo.ico'
   const iconUrl = 'https://desktop.githubusercontent.com/icon-logo.ico'
 
   const options = {
+    name: distInfo.getWindowsIdentifierName(),
     appDirectory: distPath,
     outputDirectory: outputDir,
     authors: distInfo.getCompanyName(),
     iconUrl: iconUrl,
     setupIcon: iconSource,
+    loadingGif: splashScreenPath,
     exe: `${productName}.exe`
   }
 

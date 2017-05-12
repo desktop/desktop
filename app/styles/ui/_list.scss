@@ -6,6 +6,10 @@
   // constrain to the size of their flexbox
   // parent.
   min-width: 0;
+
+  .ReactVirtualized__Grid {
+    background: var(--background-color);
+  }
 }
 
 @include win32-context {

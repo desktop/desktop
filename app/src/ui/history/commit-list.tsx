@@ -81,7 +81,11 @@ export class CommitList extends React.Component<ICommitListProps, void> {
               rowRenderer={this.renderCommit}
               onSelectionChanged={this.onRowChanged}
               onScroll={this.onScroll}
-              invalidationProps={{ commits: this.props.commits, gitHubUsers: this.props.gitHubUsers }}/>
+              invalidationProps={{
+                history: this.props.history,
+                gitHubUsers: this.props.gitHubUsers,
+              }}
+            />
       </div>
     )
   }
