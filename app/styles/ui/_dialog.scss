@@ -191,6 +191,22 @@ dialog {
 
     h2 { font-size: var(--font-size-md); }
     h3 { font-size: var(--font-size); }
+
+    ul, ol {
+      margin-top: 0;
+      margin-bottom: var(--spacing);
+      padding-left: var(--spacing-double);
+      list-style-position: outside;
+
+      &:last-child { margin-bottom: 0; }
+
+      li {
+        margin-bottom: var(--spacing);
+        padding-left: var(--spacing-half);
+      
+        &:last-child { margin-bottom: 0; }
+      }
+    }
   }
 
   .dialog-footer {
