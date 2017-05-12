@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.5.2": [
+
+    ],
     "0.5.1": [
       "[New] Windows: A nice little gif while installing the app - #1440",
       "[Fixed] Disable pinch zoom - #1431",
