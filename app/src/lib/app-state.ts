@@ -133,6 +133,7 @@ export enum PopupType {
   Acknowledgements,
   UntrustedCertificate,
   RemoveRepository,
+  TermsAndConditions,
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -152,6 +153,7 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.Acknowledgements } |
                     { type: PopupType.UntrustedCertificate, certificate: Electron.Certificate, url: string } |
                     { type: PopupType.RemoveRepository, repository: Repository | CloningRepository}
+                    { type: PopupType.TermsAndConditions }
 
 export enum FoldoutType {
   Repository,

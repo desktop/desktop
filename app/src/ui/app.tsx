@@ -44,6 +44,7 @@ import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
 import { ConfirmDialog } from '../ui/confirm-dialog'
 import { sendReady } from './main-process-proxy'
+import { TermsAndConditions } from './terms-and-conditions'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -782,6 +783,7 @@ export class App extends React.Component<IAppProps, IAppState> {
            applicationVersion={getVersion()}
            usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
            onShowAcknowledgements={this.showAcknowledgements}
+           onShowTermsAndConditions={this.showTermsAndConditions}
           />
         )
       case PopupType.PublishRepository:
@@ -827,6 +829,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
+      case PopupType.TermsAndConditions:
+        return <TermsAndConditions onDismissed={this.onPopupDismissed}/>
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -834,6 +838,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private showAcknowledgements = () => {
     this.props.dispatcher.showPopup({ type: PopupType.Acknowledgements })
+  }
+
+  private showTermsAndConditions = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.TermsAndConditions })
   }
 
   private renderPopup() {

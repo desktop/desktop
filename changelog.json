@@ -1,7 +1,23 @@
 {
   "releases": {
-    "0.0.40": [
+    "0.5.1": [
 
+    ],
+    "0.5.0": [
+      "[Added] Menu item for showing the app logs - #1349",
+      "[Fixed] Don't let the two-factor authentication dialog be submitted while it's empty - #1386",
+      "[Fixed] Undo Commit showing the wrong commit - #1373",
+      "[Fixed] Windows: Update the icon used for the installer - #1410",
+      "[Fixed] Undoing the first commit - #1401",
+      "[Fixed] A second window would be opened during the OAuth dance - #1382",
+      "[Fixed] Don't include the comment from the default merge commit message - #1367",
+      "[Fixed] Show progress while committing - #923",
+      "[Fixed] Windows: Merge Branch sizing would be wrong on high DPI monitors - #1210",
+      "[Fixed] Windows: Resize the app from the top left corner - #1424",
+      "[Fixed] Changing the destination path for cloning a repository now appends the repository's name - #1408",
+      "[Fixed] The blank slate view could be visible briefly when the app launched - #1398",
+      "[Improved] Performance updating menu items - #1321",
+      "[Improved] Windows: Dim the title bar when the app loses focus - #1189"
     ],
     "0.0.39": [
       "[Fixed] An uncaught exception when adding a user - #1394"

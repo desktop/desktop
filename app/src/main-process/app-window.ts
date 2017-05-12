@@ -114,6 +114,10 @@ export class AppWindow {
       this.maybeEmitDidLoad()
     })
 
+    this.window.webContents.on('did-finish-load', () => {
+      this.window.webContents.setVisualZoomLevelLimits(1, 1)
+    })
+
     this.window.webContents.on('did-fail-load', () => {
       this.window.webContents.openDevTools()
       this.window.show()
