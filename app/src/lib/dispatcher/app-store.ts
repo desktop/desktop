@@ -1445,13 +1445,11 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<void> {
     const api = new API(account)
+    const gitStore = this.getGitStore(repository)
 
     try {
       const apiRepository = await api.createRepository(org, name, description, private_)
-      const gitStore = this.getGitStore(repository)
       await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.clone_url))
-      await gitStore.loadCurrentRemote()
-      return this._push(repository, account)
     } catch (e) {
       if (e.message) {
         // for the sake of shipping this it looks like octokat.js just throws
@@ -1466,6 +1464,10 @@ export class AppStore {
 
       throw e
     }
+
+    await gitStore.loadCurrentRemote()
+    return this._push(repository, account)
+
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
