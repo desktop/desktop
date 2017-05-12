@@ -194,7 +194,6 @@ dialog {
 
     ul, ol {
       margin-top: 0;
-      margin-bottom: var(--spacing);
       padding-left: var(--spacing-double);
       list-style-position: outside;
 
@@ -203,8 +202,6 @@ dialog {
       li {
         margin-bottom: var(--spacing);
         padding-left: var(--spacing-half);
-      
-        &:last-child { margin-bottom: 0; }
       }
     }
   }
