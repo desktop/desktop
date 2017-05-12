@@ -49,11 +49,20 @@ describe('App', () => {
     dispatcher = new InMemoryDispatcher(appStore)
   })
 
-  it('renders', () => {
+  it('renders', async () => {
     const app = TestUtils.renderIntoDocument(
-      <App dispatcher={dispatcher!} appStore={appStore!}/>
+      <App dispatcher={dispatcher!} appStore={appStore!} startTime={0}/>
     ) as React.Component<any, any>
+    // Give any promises a tick to resolve.
+    await wait(0)
+
     const node = ReactDOM.findDOMNode(app)
     expect(node).not.to.equal(null)
   })
 })
+
+function wait(timeout: number): Promise<void> {
+  return new Promise<void>(resolve => {
+    setTimeout(resolve, timeout)
+  })
+}

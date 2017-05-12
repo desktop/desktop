@@ -54,6 +54,11 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
             </Button>
           </div>
         </div>
+
+        <p className='footer'>
+          Alternatively, you can drag and drop a local repository here
+          to add it.
+        </p>
       </UiView>
     )
   }

@@ -13,11 +13,6 @@ export interface IEmail {
    * are provided for associating commit authors with the one GitHub account.
    */
   readonly primary: boolean
-  /**
-   * Defines the privacy settings for an email address provided by the user.
-   * If 'private' is found, we should not use this email address anywhere.
-   */
-  readonly visibility: 'public' | 'private'
 }
 
 /**
@@ -27,17 +22,15 @@ export class Email implements IEmail {
   public readonly email: string
   public readonly verified: boolean
   public readonly primary: boolean
-  public readonly visibility: 'public' | 'private'
 
   /** Create a new Email from some JSON. */
   public static fromJSON(obj: IEmail): Email {
-    return new Email(obj.email, obj.verified, obj.primary, obj.visibility)
+    return new Email(obj.email, obj.verified, obj.primary)
   }
 
-  public constructor(email: string, verified: boolean = false, primary: boolean = false, visibility: 'public' | 'private') {
+  public constructor(email: string, verified: boolean = false, primary: boolean = false) {
     this.email = email
     this.verified = verified
     this.primary = primary
-    this.visibility = visibility
   }
 }

@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.0.39",
+  "version": "0.5.0",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -29,7 +29,7 @@
     "fs-extra": "^2.1.2",
     "keytar": "^4.0.2",
     "moment": "^2.17.1",
-    "octokat": "^0.6.4",
+    "octokat": "^0.8.0",
     "react": "^15.5.4",
     "react-addons-shallow-compare": "^15.5.2",
     "react-dom": "^15.5.4",
