@@ -155,19 +155,61 @@ export class TermsAndConditions extends React.Component<ITermsAndConditionsProps
 
           <h2>Miscellanea</h2>
 
-          <p>1. No Waiver. The failure of GitHub to exercise or enforce any right or provision of these Application Terms shall not constitute a waiver of such right or provision.</p>
+          <ol>
+            <li>
+              No Waiver. The failure of GitHub to exercise or enforce any right
+              or provision of these Application Terms shall not constitute a
+              waiver of such right or provision.
+            </li>
 
-          <p>2. Entire Agreement. These Application Terms, together with any applicable Privacy Notices, constitutes the entire agreement between you and GitHub and governs your use of the Software, superseding any prior agreements between you and GitHub (including, but not limited to, any prior versions of the Application Terms).</p>
+            <li>
+              Entire Agreement. These Application Terms, together with any
+              applicable Privacy Notices, constitutes the entire agreement
+              between you and GitHub and governs your use of the Software,
+              superseding any prior agreements between you and GitHub
+              (including, but not limited to, any prior versions of the
+              Application Terms).
+            </li>
 
-          <p>3. Governing Law. You agree that these Application Terms and your use of the Software are governed under California law and any dispute related to the Software must be brought in a tribunal of competent jurisdiction located in or near San Francisco, California.</p>
+            <li>
+              Governing Law. You agree that these Application Terms and your use
+              of the Software are governed under California law and any dispute
+              related to the Software must be brought in a tribunal of competent
+              jurisdiction located in or near San Francisco, California.
+            </li>
 
-          <p>4. Third-Party Packages. The Software supports third-party "Packages" which may modify, add, remove, or alter the functionality of the Software. These Packages are not covered by these Application Terms and may include their own license which governs your use of that particular package.</p>
+            <li>
+              Third-Party Packages. The Software supports third-party "Packages"
+              which may modify, add, remove, or alter the functionality of the
+              Software. These Packages are not covered by these Application
+              Terms and may include their own license which governs your use of
+              that particular package.
+            </li>
 
-          <p>5. No Modifications; Complete Agreement. These Application Terms may only be modified by a written amendment signed by an authorized representative of GitHub, or by the posting by GitHub of a revised version. These Application Terms, together with any applicable Open Source Licenses and Notices and GitHub's Privacy Statement, represent the complete and exclusive statement of the agreement between you and us. These Application Terms supersede any proposal or prior agreement oral or written, and any other communications between you and GitHub relating to the subject matter of these terms.</p>
+            <li>
+              No Modifications; Complete Agreement. These Application Terms may
+              only be modified by a written amendment signed by an authorized
+              representative of GitHub, or by the posting by GitHub of a revised
+              version. These Application Terms, together with any applicable
+              Open Source Licenses and Notices and GitHub's Privacy Statement,
+              represent the complete and exclusive statement of the agreement
+              between you and us. These Application Terms supersede any proposal
+              or prior agreement oral or written, and any other communications
+              between you and GitHub relating to the subject matter of these
+              terms.
+            </li>
 
-          <p>6. License to GitHub Policies. These Application Terms are licensed under the <LinkButton uri='https://creativecommons.org/licenses/by/4.0/'>Creative Commons Attribution license</LinkButton>. You may use it freely under the terms of the Creative Commons license.</p>
+            <li>
+              License to GitHub Policies. These Application Terms are licensed
+              under the <LinkButton uri='https://creativecommons.org/licenses/by/4.0/'>Creative Commons Attribution license</LinkButton>.
+              You may use it freely under the terms of the Creative Commons license.
+            </li>
 
-          <p>7. Contact Us. Please send any questions about these Application Terms to <LinkButton uri='mailto:support@github.com'>support@github.com</LinkButton>.</p>
+            <li>
+              Contact Us. Please send any questions about these Application
+              Terms to <LinkButton uri='mailto:support@github.com'>support@github.com</LinkButton>.
+            </li>
+          </ol>
         </DialogContent>
 
         <DialogFooter>
