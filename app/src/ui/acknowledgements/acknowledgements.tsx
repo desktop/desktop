@@ -20,6 +20,7 @@ interface IAcknowledgementsProps {
 interface ILicense {
   readonly repository?: string
   readonly sourceText?: string
+  readonly license?: string
 }
 
 type Licenses = { [key: string]: ILicense }
@@ -72,9 +73,18 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
         nameElement = key
       }
 
-      const licenseText = license.sourceText ? license.sourceText : `License: ${key}`
+      let licenseText
+
+      if (license.sourceText) {
+        licenseText = license.sourceText
+      } else if (license.license) {
+        licenseText = `License: ${license.license}`
+      } else {
+        licenseText = 'Unknown license'
+      }
+
       const nameHeader = <h2 key={`${key}-header`}>{nameElement}</h2>
-      const licenseParagraph = <p key={`${key}-header`} className='license-text'>{licenseText}</p>
+      const licenseParagraph = <p key={`${key}-text`} className='license-text'>{licenseText}</p>
 
       elements.push(nameHeader, licenseParagraph)
     }
