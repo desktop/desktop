@@ -1,17 +1,9 @@
 #terms-and-conditions {
   width: 550px;
 
-  #text {
+  .dialog-content {
     height: 250px;
-
     overflow: scroll;
-
-    font-size: var(--font-size-sm);
-
-    margin-bottom: var(--spacing-double);
-
-    h1 {
-      font-size: var(--font-size-md);
-    }
+    padding-bottom: var(--spacing-double);
   }
 }
