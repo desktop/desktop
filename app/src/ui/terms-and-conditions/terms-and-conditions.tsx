@@ -135,9 +135,10 @@ export class TermsAndConditions extends React.Component<ITermsAndConditionsProps
           <h3>Auto-Update Services</h3>
 
           <p>
-            You have the option to use the GitHub auto-update service
-            ("Service"). If you choose to use the Service, GitHub will
-            automatically update the Software when a new version is available.
+            The Software may include an auto-update service ("Service"). If you
+            choose to use the Service or you download Software that
+            automatically enables the Service, GitHub will automatically update
+            the Software when a new version is available.
           </p>
 
           <h3>Disclaimers and Limitations of Liability</h3>
