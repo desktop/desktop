@@ -152,7 +152,7 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.PublishRepository, repository: Repository } |
                     { type: PopupType.Acknowledgements } |
                     { type: PopupType.UntrustedCertificate, certificate: Electron.Certificate, url: string } |
-                    { type: PopupType.RemoveRepository, repository: Repository | CloningRepository} |
+                    { type: PopupType.RemoveRepository, repository: Repository } |
                     { type: PopupType.TermsAndConditions }
 
 export enum FoldoutType {
