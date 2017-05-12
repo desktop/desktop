@@ -807,11 +807,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.RemoveRepository:
-        const showConfirmDialog = this.state.confirmRepoRemoval
-
-        if (!showConfirmDialog) {
-          return null
-        }
 
         return (
           <ConfirmDialog
