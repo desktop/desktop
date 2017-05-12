@@ -15,10 +15,6 @@ function getProductName () {
   return process.env.NODE_ENV === 'development' ? `${productName}-dev` : productName
 }
 
-function getName () {
-  return appPackage.name
-}
-
 function getCompanyName () {
   return appPackage.companyName
 }
@@ -55,7 +51,7 @@ function getWindowsStandalonePath () {
 }
 
 function getWindowsFullNugetPackageName () {
-  return `${getName()}-${getVersion()}-full.nupkg`
+  return `${getWindowsIdentifierName()}-${getVersion()}-full.nupkg`
 }
 
 function getWindowsFullNugetPackagePath () {
@@ -78,6 +74,10 @@ function getUserDataPath () {
   }
 }
 
+function getWindowsIdentifierName () {
+  return 'GitHubDesktop'
+}
+
 module.exports = {
   getDistPath,
   getProductName,
@@ -93,4 +93,5 @@ module.exports = {
   getWindowsFullNugetPackagePath,
   getBundleID,
   getUserDataPath,
+  getWindowsIdentifierName
 }

@@ -56,7 +56,7 @@ function packageWindows () {
   const iconUrl = 'https://desktop.githubusercontent.com/icon-logo.ico'
 
   const options = {
-    name: 'GitHubDesktop',
+    name: distInfo.getWindowsIdentifierName(),
     appDirectory: distPath,
     outputDirectory: outputDir,
     authors: distInfo.getCompanyName(),
