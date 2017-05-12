@@ -16,7 +16,7 @@ export class GitHubUserStore {
   private readonly requestsInFlight = new Set<string>()
 
   /** The outer map is keyed by the endpoint, the inner map is keyed by email. */
-  private readonly usersByEndpoint = new Map<string, ReadonlyMap<string, IGitHubUser>>()
+  private readonly usersByEndpoint = new Map<string, Map<string, IGitHubUser>>()
 
   private readonly database: GitHubUserDatabase
 
@@ -42,12 +42,12 @@ export class GitHubUserStore {
     return this.emitter.on('did-update', fn)
   }
 
-  private getUsersForEndpoint(endpoint: string): ReadonlyMap<string, IGitHubUser> | null {
+  private getUsersForEndpoint(endpoint: string): Map<string, IGitHubUser> | null {
     return this.usersByEndpoint.get(endpoint) || null
   }
 
   /** Get the map of users for the repository. */
-  public getUsersForRepository(repository: Repository): ReadonlyMap<string, IGitHubUser> | null {
+  public getUsersForRepository(repository: Repository): Map<string, IGitHubUser> | null {
     const endpoint = repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint()
     return this.getUsersForEndpoint(endpoint)
   }
@@ -177,14 +177,13 @@ export class GitHubUserStore {
   public async cacheUser(user: IGitHubUser, overwriteEmail: boolean = true): Promise<IGitHubUser | null> {
     user = userWithLowerCase(user)
 
-    const userMap = this.getUsersForEndpoint(user.endpoint)
+    let userMap = this.getUsersForEndpoint(user.endpoint)
+    if (!userMap) {
+      userMap = new Map<string, IGitHubUser>()
+      this.usersByEndpoint.set(user.endpoint, userMap)
+    }
 
-    const newUserMap = userMap
-      ? new Map<string, IGitHubUser>(<Map<string, IGitHubUser>>userMap)
-      : new Map<string, IGitHubUser>()
-
-    newUserMap.set(user.email, user)
-    this.usersByEndpoint.set(user.endpoint, newUserMap)
+    userMap.set(user.email, user)
 
     const db = this.database
     let addedUser: IGitHubUser | null = null

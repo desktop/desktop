@@ -12,7 +12,7 @@ interface ICommitListProps {
   readonly history: ReadonlyArray<string>
   readonly commits: Map<string, Commit>
   readonly selectedSHA: string | null
-  readonly gitHubUsers: ReadonlyMap<string, IGitHubUser>
+  readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
 }
 

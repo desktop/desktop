@@ -13,7 +13,7 @@ interface IHistorySidebarProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly history: IHistoryState
-  readonly gitHubUsers: ReadonlyMap<string, IGitHubUser>
+  readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
   readonly commits: Map<string, Commit>
 }

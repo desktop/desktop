@@ -206,7 +206,7 @@ export interface IRepositoryState {
    * that an email address may not have an associated GitHub user, or the user
    * may still be loading.
    */
-  readonly gitHubUsers: ReadonlyMap<string, IGitHubUser>
+  readonly gitHubUsers: Map<string, IGitHubUser>
 
   /** The commits loaded, keyed by their full SHA. */
   readonly commits: Map<string, Commit>
