@@ -3,23 +3,26 @@
   justify-content: center;
 
   .header {
-    max-width: 490px;
+    max-width: 400px;
     align-self: center;
 
     text-align: center;
-    padding-bottom: var(--spacing-double);
 
     .title {
       font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-semibold);
+      font-weight: var(--font-weight-light);
     }
   }
 
-  .content {
+  .content,
+  .footer {
     display: flex;
     flex-direction: row;
-
     align-self: center;
+  }
+
+  .content {
+    margin: var(--spacing-quad) var(--spacing-double);
   }
 
   .callout {
@@ -31,16 +34,15 @@
 
     text-align: center;
 
-    padding: 0 60px;
+    padding: 0 var(--spacing-quad);
 
     div {
-      margin: var(--spacing);
-      font-size: var(--font-size-md);
+      margin: var(--spacing) 0;
     }
 
     .octicon {
-      width: 32px;
-      height: 32px;
+      width: 16px;
+      height: 16px;
     }
 
     button {

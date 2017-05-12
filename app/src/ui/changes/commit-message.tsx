@@ -217,9 +217,9 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           disabled={!buttonEnabled}
         >
           {loading}
-          <div title={`Commit to ${branchName}`}>
+          <span title={`Commit to ${branchName}`}>
             {loading ? 'Committing' : 'Commit'} to <strong>{branchName}</strong>
-          </div>
+          </span>
         </Button>
       </div>
     )

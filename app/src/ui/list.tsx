@@ -182,7 +182,7 @@ interface IListState {
 
 // https://wicg.github.io/ResizeObserver/#resizeobserverentry
 interface IResizeObserverEntry {
-  readonly target: Element
+  readonly target: HTMLElement
   readonly contentRect: ClientRect
 };
 
@@ -240,7 +240,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onResized = (target: Element, contentRect: ClientRect) => {
+  private onResized = (target: HTMLElement, contentRect: ClientRect) => {
     this.updateSizeTimeoutId = null
 
     // In a perfect world the contentRect would be enough. Unfortunately,
@@ -260,7 +260,7 @@ export class List extends React.Component<IListProps, IListState> {
     // bounding rectangle on Windows which we know will give us sane pixels.
     const { width, height } = __DARWIN__
       ? contentRect
-      : target.getBoundingClientRect()
+      : { width: target.offsetWidth, height: target.offsetHeight }
 
     if (this.state.width !== width || this.state.height !== height) {
       this.setState({ width, height })

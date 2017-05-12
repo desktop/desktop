@@ -3,18 +3,16 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { setupEmptyRepository } from '../fixture-helper'
+import { setupEmptyRepository, setupConflictedRepo } from '../fixture-helper'
 import * as Fs from 'fs'
 import * as Path from 'path'
+import { GitProcess } from 'dugite'
 
 import { GitStore } from '../../src/lib/dispatcher/git-store'
 import { FileStatus } from '../../src/models/status'
 import { shell } from '../test-app-shell'
 
-import {
-  getStatus,
-} from '../../src/lib/git'
-import { GitProcess } from 'dugite'
+import { getCommit, getStatus } from '../../src/lib/git'
 
 describe('GitStore', () => {
   it('can discard changes from a repository', async () => {
@@ -86,5 +84,47 @@ describe('GitStore', () => {
     const files = status.workingDirectory.files
 
     expect(files.length).to.equal(0)
+  })
+
+  it('can undo the first commit', async () => {
+    const repo = await setupEmptyRepository()
+    const gitStore = new GitStore(repo, shell)
+
+    const file = 'README.md'
+    const filePath = Path.join(repo.path, file)
+
+    Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+
+    const message = 'added file'
+
+    await GitProcess.exec([ 'add', file ], repo.path)
+    await GitProcess.exec([ 'commit', '-m', message ], repo.path)
+
+    const commit = await getCommit(repo, 'master')
+    expect(commit).to.not.equal(null)
+    expect(commit!.parentSHAs.length).to.equal(0)
+
+    await gitStore.undoCommit(commit!)
+
+    const after = await getStatus(repo)
+
+    expect(after).to.not.be.null
+    expect(after!.currentTip).to.be.undefined
+
+    const context = gitStore.contextualCommitMessage
+    expect(context).to.not.be.null
+    expect(context!.summary).to.equal(message)
+  })
+
+  it('hides commented out lines from MERGE_MSG', async () => {
+    const repo = await setupConflictedRepo()
+    const gitStore = new GitStore(repo, shell)
+
+    await gitStore.loadContextualCommitMessage()
+
+    const context = gitStore.contextualCommitMessage
+    expect(context).to.not.be.null
+    expect(context!.summary).to.equal(`Merge branch 'master' into other-branch`)
+    expect(context!.description).to.be.null
   })
 })

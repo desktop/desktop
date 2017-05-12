@@ -1,21 +1,24 @@
-import * as OS from 'os'
-import { UAParser } from 'ua-parser-js'
 import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
 import { getDotComAPIEndpoint } from '../api'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
-import { uuid } from '../uuid'
+import { getOS } from '../get-os'
+import { getGUID } from './get-guid'
+import { Repository } from '../../models/repository'
+import { merge } from '../../lib/merge'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
 const LastDailyStatsReportKey = 'last-daily-stats-report'
 
-/** The localStorage key for the stats GUID. */
-const StatsGUIDKey = 'stats-guid'
-
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
+
+const DefaultDailyMeasures: IDailyMeasures = {
+  commits: 0,
+  openShellCount: 0,
+}
 
 type DailyStats = { version: string } & ILaunchStats & IDailyMeasures
 
@@ -26,9 +29,6 @@ export class StatsStore {
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
 
-  /** The GUID for uniquely identifying installations. */
-  private readonly guid: string
-
   public constructor(db: StatsDatabase) {
     this.db = db
 
@@ -38,14 +38,6 @@ export class StatsStore {
     } else {
       this.optOut = false
     }
-
-    let guid = localStorage.getItem(StatsGUIDKey)
-    if (!guid) {
-      guid = uuid()
-      localStorage.setItem(StatsGUIDKey, guid)
-    }
-
-    this.guid = guid
   }
 
   /** Should the app report its daily stats? */
@@ -65,7 +57,7 @@ export class StatsStore {
   }
 
   /** Report any stats which are eligible for reporting. */
-  public async reportStats(accounts: ReadonlyArray<Account>) {
+  public async reportStats(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>) {
     if (this.optOut) { return }
 
     // Never report stats while in dev or test. They could be pretty crazy.
@@ -84,7 +76,7 @@ export class StatsStore {
     }
 
     const now = Date.now()
-    const stats = await this.getDailyStats(accounts)
+    const stats = await this.getDailyStats(accounts, repositories)
     const options = {
       method: 'POST',
       headers: {
@@ -121,34 +113,28 @@ export class StatsStore {
   }
 
   /** Get the daily stats. */
-  private async getDailyStats(accounts: ReadonlyArray<Account>): Promise<DailyStats> {
+  private async getDailyStats(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
     const dailyMeasures = await this.getDailyMeasures()
     const userType = this.determineUserType(accounts)
+    const repositoryCounts = this.categorizedRepositoryCounts(repositories)
 
     return {
       version: getVersion(),
-      osVersion: this.getOS(),
+      osVersion: getOS(),
       platform: process.platform,
       ...launchStats,
       ...dailyMeasures,
       ...userType,
-      guid: this.guid,
+      guid: getGUID(),
+      ...repositoryCounts,
     }
   }
 
-  private getOS() {
-    if (__DARWIN__) {
-      // On macOS, OS.release() gives us the kernel version which isn't terribly
-      // meaningful to any human being, so we'll parse the User Agent instead.
-      // See https://github.com/desktop/desktop/issues/1130.
-      const parser = new UAParser()
-      const os = parser.getOS()
-      return `${os.name} ${os.version}`
-    } else if (__WIN32__) {
-      return `Windows ${OS.release()}`
-    } else {
-      return `${OS.type()} ${OS.release()}`
+  private categorizedRepositoryCounts(repositories: ReadonlyArray<Repository>) {
+    return {
+      repositoryCount: repositories.length,
+      gitHubRepositoryCount: repositories.filter(r => r.gitHubRepository).length,
     }
   }
 
@@ -197,40 +183,40 @@ export class StatsStore {
 
   /** Get the daily measures. */
   private async getDailyMeasures(): Promise<IDailyMeasures> {
-    let measures: IDailyMeasures | undefined = await this.db.dailyMeasures.limit(1).first()
-    if (!measures) {
-      measures = this.getDefaultDailyMeasures()
-    }
-
-    return measures
-  }
-
-  private getDefaultDailyMeasures(): IDailyMeasures {
+    const measures: IDailyMeasures | undefined = await this.db.dailyMeasures.limit(1).first()
     return {
-      commits: 0,
+      ...DefaultDailyMeasures,
+      ...measures,
     }
   }
 
-  /** Record that a commit was accomplished. */
-  public async recordCommit() {
+  private async updateDailyMeasures<K extends keyof IDailyMeasures>(fn: (measures: IDailyMeasures) => Pick<IDailyMeasures, K>): Promise<void> {
     const db = this.db
-    const defaultMeasures = this.getDefaultDailyMeasures()
+    const defaultMeasures = DefaultDailyMeasures
     await this.db.transaction('rw', this.db.dailyMeasures, function*() {
-      let measures: IDailyMeasures | null = yield db.dailyMeasures.limit(1).first()
-      if (!measures) {
-        measures = defaultMeasures
+      const measures: IDailyMeasures | null = yield db.dailyMeasures.limit(1).first()
+      const measuresWithDefaults = {
+        ...defaultMeasures,
+        ...measures,
       }
-
-      let newMeasures: IDailyMeasures = {
-        commits: measures.commits + 1,
-      }
-
-      if (measures.id) {
-        newMeasures = { ...newMeasures, id: measures.id }
-      }
+      const newMeasures = merge(measuresWithDefaults, fn(measuresWithDefaults))
 
       return db.dailyMeasures.put(newMeasures)
     })
+  }
+
+  /** Record that a commit was accomplished. */
+  public recordCommit(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      commits: m.commits + 1,
+    }))
+  }
+
+  /** Record that the user opened a shell. */
+  public recordOpenShell(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      openShellCount: m.openShellCount + 1,
+    }))
   }
 
   /** Set whether the user has opted out of stats reporting. */
