@@ -456,7 +456,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private removeRepository() {
     const repository = this.getRepository()
 
-    if (!repository) {
+    if (!repository || repository instanceof CloningRepository) {
       return
     }
 
