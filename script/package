@@ -43,9 +43,9 @@ function cleanupCertificates() {
 
 function packageWindows () {
   const electronInstaller = require('electron-winstaller')
-  const outputDir = path.resolve(distPath, '../installer')
+  const outputDir = path.join(distPath, '..', 'installer')
 
-  const iconSource = path.resolve(__dirname, '../app/static/logos/icon-logo.ico')
+  const iconSource = path.join(__dirname, '..', 'app', 'static', 'logos', 'icon-logo.ico')
 
   if (!fs.existsSync(iconSource)) {
     console.error(`expected setup icon not found at location: ${iconSource}`)
