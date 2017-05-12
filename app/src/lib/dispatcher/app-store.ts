@@ -23,7 +23,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
-import { API, getAccountForEndpoint, IAPIUser, IAPIRepository } from '../../lib/api'
+import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
@@ -1445,29 +1445,9 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<void> {
     const api = new API(account)
-
-    let apiRepository: IAPIRepository | null = null
-
-    try {
-      apiRepository = await api.createRepository(org, name, description, private_)
-    } catch (e) {
-      if (e.message) {
-        // for the sake of shipping this it looks like octokat.js just throws
-        // with the entire JSON body as the error message - that's fine, just
-        // needs some thought later the next time we need to do something like
-        // this
-        const json = JSON.parse(e.message)
-        if (json.message) {
-          throw new Error(json.message)
-        }
-      }
-
-      throw e
-    }
-
-    const { clone_url } = apiRepository
+    const apiRepository = await api.createRepository(org, name, description, private_)
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => addRemote(repository, 'origin', clone_url))
+    await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.clone_url))
     await gitStore.loadCurrentRemote()
     return this._push(repository, account)
   }
