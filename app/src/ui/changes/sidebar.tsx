@@ -28,7 +28,7 @@ interface IChangesSidebarProps {
   readonly dispatcher: Dispatcher
   readonly commitAuthor: CommitIdentity | null
   readonly branch: string | null
-  readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly gitHubUsers: ReadonlyMap<string, IGitHubUser>
   readonly emoji: Map<string, string>
   readonly mostRecentLocalCommit: Commit | null
   readonly issuesStore: IssuesStore

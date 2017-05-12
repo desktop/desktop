@@ -23,7 +23,7 @@ interface IHistoryProps {
   readonly commits: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly commitSummaryWidth: number
-  readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly gitHubUsers: ReadonlyMap<string, IGitHubUser>
 }
 
 interface IHistoryState {
