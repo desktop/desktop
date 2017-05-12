@@ -179,16 +179,18 @@ dialog {
       }
     }
 
-    h2 {
-      font-weight: var(--font-weight-light);
-      font-size: var(--font-size-md);
+    h2, h3 {
+      font-weight: var(--font-weight-semibold);
       margin-top: 0;
-      margin-bottom: var(--spacing-half);
+      margin-bottom: var(--spacing);
 
       &:last-child {
         margin-bottom: 0;
       }
     }
+
+    h2 { font-size: var(--font-size-md); }
+    h3 { font-size: var(--font-size); }
   }
 
   .dialog-footer {
