@@ -1446,6 +1446,7 @@ export class AppStore {
   public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<void> {
     const api = new API(account)
     const apiRepository = await api.createRepository(org, name, description, private_)
+
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.clone_url))
     await gitStore.loadCurrentRemote()
