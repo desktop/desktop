@@ -268,9 +268,9 @@ export class API {
   public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository> {
     try {
       if (org) {
-        return this.client.orgs(org.login).repos.create({ name, description, private: private_ })
+        return await this.client.orgs(org.login).repos.create({ name, description, private: private_ })
       } else {
-        return this.client.user.repos.create({ name, description, private: private_ })
+        return await this.client.user.repos.create({ name, description, private: private_ })
       }
     } catch (e) {
       if (e.message) {
@@ -279,7 +279,6 @@ export class API {
         // needs some thought later the next time we need to do something like
         // this
         const message: string = e.message
-
         const error = await deserialize<IError>(message)
         if (error) {
           throw new Error(error.message)
