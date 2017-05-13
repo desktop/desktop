@@ -514,12 +514,17 @@ export class List extends React.Component<IListProps, IListState> {
         </AutoSizer>
     }
 
+    const activeDescendant = this.props.selectedRow !== -1 && this.state.rowIdPrefix
+      ? `${this.state.rowIdPrefix}-${this.props.selectedRow}`
+      : undefined
+
     return (
       <div
         ref={this.onRef}
         id={this.props.id}
         className='list'
         onKeyDown={this.handleKeyDown}
+        aria-activedescendant={activeDescendant}
       >
         {content}
       </div>
