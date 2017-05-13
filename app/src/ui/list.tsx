@@ -478,8 +478,12 @@ export class List extends React.Component<IListProps, IListState> {
     // that width.
     const style = { ...params.style, width: '100%' }
 
+    const id = this.state.rowIdPrefix
+      ? `${this.state.rowIdPrefix}-${rowIndex}`
+      : undefined
     return (
       <div key={params.key}
+           id={id}
            role={role}
            className={className}
            tabIndex={tabIndex}
