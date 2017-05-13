@@ -171,6 +171,8 @@ interface IListProps {
    * true if not defined.
    */
   readonly focusOnHover?: boolean
+
+  readonly ariaMode?: 'list' | 'menu'
 }
 
 interface IListState {
@@ -467,7 +469,6 @@ export class List extends React.Component<IListProps, IListState> {
       : undefined
 
     const element = this.props.rowRenderer(params.rowIndex)
-    const role = selectable ? 'button' : undefined
 
     // react-virtualized gives us an explicit pixel width for rows, but that
     // width doesn't take into account whether or not the scroll bar needs
@@ -481,6 +482,11 @@ export class List extends React.Component<IListProps, IListState> {
     const id = this.state.rowIdPrefix
       ? `${this.state.rowIdPrefix}-${rowIndex}`
       : undefined
+
+    const role = this.props.ariaMode === 'menu'
+      ? 'menuitem'
+      : 'listitem'
+
     return (
       <div key={params.key}
            id={id}
@@ -520,12 +526,17 @@ export class List extends React.Component<IListProps, IListState> {
       ? `${this.state.rowIdPrefix}-${this.props.selectedRow}`
       : undefined
 
+    const role = this.props.ariaMode === 'menu'
+      ? 'menu'
+      : 'listbox'
+
     return (
       <div
         ref={this.onRef}
         id={this.props.id}
         className='list'
         onKeyDown={this.handleKeyDown}
+        role={role}
         aria-activedescendant={activeDescendant}
       >
         {content}
