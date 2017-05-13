@@ -222,7 +222,12 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
       : { }
 
     return (
-      <div className='menu-pane' onMouseEnter={this.onMouseEnter} onKeyDown={this.onKeyDown} style={style}>
+      <div
+        className='menu-pane'
+        onMouseEnter={this.onMouseEnter}
+        onKeyDown={this.onKeyDown}
+        style={style}
+      >
         <List
           ref={this.onListRef}
           rowCount={this.state.items.length}
