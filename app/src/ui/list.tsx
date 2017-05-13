@@ -485,7 +485,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     const role = this.props.ariaMode === 'menu'
       ? 'menuitem'
-      : 'listitem'
+      : 'option'
 
     return (
       <div key={params.key}
