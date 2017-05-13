@@ -15,7 +15,7 @@ interface ITabBarProps {
 export class TabBar extends React.Component<ITabBarProps, void> {
   public render() {
     return (
-      <div className='tab-bar'>
+      <div className='tab-bar' role='tablist'>
         {this.renderItems()}
       </div>
     )
@@ -52,7 +52,7 @@ interface ITabBarItemProps {
 }
 
 class TabBarItem extends React.Component<ITabBarItemProps, void> {
-  private onClick = (event: React.MouseEvent<HTMLDivElement>) => {
+  private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     this.props.onClick(this.props.index)
   }
 
@@ -60,9 +60,14 @@ class TabBarItem extends React.Component<ITabBarItemProps, void> {
     const selected = this.props.selected
     const className = classNames('tab-bar-item', { selected })
     return (
-      <div className={className} onClick={this.onClick}>
+      <button
+        className={className}
+        onClick={this.onClick}
+        role='tab'
+        aria-selected={selected}
+      >
         {this.props.children}
-      </div>
+      </button>
     )
   }
 }
