@@ -235,6 +235,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
           onRowKeyDown={this.onRowKeyDown}
           invalidationProps={this.state.items}
           selectOnHover={true}
+          ariaMode='menu'
         />
       </div>
     )
