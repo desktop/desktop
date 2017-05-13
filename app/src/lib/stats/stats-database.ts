@@ -31,6 +31,9 @@ export interface IDailyMeasures {
 
   /** The number of commits. */
   readonly commits: number
+
+  /** The number of times the user has opened a shell from the app. */
+  readonly openShellCount: number
 }
 
 export class StatsDatabase extends Dexie {

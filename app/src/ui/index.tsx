@@ -8,10 +8,8 @@ import { App } from './app'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import { SelectionType } from '../lib/app-state'
-import { sendReady } from './main-process-proxy'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { reportError } from './lib/exception-reporting'
-import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import {
@@ -50,7 +48,7 @@ if (!process.env.TEST_ENV) {
 }
 
 process.on('uncaughtException', (error: Error) => {
-  reportError(error, getVersion())
+  reportError(error)
   getLogger().error('Uncaught exception on renderer process', error)
   postUnhandledError(error)
 })
@@ -79,7 +77,7 @@ function postUnhandledError(error: Error) {
 
 // NOTE: we consider all main-process-exceptions coming through here to be unhandled
 ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
-  reportError(error, getVersion())
+  reportError(error)
   postUnhandledError(error)
 })
 
@@ -87,11 +85,6 @@ dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 dispatcher.registerErrorHandler(unhandledExceptionHandler)
-
-dispatcher.loadInitialState().then(() => {
-  const now = Date.now()
-  sendReady(now - startTime)
-})
 
 document.body.classList.add(`platform-${process.platform}`)
 
@@ -118,6 +111,6 @@ ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { ac
 })
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore} startTime={startTime}/>,
   document.getElementById('desktop-app-container')!
 )

@@ -1,0 +1,17 @@
+#terms-and-conditions {
+  width: 550px;
+
+  #text {
+    height: 250px;
+
+    overflow: scroll;
+
+    font-size: var(--font-size-sm);
+
+    margin-bottom: var(--spacing-double);
+
+    h1 {
+      font-size: var(--font-size-md);
+    }
+  }
+}
