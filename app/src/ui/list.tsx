@@ -492,6 +492,7 @@ export class List extends React.Component<IListProps, IListState> {
            id={id}
            aria-setsize={this.props.rowCount}
            aria-posinset={rowIndex + 1}
+           aria-selected={selected || undefined}
            role={role}
            className={className}
            tabIndex={tabIndex}
