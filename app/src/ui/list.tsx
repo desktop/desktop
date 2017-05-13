@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom'
 import * as classNames from 'classnames'
 import { Grid, AutoSizer } from 'react-virtualized'
 import { shallowEquals } from '../lib/equality'
+import { createUniqueId, releaseUniqueId } from './lib/id-pool'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -178,6 +179,8 @@ interface IListState {
 
   /** The available width for the list as determined by ResizeObserver */
   readonly width?: number
+
+  readonly rowIdPrefix?: string
 }
 
 // https://wicg.github.io/ResizeObserver/#resizeobserverentry
@@ -421,6 +424,10 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
+  public componentWillMount() {
+    this.setState({ rowIdPrefix: createUniqueId('ListRow') })
+  }
+
   public componentWillUnmount() {
 
     if (this.updateSizeTimeoutId !== null) {
@@ -430,6 +437,10 @@ export class List extends React.Component<IListProps, IListState> {
 
     if (this.resizeObserver) {
       this.resizeObserver.disconnect()
+    }
+
+    if (this.state.rowIdPrefix) {
+      releaseUniqueId(this.state.rowIdPrefix)
     }
   }
 
