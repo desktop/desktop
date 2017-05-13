@@ -484,6 +484,8 @@ export class List extends React.Component<IListProps, IListState> {
     return (
       <div key={params.key}
            id={id}
+           aria-setsize={this.props.rowCount}
+           aria-posinset={rowIndex + 1}
            role={role}
            className={className}
            tabIndex={tabIndex}
