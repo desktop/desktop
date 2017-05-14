@@ -46,8 +46,14 @@ export interface IAppState {
    * The current state of the Window, ie maximized, minimized full-screen etc.
    */
   readonly windowState: WindowState
+
+  /**
+   * A value indicating whether or not the current application
+   * window has focus.
+   */
+  readonly appIsFocused: boolean
+
   readonly showWelcomeFlow: boolean
-  readonly loading: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
 
@@ -123,6 +129,7 @@ export enum PopupType {
   PublishRepository,
   Acknowledgements,
   UntrustedCertificate,
+  TermsAndConditions,
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -133,14 +140,15 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.RepositorySettings, repository: Repository } |
                     { type: PopupType.AddRepository } |
                     { type: PopupType.CreateRepository } |
-                    { type: PopupType.CloneRepository } |
+                    { type: PopupType.CloneRepository, initialURL: string | null } |
                     { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.SignIn } |
                     { type: PopupType.About } |
                     { type: PopupType.InstallGit, path: string } |
                     { type: PopupType.PublishRepository, repository: Repository } |
                     { type: PopupType.Acknowledgements } |
-                    { type: PopupType.UntrustedCertificate, certificate: Electron.Certificate, url: string }
+                    { type: PopupType.UntrustedCertificate, certificate: Electron.Certificate, url: string } |
+                    { type: PopupType.TermsAndConditions }
 
 export enum FoldoutType {
   Repository,

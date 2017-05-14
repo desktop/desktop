@@ -13,6 +13,7 @@ import { parseOwnerAndName, IRepositoryIdentifier } from '../../lib/remote-parsi
 import { findAccountForRemote } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
+import { getLogger } from '../../lib/logging/renderer'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -23,6 +24,9 @@ interface ICloneRepositoryProps {
 
   /** The logged in accounts. */
   readonly accounts: ReadonlyArray<Account>
+
+  /** The initial URL or `owner/name` shortcut to use. */
+  readonly initialURL: string | null
 }
 
 interface ICloneRepositoryState {
@@ -55,6 +59,18 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       loading: false,
       error: null,
       lastParsedIdentifier: null,
+    }
+  }
+
+  public componentDidMount() {
+    if (this.props.initialURL) {
+      this.onURLChanged(this.props.initialURL)
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: ICloneRepositoryProps) {
+    if (nextProps.initialURL && nextProps.initialURL !== this.props.initialURL) {
+      this.onURLChanged(nextProps.initialURL)
     }
   }
 
@@ -115,7 +131,17 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     if (!directory) { return }
 
     const path = directory[0]
-    this.setState({ path })
+    const lastParsedIdentifier = this.state.lastParsedIdentifier
+    if (lastParsedIdentifier) {
+      this.updatePath(Path.join(path, lastParsedIdentifier.name))
+    } else {
+      this.updatePath(path)
+    }
+  }
+
+  private updatePath(newPath: string) {
+    this.setState({ path: newPath })
+    this.checkPathValid(newPath)
   }
 
   private checkPathValid(newPath: string) {
@@ -162,8 +188,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.setState({ path })
-    this.checkPathValid(path)
+    this.updatePath(path)
   }
 
   /**
@@ -201,8 +226,9 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
     try {
       this.cloneImpl(cloneDetails.url, path, cloneDetails.account)
-    } catch (error) {
-      this.setState({ loading: false, error })
+    } catch (e) {
+      getLogger().error(`CloneRepostiory: clone failed to complete to ${path}`, e)
+      this.setState({ loading: false, error: e })
     }
   }
 

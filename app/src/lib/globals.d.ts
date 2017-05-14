@@ -15,3 +15,9 @@ declare const __WIN32__: boolean
 
 /** The environment for which the release was created. */
 declare const __RELEASE_ENV__: 'production' | 'beta' | 'test' | 'development'
+
+/**
+ * Request an idle callback. See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
+ * for more information.
+ */
+declare function requestIdleCallback(fn: () => void, options?: { timeout: number }): number

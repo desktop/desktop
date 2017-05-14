@@ -4,9 +4,11 @@ import * as Querystring from 'querystring'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
-import { HTTPMethod, request, deserialize } from './http'
+import { HTTPMethod, request, deserialize, getUserAgent } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
+
+import { getLogger } from '../lib/logging/renderer'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -112,13 +114,6 @@ export interface IAPIEmail {
   readonly visibility: 'public' | 'private' | null
 }
 
-function convertEmailAddress(email: IAPIEmail): IEmail {
-  return {
-    ...email,
-    visibility: email.visibility || 'public',
-  }
-}
-
 /** Information about an issue as returned by the GitHub API. */
 export interface IAPIIssue {
   readonly number: number
@@ -148,6 +143,7 @@ interface IAPIAccessToken {
  * Details: https://developer.github.com/v3/#client-errors
  */
 interface IError {
+  readonly message: string
   readonly resource: string
   readonly field: string
 }
@@ -185,6 +181,7 @@ export class API {
       token: account.token,
       rootURL: account.endpoint,
       plugins: OctokatPlugins,
+      userAgent: getUserAgent(),
     })
   }
 
@@ -213,6 +210,7 @@ export class API {
     try {
       return await this.client.repos(owner, name).fetch()
     } catch (e) {
+      getLogger().error(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
       return null
     }
   }
@@ -224,9 +222,15 @@ export class API {
 
   /** Fetch the current user's emails. */
   public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
-    const result = await this.client.user.emails.fetch()
+    const isDotCom = this.account.endpoint === getDotComAPIEndpoint()
+
+    const result = isDotCom
+      ? await this.client.user.publicEmails.fetch()
+      // GitHub Enterprise does not have the concept of private emails
+      : await this.client.user.emails.fetch()
+
     const emails: ReadonlyArray<IAPIEmail> = result.items
-    return emails.map(convertEmailAddress)
+    return emails
   }
 
   /** Fetch a commit from the repository. */
@@ -235,6 +239,7 @@ export class API {
       const commit = await this.client.repos(owner, name).commits(sha).fetch()
       return commit
     } catch (e) {
+      getLogger().error(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
       return null
     }
   }
@@ -248,6 +253,7 @@ export class API {
       const user = result.items[0]
       return user
     } catch (e) {
+      getLogger().error(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
       return null
     }
   }
@@ -260,10 +266,26 @@ export class API {
 
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository> {
-    if (org) {
-      return this.client.orgs(org.login).repos.create({ name, description, private: private_ })
-    } else {
-      return this.client.user.repos.create({ name, description, private: private_ })
+    try {
+      if (org) {
+        return await this.client.orgs(org.login).repos.create({ name, description, private: private_ })
+      } else {
+        return await this.client.user.repos.create({ name, description, private: private_ })
+      }
+    } catch (e) {
+      if (e.message) {
+        // for the sake of shipping this it looks like octokat.js just throws
+        // with the entire JSON body as the error message - that's fine, just
+        // needs some thought later the next time we need to do something like
+        // this
+        const message: string = e.message
+        const error = await deserialize<IError>(message)
+        if (error) {
+          throw new Error(error.message)
+        }
+      }
+
+      throw e
     }
   }
 
@@ -428,11 +450,16 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
   const octo = new Octokat({ token, rootURL: endpoint })
   const user = await octo.user.fetch()
 
-  const response =  await octo.user.emails.fetch()
-  const emails: ReadonlyArray<IAPIEmail> = response.items
-  const formattedEmails = emails.map(convertEmailAddress)
+  const isDotCom = endpoint === getDotComAPIEndpoint()
 
-  return new Account(user.login, endpoint, token, formattedEmails, user.avatarUrl, user.id, user.name)
+  const result = isDotCom
+    ? await octo.user.publicEmails.fetch()
+    // GitHub Enterprise does not have the concept of private emails
+    : await octo.user.emails.fetch()
+
+  const emails: ReadonlyArray<IAPIEmail> = result.items
+
+  return new Account(user.login, endpoint, token, emails, user.avatarUrl, user.id, user.name)
 }
 
 /** Get metadata from the server. */
@@ -455,8 +482,8 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
     }
 
     return body
-  } catch (error) {
-    console.error(`Failed to load metadata from ${url}: ${error}`)
+  } catch (e) {
+    getLogger().error(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
     return null
   }
 }
@@ -467,9 +494,7 @@ async function getNote(): Promise<string> {
   try {
     localUsername = await username()
   } catch (e) {
-    console.log(`Error getting username:`)
-    console.error(e)
-    console.log(`We'll just use 'unknown'.`)
+    getLogger().error(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`

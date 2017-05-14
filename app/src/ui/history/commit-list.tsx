@@ -58,15 +58,6 @@ export class CommitList extends React.Component<ICommitListProps, void> {
     return this.props.history.findIndex(s => s === sha)
   }
 
-  public forceUpdate() {
-    super.forceUpdate()
-
-    const list = this.list
-    if (list) {
-      list.forceUpdate()
-    }
-  }
-
   private onListRef = (ref: List) => {
     this.list = ref
   }
@@ -90,7 +81,11 @@ export class CommitList extends React.Component<ICommitListProps, void> {
               rowRenderer={this.renderCommit}
               onSelectionChanged={this.onRowChanged}
               onScroll={this.onScroll}
-              invalidationProps={{ commits: this.props.commits, gitHubUsers: this.props.gitHubUsers }}/>
+              invalidationProps={{
+                history: this.props.history,
+                gitHubUsers: this.props.gitHubUsers,
+              }}
+            />
       </div>
     )
   }

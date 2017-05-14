@@ -1,30 +1,23 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
-import * as Url from 'url'
 
-import { ipcRenderer, remote, shell } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
-import { URLActionType, IOpenRepositoryArgs } from '../lib/parse-url'
-import { Repository } from '../models/repository'
-import { getDefaultDir, setDefaultDir } from './lib/default-dir'
+import { URLActionType } from '../lib/parse-url'
 import { SelectionType } from '../lib/app-state'
-import { sendReady } from './main-process-proxy'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { reportError } from './lib/exception-reporting'
-import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
-import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
 import {
   defaultErrorHandler,
   createMissingRepositoryHandler,
   backgroundTaskHandler,
   unhandledExceptionHandler,
 } from '../lib/dispatcher'
-import { getEndpointForRepository, getAccountForEndpoint } from '../lib/api'
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
 
@@ -55,7 +48,7 @@ if (!process.env.TEST_ENV) {
 }
 
 process.on('uncaughtException', (error: Error) => {
-  reportError(error, getVersion())
+  reportError(error)
   getLogger().error('Uncaught exception on renderer process', error)
   postUnhandledError(error)
 })
@@ -84,7 +77,7 @@ function postUnhandledError(error: Error) {
 
 // NOTE: we consider all main-process-exceptions coming through here to be unhandled
 ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
-  reportError(error, getVersion())
+  reportError(error)
   postUnhandledError(error)
 })
 
@@ -93,17 +86,15 @@ dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 dispatcher.registerErrorHandler(unhandledExceptionHandler)
 
-dispatcher.loadInitialState().then(() => {
-  const now = Date.now()
-  sendReady(now - startTime)
-})
-
 document.body.classList.add(`platform-${process.platform}`)
+
+dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState
   if (!state || state.type !== SelectionType.Repository) { return }
 
+  dispatcher.setAppFocusState(true)
   dispatcher.refreshRepository(state.repository)
 })
 
@@ -112,99 +103,14 @@ ipcRenderer.on('blur', () => {
   // when someone uses Alt+Tab to switch application since we won't
   // get the onKeyUp event for the Alt key in that case.
   dispatcher.setAccessKeyHighlightState(false)
+  dispatcher.setAppFocusState(false)
 })
 
-ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
-  switch (action.name) {
-    case 'oauth':
-      try {
-        const user = await requestAuthenticatedUser(action.args.code)
-        if (user) {
-          resolveOAuthRequest(user)
-        } else {
-          rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
-        }
-      } catch (e) {
-        rejectOAuthRequest(e)
-      }
-      break
-
-    case 'open-repository':
-      const { pr, url, branch } = action.args
-      // a forked PR will provide both these values, despite the branch not existing
-      // in the repository - drop the branch argument in this case so a clone will
-      // checkout the default branch when it clones
-      const branchToClone = (pr && branch) ? undefined : branch
-      openRepository(url, branchToClone)
-        .then(repository => handleCloneInDesktopOptions(repository, action.args))
-      break
-
-    default:
-      console.log(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
-  }
+ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
+  dispatcher.dispatchURLAction(action)
 })
-
-function cloneRepository(url: string, branch?: string): Promise<Repository | null> {
-  const cloneLocation = getDefaultDir()
-
-  const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
-  const path: string | null = remote.dialog.showSaveDialog({
-    buttonLabel: 'Clone',
-    defaultPath: Path.join(cloneLocation, defaultName),
-  })
-  if (!path) { return Promise.resolve(null) }
-
-  setDefaultDir(Path.resolve(path, '..'))
-
-  const state = appStore.getState()
-  const account = getAccountForEndpoint(state.accounts, getEndpointForRepository(url))
-
-  return dispatcher.clone(url, path, { account, branch })
-}
-
-async function handleCloneInDesktopOptions(repository: Repository | null, args: IOpenRepositoryArgs): Promise<void> {
-  // skip this if the clone failed for whatever reason
-  if (!repository) { return }
-
-  const { filepath, pr, branch } = args
-
-  // we need to refetch for a forked PR and check that out
-  if (pr && branch) {
-    await dispatcher.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
-    await dispatcher.checkoutBranch(repository, branch)
-  }
-
-  if (filepath) {
-    const fullPath = Path.join(repository.path, filepath)
-    // because Windows uses different path separators here
-    const normalized = Path.normalize(fullPath)
-    shell.openItem(normalized)
-  }
-}
-
-async function openRepository(url: string, branch?: string): Promise<Repository | null> {
-  const state = appStore.getState()
-  const repositories = state.repositories
-  const existingRepository = repositories.find(r => {
-    if (r instanceof Repository) {
-      const gitHubRepository = r.gitHubRepository
-      if (!gitHubRepository) { return false }
-      return gitHubRepository.cloneURL === url
-    } else {
-      return false
-    }
-  })
-
-  if (existingRepository) {
-    const repo = await dispatcher.selectRepository(existingRepository)
-    if (!repo || !branch) { return repo }
-    dispatcher.checkoutBranch(repo, branch)
-  }
-
-  return cloneRepository(url, branch)
-}
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore} startTime={startTime}/>,
   document.getElementById('desktop-app-container')!
 )

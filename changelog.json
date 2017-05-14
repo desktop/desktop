@@ -1,7 +1,49 @@
 {
   "releases": {
-    "0.0.38": [
+    "0.5.2": [
 
+    ],
+    "0.5.1": [
+      "[New] Windows: A nice little gif while installing the app - #1440",
+      "[Fixed] Disable pinch zoom - #1431",
+      "[Fixed] Don't show carriage return indicators in diffs - #1444",
+      "[Fixed] History wouldn't update after switching branches - #1446",
+      "[Improved] Include more information in exception reports - #1429",
+      "[Improved] Updated Terms and Conditions - #1438",
+      "[Improved] Sub-pixel anti-aliasing in some lists - #1452",
+      "[Improved] Windows: A new application identifier, less likely to collide with other apps - #1441"
+    ],
+    "0.5.0": [
+      "[Added] Menu item for showing the app logs - #1349",
+      "[Fixed] Don't let the two-factor authentication dialog be submitted while it's empty - #1386",
+      "[Fixed] Undo Commit showing the wrong commit - #1373",
+      "[Fixed] Windows: Update the icon used for the installer - #1410",
+      "[Fixed] Undoing the first commit - #1401",
+      "[Fixed] A second window would be opened during the OAuth dance - #1382",
+      "[Fixed] Don't include the comment from the default merge commit message - #1367",
+      "[Fixed] Show progress while committing - #923",
+      "[Fixed] Windows: Merge Branch sizing would be wrong on high DPI monitors - #1210",
+      "[Fixed] Windows: Resize the app from the top left corner - #1424",
+      "[Fixed] Changing the destination path for cloning a repository now appends the repository's name - #1408",
+      "[Fixed] The blank slate view could be visible briefly when the app launched - #1398",
+      "[Improved] Performance updating menu items - #1321",
+      "[Improved] Windows: Dim the title bar when the app loses focus - #1189"
+    ],
+    "0.0.39": [
+      "[Fixed] An uncaught exception when adding a user - #1394"
+    ],
+    "0.0.38": [
+      "[New] Shiny new icon! - #1221",
+      "[New] More helpful blank slate view - #871",
+      "[Fixed] Don't allow Undo while pushing/pulling/fetching - #1047",
+      "[Fixed] Updating the default branch on GitHub wouldn't be reflected in the app - #1028 #1314",
+      "[Fixed] Long repository names would overflow their container - #1331",
+      "[Fixed] Removed development menu items in production builds - #1031 #1251 #1323 #1340",
+      "[Fixed] Create Branch no longer changes as it's animating closed - #1304",
+      "[Fixed] Windows: Cut / Copy / Paste menu items not working - #1379",
+      "[Improved] Show a better error message when the user tries to authenticate with a personal access token - #1313",
+      "[Improved] Link to the repository New Issue page from the Help menu - #1349",
+      "[Improved] Clone in Desktop opens the Clone dialog - #918"
     ],
     "0.0.37": [
       "[Fixed] Better display of the 'no newline at end of file' indicator - #1253",

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { ipcRenderer, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
@@ -7,7 +6,7 @@ import { RepositoryView } from './repository'
 import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
-import { MenuEvent, MenuIDs } from '../main-process/menu'
+import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, Popup, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
 import { RenameBranch } from './rename-branch'
@@ -15,7 +14,7 @@ import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton, BranchDropdown } from './toolbar'
 import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
-import { setMenuEnabled, setMenuVisible, showCertificateTrustDialog } from './main-process-proxy'
+import { showCertificateTrustDialog } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -41,6 +40,10 @@ import { getVersion, getName } from './lib/app-proxy'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
+import { CSSTransitionGroup } from 'react-transition-group'
+import { BlankSlateView } from './blank-slate'
+import { sendReady } from './main-process-proxy'
+import { TermsAndConditions } from './terms-and-conditions'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -50,12 +53,21 @@ const SendStatsInterval = 1000 * 60 * 60 * 4
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
+  readonly startTime: number
 }
 
 export const dialogTransitionEnterTimeout = 250
 export const dialogTransitionLeaveTimeout = 100
 
+/**
+ * The time to delay (in ms) from when we've loaded the initial state to showing
+ * the window. This is try to give Chromium enough time to flush our latest DOM
+ * changes. See https://github.com/desktop/desktop/issues/1398.
+ */
+const ReadyDelay = 100
+
 export class App extends React.Component<IAppProps, IAppState> {
+  private loading = true
 
   /**
    * Used on non-macOS platforms to support the Alt key behavior for
@@ -75,11 +87,25 @@ export class App extends React.Component<IAppProps, IAppState> {
   public constructor(props: IAppProps) {
     super(props)
 
+    props.dispatcher.loadInitialState().then(() => {
+      this.loading = false
+      this.forceUpdate()
+
+      requestIdleCallback(() => {
+        const now = Date.now()
+        sendReady(now - props.startTime)
+
+        // Loading emoji is super important but maybe less important that
+        // loading the app. So defer it until we have some breathing space.
+        requestIdleCallback(() => {
+          props.appStore.loadEmoji()
+        })
+      }, { timeout: ReadyDelay })
+    })
+
     this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
       this.setState(state)
-
-      this.updateMenu(state)
     })
 
     props.appStore.onDidError(error => {
@@ -92,31 +118,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     updateStore.onDidChange(state => {
       const status = state.status
-
-      const visibleItem = (function () {
-        switch (status) {
-          case UpdateStatus.CheckingForUpdates: return 'checking-for-updates'
-          case UpdateStatus.UpdateReady: return 'quit-and-install-update'
-          case UpdateStatus.UpdateNotAvailable: return 'check-for-updates'
-          case UpdateStatus.UpdateAvailable: return 'downloading-update'
-        }
-
-        return assertNever(status, `Unknown update state: ${status}`)
-      })() as MenuIDs
-
-      const menuItems = new Set([
-        'checking-for-updates',
-        'downloading-update',
-        'check-for-updates',
-        'quit-and-install-update',
-      ]) as Set<MenuIDs>
-
-      menuItems.delete(visibleItem)
-      for (const item of menuItems) {
-        setMenuVisible(item, false)
-      }
-
-      setMenuVisible(visibleItem, true)
 
       if (!(__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') && status === UpdateStatus.UpdateReady) {
         this.props.dispatcher.setUpdateBannerVisibility(true)
@@ -153,99 +154,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private updateMenu(state: IAppState) {
-    const selectedState = state.selectedState
-    const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
-
-    let repositorySelected = false
-    let onNonDefaultBranch = false
-    let onBranch = false
-    let hasDefaultBranch = false
-    let hasPublishedBranch = false
-    let networkActionInProgress = false
-    let tipStateIsUnknown = false
-
-    if (selectedState && selectedState.type === SelectionType.Repository) {
-      repositorySelected = true
-
-      const branchesState = selectedState.state.branchesState
-      const tip = branchesState.tip
-      const defaultBranch = branchesState.defaultBranch
-
-      hasDefaultBranch = Boolean(defaultBranch)
-
-      onBranch = tip.kind === TipState.Valid
-      tipStateIsUnknown = tip.kind === TipState.Unknown
-
-      // If we are:
-      //  1. on the default branch, or
-      //  2. on an unborn branch, or
-      //  3. on a detached HEAD
-      // there's not much we can do.
-      if (tip.kind === TipState.Valid) {
-        if (defaultBranch !== null) {
-          onNonDefaultBranch = tip.branch.name !== defaultBranch.name
-        }
-
-        hasPublishedBranch = !!tip.branch.upstream
-      } else {
-        onNonDefaultBranch = true
-      }
-
-      networkActionInProgress = selectedState.state.isPushPullFetchInProgress
-    }
-
-    // These are IDs for menu items that are entirely _and only_
-    // repository-scoped. They're always enabled if we're in a repository and
-    // always disabled if we're not.
-    const repositoryScopedIDs: ReadonlyArray<MenuIDs> = [
-      'branch',
-      'repository',
-      'remove-repository',
-      'open-in-shell',
-      'open-working-directory',
-      'show-repository-settings',
-      'create-branch',
-      'show-changes',
-      'show-history',
-      'show-repository-list',
-      'show-branches-list',
-    ]
-
-    const windowOpen = state.windowState !== 'hidden'
-    const repositoryActive = windowOpen && repositorySelected
-    if (repositoryActive) {
-      for (const id of repositoryScopedIDs) {
-        setMenuEnabled(id, true)
-      }
-
-      setMenuEnabled('rename-branch', onNonDefaultBranch)
-      setMenuEnabled('delete-branch', onNonDefaultBranch)
-      setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
-      setMenuEnabled('merge-branch', onBranch)
-      setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
-
-      setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
-      setMenuEnabled('push', !networkActionInProgress)
-      setMenuEnabled('pull', !networkActionInProgress)
-      setMenuEnabled('create-branch', !tipStateIsUnknown)
-    } else {
-      for (const id of repositoryScopedIDs) {
-        setMenuEnabled(id, false)
-      }
-
-      setMenuEnabled('rename-branch', false)
-      setMenuEnabled('delete-branch', false)
-      setMenuEnabled('update-branch', false)
-      setMenuEnabled('merge-branch', false)
-      setMenuEnabled('compare-branch', false)
-
-      setMenuEnabled('view-repository-on-github', false)
-      setMenuEnabled('push', false)
-      setMenuEnabled('pull', false)
-    }
-  }
-
   private onMenuEvent(name: MenuEvent): any {
 
     // Don't react to menu events when an error dialog is shown.
@@ -262,11 +170,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'create-branch': return this.showCreateBranch()
       case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
-      case 'create-repository': return this.createRepository()
+      case 'create-repository': return this.showCreateRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
-      case 'check-for-updates': return this.checkForUpdates()
-      case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
       case 'open-working-directory': return this.openWorkingDirectory()
@@ -382,14 +288,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
 
-  private createRepository() {
+  private showCreateRepository = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.CreateRepository,
     })
   }
 
-  private showCloneRepo() {
-    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
+  private showCloneRepo = () => {
+    return this.props.dispatcher.showPopup({
+      type: PopupType.CloneRepository,
+      initialURL: null,
+    })
   }
 
   private showBranches() {
@@ -685,8 +594,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     // window controls need to disable dragging so we add a 3px tall element which
     // disables drag while still letting users drag the app by the titlebar below
     // those 3px.
-    const resizeHandle = __WIN32__
-      ? <div className='resize-handle' />
+    const topResizeHandle = __WIN32__
+      ? <div className='resize-handle top' />
+      : null
+
+    // And a 3px wide element on the left hand side.
+    const leftResizeHandle = __WIN32__
+      ? <div className='resize-handle left' />
       : null
 
     const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
@@ -697,9 +611,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <div className={titleBarClass} id='desktop-app-title-bar'>
+        {topResizeHandle}
+        {leftResizeHandle}
         {appIcon}
         {this.renderAppMenuBar()}
-        {resizeHandle}
         {winControls}
       </div>
     )
@@ -733,21 +648,28 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     switch (popup.type) {
       case PopupType.RenameBranch:
-        return <RenameBranch dispatcher={this.props.dispatcher}
+        return <RenameBranch
+                key='rename-branch'
+                dispatcher={this.props.dispatcher}
                 repository={popup.repository}
                 branch={popup.branch}/>
       case PopupType.DeleteBranch:
-        return <DeleteBranch dispatcher={this.props.dispatcher}
+        return <DeleteBranch
+                key='delete-branch'
+                dispatcher={this.props.dispatcher}
                 repository={popup.repository}
                 branch={popup.branch}
                 onDismissed={this.onPopupDismissed}/>
       case PopupType.ConfirmDiscardChanges:
-        return <DiscardChanges repository={popup.repository}
+        return <DiscardChanges
+                key='discard-changes'
+                repository={popup.repository}
                 dispatcher={this.props.dispatcher}
                 files={popup.files}
                 onDismissed={this.onPopupDismissed}/>
       case PopupType.Preferences:
         return <Preferences
+                key='preferences'
                 dispatcher={this.props.dispatcher}
                 appStore={this.props.appStore}
                 dotComAccount={this.getDotComAccount()}
@@ -763,6 +685,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           : null
 
         return <Merge
+                key='merge-branch'
                 dispatcher={this.props.dispatcher}
                 repository={repository}
                 allBranches={state.branchesState.allBranches}
@@ -777,6 +700,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         const state = this.props.appStore.getRepositoryState(repository)
 
         return <RepositorySettings
+                key='repository-settings'
                 remote={state.remote}
                 dispatcher={this.props.dispatcher}
                 repository={repository}
@@ -784,22 +708,27 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       case PopupType.SignIn:
         return <SignIn
+                key='sign-in'
                 signInState={this.state.signInState}
                 dispatcher={this.props.dispatcher}
                 onDismissed={this.onSignInDialogDismissed}/>
       case PopupType.AddRepository:
         return <AddExistingRepository
+                key='add-existing-repository'
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       case PopupType.CreateRepository:
         return (
           <CreateRepository
+            key='create-repository'
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher} />
         )
       case PopupType.CloneRepository:
         return <CloneRepository
+                key='clone-repository'
                 accounts={this.state.accounts}
+                initialURL={popup.initialURL}
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       case PopupType.CreateBranch: {
@@ -813,6 +742,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
 
         return <CreateBranch
+                key='create-branch'
                 tip={branchesState.tip}
                 defaultBranch={branchesState.defaultBranch}
                 allBranches={branchesState.allBranches}
@@ -823,22 +753,26 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.InstallGit:
         return (
           <InstallGit
+           key='install-git'
            onDismissed={this.onPopupDismissed}
            path={popup.path} />
         )
       case PopupType.About:
         return (
           <About
+           key='about'
            onDismissed={this.onPopupDismissed}
            applicationName={getName()}
            applicationVersion={getVersion()}
            usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
            onShowAcknowledgements={this.showAcknowledgements}
+           onShowTermsAndConditions={this.showTermsAndConditions}
           />
         )
       case PopupType.PublishRepository:
         return (
           <Publish
+            key='publish'
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             accounts={this.state.accounts}
@@ -848,6 +782,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.UntrustedCertificate:
         return (
           <UntrustedCertificate
+            key='untrusted-certificate'
             certificate={popup.certificate}
             url={popup.url}
             onDismissed={this.onPopupDismissed}
@@ -856,8 +791,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.Acknowledgements:
         return (
-          <Acknowledgements onDismissed={this.onPopupDismissed}/>
+          <Acknowledgements
+            key='acknowledgements'
+            onDismissed={this.onPopupDismissed}
+          />
         )
+      case PopupType.TermsAndConditions:
+        return <TermsAndConditions onDismissed={this.onPopupDismissed}/>
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -867,16 +807,20 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.Acknowledgements })
   }
 
+  private showTermsAndConditions = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.TermsAndConditions })
+  }
+
   private renderPopup() {
     return (
-      <ReactCSSTransitionGroup
+      <CSSTransitionGroup
         transitionName='modal'
         component='div'
         transitionEnterTimeout={dialogTransitionEnterTimeout}
         transitionLeaveTimeout={dialogTransitionLeaveTimeout}
       >
         {this.currentPopupContent()}
-      </ReactCSSTransitionGroup>
+      </CSSTransitionGroup>
     )
   }
 
@@ -917,8 +861,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       onSelectionChanged={this.onSelectionChanged}
       dispatcher={this.props.dispatcher}
       repositories={this.state.repositories}
-      loading={this.state.loading}
-      />
+    />
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
@@ -1062,7 +1005,16 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderRepository() {
-    const selectedState = this.state.selectedState
+    const state = this.state
+    if (state.repositories.length < 1) {
+      return <BlankSlateView
+        onCreate={this.showCreateRepository}
+        onClone={this.showCloneRepo}
+        onAdd={this.showAddLocalRepo}
+      />
+    }
+
+    const selectedState = state.selectedState
     if (!selectedState) {
       return <NoRepositorySelected/>
     }
@@ -1099,8 +1051,16 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   public render() {
+    if (this.loading) {
+      return null
+    }
+
+    const className = this.state.appIsFocused
+      ? 'focused'
+      : 'blurred'
+
     return (
-      <div id='desktop-app-chrome'>
+      <div id='desktop-app-chrome' className={className}>
         {this.renderTitlebar()}
         {this.state.showWelcomeFlow ? this.renderWelcomeFlow() : this.renderApp()}
       </div>

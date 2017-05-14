@@ -48,6 +48,7 @@ import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 import { structuralEquals } from '../equality'
 import { fatalError } from '../fatal-error'
+import { updateMenuState } from '../menu-update'
 
 import {
   getGitDir,
@@ -90,7 +91,6 @@ export class AppStore {
   private currentBackgroundFetcher: BackgroundFetcher | null = null
 
   private repositoryState = new Map<number, IRepositoryState>()
-  private loading = false
   private showWelcomeFlow = false
 
   private currentPopup: Popup | null = null
@@ -129,12 +129,21 @@ export class AppStore {
    */
   private highlightAccessKeys: boolean = false
 
+  /**
+   * A value indicating whether or not the current application
+   * window has focus.
+   */
+  private appIsFocused: boolean = false
+
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
   private isUpdateAvailableBannerVisible: boolean = false
 
   private readonly statsStore: StatsStore
+
+  /** The function to resolve the current Open in Desktop flow. */
+  private resolveOpenInDesktop: ((repository: Repository | null) => void) | null = null
 
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore, signInStore: SignInStore) {
     this.gitHubUserStore = gitHubUserStore
@@ -172,7 +181,10 @@ export class AppStore {
     this.signInStore.onDidAuthenticate(account => this.emitAuthenticate(account))
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
+  }
 
+  /** Load the emoji from disk. */
+  public loadEmoji() {
     const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
   }
@@ -201,7 +213,10 @@ export class AppStore {
 
   private emitUpdateNow() {
     this.emitQueued = false
-    this.emitter.emit('did-update', this.getState())
+    const state = this.getState()
+
+    this.emitter.emit('did-update', state)
+    updateMenuState(state, this.appMenu)
   }
 
   /**
@@ -343,12 +358,12 @@ export class AppStore {
         ...this.cloningRepositoriesStore.repositories,
       ],
       windowState: this.windowState,
+      appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
       currentPopup: this.currentPopup,
       currentFoldout: this.currentFoldout,
       errors: this.errors,
-      loading: this.loading,
       showWelcomeFlow: this.showWelcomeFlow,
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
@@ -630,10 +645,9 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _loadFromSharedProcess(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>) {
+  public _loadFromSharedProcess(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>, initialLoad: boolean) {
     this.accounts = accounts
     this.repositories = repositories
-    this.loading = this.repositories.length === 0 && this.accounts.length === 0
 
     // doing this that the current user can be found by any of their email addresses
     for (const account of accounts) {
@@ -680,7 +694,13 @@ export class AppStore {
     this.sidebarWidth = parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) || defaultSidebarWidth
     this.commitSummaryWidth = parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) || defaultCommitSummaryWidth
 
-    this.emitUpdate()
+    if (initialLoad) {
+      // For the intitial load, synchronously emit the update so that the window
+      // is drawn with the initial state before we show it.
+      this.emitUpdateNow()
+    } else {
+      this.emitUpdate()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -972,6 +992,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _showPopup(popup: Popup): Promise<void> {
+    this._closePopup()
 
     // Always close the app menu when showing a pop up. This is only
     // applicable on Windows where we draw a custom app menu.
@@ -983,6 +1004,13 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(): Promise<void> {
+    const currentPopup = this.currentPopup
+    if (!currentPopup) { return Promise.resolve() }
+
+    if (currentPopup.type === PopupType.CloneRepository) {
+      this._completeOpenInDesktop(() => Promise.resolve(null))
+    }
+
     this.currentPopup = null
     this.emitUpdate()
 
@@ -1615,6 +1643,8 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _openShell(path: string) {
+    this.statsStore.recordOpenShell()
+
     return openShell(path)
   }
 
@@ -1656,7 +1686,7 @@ export class AppStore {
   }
 
   public _reportStats() {
-    return this.statsStore.reportStats(this.accounts)
+    return this.statsStore.reportStats(this.accounts, this.repositories)
   }
 
   public _recordLaunchStats(stats: ILaunchStats): Promise<void> {
@@ -1699,5 +1729,43 @@ export class AppStore {
 
   public _setSignInOTP(otp: string): Promise<void> {
     return this.signInStore.setTwoFactorOTP(otp)
+  }
+
+  public _setAppFocusState(isFocused: boolean): Promise<void> {
+    const changed = this.appIsFocused !== isFocused
+    this.appIsFocused = isFocused
+
+    if (changed) {
+      this.emitUpdate()
+    }
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Start an Open in Desktop flow. This will return a new promise which will
+   * resolve when `_completeOpenInDesktop` is called.
+   */
+  public _startOpenInDesktop(fn: () => void): Promise<Repository | null> {
+    // tslint:disable-next-line:promise-must-complete
+    const p = new Promise<Repository | null>(resolve => this.resolveOpenInDesktop = resolve)
+    fn()
+    return p
+  }
+
+  /**
+   * Complete any active Open in Desktop flow with the repository returned by
+   * the given function.
+   */
+  public async _completeOpenInDesktop(fn: () => Promise<Repository | null>): Promise<Repository | null> {
+    const resolve = this.resolveOpenInDesktop
+    this.resolveOpenInDesktop = null
+
+    const result = await fn()
+    if (resolve) {
+      resolve(result)
+    }
+
+    return result
   }
 }

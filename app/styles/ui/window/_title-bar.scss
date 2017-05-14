@@ -28,9 +28,21 @@
   }
 
   .resize-handle {
-    flex-grow: 1;
-    height: 3px;
+
+    position: absolute;
+    top: 0px;
+    left: 0px;
     -webkit-app-region: no-drag;
+
+    &.top {
+      width: 100%;
+      height: 3px;
+    }
+
+    &.left {
+      width: 3px;
+      height: var(--win32-title-bar-height);
+    }
   }
 
   // Window controls is the container for the three buttons minimize,

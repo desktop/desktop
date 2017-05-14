@@ -35,7 +35,34 @@ interface ICreateBranchState {
   readonly proposedName: string
   readonly sanitizedName: string
   readonly startPoint: StartPoint
-  readonly loading: boolean
+
+  /**
+   * Whether or not the dialog is currently creating a branch. This affects
+   * the dialog loading state as well as the rendering of the branch selector.
+   * 
+   * When the dialog is creating a branch we take the tip and defaultBranch
+   * as they were in props at the time of creation and stick them in state
+   * so that we can maintain the layout of the branch selection parts even
+   * as the Tip changes during creation.
+   * 
+   * Note: once branch creation has been initiated this value stays at true
+   * and will never revert to being false. If the branch creation operation
+   * fails this dialog will still be dismissed and an error dialog will be
+   * shown in its place.
+   */
+  readonly isCreatingBranch: boolean
+
+  /**
+   * The tip of the current repository, captured from props at the start
+   * of the create branch operation.
+   */
+  readonly tipAtCreateStart: IUnbornRepository | IDetachedHead | IValidBranch
+
+  /**
+   * The default branch of the current repository, captured from props at the
+   * start of the create branch operation.
+   */
+  readonly defaultBranchAtCreateStart: Branch | null
 }
 
 enum SelectedBranch {
@@ -75,7 +102,9 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
       proposedName: '',
       sanitizedName: '',
       startPoint: getStartPoint(props, StartPoint.DefaultBranch),
-      loading: false,
+      isCreatingBranch: false,
+      tipAtCreateStart: props.tip,
+      defaultBranchAtCreateStart: props.defaultBranch,
     }
   }
 
@@ -83,10 +112,20 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     this.setState({
       startPoint: getStartPoint(nextProps, this.state.startPoint),
     })
+
+    if (!this.state.isCreatingBranch) {
+      this.setState({
+        tipAtCreateStart: nextProps.tip,
+        defaultBranchAtCreateStart: nextProps.defaultBranch,
+      })
+    }
   }
 
   private renderBranchSelection() {
-    const tip = this.props.tip
+    const tip = this.state.isCreatingBranch
+      ? this.state.tipAtCreateStart
+      : this.props.tip
+
     const tipKind = tip.kind
 
     if (tip.kind === TipState.Detached) {
@@ -107,7 +146,9 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     } else if (tip.kind === TipState.Valid) {
 
       const currentBranch = tip.branch
-      const defaultBranch = this.props.defaultBranch
+      const defaultBranch = this.state.isCreatingBranch
+        ? this.props.defaultBranch
+        : this.state.defaultBranchAtCreateStart
 
       if (!defaultBranch || defaultBranch.name === currentBranch.name) {
         const defaultBranchLink = <LinkButton uri='https://help.github.com/articles/setting-the-default-branch/'>default branch</LinkButton>
@@ -190,8 +231,8 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
         title='Create a branch'
         onSubmit={this.createBranch}
         onDismissed={this.props.onDismissed}
-        loading={this.state.loading}
-        disabled={this.state.loading}
+        loading={this.state.isCreatingBranch}
+        disabled={this.state.isCreatingBranch}
       >
         {error ? <DialogError>{error.message}</DialogError> : null}
 
@@ -247,7 +288,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     }
 
     if (name.length > 0) {
-      this.setState({ loading: true })
+      this.setState({ isCreatingBranch: true })
       await this.props.dispatcher.createBranch(this.props.repository, name, startPoint)
       this.props.onDismissed()
     }
