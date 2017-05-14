@@ -43,7 +43,7 @@ describe('App', () => {
       new EmojiStore(),
       new IssuesStore(issuesDb),
       statsStore,
-      new SignInStore()
+      new SignInStore(),
     )
 
     dispatcher = new InMemoryDispatcher(appStore)

@@ -277,7 +277,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     const className = classNames(
       'toolbar-dropdown',
       this.props.dropdownState,
-      this.props.className
+      this.props.className,
     )
 
     return (
