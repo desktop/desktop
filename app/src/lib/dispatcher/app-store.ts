@@ -968,6 +968,8 @@ export class AppStore {
     if (state.branchesState.tip.kind === TipState.Valid) {
       const currentBranch = state.branchesState.tip.branch
       await gitStore.loadLocalCommits(currentBranch)
+    } else if (state.branchesState.tip.kind === TipState.Unborn) {
+      await gitStore.loadLocalCommits(null)
     }
   }
 

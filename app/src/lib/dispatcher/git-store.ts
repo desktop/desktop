@@ -323,7 +323,13 @@ export class GitStore {
   public get recentBranches(): ReadonlyArray<Branch> { return this._recentBranches }
 
   /** Load the local commits. */
-  public async loadLocalCommits(branch: Branch): Promise<void> {
+  public async loadLocalCommits(branch: Branch | null): Promise<void> {
+
+    if (branch === null) {
+      this._localCommitSHAs = [ ]
+      return
+    }
+
     let localCommits: ReadonlyArray<Commit> | undefined
     if (branch.upstream) {
       const revRange = `${branch.upstream}..${branch.name}`
