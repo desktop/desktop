@@ -79,8 +79,7 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
         <div key={key}>
           {nameElement}
           <p className='license-text'>{licenseText}</p>
-        </div>
-      )
+        </div>)
     }
 
     return elements

@@ -36,5 +36,5 @@ function featureFlag(featureName: string, defaultValue: boolean, memoize: boolea
 export const shouldRenderApplicationMenu = featureFlag(
   'should-render-application-menu',
   __DARWIN__ ? false : true,
-  true
+  true,
 )

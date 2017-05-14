@@ -74,7 +74,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click: emit('show-preferences'),
       },
       separator,
-      { role: 'quit' }
+      { role: 'quit' },
     )
   }
 
