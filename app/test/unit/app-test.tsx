@@ -51,7 +51,7 @@ describe('App', () => {
 
   it('renders', async () => {
     const app = TestUtils.renderIntoDocument(
-      <App dispatcher={dispatcher!} appStore={appStore!} startTime={0}/>
+      <App dispatcher={dispatcher!} appStore={appStore!} startTime={0}/>,
     ) as React.Component<any, any>
     // Give any promises a tick to resolve.
     await wait(0)

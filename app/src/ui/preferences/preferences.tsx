@@ -23,7 +23,7 @@ interface IPreferencesProps {
 enum PreferencesTab {
   Accounts = 0,
   Git,
-  Advanced
+  Advanced,
 }
 
 interface IPreferencesState {

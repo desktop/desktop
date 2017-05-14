@@ -112,5 +112,5 @@ ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { ac
 
 ReactDOM.render(
   <App dispatcher={dispatcher} appStore={appStore} startTime={startTime}/>,
-  document.getElementById('desktop-app-container')!
+  document.getElementById('desktop-app-container')!,
 )

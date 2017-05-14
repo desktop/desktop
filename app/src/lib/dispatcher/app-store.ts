@@ -672,8 +672,8 @@ export class AppStore {
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
       const r = this.repositories.find(r =>
-        r.constructor === selectedRepository.constructor && r.id === selectedRepository.id
-      ) || null
+        r.constructor === selectedRepository.constructor
+        && r.id === selectedRepository.id) || null
 
       newSelectedRepository = r
     }
@@ -894,8 +894,7 @@ export class AppStore {
   private updateWorkingDirectoryFileSelection(repository: Repository, file: WorkingDirectoryFileChange, selection: DiffSelection) {
     this.updateChangesState(repository, state => {
       const newFiles = state.workingDirectory.files.map(f =>
-        f.id === file.id ? f.withSelection(selection) : f
-      )
+        f.id === file.id ? f.withSelection(selection) : f)
 
       const includeAll = this.getIncludeAllState(newFiles)
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
