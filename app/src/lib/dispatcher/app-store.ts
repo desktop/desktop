@@ -741,8 +741,10 @@ export class AppStore {
       const workingDirectory = new WorkingDirectoryStatus(mergedFiles, includeAll)
 
       let selectedFileID = state.selectedFileID
+      const matchedFile = mergedFiles.find(x => x.id === selectedFileID)
+
       // Select the first file if we don't have anything selected.
-      if (!selectedFileID && mergedFiles.length) {
+      if ((!selectedFileID || !matchedFile) && mergedFiles.length) {
         selectedFileID = mergedFiles[0].id || null
       }
 
