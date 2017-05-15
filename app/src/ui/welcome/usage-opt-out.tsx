@@ -7,7 +7,7 @@ import { Form } from '../lib/form'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 
-const SamplesURL = 'https://desktop.github.com/samples/'
+const SamplesURL = 'https://desktop.github.com/samples/tng'
 
 interface IUsageOptOutProps {
   readonly dispatcher: Dispatcher

@@ -1,12 +1,20 @@
 import { app  } from 'electron'
+import * as Path from 'path'
 
-import { ILogger, createLogger } from './logger'
+import { ILogger, createLogger, LogFolder } from './logger'
 
 let logger: ILogger | null = null
 
-export function getLogger(): ILogger {
+async function getLogger(): Promise<ILogger> {
   if (!logger) {
-    logger = createLogger(app.getPath('userData'))
+    const userData = app.getPath('userData')
+    const directory = Path.join(userData, LogFolder)
+    logger = await createLogger(directory)
   }
   return logger
+}
+
+export async function logError(message: string, error?: Error): Promise<void> {
+  const logger = await getLogger()
+  logger.error(message, error)
 }

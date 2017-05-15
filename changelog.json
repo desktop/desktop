@@ -1,7 +1,17 @@
 {
   "releases": {
-    "0.5.1": [
+    "0.5.2": [
 
+    ],
+    "0.5.1": [
+      "[New] Windows: A nice little gif while installing the app - #1440",
+      "[Fixed] Disable pinch zoom - #1431",
+      "[Fixed] Don't show carriage return indicators in diffs - #1444",
+      "[Fixed] History wouldn't update after switching branches - #1446",
+      "[Improved] Include more information in exception reports - #1429",
+      "[Improved] Updated Terms and Conditions - #1438",
+      "[Improved] Sub-pixel anti-aliasing in some lists - #1452",
+      "[Improved] Windows: A new application identifier, less likely to collide with other apps - #1441"
     ],
     "0.5.0": [
       "[Added] Menu item for showing the app logs - #1349",

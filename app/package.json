@@ -3,13 +3,13 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "main": "./main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
   },
-  "description": "The People's Glorious GitHub Client",
+  "description": "Extend your GitHub workflow beyond your browser with GitHub Desktop",
   "author": {
     "name": "GitHub, Inc.",
     "email": "opensource+desktop@github.com",

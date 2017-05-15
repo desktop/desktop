@@ -9,10 +9,15 @@ export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
  * Note: this doesn't validate the expected shape, and will only fail
  * if it encounters invalid JSON
  */
-export async function deserialize<T>(response: Response): Promise<T | null> {
+export async function deserialize<T>(response: Response | string): Promise<T | null> {
   try {
-    const json = await response.json()
-    return json as T
+    if (response instanceof Response) {
+      const json = await response.json()
+      return json as T
+    } else {
+      const json = await JSON.parse(response)
+      return json as T
+    }
   } catch (e) {
     console.error('Unable to deserialize JSON string to object', e, response)
     return null

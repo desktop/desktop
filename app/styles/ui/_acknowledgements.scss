@@ -1,22 +1,13 @@
 #acknowledgements {
-  width: 550px;
+  width: 580px;
 
-  #licenses {
-    height: 250px;
-
+  .dialog-content {
+    height: 300px;
     overflow: scroll;
-
-    .license-name {
-      font-weight: var(--font-weight-semibold);
-
-      margin-bottom: var(--spacing-third);
-    }
 
     .license-text {
       font-family: var(--font-family-monospace);
-      font-size: var(--font-size-sm);
       white-space: pre-wrap;
-
       margin-bottom: var(--spacing-double);
     }
   }
