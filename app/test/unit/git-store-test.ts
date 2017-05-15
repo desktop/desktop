@@ -10,6 +10,8 @@ import { GitProcess } from 'dugite'
 
 import { GitStore } from '../../src/lib/dispatcher/git-store'
 import { FileStatus } from '../../src/models/status'
+import { Repository } from '../../src/models/repository'
+
 import { shell } from '../test-app-shell'
 
 import { getCommit, getStatus } from '../../src/lib/git'
@@ -86,34 +88,42 @@ describe('GitStore', () => {
     expect(files.length).to.equal(0)
   })
 
-  it('can undo the first commit', async () => {
-    const repo = await setupEmptyRepository()
-    const gitStore = new GitStore(repo, shell)
+  describe('undo first commit', () => {
 
-    const file = 'README.md'
-    const filePath = Path.join(repo.path, file)
+    let repo: Repository | null = null
 
-    Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+    const commitMessage = 'added file'
 
-    const message = 'added file'
+    beforeEach(async () => {
+      repo = await setupEmptyRepository()
 
-    await GitProcess.exec([ 'add', file ], repo.path)
-    await GitProcess.exec([ 'commit', '-m', message ], repo.path)
+      const file = 'README.md'
+      const filePath = Path.join(repo.path, file)
 
-    const commit = await getCommit(repo, 'master')
-    expect(commit).to.not.equal(null)
-    expect(commit!.parentSHAs.length).to.equal(0)
+      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
 
-    await gitStore.undoCommit(commit!)
+      await GitProcess.exec([ 'add', file ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', commitMessage ], repo.path)
+    })
 
-    const after = await getStatus(repo)
+    it('pre-fills the commit message', async () => {
+      const gitStore = new GitStore(repo!, shell)
 
-    expect(after).to.not.be.null
-    expect(after!.currentTip).to.be.undefined
+      const commit = await getCommit(repo!, 'master')
+      expect(commit).to.not.equal(null)
+      expect(commit!.parentSHAs.length).to.equal(0)
 
-    const context = gitStore.contextualCommitMessage
-    expect(context).to.not.be.null
-    expect(context!.summary).to.equal(message)
+      await gitStore.undoCommit(commit!)
+
+      const after = await getStatus(repo!)
+
+      expect(after).to.not.be.null
+      expect(after!.currentTip).to.be.undefined
+
+      const context = gitStore.contextualCommitMessage
+      expect(context).to.not.be.null
+      expect(context!.summary).to.equal(commitMessage)
+    })
   })
 
   it('hides commented out lines from MERGE_MSG', async () => {
