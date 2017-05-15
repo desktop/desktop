@@ -145,7 +145,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
 
   public render() {
-   const WelcomeImageUri = `file:///${__dirname}/static/illustration.svg`
+   const WelcomeImageUri = `file:///${__dirname}/static/welcome-illustration-right.svg`
 
     return (
       <UiView id='welcome'>
