@@ -99,7 +99,9 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     //  2. on an unborn branch, or
     //  3. on a detached HEAD
     // there's not much we can do.
-    if (tip.kind === TipState.Valid) {
+    if (tip.kind === TipState.Unborn) {
+      onNonDefaultBranch = false
+    } else if (tip.kind === TipState.Valid) {
       if (defaultBranch !== null) {
         onNonDefaultBranch = tip.branch.name !== defaultBranch.name
       }
