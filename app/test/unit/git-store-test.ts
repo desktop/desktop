@@ -11,6 +11,7 @@ import { GitProcess } from 'dugite'
 import { GitStore } from '../../src/lib/dispatcher/git-store'
 import { FileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
+import { Commit } from '../../src/models/commit'
 import { TipState, IValidBranch } from '../../src/models/tip'
 
 import { shell } from '../test-app-shell'
@@ -92,6 +93,7 @@ describe('GitStore', () => {
   describe('undo first commit', () => {
 
     let repo: Repository | null = null
+    let firstCommit: Commit | null = null
 
     const commitMessage = 'added file'
 
@@ -105,21 +107,30 @@ describe('GitStore', () => {
 
       await GitProcess.exec([ 'add', file ], repo.path)
       await GitProcess.exec([ 'commit', '-m', commitMessage ], repo.path)
+
+      firstCommit = await getCommit(repo!, 'master')
+      expect(firstCommit).to.not.equal(null)
+      expect(firstCommit!.parentSHAs.length).to.equal(0)
     })
 
-    it('pre-fills the commit message', async () => {
+    it('reports the repository is unborn', async () => {
       const gitStore = new GitStore(repo!, shell)
 
-      const commit = await getCommit(repo!, 'master')
-      expect(commit).to.not.equal(null)
-      expect(commit!.parentSHAs.length).to.equal(0)
+      await gitStore.loadStatus()
+      expect(gitStore.tip.kind).to.equal(TipState.Valid)
 
-      await gitStore.undoCommit(commit!)
+      await gitStore.undoCommit(firstCommit!)
 
       const after = await getStatus(repo!)
 
       expect(after).to.not.be.null
       expect(after!.currentTip).to.be.undefined
+    })
+
+    it('pre-fills the commit message', async () => {
+      const gitStore = new GitStore(repo!, shell)
+
+      await gitStore.undoCommit(firstCommit!)
 
       const context = gitStore.contextualCommitMessage
       expect(context).to.not.be.null
@@ -129,25 +140,18 @@ describe('GitStore', () => {
     it('clears the undo commit dialog', async () => {
       const gitStore = new GitStore(repo!, shell)
 
-      const commit = await getCommit(repo!, 'master')
-      expect(commit).to.not.equal(null)
-      expect(commit!.parentSHAs.length).to.equal(0)
-
       await gitStore.loadStatus()
-      expect(gitStore.tip.kind).to.equal(TipState.Valid)
 
       const tip = gitStore.tip as IValidBranch
       await gitStore.loadLocalCommits(tip.branch)
 
       expect(gitStore.localCommitSHAs.length).to.equal(1)
 
-      await gitStore.undoCommit(commit!)
+      await gitStore.undoCommit(firstCommit!)
 
-      // validate the tip is now unborn
       await gitStore.loadStatus()
       expect(gitStore.tip.kind).to.equal(TipState.Unborn)
 
-      // this is how the app-store re-evaluates the list
       await gitStore.loadLocalCommits(null)
 
       expect(gitStore.localCommitSHAs).to.be.empty
