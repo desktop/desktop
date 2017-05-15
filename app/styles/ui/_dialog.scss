@@ -117,7 +117,7 @@ dialog {
     }
 
     h1 {
-      font-weight: var(--font-weight-light);
+      font-weight: var(--font-weight-semibold);
       font-size: var(--font-size-md);
 
       // See comment above. 40px is enough space to clear both the icon
@@ -161,7 +161,7 @@ dialog {
   }
 
   .dialog-content {
-    margin: var(--spacing-double);
+    padding: var(--spacing-double);
 
     // This allows for using <Rows> to structure content within dialog content.
     // All Rows that are direct descendants of dialog content except for the
@@ -179,14 +179,29 @@ dialog {
       }
     }
 
-    h2 {
-      font-weight: var(--font-weight-light);
-      font-size: var(--font-size-md);
+    h2, h3 {
+      font-weight: var(--font-weight-semibold);
       margin-top: 0;
-      margin-bottom: var(--spacing-half);
+      margin-bottom: var(--spacing);
 
       &:last-child {
         margin-bottom: 0;
+      }
+    }
+
+    h2 { font-size: var(--font-size-md); }
+    h3 { font-size: var(--font-size); }
+
+    ul, ol {
+      margin-top: 0;
+      padding-left: var(--spacing-double);
+      list-style-position: outside;
+
+      &:last-child { margin-bottom: 0; }
+
+      li {
+        margin-bottom: var(--spacing);
+        padding-left: var(--spacing-half);
       }
     }
   }
