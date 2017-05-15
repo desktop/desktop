@@ -256,7 +256,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   }
 
   const submitIssueItem: Electron.MenuItemOptions = {
-    label: __DARWIN__ ? 'Report Issue...' : 'Report issue...',
+    label: __DARWIN__ ? 'Report Issue…' : 'Report issue…',
     click() {
       shell.openExternal('https://github.com/desktop/desktop/issues/new')
     },
