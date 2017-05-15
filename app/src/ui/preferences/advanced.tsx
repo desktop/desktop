@@ -12,7 +12,7 @@ interface IAdvancedPreferencesState {
   readonly reportingOptOut: boolean
 }
 
-const SamplesURL = 'https://desktop.github.com/samples/'
+const SamplesURL = 'https://desktop.github.com/samples/tng'
 
 export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvancedPreferencesState> {
   public constructor(props: IAdvancedPreferencesProps) {
