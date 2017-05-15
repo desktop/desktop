@@ -10,7 +10,7 @@ without needing to configure your own application.
 
 These are listed in [app/webpack.common.js](https://github.com/desktop/desktop/blob/c286d0d513d82b97e1a9c60d44c23020f2ba34d7/app/webpack.common.js#L9-L10).
 
-**DO NOT TRUST THIS CLIENT ID AND SECRET! THIS IS ONLY FOR TESTING PURPOSES**
+**DO NOT TRUST THIS CLIENT ID AND SECRET! THIS IS ONLY FOR TESTING PURPOSES!!**
 
 The limitation with this developer application is that **this will not work
 with GitHub Enterprise**. You will see  sign-in will fail on the OAuth callback
