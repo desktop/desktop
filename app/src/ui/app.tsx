@@ -811,7 +811,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <ConfirmRemoveRepository
-            key='remove-repository-confirmation'
             repository={repo}
             onConfirmation={this.onConfirmRepoRemoval}
             onDismissed={this.onPopupDismissed}

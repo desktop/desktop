@@ -5,12 +5,7 @@ import { Dialog, DialogContent, DialogFooter } from '../../ui/dialog'
 import { Repository } from '../../models/repository'
 
 interface IConfirmRemoveRepositoryProps {
-  /** The title of the dialog window */
-  readonly title: string
-
-  /** The message to be displayed */
-  readonly message: string
-
+  /** The repository to be removed */
   readonly repository: Repository
 
   /** The action to execute when the user confirms */
@@ -33,13 +28,14 @@ export class ConfirmRemoveRepository extends React.Component<IConfirmRemoveRepos
   public render() {
     return (
       <Dialog
+        key='remove-repository-confirmation'
         type='warning'
-        title={this.props.title}
+        title='Remove Repository'
         onDismissed={this.cancel}
         onSubmit={this.onConfirmed}
       >
         <DialogContent>
-          <p>{this.props.message}</p>
+          <p>Are you sure you want to remove this repository?</p>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
