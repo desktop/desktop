@@ -253,13 +253,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     })
   }
 
-  const contactSupportItem: Electron.MenuItemOptions = {
-    label: __DARWIN__ ? 'Contact GitHub Support…' : 'Contact GitHub &support…',
-    click () {
-      shell.openExternal('https://github.com/support')
-    },
-  }
-
   const submitIssueItem: Electron.MenuItemOptions = {
     label: __DARWIN__ ? 'Report Issue...' : 'Report issue...',
     click() {
@@ -276,7 +269,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   }
 
   const helpItems = [
-    contactSupportItem,
     submitIssueItem,
     showLogsItem,
   ]
