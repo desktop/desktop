@@ -11,7 +11,7 @@ import { merge } from '../../lib/merge'
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
 /** The URL to the stats samples page. */
-export const SamplesURL = 'https://desktop.github.com/samples/beta'
+export const SamplesURL = 'https://desktop.github.com/usage-data/'
 
 const LastDailyStatsReportKey = 'last-daily-stats-report'
 
