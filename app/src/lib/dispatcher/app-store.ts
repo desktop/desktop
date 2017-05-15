@@ -700,7 +700,10 @@ export class AppStore {
     this.commitSummaryWidth = parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) || defaultCommitSummaryWidth
 
     const confirmRepoRemovalValue = localStorage.getItem(confirmRepoRemovalKey)
-    this.confirmRepoRemoval = confirmRepoRemovalValue === '1'
+
+    this.confirmRepoRemoval = confirmRepoRemovalValue === undefined
+      ? confirmRepoRemovalDefault
+      : confirmRepoRemovalValue === '1'
 
     if (initialLoad) {
       // For the intitial load, synchronously emit the update so that the window
