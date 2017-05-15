@@ -11,6 +11,7 @@ import { GitProcess } from 'dugite'
 import { GitStore } from '../../src/lib/dispatcher/git-store'
 import { FileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
+import { TipState, IValidBranch } from '../../src/models/tip'
 
 import { shell } from '../test-app-shell'
 
@@ -132,7 +133,22 @@ describe('GitStore', () => {
       expect(commit).to.not.equal(null)
       expect(commit!.parentSHAs.length).to.equal(0)
 
+      await gitStore.loadStatus()
+      expect(gitStore.tip.kind).to.equal(TipState.Valid)
+
+      const tip = gitStore.tip as IValidBranch
+      await gitStore.loadLocalCommits(tip.branch)
+
+      expect(gitStore.localCommitSHAs.length).to.equal(1)
+
       await gitStore.undoCommit(commit!)
+
+      // validate the tip is now unborn
+      await gitStore.loadStatus()
+      expect(gitStore.tip.kind).to.equal(TipState.Unborn)
+
+      // this is how the app-store re-evaluates the list
+      await gitStore.loadLocalCommits(null)
 
       expect(gitStore.localCommitSHAs).to.be.empty
     })
