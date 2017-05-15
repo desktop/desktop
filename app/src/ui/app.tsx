@@ -42,7 +42,7 @@ import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
-import { ConfirmDialog } from '../ui/confirm-dialog'
+import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-repository'
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 
@@ -810,11 +810,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         const repo = popup.repository
 
         return (
-          <ConfirmDialog
+          <ConfirmRemoveRepository
             key='remove-repository-confirmation'
-            title='Remove Repository'
-            message='Are you sure you want to remove this repository?'
-            onConfirmation={() => this.onConfirmRepoRemoval(repo)}
+            repository={repo}
+            onConfirmation={this.onConfirmRepoRemoval}
             onDismissed={this.onPopupDismissed}
           />
         )
