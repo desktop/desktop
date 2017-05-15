@@ -981,7 +981,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const releaseNotesUri = 'https://desktop.github.com/release-notes/tng/'
+    const releaseNotesUri = 'https://desktop.github.com/release-notes/'
 
     return (
       <UpdateAvailable
