@@ -1,7 +1,9 @@
+import * as Path from 'path'
 import { shell, Menu, ipcMain, app } from 'electron'
 import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
+import { LogFolder } from '../../lib/logging/logger'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template = new Array<Electron.MenuItemOptions>()
@@ -261,9 +263,9 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   }
 
   const showLogsItem: Electron.MenuItemOptions = {
-    label: __DARWIN__ ? 'Show Logs In Finder' : 'S&how logs in Explorer',
+    label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
     click() {
-      const path = app.getPath('userData')
+      const path = Path.join(app.getPath('userData'), LogFolder)
       shell.showItemInFolder(path)
     },
   }
