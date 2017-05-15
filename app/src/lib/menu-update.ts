@@ -145,8 +145,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.setEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
-    menuStateBuilder.setEnabled('push', !networkActionInProgress)
-    menuStateBuilder.setEnabled('pull', !networkActionInProgress)
+    menuStateBuilder.setEnabled('push', hasPublishedBranch && !networkActionInProgress)
+    menuStateBuilder.setEnabled('pull', hasPublishedBranch && !networkActionInProgress)
     menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
   } else {
     for (const id of repositoryScopedIDs) {
@@ -169,7 +169,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
 /**
  * Update the menu state in the main process.
- * 
+ *
  * This function will set the enabledness and visibility of menu items
  * in the main process based on the AppState. All changes will be
  * batched together into one ipc message.
