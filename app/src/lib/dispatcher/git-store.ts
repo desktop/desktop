@@ -322,7 +322,15 @@ export class GitStore {
   /** The most recently checked out branches. */
   public get recentBranches(): ReadonlyArray<Branch> { return this._recentBranches }
 
-  /** Load the local commits. */
+  /**
+   * Load local commits into memory for the current repository.
+   *
+   * @param branch The branch to query for unpublished commits.
+   *
+   * If the tip of the repository does not have commits (i.e. is unborn), this
+   * should be invoked with `null`, which clears any existing commits from the
+   * store.
+   */
   public async loadLocalCommits(branch: Branch | null): Promise<void> {
 
     if (branch === null) {
