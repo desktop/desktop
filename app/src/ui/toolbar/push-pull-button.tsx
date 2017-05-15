@@ -27,7 +27,10 @@ interface IPushPullButtonProps {
   readonly progress: Progress | null
 
   readonly dispatcher: Dispatcher
+
   readonly repository: Repository
+
+  readonly branchExists: boolean
 }
 
 /**
@@ -49,7 +52,9 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
       ? progress.value
       : undefined
 
-    const disabled = this.props.networkActionInProgress || !!this.props.progress
+    const disabled = this.props.branchExists
+     ? this.props.networkActionInProgress || !!this.props.progress
+     : true
 
     return (
       <ToolbarButton
