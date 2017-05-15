@@ -103,16 +103,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
 
   public render() {
     const fileList = this.props.workingDirectory.files
+    const selectedRow = fileList.findIndex(file => file.id === this.props.selectedFileID)
     const fileCount = fileList.length
-    let selectedRow = -1
-
-    if (fileCount > 0) {
-      const fileIndex = fileList.findIndex(file => file.id === this.props.selectedFileID)
-
-      selectedRow = fileIndex !== -1 ? fileIndex : 0
-      this.props.onFileSelectionChanged(selectedRow)
-    }
-
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const anyFilesSelected = fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
