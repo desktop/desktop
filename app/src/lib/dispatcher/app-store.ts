@@ -1481,6 +1481,17 @@ export class AppStore {
 
     await gitStore.undoCommit(commit)
 
+    const state = this.getRepositoryState(repository)
+    const selectedCommit = state.historyState.selection.sha
+
+    if (selectedCommit === commit.sha) {
+      // clear the selection of this commit in the history view
+      this.updateHistoryState(repository, state => {
+        const selection = { sha: null, file: null }
+        return { selection }
+      })
+    }
+
     return this._refreshRepository(repository)
   }
 
