@@ -22,7 +22,7 @@ GitHub Desktop will create directories to manage the files and data it needs to 
 
 ### Windows
 
- - `%LOCALAPPDATA%\desktop\` - contains the latest versions of the app, and some older versions if the user has updated from a previous version.
+ - `%LOCALAPPDATA%\GitHubDesktop\` - contains the latest versions of the app, and some older versions if the user has updated from a previous version.
  - `%APPDATA%\GitHub Desktop\` - this directory contains user-specific data which the application requires to run, and is created on launch if it doesn't exist. Log files are also stored in this location.
 
 ## Log Files

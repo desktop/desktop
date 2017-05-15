@@ -130,12 +130,12 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: { [id: string]: IMenuItemState }) => {
+  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: Array<{ id: string, state: IMenuItemState }>) => {
     let sendMenuChangedEvent = false
 
-    for (const id of Object.keys(items)) {
+    for (const item of items) {
+      const { id, state } = item
       const menuItem = findMenuItemByID(menu, id)
-      const state = items[id]
 
       if (menuItem) {
         // Only send the updated app menu when the state actually changes
