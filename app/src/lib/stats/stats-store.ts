@@ -10,6 +10,9 @@ import { merge } from '../../lib/merge'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
+/** The URL to the stats samples page. */
+export const SamplesURL = 'https://desktop.github.com/samples/beta'
+
 const LastDailyStatsReportKey = 'last-daily-stats-report'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
