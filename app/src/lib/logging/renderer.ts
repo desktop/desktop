@@ -1,13 +1,13 @@
 import { getUserDataPath  } from '../../ui/lib/app-proxy'
 import * as Path from 'path'
 
-import { ILogger, createLogger } from './logger'
+import { ILogger, createLogger, LogFolder } from './logger'
 
 let logger: ILogger | null = null
 
 async function getLogger(): Promise<ILogger> {
   if (!logger) {
-    const directory = Path.join(getUserDataPath(), 'logs')
+    const directory = Path.join(getUserDataPath(), LogFolder)
     logger = await createLogger(directory)
   }
   return logger

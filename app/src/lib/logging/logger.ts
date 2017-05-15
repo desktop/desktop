@@ -6,6 +6,8 @@ import * as Path from 'path'
 
 import { ElectronConsole } from './electron-console'
 
+export const LogFolder = 'logs'
+
 export interface ILogger {
   readonly debug: (message: string) => void
   readonly info: (message: string) => void
