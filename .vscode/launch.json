@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-        "name": "Main",
+        "name": "[macOS] Main",
         "type": "node",
         "request": "launch",
         "program": "${workspaceRoot}/out/main.js",
@@ -25,7 +25,7 @@
         "console": "integratedTerminal"
     },
     {
-        "name": "Renderer",
+        "name": "[macOS] Renderer",
         "type": "chrome",
         "request": "launch",
         "runtimeExecutable": "${workspaceRoot}/dist/GitHub Desktop-dev-darwin-x64/GitHub Desktop-dev.app/Contents/MacOS/GitHub Desktop-dev",
@@ -47,8 +47,8 @@
   ],
   "compounds": [
         {
-            "name": "Desktop",
-            "configurations": ["Main", "Renderer"]
+            "name": "[macOS] Desktop",
+            "configurations": ["[macOS] Main", "[macOS] Renderer"]
         }
     ]
 }
