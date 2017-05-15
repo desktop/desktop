@@ -1,29 +1,32 @@
 import * as React from 'react'
-import { ButtonGroup } from '../ui/lib/button-group'
-import { Button } from '../ui/lib/button'
-import { Dialog, DialogContent, DialogFooter } from '../ui/dialog'
+import { ButtonGroup } from '../../ui/lib/button-group'
+import { Button } from '../../ui/lib/button'
+import { Dialog, DialogContent, DialogFooter } from '../../ui/dialog'
+import { Repository } from '../../models/repository'
 
-interface IConfirmDialogProps {
+interface IConfirmRemoveRepositoryProps {
   /** The title of the dialog window */
   readonly title: string
 
   /** The message to be displayed */
   readonly message: string
 
+  readonly repository: Repository
+
   /** The action to execute when the user confirms */
-  readonly onConfirmation: () => void
+  readonly onConfirmation: (repo: Repository) => void
 
   /** The action to execute when the user cancels */
   readonly onDismissed: () => void
 }
 
-export class ConfirmDialog extends React.Component<IConfirmDialogProps, void> {
+export class ConfirmRemoveRepository extends React.Component<IConfirmRemoveRepositoryProps, void> {
   private cancel = () => {
     this.props.onDismissed()
   }
 
   private onConfirmed = () => {
-    this.props.onConfirmation()
+    this.props.onConfirmation(this.props.repository)
     this.props.onDismissed()
   }
 
