@@ -124,6 +124,18 @@ describe('GitStore', () => {
       expect(context).to.not.be.null
       expect(context!.summary).to.equal(commitMessage)
     })
+
+    it('clears the undo commit dialog', async () => {
+      const gitStore = new GitStore(repo!, shell)
+
+      const commit = await getCommit(repo!, 'master')
+      expect(commit).to.not.equal(null)
+      expect(commit!.parentSHAs.length).to.equal(0)
+
+      await gitStore.undoCommit(commit!)
+
+      expect(gitStore.localCommitSHAs).to.be.empty
+    })
   })
 
   it('hides commented out lines from MERGE_MSG', async () => {
