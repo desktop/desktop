@@ -17,11 +17,11 @@ import {
 import { API } from '../lib/api'
 import { reportError } from '../ui/lib/exception-reporting'
 
-import { getLogger } from '../lib/logging/renderer'
+import { logError } from '../lib/logging/renderer'
 
 process.on('uncaughtException', (error: Error) => {
 
-  getLogger().error('Uncaught exception on shared process', error)
+  logError('Uncaught exception on shared process', error)
 
   reportError(error)
 })

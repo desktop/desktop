@@ -5,11 +5,16 @@ import { ILogger, createLogger } from './logger'
 
 let logger: ILogger | null = null
 
-export function getLogger(): ILogger {
+async function getLogger(): Promise<ILogger> {
   if (!logger) {
     const userData = app.getPath('userData')
     const directory = Path.join(userData, 'logs')
-    logger = createLogger(directory)
+    logger = await createLogger(directory)
   }
   return logger
+}
+
+export async function logError(message: string, error?: Error): Promise<void> {
+  const logger = await getLogger()
+  logger.error(message, error)
 }

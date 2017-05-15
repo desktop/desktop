@@ -8,7 +8,7 @@ import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
 import { showFallbackPage } from './error-page'
-import { getLogger } from '../lib/logging/main'
+import { logError } from '../lib/logging/main'
 import { IMenuItemState } from '../lib/menu-update'
 
 let mainWindow: AppWindow | null = null
@@ -26,7 +26,7 @@ let readyTime: number | null = null
 let launchURLAction: URLActionType | null = null
 
 process.on('uncaughtException', (error: Error) => {
-  getLogger().error('Uncaught exception on main process', error)
+  logError('Uncaught exception on main process', error)
 
   if (sharedProcess) {
     sharedProcess.console.error('Uncaught exception:')
