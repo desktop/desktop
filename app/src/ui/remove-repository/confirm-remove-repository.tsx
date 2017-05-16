@@ -36,7 +36,7 @@ export class ConfirmRemoveRepository extends React.Component<IConfirmRemoveRepos
         onSubmit={this.onConfirmed}
       >
         <DialogContent>
-          <p>Are you sure you want to remove this repository?</p>
+          <p>Are you sure you want to remove the repository "{this.props.repository.name}"?</p>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
