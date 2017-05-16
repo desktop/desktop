@@ -229,8 +229,9 @@ export class API {
       // GitHub Enterprise does not have the concept of private emails
       : await this.client.user.emails.fetch()
 
-    const emails: ReadonlyArray<IAPIEmail> = result.items
-    return emails
+    return result && Array.isArray(result.items)
+      ? result.items as ReadonlyArray<IAPIEmail>
+      : []
   }
 
   /** Fetch a commit from the repository. */
@@ -459,7 +460,9 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
     // GitHub Enterprise does not have the concept of private emails
     : await octo.user.emails.fetch()
 
-  const emails: ReadonlyArray<IAPIEmail> = result.items
+  const emails = result && Array.isArray(result.items)
+    ? result.items as ReadonlyArray<IAPIEmail>
+    : []
 
   return new Account(user.login, endpoint, token, emails, user.avatarUrl, user.id, user.name)
 }
