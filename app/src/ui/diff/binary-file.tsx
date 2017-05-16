@@ -20,7 +20,7 @@ export class BinaryFile extends React.Component<IBinaryFileProps, void> {
   }
 
   public render() {
-    return <div className='panel' id='diff'>
+    return <div className='panel binary' id='diff'>
       <div className='image-header'>
         This binary file has changed.
       </div>
