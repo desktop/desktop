@@ -79,7 +79,8 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
           label='Username or email address'
           disabled={disabled}
           autoFocus={true}
-          onChange={this.onUsernameChange}/>
+          onChange={this.onUsernameChange}
+          tabIndex={1}/>
 
         <TextBox
           label='Password'
@@ -87,7 +88,8 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
           disabled={disabled}
           onChange={this.onPasswordChange}
           labelLinkText='Forgot password?'
-          labelLinkUri={this.props.forgotPasswordUrl}/>
+          labelLinkUri={this.props.forgotPasswordUrl}
+          tabIndex={2}/>
 
         {this.renderError()}
 
