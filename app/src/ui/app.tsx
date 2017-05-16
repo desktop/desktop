@@ -885,6 +885,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       onSelectionChanged={this.onSelectionChanged}
       dispatcher={this.props.dispatcher}
       repositories={this.state.repositories}
+      onRemoveRepository={this.removeRepository}
     />
   }
 
