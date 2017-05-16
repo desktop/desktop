@@ -1,6 +1,6 @@
 @import "../mixins";
 
-.vertical-segmented-control {
+fieldset.vertical-segmented-control {
 
   // Reset styles for fieldset
   border: none;
@@ -31,6 +31,7 @@
       border-right: var(--base-border);
       border-top: var(--base-border);
       border-bottom: none;
+      margin: 0;
 
       &:last-child {
         border-bottom: var(--base-border);
