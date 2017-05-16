@@ -261,7 +261,7 @@ export class API {
   /** Fetch all the orgs to which the user belongs. */
   public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
     const result = await this.client.user.orgs.fetch()
-    return result.items
+    return result.items || []
   }
 
   /** Create a new GitHub repository with the given properties. */
