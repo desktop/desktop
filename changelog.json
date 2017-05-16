@@ -3,6 +3,19 @@
     "0.5.2": [
 
     ],
+    "0.5.2": [
+      "[Fixed] Display errors that happen while publishing a repository - #1396",
+      "[Fixed] Menu items not updating - #1462",
+      "[Fixed] Always select the first changed file - #1306",
+      "[Fixed] macOS: Use Title Case consistently - #1477 #1481",
+      "[Fixed] Create Branch padding - #1479",
+      "[Fixed] Bottom padding in commit descriptions - #1345",
+      "[Improved] Dialog polish - #1451",
+      "[Improved] Store logs in a logs directory - #1370",
+      "[Improved] New Welcome illustrations - #1471",
+      "[Improved] Request confirmation before removing a repository - #1233",
+      "[Improved] Windows icon polish - #1457"
+    ],
     "0.5.1": [
       "[New] Windows: A nice little gif while installing the app - #1440",
       "[Fixed] Disable pinch zoom - #1431",
