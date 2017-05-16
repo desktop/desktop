@@ -41,7 +41,7 @@ interface IAboutState {
   readonly updateState: IUpdateState
 }
 
-const releaseNotesUri = 'https://desktop.github.com/release-notes/tng/'
+const releaseNotesUri = 'https://desktop.github.com/release-notes/'
 
 /**
  * A dialog that presents information about the
