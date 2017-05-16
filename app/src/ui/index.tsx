@@ -47,7 +47,7 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
-process.on('uncaughtException', (error: Error) => {
+process.once('uncaughtException', (error: Error) => {
   reportError(error)
   logError('Uncaught exception on renderer process', error)
   postUnhandledError(error)
