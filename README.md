@@ -6,6 +6,8 @@ GitHub Desktop is an open source [Electron](https://electron.atom.io)-based
 GitHub app. It is written in [TypeScript](http://www.typescriptlang.org) and
 uses [React](https://facebook.github.io/react/).
 
+![GitHub Desktop screenshot - Windows](https://cloud.githubusercontent.com/assets/359239/26094502/a1f56d02-3a5d-11e7-8799-23c7ba5e5106.png)
+
 ## Where can I get it?
 
 Download the installer for your OS:
