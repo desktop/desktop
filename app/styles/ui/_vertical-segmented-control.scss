@@ -27,11 +27,11 @@ fieldset.vertical-segmented-control {
 
     li {
       padding: var(--spacing);
+      margin: 0;
       border-left: var(--base-border);
       border-right: var(--base-border);
       border-top: var(--base-border);
       border-bottom: none;
-      margin: 0;
 
       &:last-child {
         border-bottom: var(--base-border);
