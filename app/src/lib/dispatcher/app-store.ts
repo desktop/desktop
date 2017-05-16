@@ -701,7 +701,7 @@ export class AppStore {
 
     const confirmRepoRemovalValue = localStorage.getItem(confirmRepoRemovalKey)
 
-    this.confirmRepoRemoval = confirmRepoRemovalValue === undefined
+    this.confirmRepoRemoval = confirmRepoRemovalValue === null
       ? confirmRepoRemovalDefault
       : confirmRepoRemovalValue === '1'
 
