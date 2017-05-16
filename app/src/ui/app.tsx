@@ -453,7 +453,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.addRepositories(paths)
   }
 
-  private removeRepository(repository: Repository | CloningRepository | null) {
+  private removeRepository = (repository: Repository | CloningRepository | null) => {
 
     if (!repository) {
       return
