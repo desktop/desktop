@@ -296,6 +296,15 @@ dialog {
   &#about { width: 450px; }
   &#create-branch { width: 400px; }
 
+  &#confirm-remove-repository {
+    width: 450px;
+
+    .description {
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+  }
+
   &#sign-in {
     width: 400px;
 

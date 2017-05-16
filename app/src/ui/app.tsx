@@ -42,6 +42,7 @@ import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
+import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-repository'
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 
@@ -169,7 +170,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'add-local-repository': return this.showAddLocalRepo()
       case 'create-branch': return this.showCreateBranch()
       case 'show-branches': return this.showBranches()
-      case 'remove-repository': return this.removeRepository()
+      case 'remove-repository': return this.removeRepository(this.getRepository())
       case 'create-repository': return this.showCreateRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
@@ -452,13 +453,25 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.addRepositories(paths)
   }
 
-  private removeRepository() {
-    const repository = this.getRepository()
+  private removeRepository = (repository: Repository | CloningRepository | null) => {
 
     if (!repository) {
       return
     }
 
+    if (repository instanceof CloningRepository) {
+      this.props.dispatcher.removeRepositories([ repository ])
+      return
+    }
+
+    if (this.state.confirmRepoRemoval) {
+      this.props.dispatcher.showPopup({ type: PopupType.RemoveRepository, repository })
+    } else {
+      this.props.dispatcher.removeRepositories([ repository ])
+    }
+  }
+
+  private onConfirmRepoRemoval = (repository: Repository) => {
     this.props.dispatcher.removeRepositories([ repository ])
   }
 
@@ -671,8 +684,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         return <Preferences
                 key='preferences'
                 dispatcher={this.props.dispatcher}
-                appStore={this.props.appStore}
                 dotComAccount={this.getDotComAccount()}
+                confirmRepoRemoval={this.state.confirmRepoRemoval}
+                optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
                 enterpriseAccount={this.getEnterpriseAccount()}
                 onDismissed={this.onPopupDismissed}/>
       case PopupType.MergeBranch: {
@@ -796,6 +810,16 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
+      case PopupType.RemoveRepository:
+        const repo = popup.repository
+
+        return (
+          <ConfirmRemoveRepository
+            repository={repo}
+            onConfirmation={this.onConfirmRepoRemoval}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       case PopupType.TermsAndConditions:
         return <TermsAndConditions onDismissed={this.onPopupDismissed}/>
       default:
@@ -861,6 +885,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       onSelectionChanged={this.onSelectionChanged}
       dispatcher={this.props.dispatcher}
       repositories={this.state.repositories}
+      onRemoveRepository={this.removeRepository}
     />
   }
 
