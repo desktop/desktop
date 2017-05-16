@@ -298,7 +298,13 @@ dialog {
 
   &#confirm-remove-repository {
     width: 450px;
+
+    .description {
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
   }
+
   &#sign-in {
     width: 400px;
 
