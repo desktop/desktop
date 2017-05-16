@@ -155,7 +155,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
         return (
           <p>
             Your new branch will be based on your currently checked out
-            branch ({currentBranch.name}). This branch is
+            branch ({currentBranch.name}). {currentBranch.name} is
             the {defaultBranchLink} for your repository.
           </p>
         )
