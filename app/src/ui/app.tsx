@@ -170,7 +170,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'add-local-repository': return this.showAddLocalRepo()
       case 'create-branch': return this.showCreateBranch()
       case 'show-branches': return this.showBranches()
-      case 'remove-repository': return this.removeRepository()
+      case 'remove-repository': return this.removeRepository(this.getRepository())
       case 'create-repository': return this.showCreateRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
@@ -453,10 +453,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.addRepositories(paths)
   }
 
-  private removeRepository() {
-    const repository = this.getRepository()
+  private removeRepository(repository: Repository | CloningRepository | null) {
 
-    if (!repository || repository instanceof CloningRepository) {
+    if (!repository) {
+      return
+    }
+
+    if (repository instanceof CloningRepository) {
+      this.props.dispatcher.removeRepositories([ repository ])
       return
     }
 
