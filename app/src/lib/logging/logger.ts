@@ -66,10 +66,13 @@ export function createLogger(directory: string): Promise<ILogger> {
   return new Promise<ILogger>((resolve, reject) => {
     Fs.mkdir(directory, (error) => {
       if (error) {
-        reject(error)
-      } else {
-        resolve(create(getLogFilePath(directory)))
+        if (error.code !== 'EEXIST') {
+          reject(error)
+          return
+        }
       }
+
+      resolve(create(getLogFilePath(directory)))
     })
   })
 }
