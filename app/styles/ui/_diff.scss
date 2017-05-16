@@ -178,7 +178,7 @@
   padding: var(--spacing) 0 var(--spacing-half) 0;
   margin-left: auto;
   margin-right: auto;
-
+  flex-shrink: 0;
 }
 
 #diff img {
