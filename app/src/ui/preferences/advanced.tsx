@@ -3,6 +3,7 @@ import { DialogContent } from '../dialog'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
 import { Row } from '../../ui/lib/row'
+import { SamplesURL } from '../../lib/stats'
 
 interface IAdvancedPreferencesProps {
   readonly isOptedOut: boolean,
@@ -15,8 +16,6 @@ interface IAdvancedPreferencesState {
   readonly reportingOptOut: boolean
   readonly confirmRepoRemoval: boolean
 }
-
-const SamplesURL = 'https://desktop.github.com/samples/tng'
 
 export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvancedPreferencesState> {
   public constructor(props: IAdvancedPreferencesProps) {

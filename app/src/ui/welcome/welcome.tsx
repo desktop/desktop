@@ -27,6 +27,10 @@ interface IWelcomeState {
   readonly currentStep: WelcomeStep
 }
 
+const WelcomeRightImageUri = `file:///${__dirname}/static/welcome-illustration-right.svg`
+const WelcomeLeftTopImageUri = `file:///${__dirname}/static/welcome-illustration-left-top.svg`
+const WelcomeLeftBottomImageUri = `file:///${__dirname}/static/welcome-illustration-left-bottom.svg`
+
 /** The Welcome flow. */
 export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   public constructor(props: IWelcomeProps) {
@@ -143,20 +147,19 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     this.props.dispatcher.endWelcomeFlow()
   }
 
-
   public render() {
-   const WelcomeImageUri = `file:///${__dirname}/static/illustration.svg`
-
     return (
       <UiView id='welcome'>
         <div className='welcome-left'>
           <div className='welcome-content'>
             {this.getComponentForCurrentStep()}
+            <img className='welcome-graphic-top' src={WelcomeLeftTopImageUri} />
+            <img className='welcome-graphic-bottom' src={WelcomeLeftBottomImageUri} />
           </div>
         </div>
 
         <div className='welcome-right'>
-         <img className='welcome-graphic' src={WelcomeImageUri} />
+         <img className='welcome-graphic' src={WelcomeRightImageUri} />
         </div>
       </UiView>
     )
