@@ -3,6 +3,10 @@
     "0.5.3": [
 
     ],
+    "0.5.3": [
+      "[Fixed] Display of large image diffs - #1494",
+      "[Fixed] Discard Changes spacing - #1495"
+    ],
     "0.5.2": [
       "[Fixed] Display errors that happen while publishing a repository - #1396",
       "[Fixed] Menu items not updating - #1462",
