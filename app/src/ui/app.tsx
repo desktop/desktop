@@ -882,7 +882,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       title = repository.name
     } else {
       icon = OcticonSymbol.repo
-      title = 'Select a repository'
+      title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
     }
 
     const isOpen = this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Repository
@@ -900,7 +900,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <ToolbarDropdown
       icon={icon}
       title={title}
-      description='Current repository'
+      description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
       foldoutStyle={foldoutStyle}
       onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
       dropdownContentRenderer={this.renderRepositoryList}
