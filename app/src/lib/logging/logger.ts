@@ -64,12 +64,20 @@ function create(filename: string) {
 
 export function createLogger(directory: string): Promise<ILogger> {
   return new Promise<ILogger>((resolve, reject) => {
-    Fs.mkdir(directory, (error) => {
-      if (error) {
-        reject(error)
-      } else {
+    Fs.exists(directory, (exists) => {
+
+      if (exists) {
         resolve(create(getLogFilePath(directory)))
+        return
       }
+
+      Fs.mkdir(directory, (error) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(create(getLogFilePath(directory)))
+        }
+      })
     })
   })
 }
