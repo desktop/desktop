@@ -28,6 +28,7 @@ export class ConfirmRemoveRepository extends React.Component<IConfirmRemoveRepos
   public render() {
     return (
       <Dialog
+        id='confirm-remove-repository'
         key='remove-repository-confirmation'
         type='warning'
         title={ __DARWIN__ ? 'Remove Repository' : 'Remove repository' }
