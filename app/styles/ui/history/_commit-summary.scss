@@ -32,15 +32,10 @@
     .commit-summary-description-scroll-view {
       max-height: none;
       overflow: auto;
-    }
-  }
 
-  &.collapsed {
-    .commit-summary-description {
-      // When the body is collapsed we skip the bottom padding, this makes
-      // it much more clear to the user that there's more to read. With a
-      // bottom padding it appears as if it's all there is.
-      padding-bottom: 0;
+      &:before {
+        content: none;
+      }
     }
   }
 
@@ -80,7 +75,16 @@
 
   &-description-scroll-view {
     overflow: hidden;
-    max-height: 60px;
+    // The extra pixel makes the space align up with the commit list.
+    max-height: 61px;
+
+    &:before {
+      content: "";
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 40px, rgba(255, 255, 255, 0.5) 40px, white 60px);
+      position: absolute;
+      height: 100%;
+      width: 100%;
+    }
   }
 
   // Enable text selection inside the title and description elements.
