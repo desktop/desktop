@@ -75,11 +75,12 @@
 
   &-description-scroll-view {
     overflow: hidden;
-    max-height: 50px;
+    // The extra pixel makes the space align up with the commit list.
+    max-height: 61px;
 
     &:before {
       content: "";
-      background: linear-gradient(180deg, rgba(255,255,255,0) 40px, rgba(255,255,255,0.8));
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 40px, rgba(255, 255, 255, 0.5) 40px, white 60px);
       position: absolute;
       height: 100%;
       width: 100%;
