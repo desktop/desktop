@@ -11,7 +11,7 @@ export const LogFolder = 'logs'
 export interface ILogger {
   readonly debug: (message: string) => void
   readonly info: (message: string) => void
-  readonly error: (message: string, error?: Error) => void
+  readonly error: (message: string) => void
 }
 
 /** resolve the log file location based on the current environment */
@@ -47,18 +47,9 @@ function create(filename: string) {
   })
 
   return {
-    debug: (message: string) => winston.debug(message),
-    info: (message: string) => winston.info(message),
-    error: (message: string, error?: Error) => {
-      if (error) {
-        winston.error(message)
-        winston.error(` - name: ${error.name}`)
-        winston.error(` - message: ${error.message}`)
-        winston.error(` - stack: ${error.stack}`)
-      } else {
-        winston.error(message)
-      }
-    },
+    debug: winston.debug,
+    info: winston.info,
+    error: winston.error,
   }
 }
 
