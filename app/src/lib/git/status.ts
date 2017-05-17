@@ -4,7 +4,7 @@ import {
   WorkingDirectoryFileChange,
   AppFileStatus,
   FileStatus,
-  GitFileStatus,
+  GitStatusEntry,
 } from '../../models/status'
 import { parsePorcelainStatus, mapStatus } from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
@@ -69,8 +69,8 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
       const status = mapStatus(entry.statusCode)
 
       if (status.kind === 'ordinary') {
-        if (status.staged === GitFileStatus.Added
-            && status.unstaged === GitFileStatus.Deleted) {
+        if (status.staged === GitStatusEntry.Added
+            && status.unstaged === GitStatusEntry.Deleted) {
           // we can safely avoid drawing this file in the app
           continue
         }

@@ -2,9 +2,13 @@ import { DiffSelection } from './diff'
 import { OcticonSymbol } from '../ui/octicons'
 import { assertNever } from '../lib/fatal-error'
 
-// NOTE: 'U' is considered "Updated but unmerged", and is a valid code here,
-// but instead we mark this as "Modified" when surfacing conflicts.
-export enum GitFileStatus {
+/**
+ * The status entry code as reported by Git
+ *
+ * NOTE: 'U' is considered "Updated but unmerged", and is a valid code here,
+ * but instead we mark this as "Modified" when surfacing conflicts.
+ */
+export enum GitStatusEntry {
   // M
   Modified,
   // A
@@ -38,25 +42,25 @@ type OrdinaryChange = {
    /** how we should represent the file in the application */
   readonly type: 'added' | 'modified' | 'deleted',
   /** the staged status of the file (if known) */
-  readonly staged?: GitFileStatus,
+  readonly staged?: GitStatusEntry,
   /** the unstaged status of the file (if known) */
-  readonly unstaged?: GitFileStatus,
+  readonly unstaged?: GitStatusEntry,
 }
 
 type RenamedOrCopiedChange = {
   readonly kind: 'renamed' | 'copied',
   /** the staged status of the file (if known) */
-  readonly staged?: GitFileStatus,
+  readonly staged?: GitStatusEntry,
   /** the unstaged status of the file (if known) */
-  readonly unstaged?: GitFileStatus,
+  readonly unstaged?: GitStatusEntry,
 }
 
 type UnmergedChange = {
   readonly kind: 'conflicted',
   /** the first character of the short code ("ours")  */
-  readonly us: GitFileStatus,
+  readonly us: GitStatusEntry,
   /** the second character of the short code ("theirs")  */
-  readonly them: GitFileStatus,
+  readonly them: GitStatusEntry,
 }
 
 type UntrackedChange = {

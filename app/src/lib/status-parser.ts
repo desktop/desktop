@@ -1,4 +1,4 @@
-import { FileStatus, GitFileStatus } from '../models/status'
+import { FileStatus, GitStatusEntry } from '../models/status'
 
 type StatusItem = IStatusHeader | IStatusEntry
 
@@ -152,8 +152,8 @@ export function mapStatus(status: string): FileStatus {
   if (status === '??') {
     return {
       kind: 'untracked',
-      staged: GitFileStatus.Untracked,
-      unstaged: GitFileStatus.Untracked,
+      staged: GitStatusEntry.Untracked,
+      unstaged: GitStatusEntry.Untracked,
     }
   }
 
@@ -161,8 +161,8 @@ export function mapStatus(status: string): FileStatus {
     return {
       kind: 'ordinary',
       type: 'modified',
-      staged: GitFileStatus.Unchanged,
-      unstaged: GitFileStatus.Modified,
+      staged: GitStatusEntry.Unchanged,
+      unstaged: GitStatusEntry.Modified,
     }
   }
 
@@ -170,8 +170,8 @@ export function mapStatus(status: string): FileStatus {
     return {
       kind: 'ordinary',
       type: 'modified',
-      staged: GitFileStatus.Modified,
-      unstaged: GitFileStatus.Unchanged,
+      staged: GitStatusEntry.Modified,
+      unstaged: GitStatusEntry.Unchanged,
     }
   }
 
@@ -179,8 +179,8 @@ export function mapStatus(status: string): FileStatus {
     return {
       kind: 'ordinary',
       type: 'added',
-      staged: GitFileStatus.Unchanged,
-      unstaged: GitFileStatus.Added,
+      staged: GitStatusEntry.Unchanged,
+      unstaged: GitStatusEntry.Added,
     }
   }
 
@@ -188,8 +188,8 @@ export function mapStatus(status: string): FileStatus {
     return {
       kind: 'ordinary',
       type: 'added',
-      staged: GitFileStatus.Added,
-      unstaged: GitFileStatus.Unchanged,
+      staged: GitStatusEntry.Added,
+      unstaged: GitStatusEntry.Unchanged,
     }
   }
 
@@ -197,8 +197,8 @@ export function mapStatus(status: string): FileStatus {
     return {
       kind: 'ordinary',
       type: 'deleted',
-      staged: GitFileStatus.Unchanged,
-      unstaged: GitFileStatus.Deleted,
+      staged: GitStatusEntry.Unchanged,
+      unstaged: GitStatusEntry.Deleted,
     }
   }
 
@@ -206,40 +206,40 @@ export function mapStatus(status: string): FileStatus {
     return {
       kind: 'ordinary',
       type: 'deleted',
-      staged: GitFileStatus.Deleted,
-      unstaged: GitFileStatus.Unchanged,
+      staged: GitStatusEntry.Deleted,
+      unstaged: GitStatusEntry.Unchanged,
     }
   }
 
   if (status === 'R.') {
     return {
       kind: 'renamed',
-      staged: GitFileStatus.Renamed,
-      unstaged: GitFileStatus.Unchanged,
+      staged: GitStatusEntry.Renamed,
+      unstaged: GitStatusEntry.Unchanged,
     }
   }
 
   if (status === '.R') {
     return {
       kind: 'renamed',
-      staged: GitFileStatus.Unchanged,
-      unstaged: GitFileStatus.Renamed,
+      staged: GitStatusEntry.Unchanged,
+      unstaged: GitStatusEntry.Renamed,
     }
   }
 
   if (status === 'C.') {
     return {
       kind: 'copied',
-      staged: GitFileStatus.Renamed,
-      unstaged: GitFileStatus.Unchanged,
+      staged: GitStatusEntry.Renamed,
+      unstaged: GitStatusEntry.Unchanged,
     }
   }
 
   if (status === '.C') {
     return {
       kind: 'copied',
-      staged: GitFileStatus.Unchanged,
-      unstaged: GitFileStatus.Renamed,
+      staged: GitStatusEntry.Unchanged,
+      unstaged: GitStatusEntry.Renamed,
     }
   }
 
@@ -247,80 +247,80 @@ export function mapStatus(status: string): FileStatus {
     return {
       kind: 'ordinary',
       type: 'added',
-      staged: GitFileStatus.Added,
-      unstaged: GitFileStatus.Modified,
+      staged: GitStatusEntry.Added,
+      unstaged: GitStatusEntry.Modified,
     }
   }
 
   if (status === 'RM') {
     return {
       kind: 'renamed',
-      staged: GitFileStatus.Renamed,
-      unstaged: GitFileStatus.Modified,
+      staged: GitStatusEntry.Renamed,
+      unstaged: GitStatusEntry.Modified,
     }
   }
 
   if (status === 'RD') {
     return {
       kind: 'renamed',
-      staged: GitFileStatus.Renamed,
-      unstaged: GitFileStatus.Deleted,
+      staged: GitStatusEntry.Renamed,
+      unstaged: GitStatusEntry.Deleted,
     }
   }
 
   if (status === 'DD') {
     return {
       kind: 'conflicted',
-      us: GitFileStatus.Deleted,
-      them: GitFileStatus.Deleted,
+      us: GitStatusEntry.Deleted,
+      them: GitStatusEntry.Deleted,
     }
   }
 
   if (status === 'AU') {
     return {
       kind: 'conflicted',
-      us: GitFileStatus.Added,
-      them: GitFileStatus.Modified,
+      us: GitStatusEntry.Added,
+      them: GitStatusEntry.Modified,
     }
   }
 
   if (status === 'UD') {
     return {
       kind: 'conflicted',
-      us: GitFileStatus.Modified,
-      them: GitFileStatus.Deleted,
+      us: GitStatusEntry.Modified,
+      them: GitStatusEntry.Deleted,
     }
   }
 
   if (status === 'UA') {
     return {
       kind: 'conflicted',
-      us: GitFileStatus.Modified,
-      them: GitFileStatus.Added,
+      us: GitStatusEntry.Modified,
+      them: GitStatusEntry.Added,
     }
   }
 
   if (status === 'DU') {
     return {
       kind: 'conflicted',
-      us: GitFileStatus.Deleted,
-      them: GitFileStatus.Modified,
+      us: GitStatusEntry.Deleted,
+      them: GitStatusEntry.Modified,
     }
   }
 
   if (status === 'AA') {
     return {
       kind: 'conflicted',
-      us: GitFileStatus.Added,
-      them: GitFileStatus.Added,
+      us: GitStatusEntry.Added,
+      them: GitStatusEntry.Added,
     }
   }
 
     if (status === 'UU') {
     return {
       kind: 'conflicted',
-      us: GitFileStatus.Modified,
-      them: GitFileStatus.Modified,
+      us: GitStatusEntry.Modified,
+      them: GitStatusEntry.Modified,
     }
   }
 
