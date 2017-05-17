@@ -75,6 +75,11 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   ipcRenderer.send('show-contextual-menu', items)
 }
 
+/**
+ * Dispatches the given log entry to the main process where it will be picked
+ * written to all log transports. See initializeWinston in logger.ts for more
+ * details about what transports we set up.
+ */
 export function log(entry: ILogEntry) {
   ipcRenderer.send('log', entry)
 }
