@@ -75,11 +75,9 @@ export async function getLogger(): Promise<winston.LogMethod> {
 
   return await new Promise<winston.LogMethod>((resolve, reject) => {
     Fs.mkdir(directory, (error) => {
-      if (error) {
-        if (error.code !== 'EEXIST') {
-          reject(error)
-          return
-        }
+      if (error && error.code !== 'EEXIST') {
+        reject(error)
+        return
       }
 
       const logger = initializeWinston(getLogFilePath(directory))
