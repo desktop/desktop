@@ -20,9 +20,7 @@ import { reportError } from '../ui/lib/exception-reporting'
 import { logError } from '../lib/logging/renderer'
 
 process.on('uncaughtException', (error: Error) => {
-
   logError('Uncaught exception on shared process', error)
-
   reportError(error)
 })
 
