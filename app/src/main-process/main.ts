@@ -58,20 +58,7 @@ function uncaughtException(error: Error) {
 let launchURLAction: URLActionType | null = null
 
 process.on('uncaughtException', (error: Error) => {
-
-  logError('Uncaught exception on main process', error)
-
-  if (sharedProcess) {
-    sharedProcess.console.error('Uncaught exception:')
-    sharedProcess.console.error(error.name)
-    sharedProcess.console.error(error.message)
-  }
-
-  if (mainWindow) {
-    mainWindow.sendException(error)
-  } else {
-    showFallbackPage(error)
-  }
+  uncaughtException(error)
 })
 
 if (__WIN32__ && process.argv.length > 1) {
