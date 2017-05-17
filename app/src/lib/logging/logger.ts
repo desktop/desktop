@@ -25,8 +25,8 @@ export function getLogFilePath(directory: string): string {
 function create(filename: string) {
   const fileLogger = new winston.transports.DailyRotateFile({
     filename,
-    humanReadableUnhandledException: true,
-    handleExceptions: true,
+    // We'll do this ourselves, thank you
+    handleExceptions: false,
     json: false,
     datePattern: 'yyyy-MM-dd.',
     prepend: true,
