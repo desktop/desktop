@@ -1,4 +1,5 @@
-import { getLogger, ILogger } from '../logging/logger'
+import { getLogger } from '../logging/logger'
+import { LogMethod } from 'winston'
 
 /**
  * The maximum number of log entries to store while instantiating the logger.
@@ -24,7 +25,7 @@ export function formatError(error: Error, title?: string) {
 
 class Logger {
 
-  private logger: ILogger | null = null
+  private logger: LogMethod | null = null
   private isCreatingLogger = false
   private readonly queue = new Array<ILogEntry>()
 
@@ -45,7 +46,7 @@ class Logger {
     // Drain the queue
     const logger = this.logger
 
-    this.queue.forEach(entry => logger.log(entry.kind, entry.message))
+    this.queue.forEach(entry => logger(entry.kind, entry.message))
     this.queue.length = 0
   }
 
@@ -58,7 +59,7 @@ class Logger {
         this.queue.shift()
       }
     } else {
-      this.logger.log(entry.kind, entry.message)
+      this.logger(entry.kind, entry.message)
     }
   }
 

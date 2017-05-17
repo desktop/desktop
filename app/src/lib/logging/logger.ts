@@ -9,13 +9,6 @@ import { ElectronConsole } from './electron-console'
 
 export const LogFolder = 'logs'
 
-export interface ILogger {
-  readonly log: (level: string, message: string) => void
-  readonly debug: (message: string) => void
-  readonly info: (message: string) => void
-  readonly error: (message: string) => void
-}
-
 /** resolve the log file location based on the current environment */
 export function getLogFilePath(directory: string): string {
   const environment = process.env.NODE_ENV || 'production'
@@ -33,7 +26,7 @@ export function getLogFilePath(directory: string): string {
  *             path such that passing a path '/logs/foo' will end up
  *             writing to '/logs/2017-05-17.foo'
  */
-function initializeWinston(path: string): ILogger {
+function initializeWinston(path: string): winston.LogMethod {
   const fileLogger = new winston.transports.DailyRotateFile({
     filename: path,
     // We'll do this ourselves, thank you
@@ -57,21 +50,21 @@ function initializeWinston(path: string): ILogger {
     ],
   })
 
-  return {
-    log: winston.log,
-    debug: winston.debug,
-    info: winston.info,
-    error: winston.error,
-  }
+  return winston.log
 }
 
-let logger: ILogger | null = null
+let logger: winston.LogMethod | null = null
 
 /**
- * Initializes and configures winston (if necessary) and returns an ILogger
- * instance configured to write to Electron's console and to disk.
+ * Initializes and configures winston (if necessary) to write to Electron's
+ * console as well as to disk.
+ * 
+ * @returns a function reference which can be used to write log entries,
+ *          this function is equivalent to that of winston.log in that
+ *          it accepts a log level, a message and an optional callback
+ *          for when the event has been written to all destinations.
  */
-export async function getLogger(): Promise<ILogger> {
+export async function getLogger(): Promise<winston.LogMethod> {
 
   if (logger) {
     return logger
@@ -80,7 +73,7 @@ export async function getLogger(): Promise<ILogger> {
   const userData = app.getPath('userData')
   const directory = Path.join(userData, LogFolder)
 
-  return await new Promise<ILogger>((resolve, reject) => {
+  return await new Promise<winston.LogMethod>((resolve, reject) => {
     Fs.mkdir(directory, (error) => {
       if (error) {
         if (error.code !== 'EEXIST') {
