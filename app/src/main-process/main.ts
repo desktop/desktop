@@ -50,7 +50,9 @@ function uncaughtException(error: Error) {
       `This has been reported to the team, but if you encounter this repeatedly please report ` +
       `this issue to the GitHub Desktop issue tracker.\n\n${error.stack || error.message}`,
   }, (response) => {
-    // app.relaunch()
+    if (!__DEV__) {
+      app.relaunch()
+    }
     app.quit()
   })
 }
