@@ -22,6 +22,16 @@ export function getLogFilePath(directory: string): string {
   return Path.join(directory, fileName)
 }
 
+/**
+ * Initializes winston and returns a subset of the available log level
+ * methods (debug, info, error). This method should only be called once
+ * during an applications lifetime.
+ * 
+ * @param path The path where to write log files. This path will have
+ *             the current date prepended to the basename part of the
+ *             path such that passing a path '/logs/foo' will end up
+ *             writing to '/logs/2017-05-17.foo'
+ */
 function initializeWinston(path: string) {
   const fileLogger = new winston.transports.DailyRotateFile({
     filename: path,
@@ -55,6 +65,10 @@ function initializeWinston(path: string) {
 
 let logger: ILogger | null = null
 
+/**
+ * Initializes and configures winston (if necessary) and returns an ILogger
+ * instance configured to write to Electron's console and to disk.
+ */
 export async function getLogger(): Promise<ILogger> {
 
   if (logger) {
