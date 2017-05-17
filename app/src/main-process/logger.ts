@@ -18,6 +18,21 @@ function write(entry: ILogEntry, logger: ILogger) {
   assertNever(entry.kind, `Unknown entry type ${entry.kind}`)
 }
 
+export function formatError(error: Error, title?: string) {
+  const indent = '  '
+  const stack = error.stack
+    ? '\n' + error.stack.replace(/^/mg, indent)
+    : undefined
+
+  const errorTitle = `${error.name}: ${error.message}`
+
+  if (title) {
+    return `${title}\n${indent}${errorTitle}${stack}`
+  } else {
+    return `${errorTitle}${stack}`
+  }
+}
+
 export class Logger {
 
   private logger: ILogger | null = null
