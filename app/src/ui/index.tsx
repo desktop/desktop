@@ -9,7 +9,6 @@ import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepos
 import { URLActionType } from '../lib/parse-url'
 import { SelectionType } from '../lib/app-state'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
-import { reportError } from './lib/exception-reporting'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import {
@@ -20,6 +19,9 @@ import {
 } from '../lib/dispatcher'
 import { logError } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
+import { sendErrorReport } from './main-process-proxy'
+import { getOS } from '../lib/get-os'
+import { getGUID } from '../lib/stats'
 
 if (__DEV__) {
   installDevGlobals()
@@ -48,9 +50,17 @@ if (!process.env.TEST_ENV) {
 }
 
 process.once('uncaughtException', (error: Error) => {
-  reportError(error)
   logError('Uncaught exception on renderer process', error)
   postUnhandledError(error)
+  if (__DEV__ || process.env.TEST_ENV) {
+    console.error(`An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`)
+    return
+  } else {
+    sendErrorReport(error, {
+      osVersion: getOS(),
+      guid: getGUID(),
+    })
+  }
 })
 
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))

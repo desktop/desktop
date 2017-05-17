@@ -10,6 +10,7 @@ import { fatalError } from '../lib/fatal-error'
 import { showFallbackPage } from './error-page'
 import { IMenuItemState } from '../lib/menu-update'
 import { ILogEntry, logError, log } from '../lib/logging/main'
+import { reportError } from './exception-reporting'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -197,6 +198,10 @@ app.on('ready', () => {
 
   ipcMain.on('log', (event: Electron.IpcMainEvent, logEntry: ILogEntry) => {
     log(logEntry)
+  })
+
+  ipcMain.on('send-error-report', (event: Electron.IpcMainEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
+    reportError(error, extra)
   })
 
   autoUpdater.on('error', err => {

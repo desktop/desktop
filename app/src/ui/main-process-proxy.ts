@@ -83,3 +83,18 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
 export function log(entry: ILogEntry) {
   ipcRenderer.send('log', entry)
 }
+
+function getIpcFriendlyError(error: Error) {
+  return {
+    message: error.message || `${error}`,
+    name: error.name || `${error.name}`,
+    stack: error.stack || undefined,
+  }
+}
+
+export function sendErrorReport(error: Error, extra: { [key: string]: string } = { }) {
+  ipcRenderer.send('send-error-report', {
+    error: getIpcFriendlyError(error),
+    extra,
+  })
+}
