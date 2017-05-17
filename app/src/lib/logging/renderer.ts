@@ -9,6 +9,9 @@ import { log } from '../../ui/main-process-proxy'
  */
 export function logInfo(message: string) {
   log({ level: 'info', message })
+  if (__DEV__) {
+    console.info(message)
+  }
 }
 
 /**
@@ -19,6 +22,9 @@ export function logInfo(message: string) {
  */
 export function logDebug(message: string) {
   log({ level: 'debug', message })
+  if (__DEV__) {
+    console.debug(message)
+  }
 }
 
 /**
@@ -33,4 +39,6 @@ export function logError(message: string, error?: Error) {
   } else {
     log({ level: 'error', message })
   }
+
+  console.error(message, error)
 }
