@@ -276,14 +276,19 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   ]
 
   if (__DEV__) {
-    const throwUnhandledError: Electron.MenuItemOptions = {
-      label: 'Boomtown…',
-      click () {
-        throw new Error('Boomtown!')
+    helpItems.push(
+      separator,
+      {
+        label: 'Crash main process…',
+        click () {
+          throw new Error('Boomtown!')
+        },
       },
-    }
-
-    helpItems.push(throwUnhandledError)
+      {
+        label: 'Crash renderer process…',
+        click: emit('boomtown'),
+      },
+    )
   }
 
   if (__DARWIN__) {

@@ -185,9 +185,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-in-shell' : return this.openShell()
       case 'clone-repository': return this.showCloneRepo()
       case 'show-about': return this.showAbout()
+      case 'boomtown': return this.boomtown()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
+  }
+
+  private boomtown() {
+    setImmediate(() => {
+      throw new Error('Boomtown!')
+    })
   }
 
   private checkForUpdates() {
