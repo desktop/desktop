@@ -8,5 +8,10 @@
     margin: 0;
     padding: 0;
     margin-bottom: var(--spacing);
+
+    li {
+      padding-left: 0;
+      margin-bottom: 0;
+    }
   }
 }

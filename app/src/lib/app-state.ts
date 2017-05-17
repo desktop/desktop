@@ -46,6 +46,13 @@ export interface IAppState {
    * The current state of the Window, ie maximized, minimized full-screen etc.
    */
   readonly windowState: WindowState
+
+  /**
+   * A value indicating whether or not the current application
+   * window has focus.
+   */
+  readonly appIsFocused: boolean
+
   readonly showWelcomeFlow: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
@@ -103,6 +110,9 @@ export interface IAppState {
 
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
+
+  /** Whether we should show a confirmation dialog */
+  readonly confirmRepoRemoval: boolean
 }
 
 export enum PopupType {
@@ -122,6 +132,8 @@ export enum PopupType {
   PublishRepository,
   Acknowledgements,
   UntrustedCertificate,
+  RemoveRepository,
+  TermsAndConditions,
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -139,7 +151,9 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.InstallGit, path: string } |
                     { type: PopupType.PublishRepository, repository: Repository } |
                     { type: PopupType.Acknowledgements } |
-                    { type: PopupType.UntrustedCertificate, certificate: Electron.Certificate, url: string }
+                    { type: PopupType.UntrustedCertificate, certificate: Electron.Certificate, url: string } |
+                    { type: PopupType.RemoveRepository, repository: Repository } |
+                    { type: PopupType.TermsAndConditions }
 
 export enum FoldoutType {
   Repository,

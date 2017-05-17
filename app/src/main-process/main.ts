@@ -8,7 +8,8 @@ import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
 import { showFallbackPage } from './error-page'
-import { getLogger } from '../lib/logging/main'
+import { logError } from '../lib/logging/main'
+import { IMenuItemState } from '../lib/menu-update'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -25,7 +26,7 @@ let readyTime: number | null = null
 let launchURLAction: URLActionType | null = null
 
 process.on('uncaughtException', (error: Error) => {
-  getLogger().error('Uncaught exception on main process', error)
+  logError('Uncaught exception on main process', error)
 
   if (sharedProcess) {
     sharedProcess.console.error('Uncaught exception:')
@@ -46,7 +47,7 @@ if (__WIN32__ && process.argv.length > 1) {
   }
 }
 
-const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
+const isDuplicateInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
   // Someone tried to run a second instance, we should focus our window.
   if (mainWindow) {
     if (mainWindow.isMinimized()) {
@@ -63,7 +64,7 @@ const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
   }
 })
 
-if (shouldQuit) {
+if (isDuplicateInstance) {
   app.quit()
 }
 
@@ -88,6 +89,8 @@ app.on('will-finish-launching', () => {
 })
 
 app.on('ready', () => {
+  if (isDuplicateInstance) { return }
+
   const now = Date.now()
   readyTime = now - launchTime
 
@@ -127,37 +130,28 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, { id, enabled }: { id: string, enabled: boolean }) => {
-    const menuItem = findMenuItemByID(menu, id)
-    if (menuItem) {
-      // Only send the updated app menu when the state actually changes
-      // or we might end up introducing a never ending loop between
-      // the renderer and the main process
-      if (menuItem.enabled !== enabled) {
-        menuItem.enabled = enabled
-        if (mainWindow) {
-          mainWindow.sendAppMenu()
-        }
-      }
-    } else {
-      fatalError(`Unknown menu id: ${id}`)
-    }
-  })
+  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: Array<{ id: string, state: IMenuItemState }>) => {
+    let sendMenuChangedEvent = false
 
-  ipcMain.on('set-menu-visible', (event: Electron.IpcMainEvent, { id, visible }: { id: string, visible: boolean }) => {
-    const menuItem = findMenuItemByID(menu, id)
-    if (menuItem) {
-      // Only send the updated app menu when the state actually changes
-      // or we might end up introducing a never ending loop between
-      // the renderer and the main process
-      if (menuItem.visible !== visible) {
-        menuItem.visible = visible
-        if (mainWindow) {
-          mainWindow.sendAppMenu()
+    for (const item of items) {
+      const { id, state } = item
+      const menuItem = findMenuItemByID(menu, id)
+
+      if (menuItem) {
+        // Only send the updated app menu when the state actually changes
+        // or we might end up introducing a never ending loop between
+        // the renderer and the main process
+        if (state.enabled !== undefined && menuItem.enabled !== state.enabled) {
+          menuItem.enabled = state.enabled
+          sendMenuChangedEvent = true
         }
+      } else {
+        fatalError(`Unknown menu id: ${id}`)
       }
-    } else {
-      fatalError(`Unknown menu id: ${id}`)
+    }
+
+    if (sendMenuChangedEvent && mainWindow) {
+      mainWindow.sendAppMenu()
     }
   })
 

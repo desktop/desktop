@@ -20,6 +20,7 @@ interface IAcknowledgementsProps {
 interface ILicense {
   readonly repository?: string
   readonly sourceText?: string
+  readonly license?: string
 }
 
 type Licenses = { [key: string]: ILicense }
@@ -63,24 +64,29 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
 
       const license = licenses[key]
       const repository = license.repository
-      let nameElement: JSX.Element
+      let nameElement
+
       if (repository) {
-        nameElement = (
-          <p className='license-name'>
-            <LinkButton uri={normalizedGitHubURL(repository)}>{key}</LinkButton>
-          </p>
-        )
+        const uri = normalizedGitHubURL(repository)
+        nameElement = <LinkButton uri={uri}>{key}</LinkButton>
       } else {
-        nameElement = <p className='license-name'>{key}</p>
+        nameElement = key
       }
 
-      const licenseText = license.sourceText ? license.sourceText : `License: ${key}`
-      elements.push(
-        <div key={key}>
-          {nameElement}
-          <p className='license-text'>{licenseText}</p>
-        </div>
-      )
+      let licenseText
+
+      if (license.sourceText) {
+        licenseText = license.sourceText
+      } else if (license.license) {
+        licenseText = `License: ${license.license}`
+      } else {
+        licenseText = 'Unknown license'
+      }
+
+      const nameHeader = <h2 key={`${key}-header`}>{nameElement}</h2>
+      const licenseParagraph = <p key={`${key}-text`} className='license-text'>{licenseText}</p>
+
+      elements.push(nameHeader, licenseParagraph)
     }
 
     return elements
@@ -97,9 +103,7 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
         <DialogContent>
           <p>GitHub Desktop stands on the shoulders of giants! We're <LinkButton uri={RepositoryURL}>open source</LinkButton>, built on <LinkButton uri={ElectronURL}>Electron</LinkButton> and written in <LinkButton uri={TypeScriptURL}>TypeScript</LinkButton>. Check out <LinkButton uri={RepositoryURL}>our repository</LinkButton> for more details.</p>
 
-          <div id='licenses'>
-            {licenses ? this.renderLicenses(licenses) : <Loading/>}
-          </div>
+          {licenses ? this.renderLicenses(licenses) : <Loading/>}
         </DialogContent>
 
         <DialogFooter>

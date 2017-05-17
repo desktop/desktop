@@ -11,7 +11,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
 import { NoRemote } from './no-remote'
-import { getLogger } from '../../lib/logging/renderer'
+import { logError } from '../../lib/logging/renderer'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -52,7 +52,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
       const ignoreText = await this.props.dispatcher.readGitIgnore(this.props.repository)
       this.setState({ ignoreText })
     } catch (e) {
-      getLogger().error(`RepositorySettings: unable to read .gitignore file at ${this.props.repository.path}`, e)
+      logError(`RepositorySettings: unable to read .gitignore file at ${this.props.repository.path}`, e)
       this.setState({ errors: [ `Could not read .gitignore: ${e}` ] })
     }
   }
@@ -159,7 +159,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
             this.state.remote.url
           )
         } catch (e) {
-          getLogger().error(`RepositorySettings: unable to set remote URL at ${this.props.repository.path}`, e)
+          logError(`RepositorySettings: unable to set remote URL at ${this.props.repository.path}`, e)
           errors.push(`Failed setting the remote URL: ${e}`)
         }
       }
@@ -169,7 +169,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
       try {
         await this.props.dispatcher.saveGitIgnore(this.props.repository, this.state.ignoreText || '')
       } catch (e) {
-        getLogger().error(`RepositorySettings: unable to save gitignore at ${this.props.repository.path}`, e)
+        logError(`RepositorySettings: unable to save gitignore at ${this.props.repository.path}`, e)
         errors.push(`Failed saving the .gitignore file: ${e}`)
       }
     }

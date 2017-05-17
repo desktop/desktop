@@ -2,16 +2,14 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import { SelectionType } from '../lib/app-state'
-import { sendReady } from './main-process-proxy'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { reportError } from './lib/exception-reporting'
-import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import {
@@ -20,7 +18,7 @@ import {
   backgroundTaskHandler,
   unhandledExceptionHandler,
 } from '../lib/dispatcher'
-import { getLogger } from '../lib/logging/renderer'
+import { logError } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
 
 if (__DEV__) {
@@ -49,9 +47,9 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
-process.on('uncaughtException', (error: Error) => {
-  reportError(error, getVersion())
-  getLogger().error('Uncaught exception on renderer process', error)
+process.once('uncaughtException', (error: Error) => {
+  reportError(error)
+  logError('Uncaught exception on renderer process', error)
   postUnhandledError(error)
 })
 
@@ -79,7 +77,7 @@ function postUnhandledError(error: Error) {
 
 // NOTE: we consider all main-process-exceptions coming through here to be unhandled
 ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
-  reportError(error, getVersion())
+  reportError(error)
   postUnhandledError(error)
 })
 
@@ -88,17 +86,15 @@ dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 dispatcher.registerErrorHandler(unhandledExceptionHandler)
 
-dispatcher.loadInitialState().then(() => {
-  const now = Date.now()
-  sendReady(now - startTime)
-})
-
 document.body.classList.add(`platform-${process.platform}`)
+
+dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState
   if (!state || state.type !== SelectionType.Repository) { return }
 
+  dispatcher.setAppFocusState(true)
   dispatcher.refreshRepository(state.repository)
 })
 
@@ -107,6 +103,7 @@ ipcRenderer.on('blur', () => {
   // when someone uses Alt+Tab to switch application since we won't
   // get the onKeyUp event for the Alt key in that case.
   dispatcher.setAccessKeyHighlightState(false)
+  dispatcher.setAppFocusState(false)
 })
 
 ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
@@ -114,6 +111,6 @@ ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { ac
 })
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore} startTime={startTime}/>,
   document.getElementById('desktop-app-container')!
 )

@@ -22,9 +22,9 @@ GitHub Desktop will create directories to manage the files and data it needs to 
 
 ### Windows
 
- - `%LOCALAPPDATA%\desktop\` - contains the latest versions of the app, and some older versions if the user has updated from a previous version.
+ - `%LOCALAPPDATA%\GitHubDesktop\` - contains the latest versions of the app, and some older versions if the user has updated from a previous version.
  - `%APPDATA%\GitHub Desktop\` - this directory contains user-specific data which the application requires to run, and is created on launch if it doesn't exist. Log files are also stored in this location.
 
 ## Log Files
 
-GitHub Desktop will generate log files if an unhandled exception is raised, to assist with troubleshooting. They are located in the data directory that GitHub Desktop uses (see above) and have the format `YYYY-MM-DD.desktop.production.log`, where `YYYY-MM-DD` is the day the log was created.
+GitHub Desktop will generate log files if an unhandled exception is raised, to assist with troubleshooting. They are located in the data directory that GitHub Desktop uses (see above) under a `logs` subdirectory, organized by date using the format `YYYY-MM-DD.desktop.production.log`, where `YYYY-MM-DD` is the day the log was created.

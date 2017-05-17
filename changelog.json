@@ -1,7 +1,50 @@
 {
   "releases": {
-    "0.0.40": [
+    "0.5.4": [
 
+    ],
+    "0.5.3": [
+      "[Fixed] Display of large image diffs - #1494",
+      "[Fixed] Discard Changes spacing - #1495"
+    ],
+    "0.5.2": [
+      "[Fixed] Display errors that happen while publishing a repository - #1396",
+      "[Fixed] Menu items not updating - #1462",
+      "[Fixed] Always select the first changed file - #1306",
+      "[Fixed] macOS: Use Title Case consistently - #1477 #1481",
+      "[Fixed] Create Branch padding - #1479",
+      "[Fixed] Bottom padding in commit descriptions - #1345",
+      "[Improved] Dialog polish - #1451",
+      "[Improved] Store logs in a logs directory - #1370",
+      "[Improved] New Welcome illustrations - #1471",
+      "[Improved] Request confirmation before removing a repository - #1233",
+      "[Improved] Windows icon polish - #1457"
+    ],
+    "0.5.1": [
+      "[New] Windows: A nice little gif while installing the app - #1440",
+      "[Fixed] Disable pinch zoom - #1431",
+      "[Fixed] Don't show carriage return indicators in diffs - #1444",
+      "[Fixed] History wouldn't update after switching branches - #1446",
+      "[Improved] Include more information in exception reports - #1429",
+      "[Improved] Updated Terms and Conditions - #1438",
+      "[Improved] Sub-pixel anti-aliasing in some lists - #1452",
+      "[Improved] Windows: A new application identifier, less likely to collide with other apps - #1441"
+    ],
+    "0.5.0": [
+      "[Added] Menu item for showing the app logs - #1349",
+      "[Fixed] Don't let the two-factor authentication dialog be submitted while it's empty - #1386",
+      "[Fixed] Undo Commit showing the wrong commit - #1373",
+      "[Fixed] Windows: Update the icon used for the installer - #1410",
+      "[Fixed] Undoing the first commit - #1401",
+      "[Fixed] A second window would be opened during the OAuth dance - #1382",
+      "[Fixed] Don't include the comment from the default merge commit message - #1367",
+      "[Fixed] Show progress while committing - #923",
+      "[Fixed] Windows: Merge Branch sizing would be wrong on high DPI monitors - #1210",
+      "[Fixed] Windows: Resize the app from the top left corner - #1424",
+      "[Fixed] Changing the destination path for cloning a repository now appends the repository's name - #1408",
+      "[Fixed] The blank slate view could be visible briefly when the app launched - #1398",
+      "[Improved] Performance updating menu items - #1321",
+      "[Improved] Windows: Dim the title bar when the app loses focus - #1189"
     ],
     "0.0.39": [
       "[Fixed] An uncaught exception when adding a user - #1394"

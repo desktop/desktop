@@ -34,9 +34,11 @@
   .panel {
     display: flex;
     flex: 1;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+
+    &.empty, &.renamed, &.binary {
+      justify-content: center;
+      align-items: center;
+    }
   }
 }
 

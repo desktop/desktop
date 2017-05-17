@@ -8,11 +8,17 @@ import {
   getStatus,
   createCommit,
   getCommits,
+  getCommit,
   getChangedFiles,
   getWorkingDirectoryDiff,
 } from '../../../src/lib/git'
 
-import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
+import {
+  setupFixtureRepository,
+  setupEmptyRepository,
+  setupConflictedRepo,
+} from '../../fixture-helper'
+
 import { GitProcess } from 'dugite'
 import { AppFileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
 import { DiffSelectionType, DiffSelection, ITextDiff, DiffType } from '../../../src/models/diff'
@@ -56,6 +62,25 @@ describe('git/commit', () => {
       const commits = await getCommits(repository!, 'HEAD', 100)
       expect(commits.length).to.equal(6)
       expect(commits[0].summary).to.equal('Special commit')
+    })
+
+    it('commit does not strip commentary by default', async () => {
+      fs.writeFileSync(path.join(repository!.path, 'README.md'), 'Hi world\n')
+
+      const status = await getStatus(repository!)
+      const files = status.workingDirectory.files
+      expect(files.length).to.equal(1)
+
+      const message = `Special commit
+
+# this is a comment`
+
+      await createCommit(repository!, message, files)
+
+      const commit = await getCommit(repository!, 'HEAD')
+      expect(commit).to.not.be.null
+      expect(commit!.summary).to.equal('Special commit')
+      expect(commit!.body).to.equal('# this is a comment\n')
     })
 
     it('can commit for empty repository', async () => {
@@ -297,7 +322,6 @@ describe('git/commit', () => {
     })
 
     it('can commit renames with modifications', async () => {
-
       const repo = await setupEmptyRepository()
 
       fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
@@ -364,26 +388,8 @@ describe('git/commit', () => {
 
   describe('createCommit with a merge conflict', () => {
     it('creates a merge commit', async () => {
-      const repo = await setupEmptyRepository()
+      const repo = await setupConflictedRepo()
       const filePath = path.join(repo.path, 'foo')
-
-      fs.writeFileSync(filePath, '')
-      await GitProcess.exec([ 'add', 'foo' ], repo.path)
-      await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
-
-      await GitProcess.exec([ 'branch', 'other-branch' ], repo.path)
-
-      fs.writeFileSync(filePath, 'b1')
-      await GitProcess.exec([ 'add', 'foo' ], repo.path)
-      await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
-
-      await GitProcess.exec([ 'checkout', 'other-branch' ], repo.path)
-
-      fs.writeFileSync(filePath, 'b2')
-      await GitProcess.exec([ 'add', 'foo' ], repo.path)
-      await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
-
-      await GitProcess.exec([ 'merge', 'master' ], repo.path)
 
       const inMerge = fs.existsSync(path.join(repo.path, '.git', 'MERGE_HEAD'))
       expect(inMerge).to.equal(true)

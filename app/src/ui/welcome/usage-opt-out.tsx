@@ -6,8 +6,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Form } from '../lib/form'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
-
-const SamplesURL = 'https://desktop.github.com/samples/'
+import { SamplesURL } from '../../lib/stats'
 
 interface IUsageOptOutProps {
   readonly dispatcher: Dispatcher

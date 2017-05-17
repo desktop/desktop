@@ -1,9 +1,12 @@
 import * as winston from 'winston'
 require('winston-daily-rotate-file')
 
+import * as Fs from 'fs-extra'
 import * as Path from 'path'
 
 import { ElectronConsole } from './electron-console'
+
+export const LogFolder = 'logs'
 
 export interface ILogger {
   readonly debug: (message: string) => void
@@ -12,7 +15,7 @@ export interface ILogger {
 }
 
 /** resolve the log file location based on the current environment */
-function getLogFilePath(directory: string): string {
+export function getLogFilePath(directory: string): string {
   const environment = process.env.NODE_ENV || 'production'
   const fileName = `desktop.${environment}.log`
   return Path.join(directory, fileName)
@@ -59,7 +62,18 @@ function create(filename: string) {
   }
 }
 
-export function createLogger(directory: string): ILogger {
-  return create(getLogFilePath(directory))
+export function createLogger(directory: string): Promise<ILogger> {
+  return new Promise<ILogger>((resolve, reject) => {
+    Fs.mkdir(directory, (error) => {
+      if (error) {
+        if (error.code !== 'EEXIST') {
+          reject(error)
+          return
+        }
+      }
+
+      resolve(create(getLogFilePath(directory)))
+    })
+  })
 }
 

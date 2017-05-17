@@ -84,7 +84,7 @@ export class Dispatcher {
   public async loadInitialState(): Promise<void> {
     const users = await this.loadUsers()
     const repositories = await this.loadRepositories()
-    this.appStore._loadFromSharedProcess(users, repositories)
+    this.appStore._loadFromSharedProcess(users, repositories, true)
   }
 
   private dispatchToSharedProcess<T>(action: Action): Promise<T> {
@@ -119,7 +119,7 @@ export class Dispatcher {
     const state: { repositories: ReadonlyArray<IRepository>, accounts: ReadonlyArray<IAccount> } = args[0].state
     const inflatedAccounts = state.accounts.map(Account.fromJSON)
     const inflatedRepositories = state.repositories.map(Repository.fromJSON)
-    this.appStore._loadFromSharedProcess(inflatedAccounts, inflatedRepositories)
+    this.appStore._loadFromSharedProcess(inflatedAccounts, inflatedRepositories, false)
   }
 
   /** Get the users */
@@ -798,6 +798,10 @@ export class Dispatcher {
     await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-path', repository, path })
   }
 
+  public async setAppFocusState(isFocused: boolean): Promise<void> {
+    await this.appStore._setAppFocusState(isFocused)
+  }
+
   public async dispatchURLAction(action: URLActionType): Promise<void> {
     switch (action.name) {
       case 'oauth':
@@ -828,6 +832,13 @@ export class Dispatcher {
       default:
         console.log(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
     }
+  }
+
+  /**
+   * Sets the user's preference so that confirmation to remove repo is not asked
+   */
+  public setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
+    return this.appStore._setConfirmRepoRemoval(value)
   }
 
   private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryArgs): Promise<void> {
