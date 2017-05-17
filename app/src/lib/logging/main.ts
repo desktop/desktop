@@ -1,6 +1,4 @@
-import { app } from 'electron'
-import * as Path from 'path'
-import { createLogger, ILogger, LogFolder } from '../logging/logger'
+import { getLogger, ILogger } from '../logging/logger'
 import { assertNever } from '../fatal-error'
 
 /**
@@ -47,11 +45,8 @@ class Logger {
       return
     }
 
-    const userData = app.getPath('userData')
-    const directory = Path.join(userData, LogFolder)
-
     try {
-      this.logger = await createLogger(directory)
+      this.logger = await getLogger()
     } catch (error) {
       /* welp */
       return

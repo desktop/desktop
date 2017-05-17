@@ -1,3 +1,4 @@
+import { app } from 'electron'
 import * as winston from 'winston'
 require('winston-daily-rotate-file')
 
@@ -21,10 +22,9 @@ export function getLogFilePath(directory: string): string {
   return Path.join(directory, fileName)
 }
 
-/** wireup the file and console loggers */
-function create(filename: string) {
+function initializeWinston(path: string) {
   const fileLogger = new winston.transports.DailyRotateFile({
-    filename,
+    filename: path,
     // We'll do this ourselves, thank you
     handleExceptions: false,
     json: false,
@@ -53,8 +53,18 @@ function create(filename: string) {
   }
 }
 
-export function createLogger(directory: string): Promise<ILogger> {
-  return new Promise<ILogger>((resolve, reject) => {
+let logger: ILogger | null = null
+
+export async function getLogger(): Promise<ILogger> {
+
+  if (logger) {
+    return logger
+  }
+
+  const userData = app.getPath('userData')
+  const directory = Path.join(userData, LogFolder)
+
+  return await new Promise<ILogger>((resolve, reject) => {
     Fs.mkdir(directory, (error) => {
       if (error) {
         if (error.code !== 'EEXIST') {
@@ -63,7 +73,8 @@ export function createLogger(directory: string): Promise<ILogger> {
         }
       }
 
-      resolve(create(getLogFilePath(directory)))
+      const logger = initializeWinston(getLogFilePath(directory))
+      resolve(logger)
     })
   })
 }
