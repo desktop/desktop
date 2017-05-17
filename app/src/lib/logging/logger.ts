@@ -10,6 +10,7 @@ import { ElectronConsole } from './electron-console'
 export const LogFolder = 'logs'
 
 export interface ILogger {
+  readonly log: (level: string, message: string) => void
   readonly debug: (message: string) => void
   readonly info: (message: string) => void
   readonly error: (message: string) => void
@@ -32,7 +33,7 @@ export function getLogFilePath(directory: string): string {
  *             path such that passing a path '/logs/foo' will end up
  *             writing to '/logs/2017-05-17.foo'
  */
-function initializeWinston(path: string) {
+function initializeWinston(path: string): ILogger {
   const fileLogger = new winston.transports.DailyRotateFile({
     filename: path,
     // We'll do this ourselves, thank you
@@ -57,6 +58,7 @@ function initializeWinston(path: string) {
   })
 
   return {
+    log: winston.log,
     debug: winston.debug,
     info: winston.info,
     error: winston.error,

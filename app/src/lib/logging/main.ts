@@ -1,5 +1,4 @@
 import { getLogger, ILogger } from '../logging/logger'
-import { assertNever } from '../fatal-error'
 
 /**
  * The maximum number of log entries to store while instantiating the logger.
@@ -9,16 +8,6 @@ const maxQueueSize = 500
 export interface ILogEntry {
   kind: 'info' | 'debug' | 'error'
   readonly message: string
-}
-
-function write(entry: ILogEntry, logger: ILogger) {
-  switch (entry.kind) {
-    case 'info': return logger.info(entry.message)
-    case 'debug': return logger.info(entry.message)
-    case 'error': return logger.error(entry.message)
-  }
-
-  assertNever(entry.kind, `Unknown entry type ${entry.kind}`)
 }
 
 export function formatError(error: Error, title?: string) {
@@ -56,7 +45,7 @@ class Logger {
     // Drain the queue
     const logger = this.logger
 
-    this.queue.forEach(entry => write(entry, logger))
+    this.queue.forEach(entry => logger.log(entry.kind, entry.message))
     this.queue.length = 0
   }
 
@@ -69,7 +58,7 @@ class Logger {
         this.queue.shift()
       }
     } else {
-      write(entry, this.logger)
+      this.logger.log(entry.kind, entry.message)
     }
   }
 
