@@ -17,6 +17,9 @@ interface ILinkButtonProps {
 
   /** The tab index of the anchor element. */
   readonly tabIndex?: number
+
+  /** Disable the link from being clicked */
+  readonly disabled?: boolean
 }
 
 /** A link component. */
@@ -31,6 +34,7 @@ export class LinkButton extends React.Component<ILinkButtonProps, void> {
         href={href}
         onClick={this.onClick}
         tabIndex={this.props.tabIndex}
+        disabled={this.props.disabled}
       >
         {this.props.children}
       </a>
@@ -39,6 +43,10 @@ export class LinkButton extends React.Component<ILinkButtonProps, void> {
 
   private onClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault()
+
+    if (this.props.disabled) {
+      return
+    }
 
     const uri = this.props.uri
     if (uri) {
