@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { MenuIDs } from '../main-process/menu'
 import { IMenuItemState } from '../lib/menu-update'
+import { logError } from '../lib/logging/main'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(state: Array<{id: MenuIDs, state: IMenuItemState}>) {
@@ -65,6 +66,12 @@ export interface IMenuItem {
 export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   ipcRenderer.once('contextual-menu-action', (event: Electron.IpcRendererEvent, index: number) => {
     const item = items[index]
+
+    if (!item) {
+      logError(`Menu item at ${index} was selected but array has length: ${items.length}`)
+      return
+    }
+
     const action = item.action
     if (action) {
       action()
