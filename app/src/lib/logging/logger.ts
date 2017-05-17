@@ -5,8 +5,6 @@ require('winston-daily-rotate-file')
 import * as Fs from 'fs-extra'
 import * as Path from 'path'
 
-import { ElectronConsole } from './electron-console'
-
 export const LogFolder = 'logs'
 
 /** resolve the log file location based on the current environment */
@@ -38,9 +36,8 @@ function initializeWinston(path: string): winston.LogMethod {
     level: 'info',
   })
 
-  const level = process.env.NODE_ENV === 'development' ? 'debug' : 'error'
-  const consoleLogger = new ElectronConsole({
-    level,
+  const consoleLogger = new winston.transports.Console({
+    level: process.env.NODE_ENV === 'development' ? 'debug' : 'error',
   })
 
   winston.configure({
@@ -49,6 +46,9 @@ function initializeWinston(path: string): winston.LogMethod {
       fileLogger,
     ],
   })
+
+  winston.log('info', `initialized info ${process.env.NODE_ENV}`)
+  winston.log('debug', `initialized debug ${process.env.NODE_ENV}`)
 
   return winston.log
 }
