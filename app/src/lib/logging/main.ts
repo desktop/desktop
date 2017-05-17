@@ -19,17 +19,14 @@ function write(entry: ILogEntry, logger: ILogger) {
 }
 
 export function formatError(error: Error, title?: string) {
-  const indent = '  '
-  const stack = error.stack
-    ? '\n' + error.stack.replace(/^/mg, indent)
-    : undefined
-
-  const errorTitle = `${error.name}: ${error.message}`
-
-  if (title) {
-    return `${title}\n${indent}${errorTitle}${stack}`
+  if (error.stack) {
+    return title
+      ? `${title}\n${error.stack}`
+      : error.stack.trim()
   } else {
-    return `${errorTitle}${stack}`
+    return title
+      ? `${title}\n    ${error.name}: ${error.message}`
+      : `${error.name}: ${error.message}`
   }
 }
 
