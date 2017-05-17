@@ -143,8 +143,8 @@ export class StatsStore {
 
   /** Determines if an account is a dotCom and/or enterprise user */
   private determineUserType(accounts: ReadonlyArray<Account>) {
-    const dotComAccount = accounts.find(a => a.endpoint === getDotComAPIEndpoint()) !== undefined
-    const enterpriseAccount = accounts.find(a => a.endpoint !== getDotComAPIEndpoint()) !== undefined
+    const dotComAccount = !!accounts.find(a => a.endpoint === getDotComAPIEndpoint())
+    const enterpriseAccount = !!accounts.find(a => a.endpoint !== getDotComAPIEndpoint())
 
     return {
       dotComAccount,
