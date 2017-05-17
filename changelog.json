@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.5.5": [
+
+    ],
     "0.5.4": [
       "[Fixed] The release notes URL pointed to the wrong page - #1503",
       "[Fixed] Only create the `logs` directory if it doesn't already exist - #1510",
