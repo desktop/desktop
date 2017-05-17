@@ -3,6 +3,11 @@ import * as Path from 'path'
 import { createLogger, ILogger, LogFolder } from '../logging/logger'
 import { assertNever } from '../fatal-error'
 
+/**
+ * The maximum number of log entries to store while instantiating the logger.
+ */
+const maxQueueSize = 500
+
 export interface ILogEntry {
   kind: 'info' | 'debug' | 'error'
   readonly message: string
@@ -65,7 +70,7 @@ class Logger {
       this.createLogger()
       this.queue.push(entry)
 
-      if (this.queue.length > 500) {
+      if (this.queue.length > maxQueueSize) {
         this.queue.shift()
       }
     } else {
