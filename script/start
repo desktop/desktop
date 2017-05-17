@@ -8,7 +8,7 @@ const webpack = require('webpack')
 const configs = require('../app/webpack.development')
 
 function startApp() {
-  const runningApp = run()
+  const runningApp = run({ stdio: 'inherit' })
   if (!runningApp) {
     console.error("Couldn't launch the app. You probably need to build it first. Run `npm run build:dev`.")
     process.exit(1)

@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { MenuIDs } from '../main-process/menu'
 import { IMenuItemState } from '../lib/menu-update'
+import { ILogEntry } from '../lib/logging/main'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(state: Array<{id: MenuIDs, state: IMenuItemState}>) {
@@ -72,4 +73,13 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   })
 
   ipcRenderer.send('show-contextual-menu', items)
+}
+
+/**
+ * Dispatches the given log entry to the main process where it will be picked
+ * written to all log transports. See initializeWinston in logger.ts for more
+ * details about what transports we set up.
+ */
+export function log(entry: ILogEntry) {
+  ipcRenderer.send('log', entry)
 }
