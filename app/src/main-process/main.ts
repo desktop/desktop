@@ -202,7 +202,7 @@ app.on('ready', () => {
     log(logEntry)
   })
 
-  ipcMain.on('renderer-uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
+  ipcMain.on('uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
 
     preventQuit = true
 
