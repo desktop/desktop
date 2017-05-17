@@ -10,7 +10,6 @@ import { URLActionType } from '../lib/parse-url'
 import { SelectionType } from '../lib/app-state'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { reportError } from './lib/exception-reporting'
-import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import {
@@ -19,7 +18,7 @@ import {
   backgroundTaskHandler,
   unhandledExceptionHandler,
 } from '../lib/dispatcher'
-import { getLogger } from '../lib/logging/renderer'
+import { logError } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
 
 if (__DEV__) {
@@ -48,9 +47,9 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
-process.on('uncaughtException', (error: Error) => {
-  reportError(error, getVersion())
-  getLogger().error('Uncaught exception on renderer process', error)
+process.once('uncaughtException', (error: Error) => {
+  reportError(error)
+  logError('Uncaught exception on renderer process', error)
   postUnhandledError(error)
 })
 
@@ -78,7 +77,7 @@ function postUnhandledError(error: Error) {
 
 // NOTE: we consider all main-process-exceptions coming through here to be unhandled
 ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
-  reportError(error, getVersion())
+  reportError(error)
   postUnhandledError(error)
 })
 

@@ -1,7 +1,9 @@
+import * as Path from 'path'
 import { shell, Menu, ipcMain, app } from 'electron'
 import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
+import { LogFolder } from '../../lib/logging/logger'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template = new Array<Electron.MenuItemOptions>()
@@ -221,12 +223,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       separator,
       {
-        label: __DARWIN__ ? 'Update from default branch' : '&Update from default branch',
+        label: __DARWIN__ ? 'Update From Default Branch' : '&Update from default branch',
         id: 'update-branch',
         click: emit('update-branch'),
       },
       {
-        label: __DARWIN__ ? 'Merge into current branch…' : '&Merge into current branch…',
+        label: __DARWIN__ ? 'Merge Into Current Branch…' : '&Merge into current branch…',
         id: 'merge-branch',
         click: emit('merge-branch'),
       },
@@ -253,30 +255,22 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     })
   }
 
-  const contactSupportItem: Electron.MenuItemOptions = {
-    label: __DARWIN__ ? 'Contact GitHub Support…' : 'Contact GitHub &support…',
-    click () {
-      shell.openExternal('https://github.com/support')
-    },
-  }
-
   const submitIssueItem: Electron.MenuItemOptions = {
-    label: __DARWIN__ ? 'Report Issue...' : 'Report issue...',
+    label: __DARWIN__ ? 'Report Issue…' : 'Report issue…',
     click() {
       shell.openExternal('https://github.com/desktop/desktop/issues/new')
     },
   }
 
   const showLogsItem: Electron.MenuItemOptions = {
-    label: __DARWIN__ ? 'Show Logs In Finder' : 'S&how logs in Explorer',
+    label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
     click() {
-      const path = app.getPath('userData')
+      const path = Path.join(app.getPath('userData'), LogFolder)
       shell.showItemInFolder(path)
     },
   }
 
   const helpItems = [
-    contactSupportItem,
     submitIssueItem,
     showLogsItem,
   ]

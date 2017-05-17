@@ -16,11 +16,11 @@ import { Select } from '../lib/select'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
 import { writeGitAttributes } from './git-attributes'
-import { getDefaultDir } from '../lib/default-dir'
+import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 
-import { getLogger } from '../../lib/logging/renderer'
+import { logError } from '../../lib/logging/renderer'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -122,7 +122,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     try {
       await this.ensureDirectory(fullPath)
     } catch (e) {
-      getLogger().error(`createRepository: the directory at ${fullPath} is not valid`, e)
+      logError(`createRepository: the directory at ${fullPath} is not valid`, e)
       return this.props.dispatcher.postError(e)
     }
 
@@ -132,7 +132,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       await initGitRepository(fullPath)
     } catch (e) {
       this.setState({ ...this.state, creating: false })
-      getLogger().error(`createRepository: unable to initialize a Git repository at ${fullPath}`, e)
+      logError(`createRepository: unable to initialize a Git repository at ${fullPath}`, e)
       return this.props.dispatcher.postError(e)
     }
 
@@ -145,7 +145,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       try {
         await writeDefaultReadme(fullPath, this.state.name)
       } catch (e) {
-        getLogger().error(`createRepository: unable to write README at ${fullPath}`, e)
+        logError(`createRepository: unable to write README at ${fullPath}`, e)
         this.props.dispatcher.postError(e)
       }
     }
@@ -155,7 +155,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       try {
         await writeGitIgnore(fullPath, gitIgnore)
       } catch (e) {
-        getLogger().error(`createRepository: unable to write .gitignore file at ${fullPath}`, e)
+        logError(`createRepository: unable to write .gitignore file at ${fullPath}`, e)
         this.props.dispatcher.postError(e)
       }
     }
@@ -175,7 +175,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           project: this.state.name,
         })
       } catch (e) {
-        getLogger().error(`createRepository: unable to write LICENSE at ${fullPath}`, e)
+        logError(`createRepository: unable to write LICENSE at ${fullPath}`, e)
         this.props.dispatcher.postError(e)
       }
     }
@@ -183,7 +183,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     try {
       await writeGitAttributes(fullPath)
     } catch (e) {
-      getLogger().error(`createRepository: unable to write .gitattributes at ${fullPath}`, e)
+      logError(`createRepository: unable to write .gitattributes at ${fullPath}`, e)
       this.props.dispatcher.postError(e)
     }
 
@@ -195,11 +195,13 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         await createCommit(repository, 'Initial commit', files)
       }
     } catch (e) {
-      getLogger().error(`createRepository: initial commit failed at ${fullPath}`, e)
+      logError(`createRepository: initial commit failed at ${fullPath}`, e)
       this.props.dispatcher.postError(e)
     }
 
     this.setState({ ...this.state, creating: false })
+
+    setDefaultDir(this.state.path)
 
     this.props.dispatcher.selectRepository(repository)
     this.props.onDismissed()

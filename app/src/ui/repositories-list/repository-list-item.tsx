@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Octicon, iconForRepository } from '../octicons'
-import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
+import { CloningRepository } from '../../lib/dispatcher'
 import { showContextualMenu } from '../main-process-proxy'
 
 interface IRepositoryListItemProps {
   readonly repository: Repository | CloningRepository
-  readonly dispatcher: Dispatcher
+  readonly onRemoveRepository: (repository: Repository | CloningRepository) => void
 }
 
 /** A repository item. */
@@ -45,6 +45,6 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
   }
 
   private removeRepository() {
-    this.props.dispatcher.removeRepositories([ this.props.repository ])
+    this.props.onRemoveRepository(this.props.repository)
   }
 }

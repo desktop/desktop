@@ -1,7 +1,45 @@
 {
   "releases": {
-    "0.5.1": [
+    "0.5.5": [
 
+    ],
+    "0.5.4": [
+      "[Fixed] The release notes URL pointed to the wrong page - #1503",
+      "[Fixed] Only create the `logs` directory if it doesn't already exist - #1510",
+      "[Fixed] Uncaught exception creating a new repository if you aren't a member of any orgs - #1507",
+      "[Fixed] Only report the first uncaught exception - #1517",
+      "[Fixed] Include the name of the default branch in the New Branch dialog - #1449",
+      "[Fixed] Uncaught exception if a network error occurred while loading user email addresses - #1522 #1508",
+      "[Fixed] Uncaught exception while performing a contextual menu action - #1532",
+      "[Improved] Move all error logging to the main process - #1473",
+      "[Improved] Stats reporting reliability - #1561"
+    ],
+    "0.5.3": [
+      "[Fixed] Display of large image diffs - #1494",
+      "[Fixed] Discard Changes spacing - #1495"
+    ],
+    "0.5.2": [
+      "[Fixed] Display errors that happen while publishing a repository - #1396",
+      "[Fixed] Menu items not updating - #1462",
+      "[Fixed] Always select the first changed file - #1306",
+      "[Fixed] macOS: Use Title Case consistently - #1477 #1481",
+      "[Fixed] Create Branch padding - #1479",
+      "[Fixed] Bottom padding in commit descriptions - #1345",
+      "[Improved] Dialog polish - #1451",
+      "[Improved] Store logs in a logs directory - #1370",
+      "[Improved] New Welcome illustrations - #1471",
+      "[Improved] Request confirmation before removing a repository - #1233",
+      "[Improved] Windows icon polish - #1457"
+    ],
+    "0.5.1": [
+      "[New] Windows: A nice little gif while installing the app - #1440",
+      "[Fixed] Disable pinch zoom - #1431",
+      "[Fixed] Don't show carriage return indicators in diffs - #1444",
+      "[Fixed] History wouldn't update after switching branches - #1446",
+      "[Improved] Include more information in exception reports - #1429",
+      "[Improved] Updated Terms and Conditions - #1438",
+      "[Improved] Sub-pixel anti-aliasing in some lists - #1452",
+      "[Improved] Windows: A new application identifier, less likely to collide with other apps - #1441"
     ],
     "0.5.0": [
       "[Added] Menu item for showing the app logs - #1349",
