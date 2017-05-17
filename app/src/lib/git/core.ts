@@ -101,6 +101,7 @@ export async function git(args: string[], path: string, name: string, options?: 
   const defaultOptions: IGitExecutionOptions = {
     successExitCodes: new Set([ 0 ]),
     expectedErrors: new Set(),
+    PATH: process.env.PATH || ''
   }
 
   const opts = { ...defaultOptions, ...options }
