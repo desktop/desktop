@@ -1,7 +1,7 @@
 import { getLogger } from '../logging/logger'
 
 export interface ILogEntry {
-  kind: 'info' | 'debug' | 'error'
+  level: 'info' | 'debug' | 'error'
   readonly message: string
 }
 
@@ -25,7 +25,7 @@ export async function log(entry: ILogEntry) {
   try {
     const logger = await getLogger()
     await new Promise<void>((resolve, reject) => {
-      logger(entry.kind, entry.message, (error) => {
+      logger(entry.level, entry.message, (error) => {
         if (error) {
           reject(error)
         } else {
@@ -45,16 +45,16 @@ export async function log(entry: ILogEntry) {
 }
 
 export function logInfo(message: string) {
-  return log({ kind: 'info', message })
+  return log({ level: 'info', message })
 }
 
 export function logDebug(message: string) {
-  return log({ kind: 'debug', message })
+  return log({ level: 'debug', message })
 }
 
 export function logError(message: string, error?: Error) {
   return log({
-    kind: 'error',
+    level: 'error',
     message: error
       ? formatError(error, message)
       : message,

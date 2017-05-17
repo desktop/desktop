@@ -2,17 +2,17 @@ import { formatError } from './main'
 import { log } from '../../ui/main-process-proxy'
 
 export function logInfo(message: string) {
-  log({ kind: 'info', message })
+  log({ level: 'info', message })
 }
 
 export function logDebug(message: string) {
-  log({ kind: 'debug', message })
+  log({ level: 'debug', message })
 }
 
 export function logError(message: string, error?: Error) {
   if (error) {
-    log({ kind: 'error', message: formatError(error, message) })
+    log({ level: 'error', message: formatError(error, message) })
   } else {
-    log({ kind: 'error', message })
+    log({ level: 'error', message })
   }
 }
