@@ -27,7 +27,7 @@ export enum GitStatusEntry {
   Ignored
 }
 
-/** the state of the changed file in the working directory */
+/** The file status as represented in GitHub Desktop. */
 export enum AppFileStatus {
   New,
   Modified,
