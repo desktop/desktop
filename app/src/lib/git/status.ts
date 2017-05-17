@@ -3,7 +3,7 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
   AppFileStatus,
-  FileStatus,
+  FileEntry,
   GitStatusEntry,
 } from '../../models/status'
 import { parsePorcelainStatus, mapStatus } from '../status-parser'
@@ -26,7 +26,7 @@ export interface IStatusResult {
   readonly workingDirectory: WorkingDirectoryStatus
 }
 
-function convertToAppStatus(status: FileStatus): AppFileStatus {
+function convertToAppStatus(status: FileEntry): AppFileStatus {
 
   if (status.kind === 'ordinary') {
     switch (status.type) {

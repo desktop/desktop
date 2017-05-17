@@ -37,7 +37,8 @@ export enum AppFileStatus {
   Conflicted
 }
 
-type OrdinaryChange = {
+/** The porcelain status */
+type OrdinaryEntry = {
   readonly kind: 'ordinary'
    /** how we should represent the file in the application */
   readonly type: 'added' | 'modified' | 'deleted',
@@ -47,7 +48,7 @@ type OrdinaryChange = {
   readonly unstaged?: GitStatusEntry,
 }
 
-type RenamedOrCopiedChange = {
+type RenamedOrCopiedEntry = {
   readonly kind: 'renamed' | 'copied',
   /** the staged status of the file (if known) */
   readonly staged?: GitStatusEntry,
@@ -55,7 +56,7 @@ type RenamedOrCopiedChange = {
   readonly unstaged?: GitStatusEntry,
 }
 
-type UnmergedChange = {
+type UnmergedEntry = {
   readonly kind: 'conflicted',
   /** the first character of the short code ("ours")  */
   readonly us: GitStatusEntry,
@@ -63,14 +64,14 @@ type UnmergedChange = {
   readonly them: GitStatusEntry,
 }
 
-type UntrackedChange = {
+type UntrackedEntry = {
   readonly kind: 'untracked',
 }
 
-export type FileStatus = OrdinaryChange |
-  RenamedOrCopiedChange |
-  UnmergedChange |
-  UntrackedChange
+export type FileEntry = OrdinaryEntry |
+  RenamedOrCopiedEntry |
+  UnmergedEntry |
+  UntrackedEntry
 
 /**
  * Converts a given FileStatus value to a human-readable string to be

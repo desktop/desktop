@@ -1,4 +1,4 @@
-import { FileStatus, GitStatusEntry } from '../models/status'
+import { FileEntry, GitStatusEntry } from '../models/status'
 
 type StatusItem = IStatusHeader | IStatusEntry
 
