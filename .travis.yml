@@ -22,6 +22,7 @@ addons:
       - icnsutils
       - graphicsmagick
       - xz-utils
+      - libsecret-1-dev
 
 language: c
 
@@ -30,6 +31,9 @@ cache:
   directories:
     - node_modules
     - $HOME/.electron
+
+before_install:
+  - mkdir -p /tmp/git-lfs && curl -L https://github.com/github/git-lfs/releases/download/v2.0.1/git-lfs-$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "darwin")-amd64-2.0.1.tar.gz | tar -xz -C /tmp/git-lfs --strip-components 1 && /tmp/git-lfs/git-lfs pull
 
 install:
   - nvm install 7
