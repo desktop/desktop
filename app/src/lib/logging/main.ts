@@ -21,6 +21,15 @@ export function formatError(error: Error, title?: string) {
   }
 }
 
+/**
+ * Write the given log entry to all configured transports,
+ * see initializeWinston in logger.ts for more details about
+ * what transports we set up.
+ * 
+ * Returns a promise that will never yield an error and which
+ * resolves when the log entry has been written to all transports
+ * or if the entry could not be written due to an error.
+ */
 export async function log(entry: ILogEntry) {
   try {
     const logger = await getLogger()
@@ -44,14 +53,41 @@ export async function log(entry: ILogEntry) {
   }
 }
 
+/**
+ * Write the given log message to all configured transports,
+ * with the 'info' log level. See initializeWinston in logger.ts
+ * for more details about what transports we set up.
+ * 
+ * Returns a promise that will never yield an error and which
+ * resolves when the log entry has been written to all transports
+ * or if the entry could not be written due to an error.
+ */
 export function logInfo(message: string) {
   return log({ level: 'info', message })
 }
 
+/**
+ * Write the given log message to all configured transports,
+ * with the 'debug' log level. See initializeWinston in logger.ts
+ * for more details about what transports we set up.
+ * 
+ * Returns a promise that will never yield an error and which
+ * resolves when the log entry has been written to all transports
+ * or if the entry could not be written due to an error.
+ */
 export function logDebug(message: string) {
   return log({ level: 'debug', message })
 }
 
+/**
+ * Write the given log message to all configured transports,
+ * with the 'error' log level. See initializeWinston in logger.ts
+ * for more details about what transports we set up.
+ * 
+ * Returns a promise that will never yield an error and which
+ * resolves when the log entry has been written to all transports
+ * or if the entry could not be written due to an error.
+ */
 export function logError(message: string, error?: Error) {
   return log({
     level: 'error',
