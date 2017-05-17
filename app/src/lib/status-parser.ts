@@ -147,7 +147,7 @@ function parseUntrackedEntry(field: string): IStatusEntry {
  * This relies on the porcelain v2 format and status codes, so for
  * interoperability the existing v1 code is still around for now.
  */
-export function mapStatus(status: string): FileStatus {
+export function mapStatus(status: string): FileEntry {
 
   if (status === '??') {
     return {
