@@ -17,7 +17,6 @@ import {
   backgroundTaskHandler,
   unhandledExceptionHandler,
 } from '../lib/dispatcher'
-import { logError } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
 import { sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
@@ -50,8 +49,8 @@ if (!process.env.TEST_ENV) {
 }
 
 process.once('uncaughtException', (error: Error) => {
-  logError('Uncaught exception on renderer process', error)
-  postUnhandledError(error)
+  console.error('Uncaught exception', error)
+
   if (__DEV__ || process.env.TEST_ENV) {
     console.error(`An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`)
     return
@@ -61,6 +60,8 @@ process.once('uncaughtException', (error: Error) => {
       guid: getGUID(),
     })
   }
+
+  reportUncaughtException(error)
 })
 
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))

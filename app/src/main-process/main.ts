@@ -1,4 +1,4 @@
-import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater } from 'electron'
+import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from 'electron'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
@@ -10,6 +10,7 @@ import { fatalError } from '../lib/fatal-error'
 import { showFallbackPage } from './error-page'
 import { IMenuItemState } from '../lib/menu-update'
 import { ILogEntry, logError, log } from '../lib/logging/main'
+import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
 
 let mainWindow: AppWindow | null = null
@@ -17,6 +18,7 @@ let sharedProcess: SharedProcess | null = null
 
 const launchTime = Date.now()
 
+let preventQuit = false
 let readyTime: number | null = null
 
 /**
@@ -200,6 +202,31 @@ app.on('ready', () => {
     log(logEntry)
   })
 
+  ipcMain.on('renderer-uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
+
+    preventQuit = true
+
+    log({
+      level: 'error',
+      message: formatError(error, 'Uncaught exception in renderer'),
+    })
+
+    const window = BrowserWindow.fromWebContents(event.sender)
+    window.destroy()
+
+    dialog.showMessageBox({
+      type: 'error',
+      title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
+      message:
+        `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
+        `This has been reported to the team, but if you encounter this repeatedly please report ` +
+        `this issue to the GitHub Desktop issue tracker.\n\n${error.stack || error.message}`,
+    }, (response) => {
+      // app.relaunch()
+      app.quit()
+    })
+  })
+
   ipcMain.on('send-error-report', (event: Electron.IpcMainEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
     reportError(error, extra)
   })
@@ -249,7 +276,7 @@ function createWindow() {
   window.onClose(() => {
     mainWindow = null
 
-    if (!__DARWIN__) {
+    if (!__DARWIN__ && !preventQuit) {
       app.quit()
     }
   })

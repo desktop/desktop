@@ -92,6 +92,10 @@ function getIpcFriendlyError(error: Error) {
   }
 }
 
+export function reportUncaughtException(error: Error) {
+  ipcRenderer.send('renderer-uncaught-exception', getIpcFriendlyError(error))
+}
+
 export function sendErrorReport(error: Error, extra: { [key: string]: string } = { }) {
   ipcRenderer.send('send-error-report', {
     error: getIpcFriendlyError(error),
