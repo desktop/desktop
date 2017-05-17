@@ -24,7 +24,6 @@ install:
 
 build_script:
   - npm run lint
-  - npm run build:prod
 
 test_script:
   - node --version

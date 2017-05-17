@@ -43,7 +43,6 @@ install:
 
 script:
   - npm run lint
-  - npm run build:prod
   - npm run test:setup
   - npm test
   - npm run release
