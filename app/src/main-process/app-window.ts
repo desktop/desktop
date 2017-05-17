@@ -296,4 +296,8 @@ export class AppWindow {
   public get rendererReadyTime(): number | null {
     return this._rendererReadyTime
   }
+
+  public destroy() {
+    this.window.destroy()
+  }
 }

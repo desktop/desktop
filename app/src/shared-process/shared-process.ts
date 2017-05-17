@@ -74,4 +74,8 @@ export class SharedProcess {
       },
     }
   }
+
+  public destroy() {
+    this.window.destroy()
+  }
 }
