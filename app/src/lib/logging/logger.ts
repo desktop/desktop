@@ -47,9 +47,6 @@ function initializeWinston(path: string): winston.LogMethod {
     ],
   })
 
-  winston.log('info', `initialized info ${process.env.NODE_ENV}`)
-  winston.log('debug', `initialized debug ${process.env.NODE_ENV}`)
-
   return winston.log
 }
 
