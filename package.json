@@ -66,13 +66,13 @@
       "package.json"
     ],
     "mac": {
-      "icon": "app/static/logos/icon-logo.icns"
+      "icon": "app/icons/icon.icns"
     },
     "win": {
-      "icon": "app/static/logos/icon-logo.ico"
+      "icon": "app/icons/icon.ico"
     },
     "linux": {
-      "icon": "app/static/logos",
+      "icon": "app/icons",
       "target": [
         "AppImage",
         "deb"
@@ -126,7 +126,7 @@
   },
   "devDependencies": {
     "electron": "1.6.7",
-    "electron-builder": "^17.0.1",
+    "electron-builder": "^17.8.0",
     "electron-mocha": "3.3.0",
     "electron-winstaller": "2.5.2",
     "@types/chai": "^3.4.30",
