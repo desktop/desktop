@@ -9,13 +9,12 @@ import { fatalError } from '../lib/fatal-error'
 
 import { showFallbackPage } from './error-page'
 import { IMenuItemState } from '../lib/menu-update'
-import { Logger, formatError, ILogEntry } from './logger'
+import { ILogEntry, logError, log } from '../lib/logging/main'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
 const launchTime = Date.now()
-const logger = new Logger()
 
 let readyTime: number | null = null
 
@@ -28,7 +27,7 @@ let launchURLAction: URLActionType | null = null
 
 process.on('uncaughtException', (error: Error) => {
 
-  logger.error(formatError(error, 'Uncaught exception on main process'))
+  logError('Uncaught exception on main process', error)
 
   if (sharedProcess) {
     sharedProcess.console.error('Uncaught exception:')
@@ -197,7 +196,7 @@ app.on('ready', () => {
   })
 
   ipcMain.on('log', (event: Electron.IpcMainEvent, logEntry: ILogEntry) => {
-    logger.log(logEntry)
+    log(logEntry)
   })
 
   autoUpdater.on('error', err => {

@@ -1,19 +1,18 @@
-import { getUserDataPath  } from '../../ui/lib/app-proxy'
-import * as Path from 'path'
+import { formatError } from './main'
+import { log } from '../../ui/main-process-proxy'
 
-import { ILogger, createLogger, LogFolder } from './logger'
-
-let logger: ILogger | null = null
-
-async function getLogger(): Promise<ILogger> {
-  if (!logger) {
-    const directory = Path.join(getUserDataPath(), LogFolder)
-    logger = await createLogger(directory)
-  }
-  return logger
+export function logInfo(message: string) {
+  log({ kind: 'info', message })
 }
 
-export async function logError(message: string, error?: Error): Promise<void> {
-  const logger = await getLogger()
-  logger.error(message, error)
+export function logDebug(message: string) {
+  log({ kind: 'debug', message })
+}
+
+export function logError(message: string, error?: Error) {
+  if (error) {
+    log({ kind: 'error', message: formatError(error, message) })
+  } else {
+    log({ kind: 'error', message })
+  }
 }
