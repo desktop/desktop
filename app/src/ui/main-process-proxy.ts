@@ -68,7 +68,7 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
     const item = items[index]
 
     if (!item) {
-      logError(`Menu item at ${index} was selected but array has length: ${items.length}`)
+      logError(`showContextualMenu: menu item at index '${index}' was selected but array has length: '${items.length}'`)
       return
     }
 
