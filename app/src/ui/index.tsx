@@ -8,7 +8,6 @@ import { App } from './app'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import { SelectionType } from '../lib/app-state'
-import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import {
@@ -18,7 +17,7 @@ import {
   unhandledExceptionHandler,
 } from '../lib/dispatcher'
 import { installDevGlobals } from './install-globals'
-import { sendErrorReport } from './main-process-proxy'
+import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
 import { getGUID } from '../lib/stats'
 
@@ -80,16 +79,6 @@ const appStore = new AppStore(
 )
 
 const dispatcher = new Dispatcher(appStore)
-
-function postUnhandledError(error: Error) {
-  dispatcher.postError(new ErrorWithMetadata(error, { uncaught: true }))
-}
-
-// NOTE: we consider all main-process-exceptions coming through here to be unhandled
-ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
-  reportError(error)
-  postUnhandledError(error)
-})
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
