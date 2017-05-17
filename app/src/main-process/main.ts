@@ -12,6 +12,11 @@ import { ILogEntry, logError, log } from '../lib/logging/main'
 import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
 
+require('source-map-support').install({
+  environment: 'node',
+  handleUncaughtExceptions: false,
+})
+
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 

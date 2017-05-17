@@ -21,6 +21,11 @@ import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
 import { getGUID } from '../lib/stats'
 
+require('source-map-support').install({
+  environment: 'browser',
+  handleUncaughtExceptions: false,
+})
+
 if (__DEV__) {
   installDevGlobals()
 }

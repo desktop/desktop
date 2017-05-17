@@ -17,6 +17,11 @@ import {
 import { API } from '../lib/api'
 import { sendErrorReport, reportUncaughtException } from '../ui/main-process-proxy'
 
+require('source-map-support').install({
+  environment: 'node',
+  handleUncaughtExceptions: false,
+})
+
 process.on('uncaughtException', (error: Error) => {
   console.error('Uncaught exception', error)
 
