@@ -1,10 +1,4 @@
 import { getLogger } from '../logging/logger'
-import { LogMethod } from 'winston'
-
-/**
- * The maximum number of log entries to store while instantiating the logger.
- */
-const maxQueueSize = 500
 
 export interface ILogEntry {
   kind: 'info' | 'debug' | 'error'
@@ -27,77 +21,42 @@ export function formatError(error: Error, title?: string) {
   }
 }
 
-class Logger {
-
-  private logger: LogMethod | null = null
-  private isCreatingLogger = false
-  private readonly queue = new Array<ILogEntry>()
-
-  private async createLogger() {
-
-    if (this.isCreatingLogger) {
-      return
-    }
-
-    try {
-      this.logger = await getLogger()
-    } catch (error) {
-      /* welp */
-      return
-    }
-    this.isCreatingLogger = false
-
-    // Drain the queue
-    const logger = this.logger
-
-    this.queue.forEach(entry => logger(entry.kind, entry.message))
-    this.queue.length = 0
+export async function log(entry: ILogEntry) {
+  try {
+    const logger = await getLogger()
+    await new Promise<void>((resolve, reject) => {
+      logger(entry.kind, entry.message, (error) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve()
+        }
+      })
+    })
+  } catch (error) {
+    /**
+     * Welp. I guess we have to ignore this for now, we
+     * don't have any good mechanisms for reporting this.
+     * In the future we can discuss whether we should
+     * IPC to the renderer or dump it somewhere else
+     * but for now logging isn't a critical thing.
+     */
   }
-
-  public log(entry: ILogEntry) {
-    if (!this.logger) {
-      this.createLogger()
-      this.queue.push(entry)
-
-      if (this.queue.length > maxQueueSize) {
-        this.queue.shift()
-      }
-    } else {
-      this.logger(entry.kind, entry.message)
-    }
-  }
-
-  public debug(message: string) {
-    this.log({ kind: 'debug', message })
-  }
-
-  public info(message: string) {
-    this.log({ kind: 'info', message })
-  }
-
-  public error(message: string) {
-    this.log({ kind: 'error', message })
-  }
-}
-
-const logger = new Logger()
-
-export function log(entry: ILogEntry) {
-  logger.log(entry)
 }
 
 export function logInfo(message: string) {
-  logger.info(message)
+  return log({ kind: 'info', message })
 }
 
 export function logDebug(message: string) {
-  logger.debug(message)
+  return log({ kind: 'debug', message })
 }
 
 export function logError(message: string, error?: Error) {
-  if (error) {
-    logger.error(formatError(error, message))
-  } else {
-    logger.error(message)
-  }
+  return log({
+    kind: 'error',
+    message: error
+      ? formatError(error, message)
+      : message,
+  })
 }
