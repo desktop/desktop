@@ -3,12 +3,12 @@ import * as Path from 'path'
 import { createLogger, ILogger, LogFolder } from '../lib/logging/logger'
 import { assertNever } from '../lib/fatal-error'
 
-interface IInfoLogEntry {
+export interface ILogEntry {
   kind: 'info' | 'debug' | 'error'
   readonly message: string
 }
 
-function write(entry: IInfoLogEntry, logger: ILogger) {
+function write(entry: ILogEntry, logger: ILogger) {
   switch (entry.kind) {
     case 'info': return logger.info(entry.message)
     case 'debug': return logger.info(entry.message)
@@ -22,7 +22,7 @@ export class Logger {
 
   private logger: ILogger | null = null
   private isCreatingLogger = false
-  private readonly queue = new Array<IInfoLogEntry>()
+  private readonly queue = new Array<ILogEntry>()
 
   private async createLogger() {
 
@@ -48,7 +48,7 @@ export class Logger {
     this.queue.length = 0
   }
 
-  private log(entry: IInfoLogEntry) {
+  public log(entry: ILogEntry) {
     if (!this.logger) {
       this.createLogger()
       this.queue.push(entry)
