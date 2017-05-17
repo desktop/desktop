@@ -62,7 +62,6 @@
     },
     "files": [
       "dist/",
-      "out/",
       "node_modules/",
       "package.json"
     ],
@@ -129,7 +128,6 @@
     "electron": "1.6.7",
     "electron-builder": "^17.0.1",
     "electron-mocha": "3.3.0",
-    "electron-packager": "8.6.0",
     "electron-winstaller": "2.5.2",
     "@types/chai": "^3.4.30",
     "@types/chai-datetime": "0.0.30",
