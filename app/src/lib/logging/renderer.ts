@@ -1,4 +1,4 @@
-import { formatError } from './main'
+import { formatError } from './format-error'
 import { log } from '../../ui/main-process-proxy'
 
 /**
