@@ -7,7 +7,6 @@ import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
-import { showFallbackPage } from './error-page'
 import { IMenuItemState } from '../lib/menu-update'
 import { ILogEntry, logError, log } from '../lib/logging/main'
 import { formatError } from '../lib/logging/format-error'
@@ -21,6 +20,12 @@ const launchTime = Date.now()
 let preventQuit = false
 let readyTime: number | null = null
 
+/**
+ * The URL action with which the app was launched. On macOS, we could receive an
+ * `open-url` command before the app ready event, so we stash it away and handle
+ * it when we're ready.
+ */
+let launchURLAction: URLActionType | null = null
 
 function uncaughtException(error: Error) {
   preventQuit = true
@@ -49,13 +54,6 @@ function uncaughtException(error: Error) {
     app.quit()
   })
 }
-
-/**
- * The URL action with which the app was launched. On macOS, we could receive an
- * `open-url` command before the app ready event, so we stash it away and handle
- * it when we're ready.
- */
-let launchURLAction: URLActionType | null = null
 
 process.on('uncaughtException', (error: Error) => {
   uncaughtException(error)
