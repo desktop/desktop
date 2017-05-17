@@ -53,7 +53,7 @@ const commonConfig = {
   externals: [ '7zip' ],
   output: {
     filename: '[name].js',
-    path: path.join(__dirname, 'app/dist'),
+    path: path.join(__dirname, 'dist'),
     libraryTarget: 'commonjs2'
   },
   module: {
