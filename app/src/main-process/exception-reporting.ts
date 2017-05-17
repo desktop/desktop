@@ -1,40 +1,63 @@
-import { app } from 'electron'
+import { app, net } from 'electron'
 import { logInfo, logError } from '../lib/logging/main'
 
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 
 /** Report the error to Central. */
 export async function reportError(error: Error, extra?: { [key: string]: string }) {
-  const data = new FormData()
-  data.append('name', error.name)
-  data.append('message', error.message)
 
-  if (error.stack) {
-    data.append('stack', error.stack)
+  if (__DEV__) {
+    return
   }
 
-  data.append('platform', process.platform)
-  data.append('version', app.getVersion())
+  const data = new Map<string, string>()
+
+  data.set('name', error.name)
+  data.set('message', error.message)
+
+  if (error.stack) {
+    data.set('stack', error.stack)
+  }
+
+  data.set('platform', process.platform)
+  data.set('version', app.getVersion())
 
   if (extra) {
     for (const key of Object.keys(extra)) {
-      data.append(key, extra[key])
+      data.set(key, extra[key])
     }
   }
 
-  const options = {
+  const requestOptions: Electron.RequestOptions = {
     method: 'POST',
-    body: data,
+    url: ErrorEndpoint,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
   }
+
+  const body = [ ...data.entries() ]
+    .map(([ key, value ]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&')
 
   try {
-    const response = await fetch(ErrorEndpoint, options)
-    if (response.ok) {
-      logInfo('Exception reported.')
-    } else {
-      throw new Error(`Error submitting exception report: ${response.statusText} (${response.status})`)
-    }
+    await new Promise<void>((resolve, reject) => {
+      const request = net.request(requestOptions)
+
+      request.on('response', (response) => {
+        if (response.statusCode === 200) {
+          resolve()
+        } else {
+          reject(`Got ${response.statusCode} - ${response.statusMessage} from central`)
+        }
+      })
+
+      request.on('error', reject)
+
+      request.end(body)
+    })
+    logInfo('Error report submitted')
   } catch (e) {
-    logError('Error submitting exception report:', e)
+    logError('Failed submitting error report', error)
   }
 }
