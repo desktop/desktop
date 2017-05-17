@@ -190,6 +190,8 @@ export class StatsStore {
     return {
       ...DefaultDailyMeasures,
       ...measures,
+      // We could spread the database ID in, but we really don't want it.
+      id: undefined,
     }
   }
 
