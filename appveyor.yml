@@ -10,11 +10,6 @@ cache:
   - node_modules
   - '%USERPROFILE%\.electron'
 
-branches:
-  only:
-    - master
-    - /^__release-.*/
-
 skip_tags: true
 
 version: "{build}"
@@ -38,7 +33,7 @@ test_script:
   - ./script/test-appveyor.bat
 
 on_success:
-  - npm run publish
+  - npm run release
 
 on_finish:
   - npm run test:review

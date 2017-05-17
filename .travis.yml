@@ -3,13 +3,23 @@ notifications:
     on_success: never
     on_failure: change
 
-os:
-  - osx
+matrix:
+  include:
+    - os: osx
+    - os: linux
+      env: CC=clang CXX=clang++ npm_config_clang=1
+      compiler: clang
 
-branches:
-  only:
-    - master
-    - /^__release-.*/
+addons:
+  apt:
+    packages:
+      - libgnome-keyring-dev
+      - icnsutils
+      - graphicsmagick
+      - xz-utils
+
+dist: trusty
+sudo: required
 
 language: node_js
 node_js:
@@ -32,9 +42,7 @@ script:
   - npm run build:prod
   - npm run test:setup
   - npm test
-
-after_success:
-  - npm run publish
+  - npm run release
 
 after_failure:
   - npm run test:review
