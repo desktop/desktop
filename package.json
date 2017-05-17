@@ -10,7 +10,7 @@
     "test": "npm run test:unit && npm run test:integration",
     "test:setup": "node script/test-setup",
     "test:review": "node script/test-review",
-    "release": "npm run build:prod && build",
+    "release": "npm run build:dev && build",
     "pack-all": "build -mwl",
     "pack-unix": "build -ml",
     "pack-mac": "build -m",
