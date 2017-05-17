@@ -53,7 +53,7 @@ function initializeWinston(path: string): winston.LogMethod {
   return winston.log
 }
 
-let logger: winston.LogMethod | null = null
+let loggerPromise: Promise<winston.LogMethod> | null = null
 
 /**
  * Initializes and configures winston (if necessary) to write to Electron's
@@ -64,16 +64,16 @@ let logger: winston.LogMethod | null = null
  *          it accepts a log level, a message and an optional callback
  *          for when the event has been written to all destinations.
  */
-export async function getLogger(): Promise<winston.LogMethod> {
+export function getLogger(): Promise<winston.LogMethod> {
 
-  if (logger) {
-    return logger
+  if (loggerPromise) {
+    return loggerPromise
   }
 
   const userData = app.getPath('userData')
   const directory = Path.join(userData, LogFolder)
 
-  return await new Promise<winston.LogMethod>((resolve, reject) => {
+  loggerPromise = new Promise<winston.LogMethod>((resolve, reject) => {
     Fs.mkdir(directory, (error) => {
       if (error && error.code !== 'EEXIST') {
         reject(error)
@@ -84,5 +84,7 @@ export async function getLogger(): Promise<winston.LogMethod> {
       resolve(logger)
     })
   })
+
+  return loggerPromise
 }
 
