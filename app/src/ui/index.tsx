@@ -21,6 +21,11 @@ import {
 import { logError } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
 
+require('source-map-support').install({
+  environment: 'browser',
+  handleUncaughtExceptions: false,
+})
+
 if (__DEV__) {
   installDevGlobals()
 }

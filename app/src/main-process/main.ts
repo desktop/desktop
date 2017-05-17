@@ -11,6 +11,11 @@ import { showFallbackPage } from './error-page'
 import { IMenuItemState } from '../lib/menu-update'
 import { ILogEntry, logError, log } from '../lib/logging/main'
 
+require('source-map-support').install({
+  environment: 'node',
+  handleUncaughtExceptions: false,
+})
+
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 

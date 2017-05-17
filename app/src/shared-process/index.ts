@@ -19,6 +19,11 @@ import { reportError } from '../ui/lib/exception-reporting'
 
 import { logError } from '../lib/logging/renderer'
 
+require('source-map-support').install({
+  environment: 'node',
+  handleUncaughtExceptions: false,
+})
+
 process.on('uncaughtException', (error: Error) => {
 
   logError('Uncaught exception on shared process', error)
