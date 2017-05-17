@@ -21,6 +21,35 @@ const launchTime = Date.now()
 let preventQuit = false
 let readyTime: number | null = null
 
+
+function uncaughtException(error: Error) {
+  preventQuit = true
+
+  logError(formatError(error))
+
+  if (mainWindow) {
+    mainWindow.destroy()
+    mainWindow = null
+  }
+
+  if (sharedProcess) {
+    sharedProcess.destroy()
+    mainWindow = null
+  }
+
+  dialog.showMessageBox({
+    type: 'error',
+    title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
+    message:
+      `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
+      `This has been reported to the team, but if you encounter this repeatedly please report ` +
+      `this issue to the GitHub Desktop issue tracker.\n\n${error.stack || error.message}`,
+  }, (response) => {
+    // app.relaunch()
+    app.quit()
+  })
+}
+
 /**
  * The URL action with which the app was launched. On macOS, we could receive an
  * `open-url` command before the app ready event, so we stash it away and handle
@@ -203,28 +232,7 @@ app.on('ready', () => {
   })
 
   ipcMain.on('uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
-
-    preventQuit = true
-
-    log({
-      level: 'error',
-      message: formatError(error, 'Uncaught exception in renderer'),
-    })
-
-    const window = BrowserWindow.fromWebContents(event.sender)
-    window.destroy()
-
-    dialog.showMessageBox({
-      type: 'error',
-      title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
-      message:
-        `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
-        `This has been reported to the team, but if you encounter this repeatedly please report ` +
-        `this issue to the GitHub Desktop issue tracker.\n\n${error.stack || error.message}`,
-    }, (response) => {
-      // app.relaunch()
-      app.quit()
-    })
+    uncaughtException(error)
   })
 
   ipcMain.on('send-error-report', (event: Electron.IpcMainEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
