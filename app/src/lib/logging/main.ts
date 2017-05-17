@@ -25,7 +25,7 @@ export function formatError(error: Error, title?: string) {
       : error.stack.trim()
   } else {
     return title
-      ? `${title}\n    ${error.name}: ${error.message}`
+      ? `${title}\n${error.name}: ${error.message}`
       : `${error.name}: ${error.message}`
   }
 }
