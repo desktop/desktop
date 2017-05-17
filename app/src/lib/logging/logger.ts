@@ -19,7 +19,7 @@ export function getLogFilePath(directory: string): string {
 /**
  * Initializes winston and returns a subset of the available log level
  * methods (debug, info, error). This method should only be called once
- * during an applications lifetime.
+ * during an application's lifetime.
  * 
  * @param path The path where to write log files. This path will have
  *             the current date prepended to the basename part of the
