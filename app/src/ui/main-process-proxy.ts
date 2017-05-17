@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { MenuIDs } from '../main-process/menu'
 import { IMenuItemState } from '../lib/menu-update'
+import { ILogEntry, formatError } from '../main-process/logger'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(state: Array<{id: MenuIDs, state: IMenuItemState}>) {
@@ -72,4 +73,24 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   })
 
   ipcRenderer.send('show-contextual-menu', items)
+}
+
+export function log(entry: ILogEntry) {
+  ipcRenderer.send('log', entry)
+}
+
+export function logInfo(message: string) {
+  log({ kind: 'info', message })
+}
+
+export function logDebug(message: string) {
+  log({ kind: 'debug', message })
+}
+
+export function logError(message: string, error?: Error) {
+  if (error) {
+    log({ kind: 'error', message: formatError(error, message) })
+  } else {
+    log({ kind: 'error', message })
+  }
 }
