@@ -133,6 +133,28 @@ describe('Tokenizer', () => {
       expect(mention.url).to.equal(expectedUri)
     })
 
+    it('ignores http prefix when no text after', () => {
+      const text = `fix double http:// in avatar URLs`
+
+      const tokenizer = new Tokenizer(emoji, repository)
+      const results = tokenizer.tokenize(text)
+      expect(results.length).to.equal(1)
+
+      expect(results[0].kind).to.equal(TokenType.Text)
+      expect(results[0].text).to.equal('fix double http:// in avatar URLs')
+    })
+
+    it('ignores https prefix when no text after', () => {
+      const text = `fix double https:// in avatar URLs`
+
+      const tokenizer = new Tokenizer(emoji, repository)
+      const results = tokenizer.tokenize(text)
+      expect(results.length).to.equal(1)
+
+      expect(results[0].kind).to.equal(TokenType.Text)
+      expect(results[0].text).to.equal('fix double https:// in avatar URLs')
+    })
+
     it('renders link when an issue reference is found', () => {
       const id = 955
       const expectedUri = `${htmlURL}/issues/${id}`

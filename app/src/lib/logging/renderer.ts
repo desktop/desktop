@@ -1,19 +1,44 @@
-import { getUserDataPath  } from '../../ui/lib/app-proxy'
-import * as Path from 'path'
+import { formatError } from './format-error'
+import { log } from '../../ui/main-process-proxy'
 
-import { ILogger, createLogger, LogFolder } from './logger'
-
-let logger: ILogger | null = null
-
-async function getLogger(): Promise<ILogger> {
-  if (!logger) {
-    const directory = Path.join(getUserDataPath(), LogFolder)
-    logger = await createLogger(directory)
+/**
+ * Dispatches the given log message to the main process where it will be picked
+ * up and written to all log transports at the 'info' log level. See
+ * initializeWinston in logger.ts for more details about what transports we
+ * set up.
+ */
+export function logInfo(message: string) {
+  log({ level: 'info', message })
+  if (__DEV__) {
+    console.info(message)
   }
-  return logger
 }
 
-export async function logError(message: string, error?: Error): Promise<void> {
-  const logger = await getLogger()
-  logger.error(message, error)
+/**
+ * Dispatches the given log message to the main process where it will be picked
+ * up and written to all log transports at the 'debug' log level. See
+ * initializeWinston in logger.ts for more details about what transports we
+ * set up.
+ */
+export function logDebug(message: string) {
+  log({ level: 'debug', message })
+  if (__DEV__) {
+    console.debug(message)
+  }
+}
+
+/**
+ * Dispatches the given log message to the main process where it will be picked
+ * up and written to all log transports at the 'error' log level. See
+ * initializeWinston in logger.ts for more details about what transports we
+ * set up.
+ */
+export function logError(message: string, error?: Error) {
+  if (error) {
+    log({ level: 'error', message: formatError(error, message) })
+  } else {
+    log({ level: 'error', message })
+  }
+
+  console.error(message, error)
 }

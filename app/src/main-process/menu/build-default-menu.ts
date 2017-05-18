@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { shell, Menu, ipcMain, app } from 'electron'
+import { shell, Menu, app } from 'electron'
 import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
@@ -307,10 +307,14 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   return Menu.buildFromTemplate(template)
 }
 
+type ClickHandler = (menuItem: Electron.MenuItem, browserWindow: Electron.BrowserWindow, event: Electron.Event) => void
+
 /**
  * Utility function returning a Click event handler which, when invoked, emits
  * the provided menu event over IPC.
  */
-function emit(name: MenuEvent): () => void {
-  return () => ipcMain.emit('menu-event', { name })
+function emit(name: MenuEvent): ClickHandler {
+  return (menuItem, window) => {
+    window.webContents.send('menu-event', { name })
+  }
 }

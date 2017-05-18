@@ -14,7 +14,7 @@ import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton, BranchDropdown } from './toolbar'
 import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
-import { showCertificateTrustDialog } from './main-process-proxy'
+import { showCertificateTrustDialog, registerContextualMenuActionDispatcher } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -88,6 +88,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   public constructor(props: IAppProps) {
     super(props)
 
+    registerContextualMenuActionDispatcher()
+
     props.dispatcher.loadInitialState().then(() => {
       this.loading = false
       this.forceUpdate()
@@ -100,6 +102,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         // loading the app. So defer it until we have some breathing space.
         requestIdleCallback(() => {
           props.appStore.loadEmoji()
+
+          this.props.dispatcher.reportStats()
+
+          setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
         })
       }, { timeout: ReadyDelay })
     })
@@ -135,15 +141,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
     this.checkForUpdates()
 
-    ipcRenderer.on('launch-timing-stats', async (event: Electron.IpcMessageEvent, { stats }: { stats: ILaunchStats }) => {
+    ipcRenderer.on('launch-timing-stats', (event: Electron.IpcMessageEvent, { stats }: { stats: ILaunchStats }) => {
       console.info(`App ready time: ${stats.mainReadyTime}ms`)
       console.info(`Load time: ${stats.loadTime}ms`)
       console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
 
-      await this.props.dispatcher.recordLaunchStats(stats)
-      this.props.dispatcher.reportStats()
-
-      setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+      this.props.dispatcher.recordLaunchStats(stats)
     })
 
     ipcRenderer.on('certificate-error', (event: Electron.IpcMessageEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {

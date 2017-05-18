@@ -224,14 +224,23 @@ export class API {
   public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
     const isDotCom = this.account.endpoint === getDotComAPIEndpoint()
 
-    const result = isDotCom
-      ? await this.client.user.publicEmails.fetch()
-      // GitHub Enterprise does not have the concept of private emails
-      : await this.client.user.emails.fetch()
+    // workaround for /user/public_emails throwing a 500
+    // while we investigate the API issue
+    // see https://github.com/desktop/desktop/issues/1508 for context
+    let emails: ReadonlyArray<IAPIEmail> = [ ]
+    try {
+      const result = isDotCom
+        ? await this.client.user.publicEmails.fetch()
+        // GitHub Enterprise does not have the concept of private emails
+        : await this.client.user.emails.fetch()
 
-    return result && Array.isArray(result.items)
-      ? result.items as ReadonlyArray<IAPIEmail>
-      : []
+      emails = result && Array.isArray(result.items)
+                ? result.items as ReadonlyArray<IAPIEmail>
+                : []
+    } catch (e) {
+      emails = [ ]
+    }
+    return emails
   }
 
   /** Fetch a commit from the repository. */
@@ -455,14 +464,21 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
 
   const isDotCom = endpoint === getDotComAPIEndpoint()
 
-  const result = isDotCom
-    ? await octo.user.publicEmails.fetch()
-    // GitHub Enterprise does not have the concept of private emails
-    : await octo.user.emails.fetch()
-
-  const emails = result && Array.isArray(result.items)
+  // workaround for /user/public_emails throwing a 500
+  // while we investigate the API issue
+  // see https://github.com/desktop/desktop/issues/1508 for context
+  let emails: ReadonlyArray<IAPIEmail> = [ ]
+  try {
+      const result = isDotCom
+        ? await octo.user.publicEmails.fetch()
+        // GitHub Enterprise does not have the concept of private emails
+        : await octo.user.emails.fetch()
+    emails = result && Array.isArray(result.items)
     ? result.items as ReadonlyArray<IAPIEmail>
     : []
+  } catch (e) {
+    emails = [ ]
+  }
 
   return new Account(user.login, endpoint, token, emails, user.avatarUrl, user.id, user.name)
 }
