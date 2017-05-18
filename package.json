@@ -83,8 +83,7 @@
       "icon": "app/icons",
       "target": [
         "AppImage",
-        "deb",
-        "apk"
+        "deb"
       ]
     },
     "extraResources": [
@@ -136,7 +135,7 @@
     "xml2js": "^0.4.16"
   },
   "devDependencies": {
-    "electron": "1.6.6",
+    "electron": "1.6.8",
     "electron-builder": "^17.8.0",
     "electron-mocha": "3.3.0",
     "electron-winstaller": "2.5.2",
