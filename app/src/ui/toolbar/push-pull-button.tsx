@@ -81,8 +81,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
         <span key='ahead'>
           {ahead}
           <Octicon symbol={OcticonSymbol.arrowSmallUp}/>
-        </span>
-      )
+        </span>)
     }
 
     if (behind > 0) {
@@ -90,8 +89,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
         <span key='behind'>
           {behind}
           <Octicon symbol={OcticonSymbol.arrowSmallDown}/>
-        </span>
-      )
+        </span>)
     }
 
     return <div className='ahead-behind'>{content}</div>

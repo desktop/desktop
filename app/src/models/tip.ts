@@ -4,7 +4,7 @@ export enum TipState {
   Unknown,
   Unborn,
   Detached,
-  Valid
+  Valid,
 }
 
 export interface IUnknownRepository {

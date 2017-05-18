@@ -109,7 +109,7 @@ export class Button extends React.Component<IButtonProps, void> {
     const className = classNames(
       'button-component',
        { 'small-button': this.props.size === 'small' },
-       this.props.className
+       this.props.className,
     )
 
     return (

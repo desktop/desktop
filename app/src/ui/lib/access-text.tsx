@@ -47,7 +47,7 @@ export class AccessText extends React.Component<IAccessTextProps, void> {
 
     const className = classNames(
       'access-key',
-      { highlight: this.props.highlight }
+      { highlight: this.props.highlight },
     )
 
     elements.push(<span key={2} className={className}>{m[2]}</span>)
