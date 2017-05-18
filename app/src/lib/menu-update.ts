@@ -195,5 +195,9 @@ export function updateMenuState(state: IAppState, currentAppMenu: AppMenu | null
     return
   }
 
-  ipcUpdateMenuState(menuState)
+  // because we can't send Map over the wire, we need to convert
+  // the remaining entries into an array that can be serialized
+  const array = new Array<{id: MenuIDs, state: IMenuItemState}>()
+  menuState.forEach((value, key) => array.push({ id: key, state: value }))
+  ipcUpdateMenuState(array)
 }

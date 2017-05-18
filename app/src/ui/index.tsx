@@ -18,7 +18,7 @@ import {
   backgroundTaskHandler,
   unhandledExceptionHandler,
 } from '../lib/dispatcher'
-import { getLogger } from '../lib/logging/renderer'
+import { logError } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
 
 if (__DEV__) {
@@ -47,9 +47,9 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
-process.on('uncaughtException', (error: Error) => {
+process.once('uncaughtException', (error: Error) => {
   reportError(error)
-  getLogger().error('Uncaught exception on renderer process', error)
+  logError('Uncaught exception on renderer process', error)
   postUnhandledError(error)
 })
 

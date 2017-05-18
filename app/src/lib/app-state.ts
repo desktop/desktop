@@ -110,6 +110,9 @@ export interface IAppState {
 
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
+
+  /** Whether we should show a confirmation dialog */
+  readonly confirmRepoRemoval: boolean
 }
 
 export enum PopupType {
@@ -129,6 +132,7 @@ export enum PopupType {
   PublishRepository,
   Acknowledgements,
   UntrustedCertificate,
+  RemoveRepository,
   TermsAndConditions,
 }
 
@@ -148,6 +152,7 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.PublishRepository, repository: Repository } |
                     { type: PopupType.Acknowledgements } |
                     { type: PopupType.UntrustedCertificate, certificate: Electron.Certificate, url: string } |
+                    { type: PopupType.RemoveRepository, repository: Repository } |
                     { type: PopupType.TermsAndConditions }
 
 export enum FoldoutType {

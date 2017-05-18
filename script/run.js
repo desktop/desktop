@@ -18,7 +18,7 @@ if (process.platform === 'darwin') {
   process.exit(1)
 }
 
-module.exports = function () {
+module.exports = function (spawnOptions) {
   try {
     const stats = fs.statSync(binaryPath)
     if (!stats.isFile()) {
@@ -28,6 +28,11 @@ module.exports = function () {
     return null
   }
 
-  const env = Object.assign({}, process.env, {NODE_ENV: 'development'})
-  return cp.spawn(binaryPath, [], {env})
+  const opts = Object.assign({ }, spawnOptions)
+
+  opts.env = Object.assign(opts.env || { }, process.env, { 
+    NODE_ENV: 'development'
+  })
+
+  return cp.spawn(binaryPath, [], opts)
 }

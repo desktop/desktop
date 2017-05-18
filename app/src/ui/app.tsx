@@ -14,7 +14,7 @@ import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton, BranchDropdown } from './toolbar'
 import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
-import { showCertificateTrustDialog } from './main-process-proxy'
+import { showCertificateTrustDialog, registerContextualMenuActionDispatcher } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -42,6 +42,7 @@ import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
+import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-repository'
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 
@@ -87,6 +88,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   public constructor(props: IAppProps) {
     super(props)
 
+    registerContextualMenuActionDispatcher()
+
     props.dispatcher.loadInitialState().then(() => {
       this.loading = false
       this.forceUpdate()
@@ -99,6 +102,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         // loading the app. So defer it until we have some breathing space.
         requestIdleCallback(() => {
           props.appStore.loadEmoji()
+
+          this.props.dispatcher.reportStats()
+
+          setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
         })
       }, { timeout: ReadyDelay })
     })
@@ -134,15 +141,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
     this.checkForUpdates()
 
-    ipcRenderer.on('launch-timing-stats', async (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
+    ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
       console.info(`App ready time: ${stats.mainReadyTime}ms`)
       console.info(`Load time: ${stats.loadTime}ms`)
       console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
 
-      await this.props.dispatcher.recordLaunchStats(stats)
-      this.props.dispatcher.reportStats()
-
-      setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+      this.props.dispatcher.recordLaunchStats(stats)
     })
 
     ipcRenderer.on('certificate-error', (event: Electron.IpcRendererEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {
@@ -169,7 +173,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'add-local-repository': return this.showAddLocalRepo()
       case 'create-branch': return this.showCreateBranch()
       case 'show-branches': return this.showBranches()
-      case 'remove-repository': return this.removeRepository()
+      case 'remove-repository': return this.removeRepository(this.getRepository())
       case 'create-repository': return this.showCreateRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
@@ -452,13 +456,25 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.addRepositories(paths)
   }
 
-  private removeRepository() {
-    const repository = this.getRepository()
+  private removeRepository = (repository: Repository | CloningRepository | null) => {
 
     if (!repository) {
       return
     }
 
+    if (repository instanceof CloningRepository) {
+      this.props.dispatcher.removeRepositories([ repository ])
+      return
+    }
+
+    if (this.state.confirmRepoRemoval) {
+      this.props.dispatcher.showPopup({ type: PopupType.RemoveRepository, repository })
+    } else {
+      this.props.dispatcher.removeRepositories([ repository ])
+    }
+  }
+
+  private onConfirmRepoRemoval = (repository: Repository) => {
     this.props.dispatcher.removeRepositories([ repository ])
   }
 
@@ -671,8 +687,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         return <Preferences
                 key='preferences'
                 dispatcher={this.props.dispatcher}
-                appStore={this.props.appStore}
                 dotComAccount={this.getDotComAccount()}
+                confirmRepoRemoval={this.state.confirmRepoRemoval}
+                optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
                 enterpriseAccount={this.getEnterpriseAccount()}
                 onDismissed={this.onPopupDismissed}/>
       case PopupType.MergeBranch: {
@@ -796,6 +813,16 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
+      case PopupType.RemoveRepository:
+        const repo = popup.repository
+
+        return (
+          <ConfirmRemoveRepository
+            repository={repo}
+            onConfirmation={this.onConfirmRepoRemoval}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       case PopupType.TermsAndConditions:
         return <TermsAndConditions onDismissed={this.onPopupDismissed}/>
       default:
@@ -861,6 +888,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       onSelectionChanged={this.onSelectionChanged}
       dispatcher={this.props.dispatcher}
       repositories={this.state.repositories}
+      onRemoveRepository={this.removeRepository}
     />
   }
 
@@ -882,7 +910,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       title = repository.name
     } else {
       icon = OcticonSymbol.repo
-      title = 'Select a repository'
+      title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
     }
 
     const isOpen = this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Repository
@@ -900,7 +928,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <ToolbarDropdown
       icon={icon}
       title={title}
-      description='Current repository'
+      description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
       foldoutStyle={foldoutStyle}
       onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
       dropdownContentRenderer={this.renderRepositoryList}
@@ -981,7 +1009,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const releaseNotesUri = 'https://desktop.github.com/release-notes/tng/'
+    const releaseNotesUri = 'https://desktop.github.com/release-notes/'
 
     return (
       <UpdateAvailable

@@ -8,7 +8,7 @@ import { HTTPMethod, request, deserialize, getUserAgent } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 
-import { getLogger } from '../lib/logging/renderer'
+import { logError } from '../lib/logging/renderer'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -210,7 +210,7 @@ export class API {
     try {
       return await this.client.repos(owner, name).fetch()
     } catch (e) {
-      getLogger().error(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
+      logError(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
       return null
     }
   }
@@ -224,12 +224,22 @@ export class API {
   public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
     const isDotCom = this.account.endpoint === getDotComAPIEndpoint()
 
-    const result = isDotCom
-      ? await this.client.user.publicEmails.fetch()
-      // GitHub Enterprise does not have the concept of private emails
-      : await this.client.user.emails.fetch()
+    // workaround for /user/public_emails throwing a 500
+    // while we investigate the API issue
+    // see https://github.com/desktop/desktop/issues/1508 for context
+    let emails: ReadonlyArray<IAPIEmail> = [ ]
+    try {
+      const result = isDotCom
+        ? await this.client.user.publicEmails.fetch()
+        // GitHub Enterprise does not have the concept of private emails
+        : await this.client.user.emails.fetch()
 
-    const emails: ReadonlyArray<IAPIEmail> = result.items
+      emails = result && Array.isArray(result.items)
+                ? result.items as ReadonlyArray<IAPIEmail>
+                : []
+    } catch (e) {
+      emails = [ ]
+    }
     return emails
   }
 
@@ -239,7 +249,7 @@ export class API {
       const commit = await this.client.repos(owner, name).commits(sha).fetch()
       return commit
     } catch (e) {
-      getLogger().error(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
+      logError(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
       return null
     }
   }
@@ -253,7 +263,7 @@ export class API {
       const user = result.items[0]
       return user
     } catch (e) {
-      getLogger().error(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
+      logError(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
       return null
     }
   }
@@ -261,7 +271,9 @@ export class API {
   /** Fetch all the orgs to which the user belongs. */
   public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
     const result = await this.client.user.orgs.fetch()
-    return result.items
+    return result && Array.isArray(result.items)
+      ? result.items
+      : []
   }
 
   /** Create a new GitHub repository with the given properties. */
@@ -452,12 +464,21 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
 
   const isDotCom = endpoint === getDotComAPIEndpoint()
 
-  const result = isDotCom
-    ? await octo.user.publicEmails.fetch()
-    // GitHub Enterprise does not have the concept of private emails
-    : await octo.user.emails.fetch()
-
-  const emails: ReadonlyArray<IAPIEmail> = result.items
+  // workaround for /user/public_emails throwing a 500
+  // while we investigate the API issue
+  // see https://github.com/desktop/desktop/issues/1508 for context
+  let emails: ReadonlyArray<IAPIEmail> = [ ]
+  try {
+      const result = isDotCom
+        ? await octo.user.publicEmails.fetch()
+        // GitHub Enterprise does not have the concept of private emails
+        : await octo.user.emails.fetch()
+    emails = result && Array.isArray(result.items)
+    ? result.items as ReadonlyArray<IAPIEmail>
+    : []
+  } catch (e) {
+    emails = [ ]
+  }
 
   return new Account(user.login, endpoint, token, emails, user.avatarUrl, user.id, user.name)
 }
@@ -483,7 +504,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
 
     return body
   } catch (e) {
-    getLogger().error(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
+    logError(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
     return null
   }
 }
@@ -494,7 +515,7 @@ async function getNote(): Promise<string> {
   try {
     localUsername = await username()
   } catch (e) {
-    getLogger().error(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
+    logError(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`

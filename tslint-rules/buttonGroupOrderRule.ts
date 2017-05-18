@@ -31,7 +31,7 @@ export class Rule extends Lint.Rules.AbstractRule {
       if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
         return this.applyWithWalker(new ButtonGroupOrderWalker(sourceFile, this.getOptions()))
       } else {
-          return []
+        return []
       }
     }
 }

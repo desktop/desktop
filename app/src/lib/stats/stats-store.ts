@@ -10,6 +10,9 @@ import { merge } from '../../lib/merge'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
+/** The URL to the stats samples page. */
+export const SamplesURL = 'https://desktop.github.com/usage-data/'
+
 const LastDailyStatsReportKey = 'last-daily-stats-report'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
@@ -140,8 +143,8 @@ export class StatsStore {
 
   /** Determines if an account is a dotCom and/or enterprise user */
   private determineUserType(accounts: ReadonlyArray<Account>) {
-    const dotComAccount = accounts.find(a => a.endpoint === getDotComAPIEndpoint()) !== undefined
-    const enterpriseAccount = accounts.find(a => a.endpoint !== getDotComAPIEndpoint()) !== undefined
+    const dotComAccount = !!accounts.find(a => a.endpoint === getDotComAPIEndpoint())
+    const enterpriseAccount = !!accounts.find(a => a.endpoint !== getDotComAPIEndpoint())
 
     return {
       dotComAccount,
@@ -187,6 +190,8 @@ export class StatsStore {
     return {
       ...DefaultDailyMeasures,
       ...measures,
+      // We could spread the database ID in, but we really don't want it.
+      id: undefined,
     }
   }
 

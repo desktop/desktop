@@ -18,6 +18,7 @@ interface IRepositoriesListProps {
   readonly onSelectionChanged: (repository: Repositoryish) => void
   readonly dispatcher: Dispatcher
   readonly repositories: ReadonlyArray<Repositoryish>
+  readonly onRemoveRepository: (repository: Repositoryish) => void
 }
 
 const RowHeight = 29
@@ -29,7 +30,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
     return <RepositoryListItem
       key={repository.id}
       repository={repository}
-      dispatcher={this.props.dispatcher}
+      onRemoveRepository={this.props.onRemoveRepository}
     />
   }
 

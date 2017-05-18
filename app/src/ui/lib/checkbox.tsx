@@ -19,7 +19,7 @@ interface ICheckboxProps {
   readonly tabIndex?: number
 
   /** The label for the checkbox. */
-  readonly label?: string
+  readonly label?: string | JSX.Element
 }
 
 interface ICheckboxState {

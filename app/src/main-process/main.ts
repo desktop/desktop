@@ -8,8 +8,8 @@ import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
 import { showFallbackPage } from './error-page'
-import { getLogger } from '../lib/logging/main'
 import { IMenuItemState } from '../lib/menu-update'
+import { ILogEntry, logError, log } from '../lib/logging/main'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -26,7 +26,8 @@ let readyTime: number | null = null
 let launchURLAction: URLActionType | null = null
 
 process.on('uncaughtException', (error: Error) => {
-  getLogger().error('Uncaught exception on main process', error)
+
+  logError('Uncaught exception on main process', error)
 
   if (sharedProcess) {
     sharedProcess.console.error('Uncaught exception:')
@@ -130,12 +131,12 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: { [id: string]: IMenuItemState }) => {
+  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: Array<{ id: string, state: IMenuItemState }>) => {
     let sendMenuChangedEvent = false
 
-    for (const id of Object.keys(items)) {
+    for (const item of items) {
+      const { id, state } = item
       const menuItem = findMenuItemByID(menu, id)
-      const state = items[id]
 
       if (menuItem) {
         // Only send the updated app menu when the state actually changes
@@ -192,6 +193,10 @@ app.on('ready', () => {
     if (__DARWIN__) {
       getMainWindow().showCertificateTrustDialog(certificate, message)
     }
+  })
+
+  ipcMain.on('log', (event: Electron.IpcMainEvent, logEntry: ILogEntry) => {
+    log(logEntry)
   })
 
   autoUpdater.on('error', err => {

@@ -9,19 +9,11 @@
   .commit-list-example {
     position: relative;
 
-    &:before {
-      background: linear-gradient(to bottom, var(--background-color), rgba(255,255,255,0), var(--background-color));
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
-
     .commit {
       padding: var(--spacing-half);
       width: 280px;
+      border-bottom: none;
+      padding-left: 0;
     }
   }
 }

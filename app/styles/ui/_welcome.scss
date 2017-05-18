@@ -109,6 +109,31 @@
   display: flex;
   align-items: center;
   padding: var(--spacing-quad);
+  position: relative;
+
+  .welcome-graphic-bottom {
+    position: absolute;
+    right: var(--spacing);
+    bottom: var(--spacing);
+    
+    height: auto;
+    max-height: 100%;
+    width: 40%;
+    // I hate this but we'll have to live with it for beta.
+    z-index: -1;
+  }
+
+  .welcome-graphic-top {
+    position: absolute;
+    right: 80px;
+    top: 40px;
+    
+    height: auto;
+    max-height: 100%;
+    width: 20%;
+    // I hate this but we'll have to live with it for beta.
+    z-index: -1;
+  }
 
   @media screen and (min-width: 1366px) {
     zoom: 1.2;
@@ -128,13 +153,19 @@
 }
 
 .welcome-right {
-  background-color: #33383d;
+  background-color: #28373b;
   justify-content: center;
   align-items: center;
   display: flex;
   padding: var(--spacing-quad);
   position: relative;
   overflow: hidden;
+
+  .welcome-graphic {
+    height: auto;
+    max-height: 100%;
+    width: 100%;
+  }
 }
 
 .skip-action-container {
@@ -143,12 +174,6 @@
   .skip-button {
     color: var(--text-secondary-color);
   }
-}
-
-.welcome-graphic {
-  height: auto;
-  max-height: 100%;
-  width: 100%;
 }
 
 .welcome-content {
