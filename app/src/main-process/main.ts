@@ -61,6 +61,7 @@ function uncaughtException(error: Error) {
 }
 
 process.on('uncaughtException', (error: Error) => {
+  reportError(error)
   uncaughtException(error)
 })
 
