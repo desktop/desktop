@@ -14,6 +14,11 @@ const RepositoryURL = 'https://github.com/desktop/desktop'
 interface IAcknowledgementsProps {
   /** The function to call when the dialog should be dismissed. */
   readonly onDismissed: () => void
+
+  /**
+   * The currently installed (and running) version of the app.
+   */
+  readonly applicationVersion: string
 }
 
 interface ILicense {
@@ -105,7 +110,14 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
 
   public render() {
     const licenses = this.state.licenses
-    const licenseText = this.state.licenseText
+
+    let desktopLicense: JSX.Element | null = null
+    if (licenses) {
+      const key = `desktop@${this.props.applicationVersion}`
+      const entry = licenses[key]
+      desktopLicense = <p className='license-text'>{entry.sourceText}</p>
+    }
+
     return (
       <Dialog
         id='acknowledgements'
@@ -120,9 +132,7 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
             source code and contribute to this project on <LinkButton uri={RepositoryURL}>GitHub</LinkButton>.
           </p>
 
-          <p className='license-text'>
-            {licenseText}
-          </p>
+          {desktopLicense}
 
           <p>
             GitHub Desktop also distributes these libraries:
