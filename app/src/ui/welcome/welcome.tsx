@@ -124,7 +124,6 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
         return <UsageOptOut
           dispatcher={this.props.dispatcher}
           advance={this.advanceToStep}
-          optOut={this.props.appStore.getStatsOptOut()}
           done={this.done}
         />
 
