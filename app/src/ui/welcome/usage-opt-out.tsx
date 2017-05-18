@@ -12,10 +12,11 @@ interface IUsageOptOutProps {
   readonly dispatcher: Dispatcher
   readonly advance: (step: WelcomeStep) => void
   readonly done: () => void
+  readonly optOut: boolean
 }
 
 interface IUsageOptOutState {
-  readonly optOut: boolean
+  readonly newOptOutValue: boolean
 }
 
 /** The Welcome flow step for opting out of stats reporting. */
@@ -23,7 +24,7 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, IUsageOptOut
   public constructor(props: IUsageOptOutProps) {
     super(props)
 
-    this.state = { optOut: false }
+    this.state = { newOptOutValue: props.optOut }
   }
 
   public render() {
@@ -39,7 +40,7 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, IUsageOptOut
           <Row>
             <Checkbox
               label='Yes, submit anonymized usage data'
-              value={this.state.optOut ? CheckboxValue.Off : CheckboxValue.On}
+              value={this.state.newOptOutValue ? CheckboxValue.Off : CheckboxValue.On}
               onChange={this.onChange}
             />
           </Row>
@@ -55,7 +56,7 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, IUsageOptOut
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = event.currentTarget.checked
-    this.setState({ optOut: value })
+    this.setState({ newOptOutValue: value })
   }
 
   private cancel = () => {
@@ -63,7 +64,7 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, IUsageOptOut
   }
 
   private finish = () => {
-    this.props.dispatcher.setStatsOptOut(this.state.optOut)
+    this.props.dispatcher.setStatsOptOut(this.state.newOptOutValue)
     this.props.done()
   }
 }
