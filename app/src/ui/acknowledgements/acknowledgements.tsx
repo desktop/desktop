@@ -25,6 +25,7 @@ interface ILicense {
 type Licenses = { [key: string]: ILicense }
 
 interface IAcknowledgementsState {
+  readonly licenseText: string | null
   readonly licenses: Licenses | null
 }
 
@@ -33,10 +34,21 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
   public constructor(props: IAcknowledgementsProps) {
     super(props)
 
-    this.state = { licenses: null }
+    this.state = { licenses: null, licenseText: null }
   }
 
   public componentDidMount() {
+    const licensePath = Path.join(getAppPath(), 'static', 'LICENSE')
+    Fs.readFile(licensePath, 'utf8', (err, data) => {
+      if (err) {
+        console.error('Error loading license text')
+        console.error(err)
+        return
+      }
+
+      this.setState({ licenseText: data })
+    })
+
     const path = Path.join(getAppPath(), 'static', 'licenses.json')
     Fs.readFile(path, 'utf8', (err, data) => {
       if (err) {
@@ -93,7 +105,7 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
 
   public render() {
     const licenses = this.state.licenses
-    const licenseText = 'text goes here'
+    const licenseText = this.state.licenseText
     return (
       <Dialog
         id='acknowledgements'

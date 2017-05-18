@@ -205,6 +205,11 @@ function copyDependencies () {
 }
 
 function updateLicenseDump (callback) {
+
+  const licenseSource = path.join(projectRoot, 'LICENSE')
+  const licenseDest = path.join(outRoot, 'static', 'LICENSE')
+  fs.copySync(licenseSource, licenseDest)
+
   const appRoot = path.join(projectRoot, 'app')
   const outPath = path.join(outRoot, 'static', 'licenses.json')
   const licenseOverrides = require('./license-overrides')
