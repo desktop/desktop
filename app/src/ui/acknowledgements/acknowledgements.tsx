@@ -97,7 +97,7 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
     return (
       <Dialog
         id='acknowledgements'
-        title='Acknowledgements'
+        title='License and Open Source Notices'
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}>
         <DialogContent>
