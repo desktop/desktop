@@ -10,10 +10,10 @@ import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
 import { TipState, IUnbornRepository, IDetachedHead, IValidBranch } from '../../models/tip'
 import { assertNever } from '../../lib/fatal-error'
+import { renderBranchNameWarning } from '../lib/branch-names';
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -89,25 +89,6 @@ function getStartPoint(props: ICreateBranchProps, preferred: StartPoint): StartP
     return StartPoint.CurrentBranch
   } else {
     return StartPoint.Head
-  }
-}
-
-function renderWarningMessage(message: string) {
-  return (
-    <Row className='warning-helper-text'>
-      <Octicon symbol={OcticonSymbol.alert} />
-      {message}
-    </Row>
-  )
-}
-
-export function renderBranchNameWarning(proposedName: string, sanitizedName: string) {
-  if (/^\s+$/.test(proposedName)) {
-    return renderWarningMessage('Branch name cannot be empty')
-  } else if (proposedName !== sanitizedName) {
-    return renderWarningMessage(`Will be created as ${sanitizedName}`)
-  } else {
-    return null
   }
 }
 
