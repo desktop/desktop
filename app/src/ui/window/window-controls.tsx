@@ -46,6 +46,26 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
     this.setState({ windowState: args as WindowState })
   }
 
+  private onMinimize = () => {
+    console.log('minimize')
+    remote.getCurrentWindow().minimize()
+  }
+
+  private onMaximize = () => {
+    console.log('maximize')
+    remote.getCurrentWindow().maximize()
+  }
+
+  private onRestore = () => {
+    console.log('restore')
+    remote.getCurrentWindow().unmaximize()
+  }
+
+  private onClose = () => {
+    console.log('close')
+    remote.getCurrentWindow().close()
+  }
+
   private renderButton(name: string, onClick: React.EventHandler<React.MouseEvent<any>>, path: string) {
     const className = classNames('window-control', name)
     const title = name[0].toUpperCase() + name.substring(1)
@@ -65,11 +85,11 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
       return <span></span>
     }
 
-    const min = this.renderButton('minimize', (e) => remote.getCurrentWindow().minimize(), minimizePath)
+    const min = this.renderButton('minimize', this.onMinimize, minimizePath)
     const maximizeOrRestore = this.state.windowState === 'maximized'
-      ? this.renderButton('restore', (e) => remote.getCurrentWindow().unmaximize(), restorePath)
-      : this.renderButton('maximize', (e) => remote.getCurrentWindow().maximize(), maximizePath)
-    const close = this.renderButton('close', (e) => remote.getCurrentWindow().close(), closePath)
+      ? this.renderButton('restore', this.onRestore, restorePath)
+      : this.renderButton('maximize', this.onMaximize, maximizePath)
+    const close = this.renderButton('close', this.onClose, closePath)
 
     return (
       <div className='window-controls'>
