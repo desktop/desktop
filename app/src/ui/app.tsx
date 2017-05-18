@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ipcRenderer, shell } from 'electron'
+import { ipcRenderer, remote, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
@@ -583,6 +583,27 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setAppMenuState(menu => menu.withReset())
   }
 
+  private onTitlebarDoubleClick() {
+    if (__DARWIN__) {
+      const actionOnDoubleClick = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string');
+      const mainWindow = remote.getCurrentWindow();
+
+      if (mainWindow) {
+        switch (actionOnDoubleClick) {
+          case 'Maximize':
+          default:
+            mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
+            break;
+          case 'Minimize':
+            mainWindow.minimize();
+            break;
+          case 'None':
+            break;
+        }
+      }
+    }
+  }
+
   private renderTitlebar() {
 
     const inFullScreen = this.state.windowState === 'full-screen'
@@ -626,7 +647,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       : null
 
     return (
-      <div className={titleBarClass} id='desktop-app-title-bar'>
+      <div className={titleBarClass} id='desktop-app-title-bar' onDoubleClick={this.onTitlebarDoubleClick}>
         {topResizeHandle}
         {leftResizeHandle}
         {appIcon}
