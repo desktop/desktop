@@ -87,7 +87,7 @@
       ]
     },
     "extraResources": [
-      "app/static"
+      "app/dist"
     ]
   },
   "dependencies": {
