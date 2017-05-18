@@ -45,7 +45,7 @@ script:
 #  - npm run lint
 #  - npm run test:setup
 #  - npm test
-  - npm run release
+  - travis_wait 60 npm run release
 
 after_failure:
   - npm run test:review
