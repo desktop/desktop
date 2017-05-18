@@ -45,7 +45,7 @@ export class UntrustedCertificate extends React.Component<IUntrustedCertificateP
       <Dialog
         title={__DARWIN__ ? 'Untrusted Server' : 'Untrusted server'}
         onDismissed={this.props.onDismissed}
-        onSubmit={this.onContinue}
+        onSubmit={this.props.onDismissed}
         type={type}
       >
         <DialogContent>
