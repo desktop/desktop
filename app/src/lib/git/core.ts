@@ -102,7 +102,6 @@ export async function git(args: string[], path: string, name: string, options?: 
     successExitCodes: new Set([ 0 ]),
     expectedErrors: new Set(),
     env: {
-      GIT_TERMINAL_PROMPT: '0',
       PATH: process.env.PATH || '',
     },
   }
