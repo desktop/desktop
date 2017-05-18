@@ -648,8 +648,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? <Octicon className='app-icon' symbol={OcticonSymbol.markGithub} />
       : null
 
+    const onTitlebarDoubleClick = __DARWIN__ ? this.onTitlebarDoubleClick : undefined
+
     return (
-      <div className={titleBarClass} id='desktop-app-title-bar' onDoubleClick={this.onTitlebarDoubleClick}>
+      <div className={titleBarClass} id='desktop-app-title-bar' onDoubleClick={onTitlebarDoubleClick}>
         {topResizeHandle}
         {leftResizeHandle}
         {appIcon}
