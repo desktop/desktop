@@ -84,7 +84,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
       tooltip = `Current branch is ${tip.ref}`
       canOpen = false
     } else if (tip.kind === TipState.Detached) {
-      title = `On ${tip.currentSha.substr(0,7)}`
+      title = `On ${tip.currentSha.substr(0, 7)}`
       tooltip = 'Currently on a detached HEAD'
       icon = OcticonSymbol.gitCommit
       description = 'Detached HEAD'

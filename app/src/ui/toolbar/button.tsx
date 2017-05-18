@@ -141,7 +141,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     const className = classNames(
       'toolbar-button',
       { 'has-progress': this.props.progressValue !== undefined },
-      this.props.className
+      this.props.className,
     )
 
     const progressValue = this.props.progressValue !== undefined

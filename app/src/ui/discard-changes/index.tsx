@@ -62,8 +62,8 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
             {this.props.files.map(p =>
               <li className='file-name' key={p.id}>
                 <PathText path={p.path} />
-              </li>
-            )}
+              </li>)
+            }
           </ul>
         </div>
       )
