@@ -189,10 +189,10 @@ function copyDependencies () {
 
   if (!isProductionBuild) {
     console.log('  Installing 7zip (dependency for electron-devtools-installer)')
-    
+
     const sevenZipSource = path.resolve(projectRoot, 'app/node_modules/7zip')
     const sevenZipDestination = path.resolve(outRoot, 'node_modules/7zip')
-    
+
     fs.mkdirpSync(sevenZipDestination)
     fs.copySync(sevenZipSource, sevenZipDestination)
   }

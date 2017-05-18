@@ -125,8 +125,7 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
           </p>
 
           <p>
-            GitHub Desktop stands on the shoulders of giants! GitHub Desktop
-            distributes these libraries as part of it's application.
+            GitHub Desktop also distributes these libraries.
           </p>
 
           {licenses ? this.renderLicenses(licenses) : <Loading/>}
