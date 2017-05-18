@@ -307,10 +307,18 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   return Menu.buildFromTemplate(template)
 }
 
+type ClickHandler = (menuItem: Electron.MenuItem, browserWindow: Electron.BrowserWindow, event: Electron.Event) => void
+
 /**
  * Utility function returning a Click event handler which, when invoked, emits
  * the provided menu event over IPC.
  */
-function emit(name: MenuEvent): () => void {
-  return () => ipcMain.emit('menu-event', { name })
+function emit(name: MenuEvent): ClickHandler {
+  return (menuItem, window) => {
+    if (window) {
+      window.webContents.send('menu-event', { name })
+    } else {
+      ipcMain.emit('menu-event', { name })
+    }
+  }
 }
