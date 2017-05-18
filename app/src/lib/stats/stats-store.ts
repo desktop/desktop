@@ -48,7 +48,6 @@ export class StatsStore {
       // If the user has set an opt out value but we haven't sent the ping yet,
       // give it a shot now.
       if (!localStorage.getItem(HasSentOptOutStatusKey)) {
-        debugger
         this.sendOptOutStatusPing(this.optOut)
       }
     } else {
@@ -261,7 +260,6 @@ export class StatsStore {
   private async sendOptOutStatusPing(optOut: boolean): Promise<void> {
     const eventType = optOut ? 'opt_out' : 'opt_in'
     try {
-      debugger
       const response = await this.post({ eventType })
       if (!response.ok) {
         throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
