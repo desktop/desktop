@@ -590,18 +590,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       const actionOnDoubleClick: AppleActionOnDoubleClickPref = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
       const mainWindow: Electron.BrowserWindow = remote.getCurrentWindow()
 
-      if (mainWindow) {
-        switch (actionOnDoubleClick) {
-          case 'Maximize':
-          default:
-            mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()
-            break
-          case 'Minimize':
-            mainWindow.minimize()
-            break
-          case 'None':
-            break
-        }
+      switch (actionOnDoubleClick) {
+        case 'Maximize':
+          mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()
+          break
+        case 'Minimize':
+          mainWindow.minimize()
+          break
+        case 'None':
+        default:
+          break
       }
     }
   }
