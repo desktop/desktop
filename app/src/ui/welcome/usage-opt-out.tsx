@@ -35,7 +35,7 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, IUsageOptOut
           Would you like to help us improve GitHub Desktop by periodically submitting <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>?
         </p>
 
-        <Form  onSubmit={this.finish}>
+        <Form onSubmit={this.finish}>
           <Row>
             <Checkbox
               label='Yes, submit anonymized usage data'
