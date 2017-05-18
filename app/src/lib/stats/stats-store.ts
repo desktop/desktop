@@ -18,6 +18,9 @@ const LastDailyStatsReportKey = 'last-daily-stats-report'
 /** The localStorage key for whether the user has opted out. */
 const StatsOptOutKey = 'stats-opt-out'
 
+/** Have we successfully sent the stats opt-out? */
+const HasSentOptOutStatusKey = 'has-sent-stats-opt-out-status'
+
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
 
@@ -41,6 +44,13 @@ export class StatsStore {
     const optOutValue = localStorage.getItem(StatsOptOutKey)
     if (optOutValue) {
       this.optOut = !!parseInt(optOutValue, 10)
+
+      // If the user has set an opt out value but we haven't sent the ping yet,
+      // give it a shot now.
+      if (!localStorage.getItem(HasSentOptOutStatusKey)) {
+        debugger
+        this.sendOptOutStatusPing(this.optOut)
+      }
     } else {
       this.optOut = false
     }
@@ -119,6 +129,7 @@ export class StatsStore {
     const repositoryCounts = this.categorizedRepositoryCounts(repositories)
 
     return {
+      eventType: 'usage',
       version: getVersion(),
       osVersion: getOS(),
       platform: process.platform,
@@ -226,7 +237,7 @@ export class StatsStore {
 
     localStorage.setItem(StatsOptOutKey, optOut ? '1' : '0')
 
-    return this.sendOptOutStatePing(optOut)
+    return this.sendOptOutStatusPing(optOut)
   }
 
   /** Has the user opted out of stats reporting? */
@@ -247,14 +258,16 @@ export class StatsStore {
     return fetch(StatsEndpoint, options)
   }
 
-  private async sendOptOutStatePing(optOut: boolean): Promise<void> {
+  private async sendOptOutStatusPing(optOut: boolean): Promise<void> {
     const eventType = optOut ? 'opt_out' : 'opt_in'
     try {
       debugger
-      const response = await this.post({ 'event_type': eventType })
+      const response = await this.post({ eventType })
       if (!response.ok) {
         throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
       }
+
+      localStorage.setItem(HasSentOptOutStatusKey, '1')
 
       console.log('Opt out reported.')
     } catch (e) {
