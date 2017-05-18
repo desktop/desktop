@@ -9,7 +9,7 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { renderBranchNameWarning } from '../lib/branch-names';
+import { renderBranchNameWarning } from '../lib/branch-names'
 
 interface IRenameBranchProps {
   readonly dispatcher: Dispatcher
