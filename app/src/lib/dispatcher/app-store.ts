@@ -1682,11 +1682,11 @@ export class AppStore {
 
   /** Set whether the user has opted out of stats reporting. */
   public setStatsOptOut(optOut: boolean): Promise<void> {
-    this.statsStore.setOptOut(optOut)
+    const promise = this.statsStore.setOptOut(optOut)
 
     this.emitUpdate()
 
-    return Promise.resolve()
+    return promise
   }
 
   public _setConfirmRepoRemoval(confirmRepoRemoval: boolean): Promise<void> {

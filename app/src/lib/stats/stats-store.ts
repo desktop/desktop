@@ -80,16 +80,9 @@ export class StatsStore {
 
     const now = Date.now()
     const stats = await this.getDailyStats(accounts, repositories)
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(stats),
-    }
 
     try {
-      const response = await fetch(StatsEndpoint, options)
+      const response = await this.post(stats)
       if (!response.ok) {
         throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
       }
@@ -225,14 +218,45 @@ export class StatsStore {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public setOptOut(optOut: boolean) {
+  public setOptOut(optOut: boolean): Promise<void> {
     this.optOut = optOut
 
     localStorage.setItem('stats-opt-out', optOut ? '1' : '0')
+
+    return this.sendOptOutStatePing(optOut)
   }
 
   /** Has the user opted out of stats reporting? */
   public getOptOut(): boolean {
     return this.optOut
+  }
+
+  /** Post some data to our stats endpoint. */
+  private post(body: object): Promise<Response> {
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    }
+
+    return fetch(StatsEndpoint, options)
+  }
+
+  private async sendOptOutStatePing(optOut: boolean): Promise<void> {
+    const eventType = optOut ? 'opt_out' : 'opt_in'
+    try {
+      debugger
+      const response = await this.post({ 'event_type': eventType })
+      if (!response.ok) {
+        throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
+      }
+
+      console.log('Opt out reported.')
+    } catch (e) {
+      console.error('Error reporting opt out:')
+      console.error(e)
+    }
   }
 }
