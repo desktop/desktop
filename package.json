@@ -1,8 +1,4 @@
 {
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/gengjiawen/desktop.git"
-  },
   "description": "GitHub Desktop build dependencies",
   "scripts": {
     "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 mocha -t 10000 --compilers ts:ts-node/register,tsx:ts-node/register app/test/integration/*.ts",
@@ -10,6 +6,8 @@
     "test": "npm run test:unit && npm run test:integration",
     "test:setup": "node script/test-setup",
     "test:review": "node script/test-review",
+    "build:dir": "build --dir",
+    "dist": "npm run build:prod && build",
     "release": "npm run build:prod && build",
     "pack-all": "build -mwl",
     "pack-unix": "build -ml",
@@ -44,7 +42,7 @@
   },
   "build": {
     "productName": "GithubDesktop",
-    "appId": "com.github.GithubClient",
+    "appId": "com.github.GithubClient1",
     "dmg": {
       "contents": [
         {
@@ -60,14 +58,6 @@
         }
       ]
     },
-    "protocols": [
-      {
-        "schemes": [
-          "x-github-client",
-          "github-mac"
-        ]
-      }
-    ],
     "files": [
       "dist/",
       "node_modules/",
@@ -83,11 +73,11 @@
       "icon": "app/icons",
       "target": [
         "AppImage",
-        "deb"
+        "deb",
+        "apk"
       ]
     },
     "extraResources": [
-      "app/dist"
     ]
   },
   "dependencies": {
@@ -136,7 +126,7 @@
     "xml2js": "^0.4.16"
   },
   "devDependencies": {
-    "electron": "1.6.8",
+    "electron": "1.6.6",
     "electron-builder": "^17.8.0",
     "electron-mocha": "3.3.0",
     "electron-winstaller": "2.5.2",
