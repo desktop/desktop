@@ -4,11 +4,7 @@
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
   "version": "0.6.1",
-  "main": "./main.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/desktop/desktop.git"
-  },
+  "main": "./dist/main.js",
   "description": "Extend your GitHub workflow beyond your browser with GitHub Desktop",
   "author": {
     "name": "GitHub, Inc.",
