@@ -14,6 +14,7 @@ interface IRichTextProps {
   /** The raw text to inspect for things to highlight */
   readonly text: string
 
+  /** Should URLs be rendered as clickable links. Default true. */
   readonly links?: boolean
 
   /**
