@@ -16,11 +16,9 @@ import {
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
 import { sendErrorReport, reportUncaughtException } from '../ui/main-process-proxy'
+import { enableSourceMaps } from '../lib/enable-source-maps'
 
-require('source-map-support').install({
-  environment: 'node',
-  handleUncaughtExceptions: false,
-})
+enableSourceMaps()
 
 process.on('uncaughtException', (error: Error) => {
   console.error('Uncaught exception', error)
