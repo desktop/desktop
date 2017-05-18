@@ -585,20 +585,20 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onTitlebarDoubleClick() {
     if (__DARWIN__) {
-      const actionOnDoubleClick = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string');
-      const mainWindow = remote.getCurrentWindow();
+      const actionOnDoubleClick = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
+      const mainWindow = remote.getCurrentWindow()
 
       if (mainWindow) {
         switch (actionOnDoubleClick) {
           case 'Maximize':
           default:
-            mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
-            break;
+            mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()
+            break
           case 'Minimize':
-            mainWindow.minimize();
-            break;
+            mainWindow.minimize()
+            break
           case 'None':
-            break;
+            break
         }
       }
     }
