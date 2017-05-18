@@ -31,7 +31,7 @@ export class UntrustedCertificate extends React.Component<IUntrustedCertificateP
     const type = __DARWIN__ ? 'warning' : 'error'
     const buttonGroup = __DARWIN__
       ? (
-        <ButtonGroup>
+        <ButtonGroup destructive>
           <Button type='submit'>Cancel</Button>
           <Button>View Certificate</Button>
         </ButtonGroup>
