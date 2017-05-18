@@ -200,7 +200,7 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('log', (event: Electron.IpcMainEvent, logEntry: ILogEntry) => {
+  ipcMain.on('log', (event: Electron.IpcMessageEvent, logEntry: ILogEntry) => {
     log(logEntry)
   })
 
