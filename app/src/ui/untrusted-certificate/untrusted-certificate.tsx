@@ -33,7 +33,7 @@ export class UntrustedCertificate extends React.Component<IUntrustedCertificateP
       ? (
         <ButtonGroup destructive>
           <Button type='submit'>Cancel</Button>
-          <Button>View Certificate</Button>
+          <Button onClick={this.onContinue}>View Certificate</Button>
         </ButtonGroup>
       )
       : (
