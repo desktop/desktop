@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { shell, Menu, app } from 'electron'
+import { shell, Menu, ipcMain, app } from 'electron'
 import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
@@ -315,6 +315,10 @@ type ClickHandler = (menuItem: Electron.MenuItem, browserWindow: Electron.Browse
  */
 function emit(name: MenuEvent): ClickHandler {
   return (menuItem, window) => {
-    window.webContents.send('menu-event', { name })
+    if (window) {
+      window.webContents.send('menu-event', { name })
+    } else {
+      ipcMain.emit('menu-event', { name })
+    }
   }
 }
