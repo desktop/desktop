@@ -325,6 +325,11 @@
       "from": "fbjs@>=0.8.9 <0.9.0",
       "resolved": "https://registry.npmjs.org/fbjs/-/fbjs-0.8.12.tgz"
     },
+    "file-uri-to-path": {
+      "version": "0.0.2",
+      "from": "file-uri-to-path@latest",
+      "resolved": "https://registry.npmjs.org/file-uri-to-path/-/file-uri-to-path-0.0.2.tgz"
+    },
     "forever-agent": {
       "version": "0.6.1",
       "from": "forever-agent@>=0.6.1 <0.7.0",
