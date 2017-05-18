@@ -82,7 +82,8 @@
     "linux": {
       "icon": "app/icons",
       "target": [
-        "AppImage",
+        "AppImage",  
+        "apk",
         "deb"
       ]
     },
