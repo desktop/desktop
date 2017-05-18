@@ -57,6 +57,8 @@ interface IAppProps {
   readonly startTime: number
 }
 
+type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
+
 export const dialogTransitionEnterTimeout = 250
 export const dialogTransitionLeaveTimeout = 100
 
@@ -585,8 +587,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onTitlebarDoubleClick() {
     if (__DARWIN__) {
-      const actionOnDoubleClick = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
-      const mainWindow = remote.getCurrentWindow()
+      const actionOnDoubleClick: AppleActionOnDoubleClickPref = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
+      const mainWindow: Electron.BrowserWindow = remote.getCurrentWindow()
 
       if (mainWindow) {
         switch (actionOnDoubleClick) {
