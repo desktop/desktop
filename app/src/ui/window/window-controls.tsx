@@ -47,22 +47,18 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
   }
 
   private onMinimize = () => {
-    console.log('minimize')
     remote.getCurrentWindow().minimize()
   }
 
   private onMaximize = () => {
-    console.log('maximize')
     remote.getCurrentWindow().maximize()
   }
 
   private onRestore = () => {
-    console.log('restore')
     remote.getCurrentWindow().unmaximize()
   }
 
   private onClose = () => {
-    console.log('close')
     remote.getCurrentWindow().close()
   }
 
