@@ -15,6 +15,9 @@ export const SamplesURL = 'https://desktop.github.com/usage-data/'
 
 const LastDailyStatsReportKey = 'last-daily-stats-report'
 
+/** The localStorage key for whether the user has opted out. */
+const StatsOptOutKey = 'stats-opt-out'
+
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
 
@@ -35,7 +38,7 @@ export class StatsStore {
   public constructor(db: StatsDatabase) {
     this.db = db
 
-    const optOutValue = localStorage.getItem('stats-opt-out')
+    const optOutValue = localStorage.getItem(StatsOptOutKey)
     if (optOutValue) {
       this.optOut = !!parseInt(optOutValue, 10)
     } else {
@@ -221,7 +224,7 @@ export class StatsStore {
   public setOptOut(optOut: boolean): Promise<void> {
     this.optOut = optOut
 
-    localStorage.setItem('stats-opt-out', optOut ? '1' : '0')
+    localStorage.setItem(StatsOptOutKey, optOut ? '1' : '0')
 
     return this.sendOptOutStatePing(optOut)
   }
