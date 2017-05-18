@@ -60,6 +60,14 @@
         }
       ]
     },
+    "protocols": [
+      {
+        "schemes": [
+          "x-github-client",
+          "github-mac"
+        ]
+      }
+    ],
     "files": [
       "dist/",
       "node_modules/",
