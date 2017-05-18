@@ -42,7 +42,7 @@
   },
   "build": {
     "productName": "GithubDesktop",
-    "appId": "com.github.GithubClient1",
+    "appId": "com.github.GithubClient",
     "dmg": {
       "contents": [
         {
@@ -58,6 +58,16 @@
         }
       ]
     },
+    "protocols": [
+      {
+        "name": "github",
+        "role": "Viewer",
+        "schemes": [
+          "x-github-client",
+          "github-mac"
+        ]
+      }
+    ],
     "files": [
       "dist/",
       "node_modules/",
