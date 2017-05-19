@@ -52,7 +52,7 @@ export class RichText extends React.Component<IRichTextProps, void> {
             return <span key={index}>{token.text}</span>
           }
         case TokenType.Text:
-          return <span key={index}>{token.text}</span>
+          return <span key={index} title={token.text}>{token.text}</span>
         default:
           return assertNever(token, 'Unknown token type: ${r.kind}')
       }
