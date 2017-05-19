@@ -18,8 +18,8 @@ const LastDailyStatsReportKey = 'last-daily-stats-report'
 /** The localStorage key for whether the user has opted out. */
 const StatsOptOutKey = 'stats-opt-out'
 
-/** Have we successfully sent the stats opt-out? */
-const HasSentOptOutStatusKey = 'has-sent-stats-opt-out-status'
+/** Have we successfully sent the stats opt-in? */
+const HasSentOptInPingKey = 'has-sent-stats-opt-in-ping'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -47,8 +47,8 @@ export class StatsStore {
 
       // If the user has set an opt out value but we haven't sent the ping yet,
       // give it a shot now.
-      if (!localStorage.getItem(HasSentOptOutStatusKey)) {
-        this.sendOptOutStatusPing(this.optOut)
+      if (!localStorage.getItem(HasSentOptInPingKey)) {
+        this.sendOptInStatusPing(!this.optOut)
       }
     } else {
       this.optOut = false
@@ -236,7 +236,7 @@ export class StatsStore {
 
     localStorage.setItem(StatsOptOutKey, optOut ? '1' : '0')
 
-    return this.sendOptOutStatusPing(optOut)
+    return this.sendOptInStatusPing(!optOut)
   }
 
   /** Has the user opted out of stats reporting? */
@@ -257,19 +257,21 @@ export class StatsStore {
     return fetch(StatsEndpoint, options)
   }
 
-  private async sendOptOutStatusPing(optOut: boolean): Promise<void> {
-    const eventType = optOut ? 'opt_out' : 'opt_in'
+  private async sendOptInStatusPing(optIn: boolean): Promise<void> {
     try {
-      const response = await this.post({ eventType })
+      const response = await this.post({
+        eventType: 'ping',
+        optIn,
+      })
       if (!response.ok) {
         throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
       }
 
-      localStorage.setItem(HasSentOptOutStatusKey, '1')
+      localStorage.setItem(HasSentOptInPingKey, '1')
 
-      console.log('Opt out reported.')
+      console.log('Opt in reported.')
     } catch (e) {
-      console.error('Error reporting opt out:')
+      console.error('Error reporting opt in:')
       console.error(e)
     }
   }
