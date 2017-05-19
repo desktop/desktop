@@ -13,7 +13,7 @@ import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
 import { TipState, IUnbornRepository, IDetachedHead, IValidBranch } from '../../models/tip'
 import { assertNever } from '../../lib/fatal-error'
-import { renderBranchNameWarning } from '../lib/branch-names'
+import { renderBranchNameWarning } from '../lib/branch-name-warnings'
 
 interface ICreateBranchProps {
   readonly repository: Repository
