@@ -10,7 +10,7 @@
 
   height: 0px;
   transition: height 0.25s;
-
+  flex: none;
 
   &.active {
     height: 30px;
