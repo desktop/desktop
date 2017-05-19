@@ -13,7 +13,7 @@
         "**/node_modules": true,
         "**/dist": true,
         "**/out": true,
-        "tslint-rules/**.js": true
+        "tslint-rules/**/*.js": true
     },
     "editor.tabSize": 2
 }
