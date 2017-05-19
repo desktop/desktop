@@ -585,22 +585,20 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setAppMenuState(menu => menu.withReset())
   }
 
-  private onTitlebarDoubleClick() {
-    if (__DARWIN__) {
-      const actionOnDoubleClick: AppleActionOnDoubleClickPref = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
-      const mainWindow: Electron.BrowserWindow = remote.getCurrentWindow()
+  private onTitlebarDoubleClickDarwin() {
+    const actionOnDoubleClick: AppleActionOnDoubleClickPref = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
+    const mainWindow = remote.getCurrentWindow()
 
-      switch (actionOnDoubleClick) {
-        case 'Maximize':
-          mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()
-          break
-        case 'Minimize':
-          mainWindow.minimize()
-          break
-        case 'None':
-        default:
-          break
-      }
+    switch (actionOnDoubleClick) {
+      case 'Maximize':
+        mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()
+        break
+      case 'Minimize':
+        mainWindow.minimize()
+        break
+      case 'None':
+      default:
+        break
     }
   }
 
@@ -646,7 +644,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? <Octicon className='app-icon' symbol={OcticonSymbol.markGithub} />
       : null
 
-    const onTitlebarDoubleClick = __DARWIN__ ? this.onTitlebarDoubleClick : undefined
+    const onTitlebarDoubleClick = __DARWIN__ ? this.onTitlebarDoubleClickDarwin : undefined
 
     return (
       <div className={titleBarClass} id='desktop-app-title-bar' onDoubleClick={onTitlebarDoubleClick}>
