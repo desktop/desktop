@@ -93,7 +93,7 @@ require('devtron').install()
 
 You're almost there! Here's a couple of things we recommend you read next:
 
- - [Up for Grabs](../process/up-for-grabs.md) - we've marked some tasks in
+ - [Up for Grabs](../../CONTRIBUTING.md#up-for-grabs) - we've marked some tasks in
    the backlog that are ideal for external contributors
  - [Code Reviews](../process/reviews.md) - some notes on how the team does
    code reviews
