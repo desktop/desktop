@@ -72,7 +72,6 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         key={file.id}
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.onDiscardChanges}
-        onDiscardAllChanges={this.onDiscardAllChanges}
         availableWidth={this.props.availableWidth}
         onIgnore={this.props.onIgnore}
       />
