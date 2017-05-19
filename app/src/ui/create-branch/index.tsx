@@ -10,10 +10,10 @@ import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
 import { TipState, IUnbornRepository, IDetachedHead, IValidBranch } from '../../models/tip'
 import { assertNever } from '../../lib/fatal-error'
+import { renderBranchNameWarning } from '../lib/branch-name-warnings'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -39,12 +39,12 @@ interface ICreateBranchState {
   /**
    * Whether or not the dialog is currently creating a branch. This affects
    * the dialog loading state as well as the rendering of the branch selector.
-   * 
+   *
    * When the dialog is creating a branch we take the tip and defaultBranch
    * as they were in props at the time of creation and stick them in state
    * so that we can maintain the layout of the branch selection parts even
    * as the Tip changes during creation.
-   * 
+   *
    * Note: once branch creation has been initiated this value stays at true
    * and will never revert to being false. If the branch creation operation
    * fails this dialog will still be dismissed and an error dialog will be
@@ -201,25 +201,6 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     }
   }
 
-  private renderWarning() {
-    if (/^\s+$/.test(this.state.proposedName)) {
-      return this.renderWarningMessage('Branch name cannot be empty')
-    } else if (this.state.proposedName !== this.state.sanitizedName) {
-      return this.renderWarningMessage(`Will be created as ${this.state.sanitizedName}`)
-    } else {
-      return null
-    }
-  }
-
-  private renderWarningMessage(message: string) {
-    return (
-      <Row className='warning-helper-text'>
-        <Octicon symbol={OcticonSymbol.alert} />
-        {message}
-      </Row>
-    )
-  }
-
   public render() {
     const proposedName = this.state.proposedName
     const disabled = !proposedName.length || !!this.state.currentError || /^\s*$/.test(this.state.proposedName)
@@ -244,7 +225,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
               onChange={this.onBranchNameChange} />
           </Row>
 
-          {this.renderWarning()}
+          {renderBranchNameWarning(this.state.proposedName, this.state.sanitizedName)}
 
           {this.renderBranchSelection()}
         </DialogContent>
