@@ -31,9 +31,9 @@ export class UntrustedCertificate extends React.Component<IUntrustedCertificateP
     const type = __DARWIN__ ? 'warning' : 'error'
     const buttonGroup = __DARWIN__
       ? (
-        <ButtonGroup>
+        <ButtonGroup destructive>
           <Button type='submit'>Cancel</Button>
-          <Button>View Certificate</Button>
+          <Button onClick={this.onContinue}>View Certificate</Button>
         </ButtonGroup>
       )
       : (
@@ -45,7 +45,7 @@ export class UntrustedCertificate extends React.Component<IUntrustedCertificateP
       <Dialog
         title={__DARWIN__ ? 'Untrusted Server' : 'Untrusted server'}
         onDismissed={this.props.onDismissed}
-        onSubmit={this.onContinue}
+        onSubmit={this.props.onDismissed}
         type={type}
       >
         <DialogContent>
