@@ -31,7 +31,7 @@ v7.8.0
 Python 2.7.13
 ```
 
-There are also [additional resources](./docs/contributing/tooling.md) to
+There are also [additional resources](tooling.md) to
 configure your favourite editor to work nicely with the GitHub Desktop
 repository.
 
@@ -50,7 +50,7 @@ build:dev` to rebuild the package, and then `npm start` for these changes to be
 reflected in the running app.
 
 If you're still encountering issues with building, refer to our
-[troubleshooting](./docs/contributing/troubleshooting.md) guide for more common
+[troubleshooting](troubleshooting.md) guide for more common
 problems.
 
 ## Running tests
@@ -93,7 +93,7 @@ require('devtron').install()
 
 You're almost there! Here's a couple of things we recommend you read next:
 
- - [Up for Grabs](./docs/process/up-for-grabs.md) - we've marked some tasks in
+ - [Up for Grabs](../process/up-for-grabs.md) - we've marked some tasks in
    the backlog that are ideal for external contributors
- - [Code Reviews](./docs/process/reviews.md) - some notes on how the team does
+ - [Code Reviews](../process/reviews.md) - some notes on how the team does
    code reviews
