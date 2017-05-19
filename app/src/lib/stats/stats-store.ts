@@ -7,6 +7,7 @@ import { getOS } from '../get-os'
 import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
+import { logInfo, logError } from '../logging/renderer'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -99,13 +100,12 @@ export class StatsStore {
         throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
       }
 
-      console.log('Stats reported.')
+      logInfo('Stats reported.')
 
       await this.clearDailyStats()
       localStorage.setItem(LastDailyStatsReportKey, now.toString())
     } catch (e) {
-      console.error('Error reporting stats:')
-      console.error(e)
+      logError('Error reporting stats:', e)
     }
   }
 
@@ -269,10 +269,9 @@ export class StatsStore {
 
       localStorage.setItem(HasSentOptInPingKey, '1')
 
-      console.log('Opt in reported.')
+      logInfo('Opt in reported.')
     } catch (e) {
-      console.error('Error reporting opt in:')
-      console.error(e)
+      logError('Error reporting opt in:', e)
     }
   }
 }
