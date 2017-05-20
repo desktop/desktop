@@ -102,8 +102,9 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
   }
 
   public render() {
-    const selectedRow = this.props.workingDirectory.files.findIndex(file => file.id === this.props.selectedFileID)
-    const fileCount = this.props.workingDirectory.files.length
+    const fileList = this.props.workingDirectory.files
+    const selectedRow = fileList.findIndex(file => file.id === this.props.selectedFileID)
+    const fileCount = fileList.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const anyFilesSelected = fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
@@ -125,19 +126,20 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               selectedRow={selectedRow}
               onSelectionChanged={this.props.onFileSelectionChanged}
               invalidationProps={this.props.workingDirectory}
-              onRowClick={this.props.onRowClick} />
+              onRowClick={this.props.onRowClick}/>
 
-        <CommitMessage onCreateCommit={this.props.onCreateCommit}
-                       branch={this.props.branch}
-                       gitHubUser={this.props.gitHubUser}
-                       commitAuthor={this.props.commitAuthor}
-                       anyFilesSelected={anyFilesSelected}
-                       repository={this.props.repository}
-                       dispatcher={this.props.dispatcher}
-                       commitMessage={this.props.commitMessage}
-                       contextualCommitMessage={this.props.contextualCommitMessage}
-                       autocompletionProviders={this.props.autocompletionProviders}
-                       isCommitting={this.props.isCommitting}/>
+        <CommitMessage
+          onCreateCommit={this.props.onCreateCommit}
+          branch={this.props.branch}
+          gitHubUser={this.props.gitHubUser}
+          commitAuthor={this.props.commitAuthor}
+          anyFilesSelected={anyFilesSelected}
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+          commitMessage={this.props.commitMessage}
+          contextualCommitMessage={this.props.contextualCommitMessage}
+          autocompletionProviders={this.props.autocompletionProviders}
+          isCommitting={this.props.isCommitting}/>
       </div>
     )
   }

@@ -6,16 +6,16 @@ import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 /** Additional arguments to provide when cloning a repository */
 export type CloneOptions = {
   /** The optional identity to provide when cloning. */
-  readonly account: Account | null
+  readonly account: Account | null,
   /** The branch to checkout after the clone has completed. */
-  readonly branch?: string
+  readonly branch?: string,
 }
 
-/** 
+/**
  * Clones a repository from a given url into to the specified path.
- * 
+ *
  * @param url     - The remote repository URL to clone from
- * 
+ *
  * @param path    - The destination path for the cloned repository. If the
  *                  path does not exist it will be created. Cloning into an
  *                  existing directory is only allowed if the directory is
@@ -29,7 +29,7 @@ export type CloneOptions = {
  *                           of the clone operation. When provided this enables
  *                           the '--progress' command line flag for
  *                           'git clone'.
- * 
+ *
  */
 export async function clone(url: string, path: string, options: CloneOptions, progressCallback?: (progress: ICloneProgress) => void): Promise<void> {
   const env = envForAuthentication(options.account)

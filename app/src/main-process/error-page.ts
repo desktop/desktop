@@ -4,7 +4,7 @@ import { app, BrowserWindow } from 'electron'
 import * as Fs from 'fs'
 import * as Path from 'path'
 
-import { getLogger } from '../lib/logging/main'
+import { logError } from '../lib/logging/main'
 
 /**
  * Display a static page embedded with the error information, so that a user
@@ -18,14 +18,12 @@ import { getLogger } from '../lib/logging/main'
  * @param error The error to display on the page
  */
 export function showFallbackPage(error: Error) {
-  const logger = getLogger()
-
   const errorTemplate = Path.join(__dirname, 'error.html')
   let data: Buffer | null = null
   try {
     data = Fs.readFileSync(errorTemplate)
   } catch (e) {
-    logger.error(`Exiting, unable to read error template at '${errorTemplate}'`, e)
+    logError(`Exiting, unable to read error template at '${errorTemplate}'`, e)
     return
   }
 

@@ -345,16 +345,16 @@ export class Dispatcher {
 
   /** Push the current branch. */
   public async push(repository: Repository): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repo, user) =>
-      this.appStore._push(repo, user)
-    )
+    return this.withAuthenticatingUser(
+      repository,
+      (repo, user) => this.appStore._push(repo, user))
   }
 
   /** Pull the current branch. */
   public async pull(repository: Repository): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repo, user) =>
-      this.appStore._pull(repo, user)
-    )
+    return this.withAuthenticatingUser(
+      repository,
+      (repo, user) => this.appStore._pull(repo, user))
   }
 
   /** Fetch a specific refspec for the repository. */
@@ -366,9 +366,9 @@ export class Dispatcher {
 
   /** Fetch all refs for the repository */
   public fetch(repository: Repository): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repo, user) =>
-      this.appStore.fetch(repo, user)
-    )
+    return this.withAuthenticatingUser(
+      repository,
+      (repo, user) => this.appStore.fetch(repo, user))
   }
 
   /** Publish the repository to GitHub with the given properties. */
@@ -460,9 +460,9 @@ export class Dispatcher {
    * branch, and then check out the default branch.
    */
   public deleteBranch(repository: Repository, branch: Branch): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repo, user) =>
-      this.appStore._deleteBranch(repo, branch, user)
-    )
+    return this.withAuthenticatingUser(
+      repository,
+      (repo, user) => this.appStore._deleteBranch(repo, branch, user))
   }
 
   /** Discard the changes to the given files. */
@@ -832,6 +832,13 @@ export class Dispatcher {
       default:
         console.log(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
     }
+  }
+
+  /**
+   * Sets the user's preference so that confirmation to remove repo is not asked
+   */
+  public setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
+    return this.appStore._setConfirmRepoRemoval(value)
   }
 
   private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryArgs): Promise<void> {

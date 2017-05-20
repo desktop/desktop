@@ -79,6 +79,9 @@ const sidebarWidthConfigKey: string = 'sidebar-width'
 const defaultCommitSummaryWidth: number = 250
 const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 
+const confirmRepoRemovalDefault: boolean = true
+const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -139,6 +142,7 @@ export class AppStore {
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
   private isUpdateAvailableBannerVisible: boolean = false
+  private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
 
   private readonly statsStore: StatsStore
 
@@ -372,6 +376,7 @@ export class AppStore {
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
+      confirmRepoRemoval: this.confirmRepoRemoval,
     }
   }
 
@@ -672,8 +677,8 @@ export class AppStore {
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
       const r = this.repositories.find(r =>
-        r.constructor === selectedRepository.constructor && r.id === selectedRepository.id
-      ) || null
+        r.constructor === selectedRepository.constructor
+        && r.id === selectedRepository.id) || null
 
       newSelectedRepository = r
     }
@@ -693,6 +698,12 @@ export class AppStore {
 
     this.sidebarWidth = parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) || defaultSidebarWidth
     this.commitSummaryWidth = parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) || defaultCommitSummaryWidth
+
+    const confirmRepoRemovalValue = localStorage.getItem(confirmRepoRemovalKey)
+
+    this.confirmRepoRemoval = confirmRepoRemovalValue === null
+      ? confirmRepoRemovalDefault
+      : confirmRepoRemovalValue === '1'
 
     if (initialLoad) {
       // For the intitial load, synchronously emit the update so that the window
@@ -741,8 +752,10 @@ export class AppStore {
       const workingDirectory = new WorkingDirectoryStatus(mergedFiles, includeAll)
 
       let selectedFileID = state.selectedFileID
+      const matchedFile = mergedFiles.find(x => x.id === selectedFileID)
+
       // Select the first file if we don't have anything selected.
-      if (!selectedFileID && mergedFiles.length) {
+      if ((!selectedFileID || !matchedFile) && mergedFiles.length) {
         selectedFileID = mergedFiles[0].id || null
       }
 
@@ -894,8 +907,7 @@ export class AppStore {
   private updateWorkingDirectoryFileSelection(repository: Repository, file: WorkingDirectoryFileChange, selection: DiffSelection) {
     this.updateChangesState(repository, state => {
       const newFiles = state.workingDirectory.files.map(f =>
-        f.id === file.id ? f.withSelection(selection) : f
-      )
+        f.id === file.id ? f.withSelection(selection) : f)
 
       const includeAll = this.getIncludeAllState(newFiles)
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
@@ -982,9 +994,7 @@ export class AppStore {
 
   private async refreshAuthor(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    const commitAuthor = await gitStore.performFailableOperation(() =>
-      getAuthorIdentity(repository)
-    ) || null
+    const commitAuthor = await gitStore.performFailableOperation(() => getAuthorIdentity(repository)) || null
 
     this.updateRepositoryState(repository, state => ({ commitAuthor }))
     this.emitUpdate()
@@ -1674,6 +1684,14 @@ export class AppStore {
   public setStatsOptOut(optOut: boolean): Promise<void> {
     this.statsStore.setOptOut(optOut)
 
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setConfirmRepoRemoval(confirmRepoRemoval: boolean): Promise<void> {
+    this.confirmRepoRemoval = confirmRepoRemoval
+    localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
     this.emitUpdate()
 
     return Promise.resolve()

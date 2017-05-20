@@ -22,22 +22,19 @@ export class MissingRepository extends React.Component<IMissingRepositoryProps, 
     buttons.push(
       <Button key='locate' onClick={this.locate} type='submit'>
         Locate…
-      </Button>
-    )
+      </Button>)
 
     if (this.canCloneAgain()) {
       buttons.push(
         <Button key='clone-again' onClick={this.cloneAgain}>
           Clone Again
-        </Button>
-      )
+        </Button>)
     }
 
     buttons.push(
       <Button key='remove' onClick={this.remove}>
         Remove
-      </Button>
-    )
+      </Button>)
 
     return (
       <UiView id='missing-repository-view'>

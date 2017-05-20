@@ -6,6 +6,13 @@ interface IDialogContentProps {
    * An optional className to be applied to the rendered div element.
    */
   readonly className?: string
+
+  /**
+   * An optional function that will be passed a reference do the
+   * div container element of the DialogContents component (or null if
+   * unmounted).
+   */
+  readonly onRef?: (element: HTMLDivElement | null) => void
 }
 
 /**
@@ -24,7 +31,7 @@ export class DialogContent extends React.Component<IDialogContentProps, void> {
     const className = classNames('dialog-content', this.props.className)
 
     return (
-      <div className={className}>
+      <div className={className} ref={this.props.onRef}>
         {this.props.children}
       </div>
     )

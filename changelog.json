@@ -1,7 +1,46 @@
 {
   "releases": {
-    "0.5.2": [
+    "0.5.6": [
 
+    ],
+    "0.5.5": [
+      "[Fixed] Save the default path after creating a new repository - #1486",
+      "[Fixed] Only let the user launch the browser once for the OAuth flow - #1427",
+      "[Fixed] Don't linkify invalid URLs - #1456",
+      "[Fixed] Excessive padding in the Merge Branch dialog - #1577",
+      "[Fixed] Octicon pixel alignment issues - #1584",
+      "[Fixed] Windows: Invoking some menu items would break the window's snapped state - #1603",
+      "[Fixed] macOS: Errors authenticating while pushing - #1514",
+      "[Fixed] Don't linkify links in the History list or in Undo - #1548 #1608 #1474",
+      "[Fixed] Diffs not working when certain git config values were set - #1559"
+    ],
+    "0.5.4": [
+      "[Fixed] The release notes URL pointed to the wrong page - #1503",
+      "[Fixed] Only create the `logs` directory if it doesn't already exist - #1510",
+      "[Fixed] Uncaught exception creating a new repository if you aren't a member of any orgs - #1507",
+      "[Fixed] Only report the first uncaught exception - #1517",
+      "[Fixed] Include the name of the default branch in the New Branch dialog - #1449",
+      "[Fixed] Uncaught exception if a network error occurred while loading user email addresses - #1522 #1508",
+      "[Fixed] Uncaught exception while performing a contextual menu action - #1532",
+      "[Improved] Move all error logging to the main process - #1473",
+      "[Improved] Stats reporting reliability - #1561"
+    ],
+    "0.5.3": [
+      "[Fixed] Display of large image diffs - #1494",
+      "[Fixed] Discard Changes spacing - #1495"
+    ],
+    "0.5.2": [
+      "[Fixed] Display errors that happen while publishing a repository - #1396",
+      "[Fixed] Menu items not updating - #1462",
+      "[Fixed] Always select the first changed file - #1306",
+      "[Fixed] macOS: Use Title Case consistently - #1477 #1481",
+      "[Fixed] Create Branch padding - #1479",
+      "[Fixed] Bottom padding in commit descriptions - #1345",
+      "[Improved] Dialog polish - #1451",
+      "[Improved] Store logs in a logs directory - #1370",
+      "[Improved] New Welcome illustrations - #1471",
+      "[Improved] Request confirmation before removing a repository - #1233",
+      "[Improved] Windows icon polish - #1457"
     ],
     "0.5.1": [
       "[New] Windows: A nice little gif while installing the app - #1440",

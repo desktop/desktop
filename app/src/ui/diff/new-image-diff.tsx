@@ -12,7 +12,7 @@ interface INewImageDiffProps {
 export class NewImageDiff extends React.Component<INewImageDiffProps, void> {
 
   public render() {
-    return <div className='panel' id='diff'>
+    return <div className='panel image' id='diff'>
       <div className='image-header'>this new image will be committed</div>
       {renderImage(this.props.current)}
     </div>

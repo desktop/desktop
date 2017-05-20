@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { Dispatcher, AppStore } from '../../lib/dispatcher'
+import { Dispatcher } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Advanced } from './advanced'
@@ -14,16 +14,17 @@ import { lookupPreferredEmail } from '../../lib/email'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
-  readonly appStore: AppStore
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
   readonly onDismissed: () => void
+  readonly optOutOfUsageTracking: boolean
+  readonly confirmRepoRemoval: boolean
 }
 
 enum PreferencesTab {
   Accounts = 0,
   Git,
-  Advanced
+  Advanced,
 }
 
 interface IPreferencesState {
@@ -31,6 +32,7 @@ interface IPreferencesState {
   readonly committerName: string
   readonly committerEmail: string
   readonly isOptedOut: boolean
+  readonly confirmRepoRemoval: boolean
 }
 
 /** The app-level preferences component. */
@@ -43,13 +45,16 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       committerName: '',
       committerEmail: '',
       isOptedOut: false,
+      confirmRepoRemoval: false,
     }
   }
 
   public async componentWillMount() {
+    const isOptedOut = this.props.optOutOfUsageTracking
+    const confirmRepoRemoval = this.props.confirmRepoRemoval
+
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
-    const isOptedOut = this.props.appStore.getStatsOptOut()
 
     if (!committerName || !committerEmail) {
       const account = this.props.dotComAccount || this.props.enterpriseAccount
@@ -72,7 +77,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
-    this.setState({ committerName, committerEmail, isOptedOut })
+    this.setState({ committerName, committerEmail, isOptedOut, confirmRepoRemoval })
   }
 
   public render() {
@@ -130,8 +135,10 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       }
       case PreferencesTab.Advanced: {
         return <Advanced
-          onOptOutSet={this.onOptOutSet}
           isOptedOut={this.state.isOptedOut}
+          confirmRepoRemoval={this.state.confirmRepoRemoval}
+          onOptOutSet={this.onOptOutSet}
+          onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
         />
       }
       default: return assertNever(index, `Unknown tab index: ${index}`)
@@ -140,6 +147,10 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
 
   private onOptOutSet = (isOptedOut: boolean) => {
     this.setState({ isOptedOut })
+  }
+
+  private onConfirmRepoRemovalSet = (confirmRepoRemoval: boolean) => {
+    this.setState({ confirmRepoRemoval })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
@@ -172,7 +183,8 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
   private onSave = async () => {
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
-    this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
+    await this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
+    await this.props.dispatcher.setConfirmRepoRemovalSetting(this.state.confirmRepoRemoval)
 
     this.props.onDismissed()
   }

@@ -62,6 +62,12 @@
     text-decoration: underline;
   }
 
+  &[disabled] {
+    opacity: 0.6;
+    cursor: default;
+    text-decoration: none;
+  }
+
   &.link-with-icon .octicon {
     margin-left: var(--spacing-half);
   }

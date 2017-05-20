@@ -20,7 +20,7 @@
  */
 
 import * as ts from 'typescript'
-import * as Lint from 'tslint/lib/lint'
+import * as Lint from 'tslint'
 
 export class Rule extends Lint.Rules.AbstractRule {
     public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {

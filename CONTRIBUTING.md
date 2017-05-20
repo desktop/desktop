@@ -19,7 +19,7 @@ change over time as we learn and refine how we work with the community.
 [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
   * [Suggesting Enhancements](#suggesting-enhancements)
-  * [Up for Grabs](#your-first-code-contribution)
+  * [Up for Grabs](#up-for-grabs)
 
 [Additional Notes](#additional-notes)
   * [Issue and Pull Request Labels](#issue-and-pull-request-labels)

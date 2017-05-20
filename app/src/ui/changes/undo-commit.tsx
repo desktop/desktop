@@ -33,7 +33,8 @@ export class UndoCommit extends React.Component<IUndoCommitProps, void> {
           <RichText
             emoji={this.props.emoji}
             className='summary'
-            text={this.props.commit.summary} />
+            text={this.props.commit.summary}
+            renderUrlsAsLinks={false} />
         </div>
         <div className='actions' title={title}>
           <Button size='small' disabled={disabled} onClick={this.props.onUndo}>Undo</Button>

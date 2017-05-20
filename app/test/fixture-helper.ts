@@ -11,7 +11,7 @@ import { Repository } from '../src/models/repository'
 import { GitProcess } from 'dugite'
 
 type KlawEntry = {
-  path: string
+  path: string,
 }
 
 /**

@@ -24,7 +24,8 @@ export class CommitListItem extends React.Component<ICommitProps, void> {
           <RichText
             className='summary'
             emoji={this.props.emoji}
-            text={commit.summary} />
+            text={commit.summary}
+            renderUrlsAsLinks={false} />
           <div className='byline'>
             <RelativeTime date={author.date} /> by {author.name}
           </div>
