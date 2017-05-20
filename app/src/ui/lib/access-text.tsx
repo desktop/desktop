@@ -60,7 +60,11 @@ export class AccessText extends React.Component<IAccessTextProps, void> {
       elements.push(<span key={3} aria-hidden={true}>{unescape(m[3])}</span>)
     }
 
-    const plainText = (m[1] ? unescape(m[1]) : '') + m[2] + (m[3] ? unescape(m[3]): '')
+    const preText = m[1] ? unescape(m[1]) : ''
+    const accessKeyText = m[2]
+    const postText = m[3] ? unescape(m[3]) : ''
+
+    const plainText = `${preText}${accessKeyText}${postText}`
 
     return <span aria-label={plainText}>{elements}</span>
   }
