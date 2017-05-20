@@ -596,9 +596,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'Minimize':
         mainWindow.minimize()
         break
-      case 'None':
-      default:
-        break
     }
   }
 
