@@ -19,31 +19,31 @@ export enum TokenType {
 }
 
 export type EmojiMatch = {
-  readonly kind: TokenType.Emoji
+  readonly kind: TokenType.Emoji,
   // The alternate text to display with the image, e.g. ':+1:'
-  readonly text: string
+  readonly text: string,
   // The path on disk to the image.
-  readonly path: string
+  readonly path: string,
 }
 
 export type HyperlinkMatch = {
-  readonly kind: TokenType.Link
+  readonly kind: TokenType.Link,
   // The text to display inside the rendered link, e.g. @shiftkey
-  readonly text: string
+  readonly text: string,
   // The URL to launch when clicking on the link
-  readonly url: string
+  readonly url: string,
 }
 
 export type PlainText = {
-  readonly kind: TokenType.Text
+  readonly kind: TokenType.Text,
   // The text to render.
-  readonly text: string
+  readonly text: string,
 }
 
 export type TokenResult = PlainText | EmojiMatch | HyperlinkMatch
 
 type LookupResult = {
-  nextIndex: number
+  nextIndex: number,
 }
 
 /**
@@ -158,7 +158,7 @@ export class Tokenizer {
 
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeHyperlink = text.slice(index, nextIndex)
-    if (!/^https?:\/\//.test(maybeHyperlink)) { return null }
+    if (!/^https?:\/\/.+/.test(maybeHyperlink)) { return null }
 
     this.flush()
     if (repository && repository.htmlURL) {

@@ -8,8 +8,8 @@ import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
 import { showFallbackPage } from './error-page'
-import { logError } from '../lib/logging/main'
 import { IMenuItemState } from '../lib/menu-update'
+import { ILogEntry, logError, log } from '../lib/logging/main'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -26,6 +26,7 @@ let readyTime: number | null = null
 let launchURLAction: URLActionType | null = null
 
 process.on('uncaughtException', (error: Error) => {
+
   logError('Uncaught exception on main process', error)
 
   if (sharedProcess) {
@@ -192,6 +193,10 @@ app.on('ready', () => {
     if (__DARWIN__) {
       getMainWindow().showCertificateTrustDialog(certificate, message)
     }
+  })
+
+  ipcMain.on('log', (event: Electron.IpcMainEvent, logEntry: ILogEntry) => {
+    log(logEntry)
   })
 
   autoUpdater.on('error', err => {

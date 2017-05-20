@@ -369,7 +369,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         noNewlineReactContainer.setAttribute('title', 'No newline at end of file')
         ReactDOM.render(
           <Octicon symbol={narrowNoNewlineSymbol} className='no-newline' />,
-          noNewlineReactContainer
+          noNewlineReactContainer,
         )
         diffLineElement.appendChild(noNewlineReactContainer)
       }
@@ -399,8 +399,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           if (this !== undefined) {
             cache.set(index, this)
           }
-        }
-      )
+        })
 
       const onMouseMoveLine: (ev: MouseEvent) => void = (ev) => {
         this.onDiffTextMouseMove(ev, diff, index)

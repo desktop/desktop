@@ -8,7 +8,7 @@
  */
 
 import * as ts from 'typescript'
-import * as Lint from 'tslint/lib/lint'
+import * as Lint from 'tslint'
 
 interface IExpectedParameter {
   readonly name: string

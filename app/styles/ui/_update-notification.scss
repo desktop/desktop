@@ -10,7 +10,9 @@
 
   height: 0px;
   transition: height 0.25s;
-
+  // Prevents the notification banner from decreasing its height
+  // when a large diff is rendered.
+  flex: none;
 
   &.active {
     height: 30px;

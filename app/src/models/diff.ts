@@ -8,12 +8,12 @@ export enum DiffType {
   /** changes to an unknown file format, which Git is unable to present in a human-friendly format */
   Binary,
   /** change to a repository which is included as a submodule of this repository */
-  Submodule
+  Submodule,
 }
 
 /** indicate what a line in the diff represents */
 export enum DiffLineType {
-  Context, Add, Delete, Hunk
+  Context, Add, Delete, Hunk,
 }
 
 
@@ -177,7 +177,7 @@ export interface IRawDiff {
   /**
    * The plain text contents of the diff. This contains everything
    * after the diff header until the last character in the diff.
-   * 
+   *
    * Note that this does not include a trailing newline nor does
    * it include diff 'no newline at end of file' comments. For
    * no-newline information, consult the DiffLine noTrailingNewLine
@@ -201,7 +201,7 @@ export interface IRawDiff {
 export enum DiffSelectionType {
   All,
   Partial,
-  None
+  None,
 }
 
 /**
