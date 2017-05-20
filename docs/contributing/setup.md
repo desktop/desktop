@@ -10,12 +10,14 @@ You will need to install these tools on your machine:
  - Python 2.7 - [Windows](https://www.python.org/downloads/windows/), [macOS](https://www.python.org/downloads/mac-osx/)
     - **Windows developers**: *Let Python install into the default suggested path
       (`c:\Python27`), otherwise you'll have to configure node-gyp manually with
-      the path which is annoying.*
+      the path which is annoying. You will also need to make sure the `Add python.exe to Path` option is selected.*
  - **macOS:** Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
  - **Windows:** Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
-    - Run `npm config set msvs_version 2015` after installing the build tools.
+    - If Visual Studio is already installed you will need to make sure you have Visual C++ installed as part of it. The `Common Tools for Visual C++ 2015` feature is all that's required.
+    - Run `npm config set msvs_version 2015` after installing Visual C++ or the build tools. You may need to do this even if they're already installed.
     - *Visual Studio 2017 support has not been tested yet - waiting on
       `node-gyp` support to be generally available.*
+    - You will need the [Windows 8.1 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-8-1-sdk) and the `Windows Software Development Kit` feature.
 
 With these things installed, open a shell and validate you have these commands
 available and that the versions look similar:
