@@ -3,10 +3,12 @@ import { OcticonSymbol } from '../ui/octicons'
 import { assertNever } from '../lib/fatal-error'
 
 /**
- * The status entry code as reported by Git
+ * The status entry code as reported by Git.
  *
  * NOTE: 'U' is considered "Updated but unmerged", and is a valid code here,
  * but instead we mark this as "Modified" when surfacing conflicts.
+ *
+ * TODO (BF): what as I thinking here? Tidy up this comment or remove it.
  */
 export enum GitStatusEntry {
   // M
@@ -37,7 +39,7 @@ export enum AppFileStatus {
   Conflicted,
 }
 
-/** The porcelain status */
+/** The porcelain status for an ordinary changed entry */
 type OrdinaryEntry = {
   readonly kind: 'ordinary'
    /** how we should represent the file in the application */
@@ -48,6 +50,7 @@ type OrdinaryEntry = {
   readonly unstaged?: GitStatusEntry,
 }
 
+/** The porcelain status for a renamed or copied entry */
 type RenamedOrCopiedEntry = {
   readonly kind: 'renamed' | 'copied',
   /** the staged status of the file (if known) */
@@ -56,6 +59,7 @@ type RenamedOrCopiedEntry = {
   readonly unstaged?: GitStatusEntry,
 }
 
+/** The porcelain status for an unmerged entry */
 type UnmergedEntry = {
   readonly kind: 'conflicted',
   /** the first character of the short code ("ours")  */
@@ -64,10 +68,12 @@ type UnmergedEntry = {
   readonly them: GitStatusEntry,
 }
 
+/** The porcelain status for an unmerged entry */
 type UntrackedEntry = {
   readonly kind: 'untracked',
 }
 
+/** The union of possible entries from the git status */
 export type FileEntry = OrdinaryEntry |
   RenamedOrCopiedEntry |
   UnmergedEntry |
@@ -114,6 +120,7 @@ export function iconForStatus(status: AppFileStatus): OcticonSymbol {
   return assertNever(status, `Unknown file status ${status}`)
 }
 
+/** encapsulate changes to a file associated with a commit */
 export class FileChange {
   /** the relative path to the file in the repository */
   public readonly path: string
@@ -136,7 +143,7 @@ export class FileChange {
   }
 }
 
-/** encapsulate the changes to a file in the working directory  */
+/** encapsulate the changes to a file in the working directory */
 export class WorkingDirectoryFileChange extends FileChange {
 
   /** contains the selection details for this file - all, nothing or partial */
