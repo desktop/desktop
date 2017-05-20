@@ -24,7 +24,7 @@ export enum GitStatusEntry {
   // ?
   Untracked,
   // !
-  Ignored
+  Ignored,
 }
 
 /** The file status as represented in GitHub Desktop. */
@@ -34,7 +34,7 @@ export enum AppFileStatus {
   Deleted,
   Copied,
   Renamed,
-  Conflicted
+  Conflicted,
 }
 
 /** The porcelain status */
@@ -74,7 +74,7 @@ export type FileEntry = OrdinaryEntry |
   UntrackedEntry
 
 /**
- * Converts a given FileStatus value to a human-readable string to be
+ * Convert a given FileStatus value to a human-readable string to be
  * presented to users which describes the state of a file.
  *
  * Typically this will be the same value as that of the enum key.
