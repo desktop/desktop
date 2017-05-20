@@ -602,6 +602,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderTitlebar() {
 
     const inFullScreen = this.state.windowState === 'full-screen'
+    const isMaximized = this.state.windowState === 'maximized'
 
     const menuBarActive = this.state.currentFoldout &&
       this.state.currentFoldout.type === FoldoutType.AppMenu
@@ -626,12 +627,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     // window controls need to disable dragging so we add a 3px tall element which
     // disables drag while still letting users drag the app by the titlebar below
     // those 3px.
-    const topResizeHandle = __WIN32__
+    const topResizeHandle = __WIN32__ && !isMaximized
       ? <div className='resize-handle top' />
       : null
 
     // And a 3px wide element on the left hand side.
-    const leftResizeHandle = __WIN32__
+    const leftResizeHandle = __WIN32__ && !isMaximized
       ? <div className='resize-handle left' />
       : null
 
