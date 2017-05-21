@@ -7,6 +7,9 @@ declare const __OAUTH_CLIENT_ID__: string | undefined
 /** The OAuth secret the app should use. */
 declare const __OAUTH_SECRET__: string | undefined
 
+/** The platform that we are running under. */
+declare const __PLATFORM__: 'darwin' | 'win32'
+
 /** Is the app being built to run on Darwin? */
 declare const __DARWIN__: boolean
 

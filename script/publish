@@ -4,10 +4,13 @@
 
 const TEST_PUBLISH = false
 
+const distInfo = require('./dist-info')
+const targetPlatform = distInfo.getTargetPlatform()
+
 let branchName = ''
-if (process.platform === 'darwin') {
+if (targetPlatform === 'darwin') {
   branchName = process.env.TRAVIS_BRANCH
-} else if (process.platform === 'win32') {
+} else if (targetPlatform === 'win32') {
   branchName = process.env.APPVEYOR_REPO_BRANCH
 }
 
@@ -19,32 +22,22 @@ if (!/^__release.*/.test(branchName) && !TEST_PUBLISH) {
 const fs = require('fs')
 const cp = require('child_process')
 const AWS = require('aws-sdk')
-const distInfo = require('./dist-info')
 const crypto = require('crypto')
 const request = require('request')
 
 console.log('Packaging…')
 cp.execSync('npm run package')
 
-let sha = ''
-if (process.platform === 'darwin') {
-  sha = process.env.TRAVIS_COMMIT
-} else if (process.platform === 'win32') {
-  sha = process.env.APPVEYOR_REPO_COMMIT
-}
-
-sha = sha.substr(0, 8)
-
 console.log('Uploading…')
 
+let sha = ''
 let uploadPromise = null
-if (process.platform === 'darwin') {
+if (targetPlatform === 'darwin') {
+  sha = process.env.TRAVIS_COMMIT.substr(0, 8)
   uploadPromise = uploadOSXAssets()
-} else if (process.platform === 'win32') {
+} else if (targetPlatform === 'win32') {
+  sha = process.env.APPVEYOR_REPO_COMMIT.substr(0, 8)
   uploadPromise = uploadWindowsAssets()
-} else {
-  console.error(`I dunno how to publish a release for ${process.platform} :(`)
-  process.exit(1)
 }
 
 uploadPromise
@@ -119,7 +112,7 @@ function createSignature (body) {
 
 function updateDeploy (artifacts) {
   const body = {
-    context: process.platform,
+    context: targetPlatform,
     branch_name: branchName,
     artifacts
   }

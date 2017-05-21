@@ -8,6 +8,7 @@ import * as chai from 'chai'
 const chaiAsPromised = require('chai-as-promised')
 const { Application } = require('spectron')
 const path = require('path')
+const targetPlatform = process.env.TARGET_PLATFORM || process.platform
 
 chai.should()
 chai.use(chaiAsPromised)
@@ -17,7 +18,7 @@ describe('App', function (this: any) {
 
   beforeEach(function () {
     let appPath = path.join(__dirname, '..', '..', '..', 'node_modules', '.bin', 'electron')
-    if (process.platform === 'win32') {
+    if (targetPlatform === 'win32') {
       appPath += '.cmd'
     }
     app = new Application({

@@ -8,9 +8,9 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const BabelPlugin = require('babel-webpack-plugin')
 
 let branchName = ''
-if (process.platform === 'darwin') {
+if (common.replacements.__DARWIN__) {
   branchName = process.env.TRAVIS_BRANCH
-} else if (process.platform === 'win32') {
+} else if (common.replacements.__WIN32__) {
   branchName = process.env.APPVEYOR_REPO_BRANCH
 }
 

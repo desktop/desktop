@@ -7,15 +7,13 @@ const distInfo = require('./dist-info')
 
 const distPath = distInfo.getDistPath()
 const productName = distInfo.getProductName()
+const targetPlatform = distInfo.getTargetPlatform()
 
 let binaryPath = ''
-if (process.platform === 'darwin') {
+if (targetPlatform === 'darwin') {
   binaryPath = path.join(distPath, `${productName}.app`, 'Contents', 'MacOS', `${productName}`)
-} else if (process.platform === 'win32') {
+} else if (targetPlatform === 'win32') {
   binaryPath = path.join(distPath, `${productName}.exe`)
-} else {
-  console.error(`I dunno how to run on ${process.arch} :(`)
-  process.exit(1)
 }
 
 module.exports = function (spawnOptions) {

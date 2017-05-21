@@ -125,7 +125,7 @@ export class StatsStore {
     return {
       version: getVersion(),
       osVersion: getOS(),
-      platform: process.platform,
+      platform: __PLATFORM__,
       ...launchStats,
       ...dailyMeasures,
       ...userType,

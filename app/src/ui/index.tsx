@@ -86,7 +86,7 @@ dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 dispatcher.registerErrorHandler(unhandledExceptionHandler)
 
-document.body.classList.add(`platform-${process.platform}`)
+document.body.classList.add(`platform-${__PLATFORM__}`)
 
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
