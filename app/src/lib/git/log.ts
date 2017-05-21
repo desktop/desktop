@@ -84,6 +84,10 @@ export async function getChangedFiles(repository: Repository, sha: string): Prom
 
     const status = mapStatus(statusText)
 
+    if (status === null) {
+      continue
+    }
+
     let oldPath: string | undefined = undefined
 
     if (status === FileStatus.Renamed || status === FileStatus.Copied) {

@@ -83,5 +83,43 @@ describe('git/status', () => {
       expect(files[1].oldPath).to.equal('CONTRIBUTING.md')
       expect(files[1].path).to.equal('docs/OVERVIEW.md')
     })
+
+    it('a staged, then deleted file is not displayed', async () => {
+      const repo = await setupEmptyRepository()
+
+      const file = path.join(repo.path, 'foo')
+      fs.writeFileSync(file, 'foo\n')
+
+      await GitProcess.exec([ 'add', '.' ], repo.path)
+
+      const oldStatus = await getStatus(repo)
+      const oldFiles = oldStatus.workingDirectory.files
+
+      expect(oldFiles.length).to.equal(1)
+
+      fs.unlink(file)
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(0)
+    })
+
+    it('a deleted file in the index, but in working directory is one entry', async () => {
+      const repo = await setupEmptyRepository()
+
+      const file = path.join(repo.path, 'foo')
+      fs.writeFileSync(file, 'foo\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+
+      await GitProcess.exec([ 'commit', '-m', 'added foo' ], repo.path)
+      await GitProcess.exec([ 'rm', '--cached', 'foo' ], repo.path)
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+    })
   })
 })

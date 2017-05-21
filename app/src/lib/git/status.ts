@@ -23,7 +23,7 @@ export interface IStatusResult {
  * map the raw status text from Git to an app-friendly value
  * shamelessly borrowed from GitHub Desktop (Windows)
  */
-export function mapStatus(rawStatus: string): FileStatus {
+export function mapStatus(rawStatus: string): FileStatus | null {
 
   // TODO: This is due to the fact that porcelain V2 changed from
   // using space to using a dot when either side is unmodified.
@@ -48,6 +48,10 @@ export function mapStatus(rawStatus: string): FileStatus {
   if (status === 'AA') { return FileStatus.Conflicted }   // Unmerged, added by both
   if (status === 'UU') { return FileStatus.Conflicted }   // Unmerged, both modified
   if (status === '??') { return FileStatus.New }          // untracked
+
+  // the file was staged externally but then deleted
+  // we should consider it a no-op
+  if (status === 'AD') { return null }
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
   if (status.match(/R[0-9]+/)) { return FileStatus.Renamed }
@@ -75,6 +79,11 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
   for (const entry of parsePorcelainStatus(result.stdout)) {
     if (entry.kind === 'entry') {
       const status = mapStatus(entry.statusCode)
+
+      if (status === null) {
+        continue
+      }
+
       const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
       files.push(new WorkingDirectoryFileChange(entry.path, status, selection, entry.oldPath))
