@@ -11,6 +11,8 @@ if (!process.env.TEST_ENV) {
   require('./styles/crash.scss')
 }
 
+document.body.classList.add(`platform-${process.platform}`)
+
 const container = document.createElement('div')
 container.id = 'desktop-crash-container'
 document.body.appendChild(container)
