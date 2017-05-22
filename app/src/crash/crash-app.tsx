@@ -55,11 +55,13 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   public constructor(props: ICrashAppProps) {
     super(props)
 
-    const window = remote.getCurrentWindow()
-
     this.state = {
-      windowState: getWindowState(window),
+      windowState: getWindowState(remote.getCurrentWindow()),
     }
+  }
+
+  public componentDidMount() {
+    const window = remote.getCurrentWindow()
 
     ipcRenderer.on(windowStateChannelName, (_, args) => {
       this.setState({ windowState: getWindowState(window) })
@@ -68,9 +70,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     ipcRenderer.on('error', (event: Electron.IpcRendererEvent, crashDetails: ICrashDetails) => {
       this.setState(crashDetails)
     })
-  }
 
-  public componentDidMount() {
     const now = Date.now()
     ipcRenderer.send('crash-ready', now - this.props.startTime)
   }
