@@ -34,11 +34,11 @@ export class CrashWindow {
       },
     }
 
-    // if (__DARWIN__) {
-    //     windowOptions.titleBarStyle = 'hidden'
-    // } else if (__WIN32__) {
-    //     windowOptions.frame = false
-    // }
+    if (__DARWIN__) {
+        windowOptions.titleBarStyle = 'hidden'
+    } else if (__WIN32__) {
+        windowOptions.frame = false
+    }
 
     this.window = new BrowserWindow(windowOptions)
     this.error = error
