@@ -2,6 +2,7 @@ import { BrowserWindow, ipcMain } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { logInfo, logError } from '../lib/logging/main'
 import { ICrashDetails, ErrorType } from '../crash/shared'
+import { registerWindowStateChangedEvents } from '../lib/window-state'
 
 const minWidth = 800
 const minHeight = 600
@@ -94,6 +95,8 @@ export class CrashWindow {
       this.sendError()
       this.maybeEmitDidLoad()
     })
+
+    registerWindowStateChangedEvents(this.window)
 
     this.window.loadURL(`file://${__dirname}/crash.html`)
   }
