@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ipcRenderer, shell, remote } from 'electron'
+import { ipcRenderer, shell, remote, app } from 'electron'
 import { ICrashDetails, ErrorType } from './shared'
 import { TitleBar } from '../ui/window/title-bar'
 import { WindowState, getWindowState, windowStateChannelName } from '../lib/window-state'
@@ -80,6 +80,15 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     e.preventDefault()
   }
 
+  private onQuitButtonClicked = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    if (!__DEV__) {
+      app.relaunch()
+    }
+
+    app.quit()
+  }
+
   private renderTitle() {
     const message = this.state.type === 'launch'
       ? 'GitHub Desktop failed to launch'
@@ -124,7 +133,28 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     return <pre className='error'>{prepareErrorMessage(error)}</pre>
   }
 
+  private renderQuitButton() {
+    let quitText
+    // We don't support restarting in dev mode since we can't
+    // control the life time of the dev server.
+    if (__DEV__) {
+      quitText = 'Restart'
+    } else {
+      quitText = __DARWIN__ ? 'Quit And Restart' : 'Exit and restart'
+    }
+
+    return (
+      <Button
+        type='submit'
+        onClick={this.onQuitButtonClicked}
+      >
+        {quitText}
+      </Button>
+    )
+  }
+
   public render() {
+
     return (
       <div id='crash-app'>
         <TitleBar
@@ -141,7 +171,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
           <img className='welcome-graphic-bottom' src={WelcomeLeftBottomImageUri} />
 
           <div className='footer'>
-            <Button type='submit'>Restart</Button>
+            {this.renderQuitButton()}
           </div>
         </main>
       </div>
