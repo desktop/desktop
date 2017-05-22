@@ -3,6 +3,7 @@
 @import '../../../styles/ui/octicons';
 @import '../../../styles/globals';
 @import '../../../styles/ui/button';
+@import '../../../styles/ui/scroll';
 
 #desktop-crash-container, #crash-app {
   height: 100%;
@@ -24,10 +25,14 @@ pre.error {
   color: #fff;
   padding: var(--spacing);
   border-radius: var(--border-radius);
-  overflow: auto;
 
   user-select: text;
   cursor: text;
+
+  overflow: auto;
+
+  --scroll-bar-thumb-background-color: rgba(255,255,255, 0.4);
+  --scroll-bar-thumb-background-color-active: rgba(255,255,255, 1);
 }
 
 header {
