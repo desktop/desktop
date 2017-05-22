@@ -489,7 +489,7 @@ export class SignInStore {
         currentState.endpoint,
         currentState.username,
         currentState.password,
-        otp
+        otp,
       )
     } catch (e) {
       this.emitError(e)

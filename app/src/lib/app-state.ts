@@ -190,7 +190,7 @@ export type Foldout =
 
 export enum RepositorySection {
   Changes,
-  History
+  History,
 }
 
 export interface IRepositoryState {

@@ -14,6 +14,9 @@ interface IRichTextProps {
   /** The raw text to inspect for things to highlight */
   readonly text: string
 
+  /** Should URLs be rendered as clickable links. Default true. */
+  readonly renderUrlsAsLinks?: boolean
+
   /**
    * The repository to use as the source for URLs for the rich text.
    *
@@ -41,9 +44,13 @@ export class RichText extends React.Component<IRichTextProps, void> {
     const elements = tokenizer.tokenize(str).map((token, index) => {
       switch (token.kind) {
         case TokenType.Emoji:
-          return <img key={index} alt={token.text} title={token.text} className='emoji' src={token.path}/>
+          return <img key={index} alt={token.text} className='emoji' src={token.path}/>
         case TokenType.Link:
-          return <LinkButton key={index} uri={token.url} children={token.text} />
+          if (this.props.renderUrlsAsLinks !== false) {
+            return <LinkButton key={index} uri={token.url} children={token.text} />
+          } else {
+            return <span key={index}>{token.text}</span>
+          }
         case TokenType.Text:
           return <span key={index}>{token.text}</span>
         default:
@@ -52,7 +59,7 @@ export class RichText extends React.Component<IRichTextProps, void> {
     })
 
     return (
-      <div className={this.props.className}>
+      <div className={this.props.className} title={str}>
         { elements }
       </div>
     )

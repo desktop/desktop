@@ -1,7 +1,18 @@
 {
   "releases": {
-    "0.5.5": [
+    "0.5.6": [
 
+    ],
+    "0.5.5": [
+      "[Fixed] Save the default path after creating a new repository - #1486",
+      "[Fixed] Only let the user launch the browser once for the OAuth flow - #1427",
+      "[Fixed] Don't linkify invalid URLs - #1456",
+      "[Fixed] Excessive padding in the Merge Branch dialog - #1577",
+      "[Fixed] Octicon pixel alignment issues - #1584",
+      "[Fixed] Windows: Invoking some menu items would break the window's snapped state - #1603",
+      "[Fixed] macOS: Errors authenticating while pushing - #1514",
+      "[Fixed] Don't linkify links in the History list or in Undo - #1548 #1608 #1474",
+      "[Fixed] Diffs not working when certain git config values were set - #1559"
     ],
     "0.5.4": [
       "[Fixed] The release notes URL pointed to the wrong page - #1503",
