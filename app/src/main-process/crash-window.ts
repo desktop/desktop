@@ -1,6 +1,7 @@
 import { BrowserWindow, ipcMain } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { logInfo, logError } from '../lib/logging/main'
+import { ICrashDetails, ErrorType } from '../crash/shared'
 
 const minWidth = 800
 const minHeight = 600
@@ -8,12 +9,13 @@ const minHeight = 600
 export class CrashWindow {
   private readonly window: Electron.BrowserWindow
   private readonly emitter = new Emitter()
+  private readonly errorType: ErrorType
   private readonly error: Error
 
   private _loadTime: number | null = null
   private _rendererReadyTime: number | null = null
 
-  public constructor(error: Error) {
+  public constructor(errorType: ErrorType, error: Error) {
     const windowOptions: Electron.BrowserWindowOptions = {
       width: minWidth,
       height: minHeight,
@@ -40,6 +42,7 @@ export class CrashWindow {
 
     this.window = new BrowserWindow(windowOptions)
     this.error = error
+    this.errorType = errorType
   }
 
   public load() {
@@ -145,7 +148,13 @@ export class CrashWindow {
       message: this.error.message,
       name: this.error.name,
     }
-    this.window.webContents.send('error', friendlyError)
+
+    const details: ICrashDetails = {
+      type: this.errorType,
+      error: friendlyError,
+    }
+
+    this.window.webContents.send('error', details)
   }
 
   /** Report an auto updater error to the renderer. */

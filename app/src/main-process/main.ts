@@ -30,11 +30,21 @@ let readyTime: number | null = null
  * it when we're ready.
  */
 let launchURLAction: URLActionType | null = null
+let hasReportedUncaughtException = false
 
 function uncaughtException(error: Error) {
+
+  if (hasReportedUncaughtException) {
+    logError(formatError(error))
+    return
+  }
+
+  hasReportedUncaughtException = true
   preventQuit = true
 
   logError(formatError(error))
+
+  const isLaunchError = !!mainWindow
 
   if (mainWindow) {
     mainWindow.destroy()
@@ -46,7 +56,7 @@ function uncaughtException(error: Error) {
     mainWindow = null
   }
 
-  const crashWindow = new CrashWindow(error)
+  const crashWindow = new CrashWindow(isLaunchError ? 'launch' : 'generic', error)
 
   crashWindow.onDidLoad(() => {
     crashWindow.show()
