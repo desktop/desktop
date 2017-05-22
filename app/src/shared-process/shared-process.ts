@@ -45,6 +45,11 @@ export class SharedProcess {
 
   /** Send a message to the shared process' renderer. */
   public send(msg: IMessage) {
+
+    if (this.window.isDestroyed()) {
+      return
+    }
+
     this.messageQueue.push(msg)
     this.drainMessageQueue()
   }
