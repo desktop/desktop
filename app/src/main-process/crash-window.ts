@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from 'electron'
+import { BrowserWindow, ipcMain, app } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { logInfo, logError } from '../lib/logging/main'
 import { ICrashDetails, ErrorType } from '../crash/shared'
@@ -94,6 +94,14 @@ export class CrashWindow {
       this._rendererReadyTime = readyTime
       this.sendError()
       this.maybeEmitDidLoad()
+    })
+
+    ipcMain.on('crash-quit', (event: Electron.IpcMainEvent) => {
+      if (!__DEV__) {
+        app.relaunch()
+      }
+
+      app.quit()
     })
 
     registerWindowStateChangedEvents(this.window)

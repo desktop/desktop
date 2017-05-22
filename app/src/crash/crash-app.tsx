@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ipcRenderer, shell, remote, app } from 'electron'
+import { ipcRenderer, shell, remote } from 'electron'
 import { ICrashDetails, ErrorType } from './shared'
 import { TitleBar } from '../ui/window/title-bar'
 import { WindowState, getWindowState, windowStateChannelName } from '../lib/window-state'
@@ -82,11 +82,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
 
   private onQuitButtonClicked = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    if (!__DEV__) {
-      app.relaunch()
-    }
-
-    app.quit()
+    ipcRenderer.send('crash-quit')
   }
 
   private renderTitle() {
@@ -138,9 +134,9 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     // We don't support restarting in dev mode since we can't
     // control the life time of the dev server.
     if (__DEV__) {
-      quitText = 'Restart'
+      quitText = __DARWIN__ ? 'Quit' : 'Exit'
     } else {
-      quitText = __DARWIN__ ? 'Quit And Restart' : 'Exit and restart'
+      quitText = __DARWIN__ ? 'Quit and Restart' : 'Exit and restart'
     }
 
     return (
