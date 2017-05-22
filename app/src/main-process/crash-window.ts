@@ -4,8 +4,8 @@ import { logInfo, logError } from '../lib/logging/main'
 import { ICrashDetails, ErrorType } from '../crash/shared'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
 
-const minWidth = 800
-const minHeight = 600
+const minWidth = 600
+const minHeight = 500
 
 export class CrashWindow {
   private readonly window: Electron.BrowserWindow
