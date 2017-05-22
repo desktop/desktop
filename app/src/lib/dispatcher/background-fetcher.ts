@@ -24,7 +24,7 @@ const SkewUpperBound = 30 * 1000
 
 /** The class which handles doing background fetches of the repository. */
 export class BackgroundFetcher {
-  public readonly repository: Repository
+  private readonly repository: Repository
   private readonly account: Account
   private readonly fetch: (repository: Repository) => Promise<void>
 
