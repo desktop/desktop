@@ -1,7 +1,7 @@
 {
   "rulesDirectory": [
     "node_modules/vrsource-tslint-rules/rules",
-    "node_modules/@niik/tslint-microsoft-contrib/",
+    "node_modules/tslint-microsoft-contrib/",
     "tslint-rules/"
   ],
   "rules": {
@@ -34,14 +34,13 @@
     ],
     "no-construct": true,
     "no-default-export": true,
-    "no-duplicate-key": true,
     "no-duplicate-variable": true,
     "no-eval": true,
     "no-internal-module": true,
     "no-invalid-this": true,
     "no-stateless-class": true,
     "no-sync-functions": true,
-    "no-trailing-whitespace": true,
+    "no-trailing-whitespace": [ true, "ignore-comments", "ignore-jsdoc" ],
     "no-unused-expression": true,
     "no-unused-variable": [true, "react"],
     "no-use-before-declare": true,

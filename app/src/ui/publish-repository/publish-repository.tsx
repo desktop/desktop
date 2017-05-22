@@ -84,9 +84,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
 
   private renderOrgs() {
     const options = new Array<JSX.Element>()
-    options.push(
-      <option value={-1} key={-1}>None</option>
-    )
+    options.push(<option value={-1} key={-1}>None</option>)
 
     let selectedIndex = -1
     const selectedOrg = this.props.settings.org
@@ -95,9 +93,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
         selectedIndex = index
       }
 
-      options.push(
-        <option value={index} key={index}>{org.login}</option>
-      )
+      options.push(<option value={index} key={index}>{org.login}</option>)
     }
 
     return (

@@ -3,7 +3,7 @@ import { ipcRenderer, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
-import { WindowControls } from './window/window-controls'
+import { TitleBar } from './window/title-bar'
 import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
@@ -13,7 +13,7 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton, BranchDropdown } from './toolbar'
-import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
+import { OcticonSymbol, iconForRepository } from './octicons'
 import { showCertificateTrustDialog, registerContextualMenuActionDispatcher } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateStatus } from './lib/update-store'
@@ -102,6 +102,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         // loading the app. So defer it until we have some breathing space.
         requestIdleCallback(() => {
           props.appStore.loadEmoji()
+
+          this.props.dispatcher.reportStats()
+
+          setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
         })
       }, { timeout: ReadyDelay })
     })
@@ -137,15 +141,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
     this.checkForUpdates()
 
-    ipcRenderer.on('launch-timing-stats', async (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
+    ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
       console.info(`App ready time: ${stats.mainReadyTime}ms`)
       console.info(`Load time: ${stats.loadTime}ms`)
       console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
 
-      await this.props.dispatcher.recordLaunchStats(stats)
-      this.props.dispatcher.reportStats()
-
-      setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+      this.props.dispatcher.recordLaunchStats(stats)
     })
 
     ipcRenderer.on('certificate-error', (event: Electron.IpcRendererEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {
@@ -598,40 +599,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
     }
 
-    // No Windows controls when we're in full-screen mode.
-    const winControls = __WIN32__ && !inFullScreen
-      ? <WindowControls />
-      : null
-
-    // On Windows it's not possible to resize a frameless window if the
-    // element that sits flush along the window edge has -webkit-app-region: drag.
-    // The menu bar buttons all have no-drag but the area between menu buttons and
-    // window controls need to disable dragging so we add a 3px tall element which
-    // disables drag while still letting users drag the app by the titlebar below
-    // those 3px.
-    const topResizeHandle = __WIN32__
-      ? <div className='resize-handle top' />
-      : null
-
-    // And a 3px wide element on the left hand side.
-    const leftResizeHandle = __WIN32__
-      ? <div className='resize-handle left' />
-      : null
-
-    const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
-
-    const appIcon = __WIN32__ && !this.state.showWelcomeFlow
-      ? <Octicon className='app-icon' symbol={OcticonSymbol.markGithub} />
-      : null
+    const showAppIcon = __WIN32__ && !this.state.showWelcomeFlow
 
     return (
-      <div className={titleBarClass} id='desktop-app-title-bar'>
-        {topResizeHandle}
-        {leftResizeHandle}
-        {appIcon}
+      <TitleBar
+        showAppIcon={showAppIcon}
+        titleBarStyle={this.state.titleBarStyle}
+        windowState={this.state.windowState}
+      >
         {this.renderAppMenuBar()}
-        {winControls}
-      </div>
+      </TitleBar>
     )
   }
 

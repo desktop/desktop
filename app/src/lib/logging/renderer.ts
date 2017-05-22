@@ -9,9 +9,7 @@ import { log } from '../../ui/main-process-proxy'
  */
 export function logInfo(message: string) {
   log({ level: 'info', message })
-  if (__DEV__) {
-    console.info(message)
-  }
+  console.info(message)
 }
 
 /**
@@ -22,9 +20,7 @@ export function logInfo(message: string) {
  */
 export function logDebug(message: string) {
   log({ level: 'debug', message })
-  if (__DEV__) {
-    console.debug(message)
-  }
+  console.debug(message)
 }
 
 /**

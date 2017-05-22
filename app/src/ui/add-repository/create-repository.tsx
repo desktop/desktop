@@ -16,7 +16,7 @@ import { Select } from '../lib/select'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
 import { writeGitAttributes } from './git-attributes'
-import { getDefaultDir } from '../lib/default-dir'
+import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 
@@ -200,6 +200,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     }
 
     this.setState({ ...this.state, creating: false })
+
+    setDefaultDir(this.state.path)
 
     this.props.dispatcher.selectRepository(repository)
     this.props.onDismissed()

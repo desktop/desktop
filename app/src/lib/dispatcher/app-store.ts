@@ -677,8 +677,8 @@ export class AppStore {
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
       const r = this.repositories.find(r =>
-        r.constructor === selectedRepository.constructor && r.id === selectedRepository.id
-      ) || null
+        r.constructor === selectedRepository.constructor
+        && r.id === selectedRepository.id) || null
 
       newSelectedRepository = r
     }
@@ -907,8 +907,7 @@ export class AppStore {
   private updateWorkingDirectoryFileSelection(repository: Repository, file: WorkingDirectoryFileChange, selection: DiffSelection) {
     this.updateChangesState(repository, state => {
       const newFiles = state.workingDirectory.files.map(f =>
-        f.id === file.id ? f.withSelection(selection) : f
-      )
+        f.id === file.id ? f.withSelection(selection) : f)
 
       const includeAll = this.getIncludeAllState(newFiles)
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
@@ -995,9 +994,7 @@ export class AppStore {
 
   private async refreshAuthor(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    const commitAuthor = await gitStore.performFailableOperation(() =>
-      getAuthorIdentity(repository)
-    ) || null
+    const commitAuthor = await gitStore.performFailableOperation(() => getAuthorIdentity(repository)) || null
 
     this.updateRepositoryState(repository, state => ({ commitAuthor }))
     this.emitUpdate()
@@ -1684,12 +1681,10 @@ export class AppStore {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public setStatsOptOut(optOut: boolean): Promise<void> {
-    this.statsStore.setOptOut(optOut)
+  public async setStatsOptOut(optOut: boolean): Promise<void> {
+    await this.statsStore.setOptOut(optOut)
 
     this.emitUpdate()
-
-    return Promise.resolve()
   }
 
   public _setConfirmRepoRemoval(confirmRepoRemoval: boolean): Promise<void> {
