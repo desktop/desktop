@@ -598,6 +598,11 @@ export class AppStore {
     // The selected repository could have changed while we were refreshing.
     if (this.selectedRepository !== repository) { return null }
 
+    // "Clone in Desktop" from a cold start can trigger this twice, and
+    // for edge cases where _selectRepository is re-entract, calling this here
+    // ensures we clean up the existing background fetcher correctly (if set)
+    this.stopBackgroundFetching()
+
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.refreshMentionables(repository)
 
