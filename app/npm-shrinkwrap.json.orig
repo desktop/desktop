@@ -1,6 +1,10 @@
 {
   "name": "desktop",
+<<<<<<< HEAD
+  "version": "0.5.4",
+=======
   "version": "0.5.5",
+>>>>>>> master
   "dependencies": {
     "7zip": {
       "version": "0.0.6",

@@ -1,0 +1,48 @@
+diff --git a/app/package.json b/app/package.json
+index 0e532e94..0d8b31aa 100644
+--- a/app/package.json
++++ b/app/package.json
+@@ -3,7 +3,7 @@
+   "productName": "GitHub Desktop",
+   "bundleID": "com.github.GitHubClient",
+   "companyName": "GitHub, Inc.",
+-  "version": "0.5.5",
++  "version": "0.5.6",
+   "main": "./main.js",
+   "repository": {
+     "type": "git",
+diff --git a/app/src/lib/dispatcher/dispatcher.ts b/app/src/lib/dispatcher/dispatcher.ts
+index 1d3bf932..1a734119 100644
+--- a/app/src/lib/dispatcher/dispatcher.ts
++++ b/app/src/lib/dispatcher/dispatcher.ts
+@@ -854,7 +854,7 @@ export class Dispatcher {
+       const fullPath = Path.join(repository.path, filepath)
+       // because Windows uses different path separators here
+       const normalized = Path.normalize(fullPath)
+-      shell.openItem(normalized)
++      shell.showItemInFolder(normalized)
+     }
+   }
+ 
+diff --git a/changelog.json b/changelog.json
+index 4a213963..dcdb64af 100644
+--- a/changelog.json
++++ b/changelog.json
+@@ -1,8 +1,16 @@
+ {
+   "releases": {
+-    "0.5.6": [
++    "0.5.7": [
+ 
+     ],
++    "0.5.6": [
++      "[Fixed] macOS: The buttons in the Untrusted Server dialog not doing anything - #1622",
++      "[Fixed] Better warning in Rename Branch when the branch will be created with a different name than was entered - #1480",
++      "[Fixed] Provide a tooltip for commit summaries in the History list - #1483",
++      "[Fixed] Prevent the Update Available banner from getting squished - #1632",
++      "[Fixed] Title bar not responding to double-clicks - #1590 #1655",
++      "[Improved] Discard All Changes is now accessible by right-clicking the file column header - #1635"
++    ],
+     "0.5.5": [
+       "[Fixed] Save the default path after creating a new repository - #1486",
+       "[Fixed] Only let the user launch the browser once for the OAuth flow - #1427",
