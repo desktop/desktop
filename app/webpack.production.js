@@ -39,6 +39,7 @@ const config = {
 const mainConfig = merge({}, common.main, config)
 const sharedConfig = merge({}, common.shared, config)
 const askPassConfig = merge({}, common.askPass, config)
+const crashConfig = merge({}, common.crash, config, { })
 
 const rendererConfig = merge({}, common.renderer, config, {
   module: {
@@ -61,4 +62,4 @@ const rendererConfig = merge({}, common.renderer, config, {
   ]
 })
 
-module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig ]
+module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig, crashConfig ]

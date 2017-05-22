@@ -121,11 +121,23 @@ const askPassConfig = merge({}, commonConfig, {
   target: 'node',
 })
 
+const crashConfig = merge({}, commonConfig, {
+  entry: { shared: path.resolve(__dirname, 'src/crash/index') },
+  target: 'electron-renderer',
+  plugins: [
+    new HtmlWebpackPlugin({
+      'filename': 'crash.html',
+      'chunks': ['crash']
+    }),
+  ],
+})
+
 module.exports = {
   main: mainConfig,
   shared: sharedConfig,
   renderer: rendererConfig,
   askPass: askPassConfig,
+  crash: crashConfig,
   replacements: replacements,
   externals: commonConfig.externals,
 }
