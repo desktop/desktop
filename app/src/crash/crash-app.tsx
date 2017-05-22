@@ -36,7 +36,7 @@ function prepareErrorMessage(error: Error) {
         // `at Function.module.exports.Emitter.simpleDispatch (SOME_USER_SPECIFIC_PATH/app/node_modules/event-kit/lib/emitter.js:25:14)`
         // `at file:///SOME_USER_SPECIFIC_PATH/app/renderer.js:6:4250`
         //
-        // We want to try to strip the user-specific path part out. 
+        // We want to try to strip the user-specific path part out.
         const match = line.match(/(\s*)(.*)(\(|file:\/\/\/).*(app.*)/)
 
         return !match || match.length < 5

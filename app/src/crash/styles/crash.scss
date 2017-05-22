@@ -17,7 +17,7 @@
 pre.error {
   flex-shrink: 1;
   flex-grow: 1;
-  
+
   word-wrap: break-word;
   white-space: pre-wrap;
   font-family: var(--font-family-monospace);
@@ -69,7 +69,7 @@ main {
   flex-grow: 1;
 
   .footer {
-    flex: none;    
+    flex: none;
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
@@ -80,7 +80,7 @@ main {
   position: absolute;
   right: var(--spacing);
   bottom: var(--spacing);
-  
+
   height: 45%;
   // I hate this but we'll have to live with it for beta.
   z-index: -1;
@@ -90,7 +90,7 @@ main {
   position: absolute;
   right: 80px;
   top: 40px;
-  
+
   height: 20%;
   // I hate this but we'll have to live with it for beta.
   z-index: -1;
