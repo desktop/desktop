@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { ipcRenderer, shell } from 'electron'
+import { ICrashDetails, ErrorType } from './shared'
 
 interface ICrashAppProps {
   readonly startTime: number
 }
 
 interface ICrashAppState {
-  readonly type?: 'generic' | 'launch'
+  readonly type?: ErrorType
   readonly error?: Error
 }
 
@@ -17,8 +18,8 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
 
     this.state = { }
 
-    ipcRenderer.on('error', (event: Electron.IpcRendererEvent, { errorType: } error: Error) => {
-      this.setState({ error })
+    ipcRenderer.on('error', (event: Electron.IpcRendererEvent, crashDetails: ICrashDetails) => {
+      this.setState(crashDetails)
     })
   }
 
