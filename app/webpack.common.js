@@ -122,7 +122,7 @@ const askPassConfig = merge({}, commonConfig, {
 })
 
 const crashConfig = merge({}, commonConfig, {
-  entry: { shared: path.resolve(__dirname, 'src/crash/index') },
+  entry: { crash: path.resolve(__dirname, 'src/crash/index') },
   target: 'electron-renderer',
   plugins: [
     new HtmlWebpackPlugin({
