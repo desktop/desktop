@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.5.7": [
+
+    ],
     "0.5.6": [
       "[Fixed] macOS: The buttons in the Untrusted Server dialog not doing anything - #1622",
       "[Fixed] Better warning in Rename Branch when the branch will be created with a different name than was entered - #1480",
