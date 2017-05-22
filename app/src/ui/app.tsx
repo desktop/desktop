@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ipcRenderer, shell } from 'electron'
+import { ipcRenderer, remote, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
@@ -56,6 +56,8 @@ interface IAppProps {
   readonly appStore: AppStore
   readonly startTime: number
 }
+
+type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
 export const dialogTransitionEnterTimeout = 250
 export const dialogTransitionLeaveTimeout = 100
@@ -583,9 +585,24 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setAppMenuState(menu => menu.withReset())
   }
 
+  private onTitlebarDoubleClickDarwin() {
+    const actionOnDoubleClick: AppleActionOnDoubleClickPref = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
+    const mainWindow = remote.getCurrentWindow()
+
+    switch (actionOnDoubleClick) {
+      case 'Maximize':
+        mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()
+        break
+      case 'Minimize':
+        mainWindow.minimize()
+        break
+    }
+  }
+
   private renderTitlebar() {
 
     const inFullScreen = this.state.windowState === 'full-screen'
+    const isMaximized = this.state.windowState === 'maximized'
 
     const menuBarActive = this.state.currentFoldout &&
       this.state.currentFoldout.type === FoldoutType.AppMenu
@@ -610,12 +627,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     // window controls need to disable dragging so we add a 3px tall element which
     // disables drag while still letting users drag the app by the titlebar below
     // those 3px.
-    const topResizeHandle = __WIN32__
+    const topResizeHandle = __WIN32__ && !isMaximized
       ? <div className='resize-handle top' />
       : null
 
     // And a 3px wide element on the left hand side.
-    const leftResizeHandle = __WIN32__
+    const leftResizeHandle = __WIN32__ && !isMaximized
       ? <div className='resize-handle left' />
       : null
 
@@ -625,8 +642,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? <Octicon className='app-icon' symbol={OcticonSymbol.markGithub} />
       : null
 
+    const onTitlebarDoubleClick = __DARWIN__ ? this.onTitlebarDoubleClickDarwin : undefined
+
     return (
-      <div className={titleBarClass} id='desktop-app-title-bar'>
+      <div className={titleBarClass} id='desktop-app-title-bar' onDoubleClick={onTitlebarDoubleClick}>
         {topResizeHandle}
         {leftResizeHandle}
         {appIcon}
