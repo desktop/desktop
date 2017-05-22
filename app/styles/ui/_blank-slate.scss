@@ -1,6 +1,5 @@
 #blank-slate {
   display: flex;
-  justify-content: center;
 
   .header {
     max-width: 400px;
@@ -57,7 +56,6 @@
 }
 
 .blankslate-image {
-  margin-top: calc(var(--spacing-double) * -1);
-  margin-bottom: var(--spacing-double);
-  height: 200px;
+  margin: var(--spacing-double) auto;
+  width: 400px;
 }
