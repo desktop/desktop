@@ -39,6 +39,7 @@ header {
 
   margin-bottom: var(--spacing);
   display: flex;
+  flex: none;
   align-items: center;
 
   h1 {
@@ -67,6 +68,7 @@ main {
   flex-grow: 1;
 
   .footer {
+    flex: none;    
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
