@@ -89,7 +89,7 @@ export class CrashWindow {
     })
 
     ipcMain.on('crash-ready', (event: Electron.IpcMainEvent, readyTime: number) => {
-      logError(`Crash process is ready after ${readyTime}ms`)
+      logInfo(`Crash process is ready after ${readyTime}ms`)
       this._rendererReadyTime = readyTime
       this.sendError()
       this.maybeEmitDidLoad()
