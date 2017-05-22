@@ -854,7 +854,7 @@ export class Dispatcher {
       const fullPath = Path.join(repository.path, filepath)
       // because Windows uses different path separators here
       const normalized = Path.normalize(fullPath)
-      shell.openItem(normalized)
+      shell.showItemInFolder(normalized)
     }
   }
 
