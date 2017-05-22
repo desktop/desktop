@@ -1,6 +1,8 @@
 import * as React from 'react'
-import { ipcRenderer, shell } from 'electron'
+import { ipcRenderer, shell, remote } from 'electron'
 import { ICrashDetails, ErrorType } from './shared'
+import { TitleBar } from '../ui/window/title-bar'
+import { WindowState, getWindowState } from '../lib/window-state'
 
 interface ICrashAppProps {
   readonly startTime: number
@@ -9,6 +11,7 @@ interface ICrashAppProps {
 interface ICrashAppState {
   readonly type?: ErrorType
   readonly error?: Error
+  readonly windowState: WindowState
 }
 
 export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
@@ -16,7 +19,9 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   public constructor(props: ICrashAppProps) {
     super(props)
 
-    this.state = { }
+    this.state = {
+      windowState: getWindowState(remote.getCurrentWindow()),
+    }
 
     ipcRenderer.on('error', (event: Electron.IpcRendererEvent, crashDetails: ICrashDetails) => {
       this.setState(crashDetails)
@@ -79,9 +84,16 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   public render() {
     return (
       <div id='crash-app'>
-        {this.renderTitle()}
-        {this.renderDescription()}
-        {this.renderErrorDetails()}
+        <TitleBar
+          showAppIcon={true}
+          titleBarStyle='dark'
+          windowState={this.state.windowState}
+        />
+        <main>
+          {this.renderTitle()}
+          {this.renderDescription()}
+          {this.renderErrorDetails()}
+        </main>
       </div>
     )
   }
