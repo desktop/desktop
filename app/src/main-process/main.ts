@@ -44,7 +44,7 @@ function uncaughtException(error: Error) {
 
   logError(formatError(error))
 
-  const isLaunchError = !!mainWindow
+  const isLaunchError = !mainWindow
 
   if (mainWindow) {
     mainWindow.destroy()
