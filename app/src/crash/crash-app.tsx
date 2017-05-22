@@ -2,7 +2,7 @@ import * as React from 'react'
 import { ipcRenderer, shell, remote } from 'electron'
 import { ICrashDetails, ErrorType } from './shared'
 import { TitleBar } from '../ui/window/title-bar'
-import { WindowState, getWindowState } from '../lib/window-state'
+import { WindowState, getWindowState, windowStateChannelName } from '../lib/window-state'
 import { Octicon, OcticonSymbol } from '../ui/octicons'
 import { Button } from '../ui/lib/button'
 
@@ -24,9 +24,15 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   public constructor(props: ICrashAppProps) {
     super(props)
 
+    const window = remote.getCurrentWindow()
+
     this.state = {
-      windowState: getWindowState(remote.getCurrentWindow()),
+      windowState: getWindowState(window),
     }
+
+    ipcRenderer.on(windowStateChannelName, (_, args) => {
+      this.setState({ windowState: getWindowState(window) })
+    })
 
     ipcRenderer.on('error', (event: Electron.IpcRendererEvent, crashDetails: ICrashDetails) => {
       this.setState(crashDetails)
