@@ -12,7 +12,6 @@ export function enableSourceMaps() {
     environment: 'node',
     handleUncaughtExceptions: false,
     retrieveSourceMap: function(source: string) {
-      debugger
       if (!source.endsWith('renderer.js') && !source.endsWith('main.js') && !source.endsWith('shared.js')) {
         return null
       }
