@@ -639,16 +639,6 @@ export class AppStore {
   }
 
   private startBackgroundFetching(repository: Repository, withInitialSkew: boolean) {
-
-    if (this.currentBackgroundFetcher) {
-      const backgroundFetcherRepo = this.currentBackgroundFetcher.repository
-      if (repository === backgroundFetcherRepo) {
-        // we're already fetching for this repository, don't worry about it
-        return
-      }
-    }
-
-
     if (this.currentBackgroundFetcher) {
       fatalError(`We should only have on background fetcher active at once, but we're trying to start background fetching on ${repository.name} while another background fetcher is still active!`)
       return
