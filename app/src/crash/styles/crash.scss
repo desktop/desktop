@@ -33,6 +33,7 @@ pre.error {
 
   --scroll-bar-thumb-background-color: rgba(255,255,255, 0.4);
   --scroll-bar-thumb-background-color-active: rgba(255,255,255, 1);
+  margin: 0 0 var(--spacing-double) 0;
 }
 
 header {
@@ -56,7 +57,7 @@ header {
 }
 
 p {
-  margin: 0 0 var(--spacing-half) 0;
+  margin: 0 0 var(--spacing) 0;
   max-width: 500px;
   flex-shrink: 0;
 }
