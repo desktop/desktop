@@ -15,7 +15,7 @@ export function disableAll() {
 function disable(item: Electron.MenuItem) {
   let anyEnabled = false
 
-  if (item.submenu instanceof Electron.Menu) {
+  if (item.submenu instanceof Menu) {
     for (const submenuItem of item.submenu.items) {
       if (disable(submenuItem)) {
         anyEnabled = true

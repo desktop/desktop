@@ -2,7 +2,7 @@ import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from
 
 import { AppWindow } from './app-window'
 import { CrashWindow } from './crash-window'
-import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
+import { buildDefaultMenu, MenuEvent, findMenuItemByID, disableAll } from './menu'
 import { parseURL, URLActionType } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
@@ -43,6 +43,8 @@ function uncaughtException(error: Error) {
   preventQuit = true
 
   logError(formatError(error))
+
+  disableAll()
 
   const isLaunchError = !mainWindow
 
