@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain, app } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
-import { logInfo, logError } from '../lib/logging/main'
+import { logDebug, logInfo, logError } from '../lib/logging/main'
 import { ICrashDetails, ErrorType } from '../crash/shared'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
 
@@ -47,7 +47,7 @@ export class CrashWindow {
   }
 
   public load() {
-    logInfo('Starting crash process')
+    logDebug('Starting crash process')
     let startLoad = 0
     // We only listen for the first of the loading events to avoid a bug in
     // Electron/Chromium where they can sometimes fire more than once. See
@@ -56,7 +56,7 @@ export class CrashWindow {
     // shouldn't really matter as in production builds loading _should_ only
     // happen once.
     this.window.webContents.once('did-start-loading', () => {
-      logInfo('Crash process in startup')
+      logDebug('Crash process in startup')
       this._rendererReadyTime = null
       this._loadTime = null
 
@@ -64,7 +64,7 @@ export class CrashWindow {
     })
 
     this.window.webContents.once('did-finish-load', () => {
-      logInfo('Crash process started')
+      logDebug('Crash process started')
       if (process.env.NODE_ENV === 'development') {
         this.window.webContents.openDevTools()
       }
@@ -97,6 +97,8 @@ export class CrashWindow {
     })
 
     ipcMain.on('crash-quit', (event: Electron.IpcMainEvent) => {
+      logDebug('Got quit signal from crash process')
+
       if (!__DEV__) {
         app.relaunch()
       }
@@ -146,7 +148,7 @@ export class CrashWindow {
 
   /** Show the window. */
   public show() {
-    logError('Showing crash process window')
+    logInfo('Showing crash process window')
     this.window.show()
   }
 
