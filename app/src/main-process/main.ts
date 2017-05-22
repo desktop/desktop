@@ -1,6 +1,7 @@
 import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from 'electron'
 
 import { AppWindow } from './app-window'
+import { CrashWindow } from './crash-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL, URLActionType } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
@@ -45,19 +46,36 @@ function uncaughtException(error: Error) {
     mainWindow = null
   }
 
-  dialog.showMessageBox({
-    type: 'error',
-    title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
-    message:
-      `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
-      `This has been reported to the team, but if you encounter this repeatedly please report ` +
-      `this issue to the GitHub Desktop issue tracker.\n\n${error.stack || error.message}`,
-  }, (response) => {
+  const crashWindow = new CrashWindow(error)
+
+  crashWindow.onDidLoad(() => {
+    crashWindow.show()
+  })
+
+  crashWindow.onFailedToLoad(() => {
+    dialog.showMessageBox({
+      type: 'error',
+      title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
+      message:
+        `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
+        `This has been reported to the team, but if you encounter this repeatedly please report ` +
+        `this issue to the GitHub Desktop issue tracker.\n\n${error.stack || error.message}`,
+    }, (response) => {
+      if (!__DEV__) {
+        app.relaunch()
+      }
+      app.quit()
+    })
+  })
+
+  crashWindow.onClose(() => {
     if (!__DEV__) {
       app.relaunch()
     }
     app.quit()
   })
+
+  crashWindow.load()
 }
 
 process.on('uncaughtException', (error: Error) => {
