@@ -3,6 +3,8 @@ import { ipcRenderer, shell, remote } from 'electron'
 import { ICrashDetails, ErrorType } from './shared'
 import { TitleBar } from '../ui/window/title-bar'
 import { WindowState, getWindowState } from '../lib/window-state'
+import { Octicon, OcticonSymbol } from '../ui/octicons'
+import { Button } from '../ui/lib/button'
 
 interface ICrashAppProps {
   readonly startTime: number
@@ -13,6 +15,9 @@ interface ICrashAppState {
   readonly error?: Error
   readonly windowState: WindowState
 }
+
+const WelcomeLeftTopImageUri = `file:///${__dirname}/static/welcome-illustration-left-top.svg`
+const WelcomeLeftBottomImageUri = `file:///${__dirname}/static/welcome-illustration-left-bottom.svg`
 
 export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
 
@@ -39,11 +44,16 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   }
 
   private renderTitle() {
-    if (this.state.type === 'launch') {
-      return <h1>GitHub Desktop failed to launch</h1>
-    } else {
-      return <h1>GitHub Desktop has encountered an unexpected error and needs to restart</h1>
-    }
+    const message = this.state.type === 'launch'
+      ? 'GitHub Desktop failed to launch'
+      : 'GitHub Desktop encountered an error'
+
+    return (
+      <header>
+        <Octicon symbol={OcticonSymbol.alert} className='error-icon' />
+        <h1>{message}</h1>
+      </header>
+    )
   }
 
   private renderDescription() {
@@ -93,6 +103,13 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
           {this.renderTitle()}
           {this.renderDescription()}
           {this.renderErrorDetails()}
+          
+          <img className='welcome-graphic-top' src={WelcomeLeftTopImageUri} />
+          <img className='welcome-graphic-bottom' src={WelcomeLeftBottomImageUri} />
+
+          <div className='footer'>
+            <Button type='submit'>Restart</Button>
+          </div>
         </main>
       </div>
     )
