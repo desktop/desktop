@@ -139,6 +139,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         visible: __RELEASE_ENV__ !== 'production',
       },
       {
+        id: 'show-devtools',
         label: __DARWIN__ ? 'Toggle Developer Tools' : '&Toggle developer tools',
         accelerator: (() => {
           return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'

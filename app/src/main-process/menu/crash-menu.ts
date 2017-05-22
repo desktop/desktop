@@ -35,6 +35,10 @@ function disable(item: Electron.MenuItem) {
     return true
   }
 
+  if ((item as any).id === 'show-devtools') {
+    return true
+  }
+
   item.enabled = false
   return false
 }
