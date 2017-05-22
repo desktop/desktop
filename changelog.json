@@ -1,7 +1,12 @@
 {
   "releases": {
     "0.5.6": [
-
+      "[Fixed] macOS: The buttons in the Untrusted Server dialog not doing anything - #1622",
+      "[Fixed] Better warning in Rename Branch when the branch will be created with a different name than was entered - #1480",
+      "[Fixed] Provide a tooltip for commit summaries in the History list - #1483",
+      "[Fixed] Prevent the Update Available banner from getting squished - #1632",
+      "[Fixed] Title bar not responding to double-clicks - #1590 #1655",
+      "[Improved] Discard All Changes is now accessible by right-clicking the file column header - #1635"
     ],
     "0.5.5": [
       "[Fixed] Save the default path after creating a new repository - #1486",
