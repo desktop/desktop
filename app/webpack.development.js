@@ -36,6 +36,19 @@ const rendererConfig = merge({}, common.renderer, config, {
 })
 
 const sharedConfig = merge({}, common.shared, config, { })
-const crashConfig = merge({}, common.crash, config, { })
+
+const crashConfig = merge({}, common.crash, config, {
+  module: {
+    rules: [
+      // This will cause the compiled CSS (and sourceMap) to be
+      // embedded within the compiled javascript bundle and added
+      // as a blob:// uri at runtime.
+      {
+        test: /\.(scss|css)$/,
+        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap']
+      }
+    ]
+  }
+})
 
 module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig, crashConfig ]
