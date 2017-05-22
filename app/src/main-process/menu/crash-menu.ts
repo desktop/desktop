@@ -1,6 +1,14 @@
 import { Menu } from 'electron'
 
-export function disableAll() {
+/**
+ * Update the menu to disable all non-essential menu items.
+ *
+ * Used when the app has detected a non-recoverable error and
+ * the ui process has been terminated. Since most of the app
+ * menu items require the ui process to work we'll have to
+ * disable them.
+ */
+export function setCrashMenu() {
   const menu = Menu.getApplicationMenu()
 
   if (!menu) {
