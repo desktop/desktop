@@ -108,7 +108,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
       {
         label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
         action: this.onDiscardAllChanges,
-        enabled: this.props.workingDirectory.files.length > 0
+        enabled: this.props.workingDirectory.files.length > 0,
       },
     ]
 
