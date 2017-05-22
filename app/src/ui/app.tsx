@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { ipcRenderer, remote, shell } from 'electron'
+import { ipcRenderer, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
-import { WindowControls } from './window/window-controls'
+import { TitleBar } from './window/title-bar'
 import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
@@ -13,7 +13,7 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton, BranchDropdown } from './toolbar'
-import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
+import { OcticonSymbol, iconForRepository } from './octicons'
 import { showCertificateTrustDialog, registerContextualMenuActionDispatcher } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateStatus } from './lib/update-store'
@@ -56,8 +56,6 @@ interface IAppProps {
   readonly appStore: AppStore
   readonly startTime: number
 }
-
-type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
 export const dialogTransitionEnterTimeout = 250
 export const dialogTransitionLeaveTimeout = 100
@@ -592,24 +590,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setAppMenuState(menu => menu.withReset())
   }
 
-  private onTitlebarDoubleClickDarwin() {
-    const actionOnDoubleClick: AppleActionOnDoubleClickPref = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
-    const mainWindow = remote.getCurrentWindow()
-
-    switch (actionOnDoubleClick) {
-      case 'Maximize':
-        mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()
-        break
-      case 'Minimize':
-        mainWindow.minimize()
-        break
-    }
-  }
-
   private renderTitlebar() {
 
     const inFullScreen = this.state.windowState === 'full-screen'
-    const isMaximized = this.state.windowState === 'maximized'
 
     const menuBarActive = this.state.currentFoldout &&
       this.state.currentFoldout.type === FoldoutType.AppMenu
@@ -623,42 +606,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
     }
 
-    // No Windows controls when we're in full-screen mode.
-    const winControls = __WIN32__ && !inFullScreen
-      ? <WindowControls />
-      : null
-
-    // On Windows it's not possible to resize a frameless window if the
-    // element that sits flush along the window edge has -webkit-app-region: drag.
-    // The menu bar buttons all have no-drag but the area between menu buttons and
-    // window controls need to disable dragging so we add a 3px tall element which
-    // disables drag while still letting users drag the app by the titlebar below
-    // those 3px.
-    const topResizeHandle = __WIN32__ && !isMaximized
-      ? <div className='resize-handle top' />
-      : null
-
-    // And a 3px wide element on the left hand side.
-    const leftResizeHandle = __WIN32__ && !isMaximized
-      ? <div className='resize-handle left' />
-      : null
-
-    const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
-
-    const appIcon = __WIN32__ && !this.state.showWelcomeFlow
-      ? <Octicon className='app-icon' symbol={OcticonSymbol.markGithub} />
-      : null
-
-    const onTitlebarDoubleClick = __DARWIN__ ? this.onTitlebarDoubleClickDarwin : undefined
+    const showAppIcon = __WIN32__ && !this.state.showWelcomeFlow
 
     return (
-      <div className={titleBarClass} id='desktop-app-title-bar' onDoubleClick={onTitlebarDoubleClick}>
-        {topResizeHandle}
-        {leftResizeHandle}
-        {appIcon}
+      <TitleBar
+        showAppIcon={showAppIcon}
+        titleBarStyle={this.state.titleBarStyle}
+        windowState={this.state.windowState}
+      >
         {this.renderAppMenuBar()}
-        {winControls}
-      </div>
+      </TitleBar>
     )
   }
 
