@@ -5,6 +5,8 @@ import { TitleBar } from '../ui/window/title-bar'
 import { WindowState, getWindowState, windowStateChannelName } from '../lib/window-state'
 import { Octicon, OcticonSymbol } from '../ui/octicons'
 import { Button } from '../ui/lib/button'
+import { getVersion } from '../ui/lib/app-proxy'
+import { getOS } from '../lib/get-os'
 
 interface ICrashAppProps {
   readonly startTime: number
@@ -18,6 +20,35 @@ interface ICrashAppState {
 
 const WelcomeLeftTopImageUri = `file:///${__dirname}/static/welcome-illustration-left-top.svg`
 const WelcomeLeftBottomImageUri = `file:///${__dirname}/static/welcome-illustration-left-bottom.svg`
+
+function prepareErrorMessage(error: Error) {
+
+  let message
+
+  if (error.stack) {
+    message = error.stack
+      .split('\n')
+      .map((line) => {
+        // The stack trace lines come in two forms:
+        //
+        // `at Function.module.exports.Emitter.simpleDispatch (SOME_USER_SPECIFIC_PATH/app/node_modules/event-kit/lib/emitter.js:25:14)`
+        // `at file:///SOME_USER_SPECIFIC_PATH/app/renderer.js:6:4250`
+        //
+        // We want to try to strip the user-specific path part out. 
+        const match = line.match(/(\s*)(.*)(\(|file:\/\/\/).*(app.*)/)
+
+        return !match || match.length < 5
+          ? line
+          : match[1] + match[2] + match[3] + match[4]
+      })
+      .join('\n')
+  } else {
+    message = `${error.name}: ${error.message}`
+  }
+
+  return `${message}\n\nVersion: ${getVersion()}\nOS: ${getOS()}\n`
+
+}
 
 export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
 
@@ -90,11 +121,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
       return
     }
 
-    if (!error.stack) {
-      return <pre className='error'>{error.name}: ${error.message}</pre>
-    } else {
-      return <pre className='error'>{error.stack}</pre>
-    }
+    return <pre className='error'>{prepareErrorMessage(error)}</pre>
   }
 
   public render() {
