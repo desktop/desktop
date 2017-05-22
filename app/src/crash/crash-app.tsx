@@ -164,9 +164,9 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
           {this.renderTitle()}
           {this.renderDescription()}
           {this.renderErrorDetails()}
-          
-          <img className='welcome-graphic-top' src={TopImageUri} />
-          <img className='welcome-graphic-bottom' src={BottomImageUri} />
+
+          <img className='background-graphic-top' src={TopImageUri} />
+          <img className='background-graphic-bottom' src={BottomImageUri} />
 
           <div className='footer'>
             {this.renderQuitButton()}

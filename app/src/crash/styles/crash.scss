@@ -76,7 +76,7 @@ main {
   }
 }
 
-.welcome-graphic-bottom {
+.background-graphic-bottom {
   position: absolute;
   right: var(--spacing);
   bottom: var(--spacing);
@@ -86,7 +86,7 @@ main {
   z-index: -1;
 }
 
-.welcome-graphic-top {
+.background-graphic-top {
   position: absolute;
   right: 80px;
   top: 40px;
