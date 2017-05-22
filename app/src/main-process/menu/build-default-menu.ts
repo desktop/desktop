@@ -5,51 +5,6 @@ import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { LogFolder } from '../../lib/logging/logger'
 
-export function buildCrashMenu() {
-  const template = new Array<Electron.MenuItemOptions>()
-  const separator: Electron.MenuItemOptions = { type: 'separator' }
-
-  if (__DARWIN__) {
-    template.push({
-      label: 'GitHub Desktop',
-      submenu: [
-        { label: 'About GitHub Desktop', click: emit('show-about') },
-        separator,
-        {
-          role: 'services',
-          submenu: [],
-        },
-        separator,
-        { role: 'hide' },
-        { role: 'hideothers' },
-        { role: 'unhide' },
-        separator,
-        { role: 'quit' },
-      ],
-    })
-
-    template.push({
-      role: 'window',
-      submenu: [
-        { role: 'minimize' },
-        { role: 'zoom' },
-        { role: 'close' },
-        separator,
-        { role: 'front' },
-      ],
-    })
-  } else {
-    template.push({
-      label: '&File',
-      submenu: [
-        { role: 'quit' },
-      ],
-    })
-  }
-
-  return Menu.buildFromTemplate(template)
-}
-
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template = new Array<Electron.MenuItemOptions>()
   const separator: Electron.MenuItemOptions = { type: 'separator' }
