@@ -128,9 +128,39 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         role: 'togglefullscreen',
       },
       separator,
-      { role: 'resetzoom' },
-      { role: 'zoomin', accelerator: 'CmdOrCtrl+=' },
-      { role: 'zoomout' },
+      {
+        label: __DARWIN__ ? 'Reset Zoom' : 'Reset zoom',
+        accelerator: 'CmdOrCtrl+0',
+        click (item: any, focusedWindow: Electron.BrowserWindow) {
+          if (focusedWindow) {
+            focusedWindow.webContents.setZoomLevel(1)
+          }
+        },
+      },
+      {
+        label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
+        accelerator: 'CmdOrCtrl+=',
+        click (item: any, focusedWindow: Electron.BrowserWindow) {
+          if (focusedWindow) {
+            const webContents = focusedWindow.webContents
+            webContents.getZoomLevel((zoom) => {
+              webContents.setZoomLevel(Math.min(zoom + 0.5, 4))
+            })
+          }
+        },
+      },
+      {
+        label: __DARWIN__ ? 'Zoom Out' : 'Zoom out',
+        accelerator: 'CmdOrCtrl+-',
+        click (item: any, focusedWindow: Electron.BrowserWindow) {
+          if (focusedWindow) {
+            const webContents = focusedWindow.webContents
+            webContents.getZoomLevel((zoom) => {
+              webContents.setZoomLevel(Math.max(zoom - 0.5, 1))
+            })
+          }
+        },
+      },
       separator,
       {
         label: '&Reload',
