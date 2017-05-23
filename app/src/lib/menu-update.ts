@@ -135,7 +135,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   const repositoryActive = windowOpen && repositorySelected
   const inWelcomeFlow = state.showWelcomeFlow
 
-  if (repositoryActive && !inWelcomeFlow) {
+  if (repositoryActive) {
     for (const id of repositoryScopedIDs) {
       menuStateBuilder.enable(id)
     }
@@ -150,10 +150,6 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.setEnabled('push', !networkActionInProgress)
     menuStateBuilder.setEnabled('pull', !networkActionInProgress)
     menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
-
-    menuStateBuilder.enable('new-repository')
-    menuStateBuilder.enable('add-local-repository')
-    menuStateBuilder.enable('clone-repository')
   } else {
     for (const id of repositoryScopedIDs) {
       menuStateBuilder.disable(id)
@@ -168,10 +164,23 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.disable('view-repository-on-github')
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
+  }
 
-    menuStateBuilder.disable('new-repository')
-    menuStateBuilder.disable('add-local-repository')
-    menuStateBuilder.disable('clone-repository')
+  const welcomeScopedIds: ReadonlyArray<MenuIDs> = [
+    'new-repository',
+    'add-local-repository',
+    'clone-repository',
+    'create-branch',
+  ]
+
+  if (inWelcomeFlow) {
+    for (const id of welcomeScopedIds) {
+      menuStateBuilder.disable(id)
+    }
+  } else {
+    for (const id of welcomeScopedIds) {
+      menuStateBuilder.enable(id)
+    }
   }
 
   return menuStateBuilder.state
