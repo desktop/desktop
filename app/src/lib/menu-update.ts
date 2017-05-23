@@ -127,9 +127,6 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'show-history',
     'show-repository-list',
     'show-branches-list',
-    'new-repository',
-    'add-local-repository',
-    'clone-repository',
   ]
 
   const menuStateBuilder = new MenuStateBuilder()
@@ -153,6 +150,10 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.setEnabled('push', !networkActionInProgress)
     menuStateBuilder.setEnabled('pull', !networkActionInProgress)
     menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
+
+    menuStateBuilder.enable('new-repository')
+    menuStateBuilder.enable('add-local-repository')
+    menuStateBuilder.enable('clone-repository')
   } else {
     for (const id of repositoryScopedIDs) {
       menuStateBuilder.disable(id)
@@ -167,6 +168,10 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.disable('view-repository-on-github')
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
+
+    menuStateBuilder.disable('new-repository')
+    menuStateBuilder.disable('add-local-repository')
+    menuStateBuilder.disable('clone-repository')
   }
 
   return menuStateBuilder.state
@@ -174,7 +179,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
 /**
  * Update the menu state in the main process.
- * 
+ *
  * This function will set the enabledness and visibility of menu items
  * in the main process based on the AppState. All changes will be
  * batched together into one ipc message.
