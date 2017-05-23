@@ -2,9 +2,8 @@
   "name": "desktop",
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
-  "companyName": "GitHub, Inc.",
-  "version": "0.5.7",
-  "main": "./main.js",
+  "companyName": "GitHub, 
+  "main": "./main.js",ssss
   "repository": {
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"

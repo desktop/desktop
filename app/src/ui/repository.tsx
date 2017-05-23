@@ -10,6 +10,9 @@ import { IRepositoryState as IRepositoryModelState, RepositorySection } from '..
 import { Dispatcher, IssuesStore, GitHubUserStore } from '../lib/dispatcher'
 import { assertNever } from '../lib/fatal-error'
 
+import { remote } from 'electron'
+const { app } = remote
+
 interface IRepositoryProps {
   readonly repository: Repo
   readonly state: IRepositoryModelState
@@ -150,12 +153,6 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     }
   }
 
-  public render() {
-    return (
-      <UiView id='repository' onKeyDown={this.onKeyDown}>
-        {this.renderSidebar()}
-        {this.renderContent()}
-      </UiView>
     )
   }
 
