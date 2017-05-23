@@ -155,8 +155,8 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     return (
       <div id='crash-app'>
         <TitleBar
-          showAppIcon={__WIN32__}
           titleBarStyle='dark'
+          showAppIcon={false}
           windowState={this.state.windowState}
         />
         <main>
