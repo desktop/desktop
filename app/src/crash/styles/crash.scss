@@ -36,7 +36,7 @@ pre.error {
 
 header {
 
-  margin-bottom: var(--spacing);
+  margin-bottom: var(--spacing-double);
   display: flex;
   flex: none;
   align-items: center;
@@ -55,7 +55,7 @@ header {
 }
 
 p {
-  margin: 0 0 var(--spacing) 0;
+  margin: 0 0 var(--spacing-double) 0;
   max-width: 500px;
   flex-shrink: 0;
 }
