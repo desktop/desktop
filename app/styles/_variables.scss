@@ -39,7 +39,7 @@
   --secondary-button-hover-background: $white;
   --secondary-button-text-color: var(--text-color);
   --secondary-button-focus-shadow-color: rgba($gray-200, 0.75);
-  --secondary-button-focus-border-color: #D1D5DA;
+  --secondary-button-focus-border-color: $gray-300;
 
   // Typography
   //
@@ -184,10 +184,10 @@
   --toolbar-button-active-background-color: var(--background-color);
   --toolbar-button-active-border-color: var(--background-color);
 
-  --toolbar-button-progress-color: #2F363D;
-  --toolbar-button-focus-progress-color: #444D56;
-  --toolbar-button-hover-progress-color: #444D56;
-  --toolbar-dropdown-open-progress-color: #E1E4E8;
+  --toolbar-button-progress-color: $gray-800;
+  --toolbar-button-focus-progress-color: $gray-700;
+  --toolbar-button-hover-progress-color: $gray-700;
+  --toolbar-dropdown-open-progress-color: $gray-200;
 
   --tab-bar-height: 29px;
   --tab-bar-active-color: $blue;
