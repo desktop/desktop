@@ -21,8 +21,8 @@ pre.error {
   word-wrap: break-word;
   white-space: pre-wrap;
   font-family: var(--font-family-monospace);
-  background: rgba(0,0,0,0.8);
-  color: #fff;
+  background: rgba($blue-100, 0.3);
+  color: $gray-900;
   padding: var(--spacing);
   border-radius: var(--border-radius);
 
@@ -31,8 +31,6 @@ pre.error {
 
   overflow: auto;
 
-  --scroll-bar-thumb-background-color: rgba(255,255,255, 0.4);
-  --scroll-bar-thumb-background-color-active: rgba(255,255,255, 1);
   margin: 0 0 var(--spacing-double) 0;
 }
 
