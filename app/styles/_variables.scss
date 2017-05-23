@@ -2,6 +2,20 @@
 //
 // This files contains CSS variables accessible to all selectors
 
+// Primer colors, see https://github.com/primer/primer-support/blob/master/lib/variables/color-system.scss
+//
+// -------- Grays --------
+$gray-000:        #fafbfc !default;
+$gray-100:        #f6f8fa !default;
+$gray-200:        #e1e4e8 !default;
+$gray-300:        #d1d5da !default;
+$gray-400:        #959da5 !default;
+$gray-500:        #6a737d !default;
+$gray-600:        #586069 !default;
+$gray-700:        #444d56 !default;
+$gray-800:        #2f363d !default;
+$gray-900:        #24292e !default; // body font color
+
 :root {
 
   // Colors
