@@ -233,7 +233,8 @@ dialog {
   // Custom branding of a warning dialog. Used for dangerous actions
   &.warning {
     .dialog-header {
-      color: var(--dialog-warning-color);
+      .icon { color: var(--dialog-warning-color); }
+      h1 { color: var(--dialog-warning-text-color); }
     }
 
     border-top: 3px solid var(--dialog-warning-color);
