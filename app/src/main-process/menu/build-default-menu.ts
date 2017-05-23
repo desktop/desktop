@@ -133,7 +133,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         accelerator: 'CmdOrCtrl+0',
         click (item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
-            focusedWindow.webContents.setZoomLevel(1)
+            focusedWindow.webContents.setZoomFactor(1)
           }
         },
       },
@@ -143,8 +143,8 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click (item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
             const webContents = focusedWindow.webContents
-            webContents.getZoomLevel((zoom) => {
-              webContents.setZoomLevel(Math.min(zoom + 0.5, 4))
+            webContents.getZoomFactor((zoom) => {
+              webContents.setZoomFactor(Math.min(zoom + 0.1, 2))
             })
           }
         },
@@ -155,8 +155,8 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click (item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
             const webContents = focusedWindow.webContents
-            webContents.getZoomLevel((zoom) => {
-              webContents.setZoomLevel(Math.max(zoom - 0.5, 1))
+            webContents.getZoomFactor((zoom) => {
+              webContents.setZoomFactor(Math.max(zoom - 0.1, 1))
             })
           }
         },
