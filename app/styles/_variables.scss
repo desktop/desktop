@@ -194,10 +194,10 @@ $gray-900:        #24292e !default;
   --toolbar-button-secondary-color: var(--toolbar-text-secondary-color);
 
   --toolbar-button-hover-color: $white;
-  --toolbar-button-hover-background-color: lighten($gray-900, 5%);
+  --toolbar-button-hover-background-color: $gray-800;
   --toolbar-button-hover-border-color: var(--toolbar-button-border-color);
 
-  --toolbar-button-focus-background-color: lighten($gray-900, 5%);
+  --toolbar-button-focus-background-color: $gray-800;
 
   --toolbar-button-active-color: var(--text-color);
   --toolbar-button-active-background-color: var(--background-color);
