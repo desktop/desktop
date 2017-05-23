@@ -51,6 +51,11 @@ header {
     color: $red-700;
     height: 32px;
     margin-right: var(--spacing);
+    // In case the title wraps we should render the icon up top
+    align-self: flex-start;
+    // Add a little margin so it looks like it's centered if
+    // the title doesn't wrap
+    margin-top: 3px;
   }
 }
 
