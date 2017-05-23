@@ -93,7 +93,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
 
     return (
       <header>
-        <Octicon symbol={OcticonSymbol.alert} className='error-icon' />
+        <Octicon symbol={OcticonSymbol.stop} className='error-icon' />
         <h1>{message}</h1>
       </header>
     )
