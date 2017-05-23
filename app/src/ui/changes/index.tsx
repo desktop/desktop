@@ -32,9 +32,11 @@ export class Changes extends React.Component<IChangesProps, void> {
   public render() {
     const diff = this.props.diff
     const file = this.props.file
+    const BlankSlateImage = `file:///${__dirname}/static/empty-no-file-selected.svg`
     if (!diff || !file) {
       return (
         <div className='panel blankslate' id='diff'>
+          <img src={BlankSlateImage} className='blankslate-image' />
           No file selected
         </div>
       )
