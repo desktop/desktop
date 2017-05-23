@@ -127,6 +127,9 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'show-history',
     'show-repository-list',
     'show-branches-list',
+    'new-repository',
+    'add-local-repository',
+    'clone-repository',
   ]
 
   const menuStateBuilder = new MenuStateBuilder()
