@@ -261,8 +261,9 @@
 
   // Colors for form errors
   --error-color: $red;
-  --form-error-background: #fddede;
-  --form-error-border-color: #d3b2b2;
+  --form-error-background: $red-100;
+  --form-error-border-color: $red-200;
+  --form-error-text-color: $red-800;
 
   /** Dialog */
   --dialog-warning-color: $yellow-600;
