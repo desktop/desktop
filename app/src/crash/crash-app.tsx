@@ -20,7 +20,6 @@ interface ICrashAppState {
 
 // Note that we're reusing the welcome illustrations here, any changes to these
 // will have to be reflected in the welcome flow as well.
-const TopImageUri = `file:///${__dirname}/static/welcome-illustration-left-top.svg`
 const BottomImageUri = `file:///${__dirname}/static/welcome-illustration-left-bottom.svg`
 
 function prepareErrorMessage(error: Error) {
@@ -165,7 +164,6 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
           {this.renderDescription()}
           {this.renderErrorDetails()}
 
-          <img className='background-graphic-top' src={TopImageUri} />
           <img className='background-graphic-bottom' src={BottomImageUri} />
 
           <div className='footer'>
