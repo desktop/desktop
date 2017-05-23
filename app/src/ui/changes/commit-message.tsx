@@ -187,7 +187,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
       : undefined
 
     return (
-      <div id='commit-message'>
+      <div id='commit-message' role='group' aria-label='Create commit'>
         <div className='summary'>
           {this.renderAvatar()}
 

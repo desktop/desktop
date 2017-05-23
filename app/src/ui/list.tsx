@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom'
 import * as classNames from 'classnames'
 import { Grid, AutoSizer } from 'react-virtualized'
 import { shallowEquals } from '../lib/equality'
+import { createUniqueId, releaseUniqueId } from './lib/id-pool'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -170,6 +171,8 @@ interface IListProps {
    * true if not defined.
    */
   readonly focusOnHover?: boolean
+
+  readonly ariaMode?: 'list' | 'menu'
 }
 
 interface IListState {
@@ -178,6 +181,8 @@ interface IListState {
 
   /** The available width for the list as determined by ResizeObserver */
   readonly width?: number
+
+  readonly rowIdPrefix?: string
 }
 
 // https://wicg.github.io/ResizeObserver/#resizeobserverentry
@@ -421,6 +426,10 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
+  public componentWillMount() {
+    this.setState({ rowIdPrefix: createUniqueId('ListRow') })
+  }
+
   public componentWillUnmount() {
 
     if (this.updateSizeTimeoutId !== null) {
@@ -430,6 +439,10 @@ export class List extends React.Component<IListProps, IListState> {
 
     if (this.resizeObserver) {
       this.resizeObserver.disconnect()
+    }
+
+    if (this.state.rowIdPrefix) {
+      releaseUniqueId(this.state.rowIdPrefix)
     }
   }
 
@@ -456,7 +469,6 @@ export class List extends React.Component<IListProps, IListState> {
       : undefined
 
     const element = this.props.rowRenderer(params.rowIndex)
-    const role = selectable ? 'button' : undefined
 
     // react-virtualized gives us an explicit pixel width for rows, but that
     // width doesn't take into account whether or not the scroll bar needs
@@ -467,8 +479,20 @@ export class List extends React.Component<IListProps, IListState> {
     // that width.
     const style = { ...params.style, width: '100%' }
 
+    const id = this.state.rowIdPrefix
+      ? `${this.state.rowIdPrefix}-${rowIndex}`
+      : undefined
+
+    const role = this.props.ariaMode === 'menu'
+      ? 'menuitem'
+      : 'option'
+
     return (
       <div key={params.key}
+           id={id}
+           aria-setsize={this.props.rowCount}
+           aria-posinset={rowIndex + 1}
+           aria-selected={selected || undefined}
            role={role}
            className={className}
            tabIndex={tabIndex}
@@ -499,12 +523,22 @@ export class List extends React.Component<IListProps, IListState> {
         </AutoSizer>
     }
 
+    const activeDescendant = this.props.selectedRow !== -1 && this.state.rowIdPrefix
+      ? `${this.state.rowIdPrefix}-${this.props.selectedRow}`
+      : undefined
+
+    const role = this.props.ariaMode === 'menu'
+      ? 'menu'
+      : 'listbox'
+
     return (
       <div
         ref={this.onRef}
         id={this.props.id}
         className='list'
         onKeyDown={this.handleKeyDown}
+        role={role}
+        aria-activedescendant={activeDescendant}
       >
         {content}
       </div>
@@ -560,7 +594,9 @@ export class List extends React.Component<IListProps, IListState> {
 
     return (
       <Grid
+        aria-label={null!}
         key='grid'
+        role={null!}
         ref={this.onGridRef}
         autoContainerWidth
         width={width}
