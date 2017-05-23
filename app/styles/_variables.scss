@@ -7,14 +7,6 @@
 
 :root {
 
-  // Colors
-  //
-  // These are declared here to let us avoid duplicating color constants
-  // in variables. It also makes it easier to read and understand what
-  // color is being used. Note that these variables should _never_ be
-  // used outside of this scope.
-  $white: #fff;
-
   --color-new: $green;
   --color-deleted: $red;
   --color-modified: $yellow;
@@ -223,30 +215,36 @@
    * Diff view
    */
 
-  --diff-font-color: #323232;
+  --diff-text-color: $gray-900;
+  --diff-border-color: $gray-200;
+  --diff-gutter-color: $gray-200;
 
-  --diff-border-color: #e5e5e5;
-  --diff-line-number-color: #84929c;
+  --diff-line-number-color: $gray-700;
   --diff-line-number-column-width: 50px;
 
-  --diff-selected-background-color: #5A93E0;
-  --diff-selected-border-color: #4f86d5;
+  --diff-selected-background-color: $blue-400;
+  --diff-selected-border-color: $blue-600;
+  --diff-selected-gutter-color: $blue-600;
   --diff-selected-text-color: var(--background-color);
 
-  --diff-add-background-color: #EAFFEA;
-  --diff-add-border-color: #b3e3b2;
-  --diff-add-text-color: $gray-200;
+  --diff-add-background-color: $green-000;
+  --diff-add-border-color: $green-200;
+  --diff-add-gutter-color: $green-200;
+  --diff-add-text-color: var(--diff-text-color);
 
-  --diff-delete-background-color: #FFECEC;
-  --diff-delete-border-color: #eaaead;
-  --diff-delete-text-color: $gray-200;
+  --diff-delete-background-color: $red-000;
+  --diff-delete-border-color: $red-100;
+  --diff-delete-gutter-color: $red-200;
+  --diff-delete-text-color: var(--diff-text-color);
 
-  --diff-hunk-background-color: #f8f8ff;
-  --diff-hunk-border-color: #e4e4fe;
-  --diff-hunk-text-color: var(--diff-line-number-color);
+  --diff-hunk-background-color: $blue-000;
+  --diff-hunk-border-color: $blue-200;
+  --diff-hunk-gutter-color: $blue-200;
+  --diff-hunk-text-color: $blue-800;
 
-  --diff-hover-background-color: #96b8ec;
-  --diff-hover-border-color: #89a9dc;
+  --diff-hover-background-color: $blue-300;
+  --diff-hover-border-color: $blue-400;
+  --diff-hover-gutter-color: $blue-400;
   --diff-hover-text-color: var(--background-color);
 
   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
