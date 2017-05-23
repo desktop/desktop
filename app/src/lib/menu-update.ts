@@ -133,7 +133,9 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
   const windowOpen = state.windowState !== 'hidden'
   const repositoryActive = windowOpen && repositorySelected
-  if (repositoryActive) {
+  const inWelcomeFlow = state.showWelcomeFlow
+
+  if (repositoryActive && !inWelcomeFlow) {
     for (const id of repositoryScopedIDs) {
       menuStateBuilder.enable(id)
     }
