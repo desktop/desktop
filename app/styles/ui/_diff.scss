@@ -8,7 +8,7 @@
 
 .CodeMirror {
   height: 100%;
-  color: var(--diff-font-color);
+  color: var(--diff-text-color);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-monospace);
 
@@ -36,6 +36,7 @@
       // Add a little bit of space to the left of code diff
       // `padding-left` here means mouse move events are not raised
       padding-left: var(--spacing-half);
+      align-self: center;      
     }
 
     svg.no-newline {
@@ -87,28 +88,43 @@
 
 .diff-add {
   background: var(--diff-add-background-color);
+  color: var(--diff-add-text-color);
   padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-add-border-color);
+
+    &:last-child {
+      border-color: var(--diff-add-gutter-color);
+    }
   }
 }
 
 .diff-delete {
   background: var(--diff-delete-background-color);
+  color: var(--diff-delete-text-color);
   padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-delete-border-color);
+
+    &:last-child {
+      border-color: var(--diff-delete-gutter-color);
+    }
   }
 }
 
 .diff-context {
   background: var(--background-color);
+  color: var(--diff-context-text-color);
   padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-border-color);
+
+    &:last-child {
+      border-color: var(--diff-gutter-color);
+    }
   }
 }
 
@@ -117,12 +133,29 @@
   color: var(--diff-hunk-text-color);
 }
 
+.cm-diff-delete {
+  color: var(--diff-delete-text-color);
+}
+
+.cm-diff-add {
+  color: var(--diff-add-text-color);
+}
+
+.cm-diff-context {
+  color: var(--diff-context-text-color);
+}
+
 .diff-hunk {
   background: var(--diff-hunk-background-color);
+  color: var(--diff-hunk-text-color);
   padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-hunk-border-color);
+
+    &:last-child {
+      border-color: var(--diff-hunk-gutter-color);
+    }
   }
 }
 
@@ -132,6 +165,10 @@
     background: var(--diff-selected-background-color);
     border-color: var(--diff-selected-border-color);
     color: var(--diff-selected-text-color);
+
+    &:last-child {
+      border-color: var(--diff-selected-gutter-color);
+    }
   }
 }
 
@@ -140,7 +177,11 @@
   .diff-line-number {
     background: var(--diff-hover-background-color);
     border-color: var(--diff-hover-border-color);
-    color: var(--background-color);
+    color: var(--diff-hover-text-color);
+
+    &:last-child {
+      border-color: var(--diff-hover-gutter-color);      
+    }
   }
 }
 

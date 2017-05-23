@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -650,6 +650,11 @@
       "version": "0.2.0",
       "from": "performance-now@>=0.2.0 <0.3.0",
       "resolved": "https://registry.npmjs.org/performance-now/-/performance-now-0.2.0.tgz"
+    },
+    "primer-support": {
+      "version": "4.0.0",
+      "from": "primer-support@latest",
+      "resolved": "https://registry.npmjs.org/primer-support/-/primer-support-4.0.0.tgz"
     },
     "progress": {
       "version": "2.0.0",
