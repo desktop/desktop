@@ -130,6 +130,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       separator,
       {
         label: '&Reload',
+        id: 'reload-window',
         accelerator: 'CmdOrCtrl+R',
         click (item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {

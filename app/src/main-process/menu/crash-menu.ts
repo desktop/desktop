@@ -35,7 +35,9 @@ function disable(item: Electron.MenuItem) {
     return true
   }
 
-  if ((item as any).id === 'show-devtools') {
+  const id = (item as any).id
+
+  if (id === 'show-devtools' || id === 'reload-window') {
     return true
   }
 
