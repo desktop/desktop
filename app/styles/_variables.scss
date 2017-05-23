@@ -32,12 +32,6 @@ $gray-900:        #24292e !default;
   $lightRed: #f04747;
   $green: #28a745;
   $orange: #f66a0a;
-  $black: #24292e;
-  $darkerGray: #6a737d;
-  $darkGray: #959da5;
-  $gray: #E1E4E8;
-  $lightGray: #F6F8FA;
-  $lighterGray: #fafbfc;
   $white: #fff;
 
   --color-new: $green;
@@ -46,8 +40,8 @@ $gray-900:        #24292e !default;
   --color-renamed: $blue;
   --color-conflicted: $orange;
 
-  --text-color: $black;
-  --text-secondary-color: $darkerGray;
+  --text-color: $gray-900;
+  --text-secondary-color: $gray-500;
   --background-color: $white;
 
   --button-height: 25px;
@@ -60,10 +54,10 @@ $gray-900:        #24292e !default;
 
   --link-button-color: $blue;
 
-  --secondary-button-background: $lighterGray;
+  --secondary-button-background: $gray-000;
   --secondary-button-hover-background: $white;
   --secondary-button-text-color: var(--text-color);
-  --secondary-button-focus-shadow-color: rgba($gray, 0.75);
+  --secondary-button-focus-shadow-color: rgba($gray-200, 0.75);
   --secondary-button-focus-border-color: #D1D5DA;
 
   // Typography
@@ -116,18 +110,17 @@ $gray-900:        #24292e !default;
   // or an item in a tab control header. It's up to each implementation
   // to decide what states to support (active selection, selection, etc).
 
-  --box-alt-background-color: $lightGray;
+  --box-alt-background-color: $gray-100;
 
   /**
    * Border color for boxes.
    */
-  --box-border-color: $gray;
+  --box-border-color: $gray-200;
   --box-border-accent-color: $blue;
 
   /**
    * Background color for selected boxes without keyboard focus
    */
-  --box-selected-background-color: $lightGray;
 
   /**
    * Text color for when a user hovers over a boxe with a
@@ -135,7 +128,7 @@ $gray-900:        #24292e !default;
    * implement a hover state since this will conflict with
    * selection and active selection
    */
-  --box-hover-text-color: $black;
+  --box-hover-text-color: $gray-900;
 
   /**
    * Background color for when a user hovers over a boxe with a
@@ -143,17 +136,16 @@ $gray-900:        #24292e !default;
    * implement a hover state since this will conflict with
    * selection and active selection
    */
-  --box-hover-background-color: $lightGray;
 
   /**
    * Text color for selected boxes without keyboard focus
    */
-  --box-selected-text-color: $black;
+  --box-selected-text-color: $gray-900;
 
   /**
    * Border color for selected boxes without keyboard focus
    */
-  --box-selected-border-color: $darkGray;
+  --box-selected-border-color: $gray-400;
 
   /**
    * Background color for selected boxes with active keyboard focus
@@ -168,11 +160,11 @@ $gray-900:        #24292e !default;
   /**
    * Border color for selected boxes with active keyboard focus
    */
-  --box-selected-active-border-color: $darkGray;
+  --box-selected-active-border-color: $gray-400;
 
   /** The height of the title bar area on Win32 platforms */
   --win32-title-bar-height: 28px;
-  --win32-title-bar-background-color: $black;
+  --win32-title-bar-background-color: $gray-900;
 
   /** The height of the title bar area on darwin platforms */
   --darwin-title-bar-height: 22px;
@@ -192,20 +184,20 @@ $gray-900:        #24292e !default;
 
   --toolbar-height: 50px;
 
-  --toolbar-background-color: $black;
+  --toolbar-background-color: $gray-900;
   --toolbar-text-color: $white;
-  --toolbar-text-secondary-color: $darkGray;
+  --toolbar-text-secondary-color: $gray-400;
 
   --toolbar-button-color: var(--toolbar-text-color);
   --toolbar-button-background-color: transparent;
-  --toolbar-button-border-color: darken($black, 20%);
+  --toolbar-button-border-color: darken($gray-900, 20%);
   --toolbar-button-secondary-color: var(--toolbar-text-secondary-color);
 
   --toolbar-button-hover-color: $white;
-  --toolbar-button-hover-background-color: lighten($black, 5%);
+  --toolbar-button-hover-background-color: lighten($gray-900, 5%);
   --toolbar-button-hover-border-color: var(--toolbar-button-border-color);
 
-  --toolbar-button-focus-background-color: lighten($black, 5%);
+  --toolbar-button-focus-background-color: lighten($gray-900, 5%);
 
   --toolbar-button-active-color: var(--text-color);
   --toolbar-button-active-background-color: var(--background-color);
@@ -261,11 +253,11 @@ $gray-900:        #24292e !default;
 
   --diff-add-background-color: #EAFFEA;
   --diff-add-border-color: #b3e3b2;
-  --diff-add-text-color: $gray;
+  --diff-add-text-color: $gray-200;
 
   --diff-delete-background-color: #FFECEC;
   --diff-delete-border-color: #eaaead;
-  --diff-delete-text-color: $gray;
+  --diff-delete-text-color: $gray-200;
 
   --diff-hunk-background-color: #f8f8ff;
   --diff-hunk-border-color: #e4e4fe;
@@ -282,7 +274,7 @@ $gray-900:        #24292e !default;
   /**
    * Ahead/behind view
    */
-  --ahead-behind-background-color: $darkerGray;
+  --ahead-behind-background-color: $gray-500;
 
   // Colors for form errors
   --error-color: $red;
