@@ -12,6 +12,7 @@ const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
 const distInfo = require('./dist-info')
 
+const targetPlatform = distInfo.getTargetPlatform()
 const isProductionBuild = process.env.NODE_ENV === 'production'
 
 console.log(`Building for ${process.env.NODE_ENV}…`)
@@ -29,7 +30,7 @@ console.log('Copying static resources…')
 copyStaticResources()
 
 const isFork = process.env.TRAVIS_SECURE_ENV_VARS !== 'true'
-if (process.platform === 'darwin' && process.env.TRAVIS && !isFork) {
+if (targetPlatform === 'darwin' && process.env.TRAVIS && !isFork) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
@@ -61,7 +62,7 @@ updateLicenseDump(err => {
 function packageApp (callback) {
   const options = {
     name: distInfo.getProductName(),
-    platform: process.platform,
+    platform: targetPlatform,
     arch: 'x64',
     asar: false, // TODO: Probably wanna enable this down the road.
     out: path.join(projectRoot, 'dist'),
@@ -132,8 +133,7 @@ function copyEmoji () {
 }
 
 function copyStaticResources () {
-  const dirName = process.platform
-  const platformSpecific = path.join(projectRoot, 'app', 'static', dirName)
+  const platformSpecific = path.join(projectRoot, 'app', 'static', targetPlatform)
   const common = path.join(projectRoot, 'app', 'static', 'common')
   const destination = path.join(outRoot, 'static')
   fs.removeSync(destination)

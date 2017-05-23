@@ -131,7 +131,7 @@ export class StatsStore {
       eventType: 'usage',
       version: getVersion(),
       osVersion: getOS(),
-      platform: process.platform,
+      platform: __PLATFORM__,
       ...launchStats,
       ...dailyMeasures,
       ...userType,

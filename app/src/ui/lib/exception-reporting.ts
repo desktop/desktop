@@ -20,7 +20,7 @@ export async function reportError(error: Error) {
 
   data.append('version', getVersion())
   data.append('osVersion', getOS())
-  data.append('platform', process.platform)
+  data.append('platform', __PLATFORM__)
   data.append('guid', getGUID())
 
   const options = {

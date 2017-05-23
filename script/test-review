@@ -4,6 +4,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const distInfo = require('./dist-info')
 const { getUserDataPath } = require('./dist-info')
 
 function reviewLogs() {
@@ -23,13 +24,11 @@ function reviewLogs() {
   })
 }
 
-if (process.platform === 'darwin') {
+if (distInfo.getTargetPlatform() === 'darwin') {
   if (process.env.TRAVIS_TEST_RESULT === '1') {
     reviewLogs()
   }
-}
-
-if (process.platform === 'win32') {
+} else if (distInfo.getTargetPlatform() === 'win32') {
   if (process.env.APPVEYOR_TEST_RESULT !== '0') {
     reviewLogs()
   }

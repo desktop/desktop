@@ -9,14 +9,12 @@ const distInfo = require('./dist-info')
 
 const distPath = distInfo.getDistPath()
 const productName = distInfo.getProductName()
+const targetPlatform = distInfo.getTargetPlatform()
 
-if (process.platform === 'darwin') {
+if (targetPlatform === 'darwin') {
   packageOSX()
-} else if (process.platform === 'win32') {
+} else if (targetPlatform === 'win32') {
   packageWindows()
-} else {
-  console.error(`I dunno how to package for ${process.platform} :(`)
-  process.exit(1)
 }
 
 function packageOSX () {

@@ -8,6 +8,7 @@ import 'chai-datetime'
 // These constants are defined by Webpack at build time, but since tests aren't
 // built with Webpack we need to make sure these exist at runtime.
 const g: any = global
-g['__WIN32__'] = process.platform === 'win32'
-g['__DARWIN__'] = process.platform === 'darwin'
+g['__PLATFORM__'] = process.env.TARGET_PLATFORM || process.platform
+g['__WIN32__'] = g['__PLATFORM__'] === 'win32'
+g['__DARWIN__'] = g['__PLATFORM__'] === 'darwin'
 g['__RELEASE_ENV__'] = 'development'

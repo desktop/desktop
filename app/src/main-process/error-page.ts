@@ -32,7 +32,7 @@ export function showFallbackPage(error: Error) {
 
   const content = `<p class='stack'>
     <strong>Version:</strong> ${app.getVersion()}<br />
-    <strong>Platform:</strong> ${process.platform}<br />
+    <strong>Platform:</strong> ${__PLATFORM__}<br />
     <strong>Error:</strong> <span id='error-content'></span>
   </p>
   <script>
