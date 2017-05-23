@@ -9,6 +9,13 @@ interface IDialogHeaderProps {
   readonly title: string
 
   /**
+   * An optional id for the h1 element that contains the title of this
+   * dialog. Used to aid in accessibility by allowing the h1 to be referenced
+   * in an aria-labeledby/aria-describedby attributed
+   */
+  readonly titleId?: string
+
+  /**
    * Whether or not the implementing dialog is dismissable. This controls
    * whether or not the dialog header renders a close button or not.
    */
@@ -92,7 +99,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
     return (
       <header className='dialog-header'>
         {this.renderIcon()}
-        <h1>{this.props.title}</h1>
+        <h1 id={this.props.titleId}>{this.props.title}</h1>
         {this.renderCloseButton()}
       </header>
     )

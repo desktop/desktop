@@ -167,8 +167,12 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
 }
 
 function NoCommitSelected() {
+  const BlankSlateImage = `file:///${__dirname}/static/empty-no-commit.svg`
+
   return (
     <div className='panel blankslate'>
+      <img src={BlankSlateImage} className='blankslate-image' />
+
       No commit selected
     </div>
   )

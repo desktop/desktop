@@ -2,6 +2,7 @@
 
 /** A React component holding the commit message entry */
 #commit-message {
+
   border-top: 1px solid var(--box-border-color);
   flex-direction: column;
   flex-shrink: 0;
@@ -32,6 +33,7 @@
   }
 
   .commit-button {
+    max-width: 100%;
     margin-top: var(--spacing);
     display: flex;
     justify-content: center;

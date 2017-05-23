@@ -98,6 +98,11 @@ process.on('uncaughtException', (error: Error) => {
 if (__WIN32__ && process.argv.length > 1) {
   if (handleSquirrelEvent(process.argv[1])) {
     app.quit()
+  } else {
+    const url = parseURL(process.argv[1])
+    if (url.name === 'open-repository') {
+      launchURLAction = url
+    }
   }
 }
 

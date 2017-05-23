@@ -56,7 +56,7 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, IUsageOptOut
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = event.currentTarget.checked
-    this.setState({ newOptOutValue: value })
+    this.setState({ newOptOutValue: !value })
   }
 
   private cancel = () => {

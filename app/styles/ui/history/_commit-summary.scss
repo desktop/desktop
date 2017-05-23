@@ -77,10 +77,11 @@
     overflow: hidden;
     // The extra pixel makes the space align up with the commit list.
     max-height: 61px;
+    flex: 1;
 
     &:before {
       content: "";
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 40px, rgba(255, 255, 255, 0.5) 40px, white 60px);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0px, rgba(255, 255, 255, 0) 40px, rgba(255, 255, 255, 0.5) 40px, white 60px);
       position: absolute;
       height: 100%;
       width: 100%;
