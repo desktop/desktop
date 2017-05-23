@@ -1,7 +1,4 @@
 machine:
-  node:
-    version: 7
-
   environment:
     XCODE_SCHEME: test
     XCODE_WORKSPACE: test
@@ -16,6 +13,7 @@ dependencies:
     - "~/.electron"
 
   pre:
+    - brew install node
     - npm install -g npm
     - npm prune
     - cd app && npm prune && cd ..
