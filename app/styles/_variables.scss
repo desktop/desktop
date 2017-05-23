@@ -3,18 +3,7 @@
 // This files contains CSS variables accessible to all selectors
 
 // Primer colors, see https://github.com/primer/primer-support/blob/master/lib/variables/color-system.scss
-//
-// -------- Grays --------
-$gray-000:        #fafbfc !default;
-$gray-100:        #f6f8fa !default;
-$gray-200:        #e1e4e8 !default;
-$gray-300:        #d1d5da !default;
-$gray-400:        #959da5 !default;
-$gray-500:        #6a737d !default;
-$gray-600:        #586069 !default;
-$gray-700:        #444d56 !default;
-$gray-800:        #2f363d !default;
-$gray-900:        #24292e !default;
+@import '~primer-support/lib/variables/color-system.scss';
 
 :root {
 
@@ -24,14 +13,8 @@ $gray-900:        #24292e !default;
   // in variables. It also makes it easier to read and understand what
   // color is being used. Note that these variables should _never_ be
   // used outside of this scope.
-  $darkBlue: #005CC5;
-  $blue: #0366d6;
-  $yellow: #ffd33d;
   $lightYellow: #f6a623;
-  $red: #d73a49;
   $lightRed: #f04747;
-  $green: #28a745;
-  $orange: #f66a0a;
   $white: #fff;
 
   --color-new: $green;
@@ -50,7 +33,7 @@ $gray-900:        #24292e !default;
   --button-border-radius: 2px;
   --button-hover-background: lighten($blue, 5%);
   --button-text-color: $white;
-  --button-focus-border-color: $darkBlue;
+  --button-focus-border-color: $blue-600;
 
   --link-button-color: $blue;
 

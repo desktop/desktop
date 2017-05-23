@@ -30,6 +30,7 @@
     "keytar": "^4.0.2",
     "moment": "^2.17.1",
     "octokat": "^0.8.0",
+    "primer-support": "^4.0.0",
     "react": "^15.5.4",
     "react-addons-shallow-compare": "^15.5.2",
     "react-dom": "^15.5.4",
