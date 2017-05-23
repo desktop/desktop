@@ -3,7 +3,7 @@ import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from
 import { AppWindow } from './app-window'
 import { CrashWindow } from './crash-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID, setCrashMenu } from './menu'
-import { parseURL, URLActionType } from '../lib/parse-url'
+import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
@@ -23,14 +23,11 @@ const launchTime = Date.now()
 
 let preventQuit = false
 let readyTime: number | null = null
-
-/**
- * The URL action with which the app was launched. On macOS, we could receive an
- * `open-url` command before the app ready event, so we stash it away and handle
- * it when we're ready.
- */
-let launchURLAction: URLActionType | null = null
 let hasReportedUncaughtException = false
+
+type OnDidLoadFn = (window: AppWindow) => void
+/** See the `onDidLoad` function. */
+let onDidLoadFns: Array<OnDidLoadFn> | null = []
 
 function uncaughtException(error: Error) {
 
@@ -99,9 +96,11 @@ if (__WIN32__ && process.argv.length > 1) {
   if (handleSquirrelEvent(process.argv[1])) {
     app.quit()
   } else {
-    const url = parseURL(process.argv[1])
-    if (url.name === 'open-repository') {
-      launchURLAction = url
+    const action = parseURL(process.argv[1])
+    if (action.name === 'open-repository') {
+      onDidLoad(window => {
+        window.sendURLAction(action)
+      })
     }
   }
 }
@@ -119,7 +118,9 @@ const isDuplicateInstance = app.makeSingleInstance((commandLine, workingDirector
   // callback contents and code for us to complete the signin flow
   if (commandLine.length > 1) {
     const action = parseURL(commandLine[1])
-    getMainWindow().sendURLAction(action)
+    onDidLoad(window => {
+      window.sendURLAction(action)
+    })
   }
 })
 
@@ -132,18 +133,12 @@ app.on('will-finish-launching', () => {
     event.preventDefault()
 
     const action = parseURL(url)
-    // NB: If the app was launched by an `open-url` command, the app won't be
-    // ready yet and so handling the URL action is a not great idea. We'll stash
-    // it away and handle it when we're ready.
-    if (app.isReady()) {
-      const window = getMainWindow()
+    onDidLoad(window => {
       // This manual focus call _shouldn't_ be necessary, but is for Chrome on
       // macOS. See https://github.com/desktop/desktop/issues/973.
       window.focus()
       window.sendURLAction(action)
-    } else {
-      launchURLAction = action
-    }
+    })
   })
 })
 
@@ -249,7 +244,9 @@ app.on('ready', () => {
   ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMainEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
     // This API's only implemented on macOS right now.
     if (__DARWIN__) {
-      getMainWindow().showCertificateTrustDialog(certificate, message)
+      onDidLoad(window => {
+        window.showCertificateTrustDialog(certificate, message)
+      })
     }
   })
 
@@ -266,12 +263,16 @@ app.on('ready', () => {
   })
 
   autoUpdater.on('error', err => {
-    getMainWindow().sendAutoUpdaterError(err)
+    onDidLoad(window => {
+      window.sendAutoUpdaterError(err)
+    })
   })
 })
 
 app.on('activate', () => {
-  getMainWindow().show()
+  onDidLoad(window => {
+    window.show()
+  })
 })
 
 app.on('web-contents-created', (event, contents) => {
@@ -285,7 +286,9 @@ app.on('web-contents-created', (event, contents) => {
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
   callback(false)
 
-  getMainWindow().sendCertificateError(certificate, error, url)
+  onDidLoad(window => {
+    window.sendCertificateError(certificate, error, url)
+  })
 })
 
 function createWindow() {
@@ -323,9 +326,10 @@ function createWindow() {
       rendererReadyTime: window.rendererReadyTime!,
     })
 
-    if (launchURLAction) {
-      window.sendURLAction(launchURLAction)
-      launchURLAction = null
+    const fns = onDidLoadFns!
+    onDidLoadFns = null
+    for (const fn of fns) {
+      fn(window)
     }
   })
 
@@ -334,11 +338,16 @@ function createWindow() {
   mainWindow = window
 }
 
-/** Get the main window, creating it if necessary. */
-function getMainWindow(): AppWindow {
-  if (!mainWindow) {
-    createWindow()
+/**
+ * Register a function to be called once the window has been loaded. If the
+ * window has already been loaded, the function will be called immediately.
+ */
+function onDidLoad(fn: OnDidLoadFn) {
+  if (onDidLoadFns) {
+    onDidLoadFns.push(fn)
+  } else {
+    if (mainWindow) {
+      fn(mainWindow)
+    }
   }
-
-  return mainWindow!
 }
