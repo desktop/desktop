@@ -285,6 +285,8 @@ function onDidLoad(fn: OnDidLoadFn) {
   if (onDidLoadFns) {
     onDidLoadFns.push(fn)
   } else {
-    fn(mainWindow!)
+    if (mainWindow) {
+      fn(mainWindow)
+    }
   }
 }
