@@ -128,6 +128,10 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         role: 'togglefullscreen',
       },
       separator,
+      { role: 'resetzoom' },
+      { role: 'zoomin', accelerator: 'CmdOrCtrl+=' },
+      { role: 'zoomout' },
+      separator,
       {
         label: '&Reload',
         accelerator: 'CmdOrCtrl+R',
