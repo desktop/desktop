@@ -285,10 +285,6 @@ function onDidLoad(fn: OnDidLoadFn) {
   if (onDidLoadFns) {
     onDidLoadFns.push(fn)
   } else {
-    if (!mainWindow) {
-      createWindow()
-    }
-
     fn(mainWindow!)
   }
 }
