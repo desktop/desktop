@@ -1,0 +1,14 @@
+#repository-settings {
+  width: 450px;
+
+  .no-remote {
+    justify-content: space-between;
+
+    button {
+      flex-shrink: 0;
+      flex-grow: 0;
+      min-width: 120px;
+      align-self: center;
+    }
+  }
+}

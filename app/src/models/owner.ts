@@ -5,7 +5,7 @@ export interface IOwner {
 }
 
 /** The owner of a GitHubRepository. */
-export default class Owner implements IOwner {
+export class Owner implements IOwner {
   public readonly login: string
   public readonly endpoint: string
 

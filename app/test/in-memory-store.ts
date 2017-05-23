@@ -1,4 +1,4 @@
-export default class InMemoryStore {
+export class InMemoryStore {
   private store: {[key: string]: string}
 
   public constructor() {
@@ -23,5 +23,9 @@ export default class InMemoryStore {
     } else {
       return this.store[key]
     }
+  }
+
+  public deleteItem(key: string, login: string) {
+    delete this.store[this.secureKey(key, login)]
   }
 }

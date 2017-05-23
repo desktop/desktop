@@ -1,0 +1,37 @@
+#undo-commit {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  border-top: var(--base-border);
+  background: var(--box-alt-background-color);
+
+  .commit-info {
+    padding: var(--spacing-half) var(--spacing);
+    padding-right: 0;
+    margin-right: var(--spacing-half);
+
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    font-size: var(--font-size-sm);
+
+    .summary,
+    .ago {
+      @include ellipsis;
+    }
+    .ago {
+      color: var(--text-secondary-color);
+    }
+  }
+
+  // We're creating this wrapper to be able to set the padding. If we had
+  // padding on #undo-commit, the enter/leave animate wouldn't animate the
+  // amount of the padding.
+  .actions {
+    padding: var(--spacing);
+
+    // In order to not add to the margin already in commit-info.
+    padding-left: 0;
+  }
+}

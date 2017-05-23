@@ -3,10 +3,11 @@
 #cloning-repository-view {
 
   /* The view's position in relation to its parent, ie full
-   * width, vertically centered  */
+   * width, vertically centered...  */
+  justify-content: center;
+  // ... and horizontally centered
   align-self: center;
-  max-width: 600px;
-  margin: 0 auto;
+  width: 600px;
 
   /* TODO: Revisit, this might not be the best way to do it.
    * We don't want the contents to sit smack on the vertical

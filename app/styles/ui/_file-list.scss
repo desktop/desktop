@@ -1,0 +1,53 @@
+@import "../mixins";
+
+.file-list {
+
+  // this value affects virtualized lists, and without it
+  // you'll see react-virtualized just skip rendering
+  // as the available vertical space is computed as zero
+  height: 100%;
+
+  .list-item {
+    padding: 0 var(--spacing);
+    border-bottom: var(--base-border);
+  }
+
+  // Only use special colors for the change type icons when
+  // the list item doesn't have active focus. If it does we
+  // fall back to using the ambient foreground color of the
+  // list item.
+  .list-item:not(:focus) {
+    @include octicon-status;
+  }
+
+  .file {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+
+    // See https://css-tricks.com/flexbox-truncated-text/
+    min-width: 0;
+
+    .checkbox-component {
+      flex-shrink: 0;
+      width: 20px;
+    }
+
+    input, .status { flex-shrink: 0; }
+
+    .path {
+      display: flex;
+      flex-direction: row;
+      flex-grow: 1;
+      min-width: 0;
+      margin-right: var(--spacing-half);
+    }
+
+    .rename-arrow {
+      flex: 1;
+      flex-shrink: 0;
+    }
+
+    .octicon { vertical-align: text-bottom; }
+  }
+}

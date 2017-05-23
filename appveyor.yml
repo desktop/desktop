@@ -1,7 +1,10 @@
 os: Visual Studio 2015
 
+platform:
+  - x64
+
 environment:
-  nodejs_version: "6"
+  nodejs_version: "7"
 
 cache:
   - node_modules
@@ -17,13 +20,11 @@ skip_tags: true
 version: "{build}"
 
 install:
+  - ps: Install-Product node $env:nodejs_version $env:platform
   - npm install -g npm
-  - ps: $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
-  - ps: $fileContent += $env:PRIVATE_KEY.Replace(' ', "`n")
-  - ps: $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
-  - ps: Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
   - git submodule update --init --recursive
-  - ps: Install-Product node $env:nodejs_version
+  - npm prune
+  - cd app && npm prune && cd ..
   - npm install
 
 build_script:
@@ -31,7 +32,13 @@ build_script:
   - npm run build:prod
 
 test_script:
-  - npm test
+  - node --version
+  - npm --version
+  - npm run test:setup
+  - ./script/test-appveyor.bat
 
 on_success:
-  - node script/publish
+  - npm run publish
+
+on_finish:
+  - npm run test:review

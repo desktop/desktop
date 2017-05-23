@@ -2,12 +2,18 @@ import { remote } from 'electron'
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { LocalGitOperations } from '../../lib/local-git-operations'
+import { initGitRepository, isGitRepository } from '../../lib/git'
+import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
+import { TextBox } from '../lib/text-box'
+import { Row } from '../lib/row'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 const untildify: (str: string) => string = require('untildify')
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
+  readonly onDismissed: () => void
 }
 
 interface IAddExistingRepositoryState {
@@ -16,7 +22,7 @@ interface IAddExistingRepositoryState {
 }
 
 /** The component for adding or initializing a new local repository. */
-export default class AddExistingRepository extends React.Component<IAddExistingRepositoryProps, IAddExistingRepositoryState> {
+export class AddExistingRepository extends React.Component<IAddExistingRepositoryProps, IAddExistingRepositoryState> {
   private checkGitRepositoryToken = 0
 
   public constructor(props: IAddExistingRepositoryProps) {
@@ -27,43 +33,47 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
 
   public render() {
     const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
+
+    const submitButtonText = this.state.isGitRepository
+      ? (__DARWIN__ ? 'Add Repository' : 'Add repository')
+      : (__DARWIN__ ? 'Create & Add Repository' : 'Create & add repository')
+
     return (
-      <div id='add-existing-repository' className='panel'>
-        <div className='add-repo-form'>
-          <label>Local Path</label>
+      <Dialog
+        title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
+        onSubmit={this.addRepository}
+        onDismissed={this.props.onDismissed}>
 
-          <div className='file-picker'>
-            <input value={this.state.path}
-                   type='text'
-                   placeholder='repository path'
-                   onChange={event => this.onPathChanged(event)}
-                   onKeyDown={event => this.onKeyDown(event)}/>
+        <DialogContent>
+          <Row>
+            <TextBox
+              value={this.state.path}
+              label={__DARWIN__ ? 'Local Path' : 'Local path'}
+              placeholder='repository path'
+              onChange={this.onPathChanged}
+              autoFocus/>
+            <Button onClick={this.showFilePicker}>Choose…</Button>
+          </Row>
+        </DialogContent>
 
-            <button onClick={() => this.showFilePicker()}>Choose…</button>
-          </div>
-        </div>
-
-        <div className='popup-actions'>
-          <button disabled={disabled} onClick={() => this.addRepository()}>
-            {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
-          </button>
-        </div>
-      </div>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button disabled={disabled} type='submit'>
+              {submitButtonText}
+            </Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
     )
   }
 
-  private onPathChanged(event: React.FormEvent<HTMLInputElement>) {
+  private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
     this.checkIfPathIsRepository(path)
   }
 
-  private onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === 'Escape') {
-      this.props.dispatcher.closePopup()
-    }
-  }
-
-  private showFilePicker() {
+  private showFilePicker = () => {
     const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'createDirectory', 'openDirectory' ] })
     if (!directory) { return }
 
@@ -76,26 +86,32 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
 
     const token = ++this.checkGitRepositoryToken
 
-    const isGitRepository = await LocalGitOperations.isGitRepository(this.resolvedPath(path))
+    const isRepo = await isGitRepository(this.resolvedPath(path))
 
     // Another path check was requested so don't update state based on the old
     // path.
     if (token !== this.checkGitRepositoryToken) { return }
 
-    this.setState({ path: this.state.path, isGitRepository })
+    this.setState({ path: this.state.path, isGitRepository: isRepo })
   }
 
   private resolvedPath(path: string): string {
     return untildify(path)
   }
 
-  private async addRepository() {
+  private addRepository = async () => {
     const resolvedPath = this.resolvedPath(this.state.path)
     if (!this.state.isGitRepository) {
-      await LocalGitOperations.initGitRepository(resolvedPath)
+      await initGitRepository(resolvedPath)
     }
 
-    this.props.dispatcher.addRepositories([ resolvedPath ])
-    this.props.dispatcher.closePopup()
+    const repositories = await this.props.dispatcher.addRepositories([ resolvedPath ])
+
+    if (repositories && repositories.length) {
+      const repository = repositories[0]
+      this.props.dispatcher.selectRepository(repository)
+    }
+
+    this.props.onDismissed()
   }
 }

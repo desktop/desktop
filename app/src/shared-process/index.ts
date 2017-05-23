@@ -1,33 +1,45 @@
-import tokenStore from './token-store'
-import UsersStore from './users-store'
-import { requestToken, askUserToAuth } from './auth'
-import User from '../models/user'
-import Database from './database'
-import RepositoriesStore from './repositories-store'
-import Repository, { IRepository } from '../models/repository'
+import * as TokenStore from '../shared-process/token-store'
+import { AccountsStore } from './accounts-store'
+import { Account } from '../models/account'
+import { Database } from './database'
+import { RepositoriesStore } from './repositories-store'
+import { Repository, IRepository } from '../models/repository'
 import { register, broadcastUpdate as broadcastUpdate_ } from './communication'
-import { IURLAction, IAddRepositoriesAction, IUpdateGitHubRepositoryAction, IRemoveRepositoriesAction } from '../lib/dispatcher'
-import API, { getDotComAPIEndpoint } from '../lib/api'
+import {
+  IAddRepositoriesAction,
+  IUpdateGitHubRepositoryAction,
+  IRemoveRepositoriesAction,
+  IAddAccountAction,
+  IRemoveAccountAction,
+  IUpdateRepositoryMissingAction,
+  IUpdateRepositoryPathAction,
+} from '../lib/dispatcher'
+import { API } from '../lib/api'
+import { reportError } from '../ui/lib/exception-reporting'
 
-const Octokat = require('octokat')
+import { logError } from '../lib/logging/renderer'
 
-const usersStore = new UsersStore(localStorage, tokenStore)
-usersStore.loadFromStore()
+process.on('uncaughtException', (error: Error) => {
 
+  logError('Uncaught exception on shared process', error)
+
+  reportError(error)
+})
+
+const accountsStore = new AccountsStore(localStorage, TokenStore)
 const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
 
-const broadcastUpdate = () => broadcastUpdate_(usersStore, repositoriesStore)
+const broadcastUpdate = () => broadcastUpdate_(accountsStore, repositoriesStore)
 
-updateUsers()
+updateAccounts()
 
-async function updateUsers() {
-  await usersStore.map(async (user: User) => {
-    const api = new API(user)
-    const updatedUser = await api.fetchUser()
+async function updateAccounts() {
+  await accountsStore.map(async (account: Account) => {
+    const api = new API(account)
+    const newAccount = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    const justTheEmails = emails.map(e => e.email)
-    return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id)
+    return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatar_url, newAccount.id, newAccount.name)
   })
   broadcastUpdate()
 }
@@ -46,8 +58,16 @@ register('ping', () => {
   return Promise.resolve('pong')
 })
 
-register('get-users', () => {
-  return Promise.resolve(usersStore.getUsers())
+register('get-accounts', () => accountsStore.getAll())
+
+register('add-account', async ({ account }: IAddAccountAction) => {
+  await accountsStore.addAccount(Account.fromJSON(account))
+  await updateAccounts()
+})
+
+register('remove-account', async ({ account }: IRemoveAccountAction) => {
+  await accountsStore.removeAccount(Account.fromJSON(account))
+  broadcastUpdate()
 })
 
 register('add-repositories', async ({ paths }: IAddRepositoriesAction) => {
@@ -76,31 +96,30 @@ register('get-repositories', () => {
   return repositoriesStore.getRepositories()
 })
 
-register('url-action', async ({ action }: IURLAction) => {
-  if (action.name === 'oauth') {
-    try {
-      const token = await requestToken(action.args.code)
-      const octo = new Octokat({ token })
-      const user = await octo.user.fetch()
-      usersStore.addUser(new User(user.login, getDotComAPIEndpoint(), token, new Array<string>(), user.avatarUrl, user.id))
-      updateUsers()
-    } catch (e) {
-      console.error(`Error adding user: ${e}`)
-    }
-    broadcastUpdate()
-    return true
-  } else {
-    return false
-  }
-})
-
-register('request-oauth', () => {
-  askUserToAuth(getDotComAPIEndpoint())
-  return Promise.resolve()
-})
-
 register('update-github-repository', async ({ repository }: IUpdateGitHubRepositoryAction) => {
   const inflatedRepository = Repository.fromJSON(repository as IRepository)
-  await repositoriesStore.updateGitHubRepository(inflatedRepository)
+  const updatedRepository = await repositoriesStore.updateGitHubRepository(inflatedRepository)
+
   broadcastUpdate()
+
+  return updatedRepository
+})
+
+register('update-repository-missing', async ({ repository, missing }: IUpdateRepositoryMissingAction) => {
+  const inflatedRepository = Repository.fromJSON(repository)
+  const updatedRepository = await repositoriesStore.updateRepositoryMissing(inflatedRepository, missing)
+
+  broadcastUpdate()
+
+  return updatedRepository
+})
+
+register('update-repository-path', async ({ repository, path }: IUpdateRepositoryPathAction) => {
+  const inflatedRepository = Repository.fromJSON(repository)
+  const updatedRepository = await repositoriesStore.updateRepositoryPath(inflatedRepository, path)
+  const newUpdatedRepository = await repositoriesStore.updateRepositoryMissing(updatedRepository, false)
+
+  broadcastUpdate()
+
+  return newUpdatedRepository
 })

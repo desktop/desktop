@@ -1,0 +1,100 @@
+@import "../mixins";
+
+#app-menu-foldout {
+  height: 100%;
+  display: flex;
+}
+
+.menu-pane {
+  height: 100%;
+  width: 240px;
+
+  // Open panes (except the first one) should have a border on their
+  // right hand side to create a divider between them and their parent
+  // menu.
+  &:not(:first-child) {
+    border-left: var(--base-border);
+  }
+
+  &:not(:last-child) {
+
+    // We want list items in previous menus to behave as if they have focus
+    // even though they don't, ie we want the selected+focus state
+    // to be in effect for all parent selected menu items as well as
+    // the current
+    .list-item {
+      &.selected {
+        --text-color: var(--box-selected-active-text-color);
+        --text-secondary-color: var(--box-selected-active-text-color);
+
+        color: var(--text-color);
+        background-color: var(--box-selected-active-background-color);
+      }
+    }
+  }
+
+  // No focus outline for the list itself. When the app menu is opened without
+  // an initial selection the list is given focus so that up/down arrow keys
+  // will work.
+  .ReactVirtualized__Grid:focus {
+    outline: none;
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+
+    height: 100%;
+    width: 100%;
+    min-width: 0;
+
+    &.disabled { opacity: 0.3; }
+
+    .label {
+      flex-grow: 1;
+      margin-left: var(--spacing-double);
+      margin-right: var(--spacing);
+      @include ellipsis;
+    }
+
+    .submenu-arrow {
+      flex-shrink: 0;
+      opacity: 0.7;
+      // TODO: Draw a custom path here instead of resizing the existing arrow
+      height: 12px;
+      margin-right: var(--spacing);
+    }
+
+    .accelerator {
+      flex-shrink: 0;
+      margin-right: var(--spacing);
+      color: var(--text-secondary-color);
+    }
+
+    &.checked {
+      .label {
+        margin-left: 0;
+      }
+
+      // We currently don't use this so if we start using checkboxes
+      // or radio menu items in the future we're gonna have to tweak
+      // this I'm sure. But this gives us centered icons in whatever
+      // space we have left in the space before the label.
+      .icon {
+        flex-grow: 0;
+        margin: calc((var(--spacing-double) - 16) / 2) 0;
+      }
+    }
+
+    .access-key.highlight {
+      text-decoration: underline;
+    }
+  }
+
+  hr {
+    width: 100%;
+    border: none;
+    height: 1px;
+    border-bottom: var(--base-border);
+  }
+}

@@ -1,18 +1,24 @@
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { CloningRepository } from '../../lib/dispatcher'
+import { caseInsensitiveCompare } from '../../lib/compare'
+import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 
-export type RepositoryGroup = 'github' | 'enterprise' | 'other'
+export type RepositoryGroupIdentifier = 'github' | 'enterprise' | 'other'
 
 export type Repositoryish = Repository | CloningRepository
 
-export type RepositoryListItem = { kind: 'repository', repository: Repositoryish } | { kind: 'label', label: string }
+export interface IRepositoryListItem extends IFilterListItem {
+  readonly text: string
+  readonly id: string
+  readonly repository: Repositoryish
+}
 
-export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<RepositoryListItem> {
-  const grouped = new Map<RepositoryGroup, Repositoryish[]>()
-  repositories.forEach(repository => {
+export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
+  const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
+  for (const repository of repositories) {
     const gitHubRepository = repository instanceof Repository ? repository.gitHubRepository : null
-    let group: RepositoryGroup = 'other'
+    let group: RepositoryGroupIdentifier = 'other'
     if (gitHubRepository) {
       if (gitHubRepository.endpoint === getDotComAPIEndpoint()) {
         group = 'github'
@@ -30,39 +36,28 @@ export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): R
     }
 
     repositories.push(repository)
-  })
-
-  const flattened = new Array<RepositoryListItem>()
-
-  const addGroup = (group: RepositoryGroup) => {
-    const repositories = grouped.get(group)
-    if (!repositories || repositories.length === 0) { return }
-
-    let label = 'Other'
-    if (group === 'github') {
-      label = 'GitHub'
-    } else if (group === 'enterprise') {
-      label = 'Enterprise'
-    }
-    flattened.push({ kind: 'label', label })
-
-    repositories.sort((rx, ry) => {
-      const x = rx.name.toLowerCase()
-      const y = ry.name.toLowerCase()
-
-      if (x < y) { return -1 }
-      if (x > y) { return 1 }
-      return 0
-    })
-
-    for (const repository of repositories) {
-      flattened.push({ kind: 'repository', repository })
-    }
   }
 
+  const groups = new Array<IFilterListGroup<IRepositoryListItem>>()
+
+  const addGroup = (identifier: RepositoryGroupIdentifier) => {
+    const repositories = grouped.get(identifier)
+    if (!repositories || repositories.length === 0) { return }
+
+    repositories.sort((x, y) => caseInsensitiveCompare(x.name, y.name))
+    const items = repositories.map(r => ({
+      text: r.name,
+      id: r.id.toString(),
+      repository: r,
+    }))
+
+    groups.push({ identifier, items })
+  }
+
+  // NB: This ordering reflects the order in the repositories sidebar.
   addGroup('github')
   addGroup('enterprise')
   addGroup('other')
 
-  return flattened
+  return groups
 }

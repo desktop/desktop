@@ -2,34 +2,36 @@
 //
 // This files contains CSS variables accessible to all selectors
 
+// Primer colors, see https://github.com/primer/primer-support/blob/master/lib/variables/color-system.scss
+@import '~primer-support/lib/variables/color-system.scss';
+
 :root {
 
-  // Colors
-  //
-  // These are declared here to let us avoid duplicating color constants
-  // in variables. It also makes it easier to read and understand what
-  // color is being used. Note that these variables should _never_ be
-  // used outside of this scope.
-  $blue: #4ca6eb;
-  $orange: #c9510c;
-  $yellow: #d0b44c;
-  $red: #d0b44c;
-  $green: #6cc644;
-  $darkGray: #5f717f;
-  $gray: #ccc;
-  $lightGray: #f9f9f9;
-  $white: #fff;
-
   --color-new: $green;
-  --color-removed: $red;
+  --color-deleted: $red;
   --color-modified: $yellow;
+  --color-renamed: $blue;
+  --color-conflicted: $orange;
 
-  --text-color: $darkGray;
+  --text-color: $gray-900;
+  --text-secondary-color: $gray-500;
   --background-color: $white;
 
+  --button-height: 25px;
 
-  --button-background: $lightGray;
-  --button-hover-background: $white;
+  --button-background: $blue;
+  --button-border-radius: 2px;
+  --button-hover-background: lighten($blue, 5%);
+  --button-text-color: $white;
+  --button-focus-border-color: $blue-600;
+
+  --link-button-color: $blue;
+
+  --secondary-button-background: $gray-000;
+  --secondary-button-hover-background: $white;
+  --secondary-button-text-color: var(--text-color);
+  --secondary-button-focus-shadow-color: rgba($gray-200, 0.75);
+  --secondary-button-focus-border-color: $gray-300;
 
   // Typography
   //
@@ -48,10 +50,15 @@
   --font-weight-light: 300;
 
   // Pixel value used to responsively scale all typography. Applied to the `<html>` element.
-  --font-size: 13px;
+  --font-size: 12px;
   --font-size-sm: 11px;
-  --font-size-md: 16px;
+  --font-size-md: 14px;
+  --font-size-lg: 28px;
   --font-size-xl: 32px;
+  --font-size-xxl: 42px;
+
+  /** Extra small font size, be very conservative with the use of this */
+  --font-size-xs: 9px;
 
   /**
    * Background color for custom scroll bars.
@@ -76,94 +83,200 @@
   // or an item in a tab control header. It's up to each implementation
   // to decide what states to support (active selection, selection, etc).
 
-  --box-alt-background-color: $lightGray;
+  --box-alt-background-color: $gray-100;
 
   /**
    * Border color for boxes.
    */
-  --box-border-color: $gray;
+  --box-border-color: $gray-200;
   --box-border-accent-color: $blue;
-  --box-border-light-color: #DFDFDF;
 
   /**
    * Background color for selected boxes without keyboard focus
    */
-  --box-selected-background-color: $lightGray;
+  --box-selected-background-color: $gray-100;
+
+  /**
+   * Text color for when a user hovers over a boxe with a
+   * pointing device. Should not be used by boxes that doesn't
+   * implement a hover state since this will conflict with
+   * selection and active selection
+   */
+  --box-hover-text-color: $gray-900;
+
+  /**
+   * Background color for when a user hovers over a boxe with a
+   * pointing device. Should not be used by boxes that doesn't
+   * implement a hover state since this will conflict with
+   * selection and active selection
+   */
 
   /**
    * Text color for selected boxes without keyboard focus
    */
-  --box-selected-text-color: $darkGray;
+  --box-selected-text-color: $gray-900;
 
   /**
    * Border color for selected boxes without keyboard focus
    */
-  --box-selected-border-color: $darkGray;
+  --box-selected-border-color: $gray-400;
 
   /**
    * Background color for selected boxes with active keyboard focus
    */
-  --box-selected-active-background-color: $orange;
+  --box-selected-active-background-color: $blue;
 
   /**
    * Text color for selected boxes with active keyboard focus
    */
-  --box-selected-active-text-color: $lightGray;
+  --box-selected-active-text-color: $white;
 
   /**
    * Border color for selected boxes with active keyboard focus
    */
-  --box-selected-active-border-color: $darkGray;
+  --box-selected-active-border-color: $gray-400;
 
   /** The height of the title bar area on Win32 platforms */
-  --win32-title-bar-height: 30px;
+  --win32-title-bar-height: 28px;
+  --win32-title-bar-background-color: $gray-900;
 
   /** The height of the title bar area on darwin platforms */
-  --darwin-title-bar-height: 37px;
+  --darwin-title-bar-height: 22px;
 
   --spacing: 10px;
   --spacing-double: calc(var(--spacing) * 2);
+  --spacing-triple: calc(var(--spacing) * 3);
+  --spacing-quad: calc(var(--spacing) * 4);
   --spacing-half: calc(var(--spacing) / 2);
   --spacing-third: calc(var(--spacing) / 3);
 
   --border-radius: 3px;
   --base-border: 1px solid var(--box-border-color);
-  --light-border: 1px solid var(--box-border-light-color);
 
-  --shadow-color: rgba(0,0,0,0.07);
-  --base-box-shadow: 0 1px 2px var(--shadow-color);
+  --shadow-color: rgba(71,83,95,0.19);
+  --base-box-shadow: 0 2px 7px var(--shadow-color);
 
-  --tab-bar-active-color: #3D76C2;
-  --tab-bar-background-color: #EDEDED;
+  --toolbar-height: 50px;
+
+  --toolbar-background-color: $gray-900;
+  --toolbar-text-color: $white;
+  --toolbar-text-secondary-color: $gray-400;
+
+  --toolbar-button-color: var(--toolbar-text-color);
+  --toolbar-button-background-color: transparent;
+  --toolbar-button-border-color: black;
+  --toolbar-button-secondary-color: var(--toolbar-text-secondary-color);
+
+  --toolbar-button-hover-color: $white;
+  --toolbar-button-hover-background-color: $gray-800;
+  --toolbar-button-hover-border-color: var(--toolbar-button-border-color);
+
+  --toolbar-button-focus-background-color: $gray-800;
+
+  --toolbar-button-active-color: var(--text-color);
+  --toolbar-button-active-background-color: var(--background-color);
+  --toolbar-button-active-border-color: var(--background-color);
+
+  --toolbar-button-progress-color: $gray-800;
+  --toolbar-button-focus-progress-color: $gray-700;
+  --toolbar-button-hover-progress-color: $gray-700;
+  --toolbar-dropdown-open-progress-color: $gray-200;
+
+  --tab-bar-height: 29px;
+  --tab-bar-active-color: $blue;
+  --tab-bar-background-color: $white;
 
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
 
   /**
+   * The z-index for popups. Nothing should be higher, but other z-indexes can
+   * be defined in terms of it.
+   *
+   * 10 seems arbitrary (because it is) but we have to go that high because
+   * codemirror is all over the place with their z-indexes and uses at least
+   * 0-6.
+   */
+  --popup-z-index: 10;
+  --popup-overlay-z-index: calc(var(--popup-z-index) - 1);
+  --foldout-z-index: calc(var(--popup-z-index) - 2);
+
+  /** The highlight color used for focus rings and focus box shadows */
+  --focus-color: $blue;
+
+
+  /**
+   * Variables for form elements
+   */
+  --text-field-height: 25px;
+  --text-field-focus-shadow-color: rgba($blue, 0.25);
+
+  /**
    * Diff view
    */
 
-  --diff-border-color: #e5e5e5;
-  --diff-line-number-color: $gray;
+  --diff-text-color: $gray-900;
+  --diff-border-color: $gray-200;
+  --diff-gutter-color: $gray-200;
+
+  --diff-line-number-color: $gray-700;
   --diff-line-number-column-width: 50px;
 
-  --diff-selected-background-color: #5A93E0;
-  --diff-selected-border-color: #4f86d5;
+  --diff-selected-background-color: $blue-400;
+  --diff-selected-border-color: $blue-600;
+  --diff-selected-gutter-color: $blue-600;
   --diff-selected-text-color: var(--background-color);
 
-  --diff-add-background-color: #EAFFEA;
-  --diff-add-border-color: #b3e3b2;
-  --diff-add-text-color: $gray;
+  --diff-add-background-color: $green-000;
+  --diff-add-border-color: $green-200;
+  --diff-add-gutter-color: $green-200;
+  --diff-add-text-color: var(--diff-text-color);
 
-  --diff-delete-background-color: #FFECEC;
-  --diff-delete-border-color: #eaaead;
-  --diff-delete-text-color: $gray;
+  --diff-delete-background-color: $red-000;
+  --diff-delete-border-color: $red-100;
+  --diff-delete-gutter-color: $red-200;
+  --diff-delete-text-color: var(--diff-text-color);
 
-  --diff-hunk-background-color: #f8f8ff;
-  --diff-hunk-border-color: #e4e4fe;
+  --diff-hunk-background-color: $blue-000;
+  --diff-hunk-border-color: $blue-200;
+  --diff-hunk-gutter-color: $blue-200;
   --diff-hunk-text-color: $gray;
 
-  --diff-hover-background-color: #96b8ec;
-  --diff-hover-border-color: #89a9dc;
+  --diff-hover-background-color: $blue-300;
+  --diff-hover-border-color: $blue-400;
+  --diff-hover-gutter-color: $blue-400;
   --diff-hover-text-color: var(--background-color);
+
+  // Note that this duration *must* match the `UndoCommitAnimationTimeout`
+  // specified in `changes/index.tsx`.
+  --undo-animation-duration: 500ms;
+
+  /**
+   * Ahead/behind view
+   */
+  --ahead-behind-background-color: $gray-500;
+
+  // Colors for form errors
+  --error-color: $red;
+  --form-error-background: $red-100;
+  --form-error-border-color: $red-200;
+  --form-error-text-color: $red-800;
+
+  /** Dialog */
+  --dialog-warning-color: $yellow-600;
+  --dialog-warning-text-color: $yellow-800;
+  --dialog-error-color: $red;
+
+  /** Inline paths and code */
+  --path-segment-background: $blue-000;
+  --path-segment-padding: var(--spacing-third);
+
+  // http://easings.net/#easeOutBack
+  --easing-ease-out-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  // http://easings.net/#easeInBack
+  --easing-ease-in-back: cubic-bezier(0.6, -0.28, 0.735, 0.045);
+
+  // http://easings.net/#easeOutQuint
+  --easing-ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
 }

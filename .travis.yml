@@ -13,17 +13,7 @@ branches:
 
 language: node_js
 node_js:
-  - "node"
-
-env:
-  - CXX=g++-4.8
-
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - g++-4.8
+  - "7"
 
 cache:
   timeout: 600
@@ -32,12 +22,19 @@ cache:
     - $HOME/.electron
 
 install:
+  - npm install -g npm
+  - npm prune
+  - cd app && npm prune && cd ..
   - npm install
 
 script:
   - npm run lint
   - npm run build:prod
+  - npm run test:setup
   - npm test
 
 after_success:
-  - node script/publish
+  - npm run publish
+
+after_failure:
+  - npm run test:review

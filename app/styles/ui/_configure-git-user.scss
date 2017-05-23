@@ -1,0 +1,19 @@
+#configure-git-user {
+  .form-component {
+    margin: var(--spacing-double) 0;
+  }
+
+  // Styles for the commit list that's shown in the Configure Git component.
+  // The styles in the `&:before` block are for the graident overlay on top
+  // of the example commit list.
+  .commit-list-example {
+    position: relative;
+
+    .commit {
+      padding: var(--spacing-half);
+      width: 280px;
+      border-bottom: none;
+      padding-left: 0;
+    }
+  }
+}

@@ -1,24 +1,22 @@
 import * as React from 'react'
 
-import { CloningRepository as CloningRepositoryModel } from '../lib/dispatcher'
-import { ICloningRepositoryState } from '../lib/app-state'
+import { CloningRepository } from '../lib/dispatcher'
+import { ICloneProgress } from '../lib/app-state'
 import { Octicon, OcticonSymbol } from './octicons'
 import { UiView } from './ui-view'
 
 interface ICloningRepositoryProps {
-  readonly repository: CloningRepositoryModel
-  readonly state: ICloningRepositoryState
+  readonly repository: CloningRepository
+  readonly progress: ICloneProgress
 }
 
 /** The component for displaying a cloning repository's progress. */
-export default class CloningRepository extends React.Component<ICloningRepositoryProps, void> {
+export class CloningRepositoryView extends React.Component<ICloningRepositoryProps, void> {
   public render() {
 
     /* The progress element won't take null for an answer.
      * Only way to get it to be indeterminate is by using undefined */
-    const progressValue = this.props.state.progressValue == null
-      ? undefined
-      : this.props.state.progressValue
+    const progressValue = this.props.progress.value || undefined
 
     return (
       <UiView id='cloning-repository-view'>
@@ -27,7 +25,7 @@ export default class CloningRepository extends React.Component<ICloningRepositor
           <div className='title'>Cloning {this.props.repository.name}</div>
         </div>
         <progress value={progressValue} />
-        <div className='details'>{this.props.state.output}</div>
+        <div className='details'>{this.props.progress.description}</div>
       </UiView>
     )
   }

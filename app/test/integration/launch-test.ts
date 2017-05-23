@@ -1,3 +1,8 @@
+// This shouldn't be necessary, but without this CI fails on Windows. Seems to
+// be a bug in TS itself or ts-node.
+/// <reference path="../../../node_modules/@types/node/index.d.ts" />
+
+import 'mocha'
 import * as chai from 'chai'
 
 const chaiAsPromised = require('chai-as-promised')
@@ -8,11 +13,6 @@ chai.should()
 chai.use(chaiAsPromised)
 
 describe('App', function (this: any) {
-  if (process.env.CI) {
-    /* tslint:disable:no-invalid-this */
-    this.timeout(30000)
-  }
-
   let app: any
 
   beforeEach(function () {
@@ -40,7 +40,7 @@ describe('App', function (this: any) {
   })
 
   it('opens a window on launch', function () {
-    return app.client.waitUntilWindowLoaded()
+    return app.client.waitUntil(() => app.browserWindow.isVisible(), 5000)
       .getWindowCount().should.eventually.equal(2)
       .browserWindow.isMinimized().should.eventually.be.false
       .browserWindow.isDevToolsOpened().should.eventually.be.false

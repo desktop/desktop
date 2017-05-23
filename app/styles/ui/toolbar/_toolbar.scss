@@ -1,0 +1,85 @@
+@import "../../mixins";
+
+/** A React component holding the main application toolbar component. */
+#desktop-app-toolbar {
+  height: var(--toolbar-height);
+
+  display: flex;
+  flex-direction: row;
+
+  flex-grow: 0;
+  flex-shrink: 0;
+
+  /* See https://css-tricks.com/flexbox-truncated-text/
+   * We need to do this "hack" or else the container will
+   * always grow to fit the intrinsic width of its children
+   * and thus killing our text truncation in the title.
+   */
+  min-width: 0;
+
+  color: var(--toolbar-text-color);
+  background-color: var(--toolbar-background-color);
+
+  .sidebar-section {
+    display: flex;
+    flex-direction: row;
+    flex-shrink: 0;
+
+    &>:last-child {
+      flex-grow: 1;
+    }
+  }
+
+  .toolbar-button {
+    &.push-pull-button { width: 230px; }
+  }
+
+  .toolbar-dropdown {
+    &.branch-button { width: 230px; }
+  }
+}
+
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+.spin {
+  animation:spin 1s linear infinite;
+}
+
+.ahead-behind {
+  display: flex;
+
+  background: var(--ahead-behind-background-color);
+
+  // Perfectly round semi circle ends with real tight
+  // padding on either side. Now in two flavors!
+  @include darwin {
+    height: 13px;
+  }
+
+  @include win32 {
+    height: 14px;
+  }
+
+  border-radius: 8px;
+  padding: 0 6px;
+
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+
+  span {
+    display: flex;
+    align-items: center;
+
+    // Only add left margin if both ahead and behind are
+    // showing at the same time.
+    &:nth-child(2) { margin-left: var(--spacing-half); }
+
+    // We're using arrowSmallUp and arrowSmallDown which are
+    // both exactly 6px wide. Let's use that so that spacing
+    // gets easier to reason about.
+    .octicon {
+      width: 6px;
+      margin-left: var(--spacing-third);
+    }
+  }
+}

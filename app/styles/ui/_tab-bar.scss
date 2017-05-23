@@ -1,22 +1,36 @@
 .tab-bar {
+  display: flex;
+  flex-direction: row;
+  height: var(--tab-bar-height);
+
+  background: var(--tab-bar-background-color);
 
   &-item {
-    background: var(--tab-bar-background-color);
-    box-shadow: inset 0 0 0 1px #D6D6D6;
+    // Reset styles from global buttons
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    color: var(--text-color);
+    background: var(--background-color);
+    font-family: var(--font-family-sans-serif);
+    font-size: var(--font-size);
+
+    // Give each item equal space
+    flex: 1;
+
+    // Center item contest horizontally and vertically
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-bottom: 1px solid var(--box-border-color);
+    border-right: 1px solid var(--box-border-color);
 
     // This makes it so that we never render a double-width item border.
     // It has the unintended consequence of making it impossible to have a tab
     // bar with just one item but we can live with that.
-    border-right-width: 0;
-    padding: 4px 25px;
-
-    &:first-child {
-      border-radius: var(--border-radius) 0px 0px var(--border-radius);
-    }
-
     &:last-child {
-      border-radius: 0px var(--border-radius) var(--border-radius) 0px;
-      border-right-width: 1px;
+      border-right: none;
     }
 
     // We intentionally swap foreground and background here to create
@@ -24,13 +38,7 @@
     // in so far that it doesn't have an active selection state, just a selected
     // one.
     &.selected {
-      background-color: var(--tab-bar-active-color);
-      box-shadow: none;
-      color: var(--box-selected-background-color);
-
-      .indicator {
-        background-color: var(--box-selected-background-color);
-      }
+      box-shadow: inset 0 -3px 0px var(--tab-bar-active-color);
     }
 
     .indicator {

@@ -1,16 +1,16 @@
 import * as React from 'react'
-import Repository from '../../models/repository'
-import { Octicon, OcticonSymbol } from '../octicons'
-import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
+import { Repository } from '../../models/repository'
+import { Octicon, iconForRepository } from '../octicons'
+import { CloningRepository } from '../../lib/dispatcher'
 import { showContextualMenu } from '../main-process-proxy'
 
 interface IRepositoryListItemProps {
   readonly repository: Repository | CloningRepository
-  readonly dispatcher: Dispatcher
+  readonly onRemoveRepository: (repository: Repository | CloningRepository) => void
 }
 
 /** A repository item. */
-export default class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
+export class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
   public render() {
     const repository = this.props.repository
     const path = repository.path
@@ -20,14 +20,14 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
       : path
 
     return (
-      <div onContextMenu={e => this.onContextMenu(e)} className='repository-list-item' title={tooltip}>
+      <div onContextMenu={this.onContextMenu} className='repository-list-item' title={tooltip}>
         <Octicon symbol={iconForRepository(repository)} />
         <div className='name'>{repository.name}</div>
       </div>
     )
   }
 
-  public shouldComponentUpdate(nextProps: IRepositoryListItemProps, nextState: void): boolean {
+  public shouldComponentUpdate(nextProps: IRepositoryListItemProps): boolean {
     if (nextProps.repository instanceof Repository && this.props.repository instanceof Repository) {
       return nextProps.repository.id !== this.props.repository.id
     } else {
@@ -35,33 +35,16 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
     }
   }
 
-  private onContextMenu(event: React.MouseEvent<any>) {
+  private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
-    if (process.platform !== 'win32') {
-      const item = {
-        label: 'Remove',
-        action: () => this.removeRepository(),
-      }
-      showContextualMenu([ item ])
+    const item = {
+      label: 'Remove',
+      action: () => this.removeRepository(),
     }
+    showContextualMenu([ item ])
   }
 
   private removeRepository() {
-    this.props.dispatcher.removeRepositories([ this.props.repository ])
-  }
-}
-
-function iconForRepository(repository: Repository | CloningRepository): OcticonSymbol {
-
-  if (repository instanceof CloningRepository) {
-    return OcticonSymbol.desktopDownload
-  } else {
-    const gitHubRepo = repository.gitHubRepository
-    if (!gitHubRepo) { return OcticonSymbol.repo }
-
-    if (gitHubRepo.private) { return OcticonSymbol.lock }
-    if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
-
-    return OcticonSymbol.repo
+    this.props.onRemoveRepository(this.props.repository)
   }
 }

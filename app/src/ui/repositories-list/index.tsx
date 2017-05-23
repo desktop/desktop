@@ -1,87 +1,110 @@
 import * as React from 'react'
 
-import List from '../list'
-import RepositoryListItem from './repository-list-item'
-import Repository from '../../models/repository'
-import { groupRepositories, RepositoryListItem as RepositoryListItemModel, Repositoryish } from './group-repositories'
-import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
+import { RepositoryListItem } from './repository-list-item'
+import { groupRepositories, IRepositoryListItem, Repositoryish, RepositoryGroupIdentifier } from './group-repositories'
+import { Dispatcher } from '../../lib/dispatcher'
+import { FilterList } from '../lib/filter-list'
+import { assertNever } from '../../lib/fatal-error'
+import { FoldoutType } from '../../lib/app-state'
+
+/**
+ * TS can't parse generic specialization in JSX, so we have to alias it here
+ * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
+ */
+const RepositoryFilterList: new() => FilterList<IRepositoryListItem> = FilterList as any
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly onSelectionChanged: (repository: Repositoryish) => void
   readonly dispatcher: Dispatcher
-  readonly loading: boolean
-  readonly repositories: ReadonlyArray<Repository | CloningRepository>
+  readonly repositories: ReadonlyArray<Repositoryish>
+  readonly onRemoveRepository: (repository: Repositoryish) => void
 }
 
-const RowHeight = 30
+const RowHeight = 29
 
 /** The list of user-added repositories. */
-export default class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
-  private renderRow(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
-    const item = groupedItems[row]
-    if (item.kind === 'repository') {
-      return <RepositoryListItem key={row}
-                                 repository={item.repository}
-                                 dispatcher={this.props.dispatcher} />
+export class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
+  private renderItem = (item: IRepositoryListItem) => {
+    const repository = item.repository
+    return <RepositoryListItem
+      key={repository.id}
+      repository={repository}
+      onRemoveRepository={this.props.onRemoveRepository}
+    />
+  }
+
+  private getGroupLabel(identifier: RepositoryGroupIdentifier) {
+    if (identifier === 'github') {
+      return 'GitHub'
+    } else if (identifier === 'enterprise') {
+      return 'Enterprise'
+    } else if (identifier === 'other') {
+      return 'Other'
     } else {
-      return <div key={row} className='repository-group-label'>{item.label}</div>
+      return assertNever(identifier, `Unknown identifier: ${identifier}`)
     }
   }
 
-  private selectedRow(groupedItems: ReadonlyArray<RepositoryListItemModel>): number {
-    const selectedRepository = this.props.selectedRepository
-    if (!selectedRepository) { return -1 }
+  private renderGroupHeader = (identifier: RepositoryGroupIdentifier) => {
+    const label = this.getGroupLabel(identifier)
+    return <div key={identifier} className='filter-list-group-header'>{label}</div>
+  }
 
-    return groupedItems.findIndex(item => {
-      if (item.kind === 'repository') {
-        const repository = item.repository
-        return repository.constructor === selectedRepository.constructor && repository.id === selectedRepository.id
-      } else {
-        return false
+  private onItemClick = (item: IRepositoryListItem) => {
+    this.props.onSelectionChanged(item.repository)
+  }
+
+  private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      if (filter.length === 0) {
+        this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+        event.preventDefault()
       }
-    })
-  }
-
-  private onSelectionChanged(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
-    const item = groupedItems[row]
-    if (item.kind === 'repository') {
-      this.props.onSelectionChanged(item.repository)
     }
-  }
-
-  private canSelectRow(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
-    const item = groupedItems[row]
-    return item.kind === 'repository'
   }
 
   public render() {
-    if (this.props.loading) {
-      return <Loading/>
-    }
-
     if (this.props.repositories.length < 1) {
-      return <NoRepositories/>
+      return this.noRepositories()
     }
 
-    const grouped = groupRepositories(this.props.repositories)
+    const groups = groupRepositories(this.props.repositories)
+
+    let selectedItem: IRepositoryListItem | null = null
+    const selectedRepository = this.props.selectedRepository
+    if (selectedRepository) {
+      for (const group of groups) {
+        selectedItem = group.items.find(i => {
+          const repository = i.repository
+          return repository.id === selectedRepository.id
+        }) || null
+
+        if (selectedItem) { break }
+      }
+    }
+
     return (
-      <List id='repository-list'
-            rowCount={grouped.length}
-            rowHeight={RowHeight}
-            rowRenderer={row => this.renderRow(grouped, row)}
-            selectedRow={this.selectedRow(grouped)}
-            onSelectionChanged={row => this.onSelectionChanged(grouped, row)}
-            canSelectRow={row => this.canSelectRow(grouped, row)}
-            invalidationProps={this.props.repositories}/>
+      <div className='repository-list'>
+        <RepositoryFilterList
+          rowHeight={RowHeight}
+          selectedItem={selectedItem}
+          renderItem={this.renderItem}
+          renderGroupHeader={this.renderGroupHeader}
+          onItemClick={this.onItemClick}
+          onFilterKeyDown={this.onFilterKeyDown}
+          groups={groups}
+          invalidationProps={this.props.repositories}/>
+      </div>
     )
   }
-}
 
-function Loading() {
-  return <div className='sidebar-message'>Loading…</div>
-}
-
-function NoRepositories() {
-  return <div className='sidebar-message'>No repositories</div>
+  private noRepositories() {
+    return (
+      <div className='repository-list'>
+        <div className='filter-list'>
+          <div className='sidebar-message'>No repositories</div>
+        </div>
+      </div>)
+  }
 }

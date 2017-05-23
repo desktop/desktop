@@ -5,7 +5,7 @@ import { IMessage } from './message'
  * The SharedProcess acts as the owner of all shared state across the app. Most
  * communication with it will originate in the Dispatcher.
  */
-export default class SharedProcess {
+export class SharedProcess {
   private window: Electron.BrowserWindow
   private loaded = false
   private messageQueue: IMessage[] = []
@@ -16,6 +16,11 @@ export default class SharedProcess {
       height: 100,
       show: false,
       title: 'SharedProcess',
+      webPreferences: {
+        // Disable auxclick event
+        // See https://developers.google.com/web/updates/2016/10/auxclick
+        disableBlinkFeatures: 'Auxclick',
+      },
     })
 
     this.window.webContents.on('did-finish-load', () => {

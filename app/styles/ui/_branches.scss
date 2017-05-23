@@ -1,39 +1,47 @@
+@import '../mixins';
+
 .branches-list-container {
-  height: 200px;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
 
-  .branches-list-content {
+  .branches-list {
+    width: 300px;
+  }
+}
+
+.branches-list {
+  &-item {
+    padding: 0 var(--spacing);
+  }
+
+  &-item {
     display: flex;
-    flex: 1;
+    flex-direction: row;
+    min-width: 0;
+    flex-grow: 1;
+    align-items: center;
 
-    padding: var(--spacing-third) var(--spacing);
-    font-size: var(--font-size-sm);
+    .icon {
+      margin-right: var(--spacing-half);
+      width: 16px; // Force a consistent width
+      flex-shrink: 0;
+    }
+
+    .name {
+      flex-grow: 2;
+      @include ellipsis;
+      max-width: 65%;
+      margin-right: var(--spacing-half);
+    }
+
+    .description {
+      margin-right: var(--spacing-half);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      flex-grow: 1;
+      text-align: right;
+      white-space: nowrap;
+    }
   }
-
-  .branches-list-content:hover {
-    background: var(--box-alt-background-color);
-  }
-}
-
-// Prevent borders from stacking if the first
-// row is a group label
-.Grid__cell:first-child {
-  .branches-list-label {
-    border-top: none;
-  }
-}
-
-.branches-list-item,
-.branches-list-label {
-  flex-grow: 1;
-}
-
-.branches-list-label {
-  background: var(--box-alt-background-color);
-  border-top: var(--base-border);
-  border-bottom: var(--base-border);
-}
-
-.branch-filter-input {
-  margin: var(--spacing);
-  margin-bottom: 0;
 }

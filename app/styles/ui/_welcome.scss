@@ -1,0 +1,183 @@
+#welcome {
+  align-items: stretch;
+  justify-content: center;
+  flex-direction: row;
+  font-size: var(--font-size-md);
+
+  #start {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #sign-in-dot-com {
+    display: flex;
+    flex-direction: column;
+
+    .form-component {
+      display: block;
+    }
+
+    .actions {
+      margin-top: var(--spacing-double);
+    }
+  }
+
+  #sign-in-enterprise {
+    .sign-in-form {
+      margin-top: 0;
+    }
+
+    .sign-in-footer {
+      margin-top: var(--spacing-double);
+    }
+
+    .actions {
+      display: inline;
+      margin-top: var(--spacing);
+    }
+  }
+
+  #configure-git-user .form-component {
+    div:last-child {
+      margin-top: var(--spacing);
+    }
+  }
+
+  #usage-opt-out {
+    .welcome-title {
+      margin: 0;
+    }
+  }
+
+  input, button {
+    font-size: var(--font-size-md);
+    height: auto;
+  }
+
+  input {
+    padding: var(--spacing-half);
+  }
+
+  button {
+    margin-right: var(--spacing);
+    padding: var(--spacing-half) var(--spacing);
+  }
+
+  .form-component {
+    .text-box-component {
+      margin-bottom: var(--spacing);
+    }
+  }
+
+  .actions {
+    margin-top: var(--spacing);
+  }
+}
+
+.welcome-title,
+.welcome-text {
+  margin: 0;
+}
+
+.welcome-title {
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-light);
+  line-height: 1.25;
+  margin-bottom: var(--spacing);
+}
+
+.welcome-text {
+  margin: var(--spacing) 0;
+}
+
+.welcome-button {
+  font-weight: var(--font-weight-semibold);
+  margin: var(--spacing) 0;
+}
+
+.sign-in-field {
+  width: 100%;
+}
+
+.welcome-left,
+.welcome-right {
+  flex-grow: 1;
+  width: 50%;
+}
+
+.welcome-left {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-quad);
+  position: relative;
+
+  .welcome-graphic-bottom {
+    position: absolute;
+    right: var(--spacing);
+    bottom: var(--spacing);
+    
+    height: auto;
+    max-height: 100%;
+    width: 40%;
+    // I hate this but we'll have to live with it for beta.
+    z-index: -1;
+  }
+
+  .welcome-graphic-top {
+    position: absolute;
+    right: 80px;
+    top: 40px;
+    
+    height: auto;
+    max-height: 100%;
+    width: 20%;
+    // I hate this but we'll have to live with it for beta.
+    z-index: -1;
+  }
+
+  @media screen and (min-width: 1366px) {
+    zoom: 1.2;
+  }
+
+  @media screen and (min-width: 1400px) {
+    zoom: 1.3;
+  }
+
+  @media screen and (min-width: 1600px) {
+    zoom: 1.4;
+  }
+
+  @media screen and (min-width: 1800px) {
+    zoom: 1.5;
+  }
+}
+
+.welcome-right {
+  background-color: #28373b;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  padding: var(--spacing-quad);
+  position: relative;
+  overflow: hidden;
+
+  .welcome-graphic {
+    height: auto;
+    max-height: 100%;
+    width: 100%;
+  }
+}
+
+.skip-action-container {
+  margin-top: var(--spacing-quad);
+
+  .skip-button {
+    color: var(--text-secondary-color);
+  }
+}
+
+.welcome-content {
+  justify-content: center;
+  max-width: 500px;
+  width: 100%;
+}

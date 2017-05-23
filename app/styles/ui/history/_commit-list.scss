@@ -1,0 +1,36 @@
+@import "../../mixins";
+
+/** A React component holding history's commit list */
+#commit-list {
+
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .commit {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+
+    border-bottom: var(--base-border);
+
+    padding: 0 var(--spacing);
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+
+    .info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      margin-left: var(--spacing-half);
+
+      .summary, .byline { @include ellipsis }
+    }
+  }
+}

@@ -2,7 +2,6 @@
 
 #desktop-app-title-bar {
   -webkit-app-region: drag;
-  -webkit-user-select: none;
   flex-grow: 0;
   flex-shrink: 0;
   width: 100%;
@@ -10,37 +9,41 @@
   display: flex;
   flex-direction: row;
 
-  .app-title {
-    flex-grow: 1;
-    flex-shrink: 1;
-    text-align: center;
-    @include ellipsis;
-
-    // This is cheating a bit but we'll use this to "push" the
-    // window controls to the right on Windows. We could also
-    // display: none and do flex-direction row-reverse.
-    visibility: hidden;
-  }
-
   @include darwin {
     height: var(--darwin-title-bar-height);
-    z-index: 1;
+    background: linear-gradient(to bottom, #3b3f46 0%,#2b2e33 100%);
+    border-bottom: 1px solid #000;
   }
 
-  // If you put a -webkit-app-region: drag element close to a window
-  // frame edge it prevents resizing so we move the title bar down
-  // 5px on windows to create a resize area equal to that of the sides
-  // and bottom of the app. We don't want to push the window controls
-  // down though so we'll compensate by giving them an equal but negative
-  // margin.
   @include win32 {
-    margin-top: 5px;
-    height: calc(var(--win32-title-bar-height) - 5px);
-    .window-controls { margin-top: -5px }
+    height: var(--win32-title-bar-height);
+    background: var(--win32-title-bar-background-color);
+    border-bottom: 1px solid #000;
+
+    .app-icon {
+      color: var(--toolbar-button-secondary-color);
+      margin: 0 var(--spacing);
+      align-self: center;
+    }
   }
 
-  // Don't ever show the title bar when we're in full screen mode.
-  @include in-fullscreen { display: none; }
+  .resize-handle {
+
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    -webkit-app-region: no-drag;
+
+    &.top {
+      width: 100%;
+      height: 3px;
+    }
+
+    &.left {
+      width: 3px;
+      height: var(--win32-title-bar-height);
+    }
+  }
 
   // Window controls is the container for the three buttons minimize,
   // maximize/restore and close. On macOS the controls are added
@@ -50,6 +53,7 @@
 
     flex-grow: 0;
     flex-shrink: 0;
+    margin-left: auto;
 
     // Each button contains a single SVG element with a Windows 10-replica
     // icon for the function it represents
@@ -59,7 +63,7 @@
       display: inline-block;
       position: relative;
       width: 45px;
-      height: 29px;
+      height: 100%;
       padding: 0;
       margin: 0;
       overflow: hidden;
@@ -69,19 +73,25 @@
       box-shadow: none;
       border-radius: 0;
 
-      color: #000;
+      color: #a0a0a0;
       background-color: transparent;
       transition: background-color 0.25s ease;
 
+      &:focus { outline: none; }
+
       &:hover {
-        background-color: #e7e7e7;
+        background-color: #888;
+        color: #fff;
 
         // Doing :hover:active as oposed to just :active is
         // a conscious choice to match how the real Windows
         // controls behave when someone hovers, clicks and then
         // moves away from the hitbox.
         &:active {
-          background-color: #cccccc;
+          background-color: #666;
+
+          // Immediate feedback when clicking
+          transition: none;
         }
       }
 
@@ -89,23 +99,57 @@
       // on hover and slightly lighter red on active.
       &.close:hover {
         background-color: #e81123;
-        fill: #fff;
+        color: #fff;
+
+        &:active {
+          background-color: #bf0f1d;
+
+          // Immediate feedback when clicking
+          transition: none;
+        }
+      }
+
+      /* https://css-tricks.com/cascading-svg-fill-color/ */
+      svg { fill: currentColor; }
+    }
+  }
+}
+
+#desktop-app-title-bar.light-title-bar {
+  @include darwin {
+    background: transparent;
+    border-bottom: none;
+  }
+
+  @include win32 {
+    background: transparent;
+    border-bottom: none;
+  }
+
+  position: fixed;
+  z-index: 1;
+
+  .window-controls {
+    button {
+      &:hover {
+        background-color: #e5e5e5;
+        color: #000;
+
+        &:active {
+          background-color: #cccccc;
+        }
+      }
+
+      &.close:hover {
+        background-color: #e81123;
+
+        svg {
+          fill: #fff;
+        }
 
         &:active {
           background-color: #f1707a;
         }
-      }
-
-      svg {
-        position: absolute;
-
-        // These may seem arbitrary but in an uneven 45x29 box
-        // this positions the 10x10 icons centered but rounded
-        // down as opposed to rounded up which they'd be if we
-        // made the button a flexbox and told it to center the
-        // svg horizontally and vertically.
-        top: 9px;
-        left: 17px;
       }
     }
   }

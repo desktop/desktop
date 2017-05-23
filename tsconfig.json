@@ -3,16 +3,13 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "es6",
-    "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noImplicitThis": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
-    "strictNullChecks": true,
     "sourceMap": true,
     "jsx": "react",
-    "outDir": "./out",
-    "types": ["mocha", "whatwg-fetch", "electron-window-state"]
+    "strict": true,
+    "outDir": "./out"
   },
   "exclude": [
     "node_modules",

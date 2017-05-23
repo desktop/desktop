@@ -1,8 +1,8 @@
 import { IRepository } from '../../models/repository'
-import { URLActionType } from '../parse-url'
+import { IAccount } from '../../models/account'
 
-export interface IGetUsersAction {
-  name: 'get-users'
+export interface IGetAccountsAction {
+  name: 'get-accounts'
 }
 
 export interface IGetRepositoriesAction {
@@ -19,21 +19,38 @@ export interface IRemoveRepositoriesAction {
   readonly repositoryIDs: ReadonlyArray<number>
 }
 
-export interface IRequestOAuthAction {
-  name: 'request-oauth'
-}
-
-export interface IURLAction {
-  name: 'url-action'
-  readonly action: URLActionType
-}
-
 export interface IUpdateGitHubRepositoryAction {
   name: 'update-github-repository'
   readonly repository: IRepository
 }
 
-export type Action = IGetUsersAction | IGetRepositoriesAction |
-                     IAddRepositoriesAction | IRequestOAuthAction |
-                     IURLAction | IUpdateGitHubRepositoryAction |
-                     IRemoveRepositoriesAction
+/** Add a user to the app. */
+export interface IAddAccountAction {
+  readonly name: 'add-account'
+  readonly account: IAccount
+}
+
+/** Remove a user from the app. */
+export interface IRemoveAccountAction {
+  readonly name: 'remove-account'
+  readonly account: IAccount
+}
+
+/** Change a repository's `missing` status. */
+export interface IUpdateRepositoryMissingAction {
+  readonly name: 'update-repository-missing'
+  readonly repository: IRepository
+  readonly missing: boolean
+}
+
+/** Change a repository's path. */
+export interface IUpdateRepositoryPathAction {
+  readonly name: 'update-repository-path'
+  readonly repository: IRepository
+  readonly path: string
+}
+
+export type Action = IGetAccountsAction | IGetRepositoriesAction |
+                     IAddRepositoriesAction | IUpdateGitHubRepositoryAction |
+                     IRemoveRepositoriesAction | IAddAccountAction | IRemoveAccountAction |
+                     IUpdateRepositoryMissingAction | IUpdateRepositoryPathAction

@@ -1,34 +1,58 @@
-import { app, Menu, MenuItem, autoUpdater, ipcMain, BrowserWindow } from 'electron'
+import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater } from 'electron'
 
-import AppWindow from './app-window'
-import Stats from './stats'
+import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
-import parseURL from '../lib/parse-url'
-import { handleSquirrelEvent, getFeedURL } from './updates'
-import SharedProcess from '../shared-process/shared-process'
-import fatalError from '../lib/fatal-error'
+import { parseURL } from '../lib/parse-url'
+import { handleSquirrelEvent } from './squirrel-updater'
+import { SharedProcess } from '../shared-process/shared-process'
+import { fatalError } from '../lib/fatal-error'
 
-const stats = new Stats()
+import { showFallbackPage } from './error-page'
+import { IMenuItemState } from '../lib/menu-update'
+import { ILogEntry, logError, log } from '../lib/logging/main'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
-app.on('will-finish-launching', () => {
-  app.on('open-url', (event, url) => {
-    event.preventDefault()
+const launchTime = Date.now()
 
-    const action = parseURL(url)
-    getMainWindow().sendURLAction(action)
-  })
+let readyTime: number | null = null
+
+type OnDidLoadFn = (window: AppWindow) => void
+/** See the `onDidLoad` function. */
+let onDidLoadFns: Array<OnDidLoadFn> | null = []
+
+process.on('uncaughtException', (error: Error) => {
+
+  logError('Uncaught exception on main process', error)
+
+  if (sharedProcess) {
+    sharedProcess.console.error('Uncaught exception:')
+    sharedProcess.console.error(error.name)
+    sharedProcess.console.error(error.message)
+  }
+
+  if (mainWindow) {
+    mainWindow.sendException(error)
+  } else {
+    showFallbackPage(error)
+  }
 })
 
-if (process.platform === 'win32' && process.argv.length > 1) {
+if (__WIN32__ && process.argv.length > 1) {
   if (handleSquirrelEvent(process.argv[1])) {
     app.quit()
+  } else {
+    const action = parseURL(process.argv[1])
+    if (action.name === 'open-repository') {
+      onDidLoad(window => {
+        window.sendURLAction(action)
+      })
+    }
   }
 }
 
-const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
+const isDuplicateInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
   // Someone tried to run a second instance, we should focus our window.
   if (mainWindow) {
     if (mainWindow.isMinimized()) {
@@ -41,22 +65,41 @@ const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
   // callback contents and code for us to complete the signin flow
   if (commandLine.length > 1) {
     const action = parseURL(commandLine[1])
-    getMainWindow().sendURLAction(action)
+    onDidLoad(window => {
+      window.sendURLAction(action)
+    })
   }
 })
 
-if (shouldQuit) {
+if (isDuplicateInstance) {
   app.quit()
 }
 
+app.on('will-finish-launching', () => {
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+
+    const action = parseURL(url)
+    onDidLoad(window => {
+      // This manual focus call _shouldn't_ be necessary, but is for Chrome on
+      // macOS. See https://github.com/desktop/desktop/issues/973.
+      window.focus()
+      window.sendURLAction(action)
+    })
+  })
+})
+
 app.on('ready', () => {
-  stats.readyTime = Date.now()
+  if (isDuplicateInstance) { return }
+
+  const now = Date.now()
+  readyTime = now - launchTime
 
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
-  if (process.platform === 'darwin') {
+  if (__DARWIN__) {
     app.setAsDefaultProtocolClient('github-mac')
-  } else if (process.platform === 'win32') {
+  } else if (__WIN32__) {
     app.setAsDefaultProtocolClient('github-windows')
   }
 
@@ -68,33 +111,6 @@ app.on('ready', () => {
   const menu = buildDefaultMenu(sharedProcess)
   Menu.setApplicationMenu(menu)
 
-  autoUpdater.on('error', error => {
-    sharedProcess!.console.error(`${error}`)
-  })
-
-  autoUpdater.on('update-available', () => {
-    sharedProcess!.console.log('Update available!')
-  })
-
-  autoUpdater.on('update-not-available', () => {
-    sharedProcess!.console.log('Update not available!')
-  })
-
-  autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName, releaseDate, updateURL) => {
-    sharedProcess!.console.log(`Update downloaded! ${releaseDate}`)
-  })
-
-  // TODO: Plumb the logged in .com user through here.
-  // Truly we have been haacked.
-  autoUpdater.setFeedURL(getFeedURL('haacked'))
-  if (process.env.NODE_ENV !== 'development') {
-    try {
-      autoUpdater.checkForUpdates()
-    } catch (e) {
-      sharedProcess!.console.error(`Error checking for updates: ${e}`)
-    }
-  }
-
   ipcMain.on('menu-event', (event, args) => {
     const { name }: { name: MenuEvent } = event as any
     if (mainWindow) {
@@ -102,17 +118,42 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, [ { id, enabled } ]: [ { id: string, enabled: boolean } ]) => {
+  /**
+   * An event sent by the renderer asking that the menu item with the given id
+   * is executed (ie clicked).
+   */
+  ipcMain.on('execute-menu-item', (event: Electron.IpcMainEvent, { id }: { id: string }) => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
-      menuItem.enabled = enabled
-    } else {
-      fatalError(`Unknown menu id: ${id}`)
+      const window = BrowserWindow.fromWebContents(event.sender)
+      const fakeEvent = { preventDefault: () => {}, sender: event.sender }
+      menuItem.click(fakeEvent, window, event.sender)
     }
   })
 
-  ipcMain.on('show-main-window', () => {
-    getMainWindow().show()
+  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: Array<{ id: string, state: IMenuItemState }>) => {
+    let sendMenuChangedEvent = false
+
+    for (const item of items) {
+      const { id, state } = item
+      const menuItem = findMenuItemByID(menu, id)
+
+      if (menuItem) {
+        // Only send the updated app menu when the state actually changes
+        // or we might end up introducing a never ending loop between
+        // the renderer and the main process
+        if (state.enabled !== undefined && menuItem.enabled !== state.enabled) {
+          menuItem.enabled = state.enabled
+          sendMenuChangedEvent = true
+        }
+      } else {
+        fatalError(`Unknown menu id: ${id}`)
+      }
+    }
+
+    if (sendMenuChangedEvent && mainWindow) {
+      mainWindow.sendAppMenu()
+    }
   })
 
   ipcMain.on('show-contextual-menu', (event: Electron.IpcMainEvent, items: ReadonlyArray<any>) => {
@@ -121,6 +162,8 @@ app.on('ready', () => {
       return new MenuItem({
         label: item.label,
         click: () => event.sender.send('contextual-menu-action', i),
+        type: item.type,
+        enabled: item.enabled,
       })
     })
 
@@ -129,23 +172,103 @@ app.on('ready', () => {
     }
 
     const window = BrowserWindow.fromWebContents(event.sender)
-    menu.popup(window)
+    // TODO: read https://github.com/desktop/desktop/issues/1003
+    // to clean up this sin against T Y P E S
+    const anyMenu: any = menu
+    anyMenu.popup(window, { async: true })
+  })
+
+  /**
+   * An event sent by the renderer asking for a copy of the current
+   * application menu.
+   */
+  ipcMain.on('get-app-menu', () => {
+    if (mainWindow) {
+      mainWindow.sendAppMenu()
+    }
+  })
+
+  ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMainEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
+    // This API's only implemented on macOS right now.
+    if (__DARWIN__) {
+      onDidLoad(window => {
+        window.showCertificateTrustDialog(certificate, message)
+      })
+    }
+  })
+
+  ipcMain.on('log', (event: Electron.IpcMainEvent, logEntry: ILogEntry) => {
+    log(logEntry)
+  })
+
+  autoUpdater.on('error', err => {
+    onDidLoad(window => {
+      window.sendAutoUpdaterError(err)
+    })
   })
 })
 
 app.on('activate', () => {
-  if (!mainWindow) {
-    createWindow()
-  }
+  onDidLoad(window => {
+    window.show()
+  })
+})
+
+app.on('web-contents-created', (event, contents) => {
+  contents.on('new-window', (event, url) => {
+    // Prevent links or window.open from opening new windows
+    event.preventDefault()
+    sharedProcess!.console.log(`Prevented new window to: ${url}`)
+  })
+})
+
+app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+  callback(false)
+
+  onDidLoad(window => {
+    window.sendCertificateError(certificate, error, url)
+  })
 })
 
 function createWindow() {
-  const window = new AppWindow(stats, sharedProcess!)
+  const window = new AppWindow(sharedProcess!)
+
+  if (__DEV__) {
+    const installer = require('electron-devtools-installer')
+    require('electron-debug')({ showDevTools: true })
+
+    const extensions = [
+      'REACT_DEVELOPER_TOOLS',
+      'REACT_PERF',
+    ]
+
+    for (const name of extensions) {
+      try {
+        installer.default(installer[name])
+      } catch (e) {}
+    }
+  }
+
   window.onClose(() => {
     mainWindow = null
 
-    if (process.platform !== 'darwin') {
+    if (!__DARWIN__) {
       app.quit()
+    }
+  })
+
+  window.onDidLoad(() => {
+    window.show()
+    window.sendLaunchTimingStats({
+      mainReadyTime: readyTime!,
+      loadTime: window.loadTime!,
+      rendererReadyTime: window.rendererReadyTime!,
+    })
+
+    const fns = onDidLoadFns!
+    onDidLoadFns = null
+    for (const fn of fns) {
+      fn(window)
     }
   })
 
@@ -154,11 +277,16 @@ function createWindow() {
   mainWindow = window
 }
 
-/** Get the main window, creating it if necessary. */
-function getMainWindow(): AppWindow {
-  if (!mainWindow) {
-    createWindow()
+/**
+ * Register a function to be called once the window has been loaded. If the
+ * window has already been loaded, the function will be called immediately.
+ */
+function onDidLoad(fn: OnDidLoadFn) {
+  if (onDidLoadFns) {
+    onDidLoadFns.push(fn)
+  } else {
+    if (mainWindow) {
+      fn(mainWindow)
+    }
   }
-
-  return mainWindow!
 }

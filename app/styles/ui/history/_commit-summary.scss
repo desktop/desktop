@@ -1,0 +1,136 @@
+@import "../../mixins";
+
+/** A React component holding the selected commit's detailed information */
+#commit-summary {
+
+  display: flex;
+  flex-direction: column;
+
+  .avatar {
+    width: 16px;
+    height: 16px;
+  }
+
+  .expander {
+    position: absolute;
+    width: 75px;
+    top: var(--spacing);
+    right: var(--spacing);
+
+    svg {
+      vertical-align: text-top;
+      margin-right: var(--spacing-half);
+    }
+  }
+
+  &.expanded {
+
+    .commit-summary-description-container {
+      border-bottom: none;
+    }
+
+    .commit-summary-description-scroll-view {
+      max-height: none;
+      overflow: auto;
+
+      &:before {
+        content: none;
+      }
+    }
+  }
+
+  &.has-expander {
+    .commit-summary-description {
+      padding-right: 100px;
+    }
+  }
+}
+
+// NOTE: This isn't a real class, it's an SCSS hack to allow us to only write
+// the suffixes of class names that all start with commit-summary. It's quite
+// confusing and also has the added downside of making it impossible to search
+// for a class name one finds in tsx. We might want to consider not allowing
+// this in the future but that's for... the future.
+.commit-summary {
+  &-title,
+  &-meta {
+    padding: var(--spacing);
+  }
+
+  &-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    line-height: 16px;
+    padding: var(--spacing);
+    word-wrap: break-word;
+  }
+
+  &-description-container {
+    display: flex;
+
+    // So that we have something to position the expander against
+    position: relative;
+    border-bottom: var(--base-border);
+  }
+
+  &-description-scroll-view {
+    overflow: hidden;
+    // The extra pixel makes the space align up with the commit list.
+    max-height: 61px;
+    flex: 1;
+
+    &:before {
+      content: "";
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0px, rgba(255, 255, 255, 0) 40px, rgba(255, 255, 255, 0.5) 40px, white 60px);
+      position: absolute;
+      height: 100%;
+      width: 100%;
+    }
+  }
+
+  // Enable text selection inside the title and description elements.
+  &-title,
+  &-description {
+    span, a {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    span { cursor: text; }
+  }
+
+  &-description {
+    font-family: var(--font-family-monospace);
+    font-size: var(--font-size-sm);
+    word-wrap: break-word;
+    white-space: pre-line;
+    padding: var(--spacing);
+  }
+
+  &-meta {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0 var(--spacing) var(--spacing);
+  }
+
+  &-meta-item {
+    a {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    @include ellipsis;
+    margin-right: var(--spacing);
+    font-size: var(--font-size-sm);
+
+    .avatar,
+    .octicon {
+      display: inline-block;
+      margin-right: var(--spacing-third);
+      vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+    }
+  }
+
+  &-header {
+    border-bottom: var(--base-border);
+  }
+}

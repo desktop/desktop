@@ -1,3 +1,17 @@
+.list {
+  flex-grow: 1;
+  height: 100%;
+
+  // Sane default for flexboxes making lists
+  // constrain to the size of their flexbox
+  // parent.
+  min-width: 0;
+
+  .ReactVirtualized__Grid {
+    background: var(--background-color);
+  }
+}
+
 @include win32-context {
   .list {
     position: relative;
@@ -13,7 +27,7 @@
     // with the height of the content in the main container.
 
     // Hide the actual scroll bar
-    .Grid::-webkit-scrollbar { display: none; }
+    .ReactVirtualized__Grid::-webkit-scrollbar { display: none; }
 
     // Hide the scroll bar by default
     .fake-scroll { display: none; }
@@ -27,8 +41,8 @@
         // Positioning
         position: absolute;
         top: 0px;
-        right: 0px;
-        width: 10px;
+        right: 3px;
+        width: 15px;
 
         // Only support vertical scrolling for now
         overflow-y: auto;
@@ -48,12 +62,20 @@
   height: 100%;
 
   &.selected {
-    color: var(--box-selected-text-color);
+    --text-color: var(--box-selected-text-color);
+    --text-secondary-color: var(--box-selected-text-color);
+
+    color: var(--text-color);
     background-color: var(--box-selected-background-color);
 
     &:focus {
-      color: var(--box-selected-active-text-color);
+      --text-color: var(--box-selected-active-text-color);
+      --text-secondary-color: var(--box-selected-active-text-color);
+
+      color: var(--text-color);
       background-color: var(--box-selected-active-background-color);
     }
   }
+
+  &:focus { outline: none; }
 }

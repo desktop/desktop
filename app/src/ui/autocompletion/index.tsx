@@ -1,4 +1,4 @@
-import AutocompletingTextInput from './autocompleting-text-input'
+import { AutocompletingTextInput } from './autocompleting-text-input'
 
 export class AutocompletingTextArea extends AutocompletingTextInput<HTMLTextAreaElement> {
   protected getElementTagName(): 'textarea' | 'input' { return 'textarea' }
@@ -9,6 +9,13 @@ export class AutocompletingInput extends AutocompletingTextInput<HTMLInputElemen
 
 /** An interface which defines the protocol for an autocompletion provider. */
 export interface IAutocompletionProvider<T> {
+
+  /**
+   * The type of auto completion provided this instance implements. Used
+   * for variable width auto completion popups depending on type.
+   */
+  kind: 'emoji' | 'user' | 'issue'
+
   /**
    * Get the regex which it used to capture text for the provider. The text
    * captured in the first group will then be passed to `getAutocompletionItems`
@@ -22,7 +29,7 @@ export interface IAutocompletionProvider<T> {
    * Get the autocompletion results for the given text. The text is whatever was
    * captured in the first group by the regex returned from `getRegExp`.
    */
-  getAutocompletionItems(text: string): ReadonlyArray<T>
+  getAutocompletionItems(text: string): Promise<ReadonlyArray<T>>
 
   /**
    * Render the autocompletion item. The item will be one which the provider
@@ -37,3 +44,7 @@ export interface IAutocompletionProvider<T> {
    */
    getCompletionText(item: T): string
 }
+
+export * from './emoji-autocompletion-provider'
+export * from './issues-autocompletion-provider'
+export * from './user-autocompletion-provider'

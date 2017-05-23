@@ -1,6 +1,6 @@
 import { GitHubUserDatabase } from '../src/lib/dispatcher/github-user-database'
 
-export default class TestDatabase extends GitHubUserDatabase {
+export class TestGitHubUserDatabase extends GitHubUserDatabase {
   public constructor() {
     super('TestGitHubUserDatabase')
   }

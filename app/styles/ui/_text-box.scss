@@ -1,0 +1,35 @@
+@import "../mixins";
+
+.text-box-component {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .label-container {
+    display: flex;
+
+    label {
+      @include ellipsis;
+      flex-grow: 1;
+    }
+
+    .link-label {
+      @include ellipsis;
+
+      justify-content: flex-end;
+      flex-shrink: 0;
+      flex-grow: 0;
+    }
+
+    margin-bottom: var(--spacing-third);
+  }
+
+  input {
+    @include textboxish;
+
+    // Don't override disabled styles on darwin for text boxes.
+    @include win32 {
+      @include textboxish-disabled;
+    }
+  }
+}

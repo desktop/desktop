@@ -81,7 +81,7 @@ function upload (assetName, assetPath) {
   const s3 = new AWS.S3(s3Info)
 
   const bucket = process.env.S3_BUCKET
-  const key = `releases/${distInfo.getVersion()}-${sha}/${assetName}`
+  const key = `releases/${distInfo.getVersion()}-${sha}/${assetName.replace(/ /g, '')}`
   const url = `https://s3.amazonaws.com/${bucket}/${key}`
 
   const uploadParams = {
@@ -142,7 +142,7 @@ function updateDeploy (artifacts) {
       }
 
       if (response.statusCode !== 200) {
-        reject(new Error(`Received a non-200 response (${response.statusCode}): ${body}`))
+        reject(new Error(`Received a non-200 response (${response.statusCode}): ${JSON.stringify(body)}`))
         return
       }
 

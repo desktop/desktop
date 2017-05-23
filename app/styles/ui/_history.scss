@@ -1,8 +1,4 @@
-@import "../mixins";
-
-/** A React component holding the currently selected repository's history */
-#history {
-  display: flex;
-  flex-direction: row;
-  flex: 1;
-}
+@import "history/history";
+@import "history/commit-list";
+@import "history/commit-summary";
+@import "history/file-list";

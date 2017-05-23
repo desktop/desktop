@@ -1,0 +1,331 @@
+@import "../mixins";
+@import "dialogs/merge";
+@import "dialogs/publish-repository";
+@import "dialogs/repository-settings";
+
+// The styles herein attempt to follow a flow where margins are only applied
+// to the bottom of elements (with the exception of the last child). This to
+// allow easy layout using generalized components and elements such as <Row>
+// and <p>.
+dialog {
+  border: var(--base-border);
+  box-shadow: var(--base-box-shadow);
+  padding: 0;
+  border-radius: var(--border-radius);
+
+  color: var(--text-color);
+  background: var(--background-color);
+
+  // This resets the properties we animate in the transition group
+  // such that if there's ever a race condition between the JS timing
+  // and the CSS transition we'll always revert back to a known good
+  // state.
+  transform: scale(1);
+  opacity: 1;
+
+  min-width: 400px;
+  max-width: 600px;
+
+  // The modal class here is the transition name for the react css transition
+  // group which allows us to apply an animation when the popup appears.
+  &.modal {
+
+    &-enter {
+      opacity: 1;
+      transform: scale(0.75);
+      pointer-events: none;
+
+      &::backdrop {
+        opacity: 0;
+      }
+    }
+
+    &-enter-active {
+      opacity: 1;
+      transform: scale(1);
+      transition: transform 250ms var(--easing-ease-out-back);
+
+      &::backdrop {
+        opacity: 0.4;
+        transition: opacity 100ms ease-in;
+      }
+    }
+
+    &-leave {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: none;
+
+      &::backdrop {
+        opacity: 0.4;
+      }
+    }
+
+    &-leave-active {
+      opacity: 0.01;
+      transform: scale(0.25);
+      transition: opacity 100ms ease-in,
+                  transform 100ms var(--easing-ease-in-back);
+
+      &::backdrop {
+        opacity: 0.01;
+        transition: opacity 100ms ease-in;
+      }
+    }
+  }
+
+  &::backdrop {
+    background: #000;
+    opacity: 0.4;
+  }
+
+  // The dialog embeds a fieldset as the first child of the form element
+  // in order to be able to disable all form elements and buttons in one
+  // swoop. This resets all styles for that fieldset.
+  & > form > fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+
+  .dialog-header {
+    height: 50px;
+    border-bottom: var(--base-border);
+    position: relative;
+
+    // There's at most three elements in the header,
+    //   1. The icon (optional, only for errors, warnings, etc)
+    //   2. The title, a h1 element which is always present if the
+    //      header element is visible
+    //   3. The close button (optional, hidden when dialog isn't dismissable).
+    //
+    // In order to correctly center the title in all scenarios we lay out the
+    // children in a flexbox but we position the icon and close button
+    // absolutely to the left and right side leaving the h1 all available
+    // width. We then add a 40px margin on each side of the h1 ensuring that
+    // even in the scenario where only one of the two optional elements is
+    // visible the h1 stays centered horizontally.
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    svg.icon {
+      position: absolute;
+      left: var(--spacing);
+    }
+
+    h1 {
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-md);
+
+      // See comment above. 40px is enough space to clear both the icon
+      // and the close button with their respective margins.
+      margin: 0 40px;
+      text-align: center;
+      padding: 0;
+      flex-grow: 1;
+
+      @include ellipsis;
+    }
+
+    .close {
+      position: absolute;
+      right: var(--spacing);
+      top: var(--spacing);
+
+      border: 0;
+      height: 16px;
+      width: 16px;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+
+      color: var(--text-secondary-color);
+      cursor: pointer;
+
+      // Let the button deal with all mouse events.
+      // Without this the octicon resets the cursor when
+      // hovering over the <path>.
+      .octicon { pointer-events: none; }
+
+      &:hover {
+        color: var(--text-color);
+      }
+
+      &:focus {
+        outline: 0;
+      }
+    }
+  }
+
+  .dialog-content {
+    padding: var(--spacing-double);
+
+    // This allows for using <Rows> to structure content within dialog content.
+    // All Rows that are direct descendants of dialog content except for the
+    // last one receive a bottom margin.
+    .row-component:not(:last-child) {
+      margin-bottom: var(--spacing);
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: var(--spacing);
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    h2, h3 {
+      font-weight: var(--font-weight-semibold);
+      margin-top: 0;
+      margin-bottom: var(--spacing);
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    h2 { font-size: var(--font-size-md); }
+    h3 { font-size: var(--font-size); }
+
+    ul, ol {
+      margin-top: 0;
+      padding-left: var(--spacing-double);
+      list-style-position: outside;
+
+      &:last-child { margin-bottom: 0; }
+
+      li {
+        margin-bottom: var(--spacing);
+        padding-left: var(--spacing-half);
+      }
+    }
+  }
+
+  .dialog-footer {
+
+    display: flex;
+    flex-direction: column;
+
+    border-top: var(--base-border);
+    padding: var(--spacing-double);
+
+    .button-group {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+
+    button {
+      margin-right: var(--spacing-half);
+      min-width: 120px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+
+  // Custom branding of a warning dialog. Used for dangerous actions
+  &.warning {
+    .dialog-header {
+      .icon { color: var(--dialog-warning-color); }
+      h1 { color: var(--dialog-warning-text-color); }
+    }
+
+    border-top: 3px solid var(--dialog-warning-color);
+  }
+
+  // Custom branding of an error dialog. Used for displaying errors
+  &.error {
+    .dialog-header {
+      color: var(--dialog-error-color);
+    }
+
+    border-top: 3px solid var(--dialog-error-color);
+  }
+
+  // Inline error component rendered at the top of the dialog just below
+  // the header (if the dialog has one).
+  .dialog-error {
+    display: flex;
+    padding: var(--spacing);
+    align-items: center;
+
+    // Error messages may contains newlines which separates sections
+    // of the error of indicate nested errors. We want to preserve these
+    // while still forcing line breaks if necessary.
+    white-space: pre-wrap;
+
+    background: var(--form-error-background);
+    border-bottom: 1px solid var(--form-error-border-color);
+    color: var(--form-error-text-color);
+
+    > .octicon {
+      flex-grow: 0;
+      flex-shrink: 0;
+      margin-right: var(--spacing);
+    }
+  }
+
+  &#app-error {
+    .dialog-content {
+      p {
+        -webkit-user-select: auto;
+        user-select: auto;
+        cursor: text;
+
+        // Preserve newlines and other white space in error messages
+        // but make sure we wrap if necessary.
+        white-space: pre-wrap;
+
+        &.monospace {
+          font-family: var(--font-family-monospace);
+        }
+      }
+
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  }
+
+  &#preferences { width: 450px; }
+  &#about { width: 450px; }
+  &#create-branch { width: 400px; }
+
+  &#confirm-remove-repository {
+    width: 450px;
+
+    .description {
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+  }
+
+  &#sign-in {
+    width: 400px;
+
+    .sign-in-with-browser {
+      display: block;
+      text-align: center;
+    }
+
+    .forgot-password-row, .what-is-this-row {
+      font-size: var(--font-size-sm);
+      justify-content: flex-end;
+    }
+  }
+}
+
+.warning-helper-text {
+  font-size: var(--font-size-sm);
+
+  .octicon {
+    fill: var(--dialog-warning-color);
+    margin-right: var(--spacing-half);
+  }
+}

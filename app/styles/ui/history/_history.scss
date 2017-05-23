@@ -1,0 +1,34 @@
+@import "../../mixins";
+
+/** A React component holding the currently selected repository's history */
+#history {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  // Necessary so that the diff doesn't expand
+  // beyond the width of the history
+  min-width: 0;
+
+  &.expanded {
+    #commit-details {
+      display: none;
+    }
+  }
+}
+
+#commit-summary-container {
+  flex-grow: 0;
+}
+
+#commit-details {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+
+  .fill-window {
+    // necessary for "no files in commit" view to
+    // look right alongside blank diff
+    border-right: var(--base-border);
+  }
+}

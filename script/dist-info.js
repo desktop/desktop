@@ -1,20 +1,18 @@
 'use strict'
 
 const path = require('path')
+const os = require('os')
 
 const projectRoot = path.join(__dirname, '..')
 const appPackage = require(path.join(projectRoot, 'app', 'package.json'))
 
 function getDistPath () {
-  return path.join(projectRoot, 'dist', `${appPackage.productName}-${process.platform}-x64`)
+  return path.join(projectRoot, 'dist', `${getProductName()}-${process.platform}-x64`)
 }
 
 function getProductName () {
-  return appPackage.productName
-}
-
-function getName () {
-  return appPackage.name
+  const productName = appPackage.productName
+  return process.env.NODE_ENV === 'development' ? `${productName}-dev` : productName
 }
 
 function getCompanyName () {
@@ -53,11 +51,31 @@ function getWindowsStandalonePath () {
 }
 
 function getWindowsFullNugetPackageName () {
-  return `${getName()}-${getVersion()}-full.nupkg`
+  return `${getWindowsIdentifierName()}-${getVersion()}-full.nupkg`
 }
 
 function getWindowsFullNugetPackagePath () {
   return path.join(getDistPath(), '..', 'installer', getWindowsFullNugetPackageName())
+}
+
+function getBundleID () {
+  return appPackage.bundleID
+}
+
+function getUserDataPath () {
+  if (process.platform === 'win32') {
+    return path.join(process.env.APPDATA, getProductName())
+  } else if (process.platform === 'darwin') {
+    const home = os.homedir()
+    return path.join(home, 'Library', 'Application Support', getProductName())
+  } else {
+    console.error(`I dunno how to review for ${process.platform} :(`)
+    process.exit(1)
+  }
+}
+
+function getWindowsIdentifierName () {
+  return 'GitHubDesktop'
 }
 
 module.exports = {
@@ -72,5 +90,8 @@ module.exports = {
   getWindowsStandaloneName,
   getWindowsStandalonePath,
   getWindowsFullNugetPackageName,
-  getWindowsFullNugetPackagePath
+  getWindowsFullNugetPackagePath,
+  getBundleID,
+  getUserDataPath,
+  getWindowsIdentifierName
 }

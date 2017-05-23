@@ -1,0 +1,242 @@
+@import "../mixins";
+
+/** The container for the CodeMirror element. */
+.diff-code-mirror {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.CodeMirror {
+  height: 100%;
+  color: var(--diff-text-color);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-monospace);
+
+  span {
+    // Force word breaks. This only matters when soft wrapping is on.
+    word-break: break-all;
+  }
+
+  pre {
+    border: none;
+    padding: 0;
+  }
+
+  // Remove blank space at the top of the diff
+  &-lines {
+    padding: 0;
+  }
+
+  &-line {
+    display: flex;
+    padding: 0;
+
+    // The last immediate `span` is the actual content class.
+    > span:last-child {
+      // Add a little bit of space to the left of code diff
+      // `padding-left` here means mouse move events are not raised
+      padding-left: var(--spacing-half);
+      align-self: center;      
+    }
+
+    svg.no-newline {
+      height: 8px;
+      fill: var(--error-color);
+      display: inline-block;
+      margin-left: 3px;
+      margin-bottom: -1px;
+    }
+  }
+
+  &-code > div:last-of-type {
+    // Add a border to the end of the diff
+    border-bottom: var(--base-border);
+  }
+
+  &-focused &-selected, &-selected {
+    background: var(--diff-selected-background-color)
+  }
+
+  &-selectedtext {
+    color: var(--diff-selected-text-color) !important;
+  }
+}
+
+// The container element which holds the before and after
+// diff-line-number spans.
+.diff-line-gutter {
+  line-height: normal;
+  display: flex;
+  height: 100%;
+
+  .before {
+     border-right: 1px solid var(--diff-border-color);
+  }
+
+  .after {
+    border-right: 4px solid var(--diff-border-color);
+  }
+}
+
+.diff-line-number {
+  display: inline-block;
+  color: var(--diff-line-number-color);
+  width: var(--diff-line-number-column-width);
+  padding: var(--spacing-third) var(--spacing-half);
+  text-align: right;
+}
+
+.diff-add {
+  background: var(--diff-add-background-color);
+  color: var(--diff-add-text-color);
+  padding: 0;
+
+  .diff-line-number {
+    border-color: var(--diff-add-border-color);
+
+    &:last-child {
+      border-color: var(--diff-add-gutter-color);
+    }
+  }
+}
+
+.diff-delete {
+  background: var(--diff-delete-background-color);
+  color: var(--diff-delete-text-color);
+  padding: 0;
+
+  .diff-line-number {
+    border-color: var(--diff-delete-border-color);
+
+    &:last-child {
+      border-color: var(--diff-delete-gutter-color);
+    }
+  }
+}
+
+.diff-context {
+  background: var(--background-color);
+  color: var(--diff-context-text-color);
+  padding: 0;
+
+  .diff-line-number {
+    border-color: var(--diff-border-color);
+
+    &:last-child {
+      border-color: var(--diff-gutter-color);
+    }
+  }
+}
+
+// The cm- prefix means it's styling the line content.
+.cm-diff-hunk {
+  color: var(--diff-hunk-text-color);
+}
+
+.cm-diff-delete {
+  color: var(--diff-delete-text-color);
+}
+
+.cm-diff-add {
+  color: var(--diff-add-text-color);
+}
+
+.cm-diff-context {
+  color: var(--diff-context-text-color);
+}
+
+.diff-hunk {
+  background: var(--diff-hunk-background-color);
+  color: var(--diff-hunk-text-color);
+  padding: 0;
+
+  .diff-line-number {
+    border-color: var(--diff-hunk-border-color);
+
+    &:last-child {
+      border-color: var(--diff-hunk-gutter-color);
+    }
+  }
+}
+
+
+.diff-line-selected {
+  .diff-line-number {
+    background: var(--diff-selected-background-color);
+    border-color: var(--diff-selected-border-color);
+    color: var(--diff-selected-text-color);
+
+    &:last-child {
+      border-color: var(--diff-selected-gutter-color);
+    }
+  }
+}
+
+
+.diff-line-hover {
+  .diff-line-number {
+    background: var(--diff-hover-background-color);
+    border-color: var(--diff-hover-border-color);
+    color: var(--diff-hover-text-color);
+
+    &:last-child {
+      border-color: var(--diff-hover-gutter-color);      
+    }
+  }
+}
+
+
+// Windows has custom scroll bars, see _scroll.scss
+@include win32-context {
+  .CodeMirror {
+    // Mirror the behavior of other scroll bars in desktop on Windows
+    // and only show them while hovering over the scroll container.
+    // We can't use display here since that's set as an inline style
+    // by CodeMirror so we'll resort to the old opacity hack.
+    &-vscrollbar,
+    &-hscrollbar {
+      opacity: 0;
+    }
+
+    &:hover {
+      .CodeMirror-vscrollbar,
+      .CodeMirror-hscrollbar {
+        opacity: 1;
+      }
+    }
+
+    // This is a div that sits in the corner between the horizontal
+    // and vertical scroll bar and has an opaque background by default.
+    &-scrollbar-filler { background: transparent; }
+  }
+}
+
+#diff .panel {
+  padding-top: var(--spacing);
+}
+
+#diff .image-header {
+  padding: var(--spacing) 0 var(--spacing-half) 0;
+  margin-left: auto;
+  margin-right: auto;
+  flex-shrink: 0;
+}
+
+#diff img {
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
+  padding: 0 var(--spacing);
+}
+// ***************************************************************************************************************************
+#diff a {
+  text-decoration: none;
+  margin-left: var(--spacing-half);
+}
+
+
+#diff a:link {
+  color: (orange);
+}

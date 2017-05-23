@@ -40,6 +40,11 @@ html, body {
 html {
   // Sets a specific default `font-size` for user with `rem` type scales.
   font-size: var(--font-size);
+
+  // NB This seems to be necessary on macOS (and possibly others)
+  // for the absolutely positioned foldout to fill the window
+  // when it's being resized.
+  position: relative;
 }
 
 body {
@@ -58,10 +63,6 @@ body {
     user-select: none;
     cursor: default;
   }
-}
-
-input, button, textarea, :focus {
-  outline: none;
 }
 
 img {
@@ -100,9 +101,40 @@ button {
 
 .blankslate {
   background: var(--box-alt-background-color);
+  color: var(--text-secondary-color);
   display: flex;
   flex: 1;
   align-items: center;
   justify-content: center;
   text-align: center;
+}
+
+// Stretches an element to fill the entire window (such as an overlay)
+.fill-window {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+// We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
+// This allows us to not have to override default accessibility driven focus
+// styles for buttons in the case when a user clicks on a button. This also
+// gives better visiblity to individuals who navigate with the keyboard.
+//
+// See:
+//   https://github.com/WICG/focus-ring
+//   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
+:focus:not(.focus-ring) {
+  outline: none;
+}
+
+// http://stackoverflow.com/questions/7538771/what-is-webkit-focus-ring-color
+:focus {
+  outline: auto 5px var(--focus-color);
 }

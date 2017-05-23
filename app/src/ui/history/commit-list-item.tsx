@@ -1,37 +1,43 @@
 import * as React from 'react'
-import * as moment from 'moment'
-import { Commit } from '../../lib/local-git-operations'
-import { IGitHubUser } from '../../lib/dispatcher'
-import EmojiText from '../lib/emoji-text'
-
-const DefaultAvatarURL = 'https://github.com/hubot.png'
+import { Commit } from '../../models/commit'
+import { IAvatarUser } from '../../models/avatar'
+import { RichText } from '../lib/rich-text'
+import { Avatar } from '../lib/avatar'
+import { RelativeTime } from '../relative-time'
 
 interface ICommitProps {
   readonly commit: Commit
-  readonly gitHubUser: IGitHubUser | null
+  readonly user: IAvatarUser | null
   readonly emoji: Map<string, string>
 }
 
 /** A component which displays a single commit in a commit list. */
-export default class CommitListItem extends React.Component<ICommitProps, void> {
+export class CommitListItem extends React.Component<ICommitProps, void> {
   public render() {
-    const relative = moment(this.props.commit.authorDate).fromNow()
-    const avatarURL = this.props.gitHubUser ? this.props.gitHubUser.avatarURL : DefaultAvatarURL
+    const commit = this.props.commit
+    const author = commit.author
+
     return (
       <div className='commit'>
-        <img className='avatar' src={avatarURL}/>
+        <Avatar user={this.props.user || undefined} />
         <div className='info'>
-          <EmojiText className='summary' emoji={this.props.emoji}>{this.props.commit.summary}</EmojiText>
-          <div className='byline' title={this.props.commit.authorDate.toString()}>{relative} by {this.props.commit.authorName}</div>
+          <RichText
+            className='summary'
+            emoji={this.props.emoji}
+            text={commit.summary}
+            renderUrlsAsLinks={false} />
+          <div className='byline'>
+            <RelativeTime date={author.date} /> by {author.name}
+          </div>
         </div>
       </div>
     )
   }
 
-  public shouldComponentUpdate(nextProps: ICommitProps, nextState: void): boolean {
+  public shouldComponentUpdate(nextProps: ICommitProps): boolean {
     return (
       this.props.commit.sha !== nextProps.commit.sha ||
-      this.props.gitHubUser !== nextProps.gitHubUser
+      this.props.user !== nextProps.user
     )
   }
 }

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
 import { WindowState, getWindowState, windowStateChannelName } from '../../lib/window-state'
+import * as classNames from 'classnames'
 
 // These paths are all drawn to a 10x10 view box and replicate the symbols
 // seen on Windows 10 window controls.
@@ -10,7 +11,7 @@ const maximizePath = 'M 0,0 0,10 10,10 10,0 Z M 1,1 9,1 9,9 1,9 Z'
 const minimizePath = 'M 0,5 10,5 10,6 0,6 Z'
 
 interface IWindowControlState {
-  windowState: WindowState
+  readonly windowState: WindowState
 }
 
 /**
@@ -25,7 +26,7 @@ interface IWindowControlState {
  * every time there's a change in the window state but _may_ send duplicate
  * or out-of-bound events communicating the _current_ state as well.
  */
-export class WindowControls extends React.Component<void, IWindowControlState> {
+export class WindowControls extends React.Component<{}, IWindowControlState> {
 
   public componentWillMount() {
     this.setState({ windowState: getWindowState(remote.getCurrentWindow()) })
@@ -37,7 +38,7 @@ export class WindowControls extends React.Component<void, IWindowControlState> {
     ipcRenderer.removeListener(windowStateChannelName, this.onWindowStateChanged)
   }
 
-  public shouldComponentUpdate(nextProps: void, nextState: IWindowControlState) {
+  public shouldComponentUpdate(nextProps: {}, nextState: IWindowControlState) {
     return nextState.windowState !== this.state.windowState
   }
 
@@ -45,13 +46,29 @@ export class WindowControls extends React.Component<void, IWindowControlState> {
     this.setState({ windowState: args as WindowState })
   }
 
+  private onMinimize = () => {
+    remote.getCurrentWindow().minimize()
+  }
+
+  private onMaximize = () => {
+    remote.getCurrentWindow().maximize()
+  }
+
+  private onRestore = () => {
+    remote.getCurrentWindow().unmaximize()
+  }
+
+  private onClose = () => {
+    remote.getCurrentWindow().close()
+  }
+
   private renderButton(name: string, onClick: React.EventHandler<React.MouseEvent<any>>, path: string) {
-    const className = `window-control ${name}`
+    const className = classNames('window-control', name)
     const title = name[0].toUpperCase() + name.substring(1)
 
     return (
       <button aria-label={name} title={title} tabIndex={-1} className={className} onClick={onClick}>
-        <svg aria-hidden='true' role='img' version='1.1' width='10' height='10'>
+        <svg aria-hidden='true' version='1.1' width='10' height='10'>
           <path d={path}></path>
         </svg>
       </button>)
@@ -59,16 +76,16 @@ export class WindowControls extends React.Component<void, IWindowControlState> {
 
   public render() {
 
-    // We only know how to render fake windows-y controls
-    if (process.platform !== 'win32') {
+    // We only know how to render fake Windows-y controls
+    if (!__WIN32__) {
       return <span></span>
     }
 
-    const min = this.renderButton('minimize', (e) => remote.getCurrentWindow().minimize(), minimizePath)
+    const min = this.renderButton('minimize', this.onMinimize, minimizePath)
     const maximizeOrRestore = this.state.windowState === 'maximized'
-      ? this.renderButton('restore', (e) => remote.getCurrentWindow().unmaximize(), restorePath)
-      : this.renderButton('maximize', (e) => remote.getCurrentWindow().maximize(), maximizePath)
-    const close = this.renderButton('close', (e) => remote.getCurrentWindow().close(), closePath)
+      ? this.renderButton('restore', this.onRestore, restorePath)
+      : this.renderButton('maximize', this.onMaximize, maximizePath)
+    const close = this.renderButton('close', this.onClose, closePath)
 
     return (
       <div className='window-controls'>

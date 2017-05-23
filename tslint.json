@@ -1,12 +1,18 @@
 {
-  "rulesDirectory": ["node_modules/vrsource-tslint-rules/rules"],
+  "rulesDirectory": [
+    "node_modules/vrsource-tslint-rules/rules",
+    "node_modules/tslint-microsoft-contrib/",
+    "tslint-rules/"
+  ],
   "rules": {
+    "button-group-order": true,
     "class-name": true,
     "curly": true,
     "indent": [
       true,
       "spaces"
     ],
+    "insecure-random": [ true ],
     "interface-name": [ true, "always-prefix"],
     "jsdoc-format": true,
     "literal-spacing": [
@@ -27,12 +33,14 @@
       "variables-before-functions"
     ],
     "no-construct": true,
-    "no-duplicate-key": true,
+    "no-default-export": true,
     "no-duplicate-variable": true,
     "no-eval": true,
     "no-internal-module": true,
     "no-invalid-this": true,
-    "no-trailing-whitespace": true,
+    "no-stateless-class": true,
+    "no-sync-functions": true,
+    "no-trailing-whitespace": [ true, "ignore-comments", "ignore-jsdoc" ],
     "no-unused-expression": true,
     "no-unused-variable": [true, "react"],
     "no-use-before-declare": true,
@@ -43,10 +51,21 @@
       "check-whitespace"
     ],
     "prefer-const": true,
+    "promise-must-complete": true,
     "quotemark": [
       true,
       "single"
     ],
+    "react-no-unbound-dispatcher-props": true,
+    "react-proper-lifecycle-methods": true,
+    "react-readonly-props-and-state": true,
+    "react-unused-props-and-state": [ true,
+      {
+        "props-interface-regex": "Props$",
+        "state-interface-regex": "State$"
+      }
+    ],
+    "react-this-binding-issue": true,
     "semicolon": [
       true,
       "never"
