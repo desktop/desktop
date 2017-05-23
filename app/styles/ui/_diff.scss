@@ -36,6 +36,7 @@
       // Add a little bit of space to the left of code diff
       // `padding-left` here means mouse move events are not raised
       padding-left: var(--spacing-half);
+      align-self: center;      
     }
 
     svg.no-newline {
