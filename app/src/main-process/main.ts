@@ -44,9 +44,11 @@ if (__WIN32__ && process.argv.length > 1) {
     app.quit()
   } else {
     const action = parseURL(process.argv[1])
-    onDidLoad(window => {
-      window.sendURLAction(action)
-    })
+    if (action.name === 'open-repository') {
+      onDidLoad(window => {
+        window.sendURLAction(action)
+      })
+    }
   }
 }
 
