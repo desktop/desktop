@@ -10,7 +10,8 @@ interface IDialogHeaderProps {
 
   /**
    * An optional id for the h1 element that contains the title of this
-   * dialog. Used to aid in accessibility.
+   * dialog. Used to aid in accessibility by allowing the h1 to be referenced
+   * in an aria-labeledby/aria-describedby attributed
    */
   readonly titleId?: string
 

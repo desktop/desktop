@@ -110,8 +110,9 @@ interface IDialogState {
 
   /**
    * An optional id for the h1 element that contains the title of this
-   * dialog. Used to aid in accessibility. Undefined if the dialog does
-   * not have a title or the component has not yet been mounted.
+   * dialog. Used to aid in accessibility by allowing the h1 to be referenced
+   * in an aria-labeledby/aria-describedby attributed. Undefined if the dialog
+   * does not have a title or the component has not yet been mounted.
    */
   readonly titleId?: string
 }
