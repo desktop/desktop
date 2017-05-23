@@ -76,6 +76,10 @@ main {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
+
+    button {
+      min-width: 150px;
+    }
   }
 }
 
