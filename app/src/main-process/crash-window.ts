@@ -106,12 +106,7 @@ export class CrashWindow {
 
     ipcMain.on('crash-quit', (event: Electron.IpcMainEvent) => {
       logDebug('Got quit signal from crash process')
-
-      if (!__DEV__) {
-        app.relaunch()
-      }
-
-      app.quit()
+      this.window.close()
     })
 
     registerWindowStateChangedEvents(this.window)
