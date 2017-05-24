@@ -141,7 +141,7 @@ export class AppStore {
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
-  private windowZoomFactor: number
+  private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
 
@@ -166,8 +166,6 @@ export class AppStore {
       this.windowState = getWindowState(window)
       this.emitUpdate()
     })
-
-    this.windowZoomFactor = 1
 
     window.webContents.getZoomFactor(factor => {
       this.onWindowZoomFactorChanged(factor)
