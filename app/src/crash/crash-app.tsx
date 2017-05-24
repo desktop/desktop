@@ -35,6 +35,7 @@ interface ICrashAppState {
 // will have to be reflected in the welcome flow as well.
 const BottomImageUri = `file:///${__dirname}/static/welcome-illustration-left-bottom.svg`
 
+const issuesUri = 'https://github.com/desktop/desktop/issues'
 function prepareErrorMessage(error: Error) {
 
   let message
@@ -113,7 +114,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
           GitHub Desktop encountered a catastrophic error that prevents it from
           launching. This has been reported to the team, but if you encounter this
           repeatedly please report this issue to the
-          GitHub Desktop <LinkButton uri='https://github.com/desktop/desktop/issues'>issue tracker</LinkButton>.
+          GitHub Desktop <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
         </p>
       )
     } else {
@@ -121,7 +122,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
         <p>
           GitHub Desktop has encountered an unrecoverable error and will need to restart.
           This has been reported to the team, but if you encounter this repeatedly please
-          report this issue to the GitHub Desktop <LinkButton uri='https://github.com/desktop/desktop/issues'>issue tracker</LinkButton>.
+          report this issue to the GitHub Desktop <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
         </p>
       )
     }
