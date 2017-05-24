@@ -1,42 +1,94 @@
-import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater } from 'electron'
+import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from 'electron'
 
 import { AppWindow } from './app-window'
-import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
+import { CrashWindow } from './crash-window'
+import { buildDefaultMenu, MenuEvent, findMenuItemByID, setCrashMenu } from './menu'
 import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
-import { showFallbackPage } from './error-page'
 import { IMenuItemState } from '../lib/menu-update'
 import { ILogEntry, logError, log } from '../lib/logging/main'
+import { formatError } from '../lib/logging/format-error'
+import { reportError } from './exception-reporting'
+import { enableSourceMaps } from '../lib/enable-source-maps'
+
+enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
 const launchTime = Date.now()
 
+let preventQuit = false
 let readyTime: number | null = null
+let hasReportedUncaughtException = false
 
 type OnDidLoadFn = (window: AppWindow) => void
 /** See the `onDidLoad` function. */
 let onDidLoadFns: Array<OnDidLoadFn> | null = []
 
-process.on('uncaughtException', (error: Error) => {
+function uncaughtException(error: Error) {
 
-  logError('Uncaught exception on main process', error)
+  logError(formatError(error))
 
-  if (sharedProcess) {
-    sharedProcess.console.error('Uncaught exception:')
-    sharedProcess.console.error(error.name)
-    sharedProcess.console.error(error.message)
+  if (hasReportedUncaughtException) {
+    return
   }
+
+  hasReportedUncaughtException = true
+  preventQuit = true
+
+  setCrashMenu()
+
+  const isLaunchError = !mainWindow
 
   if (mainWindow) {
-    mainWindow.sendException(error)
-  } else {
-    showFallbackPage(error)
+    mainWindow.destroy()
+    mainWindow = null
   }
+
+  if (sharedProcess) {
+    sharedProcess.destroy()
+    mainWindow = null
+  }
+
+  const crashWindow = new CrashWindow(isLaunchError ? 'launch' : 'generic', error)
+
+  crashWindow.onDidLoad(() => {
+    crashWindow.show()
+  })
+
+  crashWindow.onFailedToLoad(() => {
+    dialog.showMessageBox({
+      type: 'error',
+      title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
+      message:
+        `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
+        `This has been reported to the team, but if you encounter this repeatedly please report ` +
+        `this issue to the GitHub Desktop issue tracker.\n\n${error.stack || error.message}`,
+    }, (response) => {
+      if (!__DEV__) {
+        app.relaunch()
+      }
+      app.quit()
+    })
+  })
+
+  crashWindow.onClose(() => {
+    if (!__DEV__) {
+      app.relaunch()
+    }
+    app.quit()
+  })
+
+  crashWindow.load()
+}
+
+process.on('uncaughtException', (error: Error) => {
+  reportError(error)
+  uncaughtException(error)
 })
 
 if (__WIN32__ && process.argv.length > 1) {
@@ -201,6 +253,14 @@ app.on('ready', () => {
     log(logEntry)
   })
 
+  ipcMain.on('uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
+    uncaughtException(error)
+  })
+
+  ipcMain.on('send-error-report', (event: Electron.IpcMainEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
+    reportError(error, extra)
+  })
+
   autoUpdater.on('error', err => {
     onDidLoad(window => {
       window.sendAutoUpdaterError(err)
@@ -252,7 +312,7 @@ function createWindow() {
   window.onClose(() => {
     mainWindow = null
 
-    if (!__DARWIN__) {
+    if (!__DARWIN__ && !preventQuit) {
       app.quit()
     }
   })

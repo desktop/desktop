@@ -231,12 +231,16 @@ export class StatsStore {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public setOptOut(optOut: boolean): Promise<void> {
+  public async setOptOut(optOut: boolean): Promise<void> {
+    const changed = this.optOut !== optOut
+
     this.optOut = optOut
 
     localStorage.setItem(StatsOptOutKey, optOut ? '1' : '0')
 
-    return this.sendOptInStatusPing(!optOut)
+    if (changed) {
+      await this.sendOptInStatusPing(!optOut)
+    }
   }
 
   /** Has the user opted out of stats reporting? */

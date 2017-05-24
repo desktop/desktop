@@ -29,6 +29,7 @@
     width: var(--win32-scroll-bar-size);
     height: var(--win32-scroll-bar-size);
     background: transparent;
+    cursor: pointer;
 
     &-thumb {
       background-color: var(--scroll-bar-thumb-background-color);
@@ -49,7 +50,11 @@
       }
 
       // When someone hovers over, or presses the bar we'll expand it to 8px
-      &:hover, &:active { border-width: 1px; }
+      &:hover, &:active {
+        border-width: 1px;
+        background-color: var(--scroll-bar-thumb-background-color-active);
+        cursor: pointer;
+      }
     }
   }
 }

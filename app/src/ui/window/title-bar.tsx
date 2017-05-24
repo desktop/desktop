@@ -14,6 +14,7 @@ interface ITitleBarProps {
   /** Whether we should hide the toolbar (and show inverted window controls) */
   readonly titleBarStyle: 'light' | 'dark'
 
+  /** Whether or not to render the app icon */
   readonly showAppIcon: boolean
 }
 

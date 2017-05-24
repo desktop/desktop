@@ -27,6 +27,8 @@ interface IWelcomeState {
   readonly currentStep: WelcomeStep
 }
 
+// Note that we're reusing the welcome illustrations in the crash process, any
+// changes to these will have to be reflected in the crash process as well.
 const WelcomeRightImageUri = `file:///${__dirname}/static/welcome-illustration-right.svg`
 const WelcomeLeftTopImageUri = `file:///${__dirname}/static/welcome-illustration-left-top.svg`
 const WelcomeLeftBottomImageUri = `file:///${__dirname}/static/welcome-illustration-left-bottom.svg`
