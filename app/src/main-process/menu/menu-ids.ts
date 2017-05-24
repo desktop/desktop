@@ -21,4 +21,5 @@ export type MenuIDs =
   'remove-repository' |
   'new-repository' |
   'add-local-repository' |
-  'clone-repository'
+  'clone-repository' |
+  'about'
