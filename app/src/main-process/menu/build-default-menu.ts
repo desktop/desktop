@@ -368,7 +368,13 @@ function zoom(direction: ZoomDirection): ClickHandler {
         : ZoomIncrement * -1
 
       webContents.getZoomFactor((currentZoom) => {
-        const newZoom = clamp(currentZoom + delta, MinimumZoomFactor, MaximumZoomFactor)
+        const clamped = clamp(currentZoom + delta, MinimumZoomFactor, MaximumZoomFactor)
+
+        // We get some nice floating point precision numbers back from getZoomFactor
+        // and we need to pass this down to the renderer so let's trim this down to
+        // two decimals.
+        const newZoom = Math.round(clamped * 100) / 100
+
         if (newZoom !== currentZoom) {
           webContents.setZoomFactor(newZoom)
           webContents.send('zoom-factor-changed', newZoom)
