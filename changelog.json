@@ -1,7 +1,20 @@
 {
   "releases": {
-    "0.5.7": [
+    "0.5.9": [
 
+    ],
+    "0.5.8": [
+      "[Fixed] Switching tabs in Preferences/Settings or Repository Settings would close the dialog - #1724",
+      "[Improved] Standardized colors which improves contrast and readability - #1713"
+    ],
+    "0.5.7": [
+      "[Fixed] Windows: Handle protocol events which launch the app - #1582",
+      "[Fixed] Opting out of stats reporting in the Welcome flow - #1698",
+      "[Fixed] Commit description text being too light - #1695",
+      "[Fixed] Exception on startup if the app was activated too quickly - #1564",
+      "[Improved] Default directory for cloning now - #1663",
+      "[Improved] Accessibility support - #1289",
+      "[Improved] Lovely blank slate illustrations - #1708"
     ],
     "0.5.6": [
       "[Fixed] macOS: The buttons in the Untrusted Server dialog not doing anything - #1622",

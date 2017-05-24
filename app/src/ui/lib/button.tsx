@@ -63,6 +63,10 @@ export interface IButtonProps {
    * detrimental to accessibility in most scenarios.
    */
   readonly tabIndex?: number
+
+  readonly role?: string
+  readonly ariaExpanded?: boolean
+  readonly ariaHasPopup?: boolean
 }
 
 /** A button component. */
@@ -112,6 +116,22 @@ export class Button extends React.Component<IButtonProps, void> {
        this.props.className,
     )
 
+    let ariaExpanded: string | undefined = undefined
+
+    if (this.props.ariaExpanded !== undefined) {
+      ariaExpanded = this.props.ariaExpanded
+        ? 'true'
+        : 'false'
+    }
+
+    let ariaHasPopup: string | undefined = undefined
+
+    if (this.props.ariaHasPopup !== undefined) {
+      ariaHasPopup = this.props.ariaHasPopup
+        ? 'true'
+        : 'false'
+    }
+
     return (
       <button
         className={className}
@@ -121,6 +141,9 @@ export class Button extends React.Component<IButtonProps, void> {
         ref={this.onButtonRef}
         tabIndex={this.props.tabIndex}
         onMouseEnter={this.props.onMouseEnter}
+        role={this.props.role}
+        aria-expanded={ariaExpanded}
+        aria-haspopup={ariaHasPopup}
       >
         {this.props.children}
       </button>
