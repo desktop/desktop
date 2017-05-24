@@ -132,8 +132,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   const menuStateBuilder = new MenuStateBuilder()
 
   const windowOpen = state.windowState !== 'hidden'
-  const repositoryActive = windowOpen && repositorySelected
   const inWelcomeFlow = state.showWelcomeFlow
+  const repositoryActive = windowOpen && repositorySelected && !inWelcomeFlow
 
   if (repositoryActive) {
     for (const id of repositoryScopedIDs) {
@@ -171,6 +171,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'add-local-repository',
     'clone-repository',
     'create-branch',
+    'preferences',
   ]
 
   if (inWelcomeFlow) {
