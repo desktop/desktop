@@ -30,7 +30,7 @@ interface ICrashAppState {
   readonly windowState: WindowState
 }
 
-// Note that we're reusing the welcome illustrations here, any changes to these
+// Note that we're reusing the welcome illustration here, any changes to it
 // will have to be reflected in the welcome flow as well.
 const BottomImageUri = `file:///${__dirname}/static/welcome-illustration-left-bottom.svg`
 
