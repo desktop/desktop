@@ -4,6 +4,7 @@ import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { LogFolder } from '../../lib/logging/logger'
+import { clamp } from '../../lib/clamp'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template = new Array<Electron.MenuItemOptions>()
@@ -131,35 +132,17 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       {
         label: __DARWIN__ ? 'Reset Zoom' : 'Reset zoom',
         accelerator: 'CmdOrCtrl+0',
-        click (item: any, focusedWindow: Electron.BrowserWindow) {
-          if (focusedWindow) {
-            focusedWindow.webContents.setZoomFactor(1)
-          }
-        },
+        click: zoom(ZoomDirection.Reset),
       },
       {
         label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
         accelerator: 'CmdOrCtrl+=',
-        click (item: any, focusedWindow: Electron.BrowserWindow) {
-          if (focusedWindow) {
-            const webContents = focusedWindow.webContents
-            webContents.getZoomFactor((zoom) => {
-              webContents.setZoomFactor(Math.min(zoom + 0.1, 2))
-            })
-          }
-        },
+        click: zoom(ZoomDirection.In),
       },
       {
         label: __DARWIN__ ? 'Zoom Out' : 'Zoom out',
         accelerator: 'CmdOrCtrl+-',
-        click (item: any, focusedWindow: Electron.BrowserWindow) {
-          if (focusedWindow) {
-            const webContents = focusedWindow.webContents
-            webContents.getZoomFactor((zoom) => {
-              webContents.setZoomFactor(Math.max(zoom - 0.1, 1))
-            })
-          }
-        },
+        click: zoom(ZoomDirection.Out),
       },
       separator,
       {
@@ -353,6 +336,32 @@ function emit(name: MenuEvent): ClickHandler {
       window.webContents.send('menu-event', { name })
     } else {
       ipcMain.emit('menu-event', { name })
+    }
+  }
+}
+
+enum ZoomDirection {
+  Reset,
+  In,
+  Out,
+}
+
+function zoom(direction: ZoomDirection): ClickHandler {
+  return (menuItem, window) => {
+    if (!window) {
+      return
+    }
+
+    const { webContents } = window
+
+    if (direction === ZoomDirection.Reset) {
+      webContents.setZoomFactor(1)
+    } else {
+      const delta = direction === ZoomDirection.In ? 0.1 : -0.1
+
+      webContents.getZoomFactor((current) => {
+        webContents.setZoomFactor(clamp(current + delta, 1, 2))
+      })
     }
   }
 }
