@@ -386,6 +386,7 @@ export class AppStore {
         ...this.cloningRepositoriesStore.repositories,
       ],
       windowState: this.windowState,
+      windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
