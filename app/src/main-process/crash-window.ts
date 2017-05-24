@@ -161,18 +161,6 @@ export class CrashWindow {
     this.window.webContents.send('error', details)
   }
 
-  /** Report an auto updater error to the renderer. */
-  public sendAutoUpdaterError(error: Error) {
-    // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
-    // we'll just manually copy the properties we care about.
-    const friendlyError = {
-      stack: error.stack,
-      message: error.message,
-      name: error.name,
-    }
-    this.window.webContents.send('auto-updater-error', friendlyError)
-  }
-
   public destroy() {
     this.window.destroy()
   }
