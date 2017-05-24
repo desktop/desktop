@@ -9,7 +9,6 @@ import { getVersion } from '../ui/lib/app-proxy'
 import { getOS } from '../lib/get-os'
 
 interface ICrashAppProps {
-  readonly startTime: number
 }
 
 interface ICrashAppState {
@@ -85,8 +84,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
       this.setState(crashDetails)
     })
 
-    const now = Date.now()
-    ipcRenderer.send('crash-ready', now - this.props.startTime)
+    ipcRenderer.send('crash-ready')
   }
 
   private onIssueTrackerLinkClicked = (e: React.MouseEvent<HTMLAnchorElement>) => {

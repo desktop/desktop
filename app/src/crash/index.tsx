@@ -1,5 +1,3 @@
-const startTime = Date.now()
-
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
@@ -17,4 +15,4 @@ const container = document.createElement('div')
 container.id = 'desktop-crash-container'
 document.body.appendChild(container)
 
-ReactDOM.render(<CrashApp startTime={startTime} />, container)
+ReactDOM.render(<CrashApp />, container)
