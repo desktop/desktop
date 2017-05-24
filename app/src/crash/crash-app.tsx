@@ -13,8 +13,21 @@ interface ICrashAppProps {
 }
 
 interface ICrashAppState {
+  /**
+   * Whether this error was thrown before we were able to launch
+   * the main renderer process or not. See the documentation for
+   * the ErrorType type for more details.
+   */
   readonly type?: ErrorType
+
+  /**
+   * The error that caused us to spawn the crash process.
+   */
   readonly error?: Error
+
+  /**
+   * The current state of the Window, ie maximized, minimized full-screen etc.
+   */
   readonly windowState: WindowState
 }
 
