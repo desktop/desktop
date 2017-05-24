@@ -13,8 +13,8 @@ export class CrashWindow {
   private readonly errorType: ErrorType
   private readonly error: Error
 
-  private _loadTime: number | null = null
-  private _rendererReadyTime: number | null = null
+  private hasFinishedLoading = false
+  private hasSentReadyEvent = false
 
   public constructor(errorType: ErrorType, error: Error) {
     const windowOptions: Electron.BrowserWindowOptions = {
@@ -48,7 +48,7 @@ export class CrashWindow {
 
   public load() {
     logDebug('Starting crash process')
-    let startLoad = 0
+
     // We only listen for the first of the loading events to avoid a bug in
     // Electron/Chromium where they can sometimes fire more than once. See
     // See
@@ -57,10 +57,6 @@ export class CrashWindow {
     // happen once.
     this.window.webContents.once('did-start-loading', () => {
       logDebug('Crash process in startup')
-      this._rendererReadyTime = null
-      this._loadTime = null
-
-      startLoad = Date.now()
     })
 
     this.window.webContents.once('did-finish-load', () => {
@@ -69,9 +65,7 @@ export class CrashWindow {
         this.window.webContents.openDevTools()
       }
 
-      const now = Date.now()
-      this._loadTime = now - startLoad
-
+      this.hasFinishedLoading = true
       this.maybeEmitDidLoad()
     })
 
@@ -91,6 +85,9 @@ export class CrashWindow {
 
     ipcMain.on('crash-ready', (event: Electron.IpcMainEvent) => {
       logDebug(`Crash process is ready`)
+
+      this.hasSentReadyEvent = true
+
       this.sendError()
       this.maybeEmitDidLoad()
     })
@@ -115,14 +112,9 @@ export class CrashWindow {
    * signalled that it's ready.
    */
   private maybeEmitDidLoad() {
-    if (!this.rendererLoaded) { return }
-
-    this.emitter.emit('did-load', null)
-  }
-
-  /** Is the page loaded and has the renderer signalled it's ready? */
-  private get rendererLoaded(): boolean {
-    return this.loadTime !== null && this.rendererReadyTime !== null
+    if (this.hasFinishedLoading && this.hasSentReadyEvent) {
+      this.emitter.emit('did-load', null)
+    }
   }
 
   public onClose(fn: () => void) {
@@ -179,25 +171,6 @@ export class CrashWindow {
       name: error.name,
     }
     this.window.webContents.send('auto-updater-error', friendlyError)
-  }
-
-  /**
-   * Get the time (in milliseconds) spent loading the page.
-   *
-   * This will be `null` until `onDidLoad` is called.
-   */
-  public get loadTime(): number | null {
-    return this._loadTime
-  }
-
-  /**
-   * Get the time (in milliseconds) elapsed from the renderer being loaded to it
-   * signaling it was ready.
-   *
-   * This will be `null` until `onDidLoad` is called.
-   */
-  public get rendererReadyTime(): number | null {
-    return this._rendererReadyTime
   }
 
   public destroy() {
