@@ -4,9 +4,6 @@ import * as Fs from 'fs'
 const fileUriToPath = require('file-uri-to-path') as (uri: string) => string
 const sourceMapSupport = require('source-map-support')
 
-// Can't use in dev builds because if the fs module is available source-maps-support always uses that
-// regardless of the environment. We also want the node offset calculations that they do for environment node
-
 export function enableSourceMaps() {
   sourceMapSupport.install({
     environment: 'node',
