@@ -36,6 +36,12 @@ interface ICrashAppState {
 const BottomImageUri = `file:///${__dirname}/static/welcome-illustration-left-bottom.svg`
 
 const issuesUri = 'https://github.com/desktop/desktop/issues'
+
+/**
+ * Formats an error by attempting to strip out user-identifiable information
+ * from paths and appends system metadata such and the running version and
+ * current operating system.
+ */
 function prepareErrorMessage(error: Error) {
 
   let message
