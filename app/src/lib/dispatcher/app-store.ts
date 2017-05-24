@@ -141,6 +141,7 @@ export class AppStore {
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
+  private windowZoomFactor: number
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
 
@@ -164,6 +165,14 @@ export class AppStore {
     ipcRenderer.on('window-state-changed', (_, args) => {
       this.windowState = getWindowState(window)
       this.emitUpdate()
+    })
+
+    this.windowZoomFactor = 1
+
+    window.webContents.getZoomFactor(this.onWindowZoomFactorChanged)
+
+    ipcRenderer.on('zoom-factor-changed', (event, zoomFactor) => {
+      this.onWindowZoomFactorChanged(zoomFactor)
     })
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
@@ -242,6 +251,21 @@ export class AppStore {
   /** Register a listener for when an error occurs. */
   public onDidError(fn: (error: Error) => void): Disposable {
     return this.emitter.on('did-error', fn)
+  }
+
+  /** 
+   * Called when we have reason to suspect that the zoom factor
+   * has changed. Note that this doesn't necessarily mean that it
+   * has changed with regards to our internal state which is why
+   * we double check before emitting an update.
+   */
+  private onWindowZoomFactorChanged(zoomFactor: number) {
+    const current = this.windowZoomFactor
+    this.windowZoomFactor = zoomFactor
+
+    if (zoomFactor !== current) {
+      this.emitUpdate()
+    }
   }
 
   private getInitialRepositoryState(): IRepositoryState {

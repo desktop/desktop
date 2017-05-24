@@ -360,6 +360,7 @@ function zoom(direction: ZoomDirection): ClickHandler {
 
     if (direction === ZoomDirection.Reset) {
       webContents.setZoomFactor(1)
+      webContents.send('zoom-factor-changed', 1)
     } else {
 
       const delta = direction === ZoomDirection.In
@@ -370,6 +371,7 @@ function zoom(direction: ZoomDirection): ClickHandler {
         const newZoom = clamp(currentZoom + delta, MinimumZoomFactor, MaximumZoomFactor)
         if (newZoom !== currentZoom) {
           webContents.setZoomFactor(newZoom)
+          webContents.send('zoom-factor-changed', newZoom)
         }
       })
     }
