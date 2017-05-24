@@ -41,15 +41,15 @@
       box-shadow: inset 0 -3px 0px var(--tab-bar-active-color);
     }
 
-    .indicator {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      margin-left: 4px;
-      margin-bottom: -1px;
+    .with-indicator {
+      display: flex;
+      align-items: center;
+    }
 
-      background-color: var(--tab-bar-active-color);
-      border-radius: 50%;
+    .indicator {
+      color: var(--tab-bar-active-color);
+      margin-left: 4px;
+      margin-top: 1px;
     }
   }
 }
