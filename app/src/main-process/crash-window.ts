@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, app } from 'electron'
+import { BrowserWindow, ipcMain } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { logDebug, logError } from '../lib/logging/main'
 import { ICrashDetails, ErrorType } from '../crash/shared'
