@@ -359,8 +359,11 @@ function zoom(direction: ZoomDirection): ClickHandler {
     } else {
       const delta = direction === ZoomDirection.In ? 0.1 : -0.1
 
-      webContents.getZoomFactor((current) => {
-        webContents.setZoomFactor(clamp(current + delta, 1, 2))
+      webContents.getZoomFactor((currentZoom) => {
+        const newZoom = clamp(currentZoom + delta, 1, 2)
+        if (newZoom !== currentZoom) {
+          webContents.setZoomFactor(newZoom)
+        }
       })
     }
   }
