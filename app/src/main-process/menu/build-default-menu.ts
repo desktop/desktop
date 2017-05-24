@@ -13,7 +13,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     template.push({
       label: 'GitHub Desktop',
       submenu: [
-        { label: 'About GitHub Desktop', click: emit('show-about') },
+        {
+          label: 'About GitHub Desktop',
+          click: emit('show-about'),
+          id: 'about',
+        },
         separator,
         {
           label: 'Preferences…',
@@ -307,7 +311,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       submenu: [
         ...helpItems,
         separator,
-        { label: '&About GitHub Desktop', click: emit('show-about') },
+        {
+          label: '&About GitHub Desktop',
+          click: emit('show-about'),
+          id: 'about',
+        },
       ],
     })
   }
