@@ -31,15 +31,14 @@ let onDidLoadFns: Array<OnDidLoadFn> | null = []
 
 function uncaughtException(error: Error) {
 
+  logError(formatError(error))
+
   if (hasReportedUncaughtException) {
-    logError(formatError(error))
     return
   }
 
   hasReportedUncaughtException = true
   preventQuit = true
-
-  logError(formatError(error))
 
   setCrashMenu()
 
