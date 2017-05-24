@@ -2,7 +2,7 @@ import { remote } from 'electron'
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { initGitRepository, isGitRepository } from '../../lib/git'
+import { isGitRepository } from '../../lib/git'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { TextBox } from '../lib/text-box'
@@ -34,10 +34,6 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   public render() {
     const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
 
-    const submitButtonText = this.state.isGitRepository
-      ? (__DARWIN__ ? 'Add Repository' : 'Add repository')
-      : (__DARWIN__ ? 'Create & Add Repository' : 'Create & add repository')
-
     return (
       <Dialog
         title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
@@ -59,7 +55,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
         <DialogFooter>
           <ButtonGroup>
             <Button disabled={disabled} type='submit'>
-              {submitButtonText}
+              {__DARWIN__ ? 'Add Repository' : 'Add repository'}
             </Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
