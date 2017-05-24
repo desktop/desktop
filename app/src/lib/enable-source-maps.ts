@@ -8,6 +8,10 @@ const sourceMapSupport = require('source-map-support')
  * This array tells the source map logic which files that we can expect to
  * be able to resolve a source map for and they should reflect the chunks
  * entry names from our webpack config.
+ * 
+ * Note that we explicitly don't enable source maps for the crash process
+ * since it's possible that the error which caused us to spawn the crash
+ * process was related to source maps.
  */
 const knownFilesWithSourceMap = [ 'renderer.js', 'main.js', 'shared.js' ]
 
