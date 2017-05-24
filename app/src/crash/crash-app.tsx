@@ -71,6 +71,16 @@ function prepareErrorMessage(error: Error) {
 
 }
 
+/**
+ * The root component for our crash process.
+ * 
+ * The crash process is responsible for presenting the user with an
+ * error after the main process or any renderer process has crashed due
+ * to an uncaught exception or when the main renderer has failed to load.
+ * 
+ * Exercise caution when working with the crash process. If the crash
+ * process itself crashes we've failed.
+ */
 export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
 
   public constructor(props: ICrashAppProps) {
