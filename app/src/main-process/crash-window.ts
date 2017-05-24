@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain, app } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
-import { logDebug, logInfo, logError } from '../lib/logging/main'
+import { logDebug, logError } from '../lib/logging/main'
 import { ICrashDetails, ErrorType } from '../crash/shared'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
 
@@ -147,7 +147,7 @@ export class CrashWindow {
 
   /** Show the window. */
   public show() {
-    logInfo('Showing crash process window')
+    logDebug('Showing crash process window')
     this.window.show()
   }
 
