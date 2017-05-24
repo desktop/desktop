@@ -232,11 +232,17 @@ export class StatsStore {
 
   /** Set whether the user has opted out of stats reporting. */
   public setOptOut(optOut: boolean): Promise<void> {
+    const changed = this.optOut !== optOut
+
     this.optOut = optOut
 
     localStorage.setItem(StatsOptOutKey, optOut ? '1' : '0')
 
-    return this.sendOptInStatusPing(!optOut)
+    if (changed) {
+      return this.sendOptInStatusPing(!optOut)
+    } else {
+      return Promise.resolve()
+    }
   }
 
   /** Has the user opted out of stats reporting? */
