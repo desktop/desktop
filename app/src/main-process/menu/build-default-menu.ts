@@ -346,6 +346,10 @@ enum ZoomDirection {
   Out,
 }
 
+const ZoomIncrement = 0.1
+const MaximumZoomFactor = 2
+const MinimumZoomFactor = 1
+
 function zoom(direction: ZoomDirection): ClickHandler {
   return (menuItem, window) => {
     if (!window) {
@@ -357,10 +361,13 @@ function zoom(direction: ZoomDirection): ClickHandler {
     if (direction === ZoomDirection.Reset) {
       webContents.setZoomFactor(1)
     } else {
-      const delta = direction === ZoomDirection.In ? 0.1 : -0.1
+
+      const delta = direction === ZoomDirection.In
+        ? ZoomIncrement
+        : ZoomIncrement * -1
 
       webContents.getZoomFactor((currentZoom) => {
-        const newZoom = clamp(currentZoom + delta, 1, 2)
+        const newZoom = clamp(currentZoom + delta, MinimumZoomFactor, MaximumZoomFactor)
         if (newZoom !== currentZoom) {
           webContents.setZoomFactor(newZoom)
         }
