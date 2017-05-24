@@ -130,6 +130,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       separator,
       {
         label: '&Reload',
+        id: 'reload-window',
         accelerator: 'CmdOrCtrl+R',
         click (item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
@@ -139,6 +140,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         visible: __RELEASE_ENV__ !== 'production',
       },
       {
+        id: 'show-devtools',
         label: __DARWIN__ ? 'Toggle Developer Tools' : '&Toggle developer tools',
         accelerator: (() => {
           return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'
@@ -276,14 +278,19 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   ]
 
   if (__DEV__) {
-    const throwUnhandledError: Electron.MenuItemOptions = {
-      label: 'Boomtown…',
-      click () {
-        throw new Error('Boomtown!')
+    helpItems.push(
+      separator,
+      {
+        label: 'Crash main process…',
+        click () {
+          throw new Error('Boomtown!')
+        },
       },
-    }
-
-    helpItems.push(throwUnhandledError)
+      {
+        label: 'Crash renderer process…',
+        click: emit('boomtown'),
+      },
+    )
   }
 
   if (__DARWIN__) {
