@@ -144,6 +144,10 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     return <pre className='error'>{prepareErrorMessage(error)}</pre>
   }
 
+  private renderFooter() {
+    return <div className='footer'>{this.renderQuitButton()}</div>
+  }
+
   private renderQuitButton() {
     let quitText
     // We don't support restarting in dev mode since we can't
@@ -164,6 +168,10 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     )
   }
 
+  private renderBackgroundGraphics() {
+    return <img className='background-graphic-bottom' src={BottomImageUri} />
+  }
+
   public render() {
 
     return (
@@ -177,12 +185,8 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
           {this.renderTitle()}
           {this.renderDescription()}
           {this.renderErrorDetails()}
-
-          <img className='background-graphic-bottom' src={BottomImageUri} />
-
-          <div className='footer'>
-            {this.renderQuitButton()}
-          </div>
+          {this.renderFooter()}
+          {this.renderBackgroundGraphics()}
         </main>
       </div>
     )
