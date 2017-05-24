@@ -97,10 +97,6 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
   private addRepository = async () => {
     const resolvedPath = this.resolvedPath(this.state.path)
-    if (!this.state.isGitRepository) {
-      await initGitRepository(resolvedPath)
-    }
-
     const repositories = await this.props.dispatcher.addRepositories([ resolvedPath ])
 
     if (repositories && repositories.length) {
