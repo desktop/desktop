@@ -8,6 +8,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -31,6 +32,24 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     this.state = { path: '', isGitRepository: false }
   }
 
+  private renderWarning() {
+    const isRepo = this.state.isGitRepository
+
+    if (!this.state.path.length || isRepo) {
+      return null
+    }
+
+    return (
+      <Row className='warning-helper-text'>
+        <Octicon symbol={OcticonSymbol.alert} />
+        <p>
+          This directory does not appear to be a git repository.<br />
+          Would you like to create a repository here instead?
+        </p>
+      </Row>
+    )
+  }
+
   public render() {
     const disabled = this.state.path.length === 0 || this.state.isGitRepository === null
 
@@ -50,6 +69,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
               autoFocus/>
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
+          {this.renderWarning()}
         </DialogContent>
 
         <DialogFooter>
