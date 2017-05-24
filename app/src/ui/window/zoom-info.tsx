@@ -15,6 +15,12 @@ interface IZoomInfoState {
 const transitionDuration = 100
 const holdDuration = 750
 
+/**
+ * A component which displays the current zoom factor of the window
+ * when it changes. This component is rendered on top of all other
+ * content (except for dialogs, we can't put ourselves on top of dialogs
+ * easily at the moment).
+ */
 export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
 
   private infoDisappearTimeoutId: number | null = null
@@ -95,7 +101,6 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
     if (!this.state.renderTransitionGroup) {
       return null
     }
-
 
     return (
       <CSSTransitionGroup
