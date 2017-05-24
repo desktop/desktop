@@ -1,10 +1,11 @@
 import * as React from 'react'
-import { ipcRenderer, shell, remote } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 import { ICrashDetails, ErrorType } from './shared'
 import { TitleBar } from '../ui/window/title-bar'
 import { WindowState, getWindowState, windowStateChannelName } from '../lib/window-state'
 import { Octicon, OcticonSymbol } from '../ui/octicons'
 import { Button } from '../ui/lib/button'
+import { LinkButton } from '../ui/lib/link-button'
 import { getVersion } from '../ui/lib/app-proxy'
 import { getOS } from '../lib/get-os'
 
@@ -87,11 +88,6 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     ipcRenderer.send('crash-ready')
   }
 
-  private onIssueTrackerLinkClicked = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    shell.openExternal('https://github.com/desktop/desktop/issues')
-    e.preventDefault()
-  }
-
   private onQuitButtonClicked = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     ipcRenderer.send('crash-quit')
@@ -117,7 +113,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
           GitHub Desktop encountered a catastrophic error that prevents it from
           launching. This has been reported to the team, but if you encounter this
           repeatedly please report this issue to the
-          GitHub Desktop <a href='https://github.com/desktop/desktop/issues' onClick={this.onIssueTrackerLinkClicked}>issue tracker</a>.
+          GitHub Desktop <LinkButton uri='https://github.com/desktop/desktop/issues'>issue tracker</LinkButton>.
         </p>
       )
     } else {
@@ -125,7 +121,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
         <p>
           GitHub Desktop has encountered an unrecoverable error and will need to restart.
           This has been reported to the team, but if you encounter this repeatedly please
-          report this issue to the GitHub Desktop <a href='https://github.com/desktop/desktop/issues' onClick={this.onIssueTrackerLinkClicked}>issue tracker</a>.
+          report this issue to the GitHub Desktop <LinkButton uri='https://github.com/desktop/desktop/issues'>issue tracker</LinkButton>.
         </p>
       )
     }
