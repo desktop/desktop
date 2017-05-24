@@ -1,11 +1,102 @@
 import * as React from 'react'
+import { CSSTransitionGroup } from 'react-transition-group'
 
 interface IZoomInfoProps {
   readonly windowZoomFactor: number
 }
 
-export class ZoomInfo extends React.Component<IZoomInfoProps, void> {
+interface IZoomInfoState {
+  readonly windowZoomFactor: number
+  readonly renderTransitionGroup: boolean
+  readonly renderInfo: boolean
+  readonly transitionName: 'zoom-in' | 'zoom-out'
+}
+
+const transitionDuration = 100
+const holdDuration = 750
+
+export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
+
+  private infoDisappearTimeoutId: number | null = null
+  private transitionGroupDisappearTimeoutId: number | null = null
+
+  public constructor(props: IZoomInfoProps) {
+    super(props)
+
+    this.state = {
+      windowZoomFactor: props.windowZoomFactor,
+      renderTransitionGroup: false,
+      renderInfo: false,
+      transitionName: 'zoom-in',
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: IZoomInfoProps) {
+    const hasChanged = this.state.windowZoomFactor !== nextProps.windowZoomFactor
+
+    if (!hasChanged) {
+      return
+    }
+
+    if (this.infoDisappearTimeoutId !== null) {
+      clearTimeout(this.infoDisappearTimeoutId)
+    }
+
+    if (this.transitionGroupDisappearTimeoutId !== null) {
+      clearTimeout(this.transitionGroupDisappearTimeoutId)
+    }
+
+    this.infoDisappearTimeoutId = window.setTimeout(
+      this.onInfoDisappearTimeout,
+      holdDuration,
+    )
+
+    this.transitionGroupDisappearTimeoutId = window.setTimeout(
+      this.onTransitionGroupDisappearTimeout,
+      holdDuration + transitionDuration,
+    )
+
+    const transitionName = nextProps.windowZoomFactor > this.state.windowZoomFactor
+      ? 'zoom-in'
+      : 'zoom-out'
+
+    this.setState({
+      windowZoomFactor: nextProps.windowZoomFactor,
+      renderTransitionGroup: hasChanged,
+      renderInfo: hasChanged,
+      transitionName,
+    })
+  }
+
+  private onInfoDisappearTimeout = () => {
+    this.setState({ renderInfo: false })
+  }
+
+  private onTransitionGroupDisappearTimeout = () => {
+    this.setState({ renderTransitionGroup: false })
+  }
+
   public render() {
-    return <div id='window-zoom-info'>{this.props.windowZoomFactor}</div>
+
+    if (!this.state.renderTransitionGroup) {
+      return null
+    }
+
+    const zoomPercent = `${(this.state.windowZoomFactor * 100).toFixed(0)} %`
+
+    return (
+      <CSSTransitionGroup
+        id='window-zoom-info'
+        transitionName={this.state.transitionName}
+        component='div'
+        transitionAppear={true}
+        transitionEnter={false}
+        transitionLeave={true}
+        transitionAppearTimeout={transitionDuration}
+        transitionLeaveTimeout={transitionDuration}
+      >
+        {this.state.renderInfo ? <div>{zoomPercent}</div> : null }
+      </CSSTransitionGroup>
+    )
   }
 }
