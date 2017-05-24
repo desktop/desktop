@@ -4,12 +4,21 @@ import * as Fs from 'fs'
 const fileUriToPath = require('file-uri-to-path') as (uri: string) => string
 const sourceMapSupport = require('source-map-support')
 
+/**
+ * This array tells the source map logic which files that we can expect to
+ * be able to resolve a source map for and they should reflect the chunks
+ * entry names from our webpack config.
+ */
+const knownFilesWithSourceMap = [ 'renderer.js', 'main.js', 'shared.js' ]
+
 export function enableSourceMaps() {
   sourceMapSupport.install({
     environment: 'node',
     handleUncaughtExceptions: false,
     retrieveSourceMap: function(source: string) {
-      if (!source.endsWith('renderer.js') && !source.endsWith('main.js') && !source.endsWith('shared.js')) {
+      // This is a happy path in case we know for certain that we won't be
+      // able to resolve a source map for the given location.
+      if (!knownFilesWithSourceMap.some(file => source.endsWith(file))) {
         return null
       }
 
