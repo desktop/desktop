@@ -1,7 +1,8 @@
 {
   "releases": {
     "0.5.8": [
-
+      "[Fixed] Switching tabs in Preferences/Settings or Repository Settings would close the dialog - #1724",
+      "[Improved] Standardized colors which improves contrast and readability - #1713"
     ],
     "0.5.7": [
       "[Fixed] Windows: Handle protocol events which launch the app - #1582",
