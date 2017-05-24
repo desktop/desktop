@@ -169,7 +169,9 @@ export class AppStore {
 
     this.windowZoomFactor = 1
 
-    window.webContents.getZoomFactor(this.onWindowZoomFactorChanged)
+    window.webContents.getZoomFactor(factor => {
+      this.onWindowZoomFactorChanged(factor)
+    })
 
     ipcRenderer.on('zoom-factor-changed', (event, zoomFactor) => {
       this.onWindowZoomFactorChanged(zoomFactor)
