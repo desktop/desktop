@@ -171,6 +171,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'add-local-repository',
     'clone-repository',
     'preferences',
+    'about',
   ]
 
   if (inWelcomeFlow) {
