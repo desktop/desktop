@@ -47,6 +47,12 @@ declare namespace Electron {
     readonly headers: any
   }
 
+  type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
+
+  interface SystemPreferences {
+    getUserDefault(key: 'AppleActionOnDoubleClick', type: 'string'): AppleActionOnDoubleClickPref
+  }
+
   // these methods have been marked with optional parameters, where we hadn't assumed this before
   // tslint:disable-next-line:interface-name
   interface App extends EventEmitter {

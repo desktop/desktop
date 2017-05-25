@@ -18,12 +18,11 @@ interface ITitleBarProps {
   readonly showAppIcon: boolean
 }
 
-type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
 export class TitleBar extends React.Component<ITitleBarProps, void> {
 
   private onTitlebarDoubleClickDarwin = () => {
-    const actionOnDoubleClick: AppleActionOnDoubleClickPref = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
+    const actionOnDoubleClick = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
     const mainWindow = remote.getCurrentWindow()
 
     switch (actionOnDoubleClick) {
