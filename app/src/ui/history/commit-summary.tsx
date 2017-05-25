@@ -180,7 +180,15 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     )
   }
 
-  private renderExternalLink(url: string | null) {
+  private renderExternalLink() {
+    let url: string | null = null
+    if (!this.props.isLocal) {
+      const gitHubRepository = this.props.repository.gitHubRepository
+      if (gitHubRepository) {
+        url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
+      }
+    }
+
     if (!url) {
       return null
     }
@@ -203,15 +211,6 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const longSHA = this.props.sha
     const shortSHA = this.props.sha.slice(0, 7)
-
-    let url: string | null = null
-    if (!this.props.isLocal) {
-      const gitHubRepository = this.props.repository.gitHubRepository
-      if (gitHubRepository) {
-        url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
-      }
-    }
-
     const author = this.props.author
     const authorTitle = `${author.name} <${author.email}>`
     let avatarUser = undefined
@@ -262,7 +261,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
               {filesDescription}
             </li>
 
-            {this.renderExternalLink(url)}
+            {this.renderExternalLink()}
           </ul>
         </div>
 
