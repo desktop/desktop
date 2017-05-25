@@ -985,6 +985,8 @@ export class AppStore {
     if (state.branchesState.tip.kind === TipState.Valid) {
       const currentBranch = state.branchesState.tip.branch
       await gitStore.loadLocalCommits(currentBranch)
+    } else if (state.branchesState.tip.kind === TipState.Unborn) {
+      await gitStore.loadLocalCommits(null)
     }
   }
 
@@ -1493,6 +1495,17 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
 
     await gitStore.undoCommit(commit)
+
+    const state = this.getRepositoryState(repository)
+    const selectedCommit = state.historyState.selection.sha
+
+    if (selectedCommit === commit.sha) {
+      // clear the selection of this commit in the history view
+      this.updateHistoryState(repository, state => {
+        const selection = { sha: null, file: null }
+        return { selection }
+      })
+    }
 
     return this._refreshRepository(repository)
   }
