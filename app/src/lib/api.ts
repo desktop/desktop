@@ -378,6 +378,7 @@ export enum AuthorizationResponseKind {
   UserRequiresVerification,
   PersonalAccessTokenBlocked,
   Error,
+  EnterpriseTooOld,
 }
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
@@ -385,7 +386,8 @@ export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
                                     { kind: AuthorizationResponseKind.Error, response: Response } |
                                     { kind: AuthorizationResponseKind.UserRequiresVerification } |
-                                    { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
+                                    { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked } |
+                                    { kind: AuthorizationResponseKind.EnterpriseTooOld }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -448,6 +450,8 @@ export async function createAuthorization(endpoint: string, login: string, passw
             return { kind: AuthorizationResponseKind.UserRequiresVerification }
           }
         }
+      } else if (apiError.message === 'Invalid OAuth application client_id or secret.') {
+        return { kind: AuthorizationResponseKind.EnterpriseTooOld }
       }
     }
 
