@@ -614,6 +614,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         showAppIcon={showAppIcon}
         titleBarStyle={this.state.titleBarStyle}
         windowState={this.state.windowState}
+        windowZoomFactor={this.state.windowZoomFactor}
       >
         {this.renderAppMenuBar()}
       </TitleBar>
