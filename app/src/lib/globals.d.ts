@@ -41,6 +41,7 @@ declare namespace Electron {
     readonly type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
   }
 
+  // tslint:disable-next-line:interface-name
   interface RequestOptions {
     readonly method: string
     readonly url: string
@@ -49,6 +50,7 @@ declare namespace Electron {
 
   type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
+  // tslint:disable-next-line:interface-name
   interface SystemPreferences {
     getUserDefault(key: 'AppleActionOnDoubleClick', type: 'string'): AppleActionOnDoubleClickPref
   }
