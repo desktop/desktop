@@ -154,7 +154,8 @@ interface IError {
  * Details: https://developer.github.com/v3/#client-errors
  */
 interface IAPIError {
-  readonly errors: IError[]
+  readonly errors?: IError[]
+  readonly message?: string
 }
 
 /** The partial server response when creating a new authorization on behalf of a user */
@@ -377,6 +378,7 @@ export enum AuthorizationResponseKind {
   UserRequiresVerification,
   PersonalAccessTokenBlocked,
   Error,
+  EnterpriseTooOld,
 }
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
@@ -384,7 +386,8 @@ export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
                                     { kind: AuthorizationResponseKind.Error, response: Response } |
                                     { kind: AuthorizationResponseKind.UserRequiresVerification } |
-                                    { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
+                                    { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked } |
+                                    { kind: AuthorizationResponseKind.EnterpriseTooOld }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -427,25 +430,32 @@ export async function createAuthorization(endpoint: string, login: string, passw
   }
 
   if (response.status === 403) {
-    const body = await response.json()
-    if (body.message === 'This API can only be accessed with username and password Basic Auth') {
+    const apiError = await deserialize<IAPIError>(response)
+    if (apiError && apiError.message === 'This API can only be accessed with username and password Basic Auth') {
       // Authorization API does not support providing personal access tokens
       return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
     }
+
     return { kind: AuthorizationResponseKind.Error, response }
   }
 
   if (response.status === 422) {
     const apiError = await deserialize<IAPIError>(response)
     if (apiError) {
-      for (const error of apiError.errors) {
-        const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
-        const isExpectedField =  error.field.toLowerCase() === 'user'
-        if (isExpectedField && isExpectedResource) {
-          return { kind: AuthorizationResponseKind.UserRequiresVerification }
+      if (apiError.errors) {
+        for (const error of apiError.errors) {
+          const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
+          const isExpectedField = error.field.toLowerCase() === 'user'
+          if (isExpectedField && isExpectedResource) {
+            return { kind: AuthorizationResponseKind.UserRequiresVerification }
+          }
         }
+      } else if (apiError.message === 'Invalid OAuth application client_id or secret.') {
+        return { kind: AuthorizationResponseKind.EnterpriseTooOld }
       }
     }
+
+    return { kind: AuthorizationResponseKind.Error, response }
   }
 
   const body = await deserialize<IAPIAuthorization>(response)
