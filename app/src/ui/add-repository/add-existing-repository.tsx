@@ -2,13 +2,14 @@ import { remote } from 'electron'
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { isGitRepository } from '../../lib/git'
+import { isGitRepository, initGitRepository } from '../../lib/git'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { LinkButton } from '../lib/link-button'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -44,7 +45,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
         <Octicon symbol={OcticonSymbol.alert} />
         <p>
           This directory does not appear to be a git repository.<br />
-          Would you like to create a repository here instead?
+          Would you like to <LinkButton onClick={this.onCreateRepositoryClicked}>create a repository</LinkButton> here instead?
         </p>
       </Row>
     )
@@ -124,6 +125,14 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
       this.props.dispatcher.selectRepository(repository)
     }
 
+    this.props.onDismissed()
+  }
+
+  private onCreateRepositoryClicked = async () => {
+    const resolvedPath = this.resolvedPath(this.state.path)
+
+    await initGitRepository(resolvedPath)
+    await this.addRepository()
     this.props.onDismissed()
   }
 }
