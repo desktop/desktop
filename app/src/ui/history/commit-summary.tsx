@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
+import {clipboard}  from 'electron'
 
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -179,10 +180,28 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     )
   }
 
+  private renderExternalLink(url: string | null) {
+    if (!url) {
+      return null
+    }
+
+    return (
+      <li className='commit-summary-meta-item'
+        title="View this commit on github.com">
+        <span aria-hidden='true'>
+          <Octicon symbol={OcticonSymbol.linkExternal} />
+        </span>
+
+        <LinkButton uri={url}>View on GitHub</LinkButton>
+      </li>
+    )
+  }
+
   public render() {
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
+    const longSHA = this.props.sha
     const shortSHA = this.props.sha.slice(0, 7)
 
     let url: string | null = null
@@ -226,12 +245,12 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
             </li>
 
             <li className='commit-summary-meta-item'
-              title={shortSHA} aria-label='SHA'>
+              title="Copy SHA to clipboard" aria-label='SHA'>
               <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
 
-              {url ? <LinkButton uri={url}>{shortSHA}</LinkButton> : shortSHA}
+              <LinkButton onClick={() => clipboard.writeText(longSHA)}>{shortSHA}</LinkButton>
             </li>
 
             <li className='commit-summary-meta-item'
@@ -242,6 +261,8 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
 
               {filesDescription}
             </li>
+
+            {this.renderExternalLink(url)}
           </ul>
         </div>
 
