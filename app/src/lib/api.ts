@@ -293,10 +293,12 @@ export class API {
         const message: string = e.message
         const error = await deserialize<IError>(message)
         if (error) {
+          logError(`createRepository return an API error: ${JSON.stringify(error)}`, e)
           throw new Error(error.message)
         }
       }
 
+      logError(`createRepository return an unknown error`, e)
       throw e
     }
   }
