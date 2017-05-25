@@ -59,6 +59,7 @@ export class Repository implements IRepository {
   }
 
   public get name(): string {
-    return path.basename(this.path)
+    const repoName = this.gitHubRepository && this.gitHubRepository.name
+    return repoName || path.basename(this.path)
   }
 }
