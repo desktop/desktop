@@ -52,7 +52,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   }
 
   public render() {
-    const disabled = this.state.path.length === 0 || this.state.isGitRepository === null
+    const disabled = this.state.path.length === 0 || this.state.isGitRepository === null || !this.state.isGitRepository
 
     return (
       <Dialog
