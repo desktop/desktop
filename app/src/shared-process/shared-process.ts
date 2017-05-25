@@ -45,6 +45,11 @@ export class SharedProcess {
 
   /** Send a message to the shared process' renderer. */
   public send(msg: IMessage) {
+
+    if (this.window.isDestroyed()) {
+      return
+    }
+
     this.messageQueue.push(msg)
     this.drainMessageQueue()
   }
@@ -73,5 +78,9 @@ export class SharedProcess {
         this.send({ guid: '', name: 'console.error', args: { args } })
       },
     }
+  }
+
+  public destroy() {
+    this.window.destroy()
   }
 }

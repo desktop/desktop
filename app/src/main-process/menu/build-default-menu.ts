@@ -44,12 +44,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click: emit('create-repository'),
         accelerator: 'CmdOrCtrl+N',
       },
-      {
-        label: __DARWIN__ ? 'New Branch…' : 'New &branch…',
-        id: 'create-branch',
-        accelerator: 'CmdOrCtrl+Shift+N',
-        click: emit('create-branch'),
-      },
       separator,
       {
         label: __DARWIN__ ? 'Add Local Repository…' : 'Add &local repository…',
@@ -130,6 +124,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       separator,
       {
         label: '&Reload',
+        id: 'reload-window',
         accelerator: 'CmdOrCtrl+R',
         click (item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
@@ -139,6 +134,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         visible: __RELEASE_ENV__ !== 'production',
       },
       {
+        id: 'show-devtools',
         label: __DARWIN__ ? 'Toggle Developer Tools' : '&Toggle developer tools',
         accelerator: (() => {
           return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'
@@ -212,6 +208,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     id: 'branch',
     submenu: [
       {
+        label: __DARWIN__ ? 'New Branch…' : 'New &branch…',
+        id: 'create-branch',
+        accelerator: 'CmdOrCtrl+Shift+N',
+        click: emit('create-branch'),
+      },
+      {
         label: __DARWIN__ ? 'Rename…' : '&Rename…',
         id: 'rename-branch',
         click: emit('rename-branch'),
@@ -276,14 +278,19 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   ]
 
   if (__DEV__) {
-    const throwUnhandledError: Electron.MenuItemOptions = {
-      label: 'Boomtown…',
-      click () {
-        throw new Error('Boomtown!')
+    helpItems.push(
+      separator,
+      {
+        label: 'Crash main process…',
+        click () {
+          throw new Error('Boomtown!')
+        },
       },
-    }
-
-    helpItems.push(throwUnhandledError)
+      {
+        label: 'Crash renderer process…',
+        click: emit('boomtown'),
+      },
+    )
   }
 
   if (__DARWIN__) {

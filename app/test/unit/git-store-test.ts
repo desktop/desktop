@@ -10,6 +10,10 @@ import { GitProcess } from 'dugite'
 
 import { GitStore } from '../../src/lib/dispatcher/git-store'
 import { AppFileStatus } from '../../src/models/status'
+import { Repository } from '../../src/models/repository'
+import { Commit } from '../../src/models/commit'
+import { TipState, IValidBranch } from '../../src/models/tip'
+
 import { shell } from '../test-app-shell'
 
 import { getCommit, getStatus } from '../../src/lib/git'
@@ -86,34 +90,72 @@ describe('GitStore', () => {
     expect(files.length).to.equal(0)
   })
 
-  it('can undo the first commit', async () => {
-    const repo = await setupEmptyRepository()
-    const gitStore = new GitStore(repo, shell)
+  describe('undo first commit', () => {
 
-    const file = 'README.md'
-    const filePath = Path.join(repo.path, file)
+    let repo: Repository | null = null
+    let firstCommit: Commit | null = null
 
-    Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+    const commitMessage = 'added file'
 
-    const message = 'added file'
+    beforeEach(async () => {
+      repo = await setupEmptyRepository()
 
-    await GitProcess.exec([ 'add', file ], repo.path)
-    await GitProcess.exec([ 'commit', '-m', message ], repo.path)
+      const file = 'README.md'
+      const filePath = Path.join(repo.path, file)
 
-    const commit = await getCommit(repo, 'master')
-    expect(commit).to.not.equal(null)
-    expect(commit!.parentSHAs.length).to.equal(0)
+      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
 
-    await gitStore.undoCommit(commit!)
+      await GitProcess.exec([ 'add', file ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', commitMessage ], repo.path)
 
-    const after = await getStatus(repo)
+      firstCommit = await getCommit(repo!, 'master')
+      expect(firstCommit).to.not.equal(null)
+      expect(firstCommit!.parentSHAs.length).to.equal(0)
+    })
 
-    expect(after).to.not.be.null
-    expect(after!.currentTip).to.be.undefined
+    it('reports the repository is unborn', async () => {
+      const gitStore = new GitStore(repo!, shell)
 
-    const context = gitStore.contextualCommitMessage
-    expect(context).to.not.be.null
-    expect(context!.summary).to.equal(message)
+      await gitStore.loadStatus()
+      expect(gitStore.tip.kind).to.equal(TipState.Valid)
+
+      await gitStore.undoCommit(firstCommit!)
+
+      const after = await getStatus(repo!)
+
+      expect(after).to.not.be.null
+      expect(after!.currentTip).to.be.undefined
+    })
+
+    it('pre-fills the commit message', async () => {
+      const gitStore = new GitStore(repo!, shell)
+
+      await gitStore.undoCommit(firstCommit!)
+
+      const context = gitStore.contextualCommitMessage
+      expect(context).to.not.be.null
+      expect(context!.summary).to.equal(commitMessage)
+    })
+
+    it('clears the undo commit dialog', async () => {
+      const gitStore = new GitStore(repo!, shell)
+
+      await gitStore.loadStatus()
+
+      const tip = gitStore.tip as IValidBranch
+      await gitStore.loadLocalCommits(tip.branch)
+
+      expect(gitStore.localCommitSHAs.length).to.equal(1)
+
+      await gitStore.undoCommit(firstCommit!)
+
+      await gitStore.loadStatus()
+      expect(gitStore.tip.kind).to.equal(TipState.Unborn)
+
+      await gitStore.loadLocalCommits(null)
+
+      expect(gitStore.localCommitSHAs).to.be.empty
+    })
   })
 
   it('hides commented out lines from MERGE_MSG', async () => {
