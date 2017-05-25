@@ -155,6 +155,7 @@ interface IError {
  */
 interface IAPIError {
   readonly errors?: IError[]
+  readonly message?: string
 }
 
 /** The partial server response when creating a new authorization on behalf of a user */
@@ -427,11 +428,12 @@ export async function createAuthorization(endpoint: string, login: string, passw
   }
 
   if (response.status === 403) {
-    const body = await response.json()
-    if (body.message === 'This API can only be accessed with username and password Basic Auth') {
+    const apiError = await deserialize<IAPIError>(response)
+    if (apiError && apiError.message === 'This API can only be accessed with username and password Basic Auth') {
       // Authorization API does not support providing personal access tokens
       return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
     }
+
     return { kind: AuthorizationResponseKind.Error, response }
   }
 
