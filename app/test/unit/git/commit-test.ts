@@ -411,4 +411,39 @@ describe('git/commit', () => {
       expect(commits[0].parentSHAs.length).to.equal(2)
     })
   })
+
+  describe('corner cases with index', () => {
+    it('commit works when a staged new file is then deleted', async () => {
+      const repo = await setupEmptyRepository()
+
+      const firstPath = path.join(repo.path, 'first')
+      const secondPath = path.join(repo.path, 'second')
+
+      fs.writeFileSync(firstPath, 'line1\n')
+      fs.writeFileSync(secondPath, 'line2\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+
+      fs.unlinkSync(firstPath)
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+      expect(files[0].path).to.contain('second')
+      expect(files[0].status).to.equal(AppFileStatus.New)
+
+      const toCommit = status.workingDirectory.withIncludeAllFiles(true)
+
+      await createCommit(repo, 'commit everything', toCommit.files)
+
+      const statusAfter = await getStatus(repo)
+
+      expect(statusAfter.workingDirectory.files.length).to.be.empty
+
+      const commit = await getCommit(repo, 'HEAD')
+      expect(commit).to.not.be.null
+      expect(commit!.summary).to.equal('commit everything')
+    })
+  })
 })
