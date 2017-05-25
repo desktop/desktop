@@ -154,7 +154,7 @@ interface IError {
  * Details: https://developer.github.com/v3/#client-errors
  */
 interface IAPIError {
-  readonly errors: IError[]
+  readonly errors?: IError[]
 }
 
 /** The partial server response when creating a new authorization on behalf of a user */
@@ -438,11 +438,13 @@ export async function createAuthorization(endpoint: string, login: string, passw
   if (response.status === 422) {
     const apiError = await deserialize<IAPIError>(response)
     if (apiError) {
-      for (const error of apiError.errors) {
-        const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
-        const isExpectedField =  error.field.toLowerCase() === 'user'
-        if (isExpectedField && isExpectedResource) {
-          return { kind: AuthorizationResponseKind.UserRequiresVerification }
+      if (apiError.errors) {
+        for (const error of apiError.errors) {
+          const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
+          const isExpectedField = error.field.toLowerCase() === 'user'
+          if (isExpectedField && isExpectedResource) {
+            return { kind: AuthorizationResponseKind.UserRequiresVerification }
+          }
         }
       }
     }
