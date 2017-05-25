@@ -16,7 +16,7 @@ interface IAppMenuProps {
    * A required callback for when the app menu is closed. The menu is explicitly
    * closed when a menu item has been clicked (executed) or when the user
    * presses Escape on the top level menu pane.
-   * 
+   *
    * @param closeSource An object describing the action that caused the menu
    *                    to close. This can either be a keyboard event (hitting
    *                    Escape) or the user executing one of the menu items by
@@ -45,7 +45,7 @@ interface IAppMenuProps {
    * show all menu items. This does not affect maximum height, i.e. if the
    * visible menu items takes up more space than what is available the menu
    * will still overflow and be scrollable.
-   * 
+   *
    * @default false
    */
   readonly autoHeight?: boolean
@@ -193,8 +193,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       // Immediately close any open submenus if we're navigating by keyboard.
       this.props.dispatcher.setAppMenuState(appMenu => appMenu
         .withSelectedItem(item)
-        .withLastMenu(this.props.state[depth])
-      )
+        .withLastMenu(this.props.state[depth]))
     } else {
       // If the newly selected item is a submenu we'll wait a bit and then expand
       // it unless the user makes another selection in between. If it's not then

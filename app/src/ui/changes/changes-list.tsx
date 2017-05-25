@@ -12,6 +12,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { IAutocompletionProvider } from '../autocompletion'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
+import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 
 const RowHeight = 29
 
@@ -71,7 +72,6 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         key={file.id}
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.onDiscardChanges}
-        onDiscardAllChanges={this.onDiscardAllChanges}
         availableWidth={this.props.availableWidth}
         onIgnore={this.props.onIgnore}
       />
@@ -101,6 +101,20 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     this.props.onDiscardChanges(file)
   }
 
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        action: this.onDiscardAllChanges,
+        enabled: this.props.workingDirectory.files.length > 0,
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
   public render() {
     const fileList = this.props.workingDirectory.files
     const selectedRow = fileList.findIndex(file => file.id === this.props.selectedFileID)
@@ -111,12 +125,12 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
 
     return (
       <div className='changes-list-container file-list'>
-        <div id='select-all' className='header'>
-          <Checkbox value={this.includeAllValue} onChange={this.onIncludeAllChanged}/>
-
-          <label className='changed-files-count'>
-            {filesDescription}
-          </label>
+        <div className='header' onContextMenu={this.onContextMenu}>
+          <Checkbox
+            label={filesDescription}
+            value={this.includeAllValue}
+            onChange={this.onIncludeAllChanged}
+          />
         </div>
 
         <List id='changes-list'

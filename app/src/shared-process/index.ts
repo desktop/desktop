@@ -15,15 +15,16 @@ import {
   IUpdateRepositoryPathAction,
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
-import { reportError } from '../ui/lib/exception-reporting'
+import { sendErrorReport, reportUncaughtException } from '../ui/main-process-proxy'
+import { enableSourceMaps } from '../lib/enable-source-maps'
 
-import { logError } from '../lib/logging/renderer'
+enableSourceMaps()
 
 process.on('uncaughtException', (error: Error) => {
+  console.error('Uncaught exception', error)
 
-  logError('Uncaught exception on shared process', error)
-
-  reportError(error)
+  sendErrorReport(error)
+  reportUncaughtException(error)
 })
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)

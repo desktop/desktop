@@ -1,17 +1,17 @@
 #blank-slate {
   display: flex;
-  justify-content: center;
 
   .header {
     max-width: 400px;
     align-self: center;
 
     text-align: center;
+  }
 
-    .title {
-      font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-light);
-    }
+  .title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    text-align: center;
   }
 
   .content,
@@ -22,7 +22,7 @@
   }
 
   .content {
-    margin: var(--spacing-quad) var(--spacing-double);
+    margin: var(--spacing-double) var(--spacing-double) var(--spacing-quad);
   }
 
   .callout {
@@ -53,4 +53,9 @@
   .callout:not(:last-child) {
     border-right: var(--base-border);
   }
+}
+
+.blankslate-image {
+  margin: var(--spacing-double) auto;
+  width: 400px;
 }

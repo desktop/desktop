@@ -5,9 +5,11 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { sanitizedBranchName } from '../../lib/sanitize-branch'
 import { TextBox } from '../lib/text-box'
+import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { renderBranchNameWarning } from '../lib/branch-name-warnings'
 
 interface IRenameBranchProps {
   readonly dispatcher: Dispatcher
@@ -26,17 +28,8 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
     this.state = { newName: props.branch.name }
   }
 
-  private renderError() {
-    const sanitizedName = sanitizedBranchName(this.state.newName)
-    if (sanitizedName !== this.state.newName) {
-      return <div>Will be created as {sanitizedName}</div>
-    } else {
-      return null
-    }
-  }
-
   public render() {
-    const disabled = !this.state.newName.length
+    const disabled = !this.state.newName.length || /^\s*$/.test(this.state.newName)
     return (
       <Dialog
         id='rename-branch'
@@ -45,14 +38,15 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
         onSubmit={this.renameBranch}
       >
         <DialogContent>
-          <TextBox
-            label='Name'
-            autoFocus={true}
-            value={this.state.newName}
-            onChange={this.onNameChange}
-            onKeyDown={this.onKeyDown}/>
-
-          {this.renderError()}
+          <Row>
+            <TextBox
+              label='Name'
+              autoFocus={true}
+              value={this.state.newName}
+              onChange={this.onNameChange}
+              onKeyDown={this.onKeyDown}/>
+          </Row>
+          {renderBranchNameWarning(this.state.newName, sanitizedBranchName(this.state.newName))}
         </DialogContent>
 
         <DialogFooter>

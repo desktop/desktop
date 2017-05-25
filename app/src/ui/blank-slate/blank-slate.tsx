@@ -20,16 +20,17 @@ interface IBlankSlateProps {
  */
 export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
   public render() {
+    const BlankSlateImage = `file:///${__dirname}/static/empty-no-repo.svg`
+
     return (
       <UiView id='blank-slate'>
-        <div className='header'>
-          <div className='title'>{__DARWIN__ ? 'No Repositories Found' : 'No repositories found'}</div>
-          <div>
-            Add or create a repository so that you can start committing code and publish it to GitHub.
-          </div>
-        </div>
+        <img src={BlankSlateImage} className='blankslate-image' />
 
+        <div className='title'>
+          {__DARWIN__ ? 'No Repositories Found' : 'No repositories found'}
+        </div>
         <div className='content'>
+
           <div className='callout'>
             <Octicon symbol={OcticonSymbol.plus}/>
             <div>Create a new project and publish it to GitHub</div>

@@ -1,7 +1,39 @@
 {
   "releases": {
-    "0.5.5": [
+    "0.5.9": [
 
+    ],
+    "0.5.8": [
+      "[Fixed] Switching tabs in Preferences/Settings or Repository Settings would close the dialog - #1724",
+      "[Improved] Standardized colors which improves contrast and readability - #1713"
+    ],
+    "0.5.7": [
+      "[Fixed] Windows: Handle protocol events which launch the app - #1582",
+      "[Fixed] Opting out of stats reporting in the Welcome flow - #1698",
+      "[Fixed] Commit description text being too light - #1695",
+      "[Fixed] Exception on startup if the app was activated too quickly - #1564",
+      "[Improved] Default directory for cloning now - #1663",
+      "[Improved] Accessibility support - #1289",
+      "[Improved] Lovely blank slate illustrations - #1708"
+    ],
+    "0.5.6": [
+      "[Fixed] macOS: The buttons in the Untrusted Server dialog not doing anything - #1622",
+      "[Fixed] Better warning in Rename Branch when the branch will be created with a different name than was entered - #1480",
+      "[Fixed] Provide a tooltip for commit summaries in the History list - #1483",
+      "[Fixed] Prevent the Update Available banner from getting squished - #1632",
+      "[Fixed] Title bar not responding to double-clicks - #1590 #1655",
+      "[Improved] Discard All Changes is now accessible by right-clicking the file column header - #1635"
+    ],
+    "0.5.5": [
+      "[Fixed] Save the default path after creating a new repository - #1486",
+      "[Fixed] Only let the user launch the browser once for the OAuth flow - #1427",
+      "[Fixed] Don't linkify invalid URLs - #1456",
+      "[Fixed] Excessive padding in the Merge Branch dialog - #1577",
+      "[Fixed] Octicon pixel alignment issues - #1584",
+      "[Fixed] Windows: Invoking some menu items would break the window's snapped state - #1603",
+      "[Fixed] macOS: Errors authenticating while pushing - #1514",
+      "[Fixed] Don't linkify links in the History list or in Undo - #1548 #1608 #1474",
+      "[Fixed] Diffs not working when certain git config values were set - #1559"
     ],
     "0.5.4": [
       "[Fixed] The release notes URL pointed to the wrong page - #1503",

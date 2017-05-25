@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { shell, Menu, app } from 'electron'
+import { shell, Menu, ipcMain, app } from 'electron'
 import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
@@ -76,7 +76,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click: emit('show-preferences'),
       },
       separator,
-      { role: 'quit' }
+      { role: 'quit' },
     )
   }
 
@@ -130,6 +130,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       separator,
       {
         label: '&Reload',
+        id: 'reload-window',
         accelerator: 'CmdOrCtrl+R',
         click (item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
@@ -139,6 +140,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         visible: __RELEASE_ENV__ !== 'production',
       },
       {
+        id: 'show-devtools',
         label: __DARWIN__ ? 'Toggle Developer Tools' : '&Toggle developer tools',
         accelerator: (() => {
           return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'
@@ -276,14 +278,19 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   ]
 
   if (__DEV__) {
-    const throwUnhandledError: Electron.MenuItemConstructorOptions = {
-      label: 'Boomtown…',
-      click () {
-        throw new Error('Boomtown!')
+    helpItems.push(
+      separator,
+      {
+        label: 'Crash main process…',
+        click () {
+          throw new Error('Boomtown!')
+        },
       },
-    }
-
-    helpItems.push(throwUnhandledError)
+      {
+        label: 'Crash renderer process…',
+        click: emit('boomtown'),
+      },
+    )
   }
 
   if (__DARWIN__) {
@@ -315,6 +322,10 @@ type ClickHandler = (menuItem: Electron.MenuItem, browserWindow: Electron.Browse
  */
 function emit(name: MenuEvent): ClickHandler {
   return (menuItem, window) => {
-    window.webContents.send('menu-event', { name })
+    if (window) {
+      window.webContents.send('menu-event', { name })
+    } else {
+      ipcMain.emit('menu-event', { name })
+    }
   }
 }

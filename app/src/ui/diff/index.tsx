@@ -369,7 +369,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         noNewlineReactContainer.setAttribute('title', 'No newline at end of file')
         ReactDOM.render(
           <Octicon symbol={narrowNoNewlineSymbol} className='no-newline' />,
-          noNewlineReactContainer
+          noNewlineReactContainer,
         )
         diffLineElement.appendChild(noNewlineReactContainer)
       }
@@ -399,8 +399,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           if (this !== undefined) {
             cache.set(index, this)
           }
-        }
-      )
+        })
 
       const onMouseMoveLine: (ev: MouseEvent) => void = (ev) => {
         this.onDiffTextMouseMove(ev, diff, index)
@@ -532,7 +531,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       // off to CodeMirror. That's because CodeMirror has two ways of splitting
       // lines, one is the built in which splits on \n, \r\n and \r. The last
       // one is important because that will match carriage return characters
-      // inside a diff line. The other way is when consumers supply the 
+      // inside a diff line. The other way is when consumers supply the
       // lineSeparator option. That option only takes a string meaning we can
       // either make it split on '\r\n', '\n' or '\r' but not what we would like
       // to do, namely '\r?\n'. We want to keep CR characters inside of a diff

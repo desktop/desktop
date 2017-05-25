@@ -44,7 +44,7 @@ export class RichText extends React.Component<IRichTextProps, void> {
     const elements = tokenizer.tokenize(str).map((token, index) => {
       switch (token.kind) {
         case TokenType.Emoji:
-          return <img key={index} alt={token.text} title={token.text} className='emoji' src={token.path}/>
+          return <img key={index} alt={token.text} className='emoji' src={token.path}/>
         case TokenType.Link:
           if (this.props.renderUrlsAsLinks !== false) {
             return <LinkButton key={index} uri={token.url} children={token.text} />
@@ -59,7 +59,7 @@ export class RichText extends React.Component<IRichTextProps, void> {
     })
 
     return (
-      <div className={this.props.className}>
+      <div className={this.props.className} title={str}>
         { elements }
       </div>
     )
