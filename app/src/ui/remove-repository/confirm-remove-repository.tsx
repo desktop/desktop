@@ -42,9 +42,9 @@ export class ConfirmRemoveRepository extends React.Component<IConfirmRemoveRepos
           </p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
             <Button type='submit'>Yes</Button>
             <Button onClick={this.cancel}>No</Button>
+          <ButtonGroup destructive>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
