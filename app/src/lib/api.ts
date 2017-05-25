@@ -446,6 +446,8 @@ export async function createAuthorization(endpoint: string, login: string, passw
         }
       }
     }
+
+    return { kind: AuthorizationResponseKind.Error, response }
   }
 
   const body = await deserialize<IAPIAuthorization>(response)
