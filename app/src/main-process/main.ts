@@ -258,11 +258,11 @@ app.on('ready', () => {
     log(logEntry)
   })
 
-  ipcMain.on('uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
+  ipcMain.on('uncaught-exception', (event: Electron.IpcMessageEvent, error: Error) => {
     uncaughtException(error)
   })
 
-  ipcMain.on('send-error-report', (event: Electron.IpcMainEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
+  ipcMain.on('send-error-report', (event: Electron.IpcMessageEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
     reportError(error, extra)
   })
 

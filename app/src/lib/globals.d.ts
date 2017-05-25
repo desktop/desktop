@@ -41,6 +41,12 @@ declare namespace Electron {
     readonly type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
   }
 
+  interface RequestOptions {
+    readonly method: string
+    readonly url: string
+    readonly headers: any
+  }
+
   // these methods have been marked with optional parameters, where we hadn't assumed this before
   // tslint:disable-next-line:interface-name
   interface App extends EventEmitter {

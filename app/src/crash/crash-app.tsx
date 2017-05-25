@@ -73,11 +73,11 @@ function prepareErrorMessage(error: Error) {
 
 /**
  * The root component for our crash process.
- * 
+ *
  * The crash process is responsible for presenting the user with an
  * error after the main process or any renderer process has crashed due
  * to an uncaught exception or when the main renderer has failed to load.
- * 
+ *
  * Exercise caution when working with the crash process. If the crash
  * process itself crashes we've failed.
  */
@@ -94,11 +94,11 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   public componentDidMount() {
     const window = remote.getCurrentWindow()
 
-    ipcRenderer.on(windowStateChannelName, (_, args) => {
+    ipcRenderer.on(windowStateChannelName, () => {
       this.setState({ windowState: getWindowState(window) })
     })
 
-    ipcRenderer.on('error', (event: Electron.IpcRendererEvent, crashDetails: ICrashDetails) => {
+    ipcRenderer.on('error', (event: Electron.IpcMessageEvent, crashDetails: ICrashDetails) => {
       this.setState(crashDetails)
     })
 
