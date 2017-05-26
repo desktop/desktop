@@ -2,7 +2,7 @@ import { remote } from 'electron'
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { isGitRepository, initGitRepository } from '../../lib/git'
+import { isGitRepository } from '../../lib/git'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { TextBox } from '../lib/text-box'
@@ -10,6 +10,7 @@ import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
+import { CreateRepository } from '../add-repository/create-repository'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -128,11 +129,15 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     this.props.onDismissed()
   }
 
-  private onCreateRepositoryClicked = async () => {
+  private onCreateRepositoryClicked = () => {
     const resolvedPath = this.resolvedPath(this.state.path)
 
-    await initGitRepository(resolvedPath)
-    await this.addRepository()
-    this.props.onDismissed()
+    return (
+      <CreateRepository
+        key='create-repository'
+        dispatcher={this.props.dispatcher}
+        onDismissed={this.props.onDismissed}
+        path={resolvedPath}/>
+    )
   }
 }
