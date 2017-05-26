@@ -243,6 +243,15 @@ export function mapStatus(status: string): FileEntry {
     }
   }
 
+  if (status === 'AD') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      staged: GitStatusEntry.Added,
+      unstaged: GitStatusEntry.Deleted,
+    }
+  }
+
   if (status === 'AM') {
     return {
       kind: 'ordinary',
