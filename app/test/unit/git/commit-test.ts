@@ -412,8 +412,10 @@ describe('git/commit', () => {
     })
   })
 
-  describe('corner cases with index', () => {
-    it('commit works when a staged new file is then deleted', async () => {
+  describe('index corner cases', () => {
+    it('can commit when staged new file is then deleted', async () => {
+      let status, files = null
+
       const repo = await setupEmptyRepository()
 
       const firstPath = path.join(repo.path, 'first')
@@ -422,12 +424,12 @@ describe('git/commit', () => {
       fs.writeFileSync(firstPath, 'line1\n')
       fs.writeFileSync(secondPath, 'line2\n')
 
-      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'add', '.' ], repo.path)
 
       fs.unlinkSync(firstPath)
 
-      const status = await getStatus(repo)
-      const files = status.workingDirectory.files
+      status = await getStatus(repo)
+      files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
       expect(files[0].path).to.contain('second')
@@ -437,13 +439,48 @@ describe('git/commit', () => {
 
       await createCommit(repo, 'commit everything', toCommit.files)
 
-      const statusAfter = await getStatus(repo)
-
-      expect(statusAfter.workingDirectory.files.length).to.be.empty
+      status = await getStatus(repo)
+      files = status.workingDirectory.files
+      expect(files).to.be.empty
 
       const commit = await getCommit(repo, 'HEAD')
       expect(commit).to.not.be.null
       expect(commit!.summary).to.equal('commit everything')
+    })
+
+    it('can commit when a delete is staged and the untracked file exists', async () => {
+      let status, files = null
+
+      const repo = await setupEmptyRepository()
+
+      const firstPath = path.join(repo.path, 'first')
+      fs.writeFileSync(firstPath, 'line1\n')
+
+      await GitProcess.exec([ 'add', 'first' ], repo.path)
+      await GitProcess.exec([ 'commit', '-am', 'commit first file' ], repo.path)
+      await GitProcess.exec([ 'rm', '--cached', 'first' ], repo.path)
+
+      // if the text is now different, everything is fine
+      fs.writeFileSync(firstPath, 'line2\n')
+
+      status = await getStatus(repo)
+      files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+      expect(files[0].path).to.contain('first')
+      expect(files[0].status).to.equal(AppFileStatus.New)
+
+      const toCommit = status.workingDirectory.withIncludeAllFiles(true)
+
+      await createCommit(repo, 'commit again!', toCommit.files)
+
+      status = await getStatus(repo)
+      files = status.workingDirectory.files
+      expect(files).to.be.empty
+
+      const commit = await getCommit(repo, 'HEAD')
+      expect(commit).to.not.be.null
+      expect(commit!.summary).to.equal('commit again!')
     })
   })
 })
