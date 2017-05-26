@@ -181,8 +181,7 @@ function getNextPageUrl(response: Response): string | null {
     const match = part.match(/<([^>]+)>; rel="([^"]+)"/)
 
     if (match && match[2] === 'next') {
-      const url = URL.parse(match[1])
-      return url.path || null
+      return match[1]
     }
   }
 
