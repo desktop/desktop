@@ -35,6 +35,7 @@ const NoLicenseValue: ILicense = {
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
+  readonly path?: string
 }
 
 interface ICreateRepositoryState {
@@ -66,7 +67,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     super(props)
 
     this.state = {
-      path: getDefaultDir(),
+      path: this.props.path ? this.props.path : getDefaultDir(),
       name: '',
       createWithReadme: false,
       creating: false,
