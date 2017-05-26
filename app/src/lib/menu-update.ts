@@ -82,6 +82,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   let networkActionInProgress = false
   let tipStateIsUnknown = false
 
+  let hasRemote = false
+
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
 
@@ -108,6 +110,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     } else {
       onNonDefaultBranch = true
     }
+
+    hasRemote = !!selectedState.state.remote
 
     networkActionInProgress = selectedState.state.isPushPullFetchInProgress
   }
@@ -147,8 +151,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.setEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
-    menuStateBuilder.setEnabled('push', !networkActionInProgress)
-    menuStateBuilder.setEnabled('pull', !networkActionInProgress)
+    menuStateBuilder.setEnabled('push', hasRemote && !networkActionInProgress)
+    menuStateBuilder.setEnabled('pull', hasPublishedBranch && !networkActionInProgress)
     menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
   } else {
     for (const id of repositoryScopedIDs) {
