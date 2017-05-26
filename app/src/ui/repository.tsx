@@ -9,6 +9,7 @@ import { TabBar } from './tab-bar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher, IssuesStore, GitHubUserStore } from '../lib/dispatcher'
 import { assertNever } from '../lib/fatal-error'
+import { Octicon, OcticonSymbol } from './octicons'
 
 interface IRepositoryProps {
   readonly repository: Repo
@@ -36,9 +37,9 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
 
     return (
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
-        <span>
+        <span className='with-indicator'>
           <span>Changes</span>
-          {hasChanges ? <span className='indicator'/> : null}
+          {hasChanges ? <Octicon className='indicator' symbol={OcticonSymbol.primitiveDot} /> : null}
         </span>
         <span>History</span>
       </TabBar>
