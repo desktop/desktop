@@ -119,6 +119,7 @@ export interface IAPIIssue {
   readonly number: number
   readonly title: string
   readonly state: 'open' | 'closed'
+  readonly updated_at: string
 }
 
 /** The metadata about a GitHub server. */

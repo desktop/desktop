@@ -16,22 +16,24 @@ export class IssuesStore {
     this.db = db
   }
 
-  private lastFetchKey(repository: GitHubRepository): string {
-    return `IssuesStore/${repository.dbID}/lastFetch`
-  }
+  private async getLatestUpdatedAt(repository: GitHubRepository): Promise<string | null> {
+    const gitHubRepositoryID = repository.dbID
+    if (!gitHubRepositoryID) {
+      return fatalError(`Cannot get issues for a repository that hasn't been inserted into the database!`)
+    }
 
-  private getLastFetchDate(repository: GitHubRepository): Date | null {
-    const rawTime = localStorage.getItem(this.lastFetchKey(repository))
-    if (!rawTime) { return null }
+    const db = this.db
 
-    const parsedNumber = parseInt(rawTime, 10)
-    if (!parsedNumber || isNaN(parsedNumber)) { return null }
+    const latestUpdatedIssue = await db.issues
+      .where('[gitHubRepositoryID+updated_at]')
+      .equals([ gitHubRepositoryID ])
+      .last()
 
-    return new Date(parsedNumber)
-  }
+    debugger
 
-  private setLastFetchDate(repository: GitHubRepository, date: Date) {
-    localStorage.setItem(this.lastFetchKey(repository), date.getTime().toString())
+    return latestUpdatedIssue
+      ? latestUpdatedIssue.updated_at || null
+      : null
   }
 
   /**
@@ -40,17 +42,16 @@ export class IssuesStore {
    */
   public async fetchIssues(repository: GitHubRepository, account: Account) {
     const api = new API(account)
-    const lastFetchDate = this.getLastFetchDate(repository)
-    const now = new Date()
+    const lastUpdatedAt = await this.getLatestUpdatedAt(repository)
 
     let issues: ReadonlyArray<IAPIIssue>
-    if (lastFetchDate) {
-      issues = await api.fetchIssues(repository.owner.login, repository.name, 'all', lastFetchDate)
+    if (lastUpdatedAt) {
+      const since = new Date(lastUpdatedAt)
+      debugger
+      issues = await api.fetchIssues(repository.owner.login, repository.name, 'all', since)
     } else {
       issues = await api.fetchIssues(repository.owner.login, repository.name, 'open', null)
     }
-
-    this.setLastFetchDate(repository, now)
 
     this.storeIssues(issues, repository)
   }
@@ -70,6 +71,7 @@ export class IssuesStore {
           gitHubRepositoryID,
           number: i.number,
           title: i.title,
+          updated_at: i.updated_at,
         }
       })
 
