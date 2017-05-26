@@ -169,6 +169,38 @@ interface IAPIMentionablesResponse {
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
+function getNextPageUrl(response: Response): string | null {
+  const linkHeader = response.headers.get('Link')
+
+  if (!linkHeader) {
+    return null
+  }
+
+  for (const part of linkHeader.split(',')) {
+    // https://github.com/philschatz/octokat.js/blob/5658abe442e8bf405cfda1c72629526a37554613/src/plugins/pagination.js#L17
+    const match = part.match(/<([^>]+)>; rel="([^"]+)"/)
+
+    if (match && match[2] === 'next') {
+      const url = URL.parse(match[1])
+      return url.path || null
+    }
+  }
+
+  return null
+}
+
+function urlWithQueryString(url: string, params: { [key: string]: any }): string {
+  const qs = Object.keys(params)
+    .map(key => `${key}=${encodeURIComponent(params[key])}`)
+    .join('&')
+
+  if (url.indexOf('?') === -1) {
+    return `${url}?${qs}`
+  } else {
+    return `${url}&${qs}`
+  }
+}
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
@@ -309,25 +341,29 @@ export class API {
    * since the given date.
    */
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
-    const params: any = { state }
-    if (since) {
-      params.since = since.toISOString()
+
+    let response
+    let url: string | null = `repos/${owner}/${name}/issues`
+
+    if (since && !isNaN(since.getTime())) {
+      url = urlWithQueryString(url, { since: since.toISOString().replace(/\.\d{3}Z$/, 'Z') })
     }
 
-    const allItems: Array<IAPIIssue> = []
-    // Note that we only include `params` on the first fetch. Octokat.js will
-    // preserve them as we fetch subsequent pages and would fail to advance
-    // pages if we included the params on each call.
-    let result = await this.client.repos(owner, name).issues.fetch(params)
-    allItems.push(...result.items)
+    const issues = new Array<IAPIIssue>()
 
-    while (result.nextPage) {
-      result = await result.nextPage.fetch()
-      allItems.push(...result.items)
-    }
+    do {
+      debugger
+      response = await this.authenticatedRequest('GET', url)
+      debugger
+      const items = await deserialize<ReadonlyArray<IAPIIssue>>(response)
+      if (items) {
+        issues.push(...items)
+      }
+      url = getNextPageUrl(response)
+    } while (url)
 
     // PRs are issues! But we only want Really Seriously Issues.
-    return allItems.filter((i: any) => !i.pullRequest)
+    return issues.filter((i: any) => !i.pullRequest)
   }
 
   private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
