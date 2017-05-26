@@ -141,6 +141,7 @@ export class AppStore {
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
+  private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
 
@@ -164,6 +165,14 @@ export class AppStore {
     ipcRenderer.on('window-state-changed', (_, args) => {
       this.windowState = getWindowState(window)
       this.emitUpdate()
+    })
+
+    window.webContents.getZoomFactor(factor => {
+      this.onWindowZoomFactorChanged(factor)
+    })
+
+    ipcRenderer.on('zoom-factor-changed', (event, zoomFactor) => {
+      this.onWindowZoomFactorChanged(zoomFactor)
     })
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
@@ -242,6 +251,21 @@ export class AppStore {
   /** Register a listener for when an error occurs. */
   public onDidError(fn: (error: Error) => void): Disposable {
     return this.emitter.on('did-error', fn)
+  }
+
+  /** 
+   * Called when we have reason to suspect that the zoom factor
+   * has changed. Note that this doesn't necessarily mean that it
+   * has changed with regards to our internal state which is why
+   * we double check before emitting an update.
+   */
+  private onWindowZoomFactorChanged(zoomFactor: number) {
+    const current = this.windowZoomFactor
+    this.windowZoomFactor = zoomFactor
+
+    if (zoomFactor !== current) {
+      this.emitUpdate()
+    }
   }
 
   private getInitialRepositoryState(): IRepositoryState {
@@ -362,6 +386,7 @@ export class AppStore {
         ...this.cloningRepositoriesStore.repositories,
       ],
       windowState: this.windowState,
+      windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
@@ -985,6 +1010,8 @@ export class AppStore {
     if (state.branchesState.tip.kind === TipState.Valid) {
       const currentBranch = state.branchesState.tip.branch
       await gitStore.loadLocalCommits(currentBranch)
+    } else if (state.branchesState.tip.kind === TipState.Unborn) {
+      await gitStore.loadLocalCommits(null)
     }
   }
 
@@ -1493,6 +1520,17 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
 
     await gitStore.undoCommit(commit)
+
+    const state = this.getRepositoryState(repository)
+    const selectedCommit = state.historyState.selection.sha
+
+    if (selectedCommit === commit.sha) {
+      // clear the selection of this commit in the history view
+      this.updateHistoryState(repository, state => {
+        const selection = { sha: null, file: null }
+        return { selection }
+      })
+    }
 
     return this._refreshRepository(repository)
   }

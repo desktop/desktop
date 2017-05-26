@@ -45,6 +45,7 @@ import { BlankSlateView } from './blank-slate'
 import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-repository'
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
+import { ZoomInfo } from './window/zoom-info'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -188,9 +189,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-in-shell' : return this.openShell()
       case 'clone-repository': return this.showCloneRepo()
       case 'show-about': return this.showAbout()
+      case 'boomtown': return this.boomtown()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
+  }
+
+  private boomtown() {
+    setImmediate(() => {
+      throw new Error('Boomtown!')
+    })
   }
 
   private checkForUpdates() {
@@ -606,6 +614,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         showAppIcon={showAppIcon}
         titleBarStyle={this.state.titleBarStyle}
         windowState={this.state.windowState}
+        windowZoomFactor={this.state.windowZoomFactor}
       >
         {this.renderAppMenuBar()}
       </TitleBar>
@@ -827,6 +836,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private renderZoomInfo() {
+    return <ZoomInfo windowZoomFactor={this.state.windowZoomFactor} />
+  }
+
   private clearError = (error: Error) => {
     this.props.dispatcher.clearError(error)
   }
@@ -921,6 +934,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     const remoteName = state.remote ? state.remote.name : null
     const progress = state.pushPullFetchProgress
 
+    const tip =  selection.state.branchesState.tip
+    const branchExists = tip.kind === TipState.Valid
+
     return <PushPullButton
       dispatcher={this.props.dispatcher}
       repository={selection.repository}
@@ -928,6 +944,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.isPushPullFetchInProgress}
+      branchExists={branchExists}
       progress={progress}
     />
   }
@@ -1067,6 +1084,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       <div id='desktop-app-chrome' className={className}>
         {this.renderTitlebar()}
         {this.state.showWelcomeFlow ? this.renderWelcomeFlow() : this.renderApp()}
+        {this.renderZoomInfo()}
       </div>
     )
   }
