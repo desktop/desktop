@@ -201,7 +201,7 @@ function getNextPageUrl(response: Response): string | null {
  *
  * If the url already has a query the new parameters will be appended.
  */
-function urlWithQueryString(url: string, params: { [key: string]: any }): string {
+function urlWithQueryString(url: string, params: { [key: string]: string }): string {
   const qs = Object.keys(params)
     .map(key => `${key}=${encodeURIComponent(params[key])}`)
     .join('&')
