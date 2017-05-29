@@ -352,9 +352,7 @@ export class API {
     const issues = new Array<IAPIIssue>()
 
     do {
-      debugger
       response = await this.authenticatedRequest('GET', url)
-      debugger
       const items = await deserialize<ReadonlyArray<IAPIIssue>>(response)
       if (items) {
         issues.push(...items)
