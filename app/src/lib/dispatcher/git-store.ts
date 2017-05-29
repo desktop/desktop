@@ -677,7 +677,8 @@ export class GitStore {
   public async saveGitIgnore(text: string): Promise<void> {
     const repository = this.repository
     const ignorePath = Path.join(repository.path, '.gitignore')
-    const fileContents = ensureTrailingNewline(text)
+
+    const fileContents = await ensureTrailingNewline(text, repository.path)
 
     return new Promise<void>((resolve, reject) => {
       Fs.writeFile(ignorePath, fileContents, err => {
@@ -693,8 +694,9 @@ export class GitStore {
   /** Ignore the given path or pattern. */
   public async ignore(pattern: string): Promise<void> {
     const text = await this.readGitIgnore() || ''
-    const currentContents = ensureTrailingNewline(text)
-    const newText = ensureTrailingNewline(`${currentContents}${pattern}`)
+    const path = this.repository.path
+    const currentContents = await ensureTrailingNewline(text, path)
+    const newText = await ensureTrailingNewline(`${currentContents}${pattern}`, path)
     await this.saveGitIgnore(newText)
 
     await removeFromIndex(this.repository, pattern)
@@ -785,14 +787,19 @@ export class GitStore {
   }
 }
 
-function ensureTrailingNewline(text: string): string {
-  // mixed line endings might be an issue here
-  if (!text.endsWith('\n')) {
+async function ensureTrailingNewline(text: string, path: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    // mixed line endings might be an issue here
+    if (text.endsWith('\n')) {
+      resolve(text)
+      return
+    }
+
     const linesEndInCRLF = text.indexOf('\r\n')
-    return linesEndInCRLF === -1
-      ? `${text}\n`
-      : `${text}\r\n`
-  } else {
-    return text
-  }
+    if (linesEndInCRLF === -1) {
+      resolve(`${text}\n`)
+    } else {
+      resolve(`${text}\r\n`)
+    }
+  })
 }
