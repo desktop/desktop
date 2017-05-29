@@ -2,14 +2,16 @@ import * as React from 'react'
 import { TabBar } from '../tab-bar'
 import { Remote } from './remote'
 import { GitIgnore } from './git-ignore'
-import { GitLFS } from './git-lfs'
 import { assertNever } from '../../lib/fatal-error'
 import { IRemote } from '../../models/remote'
 import { Dispatcher } from '../../lib/dispatcher'
+import { PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
+import { NoRemote } from './no-remote'
+import { getLogger } from '../../lib/logging/renderer'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -21,7 +23,6 @@ interface IRepositorySettingsProps {
 enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
-  GitLFS,
 }
 
 interface IRepositorySettingsState {
@@ -51,6 +52,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
       const ignoreText = await this.props.dispatcher.readGitIgnore(this.props.repository)
       this.setState({ ignoreText })
     } catch (e) {
+      getLogger().error(`RepositorySettings: unable to read .gitignore file at ${this.props.repository.path}`, e)
       this.setState({ errors: [ `Could not read .gitignore: ${e}` ] })
     }
   }
@@ -81,18 +83,29 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
 
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
           <span>Remote</span>
-          <span>Ignored Files</span>
-          <span>Git LFS</span>
+          <span>{ __DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
         </TabBar>
 
         {this.renderActiveTab()}
-        <DialogFooter>
-          <ButtonGroup>
-            <Button type='submit'>Save</Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
-        </DialogFooter>
+        {this.renderFooter()}
       </Dialog>
+    )
+  }
+
+  private renderFooter() {
+    const tab = this.state.selectedTab
+    const remote = this.state.remote
+    if (tab === RepositorySettingsTab.Remote && !remote) {
+      return null
+    }
+
+    return (
+      <DialogFooter>
+        <ButtonGroup>
+          <Button type='submit'>Save</Button>
+          <Button onClick={this.props.onDismissed}>Cancel</Button>
+        </ButtonGroup>
+      </DialogFooter>
     )
   }
 
@@ -100,12 +113,17 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     const tab = this.state.selectedTab
     switch (tab) {
       case RepositorySettingsTab.Remote: {
-        return (
-          <Remote
-            remote={this.state.remote}
-            onRemoteUrlChanged={this.onRemoteUrlChanged}
-          />
-        )
+        const remote = this.state.remote
+        if (remote) {
+          return (
+            <Remote
+              remote={remote}
+              onRemoteUrlChanged={this.onRemoteUrlChanged}
+            />
+          )
+        } else {
+          return <NoRemote onPublish={this.onPublish}/>
+        }
       }
       case RepositorySettingsTab.IgnoredFiles: {
         return <GitIgnore
@@ -114,12 +132,13 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
           onShowExamples={this.onShowGitIgnoreExamples}
         />
       }
-      case RepositorySettingsTab.GitLFS: {
-        return <GitLFS/>
-      }
     }
 
     return assertNever(tab, `Unknown tab type: ${tab}`)
+  }
+
+  private onPublish = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.PublishRepository, repository: this.props.repository })
   }
 
   private onShowGitIgnoreExamples = () => {
@@ -140,7 +159,8 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
             this.state.remote.url
           )
         } catch (e) {
-          errors.push(`Failed saving the remote URL: ${e}`)
+          getLogger().error(`RepositorySettings: unable to set remote URL at ${this.props.repository.path}`, e)
+          errors.push(`Failed setting the remote URL: ${e}`)
         }
       }
     }
@@ -149,6 +169,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
       try {
         await this.props.dispatcher.saveGitIgnore(this.props.repository, this.state.ignoreText || '')
       } catch (e) {
+        getLogger().error(`RepositorySettings: unable to save gitignore at ${this.props.repository.path}`, e)
         errors.push(`Failed saving the .gitignore file: ${e}`)
       }
     }

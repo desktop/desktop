@@ -7,7 +7,7 @@
   background: var(--box-alt-background-color);
 
   .commit-info {
-    padding: var(--spacing);
+    padding: var(--spacing-half) var(--spacing);
     padding-right: 0;
     margin-right: var(--spacing-half);
 
@@ -16,14 +16,12 @@
     flex-direction: column;
     font-size: var(--font-size-sm);
 
+    .summary,
     .ago {
-      color: var(--text-secondary-color);
       @include ellipsis;
     }
-
-    .summary {
-      font-weight: var(--font-weight-semibold);
-      @include ellipsis;
+    .ago {
+      color: var(--text-secondary-color);
     }
   }
 
@@ -35,7 +33,5 @@
 
     // In order to not add to the margin already in commit-info.
     padding-left: 0;
-
-    button { height: 100%; }
   }
 }

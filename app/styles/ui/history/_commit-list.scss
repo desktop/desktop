@@ -18,43 +18,17 @@
 
     padding: 0 var(--spacing);
 
-
-    &.facade {
-      .avatar {
-        background-color: lightGray;
-        border-radius: 4px;
-      }
-
-      .info {
-        width: 100%;
-
-        .summary {
-          background-color: rgb(220, 220, 220);
-          width: 90%;
-          height: 1em;
-        }
-
-        .byline {
-          background-color: rgb(240, 240, 240);
-          width: 75%;
-          height: 1em;
-        }
-      }
-    }
-
     .avatar {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       flex-shrink: 0;
-
-      border-radius: var(--border-radius);
     }
 
     .info {
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      margin-left: var(--spacing);
+      margin-left: var(--spacing-half);
 
       .summary, .byline { @include ellipsis }
     }

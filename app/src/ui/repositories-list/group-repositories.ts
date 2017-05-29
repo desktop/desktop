@@ -1,7 +1,7 @@
 import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { CloningRepository } from '../../lib/dispatcher'
-import { caseInsenstiveCompare } from '../../lib/compare'
+import { caseInsensitiveCompare } from '../../lib/compare'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 
 export type RepositoryGroupIdentifier = 'github' | 'enterprise' | 'other'
@@ -44,7 +44,7 @@ export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): R
     const repositories = grouped.get(identifier)
     if (!repositories || repositories.length === 0) { return }
 
-    repositories.sort((x, y) => caseInsenstiveCompare(x.name, y.name))
+    repositories.sort((x, y) => caseInsensitiveCompare(x.name, y.name))
     const items = repositories.map(r => ({
       text: r.name,
       id: r.id.toString(),

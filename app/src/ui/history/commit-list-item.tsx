@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
-import { EmojiText } from '../lib/emoji-text'
-import { Avatar, IAvatarUser } from '../lib/avatar'
+import { IAvatarUser } from '../../models/avatar'
+import { RichText } from '../lib/rich-text'
+import { Avatar } from '../lib/avatar'
 import { RelativeTime } from '../relative-time'
 
 interface ICommitProps {
@@ -19,7 +20,10 @@ export class CommitListItem extends React.Component<ICommitProps, void> {
       <div className='commit'>
         <Avatar user={this.props.user || undefined}/>
         <div className='info'>
-          <EmojiText className='summary' emoji={this.props.emoji}>{this.props.commit.summary}</EmojiText>
+          <RichText
+            className='summary'
+            emoji={this.props.emoji}
+            text={this.props.commit.summary} />
           <div className='byline'>
             <RelativeTime date={authorDate} /> by {this.props.commit.author.name}
           </div>

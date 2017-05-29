@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as classNames from 'classnames'
 import { Grid, AutoSizer } from 'react-virtualized'
+import { shallowEquals } from '../lib/equality'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -121,7 +122,7 @@ interface IListProps {
    * selected row is clicked on.
    *
    * @param row    - The index of the row that was just selected
-   * @param source - The kind of user action that provoced the change, either
+   * @param source - The kind of user action that provoked the change, either
    *                 a pointer device press, hover (if selectOnHover is set) or
    *                 a keyboard event (arrow up/down)
    */
@@ -162,14 +163,42 @@ interface IListProps {
 
   /** Whether or not selection should follow pointer device */
   readonly selectOnHover?: boolean
+
+  /** 
+   * Whether or not to explicitly move focus to a row if it was selected
+   * by hovering (has no effect if selectOnHover is not set). Defaults to
+   * true if not defined.
+   */
+  readonly focusOnHover?: boolean
 }
 
-export class List extends React.Component<IListProps, void> {
+interface IListState {
+  /** The available height for the list as determined by ResizeObserver */
+  readonly height?: number
+
+  /** The available width for the list as determined by ResizeObserver */
+  readonly width?: number
+}
+
+// https://wicg.github.io/ResizeObserver/#resizeobserverentry
+interface IResizeObserverEntry {
+  readonly target: HTMLElement
+  readonly contentRect: ClientRect
+};
+
+export class List extends React.Component<IListProps, IListState> {
   private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
 
   private scrollToRow = -1
   private focusRow = -1
+
+  /**
+   * The style prop for our child Grid. We keep this here in order
+   * to not create a new object on each render and thus forcing
+   * the Grid to re-render even though nothing has changed.
+   */
+  private gridStyle: React.CSSProperties = { overflowX: 'hidden' }
 
   /**
    * On Win32 we use a fake scroll bar. This variable keeps track of
@@ -181,7 +210,77 @@ export class List extends React.Component<IListProps, void> {
    */
   private lastScroll: 'grid' | 'fake' | null = null
 
+  private list: HTMLDivElement | null = null
   private grid: React.Component<any, any> | null
+  private readonly resizeObserver: any | null = null
+  private updateSizeTimeoutId: number | null = null
+
+  public constructor(props: IListProps) {
+    super(props)
+
+    this.state = { }
+
+    const ResizeObserver = (window as any).ResizeObserver
+
+    if (ResizeObserver || false) {
+      this.resizeObserver = new ResizeObserver((entries: ReadonlyArray<IResizeObserverEntry>) => {
+        for (const entry of entries) {
+          if (entry.target === this.list) {
+            // We might end up causing a recursive update by updating the state
+            // when we're reacting to a resize so we'll defer it until after
+            // react is done with this frame.
+            if (this.updateSizeTimeoutId !== null) {
+              clearImmediate(this.updateSizeTimeoutId)
+            }
+
+            this.updateSizeTimeoutId = setImmediate(this.onResized, entry.target, entry.contentRect)
+          }
+        }
+      })
+    }
+  }
+
+  private onResized = (target: HTMLElement, contentRect: ClientRect) => {
+    this.updateSizeTimeoutId = null
+
+    // In a perfect world the contentRect would be enough. Unfortunately,
+    // as you already know, computers. In Electron 1.6.6 (with Chrome 56) which
+    // we're running at the time of writing the clientRect emitted from the
+    // resizeObserver returns native pixels instead of device independent pixels
+    // which means that the width and height will end up being 2x the expected
+    // size when running in 200% DPI scaling on Windows. On Mac this doesn't
+    // seem to be an issue. It's not clear to me whether this bug lies within
+    // Electron or Chromium and it's quite possible that it's solved already in
+    // newer versions of Chromium so we'll should revisit this as we upgrade.
+    //
+    // It's worth noting that the ResizeObserver is still behind the
+    // experimental flag so things like this should probably be expected.
+    //
+    // In order to work around this on Windows we'll explicitly ask for a
+    // bounding rectangle on Windows which we know will give us sane pixels.
+    const { width, height } = __DARWIN__
+      ? contentRect
+      : { width: target.offsetWidth, height: target.offsetHeight }
+
+    if (this.state.width !== width || this.state.height !== height) {
+      this.setState({ width, height })
+    }
+  }
+
+  private onRef = (element: HTMLDivElement | null) => {
+
+    this.list = element
+
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+
+      if (element) {
+        this.resizeObserver.observe(element)
+      } else {
+        this.setState({ width: undefined, height: undefined })
+      }
+    }
+  }
 
   private handleKeyDown = (event: React.KeyboardEvent<any>) => {
     const row = this.props.selectedRow
@@ -276,13 +375,17 @@ export class List extends React.Component<IListProps, void> {
 
   private scrollRowToVisible(row: number) {
     this.scrollToRow = row
-    this.focusRow = row
+
+    if (this.props.focusOnHover !== false) {
+      this.focusRow = row
+    }
+
     this.forceUpdate()
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate(prevProps: IListProps, prevState: IListState) {
     // If this state is set it means that someone just used arrow keys (or pgup/down)
-    // to change the selected row. When this happens we need to explcitly shift
+    // to change the selected row. When this happens we need to explicitly shift
     // keyboard focus to the newly selected item. If focusItem is null then
     // we're probably just loading more items and we'll catch it on the next
     // render pass.
@@ -290,7 +393,48 @@ export class List extends React.Component<IListProps, void> {
       this.focusItem.focus()
       this.focusRow = -1
       this.forceUpdate()
+    } else if (this.grid) {
+
+      // A non-exhaustive set of checks to see if our current update has already
+      // triggered a re-render of the Grid. In order to do this perfectly we'd
+      // have to do a shallow compare on all the props we pass to Grid but
+      // this should cover the majority of cases.
+      const gridHasUpdatedAlready =
+        this.props.rowCount !== prevProps.rowCount ||
+        this.state.width !== prevState.width ||
+        this.state.height !== prevState.height
+
+      if (!gridHasUpdatedAlready) {
+        const selectedRowChanged = prevProps.selectedRow !== this.props.selectedRow
+        const invalidationPropsChanged = !shallowEquals(
+            prevProps.invalidationProps, this.props.invalidationProps)
+
+        // Now we need to figure out whether anything changed in such a way that
+        // the Grid has to update regardless of its props. Previously we passed
+        // our selectedRow and invalidationProps down to Grid and figured that
+        // it, being a pure component, would do the right thing but that's not
+        // quite the case since invalidationProps is a complex object.
+        if (selectedRowChanged || invalidationPropsChanged) {
+          this.grid.forceUpdate()
+        }
+      }
     }
+  }
+
+  public componentWillUnmount() {
+
+    if (this.updateSizeTimeoutId !== null) {
+      clearImmediate(this.updateSizeTimeoutId)
+      this.updateSizeTimeoutId = null
+    }
+
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+    }
+  }
+
+  private onFocusedItemRef = (element: HTMLDivElement | null) => {
+    this.focusItem = element
   }
 
   private renderRow = (params: IRowRendererParams) => {
@@ -300,8 +444,7 @@ export class List extends React.Component<IListProps, void> {
     const focused = rowIndex === this.focusRow
     const className = classNames('list-item', { selected })
 
-    // An unselectable row shouldn't have any tabIndex (as -1 means
-    // it's given focus by clicking).
+    // An unselectable row shouldn't be focusable
     let tabIndex: number | undefined = undefined
     if (selectable) {
       tabIndex = selected ? 0 : -1
@@ -309,7 +452,7 @@ export class List extends React.Component<IListProps, void> {
 
     // We only need to keep a reference to the focused element
     const ref = focused
-      ? (c: HTMLDivElement) => { this.focusItem = c }
+      ? this.onFocusedItemRef
       : undefined
 
     const element = this.props.rowRenderer(params.rowIndex)
@@ -341,13 +484,29 @@ export class List extends React.Component<IListProps, void> {
   }
 
   public render() {
-    return (
-      <div id={this.props.id}
-           className='list'
-           onKeyDown={this.handleKeyDown}>
+
+    let content: JSX.Element[] | JSX.Element | null
+
+    if (this.resizeObserver) {
+      content = this.state.width && this.state.height
+        ? this.renderContents(this.state.width, this.state.height)
+        : null
+    } else {
+      // Legacy in the event that we don't have ResizeObserver
+      content =
         <AutoSizer disableWidth disableHeight>
           {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
         </AutoSizer>
+    }
+
+    return (
+      <div
+        ref={this.onRef}
+        id={this.props.id}
+        className='list'
+        onKeyDown={this.handleKeyDown}
+      >
+        {content}
       </div>
     )
   }
@@ -361,13 +520,12 @@ export class List extends React.Component<IListProps, void> {
    *
    */
   private renderContents(width: number, height: number) {
+
     if (__WIN32__) {
-      return (
-        <div>
-          {this.renderGrid(width, height)}
-          {this.renderFakeScroll(height)}
-        </div>
-      )
+      return [
+        this.renderGrid(width, height),
+        this.renderFakeScroll(height),
+      ]
     }
 
     return this.renderGrid(width, height)
@@ -398,10 +556,11 @@ export class List extends React.Component<IListProps, void> {
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
     // it with keyboard navigation and select an item.
-    const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : null
+    const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : -1
 
     return (
       <Grid
+        key='grid'
         ref={this.onGridRef}
         autoContainerWidth
         width={width}
@@ -414,13 +573,9 @@ export class List extends React.Component<IListProps, void> {
         onScroll={this.onScroll}
         scrollToRow={scrollToRow}
         overscanRowCount={4}
-        // Grid doesn't actually _do_ anything with
-        // `selectedRow`. We're just passing it through so that
-        // Grid will re-render when it changes.
-        selectedRow={this.props.selectedRow}
-        style={{ overflowX: 'hidden' }}
+        style={this.gridStyle}
         tabIndex={tabIndex}
-        invalidationProps={this.props.invalidationProps}/>
+      />
     )
   }
 
@@ -429,7 +584,7 @@ export class List extends React.Component<IListProps, void> {
    * react-virtualized Grid component in order for us to be
    * able to have nice looking scrollbars on Windows.
    *
-   * The fake scroll bar syncronizes its position
+   * The fake scroll bar synchronizes its position
    *
    * NB: Should only be used on win32 platforms and needs to
    * be coupled with styling that hides scroll bars on Grid
@@ -452,6 +607,7 @@ export class List extends React.Component<IListProps, void> {
 
     return (
       <div
+        key='fake-scroll'
         className='fake-scroll'
         ref={this.onFakeScrollRef}
         style={{ height }}

@@ -1,4 +1,7 @@
 @import "../mixins";
+@import "dialogs/merge";
+@import "dialogs/publish-repository";
+@import "dialogs/repository-settings";
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -30,19 +33,28 @@ dialog {
     &-enter {
       opacity: 1;
       transform: scale(0.75);
+      pointer-events: none;
+
+      &::backdrop {
+        opacity: 0;
+      }
     }
-
-
 
     &-enter-active {
       opacity: 1;
       transform: scale(1);
       transition: transform 250ms var(--easing-ease-out-back);
+
+      &::backdrop {
+        opacity: 0.4;
+        transition: opacity 100ms ease-in;
+      }
     }
 
     &-leave {
       opacity: 1;
       transform: scale(1);
+      pointer-events: none;
 
       &::backdrop {
         opacity: 0.4;
@@ -181,12 +193,17 @@ dialog {
 
   .dialog-footer {
 
+    display: flex;
+    flex-direction: column;
+
     border-top: var(--base-border);
     padding: var(--spacing-double);
 
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
+    .button-group {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+    }
 
     button {
       margin-right: var(--spacing-half);
@@ -239,16 +256,21 @@ dialog {
     }
   }
 
-  // Repository settings has long phrasing content in the gitignore
-  // tab so we'll constrain it to 400px.
-  &#repository-settings { width: 400px; }
-
   &#app-error {
     .dialog-content {
-      font-family: var(--font-family-monospace);
-      -webkit-user-select: auto;
-      user-select: auto;
-      cursor: text;
+      p {
+        -webkit-user-select: auto;
+        user-select: auto;
+        cursor: text;
+
+        // Preserve newlines and other white space in error messages
+        // but make sure we wrap if necessary.
+        white-space: pre-wrap;
+
+        &.monospace {
+          font-family: var(--font-family-monospace);
+        }
+      }
 
       max-height: 400px;
       overflow-y: auto;
@@ -256,17 +278,29 @@ dialog {
   }
 
   &#preferences { width: 450px; }
+  &#about { width: 450px; }
+  &#create-branch { width: 400px; }
 
   &#sign-in {
     width: 400px;
 
     .sign-in-with-browser {
-      justify-content: center;
+      display: block;
+      text-align: center;
     }
 
     .forgot-password-row, .what-is-this-row {
       font-size: var(--font-size-sm);
       justify-content: flex-end;
     }
+  }
+}
+
+.warning-helper-text {
+  font-size: var(--font-size-sm);
+
+  .octicon {
+    fill: var(--dialog-warning-color);
+    margin-right: var(--spacing-half);
   }
 }

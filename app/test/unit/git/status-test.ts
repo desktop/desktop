@@ -1,3 +1,5 @@
+/* tslint:disable:no-sync-functions */
+
 import * as path from 'path'
 import { expect } from 'chai'
 
@@ -5,7 +7,7 @@ import { Repository } from '../../../src/models/repository'
 import { getStatus } from '../../../src/lib/git/status'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 import { FileStatus } from '../../../src/models/status'
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess } from 'dugite'
 
 import * as fs from 'fs-extra'
 const temp = require('temp').track()
@@ -16,7 +18,7 @@ describe('git/status', () => {
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
-    repository = new Repository(testRepoPath, -1, null)
+    repository = new Repository(testRepoPath, -1, null, false)
   })
 
   after(() => {
@@ -64,7 +66,7 @@ describe('git/status', () => {
     it('reflects copies', async () => {
 
       const testRepoPath = await setupFixtureRepository('copy-detection-status')
-      repository = new Repository(testRepoPath, -1, null)
+      repository = new Repository(testRepoPath, -1, null, false)
 
       await GitProcess.exec([ 'add', '.' ], repository.path)
 

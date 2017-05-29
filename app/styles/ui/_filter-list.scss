@@ -7,18 +7,17 @@
 
   min-width: inherit;
 
-  border-right: var(--box-border-color);
-  border-right-width: 1px;
-  border-right-style: solid;
-
   &-filter-field {
-    padding-left: var(--spacing);
-    padding-right: var(--spacing);
-    padding-bottom: var(--spacing);
+    padding: var(--spacing);
   }
 
   &-container {
     display: flex;
     flex: 1;
   }
+}
+
+.filter-list-group-header {
+  color: var(--text-secondary-color);
+  padding: 0 var(--spacing);
 }

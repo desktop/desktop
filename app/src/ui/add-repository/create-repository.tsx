@@ -6,17 +6,21 @@ import * as FSE from 'fs-extra'
 import { Dispatcher } from '../../lib/dispatcher'
 import { initGitRepository, createCommit, getStatus, getAuthorIdentity } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
-import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
+import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { writeDefaultReadme } from './write-default-readme'
 import { Select } from '../lib/select'
-import { Loading } from '../lib/loading'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
+import { writeGitAttributes } from './git-attributes'
 import { getDefaultDir } from '../lib/default-dir'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Octicon, OcticonSymbol } from '../octicons'
+
+import { getLogger } from '../../lib/logging/renderer'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -30,6 +34,7 @@ const NoLicenseValue: ILicense = {
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
+  readonly onDismissed: () => void
 }
 
 interface ICreateRepositoryState {
@@ -116,19 +121,19 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
     try {
       await this.ensureDirectory(fullPath)
-    } catch (ex) {
-      console.error(ex)
-      return this.props.dispatcher.postError(ex)
+    } catch (e) {
+      getLogger().error(`createRepository: the directory at ${fullPath} is not valid`, e)
+      return this.props.dispatcher.postError(e)
     }
 
     this.setState({ ...this.state, creating: true })
 
     try {
       await initGitRepository(fullPath)
-    } catch (ex) {
+    } catch (e) {
       this.setState({ ...this.state, creating: false })
-      console.error(ex)
-      return this.props.dispatcher.postError(ex)
+      getLogger().error(`createRepository: unable to initialize a Git repository at ${fullPath}`, e)
+      return this.props.dispatcher.postError(e)
     }
 
     const repositories = await this.props.dispatcher.addRepositories([ fullPath ])
@@ -136,28 +141,21 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
     const repository = repositories[0]
 
-    let createInitialCommit = false
     if (this.state.createWithReadme) {
-      createInitialCommit = true
-
       try {
         await writeDefaultReadme(fullPath, this.state.name)
       } catch (e) {
-        console.error(e)
-
+        getLogger().error(`createRepository: unable to write README at ${fullPath}`, e)
         this.props.dispatcher.postError(e)
       }
     }
 
     const gitIgnore = this.state.gitIgnore
     if (gitIgnore !== NoGitIgnoreValue) {
-      createInitialCommit = true
-
       try {
         await writeGitIgnore(fullPath, gitIgnore)
       } catch (e) {
-        console.error(e)
-
+        getLogger().error(`createRepository: unable to write .gitignore file at ${fullPath}`, e)
         this.props.dispatcher.postError(e)
       }
     }
@@ -166,8 +164,6 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     const license = (this.state.licenses || []).find(l => l.name === licenseName)
 
     if (license) {
-      createInitialCommit = true
-
       try {
         const author = await getAuthorIdentity(repository)
 
@@ -179,44 +175,49 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           project: this.state.name,
         })
       } catch (e) {
-        console.error(e)
-
+        getLogger().error(`createRepository: unable to write LICENSE at ${fullPath}`, e)
         this.props.dispatcher.postError(e)
       }
     }
 
-    if (createInitialCommit) {
-      try {
-        const status = await getStatus(repository)
-        const wd = status.workingDirectory
-        const files = wd.files
-        if (files.length > 0) {
-          await createCommit(repository, 'Initial commit', files)
-        }
-      } catch (e) {
-        console.error(e)
+    try {
+      await writeGitAttributes(fullPath)
+    } catch (e) {
+      getLogger().error(`createRepository: unable to write .gitattributes at ${fullPath}`, e)
+      this.props.dispatcher.postError(e)
+    }
 
-        this.props.dispatcher.postError(e)
+    try {
+      const status = await getStatus(repository)
+      const wd = status.workingDirectory
+      const files = wd.files
+      if (files.length > 0) {
+        await createCommit(repository, 'Initial commit', files)
       }
+    } catch (e) {
+      getLogger().error(`createRepository: initial commit failed at ${fullPath}`, e)
+      this.props.dispatcher.postError(e)
     }
 
     this.setState({ ...this.state, creating: false })
 
     this.props.dispatcher.selectRepository(repository)
-    this.props.dispatcher.closeFoldout()
+    this.props.onDismissed()
   }
-
 
   private onCreateWithReadmeChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({ ...this.state, createWithReadme: event.currentTarget.checked })
   }
 
-  private renderError() {
+  private renderSanitizedName() {
     const sanitizedName = sanitizedRepositoryName(this.state.name)
     if (this.state.name === sanitizedName) { return null }
 
     return (
-      <div>Will be created as {sanitizedName}</div>
+      <Row className='warning-helper-text'>
+        <Octicon symbol={OcticonSymbol.alert} />
+        Will be created as {sanitizedName}
+      </Row>
     )
   }
 
@@ -235,13 +236,15 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     const options = [ NoGitIgnoreValue, ...gitIgnores ]
 
     return (
-      <Select
-        label='Git Ignore'
-        value={this.state.gitIgnore}
-        onChange={this.onGitIgnoreChange}
-      >
-        {options.map(n => <option key={n} value={n}>{n}</option>)}
-      </Select>
+      <Row>
+        <Select
+          label={ __DARWIN__ ? 'Git Ignore' : 'Git ignore' }
+          value={this.state.gitIgnore}
+          onChange={this.onGitIgnoreChange}
+        >
+          {options.map(n => <option key={n} value={n}>{n}</option>)}
+        </Select>
+      </Row>
     )
   }
 
@@ -250,55 +253,70 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     const options = [ NoLicenseValue, ...licenses ]
 
     return (
-      <Select
-        label='License'
-        value={this.state.license}
-        onChange={this.onLicenseChange}
-      >
-        {options.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
-      </Select>
+      <Row>
+        <Select
+          label='License'
+          value={this.state.license}
+          onChange={this.onLicenseChange}
+        >
+          {options.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
+        </Select>
+      </Row>
     )
   }
 
   public render() {
     const disabled = this.state.path.length === 0 || this.state.name.length === 0 || this.state.creating
     return (
-      <Form>
-        <TextBox
-          value={this.state.name}
-          label='Name'
-          placeholder='repository name'
-          onChange={this.onNameChanged}
-          autoFocus />
+      <Dialog
+        title={__DARWIN__ ? 'Create a New Repository' : 'Create a new repository'}
+        loading={this.state.creating}
+        onSubmit={this.createRepository}
+        onDismissed={this.props.onDismissed}>
+        <DialogContent>
+          <Row>
+            <TextBox
+              value={this.state.name}
+              label='Name'
+              placeholder='repository name'
+              onChange={this.onNameChanged}
+              autoFocus />
+          </Row>
 
-        {this.renderError()}
+          {this.renderSanitizedName()}
 
-        <Row>
-          <TextBox
-            value={this.state.path}
-            label='Local Path'
-            placeholder='repository path'
-            onChange={this.onPathChanged} />
-          <Button onClick={this.showFilePicker}>Choose…</Button>
-        </Row>
+          <Row>
+            <TextBox
+              value={this.state.path}
+              label={__DARWIN__ ? 'Local Path' : 'Local path'}
+              placeholder='repository path'
+              onChange={this.onPathChanged} />
+            <Button onClick={this.showFilePicker}>Choose…</Button>
+          </Row>
 
-        <Checkbox
-          label='Initialize this repository with a README'
-          value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
-          onChange={this.onCreateWithReadmeChange} />
+          <Row>
+            <Checkbox
+              label='Initialize this repository with a README'
+              value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
+              onChange={this.onCreateWithReadmeChange} />
+          </Row>
 
-        {this.renderGitIgnores()}
+          {this.renderGitIgnores()}
 
-        {this.renderLicenses()}
+          {this.renderLicenses()}
 
-        <hr />
+        </DialogContent>
 
-        <Button type='submit' disabled={disabled} onClick={this.createRepository}>
-          Create Repository
-        </Button>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit' disabled={disabled}>
+              {__DARWIN__ ? 'Create Repository' : 'Create repository'}
+            </Button>
 
-        {this.state.creating ? <Loading /> : null}
-      </Form>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
     )
   }
 }

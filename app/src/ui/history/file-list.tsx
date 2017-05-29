@@ -22,7 +22,9 @@ export class FileList extends React.Component<IFileListProps, void> {
     const status = file.status
     const fileStatus = mapStatus(status)
 
-    const listItemPadding = 5 + 5
+
+
+    const listItemPadding = 10 * 2
     const statusWidth = 16
     const filePathPadding = 5
     const availablePathWidth = this.props.availableWidth - listItemPadding - filePathPadding - statusWidth
@@ -56,7 +58,7 @@ export class FileList extends React.Component<IFileListProps, void> {
       <div className='file-list'>
         <List rowRenderer={this.renderFile}
               rowCount={this.props.files.length}
-              rowHeight={40}
+              rowHeight={29}
               selectedRow={this.rowForFile(this.props.selectedFile)}
               onSelectionChanged={this.onSelectionChanged}/>
       </div>

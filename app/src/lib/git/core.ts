@@ -1,21 +1,21 @@
 import * as Path from 'path'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
 
 import {
   GitProcess,
-  IGitResult as GitKitchenSinkResult,
-  GitError as GitKitchenSinkError,
-  IGitExecutionOptions as GitKitchenSinkExecutionOptions,
-} from 'git-kitchen-sink'
+  IGitResult as DugiteResult,
+  GitError as DugiteError,
+  IGitExecutionOptions as DugiteExecutionOptions,
+} from 'dugite'
 
 /**
- * An extension of the execution options in git-kitchen-sink that
+ * An extension of the execution options in dugite that
  * allows us to piggy-back our own configuration options in the
  * same object.
  */
-export interface IGitExecutionOptions extends GitKitchenSinkExecutionOptions {
+export interface IGitExecutionOptions extends DugiteExecutionOptions {
   /**
    * The exit codes which indicate success to the
    * caller. Unexpected exit codes will be logged and an
@@ -27,23 +27,38 @@ export interface IGitExecutionOptions extends GitKitchenSinkExecutionOptions {
    * The git errors which are expected by the caller. Unexpected errors will
    * be logged and an error thrown.
    */
-  readonly expectedErrors?: Set<GitKitchenSinkError>
+  readonly expectedErrors?: Set<DugiteError>
 }
 
 /**
- * The result of using `git`. This wraps git-kitchen-sink's results to provide
+ * The result of using `git`. This wraps dugite's results to provide
  * the parsed error if one occurs.
  */
-export interface IGitResult extends GitKitchenSinkResult {
+export interface IGitResult extends DugiteResult {
   /**
    * The parsed git error. This will be null when the exit code is include in
-   * the `successExitCodes`, or when git-kitchen-sink was unable to parse the
+   * the `successExitCodes`, or when dugite was unable to parse the
    * error.
    */
-  readonly gitError: GitKitchenSinkError | null
+  readonly gitError: DugiteError | null
 
   /** The human-readable error description, based on `gitError`. */
   readonly gitErrorDescription: string | null
+}
+
+function getResultMessage(result: IGitResult) {
+  const description = result.gitErrorDescription
+  if (description) {
+    return description
+  }
+
+  if (result.stderr.length) {
+    return result.stderr
+  } else if (result.stdout.length) {
+    return result.stdout
+  } else {
+    return 'Unknown error'
+  }
 }
 
 export class GitError extends Error {
@@ -54,25 +69,11 @@ export class GitError extends Error {
   public readonly args: ReadonlyArray<string>
 
   public constructor(result: IGitResult, args: ReadonlyArray<string>) {
-    super('GitError')
+    super(getResultMessage(result))
 
+    this.name = 'GitError'
     this.result = result
     this.args = args
-  }
-
-  public get message(): string {
-    const description = this.result.gitErrorDescription
-    if (description) {
-      return description
-    }
-
-    if (this.result.stderr.length) {
-      return this.result.stderr
-    } else if (this.result.stdout.length) {
-      return this.result.stdout
-    } else {
-      return `Unknown error`
-    }
   }
 }
 
@@ -120,7 +121,7 @@ export async function git(args: string[], path: string, name: string, options?: 
 
   const exitCode = result.exitCode
 
-  let gitError: GitKitchenSinkError | null = null
+  let gitError: DugiteError | null = null
   const acceptableExitCode = opts.successExitCodes ? opts.successExitCodes.has(exitCode) : false
   if (!acceptableExitCode) {
     gitError = GitProcess.parseError(result.stderr)
@@ -157,36 +158,42 @@ export async function git(args: string[], path: string, name: string, options?: 
   throw new GitError(gitResult, args)
 }
 
-function getDescriptionForError(error: GitKitchenSinkError): string {
+function getDescriptionForError(error: DugiteError): string {
   switch (error) {
-    case GitKitchenSinkError.GitNotFound: return 'Git could not be found.'
-    case GitKitchenSinkError.SSHKeyAuditUnverified: return 'The SSH key is unverified.'
-    case GitKitchenSinkError.SSHAuthenticationFailed:
-    case GitKitchenSinkError.SSHPermissionDenied:
-    case GitKitchenSinkError.HTTPSAuthenticationFailed: return 'Authentication failed. You may not have permission to access the repository.'
-    case GitKitchenSinkError.RemoteDisconnection: return 'The remote disconnected. Check your Internet connection and try again.'
-    case GitKitchenSinkError.HostDown: return 'The host is down. Check your Internet connection and try again.'
-    case GitKitchenSinkError.RebaseConflicts: return 'We found some conflicts while trying to rebase. Please resolve the conflicts before continuing.'
-    case GitKitchenSinkError.MergeConflicts: return 'We found some conflicts while trying to merge. Please resolve the conflicts and commit the changes.'
-    case GitKitchenSinkError.HTTPSRepositoryNotFound:
-    case GitKitchenSinkError.SSHRepositoryNotFound: return 'The repository does not seem to exist anymore. You may not have access, or it may have been deleted or renamed.'
-    case GitKitchenSinkError.PushNotFastForward: return 'The repository has been updated since you last pulled. Try pulling before pushing.'
-    case GitKitchenSinkError.BranchDeletionFailed: return 'Could not delete the branch. It was probably already deleted.'
-    case GitKitchenSinkError.DefaultBranchDeletionFailed: return `The branch is the repository's default branch and cannot be deleted.`
-    case GitKitchenSinkError.RevertConflicts: return 'To finish reverting, please merge and commit the changes.'
-    case GitKitchenSinkError.EmptyRebasePatch: return 'There aren’t any changes left to apply.'
-    case GitKitchenSinkError.NoMatchingRemoteBranch: return 'There aren’t any remote branches that match the current branch.'
-    case GitKitchenSinkError.NothingToCommit: return 'There are no changes to commit.'
-    case GitKitchenSinkError.NoSubmoduleMapping: return 'A submodule was removed from .gitmodules, but the folder still exists in the repository. Delete the folder, commit the change, then try again.'
-    case GitKitchenSinkError.SubmoduleRepositoryDoesNotExist: return 'A submodule points to a location which does not exist.'
-    case GitKitchenSinkError.InvalidSubmoduleSHA: return 'A submodule points to a commit which does not exist.'
-    case GitKitchenSinkError.LocalPermissionDenied: return 'Permission denied'
-    case GitKitchenSinkError.InvalidMerge: return 'This is not something we can merge.'
-    case GitKitchenSinkError.InvalidRebase: return 'This is not something we can rebase.'
-    case GitKitchenSinkError.NonFastForwardMergeIntoEmptyHead: return 'The merge you attempted is not a fast-forward, so it cannot be performed on an empty branch.'
-    case GitKitchenSinkError.PatchDoesNotApply: return 'The requested changes conflict with one or more files in the repository.'
-    case GitKitchenSinkError.BranchAlreadyExists: return 'A branch with that name already exists'
-    case GitKitchenSinkError.BadRevision: return 'Bad revision'
+    case DugiteError.SSHKeyAuditUnverified: return 'The SSH key is unverified.'
+    case DugiteError.SSHAuthenticationFailed:
+    case DugiteError.SSHPermissionDenied:
+    case DugiteError.HTTPSAuthenticationFailed: return `Authentication failed. You may not have permission to access the repository. Open ${__DARWIN__ ? 'preferences' : 'options'} and verify that you're signed in with an account that has permission to access this repository.`
+    case DugiteError.RemoteDisconnection: return 'The remote disconnected. Check your Internet connection and try again.'
+    case DugiteError.HostDown: return 'The host is down. Check your Internet connection and try again.'
+    case DugiteError.RebaseConflicts: return 'We found some conflicts while trying to rebase. Please resolve the conflicts before continuing.'
+    case DugiteError.MergeConflicts: return 'We found some conflicts while trying to merge. Please resolve the conflicts and commit the changes.'
+    case DugiteError.HTTPSRepositoryNotFound:
+    case DugiteError.SSHRepositoryNotFound: return 'The repository does not seem to exist anymore. You may not have access, or it may have been deleted or renamed.'
+    case DugiteError.PushNotFastForward: return 'The repository has been updated since you last pulled. Try pulling before pushing.'
+    case DugiteError.BranchDeletionFailed: return 'Could not delete the branch. It was probably already deleted.'
+    case DugiteError.DefaultBranchDeletionFailed: return `The branch is the repository's default branch and cannot be deleted.`
+    case DugiteError.RevertConflicts: return 'To finish reverting, please merge and commit the changes.'
+    case DugiteError.EmptyRebasePatch: return 'There aren’t any changes left to apply.'
+    case DugiteError.NoMatchingRemoteBranch: return 'There aren’t any remote branches that match the current branch.'
+    case DugiteError.NothingToCommit: return 'There are no changes to commit.'
+    case DugiteError.NoSubmoduleMapping: return 'A submodule was removed from .gitmodules, but the folder still exists in the repository. Delete the folder, commit the change, then try again.'
+    case DugiteError.SubmoduleRepositoryDoesNotExist: return 'A submodule points to a location which does not exist.'
+    case DugiteError.InvalidSubmoduleSHA: return 'A submodule points to a commit which does not exist.'
+    case DugiteError.LocalPermissionDenied: return 'Permission denied.'
+    case DugiteError.InvalidMerge: return 'This is not something we can merge.'
+    case DugiteError.InvalidRebase: return 'This is not something we can rebase.'
+    case DugiteError.NonFastForwardMergeIntoEmptyHead: return 'The merge you attempted is not a fast-forward, so it cannot be performed on an empty branch.'
+    case DugiteError.PatchDoesNotApply: return 'The requested changes conflict with one or more files in the repository.'
+    case DugiteError.BranchAlreadyExists: return 'A branch with that name already exists.'
+    case DugiteError.BadRevision: return 'Bad revision.'
+    case DugiteError.NotAGitRepository: return 'This is not a git repository.'
+    case DugiteError.ProtectedBranchForcePush: return 'This branch is protected from force-push operations.'
+    case DugiteError.ProtectedBranchRequiresReview: return 'This branch is protected and any changes requires an approved review. Open a pull request with changes targeting this branch instead.'
+    case DugiteError.PushWithFileSizeExceedingLimit: return 'The push operation includes a file which exceeds GitHub\'s file size restriction of 100MB. Please remove the file from history and try again.'
+    case DugiteError.HexBranchNameRejected: return 'The branch name cannot be a 40-character string of hexadecimal characters, as this is the format that Git uses for representing objects.'
+    case DugiteError.ForcePushRejected: return 'The force push has been rejected for the current branch.'
+    case DugiteError.InvalidRefLength: return 'A ref cannot be longer than 255 characters.'
     default: return assertNever(error, `Unknown error: ${error}`)
   }
 }
@@ -200,8 +207,23 @@ function getAskPassScriptPath(): string {
   return Path.resolve(__dirname, 'ask-pass.js')
 }
 
+/**
+ * An array of command line arguments for network operation that unset
+ * or hard-code git configuration values that should not be read from
+ * local, global, or system level git configs.
+ *
+ * These arguments should be inserted before the subcommand, i.e in
+ * the case of `git pull` these arguments needs to go before the `pull`
+ * argument.
+ */
+export const gitNetworkArguments: ReadonlyArray<string> = [
+  // Explicitly unset any defined credential helper, we rely on our
+  // own askpass for authentication.
+  '-c' , 'credential.helper=',
+]
+
 /** Get the environment for authenticating remote operations. */
-export function envForAuthentication(user: User | null): Object {
+export function envForAuthentication(account: Account | null): Object {
   const env = {
     'DESKTOP_PATH': process.execPath,
     'DESKTOP_ASKPASS_SCRIPT': getAskPassScriptPath(),
@@ -209,27 +231,23 @@ export function envForAuthentication(user: User | null): Object {
     // supported since Git 2.3, this is used to ensure we never interactively prompt
     // for credentials - even as a fallback
     'GIT_TERMINAL_PROMPT': '0',
-    // by setting HOME to an empty value Git won't look at ~ for any global
-    // configuration values. This means we won't accidentally use a
-    // credential.helper value if it's been set by the current user
-    'HOME': '',
   }
 
-  if (!user) {
+  if (!account) {
     return env
   }
 
   return Object.assign(env, {
-    'DESKTOP_USERNAME': user.login,
-    'DESKTOP_ENDPOINT': user.endpoint,
+    'DESKTOP_USERNAME': account.login,
+    'DESKTOP_ENDPOINT': account.endpoint,
   })
 }
 
-export function expectedAuthenticationErrors(): Set<GitKitchenSinkError> {
+export function expectedAuthenticationErrors(): Set<DugiteError> {
   return new Set([
-      GitKitchenSinkError.HTTPSAuthenticationFailed,
-      GitKitchenSinkError.SSHAuthenticationFailed,
-      GitKitchenSinkError.HTTPSRepositoryNotFound,
-      GitKitchenSinkError.SSHRepositoryNotFound,
+      DugiteError.HTTPSAuthenticationFailed,
+      DugiteError.SSHAuthenticationFailed,
+      DugiteError.HTTPSRepositoryNotFound,
+      DugiteError.SSHRepositoryNotFound,
   ])
 }

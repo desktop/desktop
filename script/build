@@ -6,10 +6,13 @@ const path = require('path')
 const cp = require('child_process')
 const fs = require('fs-extra')
 const packager = require('electron-packager')
+const legalEagle = require('legal-eagle')
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
 const distInfo = require('./dist-info')
+
+const isProductionBuild = process.env.NODE_ENV === 'production'
 
 console.log(`Building for ${process.env.NODE_ENV}…`)
 
@@ -25,65 +28,89 @@ copyEmoji()
 console.log('Copying static resources…')
 copyStaticResources()
 
-if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
+const isFork = process.env.TRAVIS_SECURE_ENV_VARS !== 'true'
+if (process.platform === 'darwin' && process.env.TRAVIS && !isFork) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
 
-const options = {
-  name: distInfo.getProductName(),
-  platform: process.platform,
-  arch: 'x64',
-  asar: false, // TODO: Probably wanna enable this down the road.
-  out: path.join(projectRoot, 'dist'),
-  icon: path.join(projectRoot, 'app', 'static', 'icon'),
-  dir: outRoot,
-  overwrite: true,
-  tmpdir: false,
-  derefSymlinks: false,
-  prune: false, // We'll prune them ourselves below.
-  ignore: [
-    '/node_modules/electron($|/)',
-    '/node_modules/electron-packager($|/)',
-    '/\\.git($|/)',
-    '/node_modules/\\.bin($|/)'
-  ],
-  'app-copyright': 'Copyright © 2017 GitHub, Inc.',
+console.log('Updating our licenses dump…')
+updateLicenseDump(err => {
+  if (err) {
+    console.error('Error updating the license dump. This is fatal for a production build.')
+    console.error(err)
 
-  // macOS
-  'app-bundle-id': distInfo.getBundleID(),
-  'app-category-type': 'public.app-category.developer-tools',
-  'protocols': [
-    {
-      name: distInfo.getBundleID(),
-      schemes: [
-        'x-github-client',
-        'github-mac'
-      ]
+    if (isProductionBuild) {
+      process.exit(1)
+      return
     }
-  ],
-  'osx-sign': true,
-
-  // Windows
-  win32metadata: {
-    'CompanyName': distInfo.getCompanyName(),
-    'FileDescription': '',
-    'OriginalFilename': '',
-    'ProductName': distInfo.getProductName(),
-    'InternalName': distInfo.getProductName()
   }
-}
 
-console.log('Packaging…')
-packager(options, (error, appPaths) => {
-  if (error) {
-    console.error(error)
-    process.exit(1)
-  } else {
-    console.log(`Built to ${appPaths}`)
-    process.exit(0)
-  }
+  console.log('Packaging…')
+  packageApp((err, appPaths) => {
+    if (err) {
+      console.error(err)
+      process.exit(1)
+    } else {
+      console.log(`Built to ${appPaths}`)
+      process.exit(0)
+    }
+  })
 })
+
+function packageApp (callback) {
+  const options = {
+    name: distInfo.getProductName(),
+    platform: process.platform,
+    arch: 'x64',
+    asar: false, // TODO: Probably wanna enable this down the road.
+    out: path.join(projectRoot, 'dist'),
+    icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
+    dir: outRoot,
+    overwrite: true,
+    tmpdir: false,
+    derefSymlinks: false,
+    prune: false, // We'll prune them ourselves below.
+    ignore: [
+      '/node_modules/electron($|/)',
+      '/node_modules/electron-packager($|/)',
+      '/\\.git($|/)',
+      '/node_modules/\\.bin($|/)'
+    ],
+    'appCopyright': 'Copyright © 2017 GitHub, Inc.',
+
+    // macOS
+    'appBundleId': distInfo.getBundleID(),
+    'appCategoryType': 'public.app-category.developer-tools',
+    'protocols': [
+      {
+        name: distInfo.getBundleID(),
+        schemes: [
+          'x-github-client',
+          'github-mac'
+        ]
+      }
+    ],
+    'osxSign': true,
+
+    // Windows
+    win32metadata: {
+      'CompanyName': distInfo.getCompanyName(),
+      'FileDescription': '',
+      'OriginalFilename': '',
+      'ProductName': distInfo.getProductName(),
+      'InternalName': distInfo.getProductName()
+    }
+  }
+
+  packager(options, (err, appPaths) => {
+    if (err) {
+      callback(err, null)
+    } else {
+      callback(null, appPaths)
+    }
+  })
+}
 
 function copyEmoji () {
   const copyImages = () => {
@@ -116,21 +143,98 @@ function copyStaticResources () {
 
 function copyDependencies () {
   const originalPackage = require(path.join(projectRoot, 'app', 'package.json'))
+
+  const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
+  const externals = commonConfig.externals
+  const oldDependencies = originalPackage.dependencies
+  const newDependencies = { }
+
+  for (var [name, spec] of Object.entries(oldDependencies)) {
+    if (externals.indexOf(name) !== -1) {
+      newDependencies[name] = spec
+    }
+  }
+
+  const oldDevDependencies = originalPackage.devDependencies
+  const newDevDependencies = { }
+
+  if (!isProductionBuild) {
+    for (var [name, spec] of Object.entries(oldDevDependencies)) {
+      if (externals.indexOf(name) !== -1) {
+        newDevDependencies[name] = spec
+      }
+    }
+  }
+
   // The product name changes depending on whether it's a prod build or dev
   // build, so that we can have them running side by side.
-  const updatedPackage = Object.assign({}, originalPackage, { productName: distInfo.getProductName() })
+  const updatedPackage = Object.assign({}, originalPackage, {
+    productName: distInfo.getProductName(),
+    dependencies: newDependencies,
+    devDependencies: newDevDependencies,
+  })
 
-  let destination = path.join(outRoot, 'package.json')
-  fs.removeSync(destination)
-  fs.writeFileSync(destination, JSON.stringify(updatedPackage))
-
-  destination = path.join(outRoot, 'node_modules')
-  fs.removeSync(destination)
-  fs.copySync(path.join(projectRoot, 'app', 'node_modules'), destination)
-
-  const isProductionBuild = process.env.NODE_ENV === 'production'
   if (isProductionBuild) {
-    console.log('Pruning dev dependencies…')
-    cp.execSync('npm prune --production', {cwd: outRoot, env: process.env})
+    delete updatedPackage.devDependencies
   }
+
+  fs.writeFileSync(path.join(outRoot, 'package.json'), JSON.stringify(updatedPackage))
+
+  fs.removeSync(path.resolve(outRoot, 'node_modules'))
+
+  if (Object.keys(newDependencies).length || Object.keys(newDevDependencies).length) {
+    console.log('  Installing npm dependencies…')
+    cp.execSync('npm install', { cwd: outRoot, env: process.env })
+  }
+
+  if (!isProductionBuild) {
+    console.log('  Installing 7zip (dependency for electron-devtools-installer)')
+    
+    const sevenZipSource = path.resolve(projectRoot, 'app/node_modules/7zip')
+    const sevenZipDestination = path.resolve(outRoot, 'node_modules/7zip')
+    
+    fs.mkdirpSync(sevenZipDestination)
+    fs.copySync(sevenZipSource, sevenZipDestination)
+  }
+
+  console.log('  Copying git environment…')
+  const gitDir = path.resolve(outRoot, 'git')
+  fs.removeSync(gitDir)
+  fs.mkdirpSync(gitDir)
+  fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
+}
+
+function updateLicenseDump (callback) {
+  const appRoot = path.join(projectRoot, 'app')
+  const outPath = path.join(outRoot, 'static', 'licenses.json')
+  const licenseOverrides = require('./license-overrides')
+
+  legalEagle({ path: appRoot, overrides: licenseOverrides, omitPermissive: true }, (err, summary) => {
+    if (err) {
+      callback(err)
+      return
+    }
+
+    if (Object.keys(summary).length > 0) {
+      const overridesPath = path.join(__dirname, 'license-overrides.js')
+      let licensesMessage = ''
+      for (const key in summary) {
+        const license = summary[key]
+        licensesMessage += `${key} (${license.repository}): ${license.license}\n`
+      }
+
+      const message = `The following dependencies have unknown or non-permissive licenses. Check it out and update ${overridesPath} if appropriate:\n${licensesMessage}`
+      callback(new Error(message))
+    } else {
+      legalEagle({ path: appRoot, overrides: licenseOverrides }, (err, summary) => {
+        if (err) {
+          callback(err)
+          return
+        }
+
+        fs.writeFileSync(outPath, JSON.stringify(summary), 'utf8')
+        callback(null)
+      })
+    }
+  })
 }

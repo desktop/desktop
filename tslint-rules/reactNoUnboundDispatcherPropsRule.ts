@@ -52,7 +52,7 @@ class ReactNoUnboundDispatcherPropsWalker extends Lint.RuleWalker {
    */
   private visitJsxOpeningLikeElement(node: ts.JsxOpeningLikeElement): void {
     // create violations if the listener is a reference to a class method that was not bound to 'this' in the constructor
-    node.attributes.forEach(attributeLikeElement => {
+    node.attributes.properties.forEach(attributeLikeElement => {
 
       if (attributeLikeElement.kind !== ts.SyntaxKind.JsxAttribute) { return }
 

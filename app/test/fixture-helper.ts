@@ -1,3 +1,5 @@
+/* tslint:disable:no-sync-functions */
+
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
 
@@ -6,7 +8,7 @@ const klawSync = require('klaw-sync')
 const temp = require('temp').track()
 
 import { Repository } from '../src/models/repository'
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess } from 'dugite'
 
 type KlawEntry = {
   path: string
@@ -49,5 +51,38 @@ export async function setupEmptyRepository(): Promise<Repository> {
   const repoPath = temp.mkdirSync('desktop-empty-repo-')
   await GitProcess.exec([ 'init' ], repoPath)
 
-  return new Repository(repoPath, -1, null)
+  return new Repository(repoPath, -1, null, false)
+}
+
+/**
+ * Setup a repository and create a merge conflict
+ *
+ * The current branch will be 'other-branch' and the merged branch will be
+ * 'master' in your test harness.
+ *
+ * The conflicted file will be 'foo'.
+ */
+export async function setupConflictedRepo(): Promise<Repository> {
+  const repo = await setupEmptyRepository()
+  const filePath = Path.join(repo.path, 'foo')
+
+  FSE.writeFileSync(filePath, '')
+  await GitProcess.exec([ 'add', 'foo' ], repo.path)
+  await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+
+  await GitProcess.exec([ 'branch', 'other-branch' ], repo.path)
+
+  FSE.writeFileSync(filePath, 'b1')
+  await GitProcess.exec([ 'add', 'foo' ], repo.path)
+  await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+
+  await GitProcess.exec([ 'checkout', 'other-branch' ], repo.path)
+
+  FSE.writeFileSync(filePath, 'b2')
+  await GitProcess.exec([ 'add', 'foo' ], repo.path)
+  await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+
+  await GitProcess.exec([ 'merge', 'master' ], repo.path)
+
+  return repo
 }

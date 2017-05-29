@@ -1,8 +1,8 @@
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
-import { API,  getUserForEndpoint, getDotComAPIEndpoint } from '../api'
+import { API,  getAccountForEndpoint, getDotComAPIEndpoint } from '../api'
 import { GitHubUserDatabase, IGitHubUser, IMentionableAssociation } from './github-user-database'
 import { fatalError } from '../fatal-error'
 
@@ -19,6 +19,9 @@ export class GitHubUserStore {
   private readonly usersByEndpoint = new Map<string, Map<string, IGitHubUser>>()
 
   private readonly database: GitHubUserDatabase
+
+  /** The requests which have failed. We shouldn't keep trying them. */
+  private readonly failedRequests = new Set<string>()
 
   /**
    * The etag for the last mentionables request. Keyed by the GitHub repository
@@ -50,8 +53,8 @@ export class GitHubUserStore {
   }
 
   /** Update the mentionable users for the repository. */
-  public async updateMentionables(repository: GitHubRepository, user: User): Promise<void> {
-    const api = new API(user)
+  public async updateMentionables(repository: GitHubRepository, account: Account): Promise<void> {
+    const api = new API(account)
 
     const repositoryID = repository.dbID
     if (!repositoryID) {
@@ -61,6 +64,7 @@ export class GitHubUserStore {
 
     const response = await api.fetchMentionables(repository.owner.login, repository.name, etag)
     if (!response) { return }
+    if (!response.users) { return }
 
     if (response.etag) {
       this.mentionablesEtags.set(repositoryID, response.etag)
@@ -69,7 +73,7 @@ export class GitHubUserStore {
     const gitHubUsers: ReadonlyArray<IGitHubUser> = response.users.map(m => ({
       ...m,
       email: m.email || '',
-      endpoint: user.endpoint,
+      endpoint: account.endpoint,
       avatarURL: m.avatar_url,
     }))
 
@@ -94,52 +98,62 @@ export class GitHubUserStore {
   }
 
   /** Not to be called externally. See `Dispatcher`. */
-  public async _loadAndCacheUser(users: ReadonlyArray<User>, repository: Repository, sha: string | null, email: string) {
+  public async _loadAndCacheUser(accounts: ReadonlyArray<Account>, repository: Repository, sha: string | null, email: string) {
     const endpoint = repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint()
     const key = `${endpoint}+${email.toLowerCase()}`
     if (this.requestsInFlight.has(key)) { return }
+    if (this.failedRequests.has(key)) { return }
 
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
     }
 
-    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
-    if (!user) {
+    const account = getAccountForEndpoint(accounts, gitHubRepository.endpoint)
+    if (!account) {
       return
     }
 
     this.requestsInFlight.add(key)
 
-    let gitUser: IGitHubUser | null = await this.database.users.where('[endpoint+email]')
-      .equals([ user.endpoint, email.toLowerCase() ])
-      .limit(1)
-      .first()
+    let gitUser: IGitHubUser | null = null
+    // We don't have email addresses for all the users in our database, e.g., if
+    // the user has no public email. In that case, the email field is an empty
+    // string. So searching with an empty email is gonna give us results, but
+    // not results that are meaningful.
+    if (email.length > 0) {
+      gitUser = await this.database.users.where('[endpoint+email]')
+        .equals([ account.endpoint, email.toLowerCase() ])
+        .limit(1)
+        .first()
+    }
 
     // TODO: Invalidate the stored user in the db after ... some reasonable time
     // period.
     if (!gitUser) {
-      gitUser = await this.findUserWithAPI(user, gitHubRepository, sha, email)
-    }
-
-    if (gitUser) {
-      this.cacheUser(gitUser)
+      gitUser = await this.findUserWithAPI(account, gitHubRepository, sha, email)
     }
 
     this.requestsInFlight.delete(key)
-    this.emitUpdate()
+
+    if (gitUser) {
+      await this.cacheUser(gitUser)
+      this.emitUpdate()
+    } else {
+      this.failedRequests.add(key)
+    }
   }
 
-  private async findUserWithAPI(user: User, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitHubUser | null> {
-    const api = new API(user)
+  private async findUserWithAPI(account: Account, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitHubUser | null> {
+    const api = new API(account)
     if (sha) {
       const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
       if (apiCommit && apiCommit.author) {
         return {
           email,
           login: apiCommit.author.login,
-          avatarURL: apiCommit.author.avatarUrl,
-          endpoint: user.endpoint,
+          avatarURL: apiCommit.author.avatar_url,
+          endpoint: account.endpoint,
           name: apiCommit.author.name,
         }
       }
@@ -150,8 +164,8 @@ export class GitHubUserStore {
       return {
         email,
         login: matchingUser.login,
-        avatarURL: matchingUser.avatarUrl,
-        endpoint: user.endpoint,
+        avatarURL: matchingUser.avatar_url,
+        endpoint: account.endpoint,
         name: matchingUser.name,
       }
     }
@@ -174,15 +188,15 @@ export class GitHubUserStore {
     const db = this.database
     let addedUser: IGitHubUser | null = null
     await this.database.transaction('rw', this.database.users, function*() {
-      const existing: IGitHubUser | null = yield db.users.where('[endpoint+login]')
-        .equals([ user.endpoint, user.login.toLowerCase() ])
-        .limit(1)
-        .first()
-      if (existing) {
+      const existing: ReadonlyArray<IGitHubUser> = yield db.users.where('[endpoint+login]')
+        .equals([ user.endpoint, user.login ])
+        .toArray()
+      const match = existing.find(e => e.email === user.email)
+      if (match) {
         if (overwriteEmail) {
-          user = { ...user, id: existing.id }
+          user = { ...user, id: match.id }
         } else {
-          user = { ...user, id: existing.id, email: existing.email }
+          user = { ...user, id: match.id, email: match.email }
         }
       }
 

@@ -1,17 +1,11 @@
 import { ipcRenderer } from 'electron'
-import { MenuIDs } from '../main-process/menu'
-import { v4 as guid } from 'uuid'
-import { IHTTPRequest, IHTTPResponse } from '../lib/http'
 import { ExecutableMenuItem } from '../models/app-menu'
+import { MenuIDs } from '../main-process/menu'
+import { IMenuItemState } from '../lib/menu-update'
 
 /** Set the menu item's enabledness. */
-export function setMenuEnabled(id: MenuIDs, enabled: boolean) {
-  ipcRenderer.send('set-menu-enabled', { id, enabled })
-}
-
-/** Set the menu item's visibility. */
-export function setMenuVisible(id: MenuIDs, visible: boolean) {
-  ipcRenderer.send('set-menu-visible', { id, visible })
+export function updateMenuState(state: Map<MenuIDs, IMenuItemState>) {
+  ipcRenderer.send('update-menu-state', state)
 }
 
 /** Tell the main process that the renderer is ready. */
@@ -22,6 +16,26 @@ export function sendReady(time: number) {
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
 export function executeMenuItem(item: ExecutableMenuItem) {
   ipcRenderer.send('execute-menu-item', { id: item.id })
+}
+
+/**
+ * Show the OS-provided certificate trust dialog for the certificate, using the
+ * given message.
+ */
+export function showCertificateTrustDialog(certificate: Electron.Certificate, message: string) {
+  ipcRenderer.send('show-certificate-trust-dialog', { certificate, message })
+}
+
+/**
+ * Tell the main process that we're going to quit. This means it should allow
+ * the window to close.
+ *
+ * This event is sent synchronously to avoid any races with subsequent calls
+ * that would tell the app to quit.
+ */
+export function sendWillQuitSync() {
+  // tslint:disable-next-line:no-sync-functions
+  ipcRenderer.sendSync('will-quit')
 }
 
 /**
@@ -47,59 +61,15 @@ export interface IMenuItem {
   readonly enabled?: boolean
 }
 
-/**
- * Delay the contextual menu slightly so that we have time to render any changes
- * in reaction to the click. Otherwise the modal menu loop on the main thread
- * blocks the renderer's run loop before it can redraw. See https://github.com/electron/electron/issues/1854.
- *
- * This amount was determined entirely by experimentation.
- */
-const ShowContextualMenuDelay = 30
-
 /** Show the given menu items in a contextual menu. */
 export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
-  setTimeout(() => {
-    ipcRenderer.once('contextual-menu-action', (event: Electron.IpcRendererEvent, index: number) => {
-      const item = items[index]
-      const action = item.action
-      if (action) {
-        action()
-      }
-    })
-
-    ipcRenderer.send('show-contextual-menu', items)
-  }, ShowContextualMenuDelay)
-}
-
-export function proxyRequest(options: IHTTPRequest): Promise<IHTTPResponse> {
-  return new Promise<IHTTPResponse>((resolve, reject) => {
-    const id = guid()
-
-    const startTime = (performance && performance.now) ? performance.now() : null
-
-    ipcRenderer.once(`proxy/response/${id}`, (event: any, { error, response }: { error?: Error, response?: IHTTPResponse }) => {
-
-      if (console.debug && startTime) {
-        const rawTime = performance.now() - startTime
-        if (rawTime > 500) {
-          const timeInSeconds = (rawTime / 1000).toFixed(3)
-          console.debug(`executing: ${options.url} (took ${timeInSeconds}s)`)
-        }
-      }
-
-      if (error) {
-        reject(error)
-        return
-      }
-
-      if (response === undefined) {
-        reject('no response received, and no error reported. should probably look into this')
-        return
-      }
-
-      resolve(response)
-    })
-
-    ipcRenderer.send('proxy/request', { id, options })
+  ipcRenderer.once('contextual-menu-action', (event: Electron.IpcRendererEvent, index: number) => {
+    const item = items[index]
+    const action = item.action
+    if (action) {
+      action()
+    }
   })
+
+  ipcRenderer.send('show-contextual-menu', items)
 }

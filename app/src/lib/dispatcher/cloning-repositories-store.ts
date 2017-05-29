@@ -2,9 +2,8 @@ import * as Path from 'path'
 
 import { Emitter, Disposable } from 'event-kit'
 
-import { clone as cloneRepo } from '../git'
-import { CloneProgressParser } from '../clone-progress-parser'
-import { User } from '../../models/user'
+import { clone as cloneRepo, CloneOptions } from '../git'
+import { ICloneProgress } from '../app-state'
 
 let CloningRepositoryID = 1
 
@@ -24,26 +23,12 @@ export class CloningRepository {
   }
 }
 
-/** The cloning progress of a repository. */
-export interface ICloningRepositoryState {
-  /** The raw progress output from the clone task. */
-  readonly output: string,
-
-  /**
-   * A value between 0 and 1 indicating the clone progress.
-   *
-   * A missing value indicates that the current progress is
-   * indeterminate.
-   */
-  readonly progressValue: number | null
-}
-
 /** The store in charge of repository currently being cloned. */
 export class CloningRepositoriesStore {
   private readonly emitter = new Emitter()
 
   private readonly _repositories = new Array<CloningRepository>()
-  private readonly stateByID = new Map<number, ICloningRepositoryState>()
+  private readonly stateByID = new Map<number, ICloneProgress>()
 
   private emitUpdate() {
     this.emitter.emit('did-update', {})
@@ -68,20 +53,19 @@ export class CloningRepositoriesStore {
    *
    * Returns a {Promise} which resolves to whether the clone was successful.
    */
-  public async clone(url: string, path: string, user: User | null): Promise<boolean> {
+  public async clone(url: string, path: string, options: CloneOptions): Promise<boolean> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
-    this.stateByID.set(repository.id, { output: `Cloning into ${path}`, progressValue: null })
+
+    const title = `Cloning into ${path}`
+
+    this.stateByID.set(repository.id, { kind: 'clone', title, value: 0 })
     this.emitUpdate()
 
     let success = true
-    const progressParser = new CloneProgressParser()
     try {
-      await cloneRepo(url, path, user, progress => {
-        this.stateByID.set(repository.id, {
-          output: progress,
-          progressValue: progressParser.parse(progress),
-        })
+      await cloneRepo(url, path, options, progress => {
+        this.stateByID.set(repository.id, progress)
         this.emitUpdate()
       })
     } catch (e) {
@@ -100,7 +84,7 @@ export class CloningRepositoriesStore {
   }
 
   /** Get the state of the repository. */
-  public getRepositoryState(repository: CloningRepository): ICloningRepositoryState | null {
+  public getRepositoryState(repository: CloningRepository): ICloneProgress | null {
     return this.stateByID.get(repository.id) || null
   }
 

@@ -1,3 +1,5 @@
+/* tslint:disable:no-sync-functions */
+
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
@@ -15,7 +17,7 @@ describe('git/remote', () => {
   describe('getRemotes', () => {
     it('should return both remotes', async () => {
       const testRepoPath = setupFixtureRepository('repo-with-multiple-remotes')
-      const repository = new Repository(testRepoPath, -1, null)
+      const repository = new Repository(testRepoPath, -1, null, false)
 
       const url = 'https://github.com/shiftkey/friendly-bassoon.git'
 
@@ -29,7 +31,7 @@ describe('git/remote', () => {
   describe('getDefaultRemote', () => {
     it('returns origin when multiple remotes found', async () => {
       const testRepoPath = setupFixtureRepository('repo-with-multiple-remotes')
-      const repository = new Repository(testRepoPath, -1, null)
+      const repository = new Repository(testRepoPath, -1, null, false)
 
       const result = await getDefaultRemote(repository)
 
@@ -38,7 +40,7 @@ describe('git/remote', () => {
 
     it('returns something when origin removed', async () => {
       const testRepoPath = setupFixtureRepository('repo-with-multiple-remotes')
-      const repository = new Repository(testRepoPath, -1, null)
+      const repository = new Repository(testRepoPath, -1, null, false)
       await removeRemote(repository, 'origin')
 
       const result = await getDefaultRemote(repository)

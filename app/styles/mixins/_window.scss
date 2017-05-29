@@ -1,7 +1,0 @@
-// A mixin which takes a content block that should only
-// be applied when the window is in full screen mode.
-@mixin in-fullscreen {
-  body.fullscreen & {
-    @content;
-  }
-}

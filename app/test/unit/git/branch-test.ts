@@ -1,8 +1,10 @@
 import { expect, use as chaiUse } from 'chai'
 import { setupEmptyRepository, setupFixtureRepository } from '../../fixture-helper'
-import { getTip } from '../../../src/lib/git'
 import { Repository } from '../../../src/models/repository'
-import { TipState, IDetachedHead, IValidBranch } from '../../../src/models/tip'
+import { TipState, IDetachedHead, IValidBranch, IUnbornRepository } from '../../../src/models/tip'
+import { GitStore } from '../../../src/lib/dispatcher/git-store'
+import { shell } from '../../test-app-shell'
+import { GitProcess } from 'dugite'
 
 chaiUse(require('chai-datetime'))
 
@@ -11,18 +13,36 @@ describe('git/branch', () => {
     it('returns unborn for new repository', async () => {
       const repository = await setupEmptyRepository()
 
-      const result = await getTip(repository)
-      const tip = result!
+      const store = new GitStore(repository, shell)
+      await store.loadStatus()
+      const tip = store.tip
 
       expect(tip.kind).to.equal(TipState.Unborn)
+      const unborn = tip as IUnbornRepository
+      expect(unborn.ref).to.equal('master')
+    })
+
+    it('returns correct ref if checkout occurs', async () => {
+      const repository = await setupEmptyRepository()
+
+      await GitProcess.exec([ 'checkout', '-b', 'not-master' ], repository.path)
+
+      const store = new GitStore(repository, shell)
+      await store.loadStatus()
+      const tip = store.tip
+
+      expect(tip.kind).to.equal(TipState.Unborn)
+      const unborn = tip as IUnbornRepository
+      expect(unborn.ref).to.equal('not-master')
     })
 
     it('returns detached for arbitrary checkout', async () => {
       const path = await setupFixtureRepository('detached-head')
-      const repository = new Repository(path, -1, null)
+      const repository = new Repository(path, -1, null, false)
 
-      const result = await getTip(repository)
-      const tip = result!
+      const store = new GitStore(repository, shell)
+      await store.loadStatus()
+      const tip = store.tip
 
       expect(tip.kind).to.equal(TipState.Detached)
       const detached = tip as IDetachedHead
@@ -31,10 +51,11 @@ describe('git/branch', () => {
 
     it('returns current branch when on a valid HEAD', async () => {
       const path = await setupFixtureRepository('repo-with-many-refs')
-      const repository = new Repository(path, -1, null)
+      const repository = new Repository(path, -1, null, false)
 
-      const result = await getTip(repository)
-      const tip = result!
+      const store = new GitStore(repository, shell)
+      await store.loadStatus()
+      const tip = store.tip
 
       expect(tip.kind).to.equal(TipState.Valid)
       const onBranch = tip as IValidBranch
@@ -44,10 +65,11 @@ describe('git/branch', () => {
 
     it('returns non-origin remote', async () => {
       const path = await setupFixtureRepository('repo-with-multiple-remotes')
-      const repository = new Repository(path, -1, null)
+      const repository = new Repository(path, -1, null, false)
 
-      const result = await getTip(repository)
-      const tip = result!
+      const store = new GitStore(repository, shell)
+      await store.loadStatus()
+      const tip = store.tip
 
       expect(tip.kind).to.equal(TipState.Valid)
       const valid = tip as IValidBranch
@@ -58,10 +80,11 @@ describe('git/branch', () => {
   describe('upstreamWithoutRemote', () => {
     it('returns the upstream name without the remote prefix', async () => {
       const path = await setupFixtureRepository('repo-with-multiple-remotes')
-      const repository = new Repository(path, -1, null)
+      const repository = new Repository(path, -1, null, false)
 
-      const result = await getTip(repository)
-      const tip = result!
+      const store = new GitStore(repository, shell)
+      await store.loadStatus()
+      const tip = store.tip
 
       expect(tip.kind).to.equal(TipState.Valid)
 

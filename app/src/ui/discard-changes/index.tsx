@@ -38,7 +38,7 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup>
+          <ButtonGroup destructive>
             <Button type='submit'>Cancel</Button>
             <Button onClick={this.discard}>{__DARWIN__ ? 'Discard Changes' : 'Discard changes'}</Button>
           </ButtonGroup>

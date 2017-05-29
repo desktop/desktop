@@ -1,17 +1,70 @@
-import { git, envForAuthentication } from './core'
-import { User } from '../../models/user'
-import { ChildProcess } from 'child_process'
+import { git, envForAuthentication, IGitExecutionOptions, gitNetworkArguments } from './core'
+import { Account } from '../../models/account'
+import { ICloneProgress } from '../app-state'
+import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 
-const byline = require('byline')
+/** Additional arguments to provide when cloning a repository */
+export type CloneOptions = {
+  /** The optional identity to provide when cloning. */
+  readonly account: Account | null
+  /** The branch to checkout after the clone has completed. */
+  readonly branch?: string
+}
 
-/** Clone the repository to the path. */
-export async function clone(url: string, path: string, user: User | null, progress: (progress: string) => void): Promise<void> {
-  const env = envForAuthentication(user)
-  const processCallback = (process: ChildProcess) => {
-    byline(process.stderr).on('data', (chunk: string) => {
-      progress(chunk)
+/** 
+ * Clones a repository from a given url into to the specified path.
+ * 
+ * @param url     - The remote repository URL to clone from
+ * 
+ * @param path    - The destination path for the cloned repository. If the
+ *                  path does not exist it will be created. Cloning into an
+ *                  existing directory is only allowed if the directory is
+ *                  empty.
+ *
+ * @param options  - Options specific to the clone operation, see the
+ *                   documentation for CloneOptions for more details.
+ *
+ * @param progressCallback - An optional function which will be invoked
+ *                           with information about the current progress
+ *                           of the clone operation. When provided this enables
+ *                           the '--progress' command line flag for
+ *                           'git clone'.
+ * 
+ */
+export async function clone(url: string, path: string, options: CloneOptions, progressCallback?: (progress: ICloneProgress) => void): Promise<void> {
+  const env = envForAuthentication(options.account)
+
+  const args = [
+    ...gitNetworkArguments,
+    'clone', '--recursive', '--progress',
+]
+
+  let opts: IGitExecutionOptions = { env }
+
+  if (progressCallback) {
+    args.push('--progress')
+
+    const title = `Cloning into ${path}`
+    const kind = 'clone'
+
+    opts = executionOptionsWithProgress(opts, new CloneProgressParser(), (progress) => {
+      const description = progress.kind === 'progress'
+        ? progress.details.text
+        : progress.text
+      const value = progress.percent
+
+      progressCallback({ kind, title, description, value })
     })
+
+    // Initial progress
+    progressCallback({ kind, title, value: 0 })
   }
 
-  await git([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, 'clone', { env, processCallback })
+  if (options.branch) {
+    args.push('-b', options.branch)
+  }
+
+  args.push('--', url, path)
+
+  await git(args, __dirname, 'clone', opts)
 }

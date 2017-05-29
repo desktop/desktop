@@ -41,3 +41,32 @@ export function parseRemote(url: string): IGitRemoteURL | null {
 
   return null
 }
+
+export interface IRepositoryIdentifier {
+  readonly owner: string
+  readonly name: string
+}
+
+/** Try to parse an owner and name from a URL or owner/name shortcut. */
+export function parseOwnerAndName(url: string): IRepositoryIdentifier | null {
+  const parsed = parseRemote(url)
+  // If we can parse it as a remote URL, we'll assume they gave us a proper
+  // URL. If not, we'll try treating it as a GitHub repository owner/name
+  // shortcut.
+  if (parsed) {
+    const owner = parsed.owner
+    const name = parsed.name
+    if (owner && name) {
+      return { owner, name }
+    }
+  }
+
+  const pieces = url.split('/')
+  if (pieces.length === 2 && pieces[0].length > 0 && pieces[1].length > 0) {
+    const owner = pieces[0]
+    const name = pieces[1]
+    return { owner, name }
+  }
+
+  return null
+}

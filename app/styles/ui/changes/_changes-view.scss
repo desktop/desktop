@@ -5,7 +5,7 @@
   min-width: 0;
 
   .header {
-    background: var(--diff-hunk-background-color);
+    background: var(--box-alt-background-color);
     border-bottom: 1px solid var(--diff-border-color);
 
     display: flex;
@@ -13,10 +13,12 @@
     flex-shrink: 0;
     flex-grow: 0;
 
-    padding: var(--spacing-half);
+    padding: var(--spacing-half) var(--spacing);
 
     .path {
       flex-grow: 1;
+      display: flex;
+      min-width: 0;
     }
 
     @include octicon-status;
@@ -24,7 +26,17 @@
     .octicon {
       flex-shrink:0;
       vertical-align: text-bottom;
+      position: relative;
+      top: 1px;
     }
+  }
+
+  .panel {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
   }
 }
 

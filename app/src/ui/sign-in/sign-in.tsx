@@ -113,20 +113,29 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       return null
     }
 
+    let disableSubmit = false
+
     let primaryButtonText: string
     const stepKind = state.kind
 
     switch (state.kind) {
       case SignInStep.EndpointEntry:
+        disableSubmit = this.state.endpoint.length === 0
         primaryButtonText = 'Continue'
         break
       case SignInStep.TwoFactorAuthentication:
+        // ensure user has entered non-whitespace characters
+        const codeProvided = /\S+/.test(this.state.otpToken)
+        disableSubmit = !codeProvided
         primaryButtonText = 'Sign in'
         break
       case SignInStep.Authentication:
         if (!state.supportsBasicAuth) {
           primaryButtonText = 'Continue with browser'
         } else {
+          const validUserName = this.state.username.length > 0
+          const validPassword = this.state.password.length > 0
+          disableSubmit = !validUserName || !validPassword
           primaryButtonText = 'Sign in'
         }
         break
@@ -137,7 +146,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     return (
       <DialogFooter>
         <ButtonGroup>
-          <Button type='submit'>{primaryButtonText}</Button>
+          <Button disabled={disableSubmit} type='submit'>{primaryButtonText}</Button>
           <Button onClick={this.props.onDismissed}>Cancel</Button>
         </ButtonGroup>
       </DialogFooter>
@@ -190,9 +199,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             labelLinkUri={state.forgotPasswordUrl}
           />
         </Row>
-        <Row>
-          <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
-        </Row>
+
+        <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
+
         <Row className='sign-in-with-browser'>
           <LinkButton className='link-with-icon' onClick={this.onSignInWithBrowser}>
             Sign in using your browser

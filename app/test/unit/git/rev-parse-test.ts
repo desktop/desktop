@@ -1,3 +1,5 @@
+/* tslint:disable:no-sync-functions */
+
 import * as path from 'path'
 import { expect } from 'chai'
 
@@ -13,7 +15,7 @@ describe('git/rev-parse', () => {
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
-    repository = new Repository(testRepoPath, -1, null)
+    repository = new Repository(testRepoPath, -1, null, false)
   })
 
   after(() => {

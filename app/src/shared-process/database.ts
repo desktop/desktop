@@ -1,7 +1,7 @@
 import Dexie from 'dexie'
 
 // NB: This _must_ be incremented whenever the DB key scheme changes.
-const DatabaseVersion = 1
+const DatabaseVersion = 2
 
 export interface IDatabaseOwner {
   readonly id?: number | null
@@ -17,12 +17,14 @@ export interface IDatabaseGitHubRepository {
   readonly fork: boolean | null
   readonly htmlURL: string | null
   readonly defaultBranch: string | null
+  readonly cloneURL: string | null
 }
 
 export interface IDatabaseRepository {
   readonly id?: number | null
   readonly gitHubRepositoryID: number | null
   readonly path: string
+  readonly missing: boolean
 }
 
 /** The app database. */
@@ -39,10 +41,14 @@ export class Database extends Dexie {
   public constructor(name: string) {
     super(name)
 
-    this.version(DatabaseVersion).stores({
+    this.version(1).stores({
       repositories: '++id, &path',
       gitHubRepositories: '++id, name',
       owners: '++id, login',
+    })
+
+    this.version(DatabaseVersion).stores({
+      owners: '++id, &[endpoint+login]',
     })
   }
 }

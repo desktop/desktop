@@ -1,10 +1,12 @@
+/* tslint:disable:no-sync-functions */
+
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
 import { getChangedFiles, getCommits } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../fixture-helper'
 import { FileStatus } from '../../../src/models/status'
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess } from 'dugite'
 
 const temp = require('temp').track()
 
@@ -14,7 +16,7 @@ describe('git/log', () => {
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
-    repository = new Repository(testRepoPath, -1, null)
+    repository = new Repository(testRepoPath, -1, null, false)
   })
 
   after(() => {
@@ -42,7 +44,7 @@ describe('git/log', () => {
 
     it('detects renames', async () => {
       const testRepoPath = setupFixtureRepository('rename-history-detection')
-      repository = new Repository(testRepoPath, -1, null)
+      repository = new Repository(testRepoPath, -1, null, false)
 
       const first = await getChangedFiles(repository, '55bdecb')
       expect(first.length).to.equal(1)
@@ -59,7 +61,7 @@ describe('git/log', () => {
 
     it('detect copies', async () => {
       const testRepoPath = setupFixtureRepository('copies-history-detection')
-      repository = new Repository(testRepoPath, -1, null)
+      repository = new Repository(testRepoPath, -1, null, false)
 
       // ensure the test repository is configured to detect copies
       await GitProcess.exec([ 'config', 'diff.renames', 'copies' ], repository.path)

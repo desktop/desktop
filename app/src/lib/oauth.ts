@@ -1,17 +1,17 @@
 import { shell } from 'electron'
-import { v4 as guid } from 'uuid'
-import { User } from '../models/user'
+import { Account } from '../models/account'
 import { fatalError } from './fatal-error'
 import {
   getOAuthAuthorizationURL,
   requestOAuthToken,
   fetchUser,
 } from './api'
+import { uuid } from './uuid'
 
 interface IOAuthState {
   readonly state: string
   readonly endpoint: string
-  readonly resolve: (user: User) => void
+  readonly resolve: (account: Account) => void
   readonly reject: (error: Error) => void
 }
 
@@ -30,8 +30,8 @@ export function askUserToOAuth(endpoint: string) {
   // Disable the lint warning since we're storing the `resolve` and `reject`
   // functions.
   // tslint:disable-next-line:promise-must-complete
-  return new Promise<User>((resolve, reject) => {
-    oauthState = { state: guid(), endpoint, resolve, reject }
+  return new Promise<Account>((resolve, reject) => {
+    oauthState = { state: uuid(), endpoint, resolve, reject }
 
     const oauthURL = getOAuthAuthorizationURL(endpoint, oauthState.state)
     shell.openExternal(oauthURL)
@@ -42,7 +42,7 @@ export function askUserToOAuth(endpoint: string) {
  * Request the authenticated using, using the code given to us by the OAuth
  * callback.
  */
-export async function requestAuthenticatedUser(code: string): Promise<User | null> {
+export async function requestAuthenticatedUser(code: string): Promise<Account | null> {
   if (!oauthState) {
     return fatalError('`askUserToOAuth` must be called before requesting an authenticated user.')
   }
@@ -56,17 +56,17 @@ export async function requestAuthenticatedUser(code: string): Promise<User | nul
 }
 
 /**
- * Resolve the current OAuth request with the given user.
+ * Resolve the current OAuth request with the given account.
  *
  * Note that this can only be called after `askUserToOAuth` has been called and
  * must only be called once.
  */
-export function resolveOAuthRequest(user: User) {
+export function resolveOAuthRequest(account: Account) {
   if (!oauthState) {
     return fatalError('`askUserToOAuth` must be called before resolving an auth request.')
   }
 
-  oauthState.resolve(user)
+  oauthState.resolve(account)
 
   oauthState = null
 }

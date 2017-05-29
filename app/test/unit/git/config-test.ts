@@ -1,3 +1,5 @@
+/* tslint:disable:no-sync-functions */
+
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
@@ -12,7 +14,7 @@ describe('git/config', () => {
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
-    repository = new Repository(testRepoPath, -1, null)
+    repository = new Repository(testRepoPath, -1, null, false)
   })
 
   after(() => {

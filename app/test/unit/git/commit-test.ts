@@ -1,3 +1,5 @@
+/* tslint:disable:no-sync-functions */
+
 import * as path from 'path'
 import { expect } from 'chai'
 
@@ -6,12 +8,18 @@ import {
   getStatus,
   createCommit,
   getCommits,
+  getCommit,
   getChangedFiles,
   getWorkingDirectoryDiff,
 } from '../../../src/lib/git'
 
-import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
-import { GitProcess } from 'git-kitchen-sink'
+import {
+  setupFixtureRepository,
+  setupEmptyRepository,
+  setupConflictedRepo,
+} from '../../fixture-helper'
+
+import { GitProcess } from 'dugite'
 import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
 import { DiffSelectionType, DiffSelection, ITextDiff, DiffType } from '../../../src/models/diff'
 
@@ -30,7 +38,7 @@ describe('git/commit', () => {
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
-    repository = new Repository(testRepoPath, -1, null)
+    repository = new Repository(testRepoPath, -1, null, false)
   })
 
   after(() => {
@@ -54,6 +62,25 @@ describe('git/commit', () => {
       const commits = await getCommits(repository!, 'HEAD', 100)
       expect(commits.length).to.equal(6)
       expect(commits[0].summary).to.equal('Special commit')
+    })
+
+    it('commit does not strip commentary by default', async () => {
+      fs.writeFileSync(path.join(repository!.path, 'README.md'), 'Hi world\n')
+
+      const status = await getStatus(repository!)
+      const files = status.workingDirectory.files
+      expect(files.length).to.equal(1)
+
+      const message = `Special commit
+
+# this is a comment`
+
+      await createCommit(repository!, message, files)
+
+      const commit = await getCommit(repository!, 'HEAD')
+      expect(commit).to.not.be.null
+      expect(commit!.summary).to.equal('Special commit')
+      expect(commit!.body).to.equal('# this is a comment\n')
     })
 
     it('can commit for empty repository', async () => {
@@ -110,7 +137,7 @@ describe('git/commit', () => {
 
     beforeEach(() => {
       const testRepoPath = setupFixtureRepository('repo-with-changes')
-      repository = new Repository(testRepoPath, -1, null)
+      repository = new Repository(testRepoPath, -1, null, false)
     })
 
     it('can commit some lines from new file', async () => {
@@ -295,7 +322,6 @@ describe('git/commit', () => {
     })
 
     it('can commit renames with modifications', async () => {
-
       const repo = await setupEmptyRepository()
 
       fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
@@ -357,6 +383,32 @@ describe('git/commit', () => {
       expect(diff.hunks.length).to.equal(1)
       expect(diff.hunks[0].lines.length).to.equal(4)
       expect(diff.hunks[0].lines[3].text).to.equal('+line3')
+    })
+  })
+
+  describe('createCommit with a merge conflict', () => {
+    it('creates a merge commit', async () => {
+      const repo = await setupConflictedRepo()
+      const filePath = path.join(repo.path, 'foo')
+
+      const inMerge = fs.existsSync(path.join(repo.path, '.git', 'MERGE_HEAD'))
+      expect(inMerge).to.equal(true)
+
+      fs.writeFileSync(filePath, 'b1b2')
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+      expect(files[0].path).to.equal('foo')
+      expect(files[0].status).to.equal(FileStatus.Conflicted)
+
+      const selection = files[0].selection.withSelectAll()
+      const selectedFile = files[0].withSelection(selection)
+      await createCommit(repo, 'Merge commit!', [ selectedFile ])
+
+      const commits = await getCommits(repo, 'HEAD', 5)
+      expect(commits[0].parentSHAs.length).to.equal(2)
     })
   })
 })
