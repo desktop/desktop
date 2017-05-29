@@ -30,7 +30,7 @@ export function shellNeedsPatching(process: NodeJS.Process): boolean {
  *
  * @returns the output of the `env` command or `null` if there was an error.
  */
-function getRawShellEnv (): string | null {
+function getRawShellEnv(): string | null {
   const shell = getUserShell()
 
   // The `-ilc` set of options was tested to work with the OS X v10.11
@@ -44,7 +44,7 @@ function getRawShellEnv (): string | null {
   return results.stdout
 }
 
-function getUserShell () {
+function getUserShell() {
   if (process.env.SHELL) {
     return process.env.SHELL
   }
