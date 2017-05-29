@@ -65,7 +65,6 @@ export async function updateIndex(repository: Repository, paths: ReadonlyArray<s
   if (!paths.length) {
     return
   }
-  console.log(paths)
 
   const args = [ 'update-index' ]
 
