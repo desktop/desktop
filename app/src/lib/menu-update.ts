@@ -136,7 +136,9 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   const menuStateBuilder = new MenuStateBuilder()
 
   const windowOpen = state.windowState !== 'hidden'
-  const repositoryActive = windowOpen && repositorySelected
+  const inWelcomeFlow = state.showWelcomeFlow
+  const repositoryActive = windowOpen && repositorySelected && !inWelcomeFlow
+
   if (repositoryActive) {
     for (const id of repositoryScopedIDs) {
       menuStateBuilder.enable(id)
@@ -166,6 +168,24 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.disable('view-repository-on-github')
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
+  }
+
+  const welcomeScopedIds: ReadonlyArray<MenuIDs> = [
+    'new-repository',
+    'add-local-repository',
+    'clone-repository',
+    'preferences',
+    'about',
+  ]
+
+  if (inWelcomeFlow) {
+    for (const id of welcomeScopedIds) {
+      menuStateBuilder.disable(id)
+    }
+  } else {
+    for (const id of welcomeScopedIds) {
+      menuStateBuilder.enable(id)
+    }
   }
 
   return menuStateBuilder.state
