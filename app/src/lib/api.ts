@@ -170,6 +170,13 @@ interface IAPIMentionablesResponse {
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
+/**
+ * Parses the Link header from GitHub and returns the 'next' url
+ * if one is present. While the GitHub API returns absolute links
+ * this method makes no guarantee that the url will be absolute.
+ *
+ * If no link rel next header is found this method returns null.
+ */
 function getNextPageUrl(response: Response): string | null {
   const linkHeader = response.headers.get('Link')
 
@@ -189,6 +196,11 @@ function getNextPageUrl(response: Response): string | null {
   return null
 }
 
+/**
+ * Appends the parameters provided to the url as query string parameters.
+ *
+ * If the url already has a query the new parameters will be appended.
+ */
 function urlWithQueryString(url: string, params: { [key: string]: any }): string {
   const qs = Object.keys(params)
     .map(key => `${key}=${encodeURIComponent(params[key])}`)
