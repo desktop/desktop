@@ -28,7 +28,7 @@ export class IssuesDatabase extends Dexie {
       // Clear deprecated localStorage keys, we compute the since parameter
       // using the database now.
       Object.keys(localStorage)
-        .filter(key => /IssuesStore\/\d+\/lastFetch/.test(key))
+        .filter(key => /^IssuesStore\/\d+\/lastFetch$/.test(key))
         .forEach(key => localStorage.removeItem(key))
 
       return t.table('issues').clear()
