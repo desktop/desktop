@@ -14,7 +14,7 @@ You will need to install these tools on your machine:
 
  - [Nodejs v7](https://nodejs.org/en/download/current) - this is the version embedded into Electron
     - *Make sure you allow the Node.js installer to add node to the PATH.*
- - [Python 2.7](https://www.python.org/downloads/windows/), [macOS](https://www.python.org/downloads/mac-osx/)
+ - [Python 2.7](https://www.python.org/downloads/windows/)
     - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
       to configure node-gyp manually with the path which is annoying.*
     - Ensure the **Add python.exe to Path** option is selected.*
