@@ -16,7 +16,7 @@ export class IssuesStore {
     this.db = db
   }
 
-  private async getLatestUpdatedAt(repository: GitHubRepository): Promise<string | null> {
+  private async getLatestUpdatedAt(repository: GitHubRepository): Promise<Date | null> {
     const gitHubRepositoryID = repository.dbID
     if (!gitHubRepositoryID) {
       return fatalError(`Cannot get issues for a repository that hasn't been inserted into the database!`)
@@ -29,8 +29,8 @@ export class IssuesStore {
       .between([ gitHubRepositoryID ], [ gitHubRepositoryID + 1 ], true, false)
       .last()
 
-    return latestUpdatedIssue
-      ? latestUpdatedIssue.updated_at || null
+    return latestUpdatedIssue && latestUpdatedIssue.updated_at
+      ? new Date(latestUpdatedIssue.updated_at)
       : null
   }
 
@@ -44,8 +44,7 @@ export class IssuesStore {
 
     let issues: ReadonlyArray<IAPIIssue>
     if (lastUpdatedAt) {
-      const since = new Date(lastUpdatedAt)
-      issues = await api.fetchIssues(repository.owner.login, repository.name, 'all', since)
+      issues = await api.fetchIssues(repository.owner.login, repository.name, 'all', lastUpdatedAt)
     } else {
       issues = await api.fetchIssues(repository.owner.login, repository.name, 'open', null)
     }
