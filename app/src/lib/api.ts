@@ -214,6 +214,16 @@ function urlWithQueryString(url: string, params: { [key: string]: any }): string
 }
 
 /**
+ * Returns an ISO 8601 time string with second resolution instead of
+ * the standard javascript toISOString which returns millisecond
+ * resolution. The GitHub API doesn't return dates with milliseconds
+ * so we won't send any back either.
+ */
+function toGitHubIsoDateString(date: Date) {
+  return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
+}
+
+/**
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
@@ -358,7 +368,7 @@ export class API {
     let url: string | null = `repos/${owner}/${name}/issues`
 
     if (since && !isNaN(since.getTime())) {
-      url = urlWithQueryString(url, { since: since.toISOString().replace(/\.\d{3}Z$/, 'Z') })
+      url = urlWithQueryString(url, { since: toGitHubIsoDateString(since) })
     }
 
     const issues = new Array<IAPIIssue>()
