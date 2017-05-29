@@ -9,7 +9,7 @@ interface IUpdateIndexOptions {
    * Whether or not to add a file when it exists in the working directory
    * but not in the index. Defaults to true (note that this differs from the
    * default behavior of Git which is to ignore new files).
-   * 
+   *
    * @default true
    */
   add?: boolean
@@ -18,7 +18,7 @@ interface IUpdateIndexOptions {
    * Whether or not to remove a file when it exists in the index but not
    * in the working directory. Defaults to true (note that this differs from
    * the default behavior of Git which is to ignore removed files).
-   * 
+   *
    * @default true
    */
   remove?: boolean
@@ -26,7 +26,7 @@ interface IUpdateIndexOptions {
   /**
    * Whether or not to forcefully remove a file from the index even though it
    * exists in the working directory. This implies remove.
-   * 
+   *
    * @default false
    */
   forceRemove?: boolean
@@ -34,19 +34,19 @@ interface IUpdateIndexOptions {
   /**
    * Whether or not to replace conflicting entries in the index with that of
    * the working directory. Imagine the following scenario
-   * 
+   *
    * $ touch foo && git update-index --add foo && git commit -m 'foo'
    * $ rm foo && mkdir foo && echo "bar" > foo/bar
    * $ git update-index --add foo/bar
    * error: 'foo/bar' appears as both a file and as a directory
    * error: foo/bar: cannot add to the index - missing --add option?
    * fatal: Unable to process path foo/bar
-   * 
+   *
    * Replace ignores this conflict and overwrites the index with the
    * newly created directory, causing the original foo file to be deleted
    * in the index. This behavior matches what `git add` would do in a similar
    * scenario.
-   * 
+   *
    * @default true
    */
   replace?: boolean
@@ -54,11 +54,11 @@ interface IUpdateIndexOptions {
 
 /**
  * Updates the index with file contents from the working tree.
- * 
+ *
  * @param paths   A list of paths which are to be updated with file contents and
  *                status from the working directory.
- * 
- * @param options See the IUpdateIndexOptions interface for more details. 
+ *
+ * @param options See the IUpdateIndexOptions interface for more details.
  */
 export async function updateIndex(repository: Repository, paths: ReadonlyArray<string>, options: IUpdateIndexOptions = { }) {
 
@@ -94,7 +94,7 @@ export async function updateIndex(repository: Repository, paths: ReadonlyArray<s
 /**
  * Stage all the given files by either staging the entire path or by applying
  * a patch.
- * 
+ *
  * Note that prior to stageFiles the index has been completely reset,
  * the job of this function is to set up the index in such a way that it
  * reflects what the user has selected in the app.
