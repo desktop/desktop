@@ -60,7 +60,7 @@ interface IUpdateIndexOptions {
  *
  * @param options See the IUpdateIndexOptions interface for more details.
  */
-export async function updateIndex(repository: Repository, paths: ReadonlyArray<string>, options: IUpdateIndexOptions = { }) {
+async function updateIndex(repository: Repository, paths: ReadonlyArray<string>, options: IUpdateIndexOptions = { }) {
 
   if (!paths.length) {
     return
