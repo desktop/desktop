@@ -2,6 +2,7 @@ import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from
 
 import { AppWindow } from './app-window'
 import { CrashWindow } from './crash-window'
+import { shellNeedsPatching, getEnvironmentFromShell } from './shell'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID, setCrashMenu } from './menu'
 import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
@@ -100,6 +101,17 @@ if (__WIN32__ && process.argv.length > 1) {
       onDidLoad(window => {
         window.sendURLAction(action)
       })
+    }
+  }
+}
+
+if (__DARWIN__) {
+  if (shellNeedsPatching(process)) {
+    const env = getEnvironmentFromShell()
+    if (env) {
+      const hack = process as any
+      hack._originalEnv = process.env
+      process.env = env
     }
   }
 }
