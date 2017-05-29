@@ -348,12 +348,11 @@ export class API {
    */
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
 
-    let url: string | null = `repos/${owner}/${name}/issues`
+    const params = since && !isNaN(since.getTime())
+      ? { since: toGitHubIsoDateString(since) }
+      : { }
 
-    if (since && !isNaN(since.getTime())) {
-      url = urlWithQueryString(url, { since: toGitHubIsoDateString(since) })
-    }
-
+    const url = urlWithQueryString(`repos/${owner}/${name}/issues`, params)
     const issues = await this.fetchAll<IAPIIssue>(url)
 
     // PRs are issues! But we only want Really Seriously Issues.
