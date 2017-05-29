@@ -4,7 +4,7 @@ import { spawnSync } from 'child_process'
 import * as os from 'os'
 
 type IndexLookup = {
-  [propName: string]: any;
+  [propName: string]: string;
 }
 
 /**
