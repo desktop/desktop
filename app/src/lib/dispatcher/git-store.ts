@@ -35,6 +35,7 @@ import {
   getStatus,
   IStatusResult,
   getCommit,
+  getConfigValue,
 } from '../git'
 
 /** The number of commits to load from history per batch. */
@@ -765,7 +766,7 @@ export class GitStore {
     const repository = this.repository
     const ignorePath = Path.join(repository.path, '.gitignore')
 
-    const fileContents = await ensureTrailingNewline(text, repository.path)
+    const fileContents = await validateGitIgnoreContents(text, repository)
 
     return new Promise<void>((resolve, reject) => {
       Fs.writeFile(ignorePath, fileContents, err => {
@@ -781,11 +782,11 @@ export class GitStore {
   /** Ignore the given path or pattern. */
   public async ignore(pattern: string): Promise<void> {
     const text = (await this.readGitIgnore()) || ''
-    const path = this.repository.path
-    const currentContents = await ensureTrailingNewline(text, path)
-    const newText = await ensureTrailingNewline(
+    const repository = this.repository
+    const currentContents = await validateGitIgnoreContents(text, repository)
+    const newText = await validateGitIgnoreContents(
       `${currentContents}${pattern}`,
-      path
+      repository
     )
     await this.saveGitIgnore(newText)
 
@@ -896,19 +897,26 @@ export class GitStore {
   }
 }
 
-async function ensureTrailingNewline(
+async function validateGitIgnoreContents(
   text: string,
-  path: string
+  repository: Repository
 ): Promise<string> {
+  const autocrlf = await getConfigValue(repository, 'core.autocrlf')
+  const safecrlf = await getConfigValue(repository, 'core.safecrlf')
+
   return new Promise<string>((resolve, reject) => {
-    // mixed line endings might be an issue here
+    if (autocrlf === 'true' && safecrlf === 'true') {
+      // TODO: actually sanitize the output properly
+      resolve(text)
+    }
+
     if (text.endsWith('\n')) {
       resolve(text)
       return
     }
 
-    const linesEndInCRLF = text.indexOf('\r\n')
-    if (linesEndInCRLF === -1) {
+    const linesEndInCRLF = autocrlf === 'true'
+    if (linesEndInCRLF) {
       resolve(`${text}\n`)
     } else {
       resolve(`${text}\r\n`)
