@@ -34,8 +34,14 @@ export class IssuesStore {
       .between([ gitHubRepositoryID ], [ gitHubRepositoryID + 1 ], true, false)
       .last()
 
-    return latestUpdatedIssue && latestUpdatedIssue.updated_at
-      ? new Date(latestUpdatedIssue.updated_at)
+    if (!latestUpdatedIssue || !latestUpdatedIssue.updated_at) {
+      return null
+    }
+
+    const lastUpdatedAt = new Date(latestUpdatedIssue.updated_at)
+
+    return !isNaN(lastUpdatedAt.getTime())
+      ? lastUpdatedAt
       : null
   }
 
