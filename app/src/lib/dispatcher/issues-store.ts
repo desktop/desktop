@@ -42,12 +42,17 @@ export class IssuesStore {
     const api = new API(account)
     const lastUpdatedAt = await this.getLatestUpdatedAt(repository)
 
-    let issues: ReadonlyArray<IAPIIssue>
-    if (lastUpdatedAt) {
-      issues = await api.fetchIssues(repository.owner.login, repository.name, 'all', lastUpdatedAt)
-    } else {
-      issues = await api.fetchIssues(repository.owner.login, repository.name, 'open', null)
-    }
+    // If we don't have a lastUpdatedAt that mean we haven't fetch any issues
+    // for the repository yet which in turn means we only have to fetch the
+    // currently open issues. If we have fetched before we get all issues
+    // that have been modified since the last time we fetched so that we
+    // can prune closed issues from our database. Note that since the GitHub
+    // API returns all issues modified _at_ or after the timestamp we give it
+    // we will always get at least one issue back but we won't have to transfer
+    // it since we should get a 304 response from GitHub.
+    const state = lastUpdatedAt ? 'all' : 'open'
+
+    const issues = await api.fetchIssues(repository.owner.login, repository.name, state, lastUpdatedAt)
 
     this.storeIssues(issues, repository)
   }
