@@ -16,6 +16,7 @@ import {
   backgroundTaskHandler,
   unhandledExceptionHandler,
 } from '../lib/dispatcher'
+import { shellNeedsPatching, getEnvironmentFromShell } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
@@ -24,6 +25,18 @@ import { enableSourceMaps } from '../lib/enable-source-maps'
 
 if (__DEV__) {
   installDevGlobals()
+}
+
+
+if (__DARWIN__) {
+  if (shellNeedsPatching(process)) {
+    const env = getEnvironmentFromShell()
+    if (env) {
+      const hack = process as any
+      hack._originalEnv = process.env
+      process.env = env
+    }
+  }
 }
 
 enableSourceMaps()
