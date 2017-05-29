@@ -344,26 +344,32 @@ export class API {
    */
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
 
-    let response
     let url: string | null = `repos/${owner}/${name}/issues`
 
     if (since && !isNaN(since.getTime())) {
       url = urlWithQueryString(url, { since: toGitHubIsoDateString(since) })
     }
 
-    const issues = new Array<IAPIIssue>()
-
-    do {
-      response = await this.authenticatedRequest('GET', url)
-      const items = await deserialize<ReadonlyArray<IAPIIssue>>(response)
-      if (items) {
-        issues.push(...items)
-      }
-      url = getNextPageUrl(response)
-    } while (url)
+    const issues = await this.fetchAll<IAPIIssue>(url)
 
     // PRs are issues! But we only want Really Seriously Issues.
     return issues.filter((i: any) => !i.pullRequest)
+  }
+
+  private async fetchAll<T>(url: string): Promise<ReadonlyArray<T>> {
+    const buf = new Array<T>()
+    let nextUrl: string | null = url
+
+    do {
+      const response = await this.authenticatedRequest('GET', url)
+      const items = await deserialize<ReadonlyArray<T>>(response)
+      if (items) {
+        buf.push(...items)
+      }
+      nextUrl = getNextPageUrl(response)
+    } while (nextUrl)
+
+    return buf
   }
 
   private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
