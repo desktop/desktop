@@ -8,7 +8,7 @@ import { HTTPMethod, request, deserialize, getUserAgent } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 
-import { getLogger } from '../lib/logging/renderer'
+import { logError } from '../lib/logging/renderer'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -143,6 +143,7 @@ interface IAPIAccessToken {
  * Details: https://developer.github.com/v3/#client-errors
  */
 interface IError {
+  readonly message: string
   readonly resource: string
   readonly field: string
 }
@@ -153,7 +154,8 @@ interface IError {
  * Details: https://developer.github.com/v3/#client-errors
  */
 interface IAPIError {
-  readonly errors: IError[]
+  readonly errors?: IError[]
+  readonly message?: string
 }
 
 /** The partial server response when creating a new authorization on behalf of a user */
@@ -209,7 +211,7 @@ export class API {
     try {
       return await this.client.repos(owner, name).fetch()
     } catch (e) {
-      getLogger().error(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
+      logError(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
       return null
     }
   }
@@ -223,12 +225,22 @@ export class API {
   public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
     const isDotCom = this.account.endpoint === getDotComAPIEndpoint()
 
-    const result = isDotCom
-      ? await this.client.user.publicEmails.fetch()
-      // GitHub Enterprise does not have the concept of private emails
-      : await this.client.user.emails.fetch()
+    // workaround for /user/public_emails throwing a 500
+    // while we investigate the API issue
+    // see https://github.com/desktop/desktop/issues/1508 for context
+    let emails: ReadonlyArray<IAPIEmail> = [ ]
+    try {
+      const result = isDotCom
+        ? await this.client.user.publicEmails.fetch()
+        // GitHub Enterprise does not have the concept of private emails
+        : await this.client.user.emails.fetch()
 
-    const emails: ReadonlyArray<IAPIEmail> = result.items
+      emails = result && Array.isArray(result.items)
+                ? result.items as ReadonlyArray<IAPIEmail>
+                : []
+    } catch (e) {
+      emails = [ ]
+    }
     return emails
   }
 
@@ -238,7 +250,7 @@ export class API {
       const commit = await this.client.repos(owner, name).commits(sha).fetch()
       return commit
     } catch (e) {
-      getLogger().error(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
+      logError(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
       return null
     }
   }
@@ -252,7 +264,7 @@ export class API {
       const user = result.items[0]
       return user
     } catch (e) {
-      getLogger().error(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
+      logError(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
       return null
     }
   }
@@ -260,15 +272,35 @@ export class API {
   /** Fetch all the orgs to which the user belongs. */
   public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
     const result = await this.client.user.orgs.fetch()
-    return result.items
+    return result && Array.isArray(result.items)
+      ? result.items
+      : []
   }
 
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository> {
-    if (org) {
-      return this.client.orgs(org.login).repos.create({ name, description, private: private_ })
-    } else {
-      return this.client.user.repos.create({ name, description, private: private_ })
+    try {
+      if (org) {
+        return await this.client.orgs(org.login).repos.create({ name, description, private: private_ })
+      } else {
+        return await this.client.user.repos.create({ name, description, private: private_ })
+      }
+    } catch (e) {
+      if (e.message) {
+        // for the sake of shipping this it looks like octokat.js just throws
+        // with the entire JSON body as the error message - that's fine, just
+        // needs some thought later the next time we need to do something like
+        // this
+        const message: string = e.message
+        const error = await deserialize<IError>(message)
+        if (error) {
+          logError(`createRepository return an API error: ${JSON.stringify(error)}`, e)
+          throw new Error(error.message)
+        }
+      }
+
+      logError(`createRepository return an unknown error`, e)
+      throw e
     }
   }
 
@@ -346,6 +378,7 @@ export enum AuthorizationResponseKind {
   UserRequiresVerification,
   PersonalAccessTokenBlocked,
   Error,
+  EnterpriseTooOld,
 }
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
@@ -353,7 +386,8 @@ export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
                                     { kind: AuthorizationResponseKind.Error, response: Response } |
                                     { kind: AuthorizationResponseKind.UserRequiresVerification } |
-                                    { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
+                                    { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked } |
+                                    { kind: AuthorizationResponseKind.EnterpriseTooOld }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -396,25 +430,32 @@ export async function createAuthorization(endpoint: string, login: string, passw
   }
 
   if (response.status === 403) {
-    const body = await response.json()
-    if (body.message === 'This API can only be accessed with username and password Basic Auth') {
+    const apiError = await deserialize<IAPIError>(response)
+    if (apiError && apiError.message === 'This API can only be accessed with username and password Basic Auth') {
       // Authorization API does not support providing personal access tokens
       return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
     }
+
     return { kind: AuthorizationResponseKind.Error, response }
   }
 
   if (response.status === 422) {
     const apiError = await deserialize<IAPIError>(response)
     if (apiError) {
-      for (const error of apiError.errors) {
-        const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
-        const isExpectedField =  error.field.toLowerCase() === 'user'
-        if (isExpectedField && isExpectedResource) {
-          return { kind: AuthorizationResponseKind.UserRequiresVerification }
+      if (apiError.errors) {
+        for (const error of apiError.errors) {
+          const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
+          const isExpectedField = error.field.toLowerCase() === 'user'
+          if (isExpectedField && isExpectedResource) {
+            return { kind: AuthorizationResponseKind.UserRequiresVerification }
+          }
         }
+      } else if (apiError.message === 'Invalid OAuth application client_id or secret.') {
+        return { kind: AuthorizationResponseKind.EnterpriseTooOld }
       }
     }
+
+    return { kind: AuthorizationResponseKind.Error, response }
   }
 
   const body = await deserialize<IAPIAuthorization>(response)
@@ -435,12 +476,21 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
 
   const isDotCom = endpoint === getDotComAPIEndpoint()
 
-  const result = isDotCom
-    ? await octo.user.publicEmails.fetch()
-    // GitHub Enterprise does not have the concept of private emails
-    : await octo.user.emails.fetch()
-
-  const emails: ReadonlyArray<IAPIEmail> = result.items
+  // workaround for /user/public_emails throwing a 500
+  // while we investigate the API issue
+  // see https://github.com/desktop/desktop/issues/1508 for context
+  let emails: ReadonlyArray<IAPIEmail> = [ ]
+  try {
+      const result = isDotCom
+        ? await octo.user.publicEmails.fetch()
+        // GitHub Enterprise does not have the concept of private emails
+        : await octo.user.emails.fetch()
+    emails = result && Array.isArray(result.items)
+    ? result.items as ReadonlyArray<IAPIEmail>
+    : []
+  } catch (e) {
+    emails = [ ]
+  }
 
   return new Account(user.login, endpoint, token, emails, user.avatarUrl, user.id, user.name)
 }
@@ -466,7 +516,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
 
     return body
   } catch (e) {
-    getLogger().error(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
+    logError(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
     return null
   }
 }
@@ -477,7 +527,7 @@ async function getNote(): Promise<string> {
   try {
     localUsername = await username()
   } catch (e) {
-    getLogger().error(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
+    logError(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`

@@ -2,7 +2,7 @@ import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 
 import { SharedProcess } from '../shared-process/shared-process'
-import { WindowState, windowStateChannelName } from '../lib/window-state'
+import { registerWindowStateChangedEvents } from '../lib/window-state'
 import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
 import { ILaunchStats } from '../lib/stats'
@@ -133,7 +133,7 @@ export class AppWindow {
     this.window.on('focus', () => this.window.webContents.send('focus'))
     this.window.on('blur', () => this.window.webContents.send('blur'))
 
-    this.registerWindowStateChangedEvents()
+    registerWindowStateChangedEvents(this.window)
 
     this.window.loadURL(`file://${__dirname}/index.html`)
   }
@@ -151,38 +151,6 @@ export class AppWindow {
   /** Is the page loaded and has the renderer signalled it's ready? */
   private get rendererLoaded(): boolean {
     return !!this.loadTime && !!this.rendererReadyTime
-  }
-
-  /**
-   * Sets up message passing to the render process when the window state changes.
-   *
-   * We've definied 'window state' as one of minimized, normal, maximized, and
-   * full-screen. These states will be sent over the window-state-changed channel
-   */
-  private registerWindowStateChangedEvents() {
-    this.window.on('enter-full-screen', () => this.sendWindowStateEvent('full-screen'))
-
-    // So this is a bit of a hack. If we call window.isFullScreen directly after
-    // receiving the leave-full-screen event it'll return true which isn't what
-    // we're after. So we'll say that we're transitioning to 'normal' even though
-    // we might be maximized. This works because electron will emit a 'maximized'
-    // event after 'leave-full-screen' if the state prior to full-screen was maximized.
-    this.window.on('leave-full-screen', () => this.sendWindowStateEvent('normal'))
-
-    this.window.on('maximize', () => this.sendWindowStateEvent('maximized'))
-    this.window.on('minimize', () => this.sendWindowStateEvent('minimized'))
-    this.window.on('unmaximize', () => this.sendWindowStateEvent('normal'))
-    this.window.on('restore', () => this.sendWindowStateEvent('normal'))
-    this.window.on('hide', () => this.sendWindowStateEvent('hidden'))
-    this.window.on('show', () => this.sendWindowStateEvent('normal'))
-  }
-
-  /**
-   * Short hand convenience function for sending a window state change event
-   * over the window-state-changed channel to the render process.
-   */
-  private sendWindowStateEvent(state: WindowState) {
-    this.window.webContents.send(windowStateChannelName, state)
   }
 
   public onClose(fn: () => void) {
@@ -295,5 +263,9 @@ export class AppWindow {
    */
   public get rendererReadyTime(): number | null {
     return this._rendererReadyTime
+  }
+
+  public destroy() {
+    this.window.destroy()
   }
 }

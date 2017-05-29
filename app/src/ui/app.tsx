@@ -3,7 +3,7 @@ import { ipcRenderer, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
-import { WindowControls } from './window/window-controls'
+import { TitleBar } from './window/title-bar'
 import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
@@ -13,8 +13,8 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton, BranchDropdown } from './toolbar'
-import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
-import { showCertificateTrustDialog } from './main-process-proxy'
+import { OcticonSymbol, iconForRepository } from './octicons'
+import { showCertificateTrustDialog, registerContextualMenuActionDispatcher } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -42,8 +42,10 @@ import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
+import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-repository'
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
+import { ZoomInfo } from './window/zoom-info'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -87,6 +89,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   public constructor(props: IAppProps) {
     super(props)
 
+    registerContextualMenuActionDispatcher()
+
     props.dispatcher.loadInitialState().then(() => {
       this.loading = false
       this.forceUpdate()
@@ -99,6 +103,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         // loading the app. So defer it until we have some breathing space.
         requestIdleCallback(() => {
           props.appStore.loadEmoji()
+
+          this.props.dispatcher.reportStats()
+
+          setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
         })
       }, { timeout: ReadyDelay })
     })
@@ -134,15 +142,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
     this.checkForUpdates()
 
-    ipcRenderer.on('launch-timing-stats', async (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
+    ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
       console.info(`App ready time: ${stats.mainReadyTime}ms`)
       console.info(`Load time: ${stats.loadTime}ms`)
       console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
 
-      await this.props.dispatcher.recordLaunchStats(stats)
-      this.props.dispatcher.reportStats()
-
-      setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+      this.props.dispatcher.recordLaunchStats(stats)
     })
 
     ipcRenderer.on('certificate-error', (event: Electron.IpcRendererEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {
@@ -169,7 +174,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'add-local-repository': return this.showAddLocalRepo()
       case 'create-branch': return this.showCreateBranch()
       case 'show-branches': return this.showBranches()
-      case 'remove-repository': return this.removeRepository()
+      case 'remove-repository': return this.removeRepository(this.getRepository())
       case 'create-repository': return this.showCreateRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
@@ -184,9 +189,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-in-shell' : return this.openShell()
       case 'clone-repository': return this.showCloneRepo()
       case 'show-about': return this.showAbout()
+      case 'boomtown': return this.boomtown()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
+  }
+
+  private boomtown() {
+    setImmediate(() => {
+      throw new Error('Boomtown!')
+    })
   }
 
   private checkForUpdates() {
@@ -452,13 +464,25 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.addRepositories(paths)
   }
 
-  private removeRepository() {
-    const repository = this.getRepository()
+  private removeRepository = (repository: Repository | CloningRepository | null) => {
 
     if (!repository) {
       return
     }
 
+    if (repository instanceof CloningRepository) {
+      this.props.dispatcher.removeRepositories([ repository ])
+      return
+    }
+
+    if (this.state.confirmRepoRemoval) {
+      this.props.dispatcher.showPopup({ type: PopupType.RemoveRepository, repository })
+    } else {
+      this.props.dispatcher.removeRepositories([ repository ])
+    }
+  }
+
+  private onConfirmRepoRemoval = (repository: Repository) => {
     this.props.dispatcher.removeRepositories([ repository ])
   }
 
@@ -583,40 +607,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
     }
 
-    // No Windows controls when we're in full-screen mode.
-    const winControls = __WIN32__ && !inFullScreen
-      ? <WindowControls />
-      : null
-
-    // On Windows it's not possible to resize a frameless window if the
-    // element that sits flush along the window edge has -webkit-app-region: drag.
-    // The menu bar buttons all have no-drag but the area between menu buttons and
-    // window controls need to disable dragging so we add a 3px tall element which
-    // disables drag while still letting users drag the app by the titlebar below
-    // those 3px.
-    const topResizeHandle = __WIN32__
-      ? <div className='resize-handle top' />
-      : null
-
-    // And a 3px wide element on the left hand side.
-    const leftResizeHandle = __WIN32__
-      ? <div className='resize-handle left' />
-      : null
-
-    const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
-
-    const appIcon = __WIN32__ && !this.state.showWelcomeFlow
-      ? <Octicon className='app-icon' symbol={OcticonSymbol.markGithub} />
-      : null
+    const showAppIcon = __WIN32__ && !this.state.showWelcomeFlow
 
     return (
-      <div className={titleBarClass} id='desktop-app-title-bar'>
-        {topResizeHandle}
-        {leftResizeHandle}
-        {appIcon}
+      <TitleBar
+        showAppIcon={showAppIcon}
+        titleBarStyle={this.state.titleBarStyle}
+        windowState={this.state.windowState}
+        windowZoomFactor={this.state.windowZoomFactor}
+      >
         {this.renderAppMenuBar()}
-        {winControls}
-      </div>
+      </TitleBar>
     )
   }
 
@@ -671,8 +672,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         return <Preferences
                 key='preferences'
                 dispatcher={this.props.dispatcher}
-                appStore={this.props.appStore}
                 dotComAccount={this.getDotComAccount()}
+                confirmRepoRemoval={this.state.confirmRepoRemoval}
+                optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
                 enterpriseAccount={this.getEnterpriseAccount()}
                 onDismissed={this.onPopupDismissed}/>
       case PopupType.MergeBranch: {
@@ -796,6 +798,16 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
+      case PopupType.RemoveRepository:
+        const repo = popup.repository
+
+        return (
+          <ConfirmRemoveRepository
+            repository={repo}
+            onConfirmation={this.onConfirmRepoRemoval}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       case PopupType.TermsAndConditions:
         return <TermsAndConditions onDismissed={this.onPopupDismissed}/>
       default:
@@ -822,6 +834,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.currentPopupContent()}
       </CSSTransitionGroup>
     )
+  }
+
+  private renderZoomInfo() {
+    return <ZoomInfo windowZoomFactor={this.state.windowZoomFactor} />
   }
 
   private clearError = (error: Error) => {
@@ -861,6 +877,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       onSelectionChanged={this.onSelectionChanged}
       dispatcher={this.props.dispatcher}
       repositories={this.state.repositories}
+      onRemoveRepository={this.removeRepository}
     />
   }
 
@@ -882,7 +899,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       title = repository.name
     } else {
       icon = OcticonSymbol.repo
-      title = 'Select a repository'
+      title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
     }
 
     const isOpen = this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Repository
@@ -900,7 +917,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <ToolbarDropdown
       icon={icon}
       title={title}
-      description='Current repository'
+      description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
       foldoutStyle={foldoutStyle}
       onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
       dropdownContentRenderer={this.renderRepositoryList}
@@ -917,6 +934,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     const remoteName = state.remote ? state.remote.name : null
     const progress = state.pushPullFetchProgress
 
+    const tip =  selection.state.branchesState.tip
+    const branchExists = tip.kind === TipState.Valid
+
     return <PushPullButton
       dispatcher={this.props.dispatcher}
       repository={selection.repository}
@@ -924,6 +944,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.isPushPullFetchInProgress}
+      branchExists={branchExists}
       progress={progress}
     />
   }
@@ -981,7 +1002,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const releaseNotesUri = 'https://desktop.github.com/release-notes/tng/'
+    const releaseNotesUri = 'https://desktop.github.com/release-notes/'
 
     return (
       <UpdateAvailable
@@ -1063,6 +1084,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       <div id='desktop-app-chrome' className={className}>
         {this.renderTitlebar()}
         {this.state.showWelcomeFlow ? this.renderWelcomeFlow() : this.renderApp()}
+        {this.renderZoomInfo()}
       </div>
     )
   }

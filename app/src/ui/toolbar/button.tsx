@@ -95,6 +95,9 @@ export interface IToolbarButtonProps {
    * operation is currently in flight.
    */
   readonly progressValue?: number
+
+  readonly role?: string
+  readonly ariaExpanded?: boolean
 }
 
 /**
@@ -141,7 +144,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     const className = classNames(
       'toolbar-button',
       { 'has-progress': this.props.progressValue !== undefined },
-      this.props.className
+      this.props.className,
     )
 
     const progressValue = this.props.progressValue !== undefined
@@ -160,6 +163,8 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
           disabled={this.props.disabled}
           onMouseEnter={this.props.onMouseEnter}
           tabIndex={this.props.tabIndex}
+          role={this.props.role}
+          ariaExpanded={this.props.ariaExpanded}
         >
           {progress}
           {icon}
@@ -189,16 +194,16 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       case ToolbarButtonStyle.Standard:
         return (
           <div className='text'>
-            {title}
             {description}
+            {title}
           </div>
         )
 
       case ToolbarButtonStyle.Subtitle:
         return (
           <div className='text'>
-            {description}
             <div className='title'>{this.props.title}</div>
+            {description}
           </div>
         )
 

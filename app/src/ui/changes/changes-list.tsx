@@ -12,6 +12,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { IAutocompletionProvider } from '../autocompletion'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
+import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 
 const RowHeight = 29
 
@@ -71,7 +72,6 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         key={file.id}
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.onDiscardChanges}
-        onDiscardAllChanges={this.onDiscardAllChanges}
         availableWidth={this.props.availableWidth}
         onIgnore={this.props.onIgnore}
       />
@@ -101,21 +101,36 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     this.props.onDiscardChanges(file)
   }
 
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        action: this.onDiscardAllChanges,
+        enabled: this.props.workingDirectory.files.length > 0,
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
   public render() {
-    const selectedRow = this.props.workingDirectory.files.findIndex(file => file.id === this.props.selectedFileID)
-    const fileCount = this.props.workingDirectory.files.length
+    const fileList = this.props.workingDirectory.files
+    const selectedRow = fileList.findIndex(file => file.id === this.props.selectedFileID)
+    const fileCount = fileList.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const anyFilesSelected = fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
 
     return (
       <div className='changes-list-container file-list'>
-        <div id='select-all' className='header'>
-          <Checkbox value={this.includeAllValue} onChange={this.onIncludeAllChanged}/>
-
-          <label className='changed-files-count'>
-            {filesDescription}
-          </label>
+        <div className='header' onContextMenu={this.onContextMenu}>
+          <Checkbox
+            label={filesDescription}
+            value={this.includeAllValue}
+            onChange={this.onIncludeAllChanged}
+          />
         </div>
 
         <List id='changes-list'
@@ -125,19 +140,20 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               selectedRow={selectedRow}
               onSelectionChanged={this.props.onFileSelectionChanged}
               invalidationProps={this.props.workingDirectory}
-              onRowClick={this.props.onRowClick} />
+              onRowClick={this.props.onRowClick}/>
 
-        <CommitMessage onCreateCommit={this.props.onCreateCommit}
-                       branch={this.props.branch}
-                       gitHubUser={this.props.gitHubUser}
-                       commitAuthor={this.props.commitAuthor}
-                       anyFilesSelected={anyFilesSelected}
-                       repository={this.props.repository}
-                       dispatcher={this.props.dispatcher}
-                       commitMessage={this.props.commitMessage}
-                       contextualCommitMessage={this.props.contextualCommitMessage}
-                       autocompletionProviders={this.props.autocompletionProviders}
-                       isCommitting={this.props.isCommitting}/>
+        <CommitMessage
+          onCreateCommit={this.props.onCreateCommit}
+          branch={this.props.branch}
+          gitHubUser={this.props.gitHubUser}
+          commitAuthor={this.props.commitAuthor}
+          anyFilesSelected={anyFilesSelected}
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+          commitMessage={this.props.commitMessage}
+          contextualCommitMessage={this.props.contextualCommitMessage}
+          autocompletionProviders={this.props.autocompletionProviders}
+          isCommitting={this.props.isCommitting}/>
       </div>
     )
   }

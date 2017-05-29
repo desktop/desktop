@@ -24,9 +24,16 @@ interface IPushPullButtonProps {
   /** The date of the last fetch. */
   readonly lastFetched: Date | null
 
+  /** Progress information associated with the current operation */
   readonly progress: Progress | null
 
+  /** True if the current repository has a valid local branch. False if unborn. */
+  readonly branchExists: boolean
+
+  /** The global dispatcher, to invoke repository operations. */
   readonly dispatcher: Dispatcher
+
+  /** The current repository */
   readonly repository: Repository
 }
 
@@ -49,7 +56,9 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
       ? progress.value
       : undefined
 
-    const disabled = this.props.networkActionInProgress || !!this.props.progress
+    const disabled = this.props.branchExists
+     ? this.props.networkActionInProgress || !!this.props.progress
+     : true
 
     return (
       <ToolbarButton
@@ -81,8 +90,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
         <span key='ahead'>
           {ahead}
           <Octicon symbol={OcticonSymbol.arrowSmallUp}/>
-        </span>
-      )
+        </span>)
     }
 
     if (behind > 0) {
@@ -90,8 +98,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
         <span key='behind'>
           {behind}
           <Octicon symbol={OcticonSymbol.arrowSmallDown}/>
-        </span>
-      )
+        </span>)
     }
 
     return <div className='ahead-behind'>{content}</div>

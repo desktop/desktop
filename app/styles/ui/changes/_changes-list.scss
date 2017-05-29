@@ -13,20 +13,32 @@
   .header {
     background: var(--box-alt-background-color);
     border-bottom: 1px solid var(--box-border-color);
-    display: flex;
-    flex-shrink: 0;
-    flex-grow: 0;
-    padding: var(--spacing-half);
+    padding: 0 var(--spacing);
+    height: 29px;
 
     .checkbox-component {
-      flex-shrink: 0;
-      width: 20px;
-      margin-left: var(--spacing-half);
-    }
+      align-items: center;
+      height: 100%;
+      position: relative;
 
-    .changed-files-count {
-      flex-grow: 1;
-      text-align: center;
+      // We want the label to be positioned center with regards to the entire
+      // header so we position it absolute in relation to the checkbox component
+      // and give it a 100% width with padding on each side as to balance it out
+      // while still providing enough space for the checkbox.
+      label {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        padding: 0 30px;
+        text-align: center;
+
+        @include ellipsis;
+      }
+
+      input[type=checkbox] {
+        flex-grow: 0;
+        flex-shrink: 0;
+      }  
     }
   }
 }

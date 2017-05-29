@@ -322,8 +322,22 @@ export class GitStore {
   /** The most recently checked out branches. */
   public get recentBranches(): ReadonlyArray<Branch> { return this._recentBranches }
 
-  /** Load the local commits. */
-  public async loadLocalCommits(branch: Branch): Promise<void> {
+  /**
+   * Load local commits into memory for the current repository.
+   *
+   * @param branch The branch to query for unpublished commits.
+   *
+   * If the tip of the repository does not have commits (i.e. is unborn), this
+   * should be invoked with `null`, which clears any existing commits from the
+   * store.
+   */
+  public async loadLocalCommits(branch: Branch | null): Promise<void> {
+
+    if (branch === null) {
+      this._localCommitSHAs = [ ]
+      return
+    }
+
     let localCommits: ReadonlyArray<Commit> | undefined
     if (branch.upstream) {
       const revRange = `${branch.upstream}..${branch.name}`
@@ -532,7 +546,7 @@ export class GitStore {
           currentBranch,
           status.currentUpstreamBranch || null,
           branchTipCommit,
-          BranchType.Local
+          BranchType.Local,
         )
         this._tip = { kind: TipState.Valid, branch }
       } else if (currentTip) {

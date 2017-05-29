@@ -12,7 +12,8 @@
         "**/.DS_Store": true,
         "**/node_modules": true,
         "**/dist": true,
-        "**/out": true
+        "**/out": true,
+        "tslint-rules/**/*.js": true
     },
     "editor.tabSize": 2
 }

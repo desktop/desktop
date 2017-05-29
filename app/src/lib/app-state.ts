@@ -43,9 +43,15 @@ export interface IAppState {
   readonly signInState: SignInState | null
 
   /**
-   * The current state of the Window, ie maximized, minimized full-screen etc.
+   * The current state of the window, ie maximized, minimized full-screen etc.
    */
   readonly windowState: WindowState
+
+  /**
+   * The current zoom factor of the window represented as a fractional number
+   * where 1 equals 100% (ie actual size) and 2 represents 200%.
+   */
+  readonly windowZoomFactor: number
 
   /**
    * A value indicating whether or not the current application
@@ -110,6 +116,9 @@ export interface IAppState {
 
   /** Whether we should show the update banner */
   readonly isUpdateAvailableBannerVisible: boolean
+
+  /** Whether we should show a confirmation dialog */
+  readonly confirmRepoRemoval: boolean
 }
 
 export enum PopupType {
@@ -129,6 +138,7 @@ export enum PopupType {
   PublishRepository,
   Acknowledgements,
   UntrustedCertificate,
+  RemoveRepository,
   TermsAndConditions,
 }
 
@@ -148,6 +158,7 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.PublishRepository, repository: Repository } |
                     { type: PopupType.Acknowledgements } |
                     { type: PopupType.UntrustedCertificate, certificate: Electron.Certificate, url: string } |
+                    { type: PopupType.RemoveRepository, repository: Repository } |
                     { type: PopupType.TermsAndConditions }
 
 export enum FoldoutType {
@@ -185,7 +196,7 @@ export type Foldout =
 
 export enum RepositorySection {
   Changes,
-  History
+  History,
 }
 
 export interface IRepositoryState {

@@ -281,12 +281,11 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       return
     }
 
-    const availableWidth = Math.max(
-      this.props.availableWidth !== undefined
+    const computedAvailableWidth = this.props.availableWidth !== undefined
         ? this.props.availableWidth
         : this.pathElement.getBoundingClientRect().width
-      , 0
-    )
+
+    const availableWidth = Math.max(computedAvailableWidth, 0)
 
     // Can we fit the entire path in the available width?
     if (this.state.fullTextWidth !== undefined && this.state.fullTextWidth <= availableWidth) {

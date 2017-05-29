@@ -35,10 +35,13 @@ export class Avatar extends React.Component<IAvatarProps, void> {
   public render() {
     const url = this.props.user ? this.props.user.avatarURL : DefaultAvatarURL
     const title = this.getTitle()
+    const ariaLabel = this.props.user
+      ? `Avatar for ${this.props.user.name || this.props.user.email}`
+      : `Avatar for unknown user`
 
     return (
       <span title={title} className='avatar-container'>
-        <img className='avatar' title={title} src={url} alt={title}/>
+        <img className='avatar' title={title} src={url} alt={title} aria-label={ariaLabel} />
       </span>
     )
   }

@@ -99,14 +99,14 @@
 
     .dropdownArrow {
       width: 9px;
-      height: 12px;
+      height: 13px;
       flex-shrink: 0;
       position: relative;
     }
 
     .text {
       display: flex;
-      flex-direction: column-reverse;
+      flex-direction: column;
       flex-grow: 1;
       min-width: 0;
       margin-right: var(--spacing);

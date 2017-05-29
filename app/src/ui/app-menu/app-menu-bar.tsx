@@ -150,7 +150,11 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
 
   public render() {
     return (
-      <div id='app-menu-bar' ref={this.onMenuBarRef}>
+      <div
+        id='app-menu-bar'
+        ref={this.onMenuBarRef}
+        role='menubar'
+        aria-label='Application menu'>
         {this.state.menuItems.map(this.renderMenuItem, this)}
       </div>
     )

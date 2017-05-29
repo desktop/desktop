@@ -1,49 +1,106 @@
-import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater } from 'electron'
+import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from 'electron'
 
 import { AppWindow } from './app-window'
-import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
-import { parseURL, URLActionType } from '../lib/parse-url'
+import { CrashWindow } from './crash-window'
+import { buildDefaultMenu, MenuEvent, findMenuItemByID, setCrashMenu } from './menu'
+import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
-import { showFallbackPage } from './error-page'
-import { getLogger } from '../lib/logging/main'
 import { IMenuItemState } from '../lib/menu-update'
+import { ILogEntry, logError, log } from '../lib/logging/main'
+import { formatError } from '../lib/logging/format-error'
+import { reportError } from './exception-reporting'
+import { enableSourceMaps } from '../lib/enable-source-maps'
+
+enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
 const launchTime = Date.now()
 
+let preventQuit = false
 let readyTime: number | null = null
+let hasReportedUncaughtException = false
 
-/**
- * The URL action with which the app was launched. On macOS, we could receive an
- * `open-url` command before the app ready event, so we stash it away and handle
- * it when we're ready.
- */
-let launchURLAction: URLActionType | null = null
+type OnDidLoadFn = (window: AppWindow) => void
+/** See the `onDidLoad` function. */
+let onDidLoadFns: Array<OnDidLoadFn> | null = []
 
-process.on('uncaughtException', (error: Error) => {
-  getLogger().error('Uncaught exception on main process', error)
+function uncaughtException(error: Error) {
 
-  if (sharedProcess) {
-    sharedProcess.console.error('Uncaught exception:')
-    sharedProcess.console.error(error.name)
-    sharedProcess.console.error(error.message)
+  logError(formatError(error))
+
+  if (hasReportedUncaughtException) {
+    return
   }
+
+  hasReportedUncaughtException = true
+  preventQuit = true
+
+  setCrashMenu()
+
+  const isLaunchError = !mainWindow
 
   if (mainWindow) {
-    mainWindow.sendException(error)
-  } else {
-    showFallbackPage(error)
+    mainWindow.destroy()
+    mainWindow = null
   }
+
+  if (sharedProcess) {
+    sharedProcess.destroy()
+    mainWindow = null
+  }
+
+  const crashWindow = new CrashWindow(isLaunchError ? 'launch' : 'generic', error)
+
+  crashWindow.onDidLoad(() => {
+    crashWindow.show()
+  })
+
+  crashWindow.onFailedToLoad(() => {
+    dialog.showMessageBox({
+      type: 'error',
+      title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
+      message:
+        `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
+        `This has been reported to the team, but if you encounter this repeatedly please report ` +
+        `this issue to the GitHub Desktop issue tracker.\n\n${error.stack || error.message}`,
+    }, (response) => {
+      if (!__DEV__) {
+        app.relaunch()
+      }
+      app.quit()
+    })
+  })
+
+  crashWindow.onClose(() => {
+    if (!__DEV__) {
+      app.relaunch()
+    }
+    app.quit()
+  })
+
+  crashWindow.load()
+}
+
+process.on('uncaughtException', (error: Error) => {
+  reportError(error)
+  uncaughtException(error)
 })
 
 if (__WIN32__ && process.argv.length > 1) {
   if (handleSquirrelEvent(process.argv[1])) {
     app.quit()
+  } else {
+    const action = parseURL(process.argv[1])
+    if (action.name === 'open-repository') {
+      onDidLoad(window => {
+        window.sendURLAction(action)
+      })
+    }
   }
 }
 
@@ -60,7 +117,9 @@ const isDuplicateInstance = app.makeSingleInstance((commandLine, workingDirector
   // callback contents and code for us to complete the signin flow
   if (commandLine.length > 1) {
     const action = parseURL(commandLine[1])
-    getMainWindow().sendURLAction(action)
+    onDidLoad(window => {
+      window.sendURLAction(action)
+    })
   }
 })
 
@@ -73,18 +132,12 @@ app.on('will-finish-launching', () => {
     event.preventDefault()
 
     const action = parseURL(url)
-    // NB: If the app was launched by an `open-url` command, the app won't be
-    // ready yet and so handling the URL action is a not great idea. We'll stash
-    // it away and handle it when we're ready.
-    if (app.isReady()) {
-      const window = getMainWindow()
+    onDidLoad(window => {
       // This manual focus call _shouldn't_ be necessary, but is for Chrome on
       // macOS. See https://github.com/desktop/desktop/issues/973.
       window.focus()
       window.sendURLAction(action)
-    } else {
-      launchURLAction = action
-    }
+    })
   })
 })
 
@@ -130,12 +183,12 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: { [id: string]: IMenuItemState }) => {
+  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: Array<{ id: string, state: IMenuItemState }>) => {
     let sendMenuChangedEvent = false
 
-    for (const id of Object.keys(items)) {
+    for (const item of items) {
+      const { id, state } = item
       const menuItem = findMenuItemByID(menu, id)
-      const state = items[id]
 
       if (menuItem) {
         // Only send the updated app menu when the state actually changes
@@ -190,17 +243,35 @@ app.on('ready', () => {
   ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMainEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
     // This API's only implemented on macOS right now.
     if (__DARWIN__) {
-      getMainWindow().showCertificateTrustDialog(certificate, message)
+      onDidLoad(window => {
+        window.showCertificateTrustDialog(certificate, message)
+      })
     }
   })
 
+  ipcMain.on('log', (event: Electron.IpcMainEvent, logEntry: ILogEntry) => {
+    log(logEntry)
+  })
+
+  ipcMain.on('uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
+    uncaughtException(error)
+  })
+
+  ipcMain.on('send-error-report', (event: Electron.IpcMainEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
+    reportError(error, extra)
+  })
+
   autoUpdater.on('error', err => {
-    getMainWindow().sendAutoUpdaterError(err)
+    onDidLoad(window => {
+      window.sendAutoUpdaterError(err)
+    })
   })
 })
 
 app.on('activate', () => {
-  getMainWindow().show()
+  onDidLoad(window => {
+    window.show()
+  })
 })
 
 app.on('web-contents-created', (event, contents) => {
@@ -214,7 +285,9 @@ app.on('web-contents-created', (event, contents) => {
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
   callback(false)
 
-  getMainWindow().sendCertificateError(certificate, error, url)
+  onDidLoad(window => {
+    window.sendCertificateError(certificate, error, url)
+  })
 })
 
 function createWindow() {
@@ -239,7 +312,7 @@ function createWindow() {
   window.onClose(() => {
     mainWindow = null
 
-    if (!__DARWIN__) {
+    if (!__DARWIN__ && !preventQuit) {
       app.quit()
     }
   })
@@ -252,9 +325,10 @@ function createWindow() {
       rendererReadyTime: window.rendererReadyTime!,
     })
 
-    if (launchURLAction) {
-      window.sendURLAction(launchURLAction)
-      launchURLAction = null
+    const fns = onDidLoadFns!
+    onDidLoadFns = null
+    for (const fn of fns) {
+      fn(window)
     }
   })
 
@@ -263,11 +337,16 @@ function createWindow() {
   mainWindow = window
 }
 
-/** Get the main window, creating it if necessary. */
-function getMainWindow(): AppWindow {
-  if (!mainWindow) {
-    createWindow()
+/**
+ * Register a function to be called once the window has been loaded. If the
+ * window has already been loaded, the function will be called immediately.
+ */
+function onDidLoad(fn: OnDidLoadFn) {
+  if (onDidLoadFns) {
+    onDidLoadFns.push(fn)
+  } else {
+    if (mainWindow) {
+      fn(mainWindow)
+    }
   }
-
-  return mainWindow!
 }

@@ -79,6 +79,9 @@ const sidebarWidthConfigKey: string = 'sidebar-width'
 const defaultCommitSummaryWidth: number = 250
 const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 
+const confirmRepoRemovalDefault: boolean = true
+const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -138,7 +141,9 @@ export class AppStore {
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
+  private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
+  private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
 
   private readonly statsStore: StatsStore
 
@@ -160,6 +165,14 @@ export class AppStore {
     ipcRenderer.on('window-state-changed', (_, args) => {
       this.windowState = getWindowState(window)
       this.emitUpdate()
+    })
+
+    window.webContents.getZoomFactor(factor => {
+      this.onWindowZoomFactorChanged(factor)
+    })
+
+    ipcRenderer.on('zoom-factor-changed', (event, zoomFactor) => {
+      this.onWindowZoomFactorChanged(zoomFactor)
     })
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
@@ -238,6 +251,21 @@ export class AppStore {
   /** Register a listener for when an error occurs. */
   public onDidError(fn: (error: Error) => void): Disposable {
     return this.emitter.on('did-error', fn)
+  }
+
+  /** 
+   * Called when we have reason to suspect that the zoom factor
+   * has changed. Note that this doesn't necessarily mean that it
+   * has changed with regards to our internal state which is why
+   * we double check before emitting an update.
+   */
+  private onWindowZoomFactorChanged(zoomFactor: number) {
+    const current = this.windowZoomFactor
+    this.windowZoomFactor = zoomFactor
+
+    if (zoomFactor !== current) {
+      this.emitUpdate()
+    }
   }
 
   private getInitialRepositoryState(): IRepositoryState {
@@ -358,6 +386,7 @@ export class AppStore {
         ...this.cloningRepositoriesStore.repositories,
       ],
       windowState: this.windowState,
+      windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
@@ -372,6 +401,7 @@ export class AppStore {
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
+      confirmRepoRemoval: this.confirmRepoRemoval,
     }
   }
 
@@ -593,6 +623,11 @@ export class AppStore {
     // The selected repository could have changed while we were refreshing.
     if (this.selectedRepository !== repository) { return null }
 
+    // "Clone in Desktop" from a cold start can trigger this twice, and
+    // for edge cases where _selectRepository is re-entract, calling this here
+    // ensures we clean up the existing background fetcher correctly (if set)
+    this.stopBackgroundFetching()
+
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.refreshMentionables(repository)
 
@@ -672,8 +707,8 @@ export class AppStore {
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
       const r = this.repositories.find(r =>
-        r.constructor === selectedRepository.constructor && r.id === selectedRepository.id
-      ) || null
+        r.constructor === selectedRepository.constructor
+        && r.id === selectedRepository.id) || null
 
       newSelectedRepository = r
     }
@@ -693,6 +728,12 @@ export class AppStore {
 
     this.sidebarWidth = parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) || defaultSidebarWidth
     this.commitSummaryWidth = parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) || defaultCommitSummaryWidth
+
+    const confirmRepoRemovalValue = localStorage.getItem(confirmRepoRemovalKey)
+
+    this.confirmRepoRemoval = confirmRepoRemovalValue === null
+      ? confirmRepoRemovalDefault
+      : confirmRepoRemovalValue === '1'
 
     if (initialLoad) {
       // For the intitial load, synchronously emit the update so that the window
@@ -741,8 +782,10 @@ export class AppStore {
       const workingDirectory = new WorkingDirectoryStatus(mergedFiles, includeAll)
 
       let selectedFileID = state.selectedFileID
+      const matchedFile = mergedFiles.find(x => x.id === selectedFileID)
+
       // Select the first file if we don't have anything selected.
-      if (!selectedFileID && mergedFiles.length) {
+      if ((!selectedFileID || !matchedFile) && mergedFiles.length) {
         selectedFileID = mergedFiles[0].id || null
       }
 
@@ -894,8 +937,7 @@ export class AppStore {
   private updateWorkingDirectoryFileSelection(repository: Repository, file: WorkingDirectoryFileChange, selection: DiffSelection) {
     this.updateChangesState(repository, state => {
       const newFiles = state.workingDirectory.files.map(f =>
-        f.id === file.id ? f.withSelection(selection) : f
-      )
+        f.id === file.id ? f.withSelection(selection) : f)
 
       const includeAll = this.getIncludeAllState(newFiles)
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
@@ -968,6 +1010,8 @@ export class AppStore {
     if (state.branchesState.tip.kind === TipState.Valid) {
       const currentBranch = state.branchesState.tip.branch
       await gitStore.loadLocalCommits(currentBranch)
+    } else if (state.branchesState.tip.kind === TipState.Unborn) {
+      await gitStore.loadLocalCommits(null)
     }
   }
 
@@ -982,9 +1026,7 @@ export class AppStore {
 
   private async refreshAuthor(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    const commitAuthor = await gitStore.performFailableOperation(() =>
-      getAuthorIdentity(repository)
-    ) || null
+    const commitAuthor = await gitStore.performFailableOperation(() => getAuthorIdentity(repository)) || null
 
     this.updateRepositoryState(repository, state => ({ commitAuthor }))
     this.emitUpdate()
@@ -1479,6 +1521,17 @@ export class AppStore {
 
     await gitStore.undoCommit(commit)
 
+    const state = this.getRepositoryState(repository)
+    const selectedCommit = state.historyState.selection.sha
+
+    if (selectedCommit === commit.sha) {
+      // clear the selection of this commit in the history view
+      this.updateHistoryState(repository, state => {
+        const selection = { sha: null, file: null }
+        return { selection }
+      })
+    }
+
     return this._refreshRepository(repository)
   }
 
@@ -1671,9 +1724,15 @@ export class AppStore {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public setStatsOptOut(optOut: boolean): Promise<void> {
-    this.statsStore.setOptOut(optOut)
+  public async setStatsOptOut(optOut: boolean): Promise<void> {
+    await this.statsStore.setOptOut(optOut)
 
+    this.emitUpdate()
+  }
+
+  public _setConfirmRepoRemoval(confirmRepoRemoval: boolean): Promise<void> {
+    this.confirmRepoRemoval = confirmRepoRemoval
+    localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
     this.emitUpdate()
 
     return Promise.resolve()

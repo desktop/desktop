@@ -8,8 +8,6 @@ import { App } from './app'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import { SelectionType } from '../lib/app-state'
-import { ErrorWithMetadata } from '../lib/error-with-metadata'
-import { reportError } from './lib/exception-reporting'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import {
@@ -18,12 +16,17 @@ import {
   backgroundTaskHandler,
   unhandledExceptionHandler,
 } from '../lib/dispatcher'
-import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
+import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
+import { getOS } from '../lib/get-os'
+import { getGUID } from '../lib/stats'
+import { enableSourceMaps } from '../lib/enable-source-maps'
 
 if (__DEV__) {
   installDevGlobals()
 }
+
+enableSourceMaps()
 
 // Tell dugite where to find the git environment,
 // see https://github.com/desktop/dugite/pull/85
@@ -47,10 +50,19 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
-process.on('uncaughtException', (error: Error) => {
-  reportError(error)
-  getLogger().error('Uncaught exception on renderer process', error)
-  postUnhandledError(error)
+process.once('uncaughtException', (error: Error) => {
+  console.error('Uncaught exception', error)
+
+  if (__DEV__ || process.env.TEST_ENV) {
+    console.error(`An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`)
+  } else {
+    sendErrorReport(error, {
+      osVersion: getOS(),
+      guid: getGUID(),
+    })
+  }
+
+  reportUncaughtException(error)
 })
 
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
@@ -70,16 +82,6 @@ const appStore = new AppStore(
 )
 
 const dispatcher = new Dispatcher(appStore)
-
-function postUnhandledError(error: Error) {
-  dispatcher.postError(new ErrorWithMetadata(error, { uncaught: true }))
-}
-
-// NOTE: we consider all main-process-exceptions coming through here to be unhandled
-ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
-  reportError(error)
-  postUnhandledError(error)
-})
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
@@ -112,5 +114,5 @@ ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { ac
 
 ReactDOM.render(
   <App dispatcher={dispatcher} appStore={appStore} startTime={startTime}/>,
-  document.getElementById('desktop-app-container')!
+  document.getElementById('desktop-app-container')!,
 )

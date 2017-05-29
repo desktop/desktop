@@ -7,10 +7,20 @@ import { getOS } from '../get-os'
 import { getGUID } from './get-guid'
 import { Repository } from '../../models/repository'
 import { merge } from '../../lib/merge'
+import { logInfo, logError } from '../logging/renderer'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
+/** The URL to the stats samples page. */
+export const SamplesURL = 'https://desktop.github.com/usage-data/'
+
 const LastDailyStatsReportKey = 'last-daily-stats-report'
+
+/** The localStorage key for whether the user has opted out. */
+const StatsOptOutKey = 'stats-opt-out'
+
+/** Have we successfully sent the stats opt-in? */
+const HasSentOptInPingKey = 'has-sent-stats-opt-in-ping'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
@@ -32,9 +42,15 @@ export class StatsStore {
   public constructor(db: StatsDatabase) {
     this.db = db
 
-    const optOutValue = localStorage.getItem('stats-opt-out')
+    const optOutValue = localStorage.getItem(StatsOptOutKey)
     if (optOutValue) {
       this.optOut = !!parseInt(optOutValue, 10)
+
+      // If the user has set an opt out value but we haven't sent the ping yet,
+      // give it a shot now.
+      if (!localStorage.getItem(HasSentOptInPingKey)) {
+        this.sendOptInStatusPing(!this.optOut)
+      }
     } else {
       this.optOut = false
     }
@@ -77,27 +93,19 @@ export class StatsStore {
 
     const now = Date.now()
     const stats = await this.getDailyStats(accounts, repositories)
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(stats),
-    }
 
     try {
-      const response = await fetch(StatsEndpoint, options)
+      const response = await this.post(stats)
       if (!response.ok) {
         throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
       }
 
-      console.log('Stats reported.')
+      logInfo('Stats reported.')
 
       await this.clearDailyStats()
       localStorage.setItem(LastDailyStatsReportKey, now.toString())
     } catch (e) {
-      console.error('Error reporting stats:')
-      console.error(e)
+      logError('Error reporting stats:', e)
     }
   }
 
@@ -120,6 +128,7 @@ export class StatsStore {
     const repositoryCounts = this.categorizedRepositoryCounts(repositories)
 
     return {
+      eventType: 'usage',
       version: getVersion(),
       osVersion: getOS(),
       platform: process.platform,
@@ -140,8 +149,8 @@ export class StatsStore {
 
   /** Determines if an account is a dotCom and/or enterprise user */
   private determineUserType(accounts: ReadonlyArray<Account>) {
-    const dotComAccount = accounts.find(a => a.endpoint === getDotComAPIEndpoint()) !== undefined
-    const enterpriseAccount = accounts.find(a => a.endpoint !== getDotComAPIEndpoint()) !== undefined
+    const dotComAccount = !!accounts.find(a => a.endpoint === getDotComAPIEndpoint())
+    const enterpriseAccount = !!accounts.find(a => a.endpoint !== getDotComAPIEndpoint())
 
     return {
       dotComAccount,
@@ -187,6 +196,8 @@ export class StatsStore {
     return {
       ...DefaultDailyMeasures,
       ...measures,
+      // We could spread the database ID in, but we really don't want it.
+      id: undefined,
     }
   }
 
@@ -220,14 +231,51 @@ export class StatsStore {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public setOptOut(optOut: boolean) {
+  public async setOptOut(optOut: boolean): Promise<void> {
+    const changed = this.optOut !== optOut
+
     this.optOut = optOut
 
-    localStorage.setItem('stats-opt-out', optOut ? '1' : '0')
+    localStorage.setItem(StatsOptOutKey, optOut ? '1' : '0')
+
+    if (changed) {
+      await this.sendOptInStatusPing(!optOut)
+    }
   }
 
   /** Has the user opted out of stats reporting? */
   public getOptOut(): boolean {
     return this.optOut
+  }
+
+  /** Post some data to our stats endpoint. */
+  private post(body: object): Promise<Response> {
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    }
+
+    return fetch(StatsEndpoint, options)
+  }
+
+  private async sendOptInStatusPing(optIn: boolean): Promise<void> {
+    try {
+      const response = await this.post({
+        eventType: 'ping',
+        optIn,
+      })
+      if (!response.ok) {
+        throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
+      }
+
+      localStorage.setItem(HasSentOptInPingKey, '1')
+
+      logInfo('Opt in reported.')
+    } catch (e) {
+      logError('Error reporting opt in:', e)
+    }
   }
 }

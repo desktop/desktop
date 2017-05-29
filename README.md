@@ -6,6 +6,8 @@ GitHub Desktop is an open source [Electron](https://electron.atom.io)-based
 GitHub app. It is written in [TypeScript](http://www.typescriptlang.org) and
 uses [React](https://facebook.github.io/react/).
 
+![GitHub Desktop screenshot - Windows](https://cloud.githubusercontent.com/assets/359239/26094502/a1f56d02-3a5d-11e7-8799-23c7ba5e5106.png)
+
 ## Where can I get it?
 
 Download the installer for your OS:
@@ -25,7 +27,7 @@ from disk onto the application to get started.
 ## I have a problem with GitHub Desktop
 
 First, please search the [open issues](https://github.com/desktop/desktop/issues?q=is%3Aopen)
-and [closed issue](https://github.com/desktop/desktop/issues?q=is%3Aclosed)
+and [closed issues](https://github.com/desktop/desktop/issues?q=is%3Aclosed)
 to see if your issue hasn't already been reported (it may also be fixed).
 
 If you can't find an issue that matches what you're seeing, open a [new issue](https://github.com/desktop/desktop/issues/new)

@@ -6,8 +6,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Form } from '../lib/form'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
-
-const SamplesURL = 'https://desktop.github.com/samples/'
+import { SamplesURL } from '../../lib/stats'
 
 interface IUsageOptOutProps {
   readonly dispatcher: Dispatcher
@@ -16,8 +15,18 @@ interface IUsageOptOutProps {
   readonly optOut: boolean
 }
 
+interface IUsageOptOutState {
+  readonly newOptOutValue: boolean
+}
+
 /** The Welcome flow step for opting out of stats reporting. */
-export class UsageOptOut extends React.Component<IUsageOptOutProps, void> {
+export class UsageOptOut extends React.Component<IUsageOptOutProps, IUsageOptOutState> {
+  public constructor(props: IUsageOptOutProps) {
+    super(props)
+
+    this.state = { newOptOutValue: props.optOut }
+  }
+
   public render() {
     return (
       <div className='usage-opt-out'>
@@ -27,11 +36,11 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, void> {
           Would you like to help us improve GitHub Desktop by periodically submitting <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>?
         </p>
 
-        <Form  onSubmit={this.finish}>
+        <Form onSubmit={this.finish}>
           <Row>
             <Checkbox
               label='Yes, submit anonymized usage data'
-              value={this.props.optOut ? CheckboxValue.Off : CheckboxValue.On}
+              value={this.state.newOptOutValue ? CheckboxValue.Off : CheckboxValue.On}
               onChange={this.onChange}
             />
           </Row>
@@ -47,7 +56,7 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, void> {
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = event.currentTarget.checked
-    this.props.dispatcher.setStatsOptOut(!value)
+    this.setState({ newOptOutValue: !value })
   }
 
   private cancel = () => {
@@ -55,6 +64,7 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, void> {
   }
 
   private finish = () => {
+    this.props.dispatcher.setStatsOptOut(this.state.newOptOutValue)
     this.props.done()
   }
 }
