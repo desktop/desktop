@@ -16,6 +16,11 @@ export class IssuesStore {
     this.db = db
   }
 
+  /**
+   * Get the highest value of the 'updated_at' field for issues in a given
+   * repository. This value is used to request delta updates from the API
+   * using the 'since' parameter.
+   */
   private async getLatestUpdatedAt(repository: GitHubRepository): Promise<Date | null> {
     const gitHubRepositoryID = repository.dbID
     if (!gitHubRepositoryID) {
