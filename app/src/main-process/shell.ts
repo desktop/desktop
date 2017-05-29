@@ -52,6 +52,12 @@ function getUserShell () {
   return '/bin/bash'
 }
 
+/**
+ * Get the environment variables to rehydrate the process.
+ *
+ * @returns a set of key-value pairs representing the environment variables
+ * that a user has defined, or `null` if unable to resolve them.
+ */
 export function getEnvironmentFromShell(): IndexLookup | null  {
   const shellEnvText = getRawShellEnv()
   if (!shellEnvText) {
