@@ -23,6 +23,15 @@ export class IssuesDatabase extends Dexie {
 
     this.version(DatabaseVersion).stores({
       issues: '++id, &[gitHubRepositoryID+number], gitHubRepositoryID, number, [gitHubRepositoryID+updated_at]',
-    }).upgrade(t => t.table('issues').clear())
+    }).upgrade(t => {
+
+      // Clear deprecated localStorage keys, we compute the since parameter
+      // using the database now.
+      Object.keys(localStorage)
+        .filter(key => /IssuesStore\/\d+\/lastFetch/.test(key))
+        .forEach(key => localStorage.removeItem(key))
+
+      return t.table('issues').clear()
+    })
   }
 }
