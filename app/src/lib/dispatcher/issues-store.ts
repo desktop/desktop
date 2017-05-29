@@ -26,7 +26,7 @@ export class IssuesStore {
 
     const latestUpdatedIssue = await db.issues
       .where('[gitHubRepositoryID+updated_at]')
-      .equals([ gitHubRepositoryID ])
+      .between([ gitHubRepositoryID ], [ gitHubRepositoryID + 1 ], true, false)
       .last()
 
     debugger
