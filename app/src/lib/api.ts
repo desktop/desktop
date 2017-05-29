@@ -240,26 +240,6 @@ export class API {
     })
   }
 
-  /**
-   * Loads all repositories accessible to the current user.
-   *
-   * Loads public and private repositories across all organizations
-   * as well as the user account.
-   *
-   * @returns A promise yielding an array of {APIRepository} instances or error
-   */
-  public async fetchRepos(): Promise<ReadonlyArray<IAPIRepository>> {
-    const results: IAPIRepository[] = []
-    let nextPage = this.client.user.repos
-    while (nextPage) {
-      const request = await nextPage.fetch()
-      results.push(...request.items)
-      nextPage = request.nextPage
-    }
-
-    return results
-  }
-
   /** Fetch a repo by its owner and name. */
   public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
     try {
