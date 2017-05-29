@@ -359,6 +359,13 @@ export class API {
     return issues.filter((i: any) => !i.pullRequest)
   }
 
+  /**
+   * Authenticated requests to a paginating resource such as issues.
+   *
+   * Follows the GitHub API hypermedia links to get the subsequent
+   * pages when available, buffers all items and returns them in
+   * one array when done.
+   */
   private async fetchAll<T>(url: string): Promise<ReadonlyArray<T>> {
     const buf = new Array<T>()
     let nextUrl: string | null = url
