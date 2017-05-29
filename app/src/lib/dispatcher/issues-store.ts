@@ -29,8 +29,6 @@ export class IssuesStore {
       .between([ gitHubRepositoryID ], [ gitHubRepositoryID + 1 ], true, false)
       .last()
 
-    debugger
-
     return latestUpdatedIssue
       ? latestUpdatedIssue.updated_at || null
       : null
@@ -47,7 +45,6 @@ export class IssuesStore {
     let issues: ReadonlyArray<IAPIIssue>
     if (lastUpdatedAt) {
       const since = new Date(lastUpdatedAt)
-      debugger
       issues = await api.fetchIssues(repository.owner.login, repository.name, 'all', since)
     } else {
       issues = await api.fetchIssues(repository.owner.login, repository.name, 'open', null)
