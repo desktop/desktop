@@ -17,7 +17,7 @@ You will need to install these tools on your machine:
  - [Python 2.7](https://www.python.org/downloads/windows/)
     - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
       to configure node-gyp manually with the path which is annoying.*
-    - Ensure the **Add python.exe to Path** option is selected.*
+    - *Ensure the **Add python.exe to Path** option is selected.*
  - Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
     - *If you already have Visual Studio 2015 installed, ensure you have the **Common Tools for Visual C++ 2015**
       feature as that is required by Node.js for installing native modules.*
