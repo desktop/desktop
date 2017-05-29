@@ -6,13 +6,13 @@ You will need to install these tools on your machine:
 
 ### macOS
 
- - [Nodejs v7](https://nodejs.org/en/download/current) - this is the version embedded into Electron
+ - [Node.js v7](https://nodejs.org/en/download/current) - this is the version embedded into Electron
  - [Python 2.7](https://www.python.org/downloads/mac-osx/)
  - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
 ### Windows
 
- - [Nodejs v7](https://nodejs.org/en/download/current) - this is the version embedded into Electron
+ - [Node.js v7](https://nodejs.org/en/download/current) - this is the version embedded into Electron
     - *Make sure you allow the Node.js installer to add node to the PATH.*
  - [Python 2.7](https://www.python.org/downloads/windows/)
     - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
@@ -24,7 +24,7 @@ You will need to install these tools on your machine:
       required.*
     - *Visual Studio 2017 support has not been tested yet - see [#1766](https://github.com/desktop/desktop/issues/1766) for details*
  - From the [Windows 8.1 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-8-1-sdk) you will need the **Windows Software Development Kit** feature.
- - *Run `npm config set msvs_version 2015` after installing Visual C++ or the build tools. You may need to do this even if they're already installed.*
+ - *Run `npm config set msvs_version 2015` to tell node the right toolchain to use for compiling native modules.*
 
 ## Verification
  
