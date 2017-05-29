@@ -19,11 +19,9 @@ You will need to install these tools on your machine:
       to configure node-gyp manually with the path which is annoying.*
     - Ensure the **Add python.exe to Path** option is selected.*
  - Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
-    - *If Visual Studio is already installed you will need to make sure you have Visual C++
-      installed as part of it. The **Common Tools for Visual C++ 2015** feature is all that's
-      required.*
+    - *If you already have Visual Studio 2015 installed, ensure you have the **Common Tools for Visual C++ 2015**
+      feature as that is required by Node.js for installing native modules.*
     - *Visual Studio 2017 support has not been tested yet - see [#1766](https://github.com/desktop/desktop/issues/1766) for details*
- - From the [Windows 8.1 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-8-1-sdk) you will need the **Windows Software Development Kit** feature.
  - *Run `npm config set msvs_version 2015` to tell node the right toolchain to use for compiling native modules.*
 
 ## Verification
