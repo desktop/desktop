@@ -371,7 +371,7 @@ export class API {
     let nextUrl: string | null = url
 
     do {
-      const response = await this.authenticatedRequest('GET', url)
+      const response = await this.authenticatedRequest('GET', nextUrl)
       const items = await deserialize<ReadonlyArray<T>>(response)
       if (items) {
         buf.push(...items)
