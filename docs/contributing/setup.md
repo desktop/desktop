@@ -22,7 +22,7 @@ You will need to install these tools on your machine:
     - *If Visual Studio is already installed you will need to make sure you have Visual C++
       installed as part of it. The **Common Tools for Visual C++ 2015** feature is all that's
       required.*
-    - *Visual Studio 2017 support has not been tested yet - see https://github.com/desktop/desktop/issues/1766 for details*
+    - *Visual Studio 2017 support has not been tested yet - see [#1766](https://github.com/desktop/desktop/issues/1766) for details*
  - From the [Windows 8.1 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-8-1-sdk) you will need the **Windows Software Development Kit** feature.
  - *Run `npm config set msvs_version 2015` after installing Visual C++ or the build tools. You may need to do this even if they're already installed.*
 
