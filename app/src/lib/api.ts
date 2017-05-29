@@ -206,6 +206,10 @@ function urlWithQueryString(url: string, params: { [key: string]: any }): string
     .map(key => `${key}=${encodeURIComponent(params[key])}`)
     .join('&')
 
+  if (!qs.length) {
+    return url
+  }
+
   if (url.indexOf('?') === -1) {
     return `${url}?${qs}`
   } else {
