@@ -48,7 +48,7 @@ describe('AppStore', () => {
       new EmojiStore(),
       new IssuesStore(issuesDb),
       statsStore,
-      new SignInStore()
+      new SignInStore(),
     )
   }
 
