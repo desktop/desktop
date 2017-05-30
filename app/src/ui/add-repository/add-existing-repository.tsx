@@ -131,13 +131,14 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
   private onCreateRepositoryClicked = () => {
     const resolvedPath = this.resolvedPath(this.state.path)
+    this.props.onDismissed()
 
     return (
       <CreateRepository
         key='create-repository'
         dispatcher={this.props.dispatcher}
         onDismissed={this.props.onDismissed}
-        path={resolvedPath}/>
+        path={resolvedPath} />
     )
   }
 }
