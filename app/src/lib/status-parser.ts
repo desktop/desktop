@@ -230,8 +230,7 @@ export function mapStatus(status: string): FileEntry {
   if (status === 'C.') {
     return {
       kind: 'copied',
-      // TODO: fix this bug
-      index: GitStatusEntry.Renamed,
+      index: GitStatusEntry.Copied,
       workingTree: GitStatusEntry.Unchanged,
     }
   }
@@ -240,8 +239,7 @@ export function mapStatus(status: string): FileEntry {
     return {
       kind: 'copied',
       index: GitStatusEntry.Unchanged,
-      // TODO: fix this bug
-      workingTree: GitStatusEntry.Renamed,
+      workingTree: GitStatusEntry.Copied,
     }
   }
 
