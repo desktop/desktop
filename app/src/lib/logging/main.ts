@@ -2,7 +2,7 @@ import { getLogger } from '../logging/logger'
 import { formatError } from './format-error'
 
 export interface ILogEntry {
-  level: 'info' | 'debug' | 'error' | 'warn'
+  level: 'error' | 'warn' | 'info' | 'debug'
   readonly message: string
 }
 
