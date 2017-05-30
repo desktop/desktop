@@ -24,7 +24,7 @@ export class IssuesStore {
   private async getLatestUpdatedAt(repository: GitHubRepository): Promise<Date | null> {
     const gitHubRepositoryID = repository.dbID
     if (!gitHubRepositoryID) {
-      return fatalError(`Cannot get issues for a repository that hasn't been inserted into the database!`)
+      return fatalError('Cannot get issues for a repository that hasn\'t been inserted into the database!')
     }
 
     const db = this.db
@@ -120,7 +120,7 @@ export class IssuesStore {
   public async getIssuesMatching(repository: GitHubRepository, text: string): Promise<ReadonlyArray<IIssue>> {
     const gitHubRepositoryID = repository.dbID
     if (!gitHubRepositoryID) {
-      fatalError(`Cannot get issues for a repository that hasn't been inserted into the database!`)
+      fatalError('Cannot get issues for a repository that hasn\'t been inserted into the database!')
       return []
     }
 
