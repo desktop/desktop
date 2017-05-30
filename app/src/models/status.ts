@@ -4,11 +4,6 @@ import { assertNever } from '../lib/fatal-error'
 
 /**
  * The status entry code as reported by Git.
- *
- * NOTE: 'U' is considered "Updated but unmerged", and is a valid code here,
- * but instead we mark this as "Modified" when surfacing conflicts.
- *
- * TODO (BF): what as I thinking here? Tidy up this comment or remove it.
  */
 export enum GitStatusEntry {
   // M
@@ -27,6 +22,12 @@ export enum GitStatusEntry {
   Untracked,
   // !
   Ignored,
+  // U
+  //
+  // While U is a valid code here, we currently mark conflicts as "Modified"
+  // in the application - this will likely be something we need to revisit
+  // down the track as we improve our merge conflict experience
+  UpdatedButUnmerged,
 }
 
 /** The file status as represented in GitHub Desktop. */
