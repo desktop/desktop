@@ -74,7 +74,14 @@ export function getUserDataPath(): string {
  */
 export function getDocumentsPath(): string {
   if (!documentsPath) {
-    documentsPath = getApp().getPath('documents')
+    const app =  getApp()
+    try {
+      documentsPath = app.getPath('documents')
+    } catch (ex) {
+      // a user profile may not have the Documents folder defined on Windows
+      // as a fallback, use the Home path instead
+      documentsPath = app.getPath('home')
+    }
   }
 
   return documentsPath
