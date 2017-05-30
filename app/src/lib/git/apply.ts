@@ -12,12 +12,12 @@ export async function applyPatchToIndex(repository: Repository, file: WorkingDir
   // as running `git mv`.
   if (file.status === FileStatus.Renamed && file.oldPath) {
     // Make sure the index knows of the removed file. We could use
-    // update-index --force-remove here but we're not since it's theoretically
+    // update-index --force-remove here but we're not since it's
     // possible that someone staged a rename and then recreated the
     // original file and we don't have any guarantees for in which order
     // partial stages vs full-file stages happen. By using git add the
     // worst that could happen is that we re-stage a file already staged
-    // by addFileToIndex
+    // by updateIndex.
     await git([ 'add', '--u', '--', file.oldPath ], repository.path, 'applyPatchToIndex')
 
     // Figure out the blob oid of the removed file

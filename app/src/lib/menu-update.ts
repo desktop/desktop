@@ -82,6 +82,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   let networkActionInProgress = false
   let tipStateIsUnknown = false
 
+  let hasRemote = false
+
   if (selectedState && selectedState.type === SelectionType.Repository) {
     repositorySelected = true
 
@@ -109,6 +111,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
       onNonDefaultBranch = true
     }
 
+    hasRemote = !!selectedState.state.remote
+
     networkActionInProgress = selectedState.state.isPushPullFetchInProgress
   }
 
@@ -132,7 +136,9 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   const menuStateBuilder = new MenuStateBuilder()
 
   const windowOpen = state.windowState !== 'hidden'
-  const repositoryActive = windowOpen && repositorySelected
+  const inWelcomeFlow = state.showWelcomeFlow
+  const repositoryActive = windowOpen && repositorySelected && !inWelcomeFlow
+
   if (repositoryActive) {
     for (const id of repositoryScopedIDs) {
       menuStateBuilder.enable(id)
@@ -145,8 +151,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.setEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
-    menuStateBuilder.setEnabled('push', !networkActionInProgress)
-    menuStateBuilder.setEnabled('pull', !networkActionInProgress)
+    menuStateBuilder.setEnabled('push', hasRemote && !networkActionInProgress)
+    menuStateBuilder.setEnabled('pull', hasPublishedBranch && !networkActionInProgress)
     menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
   } else {
     for (const id of repositoryScopedIDs) {
@@ -164,12 +170,30 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.disable('pull')
   }
 
+  const welcomeScopedIds: ReadonlyArray<MenuIDs> = [
+    'new-repository',
+    'add-local-repository',
+    'clone-repository',
+    'preferences',
+    'about',
+  ]
+
+  if (inWelcomeFlow) {
+    for (const id of welcomeScopedIds) {
+      menuStateBuilder.disable(id)
+    }
+  } else {
+    for (const id of welcomeScopedIds) {
+      menuStateBuilder.enable(id)
+    }
+  }
+
   return menuStateBuilder.state
 }
 
 /**
  * Update the menu state in the main process.
- * 
+ *
  * This function will set the enabledness and visibility of menu items
  * in the main process based on the AppState. All changes will be
  * batched together into one ipc message.

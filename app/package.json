@@ -30,7 +30,7 @@
     "fs-extra": "^2.1.2",
     "keytar": "^4.0.2",
     "moment": "^2.17.1",
-    "octokat": "^0.8.0",
+    "octokat": "^0.9.0-1",
     "primer-support": "^4.0.0",
     "react": "^15.5.4",
     "react-addons-shallow-compare": "^15.5.2",

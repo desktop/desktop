@@ -23,6 +23,8 @@ function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
 }
 
+const EnterpriseTooOldMessage = `The GitHub Enterprise version does not support GitHub Desktop. Talk to your server's administrator about upgrading to the latest version of GitHub Enterprise.`
+
 /**
  * An enumeration of the possible steps that the sign in
  * store can be in save for the unitialized state (null).
@@ -340,6 +342,12 @@ export class SignInStore {
           loading: false,
           error: new Error('A personal access token cannot be used to login to GitHub Desktop.'),
         })
+      } else if (response.kind === AuthorizationResponseKind.EnterpriseTooOld) {
+        this.setState({
+          ...currentState,
+          loading: false,
+          error: new Error(EnterpriseTooOldMessage),
+        })
       } else {
         return assertNever(response, `Unsupported response: ${response}`)
       }
@@ -530,6 +538,9 @@ export class SignInStore {
           break
         case AuthorizationResponseKind.PersonalAccessTokenBlocked:
           this.emitError(new Error('A personal access token cannot be used to login to GitHub Desktop.'))
+          break
+        case AuthorizationResponseKind.EnterpriseTooOld:
+          this.emitError(new Error(EnterpriseTooOldMessage))
           break
         default:
           return assertNever(response, `Unknown response: ${response}`)

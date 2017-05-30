@@ -7,6 +7,7 @@ import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
+import { now } from './now'
 
 let windowStateKeeper: any | null = null
 
@@ -100,7 +101,7 @@ export class AppWindow {
       this._rendererReadyTime = null
       this._loadTime = null
 
-      startLoad = Date.now()
+      startLoad = now()
     })
 
     this.window.webContents.once('did-finish-load', () => {
@@ -108,8 +109,7 @@ export class AppWindow {
         this.window.webContents.openDevTools()
       }
 
-      const now = Date.now()
-      this._loadTime = now - startLoad
+      this._loadTime = now() - startLoad
 
       this.maybeEmitDidLoad()
     })

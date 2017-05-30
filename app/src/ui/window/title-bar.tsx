@@ -16,11 +16,37 @@ interface ITitleBarProps {
 
   /** Whether or not to render the app icon */
   readonly showAppIcon: boolean
+
+  /**
+   * The current zoom factor of the Window represented as a fractional number
+   * where 1 equals 100% (ie actual size) and 2 represents 200%.
+   *
+   * This is used on macOS to scale back the title bar to its original size
+   * regardless of the zoom factor.
+   */
+  readonly windowZoomFactor?: number
+}
+
+interface ITitleBarState {
+  readonly style?: React.CSSProperties
 }
 
 type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
-export class TitleBar extends React.Component<ITitleBarProps, void> {
+function getState(props: ITitleBarProps): ITitleBarState {
+  return {
+    style: props.windowZoomFactor
+      ? { zoom: 1 / props.windowZoomFactor }
+      : undefined,
+    }
+}
+
+export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
+
+  public constructor(props: ITitleBarProps) {
+    super(props)
+    this.state = getState(props)
+  }
 
   private onTitlebarDoubleClickDarwin = () => {
     const actionOnDoubleClick: AppleActionOnDoubleClickPref = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
@@ -33,6 +59,14 @@ export class TitleBar extends React.Component<ITitleBarProps, void> {
       case 'Minimize':
         mainWindow.minimize()
         break
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: ITitleBarProps) {
+    if (__DARWIN__) {
+      if (this.props.windowZoomFactor !== nextProps.windowZoomFactor) {
+        this.setState(getState(nextProps))
+      }
     }
   }
 
@@ -69,7 +103,11 @@ export class TitleBar extends React.Component<ITitleBarProps, void> {
     const onTitlebarDoubleClick = __DARWIN__ ? this.onTitlebarDoubleClickDarwin : undefined
 
     return (
-      <div className={titleBarClass} id='desktop-app-title-bar' onDoubleClick={onTitlebarDoubleClick}>
+      <div
+        className={titleBarClass} id='desktop-app-title-bar'
+        onDoubleClick={onTitlebarDoubleClick}
+        style={this.state.style}
+      >
         {topResizeHandle}
         {leftResizeHandle}
         {appIcon}
