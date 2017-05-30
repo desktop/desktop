@@ -724,7 +724,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           <CreateRepository
             key='create-repository'
             onDismissed={this.onPopupDismissed}
-            dispatcher={this.props.dispatcher} />
+            dispatcher={this.props.dispatcher}
+            path={popup.path} />
         )
       case PopupType.CloneRepository:
         return <CloneRepository
