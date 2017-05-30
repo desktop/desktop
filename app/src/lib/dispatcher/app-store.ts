@@ -49,6 +49,7 @@ import { WindowState, getWindowState } from '../window-state'
 import { structuralEquals } from '../equality'
 import { fatalError } from '../fatal-error'
 import { updateMenuState } from '../menu-update'
+import { logWarn } from '../../lib/logging/renderer'
 
 import {
   getGitDir,
@@ -640,7 +641,7 @@ export class AppStore {
     try {
       await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
-      console.warn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
+      logWarn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
     }
   }
 
