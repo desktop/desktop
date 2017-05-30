@@ -31,6 +31,8 @@
         width: 100%;
         padding: 0 30px;
         text-align: center;
+
+        @include ellipsis;
       }
 
       input[type=checkbox] {
