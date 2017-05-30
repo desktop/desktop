@@ -2,7 +2,7 @@ import { getLogger } from '../logging/logger'
 import { formatError } from './format-error'
 
 export interface ILogEntry {
-  level: 'info' | 'debug' | 'error'
+  level: 'info' | 'debug' | 'error' | 'warn'
   readonly message: string
 }
 
@@ -62,6 +62,19 @@ export function logInfo(message: string) {
  */
 export function logDebug(message: string) {
   return log({ level: 'debug', message })
+}
+
+/**
+ * Write the given log message to all configured transports,
+ * with the 'warn' log level. See initializeWinston in logger.ts
+ * for more details about what transports we set up.
+ *
+ * Returns a promise that will never yield an error and which
+ * resolves when the log entry has been written to all transports
+ * or if the entry could not be written due to an error.
+ */
+export function logWarn(message: string) {
+  return log({ level: 'warn', message })
 }
 
 /**

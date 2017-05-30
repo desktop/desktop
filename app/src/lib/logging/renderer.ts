@@ -25,6 +25,17 @@ export function logDebug(message: string) {
 
 /**
  * Dispatches the given log message to the main process where it will be picked
+ * up and written to all log transports at the 'warn' log level. See
+ * initializeWinston in logger.ts for more details about what transports we
+ * set up.
+ */
+export function logWarn(message: string) {
+  log({ level: 'warn', message })
+  console.warn(message)
+}
+
+/**
+ * Dispatches the given log message to the main process where it will be picked
  * up and written to all log transports at the 'error' log level. See
  * initializeWinston in logger.ts for more details about what transports we
  * set up.
