@@ -49,7 +49,7 @@
     "clean-webpack-plugin": "^0.1.16",
     "cross-env": "^3.2.3",
     "css-loader": "^0.26.2",
-    "electron": "1.6.10",
+    "electron": "1.6.11",
     "electron-mocha": "^3.4.0",
     "electron-packager": "8.6.0",
     "electron-winstaller": "2.5.2",
