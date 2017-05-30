@@ -10,7 +10,7 @@ import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
-import { CreateRepository } from '../add-repository/create-repository'
+import { PopupType } from '../../lib/app-state'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -131,14 +131,10 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
   private onCreateRepositoryClicked = () => {
     const resolvedPath = this.resolvedPath(this.state.path)
-    this.props.onDismissed()
 
-    return (
-      <CreateRepository
-        key='create-repository'
-        dispatcher={this.props.dispatcher}
-        onDismissed={this.props.onDismissed}
-        path={resolvedPath} />
-    )
+    return this.props.dispatcher.showPopup({
+      type: PopupType.CreateRepository,
+      path: resolvedPath,
+    })
   }
 }
