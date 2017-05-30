@@ -29,7 +29,7 @@ const config = {
       test: /\.js$/,
       sourceMaps: true,
       compact: true, 
-      minified: true,
+      minified: false,
       comments: false,
       presets: ['babili'],
     })
