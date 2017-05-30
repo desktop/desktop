@@ -13,13 +13,14 @@ import { ILogEntry, logError, log } from '../lib/logging/main'
 import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
 import { enableSourceMaps } from '../lib/enable-source-maps'
+import { now } from './now'
 
 enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
-const launchTime = Date.now()
+const launchTime = now()
 
 let preventQuit = false
 let readyTime: number | null = null
@@ -144,8 +145,7 @@ app.on('will-finish-launching', () => {
 app.on('ready', () => {
   if (isDuplicateInstance) { return }
 
-  const now = Date.now()
-  readyTime = now - launchTime
+  readyTime = now() - launchTime
 
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
