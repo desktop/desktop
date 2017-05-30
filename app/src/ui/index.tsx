@@ -32,8 +32,6 @@ if (__DARWIN__) {
   if (shellNeedsPatching(process)) {
     const env = getEnvironmentFromShell()
     if (env) {
-      const hack = process as any
-      hack._originalEnv = process.env
       process.env = env
     }
   }
