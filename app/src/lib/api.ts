@@ -8,7 +8,7 @@ import { HTTPMethod, request, deserialize, getUserAgent } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 
-import { logError } from '../lib/logging/renderer'
+import { logError, logWarn } from '../lib/logging/renderer'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -17,7 +17,7 @@ const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
 
 if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
-  console.warn(`DESKTOP_OAUTH_CLIENT_ID and/or DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
+  logWarn(`DESKTOP_OAUTH_CLIENT_ID and/or DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
 }
 
 /** The OAuth scopes we need. */
