@@ -65,9 +65,6 @@ describe('AppStore', () => {
   })
 
   describe('undo first commit', () => {
-    let repo: Repository | null = null
-    let firstCommit: Commit | null = null
-
     function getAppState(appStore: AppStore): IRepositoryState {
       const selectedState = appStore.getState().selectedState
       if (!selectedState) {
@@ -82,6 +79,9 @@ describe('AppStore', () => {
       }
     }
 
+    let repo: Repository | null = null
+    let firstCommit: Commit | null = null
+
     beforeEach(async () => {
       repo = await setupEmptyRepository()
 
@@ -93,7 +93,7 @@ describe('AppStore', () => {
       await GitProcess.exec([ 'add', file ], repo.path)
       await GitProcess.exec([ 'commit', '-m', 'added file' ], repo.path)
 
-      firstCommit = await getCommit(repo!, 'master')
+      firstCommit = await getCommit(repo, 'master')
       expect(firstCommit).to.not.equal(null)
       expect(firstCommit!.parentSHAs.length).to.equal(0)
     })
