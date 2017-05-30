@@ -2,6 +2,7 @@ import * as Path from 'path'
 import { Account } from '../../models/account'
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
+import { logDebug, logError } from '../../lib/logging/renderer'
 
 import {
   GitProcess,
@@ -108,6 +109,7 @@ export async function git(args: string[], path: string, name: string, options?: 
   const startTime = (performance && performance.now) ? performance.now() : null
 
   const commandName = `${name}: git ${args.join(' ')}`
+  logDebug(`Executing ${commandName}`)
 
   const result = await GitPerf.measure(commandName, () => GitProcess.exec(args, path, options))
 
@@ -142,18 +144,23 @@ export async function git(args: string[], path: string, name: string, options?: 
     return gitResult
   }
 
-  console.error(`The command \`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
-  if (result.stdout.length) {
-    console.error(result.stdout)
+  // The caller should either handle this error, or expect that exit code.
+  const errorMessage = []
+  errorMessage.push(`\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`)
+
+  if (result.stdout) {
+    errorMessage.push(result.stdout)
   }
 
-  if (result.stderr.length) {
-    console.error(result.stderr)
+  if (result.stderr) {
+    errorMessage.push(result.stderr)
   }
 
   if (gitError) {
-    console.error(`(The error was parsed as ${gitError}: ${gitErrorDescription})`)
+    errorMessage.push(`(The error was parsed as ${gitError}: ${gitErrorDescription})`)
   }
+
+  logError(errorMessage.join('\n'))
 
   throw new GitError(gitResult, args)
 }
