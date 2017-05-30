@@ -44,19 +44,19 @@ type OrdinaryEntry = {
   readonly kind: 'ordinary'
    /** how we should represent the file in the application */
   readonly type: 'added' | 'modified' | 'deleted',
-  /** the staged status of the file (if known) */
-  readonly staged?: GitStatusEntry,
-  /** the unstaged status of the file (if known) */
-  readonly unstaged?: GitStatusEntry,
+  /** the status of the index for this entry (if known) */
+  readonly index?: GitStatusEntry,
+  /** the status of the working tree for this entry (if known) */
+  readonly workingTree?: GitStatusEntry,
 }
 
 /** The porcelain status for a renamed or copied entry */
 type RenamedOrCopiedEntry = {
   readonly kind: 'renamed' | 'copied',
-  /** the staged status of the file (if known) */
-  readonly staged?: GitStatusEntry,
-  /** the unstaged status of the file (if known) */
-  readonly unstaged?: GitStatusEntry,
+  /** the status of the index for this entry (if known) */
+  readonly index?: GitStatusEntry,
+  /** the status of the working tree for this entry (if known) */
+  readonly workingTree?: GitStatusEntry,
 }
 
 /** The porcelain status for an unmerged entry */

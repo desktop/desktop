@@ -69,8 +69,8 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
       const status = mapStatus(entry.statusCode)
 
       if (status.kind === 'ordinary') {
-        if (status.staged === GitStatusEntry.Added
-            && status.unstaged === GitStatusEntry.Deleted) {
+        if (status.index === GitStatusEntry.Added
+            && status.workingTree === GitStatusEntry.Deleted) {
           // we can safely avoid drawing this file in the app
           continue
         }
