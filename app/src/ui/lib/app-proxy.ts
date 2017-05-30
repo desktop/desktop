@@ -79,7 +79,6 @@ export function getDocumentsPath(): string {
       documentsPath = app.getPath('documents')
     } catch (ex) {
       // a user profile may not have the Documents folder defined on Windows
-      // as a fallback, use the Home path instead
       documentsPath = app.getPath('home')
     }
   }
