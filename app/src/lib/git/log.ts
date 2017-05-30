@@ -5,7 +5,7 @@ import { Commit } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
 
 /**
- * map the raw status text from Git to an app-friendly value
+ * Map the raw status text from Git to an app-friendly value
  * shamelessly borrowed from GitHub Desktop (Windows)
  */
 function mapStatus(rawStatus: string): AppFileStatus {

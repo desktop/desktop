@@ -143,9 +143,6 @@ function parseUntrackedEntry(field: string): IStatusEntry {
 
 /**
  * Map the raw status text from Git to a structure we can work with in the app.
- *
- * This relies on the porcelain v2 format and status codes, so for
- * interoperability the existing v1 code is still around for now.
  */
 export function mapStatus(status: string): FileEntry {
 
@@ -333,7 +330,7 @@ export function mapStatus(status: string): FileEntry {
     }
   }
 
-  // TODO: what should we do if we can't parse this value?
+  // as a fallback, we assume the file is modified in some way
   return {
     kind: 'ordinary',
     type: 'modified',
