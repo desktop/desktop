@@ -36,8 +36,7 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
   }
 
   private onExternalLink = () => {
-    const platform = __DARWIN__ ? 'mac' : 'windows'
-    const url = `https://help.github.com/articles/set-up-git/#platform-${platform}`
+    const url = `https://help.github.com/articles/set-up-git/#setting-up-git`
     shell.openExternal(url)
   }
 
