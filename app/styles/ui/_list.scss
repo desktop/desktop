@@ -7,6 +7,12 @@
   // parent.
   min-width: 0;
 
+  // When zooming the app the Grid may end up extending beyond the
+  // confines of its container by 1px in either direction. That's not
+  // important but if we don't clip the overflow we may end up covering
+  // borders and we don't want that.
+  overflow: hidden;
+
   .ReactVirtualized__Grid {
     background: var(--background-color);
   }
