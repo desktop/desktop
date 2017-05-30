@@ -53,7 +53,7 @@ export class IssuesStore {
     const api = new API(account)
     const lastUpdatedAt = await this.getLatestUpdatedAt(repository)
 
-    // If we don't have a lastUpdatedAt that mean we haven't fetch any issues
+    // If we don't have a lastUpdatedAt that mean we haven't fetched any issues
     // for the repository yet which in turn means we only have to fetch the
     // currently open issues. If we have fetched before we get all issues
     // that have been modified since the last time we fetched so that we
