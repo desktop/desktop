@@ -1184,7 +1184,8 @@ export class AppStore {
   public async _validatedRepositoryPath(path: string): Promise<string | null> {
     try {
       const gitDir = await getGitDir(path)
-      return gitDir ? Path.dirname(gitDir) : null
+      const dirPath = gitDir ? Path.dirname(gitDir) : null
+      return dirPath ? (Path.basename(dirPath) === '.git' ? dirPath : gitDir) : null
     } catch (e) {
       this.emitError(e)
       return null
