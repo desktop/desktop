@@ -1,4 +1,5 @@
 import * as appProxy from '../ui/lib/app-proxy'
+import { logError } from './logging/renderer'
 
 /** The HTTP methods available. */
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
@@ -19,7 +20,7 @@ export async function deserialize<T>(response: Response | string): Promise<T | n
       return json as T
     }
   } catch (e) {
-    console.error('Unable to deserialize JSON string to object', e, response)
+    logError(`Unable to deserialize JSON string to object ${response}`, e)
     return null
   }
 }

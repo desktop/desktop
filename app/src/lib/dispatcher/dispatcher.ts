@@ -25,6 +25,7 @@ import { isGitOnPath } from '../open-shell'
 import { uuid } from '../uuid'
 import { URLActionType, IOpenRepositoryArgs } from '../parse-url'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
+import { logError, logWarn } from '../../lib/logging/renderer'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -103,8 +104,7 @@ export class Dispatcher {
           const errorInfo = response.error
           const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
           if (__DEV__) {
-            console.error(`Error from IPC in response to ${name}:`)
-            console.error(error)
+            logError(`Error from IPC in response to ${name}`, error)
           }
 
           reject(error)
@@ -830,7 +830,7 @@ export class Dispatcher {
         break
 
       default:
-        console.log(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
+        logWarn(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
     }
   }
 
