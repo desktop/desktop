@@ -3,6 +3,8 @@
 import { spawnSync } from 'child_process'
 import * as os from 'os'
 
+const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([ 'NODE_ENV', 'NODE_PATH' ])
+
 type IndexLookup = {
   [propName: string]: string;
 }
@@ -53,7 +55,7 @@ function getUserShell() {
 }
 
 /**
- * Get the environment variables to rehydrate the process.
+ * Get the environment variables to apply to the current process.
  *
  * @returns a set of key-value pairs representing the environment variables
  * that a user has defined, or `null` if unable to resolve them.
@@ -69,17 +71,37 @@ export function getEnvironmentFromShell(): IndexLookup | null  {
   for (const line of shellEnvText.split(os.EOL)) {
     if (line.includes('=')) {
       const components = line.split('=')
-       if (components.length === 2) {
-         env[components[0]] = components[1]
-       } else {
-         const k = components.shift()
-         const v = components.join('=')
-         if (k) {
+      if (components.length === 2) {
+        env[components[0]] = components[1]
+      } else {
+        const k = components.shift()
+        const v = components.join('=')
+        if (k) {
           env[k] = v
-         }
-       }
-     }
-   }
+        }
+      }
+    }
+  }
 
   return env
+}
+
+/**
+ * Apply new environment variables to the current process, ignoring
+ * Node-specific environment variables which need to be preserved.
+ *
+ * @param env The new environment variables from the user's shell.
+ */
+export function mergeEnvironmentVariables(env: IndexLookup) {
+  for (const key in process.env) {
+    if (!ENVIRONMENT_VARIABLES_TO_PRESERVE.has(key)) {
+      delete process.env[key]
+    }
+  }
+
+  for (const key in env) {
+    if (!ENVIRONMENT_VARIABLES_TO_PRESERVE.has(key)) {
+      process.env[key] = env[key]
+    }
+  }
 }

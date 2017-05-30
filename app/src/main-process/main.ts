@@ -3,7 +3,7 @@ import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from
 import { AppWindow } from './app-window'
 import { CrashWindow } from './crash-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID, setCrashMenu } from './menu'
-import { shellNeedsPatching, getEnvironmentFromShell } from '../lib/shell'
+import { shellNeedsPatching, getEnvironmentFromShell, mergeEnvironmentVariables } from '../lib/shell'
 import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
@@ -109,7 +109,7 @@ if (__DARWIN__) {
   if (shellNeedsPatching(process)) {
     const env = getEnvironmentFromShell()
     if (env) {
-      process.env = env
+      mergeEnvironmentVariables(env)
     }
   }
 }

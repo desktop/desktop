@@ -16,7 +16,7 @@ import {
   backgroundTaskHandler,
   unhandledExceptionHandler,
 } from '../lib/dispatcher'
-import { shellNeedsPatching, getEnvironmentFromShell } from '../lib/shell'
+import { shellNeedsPatching, getEnvironmentFromShell, mergeEnvironmentVariables } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
@@ -27,12 +27,11 @@ if (__DEV__) {
   installDevGlobals()
 }
 
-
 if (__DARWIN__) {
   if (shellNeedsPatching(process)) {
     const env = getEnvironmentFromShell()
     if (env) {
-      process.env = env
+      mergeEnvironmentVariables(env)
     }
   }
 }
