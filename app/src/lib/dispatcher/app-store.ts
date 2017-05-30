@@ -170,7 +170,7 @@ export class AppStore {
       this.onWindowZoomFactorChanged(factor)
     })
 
-    ipcRenderer.on('zoom-factor-changed', (event, zoomFactor) => {
+    ipcRenderer.on('zoom-factor-changed', (event: any, zoomFactor: number) => {
       this.onWindowZoomFactorChanged(zoomFactor)
     })
 
@@ -252,7 +252,7 @@ export class AppStore {
     return this.emitter.on('did-error', fn)
   }
 
-  /** 
+  /**
    * Called when we have reason to suspect that the zoom factor
    * has changed. Note that this doesn't necessarily mean that it
    * has changed with regards to our internal state which is why
