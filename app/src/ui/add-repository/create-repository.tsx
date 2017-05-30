@@ -35,6 +35,8 @@ const NoLicenseValue: ILicense = {
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
+
+  /** Prefills path input so user doesn't have to */
   readonly path?: string
 }
 
