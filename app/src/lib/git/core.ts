@@ -2,7 +2,7 @@ import * as Path from 'path'
 import { Account } from '../../models/account'
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
-import { logDebug, logError } from '../../lib/logging/renderer'
+import { logDebug, logError, logInfo } from '../../lib/logging/renderer'
 
 import {
   GitProcess,
@@ -113,11 +113,11 @@ export async function git(args: string[], path: string, name: string, options?: 
 
   const result = await GitPerf.measure(commandName, () => GitProcess.exec(args, path, options))
 
-  if (console.debug && startTime) {
+  if (startTime) {
     const rawTime = performance.now() - startTime
-    if (rawTime > 100) {
+    if (rawTime > 1000) {
      const timeInSeconds = (rawTime / 1000).toFixed(3)
-     console.debug(`executing: ${commandName} (took ${timeInSeconds}s)`)
+     logInfo(`Executing ${commandName} (took ${timeInSeconds}s)`)
     }
   }
 
