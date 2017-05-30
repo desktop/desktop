@@ -40,14 +40,12 @@ describe('AppStore', () => {
     const statsDb = new TestStatsDatabase()
     await statsDb.reset()
 
-    const statsStore = new StatsStore(statsDb)
-
     return new AppStore(
       new GitHubUserStore(db),
       new CloningRepositoriesStore(),
       new EmojiStore(),
       new IssuesStore(issuesDb),
-      statsStore,
+      new StatsStore(statsDb),
       new SignInStore(),
     )
   }
