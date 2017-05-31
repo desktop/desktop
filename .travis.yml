@@ -26,8 +26,6 @@ install:
   - npm prune
   - cd app && npm prune && cd ..
   - npm install
-  - npm ls
-  - cd app && npm ls && cd ..
 
 script:
   - npm run lint
