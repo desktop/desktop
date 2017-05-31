@@ -10,11 +10,14 @@ type IndexLookup = {
 }
 
 /**
- * Inspect whether the current process is being launched outside a shell,
- * and is lacking important environment variables for Desktop to work and
- * integrate with other tools the user may invoke.
+ * Inspect whether the current process needs to be patched to get important
+ * environment variables for Desktop to work and integrate with other tools
+ * the user may invoke as part of their workflow.
  *
- * @param process The current process to inspect.
+ * This is only applied to macOS installations due to how the application
+ * is launched.
+ *
+ * @param process The process to inspect.
  */
 export function shellNeedsPatching(process: NodeJS.Process): boolean {
   return __DARWIN__ && !process.env.PWD
@@ -53,15 +56,9 @@ async function getRawShellEnv(): Promise<string | null> {
 
     const options =  { detached: true, stdio: [ 'ignore', 'pipe', process.stderr ] }
 
-    if (shell.endsWith('tcsh') || shell.endsWith('csh')) {
-      // csh and tsch behave differently to the bash and bash-derivatives
-      // -c to run the provided arguments and exit immediately
-      child = ChildProcess.spawn(shell, [ '-c', 'command env' ], options)
-    } else {
-      // 'exit' ensures we terminate the shell afterwards
-      // https://github.com/sindresorhus/shell-env/blob/b4bd18991463be10227c15da09d161829b16799e/index.js#L6
-      child = ChildProcess.spawn(shell, [ '-ilc', 'command env' ], options)
-    }
+    // 'exit' ensures we terminate the shell afterwards
+    // https://github.com/sindresorhus/shell-env/blob/b4bd18991463be10227c15da09d161829b16799e/index.js#L6
+    child = ChildProcess.spawn(shell, [ '-ilc', 'command env' ], options)
 
     const buffers: Array<Buffer> = []
 
@@ -104,12 +101,16 @@ function getUserShell() {
 }
 
 /**
- * Get the environment variables from the user's shell and update.
+ * Get the environment variables from the user's current shell and update the
+ * current environment.
  *
- * @param updateEnvironment a callback to fire if there is a new set of
- * environment variables to apply to the current process
+ * @param updateEnvironment a callback to fire if a valid environment is found
  */
 export async function getEnvironmentFromShell(updateEnvironment: (env: IndexLookup) => void): Promise<void> {
+  if (__WIN32__) {
+    return
+  }
+
   const shellEnvText = await getRawShellEnv()
   if (!shellEnvText) {
     return
