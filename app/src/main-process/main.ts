@@ -12,9 +12,9 @@ import { fatalError } from '../lib/fatal-error'
 
 import { IMenuItemState } from '../lib/menu-update'
 import { LogLevel } from '../lib/logging/log-level'
+import { log as writeLog } from './log'
 import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
-import { assertNever } from '../lib/fatal-error'
 import { enableSourceMaps } from '../lib/enable-source-maps'
 
 enableSourceMaps()
@@ -253,14 +253,7 @@ app.on('ready', () => {
   })
 
   ipcMain.on('log', (event: Electron.IpcMainEvent, level: LogLevel, message: string) => {
-    switch (level) {
-      case 'error': return log.error(message)
-      case 'warn': return log.warn(message)
-      case 'info': return log.info(message)
-      case 'debug': return log.debug(message)
-      default:
-        assertNever(level, `Unknown log level ${level}`)
-    }
+    writeLog(level, message)
   })
 
   ipcMain.on('uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
