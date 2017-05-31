@@ -8,8 +8,6 @@ import { HTTPMethod, request, deserialize, getUserAgent } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 
-import { logError } from '../lib/logging/renderer'
-
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 
@@ -17,7 +15,7 @@ const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
 
 if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
-  console.warn(`DESKTOP_OAUTH_CLIENT_ID and/or DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
+  log.warn(`DESKTOP_OAUTH_CLIENT_ID and/or DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
 }
 
 /** The OAuth scopes we need. */
@@ -211,7 +209,7 @@ export class API {
     try {
       return await this.client.repos(owner, name).fetch()
     } catch (e) {
-      logError(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
+      log.error(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
       return null
     }
   }
@@ -250,7 +248,7 @@ export class API {
       const commit = await this.client.repos(owner, name).commits(sha).fetch()
       return commit
     } catch (e) {
-      logError(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
+      log.error(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
       return null
     }
   }
@@ -264,7 +262,7 @@ export class API {
       const user = result.items[0]
       return user
     } catch (e) {
-      logError(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
+      log.error(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
       return null
     }
   }
@@ -294,12 +292,12 @@ export class API {
         const message: string = e.message
         const error = await deserialize<IError>(message)
         if (error) {
-          logError(`createRepository return an API error: ${JSON.stringify(error)}`, e)
+          log.error(`createRepository return an API error: ${JSON.stringify(error)}`, e)
           throw new Error(error.message)
         }
       }
 
-      logError(`createRepository return an unknown error`, e)
+      log.error(`createRepository return an unknown error`, e)
       throw e
     }
   }
@@ -516,7 +514,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
 
     return body
   } catch (e) {
-    logError(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
+    log.error(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
     return null
   }
 }
@@ -527,7 +525,7 @@ async function getNote(): Promise<string> {
   try {
     localUsername = await username()
   } catch (e) {
-    logError(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
+    log.error(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`

@@ -133,8 +133,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     updateStore.onError(error => {
-      console.log(`Error checking for updates:`)
-      console.error(error)
+      log.error(`Error checking for updates`, error)
 
       this.props.dispatcher.postError(error)
     })

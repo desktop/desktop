@@ -103,8 +103,6 @@ export class Dispatcher {
           const errorInfo = response.error
           const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
           if (__DEV__) {
-            console.error(`Error from IPC in response to ${name}:`)
-            console.error(error)
           }
 
           reject(error)
@@ -830,7 +828,7 @@ export class Dispatcher {
         break
 
       default:
-        console.log(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
+        log.warn(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
     }
   }
 

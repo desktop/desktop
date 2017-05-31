@@ -19,7 +19,7 @@ export async function deserialize<T>(response: Response | string): Promise<T | n
       return json as T
     }
   } catch (e) {
-    console.error('Unable to deserialize JSON string to object', e, response)
+    log.error(`Unable to deserialize JSON string to object ${response}`, e)
     return null
   }
 }

@@ -252,7 +252,7 @@ export class AppStore {
     return this.emitter.on('did-error', fn)
   }
 
-  /** 
+  /**
    * Called when we have reason to suspect that the zoom factor
    * has changed. Note that this doesn't necessarily mean that it
    * has changed with regards to our internal state which is why
@@ -640,7 +640,7 @@ export class AppStore {
     try {
       await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
-      console.warn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
+      log.warn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
     }
   }
 
