@@ -14,7 +14,7 @@ export async function getGitDir(path: string): Promise<string | null> {
 
   const gitDir = result.stdout
   const trimmedDir = gitDir.trim()
-  return Path.join(path, trimmedDir)
+  return Path.basename(trimmedDir) === '.git' ? Path.join(path, trimmedDir) : Path.resolve(trimmedDir)
 }
 
 /**
