@@ -1,9 +1,10 @@
+import { ILog } from '../log'
 import { log } from '../../../main-process/log'
 import { formatLogMessage } from '../format-log-message'
 
 const g = global as any
 
-g.log = {
+g.log = <ILog>{
   error(message: string, error?: Error) {
     log('error', '[main] ' + formatLogMessage(message, error))
   },
