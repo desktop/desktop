@@ -21,3 +21,10 @@ declare const __RELEASE_ENV__: 'production' | 'beta' | 'test' | 'development'
  * for more information.
  */
 declare function requestIdleCallback(fn: () => void, options?: { timeout: number }): number
+
+declare const log: {
+  error(message: string, error?: Error): void
+  warn(message: string, error?: Error): void
+  info(message: string, error?: Error): void
+  debug(message: string, error?: Error): void
+}

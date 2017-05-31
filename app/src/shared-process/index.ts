@@ -1,3 +1,5 @@
+import '../lib/logging/renderer/install'
+
 import * as TokenStore from '../shared-process/token-store'
 import { AccountsStore } from './accounts-store'
 import { Account } from '../models/account'

@@ -1,3 +1,5 @@
+import '../lib/logging/main/install'
+
 import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from 'electron'
 
 import { AppWindow } from './app-window'
@@ -9,9 +11,10 @@ import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
 import { IMenuItemState } from '../lib/menu-update'
-import { ILogEntry, logError, log } from '../lib/logging/main'
+import { ILogEntry } from '../lib/logging/main'
 import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
+import { assertNever } from '../lib/fatal-error'
 import { enableSourceMaps } from '../lib/enable-source-maps'
 
 enableSourceMaps()
@@ -31,7 +34,7 @@ let onDidLoadFns: Array<OnDidLoadFn> | null = []
 
 function uncaughtException(error: Error) {
 
-  logError(formatError(error))
+  log.error(formatError(error))
 
   if (hasReportedUncaughtException) {
     return
@@ -250,7 +253,14 @@ app.on('ready', () => {
   })
 
   ipcMain.on('log', (event: Electron.IpcMainEvent, logEntry: ILogEntry) => {
-    log(logEntry)
+    switch (logEntry.level) {
+      case 'error': return log.error(logEntry.message)
+      case 'warn': return log.warn(logEntry.message)
+      case 'info': return log.info(logEntry.message)
+      case 'debug': return log.debug(logEntry.message)
+      default:
+        assertNever(logEntry.level, `Unknown log level ${logEntry.level}`)
+    }
   })
 
   ipcMain.on('uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
