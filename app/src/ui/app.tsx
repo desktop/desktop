@@ -96,7 +96,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.forceUpdate()
 
       requestIdleCallback(() => {
-        const now = Date.now()
+        const now = performance.now()
         sendReady(now - props.startTime)
 
         // Loading emoji is super important but maybe less important that

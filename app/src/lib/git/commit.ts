@@ -1,5 +1,5 @@
 import { git, GitError } from './core'
-import { stageFiles } from './add'
+import { stageFiles } from './update-index'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
