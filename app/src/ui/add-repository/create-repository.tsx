@@ -110,9 +110,11 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     return new Promise<void>((resolve, reject) => {
         FSE.ensureDir(directory, (err) => {
           if (err) {
+            this.setState({ isValidPath: false })
             return reject(err)
           }
 
+          this.setState({ isValidPath: true })
           return resolve()
         })
     })
