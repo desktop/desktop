@@ -206,10 +206,6 @@ function copyDependencies () {
 
 function updateLicenseDump (callback) {
 
-  const licenseSource = path.join(projectRoot, 'LICENSE')
-  const licenseDest = path.join(outRoot, 'static', 'LICENSE')
-  fs.copySync(licenseSource, licenseDest)
-
   const appRoot = path.join(projectRoot, 'app')
   const outPath = path.join(outRoot, 'static', 'licenses.json')
   const licenseOverrides = require('./license-overrides')
@@ -235,6 +231,19 @@ function updateLicenseDump (callback) {
         if (err) {
           callback(err)
           return
+        }
+
+        // legal-eagle still chooses to ignore the LICENSE at the root
+        // this here overrides that before we dump the file to disk
+        const licenseSource = path.join(projectRoot, 'LICENSE')
+        const licenseText = fs.readFileSync(licenseSource, { encoding: 'utf-8' })
+        const appVersion = distInfo.getVersion()
+
+        summary[`desktop@${appVersion}`] = {
+          repository: 'https://github.com/desktop/desktop',
+          license: 'MIT',
+          source: `https://github.com/desktop/desktop/blob/release-${appVersion}/LICENSE`,
+          sourceText: licenseText
         }
 
         fs.writeFileSync(outPath, JSON.stringify(summary), 'utf8')
