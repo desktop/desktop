@@ -19,6 +19,14 @@ describe('URL remote parsing', () => {
     expect(remote!.name).to.equal('repo')
   })
 
+  it('parses HTTPS URLs which include a username', () => {
+    const remote = parseRemote('https://monalisa@github.com/hubot/repo.git')
+    expect(remote).not.to.equal(null)
+    expect(remote!.hostname).to.equal('github.com')
+    expect(remote!.owner).to.equal('hubot')
+    expect(remote!.name).to.equal('repo')
+  })
+
   it('parses SSH URLs', () => {
     const remote = parseRemote('git@github.com:hubot/repo.git')
     expect(remote).not.to.equal(null)
