@@ -27,10 +27,8 @@ if (__DEV__) {
   installDevGlobals()
 }
 
-if (__DARWIN__) {
-  if (shellNeedsPatching(process)) {
-    getEnvironmentFromShell(mergeEnvironmentVariables)
-  }
+if (shellNeedsPatching(process)) {
+  getEnvironmentFromShell(mergeEnvironmentVariables)
 }
 
 enableSourceMaps()

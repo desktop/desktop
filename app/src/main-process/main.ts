@@ -105,10 +105,8 @@ if (__WIN32__ && process.argv.length > 1) {
   }
 }
 
-if (__DARWIN__) {
-  if (shellNeedsPatching(process)) {
-    getEnvironmentFromShell(mergeEnvironmentVariables)
-  }
+if (shellNeedsPatching(process)) {
+  getEnvironmentFromShell(mergeEnvironmentVariables)
 }
 
 const isDuplicateInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
