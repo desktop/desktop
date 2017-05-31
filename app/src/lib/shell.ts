@@ -17,15 +17,7 @@ type IndexLookup = {
  * @param process The current process to inspect.
  */
 export function shellNeedsPatching(process: NodeJS.Process): boolean {
-  if (__DARWIN__ && !process.env.PWD) {
-    const shell = getUserShell()
-    if (shell.endsWith('csh') || shell.endsWith('tcsh')) {
-      return false
-    }
-    return true
-  }
-
-  return false
+  return __DARWIN__ && !process.env.PWD
 }
 
 /**
@@ -64,7 +56,6 @@ async function getRawShellEnv(): Promise<string | null> {
     })
 
     child.stdout.on('data', (data: Buffer) => {
-      console.log(`got buffer? '${data}'`)
       buffers.push(data)
     })
 
