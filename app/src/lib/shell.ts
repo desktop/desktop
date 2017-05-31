@@ -20,6 +20,11 @@ export function shellNeedsPatching(process: NodeJS.Process): boolean {
   return __DARWIN__ && !process.env.PWD
 }
 
+type ShellResult = {
+  stdout: string,
+  error: Error | null,
+}
+
 /**
  * Gets a dump of the user's configured shell environment.
  *
@@ -28,7 +33,7 @@ export function shellNeedsPatching(process: NodeJS.Process): boolean {
 async function getRawShellEnv(): Promise<string | null> {
   const shell = getUserShell()
 
-  const promise = new Promise<{ stdout: string, error: Error | null }>((resolve) => {
+  const promise = new Promise<ShellResult>((resolve) => {
     let child: ChildProcess.ChildProcess | null = null
     let error: Error | null = null
     let stdout = ''
