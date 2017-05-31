@@ -59,7 +59,7 @@
     "got": "^6.3.0",
     "html-webpack-plugin": "^2.28.0",
     "klaw-sync": "^1.1.2",
-    "legal-eagle": "^0.15.0",
+    "legal-eagle": "0.15.0",
     "mocha": "^3.0.2",
     "node-native-loader": "^1.1.1",
     "node-sass": "^4.5.2",
