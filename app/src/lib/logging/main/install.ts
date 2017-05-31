@@ -5,15 +5,15 @@ const g = global as any
 
 g.log = {
   error(message: string, error?: Error) {
-    log({ level: 'error', message: formatLogMessage(message, error) })
+    log('error', formatLogMessage(message, error))
   },
   warn(message: string, error?: Error) {
-    log({ level: 'warn', message: formatLogMessage(message, error) })
+    log('warn', formatLogMessage(message, error))
   },
   info(message: string, error?: Error) {
-    log({ level: 'info', message: formatLogMessage(message, error) })
+    log('info', formatLogMessage(message, error))
   },
   debug(message: string, error?: Error) {
-    log({ level: 'debug', message: formatLogMessage(message, error) })
+    log('debug', formatLogMessage(message, error))
   },
 }

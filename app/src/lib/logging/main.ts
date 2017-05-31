@@ -2,9 +2,8 @@ import * as Fs from 'fs-extra'
 import * as Path from 'path'
 import * as winston from 'winston'
 
-import { formatError } from './format-error'
 import { getLogPath } from './get-log-path'
-import { ILogEntry } from './log-entry'
+import { LogLevel } from './log-level'
 
 require('winston-daily-rotate-file')
 
@@ -95,11 +94,11 @@ function getLogger(): Promise<winston.LogMethod> {
  * resolves when the log entry has been written to all transports
  * or if the entry could not be written due to an error.
  */
-export async function log(entry: ILogEntry) {
+export async function log(level: LogLevel, message: string) {
   try {
     const logger = await getLogger()
     await new Promise<void>((resolve, reject) => {
-      logger(entry.level, entry.message, (error) => {
+      logger(level, message, (error) => {
         if (error) {
           reject(error)
         } else {
@@ -116,61 +115,4 @@ export async function log(entry: ILogEntry) {
      * but for now logging isn't a critical thing.
      */
   }
-}
-
-/**
- * Write the given log message to all configured transports,
- * with the 'info' log level. See initializeWinston in logger.ts
- * for more details about what transports we set up.
- *
- * Returns a promise that will never yield an error and which
- * resolves when the log entry has been written to all transports
- * or if the entry could not be written due to an error.
- */
-export function logInfo(message: string) {
-  return log({ level: 'info', message })
-}
-
-/**
- * Write the given log message to all configured transports,
- * with the 'debug' log level. See initializeWinston in logger.ts
- * for more details about what transports we set up.
- *
- * Returns a promise that will never yield an error and which
- * resolves when the log entry has been written to all transports
- * or if the entry could not be written due to an error.
- */
-export function logDebug(message: string) {
-  return log({ level: 'debug', message })
-}
-
-/**
- * Write the given log message to all configured transports,
- * with the 'warn' log level. See initializeWinston in logger.ts
- * for more details about what transports we set up.
- *
- * Returns a promise that will never yield an error and which
- * resolves when the log entry has been written to all transports
- * or if the entry could not be written due to an error.
- */
-export function logWarn(message: string) {
-  return log({ level: 'warn', message })
-}
-
-/**
- * Write the given log message to all configured transports,
- * with the 'error' log level. See initializeWinston in logger.ts
- * for more details about what transports we set up.
- *
- * Returns a promise that will never yield an error and which
- * resolves when the log entry has been written to all transports
- * or if the entry could not be written due to an error.
- */
-export function logError(message: string, error?: Error) {
-  return log({
-    level: 'error',
-    message: error
-      ? formatError(error, message)
-      : message,
-  })
 }

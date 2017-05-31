@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron'
-import { LogLevel } from '../log-entry'
+import { LogLevel } from '../log-level'
 import { formatLogMessage } from '../format-log-message'
 
 const g = global as any
