@@ -275,7 +275,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   public render() {
-    const disabled = this.state.path.length === 0 || this.state.name.length === 0 || this.state.creating
+    const disabled = this.state.path.length === 0 || this.state.name.length === 0 || this.state.creating || !this.state.isValidPath
+
     return (
       <Dialog
         title={__DARWIN__ ? 'Create a New Repository' : 'Create a new repository'}
