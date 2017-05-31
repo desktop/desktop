@@ -56,8 +56,6 @@ async function getRawShellEnv(): Promise<string | null> {
 
     const options =  { detached: true, stdio: [ 'ignore', 'pipe', process.stderr ] }
 
-    // 'exit' ensures we terminate the shell afterwards
-    // https://github.com/sindresorhus/shell-env/blob/b4bd18991463be10227c15da09d161829b16799e/index.js#L6
     child = ChildProcess.spawn(shell, [ '-ilc', 'command env' ], options)
 
     const buffers: Array<Buffer> = []
