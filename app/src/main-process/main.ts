@@ -11,7 +11,7 @@ import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
 import { IMenuItemState } from '../lib/menu-update'
-import { ILogEntry } from '../lib/logging/log-entry'
+import { LogLevel } from '../lib/logging/log-entry'
 import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
 import { assertNever } from '../lib/fatal-error'
@@ -252,14 +252,14 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('log', (event: Electron.IpcMainEvent, logEntry: ILogEntry) => {
-    switch (logEntry.level) {
-      case 'error': return log.error(logEntry.message)
-      case 'warn': return log.warn(logEntry.message)
-      case 'info': return log.info(logEntry.message)
-      case 'debug': return log.debug(logEntry.message)
+  ipcMain.on('log', (event: Electron.IpcMainEvent, level: LogLevel, message: string) => {
+    switch (level) {
+      case 'error': return log.error(message)
+      case 'warn': return log.warn(message)
+      case 'info': return log.info(message)
+      case 'debug': return log.debug(message)
       default:
-        assertNever(logEntry.level, `Unknown log level ${logEntry.level}`)
+        assertNever(level, `Unknown log level ${JSON.stringify(level)}`)
     }
   })
 

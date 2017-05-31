@@ -100,7 +100,7 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
  * details about what transports we set up.
  */
 export function log(entry: ILogEntry) {
-  ipcRenderer.send('log', entry)
+  ipcRenderer.send('log', entry.level, entry.message)
 }
 
 function getIpcFriendlyError(error: Error) {
