@@ -85,6 +85,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
     const licenses = await getLicenses()
     this.setState({ ...this.state, licenses })
+
+    this.ensureDirectory(this.state.path)
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
