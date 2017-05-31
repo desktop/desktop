@@ -29,10 +29,7 @@ if (__DEV__) {
 
 if (__DARWIN__) {
   if (shellNeedsPatching(process)) {
-    const env = getEnvironmentFromShell()
-    if (env) {
-      mergeEnvironmentVariables(env)
-    }
+    getEnvironmentFromShell(mergeEnvironmentVariables)
   }
 }
 

@@ -1,6 +1,6 @@
 /* tslint:disable:no-sync-functions */
 
-import { spawnSync } from 'child_process'
+import * as ChildProcess from 'child_process'
 import * as os from 'os'
 
 const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([ 'NODE_ENV', 'NODE_PATH' ])
@@ -10,8 +10,9 @@ type IndexLookup = {
 }
 
 /**
- * Inspect whether the current process is being launched from the macOS tray,
- * and requires rehydrating of the shell environment variables.
+ * Inspect whether the current process is being launched outside a shell,
+ * and is lacking important environment variables for Desktop to work and
+ * integrate with other tools the user may invoke.
  *
  * @param process The current process to inspect.
  */
@@ -32,18 +33,60 @@ export function shellNeedsPatching(process: NodeJS.Process): boolean {
  *
  * @returns the output of the `env` command or `null` if there was an error.
  */
-function getRawShellEnv(): string | null {
+async function getRawShellEnv(): Promise<string | null> {
   const shell = getUserShell()
 
-  // The `-ilc` set of options was tested to work with the OS X v10.11
-  // default-installed versions of bash, zsh, sh, and ksh. It *does not*
-  // work with csh or tcsh.
-  const results = spawnSync(shell, [ '-ilc', 'env' ], { encoding: 'utf8' })
-  if (results.error || !results.stdout || results.stdout.length <= 0) {
-    return null
+  const promise = new Promise<{ stdout: string, error: Error | null }>((resolve) => {
+    let child: ChildProcess.ChildProcess | null = null
+    let error: Error | null = null
+    let stdout = ''
+    let done = false
+
+    // ensure we clean up eventually, in case things go bad
+    const cleanup = () => {
+      if (!done && child) {
+        child.kill()
+        done = true
+      }
+    }
+    process.once('exit', cleanup)
+    setTimeout(() => {
+      cleanup()
+    }, 5000)
+
+    child = ChildProcess.spawn(shell, [ '-ilc', 'command env' ], { detached: true, stdio: [ 'ignore', 'pipe', process.stderr ] })
+
+    const buffers: Array<Buffer> = []
+
+    child.on('error', (e: Error) => {
+      done = true
+      error = e
+    })
+
+    child.stdout.on('data', (data: Buffer) => {
+      console.log(`got buffer? '${data}'`)
+      buffers.push(data)
+    })
+
+    child.on('close', (code: number, signal) => {
+      done = true
+      process.removeListener('exit', cleanup)
+      if (buffers.length) {
+        stdout = Buffer.concat(buffers).toString('utf8')
+      }
+
+      resolve({ stdout, error })
+    })
+  })
+
+  const { stdout, error }  = await promise
+
+  if (error) {
+     // just swallow the error and move on with everything
+     return null
   }
 
-  return results.stdout
+  return stdout
 }
 
 function getUserShell() {
@@ -55,15 +98,15 @@ function getUserShell() {
 }
 
 /**
- * Get the environment variables to apply to the current process.
+ * Get the environment variables from the user's shell and update.
  *
- * @returns a set of key-value pairs representing the environment variables
- * that a user has defined, or `null` if unable to resolve them.
+ * @param updateEnvironment a callback to fire if there is a new set of
+ * environment variables to apply to the current process
  */
-export function getEnvironmentFromShell(): IndexLookup | null  {
-  const shellEnvText = getRawShellEnv()
+export async function getEnvironmentFromShell(updateEnvironment: (env: IndexLookup) => void): Promise<void> {
+  const shellEnvText = await getRawShellEnv()
   if (!shellEnvText) {
-    return null
+    return
   }
 
   const env: IndexLookup = { }
@@ -83,7 +126,7 @@ export function getEnvironmentFromShell(): IndexLookup | null  {
     }
   }
 
-  return env
+  updateEnvironment(env)
 }
 
 /**
