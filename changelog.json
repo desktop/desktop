@@ -1,7 +1,22 @@
 {
   "releases": {
     "0.5.9": [
-
+      "[New] Added Zoom In and Zoom Out - #1217",
+      "[Fixed] Various errors when on an unborn branch - #1450",
+      "[Fixed] Disable push/pull menu items when there is no remote - #1448",
+      "[Fixed] Better error message when the GitHub Enterprise version is too old - #1628",
+      "[Fixed] Error parsing non-JSON responses - #1505 #1522",
+      "[Fixed] Updated the 'Install Git' help documentation link - #1797",
+      "[Fixed] Disable menu items while in the Welcome flow - #1529",
+      "[Fixed] Windows: Fall back to HOME if Document cannot be found - #1825",
+      "[Improved] Close the window when an exception occurs - #1562",
+      "[Improved] Always use merge when pulling - #1627",
+      "[Improved] Move the 'New Branch' menu item into the Branch menu - #1757",
+      "[Improved] Remove Repository's default button is now Cancel - #1751",
+      "[Improved] Only fetch the default remote - #1435",
+      "[Improved] Faster commits with many files - #1405",
+      "[Improved] Measure startup time more reliably - #1798",
+      "[Improved] Prefer the GitHub repository name instead of the name on disk - #664"
     ],
     "0.5.8": [
       "[Fixed] Switching tabs in Preferences/Settings or Repository Settings would close the dialog - #1724",
