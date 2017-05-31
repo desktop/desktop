@@ -274,6 +274,20 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     )
   }
 
+  private renderInvalidPathWarning() {
+    const validPath = this.state.path
+
+    if (!validPath) {
+      return null
+    }
+
+    return (
+      <Row>
+        <p>Cannot create folder in directory</p>
+      </Row>
+    )
+  }
+
   public render() {
     const disabled = this.state.path.length === 0 || this.state.name.length === 0 || this.state.creating || !this.state.isValidPath
 
@@ -303,6 +317,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
               onChange={this.onPathChanged} />
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
+          {this.renderInvalidPathWarning()}
 
           <Row>
             <Checkbox
