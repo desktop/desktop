@@ -90,6 +90,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
     this.setState({ ...this.state, path })
+    this.ensureDirectory(path)
   }
 
   private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
