@@ -301,7 +301,7 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
 })
 
 function createWindow() {
-  const window = new AppWindow(sharedProcess!)
+  const window = new AppWindow()
 
   if (__DEV__) {
     const installer = require('electron-devtools-installer')
