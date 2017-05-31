@@ -46,7 +46,17 @@ async function getRawShellEnv(): Promise<string | null> {
       cleanup()
     }, 5000)
 
-    child = ChildProcess.spawn(shell, [ '-ilc', 'command env' ], { detached: true, stdio: [ 'ignore', 'pipe', process.stderr ] })
+    const options =  { detached: true, stdio: [ 'ignore', 'pipe', process.stderr ] }
+
+    if (shell.endsWith('tcsh') || shell.endsWith('csh')) {
+      // csh and tsch behave differently to the bash and bash-derivatives
+      // -c to run the provided arguments and exit immediately
+      child = ChildProcess.spawn(shell, [ '-c', 'command env' ], options)
+    } else {
+      // 'exit' ensures we terminate the shell afterwards
+      // https://github.com/sindresorhus/shell-env/blob/b4bd18991463be10227c15da09d161829b16799e/index.js#L6
+      child = ChildProcess.spawn(shell, [ '-ilc', 'command env' ], options)
+    }
 
     const buffers: Array<Buffer> = []
 
