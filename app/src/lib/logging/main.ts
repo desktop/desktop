@@ -3,11 +3,9 @@ import * as Path from 'path'
 import * as winston from 'winston'
 
 import { formatError } from './format-error'
-import { app } from 'electron'
+import { getLogPath } from './get-log-path'
 
 require('winston-daily-rotate-file')
-
-export const LogFolder = 'logs'
 
 /** resolve the log file location based on the current environment */
 function getLogFilePath(directory: string): string {
@@ -69,17 +67,17 @@ function getLogger(): Promise<winston.LogMethod> {
     return loggerPromise
   }
 
-  const userData = app.getPath('userData')
-  const directory = Path.join(userData, LogFolder)
-
   loggerPromise = new Promise<winston.LogMethod>((resolve, reject) => {
-    Fs.mkdir(directory, (error) => {
+
+    const logPath = getLogPath()
+
+    Fs.mkdir(logPath, (error) => {
       if (error && error.code !== 'EEXIST') {
         reject(error)
         return
       }
 
-      const logger = initializeWinston(getLogFilePath(directory))
+      const logger = initializeWinston(getLogFilePath(logPath))
       resolve(logger)
     })
   })
