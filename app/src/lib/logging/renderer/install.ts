@@ -14,8 +14,20 @@ function log(level: LogLevel, message: string, error?: Error) {
 }
 
 g.log = {
-  error: (message: string, error?: Error) => log('error', message),
-  warn: (message: string, error?: Error) => log('info', message),
-  info: (message: string, error?: Error) => log('warn', message),
-  debug: (message: string, error?: Error) => log('debug', message),
+  error(message: string, error?: Error) {
+    log('error', message)
+    console.error(message)
+  },
+  warn(message: string, error?: Error) {
+    log('warn', message)
+    console.warn(message)
+  },
+  info(message: string, error?: Error) {
+    log('info', message)
+    console.info(message)
+  },
+  debug(message: string, error?: Error) {
+    log('debug', message)
+    console.debug(message)
+  },
 }
