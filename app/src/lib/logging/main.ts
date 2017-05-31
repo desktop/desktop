@@ -4,6 +4,7 @@ import * as winston from 'winston'
 
 import { formatError } from './format-error'
 import { getLogPath } from './get-log-path'
+import { ILogEntry } from './log-entry'
 
 require('winston-daily-rotate-file')
 
@@ -83,11 +84,6 @@ function getLogger(): Promise<winston.LogMethod> {
   })
 
   return loggerPromise
-}
-
-export interface ILogEntry {
-  level: 'error' | 'warn' | 'info' | 'debug'
-  readonly message: string
 }
 
 /**

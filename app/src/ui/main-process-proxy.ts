@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { MenuIDs } from '../main-process/menu'
 import { IMenuItemState } from '../lib/menu-update'
-import { ILogEntry } from '../lib/logging/main'
+import { ILogEntry } from '../lib/logging/log-entry'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(state: Array<{id: MenuIDs, state: IMenuItemState}>) {

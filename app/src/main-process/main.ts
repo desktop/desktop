@@ -11,7 +11,7 @@ import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
 import { IMenuItemState } from '../lib/menu-update'
-import { ILogEntry } from '../lib/logging/main'
+import { ILogEntry } from '../lib/logging/log-entry'
 import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
 import { assertNever } from '../lib/fatal-error'
