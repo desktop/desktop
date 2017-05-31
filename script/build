@@ -205,7 +205,6 @@ function copyDependencies () {
 }
 
 function updateLicenseDump (callback) {
-
   const appRoot = path.join(projectRoot, 'app')
   const outPath = path.join(outRoot, 'static', 'licenses.json')
   const licenseOverrides = require('./license-overrides')
@@ -234,7 +233,8 @@ function updateLicenseDump (callback) {
         }
 
         // legal-eagle still chooses to ignore the LICENSE at the root
-        // this here overrides that before we dump the file to disk
+        // this injects the current license and pins the source URL before we
+        // dump the JSON file to disk
         const licenseSource = path.join(projectRoot, 'LICENSE')
         const licenseText = fs.readFileSync(licenseSource, { encoding: 'utf-8' })
         const appVersion = distInfo.getVersion()
