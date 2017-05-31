@@ -259,7 +259,7 @@ app.on('ready', () => {
       case 'info': return log.info(message)
       case 'debug': return log.debug(message)
       default:
-        assertNever(level, `Unknown log level ${JSON.stringify(level)}`)
+        assertNever(level, `Unknown log level ${level}`)
     }
   })
 
