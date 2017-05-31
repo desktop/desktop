@@ -2,8 +2,8 @@ import * as Fs from 'fs-extra'
 import * as Path from 'path'
 import * as winston from 'winston'
 
-import { getLogPath } from './get-log-path'
-import { LogLevel } from './log-level'
+import { getLogPath } from '../lib/logging/get-log-path'
+import { LogLevel } from '../lib/logging/log-level'
 
 require('winston-daily-rotate-file')
 

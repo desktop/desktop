@@ -1,4 +1,4 @@
-import { log } from '../main'
+import { log } from '../../../main-process/log'
 import { formatLogMessage } from '../format-log-message'
 
 const g = global as any
