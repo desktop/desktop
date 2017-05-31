@@ -2,7 +2,6 @@ import * as Path from 'path'
 import { Account } from '../../models/account'
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
-import { logDebug, logError, logInfo } from '../../lib/logging/renderer'
 
 import {
   GitProcess,
@@ -109,7 +108,7 @@ export async function git(args: string[], path: string, name: string, options?: 
   const startTime = (performance && performance.now) ? performance.now() : null
 
   const commandName = `${name}: git ${args.join(' ')}`
-  logDebug(`Executing ${commandName}`)
+  log.debug(`Executing ${commandName}`)
 
   const result = await GitPerf.measure(commandName, () => GitProcess.exec(args, path, options))
 
@@ -117,7 +116,7 @@ export async function git(args: string[], path: string, name: string, options?: 
     const rawTime = performance.now() - startTime
     if (rawTime > 1000) {
      const timeInSeconds = (rawTime / 1000).toFixed(3)
-     logInfo(`Executing ${commandName} (took ${timeInSeconds}s)`)
+     log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
     }
   }
 
@@ -160,7 +159,7 @@ export async function git(args: string[], path: string, name: string, options?: 
     errorMessage.push(`(The error was parsed as ${gitError}: ${gitErrorDescription})`)
   }
 
-  logError(errorMessage.join('\n'))
+  log.error(errorMessage.join('\n'))
 
   throw new GitError(gitResult, args)
 }

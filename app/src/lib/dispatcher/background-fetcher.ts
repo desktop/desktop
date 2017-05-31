@@ -3,7 +3,6 @@ import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
 import { API } from '../api'
 import { fatalError } from '../fatal-error'
-import { logError } from '../logging/renderer'
 
 /**
  * A default interval at which to automatically fetch repositories, if the
@@ -79,7 +78,7 @@ export class BackgroundFetcher {
     try {
       await this.fetch(this.repository)
     } catch (e) {
-      logError('Error performing periodic fetch', e)
+      log.error('Error performing periodic fetch', e)
     }
 
     if (this.stopped) { return }
@@ -105,7 +104,7 @@ export class BackgroundFetcher {
         interval = DefaultFetchInterval
       }
     } catch (e) {
-      logError('Error fetching poll interval', e)
+      log.error('Error fetching poll interval', e)
     }
 
     return interval + skewInterval()

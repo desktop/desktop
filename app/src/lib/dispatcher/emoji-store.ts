@@ -1,6 +1,5 @@
 import * as Fs from 'fs'
 import * as Path from 'path'
-import { logError } from '../logging/renderer'
 
 /**
  * Type representing the contents of the gemoji json database
@@ -111,7 +110,7 @@ export class EmojiStore {
               : this.getEmojiImageUrlFromRelativePath(`${emoji.aliases[0]}.png`)
 
             if (!url) {
-              logError(`Could not calculate location of emoji: ${emoji}`)
+              log.error(`Could not calculate location of emoji: ${emoji}`)
               return
             }
 
