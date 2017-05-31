@@ -1,6 +1,5 @@
 import { ipcRenderer } from 'electron'
 import { LogLevel } from '../log-level'
-import { ILog } from '../log'
 import { formatLogMessage } from '../format-log-message'
 
 const g = global as any
@@ -14,7 +13,7 @@ function log(level: LogLevel, message: string, error?: Error) {
   ipcRenderer.send('log', level, formatLogMessage(`[${__PROCESS_KIND__}] ${message}`, error))
 }
 
-g.log = <ILog>{
+g.log = <IDesktopLogger>{
   error(message: string, error?: Error) {
     log('error', message)
     console.error(message)
