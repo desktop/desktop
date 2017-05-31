@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.6.0": [
+
+    ],
     "0.5.9": [
       "[New] Added Zoom In and Zoom Out - #1217",
       "[Fixed] Various errors when on an unborn branch - #1450",
