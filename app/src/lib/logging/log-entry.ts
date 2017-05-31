@@ -1,4 +1,6 @@
+export type LogLevel = 'error' | 'warn' | 'info' | 'debug'
+
 export interface ILogEntry {
-  level: 'error' | 'warn' | 'info' | 'debug'
+  level: LogLevel
   readonly message: string
 }
