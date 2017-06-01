@@ -26,6 +26,7 @@ const DailyStatsReportInterval = 1000 * 60 * 60 * 24
 
 const DefaultDailyMeasures: IDailyMeasures = {
   commits: 0,
+  partialCommits: 0,
   openShellCount: 0,
 }
 
@@ -219,6 +220,13 @@ export class StatsStore {
   public recordCommit(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       commits: m.commits + 1,
+    }))
+  }
+
+  /** Record that a partial commit was accomplished. */
+  public recordPartialCommit(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      partialCommits: m.partialCommits + 1,
     }))
   }
 
