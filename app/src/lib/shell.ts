@@ -104,7 +104,7 @@ function getUserShell() {
  *
  * @param updateEnvironment a callback to fire if a valid environment is found
  */
-export async function getEnvironmentFromShell(updateEnvironment: (env: IndexLookup) => void): Promise<void> {
+async function getEnvironmentFromShell(updateEnvironment: (env: IndexLookup) => void): Promise<void> {
   if (__WIN32__) {
     return
   }
@@ -140,7 +140,7 @@ export async function getEnvironmentFromShell(updateEnvironment: (env: IndexLook
  *
  * @param env The new environment variables from the user's shell.
  */
-export function mergeEnvironmentVariables(env: IndexLookup) {
+function mergeEnvironmentVariables(env: IndexLookup) {
   for (const key in process.env) {
     if (!environmentVariablesToPreserve.has(key)) {
       delete process.env[key]
@@ -152,4 +152,8 @@ export function mergeEnvironmentVariables(env: IndexLookup) {
       process.env[key] = env[key]
     }
   }
+}
+
+export function updateEnvironmentForProcess(): Promise<void> {
+  return getEnvironmentFromShell(mergeEnvironmentVariables)
 }

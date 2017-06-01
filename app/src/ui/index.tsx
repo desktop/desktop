@@ -16,7 +16,7 @@ import {
   backgroundTaskHandler,
   unhandledExceptionHandler,
 } from '../lib/dispatcher'
-import { shellNeedsPatching, getEnvironmentFromShell, mergeEnvironmentVariables } from '../lib/shell'
+import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
@@ -28,7 +28,7 @@ if (__DEV__) {
 }
 
 if (shellNeedsPatching(process)) {
-  getEnvironmentFromShell(mergeEnvironmentVariables)
+  updateEnvironmentForProcess()
 }
 
 enableSourceMaps()
