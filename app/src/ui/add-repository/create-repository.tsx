@@ -87,6 +87,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   private onPathChanged = async (event: React.FormEvent<HTMLInputElement>) => {
+    const path = event.currentTarget.value
+    this.setState({ ...this.state, path })
   }
 
   private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
@@ -120,7 +122,11 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
     try {
       await this.ensureDirectory(fullPath)
+      this.setState({ ...this.state, isValidPath: true })
     } catch (e) {
+      if (e.code === 'EACCES' && e.errno === -13) {
+        return this.setState({ ...this.state, isValidPath: false })
+      }
       log.error(`createRepository: the directory at ${fullPath} is not valid`, e)
       return this.props.dispatcher.postError(e)
     }
