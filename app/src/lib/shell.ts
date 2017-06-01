@@ -3,8 +3,6 @@
 import * as ChildProcess from 'child_process'
 import * as os from 'os'
 
-const environmentVariablesToPreserve = new Set()
-
 type IndexLookup = {
   [propName: string]: string;
 }
@@ -142,15 +140,11 @@ async function getEnvironmentFromShell(updateEnvironment: (env: IndexLookup) => 
  */
 function mergeEnvironmentVariables(env: IndexLookup) {
   for (const key in process.env) {
-    if (!environmentVariablesToPreserve.has(key)) {
-      delete process.env[key]
-    }
+    delete process.env[key]
   }
 
   for (const key in env) {
-    if (!environmentVariablesToPreserve.has(key)) {
-      process.env[key] = env[key]
-    }
+    process.env[key] = env[key]
   }
 }
 
