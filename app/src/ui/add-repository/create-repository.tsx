@@ -73,7 +73,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       gitIgnore: NoGitIgnoreValue,
       licenses: null,
       license: NoLicenseValue.name,
-      isValidPath: false,
+      isValidPath: null,
     }
   }
 
