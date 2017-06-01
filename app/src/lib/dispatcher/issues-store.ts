@@ -16,22 +16,33 @@ export class IssuesStore {
     this.db = db
   }
 
-  private lastFetchKey(repository: GitHubRepository): string {
-    return `IssuesStore/${repository.dbID}/lastFetch`
-  }
+  /**
+   * Get the highest value of the 'updated_at' field for issues in a given
+   * repository. This value is used to request delta updates from the API
+   * using the 'since' parameter.
+   */
+  private async getLatestUpdatedAt(repository: GitHubRepository): Promise<Date | null> {
+    const gitHubRepositoryID = repository.dbID
+    if (!gitHubRepositoryID) {
+      return fatalError('Cannot get issues for a repository that hasn\'t been inserted into the database!')
+    }
 
-  private getLastFetchDate(repository: GitHubRepository): Date | null {
-    const rawTime = localStorage.getItem(this.lastFetchKey(repository))
-    if (!rawTime) { return null }
+    const db = this.db
 
-    const parsedNumber = parseInt(rawTime, 10)
-    if (!parsedNumber || isNaN(parsedNumber)) { return null }
+    const latestUpdatedIssue = await db.issues
+      .where('[gitHubRepositoryID+updated_at]')
+      .between([ gitHubRepositoryID ], [ gitHubRepositoryID + 1 ], true, false)
+      .last()
 
-    return new Date(parsedNumber)
-  }
+    if (!latestUpdatedIssue || !latestUpdatedIssue.updated_at) {
+      return null
+    }
 
-  private setLastFetchDate(repository: GitHubRepository, date: Date) {
-    localStorage.setItem(this.lastFetchKey(repository), date.getTime().toString())
+    const lastUpdatedAt = new Date(latestUpdatedIssue.updated_at)
+
+    return !isNaN(lastUpdatedAt.getTime())
+      ? lastUpdatedAt
+      : null
   }
 
   /**
@@ -40,17 +51,19 @@ export class IssuesStore {
    */
   public async fetchIssues(repository: GitHubRepository, account: Account) {
     const api = new API(account)
-    const lastFetchDate = this.getLastFetchDate(repository)
-    const now = new Date()
+    const lastUpdatedAt = await this.getLatestUpdatedAt(repository)
 
-    let issues: ReadonlyArray<IAPIIssue>
-    if (lastFetchDate) {
-      issues = await api.fetchIssues(repository.owner.login, repository.name, 'all', lastFetchDate)
-    } else {
-      issues = await api.fetchIssues(repository.owner.login, repository.name, 'open', null)
-    }
+    // If we don't have a lastUpdatedAt that mean we haven't fetched any issues
+    // for the repository yet which in turn means we only have to fetch the
+    // currently open issues. If we have fetched before we get all issues
+    // that have been modified since the last time we fetched so that we
+    // can prune closed issues from our database. Note that since the GitHub
+    // API returns all issues modified _at_ or after the timestamp we give it
+    // we will always get at least one issue back but we won't have to transfer
+    // it since we should get a 304 response from GitHub.
+    const state = lastUpdatedAt ? 'all' : 'open'
 
-    this.setLastFetchDate(repository, now)
+    const issues = await api.fetchIssues(repository.owner.login, repository.name, state, lastUpdatedAt)
 
     this.storeIssues(issues, repository)
   }
@@ -70,6 +83,7 @@ export class IssuesStore {
           gitHubRepositoryID,
           number: i.number,
           title: i.title,
+          updated_at: i.updated_at,
         }
       })
 
@@ -106,7 +120,7 @@ export class IssuesStore {
   public async getIssuesMatching(repository: GitHubRepository, text: string): Promise<ReadonlyArray<IIssue>> {
     const gitHubRepositoryID = repository.dbID
     if (!gitHubRepositoryID) {
-      fatalError(`Cannot get issues for a repository that hasn't been inserted into the database!`)
+      fatalError('Cannot get issues for a repository that hasn\'t been inserted into the database!')
       return []
     }
 

@@ -19,7 +19,7 @@ export async function deserialize<T>(response: Response | string): Promise<T | n
       return json as T
     }
   } catch (e) {
-    console.error('Unable to deserialize JSON string to object', e, response)
+    log.error(`Unable to deserialize JSON string to object ${response}`, e)
     return null
   }
 }
@@ -30,12 +30,13 @@ export async function deserialize<T>(response: Response | string): Promise<T | n
  * @param endpoint      - The API endpoint.
  * @param authorization - The value to pass in the `Authorization` header.
  * @param method        - The HTTP method.
- * @param path          - The path without a leading /.
+ * @param path          - The path, including any query string parameters.
  * @param body          - The body to send.
  * @param customHeaders - Any optional additional headers to send.
  */
 export function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
-  const url = `${endpoint}/${path}`
+  const url = new URL(path, endpoint)
+
   const headers: any = Object.assign({}, {
     'Accept': 'application/vnd.github.v3+json, application/json',
     'Content-Type': 'application/json',
@@ -52,10 +53,11 @@ export function request(endpoint: string, authorization: string | null, method: 
     body: JSON.stringify(body),
   }
 
-  return fetch(url, options)
+  return fetch(url.href, options)
 }
 
 /** Get the user agent to use for all requests. */
 export function getUserAgent() {
-  return `GitHubDesktop/${appProxy.getVersion()}`
+  const platform = __DARWIN__ ? 'Macintosh' : 'Windows'
+  return `GitHubDesktop/${appProxy.getVersion()} (${platform})`
 }

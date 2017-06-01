@@ -1,6 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
 import { ipcRenderer, remote } from 'electron'
-import * as Path from 'path'
 import {
   IRepositoryState,
   IHistoryState,
@@ -51,7 +50,6 @@ import { fatalError } from '../fatal-error'
 import { updateMenuState } from '../menu-update'
 
 import {
-  getGitDir,
   getAuthorIdentity,
   pull as pullRepo,
   push as pushRepo,
@@ -252,7 +250,7 @@ export class AppStore {
     return this.emitter.on('did-error', fn)
   }
 
-  /** 
+  /**
    * Called when we have reason to suspect that the zoom factor
    * has changed. Note that this doesn't necessarily mean that it
    * has changed with regards to our internal state which is why
@@ -640,7 +638,7 @@ export class AppStore {
     try {
       await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
-      console.warn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
+      log.warn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
     }
   }
 
@@ -1178,17 +1176,6 @@ export class AppStore {
     this.emitUpdate()
 
     return Promise.resolve()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _validatedRepositoryPath(path: string): Promise<string | null> {
-    try {
-      const gitDir = await getGitDir(path)
-      return gitDir ? Path.dirname(gitDir) : null
-    } catch (e) {
-      this.emitError(e)
-      return null
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

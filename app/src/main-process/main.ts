@@ -1,3 +1,5 @@
+import '../lib/logging/main/install'
+
 import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from 'electron'
 
 import { AppWindow } from './app-window'
@@ -9,17 +11,19 @@ import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
 import { IMenuItemState } from '../lib/menu-update'
-import { ILogEntry, logError, log } from '../lib/logging/main'
+import { LogLevel } from '../lib/logging/log-level'
+import { log as writeLog } from './log'
 import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
 import { enableSourceMaps } from '../lib/enable-source-maps'
+import { now } from './now'
 
 enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
-const launchTime = Date.now()
+const launchTime = now()
 
 let preventQuit = false
 let readyTime: number | null = null
@@ -31,7 +35,7 @@ let onDidLoadFns: Array<OnDidLoadFn> | null = []
 
 function uncaughtException(error: Error) {
 
-  logError(formatError(error))
+  log.error(formatError(error))
 
   if (hasReportedUncaughtException) {
     return
@@ -144,8 +148,7 @@ app.on('will-finish-launching', () => {
 app.on('ready', () => {
   if (isDuplicateInstance) { return }
 
-  const now = Date.now()
-  readyTime = now - launchTime
+  readyTime = now() - launchTime
 
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
@@ -249,8 +252,8 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('log', (event: Electron.IpcMainEvent, logEntry: ILogEntry) => {
-    log(logEntry)
+  ipcMain.on('log', (event: Electron.IpcMainEvent, level: LogLevel, message: string) => {
+    writeLog(level, message)
   })
 
   ipcMain.on('uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
@@ -278,7 +281,7 @@ app.on('web-contents-created', (event, contents) => {
   contents.on('new-window', (event, url) => {
     // Prevent links or window.open from opening new windows
     event.preventDefault()
-    sharedProcess!.console.log(`Prevented new window to: ${url}`)
+    log.warn(`Prevented new window to: ${url}`)
   })
 })
 
@@ -291,7 +294,7 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
 })
 
 function createWindow() {
-  const window = new AppWindow(sharedProcess!)
+  const window = new AppWindow()
 
   if (__DEV__) {
     const installer = require('electron-devtools-installer')

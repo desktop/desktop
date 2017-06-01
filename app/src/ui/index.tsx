@@ -1,3 +1,5 @@
+import '../lib/logging/renderer/install'
+
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
@@ -42,7 +44,7 @@ process.env['LOCAL_GIT_DIRECTORY'] = Path.resolve(__dirname, 'git')
 //   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
 require('wicg-focus-ring')
 
-const startTime = Date.now()
+const startTime = performance.now()
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
