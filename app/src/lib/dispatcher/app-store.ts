@@ -877,7 +877,8 @@ export class AppStore {
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
 
     const state = this.getRepositoryState(repository)
-    const files = state.changesState.workingDirectory.files.filter((file, index, array) => {
+    const files = state.changesState.workingDirectory.files
+    const selectedFiles = files.filter((file, index, array) => {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
@@ -886,12 +887,19 @@ export class AppStore {
     const result = await this.isCommitting(repository, () => {
       return gitStore.performFailableOperation(() => {
         const commitMessage = formatCommitMessage(message)
-        return createCommit(repository, commitMessage, files)
+        return createCommit(repository, commitMessage, selectedFiles)
       })
     })
 
     if (result) {
       this.statsStore.recordCommit()
+
+      const includedPartialSelections = files.some(file => (
+        file.selection.getSelectionType() === DiffSelectionType.Partial
+      ))
+      if (includedPartialSelections) {
+        this.statsStore.recordPartialCommit()
+      }
 
       await this._refreshRepository(repository)
       await this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
