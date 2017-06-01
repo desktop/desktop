@@ -88,7 +88,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private onPathChanged = async (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.setState({ ...this.state, path })
+    this.setState({ ...this.state, path, isValidPath: null })
   }
 
   private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
