@@ -38,7 +38,7 @@ interface ICreateRepositoryProps {
 interface ICreateRepositoryState {
   readonly path: string
   readonly name: string
-  readonly isValidPath: boolean
+  readonly isValidPath: boolean | null
 
   /** Should the repository be created with a default README? */
   readonly createWithReadme: boolean
