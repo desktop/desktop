@@ -284,9 +284,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   private renderInvalidPathWarning() {
-    const validPath = this.state.path
-
-    if (!validPath) {
+    if (this.state.isValidPath) {
       return null
     }
 
@@ -326,6 +324,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
               onChange={this.onPathChanged} />
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
+
           {this.renderInvalidPathWarning()}
 
           <Row>
@@ -336,7 +335,6 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           </Row>
 
           {this.renderGitIgnores()}
-
           {this.renderLicenses()}
 
         </DialogContent>
