@@ -148,6 +148,10 @@ function mergeEnvironmentVariables(env: IndexLookup) {
   }
 }
 
+/**
+ * Update the current process's environment variables using environment
+ * variables from the user's shell, if they can be retrieved successfully.
+ */
 export function updateEnvironmentForProcess(): Promise<void> {
   return getEnvironmentFromShell(mergeEnvironmentVariables)
 }
