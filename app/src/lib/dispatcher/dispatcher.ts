@@ -25,6 +25,7 @@ import { isGitOnPath } from '../open-shell'
 import { uuid } from '../uuid'
 import { URLActionType, IOpenRepositoryArgs } from '../parse-url'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
+import { validatedRepositoryPath } from './validated-repository-path'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -103,8 +104,6 @@ export class Dispatcher {
           const errorInfo = response.error
           const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
           if (__DEV__) {
-            console.error(`Error from IPC in response to ${name}:`)
-            console.error(error)
           }
 
           reject(error)
@@ -141,7 +140,7 @@ export class Dispatcher {
   public async addRepositories(paths: ReadonlyArray<string>): Promise<ReadonlyArray<Repository>> {
     const validatedPaths = new Array<string>()
     for (const path of paths) {
-      const validatedPath = await this.appStore._validatedRepositoryPath(path)
+      const validatedPath = await validatedRepositoryPath(path)
       if (validatedPath) {
         validatedPaths.push(validatedPath)
       } else {
@@ -830,7 +829,7 @@ export class Dispatcher {
         break
 
       default:
-        console.log(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
+        log.warn(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
     }
   }
 

@@ -1,6 +1,5 @@
 import { BrowserWindow, ipcMain } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
-import { logDebug, logError } from '../lib/logging/main'
 import { ICrashDetails, ErrorType } from '../crash/shared'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
 
@@ -59,7 +58,7 @@ export class CrashWindow {
   }
 
   public load() {
-    logDebug('Starting crash process')
+    log.debug('Starting crash process')
 
     // We only listen for the first of the loading events to avoid a bug in
     // Electron/Chromium where they can sometimes fire more than once. See
@@ -68,11 +67,11 @@ export class CrashWindow {
     // shouldn't really matter as in production builds loading _should_ only
     // happen once.
     this.window.webContents.once('did-start-loading', () => {
-      logDebug('Crash process in startup')
+      log.debug('Crash process in startup')
     })
 
     this.window.webContents.once('did-finish-load', () => {
-      logDebug('Crash process started')
+      log.debug('Crash process started')
       if (process.env.NODE_ENV === 'development') {
         this.window.webContents.openDevTools()
       }
@@ -86,7 +85,7 @@ export class CrashWindow {
     })
 
     this.window.webContents.on('did-fail-load', () => {
-      logError('Crash process failed to load')
+      log.error('Crash process failed to load')
       if (__DEV__) {
         this.window.webContents.openDevTools()
         this.window.show()
@@ -96,7 +95,7 @@ export class CrashWindow {
     })
 
     ipcMain.on('crash-ready', (event: Electron.IpcMainEvent) => {
-      logDebug(`Crash process is ready`)
+      log.debug(`Crash process is ready`)
 
       this.hasSentReadyEvent = true
 
@@ -105,7 +104,7 @@ export class CrashWindow {
     })
 
     ipcMain.on('crash-quit', (event: Electron.IpcMainEvent) => {
-      logDebug('Got quit signal from crash process')
+      log.debug('Got quit signal from crash process')
       this.window.close()
     })
 
@@ -146,7 +145,7 @@ export class CrashWindow {
 
   /** Show the window. */
   public show() {
-    logDebug('Showing crash process window')
+    log.debug('Showing crash process window')
     this.window.show()
   }
 

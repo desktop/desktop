@@ -78,8 +78,7 @@ export class BackgroundFetcher {
     try {
       await this.fetch(this.repository)
     } catch (e) {
-      console.error('Error performing periodic fetch:')
-      console.error(e)
+      log.error('Error performing periodic fetch', e)
     }
 
     if (this.stopped) { return }
@@ -105,8 +104,7 @@ export class BackgroundFetcher {
         interval = DefaultFetchInterval
       }
     } catch (e) {
-      console.error('Error fetching poll interval:')
-      console.error(e)
+      log.error('Error fetching poll interval', e)
     }
 
     return interval + skewInterval()

@@ -28,7 +28,7 @@ export async function renameBranch(repository: Repository, branch: Branch, newNa
 
 /**
  * Delete the branch. If the branch has a remote branch, it too will be
- * deleted.
+ * deleted. Silently deletes local branch if remote one is already deleted.
  */
 export async function deleteBranch(repository: Repository, branch: Branch, account: Account | null): Promise<true> {
   if (branch.type === BranchType.Local) {
@@ -39,7 +39,14 @@ export async function deleteBranch(repository: Repository, branch: Branch, accou
 
   // If the user is not authenticated, the push is going to fail
   // Let this propagate and leave it to the caller to handle
-  if (remote) {
+  if (!remote) {
+    return true
+  }
+
+  const branchExistsOnRemote = await checkIfBranchExistsOnRemote(repository, branch, account, remote)
+
+  // Delete local branch only if remote one is already deleted
+  if (branchExistsOnRemote) {
     const args = [
       ...gitNetworkArguments,
       'push', remote, `:${branch.nameWithoutRemote}`,
@@ -50,4 +57,14 @@ export async function deleteBranch(repository: Repository, branch: Branch, accou
   }
 
   return true
+}
+
+async function checkIfBranchExistsOnRemote(repository: Repository, branch: Branch, account: Account | null, remote: string): Promise<boolean> {
+  const args = [
+    ...gitNetworkArguments,
+    'ls-remote', '--heads', remote, branch.nameWithoutRemote,
+  ]
+  const opts = { env: envForAuthentication(account) }
+  const result = await git(args, repository.path, 'checkRemoteBranchExistence', opts)
+  return result.stdout.length > 0
 }
