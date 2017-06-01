@@ -878,7 +878,7 @@ export class AppStore {
 
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files
-    const selectedFiles = files.filter((file, index, array) => {
+    const selectedFiles = files.filter(file => {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
