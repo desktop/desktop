@@ -277,8 +277,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       <Row className='warning-helper-text'>
         <Octicon symbol={OcticonSymbol.alert} />
         <p>
-          Cannot create repository at selected path. <br/>
-          You may not have the necessary permissions.
+          Directory could not be created at this path. <br/>
+          You may not have permissions to create a directory here.
         </p>
       </Row>
     )
