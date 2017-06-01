@@ -5,6 +5,7 @@ import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from
 import { AppWindow } from './app-window'
 import { CrashWindow } from './crash-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID, setCrashMenu } from './menu'
+import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
@@ -106,6 +107,10 @@ if (__WIN32__ && process.argv.length > 1) {
       })
     }
   }
+}
+
+if (shellNeedsPatching(process)) {
+  updateEnvironmentForProcess()
 }
 
 const isDuplicateInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
