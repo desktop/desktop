@@ -84,13 +84,24 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     const licenses = await getLicenses()
     this.setState({ ...this.state, licenses })
 
-    this.ensureDirectory(this.state.path)
+    try {
+      await this.ensureDirectory(this.state.path)
+    }
+    catch (e) {
+      //We don't need the error here
+    }
   }
 
-  private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const path = event.currentTarget.value
-    this.setState({ ...this.state, path })
-    this.ensureDirectory(path)
+  private onPathChanged = async (event: React.FormEvent<HTMLInputElement>) => {
+    try {
+      const path = event.currentTarget.value
+
+      this.setState({ ...this.state, path })
+      await this.ensureDirectory(path)
+    }
+    catch (e) {
+      //We don't need the error here
+    }
   }
 
   private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
