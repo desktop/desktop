@@ -273,7 +273,9 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   private renderInvalidPathWarning() {
-    if (this.state.isValidPath) {
+    const isValidPath = this.state.isValidPath
+
+    if (isValidPath === null || isValidPath) {
       return null
     }
 
