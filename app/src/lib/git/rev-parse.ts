@@ -26,14 +26,14 @@ export async function getGitDir(path: string): Promise<string | null> {
  * @returns null if the path provided doesn't reside within a Git repository.
 */
 export async function getTopLevelWorkingDirectory(path: string): Promise<string | null> {
-  const result = await git([ 'rev-parse', '--show-cdup' ], path, 'getTopLevelWorkingDirectory', { successExitCodes: new Set([ 0, 128 ]) })
+  const result = await git([ 'rev-parse', '--show-toplevel' ], path, 'getTopLevelWorkingDirectory', { successExitCodes: new Set([ 0, 128 ]) })
   // Exit code 128 means it was run in a directory that's not a git
   // repository.
   if (result.exitCode === 128) {
     return null
   }
 
-  return Path.resolve(path, result.stdout.trim())
+  return Path.normalize(result.stdout.trim())
 }
 
 /**
