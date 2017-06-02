@@ -23,7 +23,14 @@ export async function getTopLevelWorkingDirectory(path: string): Promise<string 
     return null
   }
 
-  return Path.resolve(path, result.stdout.trim())
+  const relativePath = result.stdout.trim()
+
+  // No output means we're already at the root
+  if (!relativePath) {
+    return path
+  }
+
+  return Path.resolve(path, relativePath)
 }
 
 /**
