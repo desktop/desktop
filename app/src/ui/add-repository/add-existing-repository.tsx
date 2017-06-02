@@ -103,7 +103,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   }
 
   private async checkIfPathIsRepository(path: string) {
-    this.setState({ path, isGitRepository: null })
+    this.setState({ path })
 
     const token = ++this.checkGitRepositoryToken
 
