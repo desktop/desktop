@@ -370,6 +370,18 @@ export class API {
 
     do {
       const response = await this.authenticatedRequest('GET', nextUrl)
+
+      if (!response.ok) {
+        let errorMessage = `Could not fetch issues, server responded with ${response.status} ${response.statusText}.`
+        const apiError = await deserialize<IAPIError>(response)
+
+        if (apiError) {
+          errorMessage = `${errorMessage}\n${apiError.message}`
+        }
+
+        throw new Error(errorMessage)
+      }
+
       const items = await deserialize<ReadonlyArray<T>>(response)
       if (items) {
         buf.push(...items)

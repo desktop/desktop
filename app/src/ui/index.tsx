@@ -18,6 +18,7 @@ import {
   backgroundTaskHandler,
   unhandledExceptionHandler,
 } from '../lib/dispatcher'
+import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
@@ -26,6 +27,10 @@ import { enableSourceMaps } from '../lib/enable-source-maps'
 
 if (__DEV__) {
   installDevGlobals()
+}
+
+if (shellNeedsPatching(process)) {
+  updateEnvironmentForProcess()
 }
 
 enableSourceMaps()

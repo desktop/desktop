@@ -64,6 +64,7 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
+  getDefaultRemote,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -638,7 +639,7 @@ export class AppStore {
     try {
       await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
-      log.warn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
+      log.warn(`Unable to fetch issues for ${repository.fullName}`, e)
     }
   }
 
@@ -877,7 +878,8 @@ export class AppStore {
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
 
     const state = this.getRepositoryState(repository)
-    const files = state.changesState.workingDirectory.files.filter((file, index, array) => {
+    const files = state.changesState.workingDirectory.files
+    const selectedFiles = files.filter(file => {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
@@ -886,12 +888,19 @@ export class AppStore {
     const result = await this.isCommitting(repository, () => {
       return gitStore.performFailableOperation(() => {
         const commitMessage = formatCommitMessage(message)
-        return createCommit(repository, commitMessage, files)
+        return createCommit(repository, commitMessage, selectedFiles)
       })
     })
 
     if (result) {
       this.statsStore.recordCommit()
+
+      const includedPartialSelections = files.some(file => (
+        file.selection.getSelectionType() === DiffSelectionType.Partial
+      ))
+      if (includedPartialSelections) {
+        this.statsStore.recordPartialCommit()
+      }
 
       await this._refreshRepository(repository)
       await this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
@@ -1154,9 +1163,7 @@ export class AppStore {
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
-    const gitStore = this.getGitStore(repository)
-    const remote = gitStore.remote
-
+    const remote = await getDefaultRemote(repository)
     return remote ? matchGitHubRepository(this.accounts, remote.url) : null
   }
 
