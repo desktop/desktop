@@ -21,7 +21,7 @@ interface IAddExistingRepositoryProps {
 
 interface IAddExistingRepositoryState {
   readonly path: string
-  readonly isGitRepository: boolean | null
+  readonly isGitRepository: boolean
 }
 
 /** The component for adding or initializing a new local repository. */
