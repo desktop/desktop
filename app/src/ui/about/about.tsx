@@ -238,7 +238,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
             <LinkButton onClick={this.props.onShowTermsAndConditions}>Terms and Conditions</LinkButton>
           </p>
           <p>
-            <LinkButton onClick={this.props.onShowAcknowledgements}>Acknowledgements</LinkButton>
+            <LinkButton onClick={this.props.onShowAcknowledgements}>License and Open Source Notices</LinkButton>
           </p>
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}

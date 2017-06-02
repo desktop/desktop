@@ -795,6 +795,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <Acknowledgements
             key='acknowledgements'
             onDismissed={this.onPopupDismissed}
+            applicationVersion={getVersion()}
           />
         )
       case PopupType.RemoveRepository:
