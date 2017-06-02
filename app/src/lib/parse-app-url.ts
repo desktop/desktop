@@ -10,7 +10,7 @@ export interface IOAuthActionArgs {
   readonly code: string
 }
 
-export interface IOpenRepositoryArgs {
+export interface IOpenRepositoryFromURLArgs {
   /** the remote repository location associated with the "Open in Desktop" action */
   readonly url: string
   /** the optional branch name which should be checked out. use the default branch otherwise. */
@@ -21,14 +21,24 @@ export interface IOpenRepositoryArgs {
   readonly filepath?: string
 }
 
+export interface IOpenRepositoryFromPathArgs {
+  /** The local path to open. */
+  readonly path: string
+}
+
 export interface IOAuthAction extends IURLAction<IOAuthActionArgs> {
   readonly name: 'oauth'
   readonly args: IOAuthActionArgs
 }
 
-export interface IOpenRepositoryAction extends IURLAction<IOpenRepositoryArgs> {
-  readonly name: 'open-repository'
-  readonly args: IOpenRepositoryArgs
+export interface IOpenRepositoryFromURLAction extends IURLAction<IOpenRepositoryFromURLArgs> {
+  readonly name: 'open-repository-from-url'
+  readonly args: IOpenRepositoryFromURLArgs
+}
+
+export interface IOpenRepositoryFromPathAction extends IURLAction<IOpenRepositoryFromPathArgs> {
+  readonly name: 'open-repository-from-path'
+  readonly args: IOpenRepositoryFromPathArgs
 }
 
 export interface IUnknownAction extends IURLAction<{}> {
@@ -36,7 +46,11 @@ export interface IUnknownAction extends IURLAction<{}> {
   readonly args: {}
 }
 
-export type URLActionType = IOAuthAction | IOpenRepositoryAction | IUnknownAction
+export type URLActionType =
+  | IOAuthAction
+  | IOpenRepositoryFromURLAction
+  | IOpenRepositoryFromPathAction
+  | IUnknownAction
 
 export function parseAppURL(url: string): URLActionType {
   const parsedURL = URL.parse(url, true)
@@ -49,16 +63,17 @@ export function parseAppURL(url: string): URLActionType {
     return { name: 'oauth', args: { code: parsedURL.query.code } }
   }
 
+  // we require something resembling a URL first
+  // - bail out if it's not defined
+  // - bail out if you only have `/`
+  const pathName = parsedURL.pathname
+  if (!pathName || pathName.length <= 1) { return unknown }
+
+  // Trim the trailing / from the URL
+  const parsedPath = pathName.substr(1)
+
   if (actionName === 'openrepo') {
-
-    // we require something resembling a URL first
-    // - bail out if it's not defined
-    // - bail out if you only have `/`
-    const pathName = parsedURL.pathname
-    if (!pathName || pathName.length <= 1) { return unknown }
-
-    // trim the leading / from the parsed URL
-    const probablyAURL = pathName.substr(1)
+    const probablyAURL = parsedPath
 
     // suffix the remote URL with `.git`, for backwards compatibility
     const url = `${probablyAURL}.git`
@@ -82,12 +97,21 @@ export function parseAppURL(url: string): URLActionType {
     }
 
     return {
-      name: 'open-repository',
+      name: 'open-repository-from-url',
       args: {
         url,
         branch,
         pr,
         filepath,
+      },
+    }
+  }
+
+  if (actionName === 'openlocalrepo') {
+    return {
+      name: 'open-repository-from-path',
+      args: {
+        path: parsedPath,
       },
     }
   }

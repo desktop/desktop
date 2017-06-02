@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { parseAppURL, IOpenRepositoryAction, IOAuthAction } from '../../src/lib/parse-app-url'
+import { parseAppURL, IOpenRepositoryFromURLAction, IOpenRepositoryFromPathAction, IOAuthAction } from '../../src/lib/parse-app-url'
 
 describe('parseAppURL', () => {
   it('returns unknown by default', () => {
@@ -25,7 +25,7 @@ describe('parseAppURL', () => {
   describe('openRepo', () => {
     it('returns right name', () => {
       const result = parseAppURL('github-mac://openRepo/https://github.com/desktop/desktop')
-      expect(result.name).to.equal('open-repository')
+      expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryAction
       expect(openRepo.args.url).to.equal('https://github.com/desktop/desktop.git')
@@ -38,18 +38,18 @@ describe('parseAppURL', () => {
 
     it('adds branch name if set', () => {
       const result = parseAppURL('github-mac://openRepo/https://github.com/desktop/desktop?branch=cancel-2fa-flow')
-      expect(result.name).to.equal('open-repository')
+      expect(result.name).to.equal('open-repository-from-url')
 
-      const openRepo = result as IOpenRepositoryAction
+      const openRepo = result as IOpenRepositoryFromURLAction
       expect(openRepo.args.url).to.equal('https://github.com/desktop/desktop.git')
       expect(openRepo.args.branch).to.equal('cancel-2fa-flow')
     })
 
     it('adds pull request ID if found', () => {
       const result = parseAppURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=pr%2F1569&pr=1569')
-      expect(result.name).to.equal('open-repository')
+      expect(result.name).to.equal('open-repository-from-url')
 
-      const openRepo = result as IOpenRepositoryAction
+      const openRepo = result as IOpenRepositoryFromURLAction
       expect(openRepo.args.url).to.equal('https://github.com/octokit/octokit.net.git')
       expect(openRepo.args.branch).to.equal('pr/1569')
       expect(openRepo.args.pr).to.equal('1569')
@@ -68,9 +68,9 @@ describe('parseAppURL', () => {
 
     it('adds file path if found', () => {
       const result = parseAppURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=master&filepath=Octokit.Reactive%2FOctokit.Reactive.csproj')
-      expect(result.name).to.equal('open-repository')
+      expect(result.name).to.equal('open-repository-from-url')
 
-      const openRepo = result as IOpenRepositoryAction
+      const openRepo = result as IOpenRepositoryFromURLAction
       expect(openRepo.args.url).to.equal('https://github.com/octokit/octokit.net.git')
       expect(openRepo.args.branch).to.equal('master')
       expect(openRepo.args.filepath).to.equal('Octokit.Reactive/Octokit.Reactive.csproj')
