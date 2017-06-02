@@ -7,6 +7,7 @@ import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
 import { isGitRepository, getTopLevelWorkingDirectory } from '../../../src/lib/git/rev-parse'
+import { git } from '../../../src/lib/git/core'
 import { setupFixtureRepository } from '../../fixture-helper'
 
 const temp = require('temp').track()
@@ -62,13 +63,25 @@ describe('git/rev-parse', () => {
       expect(result).to.equal(p)
     })
 
+
     it('should return correct path for submodules', async () => {
 
-      const repoPath = setupFixtureRepository('repo-with-submodule')
+      const fixturePath = temp.mkdirSync('get-top-level-working-directory-test-')
 
-      const subModulePath = path.join(repoPath, 'sub1')
-      const result = await getTopLevelWorkingDirectory(subModulePath)
+      const firstRepoPath = path.join(fixturePath, 'repo1')
+      const secondRepoPath = path.join(fixturePath, 'repo2')
 
+      await git([ 'init', 'repo1' ], fixturePath, '')
+      await git([ 'init', 'repo2' ], fixturePath, '')
+
+      await git([ 'commit', '--allow-empty', '-m', 'Initial commit' ], secondRepoPath, '')
+      await git([ 'submodule', 'add', '../repo2' ], firstRepoPath, '')
+
+      let result = await getTopLevelWorkingDirectory(firstRepoPath)
+      expect(result).to.equal(firstRepoPath)
+
+      const subModulePath = path.join(firstRepoPath, 'repo2')
+      result = await getTopLevelWorkingDirectory(subModulePath)
       expect(result).to.equal(subModulePath)
     })
   })
