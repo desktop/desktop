@@ -15,19 +15,19 @@ function log(level: LogLevel, message: string, error?: Error) {
 
 g.log = <IDesktopLogger>{
   error(message: string, error?: Error) {
-    log('error', message)
     console.error(message)
+    log('error', message, error)
   },
   warn(message: string, error?: Error) {
-    log('warn', message)
     console.warn(message)
+    log('warn', message, error)
   },
   info(message: string, error?: Error) {
-    log('info', message)
     console.info(message)
+    log('info', message, error)
   },
   debug(message: string, error?: Error) {
-    log('debug', message)
     console.debug(message)
+    log('debug', message, error)
   },
 }
