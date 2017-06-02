@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { parseURL, IOpenRepositoryAction, IOAuthAction } from '../../src/lib/parse-url'
+import { parseURL, IOpenRepositoryAction, IOAuthAction } from '../../src/lib/parse-app-url'
 
 describe('parseURL', () => {
   it('returns unknown by default', () => {
