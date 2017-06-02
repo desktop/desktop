@@ -2,6 +2,7 @@
 
 import * as path from 'path'
 import * as Fs from 'fs'
+import * as os from 'os'
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
@@ -60,6 +61,11 @@ describe('git/rev-parse', () => {
 
       const subDirResult = await getTopLevelWorkingDirectory(repository!.path)
       expect(subDirResult).to.equal(repository!.path)
+    })
+
+    it('should return null when not run inside a working directory', async () => {
+      const result = await getTopLevelWorkingDirectory(os.tmpdir())
+      expect(result).to.be.null
     })
   })
 })
