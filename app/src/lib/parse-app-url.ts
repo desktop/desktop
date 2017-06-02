@@ -38,7 +38,7 @@ export interface IUnknownAction extends IURLAction<{}> {
 
 export type URLActionType = IOAuthAction | IOpenRepositoryAction | IUnknownAction
 
-export function parseURL(url: string): URLActionType {
+export function parseAppURL(url: string): URLActionType {
   const parsedURL = URL.parse(url, true)
   const hostname = parsedURL.hostname
   const unknown: IUnknownAction = { name: 'unknown', args: {} }

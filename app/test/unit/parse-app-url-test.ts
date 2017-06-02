@@ -1,11 +1,11 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { parseURL, IOpenRepositoryAction, IOAuthAction } from '../../src/lib/parse-app-url'
+import { parseAppURL, IOpenRepositoryAction, IOAuthAction } from '../../src/lib/parse-app-url'
 
-describe('parseURL', () => {
+describe('parseAppURL', () => {
   it('returns unknown by default', () => {
-    expect(parseURL('').name).to.equal('unknown')
+    expect(parseAppURL('').name).to.equal('unknown')
   })
 
   describe('oauth', () => {
@@ -14,7 +14,7 @@ describe('parseURL', () => {
         'code': '18142422',
       }
 
-      const result = parseURL('x-github-client://oauth?code=18142422&state=e4cd2dea-1567-46aa-8eb2-c7f56e943187')
+      const result = parseAppURL('x-github-client://oauth?code=18142422&state=e4cd2dea-1567-46aa-8eb2-c7f56e943187')
       expect(result.name).to.equal('oauth')
 
       const openRepo = result as IOAuthAction
@@ -24,7 +24,7 @@ describe('parseURL', () => {
 
   describe('openRepo', () => {
     it('returns right name', () => {
-      const result = parseURL('github-mac://openRepo/https://github.com/desktop/desktop')
+      const result = parseAppURL('github-mac://openRepo/https://github.com/desktop/desktop')
       expect(result.name).to.equal('open-repository')
 
       const openRepo = result as IOpenRepositoryAction
@@ -32,12 +32,12 @@ describe('parseURL', () => {
     })
 
     it('returns unknown when no remote defined', () => {
-      const result = parseURL('github-mac://openRepo/')
+      const result = parseAppURL('github-mac://openRepo/')
       expect(result.name).to.equal('unknown')
     })
 
     it('adds branch name if set', () => {
-      const result = parseURL('github-mac://openRepo/https://github.com/desktop/desktop?branch=cancel-2fa-flow')
+      const result = parseAppURL('github-mac://openRepo/https://github.com/desktop/desktop?branch=cancel-2fa-flow')
       expect(result.name).to.equal('open-repository')
 
       const openRepo = result as IOpenRepositoryAction
@@ -46,7 +46,7 @@ describe('parseURL', () => {
     })
 
     it('adds pull request ID if found', () => {
-      const result = parseURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=pr%2F1569&pr=1569')
+      const result = parseAppURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=pr%2F1569&pr=1569')
       expect(result.name).to.equal('open-repository')
 
       const openRepo = result as IOpenRepositoryAction
@@ -56,18 +56,18 @@ describe('parseURL', () => {
     })
 
     it('returns unknown for unexpected pull request input', () => {
-      const result = parseURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=bar&pr=foo')
+      const result = parseAppURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=bar&pr=foo')
       expect(result.name).to.equal('unknown')
     })
 
     it('returns unknown for invalid branch name', () => {
       // branch=<>
-      const result = parseURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=%3C%3E')
+      const result = parseAppURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=%3C%3E')
       expect(result.name).to.equal('unknown')
     })
 
     it('adds file path if found', () => {
-      const result = parseURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=master&filepath=Octokit.Reactive%2FOctokit.Reactive.csproj')
+      const result = parseAppURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=master&filepath=Octokit.Reactive%2FOctokit.Reactive.csproj')
       expect(result.name).to.equal('open-repository')
 
       const openRepo = result as IOpenRepositoryAction
