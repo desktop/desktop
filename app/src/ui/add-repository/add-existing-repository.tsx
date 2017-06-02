@@ -37,7 +37,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   private renderWarning() {
     const isRepo = this.state.isGitRepository
 
-    if (!this.state.path.length || isRepo) {
+    if (!this.state.path.length || isRepo === null || isRepo) {
       return null
     }
 
