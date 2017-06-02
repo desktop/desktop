@@ -45,8 +45,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
       <Row className='warning-helper-text'>
         <Octicon symbol={OcticonSymbol.alert} />
         <p>
-          This directory does not appear to be a git repository.<br />
-          Would you like to <LinkButton onClick={this.onCreateRepositoryClicked}>create a repository</LinkButton> here instead?
+          This directory does not appear to be a git repository. Would you like to <LinkButton onClick={this.onCreateRepositoryClicked}>create a repository</LinkButton> here instead?
         </p>
       </Row>
     )
