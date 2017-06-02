@@ -1,10 +1,11 @@
 /* tslint:disable:no-sync-functions */
 
 import * as path from 'path'
+import * as Fs from 'fs'
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
-import { getGitDir, isGitRepository } from '../../../src/lib/git/rev-parse'
+import { getGitDir, isGitRepository, getTopLevelWorkingDirectory } from '../../../src/lib/git/rev-parse'
 import { setupFixtureRepository } from '../../fixture-helper'
 
 const temp = require('temp').track()
@@ -43,6 +44,22 @@ describe('git/rev-parse', () => {
     it('should return false for a directory', async () => {
       const result = await isGitRepository(path.dirname(repository!.path))
       expect(result).to.equal(false)
+    })
+  })
+
+  describe('getTopLevelWorkingDirectory', () => {
+    it('should return an absolute path when run inside a working directory', async () => {
+      const result = await getTopLevelWorkingDirectory(repository!.path)
+      expect(result).to.equal(repository!.path)
+
+      const subdirPath = path.join(repository!.path, 'subdir')
+
+      await new Promise<void>((resolve, reject) => {
+        Fs.mkdir(subdirPath, e => e ? reject(e) : resolve())
+      })
+
+      const subDirResult = await getTopLevelWorkingDirectory(repository!.path)
+      expect(subDirResult).to.equal(repository!.path)
     })
   })
 })
