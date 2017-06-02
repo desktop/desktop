@@ -639,7 +639,7 @@ export class AppStore {
     try {
       await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
-      log.warn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
+      log.warn(`Unable to fetch issues for ${repository.fullName}`, e)
     }
   }
 
