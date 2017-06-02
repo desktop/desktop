@@ -67,5 +67,17 @@ describe('git/rev-parse', () => {
       const result = await getTopLevelWorkingDirectory(os.tmpdir())
       expect(result).to.be.null
     })
+
+    it('should return null when not run inside a working directory', async () => {
+
+      const repoPath = setupFixtureRepository('repo-with-submodule')
+
+      let result = await getTopLevelWorkingDirectory(repoPath)
+      expect(result).to.equal(repoPath)
+
+      const subModulePath = path.join(repoPath, 'sub1')
+      result = await getTopLevelWorkingDirectory(subModulePath)
+      expect(result).to.equal(subModulePath)
+    })
   })
 })
