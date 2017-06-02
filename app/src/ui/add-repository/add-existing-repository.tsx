@@ -40,9 +40,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   }
 
   private renderWarning() {
-    const isRepo = this.state.isGitRepository
-
-    if (!this.state.path.length || isRepo === null || isRepo) {
+    if (!this.state.path.length || !this.state.showNonGitRepositoryWarning) {
       return null
     }
 
