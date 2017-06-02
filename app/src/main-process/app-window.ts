@@ -1,18 +1,16 @@
 import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
-
-import { SharedProcess } from '../shared-process/shared-process'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
 import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
+import { now } from './now'
 
 let windowStateKeeper: any | null = null
 
 export class AppWindow {
   private window: Electron.BrowserWindow
-  private sharedProcess: SharedProcess
   private emitter = new Emitter()
 
   private _loadTime: number | null = null
@@ -21,7 +19,7 @@ export class AppWindow {
   private minWidth = 960
   private minHeight = 660
 
-  public constructor(sharedProcess: SharedProcess) {
+  public constructor() {
     if (!windowStateKeeper) {
       // `electron-window-state` requires Electron's `screen` module, which can
       // only be required after the app has emitted `ready`. So require it
@@ -84,8 +82,6 @@ export class AppWindow {
         }
       })
     }
-
-    this.sharedProcess = sharedProcess
   }
 
   public load() {
@@ -100,7 +96,7 @@ export class AppWindow {
       this._rendererReadyTime = null
       this._loadTime = null
 
-      startLoad = Date.now()
+      startLoad = now()
     })
 
     this.window.webContents.once('did-finish-load', () => {
@@ -108,8 +104,7 @@ export class AppWindow {
         this.window.webContents.openDevTools()
       }
 
-      const now = Date.now()
-      this._loadTime = now - startLoad
+      this._loadTime = now() - startLoad
 
       this.maybeEmitDidLoad()
     })

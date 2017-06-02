@@ -110,7 +110,7 @@ export class EmojiStore {
               : this.getEmojiImageUrlFromRelativePath(`${emoji.aliases[0]}.png`)
 
             if (!url) {
-              console.error('Could not calculate location of emoji', emoji)
+              log.error(`Could not calculate location of emoji: ${emoji}`)
               return
             }
 

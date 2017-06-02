@@ -26,7 +26,8 @@ function matchRemoteWithAccount(account: Account, remote: string): GitHubReposit
 
   const owner = parsedRemote.owner
   const name = parsedRemote.name
-  if (parsedRemote.hostname === host && owner && name) {
+
+  if (host && parsedRemote.hostname.toLowerCase() === host.toLowerCase() && owner && name) {
     return new GitHubRepository(name, new Owner(owner, account.endpoint), null)
   }
 

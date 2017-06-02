@@ -34,6 +34,9 @@ export interface IDailyMeasures {
 
   /** The number of times the user has opened a shell from the app. */
   readonly openShellCount: number
+
+  /** The number of partial commits. */
+  readonly partialCommits: number
 }
 
 export class StatsDatabase extends Dexie {

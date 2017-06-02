@@ -1,4 +1,4 @@
-import * as path from 'path'
+import * as Path from 'path'
 
 import { GitHubRepository, IGitHubRepository } from './github-repository'
 
@@ -8,6 +8,7 @@ export interface IRepository {
   /** The working directory of this repository */
   readonly path: string
   readonly gitHubRepository: IGitHubRepository | null
+  readonly name: string
 
   /** Was the repository missing on disk last we checked? */
   readonly missing: boolean
@@ -18,6 +19,7 @@ export class Repository implements IRepository {
   public readonly id: number
   /** The working directory of this repository */
   public readonly path: string
+  public readonly name: string
   public readonly gitHubRepository: GitHubRepository | null
 
   /** Was the repository missing on disk last we checked? */
@@ -36,6 +38,7 @@ export class Repository implements IRepository {
   public constructor(path: string, id: number, gitHubRepository: GitHubRepository | null, missing: boolean) {
     this.path = path
     this.gitHubRepository = gitHubRepository
+    this.name = gitHubRepository && gitHubRepository.name || Path.basename(path)
     this.id = id
     this.missing = missing
   }
@@ -56,9 +59,5 @@ export class Repository implements IRepository {
   /** Create a new repository with a changed path. */
   public withPath(path: string): Repository {
     return new Repository(path, this.id, this.gitHubRepository, this.missing)
-  }
-
-  public get name(): string {
-    return path.basename(this.path)
   }
 }

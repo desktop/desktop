@@ -8,8 +8,6 @@ import { HTTPMethod, request, deserialize, getUserAgent } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 
-import { logError } from '../lib/logging/renderer'
-
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 
@@ -17,7 +15,7 @@ const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
 
 if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
-  console.warn(`DESKTOP_OAUTH_CLIENT_ID and/or DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
+  log.warn(`DESKTOP_OAUTH_CLIENT_ID and/or DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
 }
 
 /** The OAuth scopes we need. */
@@ -119,6 +117,7 @@ export interface IAPIIssue {
   readonly number: number
   readonly title: string
   readonly state: 'open' | 'closed'
+  readonly updated_at: string
 }
 
 /** The metadata about a GitHub server. */
@@ -170,6 +169,63 @@ interface IAPIMentionablesResponse {
 }
 
 /**
+ * Parses the Link header from GitHub and returns the 'next' url
+ * if one is present. While the GitHub API returns absolute links
+ * this method makes no guarantee that the url will be absolute.
+ *
+ * If no link rel next header is found this method returns null.
+ */
+function getNextPageUrl(response: Response): string | null {
+  const linkHeader = response.headers.get('Link')
+
+  if (!linkHeader) {
+    return null
+  }
+
+  for (const part of linkHeader.split(',')) {
+    // https://github.com/philschatz/octokat.js/blob/5658abe442e8bf405cfda1c72629526a37554613/src/plugins/pagination.js#L17
+    const match = part.match(/<([^>]+)>; rel="([^"]+)"/)
+
+    if (match && match[2] === 'next') {
+      return match[1]
+    }
+  }
+
+  return null
+}
+
+/**
+ * Appends the parameters provided to the url as query string parameters.
+ *
+ * If the url already has a query the new parameters will be appended.
+ */
+function urlWithQueryString(url: string, params: { [key: string]: string }): string {
+  const qs = Object.keys(params)
+    .map(key => `${key}=${encodeURIComponent(params[key])}`)
+    .join('&')
+
+  if (!qs.length) {
+    return url
+  }
+
+  if (url.indexOf('?') === -1) {
+    return `${url}?${qs}`
+  } else {
+    return `${url}&${qs}`
+  }
+}
+
+/**
+ * Returns an ISO 8601 time string with second resolution instead of
+ * the standard javascript toISOString which returns millisecond
+ * resolution. The GitHub API doesn't return dates with milliseconds
+ * so we won't send any back either.
+ */
+function toGitHubIsoDateString(date: Date) {
+  return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
+}
+
+/**
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
@@ -186,32 +242,12 @@ export class API {
     })
   }
 
-  /**
-   * Loads all repositories accessible to the current user.
-   *
-   * Loads public and private repositories across all organizations
-   * as well as the user account.
-   *
-   * @returns A promise yielding an array of {APIRepository} instances or error
-   */
-  public async fetchRepos(): Promise<ReadonlyArray<IAPIRepository>> {
-    const results: IAPIRepository[] = []
-    let nextPage = this.client.user.repos
-    while (nextPage) {
-      const request = await nextPage.fetch()
-      results.push(...request.items)
-      nextPage = request.nextPage
-    }
-
-    return results
-  }
-
   /** Fetch a repo by its owner and name. */
   public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
     try {
       return await this.client.repos(owner, name).fetch()
     } catch (e) {
-      logError(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
+      log.error(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
       return null
     }
   }
@@ -250,7 +286,7 @@ export class API {
       const commit = await this.client.repos(owner, name).commits(sha).fetch()
       return commit
     } catch (e) {
-      logError(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
+      log.error(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
       return null
     }
   }
@@ -264,7 +300,7 @@ export class API {
       const user = result.items[0]
       return user
     } catch (e) {
-      logError(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
+      log.error(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
       return null
     }
   }
@@ -294,12 +330,12 @@ export class API {
         const message: string = e.message
         const error = await deserialize<IError>(message)
         if (error) {
-          logError(`createRepository return an API error: ${JSON.stringify(error)}`, e)
+          log.error(`createRepository return an API error: ${JSON.stringify(error)}`, e)
           throw new Error(error.message)
         }
       }
 
-      logError(`createRepository return an unknown error`, e)
+      log.error(`createRepository return an unknown error`, e)
       throw e
     }
   }
@@ -309,25 +345,51 @@ export class API {
    * since the given date.
    */
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
-    const params: any = { state }
-    if (since) {
-      params.since = since.toISOString()
-    }
 
-    const allItems: Array<IAPIIssue> = []
-    // Note that we only include `params` on the first fetch. Octokat.js will
-    // preserve them as we fetch subsequent pages and would fail to advance
-    // pages if we included the params on each call.
-    let result = await this.client.repos(owner, name).issues.fetch(params)
-    allItems.push(...result.items)
+    const params = since && !isNaN(since.getTime())
+      ? { since: toGitHubIsoDateString(since) }
+      : { }
 
-    while (result.nextPage) {
-      result = await result.nextPage.fetch()
-      allItems.push(...result.items)
-    }
+    const url = urlWithQueryString(`repos/${owner}/${name}/issues`, params)
+    const issues = await this.fetchAll<IAPIIssue>(url)
 
     // PRs are issues! But we only want Really Seriously Issues.
-    return allItems.filter((i: any) => !i.pullRequest)
+    return issues.filter((i: any) => !i.pullRequest)
+  }
+
+  /**
+   * Authenticated requests to a paginating resource such as issues.
+   *
+   * Follows the GitHub API hypermedia links to get the subsequent
+   * pages when available, buffers all items and returns them in
+   * one array when done.
+   */
+  private async fetchAll<T>(url: string): Promise<ReadonlyArray<T>> {
+    const buf = new Array<T>()
+    let nextUrl: string | null = url
+
+    do {
+      const response = await this.authenticatedRequest('GET', nextUrl)
+
+      if (!response.ok) {
+        let errorMessage = `Could not fetch issues, server responded with ${response.status} ${response.statusText}.`
+        const apiError = await deserialize<IAPIError>(response)
+
+        if (apiError) {
+          errorMessage = `${errorMessage}\n${apiError.message}`
+        }
+
+        throw new Error(errorMessage)
+      }
+
+      const items = await deserialize<ReadonlyArray<T>>(response)
+      if (items) {
+        buf.push(...items)
+      }
+      nextUrl = getNextPageUrl(response)
+    } while (nextUrl)
+
+    return buf
   }
 
   private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
@@ -516,7 +578,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
 
     return body
   } catch (e) {
-    logError(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
+    log.error(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
     return null
   }
 }
@@ -527,7 +589,7 @@ async function getNote(): Promise<string> {
   try {
     localUsername = await username()
   } catch (e) {
-    logError(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
+    log.error(`getNote: unable to resolve machine username, using '${localUsername}' as a fallback`, e)
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
