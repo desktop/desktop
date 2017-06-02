@@ -64,6 +64,7 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
+  getDefaultRemote,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -1162,9 +1163,7 @@ export class AppStore {
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
-    const gitStore = this.getGitStore(repository)
-    const remote = gitStore.remote
-
+    const remote = await getDefaultRemote(repository)
     return remote ? matchGitHubRepository(this.accounts, remote.url) : null
   }
 
