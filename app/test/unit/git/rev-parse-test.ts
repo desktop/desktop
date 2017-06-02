@@ -68,6 +68,12 @@ describe('git/rev-parse', () => {
       expect(result).to.be.null
     })
 
+    it('should resolve top level directory run inside the .git folder', async () => {
+      const p = path.join(repository!.path, '.git')
+      const result = await getTopLevelWorkingDirectory(p)
+      expect(result).to.equal(p)
+    })
+
     it('should return null when not run inside a working directory', async () => {
 
       const repoPath = setupFixtureRepository('repo-with-submodule')
