@@ -23,7 +23,7 @@ import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
 import { isGitOnPath } from '../open-shell'
 import { uuid } from '../uuid'
-import { URLActionType, IOpenRepositoryArgs } from '../parse-app-url'
+import { URLActionType, IOpenRepositoryFromURLArgs } from '../parse-app-url'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
 import { validatedRepositoryPath } from './validated-repository-path'
 
@@ -816,7 +816,7 @@ export class Dispatcher {
         }
         break
 
-      case 'open-repository':
+      case 'open-repository-from-url':
         const { pr, url, branch } = action.args
         // a forked PR will provide both these values, despite the branch not existing
         // in the repository - drop the branch argument in this case so a clone will
@@ -825,6 +825,19 @@ export class Dispatcher {
         const repository = await this.openRepository(url, branchToClone)
         if (repository) {
           this.handleCloneInDesktopOptions(repository, action.args)
+        }
+        break
+
+      case 'open-repository-from-path':
+        const state = this.appStore.getState()
+        const repositories = state.repositories
+        const existingRepository = repositories.find(r => (
+          Path.normalize(r.path) === Path.normalize(action.args.path)
+        ))
+        if (existingRepository) {
+          this.selectRepository(existingRepository)
+        } else {
+          // TODO: Offer to add the repository
         }
         break
 
@@ -840,7 +853,7 @@ export class Dispatcher {
     return this.appStore._setConfirmRepoRemoval(value)
   }
 
-  private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryArgs): Promise<void> {
+  private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryFromURLArgs): Promise<void> {
     const { filepath, pr, branch } = args
 
     // we need to refetch for a forked PR and check that out
