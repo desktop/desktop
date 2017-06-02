@@ -62,15 +62,13 @@ describe('git/rev-parse', () => {
       expect(result).to.equal(p)
     })
 
-    it('should return null when not run inside a working directory', async () => {
+    it('should return correct path for submodules', async () => {
 
       const repoPath = setupFixtureRepository('repo-with-submodule')
 
-      let result = await getTopLevelWorkingDirectory(repoPath)
-      expect(result).to.equal(repoPath)
-
       const subModulePath = path.join(repoPath, 'sub1')
-      result = await getTopLevelWorkingDirectory(subModulePath)
+      const result = await getTopLevelWorkingDirectory(subModulePath)
+
       expect(result).to.equal(subModulePath)
     })
   })
