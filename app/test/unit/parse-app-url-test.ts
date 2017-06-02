@@ -27,7 +27,7 @@ describe('parseAppURL', () => {
       const result = parseAppURL('github-mac://openRepo/https://github.com/desktop/desktop')
       expect(result.name).to.equal('open-repository-from-url')
 
-      const openRepo = result as IOpenRepositoryAction
+      const openRepo = result as IOpenRepositoryFromURLAction
       expect(openRepo.args.url).to.equal('https://github.com/desktop/desktop.git')
     })
 
@@ -74,6 +74,22 @@ describe('parseAppURL', () => {
       expect(openRepo.args.url).to.equal('https://github.com/octokit/octokit.net.git')
       expect(openRepo.args.branch).to.equal('master')
       expect(openRepo.args.filepath).to.equal('Octokit.Reactive/Octokit.Reactive.csproj')
+    })
+
+    it('parses local UNIX paths', () => {
+      const result = parseAppURL('x-github-client://openLocalRepo//Users/johnsmith/repo')
+      expect(result.name).to.equal('open-repository-from-path')
+
+      const openRepo = result as IOpenRepositoryFromPathAction
+      expect(openRepo.args.path).to.equal('/Users/johnsmith/repo')
+    })
+
+    it('parses local Windows paths', () => {
+      const result = parseAppURL('x-github-client://openLocalRepo/C:\\Users\\johnsmith\\repo')
+      expect(result.name).to.equal('open-repository-from-path')
+
+      const openRepo = result as IOpenRepositoryFromPathAction
+      expect(openRepo.args.path).to.equal('C:\\Users\\johnsmith\\repo')
     })
   })
 })
