@@ -22,6 +22,7 @@ interface IAddExistingRepositoryProps {
 interface IAddExistingRepositoryState {
   readonly path: string
   readonly isGitRepository: boolean
+  readonly showNonGitRepositoryWarning: boolean
 }
 
 /** The component for adding or initializing a new local repository. */
@@ -31,7 +32,11 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   public constructor(props: IAddExistingRepositoryProps) {
     super(props)
 
-    this.state = { path: '', isGitRepository: false }
+    this.state = {
+      path: '',
+      isGitRepository: false,
+      showNonGitRepositoryWarning: false,
+    }
   }
 
   private renderWarning() {
