@@ -101,10 +101,6 @@
     "clean-webpack-plugin": "^0.1.16",
     "cross-env": "^3.2.3",
     "css-loader": "^0.26.2",
-    "electron": "1.6.7",
-    "electron-mocha": "3.3.0",
-    "electron-packager": "8.6.0",
-    "electron-winstaller": "2.5.2",
     "express": "^4.15.0",
     "extract-text-webpack-plugin": "^2.1.0",
     "fs-extra": "^2.1.2",
@@ -155,6 +151,7 @@
     "@types/react-virtualized": "^9.7.0",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
-    "@types/winston": "^2.2.0"
+    "@types/winston": "^2.2.0",
+    "legal-eagle": "^0.14.0"
   }
 }
