@@ -14,7 +14,7 @@ import { IAppShell } from '../../lib/dispatcher/app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
 import { structuralEquals } from '../../lib/equality'
 import { compare } from '../../lib/compare'
-import { queueWorkIdle } from '../../lib/queue-work'
+import { queueWorkHigh } from '../../lib/queue-work'
 
 import {
   reset,
@@ -710,7 +710,7 @@ export class GitStore {
     const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
     const absolutePaths = onDiskFiles.map(f => Path.join(this.repository.path, f.path))
 
-    await queueWorkIdle(absolutePaths, this.shell.moveItemToTrash)
+    await queueWorkHigh(absolutePaths, this.shell.moveItemToTrash)
 
     const touchesGitIgnore = files.some(f => Path.basename(f.path) === '.gitignore')
     if (touchesGitIgnore && this.tip.kind === TipState.Valid) {
