@@ -17,7 +17,7 @@ import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
 import { writeGitAttributes } from './git-attributes'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 /** The sentinel value used to indicate no gitignore should be used. */
@@ -126,6 +126,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       if (e.code === 'EACCES' && e.errno === -13) {
         return this.setState({ ...this.state, isValidPath: false })
       }
+
       log.error(`createRepository: the directory at ${fullPath} is not valid`, e)
       return this.props.dispatcher.postError(e)
     }
@@ -279,13 +280,10 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     }
 
     return (
-      <Row className='warning-helper-text'>
-        <Octicon symbol={OcticonSymbol.alert} />
-        <p>
-          Directory could not be created at this path. <br/>
+      <DialogError>
+          Directory could not be created at this path.
           You may not have permissions to create a directory here.
-        </p>
-      </Row>
+      </DialogError>
     )
   }
 
