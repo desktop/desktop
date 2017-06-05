@@ -22,7 +22,7 @@
     "codemirror": "^5.24.2",
     "deep-equal": "^1.0.1",
     "dexie": "^1.4.1",
-    "dugite": "^1.28.0",
+    "dugite": "^1.32.0",
     "electron-window-state": "^4.0.2",
     "event-kit": "^2.0.0",
     "file-uri-to-path": "0.0.2",
