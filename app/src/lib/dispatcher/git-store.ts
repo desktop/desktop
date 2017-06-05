@@ -712,7 +712,7 @@ export class GitStore {
           pathsToCheckout.push(file.oldPath)
           pathsToReset.push(file.oldPath)
         }
-      } else if (file.status !== FileStatus.New) {
+      } else {
         pathsToCheckout.push(file.path)
         pathsToReset.push(file.path)
       }

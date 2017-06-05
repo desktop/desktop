@@ -9,6 +9,9 @@ import { Repository } from '../../models/repository'
  * except by using `checkout-index` we can pass the files we want updated
  * on stdin, avoiding all issues with too long arguments.
  *
+ * Note that this function will not yield errors for paths that don't
+ * exist in the index (-q).
+ *
  * @param repository The repository in which to update the working directory
  *                   with information from the index
  *
@@ -20,7 +23,7 @@ export async function checkoutIndex(repository: Repository, paths: ReadonlyArray
     return
   }
 
-  await git([ 'checkout-index', '-f', '-u', '--stdin', '-z' ], repository.path, 'checkoutIndex', {
+  await git([ 'checkout-index', '-f', '-u', '-q', '--stdin', '-z' ], repository.path, 'checkoutIndex', {
     stdin: paths.join('\0'),
   })
 }
