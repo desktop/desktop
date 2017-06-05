@@ -4,7 +4,7 @@ import * as Path from 'path'
 import * as FSE from 'fs-extra'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { initGitRepository, createCommit, getStatus, getAuthorIdentity } from '../../lib/git'
+import { initGitRepository, createCommit, getStatus, getAuthorIdentity, isGitRepository } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 import { TextBox } from '../lib/text-box'
 import { ButtonGroup } from '../lib/button-group'
@@ -19,6 +19,8 @@ import { writeGitAttributes } from './git-attributes'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { LinkButton } from '../lib/link-button'
+import { PopupType } from '../../lib/app-state'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -39,6 +41,7 @@ interface ICreateRepositoryState {
   readonly path: string
   readonly name: string
   readonly isValidPath: boolean | null
+  readonly isGitRepository: boolean | null
 
   /** Should the repository be created with a default README? */
   readonly createWithReadme: boolean
@@ -61,6 +64,8 @@ interface ICreateRepositoryState {
 
 /** The Create New Repository component. */
 export class CreateRepository extends React.Component<ICreateRepositoryProps, ICreateRepositoryState> {
+  private checkGitRepositoryToken = 0
+
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 
@@ -74,6 +79,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       licenses: null,
       license: NoLicenseValue.name,
       isValidPath: null,
+      isGitRepository: null,
     }
   }
 
@@ -87,7 +93,9 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.setState({ ...this.state, path, isValidPath: null })
+
+    this.checkIfPathIsRepository(path)
+    this.setState({ isValidPath: null })
   }
 
   private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
@@ -287,6 +295,41 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     )
   }
 
+  private renderIsGitRepoWarning() {
+    const isRepo = this.state.isGitRepository
+
+    if (!this.state.path.length || isRepo == null || isRepo) { return null }
+
+    return (
+      <Row className='warning-helper-text'>
+        <Octicon symbol={OcticonSymbol.alert} />
+        <p>
+          This directory appears to already be a git repository. Would you like to <LinkButton onClick={this.onAddRepositoryClicked}>add this repository</LinkButton> instead?
+        </p>
+      </Row>
+    )
+  }
+
+  private async checkIfPathIsRepository(path: string) {
+    this.setState({ path, isGitRepository: null })
+
+    const token = ++this.checkGitRepositoryToken
+    const isRepo = await isGitRepository(this.state.path)
+
+    // Another path check was requested so don't update state based on the old
+    // path.
+    if (token !== this.checkGitRepositoryToken) { return }
+
+    this.setState({ isGitRepository: isRepo })
+  }
+
+  private onAddRepositoryClicked = () => {
+    return this.props.dispatcher.showPopup({
+      type: PopupType.AddRepository,
+      path: this.state.path,
+    })
+  }
+
   public render() {
     const disabled = this.state.path.length === 0 || this.state.name.length === 0 || this.state.creating
 
@@ -319,6 +362,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           </Row>
 
           {this.renderInvalidPathWarning()}
+          {this.renderIsGitRepoWarning()}
 
           <Row>
             <Checkbox
