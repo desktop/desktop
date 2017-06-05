@@ -67,7 +67,7 @@ const stackFrameMap = new WeakMap<Error, ReadonlyArray<any>>()
 
 /**
  * The `prepareStackTrace` that comes from the `source-map-support` module.
- * We'll use this when the user explicitly calls `sourceMappedStackTrace`.
+ * We'll use this when the user explicitly wants the stack source mapped.
  */
 let prepareStackTraceWithSourceMap: (error: Error, frames: ReadonlyArray<any>) => string
 
@@ -95,6 +95,8 @@ export function enableSourceMaps() {
   })
 
   const AnyError = Error as any
+  // We want to keep `source-map-support`s `prepareStackTrace` around to use
+  // later, but our cheaper `prepareStackTrace` should be the default.
   prepareStackTraceWithSourceMap = AnyError.prepareStackTrace
   AnyError.prepareStackTrace = prepareStackTrace
 }
