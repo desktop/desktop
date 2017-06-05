@@ -714,7 +714,7 @@ export class GitStore {
 
     const touchesGitIgnore = files.some(f => Path.basename(f.path) === '.gitignore')
     if (touchesGitIgnore && this.tip.kind === TipState.Valid) {
-      const ref = await this.tip.branch.name
+      const ref = this.tip.branch.name
       await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, ref))
     }
 
