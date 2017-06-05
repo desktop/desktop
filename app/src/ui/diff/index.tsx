@@ -572,6 +572,16 @@ export class Diff extends React.Component<IDiffProps, void> {
       return this.renderBinaryFile()
     }
 
+    if (diff.kind === DiffType.TooLarge) {
+      const BlankSlateImage = `file:///${__dirname}/static/empty-no-file-selected.svg`
+      const diffSizeMB = Math.round(diff.length / (1024 * 1024))
+      return <div className='panel empty'>
+          <img src={BlankSlateImage} className='blankslate-image' />
+          The diff returned by Git is {diffSizeMB}MB ({diff.length} bytes), which is larger
+          than what can be displayed in GitHub Desktop.
+        </div>
+    }
+
     if (diff.kind === DiffType.Text) {
 
       if (diff.hunks.length === 0) {
