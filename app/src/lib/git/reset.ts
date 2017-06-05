@@ -40,6 +40,32 @@ export async function reset(repository: Repository, mode: GitResetMode, ref: str
   return true
 }
 
+/**
+ * Updates the index with information from a particular tree for a given
+ * set of paths.
+ *
+ * @param repository The repository in which to create the new branch
+
+ * @param mode      Which mode to use when resetting, see the GitResetMode
+ *                  enum for more information.
+ *
+ * @param ref       A string which resolves to a tree, for example 'HEAD' or a
+ *                  commit sha.
+ *
+ * @param paths     The paths that should be updated in the index with information
+ *                  from the given tree
+ */
+export async function resetPaths(repository: Repository, mode: GitResetMode, ref: string, paths: ReadonlyArray<string>): Promise<void> {
+
+  if (!paths.length) {
+    return
+  }
+
+  const modeFlag = resetModeToFlag(mode)
+  await git([ 'reset', modeFlag, ref, '--', ...paths ], repository.path, 'reset')
+  return
+}
+
 /** Unstage all paths. */
 export async function unstageAll(repository: Repository): Promise<true> {
   await git([ 'reset', '--', '.' ], repository.path, 'unstageAll')
