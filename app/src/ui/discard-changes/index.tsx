@@ -87,10 +87,10 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, IDisca
     }
   }
 
-  private discard = () => {
+  private discard = async () => {
     this.setState({ isDiscardingChanges: true })
 
-    this.props.dispatcher.discardChanges(this.props.repository, this.props.files)
+    await this.props.dispatcher.discardChanges(this.props.repository, this.props.files)
     this.props.onDismissed()
   }
 }
