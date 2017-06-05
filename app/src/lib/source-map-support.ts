@@ -78,9 +78,6 @@ let prepareStackTraceWithSourceMap: (error: Error, frames: ReadonlyArray<any>) =
 function prepareStackTrace(error: Error, frames: ReadonlyArray<any>) {
   stackFrameMap.set(error, frames)
 
-  console.log(sourceMappedStackTrace(error))
-  debugger
-
   // Ideally we'd use the default `Error.prepareStackTrace` here but it's
   // undefined so V8 must doing something fancy. Instead we'll do a decent
   // impression.
@@ -102,8 +99,17 @@ export function enableSourceMaps() {
   AnyError.prepareStackTrace = prepareStackTrace
 }
 
+/** Make a new copy of the error with a source-mapped stack trace. */
+export function errorWithSourceMappedStack(error: Error): Error {
+  return {
+    name: error.name,
+    message: error.message,
+    stack: sourceMappedStackTrace(error),
+  }
+}
+
 /** Get the source mapped stack trace for the error. */
-export function sourceMappedStackTrace(error: Error): string | undefined {
+function sourceMappedStackTrace(error: Error): string | undefined {
   const frames = stackFrameMap.get(error)
   if (!frames) {
     return error.stack
