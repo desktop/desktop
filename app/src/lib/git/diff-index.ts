@@ -48,12 +48,12 @@ function getNoRenameIndexStatus(status: string): NoRenameIndexStatus {
 }
 
 /**
- * Get a list of relative paths of files which have recorded changes in the
- * index as compared to HEAD.
+ * Get a list of files which have recorded changes in the index as compared to
+ * HEAD along with the type of change.
  *
  * @param repository The repository for which to retrieve the index changes.
  */
-export async function getChangedPathsInIndex(repository: Repository): Promise<Map<string, NoRenameIndexStatus>> {
+export async function getIndexChanges(repository: Repository): Promise<Map<string, NoRenameIndexStatus>> {
 
   const args = [ 'diff-index', '--cached', '--name-status', '--no-renames', '-z' ]
 

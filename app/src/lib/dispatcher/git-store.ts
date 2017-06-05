@@ -36,7 +36,7 @@ import {
   IStatusResult,
   getCommit,
   IndexStatus,
-  getChangedPathsInIndex,
+  getIndexChanges,
   checkoutIndex,
   resetPaths,
 } from '../git'
@@ -720,7 +720,7 @@ export class GitStore {
     })
 
     // Check the index to see which files actually have changes there as compared to HEAD
-    const changedFilesInIndex = await getChangedPathsInIndex(this.repository)
+    const changedFilesInIndex = await getIndexChanges(this.repository)
 
     // Only reset paths if they have changes in the index
     const necessaryPathsToReset = pathsToReset.filter(x => changedFilesInIndex.has(x))
