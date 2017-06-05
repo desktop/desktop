@@ -77,7 +77,7 @@ export async function getIndexChanges(repository: Repository): Promise<Map<strin
   const pieces = result.stdout.split('\0')
 
   if (pieces.length % 2 !== 0) {
-    throw new Error('Expected even number of entries in porcelain output from git diff-index')
+    throw new Error('Expected even number of entries in output from git diff-index')
   }
 
   for (let i = 0; i < pieces.length; i += 2) {
