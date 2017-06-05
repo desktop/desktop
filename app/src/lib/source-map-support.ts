@@ -100,7 +100,7 @@ export function enableSourceMaps() {
 }
 
 /** Make a new copy of the error with a source-mapped stack trace. */
-export function errorWithSourceMappedStack(error: Error): Error {
+export function withSourceMappedStack(error: Error): Error {
   return {
     name: error.name,
     message: error.message,
