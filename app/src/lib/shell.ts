@@ -139,10 +139,6 @@ async function getEnvironmentFromShell(updateEnvironment: (env: IndexLookup) => 
  * @param env The new environment variables from the user's shell.
  */
 function mergeEnvironmentVariables(env: IndexLookup) {
-  for (const key in process.env) {
-    delete process.env[key]
-  }
-
   for (const key in env) {
     process.env[key] = env[key]
   }
