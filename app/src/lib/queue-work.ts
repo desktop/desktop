@@ -4,6 +4,21 @@ async function awaitAnimationFrame(): Promise<number> {
   })
 }
 
+/**
+ * Split up high-priority synchronous work items across multiple animation frames.
+ *
+ * This function can be used to divvy up a set of tasks that needs to be executed
+ * as quickly as possible with minimal interference to the browser's rendering.
+ *
+ * It does so by executing one work item per animation frame, potentially
+ * squeezing in more if there's time left in the frame to do so.
+ *
+ * @param items  A set of work items to be executed across one or more animation
+ *               frames
+ *
+ * @param worker A worker which, given a work item, performs work and returns
+ *               either a promise or a synchronous result
+ */
 export async function queueWorkHigh<T>(items: Iterable<T>, worker: (item: T) => Promise<any> | any) {
   const iterator = items[Symbol.iterator]()
   let next = iterator.next()
