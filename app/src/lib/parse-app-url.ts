@@ -1,49 +1,41 @@
 import * as URL from 'url'
 import { testForInvalidChars } from './sanitize-branch'
 
-interface IURLAction<T> {
-  name: string
-  readonly args: T
-}
-
-export interface IOAuthActionArgs {
-  readonly code: string
-}
-
-export interface IOpenRepositoryFromURLArgs {
-  /** the remote repository location associated with the "Open in Desktop" action */
-  readonly url: string
-  /** the optional branch name which should be checked out. use the default branch otherwise. */
-  readonly branch?: string
-  /** the pull request number, if pull request originates from a fork of the repository */
-  readonly pr?: string
-  /** the file to open after cloning the repository */
-  readonly filepath?: string
-}
-
 export interface IOpenRepositoryFromPathArgs {
   /** The local path to open. */
   readonly path: string
 }
 
-export interface IOAuthAction extends IURLAction<IOAuthActionArgs> {
+export interface IOAuthAction {
   readonly name: 'oauth'
-  readonly args: IOAuthActionArgs
+  readonly code: string
 }
 
-export interface IOpenRepositoryFromURLAction extends IURLAction<IOpenRepositoryFromURLArgs> {
+export interface IOpenRepositoryFromURLAction {
   readonly name: 'open-repository-from-url'
-  readonly args: IOpenRepositoryFromURLArgs
+
+  /** the remote repository location associated with the "Open in Desktop" action */
+  readonly url: string
+
+  /** the optional branch name which should be checked out. use the default branch otherwise. */
+  readonly branch?: string
+
+  /** the pull request number, if pull request originates from a fork of the repository */
+  readonly pr?: string
+
+  /** the file to open after cloning the repository */
+  readonly filepath?: string
 }
 
-export interface IOpenRepositoryFromPathAction extends IURLAction<IOpenRepositoryFromPathArgs> {
+export interface IOpenRepositoryFromPathAction {
   readonly name: 'open-repository-from-path'
-  readonly args: IOpenRepositoryFromPathArgs
+
+  /** The local path to open. */
+  readonly path: string
 }
 
-export interface IUnknownAction extends IURLAction<{}> {
+export interface IUnknownAction {
   readonly name: 'unknown'
-  readonly args: {}
 }
 
 export type URLActionType =
@@ -55,12 +47,12 @@ export type URLActionType =
 export function parseAppURL(url: string): URLActionType {
   const parsedURL = URL.parse(url, true)
   const hostname = parsedURL.hostname
-  const unknown: IUnknownAction = { name: 'unknown', args: {} }
+  const unknown: IUnknownAction = { name: 'unknown' }
   if (!hostname) { return unknown }
 
   const actionName = hostname.toLowerCase()
   if (actionName === 'oauth') {
-    return { name: 'oauth', args: { code: parsedURL.query.code } }
+    return { name: 'oauth', code: parsedURL.query.code }
   }
 
   // we require something resembling a URL first
@@ -98,21 +90,17 @@ export function parseAppURL(url: string): URLActionType {
 
     return {
       name: 'open-repository-from-url',
-      args: {
-        url,
-        branch,
-        pr,
-        filepath,
-      },
+      url,
+      branch,
+      pr,
+      filepath,
     }
   }
 
   if (actionName === 'openlocalrepo') {
     return {
       name: 'open-repository-from-path',
-      args: {
-        path: parsedPath,
-      },
+      path: parsedPath,
     }
   }
 

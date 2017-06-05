@@ -10,15 +10,11 @@ describe('parseAppURL', () => {
 
   describe('oauth', () => {
     it('returns right name', () => {
-      const expectedArgs = {
-        'code': '18142422',
-      }
-
       const result = parseAppURL('x-github-client://oauth?code=18142422&state=e4cd2dea-1567-46aa-8eb2-c7f56e943187')
       expect(result.name).to.equal('oauth')
 
       const openRepo = result as IOAuthAction
-      expect(openRepo.args).to.deep.equal(expectedArgs)
+      expect(openRepo.code).to.equal('18142422')
     })
   })
 
@@ -28,7 +24,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.args.url).to.equal('https://github.com/desktop/desktop.git')
+      expect(openRepo.url).to.equal('https://github.com/desktop/desktop.git')
     })
 
     it('returns unknown when no remote defined', () => {
@@ -41,8 +37,8 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.args.url).to.equal('https://github.com/desktop/desktop.git')
-      expect(openRepo.args.branch).to.equal('cancel-2fa-flow')
+      expect(openRepo.url).to.equal('https://github.com/desktop/desktop.git')
+      expect(openRepo.branch).to.equal('cancel-2fa-flow')
     })
 
     it('adds pull request ID if found', () => {
@@ -50,9 +46,9 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.args.url).to.equal('https://github.com/octokit/octokit.net.git')
-      expect(openRepo.args.branch).to.equal('pr/1569')
-      expect(openRepo.args.pr).to.equal('1569')
+      expect(openRepo.url).to.equal('https://github.com/octokit/octokit.net.git')
+      expect(openRepo.branch).to.equal('pr/1569')
+      expect(openRepo.pr).to.equal('1569')
     })
 
     it('returns unknown for unexpected pull request input', () => {
@@ -71,9 +67,9 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-url')
 
       const openRepo = result as IOpenRepositoryFromURLAction
-      expect(openRepo.args.url).to.equal('https://github.com/octokit/octokit.net.git')
-      expect(openRepo.args.branch).to.equal('master')
-      expect(openRepo.args.filepath).to.equal('Octokit.Reactive/Octokit.Reactive.csproj')
+      expect(openRepo.url).to.equal('https://github.com/octokit/octokit.net.git')
+      expect(openRepo.branch).to.equal('master')
+      expect(openRepo.filepath).to.equal('Octokit.Reactive/Octokit.Reactive.csproj')
     })
 
     it('parses local paths', () => {
@@ -81,7 +77,7 @@ describe('parseAppURL', () => {
       expect(result.name).to.equal('open-repository-from-path')
 
       const openRepo = result as IOpenRepositoryFromPathAction
-      expect(openRepo.args.path).to.equal('/Users/johnsmith/repo')
+      expect(openRepo.path).to.equal('/Users/johnsmith/repo')
     })
   })
 })
