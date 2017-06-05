@@ -44,7 +44,7 @@ export async function reset(repository: Repository, mode: GitResetMode, ref: str
  * Updates the index with information from a particular tree for a given
  * set of paths.
  *
- * @param repository The repository in which to create the new branch
+ * @param repository The repository in which to reset the index.
 
  * @param mode      Which mode to use when resetting, see the GitResetMode
  *                  enum for more information.
