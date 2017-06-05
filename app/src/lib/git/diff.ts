@@ -41,8 +41,10 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
         }
       }
 
-      if (successExitCodes && !successExitCodes.has(code)) {
-        reject(new Error(`Git returned an unexpected exit code '${code}' which should be handled by the application'`))
+      const exitCodes = successExitCodes || new Set([ 0 ])
+
+      if (!exitCodes.has(code)) {
+        reject(new Error(`Git returned an unexpected exit code '${code}' which should be handled by the caller.'`))
         return
       }
 
