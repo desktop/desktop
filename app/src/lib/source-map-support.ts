@@ -20,6 +20,8 @@ export function enableSourceMaps() {
     environment: 'node',
     handleUncaughtExceptions: false,
     retrieveSourceMap: function(source: string) {
+      console.log('HERERERERERE', source)
+      debugger
       // This is a happy path in case we know for certain that we won't be
       // able to resolve a source map for the given location.
       if (!knownFilesWithSourceMap.some(file => source.endsWith(file))) {
