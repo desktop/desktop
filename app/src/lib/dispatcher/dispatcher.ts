@@ -23,7 +23,7 @@ import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
 import { isGitOnPath } from '../open-shell'
 import { uuid } from '../uuid'
-import { URLActionType, IOpenRepositoryFromURLAction } from '../parse-app-url'
+import { URLActionType, IOpenRepositoryFromURLAction, IUnknownAction } from '../parse-app-url'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
 import { validatedRepositoryPath } from './validated-repository-path'
 
@@ -843,7 +843,8 @@ export class Dispatcher {
         break
 
       default:
-        log.warn(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
+        const unknownAction: IUnknownAction = action
+        log.warn(`Unknown URL action: ${unknownAction.name} - payload: ${JSON.stringify(unknownAction)}`)
     }
   }
 
