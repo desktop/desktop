@@ -91,6 +91,6 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, IDisca
     this.setState({ isDiscardingChanges: true })
 
     this.props.dispatcher.discardChanges(this.props.repository, this.props.files)
-    this.props.dispatcher.closePopup()
+    this.props.onDismissed()
   }
 }
