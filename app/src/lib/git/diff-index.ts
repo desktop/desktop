@@ -3,7 +3,7 @@ import { Repository } from '../../models/repository'
 
 export async function getChangedPathsInIndex(repository: Repository): Promise<string[]> {
 
-  const args = [ 'diff-index', '--cached', '--name-only', '-z' ]
+  const args = [ 'diff-index', '--cached', '--name-only', '--no-renames', '-z' ]
 
   let result = await git([ ...args, 'HEAD' ], repository.path, 'getChangedPathsInIndex', {
     successExitCodes: new Set([ 0, 128 ]),
