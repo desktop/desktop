@@ -35,6 +35,7 @@ import {
   getStatus,
   IStatusResult,
   getCommit,
+  IndexStatus,
   getChangedPathsInIndex,
   checkoutIndex,
   resetPaths,
@@ -718,13 +719,14 @@ export class GitStore {
       }
     })
 
-    // Check the index to see which files actually have changes there as compared
-    // to HEAD and then only reset those paths if they are one of the files we're
-    // discarding.
-    const changedPathsInIndex = new Set(await getChangedPathsInIndex(this.repository))
-    const necessaryPathsToReset = pathsToReset.filter(x => changedPathsInIndex.has(x))
+    // Check the index to see which files actually have changes there as compared to HEAD
+    const changedFilesInIndex = await getChangedPathsInIndex(this.repository)
 
-    log.info(`Changed in index: ${changedPathsInIndex.size}, necessary to reset: ${necessaryPathsToReset.length}, checkout: ${pathsToCheckout.length}`)
+    // Only reset paths if they have changes in the index
+    const necessaryPathsToReset = pathsToReset.filter(x => changedFilesInIndex.has(x))
+
+    // Don't attempt to checkout files that doesn't exist in the index after our reset.
+    const necessaryPathsToCheckout = pathsToCheckout.filter(x => changedFilesInIndex.get(x) !== IndexStatus.Added)
 
     // We're trying to not invoke git linearly with the number of files to discard
     // so we're doing our discards in three conceptual steps.
@@ -741,7 +743,7 @@ export class GitStore {
     //    commit from the index.
     await this.performFailableOperation(async () => {
       await resetPaths(this.repository, GitResetMode.Mixed, 'HEAD', necessaryPathsToReset)
-      await checkoutIndex(this.repository, pathsToCheckout)
+      await checkoutIndex(this.repository, necessaryPathsToCheckout)
     })
   }
 

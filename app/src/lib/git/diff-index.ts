@@ -1,15 +1,61 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
 
+export enum IndexStatus {
+  Unknown = 0,
+  Added,
+  Copied,
+  Deleted,
+  Modified,
+  Renamed,
+  TypeChanged,
+  Unmerged,
+}
+
+export type NoRenameIndexStatus =
+  IndexStatus.Added |
+  IndexStatus.Deleted |
+  IndexStatus.Modified |
+  IndexStatus.TypeChanged |
+  IndexStatus.Unmerged |
+  IndexStatus.Unknown
+
+function getIndexStatus(status: string) {
+  switch (status[0]) {
+    case 'A': return IndexStatus.Added
+    case 'C': return IndexStatus.Copied
+    case 'D': return IndexStatus.Deleted
+    case 'M': return IndexStatus.Modified
+    case 'R': return IndexStatus.Renamed
+    case 'T': return IndexStatus.TypeChanged
+    case 'U': return IndexStatus.Unmerged
+    case 'X': return IndexStatus.Unknown
+    default:
+      throw new Error(`Unknown index status: ${status}`)
+  }
+}
+
+function getNoRenameIndexStatus(status: string): NoRenameIndexStatus {
+  const parsed = getIndexStatus(status)
+
+  switch (parsed) {
+    case IndexStatus.Copied:
+    case IndexStatus.Renamed:
+      throw new Error(`Invalid index status for no-rename index status: ${parsed}`)
+  }
+
+  return parsed
+}
+
 /**
  * Get a list of relative paths of files which have recorded changes in the
  * index as compared to HEAD.
  *
  * @param repository The repository for which to retrieve the index changes.
  */
-export async function getChangedPathsInIndex(repository: Repository): Promise<string[]> {
+export async function getChangedPathsInIndex(repository: Repository): Promise<Map<string, NoRenameIndexStatus>> {
 
-  const args = [ 'diff-index', '--cached', '--name-only', '--no-renames', '-z' ]
+  const args = [ 'diff-index', '--cached', '--name-status', '--no-renames', '-z' ]
 
   let result = await git([ ...args, 'HEAD' ], repository.path, 'getChangedPathsInIndex', {
     successExitCodes: new Set([ 0, 128 ]),
@@ -22,7 +68,24 @@ export async function getChangedPathsInIndex(repository: Repository): Promise<st
     result = await git([ ...args, '4b825dc642cb6eb9a060e54bf8d69288fbee4904' ], repository.path, 'getChangedPathsInIndex')
   }
 
-  return result.stdout.length
-    ? result.stdout.split('\0')
-    : []
+  const map = new Map<string, NoRenameIndexStatus>()
+
+  if (!result.stdout.length) {
+    return map
+  }
+
+  const pieces = result.stdout.split('\0')
+
+  if (pieces.length % 2 !== 0) {
+    throw new Error('Expected even number of entries in porcelain output from git diff-index')
+  }
+
+  for (let i = 0; i < pieces.length; i += 2) {
+    const status = getNoRenameIndexStatus(pieces[i])
+    const path = pieces[i + 1]
+
+    map.set(path, status)
+  }
+
+  return map
 }
