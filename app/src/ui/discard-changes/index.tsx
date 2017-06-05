@@ -68,7 +68,7 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, IDisca
     if (this.props.files.length > MaxFilesToList) {
       return (
         <p>
-          Are you sure you want to discard all changes?
+          Are you sure you want to discard all {this.props.files.length} changed files?
         </p>
       )
     } else {
