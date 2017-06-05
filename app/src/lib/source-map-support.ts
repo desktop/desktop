@@ -99,7 +99,10 @@ export function enableSourceMaps() {
   AnyError.prepareStackTrace = prepareStackTrace
 }
 
-/** Make a new copy of the error with a source-mapped stack trace. */
+/**
+ * Make a copy of the error with a source-mapped stack trace. If it couldn't
+ * perform the source mapping, it'll use the original error stack.
+ */
 export function withSourceMappedStack(error: Error): Error {
   return {
     name: error.name,
