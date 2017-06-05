@@ -834,6 +834,7 @@ export class Dispatcher {
         const existingRepository = repositories.find(r => (
           Path.normalize(r.path) === Path.normalize(action.path)
         ))
+
         if (existingRepository) {
           this.selectRepository(existingRepository)
         } else {
