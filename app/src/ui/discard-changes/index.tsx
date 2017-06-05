@@ -15,6 +15,14 @@ interface IDiscardChangesProps {
   readonly onDismissed: () => void
 }
 
+interface IDiscardChangesState {
+  /**
+   * Whether or not we're currently in the process of discarding
+   * changes. This is used to display a loading state
+   */
+  readonly isDiscardingChanges: boolean
+}
+
 /**
  * If we're discarding any more than this number, we won't bother listing them
  * all.
@@ -22,7 +30,14 @@ interface IDiscardChangesProps {
 const MaxFilesToList = 10
 
 /** A component to confirm and then discard changes. */
-export class DiscardChanges extends React.Component<IDiscardChangesProps, void> {
+export class DiscardChanges extends React.Component<IDiscardChangesProps, IDiscardChangesState> {
+
+  public constructor(props: IDiscardChangesProps) {
+    super(props)
+
+    this.state = { isDiscardingChanges: false }
+  }
+
   public render() {
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
@@ -31,6 +46,8 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
         title={ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}
         onDismissed={this.props.onDismissed}
         type='warning'
+        loading={this.state.isDiscardingChanges}
+        disabled={this.state.isDiscardingChanges}
       >
         <DialogContent>
           {this.renderFileList()}
@@ -71,6 +88,8 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
   }
 
   private discard = () => {
+    this.setState({ isDiscardingChanges: true })
+
     this.props.dispatcher.discardChanges(this.props.repository, this.props.files)
     this.props.dispatcher.closePopup()
   }
