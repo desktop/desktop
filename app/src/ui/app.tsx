@@ -717,7 +717,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return <AddExistingRepository
                 key='add-existing-repository'
                 onDismissed={this.onPopupDismissed}
-                dispatcher={this.props.dispatcher} />
+                dispatcher={this.props.dispatcher}
+                path={popup.path} />
       case PopupType.CreateRepository:
         return (
           <CreateRepository

@@ -14,6 +14,7 @@ const untildify: (str: string) => string = require('untildify')
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
+  readonly path?: string
 }
 
 interface IAddExistingRepositoryState {
@@ -28,7 +29,12 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   public constructor(props: IAddExistingRepositoryProps) {
     super(props)
 
-    this.state = { path: '', isGitRepository: false }
+    const path = this.props.path ? this.props.path : ''
+
+    this.state = {
+      path,
+      isGitRepository: false,
+     }
   }
 
   public render() {
