@@ -292,6 +292,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
     return (
       <Dialog
+        id='create-repository'
         title={__DARWIN__ ? 'Create a New Repository' : 'Create a new repository'}
         loading={this.state.creating}
         onSubmit={this.createRepository}
