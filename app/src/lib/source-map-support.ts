@@ -61,6 +61,34 @@ function retrieveSourceMap(source: string) {
     return
   }
 }
+
+/** A map from errors to their stack frames. */
+const stackFrameMap = new WeakMap<Error, ReadonlyArray<any>>()
+
+/**
+ * The `prepareStackTrace` that comes from the `source-map-support` module.
+ * We'll use this when the user explicitly calls `sourceMappedStackTrace`.
+ */
+let prepareStackTraceWithSourceMap: (error: Error, frames: ReadonlyArray<any>) => string
+
+/**
+ * Capture the error's stack frames and return a standard, un-source mapped
+ * stack trace.
+ */
+function prepareStackTrace(error: Error, frames: ReadonlyArray<any>) {
+  stackFrameMap.set(error, frames)
+
+  console.log(sourceMappedStackTrace(error))
+  debugger
+
+  // Ideally we'd use the default `Error.prepareStackTrace` here but it's
+  // undefined so V8 must doing something fancy. Instead we'll do a decent
+  // impression.
+  return error + frames
+    .map(frame => `\n    at ${frame}`)
+    .join('')
+}
+
 /** Enable source map support in the current process. */
 export function enableSourceMaps() {
   sourceMapSupport.install({
@@ -69,5 +97,17 @@ export function enableSourceMaps() {
     retrieveSourceMap,
   })
 
+  const AnyError = Error as any
+  prepareStackTraceWithSourceMap = AnyError.prepareStackTrace
+  AnyError.prepareStackTrace = prepareStackTrace
 }
+
+/** Get the source mapped stack trace for the error. */
+export function sourceMappedStackTrace(error: Error): string | undefined {
+  const frames = stackFrameMap.get(error)
+  if (!frames) {
+    return error.stack
+  }
+
+  return prepareStackTraceWithSourceMap(error, frames)
 }
