@@ -16,6 +16,8 @@ export async function queueWorkHigh<T>(items: Iterable<T>, worker: (item: T) => 
     // window (frames have 1s/60 = 16.6ms available and we want to leave a little
     // for the browser).
     do {
+      // Promise.resolve lets us pass either a const value or a promise and it'll
+      // ensure we get an awaitable promise back.
       await Promise.resolve(worker(next.value))
       next = iterator.next()
     } while (!next.done && performance.now() - start < 10)
