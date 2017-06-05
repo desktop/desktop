@@ -1,6 +1,10 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
 
+/**
+ * Possible statuses of an entry in Git, see the git diff-index
+ * man page for additional details.
+ */
 export enum IndexStatus {
   Unknown = 0,
   Added,
@@ -12,6 +16,12 @@ export enum IndexStatus {
   Unmerged,
 }
 
+/**
+ * Index statuses excluding renames and copies.
+ *
+ * Used when invoking diff-index with rename detection explicitly turned
+ * off.
+ */
 export type NoRenameIndexStatus =
   IndexStatus.Added |
   IndexStatus.Deleted |
