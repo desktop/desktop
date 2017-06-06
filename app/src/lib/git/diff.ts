@@ -44,6 +44,7 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
       const exitCodes = successExitCodes || new Set([ 0 ])
 
       if (!exitCodes.has(code)) {
+        console.log(`aborting because exit code ${code} was returned by Git`)
         reject(new Error(`Git returned an unexpected exit code '${code}' which should be handled by the caller.'`))
         return
       }
@@ -59,6 +60,9 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
         // for now we just assume the diff is UTF-8, but given we have the raw buffer
         // we can try and convert this into other encodings in the future
         const diffRaw = output.toString('utf-8')
+        console.log(`--- diff text`)
+        console.log(diffRaw)
+        console.log(`--- diff text`)
         const diffText = diffFromRawDiffOutput(diffRaw)
         callback(diffText).then(resolve).catch(reject)
       }
