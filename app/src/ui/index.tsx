@@ -23,7 +23,7 @@ import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
 import { getGUID } from '../lib/stats'
-import { enableSourceMaps } from '../lib/enable-source-maps'
+import { enableSourceMaps, withSourceMappedStack } from '../lib/source-map-support'
 
 if (__DEV__) {
   installDevGlobals()
@@ -58,6 +58,8 @@ if (!process.env.TEST_ENV) {
 }
 
 process.once('uncaughtException', (error: Error) => {
+  error = withSourceMappedStack(error)
+
   console.error('Uncaught exception', error)
 
   if (__DEV__ || process.env.TEST_ENV) {
