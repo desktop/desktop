@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { DiffType, IRawDiff, IDiff, IImageDiff, Image } from '../../models/diff'
+import { DiffType, IRawDiff, IDiff, IImageDiff, Image, LineEndingsChange, parseLineEndingText } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -14,6 +14,13 @@ import { DiffParser } from '../diff-parser'
  *  Defining the list of known extensions we can render inside the app
  */
 const imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
+
+/**
+ * `git diff` will write out messages about the line ending changes it knows
+ * about to `stderr` - this rule here will catch this and also the to/from
+ * changes based on what the user has configured.
+ */
+const regex = /warning: (CRLF|CR|LF) will be replaced by (CRLF|CR|LF) in .*/
 
 /**
  * Render the difference between a file in the given commit and its parent
@@ -70,8 +77,26 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
   }
 
   return git(args, repository.path, 'getWorkingDirectoryDiff', opts)
-    .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => convertDiff(repository, file, diff, 'HEAD'))
+    .then(value => {
+      let lineEndingsChange: LineEndingsChange | undefined
+
+      const match = regex.exec(value.stderr)
+      if (match) {
+        const from = parseLineEndingText(match[1])
+        const to = parseLineEndingText(match[2])
+        if (from && to) {
+          lineEndingsChange = { from, to }
+        }
+      }
+
+      const rawDiff = diffFromRawDiffOutput(value.stdout)
+      return { rawDiff, lineEndingsChange }
+    })
+    .then(diffContext => {
+      const diff = diffContext.rawDiff
+
+      return convertDiff(repository, file, diff, 'HEAD', diffContext.lineEndingsChange)
+    })
 }
 
 async function getImageDiff(repository: Repository, file: FileChange, commitish: string): Promise<IImageDiff> {
@@ -120,7 +145,7 @@ async function getImageDiff(repository: Repository, file: FileChange, commitish:
   }
 }
 
-export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
+export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string, lineEndingsChange?: LineEndingsChange): Promise<IDiff> {
   if (diff.isBinary) {
     const extension = Path.extname(file.path)
 
@@ -138,6 +163,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
     kind: DiffType.Text,
     text: diff.contents,
     hunks: diff.hunks,
+    lineEndingsChange,
   }
 }
 
