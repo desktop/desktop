@@ -16,7 +16,7 @@ import { LogLevel } from '../lib/logging/log-level'
 import { log as writeLog } from './log'
 import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
-import { enableSourceMaps } from '../lib/enable-source-maps'
+import { enableSourceMaps, withSourceMappedStack } from '../lib/source-map-support'
 import { now } from './now'
 
 enableSourceMaps()
@@ -35,6 +35,7 @@ type OnDidLoadFn = (window: AppWindow) => void
 let onDidLoadFns: Array<OnDidLoadFn> | null = []
 
 function uncaughtException(error: Error) {
+  error = withSourceMappedStack(error)
 
   log.error(formatError(error))
 
