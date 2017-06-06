@@ -18,11 +18,13 @@ import {
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
 import { sendErrorReport, reportUncaughtException } from '../ui/main-process-proxy'
-import { enableSourceMaps } from '../lib/enable-source-maps'
+import { enableSourceMaps, withSourceMappedStack } from '../lib/source-map-support'
 
 enableSourceMaps()
 
 process.on('uncaughtException', (error: Error) => {
+  error = withSourceMappedStack(error)
+
   console.error('Uncaught exception', error)
 
   sendErrorReport(error)
