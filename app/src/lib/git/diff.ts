@@ -26,6 +26,8 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
     process.stdout.on('data', (chunk) => {
       if (chunk instanceof Buffer) {
         stdout.push(chunk)
+      } else {
+        stdout.push(Buffer.from(chunk))
       }
     })
 
