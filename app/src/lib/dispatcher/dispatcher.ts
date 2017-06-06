@@ -840,6 +840,16 @@ export class Dispatcher {
     return this.appStore._setConfirmRepoRemoval(value)
   }
 
+  /**
+   * Reveals a file from a repository in the native file manager.
+   * @param repository The currently active repository instance
+   * @param path The path of the file relative to the root of the repository
+   */
+  public revealInFileManager(repository: Repository, path: string): boolean {
+    const normalized = Path.join(repository.path, path)
+    return shell.showItemInFolder(normalized)
+  }
+
   private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryArgs): Promise<void> {
     const { filepath, pr, branch } = args
 
