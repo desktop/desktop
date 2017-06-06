@@ -1,4 +1,3 @@
-export * from './add'
 export * from './apply'
 export * from './branch'
 export * from './checkout'

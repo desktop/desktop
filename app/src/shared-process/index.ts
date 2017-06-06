@@ -1,3 +1,5 @@
+import '../lib/logging/renderer/install'
+
 import * as TokenStore from '../shared-process/token-store'
 import { AccountsStore } from './accounts-store'
 import { Account } from '../models/account'
@@ -44,16 +46,6 @@ async function updateAccounts() {
   })
   broadcastUpdate()
 }
-
-register('console.log', ({ args }: {args: any[]}) => {
-  console.log(args[0], ...args.slice(1))
-  return Promise.resolve()
-})
-
-register('console.error', ({ args }: {args: any[]}) => {
-  console.error(args[0], ...args.slice(1))
-  return Promise.resolve()
-})
 
 register('ping', () => {
   return Promise.resolve('pong')

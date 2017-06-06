@@ -64,22 +64,6 @@ export class SharedProcess {
     this.messageQueue = []
   }
 
-  /** Log to the shared process' renderer. */
-  public get console() {
-    return {
-      log: (...args: any[]) => {
-        this.send({ guid: '', name: 'console.log', args: { args } })
-      },
-      error: (...args: any[]) => {
-        // Pop the console whenever we see an error (in dev)
-        if (process.env.NODE_ENV === 'development') {
-          this.show()
-        }
-        this.send({ guid: '', name: 'console.error', args: { args } })
-      },
-    }
-  }
-
   public destroy() {
     this.window.destroy()
   }

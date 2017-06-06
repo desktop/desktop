@@ -61,7 +61,6 @@ const commonConfig = {
     // This saves us a bunch of bytes by pruning locales (which we don't use)
     // from moment.
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
-    new webpack.DefinePlugin(replacements),
     new webpack.NoEmitOnErrorsPlugin(),
   ],
   resolve: {
@@ -77,6 +76,9 @@ const commonConfig = {
 const mainConfig = merge({}, commonConfig, {
   entry: { main: path.resolve(__dirname, 'src/main-process/main') },
   target: 'electron-main',
+  plugins: [
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('main') })),
+  ]
 })
 
 const rendererConfig = merge({}, commonConfig, {
@@ -95,6 +97,7 @@ const rendererConfig = merge({}, commonConfig, {
       'template': path.join(__dirname, 'static', 'index.html'),
       'chunks': ['renderer']
     }),
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('ui') })),
   ],
 })
 
@@ -113,12 +116,16 @@ const sharedConfig = merge({}, commonConfig, {
       'filename': 'shared.html',
       'chunks': ['shared']
     }),
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('shared') })),
   ],
 })
 
 const askPassConfig = merge({}, commonConfig, {
   entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
   target: 'node',
+  plugins: [
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('askpass') })),    
+  ]
 })
 
 const crashConfig = merge({}, commonConfig, {
@@ -130,6 +137,7 @@ const crashConfig = merge({}, commonConfig, {
       filename: 'crash.html',
       chunks: ['crash']
     }),
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('crash') })),
   ],
 })
 
