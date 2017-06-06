@@ -173,9 +173,18 @@
   }
 
   .before:before {
-    content: "√";
+    // https://css-tricks.com/probably-dont-base64-svg/
+    background: url('data:image/svg+xml;utf,<svg width="12" height="16" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg"><path d="M12 5l-8 8-4-4 1.5-1.5L4 10l6.5-6.5z" fill="#fff" fill-rule="evenodd"/></svg>');
+    background-size: contain;
+    background-repeat: no-repeat;
+    content: "";
+
+    height: 12px;
+    width: 7px;
+
     position: absolute;
     left: var(--spacing-half);
+    top: var(--spacing-half);
   }
 }
 
@@ -189,12 +198,6 @@
     &:last-child {
       border-color: var(--diff-hover-gutter-color);
     }
-  }
-
-  .before:before {
-    content: "√";
-    position: absolute;
-    left: var(--spacing-half);
   }
 }
 
