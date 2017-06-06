@@ -4,7 +4,21 @@
 
 const fs = require('fs')
 const path = require('path')
+const cp = require('child_process')
 const { getUserDataPath } = require('./dist-info')
+
+function setGlobalConfigValueIfNotFound(key, value) {
+  try {
+    cp.execSync(`git config ${key}`, { encoding: 'utf-8' })
+  } catch (err) {
+    // config value not found: execSync will return an exit code of -1 and throw
+    cp.execSync(`git config --global ${key} "${value}"`, { encoding: 'utf-8' })
+  }
+}
+
+// ensure we have a user.name and user.email set on this machine for committing
+setGlobalConfigValueIfNotFound('user.name', 'Some User')
+setGlobalConfigValueIfNotFound('user.email', 'some.user@not-a-real-site.com')
 
 // clear out existing log files
 const directory = getUserDataPath()
