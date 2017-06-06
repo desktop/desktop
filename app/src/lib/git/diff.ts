@@ -18,22 +18,24 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
 
     const startTime = (performance && performance.now) ? performance.now() : null
 
+    console.log(`executing ${args.join(' ')}`)
+
+    let outputProcessed = false
+
     const process = GitProcess.spawn(args, path)
     process.stdout.setEncoding('binary')
 
     const stdout = new Array<Buffer>()
 
-    process.stdout.on('data', (chunk) => {
-      if (chunk instanceof Buffer) {
-        console.log(`got a buffer of length ${chunk.length}`)
-        stdout.push(chunk)
-      } else {
-        console.log(`got a string of length ${chunk.length}`)
-        stdout.push(Buffer.from(chunk))
+    // some operations only raise 'close', others will only raise 'exit'
+    // this ensures that we process the output once for either event
+    function processOutput(code: number) {
+      if (outputProcessed) {
+        return
       }
-    })
 
-    process.on('exit', (code, signal) => {
+      outputProcessed = true
+
       /* tslint:disable:promise-must-complete */
       if (startTime) {
         const rawTime = performance.now() - startTime
@@ -68,6 +70,30 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
         const diffText = diffFromRawDiffOutput(diffRaw)
         callback(diffText).then(resolve).catch(reject)
       }
+    }
+
+    process.stdout.on('data', (chunk) => {
+      if (chunk instanceof Buffer) {
+        console.log(`got a buffer of length ${chunk.length}`)
+        stdout.push(chunk)
+      } else {
+        console.log(`got a string of length ${chunk.length}`)
+        stdout.push(Buffer.from(chunk))
+      }
+    })
+
+    process.on('error', err => {
+      console.log(`error: '${err}'`)
+    })
+
+    process.on('close', (code, signal) => {
+      console.log(`close: code '${code}' and signal '${signal}'`)
+      processOutput(code)
+    })
+
+    process.on('exit', (code, signal) => {
+      console.log(`exit: code '${code}' and signal '${signal}'`)
+      processOutput(code)
     })
   })
 }
