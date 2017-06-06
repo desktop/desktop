@@ -18,8 +18,6 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
 
     const startTime = (performance && performance.now) ? performance.now() : null
 
-    console.log(`executing ${args.join(' ')}`)
-
     const process = GitProcess.spawn(args, path)
     process.stdout.setEncoding('binary')
 
@@ -27,17 +25,13 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
 
     process.stdout.on('data', (chunk) => {
       if (chunk instanceof Buffer) {
-        console.log(`--- got a buffer of length ${chunk.length}`)
         stdout.push(chunk)
       } else {
-        console.log(`--- got a string of length ${chunk.length}`)
         stdout.push(Buffer.from(chunk))
       }
     })
 
     process.stdout.on('close', () => {
-      console.log(`--- process.stdout has been closed`)
-
       const maximumStringSize = 268435441
       const output = Buffer.concat(stdout)
       if (output.length >= maximumStringSize) {
@@ -49,21 +43,18 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
         // for now we just assume the diff is UTF-8, but given we have the raw buffer
         // we can try and convert this into other encodings in the future
         const diffRaw = output.toString('utf-8')
-        console.log(`--- diff text`)
-        console.log(`${diffRaw}\n`)
-        console.log(`--- diff text`)
         const diffText = diffFromRawDiffOutput(diffRaw)
         callback(diffText).then(resolve).catch(reject)
       }
     })
 
     process.on('error', err => {
-      console.log(`--- error found: '${err}'`)
+      // for unhandled errors with the process, let's surface this in the
+      // promise and make the caller handle it
+      reject(err)
     })
 
     process.on('exit', (code, signal) => {
-      console.log(`--- process.on('exit'): code '${code}' and signal '${signal}'`)
-
       if (startTime) {
         const rawTime = performance.now() - startTime
         if (rawTime > 1000) {
@@ -75,7 +66,6 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
       const exitCodes = successExitCodes || new Set([ 0 ])
 
       if (!exitCodes.has(code)) {
-        console.log(`aborting because exit code ${code} was returned by Git`)
         reject(new Error(`Git returned an unexpected exit code '${code}' which should be handled by the caller.'`))
         return
       }
