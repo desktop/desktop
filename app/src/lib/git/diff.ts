@@ -32,6 +32,17 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
     })
 
     process.stdout.on('close', () => {
+      // process.on('exit') may fire before stdout has closed, so this is a
+      // more accurate point in time to measure that the command has completed
+      // as we cannot proceed without the contents of the stdout stream
+      if (startTime) {
+        const rawTime = performance.now() - startTime
+        if (rawTime > 1000) {
+          const timeInSeconds = (rawTime / 1000).toFixed(3)
+          log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
+        }
+      }
+
       const maximumStringSize = 268435441
       const output = Buffer.concat(stdout)
       if (output.length >= maximumStringSize) {
@@ -49,25 +60,17 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
     })
 
     process.on('error', err => {
-      // for unhandled errors with the process, let's surface this in the
+      // for unhandled errors raised by the process, let's surface this in the
       // promise and make the caller handle it
       reject(err)
     })
 
     process.on('exit', (code, signal) => {
-      if (startTime) {
-        const rawTime = performance.now() - startTime
-        if (rawTime > 1000) {
-          const timeInSeconds = (rawTime / 1000).toFixed(3)
-          log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
-        }
-      }
-
+      // this mimics the experience of GitProcess.exec for handling known codes
+      // when the process terminates
       const exitCodes = successExitCodes || new Set([ 0 ])
-
       if (!exitCodes.has(code)) {
         reject(new Error(`Git returned an unexpected exit code '${code}' which should be handled by the caller.'`))
-        return
       }
     })
   })
