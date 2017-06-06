@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { DiffType, IRawDiff, IDiff, IImageDiff, Image } from '../../models/diff'
+import { DiffType, IRawDiff, IDiff, IImageDiff, Image, maximumDiffStringSize } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -26,8 +26,6 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
     process.stdout.on('data', (chunk) => {
       if (chunk instanceof Buffer) {
         stdout.push(chunk)
-      } else {
-        stdout.push(Buffer.from(chunk))
       }
     })
 
@@ -43,9 +41,8 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
         }
       }
 
-      const maximumStringSize = 268435441
       const output = Buffer.concat(stdout)
-      if (output.length >= maximumStringSize) {
+      if (output.length >= maximumDiffStringSize) {
         // we know we can't transform this process output into a diff, so let's
         // just return a placeholder for now that we can display to the user
         // to say we're at the limits of the runtime

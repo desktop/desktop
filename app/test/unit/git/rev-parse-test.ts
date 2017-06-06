@@ -16,9 +16,8 @@ describe('git/rev-parse', () => {
 
   let repository: Repository | null = null
 
-  beforeEach(async () => {
+  beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
-
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
