@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
 
-const fileUriToPath = require('file-uri-to-path') as (uri: string) => string
+const fileUriToPath: (uri: string) => string = require('file-uri-to-path')
 const sourceMapSupport = require('source-map-support')
 
 /**
