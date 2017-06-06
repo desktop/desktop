@@ -64,7 +64,6 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
     process.on('exit', (code, signal) => {
       console.log(`--- process.on('exit'): code '${code}' and signal '${signal}'`)
 
-      /* tslint:disable:promise-must-complete */
       if (startTime) {
         const rawTime = performance.now() - startTime
         if (rawTime > 1000) {
