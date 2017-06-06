@@ -16,8 +16,11 @@ describe('git/rev-parse', () => {
 
   let repository: Repository | null = null
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const testRepoPath = setupFixtureRepository('test-repo')
+    await git([ 'config' , 'user.name', 'Lucas Ding' ], testRepoPath, '')
+    await git([ 'config' , 'user.email', 'lucas.ding@not-a-real-site.com' ], testRepoPath, '')
+
     repository = new Repository(testRepoPath, -1, null, false)
   })
 
