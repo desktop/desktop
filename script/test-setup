@@ -20,6 +20,9 @@ function setGlobalConfigValueIfNotFound(key, value) {
 setGlobalConfigValueIfNotFound('user.name', 'Some User')
 setGlobalConfigValueIfNotFound('user.email', 'some.user@not-a-real-site.com')
 
+const output = cp.execSync('git config -l --show-origin', { encoding: 'utf-8' })
+console.log(`${output}\n\n`)
+
 // clear out existing log files
 const directory = getUserDataPath()
 if (!fs.existsSync(directory)) {
