@@ -69,17 +69,22 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
       const status = mapStatus(entry.statusCode)
 
       if (status.kind === 'ordinary') {
+        // when a file is added in the index but then removed in the working
+        // directory, the file won't be part of the commit, so we can skip
+        // displaying this entry in the changes list
         if (status.index === GitStatusEntry.Added
             && status.workingTree === GitStatusEntry.Deleted) {
-          // we can safely avoid drawing this file in the app
           continue
         }
       }
 
       if (status.kind === 'untracked') {
+        // when a delete has been staged, but an untracked file exists with the
+        // same path, we should ensure that we only draw one entry in the
+        // changes list - see if an entry already exists for this path and
+        // remove it if found
         const existingEntry = files.findIndex(p => p.path === entry.path)
         if (existingEntry > -1) {
-          // a previous entry for this path exists, remove it
           files.splice(existingEntry, 1)
         }
       }
