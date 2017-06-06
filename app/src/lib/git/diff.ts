@@ -5,7 +5,7 @@ import { git, IGitExecutionOptions } from './core'
 import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
-import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
+import { WorkingDirectoryFileChange, FileChange, AppFileStatus } from '../../models/status'
 import { DiffType, IRawDiff, IDiff, IImageDiff, Image } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
@@ -43,7 +43,7 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
 
-  if (file.status === FileStatus.New) {
+  if (file.status === AppFileStatus.New) {
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
     //
@@ -56,7 +56,7 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
     // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
     opts = { successExitCodes: new Set([ 0, 1 ]) }
     args = [ 'diff', '--no-ext-diff', '--no-index', '--patch-with-raw', '-z', '--no-color', '--', '/dev/null', file.path ]
-  } else if (file.status === FileStatus.Renamed) {
+  } else if (file.status === AppFileStatus.Renamed) {
     // NB: Technically this is incorrect, the best kind of incorrect.
     // In order to show exactly what will end up in the commit we should
     // perform a diff between the new file and the old file as it appears
@@ -83,28 +83,28 @@ async function getImageDiff(repository: Repository, file: FileChange, commitish:
     // No idea what to do about this, a conflicted binary (presumably) file.
     // Ideally we'd show all three versions and let the user pick but that's
     // a bit out of scope for now.
-    if (file.status === FileStatus.Conflicted) {
+    if (file.status === AppFileStatus.Conflicted) {
       return { kind: DiffType.Image }
     }
 
     // Does it even exist in the working directory?
-    if (file.status !== FileStatus.Deleted) {
+    if (file.status !== AppFileStatus.Deleted) {
       current = await getWorkingDirectoryImage(repository, file)
     }
 
-    if (file.status !== FileStatus.New) {
+    if (file.status !== AppFileStatus.New) {
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
       previous = await getBlobImage(repository, file.oldPath || file.path, 'HEAD')
     }
   } else {
     // File status can't be conflicted for a file in a commit
-    if (file.status !== FileStatus.Deleted) {
+    if (file.status !== AppFileStatus.Deleted) {
       current = await getBlobImage(repository, file.path, commitish)
     }
 
     // File status can't be conflicted for a file in a commit
-    if (file.status !== FileStatus.New) {
+    if (file.status !== AppFileStatus.New) {
       // TODO: commitish^ won't work for the first commit
       //
       // If we have file.oldPath that means it's a rename so we'll
