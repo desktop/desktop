@@ -838,7 +838,10 @@ export class Dispatcher {
         if (existingRepository) {
           this.selectRepository(existingRepository)
         } else {
-          // TODO: Offer to add the repository
+          return this.showPopup({
+            type: PopupType.AddRepository,
+            initialPath: action.path,
+          })
         }
         break
 
