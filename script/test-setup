@@ -7,14 +7,6 @@ const path = require('path')
 const cp = require('child_process')
 const { getUserDataPath } = require('./dist-info')
 
-try {
-  // Appveyor sets core.autocrlf = input globally, let's stick to whatever is
-  // defined at the system level for now
-  cp.execSync('git config --global --unset core.autocrlf')
-} catch (err) {
-  // this config value isn't set, moving on
-}
-
 const output = cp.execSync('git config -l --show-origin', { encoding: 'utf-8' })
 console.log(`${output}\n\n`)
 
