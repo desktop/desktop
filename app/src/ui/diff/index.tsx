@@ -586,6 +586,10 @@ export class Diff extends React.Component<IDiffProps, void> {
              The file was renamed but not changed
             </div>
         }
+
+        return <div className='panel empty'>
+          No content changes found
+        </div>
       }
 
       return this.renderTextDiff(diff)
