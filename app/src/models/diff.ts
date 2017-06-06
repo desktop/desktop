@@ -15,7 +15,7 @@ export enum DiffType {
   Binary,
   /** change to a repository which is included as a submodule of this repository */
   Submodule,
-  /** diff too large to render in app (268435441 bytes = 256MB - 15 bytes) */
+  /** diff too large to render in app */
   TooLarge,
 }
 
@@ -56,7 +56,9 @@ export interface IBinaryDiff {
 export interface IDiffTooLarge {
   readonly kind: DiffType.TooLarge
   /**
-   * The length of the diff output from Git which exceeds the runtime limits
+   * The length of the diff output from Git which exceeds the runtime limits:
+   *
+   * 268435441 bytes = 256MB - 15 bytes
    */
   readonly length: number
 }
