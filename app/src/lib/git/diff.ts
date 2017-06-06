@@ -20,38 +20,23 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
 
     console.log(`executing ${args.join(' ')}`)
 
-    let outputProcessed = false
-
     const process = GitProcess.spawn(args, path)
     process.stdout.setEncoding('binary')
 
     const stdout = new Array<Buffer>()
 
-    // some operations only raise 'close', others will only raise 'exit'
-    // this ensures that we process the output once for either event
-    function processOutput(code: number) {
-      if (outputProcessed) {
-        return
+    process.stdout.on('data', (chunk) => {
+      if (chunk instanceof Buffer) {
+        console.log(`--- got a buffer of length ${chunk.length}`)
+        stdout.push(chunk)
+      } else {
+        console.log(`--- got a string of length ${chunk.length}`)
+        stdout.push(Buffer.from(chunk))
       }
+    })
 
-      outputProcessed = true
-
-      /* tslint:disable:promise-must-complete */
-      if (startTime) {
-        const rawTime = performance.now() - startTime
-        if (rawTime > 1000) {
-          const timeInSeconds = (rawTime / 1000).toFixed(3)
-          log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
-        }
-      }
-
-      const exitCodes = successExitCodes || new Set([ 0 ])
-
-      if (!exitCodes.has(code)) {
-        console.log(`aborting because exit code ${code} was returned by Git`)
-        reject(new Error(`Git returned an unexpected exit code '${code}' which should be handled by the caller.'`))
-        return
-      }
+    process.stdout.on('close', () => {
+      console.log(`--- process.stdout has been closed`)
 
       const maximumStringSize = 268435441
       const output = Buffer.concat(stdout)
@@ -70,30 +55,31 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
         const diffText = diffFromRawDiffOutput(diffRaw)
         callback(diffText).then(resolve).catch(reject)
       }
-    }
-
-    process.stdout.on('data', (chunk) => {
-      if (chunk instanceof Buffer) {
-        console.log(`got a buffer of length ${chunk.length}`)
-        stdout.push(chunk)
-      } else {
-        console.log(`got a string of length ${chunk.length}`)
-        stdout.push(Buffer.from(chunk))
-      }
     })
 
     process.on('error', err => {
-      console.log(`error: '${err}'`)
-    })
-
-    process.on('close', (code, signal) => {
-      console.log(`close: code '${code}' and signal '${signal}'`)
-      processOutput(code)
+      console.log(`--- error found: '${err}'`)
     })
 
     process.on('exit', (code, signal) => {
-      console.log(`exit: code '${code}' and signal '${signal}'`)
-      processOutput(code)
+      console.log(`--- process.on('exit'): code '${code}' and signal '${signal}'`)
+
+      /* tslint:disable:promise-must-complete */
+      if (startTime) {
+        const rawTime = performance.now() - startTime
+        if (rawTime > 1000) {
+          const timeInSeconds = (rawTime / 1000).toFixed(3)
+          log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
+        }
+      }
+
+      const exitCodes = successExitCodes || new Set([ 0 ])
+
+      if (!exitCodes.has(code)) {
+        console.log(`aborting because exit code ${code} was returned by Git`)
+        reject(new Error(`Git returned an unexpected exit code '${code}' which should be handled by the caller.'`))
+        return
+      }
     })
   })
 }
