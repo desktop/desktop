@@ -25,8 +25,10 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
 
     process.stdout.on('data', (chunk) => {
       if (chunk instanceof Buffer) {
+        console.log(`got a buffer of length ${chunk.length}`)
         stdout.push(chunk)
       } else {
+        console.log(`got a string of length ${chunk.length}`)
         stdout.push(Buffer.from(chunk))
       }
     })
@@ -61,7 +63,7 @@ function wrapAndParseDiff(args: string[], path: string, name: string, callback: 
         // we can try and convert this into other encodings in the future
         const diffRaw = output.toString('utf-8')
         console.log(`--- diff text`)
-        console.log(diffRaw)
+        console.log(`${diffRaw}\n`)
         console.log(`--- diff text`)
         const diffText = diffFromRawDiffOutput(diffRaw)
         callback(diffText).then(resolve).catch(reject)
