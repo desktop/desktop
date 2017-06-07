@@ -103,19 +103,15 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     this.checkIfPathIsRepository(path)
   }
 
-  private pathExists(directory: string): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
-      try {
+  private pathExists(directory: string): Promise<FS.Stats> {
+    return new Promise<FS.Stats>((resolve, reject) => {
         FS.stat(directory, (err, exists) => {
           if (err) {
-            resolve(false)
+            reject(err)
           }
 
-          resolve(true)
+          resolve(exists)
         })
-      } catch (e) {
-        resolve(false)
-      }
     })
   }
 
