@@ -67,3 +67,8 @@ today's date.
 
 Any additional information, configuration or data that might be necessary to
 reproduce the issue.
+
+If you are dealing with a performance issue or regression, attaching a
+[Timeline profile](https://github.com/desktop/desktop/blob/master/docs/contributing/timeline-profile.md)
+of the task will help the developers understand the runtime behaviour of the
+application on your machine.
