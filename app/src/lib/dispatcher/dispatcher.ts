@@ -26,6 +26,7 @@ import { uuid } from '../uuid'
 import { URLActionType, IOpenRepositoryFromURLAction, IUnknownAction } from '../parse-app-url'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
 import { validatedRepositoryPath } from './validated-repository-path'
+import { installCLI } from '../../ui/lib/install-cli'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -907,6 +908,16 @@ export class Dispatcher {
       return this.appStore._startOpenInDesktop(() => {
         this.showPopup({ type: PopupType.CloneRepository, initialURL: url })
       })
+    }
+  }
+
+  public async installCLI() {
+    try {
+      await installCLI()
+    } catch (e) {
+      log.error('Error installing CLI', e)
+
+      this.postError(e)
     }
   }
 }
