@@ -8,6 +8,10 @@
   flex: 1;
 
   &-sidebar {
+    // We want the height of the tab bar to match the height
+    // of the file header to the right of this control in the UI.
+    --tab-bar-height: 29px;
+
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--box-border-color);
