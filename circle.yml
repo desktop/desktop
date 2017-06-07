@@ -1,0 +1,32 @@
+machine:
+  environment:
+    XCODE_SCHEME: test
+    XCODE_WORKSPACE: test
+    XCODE_PROJECT: test
+
+  xcode:
+    version: 7.3
+
+dependencies:
+  cache_directories:
+    - "node_modules"
+    - "~/.electron"
+
+  pre:
+    - brew upgrade node
+    - npm install -g npm
+    - npm prune
+    - cd app && npm prune && cd ..
+
+  override:
+    - npm install
+
+compile:
+  override:
+    - npm run lint
+    - npm run build:prod
+
+test:
+  override:
+    - npm run test:setup
+    - npm test
