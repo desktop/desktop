@@ -100,7 +100,7 @@ export function parseAppURL(url: string): URLActionType {
   if (actionName === 'openlocalrepo') {
     return {
       name: 'open-repository-from-path',
-      path: parsedPath,
+      path: decodeURIComponent(parsedPath),
     }
   }
 

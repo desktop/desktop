@@ -73,11 +73,12 @@ describe('parseAppURL', () => {
     })
 
     it('parses local paths', () => {
-      const result = parseAppURL('x-github-client://openLocalRepo//Users/johnsmith/repo')
+      const path = '/Users/johnsmith/repo'
+      const result = parseAppURL(`x-github-client://openLocalRepo/${encodeURIComponent(path)}`)
       expect(result.name).to.equal('open-repository-from-path')
 
       const openRepo = result as IOpenRepositoryFromPathAction
-      expect(openRepo.path).to.equal('/Users/johnsmith/repo')
+      expect(openRepo.path).to.equal(path)
     })
   })
 })
