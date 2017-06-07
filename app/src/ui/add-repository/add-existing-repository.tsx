@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../lib/app-state'
+import * as Path from 'path'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -135,7 +136,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   }
 
   private resolvedPath(path: string): string {
-    return untildify(path)
+    return Path.resolve('/', untildify(path))
   }
 
   private addRepository = async () => {
