@@ -7,18 +7,6 @@ const path = require('path')
 const cp = require('child_process')
 const { getUserDataPath } = require('./dist-info')
 
-function unsetGlobalConfigValue(key) {
-  try {
-    cp.execSync(`git config --global --unset ${key}`, { encoding: 'utf-8' })
-  } catch (err) {
-
-  }
-}
-
-// tidy up any accidental config setting on CI
-unsetGlobalConfigValue('user.name')
-unsetGlobalConfigValue('user.email')
-
 const output = cp.execSync('git config -l --show-origin', { encoding: 'utf-8' })
 console.log(`${output}\n\n`)
 
