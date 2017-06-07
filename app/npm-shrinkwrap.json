@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -286,9 +286,9 @@
       "resolved": "https://registry.npmjs.org/dom-matches/-/dom-matches-2.0.0.tgz"
     },
     "dugite": {
-      "version": "1.28.0",
-      "from": "dugite@1.28.0",
-      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.28.0.tgz"
+      "version": "1.32.0",
+      "from": "dugite@1.32.0",
+      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.32.0.tgz"
     },
     "ecc-jsbn": {
       "version": "0.1.1",

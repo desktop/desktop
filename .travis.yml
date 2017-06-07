@@ -22,7 +22,7 @@ cache:
     - $HOME/.electron
 
 install:
-  - npm install -g npm
+  - npm install -g npm@4.6.1
   - npm prune
   - cd app && npm prune && cd ..
   - npm install

@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { PathLabel } from '../lib/path-label'
-import { FileStatus, mapStatus, iconForStatus } from '../../models/status'
+import { AppFileStatus, mapStatus, iconForStatus } from '../../models/status'
 import { Octicon } from '../octicons'
 
 interface IChangedFileDetailsProps {
   readonly path: string
   readonly oldPath?: string
-  readonly status: FileStatus
+  readonly status: AppFileStatus
 }
 
 /** Displays information about a file */

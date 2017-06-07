@@ -9,7 +9,7 @@ import * as Path from 'path'
 import { GitProcess } from 'dugite'
 
 import { GitStore } from '../../src/lib/dispatcher/git-store'
-import { FileStatus } from '../../src/models/status'
+import { AppFileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { TipState, IValidBranch } from '../../src/models/tip'
@@ -46,9 +46,9 @@ describe('GitStore', () => {
 
     expect(files.length).to.equal(2)
     expect(files[0].path).to.equal('README.md')
-    expect(files[0].status).to.equal(FileStatus.Deleted)
+    expect(files[0].status).to.equal(AppFileStatus.Deleted)
     expect(files[1].path).to.equal('.gitignore')
-    expect(files[1].status).to.equal(FileStatus.New)
+    expect(files[1].status).to.equal(AppFileStatus.New)
 
     // discard the .gitignore change
     await gitStore.discardChanges([ files[1] ])
@@ -59,7 +59,7 @@ describe('GitStore', () => {
 
     expect(files.length).to.equal(1)
     expect(files[0].path).to.equal('README.md')
-    expect(files[0].status).to.equal(FileStatus.Modified)
+    expect(files[0].status).to.equal(AppFileStatus.Modified)
   })
 
   it('can discard a renamed file', async () => {

@@ -1,5 +1,5 @@
 import { assertNever } from '../lib/fatal-error'
-import { WorkingDirectoryFileChange, FileStatus } from '../models/status'
+import { WorkingDirectoryFileChange, AppFileStatus } from '../models/status'
 import { DiffLineType, ITextDiff } from '../models/diff'
 
 /**
@@ -37,19 +37,19 @@ function formatPatchHeader(from: string | null, to: string | null): string {
  */
 function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
   switch (file.status) {
-    case FileStatus.New:
+    case AppFileStatus.New:
       return formatPatchHeader(null, file.path)
 
-    case FileStatus.Conflicted:
+    case AppFileStatus.Conflicted:
     // One might initially believe that renamed files should diff
     // against their old path. This is, after all, how git diff
     // does it right after a rename. But if we're creating a patch
     // to be applied along with a rename we must target the renamed
     // file.
-    case FileStatus.Renamed:
-    case FileStatus.Deleted:
-    case FileStatus.Modified:
-    case FileStatus.Copied:
+    case AppFileStatus.Renamed:
+    case AppFileStatus.Deleted:
+    case AppFileStatus.Modified:
+    case AppFileStatus.Copied:
       return formatPatchHeader(file.path, file.path)
   }
 
@@ -156,7 +156,7 @@ export function formatPatch(file: WorkingDirectoryFileChange, diff: ITextDiff): 
         // partial patch. If the user has elected not to commit a particular
         // addition we need to generate a patch that pretends that the line
         // never existed.
-        if (file.status === FileStatus.New) { return }
+        if (file.status === AppFileStatus.New) { return }
 
         // An unselected added line has no impact on this patch, pretend
         // it was never added to the old file by dropping it.

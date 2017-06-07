@@ -1,14 +1,79 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
 
-import { git, IGitExecutionOptions } from './core'
+import { GitProcess } from 'dugite'
 import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
-import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { DiffType, IRawDiff, IDiff, IImageDiff, Image } from '../../models/diff'
+import { WorkingDirectoryFileChange, FileChange, AppFileStatus } from '../../models/status'
+import { DiffType, IRawDiff, IDiff, IImageDiff, Image, maximumDiffStringSize } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
+
+function wrapAndParseDiff(args: string[], path: string, name: string, callback: (diff: IRawDiff) => Promise<IDiff>, successExitCodes?: Set<number>): Promise<IDiff> {
+
+  return new Promise<IDiff>((resolve, reject) => {
+    const commandName = `${name}: git ${args.join(' ')}`
+    log.debug(`Executing ${commandName}`)
+
+    const startTime = (performance && performance.now) ? performance.now() : null
+
+    const process = GitProcess.spawn(args, path)
+    process.stdout.setEncoding('binary')
+
+    const stdout = new Array<Buffer>()
+
+    process.stdout.on('data', (chunk) => {
+      if (chunk instanceof Buffer) {
+        stdout.push(chunk)
+      } else {
+        stdout.push(Buffer.from(chunk))
+      }
+    })
+
+    process.stdout.on('close', () => {
+      // process.on('exit') may fire before stdout has closed, so this is a
+      // more accurate point in time to measure that the command has completed
+      // as we cannot proceed without the contents of the stdout stream
+      if (startTime) {
+        const rawTime = performance.now() - startTime
+        if (rawTime > 1000) {
+          const timeInSeconds = (rawTime / 1000).toFixed(3)
+          log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
+        }
+      }
+
+      const output = Buffer.concat(stdout)
+      if (output.length >= maximumDiffStringSize) {
+        // we know we can't transform this process output into a diff, so let's
+        // just return a placeholder for now that we can display to the user
+        // to say we're at the limits of the runtime
+        resolve({ kind: DiffType.TooLarge, length: output.length })
+      } else {
+        // for now we just assume the diff is UTF-8, but given we have the raw buffer
+        // we can try and convert this into other encodings in the future
+        const diffRaw = output.toString('utf-8')
+        const diffText = diffFromRawDiffOutput(diffRaw)
+        callback(diffText).then(resolve).catch(reject)
+      }
+    })
+
+    process.on('error', err => {
+      // for unhandled errors raised by the process, let's surface this in the
+      // promise and make the caller handle it
+      reject(err)
+    })
+
+    process.on('exit', (code, signal) => {
+      // this mimics the experience of GitProcess.exec for handling known codes
+      // when the process terminates
+      const exitCodes = successExitCodes || new Set([ 0 ])
+      if (!exitCodes.has(code)) {
+        reject(new Error(`Git returned an unexpected exit code '${code}' which should be handled by the caller.'`))
+      }
+    })
+  })
+}
 
 /**
  *  Defining the list of known extensions we can render inside the app
@@ -22,12 +87,8 @@ const imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
  *                  to a commit.
  */
 export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<IDiff> {
-
   const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--no-color', '--', file.path ]
-
-  return git(args, repository.path, 'getCommitDiff')
-    .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => convertDiff(repository, file, diff, commitish))
+  return wrapAndParseDiff(args, repository.path, 'getCommitDiff', rawDiff => convertDiff(repository, file, rawDiff, commitish))
 }
 
 /**
@@ -36,14 +97,13 @@ export function getCommitDiff(repository: Repository, file: FileChange, commitis
  * that all content in the file will be treated as additions.
  */
 export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<IDiff> {
-
-  let opts: IGitExecutionOptions | undefined
+  let successExitCodes: Set<number> | undefined
   let args: Array<string>
 
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
 
-  if (file.status === FileStatus.New) {
+  if (file.status === AppFileStatus.New) {
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
     //
@@ -54,9 +114,9 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
     //
     // citation in source:
     // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
-    opts = { successExitCodes: new Set([ 0, 1 ]) }
+    successExitCodes = new Set([ 0, 1 ])
     args = [ 'diff', '--no-ext-diff', '--no-index', '--patch-with-raw', '-z', '--no-color', '--', '/dev/null', file.path ]
-  } else if (file.status === FileStatus.Renamed) {
+  } else if (file.status === AppFileStatus.Renamed) {
     // NB: Technically this is incorrect, the best kind of incorrect.
     // In order to show exactly what will end up in the commit we should
     // perform a diff between the new file and the old file as it appears
@@ -69,9 +129,7 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
     args = [ 'diff', 'HEAD', '--no-ext-diff', '--patch-with-raw', '-z', '--no-color', '--', file.path ]
   }
 
-  return git(args, repository.path, 'getWorkingDirectoryDiff', opts)
-    .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => convertDiff(repository, file, diff, 'HEAD'))
+  return wrapAndParseDiff(args, repository.path, 'getWorkingDirectoryDiff', rawDiff => convertDiff(repository, file, rawDiff, 'HEAD'), successExitCodes)
 }
 
 async function getImageDiff(repository: Repository, file: FileChange, commitish: string): Promise<IImageDiff> {
@@ -83,28 +141,28 @@ async function getImageDiff(repository: Repository, file: FileChange, commitish:
     // No idea what to do about this, a conflicted binary (presumably) file.
     // Ideally we'd show all three versions and let the user pick but that's
     // a bit out of scope for now.
-    if (file.status === FileStatus.Conflicted) {
+    if (file.status === AppFileStatus.Conflicted) {
       return { kind: DiffType.Image }
     }
 
     // Does it even exist in the working directory?
-    if (file.status !== FileStatus.Deleted) {
+    if (file.status !== AppFileStatus.Deleted) {
       current = await getWorkingDirectoryImage(repository, file)
     }
 
-    if (file.status !== FileStatus.New) {
+    if (file.status !== AppFileStatus.New) {
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
       previous = await getBlobImage(repository, file.oldPath || file.path, 'HEAD')
     }
   } else {
     // File status can't be conflicted for a file in a commit
-    if (file.status !== FileStatus.Deleted) {
+    if (file.status !== AppFileStatus.Deleted) {
       current = await getBlobImage(repository, file.path, commitish)
     }
 
     // File status can't be conflicted for a file in a commit
-    if (file.status !== FileStatus.New) {
+    if (file.status !== AppFileStatus.New) {
       // TODO: commitish^ won't work for the first commit
       //
       // If we have file.oldPath that means it's a rename so we'll

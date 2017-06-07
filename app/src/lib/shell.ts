@@ -8,6 +8,11 @@ type IndexLookup = {
 }
 
 /**
+ * The names of any env vars that we shouldn't copy from the shell environment.
+ */
+const BlacklistedNames = new Set([ 'LOCAL_GIT_DIRECTORY' ])
+
+/**
  * Inspect whether the current process needs to be patched to get important
  * environment variables for Desktop to work and integrate with other tools
  * the user may invoke as part of their workflow.
@@ -139,11 +144,9 @@ async function getEnvironmentFromShell(updateEnvironment: (env: IndexLookup) => 
  * @param env The new environment variables from the user's shell.
  */
 function mergeEnvironmentVariables(env: IndexLookup) {
-  for (const key in process.env) {
-    delete process.env[key]
-  }
-
   for (const key in env) {
+    if (BlacklistedNames.has(key)) { continue }
+
     process.env[key] = env[key]
   }
 }
