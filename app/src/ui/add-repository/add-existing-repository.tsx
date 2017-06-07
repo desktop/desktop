@@ -22,7 +22,7 @@ interface IAddExistingRepositoryProps {
 
 interface IAddExistingRepositoryState {
   readonly path: string
-  readonly gitRepository: boolean
+  readonly isGitRepository: boolean
   readonly showNonGitRepositoryWarning: boolean
 }
 
@@ -35,7 +35,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
     this.state = {
       path: '',
-      gitRepository: false,
+      isGitRepository: false,
       showNonGitRepositoryWarning: false,
     }
   }
@@ -56,7 +56,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   }
 
   public render() {
-    const disabled = this.state.path.length === 0 || this.state.gitRepository === null || !this.state.gitRepository
+    const disabled = this.state.path.length === 0 || this.state.isGitRepository === null || !this.state.isGitRepository
 
     return (
       <Dialog
@@ -104,7 +104,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   }
 
   private async checkIfPathIsRepository(path: string) {
-    this.setState({ path, gitRepository: false })
+    this.setState({ path, isGitRepository: false })
     const token = ++this.checkGitRepositoryToken
     const isRepo = await isGitRepository(this.resolvedPath(path))
 
@@ -112,7 +112,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     // path.
     if (token !== this.checkGitRepositoryToken) { return }
 
-    this.setState({ gitRepository: isRepo, showNonGitRepositoryWarning: !isRepo })
+    this.setState({ isGitRepository: isRepo, showNonGitRepositoryWarning: !isRepo })
   }
 
   private resolvedPath(path: string): string {
