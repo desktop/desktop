@@ -22,7 +22,11 @@ interface IAddExistingRepositoryProps {
 
 interface IAddExistingRepositoryState {
   readonly path: string
+
+  /** Specifies if the path given is a git repository */
   readonly isGitRepository: boolean
+
+  /** Flag used to display a warning that the given path is not a git repository */
   readonly showNonGitRepositoryWarning: boolean
 }
 
