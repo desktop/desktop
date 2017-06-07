@@ -46,6 +46,7 @@ import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
+import { FullScreenInfo } from './window/full-screen-info'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -840,6 +841,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <ZoomInfo windowZoomFactor={this.state.windowZoomFactor} />
   }
 
+  private renderFullScreenInfo() {
+    return <FullScreenInfo />
+  }
+
   private clearError = (error: Error) => {
     this.props.dispatcher.clearError(error)
   }
@@ -1085,6 +1090,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderTitlebar()}
         {this.state.showWelcomeFlow ? this.renderWelcomeFlow() : this.renderApp()}
         {this.renderZoomInfo()}
+        {this.renderFullScreenInfo()}
       </div>
     )
   }
