@@ -914,6 +914,8 @@ export class Dispatcher {
   public async installCLI() {
     try {
       await installCLI()
+
+      this.showPopup({ type: PopupType.CLIInstalled })
     } catch (e) {
       log.error('Error installing CLI', e)
 

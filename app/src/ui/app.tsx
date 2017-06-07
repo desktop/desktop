@@ -46,6 +46,7 @@ import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
+import { CLIInstalled } from './cli-installed'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -818,6 +819,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.TermsAndConditions:
         return <TermsAndConditions onDismissed={this.onPopupDismissed}/>
+      case PopupType.CLIInstalled:
+        return <CLIInstalled onDismissed={this.onPopupDismissed}/>
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }

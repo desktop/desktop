@@ -4,7 +4,7 @@ import * as Path from 'path'
 const runas: (command: string, args: ReadonlyArray<string>, options?: { admin: boolean }) => number = require('runas')
 
 /** The path for the installed command line tool. */
-const InstalledCLIPath = '/usr/local/bin/github'
+export const InstalledCLIPath = '/usr/local/bin/github'
 
 /** The path to the packaged CLI. */
 const PackagedPath = Path.resolve(__dirname, 'static', 'github.sh')
