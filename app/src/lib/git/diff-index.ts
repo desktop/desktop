@@ -80,17 +80,9 @@ export async function getIndexChanges(repository: Repository): Promise<Map<strin
 
   const map = new Map<string, NoRenameIndexStatus>()
 
-  if (!result.stdout.length) {
-    return map
-  }
-
   const pieces = result.stdout.split('\0')
 
-  if (pieces.length % 2 !== 0) {
-    throw new Error('Expected even number of entries in output from git diff-index')
-  }
-
-  for (let i = 0; i < pieces.length; i += 2) {
+  for (let i = 0; i < pieces.length - 1; i += 2) {
     const status = getNoRenameIndexStatus(pieces[i])
     const path = pieces[i + 1]
 
