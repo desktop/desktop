@@ -16,8 +16,8 @@ function unsetGlobalConfigValue(key) {
 }
 
 // tidy up any accidental config setting on CI
-setGlobalConfigValueIfNotFound('user.name')
-setGlobalConfigValueIfNotFound('user.email')
+unsetGlobalConfigValue('user.name')
+unsetGlobalConfigValue('user.email')
 
 const output = cp.execSync('git config -l --show-origin', { encoding: 'utf-8' })
 console.log(`${output}\n\n`)
