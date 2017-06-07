@@ -156,7 +156,13 @@ app.on('ready', () => {
 
   readyTime = now() - launchTime
 
-  app.setAsDefaultProtocolClient('x-github-client')
+   if (__DEV__) {
+    app.setAsDefaultProtocolClient('x-github-desktop-dev-auth')
+  } else {
+    app.setAsDefaultProtocolClient('x-github-desktop-auth')
+    app.setAsDefaultProtocolClient('x-github-client')
+  }
+
   // Also support Desktop Classic's protocols.
   if (__DARWIN__) {
     app.setAsDefaultProtocolClient('github-mac')
