@@ -46,6 +46,7 @@ import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
+import { installCLI } from './lib/install-cli'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -189,9 +190,18 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'clone-repository': return this.showCloneRepo()
       case 'show-about': return this.showAbout()
       case 'boomtown': return this.boomtown()
+      case 'install-cli': return this.installCLI()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
+  }
+
+  private async installCLI() {
+    try {
+      await installCLI()
+    } catch (e) {
+      log.error('Error installing CLI', e)
+    }
   }
 
   private boomtown() {
