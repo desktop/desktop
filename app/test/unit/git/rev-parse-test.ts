@@ -72,6 +72,7 @@ describe('git/rev-parse', () => {
       const secondRepoPath = path.join(fixturePath, 'repo2')
 
       await git([ 'init', 'repo1' ], fixturePath, '')
+
       await git([ 'init', 'repo2' ], fixturePath, '')
       await git([ 'config' , 'user.name', 'Cai Hsu' ], secondRepoPath, '')
       await git([ 'config' , 'user.email', 'cai.hsu@not-a-real-site.com' ], secondRepoPath, '')
