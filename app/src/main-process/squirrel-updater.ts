@@ -1,27 +1,20 @@
 import { app } from 'electron'
 import * as ChildProcess from 'child_process'
 import * as Path from 'path'
+import * as Fs from 'fs'
 
 export function handleSquirrelEvent(eventName: string): boolean {
-  const appFolder = Path.resolve(process.execPath, '..')
-  const rootAtomFolder = Path.resolve(appFolder, '..')
-  const updateDotExe = Path.resolve(Path.join(rootAtomFolder, 'Update.exe'))
-  const exeName = Path.basename(process.execPath)
-
-  const spawnUpdate = function(args: string[]) {
-    try {
-      ChildProcess.spawn(updateDotExe, args, { detached: true })
-    } catch (error) {}
-  }
-
   switch (eventName) {
     case '--squirrel-install':
+      createShortcut()
+      return true
+
     case '--squirrel-updated':
-      spawnUpdate([ '--createShortcut', exeName ])
+      updateShortcut()
       return true
 
     case '--squirrel-uninstall':
-      spawnUpdate([ '--removeShortcut', exeName ])
+      removeShortcut()
       setTimeout(app.quit, 1000)
       return true
 
@@ -32,3 +25,30 @@ export function handleSquirrelEvent(eventName: string): boolean {
 
   return false
 }
+
+function spawnSquirrelUpdate(command: string): Promise<void> {
+  const appFolder = Path.resolve(process.execPath, '..')
+  const rootAppDir = Path.resolve(appFolder, '..')
+  const updateDotExe = Path.resolve(Path.join(rootAppDir, 'Update.exe'))
+  const exeName = Path.basename(process.execPath)
+
+  try {
+    const p = ChildProcess.spawn(updateDotExe, [ command, exeName ], { detached: true })
+    return new Promise<void>((resolve, reject) => {
+      p.on('exit', () => {
+        resolve()
+      })
+    })
+  } catch (error) {
+    return Promise.reject(error)
+  }
+}
+
+function createShortcut(): Promise<void> {
+  return spawnSquirrelUpdate('--createShortcut')
+}
+
+function removeShortcut(): Promise<void> {
+  return spawnSquirrelUpdate('--removeShortcut')
+}
+
