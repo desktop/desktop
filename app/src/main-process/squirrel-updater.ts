@@ -3,6 +3,11 @@ import * as Path from 'path'
 import * as Fs from 'fs'
 import * as Os from 'os'
 
+/**
+ * Handle Squirrel.Windows app lifecycle events.
+ *
+ * Returns whether the event was handled.
+ */
 export function handleSquirrelEvent(eventName: string): boolean {
   switch (eventName) {
     case '--squirrel-install':
@@ -10,7 +15,7 @@ export function handleSquirrelEvent(eventName: string): boolean {
       return true
 
     case '--squirrel-updated':
-      handleUpdate()
+      handleUpdated()
       return true
 
     case '--squirrel-uninstall':
@@ -24,15 +29,15 @@ export function handleSquirrelEvent(eventName: string): boolean {
   return false
 }
 
-async function handleUpdate(): Promise<void> {
+async function handleUpdated(): Promise<void> {
   await updateShortcut()
 
   const binPath = await writeCLITrampoline()
 
   const paths = await getPathSegments()
-  if (paths.indexOf(binPath) > -1) { return }
-
-  return setPathSegments([ ...paths, binPath ])
+  if (paths.indexOf(binPath) < 0) {
+    await setPathSegments([ ...paths, binPath ])
+  }
 }
 
 /**
@@ -167,6 +172,7 @@ async function setPathSegments(paths: ReadonlyArray<string>): Promise<void> {
   await spawn(setxPath, [ 'Path', paths.join(';') ])
 }
 
+/** Spawn a command with arguments and capture its output. */
 function spawn(command: string, args: ReadonlyArray<string>): Promise<string> {
   try {
     const child = ChildProcess.spawn(command, args as string[])
