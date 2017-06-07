@@ -2,6 +2,7 @@ import { app } from 'electron'
 import * as ChildProcess from 'child_process'
 import * as Path from 'path'
 import * as Fs from 'fs'
+import * as Os from 'os'
 
 export function handleSquirrelEvent(eventName: string): boolean {
   switch (eventName) {
@@ -52,3 +53,21 @@ function removeShortcut(): Promise<void> {
   return spawnSquirrelUpdate('--removeShortcut')
 }
 
+function updateShortcut(): Promise<void> {
+  const homeDirectory = Os.homedir()
+  if (homeDirectory) {
+    const desktopShortcutPath = Path.join(homeDirectory, 'Desktop', 'GitHub Desktop.lnk')
+    return new Promise<void>((resolve, reject) => {
+      Fs.exists(desktopShortcutPath, async exists => {
+        if (exists) {
+          await createShortcut()
+          resolve()
+        } else {
+          resolve()
+        }
+      })
+    })
+  } else {
+    return createShortcut()
+  }
+}
