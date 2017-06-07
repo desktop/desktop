@@ -177,6 +177,10 @@ export class AppStore {
       this.setAppMenu(menu)
     })
 
+    window.on('enter-full-screen', (event: Electron.IpcRendererEvent) => {
+      console.log('hello')
+    })
+
     getAppMenu()
 
     this.gitHubUserStore.onDidUpdate(() => {
