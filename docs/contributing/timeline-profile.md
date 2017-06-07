@@ -19,7 +19,7 @@ issue.
  - Ensure you have **JS Profile** checked - other items might be helpful, but
    will add to the size of the generated timeline data.
 
-<img width="1123" src="https://user-images.githubusercontent.com/359239/26887090-7c8855d0-4b7d-11e7-806b-25d90c6f4595.png">
+<img width="1123" src="https://user-images.githubusercontent.com/359239/26888385-3fc9157c-4b81-11e7-9083-379a37d20641.png">
 
  - Press the **Record** button on the left to start recording.
 
@@ -31,7 +31,7 @@ issue.
 
  <img width="1011"  src="https://user-images.githubusercontent.com/359239/26887304-0700a514-4b7e-11e7-9a1d-74fac88cecee.png">
 
- - In the graph section, right-click and select **Save timeline**. Save the
+ - In the graph section, right-click and select **Save timeline data**. Save the
    JSON file somewhere you can access later.
 
  <img width="1014" alt="screen shot 2017-06-07 at 12 38 18 pm" src="https://user-images.githubusercontent.com/359239/26887386-472e9c7c-4b7e-11e7-9d39-a9b71ea3d70a.png">
