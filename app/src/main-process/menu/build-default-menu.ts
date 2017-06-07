@@ -26,6 +26,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         },
         separator,
         {
+          label: 'Install Command Line Tool…',
+          id: 'install-cli',
+          click: emit('install-cli'),
+        },
+        separator,
+        {
           role: 'services',
           submenu: [],
         },

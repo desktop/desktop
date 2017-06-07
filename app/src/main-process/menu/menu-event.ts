@@ -21,4 +21,5 @@ export type MenuEvent =
   'view-repository-on-github' |
   'clone-repository' |
   'show-about' |
-  'boomtown'
+  'boomtown' |
+  'install-cli'
