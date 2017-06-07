@@ -1,4 +1,3 @@
-import * as FS from 'fs'
 import { remote } from 'electron'
 import * as React from 'react'
 
@@ -104,29 +103,10 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     this.checkIfPathIsRepository(path)
   }
 
-  private pathExists(directory: string): Promise<FS.Stats> {
-    return new Promise<FS.Stats>((resolve, reject) => {
-        FS.stat(directory, (err, exists) => {
-          if (err) {
-            reject(err)
-          }
-
-          resolve(exists)
-        })
-    })
-  }
-
   private async checkIfPathIsRepository(path: string) {
-    this.setState({ path })
-
+    this.setState({ path, gitRepository: false })
     const token = ++this.checkGitRepositoryToken
-    const pathExists = await this.pathExists(path)
-
-    let isRepo = false
-
-    if (pathExists) {
-      isRepo = await isGitRepository(this.resolvedPath(path))
-    }
+    const isRepo = await isGitRepository(this.resolvedPath(path))
 
     // Another path check was requested so don't update state based on the old
     // path.
