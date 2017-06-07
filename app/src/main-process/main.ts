@@ -6,7 +6,7 @@ import { AppWindow } from './app-window'
 import { CrashWindow } from './crash-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID, setCrashMenu } from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
-import { parseURL } from '../lib/parse-url'
+import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
@@ -101,8 +101,9 @@ if (__WIN32__ && process.argv.length > 1) {
   if (handleSquirrelEvent(process.argv[1])) {
     app.quit()
   } else {
-    const action = parseURL(process.argv[1])
-    if (action.name === 'open-repository') {
+    const action = parseAppURL(process.argv[1])
+    if (action.name === 'open-repository-from-url' ||
+        action.name === 'open-repository-from-path') {
       onDidLoad(window => {
         window.sendURLAction(action)
       })
@@ -126,7 +127,7 @@ const isDuplicateInstance = app.makeSingleInstance((commandLine, workingDirector
   // look at the second argument received, it should have the OAuth
   // callback contents and code for us to complete the signin flow
   if (commandLine.length > 1) {
-    const action = parseURL(commandLine[1])
+    const action = parseAppURL(commandLine[1])
     onDidLoad(window => {
       window.sendURLAction(action)
     })
@@ -141,7 +142,7 @@ app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
     event.preventDefault()
 
-    const action = parseURL(url)
+    const action = parseAppURL(url)
     onDidLoad(window => {
       // This manual focus call _shouldn't_ be necessary, but is for Chrome on
       // macOS. See https://github.com/desktop/desktop/issues/973.

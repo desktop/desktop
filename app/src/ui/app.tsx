@@ -296,7 +296,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private showAddLocalRepo = () => {
-    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
+    return this.props.dispatcher.showPopup({
+      type: PopupType.AddRepository,
+      initialPath: null,
+    })
   }
 
   private showCreateRepository = () => {
@@ -714,10 +717,14 @@ export class App extends React.Component<IAppProps, IAppState> {
                 dispatcher={this.props.dispatcher}
                 onDismissed={this.onSignInDialogDismissed}/>
       case PopupType.AddRepository:
-        return <AddExistingRepository
-                key='add-existing-repository'
-                onDismissed={this.onPopupDismissed}
-                dispatcher={this.props.dispatcher} />
+        return (
+          <AddExistingRepository
+            key='add-existing-repository'
+            onDismissed={this.onPopupDismissed}
+            dispatcher={this.props.dispatcher}
+            initialPath={popup.initialPath}
+          />
+        )
       case PopupType.CreateRepository:
         return (
           <CreateRepository
