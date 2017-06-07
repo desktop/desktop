@@ -8,6 +8,9 @@ issue.
 ## Steps
 
  - Launch Desktop and select **View** | **Toggle Developer Tools**.
+  
+ <img width="558" src="https://user-images.githubusercontent.com/359239/26888284-f80ed244-4b80-11e7-86cf-933c59b8f370.png">
+
  - Get the Desktop application ready to perform the problem action.
  - Select the **Timeline** tab.
 
