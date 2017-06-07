@@ -2,6 +2,7 @@
 setlocal
 
 set ELECTRON_RUN_AS_NODE=1
-call "%~dp0..\..\..\GitHub Desktop.exe" "%~dp0..\cli.js" %*
+for /f %%A in ("*Desktop*") do set APP_NAME=%%~nxA
+call "%~dp0..\..\..\%APP_NAME%" "%~dp0..\cli.js" %*
 
 endlocal
