@@ -124,7 +124,7 @@ const askPassConfig = merge({}, commonConfig, {
   entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
   target: 'node',
   plugins: [
-    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('askpass') })),
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('askpass') })),    
   ]
 })
 
@@ -141,21 +141,12 @@ const crashConfig = merge({}, commonConfig, {
   ],
 })
 
-const cliConfig = merge({}, commonConfig, {
-  entry: { 'cli': path.resolve(__dirname, 'src/cli/main') },
-  target: 'node',
-  plugins: [
-    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('cli') })),
-  ]
-})
-
 module.exports = {
   main: mainConfig,
   shared: sharedConfig,
   renderer: rendererConfig,
   askPass: askPassConfig,
   crash: crashConfig,
-  cli: cliConfig,
   replacements: replacements,
   externals: commonConfig.externals,
 }
