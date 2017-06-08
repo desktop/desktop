@@ -1,11 +1,6 @@
 import * as URL from 'url'
 import { testForInvalidChars } from './sanitize-branch'
 
-export interface IOpenRepositoryFromPathArgs {
-  /** The local path to open. */
-  readonly path: string
-}
-
 export interface IOAuthAction {
   readonly name: 'oauth'
   readonly code: string
