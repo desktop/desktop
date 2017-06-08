@@ -24,6 +24,8 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
   }
 
   public componentWillReceiveProps(nextProps: any) {
+    const isFullscreen = true
+
     if (this.infoDisappearTimeoutId !== null) {
       clearTimeout(this.infoDisappearTimeoutId)
     }
@@ -32,10 +34,24 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
       clearTimeout(this.transitionGroupDisappearTimeoutId)
     }
 
+    this.infoDisappearTimeoutId = window.setTimeout(
+      this.onInfoDisappearTimeout,
+      holdDuration,
+    )
+
     this.transitionGroupDisappearTimeoutId = window.setTimeout(
       this.onTransitionGroupDisappearTimeout,
       holdDuration + transitionDuration,
     )
+
+    this.setState({
+      renderTransitionGroup: isFullscreen,
+      renderInfo: isFullscreen,
+    })
+  }
+
+  private onInfoDisappearTimeout = () => {
+    this.setState({ renderInfo: false })
   }
 
   private onTransitionGroupDisappearTimeout = () => {
