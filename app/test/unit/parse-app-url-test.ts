@@ -1,4 +1,3 @@
-import * as Path from 'path'
 import * as chai from 'chai'
 const expect = chai.expect
 
