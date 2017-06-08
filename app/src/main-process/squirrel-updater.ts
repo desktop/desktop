@@ -31,7 +31,7 @@ export function handleSquirrelEvent(eventName: string): boolean {
 
 async function handleUpdated(): Promise<void> {
   try {
-    await updateShortcut()
+    updateShortcut().then(() => {}).catch(() => {})
   } catch (e) {
 
   }
