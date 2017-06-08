@@ -37,8 +37,19 @@ work should proceed:
 
 e.g. GitHub Desktop should support worktrees as a first class feature.
 
-For work that we may evaluate post-1.0, we will label the issue `future-work`
-and close it out, to keep our short-term backlog under control.
+### Future Work
+
+The Desktop team is currently focused on quality and feature parity with the
+existing Mac and Windows apps as part of the 1.0 milestone. Some enhancements
+proposed go far beyond our current roadmap and plans, and it's great to know
+that you're also thinking about the future!
+
+To keep our issue tracker focused on what we need to do in the short term, we
+will be identifying these ambitious tasks to re-evaluate after we ship 1.0 by
+applying the `future-work` label and closing the issue.
+
+Don't worry, you can view [the list](https://github.com/desktop/desktop/issues?q=is%3Aissue+label%3Afuture-work+is%3Aopen)
+of these tasks, and continue to add your thoughts and feedback there.
 
 ## Out-of-scope
 
