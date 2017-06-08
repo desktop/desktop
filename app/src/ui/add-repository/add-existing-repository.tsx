@@ -34,18 +34,18 @@ interface IAddExistingRepositoryState {
    */
   readonly isGitRepository: boolean
 
-  /** Flag used to display a warning that the given path is not a git repository */
+  /**
+   * Indicates whether or not to render a warning message about the entered path
+   * not containing a valid Git repository. This value differs from `isGitRepository` in that it holds
+   * its value when the path changes until we've gotten a definitive answer from the asynchronous
+   * method that the path is, or isn't, a valid repository path. Separating the two means that
+   * we don't toggle visibility of the warning message until it's really necessary, preventing
+   * flickering for our users as they type in a path.
+   */
   readonly showNonGitRepositoryWarning: boolean
 }
 
-/**
- * Indicates whether or not to render a warning message about the entered path
- * not containing a valid Git repository. This value differs from `isGitRepository` in that it holds
- * its value when the path changes until we've gotten a definitive answer from the asynchronous
- * method that the path is, or isn't, a valid repository path. Separating the two means that
- * we don't toggle visibility of the warning message until it's really necessary, preventing
- * flickering for our users as they type in a path.
- */
+
 export class AddExistingRepository extends React.Component<IAddExistingRepositoryProps, IAddExistingRepositoryState> {
   private checkGitRepositoryToken = 0
 
