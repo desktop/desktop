@@ -14,5 +14,3 @@ delete env['ELECTRON_RUN_AS_NODE']
 
 const command = __DARWIN__ ? 'open' : 'start'
 ChildProcess.exec(`${command} ${url}`, { env })
-
-process.exit(0)
