@@ -30,7 +30,11 @@ export function handleSquirrelEvent(eventName: string): boolean {
 }
 
 async function handleUpdated(): Promise<void> {
-  await updateShortcut()
+  try {
+    await updateShortcut()
+  } catch (e) {
+
+  }
 
   const binPath = await writeCLITrampoline()
 
