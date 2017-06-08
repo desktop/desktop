@@ -6,27 +6,24 @@ import * as Os from 'os'
 /**
  * Handle Squirrel.Windows app lifecycle events.
  *
- * Returns whether the event was handled.
+ * Returns a promise which will resolve when the work is done.
  */
-export function handleSquirrelEvent(eventName: string): boolean {
+export function handleSquirrelEvent(eventName: string): Promise<void> | null {
   switch (eventName) {
     case '--squirrel-install':
-      createShortcut()
-      return true
+      return createShortcut()
 
     case '--squirrel-updated':
-      handleUpdated()
-      return true
+      return handleUpdated()
 
     case '--squirrel-uninstall':
-      handleUninstall()
-      return true
+      return handleUninstall()
 
     case '--squirrel-obsolete':
-      return true
+      return Promise.resolve()
   }
 
-  return false
+  return null
 }
 
 async function handleUpdated(): Promise<void> {
