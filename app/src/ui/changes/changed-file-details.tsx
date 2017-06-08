@@ -1,13 +1,13 @@
 import * as React from 'react'
 import { PathLabel } from '../lib/path-label'
-import { FileStatus, mapStatus, iconForStatus } from '../../models/status'
+import { AppFileStatus, mapStatus, iconForStatus } from '../../models/status'
 import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IChangedFileDetailsProps {
   readonly path: string
   readonly oldPath?: string
-  readonly status: FileStatus
+  readonly status: AppFileStatus
   readonly diff: IDiff
 }
 

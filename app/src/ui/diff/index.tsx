@@ -11,7 +11,7 @@ import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
-import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
+import { FileChange, WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
 import { DiffSelection, DiffType, IDiff, IImageDiff, ITextDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
@@ -493,11 +493,11 @@ export class Diff extends React.Component<IDiffProps, void> {
                 previous={imageDiff.previous} />
     }
 
-    if (imageDiff.current && this.props.file.status === FileStatus.New) {
+    if (imageDiff.current && this.props.file.status === AppFileStatus.New) {
       return <NewImageDiff current={imageDiff.current} />
     }
 
-    if (imageDiff.previous && this.props.file.status === FileStatus.Deleted) {
+    if (imageDiff.previous && this.props.file.status === AppFileStatus.Deleted) {
       return <DeletedImageDiff previous={imageDiff.previous} />
     }
 
@@ -572,16 +572,26 @@ export class Diff extends React.Component<IDiffProps, void> {
       return this.renderBinaryFile()
     }
 
+    if (diff.kind === DiffType.TooLarge) {
+      const BlankSlateImage = `file:///${__dirname}/static/empty-no-file-selected.svg`
+      const diffSizeMB = Math.round(diff.length / (1024 * 1024))
+      return <div className='panel empty'>
+          <img src={BlankSlateImage} className='blankslate-image' />
+          The diff returned by Git is {diffSizeMB}MB ({diff.length} bytes), which is larger
+          than what can be displayed in GitHub Desktop.
+        </div>
+    }
+
     if (diff.kind === DiffType.Text) {
 
       if (diff.hunks.length === 0) {
-        if (this.props.file.status === FileStatus.New) {
+        if (this.props.file.status === AppFileStatus.New) {
           return <div className='panel empty'>
              The file is empty
             </div>
         }
 
-        if (this.props.file.status === FileStatus.Renamed) {
+        if (this.props.file.status === AppFileStatus.Renamed) {
           return <div className='panel renamed'>
              The file was renamed but not changed
             </div>

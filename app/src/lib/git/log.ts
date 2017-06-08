@@ -1,9 +1,30 @@
 import { git } from './core'
-import { FileStatus, FileChange } from '../../models/status'
+import { AppFileStatus, FileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
-import { mapStatus } from './status'
+
+/**
+ * Map the raw status text from Git to an app-friendly value
+ * shamelessly borrowed from GitHub Desktop (Windows)
+ */
+function mapStatus(rawStatus: string): AppFileStatus {
+  const status = rawStatus.trim()
+
+  if (status === 'M') { return AppFileStatus.Modified }      // modified
+  if (status === 'A') { return AppFileStatus.New }           // added
+  if (status === 'D') { return AppFileStatus.Deleted }       // deleted
+  if (status === 'R') { return AppFileStatus.Renamed }       // renamed
+  if (status === 'C') { return AppFileStatus.Copied }        // copied
+
+  // git log -M --name-status will return a RXXX - where XXX is a percentage
+  if (status.match(/R[0-9]+/)) { return AppFileStatus.Renamed }
+
+  // git log -C --name-status will return a CXXX - where XXX is a percentage
+  if (status.match(/C[0-9]+/)) { return AppFileStatus.Copied }
+
+  return AppFileStatus.Modified
+}
 
 /**
  * Get the repository's commits using `revisionRange` and limited to `limit`
@@ -86,7 +107,7 @@ export async function getChangedFiles(repository: Repository, sha: string): Prom
 
     let oldPath: string | undefined = undefined
 
-    if (status === FileStatus.Renamed || status === FileStatus.Copied) {
+    if (status === AppFileStatus.Renamed || status === AppFileStatus.Copied) {
       oldPath = lines[++i]
     }
 
