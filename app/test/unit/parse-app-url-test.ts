@@ -85,10 +85,7 @@ describe('parseAppURL', () => {
 
     it('deals with not having a local path', () => {
       let result = parseAppURL(`x-github-client://openLocalRepo/`)
-      expect(result.name).to.equal('open-repository-from-path')
-
-      const openRepo = result as IOpenRepositoryFromPathAction
-      expect(openRepo.path).to.equal('')
+      expect(result.name).to.equal('unknown')
 
       result = parseAppURL(`x-github-client://openLocalRepo`)
       expect(result.name).to.equal('unknown')
