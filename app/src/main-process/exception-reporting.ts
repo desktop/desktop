@@ -19,6 +19,7 @@ export async function reportError(error: Error, extra?: { [key: string]: string 
   }
 
   data.set('platform', process.platform)
+  data.set('sha', __SHA__)
   data.set('version', app.getVersion())
 
   if (extra) {
