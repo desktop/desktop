@@ -22,7 +22,7 @@ export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps
     const diff = this.props.diff
     if (diff.kind === DiffType.Text) {
       if (diff.lineEndingsChange) {
-        const message = `Warning: line endings change from '${diff.lineEndingsChange.from}' to '${diff.lineEndingsChange.to}'.`
+        const message = `Warning: line endings have changed from '${diff.lineEndingsChange.from}' to '${diff.lineEndingsChange.to}'.`
         metadataElement = <Octicon symbol={OcticonSymbol.alert}
                             className={'line-endings'}
                             title={message} />
