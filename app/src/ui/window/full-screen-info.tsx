@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { CSSTransitionGroup } from 'react-transition-group'
+import { remote } from 'electron'
 
 interface IFullScreenInfoState {
   readonly renderInfo: boolean
@@ -24,7 +25,7 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
   }
 
   public componentWillReceiveProps(nextProps: any) {
-    const isFullscreen = true
+    const isFullscreen = remote.getCurrentWindow().isFullScreen()
 
     if (this.infoDisappearTimeoutId !== null) {
       clearTimeout(this.infoDisappearTimeoutId)
