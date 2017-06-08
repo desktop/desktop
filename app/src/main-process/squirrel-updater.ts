@@ -27,14 +27,9 @@ export function handleSquirrelEvent(eventName: string): Promise<void> | null {
 }
 
 async function handleUpdated(): Promise<void> {
-  try {
-    updateShortcut().then(() => {}).catch(() => {})
-  } catch (e) {
-
-  }
+  await updateShortcut()
 
   const binPath = await writeCLITrampoline()
-
   const paths = await getPathSegments()
   if (paths.indexOf(binPath) < 0) {
     await setPathSegments([ ...paths, binPath ])
