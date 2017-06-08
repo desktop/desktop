@@ -115,7 +115,18 @@ export function withSourceMappedStack(error: Error): Error {
 
 /** Get the source mapped stack trace for the error. */
 function sourceMappedStackTrace(error: Error): string | undefined {
-  const frames = stackFrameMap.get(error)
+  let frames = stackFrameMap.get(error)
+
+  if (!frames) {
+    // At this point there's no guarantee that anyone has actually retrieved the
+    // stack on this error which means that our custom prepareStackTrace handler
+    // hasn't run and as a result of that we don't have the native frames stored
+    // in our weak map. In order to get around that we'll eagerly access the
+    // stack, forcing our handler to run which should ensure that the native
+    // frames are stored in our weak map.
+    (error.stack || '').toString()
+  }
+
   if (!frames) {
     return error.stack
   }
