@@ -97,8 +97,12 @@ process.on('uncaughtException', (error: Error) => {
   uncaughtException(error)
 })
 
+let willQuit = false
+
 if (__WIN32__ && process.argv.length > 1) {
   if (handleSquirrelEvent(process.argv[1])) {
+    willQuit = true
+
     app.quit()
   } else {
     handleAppURL(process.argv[1])
@@ -139,6 +143,8 @@ const isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
 })
 
 if (isDuplicateInstance) {
+  willQuit = true
+
   app.quit()
 }
 
@@ -151,7 +157,7 @@ app.on('will-finish-launching', () => {
 })
 
 app.on('ready', () => {
-  if (isDuplicateInstance) { return }
+  if (willQuit) { return }
 
   readyTime = now() - launchTime
 
