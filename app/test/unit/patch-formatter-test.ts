@@ -16,7 +16,7 @@ import { setupFixtureRepository } from '../fixture-helper'
 
 async function parseDiff(diff: string): Promise<ITextDiff> {
   const parser = new DiffParser()
-  const rawDiff =  parser.parse(diff)
+  const rawDiff =  parser.parse(diff, '')
   const repository = new Repository('', -1, null, false)
   const fileChange = new FileChange('file.txt', AppFileStatus.Modified)
   const output = await convertDiff(repository, fileChange, rawDiff, 'HEAD')

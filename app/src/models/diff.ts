@@ -227,6 +227,12 @@ export interface IRawDiff {
   readonly contents: string
 
   /**
+   * Git may also output warnings and errors to stdout when
+   * displaying a diff.
+   */
+  readonly error: string
+
+  /**
    * Each hunk in the diff with information about start, and end
    * positions, lines and line statuses.
    */

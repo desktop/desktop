@@ -329,7 +329,7 @@ export class DiffParser {
    *             or any other git plumbing command that produces unified
    *             diffs.
    */
-  public parse(text: string): IRawDiff {
+  public parse(text: string, error: string): IRawDiff {
 
     this.text = text
 
@@ -341,11 +341,11 @@ export class DiffParser {
 
       // empty diff
       if (!headerInfo) {
-        return { header, contents: '', hunks: [], isBinary: false }
+        return { header, contents: '', error, hunks: [], isBinary: false }
       }
 
       if (headerInfo.isBinary) {
-        return { header, contents: '', hunks: [], isBinary: true }
+        return { header, contents: '', error, hunks: [], isBinary: true }
       }
 
       const hunks = new Array<DiffHunk>()
@@ -364,7 +364,7 @@ export class DiffParser {
         // a new string instance.
         .replace(/\n\\ No newline at end of file/g, '')
 
-      return { header, contents, hunks, isBinary: headerInfo.isBinary }
+      return { header, contents, error, hunks, isBinary: headerInfo.isBinary }
     } finally {
       this.reset()
     }

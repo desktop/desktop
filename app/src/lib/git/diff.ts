@@ -1,78 +1,35 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
 
-import { GitProcess } from 'dugite'
 import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, AppFileStatus } from '../../models/status'
 import { DiffType, IRawDiff, IDiff, IImageDiff, Image, maximumDiffStringSize, LineEndingsChange, parseLineEndingText } from '../../models/diff'
 
+import { spawnAndComplete } from './spawn'
+
 import { DiffParser } from '../diff-parser'
 
-function wrapAndParseDiff(args: string[], path: string, name: string, callback: (diff: IRawDiff) => Promise<IDiff>, successExitCodes?: Set<number>): Promise<IDiff> {
+async function wrapAndParseDiff(args: string[], path: string, name: string, callback: (diff: IRawDiff) => Promise<IDiff>, successExitCodes?: Set<number>): Promise<IDiff> {
 
-  return new Promise<IDiff>((resolve, reject) => {
-    const commandName = `${name}: git ${args.join(' ')}`
-    log.debug(`Executing ${commandName}`)
+  const { output, error } = await spawnAndComplete(args, path, name, successExitCodes)
 
-    const startTime = (performance && performance.now) ? performance.now() : null
+  if (output.length >= maximumDiffStringSize) {
+    // we know we can't transform this process output into a diff, so let's
+    // just return a placeholder for now that we can display to the user
+    // to say we're at the limits of the runtime
+    return { kind: DiffType.TooLarge, length: output.length }
+  } else {
+    const errorText = error.toString('utf-8')
 
-    const process = GitProcess.spawn(args, path)
-    process.stdout.setEncoding('binary')
+    // for now we just assume the diff is UTF-8, but given we have the raw buffer
+    // we can try and convert this into other encodings in the future
+    const rawDiff = output.toString('utf-8')
+    const diffText = diffFromRawDiffOutput(rawDiff, errorText)
 
-    const stdout = new Array<Buffer>()
-
-    process.stdout.on('data', (chunk) => {
-      if (chunk instanceof Buffer) {
-        stdout.push(chunk)
-      } else {
-        stdout.push(Buffer.from(chunk))
-      }
-    })
-
-    process.stdout.on('close', () => {
-      // process.on('exit') may fire before stdout has closed, so this is a
-      // more accurate point in time to measure that the command has completed
-      // as we cannot proceed without the contents of the stdout stream
-      if (startTime) {
-        const rawTime = performance.now() - startTime
-        if (rawTime > 1000) {
-          const timeInSeconds = (rawTime / 1000).toFixed(3)
-          log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
-        }
-      }
-
-      const output = Buffer.concat(stdout)
-      if (output.length >= maximumDiffStringSize) {
-        // we know we can't transform this process output into a diff, so let's
-        // just return a placeholder for now that we can display to the user
-        // to say we're at the limits of the runtime
-        resolve({ kind: DiffType.TooLarge, length: output.length })
-      } else {
-        // for now we just assume the diff is UTF-8, but given we have the raw buffer
-        // we can try and convert this into other encodings in the future
-        const diffRaw = output.toString('utf-8')
-        const diffText = diffFromRawDiffOutput(diffRaw)
-        callback(diffText).then(resolve).catch(reject)
-      }
-    })
-
-    process.on('error', err => {
-      // for unhandled errors raised by the process, let's surface this in the
-      // promise and make the caller handle it
-      reject(err)
-    })
-
-    process.on('exit', (code, signal) => {
-      // this mimics the experience of GitProcess.exec for handling known codes
-      // when the process terminates
-      const exitCodes = successExitCodes || new Set([ 0 ])
-      if (!exitCodes.has(code)) {
-        reject(new Error(`Git returned an unexpected exit code '${code}' which should be handled by the caller.'`))
-      }
-    })
-  })
+    return callback(diffText)
+  }
 }
 
 /**
@@ -137,21 +94,19 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
   }
 
   return wrapAndParseDiff(args, repository.path, 'getWorkingDirectoryDiff', diff => {
-      let lineEndingsChange: LineEndingsChange | undefined
 
-      // TODO: need to get the stderr output here as well
-      const match = regex.exec(value.stderr)
-      if (match) {
-        const from = parseLineEndingText(match[1])
-        const to = parseLineEndingText(match[2])
-        if (from && to) {
-          lineEndingsChange = { from, to }
-        }
+    let lineEndingsChange: LineEndingsChange | undefined
+
+    const match = regex.exec(diff.error)
+    if (match) {
+      const from = parseLineEndingText(match[1])
+      const to = parseLineEndingText(match[2])
+      if (from && to) {
+        lineEndingsChange = { from, to }
       }
+    }
 
-      const rawDiff = diffFromRawDiffOutput(diff.contents)
-      var diffContext = { rawDiff, lineEndingsChange }
-      return convertDiff(repository, file, diff, 'HEAD', diffContext.lineEndingsChange)
+    return convertDiff(repository, file, diff, 'HEAD', lineEndingsChange)
 
   }, successExitCodes)
 }
@@ -247,10 +202,10 @@ function getMediaType(extension: string) {
  *
  * Parses the output from a diff-like command that uses `--path-with-raw`
  */
-function diffFromRawDiffOutput(result: string): IRawDiff {
+function diffFromRawDiffOutput(result: string, error: string): IRawDiff {
   const pieces = result.split('\0')
   const parser = new DiffParser()
-  return parser.parse(pieces[pieces.length - 1])
+  return parser.parse(pieces[pieces.length - 1], error)
 }
 
 export async function getBlobImage(repository: Repository, path: string, commitish: string): Promise<Image> {
