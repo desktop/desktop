@@ -31,6 +31,7 @@ export type LineEndingsChange = {
   to: LineEnding,
 }
 
+/** Parse the line ending string into an enum value (or `null` if unknown) */
 export function parseLineEndingText(text: string): LineEnding | null {
   const input = text.trim()
   switch (input) {

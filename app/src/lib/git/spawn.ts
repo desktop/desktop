@@ -5,6 +5,15 @@ type ProcessOutput = {
   error: Buffer,
 }
 
+/**
+ * Spawn a Git process and buffer the stdout and stderr streams, deferring
+ * all processing work to the caller.
+ *
+ * @param args Array of strings to pass to the Git executable.
+ * @param path The path to execute the command from.
+ * @param name The name of the operation - for tracing purposes.
+ * @param successExitCodes An optional array of exit codes that indicate success.
+ */
 export function spawnAndComplete(args: string[], path: string, name: string, successExitCodes?: Set<number>): Promise<ProcessOutput> {
 
   return new Promise<ProcessOutput>((resolve, reject) => {
@@ -74,8 +83,8 @@ export function spawnAndComplete(args: string[], path: string, name: string, suc
     })
 
     process.on('exit', (code, signal) => {
-      // this mimics the experience of GitProcess.exec for handling known codes
-      // when the process terminates
+      // mimic the experience of GitProcess.exec for handling known codes when
+      // the process terminates
       const exitCodes = successExitCodes || new Set([ 0 ])
       if (!exitCodes.has(code)) {
         reject(new Error(`Git returned an unexpected exit code '${code}' which should be handled by the caller.'`))
