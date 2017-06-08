@@ -153,11 +153,9 @@ async function getPathSegments(): Promise<ReadonlyArray<string>> {
     // via .NET's console in order to have consistent UTF-8 encoding.
     // See http://stackoverflow.com/questions/22349139/utf-8-output-from-powershell
     // to address https://github.com/atom/atom/issues/5063
-    `
-      [Console]::OutputEncoding=[System.Text.Encoding]::UTF8
-      $output=[environment]::GetEnvironmentVariable('Path', 'User')
-      [Console]::WriteLine($output)
-    `,
+    `[Console]::OutputEncoding=[System.Text.Encoding]::UTF8
+     $output=[environment]::GetEnvironmentVariable('Path', 'User')
+     [Console]::WriteLine($output)`,
   ]
 
   const stdout = await spawn(powershellPath, args)
