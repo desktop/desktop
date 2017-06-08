@@ -1,6 +1,6 @@
 import * as ChildProcess from 'child_process'
 import * as Path from 'path'
-import * as Fs from 'fs'
+import * as Fs from 'fs-extra'
 import * as Os from 'os'
 
 /**
@@ -72,12 +72,19 @@ async function writeCLITrampoline(): Promise<string> {
   const trampline = `@echo off\n"%~dp0\\${versionedPath}" %*`
   const trampolinePath = Path.join(binPath, 'github.bat')
   return new Promise<string>((resolve, reject) => {
-    Fs.writeFile(trampolinePath, trampline, err => {
+    Fs.ensureDir(binPath, err => {
       if (err) {
         reject(err)
-      } else {
-        resolve(binPath)
+        return
       }
+
+      Fs.writeFile(trampolinePath, trampline, err => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(binPath)
+        }
+      })
     })
   })
 }
