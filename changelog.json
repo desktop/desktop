@@ -1,7 +1,21 @@
 {
   "releases": {
     "0.6.0": [
-
+      "[Fixed] Issue autocompletion not working for older issues - #1814",
+      "[Fixed] GitHub repository association not working for repositories with some remote URL formats - #1826 #1679",
+      "[Fixed] Don't try to delete a remote branch that no longer exists - #1829",
+      "[Fixed] Tokens created by development builds would be used in production builds but wouldn't work - #1727",
+      "[Fixed] Submodules can now be added - #708",
+      "[Fixed] Properly handle the case where a file is added to the index but removed from the working tree - #1310",
+      "[Fixed] Use a local image for the default avatar - #1621",
+      "[Fixed] Make the file path in diffs selectable - #1768",
+      "[Improved] More logging! - #1823",
+      "[Improved] Better error message when trying to add something that's not a repository - #1747",
+      "[Improved] Copy the shell environment into the app's environment - #1796",
+      "[Improved] Updated to Git 2.13.0 - #1897",
+      "[Improved] Add 'Reveal' to the contextual menu for changed files - #1566",
+      "[Improved] Better handling of large diffs - #1818 #1524",
+      "[Improved] App launch time - #1900"
     ],
     "0.5.9": [
       "[New] Added Zoom In and Zoom Out - #1217",
