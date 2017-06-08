@@ -267,6 +267,4 @@ describe('git/diff', () => {
       expect(diff.lineEndingsChange!.to).to.equal('CRLF')
     })
   })
-
-
 })
