@@ -1,4 +1,3 @@
-import * as Path from 'path'
 import * as chai from 'chai'
 const expect = chai.expect
 
@@ -76,7 +75,7 @@ describe('parseAppURL', () => {
 
   describe('openLocalRepo', () => {
     it('parses local paths', () => {
-      const path = Path.join('Users', 'johnsmith', 'repo')
+      const path = __WIN32__ ? 'C:\\Users\\johnsmith\\repo' : '/Users/johnsmith/repo'
       const result = parseAppURL(`x-github-client://openLocalRepo/${encodeURIComponent(path)}`)
       expect(result.name).to.equal('open-repository-from-path')
 
@@ -85,17 +84,11 @@ describe('parseAppURL', () => {
     })
 
     it('deals with not having a local path', () => {
-      let result = parseAppURL(`x-github-client://openLocalRepo`)
-      expect(result.name).to.equal('open-repository-from-path')
+      let result = parseAppURL(`x-github-client://openLocalRepo/`)
+      expect(result.name).to.equal('unknown')
 
-      let openRepo = result as IOpenRepositoryFromPathAction
-      expect(openRepo.path).to.equal('')
-
-      result = parseAppURL(`x-github-client://openLocalRepo/`)
-      expect(result.name).to.equal('open-repository-from-path')
-
-      openRepo = result as IOpenRepositoryFromPathAction
-      expect(openRepo.path).to.equal('')
+      result = parseAppURL(`x-github-client://openLocalRepo`)
+      expect(result.name).to.equal('unknown')
     })
   })
 })

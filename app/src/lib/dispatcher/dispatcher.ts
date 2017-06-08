@@ -832,9 +832,15 @@ export class Dispatcher {
       case 'open-repository-from-path':
         const state = this.appStore.getState()
         const repositories = state.repositories
-        const existingRepository = repositories.find(r => (
-          Path.normalize(r.path) === Path.normalize(action.path)
-        ))
+        const existingRepository = repositories.find(r => {
+          if (__WIN32__) {
+            // Windows is guaranteed to be case-insensitive so we can be a
+            // bit more accepting.
+            return Path.normalize(r.path).toLowerCase() === Path.normalize(action.path).toLowerCase()
+          } else {
+            return Path.normalize(r.path) === Path.normalize(action.path)
+          }
+        })
 
         if (existingRepository) {
           this.selectRepository(existingRepository)
