@@ -59,7 +59,7 @@ export function spawnAndComplete(args: string[], path: string, name: string, suc
       }
     })
 
-    process.stderr.once('closed', () => {
+    process.stderr.once('close', () => {
       error = Buffer.concat(stderr)
 
       if (output && error) {
