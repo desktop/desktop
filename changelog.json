@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.6.1": [
+
+    ],
     "0.6.0": [
       "[Fixed] Issue autocompletion not working for older issues - #1814",
       "[Fixed] GitHub repository association not working for repositories with some remote URL formats - #1826 #1679",
