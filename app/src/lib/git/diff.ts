@@ -11,25 +11,11 @@ import { spawnAndComplete } from './spawn'
 
 import { DiffParser } from '../diff-parser'
 
-async function wrapAndParseDiff(args: string[], path: string, name: string, callback: (diff: IRawDiff) => Promise<IDiff>, successExitCodes?: Set<number>): Promise<IDiff> {
-
-  const { output, error } = await spawnAndComplete(args, path, name, successExitCodes)
-
-  if (output.length >= maximumDiffStringSize) {
-    // we know we can't transform this process output into a diff, so let's
-    // just return a placeholder for now that we can display to the user
-    // to say we're at the limits of the runtime
-    return { kind: DiffType.TooLarge, length: output.length }
-  } else {
-    const errorText = error.toString('utf-8')
-
-    // for now we just assume the diff is UTF-8, but given we have the raw buffer
-    // we can try and convert this into other encodings in the future
-    const rawDiff = output.toString('utf-8')
-    const diffText = diffFromRawDiffOutput(rawDiff, errorText)
-
-    return callback(diffText)
-  }
+// we know we can't transform this process output into a diff, so let's
+// just return a placeholder for now that we can display to the user
+// to say we're at the limits of the runtime
+function isValidBuffer(output: Buffer) {
+  return output.length < maximumDiffStringSize
 }
 
 /**
@@ -50,9 +36,19 @@ const regex = /warning: (CRLF|CR|LF) will be replaced by (CRLF|CR|LF) in .*/
  * @param commitish A commit SHA or some other identifier that ultimately dereferences
  *                  to a commit.
  */
-export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<IDiff> {
+export async function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<IDiff> {
   const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--no-color', '--', file.path ]
-  return wrapAndParseDiff(args, repository.path, 'getCommitDiff', rawDiff => convertDiff(repository, file, rawDiff, commitish))
+
+  const { output } = await spawnAndComplete(args, repository.path, 'getCommitDiff')
+  if (!isValidBuffer(output)) {
+    return { kind: DiffType.TooLarge, length: output.length }
+  }
+
+  // for now we just assume the diff is UTF-8, but given we have the raw buffer
+  // we can try and convert this into other encodings in the future
+  const rawDiff = output.toString('utf-8')
+  const diffText = diffFromRawDiffOutput(rawDiff)
+  return convertDiff(repository, file, diffText, commitish)
 }
 
 /**
@@ -60,7 +56,7 @@ export function getCommitDiff(repository: Repository, file: FileChange, commitis
  * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
  * that all content in the file will be treated as additions.
  */
-export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<IDiff> {
+export async function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<IDiff> {
   let successExitCodes: Set<number> | undefined
   let args: Array<string>
 
@@ -93,22 +89,18 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
     args = [ 'diff', 'HEAD', '--no-ext-diff', '--patch-with-raw', '-z', '--no-color', '--', file.path ]
   }
 
-  return wrapAndParseDiff(args, repository.path, 'getWorkingDirectoryDiff', diff => {
+  const { output, error } = await spawnAndComplete(args, repository.path, 'getWorkingDirectoryDiff')
+  if (!isValidBuffer(output)) {
+    return { kind: DiffType.TooLarge, length: output.length }
+  }
 
-    let lineEndingsChange: LineEndingsChange | undefined
+  // for now we just assume the diff is UTF-8, but given we have the raw buffer
+  // we can try and convert this into other encodings in the future
+  const rawDiff = output.toString('utf-8')
+  const diffText = diffFromRawDiffOutput(rawDiff)
+  const lineEndingsChange = parseLineEndingsWarning(error)
 
-    const match = regex.exec(diff.error)
-    if (match) {
-      const from = parseLineEndingText(match[1])
-      const to = parseLineEndingText(match[2])
-      if (from && to) {
-        lineEndingsChange = { from, to }
-      }
-    }
-
-    return convertDiff(repository, file, diff, 'HEAD', lineEndingsChange)
-
-  }, successExitCodes)
+  return convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
 }
 
 async function getImageDiff(repository: Repository, file: FileChange, commitish: string): Promise<IImageDiff> {
@@ -197,15 +189,32 @@ function getMediaType(extension: string) {
   return 'text/plain'
 }
 
+function parseLineEndingsWarning(error: Buffer): LineEndingsChange | undefined {
+
+  if (error.length === 0) { return undefined }
+
+  const errorText = error.toString('utf-8')
+  const match = regex.exec(errorText)
+  if (match) {
+    const from = parseLineEndingText(match[1])
+    const to = parseLineEndingText(match[2])
+    if (from && to) {
+      return { from, to }
+    }
+  }
+
+  return undefined
+}
+
 /**
  * Utility function used by get(Commit|WorkingDirectory)Diff.
  *
  * Parses the output from a diff-like command that uses `--path-with-raw`
  */
-function diffFromRawDiffOutput(result: string, error: string): IRawDiff {
+function diffFromRawDiffOutput(result: string): IRawDiff {
   const pieces = result.split('\0')
   const parser = new DiffParser()
-  return parser.parse(pieces[pieces.length - 1], error)
+  return parser.parse(pieces[pieces.length - 1])
 }
 
 export async function getBlobImage(repository: Repository, path: string, commitish: string): Promise<Image> {
