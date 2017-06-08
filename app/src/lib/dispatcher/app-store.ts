@@ -65,6 +65,7 @@ import {
   createCommit,
   checkoutBranch,
   getDefaultRemote,
+  formatAsLocalRef,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -1448,7 +1449,8 @@ export class AppStore {
         // out any branches will null upstreams above when creating
         // `eligibleBranches`.
         const upstreamRef = branch.upstream!
-        await updateRef(repository, `refs/heads/${branch.name}`, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
+        const localRef = formatAsLocalRef(branch.name)
+        await updateRef(repository, localRef, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
       }
     }
   }
