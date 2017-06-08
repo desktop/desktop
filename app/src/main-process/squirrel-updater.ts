@@ -114,10 +114,11 @@ function updateShortcut(): Promise<void> {
   if (homeDirectory) {
     const desktopShortcutPath = Path.join(homeDirectory, 'Desktop', 'GitHub Desktop.lnk')
     return new Promise<void>((resolve, reject) => {
-      Fs.exists(desktopShortcutPath, async exists => {
+      Fs.exists(desktopShortcutPath, exists => {
         if (exists) {
-          await createShortcut()
-          resolve()
+          createShortcut()
+            .then(resolve)
+            .catch(reject)
         } else {
           resolve()
         }
