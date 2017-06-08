@@ -11,9 +11,12 @@ import { spawnAndComplete } from './spawn'
 
 import { DiffParser } from '../diff-parser'
 
-// we know we can't transform this process output into a diff, so let's
-// just return a placeholder for now that we can display to the user
-// to say we're at the limits of the runtime
+/**
+ * Utility function to check whether parsing this buffer is going to cause
+ * issues at runtime.
+ *
+ * @param output A buffer of binary text from a spawned process
+ */
 function isValidBuffer(output: Buffer) {
   return output.length < maximumDiffStringSize
 }
@@ -22,13 +25,6 @@ function isValidBuffer(output: Buffer) {
  *  Defining the list of known extensions we can render inside the app
  */
 const imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
-
-/**
- * `git diff` will write out messages about the line ending changes it knows
- * about to `stderr` - this rule here will catch this and also the to/from
- * changes based on what the user has configured.
- */
-const regex = /warning: (CRLF|CR|LF) will be replaced by (CRLF|CR|LF) in .*/
 
 /**
  * Render the difference between a file in the given commit and its parent
@@ -44,10 +40,7 @@ export async function getCommitDiff(repository: Repository, file: FileChange, co
     return { kind: DiffType.TooLarge, length: output.length }
   }
 
-  // for now we just assume the diff is UTF-8, but given we have the raw buffer
-  // we can try and convert this into other encodings in the future
-  const rawDiff = output.toString('utf-8')
-  const diffText = diffFromRawDiffOutput(rawDiff)
+  const diffText = diffFromRawDiffOutput(output)
   return convertDiff(repository, file, diffText, commitish)
 }
 
@@ -91,13 +84,13 @@ export async function getWorkingDirectoryDiff(repository: Repository, file: Work
 
   const { output, error } = await spawnAndComplete(args, repository.path, 'getWorkingDirectoryDiff')
   if (!isValidBuffer(output)) {
+    // we know we can't transform this process output into a diff, so let's
+    // just return a placeholder for now that we can display to the user
+    // to say we're at the limits of the runtime
     return { kind: DiffType.TooLarge, length: output.length }
   }
 
-  // for now we just assume the diff is UTF-8, but given we have the raw buffer
-  // we can try and convert this into other encodings in the future
-  const rawDiff = output.toString('utf-8')
-  const diffText = diffFromRawDiffOutput(rawDiff)
+  const diffText = diffFromRawDiffOutput(output)
   const lineEndingsChange = parseLineEndingsWarning(error)
 
   return convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
@@ -189,12 +182,26 @@ function getMediaType(extension: string) {
   return 'text/plain'
 }
 
+
+/**
+ * `git diff` will write out messages about the line ending changes it knows
+ * about to `stderr` - this rule here will catch this and also the to/from
+ * changes based on what the user has configured.
+ */
+const lineEndingsChangeRegex = /warning: (CRLF|CR|LF) will be replaced by (CRLF|CR|LF) in .*/
+
+/**
+ * Utility function for inspecting the stderr output for the line endings
+ * warning that Git may report.
+ *
+ * @param error A buffer of binary text from a spawned process
+ */
 function parseLineEndingsWarning(error: Buffer): LineEndingsChange | undefined {
 
   if (error.length === 0) { return undefined }
 
   const errorText = error.toString('utf-8')
-  const match = regex.exec(errorText)
+  const match = lineEndingsChangeRegex.exec(errorText)
   if (match) {
     const from = parseLineEndingText(match[1])
     const to = parseLineEndingText(match[2])
@@ -211,7 +218,11 @@ function parseLineEndingsWarning(error: Buffer): LineEndingsChange | undefined {
  *
  * Parses the output from a diff-like command that uses `--path-with-raw`
  */
-function diffFromRawDiffOutput(result: string): IRawDiff {
+function diffFromRawDiffOutput(output: Buffer): IRawDiff {
+  // for now we just assume the diff is UTF-8, but given we have the raw buffer
+  // we can try and convert this into other encodings in the future
+  const result = output.toString('utf-8')
+
   const pieces = result.split('\0')
   const parser = new DiffParser()
   return parser.parse(pieces[pieces.length - 1])
