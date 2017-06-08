@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { clipboard } from 'electron'
 
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
@@ -66,6 +67,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
   private onUpdateStateChanged = (updateState: IUpdateState) => {
     this.setState({ updateState })
+  }
+
+  private onClickVersion = () => {
+    clipboard.writeText(this.props.applicationVersion)
   }
 
   public componentDidMount() {
@@ -232,7 +237,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           </Row>
           <h2>{name}</h2>
           <p className='no-padding'>
-            Version {version} ({releaseNotesLink})
+            Version <span title='Click to copy' className='version-text' onClick={this.onClickVersion}>{version} <Octicon symbol={OcticonSymbol.clippy} /></span> ({releaseNotesLink})
           </p>
           <p className='no-padding'>
             <LinkButton onClick={this.props.onShowTermsAndConditions}>Terms and Conditions</LinkButton>
