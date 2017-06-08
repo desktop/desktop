@@ -917,6 +917,7 @@ export class Dispatcher {
     }
   }
 
+  /** Install the CLI tool. */
   public async installCLI() {
     try {
       await installCLI()

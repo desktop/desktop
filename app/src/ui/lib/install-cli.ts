@@ -17,6 +17,7 @@ export async function installCLI(): Promise<void> {
   try {
     symlinkCLI(false)
   } catch (e) {
+    // If we error without running as an admin, try again as an admin.
     symlinkCLI(true)
   }
 }

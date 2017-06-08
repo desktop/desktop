@@ -5,9 +5,11 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { InstalledCLIPath } from '../lib/install-cli'
 
 interface ICLIInstalledProps {
+  /** Called when the popup should be dismissed. */
   readonly onDismissed: () => void
 }
 
+/** Tell the user the CLI tool was successfully installed. */
 export class CLIInstalled extends React.Component<ICLIInstalledProps, void> {
   public render() {
     return (
@@ -18,7 +20,7 @@ export class CLIInstalled extends React.Component<ICLIInstalledProps, void> {
       >
         <DialogContent>
           <div>
-            The command line tool was installed at <strong>{InstalledCLIPath}</strong>.
+            The command line tool has been installed at <strong>{InstalledCLIPath}</strong>.
           </div>
         </DialogContent>
         <DialogFooter>
