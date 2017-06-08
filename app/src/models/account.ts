@@ -43,14 +43,14 @@ export class Account implements IAccount {
     return new Account('', getDotComAPIEndpoint(), '', [ ], '', -1, '')
   }
 
-  public constructor(login: string, endpoint: string, token: string, emails: ReadonlyArray<IEmail>, avatarURL: string, id: number, name: string) {
+  public constructor(login: string, endpoint: string, token: string, emails: ReadonlyArray<IEmail>, avatarURL: string, id: number, name?: string) {
     this.login = login
     this.endpoint = endpoint
     this.token = token
     this.emails = emails
     this.avatarURL = avatarURL
     this.id = id
-    this.name = name
+    this.name = name || login
   }
 
   public withToken(token: string): Account {

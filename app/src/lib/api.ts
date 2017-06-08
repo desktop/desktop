@@ -76,10 +76,9 @@ export interface IAPICommit {
 export interface IAPIUser {
   readonly id: number
   readonly url: string
-  readonly type: 'user' | 'org'
   readonly login: string
   readonly avatar_url: string
-  readonly name: string
+  readonly name?: string
 }
 
 /** The users we get from the mentionables endpoint. */
@@ -554,7 +553,7 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
     emails = [ ]
   }
 
-  return new Account(user.login, endpoint, token, emails, user.avatarUrl, user.id, user.name)
+  return new Account(user.login, endpoint, token, emails, user.avatar_url, user.id, user.name)
 }
 
 /** Get metadata from the server. */
