@@ -9,7 +9,7 @@ const pathArg = args.length > 0 ? args[0] : ''
 const repositoryPath = Path.resolve(process.cwd(), pathArg)
 const url = `x-github-client://openLocalRepo/${encodeURIComponent(repositoryPath)}`
 
-const env = { ... env }
+const env = { ...process.env }
 delete env['ELECTRON_RUN_AS_NODE']
 
 const command = __DARWIN__ ? 'open' : 'start'
