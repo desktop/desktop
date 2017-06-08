@@ -197,7 +197,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
       <li className='commit-summary-meta-item'
         title="View this commit on github.com">
         <span aria-hidden='true'>
-          <Octicon symbol={OcticonSymbol.linkExternal} />
+          <Octicon symbol={OcticonSymbol.octoface} />
         </span>
 
         <LinkButton uri={url}>View on GitHub</LinkButton>
