@@ -82,7 +82,7 @@ export async function getWorkingDirectoryDiff(repository: Repository, file: Work
     args = [ 'diff', 'HEAD', '--no-ext-diff', '--patch-with-raw', '-z', '--no-color', '--', file.path ]
   }
 
-  const { output, error } = await spawnAndComplete(args, repository.path, 'getWorkingDirectoryDiff')
+  const { output, error } = await spawnAndComplete(args, repository.path, 'getWorkingDirectoryDiff', successExitCodes)
   if (!isValidBuffer(output)) {
     // we know we can't transform this process output into a diff, so let's
     // just return a placeholder for now that we can display to the user
