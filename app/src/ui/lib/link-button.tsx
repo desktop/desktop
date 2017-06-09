@@ -2,7 +2,7 @@ import * as React from 'react'
 import { shell } from 'electron'
 import * as classNames from 'classnames'
 
-interface ILinkButtonProps {
+interface ILinkButtonProps extends React.HTMLProps<HTMLAnchorElement> {
   /** A URI to open on click. */
   readonly uri?: string
 
@@ -27,15 +27,10 @@ export class LinkButton extends React.Component<ILinkButtonProps, void> {
   public render() {
     const href = this.props.uri || ''
     const className = classNames('link-button-component', this.props.className)
+    const props = { ...this.props, className, onClick: this.onClick, href }
 
     return (
-      <a
-        className={className}
-        href={href}
-        onClick={this.onClick}
-        tabIndex={this.props.tabIndex}
-        disabled={this.props.disabled}
-      >
+      <a {...props}>
         {this.props.children}
       </a>
     )
