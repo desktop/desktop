@@ -17,6 +17,12 @@ dialog#about {
     }
   }
 
+  // Allow Version to be selected
+  .selectable {
+      cursor: text;
+      user-select: text;
+  }
+
   .logo {
     justify-content: center;
     svg {
