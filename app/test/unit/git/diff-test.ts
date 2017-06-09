@@ -35,7 +35,6 @@ describe('git/diff', () => {
   })
 
   describe('getWorkingDirectoryImage', () => {
-
     it('retrieves valid image for new file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('new-image.png', AppFileStatus.New, diffSelection)
@@ -55,7 +54,6 @@ describe('git/diff', () => {
   })
 
   describe('getBlobImage', () => {
-
     it('retrieves valid image for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('modified-image.jpg', AppFileStatus.Modified, diffSelection)
@@ -236,6 +234,37 @@ describe('git/diff', () => {
       const first = diff.hunks[0]
       expect(first.lines.length).to.equal(2)
       expect(first.lines[1].text).to.equal('+WRITING OVER THE TOP')
+    })
+  })
+
+  describe('getWorkingDirectoryDiff/line-endings', () => {
+    it('displays line endings change from LF to CRLF', async () => {
+
+      const repo = await setupEmptyRepository()
+      const filePath = path.join(repo.path, 'foo')
+
+      let lineEnding = '\r\n'
+
+      fs.writeFileSync(filePath, `WRITING MANY LINES ${lineEnding} USING THIS LINE ENDING ${lineEnding} TO SHOW THAT GIT${lineEnding} WILL INSERT IT WITHOUT CHANGING THING ${lineEnding} HA HA BUSINESS`)
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'commit first file with LF' ], repo.path)
+
+      await GitProcess.exec([ 'config', 'core.autocrlf', 'true' ], repo.path)
+      lineEnding = '\n\n'
+
+      fs.writeFileSync(filePath, `WRITING MANY LINES ${lineEnding} USING THIS LINE ENDING ${lineEnding} TO SHOW THAT GIT${lineEnding} WILL INSERT IT WITHOUT CHANGING THING ${lineEnding} HA HA BUSINESS`)
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+
+      const diff = await getTextDiff(repo, files[0])
+
+      expect(diff.lineEndingsChange).to.not.be.undefined
+      expect(diff.lineEndingsChange!.from).to.equal('LF')
+      expect(diff.lineEndingsChange!.to).to.equal('CRLF')
     })
   })
 })
