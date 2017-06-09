@@ -4,13 +4,13 @@ import * as classNames from 'classnames'
 
 interface ILinkButtonProps {
   /** A URI to open on click. */
-  readonly uri?: string | JSX.Element | ReadonlyArray<JSX.Element>
+  readonly uri?: string
 
   /** A function to call on click. */
   readonly onClick?: () => void
 
   /** The title of the button. */
-  readonly children?: string
+  readonly children?: string | JSX.Element | ReadonlyArray<JSX.Element>
 
   /** CSS classes attached to the component */
   readonly className?: string
