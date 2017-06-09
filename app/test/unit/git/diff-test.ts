@@ -267,4 +267,21 @@ describe('git/diff', () => {
       expect(diff.lineEndingsChange!.to).to.equal('CRLF')
     })
   })
+
+  describe('getWorkingDirectoryDiff/unicode', () => {
+    it('displays unicode characters', async () => {
+      const repo = await setupEmptyRepository()
+      const filePath = path.join(repo.path, 'foo')
+
+      const testString = 'here are some cool characters: • é  漢字'
+      fs.writeFileSync(filePath, testString)
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+      expect(files.length).to.equal(1)
+
+      const diff = await getTextDiff(repo, files[0])
+      expect(diff.text).to.equal(`@@ -0,0 +1 @@\n+${testString}`)
+    })
+  })
 })
