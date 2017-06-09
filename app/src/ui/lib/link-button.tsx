@@ -2,9 +2,9 @@ import * as React from 'react'
 import { shell } from 'electron'
 import * as classNames from 'classnames'
 
-interface ILinkButtonProps extends React.HTMLProps<HTMLAnchorElement> {
+interface ILinkButtonProps {
   /** A URI to open on click. */
-  readonly uri?: string
+  readonly uri?: string | JSX.Element | ReadonlyArray<JSX.Element>
 
   /** A function to call on click. */
   readonly onClick?: () => void
@@ -20,6 +20,9 @@ interface ILinkButtonProps extends React.HTMLProps<HTMLAnchorElement> {
 
   /** Disable the link from being clicked */
   readonly disabled?: boolean
+  
+  /** title-text or tooltip for the link */
+  readonly title?: string
 }
 
 /** A link component. */
