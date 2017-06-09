@@ -20,7 +20,7 @@ interface ILinkButtonProps {
 
   /** Disable the link from being clicked */
   readonly disabled?: boolean
-  
+
   /** title-text or tooltip for the link */
   readonly title?: string
 }
