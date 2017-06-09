@@ -35,8 +35,6 @@ type OnDidLoadFn = (window: AppWindow) => void
 let onDidLoadFns: Array<OnDidLoadFn> | null = []
 
 function uncaughtException(error: Error) {
-  error = withSourceMappedStack(error)
-
   log.error(formatError(error))
 
   if (hasReportedUncaughtException) {
@@ -93,6 +91,8 @@ function uncaughtException(error: Error) {
 }
 
 process.on('uncaughtException', (error: Error) => {
+  error = withSourceMappedStack(error)
+
   reportError(error)
   uncaughtException(error)
 })
