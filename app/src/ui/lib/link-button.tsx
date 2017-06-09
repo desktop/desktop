@@ -25,9 +25,9 @@ interface ILinkButtonProps extends React.HTMLProps<HTMLAnchorElement> {
 /** A link component. */
 export class LinkButton extends React.Component<ILinkButtonProps, void> {
   public render() {
-    const href = this.props.uri || ''
-    const className = classNames('link-button-component', this.props.className)
-    const props = { ...this.props, className, onClick: this.onClick, href }
+    const { uri, className, ...otherProps } = this.props
+    const href = uri || ''
+    const props = { ...otherProps, className: classNames('link-button-component', className), onClick: this.onClick, href }
 
     return (
       <a {...props}>
