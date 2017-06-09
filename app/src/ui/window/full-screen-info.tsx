@@ -10,7 +10,7 @@ interface IFullScreenInfoState {
 }
 
 const transitionDuration = 100
-const holdDuration = 750
+const holdDuration = 3000
 
 export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
 
