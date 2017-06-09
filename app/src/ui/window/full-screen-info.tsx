@@ -75,7 +75,7 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
       return null
     }
 
-    const kbdShortcut = __DARWIN__ ? <kbd className='kbd'>⌃⌘F</kbd> : <span><kbd className='kbd'>Esc</kbd> or <kbd className='kbd'>F11</kbd></span>
+    const kbdShortcut = __DARWIN__ ? '⌃⌘F' : 'F11'
 
     return (
       <CSSTransitionGroup
@@ -88,7 +88,7 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
         transitionLeaveTimeout={transitionDuration}
       >
         <div className='toast-notification'>
-          Press {kbdShortcut} to exit fullscreen
+          Press <kbd className='kbd'>{kbdShortcut}</kbd> to exit fullscreen
         </div>
       </CSSTransitionGroup>
     )
