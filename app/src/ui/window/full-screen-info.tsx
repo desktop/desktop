@@ -80,8 +80,7 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
     return (
       <CSSTransitionGroup
         className='toast-notification-container'
-        id='full-screen-info'
-        transitionName='zoom-in' component='div'
+        transitionName='toast-animation' component='div'
         transitionAppear={true}
         transitionEnter={false}
         transitionLeave={true}
