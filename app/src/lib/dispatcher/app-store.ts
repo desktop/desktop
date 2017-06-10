@@ -1238,7 +1238,6 @@ export class AppStore {
 
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
-        const setUpstream = branch.upstream ? false : true
 
         const pushTitle = `Pushing to ${remote.name}`
 
@@ -1268,7 +1267,7 @@ export class AppStore {
 
         await gitStore.performFailableOperation(async () => {
 
-          await pushRepo(repository, account, remote.name, branch.name, setUpstream, (progress) => {
+          await pushRepo(repository, account, remote.name, branch.name, branch.upstreamWithoutRemote, (progress) => {
             this.updatePushPullFetchProgress(repository, {
               ...progress,
               title: pushTitle,
