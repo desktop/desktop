@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { API, IAPIUser } from '../../lib/api'
+import { API, IAPIOrganizationSlug } from '../../lib/api'
 import { TextBox } from '../lib/text-box'
 import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
@@ -32,11 +32,11 @@ export interface IPublishRepositorySettings {
    * The org to which this repository belongs. If null, the repository should be
    * published as a personal repository.
    */
-  readonly org: IAPIUser | null
+  readonly org: IAPIOrganizationSlug | null
 }
 
 interface IPublishRepositoryState {
-  readonly orgs: ReadonlyArray<IAPIUser>
+  readonly orgs: ReadonlyArray<IAPIOrganizationSlug>
 }
 
 /** The Publish Repository component. */

@@ -56,7 +56,7 @@ export interface IAPIRepository {
   readonly clone_url: string
   readonly html_url: string
   readonly name: string
-  readonly owner: IAPIUser
+  readonly owner: IAPIUserNoName
   readonly private: boolean
   readonly fork: boolean
   readonly default_branch: string
@@ -67,18 +67,24 @@ export interface IAPIRepository {
  */
 export interface IAPICommit {
   readonly sha: string
-  readonly author: IAPIUser | null
+  readonly author: IAPIUserNoName | null
 }
 
 /**
  * Information about a user as returned by the GitHub API.
  */
-export interface IAPIUser {
+export interface IAPIUserNoName {
   readonly id: number
   readonly url: string
   readonly login: string
   readonly avatar_url: string
-  readonly name?: string
+}
+
+export interface IAPIUserWithName extends IAPIUserNoName {
+  readonly name: string
+}
+
+export interface IAPIOrganizationSlug extends IAPIUserNoName {
 }
 
 /** The users we get from the mentionables endpoint. */
@@ -252,7 +258,7 @@ export class API {
   }
 
   /** Fetch the logged in account. */
-  public fetchAccount(): Promise<IAPIUser> {
+  public fetchAccount(): Promise<IAPIUserWithName> {
     return this.client.user.fetch()
   }
 
@@ -291,7 +297,7 @@ export class API {
   }
 
   /** Search for a user with the given public email. */
-  public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
+  public async searchForUserWithEmail(email: string): Promise<IAPIUserNoName | null> {
     try {
       const result = await this.client.search.users.fetch({ q: `${email} in:email type:user` })
       // The results are sorted by score, best to worst. So the first result is
@@ -305,7 +311,7 @@ export class API {
   }
 
   /** Fetch all the orgs to which the user belongs. */
-  public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
+  public async fetchOrgs(): Promise<ReadonlyArray<IAPIOrganizationSlug>> {
     const result = await this.client.user.orgs.fetch()
     return result && Array.isArray(result.items)
       ? result.items
@@ -313,7 +319,7 @@ export class API {
   }
 
   /** Create a new GitHub repository with the given properties. */
-  public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository> {
+  public async createRepository(org: IAPIOrganizationSlug | null, name: string, description: string, private_: boolean): Promise<IAPIRepository> {
     try {
       if (org) {
         return await this.client.orgs(org.login).repos.create({ name, description, private: private_ })

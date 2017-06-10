@@ -154,7 +154,6 @@ export class GitHubUserStore {
           login: apiCommit.author.login,
           avatarURL: apiCommit.author.avatar_url,
           endpoint: account.endpoint,
-          name: apiCommit.author.name,
         }
       }
     }
@@ -166,7 +165,6 @@ export class GitHubUserStore {
         login: matchingUser.login,
         avatarURL: matchingUser.avatar_url,
         endpoint: account.endpoint,
-        name: matchingUser.name,
       }
     }
 
@@ -309,12 +307,7 @@ export class GitHubUserStore {
         return MaxScore
       }
 
-      // `name` shouldn't even be `undefined` going forward, but older versions
-      // of the user cache didn't persist `name`. The `GitHubUserStore` will fix
-      // that, but autocompletions could be requested before that happens. So we
-      // need to check here even though the type says its superfluous.
-      const name = u.name
-      if (name && name.toLowerCase().includes(text.toLowerCase())) {
+      if (u.login.toLowerCase().includes(text.toLowerCase())) {
         return MaxScore - 0.1
       }
 

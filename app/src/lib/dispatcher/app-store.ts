@@ -22,7 +22,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
-import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
+import { API, getAccountForEndpoint, IAPIOrganizationSlug } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
@@ -1462,7 +1462,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<void> {
+  public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIOrganizationSlug | null): Promise<void> {
     const api = new API(account)
     const apiRepository = await api.createRepository(org, name, description, private_)
 
