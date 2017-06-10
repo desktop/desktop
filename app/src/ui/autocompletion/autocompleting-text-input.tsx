@@ -276,7 +276,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
     const currentAutoCompletionState = this.state.autocompletionState
 
-    if (!currentAutoCompletionState) {
+    if (!currentAutoCompletionState || !currentAutoCompletionState.items.length) {
       return
     }
 
