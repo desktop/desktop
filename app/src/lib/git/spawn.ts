@@ -23,27 +23,17 @@ export function spawnAndComplete(args: string[], path: string, name: string, suc
     const startTime = (performance && performance.now) ? performance.now() : null
 
     const process = GitProcess.spawn(args, path)
-    process.stdout.setEncoding('binary')
-    process.stderr.setEncoding('binary')
 
     const stdout = new Array<Buffer>()
     let output: Buffer | undefined
-    process.stdout.on('data', (chunk) => {
-      if (chunk instanceof Buffer) {
-        stdout.push(chunk)
-      } else {
-        stdout.push(Buffer.from(chunk))
-      }
+    process.stdout.on('data', chunk => {
+      stdout.push(chunk as Buffer)
     })
 
     const stderr = new Array<Buffer>()
     let error: Buffer | undefined
-    process.stderr.on('data', (chunk) => {
-      if (chunk instanceof Buffer) {
-        stderr.push(chunk)
-      } else {
-        stderr.push(Buffer.from(chunk))
-      }
+    process.stderr.on('data', chunk => {
+      stderr.push(chunk as Buffer)
     })
 
     function reportTimings() {
