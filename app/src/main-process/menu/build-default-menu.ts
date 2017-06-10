@@ -286,8 +286,8 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     },
   }
 
-  const showUserGuide: Electron.MenuItemOptions = {
-    label: 'Show User Guide',
+  const showUserGuides: Electron.MenuItemOptions = {
+    label: 'Show User Guides',
     click() {
       shell.openExternal('https://help.github.com/desktop-beta/guides/')
     },
@@ -302,7 +302,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
   const helpItems = [
     submitIssueItem,
-    showUserGuide,
+    showUserGuides,
     showLogsItem,
   ]
 
