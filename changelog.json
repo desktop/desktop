@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.6.2": [
+
+    ],
     "0.6.1": [
       "[Fixed] Properly log stats opt in/out - #1949",
       "[Fixed] Source maps for exceptions in the main process - #1957",
