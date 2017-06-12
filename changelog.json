@@ -1,7 +1,15 @@
 {
   "releases": {
     "0.6.1": [
-
+      "[Fixed] Properly log stats opt in/out - #1949",
+      "[Fixed] Source maps for exceptions in the main process - #1957",
+      "[Fixed] Styling of the exception dialog - #1956",
+      "[Fixed] Handle ambiguous references - #1947",
+      "[Fixed] Handle non-ASCII text in diffs - #1970",
+      "[Fixed] Uncaught exception when hitting the arrow keys after showing autocompletions - #1971",
+      "[Fixed] Clear the organizations list when publishing a new repository and switching between tabs - #1969",
+      "[Fixed] Push properly when a tracking branch has a different name from the local branch - #1967",
+      "[Improved] Warn when line endings will change - #1906"
     ],
     "0.6.0": [
       "[Fixed] Issue autocompletion not working for older issues - #1814",
