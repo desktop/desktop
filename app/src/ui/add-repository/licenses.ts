@@ -12,6 +12,7 @@ interface IChooseALicense {
   readonly title: string
   readonly nickname?: string
   readonly featured?: boolean
+  readonly hidden?: boolean
 }
 
 export interface ILicense {
@@ -23,6 +24,9 @@ export interface ILicense {
 
   /** The actual text of the license. */
   readonly body: string
+
+  /** Whether to hide the license from the standard list */
+  readonly hidden: boolean
 }
 
 interface ILicenseFields {
@@ -67,10 +71,13 @@ export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
             const license: ILicense = {
               name: result.attributes.nickname || result.attributes.title,
               featured: result.attributes.featured || false,
+              hidden: typeof result.attributes.hidden == 'undefined' || result.attributes.hidden,
               body: result.body.trim(),
             }
 
-            licenses.push(license)
+            if (!license.hidden) {
+              licenses.push(license)
+            }
           }
 
           cachedLicenses = licenses.sort((a, b) => {
