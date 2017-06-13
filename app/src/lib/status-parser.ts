@@ -1,3 +1,5 @@
+import { FileEntry, GitStatusEntry } from '../models/status'
+
 type StatusItem = IStatusHeader | IStatusEntry
 
 export interface IStatusHeader {
@@ -135,5 +137,202 @@ function parseUntrackedEntry(field: string): IStatusEntry {
     // might want to consider changing this (and mapStatus) in the future.
     statusCode: '??',
     path,
+  }
+}
+
+
+/**
+ * Map the raw status text from Git to a structure we can work with in the app.
+ */
+export function mapStatus(status: string): FileEntry {
+
+  if (status === '??') {
+    return {
+      kind: 'untracked',
+      index: GitStatusEntry.Untracked,
+      workingTree: GitStatusEntry.Untracked,
+    }
+  }
+
+  if (status === '.M') {
+    return {
+      kind: 'ordinary',
+      type: 'modified',
+      index: GitStatusEntry.Unchanged,
+      workingTree: GitStatusEntry.Modified,
+    }
+  }
+
+  if (status === 'M.') {
+    return {
+      kind: 'ordinary',
+      type: 'modified',
+      index: GitStatusEntry.Modified,
+      workingTree: GitStatusEntry.Unchanged,
+    }
+  }
+
+  if (status === '.A') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      index: GitStatusEntry.Unchanged,
+      workingTree: GitStatusEntry.Added,
+    }
+  }
+
+  if (status === 'A.') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      index: GitStatusEntry.Added,
+      workingTree: GitStatusEntry.Unchanged,
+    }
+  }
+
+  if (status === '.D') {
+    return {
+      kind: 'ordinary',
+      type: 'deleted',
+      index: GitStatusEntry.Unchanged,
+      workingTree: GitStatusEntry.Deleted,
+    }
+  }
+
+  if (status === 'D.') {
+    return {
+      kind: 'ordinary',
+      type: 'deleted',
+      index: GitStatusEntry.Deleted,
+      workingTree: GitStatusEntry.Unchanged,
+    }
+  }
+
+  if (status === 'R.') {
+    return {
+      kind: 'renamed',
+      index: GitStatusEntry.Renamed,
+      workingTree: GitStatusEntry.Unchanged,
+    }
+  }
+
+  if (status === '.R') {
+    return {
+      kind: 'renamed',
+      index: GitStatusEntry.Unchanged,
+      workingTree: GitStatusEntry.Renamed,
+    }
+  }
+
+  if (status === 'C.') {
+    return {
+      kind: 'copied',
+      index: GitStatusEntry.Copied,
+      workingTree: GitStatusEntry.Unchanged,
+    }
+  }
+
+  if (status === '.C') {
+    return {
+      kind: 'copied',
+      index: GitStatusEntry.Unchanged,
+      workingTree: GitStatusEntry.Copied,
+    }
+  }
+
+  if (status === 'AD') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      index: GitStatusEntry.Added,
+      workingTree: GitStatusEntry.Deleted,
+    }
+  }
+
+  if (status === 'AM') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      index: GitStatusEntry.Added,
+      workingTree: GitStatusEntry.Modified,
+    }
+  }
+
+  if (status === 'RM') {
+    return {
+      kind: 'renamed',
+      index: GitStatusEntry.Renamed,
+      workingTree: GitStatusEntry.Modified,
+    }
+  }
+
+  if (status === 'RD') {
+    return {
+      kind: 'renamed',
+      index: GitStatusEntry.Renamed,
+      workingTree: GitStatusEntry.Deleted,
+    }
+  }
+
+  if (status === 'DD') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Deleted,
+      them: GitStatusEntry.Deleted,
+    }
+  }
+
+  if (status === 'AU') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Added,
+      them: GitStatusEntry.Modified,
+    }
+  }
+
+  if (status === 'UD') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Modified,
+      them: GitStatusEntry.Deleted,
+    }
+  }
+
+  if (status === 'UA') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Modified,
+      them: GitStatusEntry.Added,
+    }
+  }
+
+  if (status === 'DU') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Deleted,
+      them: GitStatusEntry.Modified,
+    }
+  }
+
+  if (status === 'AA') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Added,
+      them: GitStatusEntry.Added,
+    }
+  }
+
+    if (status === 'UU') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Modified,
+      them: GitStatusEntry.Modified,
+    }
+  }
+
+  // as a fallback, we assume the file is modified in some way
+  return {
+    kind: 'ordinary',
+    type: 'modified',
   }
 }

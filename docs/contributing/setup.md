@@ -4,19 +4,28 @@
 
 You will need to install these tools on your machine:
 
- - [Nodejs](https://nodejs.org) - v7 is preferred as it's the version embedded into Electron
-    - **Windows developers**: *Make sure you allow the Node.js installer to add
-      node to the PATH, it makes life much easier.*
- - Python 2.7 - [Windows](https://www.python.org/downloads/windows/), [macOS](https://www.python.org/downloads/mac-osx/)
-    - **Windows developers**: *Let Python install into the default suggested path
-      (`c:\Python27`), otherwise you'll have to configure node-gyp manually with
-      the path which is annoying.*
- - **macOS:** Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
- - **Windows:** Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
-    - Run `npm config set msvs_version 2015` after installing the build tools.
-    - *Visual Studio 2017 support has not been tested yet - waiting on
-      `node-gyp` support to be generally available.*
+### macOS
 
+ - [Node.js v7](https://nodejs.org/en/download/current) - this is the version embedded into Electron
+ - [Python 2.7](https://www.python.org/downloads/mac-osx/)
+ - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
+
+### Windows
+
+ - [Node.js v7](https://nodejs.org/en/download/current) - this is the version embedded into Electron
+    - *Make sure you allow the Node.js installer to add node to the PATH.*
+ - [Python 2.7](https://www.python.org/downloads/windows/)
+    - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
+      to configure node-gyp manually with the path which is annoying.*
+    - *Ensure the **Add python.exe to Path** option is selected.*
+ - Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
+    - *If you already have Visual Studio 2015 installed, ensure you have the **Common Tools for Visual C++ 2015**
+      feature as that is required by Node.js for installing native modules.*
+    - *Visual Studio 2017 support has not been tested yet - see [#1766](https://github.com/desktop/desktop/issues/1766) for details*
+ - *Run `npm config set msvs_version 2015` to tell node the right toolchain to use for compiling native modules.*
+
+## Verification
+ 
 With these things installed, open a shell and validate you have these commands
 available and that the versions look similar:
 

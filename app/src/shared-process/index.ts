@@ -1,3 +1,5 @@
+import '../lib/logging/renderer/install'
+
 import * as TokenStore from '../shared-process/token-store'
 import { AccountsStore } from './accounts-store'
 import { Account } from '../models/account'
@@ -16,11 +18,13 @@ import {
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
 import { sendErrorReport, reportUncaughtException } from '../ui/main-process-proxy'
-import { enableSourceMaps } from '../lib/enable-source-maps'
+import { enableSourceMaps, withSourceMappedStack } from '../lib/source-map-support'
 
 enableSourceMaps()
 
 process.on('uncaughtException', (error: Error) => {
+  error = withSourceMappedStack(error)
+
   console.error('Uncaught exception', error)
 
   sendErrorReport(error)
@@ -44,16 +48,6 @@ async function updateAccounts() {
   })
   broadcastUpdate()
 }
-
-register('console.log', ({ args }: {args: any[]}) => {
-  console.log(args[0], ...args.slice(1))
-  return Promise.resolve()
-})
-
-register('console.error', ({ args }: {args: any[]}) => {
-  console.error(args[0], ...args.slice(1))
-  return Promise.resolve()
-})
 
 register('ping', () => {
   return Promise.resolve('pong')

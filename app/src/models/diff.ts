@@ -1,5 +1,11 @@
 import { assertNever } from '../lib/fatal-error'
 
+/**
+ * V8 has a limit on the size of string it can create, and unless we want to
+ * trigger an unhandled exception we need to do the encoding conversion by hand
+ */
+export const maximumDiffStringSize = 268435441
+
 export enum DiffType {
   /** changes to a text file, which may be partially selected for commit */
   Text,
@@ -9,6 +15,8 @@ export enum DiffType {
   Binary,
   /** change to a repository which is included as a submodule of this repository */
   Submodule,
+  /** diff too large to render in app */
+  TooLarge,
 }
 
 /** indicate what a line in the diff represents */
@@ -16,6 +24,27 @@ export enum DiffLineType {
   Context, Add, Delete, Hunk,
 }
 
+type LineEnding = 'CR' | 'LF' | 'CRLF'
+
+export type LineEndingsChange = {
+  from: LineEnding,
+  to: LineEnding,
+}
+
+/** Parse the line ending string into an enum value (or `null` if unknown) */
+export function parseLineEndingText(text: string): LineEnding | null {
+  const input = text.trim()
+  switch (input) {
+    case 'CR':
+      return 'CR'
+    case 'LF':
+      return 'LF'
+    case 'CRLF':
+      return 'CRLF'
+    default:
+      return null
+  }
+}
 
 export interface ITextDiff {
   readonly kind: DiffType.Text
@@ -23,6 +52,8 @@ export interface ITextDiff {
   readonly text: string
   /** The diff contents organized by hunk - how the git CLI outputs to the caller */
   readonly hunks: ReadonlyArray<DiffHunk>
+  /** A warning from Git that the line endings have changed in this file and will affect the commit */
+  readonly lineEndingsChange?: LineEndingsChange
 }
 
 export interface IImageDiff {
@@ -45,11 +76,22 @@ export interface IBinaryDiff {
   readonly kind: DiffType.Binary
 }
 
+export interface IDiffTooLarge {
+  readonly kind: DiffType.TooLarge
+  /**
+   * The length of the diff output from Git which exceeds the runtime limits:
+   *
+   * 268435441 bytes = 256MB - 15 bytes
+   */
+  readonly length: number
+}
+
 /** The union of diff types that can be rendered in Desktop */
 export type IDiff =
   ITextDiff |
   IImageDiff |
-  IBinaryDiff
+  IBinaryDiff |
+  IDiffTooLarge
 
 /** track details related to each line in the diff */
 export class DiffLine {

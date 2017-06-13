@@ -1,6 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
 import { ipcRenderer, remote } from 'electron'
-import * as Path from 'path'
 import {
   IRepositoryState,
   IHistoryState,
@@ -51,7 +50,6 @@ import { fatalError } from '../fatal-error'
 import { updateMenuState } from '../menu-update'
 
 import {
-  getGitDir,
   getAuthorIdentity,
   pull as pullRepo,
   push as pushRepo,
@@ -66,6 +64,8 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
+  getDefaultRemote,
+  formatAsLocalRef,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -640,7 +640,7 @@ export class AppStore {
     try {
       await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
-      console.warn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
+      log.warn(`Unable to fetch issues for ${repository.fullName}`, e)
     }
   }
 
@@ -879,7 +879,8 @@ export class AppStore {
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
 
     const state = this.getRepositoryState(repository)
-    const files = state.changesState.workingDirectory.files.filter((file, index, array) => {
+    const files = state.changesState.workingDirectory.files
+    const selectedFiles = files.filter(file => {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
@@ -888,12 +889,19 @@ export class AppStore {
     const result = await this.isCommitting(repository, () => {
       return gitStore.performFailableOperation(() => {
         const commitMessage = formatCommitMessage(message)
-        return createCommit(repository, commitMessage, files)
+        return createCommit(repository, commitMessage, selectedFiles)
       })
     })
 
     if (result) {
       this.statsStore.recordCommit()
+
+      const includedPartialSelections = files.some(file => (
+        file.selection.getSelectionType() === DiffSelectionType.Partial
+      ))
+      if (includedPartialSelections) {
+        this.statsStore.recordPartialCommit()
+      }
 
       await this._refreshRepository(repository)
       await this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
@@ -1156,9 +1164,7 @@ export class AppStore {
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
-    const gitStore = this.getGitStore(repository)
-    const remote = gitStore.remote
-
+    const remote = await getDefaultRemote(repository)
     return remote ? matchGitHubRepository(this.accounts, remote.url) : null
   }
 
@@ -1178,17 +1184,6 @@ export class AppStore {
     this.emitUpdate()
 
     return Promise.resolve()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _validatedRepositoryPath(path: string): Promise<string | null> {
-    try {
-      const gitDir = await getGitDir(path)
-      return gitDir ? Path.dirname(gitDir) : null
-    } catch (e) {
-      this.emitError(e)
-      return null
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1243,7 +1238,6 @@ export class AppStore {
 
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
-        const setUpstream = branch.upstream ? false : true
 
         const pushTitle = `Pushing to ${remote.name}`
 
@@ -1273,7 +1267,7 @@ export class AppStore {
 
         await gitStore.performFailableOperation(async () => {
 
-          await pushRepo(repository, account, remote.name, branch.name, setUpstream, (progress) => {
+          await pushRepo(repository, account, remote.name, branch.name, branch.upstreamWithoutRemote, (progress) => {
             this.updatePushPullFetchProgress(repository, {
               ...progress,
               title: pushTitle,
@@ -1454,7 +1448,8 @@ export class AppStore {
         // out any branches will null upstreams above when creating
         // `eligibleBranches`.
         const upstreamRef = branch.upstream!
-        await updateRef(repository, `refs/heads/${branch.name}`, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
+        const localRef = formatAsLocalRef(branch.name)
+        await updateRef(repository, localRef, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
       }
     }
   }

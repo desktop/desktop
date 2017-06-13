@@ -1,5 +1,4 @@
 import { app, net } from 'electron'
-import { logInfo, logError } from '../lib/logging/main'
 
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 
@@ -20,6 +19,7 @@ export async function reportError(error: Error, extra?: { [key: string]: string 
   }
 
   data.set('platform', process.platform)
+  data.set('sha', __SHA__)
   data.set('version', app.getVersion())
 
   if (extra) {
@@ -56,8 +56,8 @@ export async function reportError(error: Error, extra?: { [key: string]: string 
 
       request.end(body)
     })
-    logInfo('Error report submitted')
+    log.info('Error report submitted')
   } catch (e) {
-    logError('Failed submitting error report', error)
+    log.error('Failed submitting error report', error)
   }
 }

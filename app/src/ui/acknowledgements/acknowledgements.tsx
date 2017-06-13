@@ -8,13 +8,17 @@ import { LinkButton } from '../lib/link-button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
+const WebsiteURL = 'https://desktop.github.com'
 const RepositoryURL = 'https://github.com/desktop/desktop'
-const ElectronURL = 'https://electron.atom.io'
-const TypeScriptURL = 'http://www.typescriptlang.org'
 
 interface IAcknowledgementsProps {
   /** The function to call when the dialog should be dismissed. */
   readonly onDismissed: () => void
+
+  /**
+   * The currently installed (and running) version of the app.
+   */
+  readonly applicationVersion: string
 }
 
 interface ILicense {
@@ -94,14 +98,33 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
 
   public render() {
     const licenses = this.state.licenses
+
+    let desktopLicense: JSX.Element | null = null
+    if (licenses) {
+      const key = `desktop@${this.props.applicationVersion}`
+      const entry = licenses[key]
+      desktopLicense = <p className='license-text'>{entry.sourceText}</p>
+    }
+
     return (
       <Dialog
         id='acknowledgements'
-        title='Acknowledgements'
+        title='License and Open Source Notices'
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}>
         <DialogContent>
-          <p>GitHub Desktop stands on the shoulders of giants! We're <LinkButton uri={RepositoryURL}>open source</LinkButton>, built on <LinkButton uri={ElectronURL}>Electron</LinkButton> and written in <LinkButton uri={TypeScriptURL}>TypeScript</LinkButton>. Check out <LinkButton uri={RepositoryURL}>our repository</LinkButton> for more details.</p>
+
+          <p>
+            <LinkButton uri={WebsiteURL}>GitHub Desktop</LinkButton> is an open
+            source project published under the MIT License. You can view the
+            source code and contribute to this project on <LinkButton uri={RepositoryURL}>GitHub</LinkButton>.
+          </p>
+
+          {desktopLicense}
+
+          <p>
+            GitHub Desktop also distributes these libraries:
+          </p>
 
           {licenses ? this.renderLicenses(licenses) : <Loading/>}
         </DialogContent>

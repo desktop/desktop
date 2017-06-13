@@ -1,6 +1,7 @@
 'use strict'
 
 const path = require('path')
+const Fs = require('fs')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpack = require('webpack')
@@ -11,6 +12,30 @@ const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
 
 const environment = process.env.NODE_ENV || 'development'
 
+/**
+ * Attempt to dereference the given ref without requiring a Git environment
+ * to be present. Note that this method will not be able to dereference packed
+ * refs but should suffice for simple refs like 'HEAD'.
+ *
+ * Will throw an error for unborn HEAD.
+ *
+ * @param {string} gitDir The path to the Git repository's .git directory
+ * @param {string} ref    A qualified git ref such as 'HEAD' or 'refs/heads/master'
+ */
+function revParse(gitDir, ref) {
+
+  const refPath = path.join(gitDir, ref)
+  const refContents = Fs.readFileSync(refPath)
+  const refRe = /^([a-f0-9]{40})|(?:ref: (refs\/.*))$/m
+  const refMatch = refRe.exec(refContents)
+
+  if (!refMatch) {
+    throw new Error(`Could not de-reference HEAD to SHA, invalid ref in ${refPath}: ${refContents}`)
+  }
+
+  return refMatch[1] || revParse(gitDir, refMatch[2])
+}
+
 const replacements = {
   __OAUTH_CLIENT_ID__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId),
   __OAUTH_SECRET__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_SECRET || devClientSecret),
@@ -18,6 +43,7 @@ const replacements = {
   __WIN32__: process.platform === 'win32',
   __DEV__: environment === 'development',
   __RELEASE_ENV__: JSON.stringify(environment),
+  __SHA__: JSON.stringify(revParse(path.resolve(__dirname, '../.git'), 'HEAD')),
   'process.platform': JSON.stringify(process.platform),
   'process.env.NODE_ENV': JSON.stringify(environment),
   'process.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV),
@@ -61,7 +87,6 @@ const commonConfig = {
     // This saves us a bunch of bytes by pruning locales (which we don't use)
     // from moment.
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
-    new webpack.DefinePlugin(replacements),
     new webpack.NoEmitOnErrorsPlugin(),
   ],
   resolve: {
@@ -77,6 +102,9 @@ const commonConfig = {
 const mainConfig = merge({}, commonConfig, {
   entry: { main: path.resolve(__dirname, 'src/main-process/main') },
   target: 'electron-main',
+  plugins: [
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('main') })),
+  ]
 })
 
 const rendererConfig = merge({}, commonConfig, {
@@ -95,6 +123,7 @@ const rendererConfig = merge({}, commonConfig, {
       'template': path.join(__dirname, 'static', 'index.html'),
       'chunks': ['renderer']
     }),
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('ui') })),
   ],
 })
 
@@ -113,12 +142,16 @@ const sharedConfig = merge({}, commonConfig, {
       'filename': 'shared.html',
       'chunks': ['shared']
     }),
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('shared') })),
   ],
 })
 
 const askPassConfig = merge({}, commonConfig, {
   entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
   target: 'node',
+  plugins: [
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('askpass') })),    
+  ]
 })
 
 const crashConfig = merge({}, commonConfig, {
@@ -130,6 +163,7 @@ const crashConfig = merge({}, commonConfig, {
       filename: 'crash.html',
       chunks: ['crash']
     }),
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('crash') })),
   ],
 })
 

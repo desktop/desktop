@@ -7,4 +7,6 @@
     &-deleted { fill: var(--color-deleted); }
     &-conflicted { fill: var(--color-conflicted); }
   }
+
+  .line-endings { fill: var(--color-conflicted); }
 }

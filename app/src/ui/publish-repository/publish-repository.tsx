@@ -48,7 +48,19 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   }
 
   public async componentWillMount() {
-    const api = new API(this.props.account)
+    this.fetchOrgs(this.props.account)
+  }
+
+  public componentWillReceiveProps(nextProps: IPublishRepositoryProps) {
+    if (this.props.account !== nextProps.account) {
+      this.setState({ orgs: [] })
+
+      this.fetchOrgs(nextProps.account)
+    }
+  }
+
+  private async fetchOrgs(account: Account) {
+    const api = new API(account)
     const orgs = await api.fetchOrgs()
     this.setState({ orgs })
   }

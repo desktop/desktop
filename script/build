@@ -189,10 +189,10 @@ function copyDependencies () {
 
   if (!isProductionBuild) {
     console.log('  Installing 7zip (dependency for electron-devtools-installer)')
-    
+
     const sevenZipSource = path.resolve(projectRoot, 'app/node_modules/7zip')
     const sevenZipDestination = path.resolve(outRoot, 'node_modules/7zip')
-    
+
     fs.mkdirpSync(sevenZipDestination)
     fs.copySync(sevenZipSource, sevenZipDestination)
   }
@@ -230,6 +230,20 @@ function updateLicenseDump (callback) {
         if (err) {
           callback(err)
           return
+        }
+
+        // legal-eagle still chooses to ignore the LICENSE at the root
+        // this injects the current license and pins the source URL before we
+        // dump the JSON file to disk
+        const licenseSource = path.join(projectRoot, 'LICENSE')
+        const licenseText = fs.readFileSync(licenseSource, { encoding: 'utf-8' })
+        const appVersion = distInfo.getVersion()
+
+        summary[`desktop@${appVersion}`] = {
+          repository: 'https://github.com/desktop/desktop',
+          license: 'MIT',
+          source: `https://github.com/desktop/desktop/blob/release-${appVersion}/LICENSE`,
+          sourceText: licenseText
         }
 
         fs.writeFileSync(outPath, JSON.stringify(summary), 'utf8')

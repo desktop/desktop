@@ -7,7 +7,7 @@ import * as path from 'path'
 import * as fs from 'fs-extra'
 
 import { Repository } from '../../../src/models/repository'
-import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
+import { AppFileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
 import { ITextDiff, IImageDiff, DiffSelectionType, DiffSelection, DiffType } from '../../../src/models/diff'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 
@@ -35,10 +35,9 @@ describe('git/diff', () => {
   })
 
   describe('getWorkingDirectoryImage', () => {
-
     it('retrieves valid image for new file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('new-image.png', FileStatus.New, diffSelection)
+      const file = new WorkingDirectoryFileChange('new-image.png', AppFileStatus.New, diffSelection)
       const current = await getWorkingDirectoryImage(repository!, file)
 
       expect(current.mediaType).to.equal('image/png')
@@ -47,7 +46,7 @@ describe('git/diff', () => {
 
     it('retrieves valid images for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
+      const file = new WorkingDirectoryFileChange('modified-image.jpg', AppFileStatus.Modified, diffSelection)
       const current = await getWorkingDirectoryImage(repository!, file)
       expect(current.mediaType).to.equal('image/jpg')
       expect(current.contents).to.match(/gdTTb6MClWJ3BU8T8PTtXoB88kFL\/9k=$/)
@@ -55,10 +54,9 @@ describe('git/diff', () => {
   })
 
   describe('getBlobImage', () => {
-
     it('retrieves valid image for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
+      const file = new WorkingDirectoryFileChange('modified-image.jpg', AppFileStatus.Modified, diffSelection)
       const current = await getBlobImage(repository!, file.path, 'HEAD')
 
       expect(current.mediaType).to.equal('image/jpg')
@@ -67,7 +65,7 @@ describe('git/diff', () => {
 
     it('retrieves valid images for deleted file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('new-animated-image.gif', FileStatus.Deleted, diffSelection)
+      const file = new WorkingDirectoryFileChange('new-animated-image.gif', AppFileStatus.Deleted, diffSelection)
       const previous = await getBlobImage(repository!, file.path, 'HEAD')
 
       expect(previous.mediaType).to.equal('image/gif')
@@ -78,7 +76,7 @@ describe('git/diff', () => {
   describe('imageDiff', () => {
     it('changes for images are set', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
+      const file = new WorkingDirectoryFileChange('modified-image.jpg', AppFileStatus.Modified, diffSelection)
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
       expect(diff.kind === DiffType.Image)
@@ -93,7 +91,7 @@ describe('git/diff', () => {
       repository = new Repository(testRepoPath, -1, null, false)
 
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
+      const file = new WorkingDirectoryFileChange('new-file.md', AppFileStatus.New, diffSelection)
       const diff = await getTextDiff(repository!, file)
 
       expect(diff.hunks.length).is.greaterThan(0)
@@ -108,7 +106,7 @@ describe('git/diff', () => {
 
     it('counts lines for new file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
+      const file = new WorkingDirectoryFileChange('new-file.md', AppFileStatus.New, diffSelection)
       const diff = await getTextDiff(repository!, file)
 
       const hunk = diff.hunks[0]
@@ -123,7 +121,7 @@ describe('git/diff', () => {
 
     it('counts lines for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('modified-file.md', FileStatus.Modified, diffSelection)
+      const file = new WorkingDirectoryFileChange('modified-file.md', AppFileStatus.Modified, diffSelection)
       const diff = await getTextDiff(repository!, file)
 
       const first = diff.hunks[0]
@@ -145,7 +143,7 @@ describe('git/diff', () => {
 
     it('counts lines for staged file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('staged-file.md', FileStatus.Modified, diffSelection)
+      const file = new WorkingDirectoryFileChange('staged-file.md', AppFileStatus.Modified, diffSelection)
       const diff = await getTextDiff(repository!, file)
 
       const first = diff.hunks[0]
@@ -236,6 +234,54 @@ describe('git/diff', () => {
       const first = diff.hunks[0]
       expect(first.lines.length).to.equal(2)
       expect(first.lines[1].text).to.equal('+WRITING OVER THE TOP')
+    })
+  })
+
+  describe('getWorkingDirectoryDiff/line-endings', () => {
+    it('displays line endings change from LF to CRLF', async () => {
+
+      const repo = await setupEmptyRepository()
+      const filePath = path.join(repo.path, 'foo')
+
+      let lineEnding = '\r\n'
+
+      fs.writeFileSync(filePath, `WRITING MANY LINES ${lineEnding} USING THIS LINE ENDING ${lineEnding} TO SHOW THAT GIT${lineEnding} WILL INSERT IT WITHOUT CHANGING THING ${lineEnding} HA HA BUSINESS`)
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'commit first file with LF' ], repo.path)
+
+      await GitProcess.exec([ 'config', 'core.autocrlf', 'true' ], repo.path)
+      lineEnding = '\n\n'
+
+      fs.writeFileSync(filePath, `WRITING MANY LINES ${lineEnding} USING THIS LINE ENDING ${lineEnding} TO SHOW THAT GIT${lineEnding} WILL INSERT IT WITHOUT CHANGING THING ${lineEnding} HA HA BUSINESS`)
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+
+      const diff = await getTextDiff(repo, files[0])
+
+      expect(diff.lineEndingsChange).to.not.be.undefined
+      expect(diff.lineEndingsChange!.from).to.equal('LF')
+      expect(diff.lineEndingsChange!.to).to.equal('CRLF')
+    })
+  })
+
+  describe('getWorkingDirectoryDiff/unicode', () => {
+    it('displays unicode characters', async () => {
+      const repo = await setupEmptyRepository()
+      const filePath = path.join(repo.path, 'foo')
+
+      const testString = 'here are some cool characters: • é  漢字'
+      fs.writeFileSync(filePath, testString)
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+      expect(files.length).to.equal(1)
+
+      const diff = await getTextDiff(repo, files[0])
+      expect(diff.text).to.equal(`@@ -0,0 +1 @@\n+${testString}`)
     })
   })
 })

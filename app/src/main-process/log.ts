@@ -1,14 +1,14 @@
-import { app } from 'electron'
-import * as winston from 'winston'
-require('winston-daily-rotate-file')
-
 import * as Fs from 'fs-extra'
 import * as Path from 'path'
+import * as winston from 'winston'
 
-export const LogFolder = 'logs'
+import { getLogPath } from '../lib/logging/get-log-path'
+import { LogLevel } from '../lib/logging/log-level'
+
+require('winston-daily-rotate-file')
 
 /** resolve the log file location based on the current environment */
-export function getLogFilePath(directory: string): string {
+function getLogFilePath(directory: string): string {
   const environment = process.env.NODE_ENV || 'production'
   const fileName = `desktop.${environment}.log`
   return Path.join(directory, fileName)
@@ -61,23 +61,23 @@ let loggerPromise: Promise<winston.LogMethod> | null = null
  *          it accepts a log level, a message and an optional callback
  *          for when the event has been written to all destinations.
  */
-export function getLogger(): Promise<winston.LogMethod> {
+function getLogger(): Promise<winston.LogMethod> {
 
   if (loggerPromise) {
     return loggerPromise
   }
 
-  const userData = app.getPath('userData')
-  const directory = Path.join(userData, LogFolder)
-
   loggerPromise = new Promise<winston.LogMethod>((resolve, reject) => {
-    Fs.mkdir(directory, (error) => {
+
+    const logPath = getLogPath()
+
+    Fs.mkdir(logPath, (error) => {
       if (error && error.code !== 'EEXIST') {
         reject(error)
         return
       }
 
-      const logger = initializeWinston(getLogFilePath(directory))
+      const logger = initializeWinston(getLogFilePath(logPath))
       resolve(logger)
     })
   })
@@ -85,3 +85,34 @@ export function getLogger(): Promise<winston.LogMethod> {
   return loggerPromise
 }
 
+/**
+ * Write the given log entry to all configured transports,
+ * see initializeWinston in logger.ts for more details about
+ * what transports we set up.
+ *
+ * Returns a promise that will never yield an error and which
+ * resolves when the log entry has been written to all transports
+ * or if the entry could not be written due to an error.
+ */
+export async function log(level: LogLevel, message: string) {
+  try {
+    const logger = await getLogger()
+    await new Promise<void>((resolve, reject) => {
+      logger(level, message, (error) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve()
+        }
+      })
+    })
+  } catch (error) {
+    /**
+     * Welp. I guess we have to ignore this for now, we
+     * don't have any good mechanisms for reporting this.
+     * In the future we can discuss whether we should
+     * IPC to the renderer or dump it somewhere else
+     * but for now logging isn't a critical thing.
+     */
+  }
+}
