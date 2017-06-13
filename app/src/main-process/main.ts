@@ -139,6 +139,11 @@ if (isDuplicateInstance) {
 
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
+
+    // TODO
+    // both of these parameters we had assumed would be defined
+    if (!event || !url) { return }
+
     event.preventDefault()
 
     const action = parseURL(url)
@@ -172,7 +177,7 @@ app.on('ready', () => {
   const menu = buildDefaultMenu(sharedProcess)
   Menu.setApplicationMenu(menu)
 
-  ipcMain.on('menu-event', (event, args) => {
+  ipcMain.on('menu-event', (event: Electron.IpcMessageEvent, args: any[]) => {
     const { name }: { name: MenuEvent } = event as any
     if (mainWindow) {
       mainWindow.sendMenuEvent(name)
@@ -183,7 +188,7 @@ app.on('ready', () => {
    * An event sent by the renderer asking that the menu item with the given id
    * is executed (ie clicked).
    */
-  ipcMain.on('execute-menu-item', (event: Electron.IpcMainEvent, { id }: { id: string }) => {
+  ipcMain.on('execute-menu-item', (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
       const window = BrowserWindow.fromWebContents(event.sender)
@@ -192,7 +197,7 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: Array<{ id: string, state: IMenuItemState }>) => {
+  ipcMain.on('update-menu-state', (event: Electron.IpcMessageEvent, items: Array<{ id: string, state: IMenuItemState }>) => {
     let sendMenuChangedEvent = false
 
     for (const item of items) {
@@ -217,7 +222,7 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('show-contextual-menu', (event: Electron.IpcMainEvent, items: ReadonlyArray<any>) => {
+  ipcMain.on('show-contextual-menu', (event: Electron.IpcMessageEvent, items: ReadonlyArray<any>) => {
     const menu = new Menu()
     const menuItems = items.map((item, i) => {
       return new MenuItem({
@@ -249,7 +254,7 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMainEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
+  ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMessageEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
     // This API's only implemented on macOS right now.
     if (__DARWIN__) {
       onDidLoad(window => {
@@ -258,19 +263,25 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('log', (event: Electron.IpcMainEvent, level: LogLevel, message: string) => {
+  ipcMain.on('log', (event: Electron.IpcMessageEvent, level: LogLevel, message: string) => {
     writeLog(level, message)
   })
 
-  ipcMain.on('uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
+  ipcMain.on('uncaught-exception', (event: Electron.IpcMessageEvent, error: Error) => {
     uncaughtException(error)
   })
 
-  ipcMain.on('send-error-report', (event: Electron.IpcMainEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
+  ipcMain.on('send-error-report', (event: Electron.IpcMessageEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
     reportError(error, extra)
   })
 
   autoUpdater.on('error', err => {
+    // TODO
+    // we expected this event to be populated here but it is not
+    if (!err) {
+      return
+    }
+
     onDidLoad(window => {
       window.sendAutoUpdaterError(err)
     })
@@ -284,7 +295,17 @@ app.on('activate', () => {
 })
 
 app.on('web-contents-created', (event, contents) => {
+
+  // TODO
+  // we expected this event to be populated here but it is not
+  if (!contents) { return }
+
   contents.on('new-window', (event, url) => {
+
+    // TODO
+    // we expected this event to be populated here but it is not
+    if (!event) { return }
+
     // Prevent links or window.open from opening new windows
     event.preventDefault()
     log.warn(`Prevented new window to: ${url}`)
@@ -292,6 +313,14 @@ app.on('web-contents-created', (event, contents) => {
 })
 
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+
+  // TODO
+  // we expected this event to be populated here but it is not
+
+  if (!callback || !certificate || !error || !url) {
+    return
+  }
+
   callback(false)
 
   onDidLoad(window => {

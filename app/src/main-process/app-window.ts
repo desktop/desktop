@@ -32,7 +32,7 @@ export class AppWindow {
       defaultHeight: this.minHeight,
     })
 
-    const windowOptions: Electron.BrowserWindowOptions = {
+    const windowOptions: Electron.BrowserWindowConstructorOptions = {
       x: savedWindowState.x,
       y: savedWindowState.y,
       width: savedWindowState.width,
@@ -66,7 +66,7 @@ export class AppWindow {
       quitting = true
     })
 
-    ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
+    ipcMain.on('will-quit', (event: Electron.IpcMessageEvent) => {
       quitting = true
       event.returnValue = true
     })
@@ -76,6 +76,11 @@ export class AppWindow {
     // renderer.
     if (__DARWIN__) {
       this.window.on('close', e => {
+
+        // TODO
+        // we expected this event to be populated here but it is not
+        if (!e) { return }
+
         if (!quitting) {
           e.preventDefault()
           this.window.hide()
@@ -119,7 +124,7 @@ export class AppWindow {
     })
 
     // TODO: This should be scoped by the window.
-    ipcMain.once('renderer-ready', (event: Electron.IpcMainEvent, readyTime: number) => {
+    ipcMain.once('renderer-ready', (event: Electron.IpcMessageEvent, readyTime: number) => {
       this._rendererReadyTime = readyTime
 
       this.maybeEmitDidLoad()

@@ -62,6 +62,6 @@ export function broadcastUpdate(accountsStore: AccountsStore, repositoriesStore:
   })
 }
 
-ipcRenderer.on('shared/request', (event, args) => {
+ipcRenderer.on('shared/request', (event: Electron.IpcMessageEvent, args: any[]) => {
   dispatch(args[0])
 })

@@ -74,7 +74,8 @@ async function getRawShellEnv(): Promise<string | null> {
 
     child.on('close', (code: number, signal) => {
       done = true
-      process.removeListener('exit', cleanup)
+      const p = process as any
+      p.removeListener('exit', cleanup)
       if (buffers.length) {
         stdout = Buffer.concat(buffers).toString('utf8')
       }
