@@ -71,7 +71,7 @@ export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
             const license: ILicense = {
               name: result.attributes.nickname || result.attributes.title,
               featured: result.attributes.featured || false,
-              hidden: typeof result.attributes.hidden === 'undefined' || result.attributes.hidden,
+              hidden: result.attributes.hidden === undefined || result.attributes.hidden,
               body: result.body.trim(),
             }
 
