@@ -28,6 +28,7 @@ const NoLicenseValue: ILicense = {
   name: 'None',
   featured: false,
   body: '',
+  hidden: false,
 }
 
 interface ICreateRepositoryProps {
@@ -250,7 +251,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private renderLicenses() {
     const licenses = this.state.licenses || []
-    const options = [ NoLicenseValue, ...licenses ]
+    const featuredLicenses = [ NoLicenseValue, ...(licenses.filter(l => l.featured)) ]
+    const nonFeaturedLicenses = licenses.filter(l => !l.featured)
 
     return (
       <Row>
@@ -259,7 +261,9 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           value={this.state.license}
           onChange={this.onLicenseChange}
         >
-          {options.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
+          {featuredLicenses.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
+          <option disabled>────────────────────</option>
+          {nonFeaturedLicenses.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
         </Select>
       </Row>
     )
