@@ -3,6 +3,7 @@ import { Repository as Repo } from '../models/repository'
 import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
+import { NoChanges } from './changes/no-changes'
 import { History, HistorySidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
@@ -130,12 +131,18 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
       const selectedFileID = changesState.selectedFileID
       const selectedFile = selectedFileID ? changesState.workingDirectory.findFileWithID(selectedFileID) : null
       const diff = changesState.diff
-      return <Changes
-        repository={this.props.repository}
-        dispatcher={this.props.dispatcher}
-        file={selectedFile}
-        diff={diff}
-      />
+      if (!changesState.workingDirectory.files.length || !selectedFile || !diff) {
+        return <NoChanges
+          onOpenRepository={this.openRepository}
+        />
+      } else {
+        return <Changes
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+          file={selectedFile}
+          diff={diff}
+        />
+      }
     } else if (selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
         dispatcher={this.props.dispatcher}
