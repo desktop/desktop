@@ -469,6 +469,11 @@ export class Dispatcher {
     return this.appStore._discardChanges(repository, files)
   }
 
+  /** Undoes the discarded changes */
+  public undoDiscardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+    return this.appStore._undoDiscardChanges(repository, files)
+  }
+
   /** Undo the given commit. */
   public undoCommit(repository: Repository, commit: Commit): Promise<void> {
     return this.appStore._undoCommit(repository, commit)
