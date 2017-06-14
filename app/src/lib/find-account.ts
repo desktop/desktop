@@ -1,6 +1,6 @@
 import * as URL from 'url'
 import { getHTMLURL, API, getDotComAPIEndpoint } from './api'
-import { parseRemote, parseOwnerAndName } from './remote-parsing'
+import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
 import { Account } from '../models/account'
 
 /**
@@ -88,9 +88,9 @@ export async function findAccountForRemote(urlOrRepositoryAlias: string, account
       }
     }
 
-    const parsedOwnerAndName = parseOwnerAndName(urlOrRepositoryAlias)
-    if (parsedOwnerAndName) {
-      const { owner, name } = parsedOwnerAndName
+    const repositoryIdentifier = parseRepositoryIdentifier(urlOrRepositoryAlias)
+    if (repositoryIdentifier) {
+      const { owner, name } = repositoryIdentifier
       const account = await findRepositoryAccount(allAccounts, owner, name)
       if (account) {
         return account

@@ -9,7 +9,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
 import { Account } from '../../models/account'
-import { parseOwnerAndName, IRepositoryIdentifier } from '../../lib/remote-parsing'
+import { parseRepositoryIdentifier, IRepositoryIdentifier } from '../../lib/remote-parsing'
 import { findAccountForRemote } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
@@ -160,7 +160,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private onURLChanged = (input: string) => {
     const url = input
-    const parsed = parseOwnerAndName(url)
+    const parsed = parseRepositoryIdentifier(url)
     const lastParsedIdentifier = this.state.lastParsedIdentifier
 
     let newPath: string
