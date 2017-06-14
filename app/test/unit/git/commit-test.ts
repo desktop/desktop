@@ -20,7 +20,7 @@ import {
 } from '../../fixture-helper'
 
 import { GitProcess } from 'dugite'
-import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
+import { AppFileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
 import { DiffSelectionType, DiffSelection, ITextDiff, DiffType } from '../../../src/models/diff'
 
 import * as fs from 'fs-extra'
@@ -36,9 +36,11 @@ describe('git/commit', () => {
 
   let repository: Repository | null = null
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
+    await GitProcess.exec([ 'config' , 'user.name', 'Cai Hsu' ], repository.path)
+    await GitProcess.exec([ 'config' , 'user.email', 'cai.hsu@not-a-real-site.com' ], repository.path)
   })
 
   after(() => {
@@ -135,8 +137,11 @@ describe('git/commit', () => {
 
   describe('createCommit partials', () => {
 
-    beforeEach(() => {
+    beforeEach(async () => {
       const testRepoPath = setupFixtureRepository('repo-with-changes')
+      await GitProcess.exec([ 'config' , 'user.name', 'Steffen Feierabend' ], testRepoPath)
+      await GitProcess.exec([ 'config' , 'user.email', 'steffen.feierabend@not-a-real-site.com' ], testRepoPath)
+
       repository = new Repository(testRepoPath, -1, null, false)
     })
 
@@ -150,7 +155,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withRangeSelection(0, 5, true)
 
-      const file = new WorkingDirectoryFileChange(newFileName, FileStatus.New, selection)
+      const file = new WorkingDirectoryFileChange(newFileName, AppFileStatus.New, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ file ])
@@ -172,7 +177,7 @@ describe('git/commit', () => {
       // verify that the file is now tracked
       const fileChange = status.workingDirectory.files.find(f => f.path === newFileName)
       expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(FileStatus.Modified)
+      expect(fileChange!.status).to.equal(AppFileStatus.Modified)
     })
 
     it('can commit second hunk from modified file', async () => {
@@ -182,7 +187,7 @@ describe('git/commit', () => {
       const modifiedFile = 'modified-file.md'
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
+      const file = new WorkingDirectoryFileChange(modifiedFile, AppFileStatus.Modified, unselectedFile)
 
       const diff = await getTextDiff(repository!, file)
 
@@ -212,7 +217,7 @@ describe('git/commit', () => {
       // verify that the file is still marked as modified
       const fileChange = status.workingDirectory.files.find(f => f.path === modifiedFile)
       expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(FileStatus.Modified)
+      expect(fileChange!.status).to.equal(AppFileStatus.Modified)
     })
 
     it('can commit single delete from modified file', async () => {
@@ -221,7 +226,7 @@ describe('git/commit', () => {
       const fileName = 'modified-file.md'
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const modifiedFile = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, unselectedFile)
+      const modifiedFile = new WorkingDirectoryFileChange(fileName, AppFileStatus.Modified, unselectedFile)
 
       const diff = await getTextDiff(repository!, modifiedFile)
 
@@ -231,7 +236,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withRangeSelection(secondRemovedLine, 1, true)
 
-      const file = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, selection)
+      const file = new WorkingDirectoryFileChange(fileName, AppFileStatus.Modified, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ file ])
@@ -254,7 +259,7 @@ describe('git/commit', () => {
       const modifiedFile = 'modified-file.md'
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
+      const file = new WorkingDirectoryFileChange(modifiedFile, AppFileStatus.Modified, unselectedFile)
 
       const diff = await getTextDiff(repository!, file)
 
@@ -262,7 +267,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.All)
         .withRangeSelection(diff.hunks[1].unifiedDiffStart, diff.hunks[1].unifiedDiffEnd - diff.hunks[1].unifiedDiffStart, false)
 
-      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, AppFileStatus.Modified, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ updatedFile ])
@@ -284,7 +289,7 @@ describe('git/commit', () => {
       // verify that the file is still marked as modified
       const fileChange = status.workingDirectory.files.find(f => f.path === modifiedFile)
       expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(FileStatus.Modified)
+      expect(fileChange!.status).to.equal(AppFileStatus.Modified)
     })
 
     it('can commit some lines from deleted file', async () => {
@@ -296,7 +301,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withRangeSelection(0, 5, true)
 
-      const file = new WorkingDirectoryFileChange(deletedFile, FileStatus.Deleted, selection)
+      const file = new WorkingDirectoryFileChange(deletedFile, AppFileStatus.Deleted, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ file ])
@@ -318,7 +323,7 @@ describe('git/commit', () => {
       // verify that the file is now tracked
       const fileChange = status.workingDirectory.files.find(f => f.path === deletedFile)
       expect(fileChange).to.not.be.undefined
-      expect(fileChange!.status).to.equal(FileStatus.Deleted)
+      expect(fileChange!.status).to.equal(AppFileStatus.Deleted)
     })
 
     it('can commit renames with modifications', async () => {
@@ -364,7 +369,7 @@ describe('git/commit', () => {
 
       expect(files.length).to.equal(1)
       expect(files[0].path).to.contain('bar')
-      expect(files[0].status).to.equal(FileStatus.Renamed)
+      expect(files[0].status).to.equal(AppFileStatus.Renamed)
 
       const selection = files[0].selection
         .withSelectNone()
@@ -401,7 +406,7 @@ describe('git/commit', () => {
 
       expect(files.length).to.equal(1)
       expect(files[0].path).to.equal('foo')
-      expect(files[0].status).to.equal(FileStatus.Conflicted)
+      expect(files[0].status).to.equal(AppFileStatus.Conflicted)
 
       const selection = files[0].selection.withSelectAll()
       const selectedFile = files[0].withSelection(selection)
@@ -409,6 +414,78 @@ describe('git/commit', () => {
 
       const commits = await getCommits(repo, 'HEAD', 5)
       expect(commits[0].parentSHAs.length).to.equal(2)
+    })
+  })
+
+  describe('index corner cases', () => {
+    it('can commit when staged new file is then deleted', async () => {
+      let status, files = null
+
+      const repo = await setupEmptyRepository()
+
+      const firstPath = path.join(repo.path, 'first')
+      const secondPath = path.join(repo.path, 'second')
+
+      fs.writeFileSync(firstPath, 'line1\n')
+      fs.writeFileSync(secondPath, 'line2\n')
+
+      await GitProcess.exec([ 'add', '.' ], repo.path)
+
+      fs.unlinkSync(firstPath)
+
+      status = await getStatus(repo)
+      files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+      expect(files[0].path).to.contain('second')
+      expect(files[0].status).to.equal(AppFileStatus.New)
+
+      const toCommit = status.workingDirectory.withIncludeAllFiles(true)
+
+      await createCommit(repo, 'commit everything', toCommit.files)
+
+      status = await getStatus(repo)
+      files = status.workingDirectory.files
+      expect(files).to.be.empty
+
+      const commit = await getCommit(repo, 'HEAD')
+      expect(commit).to.not.be.null
+      expect(commit!.summary).to.equal('commit everything')
+    })
+
+    it('can commit when a delete is staged and the untracked file exists', async () => {
+      let status, files = null
+
+      const repo = await setupEmptyRepository()
+
+      const firstPath = path.join(repo.path, 'first')
+      fs.writeFileSync(firstPath, 'line1\n')
+
+      await GitProcess.exec([ 'add', 'first' ], repo.path)
+      await GitProcess.exec([ 'commit', '-am', 'commit first file' ], repo.path)
+      await GitProcess.exec([ 'rm', '--cached', 'first' ], repo.path)
+
+      // if the text is now different, everything is fine
+      fs.writeFileSync(firstPath, 'line2\n')
+
+      status = await getStatus(repo)
+      files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+      expect(files[0].path).to.contain('first')
+      expect(files[0].status).to.equal(AppFileStatus.New)
+
+      const toCommit = status.workingDirectory.withIncludeAllFiles(true)
+
+      await createCommit(repo, 'commit again!', toCommit.files)
+
+      status = await getStatus(repo)
+      files = status.workingDirectory.files
+      expect(files).to.be.empty
+
+      const commit = await getCommit(repo, 'HEAD')
+      expect(commit).to.not.be.null
+      expect(commit!.summary).to.equal('commit again!')
     })
   })
 })

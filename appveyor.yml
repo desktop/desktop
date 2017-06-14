@@ -21,7 +21,7 @@ version: "{build}"
 
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
-  - npm install -g npm
+  - npm install -g npm@4.6.1
   - git submodule update --init --recursive
   - npm prune
   - cd app && npm prune && cd ..
