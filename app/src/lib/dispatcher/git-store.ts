@@ -705,9 +705,9 @@ export class GitStore {
   }
 
   public async discardChanges(files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
-
     const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
     const absolutePaths = onDiskFiles.map(f => Path.join(this.repository.path, f.path))
+
     for (const path of absolutePaths) {
       this.shell.moveItemToTrash(path)
     }
@@ -735,6 +735,10 @@ export class GitStore {
 
       await this.performFailableOperation(() => checkoutPaths(this.repository, pathsToCheckout))
     }
+  }
+
+  public async undoDiscardChanges(files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+    // TODO: Implement undo
   }
 
   /** Load the contextual commit message if there is one. */

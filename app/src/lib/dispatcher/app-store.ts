@@ -1495,6 +1495,13 @@ export class AppStore {
     return this._refreshRepository(repository)
   }
 
+  public async _undoDiscardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>) {
+    const gitStore = this.getGitStore(repository)
+    await gitStore.undoDiscardChanges(files)
+
+    return this._refreshRepository(repository)
+  }
+
   public async _undoCommit(repository: Repository, commit: Commit): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
