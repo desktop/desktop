@@ -1,6 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
 import { ipcRenderer, remote } from 'electron'
-import * as Path from 'path'
 import {
   IRepositoryState,
   IHistoryState,
@@ -51,7 +50,6 @@ import { fatalError } from '../fatal-error'
 import { updateMenuState } from '../menu-update'
 
 import {
-  getGitDir,
   getAuthorIdentity,
   pull as pullRepo,
   push as pushRepo,
@@ -66,7 +64,8 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
-  getRemotes,
+  getDefaultRemote,
+  formatAsLocalRef,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -141,6 +140,7 @@ export class AppStore {
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
+  private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
 
@@ -164,6 +164,14 @@ export class AppStore {
     ipcRenderer.on('window-state-changed', (_, args) => {
       this.windowState = getWindowState(window)
       this.emitUpdate()
+    })
+
+    window.webContents.getZoomFactor(factor => {
+      this.onWindowZoomFactorChanged(factor)
+    })
+
+    ipcRenderer.on('zoom-factor-changed', (event, zoomFactor) => {
+      this.onWindowZoomFactorChanged(zoomFactor)
     })
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
@@ -242,6 +250,21 @@ export class AppStore {
   /** Register a listener for when an error occurs. */
   public onDidError(fn: (error: Error) => void): Disposable {
     return this.emitter.on('did-error', fn)
+  }
+
+  /**
+   * Called when we have reason to suspect that the zoom factor
+   * has changed. Note that this doesn't necessarily mean that it
+   * has changed with regards to our internal state which is why
+   * we double check before emitting an update.
+   */
+  private onWindowZoomFactorChanged(zoomFactor: number) {
+    const current = this.windowZoomFactor
+    this.windowZoomFactor = zoomFactor
+
+    if (zoomFactor !== current) {
+      this.emitUpdate()
+    }
   }
 
   private getInitialRepositoryState(): IRepositoryState {
@@ -362,6 +385,7 @@ export class AppStore {
         ...this.cloningRepositoriesStore.repositories,
       ],
       windowState: this.windowState,
+      windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
@@ -616,7 +640,7 @@ export class AppStore {
     try {
       await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
-      console.warn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
+      log.warn(`Unable to fetch issues for ${repository.fullName}`, e)
     }
   }
 
@@ -855,7 +879,8 @@ export class AppStore {
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
 
     const state = this.getRepositoryState(repository)
-    const files = state.changesState.workingDirectory.files.filter((file, index, array) => {
+    const files = state.changesState.workingDirectory.files
+    const selectedFiles = files.filter(file => {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
@@ -864,12 +889,19 @@ export class AppStore {
     const result = await this.isCommitting(repository, () => {
       return gitStore.performFailableOperation(() => {
         const commitMessage = formatCommitMessage(message)
-        return createCommit(repository, commitMessage, files)
+        return createCommit(repository, commitMessage, selectedFiles)
       })
     })
 
     if (result) {
       this.statsStore.recordCommit()
+
+      const includedPartialSelections = files.some(file => (
+        file.selection.getSelectionType() === DiffSelectionType.Partial
+      ))
+      if (includedPartialSelections) {
+        this.statsStore.recordPartialCommit()
+      }
 
       await this._refreshRepository(repository)
       await this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
@@ -985,6 +1017,8 @@ export class AppStore {
     if (state.branchesState.tip.kind === TipState.Valid) {
       const currentBranch = state.branchesState.tip.branch
       await gitStore.loadLocalCommits(currentBranch)
+    } else if (state.branchesState.tip.kind === TipState.Unborn) {
+      await gitStore.loadLocalCommits(null)
     }
   }
 
@@ -1130,9 +1164,7 @@ export class AppStore {
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
-    const gitStore = this.getGitStore(repository)
-    const remote = gitStore.remote
-
+    const remote = await getDefaultRemote(repository)
     return remote ? matchGitHubRepository(this.accounts, remote.url) : null
   }
 
@@ -1152,17 +1184,6 @@ export class AppStore {
     this.emitUpdate()
 
     return Promise.resolve()
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _validatedRepositoryPath(path: string): Promise<string | null> {
-    try {
-      const gitDir = await getGitDir(path)
-      return gitDir ? Path.dirname(gitDir) : null
-    } catch (e) {
-      this.emitError(e)
-      return null
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1217,7 +1238,6 @@ export class AppStore {
 
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
-        const setUpstream = branch.upstream ? false : true
 
         const pushTitle = `Pushing to ${remote.name}`
 
@@ -1231,12 +1251,10 @@ export class AppStore {
           branch: branch.name,
         })
 
-        const remotes = await getRemotes(repository)
-
         // Let's say that a push takes roughly twice as long as a fetch,
         // this is of course highly inaccurate.
         let pushWeight = 2.5
-        let fetchWeight = 1 * remotes.length
+        let fetchWeight = 1
 
         // Let's leave 10% at the end for refreshing
         const refreshWeight = 0.1
@@ -1249,7 +1267,7 @@ export class AppStore {
 
         await gitStore.performFailableOperation(async () => {
 
-          await pushRepo(repository, account, remote.name, branch.name, setUpstream, (progress) => {
+          await pushRepo(repository, account, remote.name, branch.name, branch.upstreamWithoutRemote, (progress) => {
             this.updatePushPullFetchProgress(repository, {
               ...progress,
               title: pushTitle,
@@ -1257,7 +1275,7 @@ export class AppStore {
             })
           })
 
-          await gitStore.fetchRemotes(account, remotes, false, (fetchProgress) => {
+          await gitStore.fetchRemotes(account, [ remote ], false, (fetchProgress) => {
             this.updatePushPullFetchProgress(repository, {
               ...fetchProgress,
               value: pushWeight + fetchProgress.value * fetchWeight,
@@ -1354,13 +1372,10 @@ export class AppStore {
         })
 
         try {
-          const otherRemotes = (await getRemotes(repository))
-            .filter(r => r.name !== remote.name)
-
           // Let's say that a pull takes twice as long as a fetch,
           // this is of course highly inaccurate.
           let pullWeight = 2
-          let fetchWeight = 1 * otherRemotes.length
+          let fetchWeight = 1
 
           // Let's leave 10% at the end for refreshing
           const refreshWeight = 0.1
@@ -1378,17 +1393,6 @@ export class AppStore {
                 value: progress.value * pullWeight,
               })
             }))
-
-          const fetchStartProgress = fetchWeight
-
-          await gitStore.fetchRemotes(account, otherRemotes, false, progress => {
-            this.updatePushPullFetchProgress(repository, {
-              ...progress,
-              title: progress.title,
-              description: progress.description,
-              value: fetchStartProgress + progress.value * fetchWeight,
-            })
-          })
 
           const refreshStartProgress = pullWeight + fetchWeight
           const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
@@ -1444,7 +1448,8 @@ export class AppStore {
         // out any branches will null upstreams above when creating
         // `eligibleBranches`.
         const upstreamRef = branch.upstream!
-        await updateRef(repository, `refs/heads/${branch.name}`, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
+        const localRef = formatAsLocalRef(branch.name)
+        await updateRef(repository, localRef, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
       }
     }
   }
@@ -1494,6 +1499,17 @@ export class AppStore {
 
     await gitStore.undoCommit(commit)
 
+    const state = this.getRepositoryState(repository)
+    const selectedCommit = state.historyState.selection.sha
+
+    if (selectedCommit === commit.sha) {
+      // clear the selection of this commit in the history view
+      this.updateHistoryState(repository, state => {
+        const selection = { sha: null, file: null }
+        return { selection }
+      })
+    }
+
     return this._refreshRepository(repository)
   }
 
@@ -1526,7 +1542,7 @@ export class AppStore {
         const fetchWeight = 0.9
         const refreshWeight = 0.1
 
-        await gitStore.fetchAll(account, backgroundTask, (progress) => {
+        await gitStore.fetch(account, backgroundTask, (progress) => {
           this.updatePushPullFetchProgress(repository, {
             ...progress,
             value: progress.value * fetchWeight,

@@ -2,7 +2,7 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { WorkingDirectoryFileChange, FileStatus } from '../../models/status'
+import { WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
 import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Account } from '../../models/account'
@@ -47,10 +47,10 @@ const RecentBranchesLimit = 5
 
 /** File statuses which indicate the file exists on disk. */
 const OnDiskStatuses = new Set([
-  FileStatus.New,
-  FileStatus.Modified,
-  FileStatus.Renamed,
-  FileStatus.Conflicted,
+  AppFileStatus.New,
+  AppFileStatus.Modified,
+  AppFileStatus.Renamed,
+  AppFileStatus.Conflicted,
 ])
 
 /**
@@ -58,10 +58,10 @@ const OnDiskStatuses = new Set([
  * repository.
  */
 const CommittedStatuses = new Set([
-  FileStatus.Modified,
-  FileStatus.Deleted,
-  FileStatus.Renamed,
-  FileStatus.Conflicted,
+  AppFileStatus.Modified,
+  AppFileStatus.Deleted,
+  AppFileStatus.Renamed,
+  AppFileStatus.Conflicted,
 ])
 
 
@@ -322,8 +322,22 @@ export class GitStore {
   /** The most recently checked out branches. */
   public get recentBranches(): ReadonlyArray<Branch> { return this._recentBranches }
 
-  /** Load the local commits. */
-  public async loadLocalCommits(branch: Branch): Promise<void> {
+  /**
+   * Load local commits into memory for the current repository.
+   *
+   * @param branch The branch to query for unpublished commits.
+   *
+   * If the tip of the repository does not have commits (i.e. is unborn), this
+   * should be invoked with `null`, which clears any existing commits from the
+   * store.
+   */
+  public async loadLocalCommits(branch: Branch | null): Promise<void> {
+
+    if (branch === null) {
+      this._localCommitSHAs = [ ]
+      return
+    }
+
     let localCommits: ReadonlyArray<Commit> | undefined
     if (branch.upstream) {
       const revRange = `${branch.upstream}..${branch.name}`
@@ -416,16 +430,20 @@ export class GitStore {
 
 
   /**
-   * Fetch all remotes, using the given account for authentication.
+   * Fetch the default remote, using the given account for authentication.
    *
    * @param account          - The account to use for authentication if needed.
    * @param backgroundTask   - Was the fetch done as part of a background task?
    * @param progressCallback - A function that's called with information about
    *                           the overall fetch progress.
    */
-  public async fetchAll(account: Account | null, backgroundTask: boolean, progressCallback?: (fetchProgress: IFetchProgress) => void): Promise<void> {
-    const remotes = await getRemotes(this.repository)
-    return this.fetchRemotes(account, remotes, backgroundTask, progressCallback)
+  public async fetch(account: Account | null, backgroundTask: boolean, progressCallback?: (fetchProgress: IFetchProgress) => void): Promise<void> {
+    const remote = this.remote
+    if (!remote) {
+      return Promise.resolve()
+    }
+
+    return this.fetchRemotes(account, [ remote ], backgroundTask, progressCallback)
   }
 
   /**
@@ -707,7 +725,7 @@ export class GitStore {
       await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, 'HEAD'))
 
       const pathsToCheckout = modifiedFiles.map(f => {
-        if (f.status === FileStatus.Copied || f.status === FileStatus.Renamed) {
+        if (f.status === AppFileStatus.Copied || f.status === AppFileStatus.Renamed) {
           // because of the above reset, we now need to discard the old path for these
           return f.oldPath!
         } else {

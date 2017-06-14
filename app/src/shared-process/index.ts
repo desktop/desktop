@@ -1,3 +1,5 @@
+import '../lib/logging/renderer/install'
+
 import * as TokenStore from '../shared-process/token-store'
 import { AccountsStore } from './accounts-store'
 import { Account } from '../models/account'
@@ -15,15 +17,18 @@ import {
   IUpdateRepositoryPathAction,
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
-import { reportError } from '../ui/lib/exception-reporting'
+import { sendErrorReport, reportUncaughtException } from '../ui/main-process-proxy'
+import { enableSourceMaps, withSourceMappedStack } from '../lib/source-map-support'
 
-import { logError } from '../lib/logging/renderer'
+enableSourceMaps()
 
 process.on('uncaughtException', (error: Error) => {
+  error = withSourceMappedStack(error)
 
-  logError('Uncaught exception on shared process', error)
+  console.error('Uncaught exception', error)
 
-  reportError(error)
+  sendErrorReport(error)
+  reportUncaughtException(error)
 })
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
@@ -43,16 +48,6 @@ async function updateAccounts() {
   })
   broadcastUpdate()
 }
-
-register('console.log', ({ args }: {args: any[]}) => {
-  console.log(args[0], ...args.slice(1))
-  return Promise.resolve()
-})
-
-register('console.error', ({ args }: {args: any[]}) => {
-  console.error(args[0], ...args.slice(1))
-  return Promise.resolve()
-})
 
 register('ping', () => {
   return Promise.resolve('pong')

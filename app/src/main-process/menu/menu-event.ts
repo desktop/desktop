@@ -20,4 +20,5 @@ export type MenuEvent =
   'compare-branch' |
   'view-repository-on-github' |
   'clone-repository' |
-  'show-about'
+  'show-about' |
+  'boomtown'

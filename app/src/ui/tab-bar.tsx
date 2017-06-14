@@ -118,6 +118,7 @@ class TabBarItem extends React.Component<ITabBarItemProps, void> {
         aria-selected={selected}
         tabIndex={selected ? 0 : -1}
         onKeyDown={this.onKeyDown}
+        type='button'
       >
         {this.props.children}
       </button>

@@ -43,9 +43,15 @@ export interface IAppState {
   readonly signInState: SignInState | null
 
   /**
-   * The current state of the Window, ie maximized, minimized full-screen etc.
+   * The current state of the window, ie maximized, minimized full-screen etc.
    */
   readonly windowState: WindowState
+
+  /**
+   * The current zoom factor of the window represented as a fractional number
+   * where 1 equals 100% (ie actual size) and 2 represents 200%.
+   */
+  readonly windowZoomFactor: number
 
   /**
    * A value indicating whether or not the current application

@@ -57,8 +57,29 @@ const rendererConfig = merge({}, common.renderer, config, {
   },
   plugins: [
     // Necessary to be able to use ExtractTextPlugin as a loader.
-    new ExtractTextPlugin('styles.css'),
+    new ExtractTextPlugin('ui.css'),
   ]
 })
 
-module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig ]
+const crashConfig = merge({}, common.crash, config, {
+  module: {
+    rules: [
+      // This will cause the compiled CSS to be output to a
+      // styles.css and a <link rel="stylesheet"> tag to be
+      // appended to the index.html HEAD at compile time
+      {
+        test: /\.(scss|css)$/,
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: [ 'css-loader', 'sass-loader' ]
+        })
+      },
+    ],
+  },
+  plugins: [
+    // Necessary to be able to use ExtractTextPlugin as a loader.
+    new ExtractTextPlugin('crash.css'),
+  ]
+})
+
+module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig, crashConfig ]

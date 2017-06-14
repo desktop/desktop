@@ -33,7 +33,7 @@ export class ConfirmRemoveRepository extends React.Component<IConfirmRemoveRepos
         type='warning'
         title={ __DARWIN__ ? 'Remove Repository' : 'Remove repository' }
         onDismissed={this.cancel}
-        onSubmit={this.onConfirmed}
+        onSubmit={this.cancel}
       >
         <DialogContent>
           <p>Are you sure you want to remove the repository "{this.props.repository.name}"?</p>
@@ -42,9 +42,9 @@ export class ConfirmRemoveRepository extends React.Component<IConfirmRemoveRepos
           </p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type='submit'>Yes</Button>
-            <Button onClick={this.cancel}>No</Button>
+          <ButtonGroup destructive>
+            <Button type='submit'>Cancel</Button>
+            <Button onClick={this.onConfirmed}>Remove</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>

@@ -132,7 +132,7 @@ bugs that can be categorised as tasks that:
 
 These issues will be labelled as [`up-for-grabs`](https://github.com/desktop/desktop/labels/up-for-grabs)
 in the repository. If you are interested in contributing to the project, please
-comment on the issue to let the maintainers (and communit) know you are
+comment on the issue to let the maintainers (and community) know you are
 interested in picking this up.
 
 ## Additional Notes

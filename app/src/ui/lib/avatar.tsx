@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IAvatarUser } from '../../models/avatar'
 
-const DefaultAvatarURL = 'https://github.com/hubot.png'
+const DefaultAvatarURL = `file:///${__dirname}/static/default-avatar.png`
 
 
 interface IAvatarProps {

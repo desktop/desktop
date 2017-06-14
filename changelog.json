@@ -1,7 +1,57 @@
 {
   "releases": {
-    "0.5.8": [
+    "0.6.2": [
 
+    ],
+    "0.6.1": [
+      "[Fixed] Properly log stats opt in/out - #1949",
+      "[Fixed] Source maps for exceptions in the main process - #1957",
+      "[Fixed] Styling of the exception dialog - #1956",
+      "[Fixed] Handle ambiguous references - #1947",
+      "[Fixed] Handle non-ASCII text in diffs - #1970",
+      "[Fixed] Uncaught exception when hitting the arrow keys after showing autocompletions - #1971",
+      "[Fixed] Clear the organizations list when publishing a new repository and switching between tabs - #1969",
+      "[Fixed] Push properly when a tracking branch has a different name from the local branch - #1967",
+      "[Improved] Warn when line endings will change - #1906"
+    ],
+    "0.6.0": [
+      "[Fixed] Issue autocompletion not working for older issues - #1814",
+      "[Fixed] GitHub repository association not working for repositories with some remote URL formats - #1826 #1679",
+      "[Fixed] Don't try to delete a remote branch that no longer exists - #1829",
+      "[Fixed] Tokens created by development builds would be used in production builds but wouldn't work - #1727",
+      "[Fixed] Submodules can now be added - #708",
+      "[Fixed] Properly handle the case where a file is added to the index but removed from the working tree - #1310",
+      "[Fixed] Use a local image for the default avatar - #1621",
+      "[Fixed] Make the file path in diffs selectable - #1768",
+      "[Improved] More logging! - #1823",
+      "[Improved] Better error message when trying to add something that's not a repository - #1747",
+      "[Improved] Copy the shell environment into the app's environment - #1796",
+      "[Improved] Updated to Git 2.13.0 - #1897",
+      "[Improved] Add 'Reveal' to the contextual menu for changed files - #1566",
+      "[Improved] Better handling of large diffs - #1818 #1524",
+      "[Improved] App launch time - #1900"
+    ],
+    "0.5.9": [
+      "[New] Added Zoom In and Zoom Out - #1217",
+      "[Fixed] Various errors when on an unborn branch - #1450",
+      "[Fixed] Disable push/pull menu items when there is no remote - #1448",
+      "[Fixed] Better error message when the GitHub Enterprise version is too old - #1628",
+      "[Fixed] Error parsing non-JSON responses - #1505 #1522",
+      "[Fixed] Updated the 'Install Git' help documentation link - #1797",
+      "[Fixed] Disable menu items while in the Welcome flow - #1529",
+      "[Fixed] Windows: Fall back to HOME if Document cannot be found - #1825",
+      "[Improved] Close the window when an exception occurs - #1562",
+      "[Improved] Always use merge when pulling - #1627",
+      "[Improved] Move the 'New Branch' menu item into the Branch menu - #1757",
+      "[Improved] Remove Repository's default button is now Cancel - #1751",
+      "[Improved] Only fetch the default remote - #1435",
+      "[Improved] Faster commits with many files - #1405",
+      "[Improved] Measure startup time more reliably - #1798",
+      "[Improved] Prefer the GitHub repository name instead of the name on disk - #664"
+    ],
+    "0.5.8": [
+      "[Fixed] Switching tabs in Preferences/Settings or Repository Settings would close the dialog - #1724",
+      "[Improved] Standardized colors which improves contrast and readability - #1713"
     ],
     "0.5.7": [
       "[Fixed] Windows: Handle protocol events which launch the app - #1582",

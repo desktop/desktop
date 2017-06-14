@@ -1,42 +1,100 @@
-import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater } from 'electron'
+import '../lib/logging/main/install'
+
+import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from 'electron'
 
 import { AppWindow } from './app-window'
-import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
+import { CrashWindow } from './crash-window'
+import { buildDefaultMenu, MenuEvent, findMenuItemByID, setCrashMenu } from './menu'
+import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
-import { showFallbackPage } from './error-page'
 import { IMenuItemState } from '../lib/menu-update'
-import { ILogEntry, logError, log } from '../lib/logging/main'
+import { LogLevel } from '../lib/logging/log-level'
+import { log as writeLog } from './log'
+import { formatError } from '../lib/logging/format-error'
+import { reportError } from './exception-reporting'
+import { enableSourceMaps, withSourceMappedStack } from '../lib/source-map-support'
+import { now } from './now'
+
+enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
-const launchTime = Date.now()
+const launchTime = now()
 
+let preventQuit = false
 let readyTime: number | null = null
+let hasReportedUncaughtException = false
 
 type OnDidLoadFn = (window: AppWindow) => void
 /** See the `onDidLoad` function. */
 let onDidLoadFns: Array<OnDidLoadFn> | null = []
 
-process.on('uncaughtException', (error: Error) => {
+function uncaughtException(error: Error) {
+  log.error(formatError(error))
 
-  logError('Uncaught exception on main process', error)
-
-  if (sharedProcess) {
-    sharedProcess.console.error('Uncaught exception:')
-    sharedProcess.console.error(error.name)
-    sharedProcess.console.error(error.message)
+  if (hasReportedUncaughtException) {
+    return
   }
+
+  hasReportedUncaughtException = true
+  preventQuit = true
+
+  setCrashMenu()
+
+  const isLaunchError = !mainWindow
 
   if (mainWindow) {
-    mainWindow.sendException(error)
-  } else {
-    showFallbackPage(error)
+    mainWindow.destroy()
+    mainWindow = null
   }
+
+  if (sharedProcess) {
+    sharedProcess.destroy()
+    mainWindow = null
+  }
+
+  const crashWindow = new CrashWindow(isLaunchError ? 'launch' : 'generic', error)
+
+  crashWindow.onDidLoad(() => {
+    crashWindow.show()
+  })
+
+  crashWindow.onFailedToLoad(() => {
+    dialog.showMessageBox({
+      type: 'error',
+      title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
+      message:
+        `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
+        `This has been reported to the team, but if you encounter this repeatedly please report ` +
+        `this issue to the GitHub Desktop issue tracker.\n\n${error.stack || error.message}`,
+    }, (response) => {
+      if (!__DEV__) {
+        app.relaunch()
+      }
+      app.quit()
+    })
+  })
+
+  crashWindow.onClose(() => {
+    if (!__DEV__) {
+      app.relaunch()
+    }
+    app.quit()
+  })
+
+  crashWindow.load()
+}
+
+process.on('uncaughtException', (error: Error) => {
+  error = withSourceMappedStack(error)
+
+  reportError(error)
+  uncaughtException(error)
 })
 
 if (__WIN32__ && process.argv.length > 1) {
@@ -50,6 +108,10 @@ if (__WIN32__ && process.argv.length > 1) {
       })
     }
   }
+}
+
+if (shellNeedsPatching(process)) {
+  updateEnvironmentForProcess()
 }
 
 const isDuplicateInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
@@ -92,8 +154,7 @@ app.on('will-finish-launching', () => {
 app.on('ready', () => {
   if (isDuplicateInstance) { return }
 
-  const now = Date.now()
-  readyTime = now - launchTime
+  readyTime = now() - launchTime
 
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
@@ -197,8 +258,16 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('log', (event: Electron.IpcMainEvent, logEntry: ILogEntry) => {
-    log(logEntry)
+  ipcMain.on('log', (event: Electron.IpcMainEvent, level: LogLevel, message: string) => {
+    writeLog(level, message)
+  })
+
+  ipcMain.on('uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
+    uncaughtException(error)
+  })
+
+  ipcMain.on('send-error-report', (event: Electron.IpcMainEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
+    reportError(error, extra)
   })
 
   autoUpdater.on('error', err => {
@@ -218,7 +287,7 @@ app.on('web-contents-created', (event, contents) => {
   contents.on('new-window', (event, url) => {
     // Prevent links or window.open from opening new windows
     event.preventDefault()
-    sharedProcess!.console.log(`Prevented new window to: ${url}`)
+    log.warn(`Prevented new window to: ${url}`)
   })
 })
 
@@ -231,7 +300,7 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
 })
 
 function createWindow() {
-  const window = new AppWindow(sharedProcess!)
+  const window = new AppWindow()
 
   if (__DEV__) {
     const installer = require('electron-devtools-installer')
@@ -252,7 +321,7 @@ function createWindow() {
   window.onClose(() => {
     mainWindow = null
 
-    if (!__DARWIN__) {
+    if (!__DARWIN__ && !preventQuit) {
       app.quit()
     }
   })
