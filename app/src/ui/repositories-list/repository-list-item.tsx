@@ -46,14 +46,19 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
+    const repository = this.props.repository
+    const missing = repository instanceof Repository && repository.missing
+
     const items: ReadonlyArray<IMenuItem> = [
       {
         label: __DARWIN__ ? 'Open in Terminal' : 'Open command prompt',
         action: this.openInShell,
+        enabled: !missing,
       },
       {
         label: __DARWIN__ ? 'Show in Finder' : 'Show in Explorer',
         action: this.showRepository,
+        enabled: !missing,
       },
       { type: 'separator' },
       {
