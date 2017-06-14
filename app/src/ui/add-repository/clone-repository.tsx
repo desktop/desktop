@@ -205,7 +205,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       const api = new API(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
-        url =  repo.clone_url
+        url = repo.clone_url
       }
     }
 
