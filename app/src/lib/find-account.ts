@@ -52,7 +52,7 @@ async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: st
  * @param accounts             - the list of active GitHub and GitHub Enterprise
  *                               accounts
  */
-export async function findAccountForRemote(urlOrRepositoryAlias: string, accounts: ReadonlyArray<Account>): Promise<Account | null> {
+export async function findAccountForRemoteURL(urlOrRepositoryAlias: string, accounts: ReadonlyArray<Account>): Promise<Account | null> {
     const allAccounts = [ ...accounts, Account.anonymous() ]
 
     // We have a couple of strategies to try to figure out what account we

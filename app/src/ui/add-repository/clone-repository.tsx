@@ -10,7 +10,7 @@ import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
 import { Account } from '../../models/account'
 import { parseRepositoryIdentifier, IRepositoryIdentifier } from '../../lib/remote-parsing'
-import { findAccountForRemote } from '../../lib/find-account'
+import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 
@@ -198,7 +198,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     const identifier = this.state.lastParsedIdentifier
     let url = this.state.url
 
-    const account = await findAccountForRemote(url, this.props.accounts)
+    const account = await findAccountForRemoteURL(url, this.props.accounts)
     if (!account) { return null }
 
     if (identifier) {
