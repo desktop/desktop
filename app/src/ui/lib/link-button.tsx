@@ -28,12 +28,17 @@ interface ILinkButtonProps {
 /** A link component. */
 export class LinkButton extends React.Component<ILinkButtonProps, void> {
   public render() {
-    const { uri, className, ...otherProps } = this.props
-    const href = uri || ''
-    const props = { ...otherProps, className: classNames('link-button-component', className), onClick: this.onClick, href }
+    const href = this.props.uri || ''
+    const className = classNames('link-button-component', this.props.className)
 
     return (
-      <a {...props}>
+      <a
+        className={className}
+        href={href}
+        onClick={this.onClick}
+        tabIndex={this.props.tabIndex}
+        disabled={this.props.disabled}
+      >
         {this.props.children}
       </a>
     )
