@@ -17,7 +17,9 @@ export class NoChanges extends React.Component<INoChangesProps, void> {
         <img src={BlankSlateImage} className='blankslate-image' />
         No local changes
 
-        <span>Would you like to <LinkButton onClick={this.open}>open this repository</LinkButton> in {opener}?</span>
+        <span>
+          Would you like to <LinkButton onClick={this.open}>open this repository</LinkButton> in {opener}?
+        </span>
       </div>
     )
   }
