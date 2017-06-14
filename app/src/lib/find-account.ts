@@ -60,9 +60,7 @@ export async function findAccountForRemoteURL(urlOrRepositoryAlias: string, acco
     //
     //  1. Try to parse a remote out of the URL.
     //    1. If that works, try to find an account for that host.
-    //      1. If we find account, check if we can access that repository.
-    //    2. If we don't find an account or we can't access the repository, move
-    //       on to our next strategy.
+    //    2. If we don't find an account move on to our next strategy.
     //  2. Try to parse an owner/name.
     //    1. If that works, find the first account that can access it.
     //  3. And if all that fails then throw our hands in the air because we
@@ -75,16 +73,10 @@ export async function findAccountForRemoteURL(urlOrRepositoryAlias: string, acco
         return parsedURL.hostname === parsedEndpoint.hostname
       }) || null
 
+      // If we find an account whose hostname matches the URL to be cloned, it's
+      // always gonna be our best bet for success. We're not gonna do better.
       if (account) {
-        const { owner, name } = parsedURL
-        if (owner && name) {
-          const canAccess = await canAccessRepository(account, owner, name)
-          if (canAccess) {
-            return account
-          }
-        } else {
-          return account
-        }
+        return account
       }
     }
 
