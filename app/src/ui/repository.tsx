@@ -167,6 +167,10 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     )
   }
 
+  private openRepository = () => {
+    this.props.dispatcher.revealInFileManager(this.props.repository, '')
+  }
+
   private onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     // Toggle tab selection on Ctrl+Tab. Note that we don't care
     // about the shift key here, we can get away with that as long
