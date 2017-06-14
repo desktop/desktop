@@ -139,11 +139,4 @@ declare namespace Electron {
     getUserDefault(key: 'AppleActionOnDoubleClick', type: 'string'): AppleActionOnDoubleClickPref
   }
 
-  // these methods have been marked with optional parameters, where we hadn't assumed this before
-  // tslint:disable-next-line:interface-name
-  interface App extends EventEmitter {
-    makeSingleInstance(callback: (argv: string[], workingDirectory: string) => void): boolean
-
-    on(event: 'open-url', listener: (event: Electron.Event, url: string) => void): this
-  }
 }
