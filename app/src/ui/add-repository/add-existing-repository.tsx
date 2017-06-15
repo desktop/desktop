@@ -33,7 +33,7 @@ interface IAddExistingRepositoryState {
    * If set to false the user will be prevented from submitting this dialog
    * and given the option to create a new repository instead.
    */
-  readonly isGitRepository: boolean
+  readonly isRepository: boolean
 
   /**
    * Indicates whether or not to render a warning message about the entered path
@@ -48,8 +48,6 @@ interface IAddExistingRepositoryState {
 
 /** The component for adding an existing local repository. */
 export class AddExistingRepository extends React.Component<IAddExistingRepositoryProps, IAddExistingRepositoryState> {
-  private checkGitRepositoryToken = 0
-
   public constructor(props: IAddExistingRepositoryProps) {
     super(props)
 
@@ -57,7 +55,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
     this.state = {
       path,
-      isGitRepository: false,
+      isRepository: false,
       showNonGitRepositoryWarning: false,
     }
   }
@@ -114,29 +112,21 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     )
   }
 
-  private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
+  private onPathChanged = async (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.checkIfPathIsRepository(path)
+    const isRepository = await isGitRepository(path)
+
+    this.setState({ path, isRepository })
   }
 
-  private showFilePicker = () => {
+  private showFilePicker = async () => {
     const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'createDirectory', 'openDirectory' ] })
     if (!directory) { return }
 
     const path = directory[0]
-    this.checkIfPathIsRepository(path)
-  }
+    const isRepository = await isGitRepository(path)
 
-  private async checkIfPathIsRepository(path: string) {
-    this.setState({ path, isGitRepository: false })
-    const token = ++this.checkGitRepositoryToken
-    const isRepo = await isGitRepository(this.resolvedPath(path))
-
-    // Another path check was requested so don't update state based on the old
-    // path.
-    if (token !== this.checkGitRepositoryToken) { return }
-
-    this.setState({ isGitRepository: isRepo, showNonGitRepositoryWarning: !isRepo })
+    this.setState({ path, isRepository, showNonGitRepositoryWarning: !isRepository })
   }
 
   private resolvedPath(path: string): string {
