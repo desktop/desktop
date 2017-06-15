@@ -286,6 +286,13 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     },
   }
 
+  const showUserGuides: Electron.MenuItemOptions = {
+    label: 'Show User Guides',
+    click() {
+      shell.openExternal('https://help.github.com/desktop-beta/guides/')
+    },
+  }
+
   const showLogsItem: Electron.MenuItemOptions = {
     label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
     click() {
@@ -295,6 +302,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
   const helpItems = [
     submitIssueItem,
+    showUserGuides,
     showLogsItem,
   ]
 

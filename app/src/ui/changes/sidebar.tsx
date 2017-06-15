@@ -114,6 +114,14 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
   }
 
   /**
+   * Reveals a file from a repository in the native file manager.
+   * @param path The path of the file relative to the root of the repository
+   */
+  private onRevealInFileManager = (path: string) => {
+    this.props.dispatcher.revealInFileManager(this.props.repository, path)
+  }
+
+  /**
    * Toggles the selection of a given working directory file.
    * If the file is partially selected it the selection is cleared
    * in order to match the behavior of clicking on an indeterminate
@@ -203,6 +211,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           onSelectAll={this.onSelectAll}
           onDiscardChanges={this.onDiscardChanges}
           onDiscardAllChanges={this.onDiscardAllChanges}
+          onRevealInFileManager={this.onRevealInFileManager}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}

@@ -50,6 +50,8 @@ export function setupFixtureRepository(repositoryName: string): string {
 export async function setupEmptyRepository(): Promise<Repository> {
   const repoPath = temp.mkdirSync('desktop-empty-repo-')
   await GitProcess.exec([ 'init' ], repoPath)
+  await GitProcess.exec([ 'config' , 'user.name', 'Lucas Ding' ], repoPath)
+  await GitProcess.exec([ 'config' , 'user.email', 'lucas.ding@not-a-real-site.com' ], repoPath)
 
   return new Repository(repoPath, -1, null, false)
 }

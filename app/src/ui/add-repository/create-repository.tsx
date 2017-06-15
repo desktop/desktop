@@ -30,11 +30,15 @@ const NoLicenseValue: ILicense = {
   name: 'None',
   featured: false,
   body: '',
+  hidden: false,
 }
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
+
+  /** Prefills path input so user doesn't have to */
+  readonly path?: string
 }
 
 interface ICreateRepositoryState {
@@ -70,7 +74,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     super(props)
 
     this.state = {
-      path: getDefaultDir(),
+      path: this.props.path ? this.props.path : getDefaultDir(),
       name: '',
       createWithReadme: false,
       creating: false,
@@ -265,7 +269,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private renderLicenses() {
     const licenses = this.state.licenses || []
-    const options = [ NoLicenseValue, ...licenses ]
+    const featuredLicenses = [ NoLicenseValue, ...(licenses.filter(l => l.featured)) ]
+    const nonFeaturedLicenses = licenses.filter(l => !l.featured)
 
     return (
       <Row>
@@ -274,7 +279,9 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           value={this.state.license}
           onChange={this.onLicenseChange}
         >
-          {options.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
+          {featuredLicenses.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
+          <option disabled>────────────────────</option>
+          {nonFeaturedLicenses.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
         </Select>
       </Row>
     )
