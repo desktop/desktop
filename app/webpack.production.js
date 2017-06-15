@@ -58,7 +58,7 @@ const rendererConfig = merge({}, common.renderer, config, {
   },
   plugins: [
     // Necessary to be able to use ExtractTextPlugin as a loader.
-    new ExtractTextPlugin('styles.css'),
+    new ExtractTextPlugin('ui.css'),
   ]
 })
 
@@ -79,7 +79,7 @@ const crashConfig = merge({}, common.crash, config, {
   },
   plugins: [
     // Necessary to be able to use ExtractTextPlugin as a loader.
-    new ExtractTextPlugin('styles.css'),
+    new ExtractTextPlugin('crash.css'),
   ]
 })
 

@@ -13,6 +13,12 @@ declare const __DARWIN__: boolean
 /** Is the app being built to run on Win32? */
 declare const __WIN32__: boolean
 
+/**
+ * The commit id of the repository HEAD at build time.
+ * Represented as a 40 character SHA-1 hexadecimal digest string.
+ */
+declare const __SHA__: string
+
 /** The environment for which the release was created. */
 declare const __RELEASE_ENV__: 'production' | 'beta' | 'test' | 'development'
 

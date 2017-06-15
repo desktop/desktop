@@ -221,6 +221,7 @@ dialog {
     }
 
     button {
+      @include ellipsis;
       margin-right: var(--spacing-half);
       min-width: 120px;
 
@@ -319,6 +320,8 @@ dialog {
       justify-content: flex-end;
     }
   }
+
+  &#add-existing-repository { width: 400px; }
 }
 
 .warning-helper-text {

@@ -269,6 +269,7 @@ export class StatsStore {
   }
 
   private async sendOptInStatusPing(optIn: boolean): Promise<void> {
+    const direction = optIn ? 'in' : 'out'
     try {
       const response = await this.post({
         eventType: 'ping',
@@ -280,9 +281,9 @@ export class StatsStore {
 
       localStorage.setItem(HasSentOptInPingKey, '1')
 
-      log.info('Opt in reported.')
+      log.info(`Opt ${direction} reported.`)
     } catch (e) {
-      log.error('Error reporting opt in:', e)
+      log.error(`Error reporting opt ${direction}:`, e)
     }
   }
 }

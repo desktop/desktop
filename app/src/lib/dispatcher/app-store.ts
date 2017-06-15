@@ -65,6 +65,7 @@ import {
   createCommit,
   checkoutBranch,
   getDefaultRemote,
+  formatAsLocalRef,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -1237,7 +1238,6 @@ export class AppStore {
 
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
-        const setUpstream = branch.upstream ? false : true
 
         const pushTitle = `Pushing to ${remote.name}`
 
@@ -1267,7 +1267,7 @@ export class AppStore {
 
         await gitStore.performFailableOperation(async () => {
 
-          await pushRepo(repository, account, remote.name, branch.name, setUpstream, (progress) => {
+          await pushRepo(repository, account, remote.name, branch.name, branch.upstreamWithoutRemote, (progress) => {
             this.updatePushPullFetchProgress(repository, {
               ...progress,
               title: pushTitle,
@@ -1448,7 +1448,8 @@ export class AppStore {
         // out any branches will null upstreams above when creating
         // `eligibleBranches`.
         const upstreamRef = branch.upstream!
-        await updateRef(repository, `refs/heads/${branch.name}`, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
+        const localRef = formatAsLocalRef(branch.name)
+        await updateRef(repository, localRef, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
       }
     }
   }
