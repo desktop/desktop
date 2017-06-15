@@ -156,9 +156,9 @@ app.on('ready', () => {
 
   readyTime = now() - launchTime
 
-   app.setAsDefaultProtocolClient('x-github-client')
+  app.setAsDefaultProtocolClient('x-github-client')
 
-   if (__DEV__) {
+  if (__DEV__) {
     app.setAsDefaultProtocolClient('x-github-desktop-dev-auth')
   } else {
     app.setAsDefaultProtocolClient('x-github-desktop-auth')
