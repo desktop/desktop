@@ -15,11 +15,11 @@ export class NoChanges extends React.Component<INoChangesProps, void> {
     return (
       <div className='panel blankslate' id='no-changes'>
         <img src={BlankSlateImage} className='blankslate-image' />
-        No local changes
+        <div>No local changes</div>
 
-        <span>
+        <div>
           Would you like to <LinkButton onClick={this.open}>open this repository</LinkButton> in {opener}?
-        </span>
+        </div>
       </div>
     )
   }
