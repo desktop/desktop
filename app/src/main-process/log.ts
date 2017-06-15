@@ -7,6 +7,10 @@ import { LogLevel } from '../lib/logging/log-level'
 
 require('winston-daily-rotate-file')
 
+/**
+ * The maximum number of log files we should have on disk before pruning old
+ * ones.
+ */
 const MaxLogFiles = 14
 
 /** resolve the log file location based on the current environment */
