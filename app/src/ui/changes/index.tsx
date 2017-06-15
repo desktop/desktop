@@ -42,8 +42,8 @@ export class Changes extends React.Component<IChangesProps, void> {
             onIncludeChanged={this.onDiffLineIncludeChanged}
             diff={diff}
             dispatcher={this.props.dispatcher} />
-         </div>
-       </div>
+        </div>
+      </div>
     )
   }
 }
