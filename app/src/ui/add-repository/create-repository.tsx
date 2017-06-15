@@ -361,7 +361,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           </Row>
 
           {this.renderInvalidPathWarning()}
-          {this.renderIsGitRepoWarning()}
+
+          {this.renderGitRepositoryWarning()}
 
           <Row>
             <Checkbox
