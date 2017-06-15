@@ -225,6 +225,7 @@ dialog {
       min-width: 120px;
 
       &:last-child {
+        @include ellipsis;
         margin-right: 0;
       }
     }
