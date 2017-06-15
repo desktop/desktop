@@ -45,7 +45,7 @@ interface IAddExistingRepositoryState {
   readonly showNonGitRepositoryWarning: boolean
 }
 
-
+/** The component for adding an existing local repository. */
 export class AddExistingRepository extends React.Component<IAddExistingRepositoryProps, IAddExistingRepositoryState> {
   private checkGitRepositoryToken = 0
 
