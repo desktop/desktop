@@ -305,7 +305,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   private renderIsGitRepoWarning() {
     const isRepo = this.state.isGitRepository
 
-    if (!this.state.path.length || isRepo == null || isRepo) { return null }
+    if (!this.state.path.length || isRepo === null || isRepo) { return null }
 
     return (
       <Row className='warning-helper-text'>
