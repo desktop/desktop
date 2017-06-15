@@ -850,6 +850,16 @@ export class Dispatcher {
     return shell.showItemInFolder(normalized)
   }
 
+  /**
+   * Open file with default application
+   * @param repository The currently active repository instance
+   * @param path The path of the file relative to the root of the repository
+   */
+  public openItem(repository: Repository, path: string): boolean {
+    const normalized = Path.join(repository.path, path)
+    return shell.openItem(normalized)
+  }
+
   private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryArgs): Promise<void> {
     const { filepath, pr, branch } = args
 
