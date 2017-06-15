@@ -45,7 +45,7 @@ interface ICreateRepositoryState {
   readonly path: string
   readonly name: string
   readonly isValidPath: boolean | null
-  readonly isGitRepository: boolean | null
+  readonly isRepository: boolean
 
   /** Should the repository be created with a default README? */
   readonly createWithReadme: boolean
@@ -83,7 +83,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       licenses: null,
       license: NoLicenseValue.name,
       isValidPath: null,
-      isGitRepository: null,
+      isRepository: false,
     }
   }
 
@@ -303,10 +303,12 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     )
   }
 
-  private renderIsGitRepoWarning() {
-    const isRepo = this.state.isGitRepository
+  private renderGitRepositoryWarning() {
+    const isRepo = this.state.isRepository
 
-    if (!this.state.path.length || isRepo === null || isRepo) { return null }
+    if (this.state.path.length && !isRepo) {
+      return null
+    }
 
     return (
       <Row className='warning-helper-text'>
