@@ -60,6 +60,12 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     }
   }
 
+  public async componentDidMount() {
+    const isRepository = await isGitRepository(this.state.path)
+
+    this.setState({ isRepository })
+  }
+
   private renderWarning() {
     if (!this.state.path.length || !this.state.showNonGitRepositoryWarning) {
       return null
@@ -128,6 +134,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
     this.setState({ path, isRepository, showNonGitRepositoryWarning: !isRepository })
   }
+
 
   private resolvedPath(path: string): string {
     return Path.resolve('/', untildify(path))
