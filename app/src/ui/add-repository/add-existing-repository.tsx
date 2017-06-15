@@ -18,6 +18,10 @@ const untildify: (str: string) => string = require('untildify')
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
+
+  /** An optional path to prefill the path text box with.
+   * Defaults to the empty string
+   */
   readonly path?: string
 }
 
@@ -134,7 +138,6 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
     this.setState({ path, isRepository, showNonGitRepositoryWarning: !isRepository })
   }
-
 
   private resolvedPath(path: string): string {
     return Path.resolve('/', untildify(path))

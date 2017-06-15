@@ -37,14 +37,18 @@ interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
 
-  /** Prefills path input so user doesn't have to */
+  /** Prefills path input so user doesn't have to. */
   readonly path?: string
 }
 
 interface ICreateRepositoryState {
   readonly path: string
   readonly name: string
+
+  /** Is the given path able to be written to? */
   readonly isValidPath: boolean | null
+
+  /** Is the given path already a repository? */
   readonly isRepository: boolean
 
   /** Should the repository be created with a default README? */
