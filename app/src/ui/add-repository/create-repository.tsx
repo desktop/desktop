@@ -68,8 +68,6 @@ interface ICreateRepositoryState {
 
 /** The Create New Repository component. */
 export class CreateRepository extends React.Component<ICreateRepositoryProps, ICreateRepositoryState> {
-  private checkGitRepositoryToken = 0
-
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 
@@ -98,7 +96,6 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
 
-    this.checkIfPathIsRepository(path)
     this.setState({ isValidPath: null })
   }
 
@@ -318,19 +315,6 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         </p>
       </Row>
     )
-  }
-
-  private async checkIfPathIsRepository(path: string) {
-    this.setState({ path, isGitRepository: null })
-
-    const token = ++this.checkGitRepositoryToken
-    const isRepo = await isGitRepository(this.state.path)
-
-    // Another path check was requested so don't update state based on the old
-    // path.
-    if (token !== this.checkGitRepositoryToken) { return }
-
-    this.setState({ isGitRepository: isRepo })
   }
 
   private onAddRepositoryClicked = () => {
