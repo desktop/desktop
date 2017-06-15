@@ -91,12 +91,16 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
     const licenses = await getLicenses()
     this.setState({ ...this.state, licenses })
+
+    const isRepository = await isGitRepository(this.state.path)
+    this.setState({ isRepository })
   }
 
-  private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
+  private onPathChanged = async (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
+    const isRepository = await isGitRepository(path)
 
-    this.setState({ isValidPath: null })
+    this.setState({ isRepository, path, isValidPath: null })
   }
 
   private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
@@ -104,13 +108,15 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.setState({ ...this.state, name })
   }
 
-  private showFilePicker = () => {
+  private showFilePicker = async () => {
     const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'createDirectory', 'openDirectory' ] })
+
     if (!directory) { return }
 
     const path = directory[0]
+    const isRepository = await isGitRepository(path)
 
-    this.setState({ ...this.state, path })
+    this.setState({ isRepository, path })
   }
 
   private ensureDirectory(directory: string): Promise<void> {
@@ -127,7 +133,6 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private createRepository = async () => {
     const fullPath = Path.join(this.state.path, sanitizedRepositoryName(this.state.name))
-
     try {
       await this.ensureDirectory(fullPath)
       this.setState({ ...this.state, isValidPath: true })
