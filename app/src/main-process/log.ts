@@ -7,6 +7,8 @@ import { LogLevel } from '../lib/logging/log-level'
 
 require('winston-daily-rotate-file')
 
+const MaxLogFiles = 14
+
 /** resolve the log file location based on the current environment */
 function getLogFilePath(directory: string): string {
   const environment = process.env.NODE_ENV || 'production'
@@ -18,7 +20,7 @@ function getLogFilePath(directory: string): string {
  * Initializes winston and returns a subset of the available log level
  * methods (debug, info, error). This method should only be called once
  * during an application's lifetime.
- * 
+ *
  * @param path The path where to write log files. This path will have
  *             the current date prepended to the basename part of the
  *             path such that passing a path '/logs/foo' will end up
@@ -34,6 +36,7 @@ function initializeWinston(path: string): winston.LogMethod {
     prepend: true,
     // log everything interesting (info and up)
     level: 'info',
+    maxFiles: MaxLogFiles,
   })
 
   const consoleLogger = new winston.transports.Console({
@@ -55,7 +58,7 @@ let loggerPromise: Promise<winston.LogMethod> | null = null
 /**
  * Initializes and configures winston (if necessary) to write to Electron's
  * console as well as to disk.
- * 
+ *
  * @returns a function reference which can be used to write log entries,
  *          this function is equivalent to that of winston.log in that
  *          it accepts a log level, a message and an optional callback
