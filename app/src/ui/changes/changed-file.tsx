@@ -16,11 +16,13 @@ interface IChangedFileProps {
   readonly include: boolean | null
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onDiscardChanges: (path: string) => void
+
   /**
    * Called to reveal a file in the native file manager.
    * @param path The path of the file relative to the root of the repository
    */
   readonly onRevealInFileManager: (path: string) => void
+
   /**
    * Called to open a file it its default application
    * @param path The path of the file relative to the root of the repository
