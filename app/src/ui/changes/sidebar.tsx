@@ -1,3 +1,4 @@
+import * as Path from 'path'
 import * as React from 'react'
 
 import { ChangesList } from './changes-list'
@@ -13,7 +14,7 @@ import { ICommitMessage } from '../../lib/app-state'
 import { ClickSource } from '../list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
-
+import { openFile } from '../../lib/open-file'
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
  *
@@ -126,7 +127,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
    * @param path The path of the file relative to the root of the repository
    */
   private onOpenItem = (path: string) => {
-    this.props.dispatcher.openItem(this.props.repository, path)
+    const fullPath = Path.join(this.props.repository.path, path)
+    openFile(fullPath, this.props.dispatcher)
   }
 
   /**
