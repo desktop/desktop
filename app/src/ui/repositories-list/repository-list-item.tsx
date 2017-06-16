@@ -7,7 +7,6 @@ import { showContextualMenu } from '../main-process-proxy'
 interface IRepositoryListItemProps {
   readonly repository: Repository | CloningRepository
   readonly onRemoveRepository: (repository: Repository | CloningRepository) => void
-  readonly onRevealInFileManager: (repository: Repository | CloningRepository) => void
 }
 
 /** A repository item. */
@@ -38,25 +37,14 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
-    const items = [
-      {
-        label: __DARWIN__ ? 'Reveal in Finder' : 'Show in Explorer',
-        action: () => this.revealInFileManager(),
-        enabled: this.props.repository instanceof Repository,
-      },
-      {
-        label: 'Remove',
-        action: () => this.removeRepository(),
-      },
-    ]
-    showContextualMenu(items)
+    const item = {
+      label: 'Remove',
+      action: () => this.removeRepository(),
+    }
+    showContextualMenu([ item ])
   }
 
   private removeRepository() {
     this.props.onRemoveRepository(this.props.repository)
-  }
-
-  private revealInFileManager() {
-    this.props.onRevealInFileManager(this.props.repository)
   }
 }
