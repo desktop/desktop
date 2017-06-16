@@ -30,6 +30,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
     return <RepositoryListItem
       key={repository.id}
       repository={repository}
+      needsDisambiguation={item.needsDisambiguation}
       onRemoveRepository={this.props.onRemoveRepository}
     />
   }

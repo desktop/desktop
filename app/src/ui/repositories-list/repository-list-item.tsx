@@ -6,6 +6,7 @@ import { showContextualMenu } from '../main-process-proxy'
 
 interface IRepositoryListItemProps {
   readonly repository: Repository | CloningRepository
+  readonly needsDisambiguation: boolean
   readonly onRemoveRepository: (repository: Repository | CloningRepository) => void
 }
 
@@ -19,10 +20,19 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
       : path
 
+    let prefix: string | null = null
+    if (this.props.needsDisambiguation && gitHubRepo) {
+      prefix = `${gitHubRepo.owner.login}/`
+    }
+
     return (
       <div onContextMenu={this.onContextMenu} className='repository-list-item' title={tooltip}>
         <Octicon symbol={iconForRepository(repository)} />
-        <div className='name'>{repository.name}</div>
+
+        <div className='name'>
+          {prefix ? <span className='prefix'>{prefix}</span> : null}
+          <span>{repository.name}</span>
+        </div>
       </div>
     )
   }
