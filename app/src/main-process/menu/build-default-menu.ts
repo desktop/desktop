@@ -211,7 +211,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click: emit('open-in-shell'),
       },
       {
-        label: __DARWIN__ ? 'Open in Finder' : '&Open in Explorer',
+        label: __DARWIN__ ? 'Open in Finder' : 'Open in &Explorer',
         id: 'open-working-directory',
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
