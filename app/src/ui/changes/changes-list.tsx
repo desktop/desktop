@@ -26,11 +26,13 @@ interface IChangesListProps {
   readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly onDiscardAllChanges: (files: ReadonlyArray<WorkingDirectoryFileChange>) => void
+
   /**
    * Called to reveal a file in the native file manager.
    * @param path The path of the file relative to the root of the repository
    */
   readonly onRevealInFileManager: (path: string) => void
+
   /**
    * Called to open a file it its default application
    * @param path The path of the file relative to the root of the repository
