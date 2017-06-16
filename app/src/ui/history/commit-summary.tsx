@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { clipboard } from 'electron'
 import * as classNames from 'classnames'
 
 import { FileChange } from '../../models/status'
@@ -207,7 +208,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private onCopySHA = () => {
-    alert('Copy SHA')
+    clipboard.writeText(this.props.sha)
   }
 
   private onViewOnGitHub = () => {
