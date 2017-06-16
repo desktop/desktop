@@ -42,7 +42,7 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
       {
         label: __DARWIN__ ? 'Reveal in Finder' : 'Show in Explorer',
         action: () => this.revealInFileManager(),
-          enabled: this.props.repository instanceof Repository
+        enabled: this.props.repository instanceof Repository,
       },
       {
         label: 'Remove',
