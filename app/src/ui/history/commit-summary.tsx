@@ -9,6 +9,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Avatar } from '../lib/avatar'
+import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -179,8 +180,38 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     )
   }
 
-  private showCommitOptions = () => {
-    alert('Clicked')
+  private onShowCommitOptions = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Revert this Commit' : 'Revert this commit',
+        action: this.onRevertCommit,
+      },
+      { type: 'separator' },
+      {
+        label: 'Copy SHA',
+        action: this.onCopySHA,
+      },
+      {
+        label: 'View on GitHub',
+        action: this.onViewOnGitHub,
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
+  private onRevertCommit = () => {
+    alert('Revert Commiy')
+  }
+
+  private onCopySHA = () => {
+    alert('Copy SHA')
+  }
+
+  private onViewOnGitHub = () => {
+    alert('View on GitHub')
   }
 
   public render() {
@@ -250,11 +281,12 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
             <li className='commit-summary-meta-item'
               title=''
               aria-label=''
+              onContextMenu={this.onShowCommitOptions}
             >
               <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.gear} />
               </span>
-              <a onClick={this.showCommitOptions}>
+              <a onClick={this.onShowCommitOptions}>
                 <Octicon symbol={OcticonSymbol.triangleDown} />
               </a>
             </li>
