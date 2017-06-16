@@ -118,7 +118,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
         enabled: this.props.status !== AppFileStatus.Deleted,
       },
       {
-        label: 'Open file',
+        label: __DARWIN__ ? 'Open with External Editor' : 'Open with external editor',
         action: () => this.props.onOpenItem(this.props.path),
         enabled: this.props.status !== AppFileStatus.Deleted,
       },

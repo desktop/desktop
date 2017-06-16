@@ -15,6 +15,7 @@ import { ClickSource } from '../list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
+
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
  *
