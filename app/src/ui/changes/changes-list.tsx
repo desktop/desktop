@@ -26,11 +26,18 @@ interface IChangesListProps {
   readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly onDiscardAllChanges: (files: ReadonlyArray<WorkingDirectoryFileChange>) => void
+
   /**
    * Called to reveal a file in the native file manager.
    * @param path The path of the file relative to the root of the repository
    */
   readonly onRevealInFileManager: (path: string) => void
+
+  /**
+   * Called to open a file it its default application
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenItem: (path: string) => void
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
@@ -78,6 +85,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.onDiscardChanges}
         onRevealInFileManager={this.props.onRevealInFileManager}
+        onOpenItem={this.props.onOpenItem}
         availableWidth={this.props.availableWidth}
         onIgnore={this.props.onIgnore}
       />
