@@ -57,5 +57,6 @@
 
 .blankslate-image {
   margin: var(--spacing-double) auto;
-  width: 400px;
+  min-width: 400px;
+  width: 50%;
 }
