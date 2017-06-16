@@ -175,7 +175,6 @@ export class Dispatcher {
         this.showFoldout({ type: FoldoutType.Repository })
       } else {
         this.closeFoldout(FoldoutType.Repository)
-        this.setUpdateBannerVisibility(false)
       }
     })
   }
