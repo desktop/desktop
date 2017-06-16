@@ -25,8 +25,6 @@ const RowHeight = 29
 
 /** The list of user-added repositories. */
 export class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
-  private hadRepos: Boolean = false
-
   private renderItem = (item: IRepositoryListItem) => {
     const repository = item.repository
     return <RepositoryListItem
@@ -67,14 +65,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
   }
 
   public render() {
-    if (this.props.repositories.length > 0) {
-      this.hadRepos = true
-    }
-
     if (this.props.repositories.length < 1) {
-      if (this.hadRepos) {
-        this.props.dispatcher.closeFoldout(FoldoutType.Repository)
-      }
       return this.noRepositories()
     }
 
