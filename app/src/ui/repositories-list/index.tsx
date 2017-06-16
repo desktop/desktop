@@ -35,8 +35,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
     />
   }
 
-  private onRevealInFileManager(repository: Repositoryish)
-  {
+  private onRevealInFileManager(repository: Repositoryish) {
     if (repository instanceof Repository) {
       this.props.dispatcher.revealInFileManager(repository, '.')
     }
