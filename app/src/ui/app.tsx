@@ -1013,6 +1013,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderToolbar() {
+    if (this.state.repositories.length < 1) {
+      return null
+    }
+    
     return (
       <Toolbar id='desktop-app-toolbar'>
         <div
