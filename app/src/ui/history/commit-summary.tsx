@@ -179,6 +179,10 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     )
   }
 
+  private showCommitOptions = () => {
+    alert('Clicked')
+  }
+
   public render() {
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
@@ -241,6 +245,18 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
               </span>
 
               {filesDescription}
+            </li>
+
+            <li className='commit-summary-meta-item'
+              title=''
+              aria-label=''
+            >
+              <span aria-hidden='true'>
+                <Octicon symbol={OcticonSymbol.gear} />
+              </span>
+              <a onClick={this.showCommitOptions}>
+                <Octicon symbol={OcticonSymbol.triangleDown} />
+              </a>
             </li>
           </ul>
         </div>
