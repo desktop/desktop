@@ -1016,7 +1016,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (this.state.repositories.length < 1) {
       return null
     }
-    
+
     return (
       <Toolbar id='desktop-app-toolbar'>
         <div
