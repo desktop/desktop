@@ -3,6 +3,7 @@ import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogPath } from '../../lib/logging/get-log-path'
+import * as fileSystem from 'fs'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template = new Array<Electron.MenuItemOptions>()
@@ -296,7 +297,13 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const showLogsItem: Electron.MenuItemOptions = {
     label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
     click() {
-      shell.showItemInFolder(getLogPath())
+      const logPath = getLogPath()
+      fileSystem.mkdir(logPath, function(err: NodeJS.ErrnoException): void {
+        if (err.code !== 'EEXIST') {
+          console.error(err)
+        }
+      })
+      shell.showItemInFolder(logPath)
     },
   }
 
