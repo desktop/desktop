@@ -63,4 +63,26 @@ describe('Repository grouping', () => {
     expect(items[1].repository.path).to.equal('c')
     expect(items[2].repository.path).to.equal('z')
   })
+
+  it('marks repositories for disambiguation if they have the same name', () => {
+    const repoA = new Repository('repo', 1, new GitHubRepository('repo', new Owner('user1', getDotComAPIEndpoint()), 1), false)
+    const repoB = new Repository('cool-repo', 2, new GitHubRepository('cool-repo', new Owner('user2', getDotComAPIEndpoint()), 2), false)
+    const repoC = new Repository('repo', 2, new GitHubRepository('repo', new Owner('user2', getDotComAPIEndpoint()), 2), false)
+
+    const grouped = groupRepositories([ repoA, repoB, repoC ])
+    expect(grouped.length).to.equal(1)
+
+    expect(grouped[0].identifier).to.equal('github')
+    expect(grouped[0].items.length).to.equal(3)
+
+    const items = grouped[0].items
+    expect(items[0].text).to.equal('cool-repo')
+    expect(items[0].needsDisambiguation).to.equal(false)
+
+    expect(items[1].text).to.equal('repo')
+    expect(items[1].needsDisambiguation).to.equal(true)
+
+    expect(items[2].text).to.equal('repo')
+    expect(items[2].needsDisambiguation).to.equal(true)
+  })
 })
