@@ -6,7 +6,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { FilterList } from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
 import { FoldoutType } from '../../lib/app-state'
-
+import { Repository } from '../../models/repository'
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
  * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
@@ -31,9 +31,17 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
       key={repository.id}
       repository={repository}
       onRemoveRepository={this.props.onRemoveRepository}
+      onRevealInFileManager={this.onRevealInFileManager}
     />
   }
 
+  private onRevealInFileManager(repository : Repositoryish)
+  {
+    if (repository instanceof Repository) {
+      this.props.dispatcher.revealInFileManager(repository, '.')
+    }
+
+  }
   private getGroupLabel(identifier: RepositoryGroupIdentifier) {
     if (identifier === 'github') {
       return 'GitHub'
