@@ -12,8 +12,8 @@ export { ChangesSidebar } from './sidebar'
 
 interface IChangesProps {
   readonly repository: Repository
-  readonly file: WorkingDirectoryFileChange | null
-  readonly diff: IDiff | null
+  readonly file: WorkingDirectoryFileChange
+  readonly diff: IDiff
   readonly dispatcher: Dispatcher
 }
 
@@ -21,33 +21,19 @@ export class Changes extends React.Component<IChangesProps, void> {
 
   private onDiffLineIncludeChanged = (diffSelection: DiffSelection) => {
     const file = this.props.file
-    if (!file) {
-      console.error('Diff line selection changed despite no file. This is a deep mystery.')
-      return
-    }
-
     this.props.dispatcher.changeFileLineSelection(this.props.repository, file, diffSelection)
   }
 
   public render() {
     const diff = this.props.diff
     const file = this.props.file
-    const BlankSlateImage = `file:///${__dirname}/static/empty-no-file-selected.svg`
-    if (!diff || !file) {
-      return (
-        <div className='panel blankslate' id='diff'>
-          <img src={BlankSlateImage} className='blankslate-image' />
-          No file selected
-        </div>
-      )
-    }
-
     return (
       <div className='changed-file'>
         <ChangedFileDetails
           path={file.path}
           oldPath={file.oldPath}
-          status={file.status} />
+          status={file.status}
+          diff={diff} />
 
         <div className='diff-wrapper'>
           <Diff repository={this.props.repository}
@@ -56,8 +42,8 @@ export class Changes extends React.Component<IChangesProps, void> {
             onIncludeChanged={this.onDiffLineIncludeChanged}
             diff={diff}
             dispatcher={this.props.dispatcher} />
-         </div>
-       </div>
+        </div>
+      </div>
     )
   }
 }

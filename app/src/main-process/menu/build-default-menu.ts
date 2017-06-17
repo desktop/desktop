@@ -211,7 +211,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click: emit('open-in-shell'),
       },
       {
-        label: __DARWIN__ ? 'Open in Finder' : '&Open in Explorer',
+        label: __DARWIN__ ? 'Show in Finder' : 'Show in E&xplorer',
         id: 'open-working-directory',
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
@@ -286,6 +286,13 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     },
   }
 
+  const showUserGuides: Electron.MenuItemOptions = {
+    label: 'Show User Guides',
+    click() {
+      shell.openExternal('https://help.github.com/desktop-beta/guides/')
+    },
+  }
+
   const showLogsItem: Electron.MenuItemOptions = {
     label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
     click() {
@@ -295,6 +302,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
   const helpItems = [
     submitIssueItem,
+    showUserGuides,
     showLogsItem,
   ]
 
