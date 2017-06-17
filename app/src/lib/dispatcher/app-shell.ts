@@ -18,26 +18,27 @@ function getEditorList(path: string ): IEditorInfo[] {
     name: 'External Editor',
   })
   if (__DARWIN__) {
+    // FIXME: this doesn't exist yet and is intended to break
     const osx = require('shell-osx')
     if (osx.isAtomInstalled()) {
-    result.push({
-      name: 'Atom',
-    })
+      result.push({
+        name: 'Atom',
+      })
     }
   } else {
     const win32 = require('./shell-win32')
-    if(win32.isVisualStudioInstalled() ) {
-    result.push({
-      name: 'Visual Studio',
-    })
+    if (win32.isVisualStudioInstalled() ) {
+      result.push({
+        name: 'Visual Studio',
+      })
     }
-    if(win32.isVisualStudioCodeInstalled() ) {
+    if (win32.isVisualStudioCodeInstalled() ) {
       result.push({
         name: 'Visual Studio Code',
       })
     }
 
-    if(win32.isAtomInstalled() ) {
+    if (win32.isAtomInstalled() ) {
       result.push({
         name: 'Atom',
       })
