@@ -25,6 +25,11 @@ function getEditorList(path: string ): IEditorInfo[] {
         name: 'Atom',
       })
     }
+    if (osx.isVisualStudioCodeInstalled() ) {
+      result.push({
+        name: 'Visual Studio Code',
+      })
+    }
   } else {
     const win32 = require('./shell-win32')
     if (win32.isVisualStudioInstalled() ) {
