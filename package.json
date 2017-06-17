@@ -80,6 +80,7 @@
     "webpack-dev-middleware": "^1.10.1",
     "webpack-hot-middleware": "^2.18.0",
     "webpack-merge": "^4.1.0",
+    "winreg": "^1.2.1",
     "xml2js": "^0.4.16"
   },
   "devDependencies": {
@@ -101,6 +102,7 @@
     "@types/react-virtualized": "^9.7.0",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
+    "@types/winreg": "^1.2.30",
     "@types/winston": "^2.2.0"
   }
 }
