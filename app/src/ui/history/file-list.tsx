@@ -2,7 +2,19 @@ import * as React from 'react'
 import { FileChange, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
-import { List } from '../list'
+import { FilterList, IFilterListGroup, IFilterListItem } from '../lib/filter-list'
+
+/**
+ * TS can't parse generic specialization in JSX, so we have to alias it here
+ * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
+ */
+const FileFilterList: new() => FilterList<IFileListItem> = FilterList as any
+
+interface IFileListItem extends IFilterListItem {
+  readonly text: string
+  readonly id: string
+  readonly file: FileChange
+}
 
 interface IFileListProps {
   readonly files: ReadonlyArray<FileChange>
@@ -12,13 +24,14 @@ interface IFileListProps {
 }
 
 export class FileList extends React.Component<IFileListProps, void> {
-  private onSelectionChanged = (row: number) => {
-    const file = this.props.files[row]
-    this.props.onSelectedFileChanged(file)
+  private onSelectionChanged = (selectedItem: IFileListItem | null) => {
+    if (selectedItem) {
+      const { file } = selectedItem
+      this.props.onSelectedFileChanged(file)
+    }
   }
 
-  private renderFile = (row: number) => {
-    const file = this.props.files[row]
+  private renderFile = ({ file }: IFileListItem) => {
     const status = file.status
     const fileStatus = mapStatus(status)
 
@@ -53,14 +66,31 @@ export class FileList extends React.Component<IFileListProps, void> {
       : -1
   }
 
+  private get listGroups(): ReadonlyArray<IFilterListGroup<IFileListItem>> {
+    return [
+      {
+        identifier: 'files',
+        hasHeader: false,
+        items: this.props.files.map(file => ({
+          id: file.id,
+          text: [ file.oldPath, file.path ].filter(x => x).join(' '),
+          file,
+        })),
+      },
+    ]
+  }
+
   public render() {
     return (
       <div className='file-list'>
-        <List rowRenderer={this.renderFile}
-              rowCount={this.props.files.length}
-              rowHeight={29}
-              selectedRow={this.rowForFile(this.props.selectedFile)}
-              onSelectionChanged={this.onSelectionChanged}/>
+        <FileFilterList
+          autoFocus={false}
+          groups={this.listGroups}
+          renderItem={this.renderFile}
+          rowHeight={29}
+          selectedItem={this.listGroups[0].items[this.rowForFile(this.props.selectedFile)]}
+          invalidationProps={this.props.files}
+          onSelectionChanged={this.onSelectionChanged}/>
       </div>
     )
   }

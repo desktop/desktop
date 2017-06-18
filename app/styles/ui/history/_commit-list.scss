@@ -7,6 +7,10 @@
   flex-direction: column;
   flex: 1;
 
+  .filter-field-row {
+    border-bottom: var(--base-border);
+  }
+
   .commit {
     display: flex;
     flex-direction: row;

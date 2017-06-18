@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as classnames from 'classnames'
 
-import { List, SelectionSource as ListSelectionSource } from '../list'
+import { List, SelectionSource as ListSelectionSource, ClickSource } from '../list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
@@ -21,6 +21,9 @@ export interface IFilterListGroup<T extends IFilterListItem> {
 
   /** The items in the group. */
   readonly items: ReadonlyArray<T>
+
+  /** Set to false to hide the group header */
+  readonly hasHeader?: boolean
 }
 
 interface IFlattenedGroup {
@@ -43,6 +46,9 @@ interface IFilterListProps<T extends IFilterListItem> {
   /** A class name for the wrapping element. */
   readonly className?: string
 
+  /** Should the search input be autofocused on first render? */
+  readonly autoFocus?: boolean
+
   /** The height of the rows. */
   readonly rowHeight: number
 
@@ -56,13 +62,13 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly renderItem: (item: T) => JSX.Element | null
 
   /** Called to render header for the group with the given identifier. */
-  readonly renderGroupHeader: (identifier: string) => JSX.Element | null
+  readonly renderGroupHeader?: (identifier: string) => JSX.Element | null
 
   /** Called to render content before/above the filter and list. */
   readonly renderPreList?: () => JSX.Element | null
 
   /** Called when an item is clicked. */
-  readonly onItemClick?: (item: T) => void
+  readonly onItemClick?: (item: T, source: ClickSource) => void
 
   /**
    * This function will be called when the selection changes as a result of a
@@ -82,6 +88,8 @@ interface IFilterListProps<T extends IFilterListItem> {
    * respond or cancel the default behavior by calling `preventDefault`.
    */
   readonly onFilterKeyDown?: (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => void
+
+  readonly onScroll?: (scrollTop: number, clientHeight: number) => void
 
   /** Any props which should cause a re-render if they change. */
   readonly invalidationProps: any
@@ -127,7 +135,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
         <Row className='filter-field-row'>
           <TextBox
             type='search'
-            autoFocus={true}
+            autoFocus={this.props.autoFocus == null ? true : this.props.autoFocus}
             placeholder='Filter'
             className='filter-list-filter-field'
             onChange={this.onFilterChanged}
@@ -144,6 +152,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
             onSelectionChanged={this.onSelectionChanged}
             onRowClick={this.onRowClick}
             onRowKeyDown={this.onRowKeyDown}
+            onScroll={this.props.onScroll}
             canSelectRow={this.canSelectRow}
             ref={this.onListRef}
             invalidationProps={{ ...this.props, ...this.props.invalidationProps }}/>
@@ -171,8 +180,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
     const row = this.state.rows[index]
     if (row.kind === 'item') {
       return this.props.renderItem(row.item)
+    } else if (row.kind === 'group') {
+      if (this.props.renderGroupHeader) {
+        return this.props.renderGroupHeader(row.identifier)
+      }
+      return null
     } else {
-      return this.props.renderGroupHeader(row.identifier)
+      throw new TypeError(`Row ${row} encountered, no idea how to render it.`)
     }
   }
 
@@ -211,12 +225,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
     return row.kind === 'item'
   }
 
-  private onRowClick = (index: number) => {
+  private onRowClick = (index: number, source: ClickSource) => {
     if (this.props.onItemClick) {
       const row = this.state.rows[index]
 
       if (row.kind === 'item') {
-        this.props.onItemClick(row.item)
+        this.props.onItemClick(row.item, source)
       }
     }
   }
@@ -226,8 +240,8 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
     if (!list) { return }
 
     let focusInput = false
-    const firstSelectableRow = list.nextSelectableRow('down', 0)
-    const lastSelectableRow = list.nextSelectableRow('up', 0)
+    const firstSelectableRow = list.nextSelectableRow('down', -1)
+    const lastSelectableRow = list.nextSelectableRow('up', -1)
     if (event.key === 'ArrowUp' && row === firstSelectableRow) {
       focusInput = true
     } else if (event.key === 'ArrowDown' && row === lastSelectableRow) {
@@ -255,7 +269,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
 
     if (event.key === 'ArrowDown') {
       if (this.state.rows.length > 0) {
-        this.setState({ selectedRow: list.nextSelectableRow('down', 0) }, () => {
+        this.setState({ selectedRow: list.nextSelectableRow('down', -1) }, () => {
           list.focus()
         })
       }
@@ -263,7 +277,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
       if (this.state.rows.length > 0) {
-        this.setState({ selectedRow: list.nextSelectableRow('up', 0) }, () => {
+        this.setState({ selectedRow: list.nextSelectableRow('up', -1) }, () => {
           list.focus()
         })
       }
@@ -276,8 +290,11 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
         return
       }
 
-      const row = list.nextSelectableRow('down', 0)
-      this.onRowClick(row)
+      const row = list.nextSelectableRow('down', -1)
+      this.onRowClick(row, {
+        kind: 'keyboard',
+        event,
+      })
     }
   }
 }
@@ -291,7 +308,9 @@ function createStateUpdate<T extends IFilterListItem>(filter: string, props: IFi
 
     if (!items.length) { continue }
 
-    flattenedRows.push({ kind: 'group', identifier: group.identifier })
+    if (group.hasHeader || group.hasHeader == null) {
+      flattenedRows.push({ kind: 'group', identifier: group.identifier })
+    }
     for (const item of items) {
       flattenedRows.push({ kind: 'item', item })
     }

@@ -4,5 +4,9 @@
     flex: 1;
 
     border-right: var(--base-border);
+
+    .filter-field-row {
+      border-bottom: var(--base-border);
+    }
   }
 }
