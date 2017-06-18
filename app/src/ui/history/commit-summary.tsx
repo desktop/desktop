@@ -213,7 +213,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private onViewOnGitHub = () => {
-    alert('View on GitHub')
+    this.props.onViewCommitOnGitHub(this.props.sha)
   }
 
   public render() {
