@@ -320,7 +320,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       <Row className='warning-helper-text'>
         <Octicon symbol={OcticonSymbol.alert} />
         <p>
-          This directory appears to already be a git repository. Would you like to <LinkButton onClick={this.onAddRepositoryClicked}>add this repository</LinkButton> instead?
+          This directory appears to be a Git repository. Would you like to <LinkButton onClick={this.onAddRepositoryClicked}>add this repository</LinkButton> instead?
         </p>
       </Row>
     )

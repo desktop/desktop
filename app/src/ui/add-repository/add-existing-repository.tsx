@@ -20,7 +20,7 @@ interface IAddExistingRepositoryProps {
   readonly onDismissed: () => void
 
   /** An optional path to prefill the path text box with.
-   * Defaults to the empty string
+   * Defaults to the empty string if not defined.
    */
   readonly path?: string
 }
@@ -79,7 +79,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
       <Row className='warning-helper-text'>
         <Octicon symbol={OcticonSymbol.alert} />
         <p>
-          This directory does not appear to be a git repository.
+          This directory does not appear to be a Git repository.
           <br />
           Would you like to <LinkButton onClick={this.onCreateRepositoryClicked}>create a repository</LinkButton> here instead?
         </p>
