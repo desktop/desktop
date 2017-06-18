@@ -131,10 +131,9 @@
     "xml2js": "^0.4.16"
   },
   "devDependencies": {
-    "electron": "1.6.10",
+    "electron": "1.6.7",
     "electron-builder": "^18.3.0",
     "electron-mocha": "3.3.0",
-    "electron-winstaller": "2.5.2",
     "@types/chai": "^3.4.30",
     "@types/chai-datetime": "0.0.30",
     "@types/classnames": "^0.0.32",
