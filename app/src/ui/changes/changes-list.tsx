@@ -144,6 +144,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
             label={filesDescription}
             value={this.includeAllValue}
             onChange={this.onIncludeAllChanged}
+            disabled={fileCount === 0}
           />
         </div>
 
