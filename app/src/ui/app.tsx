@@ -1050,7 +1050,8 @@ export class App extends React.Component<IAppProps, IAppState> {
                         sidebarWidth={this.state.sidebarWidth}
                         commitSummaryWidth={this.state.commitSummaryWidth}
                         issuesStore={this.props.appStore.issuesStore}
-                        gitHubUserStore={this.props.appStore.gitHubUserStore}/>
+                        gitHubUserStore={this.props.appStore.gitHubUserStore}
+                        onViewCommitOnGitHub={this.onViewCommitOnGitHub}/>
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}
