@@ -132,7 +132,7 @@
   },
   "devDependencies": {
     "electron": "1.6.7",
-    "electron-builder": "^18.3.0",
+    "electron-builder": "^19.5.0",
     "electron-mocha": "3.3.0",
     "@types/chai": "^3.4.30",
     "@types/chai-datetime": "0.0.30",
