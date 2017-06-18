@@ -139,7 +139,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit' disabled={disabled}>
+            <Button type='submit' disabled={disabled || this.state.commitCount === 0}>
               Merge into <strong>{currentBranch ? currentBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
