@@ -21,6 +21,7 @@ interface IRepositoryProps {
   readonly commitSummaryWidth: number
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
+  readonly onViewCommitOnGitHub: (SHA: string) => void
 }
 
 const enum Tab {
@@ -152,6 +153,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         localCommitSHAs={this.props.state.localCommitSHAs}
         commitSummaryWidth={this.props.commitSummaryWidth}
         gitHubUsers={this.props.state.gitHubUsers}
+        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
