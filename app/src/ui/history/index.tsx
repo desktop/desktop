@@ -24,6 +24,7 @@ interface IHistoryProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly commitSummaryWidth: number
   readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly onViewCommitOnGitHub: (SHA: string) => void
 }
 
 interface IHistoryState {
@@ -102,6 +103,7 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
       gitHubUser={gitHubUser}
       onExpandChanged={this.onExpandChanged}
       isExpanded={this.state.isExpanded}
+      onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
     />
   }
 
