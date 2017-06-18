@@ -24,6 +24,7 @@ interface ICommitSummaryProps {
   readonly gitHubUser: IGitHubUser | null
   readonly isExpanded: boolean
   readonly onExpandChanged: (isExpanded: boolean) => void
+  readonly onViewCommitOnGitHub: (SHA: string) => void
 }
 
 interface ICommitSummaryState {
