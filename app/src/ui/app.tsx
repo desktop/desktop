@@ -1094,6 +1094,26 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.selectRepository(repository)
     this.props.dispatcher.closeFoldout(FoldoutType.Repository)
   }
+
+  private onViewCommitOnGitHub = async (SHA: string) => {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository) {
+      return
+    }
+
+    if (!repository.gitHubRepository) {
+      await this.props.dispatcher.presentError(new Error('Not on GitHub'))
+
+      return
+    }
+
+    const url = `${repository.gitHubRepository.htmlURL}/commit/${SHA}`
+
+    if (url) {
+      this.props.dispatcher.openInBrowser(url)
+    }
+  }
 }
 
 function NoRepositorySelected() {
