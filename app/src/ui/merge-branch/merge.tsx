@@ -93,7 +93,6 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private renderMergeInfo() {
-
     const commitCount = this.state.commitCount
     const countPlural = commitCount === 1 ? 'commit' : 'commits'
     const countText = commitCount === undefined
@@ -111,13 +110,26 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     )
   }
 
+  private renderUpToDateInfo() {
+    const currentBranch = this.props.currentBranch
+    const selectedBranch = this.state.selectedBranch
+
+    return (
+      <p className='merge-info'>
+        <strong>{currentBranch ? currentBranch.name : ''}</strong>
+        {' is up-to-date with '}
+        <strong>{selectedBranch ? selectedBranch.name : 'HEAD'}</strong>
+      </p>
+    )
+  }
+
   public render() {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
 
     const disabled = (selectedBranch === null || currentBranch === null) || currentBranch.name === selectedBranch.name
 
-    const mergeInfo = disabled ? null : this.renderMergeInfo()
+    const mergeInfo = disabled ? null : (this.state.commitCount === 0 ? this.renderUpToDateInfo() : this.renderMergeInfo())
 
     return (
       <Dialog
