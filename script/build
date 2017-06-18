@@ -18,9 +18,6 @@ console.log(`Building for ${process.env.NODE_ENV}…`)
 console.log('Removing old distribution…')
 fs.removeSync(path.join(projectRoot, 'dist'))
 
-console.log('Copying dependencies…')
-copyDependencies()
-
 console.log('Packaging emoji…')
 copyEmoji()
 
