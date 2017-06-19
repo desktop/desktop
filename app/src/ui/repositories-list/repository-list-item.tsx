@@ -1,12 +1,23 @@
 import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Octicon, iconForRepository } from '../octicons'
-import { CloningRepository } from '../../lib/dispatcher'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { Repositoryish } from './group-repositories'
 
 interface IRepositoryListItemProps {
-  readonly repository: Repository | CloningRepository
-  readonly onRemoveRepository: (repository: Repository | CloningRepository) => void
+  readonly repository: Repositoryish
+
+  /** Called when the repository should be removed. */
+  readonly onRemoveRepository: (repository: Repositoryish) => void
+
+  /** Called when the repository should be shown in Finder/Explorer. */
+  readonly onShowRepository: (repository: Repositoryish) => void
+
+  /** Called when the repository should be shown in the shell. */
+  readonly onOpenInShell: (repository: Repositoryish) => void
+
+  /** Does the repository need to be disambiguated in the list? */
+  readonly needsDisambiguation: boolean
 }
 
 /** A repository item. */
@@ -19,10 +30,19 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
       : path
 
+    let prefix: string | null = null
+    if (this.props.needsDisambiguation && gitHubRepo) {
+      prefix = `${gitHubRepo.owner.login}/`
+    }
+
     return (
       <div onContextMenu={this.onContextMenu} className='repository-list-item' title={tooltip}>
         <Octicon symbol={iconForRepository(repository)} />
-        <div className='name'>{repository.name}</div>
+
+        <div className='name'>
+          {prefix ? <span className='prefix'>{prefix}</span> : null}
+          <span>{repository.name}</span>
+        </div>
       </div>
     )
   }
@@ -37,14 +57,39 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
-    const item = {
-      label: 'Remove',
-      action: () => this.removeRepository(),
-    }
-    showContextualMenu([ item ])
+
+    const repository = this.props.repository
+    const missing = repository instanceof Repository && repository.missing
+
+    const items: ReadonlyArray<IMenuItem> = [
+      {
+        label: __DARWIN__ ? 'Open in Terminal' : 'Open command prompt',
+        action: this.openInShell,
+        enabled: !missing,
+      },
+      {
+        label: __DARWIN__ ? 'Show in Finder' : 'Show in Explorer',
+        action: this.showRepository,
+        enabled: !missing,
+      },
+      { type: 'separator' },
+      {
+        label: 'Remove',
+        action: this.removeRepository,
+      },
+    ]
+    showContextualMenu(items)
   }
 
-  private removeRepository() {
+  private removeRepository = () => {
     this.props.onRemoveRepository(this.props.repository)
+  }
+
+  private showRepository = () => {
+    this.props.onShowRepository(this.props.repository)
+  }
+
+  private openInShell = () => {
+    this.props.onOpenInShell(this.props.repository)
   }
 }

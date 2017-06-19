@@ -2,10 +2,8 @@ import * as React from 'react'
 
 import { RepositoryListItem } from './repository-list-item'
 import { groupRepositories, IRepositoryListItem, Repositoryish, RepositoryGroupIdentifier } from './group-repositories'
-import { Dispatcher } from '../../lib/dispatcher'
 import { FilterList } from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
-import { FoldoutType } from '../../lib/app-state'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
@@ -15,10 +13,22 @@ const RepositoryFilterList: new() => FilterList<IRepositoryListItem> = FilterLis
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
-  readonly onSelectionChanged: (repository: Repositoryish) => void
-  readonly dispatcher: Dispatcher
   readonly repositories: ReadonlyArray<Repositoryish>
+
+  /** Called when a repository has been selected. */
+  readonly onSelectionChanged: (repository: Repositoryish) => void
+
+  /** Called when the repository should be removed. */
   readonly onRemoveRepository: (repository: Repositoryish) => void
+
+  /** Called when the repository should be shown in Finder/Explorer. */
+  readonly onShowRepository: (repository: Repositoryish) => void
+
+  /** Called when the repository should be shown in the shell. */
+  readonly onOpenInShell: (repository: Repositoryish) => void
+
+  /** Called when the repositories list should be closed. */
+  readonly onClose: () => void
 }
 
 const RowHeight = 29
@@ -30,7 +40,10 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
     return <RepositoryListItem
       key={repository.id}
       repository={repository}
+      needsDisambiguation={item.needsDisambiguation}
       onRemoveRepository={this.props.onRemoveRepository}
+      onShowRepository={this.props.onShowRepository}
+      onOpenInShell={this.props.onOpenInShell}
     />
   }
 
@@ -58,7 +71,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
   private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       if (filter.length === 0) {
-        this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+        this.props.onClose()
         event.preventDefault()
       }
     }

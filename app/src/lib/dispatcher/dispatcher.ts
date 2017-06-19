@@ -846,7 +846,7 @@ export class Dispatcher {
         } else {
           return this.showPopup({
             type: PopupType.AddRepository,
-            initialPath: action.path,
+            path: action.path,
           })
         }
         break

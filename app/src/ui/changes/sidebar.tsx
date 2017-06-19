@@ -1,3 +1,4 @@
+import * as Path from 'path'
 import * as React from 'react'
 
 import { ChangesList } from './changes-list'
@@ -13,6 +14,7 @@ import { ICommitMessage } from '../../lib/app-state'
 import { ClickSource } from '../list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
+import { openFile } from '../../lib/open-file'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -122,6 +124,15 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
   }
 
   /**
+   * Open file with default application.
+   * @param path The path of the file relative to the root of the repository
+   */
+  private onOpenItem = (path: string) => {
+    const fullPath = Path.join(this.props.repository.path, path)
+    openFile(fullPath, this.props.dispatcher)
+  }
+
+  /**
    * Toggles the selection of a given working directory file.
    * If the file is partially selected it the selection is cleared
    * in order to match the behavior of clicking on an indeterminate
@@ -212,6 +223,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           onDiscardChanges={this.onDiscardChanges}
           onDiscardAllChanges={this.onDiscardAllChanges}
           onRevealInFileManager={this.onRevealInFileManager}
+          onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
