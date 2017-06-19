@@ -34,3 +34,7 @@ export async function createCommit(repository: Repository, message: string, file
     }
   }
 }
+
+export async function revertCommit(repository: Repository, SHA: string) {
+  await git([ 'revert', SHA ], repository.path, 'revert')
+}
