@@ -296,9 +296,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private showAddLocalRepo = () => {
-    return this.props.dispatcher.showPopup({
-      type: PopupType.AddRepository,
-    })
+    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
 
   private showCreateRepository = () => {
