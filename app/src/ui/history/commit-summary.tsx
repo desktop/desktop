@@ -11,6 +11,7 @@ import { Repository } from '../../models/repository'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Avatar } from '../lib/avatar'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { revertCommit } from '../../lib/git'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -205,8 +206,8 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     showContextualMenu(items)
   }
 
-  private onRevertCommit = () => {
-    alert('Revert Commiy')
+  private onRevertCommit = async () => {
+    await revertCommit(this.props.repository, this.props.sha)
   }
 
   private onCopySHA = () => {
