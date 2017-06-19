@@ -20,6 +20,9 @@ interface ILinkButtonProps {
 
   /** Disable the link from being clicked */
   readonly disabled?: boolean
+
+  /** title-text or tooltip for the link */
+  readonly title?: string
 }
 
 /** A link component. */
@@ -33,6 +36,7 @@ export class LinkButton extends React.Component<ILinkButtonProps, void> {
         className={className}
         href={href}
         onClick={this.onClick}
+        title={this.props.title}
         tabIndex={this.props.tabIndex}
         disabled={this.props.disabled}
       >

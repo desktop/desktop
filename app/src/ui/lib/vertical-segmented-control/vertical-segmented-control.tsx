@@ -62,6 +62,7 @@ interface IVerticalSegmentedControlState {
  */
 export class VerticalSegmentedControl extends React.Component<IVerticalSegmentedControlProps, IVerticalSegmentedControlState> {
   private listRef: HTMLUListElement | null = null
+  private formRef: HTMLFormElement | null = null
 
   public constructor(props: IVerticalSegmentedControlProps) {
     super(props)
@@ -132,11 +133,23 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
         this.props.onSelectionChanged(this.props.selectedIndex + 1)
       }
       event.preventDefault()
+    } else if (event.key === 'Enter') {
+      const form = this.formRef
+      if (form) {
+        // NB: In order to play nicely with React's custom event dispatching,
+        // we dispatch an event instead of calling `submit` directly on the
+        // form.
+        form.dispatchEvent(new Event('submit'))
+      }
     }
   }
 
   private onListRef = (ref: HTMLUListElement | null) => {
     this.listRef = ref
+  }
+
+  private onFieldsetRef = (ref: HTMLFieldSetElement | null) => {
+    this.formRef = ref ? ref.form : null
   }
 
   private onLegendClick = () => {
@@ -162,7 +175,7 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
     // we can't use a label to point to a list (https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable).
     // See http://stackoverflow.com/a/13273907/2114
     return (
-      <fieldset className='vertical-segmented-control'>
+      <fieldset className='vertical-segmented-control' ref={this.onFieldsetRef}>
         {label}
         <ul
           ref={this.onListRef}
