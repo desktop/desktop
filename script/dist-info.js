@@ -2,6 +2,7 @@
 
 const path = require('path')
 const os = require('os')
+const fs = require('fs')
 
 const projectRoot = path.join(__dirname, '..')
 const appPackage = require(path.join(projectRoot, 'app', 'package.json'))
@@ -76,6 +77,12 @@ function getUserDataPath () {
 
 function getWindowsIdentifierName () {
   return 'GitHubDesktop'
+}
+
+function getBundleSizes () {
+  const rendererStats = fs.statSync(path.join(projectRoot, 'out', 'renderer.js'))
+  const mainStats = fs.statSync(path.join(projectRoot, 'out', 'main.js'))
+  return { rendererSize: rendererStats.size, mainSize: mainStats.size }
 }
 
 module.exports = {
