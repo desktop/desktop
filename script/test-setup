@@ -17,18 +17,19 @@ if (process.platform === 'darwin' && process.env.TRAVIS && !isFork) {
   } catch (err) {
     process.exit(1)
   }
+  console.log('\n\n')
 }
 
 if (process.platform === 'darwin' && process.env.TRAVIS) {
   const directory = getUserDataPath()
   if (fs.existsSync(directory)) {
-    console.log(`clearing application data directory ${directory}`)
+    console.log(`clearing application data directory: '${directory}'`)
     fs.rmdirSync(directory)
   }
 }
 
 const output = cp.execSync('git config -l --show-origin', { encoding: 'utf-8' })
-console.log(`${output}\n\n`)
+console.log(`Git config:\n${output}\n\n`)
 
 // clear existing log files
 const directory = path.join(getUserDataPath(), 'logs')
