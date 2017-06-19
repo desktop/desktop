@@ -100,5 +100,6 @@ module.exports = {
   getWindowsFullNugetPackagePath,
   getBundleID,
   getUserDataPath,
-  getWindowsIdentifierName
+  getWindowsIdentifierName,
+  getBundleSizes
 }
