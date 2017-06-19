@@ -113,6 +113,7 @@ declare namespace NodeJS {
     once(event: 'uncaughtException', listener: (error: Error) => void): this
     on(event: 'uncaughtException', listener: (error: Error) => void): this
     removeListener(event: 'exit', listener: Function): this
+    once(event: 'exit', listener: Function): this
   }
 }
 
