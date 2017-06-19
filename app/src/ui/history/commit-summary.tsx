@@ -198,7 +198,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
       {
         label: 'View on GitHub',
         action: this.onViewOnGitHub,
-        enabled: !this.props.isLocal,
+        enabled: !this.props.isLocal || !this.props.repository.gitHubRepository,
       },
     ]
 
