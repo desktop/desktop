@@ -1099,13 +1099,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onViewCommitOnGitHub = async (SHA: string) => {
     const repository = this.getRepository()
 
-    if (!repository || repository instanceof CloningRepository) {
-      return
-    }
-
-    if (!repository.gitHubRepository) {
-      await this.props.dispatcher.presentError(new Error('Not on GitHub'))
-
+    if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
       return
     }
 
