@@ -22,13 +22,14 @@ if (process.platform === 'darwin' && process.env.TRAVIS && !isFork) {
 const output = cp.execSync('git config -l --show-origin', { encoding: 'utf-8' })
 console.log(`${output}\n\n`)
 
-// clear out existing log files
+// clear existing log files
 const directory = getUserDataPath()
-if (!fs.existsSync(directory)) {
+const logsDir = path.join(directory, 'logs')
+if (!fs.existsSync(logsDir)) {
   return
 }
 
-const files = fs.readdirSync(directory)
+const files = fs.readdirSync(logsDir)
 files.forEach(file => {
   if (file.endsWith('.log')) {
     console.log(`deleting ${file}`)
