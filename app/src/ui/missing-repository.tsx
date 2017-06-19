@@ -4,7 +4,7 @@ import { UiView } from './ui-view'
 import { Dispatcher } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
 import { Account } from '../models/account'
-import { findAccountForRemote } from '../lib/find-account'
+import { findAccountForRemoteURL } from '../lib/find-account'
 
 import { Button } from './lib/button'
 import { Row } from './lib/row'
@@ -71,7 +71,7 @@ export class MissingRepository extends React.Component<IMissingRepositoryProps, 
     if (!cloneURL) { return }
 
     try {
-      const user = await findAccountForRemote(cloneURL, this.props.accounts)
+      const user = await findAccountForRemoteURL(cloneURL, this.props.accounts)
       await this.props.dispatcher.cloneAgain(cloneURL, this.props.repository.path, user)
     } catch (error) {
       this.props.dispatcher.postError(error)
