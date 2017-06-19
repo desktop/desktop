@@ -7,14 +7,12 @@ const path = require('path')
 const { getUserDataPath } = require('./dist-info')
 
 function reviewLogs() {
-  const directory = getUserDataPath()
-  const logsDir = path.join(directory, 'logs')
-
-  if (!fs.existsSync(logsDir)) {
+  const directory = path.join(getUserDataPath(), 'logs')
+  if (!fs.existsSync(directory)) {
     return
   }
 
-  const files = fs.readdirSync(logsDir)
+  const files = fs.readdirSync(directory)
     files.forEach(file => {
       if (file.endsWith('.log')) {
         console.log(`opening ${file}`)
