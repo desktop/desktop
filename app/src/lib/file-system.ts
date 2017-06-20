@@ -10,8 +10,8 @@ interface errorCallbackType { (err: ErrnoException): void}
  * @param directoryPath the path of the directory the user wants to create
  * @param errorCallback function to be called in the event of an unexpected error
  */
-export function mkdirIfNeeded (directoryPath: string, errorCallback: errorCallbackType) {
-  fileSystem.mkdir(directoryPath, (err) => {
+export async function mkdirIfNeeded (directoryPath: string, errorCallback: errorCallbackType){
+  await fileSystem.mkdir(directoryPath, (err) => {
     if (err && err.code !== 'EEXIST') {
       errorCallback(err)
       return
