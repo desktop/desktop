@@ -1,8 +1,10 @@
+import * as Path from 'path'
 import * as glob from 'glob'
 import * as Register from 'winreg'
 import { Repository } from '../../models/repository'
 
-export interface IEditor {
+export interface IEditorInfo {
+  readonly name: string
   readonly exec: () => void
 }
 
@@ -77,25 +79,28 @@ export function isAtomInstalled() {
     return path != null
 }
 
-class VisualStudioEditor implements IEditor {
+class VisualStudioEditor implements IEditorInfo {
   private readonly path: string
-
+  public readonly name: string
   public constructor(path: string) {
     this.path = path
+    this.name = 'Visual Studio'
   }
+
   public exec(): void {
     console.log('exec ' + this.path)
   }
 }
 
-function buildVisualStudioSolutionLaunchers(repository: Repository): Promise<IEditor[]> {
-  return new Promise<IEditor[]>( (resolve, reject) => {
+function buildVisualStudioSolutionLaunchers(repository: Repository): Promise<IEditorInfo[]> {
+  return new Promise<IEditorInfo[]>( (resolve, reject) => {
 
-    const editors = new Array<IEditor>()
+    const editors = new Array<IEditorInfo>()
 
-    glob('**/*.sln', (err, matches) => {
+    glob( Path.join( repository.path, '**/*.sln'), (err, matches) => {
       if (!err) {
         for (let i = 0; i < matches.length; i++) {
+          console.log(matches[i])
           editors.push( new VisualStudioEditor( matches[i] ) )
         }
         resolve(editors)
@@ -106,8 +111,8 @@ function buildVisualStudioSolutionLaunchers(repository: Repository): Promise<IEd
   })
 }
 
-function buildAtomLauncher(): Promise<IEditor[]> {
-  const editors = new Array<IEditor>()
+function buildAtomLauncher(): Promise<IEditorInfo[]> {
+  const editors = new Array<IEditorInfo>()
   // TODO: fill this in
   return Promise.resolve(editors)
 }
@@ -117,10 +122,10 @@ function buildAtomLauncher(): Promise<IEditor[]> {
  * for known applications
  * @param repository  Repository to search
  */
-export function getEditorsForRepository(repository: Repository): Promise<IEditor[]> {
+export function getEditorsForRepository(repository: Repository): Promise<IEditorInfo[]> {
 
-  const editors = new Array<IEditor>()
-  const empty = new Array<IEditor>()
+  const editors = new Array<IEditorInfo>()
+  const empty = new Array<IEditorInfo>()
   return isVisualStudioInstalled()
   .then( (res) => {
     if (res) {
@@ -145,7 +150,7 @@ export function getEditorsForRepository(repository: Repository): Promise<IEditor
     // Atom launcher if any
     editors.push.apply( editors, res )
 
-    console.log( editors )
+    console.log('All Editrs: ' +  editors )
     return Promise.resolve(editors)
   })
 

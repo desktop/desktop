@@ -3,6 +3,7 @@ import { Repository } from '../../models/repository'
 import { Octicon, iconForRepository } from '../octicons'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
+import { shell } from '../../lib/dispatcher/app-shell'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -49,7 +50,7 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
     const repository = this.props.repository
     const missing = repository instanceof Repository && repository.missing
 
-    const items: ReadonlyArray<IMenuItem> = [
+    const items: Array<IMenuItem> = [
       {
         label: __DARWIN__ ? 'Open in Terminal' : 'Open command prompt',
         action: this.openInShell,
@@ -66,7 +67,24 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
         action: this.removeRepository,
       },
     ]
-    showContextualMenu(items)
+
+    if (repository instanceof Repository) {
+      shell.getEditors(repository, '')
+      .then( (res) => {
+        for (let i = 0; i < res.length; i++) {
+          items.push( {
+            label: res[i].name,
+            action: () => { res[i].exec() }
+          })
+        }
+
+        console.log('Resolved: ' + items)
+        showContextualMenu(items)
+      })
+    }else {
+      console.log('default: ' + items)
+      showContextualMenu(items)
+    }
   }
 
   private removeRepository = () => {

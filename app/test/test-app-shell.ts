@@ -7,7 +7,7 @@ import * as Fs from 'fs'
 
 export interface IEditorInfo {
   readonly name: string
-  readonly launch: (repository: Repository, path: string) => void
+  readonly exec: () => void
 }
 
 export const shell: IAppShell = {
@@ -18,5 +18,5 @@ export const shell: IAppShell = {
   beep: () => { },
   openExternal: (path: string) => { },
   openItem: (path: string) => true,
-  getEditors: (repository: Repository, path: string) => { return Array<IEditorInfo>() },
+  getEditors: (repository: Repository, path: string) => { return Promise.resolve( Array<IEditorInfo>())  },
 }

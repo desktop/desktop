@@ -3,7 +3,11 @@ import { Repository } from '../../models/repository'
 
 export interface IEditorInfo {
   readonly name: string
-  readonly launch: (repository: Repository, path: string) => void
+  readonly exec: () => void
+}
+
+interface IEditorBuilder {
+  readonly getEditorsForRepository: (repo: Repository) => Promise<IEditorInfo>
 }
 
 export interface IAppShell {
@@ -11,18 +15,21 @@ export interface IAppShell {
   readonly beep: () => void
   readonly openExternal: (path: string) => void
   readonly openItem: (path: string) => boolean
-  readonly getEditors: (repository: Repository, path: string) => IEditorInfo[]
+  readonly getEditors: (repository: Repository, path: string) => Promise<IEditorInfo[]>
 }
 
-function getEditorList(repository: Repository, path: string ): IEditorInfo[] {
+function getEditorList(repository: Repository, path: string ): Promise<IEditorInfo[]> {
   const result = new Array<IEditorInfo>()
 
   result.push({
     name: 'External Editor',
-    launch: (repository: Repository, path: string) => {},
+    exec: () => {
+    },
   })
+
   if (__DARWIN__) {
     // FIXME: this doesn't exist yet and is intended to break
+    /*
     const osx = require('./shell-osx')
     if (osx.isAtomInstalled()) {
       result.push({
@@ -36,33 +43,18 @@ function getEditorList(repository: Repository, path: string ): IEditorInfo[] {
         launch: (repository: Repository, path: string) => {},
       })
     }
+    */
+    return Promise.resolve(result)
   } else {
-    const win32 = require('./shell-win32')
-    win32.getEditorsForRepository(repository)
-
-    if (win32.isVisualStudioInstalled() ) {
-      result.push({
-        name: 'Visual Studio',
-        launch: (repository: Repository, path: string) => {},
-      })
-    }
-    if (win32.isVisualStudioCodeInstalled() ) {
-      result.push({
-        name: 'Visual Studio Code',
-        launch: (repository: Repository, path: string) => {},
-      })
-    }
-
-    if (win32.isAtomInstalled() ) {
-      result.push({
-        name: 'Atom',
-        launch: (repository: Repository, path: string) => {},
-      })
-    }
+    const win32: IEditorBuilder = require('./shell-win32')
+    return win32
+    .getEditorsForRepository(repository)
+    .then( (res) => {
+      result.push.apply(result, res )
+      return result
+    })
   }
-  return result
 }
-
 
 export const shell: IAppShell = {
   moveItemToTrash: electronShell.moveItemToTrash,
