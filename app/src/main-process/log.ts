@@ -76,7 +76,7 @@ function getLogger(): Promise<winston.LogMethod> {
 
   loggerPromise = new Promise<winston.LogMethod>((resolve, reject) => {
 
-    const logPath = getLogPath();
+    const logPath = getLogPath()
 
     fileSystem.mkdirIfNeeded(logPath, (error) => { reject(error) }).then(() => {
       const logger = initializeWinston(getLogFilePath(logPath))

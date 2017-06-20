@@ -1,7 +1,7 @@
 import * as fileSystem from 'fs-extra'
-import ErrnoException = NodeJS.ErrnoException;
+import ErrnoException = NodeJS.ErrnoException
 
-interface errorCallbackType { (err: ErrnoException): void}
+interface IErrorCallbackType { (err: ErrnoException): void}
 
 
 /** this function wraps the filesystem mkdir function and silently returns if
@@ -10,7 +10,7 @@ interface errorCallbackType { (err: ErrnoException): void}
  * @param directoryPath the path of the directory the user wants to create
  * @param errorCallback function to be called in the event of an unexpected error
  */
-export async function mkdirIfNeeded (directoryPath: string, errorCallback: errorCallbackType){
+export async function mkdirIfNeeded (directoryPath: string, errorCallback: IErrorCallbackType) {
   await fileSystem.mkdir(directoryPath, (err) => {
     if (err && err.code !== 'EEXIST') {
       errorCallback(err)

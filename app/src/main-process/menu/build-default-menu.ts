@@ -302,7 +302,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       const logPath = getLogPath()
       mkdirIfNeeded(logPath, (err) => log('error', err.message)).then(() => {
           shell.showItemInFolder(logPath)
-        }
+        },
       )
     },
   }
