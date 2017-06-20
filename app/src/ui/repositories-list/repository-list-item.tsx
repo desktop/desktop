@@ -20,6 +20,18 @@ interface IRepositoryListItemProps {
 
 /** A repository item. */
 export class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
+
+  private editorItems: Array<IMenuItem>
+  private editorsResolved: boolean
+
+  public constructor(props?: IRepositoryListItemProps, context?: any) {
+    super(props, context)
+
+    /* start looking for list of editors for the repo
+     * This can take a little while, so start early
+     */
+    this.buildEditorList()
+  }
   public render() {
     const repository = this.props.repository
     const path = repository.path
@@ -31,7 +43,7 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
     return (
       <div onContextMenu={this.onContextMenu} className='repository-list-item' title={tooltip}>
         <Octicon symbol={iconForRepository(repository)} />
-        <div className='name'>{repository.name}</div>
+        <div className='name'>{repository.name} {this.editorsResolved ? '' : '(searching...)'}</div>
       </div>
     )
   }
@@ -41,6 +53,29 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
       return nextProps.repository.id !== this.props.repository.id
     } else {
       return true
+    }
+  }
+
+  private buildEditorList(): void {
+
+    this.editorsResolved = false
+    this.editorItems = new Array<IMenuItem>()
+
+    const repository = this.props.repository
+    if (repository instanceof Repository) {
+      shell.getEditors(repository, '')
+      .then( (res) => {
+        for (let i = 0; i < res.length; i++) {
+          this.editorItems.push( {
+            label: res[i].name,
+            action: () => { res[i].exec() },
+          })
+        }
+
+        this.editorsResolved = true
+
+        this.forceUpdate()
+      })
     }
   }
 
@@ -68,23 +103,9 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
       },
     ]
 
-    if (repository instanceof Repository) {
-      shell.getEditors(repository, '')
-      .then( (res) => {
-        for (let i = 0; i < res.length; i++) {
-          items.push( {
-            label: res[i].name,
-            action: () => { res[i].exec() }
-          })
-        }
+    items.push.apply(items, this.editorItems)
+    showContextualMenu(items)
 
-        console.log('Resolved: ' + items)
-        showContextualMenu(items)
-      })
-    }else {
-      console.log('default: ' + items)
-      showContextualMenu(items)
-    }
   }
 
   private removeRepository = () => {

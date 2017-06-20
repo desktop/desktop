@@ -84,7 +84,11 @@ class VisualStudioEditor implements IEditorInfo {
   public readonly name: string
   public constructor(path: string) {
     this.path = path
-    this.name = 'Visual Studio'
+    if (path.length > 15)
+    {
+      path = '...' + path.substr(path.length - 12)
+    }
+    this.name = 'Visual Studio ( ' + path + ')'
   }
 
   public exec(): void {
@@ -96,7 +100,6 @@ function buildVisualStudioSolutionLaunchers(repository: Repository): Promise<IEd
   return new Promise<IEditorInfo[]>( (resolve, reject) => {
 
     const editors = new Array<IEditorInfo>()
-
     glob( Path.join( repository.path, '**/*.sln'), (err, matches) => {
       if (!err) {
         for (let i = 0; i < matches.length; i++) {
