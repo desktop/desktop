@@ -92,11 +92,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     }
   }
 
-  private renderMergeInfo(invalidBranch: boolean) {
+  private renderMergeInfo() {
     const commitCount = this.state.commitCount
     const selectedBranch = this.state.selectedBranch
+    const currentBranch = this.props.currentBranch
 
-    if (invalidBranch) {
+    if ((selectedBranch === null || currentBranch === null) || currentBranch.name === selectedBranch.name) {
       return null
     }
 
@@ -122,8 +123,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
 
-    const invalidBranch = (selectedBranch === null || currentBranch === null) || currentBranch.name === selectedBranch.name
-    const disabled = invalidBranch || this.state.commitCount === 0
+    const disabled = (selectedBranch === null || currentBranch === null) || currentBranch.name === selectedBranch.name || this.state.commitCount === 0
 
     return (
       <Dialog
@@ -149,7 +149,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
               Merge into <strong>{currentBranch ? currentBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
-          {this.renderMergeInfo(invalidBranch)}
+          {this.renderMergeInfo()}
         </DialogFooter>
       </Dialog>
     )
