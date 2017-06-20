@@ -554,7 +554,7 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
     emails = [ ]
   }
 
-  return new Account(user.login, endpoint, token, emails, user.avatarUrl, user.id, user.name)
+  return new Account(user.login, endpoint, token, emails, user.avatar_url, user.id, user.name)
 }
 
 /** Get metadata from the server. */
