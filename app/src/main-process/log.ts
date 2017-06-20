@@ -1,6 +1,6 @@
-import * as Fs from 'fs-extra'
 import * as Path from 'path'
 import * as winston from 'winston'
+import * as fileSystem from '../lib/file-system'
 
 import { getLogPath } from '../lib/logging/get-log-path'
 import { LogLevel } from '../lib/logging/log-level'
@@ -76,14 +76,9 @@ function getLogger(): Promise<winston.LogMethod> {
 
   loggerPromise = new Promise<winston.LogMethod>((resolve, reject) => {
 
-    const logPath = getLogPath()
+    const logPath = getLogPath();
 
-    Fs.mkdir(logPath, (error) => {
-      if (error && error.code !== 'EEXIST') {
-        reject(error)
-        return
-      }
-
+    fileSystem.mkdirIfNeeded(logPath, (error) => { reject(error) }).then(() => {
       const logger = initializeWinston(getLogFilePath(logPath))
       resolve(logger)
     })
