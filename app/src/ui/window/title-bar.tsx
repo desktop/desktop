@@ -31,7 +31,6 @@ interface ITitleBarState {
   readonly style?: React.CSSProperties
 }
 
-type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
 function getState(props: ITitleBarProps): ITitleBarState {
   return {
@@ -49,7 +48,7 @@ export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
   }
 
   private onTitlebarDoubleClickDarwin = () => {
-    const actionOnDoubleClick: AppleActionOnDoubleClickPref = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
+    const actionOnDoubleClick = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
     const mainWindow = remote.getCurrentWindow()
 
     switch (actionOnDoubleClick) {

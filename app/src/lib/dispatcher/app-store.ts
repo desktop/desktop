@@ -161,7 +161,7 @@ export class AppStore {
     const window = remote.getCurrentWindow()
     this.windowState = getWindowState(window)
 
-    ipcRenderer.on('window-state-changed', (_, args) => {
+    ipcRenderer.on('window-state-changed', (event: Electron.IpcMessageEvent, args: any[]) => {
       this.windowState = getWindowState(window)
       this.emitUpdate()
     })
@@ -170,11 +170,11 @@ export class AppStore {
       this.onWindowZoomFactorChanged(factor)
     })
 
-    ipcRenderer.on('zoom-factor-changed', (event, zoomFactor) => {
+    ipcRenderer.on('zoom-factor-changed', (event: any, zoomFactor: number) => {
       this.onWindowZoomFactorChanged(zoomFactor)
     })
 
-    ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
+    ipcRenderer.on('app-menu', (event: Electron.IpcMessageEvent, { menu }: { menu: IMenu }) => {
       this.setAppMenu(menu)
     })
 
