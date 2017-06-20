@@ -92,14 +92,22 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     }
   }
 
-  private renderMergeInfo() {
+  private renderMergeInfo(invalidBranch: boolean) {
     const commitCount = this.state.commitCount
-    const countPlural = commitCount === 1 ? 'commit' : 'commits'
-    const countText = commitCount === undefined
-      ? 'commits'
-      : <strong>{commitCount} {countPlural}</strong>
-
     const selectedBranch = this.state.selectedBranch
+
+    if (invalidBranch) {
+      return null
+    }
+
+    if (commitCount === 0) {
+      return (
+        <p className='merge-info'>Nothing to merge</p>
+      )
+    }
+
+    const countPlural = commitCount === 1 ? 'commit' : 'commits'
+    const countText = commitCount === undefined ? 'commits' : <strong>{commitCount} {countPlural}</strong>
 
     return (
       <p className='merge-info'>
@@ -110,26 +118,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     )
   }
 
-  private renderUpToDateInfo() {
-    const currentBranch = this.props.currentBranch
-    const selectedBranch = this.state.selectedBranch
-
-    return (
-      <p className='merge-info'>
-        <strong>{currentBranch ? currentBranch.name : ''}</strong>
-        {' is up-to-date with '}
-        <strong>{selectedBranch ? selectedBranch.name : 'HEAD'}</strong>
-      </p>
-    )
-  }
-
   public render() {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
 
-    const disabled = (selectedBranch === null || currentBranch === null) || currentBranch.name === selectedBranch.name
-
-    const mergeInfo = disabled ? null : (this.state.commitCount === 0 ? this.renderUpToDateInfo() : this.renderMergeInfo())
+    const invalidBranch = (selectedBranch === null || currentBranch === null) || currentBranch.name === selectedBranch.name
+    const disabled = invalidBranch || this.state.commitCount === 0
 
     return (
       <Dialog
@@ -151,11 +145,11 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit' disabled={disabled || this.state.commitCount === 0}>
+            <Button type='submit' disabled={disabled}>
               Merge into <strong>{currentBranch ? currentBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
-          {mergeInfo}
+          {this.renderMergeInfo(invalidBranch)}
         </DialogFooter>
       </Dialog>
     )
