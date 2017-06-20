@@ -200,6 +200,8 @@ function getDescriptionForError(error: DugiteError): string {
     case DugiteError.HexBranchNameRejected: return 'The branch name cannot be a 40-character string of hexadecimal characters, as this is the format that Git uses for representing objects.'
     case DugiteError.ForcePushRejected: return 'The force push has been rejected for the current branch.'
     case DugiteError.InvalidRefLength: return 'A ref cannot be longer than 255 characters.'
+    case DugiteError.CannotMergeUnrelatedHistories: return 'Unable to merge unrelated histories in this repository.'
+    case DugiteError.PushWithPrivateEmail: return 'Cannot push these commits as they contain an email address marked as private on GitHub.'
     default: return assertNever(error, `Unknown error: ${error}`)
   }
 }
