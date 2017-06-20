@@ -1,8 +1,14 @@
+import * as glob from 'glob'
 import * as Register from 'winreg'
+import { Repository } from '../../models/repository'
+
+export interface IEditor {
+  readonly exec: () => void
+}
 
 //import * as Path from 'path'
 
-export function isVisualStudioInstalled() {
+export function isVisualStudioInstalled(): Promise<boolean> {
   const keys = [
     '\\VisualStudio.DTE.8.0',  // 2005
     '\\VisualStudio.DTE.9.0',  // 2008
@@ -14,24 +20,27 @@ export function isVisualStudioInstalled() {
     '\\VisualStudio.DTE.15.0', // 2017
   ]
 
-  let found = false
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i]
-    new Register({
-      hive: Register.HKCR,
-      key: key,
-    }).get('', (err: Error, result: Register.RegistryItem) => {
-      if (err == null) {
-        found = true
-      }
-    })
+  const find = function(i: number, resolve: (value: boolean) => void, reject: (value: any) => void )  {
+    if (i >= keys.length) {
+      resolve(false)
+    }else{
+      new Register({
+        hive: Register.HKCR,
+        key: keys[i],
+      }).get('', (err: Error, result: Register.RegistryItem) => {
 
-    if (found) {
-       break
+        if (err) {
+          find( i + 1, resolve, reject)
+        }else{
+          resolve(true)
+        }
+      })
     }
   }
 
-  return found
+  return new Promise<boolean>( (resolve, reject) => {
+    find(0, resolve, reject)
+  })
 }
 
 export function isVisualStudioCodeInstalled() {
@@ -66,4 +75,84 @@ export function findAtomApplication() {
 export function isAtomInstalled() {
     const path = findAtomApplication()
     return path != null
+}
+
+class VisualStudioEditor implements IEditor {
+  private readonly path: string
+
+  public constructor(path: string) {
+    this.path = path
+  }
+  public exec(): void {
+    console.log('exec ' + this.path)
+  }
+}
+
+function buildVisualStudioSolutionLaunchers(repository: Repository): Promise<IEditor[]> {
+  return new Promise<IEditor[]>( (resolve, reject) => {
+
+    const editors = new Array<IEditor>()
+
+    glob('**/*.sln', (err, matches) => {
+      if (!err) {
+        for(let i = 0; i < matches.length; i++) {
+          editors.push( new VisualStudioEditor( matches[i] ) )
+        }
+        resolve(editors)
+      } else {
+        reject(err)
+      }
+    })
+  })
+}
+
+function buildAtomLauncher(): Promise<IEditor[]> {
+  const editors = new Array<IEditor>()
+  // TODO: fill this in
+  return Promise.resolve(editors)
+}
+
+/**
+ * Finds editors for a given repository.  Such as solution or workspace files
+ * for known applications
+ * @param repository  Repository to search
+ */
+export function getEditorsForRepository(repository: Repository): Promise<IEditor[]> {
+
+  const editors = new Array<IEditor>()
+  const empty = new Array<IEditor>()
+  return isVisualStudioInstalled()
+  .then( (res) => {
+    if (res) {
+      return buildVisualStudioSolutionLaunchers(repository)
+    } else {
+      return Promise.resolve( empty )
+    }
+  })
+  .then( (res) => {
+    // Visual Studio Solutions (if any)
+    editors.push.apply( editors, res )
+    return isAtomInstalled()
+  })
+  .then( (res) => {
+    if (res)
+    {
+      return buildAtomLauncher()
+    }else {
+      return Promise.resolve( empty )
+    }
+  })
+  .then( (res) => {
+    // Atom launcher if any
+    editors.push.apply( editors, res )
+
+    console.log( editors )
+    return Promise.resolve(editors)
+  })
+
+}
+
+export function getEditorsForItem(path: string) {
+
+
 }

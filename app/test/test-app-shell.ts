@@ -1,11 +1,13 @@
 /* tslint:disable:no-sync-functions */
 
 import { IAppShell } from '../src/lib/dispatcher/app-shell'
+import { Repository } from '../src/models/repository'
 
 import * as Fs from 'fs'
 
 export interface IEditorInfo {
   readonly name: string
+  readonly launch: (repository: Repository, path: string) => void
 }
 
 export const shell: IAppShell = {
@@ -16,5 +18,5 @@ export const shell: IAppShell = {
   beep: () => { },
   openExternal: (path: string) => { },
   openItem: (path: string) => true,
-  getEditors: (path: string) => { return Array<IEditorInfo>() },
+  getEditors: (repository: Repository, path: string) => { return Array<IEditorInfo>() },
 }
