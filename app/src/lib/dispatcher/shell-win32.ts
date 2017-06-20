@@ -23,7 +23,7 @@ export function isVisualStudioInstalled(): Promise<boolean> {
   const find = function(i: number, resolve: (value: boolean) => void, reject: (value: any) => void )  {
     if (i >= keys.length) {
       resolve(false)
-    }else{
+    } else {
       new Register({
         hive: Register.HKCR,
         key: keys[i],
@@ -31,7 +31,7 @@ export function isVisualStudioInstalled(): Promise<boolean> {
 
         if (err) {
           find( i + 1, resolve, reject)
-        }else{
+        } else {
           resolve(true)
         }
       })
@@ -95,7 +95,7 @@ function buildVisualStudioSolutionLaunchers(repository: Repository): Promise<IEd
 
     glob('**/*.sln', (err, matches) => {
       if (!err) {
-        for(let i = 0; i < matches.length; i++) {
+        for (let i = 0; i < matches.length; i++) {
           editors.push( new VisualStudioEditor( matches[i] ) )
         }
         resolve(editors)
@@ -135,10 +135,9 @@ export function getEditorsForRepository(repository: Repository): Promise<IEditor
     return isAtomInstalled()
   })
   .then( (res) => {
-    if (res)
-    {
+    if (res) {
       return buildAtomLauncher()
-    }else {
+    } else {
       return Promise.resolve( empty )
     }
   })
