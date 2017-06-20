@@ -165,7 +165,7 @@ interface IListProps {
   /** Whether or not selection should follow pointer device */
   readonly selectOnHover?: boolean
 
-  /** 
+  /**
    * Whether or not to explicitly move focus to a row if it was selected
    * by hovering (has no effect if selectOnHover is not set). Defaults to
    * true if not defined.

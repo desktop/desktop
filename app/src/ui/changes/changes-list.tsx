@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
-import { List, ClickSource } from '../list'
+import { ClickSource, SelectionSource } from '../list'
+import { FilterList, IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
@@ -15,6 +16,13 @@ import { Repository } from '../../models/repository'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 
 const RowHeight = 29
+
+/**
+ * TS can't parse generic specialization in JSX, so we have to alias it here
+ * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
+ */
+const ChangesFilterList: new() => FilterList<IFileListItem> = FilterList as any
+
 
 interface IChangesListProps {
   readonly repository: Repository
@@ -61,14 +69,28 @@ interface IChangesListProps {
   readonly onIgnore: (pattern: string) => void
 }
 
+interface IFileListItem extends IFilterListItem {
+  readonly text: string
+  readonly id: string
+  readonly file: WorkingDirectoryFileChange
+}
+
 export class ChangesList extends React.Component<IChangesListProps, void> {
+  private onItemClick: (item: IFileListItem, source: ClickSource) => void
+  private onSelectionChanged: (selectedItem: IFileListItem | null, source: SelectionSource) => void
+
+  public constructor (props: IChangesListProps) {
+    super(props)
+    this.onItemClick = this.listEventHandler('onRowClick')
+    this.onSelectionChanged = this.listEventHandler('onFileSelectionChanged')
+  }
+
   private onIncludeAllChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
     this.props.onSelectAll(include)
   }
 
-  private renderRow = (row: number): JSX.Element => {
-    const file = this.props.workingDirectory.files[row]
+  private renderRow = ({ file }: IFileListItem): JSX.Element => {
     const selection = file.selection.getSelectionType()
 
     const includeAll = selection === DiffSelectionType.All
@@ -129,9 +151,30 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     showContextualMenu(items)
   }
 
+  private listEventHandler = (key: 'onRowClick' | 'onFileSelectionChanged') => (item: IFileListItem, arg?: any): void => {
+    const handler = this.props[key] as (item: number, source: any) => void
+    if (handler) {
+      handler(this.listGroups[0].items.findIndex(file => file.file === item.file), arg)
+    }
+  }
+
+  private get listGroups(): ReadonlyArray<IFilterListGroup<IFileListItem>> {
+    return [
+      {
+        identifier: 'files',
+        hasHeader: false,
+        items: this.props.workingDirectory.files.map(file => ({
+          id: file.id,
+          text: [ file.oldPath, file.path ].filter(x => x).join(' '),
+          file,
+        })),
+      },
+    ]
+  }
+
   public render() {
     const fileList = this.props.workingDirectory.files
-    const selectedRow = fileList.findIndex(file => file.id === this.props.selectedFileID)
+    const selectedItem = this.listGroups[0].items.find(item => item.file.id === this.props.selectedFileID) || null
     const fileCount = fileList.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
@@ -148,14 +191,17 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
           />
         </div>
 
-        <List id='changes-list'
-              rowCount={this.props.workingDirectory.files.length}
-              rowHeight={RowHeight}
-              rowRenderer={this.renderRow}
-              selectedRow={selectedRow}
-              onSelectionChanged={this.props.onFileSelectionChanged}
-              invalidationProps={this.props.workingDirectory}
-              onRowClick={this.props.onRowClick}/>
+        <ChangesFilterList
+          autoFocus={false}
+          groups={this.listGroups}
+          rowHeight={RowHeight}
+          className='changes-list'
+          selectedItem={selectedItem}
+          renderItem={this.renderRow}
+          onSelectionChanged={this.onSelectionChanged}
+          invalidationProps={this.props.workingDirectory}
+          onItemClick={this.onItemClick}
+        />
 
         <CommitMessage
           onCreateCommit={this.props.onCreateCommit}

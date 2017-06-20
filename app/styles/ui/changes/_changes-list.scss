@@ -1,7 +1,17 @@
 @import "../../mixins";
 
-#changes-list {
+.changes-list {
   min-height: 0;
+
+  // otherwise, the list gets 0 height and won’t render.
+  .filter-list-container {
+    flex-direction: column;
+  }
+
+  .filter-field-row {
+    background: var(--box-alt-background-color);
+    border-bottom: 1px solid var(--box-border-color);
+  }
 }
 
 /** A React component holding the currently selected repository's changes */
@@ -12,7 +22,6 @@
 
   .header {
     background: var(--box-alt-background-color);
-    border-bottom: 1px solid var(--box-border-color);
     padding: 0 var(--spacing);
     height: 29px;
 
@@ -38,7 +47,7 @@
       input[type=checkbox] {
         flex-grow: 0;
         flex-shrink: 0;
-      }  
+      }
     }
   }
 }

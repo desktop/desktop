@@ -1,10 +1,17 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
-import { List } from '../list'
+import { FilterList, IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { IGitHubUser } from '../../lib/dispatcher'
 
 const RowHeight = 48
+
+/**
+ * TS can't parse generic specialization in JSX, so we have to alias it here
+ * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
+ */
+const CommitsFilterList: new() => FilterList<ICommitListItem> = FilterList as any
+
 
 interface ICommitListProps {
   readonly onCommitChanged: (commit: Commit) => void
@@ -16,12 +23,16 @@ interface ICommitListProps {
   readonly emoji: Map<string, string>
 }
 
+interface ICommitListItem extends IFilterListItem {
+  readonly text: string
+  readonly id: string
+  readonly sha: string
+}
+
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, void> {
-  private list: List | null
 
-  private renderCommit = (row: number) => {
-    const sha = this.props.history[row]
+  private renderCommit = ({ sha }: ICommitListItem) => {
     const commit = this.props.commits.get(sha)
     if (!commit) {
       return null
@@ -36,8 +47,11 @@ export class CommitList extends React.Component<ICommitListProps, void> {
     return <CommitListItem key={commit.sha} commit={commit} user={avatarUser} emoji={this.props.emoji}/>
   }
 
-  private onRowChanged = (row: number) => {
-    const sha = this.props.history[row]
+  private onRowChanged = (item: ICommitListItem) => {
+    if (!item) {
+      return
+    }
+    const { sha } = item
     const commit = this.props.commits.get(sha)
     if (commit) {
       this.props.onCommitChanged(commit)
@@ -58,8 +72,28 @@ export class CommitList extends React.Component<ICommitListProps, void> {
     return this.props.history.findIndex(s => s === sha)
   }
 
-  private onListRef = (ref: List) => {
-    this.list = ref
+  private get listGroups(): ReadonlyArray<IFilterListGroup<ICommitListItem>> {
+    return [
+      {
+        identifier: 'files',
+        hasHeader: false,
+        items: this.props.history.map(sha => {
+          const commit = this.props.commits.get(sha) || {
+            summary: false,
+            body: false,
+            author: {
+              name: false,
+              email: false,
+            },
+          }
+          return {
+            id: sha,
+            text: [ commit.summary, commit.body, commit.author.name, commit.author.email ].filter(x => x).join(' '),
+            sha,
+          }
+        }).filter(x => x.id.length),
+      },
+    ]
   }
 
   public render() {
@@ -74,18 +108,18 @@ export class CommitList extends React.Component<ICommitListProps, void> {
 
     return (
       <div id='commit-list'>
-        <List ref={this.onListRef}
-              rowCount={this.props.history.length}
-              rowHeight={RowHeight}
-              selectedRow={this.rowForSHA(this.props.selectedSHA)}
-              rowRenderer={this.renderCommit}
-              onSelectionChanged={this.onRowChanged}
-              onScroll={this.onScroll}
-              invalidationProps={{
-                history: this.props.history,
-                gitHubUsers: this.props.gitHubUsers,
-              }}
-            />
+        <CommitsFilterList
+          groups={this.listGroups}
+          rowHeight={RowHeight}
+          selectedItem={this.listGroups[0].items[this.rowForSHA(this.props.selectedSHA)]}
+          renderItem={this.renderCommit}
+          onSelectionChanged={this.onRowChanged}
+          onScroll={this.onScroll}
+          invalidationProps={{
+            history: this.props.history,
+            gitHubUsers: this.props.gitHubUsers,
+          }}
+        />
       </div>
     )
   }
