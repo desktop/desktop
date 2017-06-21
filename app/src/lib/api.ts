@@ -256,11 +256,7 @@ export class API {
   /** Fetch all the orgs to which the user belongs. */
   public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
     try {
-      const response = await this.request('GET', 'user/orgs')
-      const result = await parsedResponse<ReadonlyArray<IAPIUser>>(response)
-      return Array.isArray(result)
-        ? result
-        : []
+      return this.fetchAll<IAPIUser>('user/orgs')
     } catch (e) {
       log.warn('fetchOrgs: failed', e)
       return []
