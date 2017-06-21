@@ -76,7 +76,6 @@ export interface IAPICommit {
 export interface IAPIUser {
   readonly id: number
   readonly url: string
-  readonly type: 'user' | 'org'
   readonly login: string
   readonly avatar_url: string
   readonly name: string
