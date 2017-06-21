@@ -30,9 +30,19 @@ export class APIError extends Error {
   public readonly apiError: IAPIError | null
 
   public constructor(response: Response, apiError: IAPIError | null) {
-    const message = apiError && apiError.message
-      ? apiError.message
-      : `API error ${response.url}: ${response.statusText} (${response.status})`
+    let message
+    if (apiError && apiError.message) {
+      message = apiError.message
+
+      const errors = apiError.errors
+      const additionalMessages = errors && errors.map(e => e.message).join(', ')
+      if (additionalMessages) {
+        message = `${message} (${additionalMessages})`
+      }
+    } else {
+      message = `API error ${response.url}: ${response.statusText} (${response.status})`
+    }
+
     super(message)
 
     this.apiError = apiError
