@@ -6,7 +6,7 @@
     "test": "npm run test:unit && npm run test:integration",
     "test:setup": "node script/test-setup",
     "test:review": "node script/test-review",
-    "build:dir": "build --dir",
+    "build:dir": "npm run build:prod && build --dir",
     "dist": "npm run build:prod && build",
     "release": "npm run build:prod && build",
     "pack-all": "build -mwl",
@@ -43,6 +43,7 @@
   "build": {
     "productName": "GithubDesktop",
     "appId": "com.github.GithubClient",
+    "asar": false,
     "dmg": {
       "contents": [
         {
@@ -131,8 +132,8 @@
     "xml2js": "^0.4.16"
   },
   "devDependencies": {
-    "electron": "1.6.7",
-    "electron-builder": "^19.5.0",
+    "electron": "1.6.11",
+    "electron-builder": "19.5.0",
     "electron-mocha": "3.3.0",
     "@types/chai": "^3.4.30",
     "@types/chai-datetime": "0.0.30",
@@ -150,7 +151,6 @@
     "@types/react-virtualized": "^9.7.0",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
-    "@types/winston": "^2.2.0",
-    "legal-eagle": "^0.14.0"
+    "@types/winston": "^2.2.0"
   }
 }
