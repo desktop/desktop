@@ -1,6 +1,5 @@
 import * as OS from 'os'
 import * as URL from 'url'
-import * as Querystring from 'querystring'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
@@ -340,7 +339,7 @@ export class API {
    * return null.
    */
   public async getFetchPollInterval(owner: string, name: string): Promise<number | null> {
-    const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
+    const path = `repos/${owner}/${name}/git`
     try {
       const response = await this.request('HEAD', path)
       const interval = response.headers.get('x-poll-interval')
