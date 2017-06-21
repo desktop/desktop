@@ -300,7 +300,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
     click() {
       const logPath = getLogPath()
-      mkdirIfNeeded(logPath, )
+      mkdirIfNeeded(logPath)
         .then(() => {
           shell.showItemInFolder(logPath)
         })
