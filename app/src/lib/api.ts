@@ -224,7 +224,7 @@ export class API {
   /** Fetch a commit from the repository. */
   public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
     try {
-      const response = await this.request('GET', `repos/${owner}/${name}/git/commits/${sha}`)
+      const response = await this.request('GET', `repos/${owner}/${name}/commits/${sha}`)
       return parsedResponse<IAPICommit>(response)
     } catch (e) {
       log.warn(`fetchCommit: not found '${owner}/${name}@${sha}'`, e)
