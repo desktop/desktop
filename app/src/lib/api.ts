@@ -199,7 +199,7 @@ export class API {
       const result = await parsedResponse<IAPIUser>(response)
       return result
     } catch (e) {
-      log.warn('fetchAccount: failed', e)
+      log.warn(`fetchAccount: failed with endpoint ${this.endpoint}`, e)
       throw e
     }
   }
@@ -221,7 +221,7 @@ export class API {
         ? result
         : []
     } catch (e) {
-      log.warn('fetchEmails: failed', e)
+      log.warn(`fetchEmails: failed with endpoint ${this.endpoint}`, e)
       return []
     }
   }
@@ -263,7 +263,7 @@ export class API {
     try {
       return this.fetchAll<IAPIUser>('user/orgs')
     } catch (e) {
-      log.warn('fetchOrgs: failed', e)
+      log.warn(`fetchOrgs: failed with endpoint ${this.endpoint}`, e)
       return []
     }
   }
@@ -280,7 +280,7 @@ export class API {
 
       return parsedResponse<IAPIRepository>(response)
     } catch (e) {
-      log.warn(`createRepository: failed`, e)
+      log.warn(`createRepository: failed with endpoint ${this.endpoint}`, e)
       throw e
     }
   }
@@ -350,7 +350,7 @@ export class API {
       }
       return null
     } catch (e) {
-      log.warn('getFetchPollInterval: failed', e)
+      log.warn(`getFetchPollInterval: failed for ${owner}/${name}`, e)
       return null
     }
   }
@@ -372,7 +372,7 @@ export class API {
       const responseEtag = response.headers.get('etag')
       return { users, etag: responseEtag || '' }
     } catch (e) {
-      log.warn('fetchMentionables: failed', e)
+      log.warn(`fetchMentionables: failed for ${owner}/${name}`, e)
       return null
     }
   }
@@ -480,7 +480,7 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
     const emails = await api.fetchEmails()
     return new Account(user.login, endpoint, token, emails, user.avatar_url, user.id, user.name)
   } catch (e) {
-    log.warn('fetchUser: failed', e)
+    log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)
     throw e
   }
 }
@@ -599,7 +599,7 @@ export async function requestOAuthToken(endpoint: string, state: string, code: s
     const result = await parsedResponse<IAPIAccessToken>(response)
     return result.access_token
   } catch (e) {
-    log.warn('requestOAuthToken: failed', e)
+    log.warn(`requestOAuthToken: failed with endpoint ${endpoint}`, e)
     return null
   }
 }
