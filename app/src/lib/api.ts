@@ -4,7 +4,7 @@ import * as Querystring from 'querystring'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
-import { HTTPMethod, request, deserialize, getUserAgent } from './http'
+import { request, parsedResponse, HTTPMethod, APIError } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 
@@ -112,27 +112,6 @@ interface IAPIAccessToken {
   readonly token_type: string
 }
 
-/**
- * The structure of error messages returned from the GitHub API.
- *
- * Details: https://developer.github.com/v3/#client-errors
- */
-interface IError {
-  readonly message: string
-  readonly resource: string
-  readonly field: string
-}
-
-/**
- * The partial server response when an error has been returned.
- *
- * Details: https://developer.github.com/v3/#client-errors
- */
-interface IAPIError {
-  readonly errors?: IError[]
-  readonly message?: string
-}
-
 /** The partial server response when creating a new authorization on behalf of a user */
 interface IAPIAuthorization {
   readonly token: string
@@ -222,48 +201,55 @@ export class API {
   /** Fetch a repo by its owner and name. */
   public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
     try {
-      return await this.client.repos(owner, name).fetch()
+      const response = await this.request('GET', 'repos')
+      return parsedResponse<IAPIRepository>(response)
     } catch (e) {
-      log.error(`fetchRepository: not found '${owner}/${name}'`, e)
+      log.warn(`fetchRepository: not found '${owner}/${name}'`, e)
       return null
     }
   }
 
   /** Fetch the logged in account. */
-  public fetchAccount(): Promise<IAPIUser> {
-    return this.client.user.fetch()
+  public async fetchAccount(): Promise<IAPIUser> {
+    try {
+      const response = await this.request('GET', 'user')
+      const result = await parsedResponse<IAPIUser>(response)
+      return result
+    } catch (e) {
+      log.warn('fetchAccount: failed', e)
+      throw e
+    }
   }
 
   /** Fetch the current user's emails. */
   public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
-    const isDotCom = this.account.endpoint === getDotComAPIEndpoint()
+    const isDotCom = this.endpoint === getDotComAPIEndpoint()
 
     // workaround for /user/public_emails throwing a 500
     // while we investigate the API issue
     // see https://github.com/desktop/desktop/issues/1508 for context
-    let emails: ReadonlyArray<IAPIEmail> = [ ]
     try {
-      const result = isDotCom
-        ? await this.client.user.publicEmails.fetch()
-        // GitHub Enterprise does not have the concept of private emails
-        : await this.client.user.emails.fetch()
+      // GitHub Enterprise does not have the concept of private emails
+      const apiPath = isDotCom ? 'user/public_emails' : 'user/emails'
+      const response = await this.request('GET', apiPath)
+      const result = await parsedResponse<ReadonlyArray<IAPIEmail>>(response)
 
-      emails = result && Array.isArray(result.items)
-                ? result.items as ReadonlyArray<IAPIEmail>
-                : []
+      return Array.isArray(result)
+        ? result
+        : []
     } catch (e) {
-      emails = [ ]
+      log.warn('fetchEmails: failed', e)
+      return []
     }
-    return emails
   }
 
   /** Fetch a commit from the repository. */
   public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
     try {
-      const commit = await this.client.repos(owner, name).commits(sha).fetch()
-      return commit
+      const response = await this.request('GET', `repos/${owner}/${name}/git/commits/${sha}`)
+      return parsedResponse<IAPICommit>(response)
     } catch (e) {
-      log.error(`fetchCommit: not found '${owner}/${name}@${sha}'`, e)
+      log.warn(`fetchCommit: not found '${owner}/${name}@${sha}'`, e)
       return null
     }
   }
@@ -271,48 +257,51 @@ export class API {
   /** Search for a user with the given public email. */
   public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
     try {
-      const result = await this.client.search.users.fetch({ q: `${email} in:email type:user` })
-      // The results are sorted by score, best to worst. So the first result is
-      // our best match.
-      const user = result.items[0]
-      return user
+      const params = { q: `${email} in:email type:user` }
+      const url = urlWithQueryString('search/users', params)
+      const response = await this.request('GET', url)
+      const result = await parsedResponse<ReadonlyArray<IAPIUser>>(response)
+      if (result.length) {
+        // The results are sorted by score, best to worst. So the first result
+        // is our best match.
+        const user = result[0]
+        return user
+      } else {
+        return null
+      }
     } catch (e) {
-      log.error(`searchForUserWithEmail: not found '${email}'`, e)
+      log.warn(`searchForUserWithEmail: not found '${email}'`, e)
       return null
     }
   }
 
   /** Fetch all the orgs to which the user belongs. */
   public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
-    const result = await this.client.user.orgs.fetch()
-    return result && Array.isArray(result.items)
-      ? result.items
-      : []
+    try {
+      const response = await this.request('GET', 'user/orgs')
+      const result = await parsedResponse<ReadonlyArray<IAPIUser>>(response)
+      return Array.isArray(result)
+        ? result
+        : []
+    } catch (e) {
+      log.warn('fetchOrgs: failed', e)
+      return []
+    }
   }
 
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository> {
     try {
-      if (org) {
-        return await this.client.orgs(org.login).repos.create({ name, description, private: private_ })
-      } else {
-        return await this.client.user.repos.create({ name, description, private: private_ })
-      }
-    } catch (e) {
-      if (e.message) {
-        // for the sake of shipping this it looks like octokat.js just throws
-        // with the entire JSON body as the error message - that's fine, just
-        // needs some thought later the next time we need to do something like
-        // this
-        const message: string = e.message
-        const error = await deserialize<IError>(message)
-        if (error) {
-          log.error(`createRepository return an API error: ${JSON.stringify(error)}`, e)
-          throw new Error(error.message)
-        }
-      }
+      const apiPath = org ? `orgs/${org.login}/repos` : 'user/repos'
+      const response = await this.request('POST', apiPath, {
+        name,
+        description,
+        private: private_,
+      })
 
-      log.error(`createRepository return an unknown error`, e)
+      return parsedResponse<IAPIRepository>(response)
+    } catch (e) {
+      log.warn(`createRepository: failed`, e)
       throw e
     }
   }
@@ -328,10 +317,15 @@ export class API {
       : { }
 
     const url = urlWithQueryString(`repos/${owner}/${name}/issues`, params)
-    const issues = await this.fetchAll<IAPIIssue>(url)
+    try {
+      const issues = await this.fetchAll<IAPIIssue>(url)
 
-    // PRs are issues! But we only want Really Seriously Issues.
-    return issues.filter((i: any) => !i.pullRequest)
+      // PRs are issues! But we only want Really Seriously Issues.
+      return issues.filter((i: any) => !i.pullRequest)
+    } catch (e) {
+      log.warn(`fetchIssues: failed for repository ${owner}/${name}`, e)
+      throw e
+    }
   }
 
   /**
@@ -346,20 +340,8 @@ export class API {
     let nextUrl: string | null = url
 
     do {
-      const response = await this.authenticatedRequest('GET', nextUrl)
-
-      if (!response.ok) {
-        let errorMessage = `Could not fetch issues, server responded with ${response.status} ${response.statusText}.`
-        const apiError = await deserialize<IAPIError>(response)
-
-        if (apiError) {
-          errorMessage = `${errorMessage}\n${apiError.message}`
-        }
-
-        throw new Error(errorMessage)
-      }
-
-      const items = await deserialize<ReadonlyArray<T>>(response)
+      const response = await this.request('GET', nextUrl)
+      const items = await parsedResponse<ReadonlyArray<T>>(response)
       if (items) {
         buf.push(...items)
       }
@@ -369,8 +351,9 @@ export class API {
     return buf
   }
 
-  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
-    return request(this.account.endpoint, `token ${this.account.token}`, method, path, body, customHeaders)
+  /** Make an authenticated request to the client's endpoint with its token. */
+  private request(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
+    return request(this.endpoint, this.token, method, path, body, customHeaders)
   }
 
   /**
@@ -379,13 +362,18 @@ export class API {
    */
   public async getFetchPollInterval(owner: string, name: string): Promise<number | null> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
-    const response = await this.authenticatedRequest('HEAD', path)
-    const interval = response.headers.get('x-poll-interval')
-    if (interval) {
-      const parsed = parseInt(interval, 10)
-      return isNaN(parsed) ? null : parsed
+    try {
+      const response = await this.request('HEAD', path)
+      const interval = response.headers.get('x-poll-interval')
+      if (interval) {
+        const parsed = parseInt(interval, 10)
+        return isNaN(parsed) ? null : parsed
+      }
+      return null
+    } catch (e) {
+      log.warn('getFetchPollInterval: failed', e)
+      return null
     }
-    return null
   }
 
   /** Fetch the mentionable users for the repository. */
@@ -399,14 +387,15 @@ export class API {
       headers['If-None-Match'] = etag
     }
 
-    const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
-    if (!response.ok) { return null }
-
-    const users = await deserialize<ReadonlyArray<IAPIMentionableUser>>(response)
-    if (!users) { return null }
-
-    const responseEtag = response.headers.get('etag')
-    return { users, etag: responseEtag || '' }
+    try {
+      const response = await this.request('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
+      const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(response)
+      const responseEtag = response.headers.get('etag')
+      return { users, etag: responseEtag || '' }
+    } catch (e) {
+      log.warn('fetchMentionables: failed', e)
+      return null
+    }
   }
 }
 
@@ -435,73 +424,69 @@ export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized
 export async function createAuthorization(endpoint: string, login: string, password: string, oneTimePassword: string | null): Promise<AuthorizationResponse> {
   const creds = Buffer.from(`${login}:${password}`, 'utf8').toString('base64')
   const authorization = `Basic ${creds}`
-  const headers = oneTimePassword ? { 'X-GitHub-OTP': oneTimePassword } : {}
+  const optHeader = oneTimePassword ? { 'X-GitHub-OTP': oneTimePassword } : {}
 
   const note = await getNote()
 
-  const response = await request(endpoint, authorization, 'POST', 'authorizations', {
+  const response = await request(endpoint, null, 'POST', 'authorizations', {
     'scopes': Scopes,
     'client_id': ClientID,
     'client_secret': ClientSecret,
     'note': note,
     'note_url': NoteURL,
     'fingerprint': uuid(),
-  }, headers)
+  }, {
+    'Authorization': authorization,
+    ...optHeader,
+  })
 
-  if (response.status === 401) {
-    const otpResponse = response.headers.get('x-github-otp')
-    if (otpResponse) {
-      const pieces = otpResponse.split(';')
-      if (pieces.length === 2) {
-        const type = pieces[1].trim()
-        switch (type) {
-          case 'app':
-            return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode.App }
-          case 'sms':
-            return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode.Sms }
-          default:
-            return { kind: AuthorizationResponseKind.Failed, response }
-        }
+  try {
+    const result = await parsedResponse<IAPIAuthorization>(response)
+    if (result) {
+      const token = result.token
+      if (token && typeof token === 'string' && token.length) {
+        return { kind: AuthorizationResponseKind.Authorized, token }
       }
     }
-
-    return { kind: AuthorizationResponseKind.Failed, response }
-  }
-
-  if (response.status === 403) {
-    const apiError = await deserialize<IAPIError>(response)
-    if (apiError && apiError.message === 'This API can only be accessed with username and password Basic Auth') {
-      // Authorization API does not support providing personal access tokens
-      return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
-    }
-
-    return { kind: AuthorizationResponseKind.Error, response }
-  }
-
-  if (response.status === 422) {
-    const apiError = await deserialize<IAPIError>(response)
-    if (apiError) {
-      if (apiError.errors) {
-        for (const error of apiError.errors) {
-          const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
-          const isExpectedField = error.field.toLowerCase() === 'user'
-          if (isExpectedField && isExpectedResource) {
-            return { kind: AuthorizationResponseKind.UserRequiresVerification }
+  } catch (e) {
+    if (response.status === 401) {
+      const otpResponse = response.headers.get('x-github-otp')
+      if (otpResponse) {
+        const pieces = otpResponse.split(';')
+        if (pieces.length === 2) {
+          const type = pieces[1].trim()
+          switch (type) {
+            case 'app':
+              return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode.App }
+            case 'sms':
+              return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode.Sms }
+            default:
+              return { kind: AuthorizationResponseKind.Failed, response }
           }
         }
-      } else if (apiError.message === 'Invalid OAuth application client_id or secret.') {
-        return { kind: AuthorizationResponseKind.EnterpriseTooOld }
       }
+
+      return { kind: AuthorizationResponseKind.Failed, response }
     }
 
-    return { kind: AuthorizationResponseKind.Error, response }
-  }
-
-  const body = await deserialize<IAPIAuthorization>(response)
-  if (body) {
-    const token = body.token
-    if (token && typeof token === 'string' && token.length) {
-      return { kind: AuthorizationResponseKind.Authorized, token }
+    const apiError = e instanceof APIError && e.apiError
+    if (apiError) {
+      if (response.status === 403 && apiError.message === 'This API can only be accessed with username and password Basic Auth') {
+        // Authorization API does not support providing personal access tokens
+        return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
+      } else if (response.status === 422) {
+        if (apiError.errors) {
+          for (const error of apiError.errors) {
+            const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
+            const isExpectedField = error.field.toLowerCase() === 'user'
+            if (isExpectedField && isExpectedResource) {
+              return { kind: AuthorizationResponseKind.UserRequiresVerification }
+            }
+          }
+        } else if (apiError.message === 'Invalid OAuth application client_id or secret.') {
+          return { kind: AuthorizationResponseKind.EnterpriseTooOld }
+        }
+      }
     }
   }
 
@@ -510,50 +495,32 @@ export async function createAuthorization(endpoint: string, login: string, passw
 
 /** Fetch the user authenticated by the token. */
 export async function fetchUser(endpoint: string, token: string): Promise<Account> {
-  const octo = new Octokat({ token, rootURL: endpoint })
-  const user = await octo.user.fetch()
-
-  const isDotCom = endpoint === getDotComAPIEndpoint()
-
-  // workaround for /user/public_emails throwing a 500
-  // while we investigate the API issue
-  // see https://github.com/desktop/desktop/issues/1508 for context
-  let emails: ReadonlyArray<IAPIEmail> = [ ]
+  const api = new API(endpoint, token)
   try {
-      const result = isDotCom
-        ? await octo.user.publicEmails.fetch()
-        // GitHub Enterprise does not have the concept of private emails
-        : await octo.user.emails.fetch()
-    emails = result && Array.isArray(result.items)
-    ? result.items as ReadonlyArray<IAPIEmail>
-    : []
+    const user = await api.fetchAccount()
+    const emails = await api.fetchEmails()
+    return new Account(user.login, endpoint, token, emails, user.avatar_url, user.id, user.name)
   } catch (e) {
-    emails = [ ]
+    log.warn('fetchUser: failed', e)
+    throw e
   }
-
-  return new Account(user.login, endpoint, token, emails, user.avatar_url, user.id, user.name)
 }
 
 /** Get metadata from the server. */
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
-
   const url = `${endpoint}/meta`
 
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    const response = await request(endpoint, null, 'GET', 'meta', undefined, {
+      'Content-Type': 'application/json',
     })
-    if (!response.ok) { return null }
 
-    const body = await deserialize<IServerMetadata>(response)
-    if (!body || body.verifiable_password_authentication === undefined) {
+    const result = await parsedResponse<IServerMetadata>(response)
+    if (!result || result.verifiable_password_authentication === undefined) {
       return null
     }
 
-    return body
+    return result
   } catch (e) {
     log.error(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
     return null
@@ -632,11 +599,7 @@ export function getDotComAPIEndpoint(): string {
 
 /** Get the account for the endpoint. */
 export function getAccountForEndpoint(accounts: ReadonlyArray<Account>, endpoint: string): Account | null {
-  const filteredAccounts = accounts.filter(a => a.endpoint === endpoint)
-  if (filteredAccounts.length) {
-    return filteredAccounts[0]
-  }
-  return null
+  return accounts.find(a => a.endpoint === endpoint) || null
 }
 
 export function getOAuthAuthorizationURL(endpoint: string, state: string): string {
@@ -646,19 +609,18 @@ export function getOAuthAuthorizationURL(endpoint: string, state: string): strin
 }
 
 export async function requestOAuthToken(endpoint: string, state: string, code: string): Promise<string | null> {
-  const urlBase = getHTMLURL(endpoint)
-  const response = await request(urlBase, null, 'POST', 'login/oauth/access_token', {
-    'client_id': ClientID,
-    'client_secret': ClientSecret,
-    'code': code,
-    'state': state,
-  })
-  if (!response.ok) { return null }
-
-  const body = await deserialize<IAPIAccessToken>(response)
-  if (body) {
-    return body.access_token
+  try {
+    const urlBase = getHTMLURL(endpoint)
+    const response = await request(urlBase, null, 'POST', 'login/oauth/access_token', {
+      'client_id': ClientID,
+      'client_secret': ClientSecret,
+      'code': code,
+      'state': state,
+    })
+    const result = await parsedResponse<IAPIAccessToken>(response)
+    return result.access_token
+  } catch (e) {
+    log.warn('requestOAuthToken: failed', e)
+    return null
   }
-
-  return null
 }
