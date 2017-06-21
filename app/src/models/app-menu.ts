@@ -122,7 +122,7 @@ export interface IMenu {
  */
 function getAccelerator(menuItem: Electron.MenuItem): string | null {
   if (menuItem.accelerator) {
-    return menuItem.accelerator
+    return menuItem.accelerator as string
   }
 
   if (menuItem.role) {
@@ -263,7 +263,7 @@ export function itemIsSelectable(item: MenuItem) {
 /**
  * Attempts to locate a menu item matching the provided access key in a
  * given list of items. The access key comparison is case-insensitive.
- * 
+ *
  * Note that this function does not take into account whether or not the
  * item is selectable, consumers of this function need to perform that
  * check themselves when applicable.

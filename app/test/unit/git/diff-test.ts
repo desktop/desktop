@@ -161,6 +161,20 @@ describe('git/diff', () => {
       expect(second.lines[7].text).to.have.string('+vel sagittis nisl rutrum.')
     })
 
+    it('displays a binary diff for a docx file', async () => {
+      const repositoryPath = await setupFixtureRepository('diff-rendering-docx')
+      const repo = new Repository(repositoryPath, -1, null, false)
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+
+      const diff = await getWorkingDirectoryDiff(repo, files[0])
+
+      expect(diff.kind).to.equal(DiffType.Binary)
+    })
+
     it('is empty for a renamed file', async () => {
 
       const repo = await setupEmptyRepository()
