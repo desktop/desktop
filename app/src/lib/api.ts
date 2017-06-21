@@ -165,8 +165,8 @@ export class API {
   private endpoint: string
   private token: string
 
-  /** Create a new API client with the given account. */
-  public static withAccount(account: Account): API {
+  /** Create a new API client from the given account. */
+  public static fromAccount(account: Account): API {
     return new API(account.endpoint, account.token)
   }
 

@@ -1143,7 +1143,7 @@ export class AppStore {
     const account = this.getAccountForRepository(updatedRepository)
     if (!account) { return updatedRepository }
 
-    const api = API.withAccount(account)
+    const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
     if (!apiRepo) {
       return updatedRepository
@@ -1464,7 +1464,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<void> {
-    const api = API.withAccount(account)
+    const api = API.fromAccount(account)
     const apiRepository = await api.createRepository(org, name, description, private_)
 
     const gitStore = this.getGitStore(repository)
