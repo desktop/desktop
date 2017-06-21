@@ -179,7 +179,7 @@ export class API {
   /** Fetch a repo by its owner and name. */
   public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
     try {
-      const response = await this.request('GET', 'repos')
+      const response = await this.request('GET', `repos/${owner}/${name}`)
       return parsedResponse<IAPIRepository>(response)
     } catch (e) {
       log.warn(`fetchRepository: not found '${owner}/${name}'`, e)
