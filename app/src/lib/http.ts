@@ -66,7 +66,8 @@ async function deserialize<T>(response: Response): Promise<T> {
  * @param customHeaders - Any optional additional headers to send.
  */
 export function request(endpoint: string, token: string | null, method: HTTPMethod, path: string, jsonBody?: Object, customHeaders?: Object): Promise<Response> {
-  const url = new URL(path, endpoint)
+  const relativePath = path[0] === '/' ? path.substr(1) : path
+  const url = encodeURI(`${endpoint}/${relativePath}`)
 
   let headers: any = {
     'Accept': 'application/vnd.github.v3+json, application/json',
@@ -89,7 +90,7 @@ export function request(endpoint: string, token: string | null, method: HTTPMeth
     body: JSON.stringify(jsonBody),
   }
 
-  return fetch(url.href, options)
+  return fetch(url, options)
 }
 
 /** Get the user agent to use for all requests. */
