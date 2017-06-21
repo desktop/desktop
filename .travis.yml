@@ -3,6 +3,8 @@ osx_image: xcode8.3.3
 dist: trusty
 sudo: required
 
+group: edge
+
 notifications:
   email:
     on_success: never
