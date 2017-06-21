@@ -8,7 +8,6 @@ import { HTTPMethod, request, deserialize, getUserAgent } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 
-const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 
 const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
@@ -26,28 +25,6 @@ const Scopes = [
 
 /** The note URL used for authorizations the app creates. */
 const NoteURL = 'https://desktop.github.com/'
-
-/**
- * The plugins we'll use with Octokat.
- *
- * Most notably, this doesn't include:
- *   - hypermedia
- *   - camel-case
- * Both take a _lot_ of time in post-processing and are unnecessary.
- */
-const OctokatPlugins = [
-  require('octokat/dist/node/plugins/object-chainer'),
-  require('octokat/dist/node/plugins/path-validator'),
-  require('octokat/dist/node/plugins/authorization'),
-  require('octokat/dist/node/plugins/preview-apis'),
-  require('octokat/dist/node/plugins/use-post-instead-of-patch'),
-
-  require('octokat/dist/node/plugins/simple-verbs'),
-  require('octokat/dist/node/plugins/fetch-all'),
-
-  require('octokat/dist/node/plugins/read-binary'),
-  require('octokat/dist/node/plugins/pagination'),
-]
 
 /**
  * Information about a repository as returned by the GitHub API.
