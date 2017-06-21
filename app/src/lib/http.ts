@@ -117,8 +117,16 @@ export async function parsedResponse<T>(response: Response): Promise<T> {
   if (response.ok) {
     return deserialize<T>(response)
   } else {
-    const apiError = await deserialize<IAPIError>(response)
-    throw new APIError(response, apiError)
+    let apiError: IAPIError | null
+    // Deserializing the API error could throw. If it does, we'll throw a more
+    // general API error.
+    try {
+      apiError = await deserialize<IAPIError>(response)
+    } catch (e) {
+      throw new APIError(response, null)
+    }
+
+    throw apiError
   }
 }
 
