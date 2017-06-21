@@ -128,13 +128,12 @@ interface ISearchResults<T> {
 }
 
 /**
- * Parses the Link header from GitHub and returns the 'next' url
- * if one is present. While the GitHub API returns absolute links
- * this method makes no guarantee that the url will be absolute.
+ * Parses the Link header from GitHub and returns the 'next' path
+ * if one is present.
  *
  * If no link rel next header is found this method returns null.
  */
-function getNextPageUrl(response: Response): string | null {
+function getNextPagePath(response: Response): string | null {
   const linkHeader = response.headers.get('Link')
 
   if (!linkHeader) {
@@ -146,7 +145,8 @@ function getNextPageUrl(response: Response): string | null {
     const match = part.match(/<([^>]+)>; rel="([^"]+)"/)
 
     if (match && match[2] === 'next') {
-      return match[1]
+      const nextURL = URL.parse(match[1])
+      return nextURL.path || null
     }
   }
 
@@ -314,18 +314,18 @@ export class API {
    * pages when available, buffers all items and returns them in
    * one array when done.
    */
-  private async fetchAll<T>(url: string): Promise<ReadonlyArray<T>> {
+  private async fetchAll<T>(path: string): Promise<ReadonlyArray<T>> {
     const buf = new Array<T>()
-    let nextUrl: string | null = url
+    let nextPath: string | null = path
 
     do {
-      const response = await this.request('GET', nextUrl)
+      const response = await this.request('GET', nextPath)
       const items = await parsedResponse<ReadonlyArray<T>>(response)
       if (items) {
         buf.push(...items)
       }
-      nextUrl = getNextPageUrl(response)
-    } while (nextUrl)
+      nextPath = getNextPagePath(response)
+    } while (nextPath)
 
     return buf
   }
