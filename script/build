@@ -63,7 +63,9 @@ function packageApp (callback) {
     name: distInfo.getProductName(),
     platform: process.platform,
     arch: 'x64',
-    asar: false, // TODO: Probably wanna enable this down the road.
+    asar: {
+      unpackDir: 'git'
+    },
     out: path.join(projectRoot, 'dist'),
     icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
     dir: outRoot,
