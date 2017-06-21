@@ -1,9 +1,9 @@
 import * as Path from 'path'
 import * as winston from 'winston'
-import * as fileSystem from '../lib/file-system'
 
 import { getLogPath } from '../lib/logging/get-log-path'
 import { LogLevel } from '../lib/logging/log-level'
+import { mkdirIfNeeded } from '../lib/file-system'
 
 require('winston-daily-rotate-file')
 
@@ -78,7 +78,7 @@ function getLogger(): Promise<winston.LogMethod> {
 
     const logPath = getLogPath()
 
-    fileSystem.mkdirIfNeeded(logPath, (error) => { reject(error) }).then(() => {
+    mkdirIfNeeded(logPath, (error) => { reject(error) }).then(() => {
       const logger = initializeWinston(getLogFilePath(logPath))
       resolve(logger)
     })
