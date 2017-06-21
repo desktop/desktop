@@ -84,8 +84,7 @@ class VisualStudioEditor implements IEditorInfo {
   public readonly name: string
   public constructor(path: string) {
     this.path = path
-    if (path.length > 15)
-    {
+    if (path.length > 15) {
       path = '...' + path.substr(path.length - 12)
     }
     this.name = 'Visual Studio ( ' + path + ')'
