@@ -7,7 +7,7 @@ import * as fileSystem from 'fs-extra'
  *
  * @param directoryPath the path of the directory the user wants to create
  */
-export function mkdirIfNeeded (directoryPath: string) {
+export function mkdirIfNeeded (directoryPath: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     fileSystem.mkdir(directoryPath, (err) => {
       if (err && err.code !== 'EEXIST') {
