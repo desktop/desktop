@@ -122,6 +122,11 @@ interface IAPIMentionablesResponse {
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
+/** The response for search results. */
+interface ISearchResults<T> {
+  readonly items: ReadonlyArray<T>
+}
+
 /**
  * Parses the Link header from GitHub and returns the 'next' url
  * if one is present. While the GitHub API returns absolute links
@@ -238,11 +243,12 @@ export class API {
       const params = { q: `${email} in:email type:user` }
       const url = urlWithQueryString('search/users', params)
       const response = await this.request('GET', url)
-      const result = await parsedResponse<ReadonlyArray<IAPIUser>>(response)
-      if (result.length) {
+      const result = await parsedResponse<ISearchResults<IAPIUser>>(response)
+      const items = result.items
+      if (items.length) {
         // The results are sorted by score, best to worst. So the first result
         // is our best match.
-        return result[0]
+        return items[0]
       } else {
         return null
       }
