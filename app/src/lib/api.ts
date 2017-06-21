@@ -228,17 +228,18 @@ function toGitHubIsoDateString(date: Date) {
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
-  private client: any
-  private account: Account
+  private endpoint: string
+  private token: string
 
-  public constructor(account: Account) {
-    this.account = account
-    this.client = new Octokat({
-      token: account.token,
-      rootURL: account.endpoint,
-      plugins: OctokatPlugins,
-      userAgent: getUserAgent(),
-    })
+  /** Create a new API client with the given account. */
+  public static withAccount(account: Account): API {
+    return new API(account.endpoint, account.token)
+  }
+
+  /** Create a new API client for the endpoint, authenticated with the token. */
+  public constructor(endpoint: string, token: string) {
+    this.endpoint = endpoint
+    this.token = token
   }
 
   /** Fetch a repo by its owner and name. */
@@ -246,7 +247,7 @@ export class API {
     try {
       return await this.client.repos(owner, name).fetch()
     } catch (e) {
-      log.error(`fetchRepository: not found for '${this.account.login}' and '${owner}/${name}'`, e)
+      log.error(`fetchRepository: not found '${owner}/${name}'`, e)
       return null
     }
   }
@@ -285,7 +286,7 @@ export class API {
       const commit = await this.client.repos(owner, name).commits(sha).fetch()
       return commit
     } catch (e) {
-      log.error(`fetchCommit: not found for '${this.account.login}' and commit '${owner}/${name}@${sha}'`, e)
+      log.error(`fetchCommit: not found '${owner}/${name}@${sha}'`, e)
       return null
     }
   }
@@ -299,7 +300,7 @@ export class API {
       const user = result.items[0]
       return user
     } catch (e) {
-      log.error(`searchForUserWithEmail: not found for '${this.account.login}' and '${email}'`, e)
+      log.error(`searchForUserWithEmail: not found '${email}'`, e)
       return null
     }
   }

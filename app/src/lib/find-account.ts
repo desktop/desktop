@@ -8,7 +8,7 @@ import { Account } from '../models/account'
  * accessed by the given account.
  */
 async function canAccessRepository(account: Account, owner: string, name: string): Promise<boolean> {
-  const api = new API(account)
+  const api = API.withAccount(account)
   const repository = await api.fetchRepository(owner, name)
   if (repository) {
     return true
