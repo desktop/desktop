@@ -4,23 +4,54 @@ import * as appProxy from '../ui/lib/app-proxy'
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
 /**
+ * The structure of error messages returned from the GitHub API.
+ *
+ * Details: https://developer.github.com/v3/#client-errors
+ */
+export interface IError {
+  readonly message: string
+  readonly resource: string
+  readonly field: string
+}
+
+/**
+ * The partial server response when an error has been returned.
+ *
+ * Details: https://developer.github.com/v3/#client-errors
+ */
+export interface IAPIError {
+  readonly errors?: IError[]
+  readonly message?: string
+}
+
+/** An error from getting an unexpected response to an API call. */
+export class APIError extends Error {
+  /** The error as sent from the API, if one could be parsed. */
+  public readonly apiError: IAPIError | null
+
+  public constructor(response: Response, apiError: IAPIError | null) {
+    const message = apiError && apiError.message
+      ? apiError.message
+      : `API error ${response.url}: ${response.statusText} (${response.status})`
+    super(message)
+
+    this.apiError = apiError
+  }
+}
+
+/**
  * Deserialize the HTTP response body into an expected object shape
  *
- * Note: this doesn't validate the expected shape, and will only fail
- * if it encounters invalid JSON
+ * Note: this doesn't validate the expected shape, and will only fail if it
+ * encounters invalid JSON.
  */
-export async function deserialize<T>(response: Response | string): Promise<T | null> {
+async function deserialize<T>(response: Response): Promise<T> {
   try {
-    if (response instanceof Response) {
-      const json = await response.json()
-      return json as T
-    } else {
-      const json = await JSON.parse(response)
-      return json as T
-    }
+    const json = await response.json()
+    return json as T
   } catch (e) {
-    log.error(`Unable to deserialize JSON string to object ${response}`, e)
-    return null
+    log.warn(`Unable to deserialize JSON string to object ${response}`, e)
+    throw e
   }
 }
 
@@ -28,36 +59,54 @@ export async function deserialize<T>(response: Response | string): Promise<T | n
  * Make an API request.
  *
  * @param endpoint      - The API endpoint.
- * @param authorization - The value to pass in the `Authorization` header.
+ * @param token         - The token to use for authentication.
  * @param method        - The HTTP method.
  * @param path          - The path, including any query string parameters.
- * @param body          - The body to send.
+ * @param jsonBody      - The JSON body to send.
  * @param customHeaders - Any optional additional headers to send.
  */
-export function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
+export function request(endpoint: string, token: string | null, method: HTTPMethod, path: string, jsonBody?: Object, customHeaders?: Object): Promise<Response> {
   const url = new URL(path, endpoint)
 
-  const headers: any = Object.assign({}, {
+  let headers: any = {
     'Accept': 'application/vnd.github.v3+json, application/json',
     'Content-Type': 'application/json',
     'User-Agent': getUserAgent(),
-  }, customHeaders)
+  }
 
-  if (authorization) {
-    headers['Authorization'] = authorization
+  if (token) {
+    headers['Authorization'] = `token ${token}`
+  }
+
+  headers = {
+    ...headers,
+    ...customHeaders,
   }
 
   const options = {
     headers,
     method,
-    body: JSON.stringify(body),
+    body: JSON.stringify(jsonBody),
   }
 
   return fetch(url.href, options)
 }
 
 /** Get the user agent to use for all requests. */
-export function getUserAgent() {
+function getUserAgent() {
   const platform = __DARWIN__ ? 'Macintosh' : 'Windows'
   return `GitHubDesktop/${appProxy.getVersion()} (${platform})`
+}
+
+/**
+ * If the response was OK, parse it as JSON and return the result. If not, parse
+ * the API error and throw it.
+ */
+export async function parsedResponse<T>(response: Response): Promise<T> {
+  if (response.ok) {
+    return deserialize<T>(response)
+  } else {
+    const apiError = await deserialize<IAPIError>(response)
+    throw new APIError(response, apiError)
+  }
 }
