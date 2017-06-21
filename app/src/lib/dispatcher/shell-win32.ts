@@ -59,26 +59,6 @@ export function isVisualStudioCodeInstalled() {
     return found
 }
 
-export function findAtomApplication() {
-  let path = null
-    new Register({
-      hive: Register.HKCU,
-      key: '\\Software\\Classes\\Aplications\atom.exe\shell\open\command',
-    }).get('', (err: Error, result: Register.RegistryItem) => {
-      if (err == null) {
-        // TODO: remove "%1" from end..
-        path = result.value
-      }
-    })
-
-    return path
-}
-
-export function isAtomInstalled() {
-    const path = findAtomApplication()
-    return path != null
-}
-
 class VisualStudioEditor implements IEditorInfo {
   private readonly path: string
   public readonly name: string
@@ -95,28 +75,60 @@ class VisualStudioEditor implements IEditorInfo {
   }
 }
 
-function buildVisualStudioSolutionLaunchers(repository: Repository): Promise<IEditorInfo[]> {
-  return new Promise<IEditorInfo[]>( (resolve, reject) => {
+class AppLauncher implements IEditorInfo {
+  public readonly name: string
+  private readonly path: string
+  public constructor(name: string, path: string) {
+    this.name = name
+    this.path = path
+  }
 
+  public exec(): void {
+    console.log('exec ' + this.path)
+  }
+}
+function buildVisualStudioSolutionLaunchers(repository: Repository): Promise<IEditorInfo[]> {
+
+  return isVisualStudioInstalled()
+  .then( (res) => {
     const editors = new Array<IEditorInfo>()
-    glob( Path.join( repository.path, '**/*.sln'), (err, matches) => {
-      if (!err) {
-        for (let i = 0; i < matches.length; i++) {
-          console.log(matches[i])
-          editors.push( new VisualStudioEditor( matches[i] ) )
-        }
-        resolve(editors)
-      } else {
-        reject(err)
-      }
-    })
+    if (res) {
+      // Find all results
+      return new Promise( (resolve, reject) => {
+        glob( Path.join( repository.path, '**/*.sln'), (err, matches) => {
+          if (!err) {
+            for (let i = 0; i < matches.length; i++) {
+              console.log(matches[i])
+              editors.push( new VisualStudioEditor( matches[i] ) )
+            }
+            resolve(editors)
+          } else {
+            reject(err)
+          }
+        })
+      })
+    } else {
+      // return empty list
+      return Promise.resolve(editors)
+    }
   })
 }
 
-function buildAtomLauncher(): Promise<IEditorInfo[]> {
+function buildAtomLauncher(repository: Repository): Promise<IEditorInfo[]> {
   const editors = new Array<IEditorInfo>()
-  // TODO: fill this in
-  return Promise.resolve(editors)
+
+  return new Promise( (result, reject) => {
+    new Register({
+      hive: Register.HKCU,
+      key: '\\Software\\Classes\\Applications\\atom.exe\\shell\\open\\command',
+    }).get('', (err: Error, reg: Register.RegistryItem) => {
+      if (err == null) {
+        const cmd = reg.value.replace('%1', repository.path)
+        editors.push( new AppLauncher('Atom', cmd))
+      }
+      result(editors)
+    })
+  })
 }
 
 /**
@@ -127,32 +139,18 @@ function buildAtomLauncher(): Promise<IEditorInfo[]> {
 export function getEditorsForRepository(repository: Repository): Promise<IEditorInfo[]> {
 
   const editors = new Array<IEditorInfo>()
-  const empty = new Array<IEditorInfo>()
-  return isVisualStudioInstalled()
-  .then( (res) => {
-    if (res) {
-      return buildVisualStudioSolutionLaunchers(repository)
-    } else {
-      return Promise.resolve( empty )
-    }
-  })
+
+  return buildVisualStudioSolutionLaunchers(repository)
   .then( (res) => {
     // Visual Studio Solutions (if any)
     editors.push.apply( editors, res )
-    return isAtomInstalled()
-  })
-  .then( (res) => {
-    if (res) {
-      return buildAtomLauncher()
-    } else {
-      return Promise.resolve( empty )
-    }
+    return buildAtomLauncher(repository)
   })
   .then( (res) => {
     // Atom launcher if any
     editors.push.apply( editors, res )
 
-    console.log('All Editrs: ' +  editors )
+    console.log('All Editors: ' +  editors )
     return Promise.resolve(editors)
   })
 
