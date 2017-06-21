@@ -242,8 +242,7 @@ export class API {
       if (result.length) {
         // The results are sorted by score, best to worst. So the first result
         // is our best match.
-        const user = result[0]
-        return user
+        return result[0]
       } else {
         return null
       }
