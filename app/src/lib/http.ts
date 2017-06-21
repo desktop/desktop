@@ -110,3 +110,24 @@ export async function parsedResponse<T>(response: Response): Promise<T> {
     throw new APIError(response, apiError)
   }
 }
+
+/**
+ * Appends the parameters provided to the url as query string parameters.
+ *
+ * If the url already has a query the new parameters will be appended.
+ */
+export function urlWithQueryString(url: string, params: { [key: string]: string }): string {
+  const qs = Object.keys(params)
+    .map(key => `${key}=${encodeURIComponent(params[key])}`)
+    .join('&')
+
+  if (!qs.length) {
+    return url
+  }
+
+  if (url.indexOf('?') === -1) {
+    return `${url}?${qs}`
+  } else {
+    return `${url}&${qs}`
+  }
+}

@@ -4,7 +4,7 @@ import * as Querystring from 'querystring'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
-import { request, parsedResponse, HTTPMethod, APIError } from './http'
+import { request, parsedResponse, HTTPMethod, APIError, urlWithQueryString } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 
@@ -147,27 +147,6 @@ function getNextPageUrl(response: Response): string | null {
   }
 
   return null
-}
-
-/**
- * Appends the parameters provided to the url as query string parameters.
- *
- * If the url already has a query the new parameters will be appended.
- */
-function urlWithQueryString(url: string, params: { [key: string]: string }): string {
-  const qs = Object.keys(params)
-    .map(key => `${key}=${encodeURIComponent(params[key])}`)
-    .join('&')
-
-  if (!qs.length) {
-    return url
-  }
-
-  if (url.indexOf('?') === -1) {
-    return `${url}?${qs}`
-  } else {
-    return `${url}&${qs}`
-  }
 }
 
 /**
