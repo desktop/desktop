@@ -1,9 +1,9 @@
-import * as Fs from 'fs-extra'
 import * as Path from 'path'
 import * as winston from 'winston'
 
 import { getLogPath } from '../lib/logging/get-log-path'
 import { LogLevel } from '../lib/logging/log-level'
+import { mkdirIfNeeded } from '../lib/file-system'
 
 require('winston-daily-rotate-file')
 
@@ -78,15 +78,13 @@ function getLogger(): Promise<winston.LogMethod> {
 
     const logPath = getLogPath()
 
-    Fs.mkdir(logPath, (error) => {
-      if (error && error.code !== 'EEXIST') {
+    mkdirIfNeeded(logPath)
+      .then(() => {
+        resolve(initializeWinston(getLogFilePath(logPath)))
+      })
+      .catch((error) => {
         reject(error)
-        return
-      }
-
-      const logger = initializeWinston(getLogFilePath(logPath))
-      resolve(logger)
-    })
+      })
   })
 
   return loggerPromise
