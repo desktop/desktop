@@ -92,6 +92,7 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
     const gitHubUser = this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
 
     return <CommitSummary
+      dispatcher={this.props.dispatcher}
       summary={commit.summary}
       body={commit.body}
       sha={commit.sha}

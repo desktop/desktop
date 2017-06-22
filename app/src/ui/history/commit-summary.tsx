@@ -11,9 +11,10 @@ import { Repository } from '../../models/repository'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Avatar } from '../lib/avatar'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
-import { revertCommit } from '../../lib/git'
+import { Dispatcher } from '../../lib/dispatcher'
 
 interface ICommitSummaryProps {
+  readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly summary: string
   readonly body: string
@@ -207,7 +208,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private onRevertCommit = async () => {
-    await revertCommit(this.props.repository, this.props.sha)
+    await this.props.dispatcher.revertCommit(this.props.repository, this.props.sha)
   }
 
   private onCopySHA = () => {
