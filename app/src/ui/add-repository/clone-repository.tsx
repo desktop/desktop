@@ -13,6 +13,7 @@ import { parseRepositoryIdentifier, IRepositoryIdentifier } from '../../lib/remo
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
+import { menuTitle } from '../../lib/platform-support'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -106,7 +107,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
           <Row>
             <TextBox
               value={this.state.path}
-              label={__DARWIN__ ? 'Local Path' : 'Local path'}
+              label={menuTitle('Local path')}
               placeholder='repository path'
               onChange={this.onPathChanged}/>
             <Button onClick={this.showFilePicker}>Choose…</Button>

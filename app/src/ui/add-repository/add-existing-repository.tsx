@@ -12,6 +12,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../lib/app-state'
 import * as Path from 'path'
+import { menuTitle } from '../../lib/platform-support'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -93,7 +94,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     return (
       <Dialog
         id='add-existing-repository'
-        title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
+        title={menuTitle('Add local repository')}
         onSubmit={this.addRepository}
         onDismissed={this.props.onDismissed}>
 
@@ -101,7 +102,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
           <Row>
             <TextBox
               value={this.state.path}
-              label={__DARWIN__ ? 'Local Path' : 'Local path'}
+              label={menuTitle('Local path')}
               placeholder='repository path'
               onChange={this.onPathChanged}
               autoFocus/>
@@ -113,7 +114,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
         <DialogFooter>
           <ButtonGroup>
             <Button disabled={disabled} type='submit'>
-              {__DARWIN__ ? 'Add Repository' : 'Add repository'}
+              {menuTitle('Add repository')}
             </Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>

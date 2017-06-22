@@ -3,6 +3,7 @@ import * as URL from 'url'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IUntrustedCertificateProps {
   /** The untrusted certificate. */
@@ -43,7 +44,7 @@ export class UntrustedCertificate extends React.Component<IUntrustedCertificateP
       )
     return (
       <Dialog
-        title={__DARWIN__ ? 'Untrusted Server' : 'Untrusted server'}
+        title={menuTitle('Untrusted server')}
         onDismissed={this.props.onDismissed}
         onSubmit={this.props.onDismissed}
         type={type}

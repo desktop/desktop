@@ -3,6 +3,7 @@ import { Repository } from '../../models/repository'
 import { Octicon, iconForRepository } from '../octicons'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -63,12 +64,12 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
 
     const items: ReadonlyArray<IMenuItem> = [
       {
-        label: __DARWIN__ ? 'Open in Terminal' : 'Open command prompt',
+        label: menuTitle('Open in command prompt'),
         action: this.openInShell,
         enabled: !missing,
       },
       {
-        label: __DARWIN__ ? 'Show in Finder' : 'Show in Explorer',
+        label: menuTitle('Show in Explorer'),
         action: this.showRepository,
         enabled: !missing,
       },

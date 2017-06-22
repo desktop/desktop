@@ -13,6 +13,7 @@ import { IAutocompletionProvider } from '../autocompletion'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { menuTitle } from '../../lib/platform-support'
 
 const RowHeight = 29
 
@@ -120,7 +121,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
 
     const items: IMenuItem[] = [
       {
-        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        label: menuTitle('Discard all changes…'),
         action: this.onDiscardAllChanges,
         enabled: this.props.workingDirectory.files.length > 0,
       },

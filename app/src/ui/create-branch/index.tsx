@@ -14,6 +14,7 @@ import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
 import { TipState, IUnbornRepository, IDetachedHead, IValidBranch } from '../../models/tip'
 import { assertNever } from '../../lib/fatal-error'
 import { renderBranchNameWarning } from '../lib/branch-name-warnings'
+import { menuTitle } from '../../lib/platform-support'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -209,7 +210,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     return (
       <Dialog
         id='create-branch'
-        title={__DARWIN__ ? 'Create a Branch' : 'Create a branch'}
+        title={menuTitle('Create a branch')}
         onSubmit={this.createBranch}
         onDismissed={this.props.onDismissed}
         loading={this.state.isCreatingBranch}
@@ -232,7 +233,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
 
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Create Branch' : 'Create branch'}</Button>
+            <Button type='submit' disabled={disabled}>{menuTitle('Create branch')}</Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>

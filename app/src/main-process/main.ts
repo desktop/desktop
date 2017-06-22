@@ -18,6 +18,7 @@ import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
 import { enableSourceMaps, withSourceMappedStack } from '../lib/source-map-support'
 import { now } from './now'
+import { menuTitle } from '../lib/platform-support'
 
 enableSourceMaps()
 
@@ -67,7 +68,7 @@ function uncaughtException(error: Error) {
   crashWindow.onFailedToLoad(() => {
     dialog.showMessageBox({
       type: 'error',
-      title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
+      title: menuTitle('Unrecoverable error'),
       message:
         `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
         `This has been reported to the team, but if you encounter this repeatedly please report ` +

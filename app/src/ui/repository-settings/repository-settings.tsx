@@ -11,6 +11,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
 import { NoRemote } from './no-remote'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -73,7 +74,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     return (
       <Dialog
         id='repository-settings'
-        title={__DARWIN__ ? 'Repository Settings' : 'Repository settings'}
+        title={menuTitle('Repository settings')}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
         disabled={this.state.disabled}
@@ -82,7 +83,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
 
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
           <span>Remote</span>
-          <span>{ __DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
+          <span>{menuTitle('Ignored files')}</span>
         </TabBar>
 
         {this.renderActiveTab()}

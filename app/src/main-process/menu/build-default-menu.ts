@@ -3,6 +3,7 @@ import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogPath } from '../../lib/logging/get-log-path'
+import { menuTitle } from '../../lib/platform-support'
 import { mkdirIfNeeded } from '../../lib/file-system'
 import { log } from '../log'
 
@@ -43,23 +44,23 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   }
 
   const fileMenu: Electron.MenuItemConstructorOptions = {
-    label: __DARWIN__ ? 'File' : '&File',
+    label: menuTitle('&File'),
     submenu: [
       {
-        label: __DARWIN__ ? 'New Repository…' : 'New &repository…',
+        label: menuTitle('New &repository…'),
         id: 'new-repository',
         click: emit('create-repository'),
         accelerator: 'CmdOrCtrl+N',
       },
       separator,
       {
-        label: __DARWIN__ ? 'Add Local Repository…' : 'Add &local repository…',
+        label: menuTitle('Add &local repository…'),
         id: 'add-local-repository',
         accelerator: 'CmdOrCtrl+O',
         click: emit('add-local-repository'),
       },
       {
-        label: __DARWIN__ ? 'Clone Repository…' : 'Clo&ne repository…',
+        label: menuTitle('Clo&ne repository…'),
         id: 'clone-repository',
         accelerator: 'CmdOrCtrl+Shift+O',
         click: emit('clone-repository'),
@@ -86,63 +87,63 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   template.push(fileMenu)
 
   template.push({
-    label: __DARWIN__ ? 'Edit' : '&Edit',
+    label: menuTitle('&Edit'),
     submenu: [
-      { role: 'undo', label: __DARWIN__ ? 'Undo' : '&Undo' },
-      { role: 'redo', label: __DARWIN__ ? 'Redo' : '&Redo' },
+      { role: 'undo', label: menuTitle('&Undo') },
+      { role: 'redo', label: menuTitle('&Redo') },
       separator,
-      { role: 'cut', label: __DARWIN__ ? 'Cut' : 'Cu&t' },
-      { role: 'copy', label: __DARWIN__ ? 'Copy' : '&Copy' },
-      { role: 'paste', label: __DARWIN__ ? 'Paste' : '&Paste' },
-      { role: 'selectall', label: __DARWIN__ ? 'Select All' : 'Select &all' },
+      { role: 'cut', label: menuTitle('Cu&t') },
+      { role: 'copy', label: menuTitle('&Copy') },
+      { role: 'paste', label: menuTitle('&Paste') },
+      { role: 'selectall', label: menuTitle('Select &all') },
     ],
   })
 
   template.push({
-    label: __DARWIN__ ? 'View' : '&View',
+    label: menuTitle('&View'),
     submenu: [
       {
-        label: __DARWIN__ ? 'Show Changes' : '&Changes',
+        label: menuTitle.show('&Changes'),
         id: 'show-changes',
         accelerator: 'CmdOrCtrl+1',
         click: emit('select-changes'),
       },
       {
-        label: __DARWIN__ ? 'Show History' : '&History',
+        label: menuTitle.show('&History'),
         id: 'show-history',
         accelerator: 'CmdOrCtrl+2',
         click: emit('select-history'),
       },
       {
-        label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
+        label: menuTitle.show('Repository &list'),
         id: 'show-repository-list',
         accelerator: 'CmdOrCtrl+T',
         click: emit('choose-repository'),
       },
       {
-        label: __DARWIN__ ? 'Show Branches List' : '&Branches list',
+        label: menuTitle.show('&Branches list'),
         id: 'show-branches-list',
         accelerator: 'CmdOrCtrl+B',
         click: emit('show-branches'),
       },
       separator,
       {
-        label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
+        label: menuTitle('Toggle &full screen'),
         role: 'togglefullscreen',
       },
       separator,
       {
-        label: __DARWIN__ ? 'Reset Zoom' : 'Reset zoom',
+        label: menuTitle('Reset zoom'),
         accelerator: 'CmdOrCtrl+0',
         click: zoom(ZoomDirection.Reset),
       },
       {
-        label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
+        label: menuTitle('Zoom in'),
         accelerator: 'CmdOrCtrl+=',
         click: zoom(ZoomDirection.In),
       },
       {
-        label: __DARWIN__ ? 'Zoom Out' : 'Zoom out',
+        label: menuTitle('Zoom out'),
         accelerator: 'CmdOrCtrl+-',
         click: zoom(ZoomDirection.Out),
       },
@@ -160,7 +161,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       {
         id: 'show-devtools',
-        label: __DARWIN__ ? 'Toggle Developer Tools' : '&Toggle developer tools',
+        label: menuTitle('&Toggle developer tools'),
         accelerator: (() => {
           return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'
         })(),
@@ -171,7 +172,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         },
       },
       {
-        label: __DARWIN__ ? 'Debug Shared Process' : '&Debug shared process',
+        label: menuTitle('&Debug shared process'),
         click (item: any, focusedWindow: Electron.BrowserWindow) {
           sharedProcess.show()
         },
@@ -181,47 +182,47 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   })
 
   template.push({
-    label: __DARWIN__ ? 'Repository' : '&Repository',
+    label: menuTitle('&Repository'),
     id: 'repository',
     submenu: [
       {
         id: 'push',
-        label: __DARWIN__ ? 'Push' : 'P&ush',
+        label: menuTitle('P&ush'),
         accelerator: 'CmdOrCtrl+P',
         click: emit('push'),
       },
       {
         id: 'pull',
-        label: __DARWIN__ ? 'Pull' : 'Pu&ll',
+        label: menuTitle('Pu&ll'),
         accelerator: 'CmdOrCtrl+Shift+P',
         click: emit('pull'),
       },
       {
-        label: __DARWIN__ ? 'Remove' : '&Remove',
+        label: menuTitle('&Remove'),
         id: 'remove-repository',
         click: emit('remove-repository'),
       },
       separator,
       {
         id: 'view-repository-on-github',
-        label: __DARWIN__ ? 'View on GitHub' : '&View on GitHub',
+        label: menuTitle('&View on GitHub'),
         accelerator: 'CmdOrCtrl+Alt+G',
         click: emit('view-repository-on-github'),
       },
       {
-        label: __DARWIN__ ? 'Open in Terminal' : 'Op&en command prompt',
+        label: menuTitle('Op&en in the command prompt'),
         id: 'open-in-shell',
         click: emit('open-in-shell'),
       },
       {
-        label: __DARWIN__ ? 'Show in Finder' : 'Show in E&xplorer',
+        label: menuTitle('Show in E&xplorer'),
         id: 'open-working-directory',
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
       },
       separator,
       {
-        label: __DARWIN__ ? 'Repository Settings…' : 'Repository &settings…',
+        label: menuTitle('Repository &settings…'),
         id: 'show-repository-settings',
         click: emit('show-repository-settings'),
       },
@@ -229,39 +230,39 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   })
 
   template.push({
-    label: __DARWIN__ ? 'Branch' : '&Branch',
+    label: menuTitle('&Branch'),
     id: 'branch',
     submenu: [
       {
-        label: __DARWIN__ ? 'New Branch…' : 'New &branch…',
+        label: menuTitle('New &branch…'),
         id: 'create-branch',
         accelerator: 'CmdOrCtrl+Shift+N',
         click: emit('create-branch'),
       },
       {
-        label: __DARWIN__ ? 'Rename…' : '&Rename…',
+        label: menuTitle('&Rename…'),
         id: 'rename-branch',
         click: emit('rename-branch'),
       },
       {
-        label: __DARWIN__ ? 'Delete…' : '&Delete…',
+        label: menuTitle('&Delete…'),
         id: 'delete-branch',
         click: emit('delete-branch'),
       },
       separator,
       {
-        label: __DARWIN__ ? 'Update From Default Branch' : '&Update from default branch',
+        label: menuTitle('&Update from default branch'),
         id: 'update-branch',
         click: emit('update-branch'),
       },
       {
-        label: __DARWIN__ ? 'Merge Into Current Branch…' : '&Merge into current branch…',
+        label: menuTitle('&Merge into current branch…'),
         id: 'merge-branch',
         click: emit('merge-branch'),
       },
       separator,
       {
-        label: __DARWIN__ ? 'Compare on GitHub' : '&Compare on GitHub',
+        label: menuTitle('&Compare on GitHub'),
         id: 'compare-branch',
         accelerator: 'CmdOrCtrl+Shift+C',
         click: emit('compare-branch'),
@@ -283,7 +284,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   }
 
   const submitIssueItem: Electron.MenuItemConstructorOptions = {
-    label: __DARWIN__ ? 'Report Issue…' : 'Report issue…',
+    label: menuTitle('Report issue…'),
     click() {
       shell.openExternal('https://github.com/desktop/desktop/issues/new')
     },
@@ -297,7 +298,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   }
 
   const showLogsItem: Electron.MenuItemConstructorOptions = {
-    label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
+    label: menuTitle('S&how logs in Explorer'),
     click() {
       const logPath = getLogPath()
       mkdirIfNeeded(logPath)

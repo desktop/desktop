@@ -11,6 +11,7 @@ import { Popup, PopupType } from '../lib/app-state'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
 import { remote } from 'electron'
 import { CSSTransitionGroup } from 'react-transition-group'
+import { menuTitle } from '../lib/platform-support'
 
 /**
  * Inspect the error metadata to see if this is an uncaught error
@@ -109,13 +110,13 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   private renderGitErrorFooter(error: GitError) {
     const gitErrorType = error.result.gitError
 
-    switch (gitErrorType)  {
+    switch (gitErrorType) {
       case GitErrorType.HTTPSAuthenticationFailed: {
         return (
           <ButtonGroup>
             <Button type='submit'>Close</Button>
             <Button onClick={this.showPreferencesDialog}>
-              {__DARWIN__ ? 'Open Preferences' : 'Open options'}
+              {menuTitle('Open options')}
             </Button>
           </ButtonGroup>)
       }
