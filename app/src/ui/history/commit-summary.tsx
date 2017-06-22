@@ -223,6 +223,31 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     this.props.onViewCommitOnGitHub(this.props.sha)
   }
 
+  private renderExternalLink() {
+    let url: string | null = null
+    if (!this.props.isLocal) {
+      const gitHubRepository = this.props.repository.gitHubRepository
+      if (gitHubRepository) {
+        url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
+      }
+    }
+
+    if (!url) {
+      return null
+    }
+
+    return (
+      <li className='commit-summary-meta-item'
+        title='View this commit on github.com'>
+        <span aria-hidden='true'>
+          <Octicon symbol={OcticonSymbol.markGithub} />
+        </span>
+
+        <LinkButton uri={url}>View on GitHub</LinkButton>
+      </li>
+    )
+  }
+
   public render() {
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
@@ -277,6 +302,8 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
 
               {filesDescription}
             </li>
+
+            {this.renderExternalLink()}
 
             <li className='commit-summary-meta-item'
               title=''
