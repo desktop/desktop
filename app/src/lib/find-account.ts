@@ -1,6 +1,6 @@
 import * as URL from 'url'
 import { getHTMLURL, API, getDotComAPIEndpoint } from './api'
-import { parseRemote, parseOwnerAndName } from './remote-parsing'
+import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
 import { Account } from '../models/account'
 
 /**
@@ -8,7 +8,7 @@ import { Account } from '../models/account'
  * accessed by the given account.
  */
 async function canAccessRepository(account: Account, owner: string, name: string): Promise<boolean> {
-  const api = new API(account)
+  const api = API.fromAccount(account)
   const repository = await api.fetchRepository(owner, name)
   if (repository) {
     return true
@@ -52,7 +52,7 @@ async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: st
  * @param accounts             - the list of active GitHub and GitHub Enterprise
  *                               accounts
  */
-export async function findAccountForRemote(urlOrRepositoryAlias: string, accounts: ReadonlyArray<Account>): Promise<Account | null> {
+export async function findAccountForRemoteURL(urlOrRepositoryAlias: string, accounts: ReadonlyArray<Account>): Promise<Account | null> {
     const allAccounts = [ ...accounts, Account.anonymous() ]
 
     // We have a couple of strategies to try to figure out what account we
@@ -60,9 +60,7 @@ export async function findAccountForRemote(urlOrRepositoryAlias: string, account
     //
     //  1. Try to parse a remote out of the URL.
     //    1. If that works, try to find an account for that host.
-    //      1. If we find account, check if we can access that repository.
-    //    2. If we don't find an account or we can't access the repository, move
-    //       on to our next strategy.
+    //    2. If we don't find an account move on to our next strategy.
     //  2. Try to parse an owner/name.
     //    1. If that works, find the first account that can access it.
     //  3. And if all that fails then throw our hands in the air because we
@@ -75,22 +73,16 @@ export async function findAccountForRemote(urlOrRepositoryAlias: string, account
         return parsedURL.hostname === parsedEndpoint.hostname
       }) || null
 
+      // If we find an account whose hostname matches the URL to be cloned, it's
+      // always gonna be our best bet for success. We're not gonna do better.
       if (account) {
-        const { owner, name } = parsedURL
-        if (owner && name) {
-          const canAccess = await canAccessRepository(account, owner, name)
-          if (canAccess) {
-            return account
-          }
-        } else {
-          return account
-        }
+        return account
       }
     }
 
-    const parsedOwnerAndName = parseOwnerAndName(urlOrRepositoryAlias)
-    if (parsedOwnerAndName) {
-      const { owner, name } = parsedOwnerAndName
+    const repositoryIdentifier = parseRepositoryIdentifier(urlOrRepositoryAlias)
+    if (repositoryIdentifier) {
+      const { owner, name } = repositoryIdentifier
       const account = await findRepositoryAccount(allAccounts, owner, name)
       if (account) {
         return account

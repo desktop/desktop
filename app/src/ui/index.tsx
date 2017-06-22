@@ -117,7 +117,7 @@ ipcRenderer.on('blur', () => {
   dispatcher.setAppFocusState(false)
 })
 
-ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
+ipcRenderer.on('url-action', (event: Electron.IpcMessageEvent, { action }: { action: URLActionType }) => {
   dispatcher.dispatchURLAction(action)
 })
 

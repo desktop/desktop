@@ -161,7 +161,7 @@ export class AppStore {
     const window = remote.getCurrentWindow()
     this.windowState = getWindowState(window)
 
-    ipcRenderer.on('window-state-changed', (_, args) => {
+    ipcRenderer.on('window-state-changed', (event: Electron.IpcMessageEvent, args: any[]) => {
       this.windowState = getWindowState(window)
       this.emitUpdate()
     })
@@ -170,11 +170,11 @@ export class AppStore {
       this.onWindowZoomFactorChanged(factor)
     })
 
-    ipcRenderer.on('zoom-factor-changed', (event, zoomFactor) => {
+    ipcRenderer.on('zoom-factor-changed', (event: any, zoomFactor: number) => {
       this.onWindowZoomFactorChanged(zoomFactor)
     })
 
-    ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
+    ipcRenderer.on('app-menu', (event: Electron.IpcMessageEvent, { menu }: { menu: IMenu }) => {
       this.setAppMenu(menu)
     })
 
@@ -1143,7 +1143,7 @@ export class AppStore {
     const account = this.getAccountForRepository(updatedRepository)
     if (!account) { return updatedRepository }
 
-    const api = new API(account)
+    const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
     if (!apiRepo) {
       return updatedRepository
@@ -1464,7 +1464,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<void> {
-    const api = new API(account)
+    const api = API.fromAccount(account)
     const apiRepository = await api.createRepository(org, name, description, private_)
 
     const gitStore = this.getGitStore(repository)

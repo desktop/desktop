@@ -60,7 +60,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   }
 
   private async fetchOrgs(account: Account) {
-    const api = new API(account)
+    const api = API.fromAccount(account)
     const orgs = await api.fetchOrgs()
     this.setState({ orgs })
   }

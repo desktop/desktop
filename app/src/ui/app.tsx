@@ -121,7 +121,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       props.dispatcher.postError(error)
     })
 
-    ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
+    ipcRenderer.on('menu-event', (event: Electron.IpcMessageEvent, { name }: { name: MenuEvent }) => {
       this.onMenuEvent(name)
     })
 
@@ -142,7 +142,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
     this.checkForUpdates()
 
-    ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
+    ipcRenderer.on('launch-timing-stats', (event: Electron.IpcMessageEvent, { stats }: { stats: ILaunchStats }) => {
       console.info(`App ready time: ${stats.mainReadyTime}ms`)
       console.info(`Load time: ${stats.loadTime}ms`)
       console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
@@ -150,7 +150,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.recordLaunchStats(stats)
     })
 
-    ipcRenderer.on('certificate-error', (event: Electron.IpcRendererEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {
+    ipcRenderer.on('certificate-error', (event: Electron.IpcMessageEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {
       this.props.dispatcher.showPopup({
         type: PopupType.UntrustedCertificate,
         certificate,
@@ -180,13 +180,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'delete-branch': return this.deleteBranch()
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
-      case 'open-working-directory': return this.openWorkingDirectory()
+      case 'open-working-directory': return this.openCurrentRepositoryWorkingDirectory()
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
       case 'show-repository-settings' : return this.showRepositorySettings()
       case 'view-repository-on-github' : return this.viewRepositoryOnGitHub()
       case 'compare-branch': return this.compareBranch()
-      case 'open-in-shell' : return this.openShell()
+      case 'open-in-shell': return this.openCurrentRepositoryInShell()
       case 'clone-repository': return this.showCloneRepo()
       case 'show-about': return this.showAbout()
       case 'boomtown': return this.boomtown()
@@ -261,11 +261,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.openInBrowser(compareURL)
   }
 
-  private openWorkingDirectory() {
+  private openCurrentRepositoryWorkingDirectory() {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    shell.showItemInFolder(state.repository.path)
+    this.showRepository(state.repository)
   }
 
   private renameBranch() {
@@ -298,10 +298,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private showAddLocalRepo = () => {
-    return this.props.dispatcher.showPopup({
-      type: PopupType.AddRepository,
-      initialPath: null,
-    })
+    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
 
   private showCreateRepository = () => {
@@ -533,16 +530,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     return repository.gitHubRepository.htmlURL
   }
 
-  private openShell() {
+  private openCurrentRepositoryInShell() {
     const repository = this.getRepository()
+    if (!repository) { return }
 
-    if (!repository || repository instanceof CloningRepository) {
-      return
-    }
-
-    const repoFilePath = repository.path
-
-    this.props.dispatcher.openShell(repoFilePath)
+    this.openInShell(repository)
   }
 
   /**
@@ -719,14 +711,11 @@ export class App extends React.Component<IAppProps, IAppState> {
                 dispatcher={this.props.dispatcher}
                 onDismissed={this.onSignInDialogDismissed}/>
       case PopupType.AddRepository:
-        return (
-          <AddExistingRepository
-            key='add-existing-repository'
-            onDismissed={this.onPopupDismissed}
-            dispatcher={this.props.dispatcher}
-            initialPath={popup.initialPath}
-          />
-        )
+        return <AddExistingRepository
+                key='add-existing-repository'
+                onDismissed={this.onPopupDismissed}
+                dispatcher={this.props.dispatcher}
+                path={popup.path} />
       case PopupType.CreateRepository:
         return (
           <CreateRepository
@@ -887,10 +876,28 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <RepositoriesList
       selectedRepository={selectedRepository}
       onSelectionChanged={this.onSelectionChanged}
-      dispatcher={this.props.dispatcher}
       repositories={this.state.repositories}
       onRemoveRepository={this.removeRepository}
+      onClose={this.onCloseRepositoryList}
+      onOpenInShell={this.openInShell}
+      onShowRepository={this.showRepository}
     />
+  }
+
+  private openInShell = (repository: Repository | CloningRepository) => {
+    if (!(repository instanceof Repository)) { return }
+
+    this.props.dispatcher.openShell(repository.path)
+  }
+
+  private showRepository = (repository: Repository | CloningRepository) => {
+    if (!(repository instanceof Repository)) { return }
+
+    shell.showItemInFolder(repository.path)
+  }
+
+  private onCloseRepositoryList = () => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {

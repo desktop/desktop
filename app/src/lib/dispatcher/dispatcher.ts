@@ -80,7 +80,7 @@ export class Dispatcher {
       this.addAccount(user)
     })
 
-    ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
+    ipcRenderer.on('shared/did-update', (event: Electron.IpcMessageEvent, args: any[]) => this.onSharedDidUpdate(event, args))
   }
 
   public async loadInitialState(): Promise<void> {
@@ -115,7 +115,7 @@ export class Dispatcher {
     })
   }
 
-  private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {
+  private onSharedDidUpdate(event: Electron.IpcMessageEvent, args: any[]) {
     const state: { repositories: ReadonlyArray<IRepository>, accounts: ReadonlyArray<IAccount> } = args[0].state
     const inflatedAccounts = state.accounts.map(Account.fromJSON)
     const inflatedRepositories = state.repositories.map(Repository.fromJSON)
@@ -847,7 +847,7 @@ export class Dispatcher {
         } else {
           return this.showPopup({
             type: PopupType.AddRepository,
-            initialPath: action.path,
+            path: action.path,
           })
         }
         break
