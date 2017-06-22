@@ -14,7 +14,7 @@ import * as Os from 'os'
 export function handleSquirrelEvent(eventName: string): Promise<void> | null {
   switch (eventName) {
     case '--squirrel-install':
-      return createShortcut()
+      return createShortcut([ 'StartMenu', 'Desktop' ])
 
     case '--squirrel-updated':
       return handleUpdated()
@@ -94,7 +94,9 @@ async function spawnSquirrelUpdate(command: string): Promise<void> {
   await spawn(updateDotExe, [ command, exeName ])
 }
 
-function createShortcut(): Promise<void> {
+type ShortcutLocations = ReadonlyArray<'StartMenu' | 'Desktop'>
+
+function createShortcut(locations: ShortcutLocations): Promise<void> {
   return spawnSquirrelUpdate('--createShortcut')
 }
 
@@ -117,17 +119,16 @@ function updateShortcut(): Promise<void> {
     const desktopShortcutPath = Path.join(homeDirectory, 'Desktop', 'GitHub Desktop.lnk')
     return new Promise<void>((resolve, reject) => {
       Fs.exists(desktopShortcutPath, exists => {
-        if (exists) {
-          createShortcut()
-            .then(resolve)
-            .catch(reject)
-        } else {
-          resolve()
-        }
+        const locations: ShortcutLocations = exists
+          ? [ 'StartMenu', 'Desktop' ]
+          : [ 'StartMenu' ]
+        createShortcut(locations)
+          .then(resolve)
+          .catch(reject)
       })
     })
   } else {
-    return createShortcut()
+    return createShortcut([ 'StartMenu', 'Desktop' ])
   }
 }
 
