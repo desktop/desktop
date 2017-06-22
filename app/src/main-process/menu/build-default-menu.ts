@@ -126,12 +126,46 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         accelerator: 'CmdOrCtrl+B',
         click: emit('show-branches'),
       },
+      {
+        label: menuTitle('&Developer'),
+        submenu: [
+          {
+            label: '&Reload',
+            id: 'reload-window',
+            accelerator: 'CmdOrCtrl+R',
+            click (item: any, focusedWindow: Electron.BrowserWindow) {
+              if (focusedWindow) {
+                focusedWindow.reload()
+              }
+            },
+            visible: __RELEASE_ENV__ !== 'production',
+          },
+          {
+            id: 'show-devtools',
+            label: menuTitle('&Toggle developer tools'),
+            accelerator: (() => {
+              return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'
+            })(),
+            click (item: any, focusedWindow: Electron.BrowserWindow) {
+              if (focusedWindow) {
+                focusedWindow.webContents.toggleDevTools()
+              }
+            },
+          },
+          {
+            label: menuTitle('&Debug shared process'),
+            click (item: any, focusedWindow: Electron.BrowserWindow) {
+              sharedProcess.show()
+            },
+            visible: __RELEASE_ENV__ !== 'production',
+          },
+        ],
+      },
       separator,
       {
         label: menuTitle('Toggle &full screen'),
         role: 'togglefullscreen',
       },
-      separator,
       {
         label: menuTitle('Reset zoom'),
         accelerator: 'CmdOrCtrl+0',
@@ -146,37 +180,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         label: menuTitle('Zoom out'),
         accelerator: 'CmdOrCtrl+-',
         click: zoom(ZoomDirection.Out),
-      },
-      separator,
-      {
-        label: '&Reload',
-        id: 'reload-window',
-        accelerator: 'CmdOrCtrl+R',
-        click (item: any, focusedWindow: Electron.BrowserWindow) {
-          if (focusedWindow) {
-            focusedWindow.reload()
-          }
-        },
-        visible: __RELEASE_ENV__ !== 'production',
-      },
-      {
-        id: 'show-devtools',
-        label: menuTitle('&Toggle developer tools'),
-        accelerator: (() => {
-          return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'
-        })(),
-        click (item: any, focusedWindow: Electron.BrowserWindow) {
-          if (focusedWindow) {
-            focusedWindow.webContents.toggleDevTools()
-          }
-        },
-      },
-      {
-        label: menuTitle('&Debug shared process'),
-        click (item: any, focusedWindow: Electron.BrowserWindow) {
-          sharedProcess.show()
-        },
-        visible: __RELEASE_ENV__ !== 'production',
       },
     ],
   })
