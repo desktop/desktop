@@ -35,6 +35,7 @@ import {
   getStatus,
   IStatusResult,
   getCommit,
+  revertCommit,
 } from '../git'
 
 /** The number of commits to load from history per batch. */
@@ -750,6 +751,15 @@ export class GitStore {
 
     this._contextualCommitMessage = message
     this.emitUpdate()
+  }
+
+  /** Reverts the commit with the given SHA */
+  public async revertCommit(repository: Repository, SHA: string): Promise<void> {
+    const success = await this.performFailableOperation(() => revertCommit(repository, SHA))
+
+    if (success) {
+      this.emitUpdate()
+    }
   }
 
   /**
