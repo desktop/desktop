@@ -287,11 +287,11 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
               aria-label=''
               onContextMenu={this.onShowCommitOptions}
             >
+            <a onClick={this.onShowCommitOptions}>
               <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.gear} />
               </span>
-              <a onClick={this.onShowCommitOptions}>
-                <Octicon symbol={OcticonSymbol.triangleDown} />
+              <Octicon symbol={OcticonSymbol.triangleDown} />
               </a>
             </li>
           </ul>
