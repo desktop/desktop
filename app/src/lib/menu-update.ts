@@ -155,8 +155,15 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.setEnabled('pull', hasPublishedBranch && !networkActionInProgress)
     menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
   } else {
-    for (const id of repositoryScopedIDs) {
-      menuStateBuilder.disable(id)
+    if (selectedState && selectedState.type === SelectionType.MissingRepository) {
+      menuStateBuilder.enable('view-repository-on-github')
+      menuStateBuilder.enable('remove-repository')
+    } else {
+      for (const id of repositoryScopedIDs) {
+        menuStateBuilder.disable(id)
+      }
+
+      menuStateBuilder.disable('view-repository-on-github')
     }
 
     menuStateBuilder.disable('rename-branch')
@@ -165,7 +172,6 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.disable('merge-branch')
     menuStateBuilder.disable('compare-branch')
 
-    menuStateBuilder.disable('view-repository-on-github')
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
   }

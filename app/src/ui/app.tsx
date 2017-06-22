@@ -464,12 +464,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private removeRepository = (repository: Repository | CloningRepository | null) => {
-
     if (!repository) {
       return
     }
 
-    if (repository instanceof CloningRepository) {
+    if (repository instanceof CloningRepository || repository.missing) {
       this.props.dispatcher.removeRepositories([ repository ])
       return
     }
