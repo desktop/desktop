@@ -1805,4 +1805,11 @@ export class AppStore {
 
     return result
   }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _revertCommit(repository: Repository, SHA: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+
+    gitStore.revertCommit(repository, SHA)
+  }
 }
