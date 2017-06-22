@@ -3,6 +3,9 @@ import * as Path from 'path'
 import * as Fs from 'fs-extra'
 import * as Os from 'os'
 
+// A lot of this code was cargo-culted from our Atom comrades:
+// https://github.com/atom/atom/blob/7c9f39e3f1d05ee423e0093e6b83f042ce11c90a/src/main-process/squirrel-update.coffee.
+
 /**
  * Handle Squirrel.Windows app lifecycle events.
  *
