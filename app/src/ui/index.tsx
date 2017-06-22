@@ -8,7 +8,7 @@ import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
-import { URLActionType } from '../lib/parse-url'
+import { URLActionType } from '../lib/parse-app-url'
 import { SelectionType } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'

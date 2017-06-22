@@ -23,7 +23,7 @@ import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
 import { isGitOnPath } from '../open-shell'
 import { uuid } from '../uuid'
-import { URLActionType, IOpenRepositoryArgs } from '../parse-url'
+import { URLActionType, IOpenRepositoryFromURLAction, IUnknownAction } from '../parse-app-url'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
 import { validatedRepositoryPath } from './validated-repository-path'
 
@@ -805,7 +805,7 @@ export class Dispatcher {
     switch (action.name) {
       case 'oauth':
         try {
-          const user = await requestAuthenticatedUser(action.args.code)
+          const user = await requestAuthenticatedUser(action.code)
           if (user) {
             resolveOAuthRequest(user)
           } else {
@@ -816,20 +816,44 @@ export class Dispatcher {
         }
         break
 
-      case 'open-repository':
-        const { pr, url, branch } = action.args
+      case 'open-repository-from-url':
+        const { pr, url, branch } = action
         // a forked PR will provide both these values, despite the branch not existing
         // in the repository - drop the branch argument in this case so a clone will
         // checkout the default branch when it clones
         const branchToClone = (pr && branch) ? null : (branch || null)
         const repository = await this.openRepository(url, branchToClone)
         if (repository) {
-          this.handleCloneInDesktopOptions(repository, action.args)
+          this.handleCloneInDesktopOptions(repository, action)
+        }
+        break
+
+      case 'open-repository-from-path':
+        const state = this.appStore.getState()
+        const repositories = state.repositories
+        const existingRepository = repositories.find(r => {
+          if (__WIN32__) {
+            // Windows is guaranteed to be case-insensitive so we can be a
+            // bit more accepting.
+            return Path.normalize(r.path).toLowerCase() === Path.normalize(action.path).toLowerCase()
+          } else {
+            return Path.normalize(r.path) === Path.normalize(action.path)
+          }
+        })
+
+        if (existingRepository) {
+          this.selectRepository(existingRepository)
+        } else {
+          return this.showPopup({
+            type: PopupType.AddRepository,
+            path: action.path,
+          })
         }
         break
 
       default:
-        log.warn(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
+        const unknownAction: IUnknownAction = action
+        log.warn(`Unknown URL action: ${unknownAction.name} - payload: ${JSON.stringify(unknownAction)}`)
     }
   }
 
@@ -850,8 +874,8 @@ export class Dispatcher {
     return shell.showItemInFolder(normalized)
   }
 
-  private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryArgs): Promise<void> {
-    const { filepath, pr, branch } = args
+  private async handleCloneInDesktopOptions(repository: Repository, action: IOpenRepositoryFromURLAction): Promise<void> {
+    const { filepath, pr, branch } = action
 
     // we need to refetch for a forked PR and check that out
     if (pr && branch) {

@@ -2,7 +2,7 @@ import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
 import { MenuEvent } from './menu'
-import { URLActionType } from '../lib/parse-url'
+import { URLActionType } from '../lib/parse-app-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
@@ -162,6 +162,11 @@ export class AppWindow {
 
   public isMinimized() {
     return this.window.isMinimized()
+  }
+
+  /** Is the window currently visible? */
+  public isVisible() {
+    return this.window.isVisible()
   }
 
   public restore() {
