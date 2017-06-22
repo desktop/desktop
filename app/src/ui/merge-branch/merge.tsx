@@ -83,10 +83,10 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     }
   }
 
-  private onSelectionChanged = (selectedBranch: Branch | null) => {
+  private onSelectionChanged = async (selectedBranch: Branch | null) => {
     if (selectedBranch) {
       this.setState({ selectedBranch })
-      this.updateCommitCount(selectedBranch)
+      await this.updateCommitCount(selectedBranch)
     } else {
       this.setState({ selectedBranch, commitCount: 0 })
     }
@@ -155,18 +155,17 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     )
   }
 
-  private async updateCommitCount(branch: Branch) {
-    this.setState({ commitCount: undefined })
-
+ private async updateCommitCount(branch: Branch) {
     const range = `...${branch.name}`
     const aheadBehind = await getAheadBehind(this.props.repository, range)
     const commitCount = aheadBehind ? aheadBehind.behind : 0
 
-    // The branch changed while we were waiting on the result of
-    // `getAheadBehind`.
-    if (this.state.selectedBranch !== branch) { return }
-
-    this.setState({ commitCount })
+    if (this.state.selectedBranch !== branch) {
+      // The branch changed while we were waiting on the result of `getAheadBehind`.
+      this.setState({ commitCount: undefined })
+    } else {
+      this.setState({ commitCount })
+    }
   }
 
   private merge = () => {
