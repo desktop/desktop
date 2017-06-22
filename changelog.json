@@ -1,7 +1,27 @@
 {
   "releases": {
     "0.6.2": [
-
+      "[New] Link to User Guides from the Help menu - #1963",
+      "[New] Added the 'Open in External Editor' contextual menu item to changed files - #2023",
+      "[New] Added the 'Show' and 'Open Command Prompt' contextual menu items to repositories - #1554",
+      "[New] Windows: Support self-signed or untrusted certificates - #671",
+      "[New] Copy the SHA to the clipboard when clicked - #1501",
+      "[Improved] Provide the option of initializing a new repository when adding a directory that isn't already one - #969",
+      "[Improved] Link to the working directory when there are no changes - #1871",
+      "[Improved] Hitting Enter when selecting a base branch creates the new branch - #1780",
+      "[Improved] Prefix repository names with their owner if they are ambiguous - #1848",
+      "[Fixed] Sort and filter licenses like GitHub.com - #1987",
+      "[Fixed] Long branch names not getting truncated in the Rename Branch dialog - #1891",
+      "[Fixed] Prune old log files - #1540",
+      "[Fixed] Ensure the local path is valid before trying to create a new repository - #1487",
+      "[Fixed] Support cloning repository wikis - #1624",
+      "[Fixed] Disable the Select All checkbox when there are no changes - #1389",
+      "[Fixed] Changed docx files wouldn't show anything in the diff panel - #1990",
+      "[Fixed] Disable the Merge button when there are no commits to merge - #1359",
+      "[Fixed] Username/password authentication not working for GitHub Enterprise - #2064",
+      "[Fixed] Better error messages when an API call fails - #2017",
+      "[Fixed] Create the 'logs' directory if it doesn't exist - #1550",
+      "[Fixed] Enable the 'Remove' menu item for missing repositories - #1776"
     ],
     "0.6.1": [
       "[Fixed] Properly log stats opt in/out - #1949",
