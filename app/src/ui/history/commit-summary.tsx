@@ -188,7 +188,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
 
     const items: IMenuItem[] = [
       {
-        label: __DARWIN__ ? 'Revert this Commit' : 'Revert this commit',
+        label: __DARWIN__ ? 'Revert This Commit' : 'Revert this commit',
         action: this.onRevertCommit,
       },
       { type: 'separator' },
