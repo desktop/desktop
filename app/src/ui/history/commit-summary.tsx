@@ -69,6 +69,10 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     }
   }
 
+  private onCopyShaToClipboard = () => {
+    clipboard.writeText(this.props.sha)
+  }
+
   private onResized = () => {
     if (this.props.isExpanded) {
       return
@@ -224,15 +228,6 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const shortSHA = this.props.sha.slice(0, 7)
-
-    let url: string | null = null
-    if (!this.props.isLocal) {
-      const gitHubRepository = this.props.repository.gitHubRepository
-      if (gitHubRepository) {
-        url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
-      }
-    }
-
     const author = this.props.author
     const authorTitle = `${author.name} <${author.email}>`
     let avatarUser = undefined
@@ -266,12 +261,12 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
             </li>
 
             <li className='commit-summary-meta-item'
-              title={shortSHA} aria-label='SHA'>
+              title='Copy SHA to clipboard' aria-label='SHA'>
               <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
 
-              {url ? <LinkButton uri={url}>{shortSHA}</LinkButton> : shortSHA}
+              <LinkButton onClick={this.onCopyShaToClipboard}>{shortSHA}</LinkButton>
             </li>
 
             <li className='commit-summary-meta-item'

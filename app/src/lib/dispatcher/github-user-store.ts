@@ -54,7 +54,7 @@ export class GitHubUserStore {
 
   /** Update the mentionable users for the repository. */
   public async updateMentionables(repository: GitHubRepository, account: Account): Promise<void> {
-    const api = new API(account)
+    const api = API.fromAccount(account)
 
     const repositoryID = repository.dbID
     if (!repositoryID) {
@@ -145,7 +145,7 @@ export class GitHubUserStore {
   }
 
   private async findUserWithAPI(account: Account, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitHubUser | null> {
-    const api = new API(account)
+    const api = API.fromAccount(account)
     if (sha) {
       const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
       if (apiCommit && apiCommit.author) {

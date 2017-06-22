@@ -49,7 +49,7 @@ export interface IRepositoryIdentifier {
 }
 
 /** Try to parse an owner and name from a URL or owner/name shortcut. */
-export function parseOwnerAndName(url: string): IRepositoryIdentifier | null {
+export function parseRepositoryIdentifier(url: string): IRepositoryIdentifier | null {
   const parsed = parseRemote(url)
   // If we can parse it as a remote URL, we'll assume they gave us a proper
   // URL. If not, we'll try treating it as a GitHub repository owner/name

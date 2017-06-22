@@ -9,6 +9,9 @@ export enum CheckboxValue {
 }
 
 interface ICheckboxProps {
+  /** Is the component disabled. */
+  readonly disabled?: boolean
+
   /** The current value of the component. */
   readonly value: CheckboxValue
 
@@ -93,6 +96,7 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
           type='checkbox'
           onChange={this.onChange}
           ref={this.onInputRef}
+          disabled={this.props.disabled}
         />
         {this.renderLabel()}
       </div>
