@@ -1,15 +1,15 @@
-import * as fileSystem from 'fs-extra'
+import * as Fs from 'fs-extra'
 
 
-/** this function wraps the filesystem mkdir function and silently returns if
- * the directory already exists. If it does not, it makes the directory.
- * If a different error was thrown, it's passed to an error handling callback
+/** Create directory using basic Fs.mkdir but ignores
+ * the error thrown when directory already exists.
+ * All other errors must be handled by caller.
  *
- * @param directoryPath the path of the directory the user wants to create
+ * @param directoryPath the path of the directory the caller wants to create.
  */
 export function mkdirIfNeeded (directoryPath: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    fileSystem.mkdir(directoryPath, (err) => {
+    Fs.mkdir(directoryPath, (err) => {
       if (err && err.code !== 'EEXIST') {
         reject(err)
         return
