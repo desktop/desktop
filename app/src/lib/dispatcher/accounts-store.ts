@@ -1,6 +1,34 @@
+import { Emitter, Disposable } from 'event-kit'
 import { IDataStore, ISecureStore } from './stores'
-import { getKeyForAccount } from '../lib/auth'
-import { Account, IAccount } from '../models/account'
+import { getKeyForAccount } from '../auth'
+import { Account } from '../../models/account'
+
+/** The data-only interface for storage. */
+interface IEmail {
+  readonly email: string
+  /**
+   * Represents whether GitHub has confirmed the user has access to this
+   * email address. New users require a verified email address before
+   * they can sign into GitHub Desktop.
+   */
+  readonly verified: boolean
+  /**
+   * Flag for the user's preferred email address. Other email addresses
+   * are provided for associating commit authors with the one GitHub account.
+   */
+  readonly primary: boolean
+}
+
+/** The data-only interface for storage. */
+interface IAccount {
+  readonly token: string
+  readonly login: string
+  readonly endpoint: string
+  readonly emails: ReadonlyArray<IEmail>
+  readonly avatarURL: string
+  readonly id: number
+  readonly name: string
+}
 
 export class AccountsStore {
   private dataStore: IDataStore
@@ -11,10 +39,21 @@ export class AccountsStore {
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
 
+  private readonly emitter = new Emitter()
+
   public constructor(dataStore: IDataStore, secureStore: ISecureStore) {
     this.dataStore = dataStore
     this.secureStore = secureStore
     this.loadingPromise = this.loadFromStore()
+  }
+
+  private emitUpdate() {
+    this.emitter.emit('did-update', {})
+  }
+
+  /** Register a function to be called when the store updates. */
+  public onDidUpdate(fn: () => void): Disposable {
+    return this.emitter.on('did-update', fn)
   }
 
   /**
@@ -90,5 +129,7 @@ export class AccountsStore {
   private save() {
     const usersWithoutTokens = this.accounts.map(account => account.withToken(''))
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
+
+    this.emitUpdate()
   }
 }

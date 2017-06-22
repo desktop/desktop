@@ -3,7 +3,7 @@ const expect = chai.expect
 
 import { Account } from '../../src/models/account'
 import { Email } from '../../src/models/email'
-import { AccountsStore } from '../../src/shared-process/accounts-store'
+import { AccountsStore } from '../../src/lib/dispatcher'
 import { InMemoryStore } from '../in-memory-store'
 import { AsyncInMemoryStore } from '../async-in-memory-store'
 

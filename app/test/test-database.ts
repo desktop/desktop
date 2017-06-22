@@ -1,6 +1,6 @@
-import { Database } from '../src/shared-process/database'
+import { RepositoriesDatabase } from '../src/lib/dispatcher'
 
-export class TestDatabase extends Database {
+export class TestDatabase extends RepositoriesDatabase {
   public constructor() {
     super('TestDatabase')
   }

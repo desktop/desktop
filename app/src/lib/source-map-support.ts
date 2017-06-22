@@ -13,7 +13,7 @@ const sourceMapSupport = require('source-map-support')
  * since it's possible that the error which caused us to spawn the crash
  * process was related to source maps.
  */
-const knownFilesWithSourceMap = [ 'renderer.js', 'main.js', 'shared.js' ]
+const knownFilesWithSourceMap = [ 'renderer.js', 'main.js' ]
 
 function retrieveSourceMap(source: string) {
   // This is a happy path in case we know for certain that we won't be

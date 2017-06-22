@@ -11,12 +11,18 @@ import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepos
 import { URLActionType } from '../lib/parse-app-url'
 import { SelectionType } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
-import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import {
+  IssuesDatabase,
+  IssuesStore,
+  SignInStore,
   defaultErrorHandler,
   createMissingRepositoryHandler,
   backgroundTaskHandler,
   unhandledExceptionHandler,
+  AccountsStore,
+  RepositoriesDatabase,
+  RepositoriesStore,
+  TokenStore,
 } from '../lib/dispatcher'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
@@ -80,6 +86,9 @@ const emojiStore = new EmojiStore()
 const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
 const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
 const signInStore = new SignInStore()
+
+const accountsStore = new AccountsStore(localStorage, TokenStore)
+const repositoriesStore = new RepositoriesStore(RepositoriesDatabase('Database'))
 
 const appStore = new AppStore(
   gitHubUserStore,

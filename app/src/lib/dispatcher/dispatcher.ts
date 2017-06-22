@@ -1,14 +1,13 @@
 import * as Path from 'path'
 
-import { ipcRenderer, remote, shell } from 'electron'
+import { remote, shell } from 'electron'
 import { Disposable } from 'event-kit'
 
-import { Account, IAccount } from '../../models/account'
-import { Repository, IRepository } from '../../models/repository'
+import { Account } from '../../models/account'
+import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
 import { RepositorySection, Popup, PopupType, Foldout, FoldoutType } from '../app-state'
-import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
 import { Branch } from '../../models/branch'
@@ -22,38 +21,11 @@ import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
 import { isGitOnPath } from '../open-shell'
-import { uuid } from '../uuid'
 import { URLActionType, IOpenRepositoryFromURLAction, IUnknownAction } from '../parse-app-url'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
 import { validatedRepositoryPath } from './validated-repository-path'
-
-/**
- * Extend Error so that we can create new Errors with a callstack different from
- * the callsite.
- */
-class IPCError extends Error {
-  public readonly message: string
-  public readonly stack: string
-
-  public constructor(name: string, message: string, stack: string) {
-    super(name)
-    this.name = name
-    this.message = message
-    this.stack = stack
-  }
-}
-
-interface IResult<T> {
-  type: 'result'
-  readonly result: T
-}
-
-interface IError {
-  type: 'error'
-  readonly error: Error
-}
-
-type IPCResponse<T> = IResult<T> | IError
+import { AccountsStore } from './accounts-store'
+import { RepositoriesStore } from './repositories-store'
 
 /**
  * An error handler function.
@@ -69,68 +41,37 @@ export type ErrorHandler = (error: Error, dispatcher: Dispatcher) => Promise<Err
  */
 export class Dispatcher {
   private appStore: AppStore
+  private accountsStore: AccountsStore
+  private repositoriesStore: RepositoriesStore
 
   private readonly errorHandlers = new Array<ErrorHandler>()
 
-  public constructor(appStore: AppStore) {
+  public constructor(appStore: AppStore, accountsStore: AccountsStore, repositoriesStore: RepositoriesStore) {
     this.appStore = appStore
+    this.accountsStore = accountsStore
+    this.repositoriesStore = repositoriesStore
 
     appStore.onDidAuthenticate((user) => {
       this.addAccount(user)
     })
 
-    ipcRenderer.on('shared/did-update', (event: Electron.IpcMessageEvent, args: any[]) => this.onSharedDidUpdate(event, args))
-  }
+    accountsStore.onDidUpdate(async () => {
+      const accounts = await this.accountsStore.getAll()
+      const repositories = await this.repositoriesStore.getRepositories()
+      this.appStore._loadFromSharedProcess(accounts, repositories, false)
+    })
 
-  public async loadInitialState(): Promise<void> {
-    const users = await this.loadUsers()
-    const repositories = await this.loadRepositories()
-    this.appStore._loadFromSharedProcess(users, repositories, true)
-  }
-
-  private dispatchToSharedProcess<T>(action: Action): Promise<T> {
-    return this.send(action.name, action)
-  }
-
-  private send<T>(name: string, args: Object): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-
-      const requestGuid = uuid()
-      ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
-        const response: IPCResponse<T> = args[0]
-        if (response.type === 'result') {
-          resolve(response.result)
-        } else {
-          const errorInfo = response.error
-          const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
-          if (__DEV__) {
-          }
-
-          reject(error)
-        }
-      })
-
-      ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
+    repositoriesStore.onDidUpdate(async () => {
+      const accounts = await this.accountsStore.getAll()
+      const repositories = await this.repositoriesStore.getRepositories()
+      this.appStore._loadFromSharedProcess(accounts, repositories, false)
     })
   }
 
-  private onSharedDidUpdate(event: Electron.IpcMessageEvent, args: any[]) {
-    const state: { repositories: ReadonlyArray<IRepository>, accounts: ReadonlyArray<IAccount> } = args[0].state
-    const inflatedAccounts = state.accounts.map(Account.fromJSON)
-    const inflatedRepositories = state.repositories.map(Repository.fromJSON)
-    this.appStore._loadFromSharedProcess(inflatedAccounts, inflatedRepositories, false)
-  }
-
-  /** Get the users */
-  private async loadUsers(): Promise<ReadonlyArray<Account>> {
-    const json = await this.dispatchToSharedProcess<ReadonlyArray<IAccount>>({ name: 'get-accounts' })
-    return json.map(Account.fromJSON)
-  }
-
-  /** Get the repositories the user has added to the app. */
-  private async loadRepositories(): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'get-repositories' })
-    return json.map(Repository.fromJSON)
+  public async loadInitialState(): Promise<void> {
+    const accounts = await this.accountsStore.getAll()
+    const repositories = await this.repositoriesStore.getRepositories()
+    this.appStore._loadFromSharedProcess(accounts, repositories, true)
   }
 
   /**
@@ -138,26 +79,19 @@ export class Dispatcher {
    * this will post an error to that affect.
    */
   public async addRepositories(paths: ReadonlyArray<string>): Promise<ReadonlyArray<Repository>> {
-    const validatedPaths = new Array<string>()
+    const addedRepositories = new Array<Repository>()
     for (const path of paths) {
       const validatedPath = await validatedRepositoryPath(path)
       if (validatedPath) {
-        validatedPaths.push(validatedPath)
+        const addedRepo = await this.repositoriesStore.addRepository(validatedPath)
+        const refreshedRepo = await this.refreshGitHubRepositoryInfo(addedRepo)
+        addedRepositories.push(refreshedRepo)
       } else {
         this.postError({ name: 'add-repository', message: `${path} isn't a git repository.` })
       }
     }
 
-    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', paths: validatedPaths })
-    const addedRepositories = json.map(Repository.fromJSON)
-
-    const refreshedRepositories = new Array<Repository>()
-    for (const repository of addedRepositories) {
-      const refreshedRepository = await this.refreshGitHubRepositoryInfo(repository)
-      refreshedRepositories.push(refreshedRepository)
-    }
-
-    return refreshedRepositories
+    return addedRepositories
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
@@ -169,7 +103,9 @@ export class Dispatcher {
     })
 
     const repositoryIDs = localRepositories.map(r => r.id)
-    await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
+    for (const id of repositoryIDs) {
+      await this.repositoriesStore.removeRepository(id)
+    }
 
     this.showFoldout({ type: FoldoutType.Repository })
   }
@@ -182,14 +118,12 @@ export class Dispatcher {
       return refreshedRepository
     }
 
-    const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-github-repository', repository: refreshedRepository })
-    return Repository.fromJSON(repo)
+    return this.repositoriesStore.updateGitHubRepository(repository)
   }
 
   /** Update the repository's `missing` flag. */
   public async updateRepositoryMissing(repository: Repository, missing: boolean): Promise<Repository> {
-    const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-missing', repository, missing })
-    return Repository.fromJSON(repo)
+    return this.repositoriesStore.updateRepositoryMissing(repository, missing)
   }
 
   /** Load the history for the repository. */
@@ -418,10 +352,7 @@ export class Dispatcher {
     const success = await promise
     if (!success) { return }
 
-    // In the background the shared process has updated the repository list.
-    // To ensure a smooth transition back, we should lookup the new repository
-    // and update it's state after the clone has completed
-    const repositories = await this.loadRepositories()
+    const repositories = await this.repositoriesStore.getRepositories()
     const found = repositories.find(r => r.path === path) || null
 
     if (found) {
@@ -539,12 +470,23 @@ export class Dispatcher {
 
   /** Add the account to the app. */
   public async addAccount(account: Account): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'add-account', account })
+    await this.accountsStore.addAccount(account)
+    // TODO: update accounts
   }
+
+  // async function updateAccounts() {
+  //   await accountsStore.map(async (account: Account) => {
+  //     const api = API.fromAccount(account)
+  //     const newAccount = await api.fetchAccount()
+  //     const emails = await api.fetchEmails()
+  //     return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatar_url, newAccount.id, newAccount.name)
+  //   })
+  //   broadcastUpdate()
+  // }
 
   /** Remove the given account from the app. */
   public removeAccount(account: Account): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'remove-account', account })
+    return this.accountsStore.removeAccount(account)
   }
 
   /**
@@ -794,7 +736,8 @@ export class Dispatcher {
 
   /** Update the repository's path. */
   private async updateRepositoryPath(repository: Repository, path: string): Promise<void> {
-    await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-path', repository, path })
+    const updatedRepository = await this.repositoriesStore.updateRepositoryPath(repository, path)
+    await this.repositoriesStore.updateRepositoryMissing(updatedRepository, false)
   }
 
   public async setAppFocusState(isFocused: boolean): Promise<void> {

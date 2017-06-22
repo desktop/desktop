@@ -8,7 +8,6 @@ import { buildDefaultMenu, MenuEvent, findMenuItemByID, setCrashMenu } from './m
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
-import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
 import { IMenuItemState } from '../lib/menu-update'
@@ -22,7 +21,6 @@ import { now } from './now'
 enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
-let sharedProcess: SharedProcess | null = null
 
 const launchTime = now()
 
@@ -50,11 +48,6 @@ function uncaughtException(error: Error) {
 
   if (mainWindow) {
     mainWindow.destroy()
-    mainWindow = null
-  }
-
-  if (sharedProcess) {
-    sharedProcess.destroy()
     mainWindow = null
   }
 
@@ -170,12 +163,9 @@ app.on('ready', () => {
     app.setAsDefaultProtocolClient('github-windows')
   }
 
-  sharedProcess = new SharedProcess()
-  sharedProcess.register()
-
   createWindow()
 
-  const menu = buildDefaultMenu(sharedProcess)
+  const menu = buildDefaultMenu()
   Menu.setApplicationMenu(menu)
 
   ipcMain.on('menu-event', (event: Electron.IpcMessageEvent, args: any[]) => {

@@ -1,8 +1,13 @@
-import { Database, IDatabaseGitHubRepository, IDatabaseRepository } from './database'
-import { Owner } from '../models/owner'
-import { GitHubRepository } from '../models/github-repository'
-import { Repository } from '../models/repository'
-import { fatalError } from '../lib/fatal-error'
+import { Emitter, Disposable } from 'event-kit'
+import {
+  RepositoriesDatabase,
+  IDatabaseGitHubRepository,
+  IDatabaseRepository,
+} from './repositories-database'
+import { Owner } from '../../models/owner'
+import { GitHubRepository } from '../../models/github-repository'
+import { Repository } from '../../models/repository'
+import { fatalError } from '../fatal-error'
 
 // NB: We can't use async/await within Dexie transactions. This is because Dexie
 // uses its own Promise implementation and TypeScript doesn't know about it. See
@@ -14,10 +19,21 @@ import { fatalError } from '../lib/fatal-error'
 
 /** The store for local repositories. */
 export class RepositoriesStore {
-  private db: Database
+  private db: RepositoriesDatabase
 
-  public constructor(db: Database) {
+  private readonly emitter = new Emitter()
+
+  public constructor(db: RepositoriesDatabase) {
     this.db = db
+  }
+
+  private emitUpdate() {
+    this.emitter.emit('did-update', {})
+  }
+
+  /** Register a function to be called when the store updates. */
+  public onDidUpdate(fn: () => void): Disposable {
+    return this.emitter.on('did-update', fn)
   }
 
   /** Get all the local repositories. */
@@ -83,11 +99,16 @@ export class RepositoriesStore {
       gitHubRepositoryID: null,
       missing: false,
     })
+
+    this.emitUpdate()
+
     return new Repository(path, id, null, false)
   }
 
   public async removeRepository(repoID: number): Promise<void> {
     await this.db.repositories.delete(repoID)
+
+    this.emitUpdate()
   }
 
   /** Update the repository's `missing` flag. */
@@ -100,6 +121,8 @@ export class RepositoriesStore {
     const updatedRepository = repository.withMissing(missing)
     const gitHubRepositoryID = updatedRepository.gitHubRepository ? updatedRepository.gitHubRepository.dbID : null
     await this.db.repositories.put({ ...updatedRepository, gitHubRepositoryID, gitHubRepository: undefined })
+
+    this.emitUpdate()
 
     return updatedRepository
   }
@@ -114,6 +137,8 @@ export class RepositoriesStore {
     const updatedRepository = repository.withPath(path)
     const gitHubRepositoryID = updatedRepository.gitHubRepository ? updatedRepository.gitHubRepository.dbID : null
     await this.db.repositories.put({ ...updatedRepository, gitHubRepositoryID, gitHubRepository: undefined })
+
+    this.emitUpdate()
 
     return updatedRepository
   }
@@ -180,6 +205,8 @@ export class RepositoriesStore {
     })
 
     await transaction
+
+    this.emitUpdate()
 
     return repository.withGitHubRepository(new GitHubRepository(newGitHubRepo.name, newGitHubRepo.owner, gitHubRepositoryID!, newGitHubRepo.private, newGitHubRepo.fork, newGitHubRepo.htmlURL, newGitHubRepo.defaultBranch, newGitHubRepo.cloneURL))
   }

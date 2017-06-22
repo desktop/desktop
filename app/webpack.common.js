@@ -127,30 +127,11 @@ const rendererConfig = merge({}, commonConfig, {
   ],
 })
 
-const sharedConfig = merge({}, commonConfig, {
-  entry: { shared: path.resolve(__dirname, 'src/shared-process/index') },
-  target: 'electron-renderer',
-  plugins: [
-    new HtmlWebpackPlugin({
-      'template': path.join(__dirname, 'static', 'error.html'),
-      // without this we overwrite index.html
-      'filename': 'error.html',
-      // we don't need any scripts to run on this page
-      'excludeChunks': [ 'main', 'renderer', 'shared', 'ask-pass' ]
-    }),
-    new HtmlWebpackPlugin({
-      'filename': 'shared.html',
-      'chunks': ['shared']
-    }),
-    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('shared') })),
-  ],
-})
-
 const askPassConfig = merge({}, commonConfig, {
   entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
   target: 'node',
   plugins: [
-    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('askpass') })),    
+    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('askpass') })),
   ]
 })
 
@@ -169,7 +150,6 @@ const crashConfig = merge({}, commonConfig, {
 
 module.exports = {
   main: mainConfig,
-  shared: sharedConfig,
   renderer: rendererConfig,
   askPass: askPassConfig,
   crash: crashConfig,
