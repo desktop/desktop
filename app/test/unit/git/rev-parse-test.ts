@@ -74,8 +74,6 @@ describe('git/rev-parse', () => {
       await git([ 'init', 'repo1' ], fixturePath, '')
 
       await git([ 'init', 'repo2' ], fixturePath, '')
-      await git([ 'config' , 'user.name', 'Cai Hsu' ], secondRepoPath, '')
-      await git([ 'config' , 'user.email', 'cai.hsu@not-a-real-site.com' ], secondRepoPath, '')
 
       await git([ 'commit', '--allow-empty', '-m', 'Initial commit' ], secondRepoPath, '')
       await git([ 'submodule', 'add', '../repo2' ], firstRepoPath, '')
