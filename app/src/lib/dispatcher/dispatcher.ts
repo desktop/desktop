@@ -13,7 +13,7 @@ import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
-import { IAPIUser } from '../../lib/api'
+import { IAPIOrganizationSlug } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
@@ -371,7 +371,7 @@ export class Dispatcher {
   }
 
   /** Publish the repository to GitHub with the given properties. */
-  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<Repository> {
+  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIOrganizationSlug | null): Promise<Repository> {
     await this.appStore._publishRepository(repository, name, description, private_, account, org)
     return this.refreshGitHubRepositoryInfo(repository)
   }

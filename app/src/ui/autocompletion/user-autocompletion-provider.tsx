@@ -8,9 +8,6 @@ import { GitHubRepository } from '../../models/github-repository'
 export interface IUserHit {
   /** The username. */
   readonly username: string
-
-  /** The user's name. */
-  readonly name: string
 }
 
 /** The autocompletion provider for user mentions in a GitHub repository. */
@@ -31,14 +28,13 @@ export class UserAutocompletionProvider implements IAutocompletionProvider<IUser
 
   public async getAutocompletionItems(text: string): Promise<ReadonlyArray<IUserHit>> {
     const users = await this.gitHubUserStore.getMentionableUsersMatching(this.repository, text)
-    return users.map(u => ({ username: u.login, name: u.name }))
+    return users.map(u => ({ username: u.login }))
   }
 
   public renderItem(item: IUserHit): JSX.Element {
     return (
       <div className='user' key={item.username}>
         <span className='username'>{item.username}</span>
-        <span className='name'>{item.name}</span>
       </div>
     )
   }
