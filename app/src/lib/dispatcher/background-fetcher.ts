@@ -93,7 +93,7 @@ export class BackgroundFetcher {
 
   /** Get the allowed fetch interval from the server. */
   private async getFetchInterval(repository: GitHubRepository): Promise<number> {
-    const api = new API(this.account)
+    const api = API.fromAccount(this.account)
 
     let interval = DefaultFetchInterval
     try {
