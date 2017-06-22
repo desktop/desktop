@@ -88,7 +88,7 @@ const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
 const signInStore = new SignInStore()
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
-const repositoriesStore = new RepositoriesStore(RepositoriesDatabase('Database'))
+const repositoriesStore = new RepositoriesStore(new RepositoriesDatabase('Database'))
 
 const appStore = new AppStore(
   gitHubUserStore,
@@ -99,7 +99,7 @@ const appStore = new AppStore(
   signInStore,
 )
 
-const dispatcher = new Dispatcher(appStore)
+const dispatcher = new Dispatcher(appStore, accountsStore, repositoriesStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)

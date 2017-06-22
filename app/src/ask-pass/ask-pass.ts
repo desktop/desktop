@@ -1,5 +1,5 @@
 import { getKeyForEndpoint } from '../lib/auth'
-import { TokenStore } from '../lib/dispatcher'
+import { TokenStore } from '../lib/dispatcher/token-store'
 
 /** Parse the GIT_ASKPASS prompt and determine the appropriate response. */
 export async function responseForPrompt(prompt: string): Promise<string | null> {
