@@ -22,7 +22,7 @@ const Scopes = [
   'user',
 ]
 
-enum HttpStatusCodes {
+enum HttpStatusCode {
   NotModified = 304,
   NotFound = 404,
 }
@@ -190,7 +190,7 @@ export class API {
   public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
     try {
       const response = await this.request('GET', `repos/${owner}/${name}`)
-      if (response.status === HttpStatusCodes.NotFound) {
+      if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchRepository: '${owner}/${name}' returned a 404`)
         return null
       }
@@ -377,7 +377,7 @@ export class API {
 
     try {
       const response = await this.request('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
-      if (response.status === HttpStatusCodes.NotModified) { return null }
+      if (response.status === HttpStatusCode.NotModified) { return null }
 
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(response)
       const responseEtag = response.headers.get('etag')
