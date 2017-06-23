@@ -18,7 +18,7 @@ export class NoChanges extends React.Component<INoChangesProps, void> {
         <div>No local changes</div>
 
         <div>
-          Would you like to <LinkButton onClick={this.open}>open this repository</LinkButton> in {menuTitle.winToDarwin('Explorer')}?
+          Would you like to <LinkButton onClick={this.open}>open this repository</LinkButton> in {menuTitle.translate('Explorer')}?
         </div>
       </div>
     )
