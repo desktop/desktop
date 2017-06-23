@@ -185,12 +185,15 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private renderExternalLink() {
+    if (this.props.isLocal) {
+      return null
+    }
+
     let url: string | null = null
-    if (!this.props.isLocal) {
-      const gitHubRepository = this.props.repository.gitHubRepository
-      if (gitHubRepository) {
-        url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
-      }
+
+    const gitHubRepository = this.props.repository.gitHubRepository
+    if (gitHubRepository) {
+      url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
     }
 
     if (!url) {
