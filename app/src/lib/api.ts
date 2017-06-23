@@ -368,6 +368,8 @@ export class API {
 
     try {
       const response = await this.request('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
+      if (response.status === 304) { return null }
+
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(response)
       const responseEtag = response.headers.get('etag')
       return { users, etag: responseEtag || '' }
