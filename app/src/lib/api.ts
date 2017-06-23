@@ -191,7 +191,7 @@ export class API {
       }
       return await parsedResponse<IAPIRepository>(response)
     } catch (e) {
-      log.warn(`fetchRepository: not found '${owner}/${name}'`, e)
+      log.warn(`fetchRepository: an error occurred for '${owner}/${name}'`, e)
       return null
     }
   }
