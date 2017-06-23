@@ -185,7 +185,8 @@ export class API {
   public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
     try {
       const response = await this.request('GET', `repos/${owner}/${name}`)
-      return parsedResponse<IAPIRepository>(response)
+      const result = await parsedResponse<IAPIRepository>(response)
+      return result
     } catch (e) {
       log.warn(`fetchRepository: not found '${owner}/${name}'`, e)
       return null
