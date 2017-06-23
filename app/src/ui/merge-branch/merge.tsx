@@ -7,6 +7,7 @@ import { getAheadBehind } from '../../lib/git'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList } from '../branches/branch-list'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -128,7 +129,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     return (
       <Dialog
         id='merge'
-        title={__DARWIN__ ? 'Merge Branch' : 'Merge branch'}
+        title={menuTitle('Merge branch')}
         onDismissed={this.props.onDismissed}
         onSubmit={this.merge}
       >

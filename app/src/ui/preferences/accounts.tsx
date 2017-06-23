@@ -8,6 +8,7 @@ import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import { Avatar } from '../lib/avatar'
 import { CallToAction } from '../lib/call-to-action'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IAccountsProps {
   readonly dotComAccount: Account | null
@@ -53,7 +54,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
           <div className='name'>{account.name}</div>
           <div className='login'>@{account.login}</div>
         </div>
-        <Button onClick={this.logout(account)}>{__DARWIN__ ? 'Sign Out' : 'Sign out'}</Button>
+        <Button onClick={this.logout(account)}>{menuTitle('Sign out')}</Button>
       </Row>
     )
   }
@@ -67,7 +68,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
   }
 
   private renderSignIn(type: SignInType) {
-    const signInTitle = __DARWIN__ ? 'Sign In' : 'Sign in'
+    const signInTitle = menuTitle('Sign in')
     switch (type) {
       case SignInType.DotCom: {
 

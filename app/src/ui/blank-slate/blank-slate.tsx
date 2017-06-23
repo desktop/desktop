@@ -2,6 +2,7 @@ import * as React from 'react'
 import { UiView } from '../ui-view'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IBlankSlateProps {
   /** A function to call when the user chooses to create a repository. */
@@ -27,7 +28,7 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
         <img src={BlankSlateImage} className='blankslate-image' />
 
         <div className='title'>
-          {__DARWIN__ ? 'No Repositories Found' : 'No repositories found'}
+          {menuTitle('No repositories found')}
         </div>
         <div className='content'>
 
@@ -35,7 +36,7 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
             <Octicon symbol={OcticonSymbol.plus}/>
             <div>Create a new project and publish it to GitHub</div>
             <Button onClick={this.props.onCreate}>
-              {__DARWIN__ ? 'Create New Repository' : 'Create new repository'}
+              {menuTitle('Create new repository')}
             </Button>
           </div>
 
@@ -43,7 +44,7 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
             <Octicon symbol={OcticonSymbol.repoClone}/>
             <div>Clone an existing project from GitHub to your computer</div>
             <Button onClick={this.props.onClone}>
-              {__DARWIN__ ? 'Clone a Repository' : 'Clone a repository'}
+              {menuTitle('Clone a repository')}
             </Button>
           </div>
 
@@ -51,7 +52,7 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
             <Octicon symbol={OcticonSymbol.deviceDesktop}/>
             <div>Add an existing project on your computer and publish it to GitHub</div>
             <Button onClick={this.props.onAdd}>
-              {__DARWIN__ ? 'Add a Local Repository' : 'Add a local repository'}
+              {menuTitle('Add a local repository')}
             </Button>
           </div>
         </div>

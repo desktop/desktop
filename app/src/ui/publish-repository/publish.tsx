@@ -10,6 +10,7 @@ import { TabBar } from '../tab-bar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
+import { menuTitle } from '../../lib/platform-support'
 
 enum PublishTab {
   DotCom = 0,
@@ -76,7 +77,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     return (
       <Dialog
         id='publish-repository'
-        title={ __DARWIN__ ? 'Publish Repository' : 'Publish repository'}
+        title={menuTitle('Publish repository')}
         onDismissed={this.props.onDismissed}
         onSubmit={this.publishRepository}
       >
@@ -127,7 +128,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private renderSignInTab(tab: PublishTab) {
-    const signInTitle = __DARWIN__ ? 'Sign In' : 'Sign in'
+    const signInTitle = menuTitle('Sign in')
     switch (tab) {
       case PublishTab.DotCom:
         return (
@@ -154,7 +155,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       return (
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Publish Repository' : 'Publish repository'}</Button>
+            <Button type='submit' disabled={disabled}>{menuTitle('Publish repository')}</Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>

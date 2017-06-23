@@ -11,6 +11,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogFooter } from '../dialog'
 import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -84,7 +85,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     return (
       <Dialog
         id='preferences'
-        title={__DARWIN__ ? 'Preferences' : 'Options'}
+        title={menuTitle('Options')}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSave}
       >

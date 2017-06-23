@@ -3,6 +3,7 @@ import { ButtonGroup } from '../../ui/lib/button-group'
 import { Button } from '../../ui/lib/button'
 import { Dialog, DialogContent, DialogFooter } from '../../ui/dialog'
 import { Repository } from '../../models/repository'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IConfirmRemoveRepositoryProps {
   /** The repository to be removed */
@@ -31,7 +32,7 @@ export class ConfirmRemoveRepository extends React.Component<IConfirmRemoveRepos
         id='confirm-remove-repository'
         key='remove-repository-confirmation'
         type='warning'
-        title={ __DARWIN__ ? 'Remove Repository' : 'Remove repository' }
+        title={menuTitle('Remove repository')}
         onDismissed={this.cancel}
         onSubmit={this.cancel}
       >

@@ -7,6 +7,7 @@ import { ToolbarDropdown, DropdownState } from './dropdown'
 import { IRepositoryState } from '../../lib/app-state'
 import { Branches } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -72,7 +73,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
     let icon = OcticonSymbol.gitBranch
     let iconClassName: string | undefined = undefined
     let title: string
-    let description = __DARWIN__ ? 'Current Branch' : 'Current branch'
+    let description = menuTitle('Current branch')
     let canOpen = true
     let tooltip: string
 
@@ -100,7 +101,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
 
     if (checkoutProgress) {
       title = checkoutProgress.targetBranch
-      description = __DARWIN__ ? 'Switching to Branch' : 'Switching to branch'
+      description = menuTitle('Switching to branch')
 
       if (checkoutProgress.value > 0) {
         const friendlyProgress = Math.round(checkoutProgress.value * 100)

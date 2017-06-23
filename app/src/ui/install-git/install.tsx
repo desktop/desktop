@@ -5,6 +5,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { openShell } from '../../lib/open-shell'
 import { shell } from '../../lib/dispatcher/app-shell'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IInstallGitProps {
   /**
@@ -45,12 +46,12 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
       <Dialog
         id='install-git'
         type='warning'
-        title={__DARWIN__ ? 'Open in Terminal' : 'Open command prompt'}
+        title={menuTitle('Open in command prompt')}
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}>
         <DialogContent>
           <p>
-            We were unable to locate Git on your system. This means you won't be able to execute any Git commands in the {__DARWIN__ ? 'Terminal window' : 'command prompt'}.
+            We were unable to locate Git on your system. This means you won't be able to execute any Git commands in the {menuTitle.translate('command prompt')}.
           </p>
           <p>
             To help you get Git installed and configured for your operating system, we have some external resources available.

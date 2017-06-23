@@ -6,6 +6,7 @@ import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -19,7 +20,7 @@ export class DeleteBranch extends React.Component<IDeleteBranchProps, void> {
     return (
       <Dialog
         id='delete-branch'
-        title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
+        title={menuTitle('Delete branch')}
         type='warning'
         onDismissed={this.props.onDismissed}
       >

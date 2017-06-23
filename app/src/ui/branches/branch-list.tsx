@@ -4,6 +4,7 @@ import { groupBranches, IBranchListItem, BranchGroupIdentifier } from './group-b
 import { BranchListItem } from './branch'
 import { FilterList, IFilterListGroup, SelectionSource } from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
+import { menuTitle } from '../../lib/platform-support'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
@@ -107,11 +108,11 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
 
   private getGroupLabel(identifier: BranchGroupIdentifier) {
     if (identifier === 'default') {
-      return __DARWIN__ ? 'Default Branch' : 'Default branch'
+      return menuTitle('Default branch')
     } else if (identifier === 'recent') {
-      return __DARWIN__ ? 'Recent Branches' : 'Recent branches'
+      return menuTitle('Recent branches')
     } else if (identifier === 'other') {
-      return __DARWIN__ ? 'Other Branches' : 'Other branches'
+      return menuTitle('Other branches')
     } else {
       return assertNever(identifier, `Unknown identifier: ${identifier}`)
     }

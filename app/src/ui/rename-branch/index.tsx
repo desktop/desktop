@@ -10,6 +10,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { renderBranchNameWarning } from '../lib/branch-name-warnings'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IRenameBranchProps {
   readonly dispatcher: Dispatcher
@@ -33,7 +34,7 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
     return (
       <Dialog
         id='rename-branch'
-        title={ __DARWIN__ ? 'Rename Branch' : 'Rename branch'}
+        title={menuTitle('Rename branch')}
         onDismissed={this.cancel}
         onSubmit={this.renameBranch}
       >

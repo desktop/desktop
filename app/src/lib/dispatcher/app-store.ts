@@ -48,6 +48,7 @@ import { WindowState, getWindowState } from '../window-state'
 import { structuralEquals } from '../equality'
 import { fatalError } from '../fatal-error'
 import { updateMenuState } from '../menu-update'
+import { menuTitle } from '../platform-support'
 
 import {
   getAuthorIdentity,
@@ -1121,7 +1122,7 @@ export class AppStore {
     try {
       this.updateCheckoutProgress(repository, {
         kind,
-        title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
+        title: menuTitle('Refreshing repository'),
         value: 1,
         targetBranch: name,
       })
@@ -1282,7 +1283,7 @@ export class AppStore {
             })
           })
 
-          const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+          const refreshTitle = menuTitle('Refreshing repository')
           const refreshStartProgress = pushWeight + fetchWeight
 
           this.updatePushPullFetchProgress(repository, {
@@ -1395,7 +1396,7 @@ export class AppStore {
             }))
 
           const refreshStartProgress = pullWeight + fetchWeight
-          const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+          const refreshTitle = menuTitle('Refreshing repository')
 
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
@@ -1549,7 +1550,7 @@ export class AppStore {
           })
         })
 
-        const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+        const refreshTitle = menuTitle('Refreshing repository')
 
         this.updatePushPullFetchProgress(repository, {
           kind: 'generic',

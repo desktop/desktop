@@ -2,6 +2,7 @@ import * as Path from 'path'
 import { Account } from '../../models/account'
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
+import { menuTitle } from '../../lib/platform-support'
 
 import {
   GitProcess,
@@ -169,7 +170,7 @@ function getDescriptionForError(error: DugiteError): string {
     case DugiteError.SSHKeyAuditUnverified: return 'The SSH key is unverified.'
     case DugiteError.SSHAuthenticationFailed:
     case DugiteError.SSHPermissionDenied:
-    case DugiteError.HTTPSAuthenticationFailed: return `Authentication failed. You may not have permission to access the repository. Open ${__DARWIN__ ? 'preferences' : 'options'} and verify that you're signed in with an account that has permission to access this repository.`
+    case DugiteError.HTTPSAuthenticationFailed: return `Authentication failed. You may not have permission to access the repository. Open ${menuTitle.translate('options')} and verify that you're signed in with an account that has permission to access this repository.`
     case DugiteError.RemoteDisconnection: return 'The remote disconnected. Check your Internet connection and try again.'
     case DugiteError.HostDown: return 'The host is down. Check your Internet connection and try again.'
     case DugiteError.RebaseConflicts: return 'We found some conflicts while trying to rebase. Please resolve the conflicts before continuing.'

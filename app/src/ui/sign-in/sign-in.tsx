@@ -15,6 +15,7 @@ import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
+import { menuTitle } from '../../lib/platform-support'
 
 import {
   getWelcomeMessage,
@@ -131,7 +132,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         break
       case SignInStep.Authentication:
         if (!state.supportsBasicAuth) {
-          primaryButtonText = __DARWIN__ ? 'Continue With Browser' : 'Continue with browser'
+          primaryButtonText = menuTitle('Continue with browser')
         } else {
           const validUserName = this.state.username.length > 0
           const validPassword = this.state.password.length > 0

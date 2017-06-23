@@ -7,6 +7,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
+import { menuTitle } from '../../lib/platform-support'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
@@ -24,23 +25,22 @@ const MaxFilesToList = 10
 /** A component to confirm and then discard changes. */
 export class DiscardChanges extends React.Component<IDiscardChangesProps, void> {
   public render() {
-    const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
       <Dialog
         id='discard-changes'
-        title={ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}
+        title={menuTitle('Confirm discard changes')}
         onDismissed={this.props.onDismissed}
         type='warning'
       >
         <DialogContent>
           {this.renderFileList()}
-          <p>Changes can be restored by retrieving them from the {trashName}.</p>
+          <p>Changes can be restored by retrieving them from the {menuTitle('Recycle Bin')}.</p>
         </DialogContent>
 
         <DialogFooter>
           <ButtonGroup destructive>
             <Button type='submit'>Cancel</Button>
-            <Button onClick={this.discard}>{__DARWIN__ ? 'Discard Changes' : 'Discard changes'}</Button>
+            <Button onClick={this.discard}>{menuTitle('Discard changes')}</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>

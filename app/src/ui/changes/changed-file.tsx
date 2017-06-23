@@ -6,6 +6,7 @@ import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { menuTitle } from '../../lib/platform-support'
 
 const GitIgnoreFileName = '.gitignore'
 
@@ -93,7 +94,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     const fileName = Path.basename(this.props.path)
     const items: IMenuItem[] = [
       {
-        label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
+        label: menuTitle('Discard changes…'),
         action: () => this.props.onDiscardChanges(this.props.path),
       },
       { type: 'separator' },
@@ -106,7 +107,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
     if (extension.length) {
       items.push({
-        label: __DARWIN__ ? `Ignore All ${extension} Files` : `Ignore all ${extension} files`,
+        label: menuTitle(`Ignore all ${extension} files`),
         action: () => this.props.onIgnore(`*${extension}`),
         enabled: fileName !== GitIgnoreFileName,
       })
@@ -115,12 +116,12 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     items.push(
       { type: 'separator' },
       {
-        label: __DARWIN__ ? 'Reveal in Finder' : 'Show in Explorer',
+        label: menuTitle('Reveal in Explorer'),
         action: () => this.props.onRevealInFileManager(this.props.path),
         enabled: this.props.status !== AppFileStatus.Deleted,
       },
       {
-        label: __DARWIN__ ? 'Open with External Editor' : 'Open with external editor',
+        label: menuTitle('Open with external editor'),
         action: () => this.props.onOpenItem(this.props.path),
         enabled: this.props.status !== AppFileStatus.Deleted,
       },

@@ -19,6 +19,7 @@ import { writeGitAttributes } from './git-attributes'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { menuTitle } from '../../lib/platform-support'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../lib/app-state'
 
@@ -263,7 +264,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     return (
       <Row>
         <Select
-          label={ __DARWIN__ ? 'Git Ignore' : 'Git ignore' }
+          label={menuTitle('Git ignore')}
           value={this.state.gitIgnore}
           onChange={this.onGitIgnoreChange}
         >
@@ -339,7 +340,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     return (
       <Dialog
         id='create-repository'
-        title={__DARWIN__ ? 'Create a New Repository' : 'Create a new repository'}
+        title={menuTitle('Create a new repository')}
         loading={this.state.creating}
         onSubmit={this.createRepository}
         onDismissed={this.props.onDismissed}>
@@ -358,7 +359,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           <Row>
             <TextBox
               value={this.state.path}
-              label={__DARWIN__ ? 'Local Path' : 'Local path'}
+              label={menuTitle('Local path')}
               placeholder='repository path'
               onChange={this.onPathChanged} />
             <Button onClick={this.showFilePicker}>Choose…</Button>
@@ -383,7 +384,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         <DialogFooter>
           <ButtonGroup>
             <Button type='submit' disabled={disabled}>
-              {__DARWIN__ ? 'Create Repository' : 'Create repository'}
+              {menuTitle('Create repository')}
             </Button>
 
             <Button onClick={this.props.onDismissed}>Cancel</Button>
