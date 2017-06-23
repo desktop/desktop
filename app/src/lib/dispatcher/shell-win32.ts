@@ -2,6 +2,7 @@ import * as Path from 'path'
 import * as glob from 'glob'
 import * as Register from 'winreg'
 import { Repository } from '../../models/repository'
+import { exec } from 'child_process';
 
 export interface IEditorInfo {
   readonly name: string
@@ -77,14 +78,21 @@ class VisualStudioEditor implements IEditorInfo {
 
 class AppLauncher implements IEditorInfo {
   public readonly name: string
+  private readonly cmd: string
   private readonly path: string
-  public constructor(name: string, path: string) {
+  public constructor(name: string, cmd: string, path: string) {
     this.name = name
+    this.cmd  = cmd
     this.path = path
   }
 
   public exec(): void {
-    console.log('exec ' + this.path)
+    exec(this.cmd + ' ' + this.path , (error: Error, stdout: string, stderr: string) =>{
+      console.log('err: ' + error)
+      console.log('stdout: ' + stdout)
+      console.log('stderr: ' + stderr)
+    })
+
   }
 }
 function buildVisualStudioSolutionLaunchers(repository: Repository): Promise<IEditorInfo[]> {
@@ -124,7 +132,7 @@ function buildAtomLauncher(repository: Repository): Promise<IEditorInfo[]> {
     }).get('', (err: Error, reg: Register.RegistryItem) => {
       if (err == null) {
         const cmd = reg.value.replace('%1', repository.path)
-        editors.push( new AppLauncher('Atom', cmd))
+        editors.push( new AppLauncher('Atom', cmd, ''))
       }
       result(editors)
     })
@@ -140,6 +148,11 @@ export function getEditorsForRepository(repository: Repository): Promise<IEditor
 
   const editors = new Array<IEditorInfo>()
 
+  if (1) {
+  editors.push( new AppLauncher('Visual Studio', '"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\IDE\\devenv.exe"', repository.path ) )
+  editors.push( new AppLauncher('Atom', '"C:\\Users\\shim\\AppData\\Local\\atom\\app-1.18.0\\atom.exe"', repository.path) )
+  return Promise.resolve(editors)
+  } else {
   return buildVisualStudioSolutionLaunchers(repository)
   .then( (res) => {
     // Visual Studio Solutions (if any)
@@ -153,7 +166,7 @@ export function getEditorsForRepository(repository: Repository): Promise<IEditor
     console.log('All Editors: ' +  editors )
     return Promise.resolve(editors)
   })
-
+  }
 }
 
 export function getEditorsForItem(path: string) {
