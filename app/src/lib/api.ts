@@ -22,6 +22,11 @@ const Scopes = [
   'user',
 ]
 
+enum HttpStatusCodes {
+  NotModified = 304,
+  NotFound = 404,
+}
+
 /** The note URL used for authorizations the app creates. */
 const NoteURL = 'https://desktop.github.com/'
 
@@ -185,7 +190,7 @@ export class API {
   public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
     try {
       const response = await this.request('GET', `repos/${owner}/${name}`)
-      if (response.status === 404) {
+      if (response.status === HttpStatusCodes.NotFound) {
         log.warn(`fetchRepository: '${owner}/${name}' returned a 404`)
         return null
       }
@@ -372,7 +377,7 @@ export class API {
 
     try {
       const response = await this.request('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
-      if (response.status === 304) { return null }
+      if (response.status === HttpStatusCodes.NotModified) { return null }
 
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(response)
       const responseEtag = response.headers.get('etag')
