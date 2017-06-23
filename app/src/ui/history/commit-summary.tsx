@@ -189,16 +189,10 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
       return null
     }
 
-    let url: string | null = null
-
     const gitHubRepository = this.props.repository.gitHubRepository
-    if (gitHubRepository) {
-      url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
-    }
+    if (!gitHubRepository) { return null }
 
-    if (!url) {
-      return null
-    }
+    const url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
 
     return (
       <li className='commit-summary-meta-item'
