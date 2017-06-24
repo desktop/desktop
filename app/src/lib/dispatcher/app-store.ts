@@ -81,6 +81,9 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 const confirmRepoRemovalDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 
+const usingDarkModeDefault: boolean = false
+const usingDarkModeKey: string = 'usingDarkMode'
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -143,6 +146,7 @@ export class AppStore {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
+  private usingDarkMode: boolean = usingDarkModeDefault
 
   private readonly statsStore: StatsStore
 
@@ -401,6 +405,7 @@ export class AppStore {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       confirmRepoRemoval: this.confirmRepoRemoval,
+      usingDarkMode: this.usingDarkMode,
     }
   }
 
@@ -1711,6 +1716,14 @@ export class AppStore {
   public _setConfirmRepoRemoval(confirmRepoRemoval: boolean): Promise<void> {
     this.confirmRepoRemoval = confirmRepoRemoval
     localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setDarkMode(useDarkMode: boolean): Promise<void> {
+    this.usingDarkMode = useDarkMode
+    localStorage.setItem(usingDarkModeKey, useDarkMode ? '1' : '0')
     this.emitUpdate()
 
     return Promise.resolve()
