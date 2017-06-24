@@ -186,9 +186,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private renderExternalLink() {
-    if (this.props.isLocal) {
-      return null
-    }
+    if (this.props.isLocal) { return null }
 
     const gitHubRepository = this.props.repository.gitHubRepository
     if (!gitHubRepository) { return null }
