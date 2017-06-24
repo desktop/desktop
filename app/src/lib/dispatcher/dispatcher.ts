@@ -547,8 +547,7 @@ export class Dispatcher {
     return this.appStore._reportStats()
   }
 
-  /** Changes the URL for the remote that matches the given name  */
-
+  /** Removes the given remote for the repository */
   public removeRemote(repository: Repository, name: string): Promise<void> {
     return this.appStore._removeRemote(repository, name)
   }
