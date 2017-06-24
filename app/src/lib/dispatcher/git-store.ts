@@ -29,6 +29,7 @@ import {
   getBranchAheadBehind,
   getCommits,
   merge,
+  removeRemote,
   setRemoteURL,
   getStatus,
   IStatusResult,
@@ -709,6 +710,16 @@ export class GitStore {
   /** Merge the named branch into the current branch. */
   public merge(branch: string): Promise<void> {
     return this.performFailableOperation(() => merge(this.repository, branch))
+  }
+
+  /** Remove the given remote from the given repository  */
+  public async removeRemote(name: string): Promise<void> {
+    await this.performFailableOperation(() => removeRemote(this.repository, name))
+
+    this._remote = null
+    await this.loadCurrentRemote()
+
+    this.emitUpdate()
   }
 
   /** Changes the URL for the remote that matches the given name  */
