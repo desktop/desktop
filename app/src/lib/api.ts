@@ -294,7 +294,7 @@ export class API {
 
       return await parsedResponse<IAPIRepository>(response)
     } catch (e) {
-      log.warn(`createRepository: failed with endpoint ${this.endpoint}`, e)
+      log.error(`createRepository: failed with endpoint ${this.endpoint}`, e)
       throw new Error(`Unable to publish repository. Please check you have an internet connection and try again.`)
     }
   }
