@@ -40,14 +40,18 @@
 
       // Always let the octicon dictate the amount of space it needs
       flex-shrink: 0;
-      
+
       // Force the octicon width
       width: 16px;
     }
 
     .name {
       // Long repository names truncate and ellipse
-      @include ellipsis
+      @include ellipsis;
+
+      .prefix {
+        color: var(--text-tertiary-color);
+      }
     }
   }
 

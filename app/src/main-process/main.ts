@@ -6,7 +6,7 @@ import { AppWindow } from './app-window'
 import { CrashWindow } from './crash-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID, setCrashMenu } from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
-import { parseURL } from '../lib/parse-url'
+import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
@@ -101,12 +101,7 @@ if (__WIN32__ && process.argv.length > 1) {
   if (handleSquirrelEvent(process.argv[1])) {
     app.quit()
   } else {
-    const action = parseURL(process.argv[1])
-    if (action.name === 'open-repository') {
-      onDidLoad(window => {
-        window.sendURLAction(action)
-      })
-    }
+    handleAppURL(process.argv[1])
   }
 }
 
@@ -114,22 +109,32 @@ if (shellNeedsPatching(process)) {
   updateEnvironmentForProcess()
 }
 
-const isDuplicateInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
+function handleAppURL(url: string) {
+  const action = parseAppURL(url)
+  onDidLoad(window => {
+    // This manual focus call _shouldn't_ be necessary, but is for Chrome on
+    // macOS. See https://github.com/desktop/desktop/issues/973.
+    window.focus()
+    window.sendURLAction(action)
+  })
+}
+
+const isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
   // Someone tried to run a second instance, we should focus our window.
   if (mainWindow) {
     if (mainWindow.isMinimized()) {
       mainWindow.restore()
     }
+
+    if (!mainWindow.isVisible()) {
+      mainWindow.show()
+    }
+
     mainWindow.focus()
   }
 
-  // look at the second argument received, it should have the OAuth
-  // callback contents and code for us to complete the signin flow
-  if (commandLine.length > 1) {
-    const action = parseURL(commandLine[1])
-    onDidLoad(window => {
-      window.sendURLAction(action)
-    })
+  if (args.length > 1) {
+    handleAppURL(args[1])
   }
 })
 
@@ -141,13 +146,7 @@ app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
     event.preventDefault()
 
-    const action = parseURL(url)
-    onDidLoad(window => {
-      // This manual focus call _shouldn't_ be necessary, but is for Chrome on
-      // macOS. See https://github.com/desktop/desktop/issues/973.
-      window.focus()
-      window.sendURLAction(action)
-    })
+    handleAppURL(url)
   })
 })
 
@@ -179,7 +178,7 @@ app.on('ready', () => {
   const menu = buildDefaultMenu(sharedProcess)
   Menu.setApplicationMenu(menu)
 
-  ipcMain.on('menu-event', (event, args) => {
+  ipcMain.on('menu-event', (event: Electron.IpcMessageEvent, args: any[]) => {
     const { name }: { name: MenuEvent } = event as any
     if (mainWindow) {
       mainWindow.sendMenuEvent(name)
@@ -190,7 +189,7 @@ app.on('ready', () => {
    * An event sent by the renderer asking that the menu item with the given id
    * is executed (ie clicked).
    */
-  ipcMain.on('execute-menu-item', (event: Electron.IpcMainEvent, { id }: { id: string }) => {
+  ipcMain.on('execute-menu-item', (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
       const window = BrowserWindow.fromWebContents(event.sender)
@@ -199,7 +198,7 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('update-menu-state', (event: Electron.IpcMainEvent, items: Array<{ id: string, state: IMenuItemState }>) => {
+  ipcMain.on('update-menu-state', (event: Electron.IpcMessageEvent, items: Array<{ id: string, state: IMenuItemState }>) => {
     let sendMenuChangedEvent = false
 
     for (const item of items) {
@@ -224,7 +223,7 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('show-contextual-menu', (event: Electron.IpcMainEvent, items: ReadonlyArray<any>) => {
+  ipcMain.on('show-contextual-menu', (event: Electron.IpcMessageEvent, items: ReadonlyArray<any>) => {
     const menu = new Menu()
     const menuItems = items.map((item, i) => {
       return new MenuItem({
@@ -256,7 +255,7 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMainEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
+  ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMessageEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
     // This API's only implemented on macOS right now.
     if (__DARWIN__) {
       onDidLoad(window => {
@@ -265,15 +264,15 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('log', (event: Electron.IpcMainEvent, level: LogLevel, message: string) => {
+  ipcMain.on('log', (event: Electron.IpcMessageEvent, level: LogLevel, message: string) => {
     writeLog(level, message)
   })
 
-  ipcMain.on('uncaught-exception', (event: Electron.IpcMainEvent, error: Error) => {
+  ipcMain.on('uncaught-exception', (event: Electron.IpcMessageEvent, error: Error) => {
     uncaughtException(error)
   })
 
-  ipcMain.on('send-error-report', (event: Electron.IpcMainEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
+  ipcMain.on('send-error-report', (event: Electron.IpcMessageEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
     reportError(error, extra)
   })
 

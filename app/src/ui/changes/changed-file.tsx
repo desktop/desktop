@@ -16,11 +16,18 @@ interface IChangedFileProps {
   readonly include: boolean | null
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onDiscardChanges: (path: string) => void
+
   /**
    * Called to reveal a file in the native file manager.
    * @param path The path of the file relative to the root of the repository
    */
   readonly onRevealInFileManager: (path: string) => void
+
+  /**
+   * Called to open a file it its default application
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenItem: (path: string) => void
   readonly availableWidth: number
   readonly onIgnore: (pattern: string) => void
 }
@@ -112,7 +119,13 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
         action: () => this.props.onRevealInFileManager(this.props.path),
         enabled: this.props.status !== AppFileStatus.Deleted,
       },
+      {
+        label: __DARWIN__ ? 'Open with External Editor' : 'Open with external editor',
+        action: () => this.props.onOpenItem(this.props.path),
+        enabled: this.props.status !== AppFileStatus.Deleted,
+      },
     )
+
     showContextualMenu(items)
   }
 }

@@ -57,7 +57,7 @@ class UpdateStore {
     // We're using our own error event instead of `autoUpdater`s so that we can
     // properly serialize the `Error` object for transport over IPC. See
     // https://github.com/desktop/desktop/issues/1266.
-    ipcRenderer.on('auto-updater-error', (event: Electron.IpcRendererEvent, error: Error) => {
+    ipcRenderer.on('auto-updater-error', (event: Electron.IpcMessageEvent, error: Error) => {
       this.onAutoUpdaterError(error)
     })
 

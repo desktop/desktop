@@ -74,7 +74,7 @@ let currentContextualMenuItems: ReadonlyArray<IMenuItem> | null = null
  * should be called only once, around app load time.
  */
 export function registerContextualMenuActionDispatcher() {
-  ipcRenderer.on('contextual-menu-action', (event: Electron.IpcRendererEvent, index: number) => {
+  ipcRenderer.on('contextual-menu-action', (event: Electron.IpcMessageEvent, index: number) => {
     if (!currentContextualMenuItems) { return }
     if (index >= currentContextualMenuItems.length) { return }
 

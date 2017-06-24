@@ -9,8 +9,8 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
 import { Account } from '../../models/account'
-import { parseOwnerAndName, IRepositoryIdentifier } from '../../lib/remote-parsing'
-import { findAccountForRemote } from '../../lib/find-account'
+import { parseRepositoryIdentifier, IRepositoryIdentifier } from '../../lib/remote-parsing'
+import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 
@@ -160,7 +160,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private onURLChanged = (input: string) => {
     const url = input
-    const parsed = parseOwnerAndName(url)
+    const parsed = parseRepositoryIdentifier(url)
     const lastParsedIdentifier = this.state.lastParsedIdentifier
 
     let newPath: string
@@ -198,14 +198,14 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     const identifier = this.state.lastParsedIdentifier
     let url = this.state.url
 
-    const account = await findAccountForRemote(url, this.props.accounts)
+    const account = await findAccountForRemoteURL(url, this.props.accounts)
     if (!account) { return null }
 
     if (identifier) {
-      const api = new API(account)
+      const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
-        url =  repo.clone_url
+        url = repo.clone_url
       }
     }
 
