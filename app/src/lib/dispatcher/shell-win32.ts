@@ -2,7 +2,7 @@ import * as Path from 'path'
 import * as glob from 'glob'
 import * as Register from 'winreg'
 import { Repository } from '../../models/repository'
-import { exec } from 'child_process';
+import { exec } from 'child_process'
 
 export interface IEditorInfo {
   readonly name: string
@@ -87,7 +87,7 @@ class AppLauncher implements IEditorInfo {
   }
 
   public exec(): void {
-    exec(this.cmd + ' ' + this.path , (error: Error, stdout: string, stderr: string) =>{
+    exec(this.cmd + ' ' + this.path, (error: Error, stdout: string, stderr: string) => {
       console.log('err: ' + error)
       console.log('stdout: ' + stdout)
       console.log('stderr: ' + stderr)
