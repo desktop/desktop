@@ -76,11 +76,11 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
 
     const repository = this.props.repository
     if (repository instanceof Repository) {
-      shell.getEditors(repository, '')
+      shell.getEditors(repository.path)
       .then( (res) => {
         for (let i = 0; i < res.length; i++) {
           this.editorItems.push( {
-            label: res[i].name,
+            label:  'Open with ' + res[i].name,
             action: () => { res[i].exec() },
           })
         }

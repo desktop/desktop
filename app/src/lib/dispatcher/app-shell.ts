@@ -1,5 +1,4 @@
 import { shell as electronShell } from 'electron'
-import { Repository } from '../../models/repository'
 import { exec } from 'child_process'
 import * as Path from 'path'
 
@@ -18,7 +17,7 @@ export interface IAppShell {
   readonly beep: () => void
   readonly openExternal: (path: string) => void
   readonly openItem: (path: string) => boolean
-  readonly getEditors: (repository: Repository, path: string) => Promise<IEditorLauncher[]>
+  readonly getEditors: (path: string) => Promise<IEditorLauncher[]>
 }
 
 class AppLauncher implements IEditorLauncher {
@@ -50,10 +49,11 @@ class AppLauncher implements IEditorLauncher {
     })
   }
 }
-function getEditorList(repository: Repository, path: string ): Promise<IEditorLauncher[]> {
+function getEditorList(path: string ): Promise<IEditorLauncher[]> {
   const result = new Array<IEditorLauncher>()
   //
   // localStorage.setItem('external-editors-', '[{"name":"Visual Studio", "cmd":"\\"C:\\\\Program Files (x86)\\\\Microsoft Visual Studio\\\\2017\\\\Community\\\\Common7\\\\IDE\\\\devenv.exe\\" \\"{path}\\""}]')
+  // localStorage.setItem('external-editors-.json', '[{"name":"Visual Studio", "cmd":"\\"C:\\\\Program Files (x86)\\\\Microsoft Visual Studio\\\\2017\\\\Community\\\\Common7\\\\IDE\\\\devenv.exe\\" \\"{path}\\""}]')
   //
   const ext = Path.extname(path)
   if (localStorage.getItem('external-editors-') === null) {
@@ -84,9 +84,11 @@ function getEditorList(repository: Repository, path: string ): Promise<IEditorLa
      * Make some default external editors
      */
     localStorage.setItem('external-editors-', JSON.stringify(editorInfo))
-    localStorage.setItem('external-editors-c', JSON.stringify(editorInfo))
-    localStorage.setItem('external-editors-cpp', JSON.stringify(editorInfo))
-    localStorage.setItem('external-editors-txt', JSON.stringify(editorInfo))
+    localStorage.setItem('external-editors-.c', JSON.stringify(editorInfo))
+    localStorage.setItem('external-editors-.cpp', JSON.stringify(editorInfo))
+    localStorage.setItem('external-editors-.txt', JSON.stringify(editorInfo))
+    localStorage.setItem('external-editors-.json', JSON.stringify(editorInfo))
+    localStorage.setItem('external-editors-.js', JSON.stringify(editorInfo))
 
   }
 
@@ -95,7 +97,7 @@ function getEditorList(repository: Repository, path: string ): Promise<IEditorLa
     try {
     const editorInfo: ReadonlyArray<IEditorInfo> = JSON.parse(raw)
     for (let i = 0; i < editorInfo.length; i++) {
-      result.push( new AppLauncher( editorInfo[i].name, editorInfo[i].cmd, repository.path ) )
+      result.push( new AppLauncher( editorInfo[i].name, editorInfo[i].cmd, path ) )
     }} catch (e) {
       console.log(e)
     }
