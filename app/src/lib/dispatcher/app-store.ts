@@ -739,6 +739,12 @@ export class AppStore {
       ? confirmRepoRemovalDefault
       : confirmRepoRemovalValue === '1'
 
+    const usingDarkModeValue = localStorage.getItem(usingDarkModeKey)
+
+    this.usingDarkMode = usingDarkModeValue === null
+      ? usingDarkModeDefault
+      : usingDarkModeValue === '1'
+
     if (initialLoad) {
       // For the intitial load, synchronously emit the update so that the window
       // is drawn with the initial state before we show it.

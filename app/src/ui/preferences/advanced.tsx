@@ -23,7 +23,7 @@ interface IAdvancedPreferencesState {
 export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvancedPreferencesState> {
   public constructor(props: IAdvancedPreferencesProps) {
     super(props)
-    debugger
+
     this.state = {
       reportingOptOut: this.props.isOptedOut,
       confirmRepoRemoval: this.props.confirmRepoRemoval,
@@ -46,7 +46,6 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
   }
 
   private onDarkModeChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    debugger
     const value = event.currentTarget.checked
 
     this.setState({ usingDarkMode: value })
