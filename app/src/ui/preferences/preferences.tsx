@@ -191,11 +191,18 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
   }
 
   private onSave = async () => {
+    const useDarkMode = this.state.usingDarkMode
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
     await this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
     await this.props.dispatcher.setConfirmRepoRemovalSetting(this.state.confirmRepoRemoval)
-    await this.props.dispatcher.setDarkModeSetting(this.state.usingDarkMode)
+    await this.props.dispatcher.setDarkModeSetting(useDarkMode)
+
+    if (useDarkMode) {
+      document.body.classList.add('dark-mode')
+    } else {
+        document.body.classList.remove('dark-mode')
+    }
 
     this.props.onDismissed()
   }

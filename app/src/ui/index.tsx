@@ -99,6 +99,12 @@ dispatcher.registerErrorHandler(unhandledExceptionHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
+dispatcher.getDarkModeSetting().then(useDarkMode => {
+  if (useDarkMode) {
+    document.body.classList.add('dark-mode')
+  }
+})
+
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
 ipcRenderer.on('focus', () => {

@@ -1727,6 +1727,10 @@ export class AppStore {
     return Promise.resolve()
   }
 
+  public _getDarkMode(): Promise<boolean> {
+    return Promise.resolve(localStorage.getItem(usingDarkModeKey) === '1')
+  }
+
   public _setDarkMode(useDarkMode: boolean): Promise<void> {
     this.usingDarkMode = useDarkMode
     localStorage.setItem(usingDarkModeKey, useDarkMode ? '1' : '0')
