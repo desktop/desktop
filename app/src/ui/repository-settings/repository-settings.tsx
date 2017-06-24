@@ -112,14 +112,18 @@ export class RepositorySettings extends React.Component<
     }
 
     const remote = this.state.remote
-    if (!remote && !this.state.remoteDeleted) {
+    if (!remote) {
       return null
     }
+
+    const disabled = remote.url.length === 0
 
     return (
       <DialogFooter>
         <ButtonGroup>
-          <Button type="submit">Save</Button>
+          <Button type="submit" disabled={disabled}>
+            Save
+          </Button>
           <Button onClick={this.props.onDismissed}>Cancel</Button>
         </ButtonGroup>
       </DialogFooter>
