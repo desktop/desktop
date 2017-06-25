@@ -34,9 +34,9 @@ class AppLauncher implements IEditorLauncher {
   public exec(): Promise<void> {
     const cmd = this.cmd.replace('{path}', this.path)
     return new Promise<void>( (resolve, reject) => {
+      console.log('Executing ' + cmd)
       exec(cmd , (err, stdout: string, stderr: string) => {
-        // Log what just ran
-        console.log(cmd)
+        // Log any errors
         console.log('stdout:' + stdout)
         console.log('stderr:' + stderr)
         if (err) {
