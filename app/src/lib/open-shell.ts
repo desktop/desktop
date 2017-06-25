@@ -16,7 +16,7 @@ export function openShell(fullPath: string, shell?: string) {
   }
 
   if (__LINUX__) {
-    const commandArgs = ['--working-directory', fullPath]
+    const commandArgs = [ '--working-directory', fullPath ]
     return spawn('gnome-terminal', commandArgs, { 'shell': true })
   }
 
