@@ -214,12 +214,12 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     if (e.target !== this.dialogElement) {
       return
     }
-    
+
     const titleBarHeight = __DARWIN__ ? 22 : 28
-    
+
     const isTitleBar = e.clientY <= titleBarHeight
 
-    if(isTitleBar) {
+    if (isTitleBar) {
       return
     }
 
