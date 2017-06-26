@@ -15,8 +15,8 @@ We will use the `more-information-needed` and `reproduction-required` labels to
 indicate when issues are incomplete.
 
 Once enough detail has been captured about the issue, and it can be reproduced
-by one of the maintainers, these should be prioritised by the team. Severe bugs
-or bugs affecting many users would be prioritised above minor or low impact
+by one of the maintainers, these should be prioritized by the team. Severe bugs
+or bugs affecting many users would be prioritized above minor or low impact
 bugs.
 
 ## Enhancements

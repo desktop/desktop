@@ -25,7 +25,7 @@ You will need to install these tools on your machine:
  - *Run `npm config set msvs_version 2015` to tell node the right toolchain to use for compiling native modules.*
 
 ## Verification
- 
+
 With these things installed, open a shell and validate you have these commands
 available and that the versions look similar:
 
@@ -41,7 +41,7 @@ Python 2.7.13
 ```
 
 There are also [additional resources](tooling.md) to
-configure your favourite editor to work nicely with the GitHub Desktop
+configure your favorite editor to work nicely with the GitHub Desktop
 repository.
 
 ## Building Desktop
