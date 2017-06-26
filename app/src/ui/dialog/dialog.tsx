@@ -10,6 +10,11 @@ import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
  */
 const dismissGracePeriodMs = 250
 
+/**
+ * Title bar height in pixels. Values taken from 'app/styles/_variables.scss'.
+ */
+const titleBarHeight = __DARWIN__ ? 22 : 28
+
 interface IDialogProps {
   /**
    * An optional dialog title. Most, if not all dialogs should have
@@ -214,8 +219,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     if (e.target !== this.dialogElement) {
       return
     }
-
-    const titleBarHeight = __DARWIN__ ? 22 : 28
 
     const isTitleBar = e.clientY <= titleBarHeight
 
