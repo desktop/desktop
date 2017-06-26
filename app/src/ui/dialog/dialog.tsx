@@ -220,9 +220,9 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
-    const isTitleBar = e.clientY <= titleBarHeight
+    const isInTitleBar = e.clientY <= titleBarHeight
 
-    if (isTitleBar) {
+    if (isInTitleBar) {
       return
     }
 
