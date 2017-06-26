@@ -214,6 +214,14 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     if (e.target !== this.dialogElement) {
       return
     }
+    
+    const titleBarHeight = __DARWIN__ ? 22 : 28
+    
+    const isTitleBar = e.clientY <= titleBarHeight
+
+    if(isTitleBar) {
+      return
+    }
 
     // Figure out if the user clicked on the backdrop or in the dialog itself.
     const rect = e.currentTarget.getBoundingClientRect()
