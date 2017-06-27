@@ -23,6 +23,9 @@ describe('git/remote', () => {
 
       const result = await getRemotes(repository)
 
+      console.log('result:')
+      console.log(result)
+
       expect(result).to.contain({ name: 'origin', url })
       expect(result).to.contain({ name: 'bassoon', url })
     })
