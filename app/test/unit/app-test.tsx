@@ -21,7 +21,7 @@ import { InMemoryDispatcher } from '../in-memory-dispatcher'
 import { TestGitHubUserDatabase } from '../test-github-user-database'
 import { TestStatsDatabase } from '../test-stats-database'
 import { TestIssuesDatabase } from '../test-issues-database'
-import { TestDatabase } from '../test-database'
+import { TestRepositoriesDatabase } from '../test-repositories-database'
 import { StatsStore } from '../../src/lib/stats'
 import { InMemoryStore } from '../in-memory-store'
 import { AsyncInMemoryStore } from '../async-in-memory-store'
@@ -42,7 +42,7 @@ describe('App', () => {
     await statsDb.reset()
     statsStore = new StatsStore(statsDb)
 
-    const repositoriesDb = new TestDatabase()
+    const repositoriesDb = new TestRepositoriesDatabase()
     await repositoriesDb.reset()
     const repositoriesStore = new RepositoriesStore(repositoriesDb)
 

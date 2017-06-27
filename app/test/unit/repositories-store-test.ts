@@ -2,7 +2,7 @@ import * as chai from 'chai'
 const expect = chai.expect
 
 import { RepositoriesStore } from '../../src/lib/dispatcher'
-import { TestDatabase } from '../test-database'
+import { TestRepositoriesDatabase } from '../test-repositories-database'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
 
@@ -10,7 +10,7 @@ describe('RepositoriesStore', () => {
   let repositoriesStore: RepositoriesStore | null = null
 
   beforeEach(async () => {
-    const db = new TestDatabase()
+    const db = new TestRepositoriesDatabase()
     await db.reset()
 
     repositoriesStore = new RepositoriesStore(db)

@@ -28,7 +28,7 @@ import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
 
 import { setupEmptyRepository } from '../fixture-helper'
-import { TestDatabase } from '../test-database'
+import { TestRepositoriesDatabase } from '../test-repositories-database'
 import { InMemoryStore } from '../in-memory-store'
 import { AsyncInMemoryStore } from '../async-in-memory-store'
 
@@ -45,7 +45,7 @@ describe('AppStore', () => {
     const statsDb = new TestStatsDatabase()
     await statsDb.reset()
 
-    const repositoriesDb = new TestDatabase()
+    const repositoriesDb = new TestRepositoriesDatabase()
     await repositoriesDb.reset()
     const repositoriesStore = new RepositoriesStore(repositoriesDb)
 

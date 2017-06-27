@@ -1,8 +1,8 @@
 import { RepositoriesDatabase } from '../src/lib/dispatcher'
 
-export class TestDatabase extends RepositoriesDatabase {
+export class TestRepositoriesDatabase extends RepositoriesDatabase {
   public constructor() {
-    super('TestDatabase')
+    super('TestRepositoriesDatabase')
   }
 
   public async reset(): Promise<void> {
