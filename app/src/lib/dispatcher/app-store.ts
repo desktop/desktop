@@ -71,7 +71,7 @@ import {
 import { openShell } from '../open-shell'
 import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
-import { validatedRepositoryPath } from "./validated-repository-path";
+import { validatedRepositoryPath } from './validated-repository-path'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
