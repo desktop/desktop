@@ -25,14 +25,9 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, void> {
         <TextArea
           placeholder='Ignored files'
           value={this.props.text || ''}
-          onChange={this.onChange}
+          onValueChanged={this.props.onIgnoreTextChanged}
           rows={6} />
       </DialogContent>
     )
-  }
-
-  private onChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
-    const text = event.currentTarget.value
-    this.props.onIgnoreTextChanged(text)
   }
 }
