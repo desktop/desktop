@@ -2,7 +2,7 @@ import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
 import { MenuEvent } from './menu'
-import { URLActionType } from '../lib/parse-url'
+import { URLActionType } from '../lib/parse-app-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
@@ -32,7 +32,7 @@ export class AppWindow {
       defaultHeight: this.minHeight,
     })
 
-    const windowOptions: Electron.BrowserWindowOptions = {
+    const windowOptions: Electron.BrowserWindowConstructorOptions = {
       x: savedWindowState.x,
       y: savedWindowState.y,
       width: savedWindowState.width,
@@ -66,7 +66,7 @@ export class AppWindow {
       quitting = true
     })
 
-    ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
+    ipcMain.on('will-quit', (event: Electron.IpcMessageEvent) => {
       quitting = true
       event.returnValue = true
     })
@@ -119,7 +119,7 @@ export class AppWindow {
     })
 
     // TODO: This should be scoped by the window.
-    ipcMain.once('renderer-ready', (event: Electron.IpcMainEvent, readyTime: number) => {
+    ipcMain.once('renderer-ready', (event: Electron.IpcMessageEvent, readyTime: number) => {
       this._rendererReadyTime = readyTime
 
       this.maybeEmitDidLoad()
@@ -162,6 +162,11 @@ export class AppWindow {
 
   public isMinimized() {
     return this.window.isMinimized()
+  }
+
+  /** Is the window currently visible? */
+  public isVisible() {
+    return this.window.isVisible()
   }
 
   public restore() {

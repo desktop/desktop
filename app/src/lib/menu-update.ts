@@ -159,13 +159,21 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
       menuStateBuilder.disable(id)
     }
 
+    menuStateBuilder.disable('view-repository-on-github')
+
+    if (selectedState && selectedState.type === SelectionType.MissingRepository) {
+      if (selectedState.repository.gitHubRepository) {
+        menuStateBuilder.enable('view-repository-on-github')
+      }
+      menuStateBuilder.enable('remove-repository')
+    }
+
     menuStateBuilder.disable('rename-branch')
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('update-branch')
     menuStateBuilder.disable('merge-branch')
     menuStateBuilder.disable('compare-branch')
 
-    menuStateBuilder.disable('view-repository-on-github')
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
   }

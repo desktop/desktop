@@ -1,64 +1,66 @@
 import * as URL from 'url'
 import { testForInvalidChars } from './sanitize-branch'
 
-interface IURLAction<T> {
-  name: string
-  readonly args: T
-}
-
-export interface IOAuthActionArgs {
+export interface IOAuthAction {
+  readonly name: 'oauth'
   readonly code: string
 }
 
-export interface IOpenRepositoryArgs {
+export interface IOpenRepositoryFromURLAction {
+  readonly name: 'open-repository-from-url'
+
   /** the remote repository location associated with the "Open in Desktop" action */
   readonly url: string
+
   /** the optional branch name which should be checked out. use the default branch otherwise. */
   readonly branch?: string
+
   /** the pull request number, if pull request originates from a fork of the repository */
   readonly pr?: string
+
   /** the file to open after cloning the repository */
   readonly filepath?: string
 }
 
-export interface IOAuthAction extends IURLAction<IOAuthActionArgs> {
-  readonly name: 'oauth'
-  readonly args: IOAuthActionArgs
+export interface IOpenRepositoryFromPathAction {
+  readonly name: 'open-repository-from-path'
+
+  /** The local path to open. */
+  readonly path: string
 }
 
-export interface IOpenRepositoryAction extends IURLAction<IOpenRepositoryArgs> {
-  readonly name: 'open-repository'
-  readonly args: IOpenRepositoryArgs
-}
-
-export interface IUnknownAction extends IURLAction<{}> {
+export interface IUnknownAction {
   readonly name: 'unknown'
-  readonly args: {}
 }
 
-export type URLActionType = IOAuthAction | IOpenRepositoryAction | IUnknownAction
+export type URLActionType =
+  | IOAuthAction
+  | IOpenRepositoryFromURLAction
+  | IOpenRepositoryFromPathAction
+  | IUnknownAction
 
-export function parseURL(url: string): URLActionType {
+export function parseAppURL(url: string): URLActionType {
   const parsedURL = URL.parse(url, true)
   const hostname = parsedURL.hostname
-  const unknown: IUnknownAction = { name: 'unknown', args: {} }
+  const unknown: IUnknownAction = { name: 'unknown' }
   if (!hostname) { return unknown }
 
   const actionName = hostname.toLowerCase()
   if (actionName === 'oauth') {
-    return { name: 'oauth', args: { code: parsedURL.query.code } }
+    return { name: 'oauth', code: parsedURL.query.code }
   }
 
+  // we require something resembling a URL first
+  // - bail out if it's not defined
+  // - bail out if you only have `/`
+  const pathName = parsedURL.pathname
+  if (!pathName || pathName.length <= 1) { return unknown }
+
+  // Trim the trailing / from the URL
+  const parsedPath = pathName.substr(1)
+
   if (actionName === 'openrepo') {
-
-    // we require something resembling a URL first
-    // - bail out if it's not defined
-    // - bail out if you only have `/`
-    const pathName = parsedURL.pathname
-    if (!pathName || pathName.length <= 1) { return unknown }
-
-    // trim the leading / from the parsed URL
-    const probablyAURL = pathName.substr(1)
+    const probablyAURL = parsedPath
 
     // suffix the remote URL with `.git`, for backwards compatibility
     const url = `${probablyAURL}.git`
@@ -82,13 +84,18 @@ export function parseURL(url: string): URLActionType {
     }
 
     return {
-      name: 'open-repository',
-      args: {
-        url,
-        branch,
-        pr,
-        filepath,
-      },
+      name: 'open-repository-from-url',
+      url,
+      branch,
+      pr,
+      filepath,
+    }
+  }
+
+  if (actionName === 'openlocalrepo') {
+    return {
+      name: 'open-repository-from-path',
+      path: decodeURIComponent(parsedPath),
     }
   }
 

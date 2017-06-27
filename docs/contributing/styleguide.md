@@ -72,5 +72,5 @@ synchronous functions across the codebase.
 
 ### Scripts
 
-For scripts we should favour synchronous APIs as the asynchronous benefits are
+For scripts we should favor synchronous APIs as the asynchronous benefits are
 not so important there, and  it makes the code easier to read.

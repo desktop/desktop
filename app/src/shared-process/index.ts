@@ -41,7 +41,7 @@ updateAccounts()
 
 async function updateAccounts() {
   await accountsStore.map(async (account: Account) => {
-    const api = new API(account)
+    const api = API.fromAccount(account)
     const newAccount = await api.fetchAccount()
     const emails = await api.fetchEmails()
     return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatar_url, newAccount.id, newAccount.name)

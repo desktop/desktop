@@ -50,7 +50,7 @@ export class IssuesStore {
    * been closed and update or add any issues that have changed or been added.
    */
   public async fetchIssues(repository: GitHubRepository, account: Account) {
-    const api = new API(account)
+    const api = API.fromAccount(account)
     const lastUpdatedAt = await this.getLatestUpdatedAt(repository)
 
     // If we don't have a lastUpdatedAt that mean we haven't fetched any issues

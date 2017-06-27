@@ -37,7 +37,7 @@ Please report unacceptable behavior to [opensource+desktop@github.com](mailto:op
 Currently GitHub Desktop is in a public beta, and the team is focused on
 triaging reported issues and working towards a 1.0 milestone - where the
 application can be used in place of the classic Mac and Windows applications.
-You can follow this progress progress under the [Milestones](https://github.com/desktop/desktop/milestones)
+You can follow this progress under the [Milestones](https://github.com/desktop/desktop/milestones)
 tab.
 
 We're still thinking about where we want to take GitHub Desktop after we reach
@@ -78,7 +78,7 @@ The information we are interested in includes:
  - details about your environment - which build, which operating system
  - details about reproducing the issue - what steps to take, what happens, how
    often it happens
- - other relevant information - log files, screenshots, etc
+ - other relevant information - log files, screenshots, etc.
 
 ### Suggesting Enhancements
 
@@ -114,7 +114,7 @@ and provide the following information:
   much detail as possible. This additional context helps the maintainers to
   understand the enhancement from your perspective
 * **Explain why this enhancement would be useful** to GitHub Desktop users.
-* **Include screenshots and animated GIFs** if relevent to help you demonstrate
+* **Include screenshots and animated GIFs** if relevant to help you demonstrate
   the steps or point out the part of GitHub Desktop which the suggestion is
   related to. You can use [this tool](http://www.cockos.com/licecap/) to record
   GIFs on macOS and Windows.

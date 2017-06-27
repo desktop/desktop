@@ -83,24 +83,32 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     }
   }
 
-  private onSelectionChanged = (selectedBranch: Branch | null) => {
+  private onSelectionChanged = async (selectedBranch: Branch | null) => {
     if (selectedBranch) {
       this.setState({ selectedBranch })
-      this.updateCommitCount(selectedBranch)
+      await this.updateCommitCount(selectedBranch)
     } else {
       this.setState({ selectedBranch, commitCount: 0 })
     }
   }
 
   private renderMergeInfo() {
-
     const commitCount = this.state.commitCount
-    const countPlural = commitCount === 1 ? 'commit' : 'commits'
-    const countText = commitCount === undefined
-      ? 'commits'
-      : <strong>{commitCount} {countPlural}</strong>
-
     const selectedBranch = this.state.selectedBranch
+    const currentBranch = this.props.currentBranch
+
+    if ((selectedBranch === null || currentBranch === null) || currentBranch.name === selectedBranch.name) {
+      return null
+    }
+
+    if (commitCount === 0) {
+      return (
+        <p className='merge-info'>Nothing to merge</p>
+      )
+    }
+
+    const countPlural = commitCount === 1 ? 'commit' : 'commits'
+    const countText = commitCount === undefined ? 'commits' : <strong>{commitCount} {countPlural}</strong>
 
     return (
       <p className='merge-info'>
@@ -115,9 +123,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     const selectedBranch = this.state.selectedBranch
     const currentBranch = this.props.currentBranch
 
-    const disabled = (selectedBranch === null || currentBranch === null) || currentBranch.name === selectedBranch.name
-
-    const mergeInfo = disabled ? null : this.renderMergeInfo()
+    const disabled = (selectedBranch === null || currentBranch === null) || currentBranch.name === selectedBranch.name || this.state.commitCount === 0
 
     return (
       <Dialog
@@ -143,24 +149,23 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
               Merge into <strong>{currentBranch ? currentBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
-          {mergeInfo}
+          {this.renderMergeInfo()}
         </DialogFooter>
       </Dialog>
     )
   }
 
-  private async updateCommitCount(branch: Branch) {
-    this.setState({ commitCount: undefined })
-
+ private async updateCommitCount(branch: Branch) {
     const range = `...${branch.name}`
     const aheadBehind = await getAheadBehind(this.props.repository, range)
     const commitCount = aheadBehind ? aheadBehind.behind : 0
 
-    // The branch changed while we were waiting on the result of
-    // `getAheadBehind`.
-    if (this.state.selectedBranch !== branch) { return }
-
-    this.setState({ commitCount })
+    if (this.state.selectedBranch !== branch) {
+      // The branch changed while we were waiting on the result of `getAheadBehind`.
+      this.setState({ commitCount: undefined })
+    } else {
+      this.setState({ commitCount })
+    }
   }
 
   private merge = () => {
