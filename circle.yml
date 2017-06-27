@@ -22,6 +22,7 @@ dependencies:
 
   override:
     - npm install
+    - npm rebuild
 
 compile:
   override:
