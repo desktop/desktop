@@ -15,9 +15,6 @@ import {
 interface ISignInProps {
   readonly signInState: SignInState
   readonly dispatcher: Dispatcher
-
-  /** An array of additional buttons to render after the "Sign In" button. */
-  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 /** The sign in flow for GitHub. */

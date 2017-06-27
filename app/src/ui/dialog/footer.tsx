@@ -1,7 +1,6 @@
 import * as React from 'react'
 
 interface IDialogFooterProps {
-  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 /**

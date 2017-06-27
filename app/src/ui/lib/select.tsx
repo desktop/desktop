@@ -13,9 +13,6 @@ interface ISelectProps {
 
   /** Called when the user changes the selected valued. */
   readonly onChange?: (event: React.FormEvent<HTMLSelectElement>) => void
-
-  /** The <option>'s for the select control. */
-  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 interface ISelectState {

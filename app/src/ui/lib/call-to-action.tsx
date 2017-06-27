@@ -10,7 +10,7 @@ interface ICallToActionProps {
   readonly onAction: () => void
 }
 
-/** 
+/**
  * A call-to-action component which displays its children as the message
  * followed by an action button.
  */

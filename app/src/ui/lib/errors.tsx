@@ -4,9 +4,6 @@ import * as classNames from 'classnames'
 interface IErrorsProps {
   /** The class name for the internal element. */
   readonly className?: string
-
-  /** The children to be displayed as an error message. */
-  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 /** An Errors element with app-standard styles. */

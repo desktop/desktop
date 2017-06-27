@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IDialogErrorProps {
-  readonly children?: ReadonlyArray<JSX.Element>
+
 }
 
 /**

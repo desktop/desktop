@@ -20,7 +20,7 @@ interface ITwoFactorAuthenticationProps {
   readonly onOTPEntered: (otp: string) => void
 
   /** An array of additional buttons to render after the "Sign In" button. */
-  readonly additionalButtons?: ReadonlyArray<JSX.Element>
+  readonly additionalButtons?: ReadonlyArray<JSX.Element> | number | string | boolean| {} | null
 
   /**
    * An error which, if present, is presented to the

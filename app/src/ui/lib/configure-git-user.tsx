@@ -19,9 +19,6 @@ interface IConfigureGitUserProps {
 
   /** The label for the button which saves config changes. */
   readonly saveLabel?: string
-
-  /** Additional elements that are rendered below the form. */
-  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 interface IConfigureGitUserState {

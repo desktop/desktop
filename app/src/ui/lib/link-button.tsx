@@ -10,7 +10,7 @@ interface ILinkButtonProps {
   readonly onClick?: () => void
 
   /** The title of the button. */
-  readonly children?: string
+  readonly children?:  ReadonlyArray<JSX.Element> | number | string | boolean| {} | null
 
   /** CSS classes attached to the component */
   readonly className?: string

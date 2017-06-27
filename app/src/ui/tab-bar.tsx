@@ -7,8 +7,6 @@ interface ITabBarProps {
 
   /** A function which is called when a tab is clicked on. */
   readonly onTabClicked: (index: number) => void
-
-  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 /** The tab bar component. */
