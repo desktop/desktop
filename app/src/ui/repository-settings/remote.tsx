@@ -18,12 +18,8 @@ export class Remote extends React.Component<IRemoteProps, void> {
     return (
       <DialogContent>
         <div>Primary remote repository ({remote.name})</div>
-        <TextBox placeholder='Remote URL' value={remote.url} onValueChanged={this.onChange}/>
+        <TextBox placeholder='Remote URL' value={remote.url} onValueChanged={this.props.onRemoteUrlChanged}/>
       </DialogContent>
     )
-  }
-
-  private onChange = (text: string) => {
-    this.props.onRemoteUrlChanged(text)
   }
 }
