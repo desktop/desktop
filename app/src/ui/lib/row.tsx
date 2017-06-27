@@ -6,7 +6,11 @@ interface IRowProps {
   readonly className?: string
 }
 
-/** A horizontal row element with app-standard styles. */
+/**
+ * A horizontal row element with app-standard styles.
+ *
+ * Provide `children` elements for the contents of this row.
+ */
 export class Row extends React.Component<IRowProps, {}> {
   public render() {
     const className = classNames('row-component', this.props.className)

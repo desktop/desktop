@@ -9,7 +9,11 @@ interface ITabBarProps {
   readonly onTabClicked: (index: number) => void
 }
 
-/** The tab bar component. */
+/**
+ * The tab bar component.
+ *
+ * Set `children` to an array of JSX.Elements to represent the tab bar items.
+ */
 export class TabBar extends React.Component<ITabBarProps, {}> {
 
   private readonly tabRefsByIndex = new Map<number, HTMLButtonElement>()

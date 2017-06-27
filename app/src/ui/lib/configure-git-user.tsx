@@ -27,7 +27,11 @@ interface IConfigureGitUserState {
   readonly avatarURL: string | null
 }
 
-/** A component which allows the user to configure their Git user. */
+/**
+ * A component which allows the user to configure their Git user.
+ *
+ * Provide `children` elements which will be rendered below the form.
+ */
 export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IConfigureGitUserState> {
   public constructor(props: IConfigureGitUserProps) {
     super(props)

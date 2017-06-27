@@ -16,9 +16,6 @@ export interface IButtonProps {
    */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
-  /** The title of the button. */
-  readonly children?: ReadonlyArray<JSX.Element> | number | string | boolean | {} | null
-
   /** Is the button disabled? */
   readonly disabled?: boolean
 
@@ -69,7 +66,11 @@ export interface IButtonProps {
   readonly ariaHasPopup?: boolean
 }
 
-/** A button component. */
+/**
+ * A button component.
+ *
+ * Provide `children` elements to represent the title of the button.
+ */
 export class Button extends React.Component<IButtonProps, {}> {
 
   private innerButton: HTMLButtonElement | null = null

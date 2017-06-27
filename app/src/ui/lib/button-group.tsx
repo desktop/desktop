@@ -21,7 +21,7 @@ interface IButtonGroupProps {
  *
  * See https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/
  *
- * Non-button content in this component is prohibited and will
+ * Non-button `children` content in this component is prohibited and will
  * not render.
  */
 export class ButtonGroup extends React.Component<IButtonGroupProps, {}> {

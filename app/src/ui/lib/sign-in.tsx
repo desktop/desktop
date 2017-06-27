@@ -17,7 +17,11 @@ interface ISignInProps {
   readonly dispatcher: Dispatcher
 }
 
-/** The sign in flow for GitHub. */
+/**
+ * The sign in flow for GitHub.
+ *
+ * Provide `children` elements to render additional buttons in the active form.
+ */
 export class SignIn extends React.Component<ISignInProps, {}> {
 
   private onEndpointEntered = (url: string) => {

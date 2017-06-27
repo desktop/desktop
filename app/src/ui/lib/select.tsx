@@ -24,7 +24,11 @@ interface ISelectState {
   readonly inputId?: string
 }
 
-/** A select element with app-standard styles. */
+/**
+ * A select element with app-standard styles.
+ *
+ * Provide `children` elements for the contents of the `select` element.
+ */
 export class Select extends React.Component<ISelectProps, ISelectState> {
 
   public componentWillMount() {
