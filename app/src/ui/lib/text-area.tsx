@@ -36,7 +36,7 @@ interface ITextAreaProps {
 }
 
 /** A textarea element with app-standard styles. */
-export class TextArea extends React.Component<ITextAreaProps, void> {
+export class TextArea extends React.Component<ITextAreaProps, {}> {
   public render() {
     const className = classNames('text-area-component', this.props.labelClassName)
     return (

@@ -12,7 +12,7 @@ interface IRemoteProps {
 }
 
 /** The Remote component. */
-export class Remote extends React.Component<IRemoteProps, void> {
+export class Remote extends React.Component<IRemoteProps, {}> {
   public render() {
     const remote = this.props.remote
     return (

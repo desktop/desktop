@@ -14,7 +14,7 @@ interface ICallToActionProps {
  * A call-to-action component which displays its children as the message
  * followed by an action button.
  */
-export class CallToAction extends React.Component<ICallToActionProps, void> {
+export class CallToAction extends React.Component<ICallToActionProps, {}> {
   public render() {
     return (
       <Row className='call-to-action'>

@@ -10,7 +10,7 @@ interface IRowProps {
 }
 
 /** A horizontal row element with app-standard styles. */
-export class Row extends React.Component<IRowProps, void> {
+export class Row extends React.Component<IRowProps, {}> {
   public render() {
     const className = classNames('row-component', this.props.className)
     return (

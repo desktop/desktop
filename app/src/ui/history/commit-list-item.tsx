@@ -12,7 +12,7 @@ interface ICommitProps {
 }
 
 /** A component which displays a single commit in a commit list. */
-export class CommitListItem extends React.Component<ICommitProps, void> {
+export class CommitListItem extends React.Component<ICommitProps, {}> {
   public render() {
     const commit = this.props.commit
     const author = commit.author

@@ -12,7 +12,7 @@ interface IChangedFileDetailsProps {
 }
 
 /** Displays information about a file */
-export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps, void> {
+export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps, {}> {
   public render() {
 
     const status = this.props.status

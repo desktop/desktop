@@ -26,7 +26,7 @@ interface IButtonGroupProps {
  * Non-button content in this component is prohibited and will
  * not render.
  */
-export class ButtonGroup extends React.Component<IButtonGroupProps, void> {
+export class ButtonGroup extends React.Component<IButtonGroupProps, {}> {
   public render() {
 
     const buttons = new Array<React.ReactElement<IButtonProps>>()

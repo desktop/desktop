@@ -10,7 +10,7 @@ interface IConfigureGitProps {
 }
 
 /** The Welcome flow step to configure git. */
-export class ConfigureGit extends React.Component<IConfigureGitProps, void> {
+export class ConfigureGit extends React.Component<IConfigureGitProps, {}> {
   public render() {
     return (
       <div id='configure-git'>

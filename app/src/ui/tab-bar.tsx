@@ -12,7 +12,7 @@ interface ITabBarProps {
 }
 
 /** The tab bar component. */
-export class TabBar extends React.Component<ITabBarProps, void> {
+export class TabBar extends React.Component<ITabBarProps, {}> {
 
   private readonly tabRefsByIndex = new Map<number, HTMLButtonElement>()
 
@@ -87,7 +87,7 @@ interface ITabBarItemProps {
   readonly onButtonRef: (index: number, button: HTMLButtonElement | null) => void
 }
 
-class TabBarItem extends React.Component<ITabBarItemProps, void> {
+class TabBarItem extends React.Component<ITabBarItemProps, {}> {
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     this.props.onClick(this.props.index)
   }

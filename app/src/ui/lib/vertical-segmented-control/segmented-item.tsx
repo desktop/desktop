@@ -37,7 +37,7 @@ interface ISegmentedItemProps {
   readonly onClick: (index: number) => void
 }
 
-export class SegmentedItem extends React.Component<ISegmentedItemProps, void> {
+export class SegmentedItem extends React.Component<ISegmentedItemProps, {}> {
 
   private onClick = () => {
     this.props.onClick(this.props.index)

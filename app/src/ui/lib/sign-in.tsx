@@ -21,7 +21,7 @@ interface ISignInProps {
 }
 
 /** The sign in flow for GitHub. */
-export class SignIn extends React.Component<ISignInProps, void> {
+export class SignIn extends React.Component<ISignInProps, {}> {
 
   private onEndpointEntered = (url: string) => {
     this.props.dispatcher.setSignInEndpoint(url)

@@ -40,7 +40,7 @@ interface IChangesSidebarProps {
   readonly gitHubUserStore: GitHubUserStore
 }
 
-export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> {
+export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   private autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>> | null
 

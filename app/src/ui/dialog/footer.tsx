@@ -9,7 +9,7 @@ interface IDialogFooterProps {
  * This component should only be used at most once in any given dialog and it
  * should be rendered as the last child of that dialog.
  */
-export class DialogFooter extends React.Component<IDialogFooterProps, void> {
+export class DialogFooter extends React.Component<IDialogFooterProps, {}> {
   public render() {
     return (
       <div className='dialog-footer'>

@@ -11,7 +11,7 @@ interface IFileListProps {
   readonly availableWidth: number
 }
 
-export class FileList extends React.Component<IFileListProps, void> {
+export class FileList extends React.Component<IFileListProps, {}> {
   private onSelectionChanged = (row: number) => {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)

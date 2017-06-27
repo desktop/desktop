@@ -26,7 +26,7 @@ interface ILinkButtonProps {
 }
 
 /** A link component. */
-export class LinkButton extends React.Component<ILinkButtonProps, void> {
+export class LinkButton extends React.Component<ILinkButtonProps, {}> {
   public render() {
     const href = this.props.uri || ''
     const className = classNames('link-button-component', this.props.className)

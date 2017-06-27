@@ -14,7 +14,7 @@ interface IDialogErrorProps {
  * The content (error message) is paired with a stop icon and receive
  * special styling.
  */
-export class DialogError extends React.Component<IDialogErrorProps, void> {
+export class DialogError extends React.Component<IDialogErrorProps, {}> {
 
   public render() {
 

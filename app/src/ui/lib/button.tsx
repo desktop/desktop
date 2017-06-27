@@ -70,7 +70,7 @@ export interface IButtonProps {
 }
 
 /** A button component. */
-export class Button extends React.Component<IButtonProps, void> {
+export class Button extends React.Component<IButtonProps, {}> {
 
   private innerButton: HTMLButtonElement | null = null
 

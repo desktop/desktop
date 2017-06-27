@@ -31,7 +31,7 @@ interface IRichTextProps {
  * with the appropriate image tag, and also highlights username and issue mentions
  * with hyperlink tags if it has a repository to read.
  */
-export class RichText extends React.Component<IRichTextProps, void> {
+export class RichText extends React.Component<IRichTextProps, {}> {
   public render() {
     const str = this.props.text
 
