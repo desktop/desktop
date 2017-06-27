@@ -17,7 +17,7 @@ export interface IButtonProps {
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /** The title of the button. */
-  readonly children?:  ReadonlyArray<JSX.Element> | number | string | boolean| {} | null
+  readonly children?: ReadonlyArray<JSX.Element> | number | string | boolean | {} | null
 
   /** Is the button disabled? */
   readonly disabled?: boolean
