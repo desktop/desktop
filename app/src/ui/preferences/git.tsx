@@ -13,12 +13,12 @@ interface IGitProps {
 
 export class Git extends React.Component<IGitProps, void> {
 
-  private onNameChanged = (e: React.FormEvent<HTMLInputElement>) => {
-    this.props.onNameChanged(e.currentTarget.value)
+  private onNameChanged = (text: string) => {
+    this.props.onNameChanged(text)
   }
 
-  private onEmailChanged = (e: React.FormEvent<HTMLInputElement>) => {
-    this.props.onEmailChanged(e.currentTarget.value)
+  private onEmailChanged = (text: string) => {
+    this.props.onEmailChanged(text)
   }
 
   public render() {
@@ -28,7 +28,7 @@ export class Git extends React.Component<IGitProps, void> {
           <TextBox
             label='Name'
             value={this.props.name}
-            onChange={this.onNameChanged}
+            onValueChanged={this.onNameChanged}
             autoFocus
           />
         </Row>
@@ -36,7 +36,7 @@ export class Git extends React.Component<IGitProps, void> {
           <TextBox
             label='Email'
             value={this.props.email}
-            onChange={this.onEmailChanged}
+            onValueChanged={this.onEmailChanged}
           />
         </Row>
       </DialogContent>
