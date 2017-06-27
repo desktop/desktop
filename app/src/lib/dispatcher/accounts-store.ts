@@ -82,6 +82,18 @@ export class AccountsStore {
     this.save()
   }
 
+  /** Refresh all accounts by fetching their latest info from the API. */
+  public async refresh(): Promise<void> {
+    const updatedAccounts = new Array<Account>()
+    for (const account of this.accounts) {
+      const updated = await this.updatedAccount(account)
+      updatedAccounts.push(updated)
+    }
+
+    this.accounts = updatedAccounts
+    this.emitUpdate()
+  }
+
   private async updatedAccount(account: Account): Promise<Account> {
     if (!account.token) {
       return fatalError(`Cannot update an account which doesn't have a token: ${account}`)

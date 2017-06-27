@@ -227,6 +227,8 @@ export class AppStore {
     this.accounts = accounts
     this.repositories = repositories
     this.emitUpdateNow()
+
+    this.accountsStore.refresh()
   }
 
   /** Load the emoji from disk. */
