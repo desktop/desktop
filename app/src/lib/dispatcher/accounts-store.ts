@@ -32,6 +32,7 @@ interface IAccount {
   readonly name: string
 }
 
+/** The store for logged in accounts. */
 export class AccountsStore {
   private dataStore: IDataStore
   private secureStore: ISecureStore
