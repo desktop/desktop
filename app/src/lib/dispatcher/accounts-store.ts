@@ -2,6 +2,8 @@ import { Emitter, Disposable } from 'event-kit'
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
+import { API } from '../api'
+import { fatalError } from '../fatal-error'
 
 /** The data-only interface for storage. */
 interface IEmail {
@@ -71,11 +73,25 @@ export class AccountsStore {
   public async addAccount(account: Account): Promise<void> {
     await this.loadingPromise
 
-    await this.secureStore.setItem(getKeyForAccount(account), account.login, account.token)
+    const updatedAccount = await this.updatedAccount(account)
 
-    this.accounts.push(account)
+    await this.secureStore.setItem(getKeyForAccount(updatedAccount), updatedAccount.login, updatedAccount.token)
+
+    this.accounts.push(updatedAccount)
 
     this.save()
+  }
+
+  private async updatedAccount(account: Account): Promise<Account> {
+    if (!account.token) {
+      return fatalError(`Cannot update an account which doesn't have a token: ${account}`)
+    }
+
+    const api = API.fromAccount(account)
+    const user = await api.fetchAccount()
+    const emails = await api.fetchEmails()
+
+    return new Account(account.login, account.endpoint, account.token, emails, user.avatar_url, user.id, user.name)
   }
 
   /**
@@ -88,22 +104,6 @@ export class AccountsStore {
 
     this.accounts = this.accounts.filter(a => a.id !== account.id)
 
-    this.save()
-  }
-
-  /**
-   * Update the users in the store by mapping over them.
-   */
-  public async map(fn: (account: Account) => Promise<Account>) {
-    await this.loadingPromise
-
-    const accounts = new Array<Account>()
-    for (const account of this.accounts) {
-      const newAccount = await fn(account)
-      accounts.push(newAccount)
-    }
-
-    this.accounts = accounts
     this.save()
   }
 

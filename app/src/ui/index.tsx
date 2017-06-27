@@ -97,9 +97,11 @@ const appStore = new AppStore(
   issuesStore,
   statsStore,
   signInStore,
+  accountsStore,
+  repositoriesStore,
 )
 
-const dispatcher = new Dispatcher(appStore, accountsStore, repositoriesStore)
+const dispatcher = new Dispatcher(appStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)

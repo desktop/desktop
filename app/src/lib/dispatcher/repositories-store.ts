@@ -37,7 +37,7 @@ export class RepositoriesStore {
   }
 
   /** Get all the local repositories. */
-  public async getRepositories(): Promise<ReadonlyArray<Repository>> {
+  public async getAll(): Promise<ReadonlyArray<Repository>> {
     const inflatedRepos: Repository[] = []
     const db = this.db
     const transaction = this.db.transaction('r', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*(){
@@ -136,7 +136,13 @@ export class RepositoriesStore {
 
     const updatedRepository = repository.withPath(path)
     const gitHubRepositoryID = updatedRepository.gitHubRepository ? updatedRepository.gitHubRepository.dbID : null
-    await this.db.repositories.put({ ...updatedRepository, gitHubRepositoryID, gitHubRepository: undefined })
+    await this.db.repositories.put({
+      ...updatedRepository,
+      gitHubRepositoryID,
+      gitHubRepository: undefined,
+    })
+
+    await this.updateRepositoryMissing(repository, true)
 
     this.emitUpdate()
 

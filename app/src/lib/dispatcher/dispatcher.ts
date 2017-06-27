@@ -19,13 +19,9 @@ import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
-import { structuralEquals } from '../equality'
 import { isGitOnPath } from '../open-shell'
 import { URLActionType, IOpenRepositoryFromURLAction, IUnknownAction } from '../parse-app-url'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
-import { validatedRepositoryPath } from './validated-repository-path'
-import { AccountsStore } from './accounts-store'
-import { RepositoriesStore } from './repositories-store'
 
 /**
  * An error handler function.
@@ -40,90 +36,34 @@ export type ErrorHandler = (error: Error, dispatcher: Dispatcher) => Promise<Err
  * decouples the consumer of state from where/how it is stored.
  */
 export class Dispatcher {
-  private appStore: AppStore
-  private accountsStore: AccountsStore
-  private repositoriesStore: RepositoriesStore
+  private readonly appStore: AppStore
 
   private readonly errorHandlers = new Array<ErrorHandler>()
 
-  public constructor(appStore: AppStore, accountsStore: AccountsStore, repositoriesStore: RepositoriesStore) {
+  public constructor(appStore: AppStore) {
     this.appStore = appStore
-    this.accountsStore = accountsStore
-    this.repositoriesStore = repositoriesStore
-
-    appStore.onDidAuthenticate((user) => {
-      this.addAccount(user)
-    })
-
-    accountsStore.onDidUpdate(async () => {
-      const accounts = await this.accountsStore.getAll()
-      const repositories = await this.repositoriesStore.getRepositories()
-      this.appStore._loadFromSharedProcess(accounts, repositories, false)
-    })
-
-    repositoriesStore.onDidUpdate(async () => {
-      const accounts = await this.accountsStore.getAll()
-      const repositories = await this.repositoriesStore.getRepositories()
-      this.appStore._loadFromSharedProcess(accounts, repositories, false)
-    })
   }
 
-  public async loadInitialState(): Promise<void> {
-    const accounts = await this.accountsStore.getAll()
-    const repositories = await this.repositoriesStore.getRepositories()
-    this.appStore._loadFromSharedProcess(accounts, repositories, true)
+  public loadInitialState(): Promise<void> {
+    return this.appStore.loadInitialState()
   }
 
   /**
    * Add the repositories at the given paths. If a path isn't a repository, then
    * this will post an error to that affect.
    */
-  public async addRepositories(paths: ReadonlyArray<string>): Promise<ReadonlyArray<Repository>> {
-    const addedRepositories = new Array<Repository>()
-    for (const path of paths) {
-      const validatedPath = await validatedRepositoryPath(path)
-      if (validatedPath) {
-        const addedRepo = await this.repositoriesStore.addRepository(validatedPath)
-        const refreshedRepo = await this.refreshGitHubRepositoryInfo(addedRepo)
-        addedRepositories.push(refreshedRepo)
-      } else {
-        this.postError({ name: 'add-repository', message: `${path} isn't a git repository.` })
-      }
-    }
-
-    return addedRepositories
+  public addRepositories(paths: ReadonlyArray<string>): Promise<ReadonlyArray<Repository>> {
+    return this.appStore._addRepositories(paths)
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
-  public async removeRepositories(repositories: ReadonlyArray<Repository | CloningRepository>): Promise<void> {
-    const localRepositories = repositories.filter(r => r instanceof Repository) as ReadonlyArray<Repository>
-    const cloningRepositories = repositories.filter(r => r instanceof CloningRepository) as ReadonlyArray<CloningRepository>
-    cloningRepositories.forEach(r => {
-      this.appStore._removeCloningRepository(r)
-    })
-
-    const repositoryIDs = localRepositories.map(r => r.id)
-    for (const id of repositoryIDs) {
-      await this.repositoriesStore.removeRepository(id)
-    }
-
-    this.showFoldout({ type: FoldoutType.Repository })
-  }
-
-  /** Refresh the associated GitHub repository. */
-  private async refreshGitHubRepositoryInfo(repository: Repository): Promise<Repository> {
-    const refreshedRepository = await this.appStore._repositoryWithRefreshedGitHubRepository(repository)
-
-    if (structuralEquals(refreshedRepository, repository)) {
-      return refreshedRepository
-    }
-
-    return this.repositoriesStore.updateGitHubRepository(repository)
+  public removeRepositories(repositories: ReadonlyArray<Repository | CloningRepository>): Promise<void> {
+    return this.appStore._removeRepositories(repositories)
   }
 
   /** Update the repository's `missing` flag. */
   public async updateRepositoryMissing(repository: Repository, missing: boolean): Promise<Repository> {
-    return this.repositoriesStore.updateRepositoryMissing(repository, missing)
+    return this.appStore._updateRepositoryMissing(repository, missing)
   }
 
   /** Load the history for the repository. */
@@ -167,14 +107,8 @@ export class Dispatcher {
   }
 
   /** Select the repository. */
-  public async selectRepository(repository: Repository | CloningRepository): Promise<Repository | null> {
-    let repo = await this.appStore._selectRepository(repository)
-
-    if (repository instanceof Repository) {
-      repo = await this.refreshGitHubRepositoryInfo(repository)
-    }
-
-    return repo
+  public selectRepository(repository: Repository | CloningRepository): Promise<Repository | null> {
+    return this.appStore._selectRepository(repository)
   }
 
   /** Load the working directory status. */
@@ -257,57 +191,29 @@ export class Dispatcher {
     return this.appStore._checkoutBranch(repository, name)
   }
 
-  /**
-   * Perform a function which may need authentication on a repository. This may
-   * first update the GitHub association for the repository.
-   */
-  private async withAuthenticatingUser<T>(repository: Repository, fn: (repository: Repository, account: Account | null) => Promise<T>): Promise<T> {
-    let updatedRepository = repository
-    let account = this.appStore.getAccountForRepository(updatedRepository)
-    // If we don't have a user association, it might be because we haven't yet
-    // tried to associate the repository with a GitHub repository, or that
-    // association is out of date. So try again before we bail on providing an
-    // authenticating user.
-    if (!account) {
-      updatedRepository = await this.refreshGitHubRepositoryInfo(repository)
-      account = this.appStore.getAccountForRepository(updatedRepository)
-    }
-
-    return fn(updatedRepository, account)
-  }
-
   /** Push the current branch. */
-  public async push(repository: Repository): Promise<void> {
-    return this.withAuthenticatingUser(
-      repository,
-      (repo, user) => this.appStore._push(repo, user))
+  public push(repository: Repository): Promise<void> {
+    return this.appStore._push(repository)
   }
 
   /** Pull the current branch. */
-  public async pull(repository: Repository): Promise<void> {
-    return this.withAuthenticatingUser(
-      repository,
-      (repo, user) => this.appStore._pull(repo, user))
+  public pull(repository: Repository): Promise<void> {
+    return this.appStore._pull(repository)
   }
 
   /** Fetch a specific refspec for the repository. */
   public fetchRefspec(repository: Repository, fetchspec: string): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repo, user) => {
-      return this.appStore.fetchRefspec(repo, fetchspec, user)
-    })
+    return this.appStore._fetchRefspec(repository, fetchspec)
   }
 
   /** Fetch all refs for the repository */
   public fetch(repository: Repository): Promise<void> {
-    return this.withAuthenticatingUser(
-      repository,
-      (repo, user) => this.appStore.fetch(repo, user))
+    return this.appStore._fetch(repository)
   }
 
   /** Publish the repository to GitHub with the given properties. */
-  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<Repository> {
-    await this.appStore._publishRepository(repository, name, description, private_, account, org)
-    return this.refreshGitHubRepositoryInfo(repository)
+  public publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<Repository> {
+    return this.appStore._publishRepository(repository, name, description, private_, account, org)
   }
 
   /**
@@ -346,19 +252,8 @@ export class Dispatcher {
    * Clone a missing repository to the previous path, and update it's
    * state in the repository list if the clone completes without error.
    */
-  public async cloneAgain(url: string, path: string, account: Account | null): Promise<void> {
-    const { promise, repository } = this.appStore._clone(url, path, { account })
-    await this.selectRepository(repository)
-    const success = await promise
-    if (!success) { return }
-
-    const repositories = await this.repositoriesStore.getRepositories()
-    const found = repositories.find(r => r.path === path) || null
-
-    if (found) {
-      const updatedRepository = await this.updateRepositoryMissing(found, false)
-      await this.selectRepository(updatedRepository)
-    }
+  public cloneAgain(url: string, path: string, account: Account | null): Promise<void> {
+    return this.appStore._cloneAgain(url, path, account)
  }
 
   /** Clone the repository to the path. */
@@ -390,9 +285,7 @@ export class Dispatcher {
    * branch, and then check out the default branch.
    */
   public deleteBranch(repository: Repository, branch: Branch): Promise<void> {
-    return this.withAuthenticatingUser(
-      repository,
-      (repo, user) => this.appStore._deleteBranch(repo, branch, user))
+    return this.appStore._deleteBranch(repository, branch)
   }
 
   /** Discard the changes to the given files. */
@@ -469,24 +362,13 @@ export class Dispatcher {
   }
 
   /** Add the account to the app. */
-  public async addAccount(account: Account): Promise<void> {
-    await this.accountsStore.addAccount(account)
-    // TODO: update accounts
+  public addAccount(account: Account): Promise<void> {
+    return this.appStore._addAccount(account)
   }
-
-  // async function updateAccounts() {
-  //   await accountsStore.map(async (account: Account) => {
-  //     const api = API.fromAccount(account)
-  //     const newAccount = await api.fetchAccount()
-  //     const emails = await api.fetchEmails()
-  //     return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatar_url, newAccount.id, newAccount.name)
-  //   })
-  //   broadcastUpdate()
-  // }
 
   /** Remove the given account from the app. */
   public removeAccount(account: Account): Promise<void> {
-    return this.accountsStore.removeAccount(account)
+    return this.appStore._removeAccount(account)
   }
 
   /**
@@ -736,8 +618,7 @@ export class Dispatcher {
 
   /** Update the repository's path. */
   private async updateRepositoryPath(repository: Repository, path: string): Promise<void> {
-    const updatedRepository = await this.repositoriesStore.updateRepositoryPath(repository, path)
-    await this.repositoriesStore.updateRepositoryMissing(updatedRepository, false)
+    await this.appStore._updateRepositoryPath(repository, path)
   }
 
   public async setAppFocusState(isFocused: boolean): Promise<void> {

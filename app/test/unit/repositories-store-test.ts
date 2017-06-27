@@ -21,7 +21,7 @@ describe('RepositoriesStore', () => {
       const repoPath = '/some/cool/path'
       await repositoriesStore!.addRepository(repoPath)
 
-      const repositories = await repositoriesStore!.getRepositories()
+      const repositories = await repositoriesStore!.getAll()
       expect(repositories[0].path).to.equal(repoPath)
     })
   })
@@ -31,7 +31,7 @@ describe('RepositoriesStore', () => {
       await repositoriesStore!.addRepository('/some/cool/path')
       await repositoriesStore!.addRepository('/some/other/path')
 
-      const repositories = await repositoriesStore!.getRepositories()
+      const repositories = await repositoriesStore!.getAll()
       expect(repositories.length).to.equal(2)
     })
   })
@@ -44,7 +44,7 @@ describe('RepositoriesStore', () => {
       const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
       await repositoriesStore!.updateGitHubRepository(repoWithGitHub)
 
-      const repositories = await repositoriesStore!.getRepositories()
+      const repositories = await repositoriesStore!.getAll()
       const repo = repositories[0]
       expect(repo.gitHubRepository!.private).to.equal(true)
       expect(repo.gitHubRepository!.fork).to.equal(false)
@@ -58,7 +58,7 @@ describe('RepositoriesStore', () => {
       const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
       await repositoriesStore!.updateGitHubRepository(repoWithGitHub)
 
-      const repositories = await repositoriesStore!.getRepositories()
+      const repositories = await repositoriesStore!.getAll()
       const repo = repositories[0]
       expect(repo.gitHubRepository!.private).to.equal(true)
       expect(repo.gitHubRepository!.fork).to.equal(false)
