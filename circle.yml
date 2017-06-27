@@ -16,6 +16,8 @@ dependencies:
     - brew upgrade node
     - npm install -g npm
     - npm prune
+    - node -v
+    - npm -v
     - cd app && npm prune && cd ..
 
   override:
