@@ -55,9 +55,11 @@ describe('App', () => {
       new IssuesStore(issuesDb),
       statsStore,
       new SignInStore(),
+      accountsStore,
+      repositoriesStore,
     )
 
-    dispatcher = new InMemoryDispatcher(appStore, accountsStore, repositoriesStore)
+    dispatcher = new InMemoryDispatcher(appStore)
   })
 
   it('renders', async () => {
