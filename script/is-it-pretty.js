@@ -2,7 +2,7 @@
 
 const prettier = require('prettier');
 const glob = require('glob');
-const fs = require('fs')
+const fs = require('fs');
 
 glob("app/{src, test}/**/*.{ts, tsx}", (err, matches) => {
   if (err) {
@@ -17,6 +17,7 @@ glob("app/{src, test}/**/*.{ts, tsx}", (err, matches) => {
     const fileContents = fs.readFileSync(match, 'utf8');
     const isPretty = prettier
       .check(fileContents, {
+        "parser": "typescript",
         "singleQuote": true,
         "trailingComma": "es5",
         "semi": false,
@@ -34,7 +35,7 @@ glob("app/{src, test}/**/*.{ts, tsx}", (err, matches) => {
     console.log(`${uglyFiles.length} out of ${matchCount} code files are ugly. Please prettify the following files.`);
 
     for (const file of uglyFiles) {
-      console.log(`\t${file}`)
+      console.log(`\t${file}`);
     }
 
     process.exit(1);
