@@ -9,8 +9,7 @@ glob("app/**/*.{ts, tsx}", (err, matches) => {
     process.exit(1);
   }
 
-  let allGood = true;
-  let uglyFiles = 0;
+  const uglyFiles = [];
   const matchCount = matches.length;
 
   for (const match of matches) {
@@ -18,23 +17,24 @@ glob("app/**/*.{ts, tsx}", (err, matches) => {
       .check(match, {
         "singleQuote": true,
         "trailingComma": "es5",
-        "tabWidth": 2,
         "semi": false,
         "printWidth": 100
       });
 
-      console.log(`Checking ${match} for prettiness.`);
-
       if (!isPretty) {
-        allGood = false;
-        uglyFiles++;
+        uglyFiles.push(match);
       }
   }
 
-  if (allGood) {
+  if (uglyFiles.length === 0) {
     console.log("This is some pretty code");
   } else {
-    console.error(`${uglyFiles} out of ${matchCount} code files are not pretty. Please run "prettifier" on commited files.`);
+    console.log(`${uglyFiles.length} out of ${matchCount} code files are not pretty. Please run "prettifier" on commited files.\n`);
+
+    for (const file of uglyFiles) {
+      console.log(`${file} is ugly`)
+    }
+
     process.exit(1);
   }
 })
