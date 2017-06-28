@@ -103,7 +103,7 @@ export interface IToolbarButtonProps {
 /**
  * A general purpose toolbar button
  */
-export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
+export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
 
   public innerButton: Button | null = null
 

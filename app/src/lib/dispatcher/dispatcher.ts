@@ -1,6 +1,6 @@
 import * as Path from 'path'
 
-import { remote, shell } from 'electron'
+import { remote } from 'electron'
 import { Disposable } from 'event-kit'
 
 import { Account } from '../../models/account'
@@ -20,6 +20,7 @@ import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
 import { isGitOnPath } from '../open-shell'
+import { shell } from './app-shell'
 import { URLActionType, IOpenRepositoryFromURLAction, IUnknownAction } from '../parse-app-url'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
 
@@ -693,7 +694,7 @@ export class Dispatcher {
    * @param repository The currently active repository instance
    * @param path The path of the file relative to the root of the repository
    */
-  public revealInFileManager(repository: Repository, path: string): boolean {
+  public revealInFileManager(repository: Repository, path: string) {
     const normalized = Path.join(repository.path, path)
     return shell.showItemInFolder(normalized)
   }

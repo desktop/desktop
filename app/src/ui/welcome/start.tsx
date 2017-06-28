@@ -9,7 +9,7 @@ interface IStartProps {
 }
 
 /** The first step of the Welcome flow. */
-export class Start extends React.Component<IStartProps, void> {
+export class Start extends React.Component<IStartProps, {}> {
   public render() {
     return (
       <div id='start'>

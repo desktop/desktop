@@ -9,9 +9,6 @@ interface ILinkButtonProps {
   /** A function to call on click. */
   readonly onClick?: () => void
 
-  /** The title of the button. */
-  readonly children?: string
-
   /** CSS classes attached to the component */
   readonly className?: string
 
@@ -25,8 +22,12 @@ interface ILinkButtonProps {
   readonly title?: string
 }
 
-/** A link component. */
-export class LinkButton extends React.Component<ILinkButtonProps, void> {
+/**
+ * A link component.
+ *
+ * Provide `children` elements for the title of the rendered hyperlink.
+ */
+export class LinkButton extends React.Component<ILinkButtonProps, {}> {
   public render() {
     const href = this.props.uri || ''
     const className = classNames('link-button-component', this.props.className)

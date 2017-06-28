@@ -1,6 +1,6 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog } from 'electron'
+import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog, shell } from 'electron'
 
 import { AppWindow } from './app-window'
 import { CrashWindow } from './crash-window'
@@ -264,6 +264,10 @@ app.on('ready', () => {
 
   ipcMain.on('send-error-report', (event: Electron.IpcMessageEvent, { error, extra }: { error: Error, extra: { [key: string]: string } }) => {
     reportError(error, extra)
+  })
+
+  ipcMain.on('show-item-in-folder', (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
+    shell.showItemInFolder(path)
   })
 
   autoUpdater.on('error', err => {

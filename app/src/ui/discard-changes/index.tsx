@@ -22,7 +22,7 @@ interface IDiscardChangesProps {
 const MaxFilesToList = 10
 
 /** A component to confirm and then discard changes. */
-export class DiscardChanges extends React.Component<IDiscardChangesProps, void> {
+export class DiscardChanges extends React.Component<IDiscardChangesProps, {}> {
   public render() {
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (

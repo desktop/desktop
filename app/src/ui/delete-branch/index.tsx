@@ -14,7 +14,7 @@ interface IDeleteBranchProps {
   readonly onDismissed: () => void
 }
 
-export class DeleteBranch extends React.Component<IDeleteBranchProps, void> {
+export class DeleteBranch extends React.Component<IDeleteBranchProps, {}> {
   public render() {
     return (
       <Dialog

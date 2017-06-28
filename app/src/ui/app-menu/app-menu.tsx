@@ -64,7 +64,7 @@ export type CloseSource = IKeyboardCloseSource | IItemExecutedCloseSource
 
 const expandCollapseTimeout = 300
 
-export class AppMenu extends React.Component<IAppMenuProps, void> {
+export class AppMenu extends React.Component<IAppMenuProps, {}> {
 
   /**
    * The index of the menu pane that should receive focus after the

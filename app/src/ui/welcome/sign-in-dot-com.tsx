@@ -11,7 +11,7 @@ interface ISignInDotComProps {
 }
 
 /** The Welcome flow step to login to GitHub.com. */
-export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
+export class SignInDotCom extends React.Component<ISignInDotComProps, {}> {
 
   public componentWillMount() {
     this.props.dispatcher.beginDotComSignIn()
