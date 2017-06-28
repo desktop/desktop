@@ -1,7 +1,5 @@
 import * as React from 'react'
 
-interface IDialogFooterProps { }
-
 /**
  * A container component for footer content in a Dialog.
  * This component should only be used at most once in any given dialog and it
@@ -9,7 +7,7 @@ interface IDialogFooterProps { }
  *
  * Provide `children` to display content inside the dialog footer.
  */
-export class DialogFooter extends React.Component<IDialogFooterProps, {}> {
+export class DialogFooter extends React.Component<{}, {}> {
   public render() {
     return (
       <div className='dialog-footer'>
