@@ -15,7 +15,7 @@ interface IConfirmRemoveRepositoryProps {
   readonly onDismissed: () => void
 }
 
-export class ConfirmRemoveRepository extends React.Component<IConfirmRemoveRepositoryProps, void> {
+export class ConfirmRemoveRepository extends React.Component<IConfirmRemoveRepositoryProps, {}> {
   private cancel = () => {
     this.props.onDismissed()
   }

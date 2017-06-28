@@ -8,7 +8,7 @@ interface IDeletedImageDiffProps {
 }
 
 /** A component to render when the file has been deleted from the repository */
-export class DeletedImageDiff extends React.Component<IDeletedImageDiffProps, void> {
+export class DeletedImageDiff extends React.Component<IDeletedImageDiffProps, {}> {
 
   public render() {
     return <div className='panel image' id='diff'>

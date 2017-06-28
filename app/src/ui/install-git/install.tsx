@@ -24,7 +24,7 @@ interface IInstallGitProps {
  * A dialog indicating that Git wasn't found, to direct the user to an
  * external resource for more information about setting up their environment.
  */
-export class InstallGit extends React.Component<IInstallGitProps, void> {
+export class InstallGit extends React.Component<IInstallGitProps, {}> {
 
   public constructor(props: IInstallGitProps) {
     super(props)

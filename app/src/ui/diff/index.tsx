@@ -57,7 +57,7 @@ interface IDiffProps {
 }
 
 /** A component which renders a diff for a file. */
-export class Diff extends React.Component<IDiffProps, void> {
+export class Diff extends React.Component<IDiffProps, {}> {
   private codeMirror: Editor | null
   private gutterWidth: number | null
 

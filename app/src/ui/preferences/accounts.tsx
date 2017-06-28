@@ -23,7 +23,7 @@ enum SignInType {
   Enterprise,
 }
 
-export class Accounts extends React.Component<IAccountsProps, void> {
+export class Accounts extends React.Component<IAccountsProps, {}> {
   public render() {
     return (
       <DialogContent className='accounts-tab'>

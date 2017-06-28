@@ -32,7 +32,7 @@ interface IBranchDropdownProps {
 /**
  * A drop down for selecting the currently checked out branch.
  */
-export class BranchDropdown extends React.Component<IBranchDropdownProps, void> {
+export class BranchDropdown extends React.Component<IBranchDropdownProps, {}> {
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState

@@ -7,12 +7,14 @@ interface ITabBarProps {
 
   /** A function which is called when a tab is clicked on. */
   readonly onTabClicked: (index: number) => void
-
-  readonly children?: ReadonlyArray<JSX.Element>
 }
 
-/** The tab bar component. */
-export class TabBar extends React.Component<ITabBarProps, void> {
+/**
+ * The tab bar component.
+ *
+ * Set `children` to an array of JSX.Elements to represent the tab bar items.
+ */
+export class TabBar extends React.Component<ITabBarProps, {}> {
 
   private readonly tabRefsByIndex = new Map<number, HTMLButtonElement>()
 
@@ -87,7 +89,7 @@ interface ITabBarItemProps {
   readonly onButtonRef: (index: number, button: HTMLButtonElement | null) => void
 }
 
-class TabBarItem extends React.Component<ITabBarItemProps, void> {
+class TabBarItem extends React.Component<ITabBarItemProps, {}> {
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     this.props.onClick(this.props.index)
   }

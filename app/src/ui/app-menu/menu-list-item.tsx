@@ -77,7 +77,7 @@ export function friendlyAcceleratorText(accelerator: string): string {
     .join(__DARWIN__ ? '' : '+')
 }
 
-export class MenuListItem extends React.Component<IMenuListItemProps, void> {
+export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
 
   private getIcon(item: MenuItem): JSX.Element | null {
     if (item.type === 'checkbox' && item.checked) {

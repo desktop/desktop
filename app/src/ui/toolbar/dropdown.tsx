@@ -201,7 +201,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     this.innerButton = null
   }
 
-  public componentDidUpdate = () => {
+  public componentDidUpdate() {
     this.updateClientRectIfNecessary()
   }
 

@@ -34,7 +34,7 @@ interface IRepositoriesListProps {
 const RowHeight = 29
 
 /** The list of user-added repositories. */
-export class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
+export class RepositoriesList extends React.Component<IRepositoriesListProps, {}> {
   private renderItem = (item: IRepositoryListItem) => {
     const repository = item.repository
     return <RepositoryListItem

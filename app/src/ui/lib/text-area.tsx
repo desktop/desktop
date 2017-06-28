@@ -48,7 +48,7 @@ interface ITextAreaProps {
 }
 
 /** A textarea element with app-standard styles. */
-export class TextArea extends React.Component<ITextAreaProps, void> {
+export class TextArea extends React.Component<ITextAreaProps, {}> {
   private onChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
     if (this.props.onChange) {
       this.props.onChange(event)

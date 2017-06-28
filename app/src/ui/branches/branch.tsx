@@ -12,7 +12,7 @@ interface IBranchProps {
 }
 
 /** The branch component. */
-export class BranchListItem extends React.Component<IBranchProps, void> {
+export class BranchListItem extends React.Component<IBranchProps, {}> {
   public render() {
     const lastCommitDate = this.props.lastCommitDate
     const isCurrentBranch = this.props.isCurrentBranch

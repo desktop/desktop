@@ -41,7 +41,7 @@ interface IPushPullButtonProps {
  * A button which pushes, pulls, or updates depending on the state of the
  * repository.
  */
-export class PushPullButton extends React.Component<IPushPullButtonProps, void> {
+export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
   public render() {
 
     const progress = this.props.progress

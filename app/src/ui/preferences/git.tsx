@@ -11,7 +11,7 @@ interface IGitProps {
   readonly onEmailChanged: (email: string) => void
 }
 
-export class Git extends React.Component<IGitProps, void> {
+export class Git extends React.Component<IGitProps, {}> {
   public render() {
     return (
       <DialogContent>

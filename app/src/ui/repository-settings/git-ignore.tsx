@@ -10,7 +10,7 @@ interface IGitIgnoreProps {
 }
 
 /** A view for creating or modifying the repository's gitignore file */
-export class GitIgnore extends React.Component<IGitIgnoreProps, void> {
+export class GitIgnore extends React.Component<IGitIgnoreProps, {}> {
 
   public render() {
 
