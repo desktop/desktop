@@ -25,7 +25,7 @@ interface IUntrustedCertificateProps {
  * The dialog we display when an API request encounters an untrusted
  * certificate.
  */
-export class UntrustedCertificate extends React.Component<IUntrustedCertificateProps, void> {
+export class UntrustedCertificate extends React.Component<IUntrustedCertificateProps, {}> {
   public render() {
     const host = URL.parse(this.props.url).hostname
     const type = __DARWIN__ ? 'warning' : 'error'

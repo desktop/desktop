@@ -9,7 +9,7 @@ interface ITermsAndConditionsProps {
   readonly onDismissed: () => void
 }
 
-export class TermsAndConditions extends React.Component<ITermsAndConditionsProps, void> {
+export class TermsAndConditions extends React.Component<ITermsAndConditionsProps, {}> {
 
   private dialogContainerRef: HTMLDivElement | null = null
   private closeButtonRef: HTMLButtonElement | null = null

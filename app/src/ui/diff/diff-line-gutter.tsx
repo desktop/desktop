@@ -75,7 +75,7 @@ function isMouseCursorNearEdge(ev: MouseEvent): boolean {
 }
 
 /** The gutter for a diff's line. */
-export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
+export class DiffLineGutter extends React.Component<IDiffGutterProps, {}> {
 
   private elem_?: HTMLSpanElement
 

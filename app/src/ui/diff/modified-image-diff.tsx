@@ -9,7 +9,7 @@ interface IModifiedImageDiffProps {
 }
 
 /** A component which renders the changes to an image in the repository */
-export class ModifiedImageDiff extends React.Component<IModifiedImageDiffProps, void> {
+export class ModifiedImageDiff extends React.Component<IModifiedImageDiffProps, {}> {
 
   public render() {
     return <div className='panel image' id='diff'>

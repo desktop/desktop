@@ -27,7 +27,7 @@ function unescape(accessText: string) {
  * prefixed with &) on Windows. On non-Windows platform access key prefixes
  * are removed before rendering.
  */
-export class AccessText extends React.Component<IAccessTextProps, void> {
+export class AccessText extends React.Component<IAccessTextProps, {}> {
   public shouldComponentUpdate(nextProps: IAccessTextProps) {
     return this.props.text !== nextProps.text ||
       this.props.highlight !== nextProps.highlight

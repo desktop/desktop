@@ -2,8 +2,6 @@ import * as React from 'react'
 import { Button, IButtonProps } from './button'
 
 interface IButtonGroupProps {
-  readonly children?: ReadonlyArray<JSX.Element>
-
   /**
    * Does the button group perform a destructive action? On macOS, this controls
    * whether the submit button belongs on the left or right. This has no effect
@@ -23,10 +21,10 @@ interface IButtonGroupProps {
  *
  * See https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/
  *
- * Non-button content in this component is prohibited and will
+ * Non-button `children` content in this component is prohibited and will
  * not render.
  */
-export class ButtonGroup extends React.Component<IButtonGroupProps, void> {
+export class ButtonGroup extends React.Component<IButtonGroupProps, {}> {
   public render() {
 
     const buttons = new Array<React.ReactElement<IButtonProps>>()

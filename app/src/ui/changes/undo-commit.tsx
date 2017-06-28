@@ -20,7 +20,7 @@ interface IUndoCommitProps {
 }
 
 /** The Undo Commit component. */
-export class UndoCommit extends React.Component<IUndoCommitProps, void> {
+export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
   public render() {
     const disabled = this.props.isPushPullFetchInProgress
     const title = disabled ? 'Undo is disabled while the repository is being updated' : undefined

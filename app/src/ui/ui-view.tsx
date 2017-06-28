@@ -16,7 +16,7 @@ interface IUiViewProps extends React.HTMLProps<HTMLDivElement> { }
  * Examples of what's not a View include the Changes and History tabs
  * as these are contained within the <Repository /> view
  */
-export class UiView extends React.Component<IUiViewProps, void> {
+export class UiView extends React.Component<IUiViewProps, {}> {
 
   public render() {
     const className = classNames(this.props.className, 'ui-view')

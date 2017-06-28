@@ -40,7 +40,7 @@ export interface IResizableProps extends React.Props<Resizable> {
  * Note: this component is pure, consumers must subscribe to the
  * onResize and onReset event and update the width prop accordingly.
  */
-export class Resizable extends React.Component<IResizableProps, void> {
+export class Resizable extends React.Component<IResizableProps, {}> {
 
   public static defaultProps: IResizableProps = {
     width: 250,

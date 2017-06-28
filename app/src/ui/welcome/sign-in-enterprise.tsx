@@ -11,7 +11,7 @@ interface ISignInEnterpriseProps {
 }
 
 /** The Welcome flow step to login to an Enterprise instance. */
-export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, void> {
+export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, {}> {
 
   public render() {
 

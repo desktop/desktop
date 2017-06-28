@@ -135,7 +135,7 @@ interface IAppMenuBarButtonProps {
  * in order to render the menu item as well as a foldout containing the item's
  * submenu (if open).
  */
-export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, void> {
+export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, {}> {
 
   private innerDropDown: ToolbarDropdown | null = null
 
