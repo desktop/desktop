@@ -4,6 +4,9 @@ The following are our marketing releases as planned to date. They contain the br
 
 ## 1.0
 
+- Feature complete
+- Stable
+- Replaces existing Desktop apps
 - See the [1.0 milestone](https://github.com/desktop/desktop/milestone/7)
 
 ## 1.1
