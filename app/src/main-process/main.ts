@@ -276,6 +276,11 @@ app.on('ready', () => {
     reportError(error, extra)
   })
 
+  ipcMain.on('open-external', (event: Electron.IpcMessageEvent, { id, path }: { id: number, path: string }) => {
+    const result = shell.openExternal(path)
+    event.sender.send('open-external-result', { result })
+  })
+
   ipcMain.on('show-item-in-folder', (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
     shell.showItemInFolder(path)
   })
