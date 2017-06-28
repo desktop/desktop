@@ -22,13 +22,13 @@ resources to get familiar with how things work:
 
 Details about how the team is organizing and shipping GitHub Desktop:
 
+ - **[Roadmap](process/roadmap.md)** - the future as planned so far
  - **[Release Planning](process/release-planning.md)** - how we plan and execute
     releases
  - **[Issue Triage](process/issue-triage.md)** - how we address issues reported
     by users
  - **[Review Process](process/reviews.md)** - how we review contributions
  - **[Releasing Updates](process/releasing-updates.md)** - how we deploy things
- - **[Roadmap](process/roadmap.md)** - the future as planned so far
 
 ## Technical
 
