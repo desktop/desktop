@@ -53,7 +53,7 @@ interface IDialogHeaderProps {
  * custom content needs to be rendered in a dialog and in that scenario it
  * might be necessary to use this component directly.
  */
-export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
+export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
 
   private onCloseButtonClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (this.props.onDismissed) {

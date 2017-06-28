@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ipcRenderer, shell } from 'electron'
+import { ipcRenderer } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
@@ -37,6 +37,7 @@ import { SignIn } from './sign-in'
 import { InstallGit } from './install-git'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
+import { shell } from '../lib/dispatcher/app-shell'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
@@ -466,12 +467,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private removeRepository = (repository: Repository | CloningRepository | null) => {
-
     if (!repository) {
       return
     }
 
-    if (repository instanceof CloningRepository) {
+    if (repository instanceof CloningRepository || repository.missing) {
       this.props.dispatcher.removeRepositories([ repository ])
       return
     }

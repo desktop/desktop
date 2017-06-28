@@ -17,7 +17,7 @@ interface ICommitListProps {
 }
 
 /** A component which displays the list of commits. */
-export class CommitList extends React.Component<ICommitListProps, void> {
+export class CommitList extends React.Component<ICommitListProps, {}> {
   private list: List | null
 
   private renderCommit = (row: number) => {

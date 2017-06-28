@@ -10,6 +10,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Avatar } from '../lib/avatar'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -185,26 +186,25 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private renderExternalLink() {
-    let url: string | null = null
-    if (!this.props.isLocal) {
-      const gitHubRepository = this.props.repository.gitHubRepository
-      if (gitHubRepository) {
-        url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
-      }
-    }
+    if (this.props.isLocal) { return null }
 
-    if (!url) {
-      return null
-    }
+    const gitHubRepository = this.props.repository.gitHubRepository
+    if (!gitHubRepository) { return null }
+
+    const url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
+    const isDotCom = gitHubRepository.endpoint === getDotComAPIEndpoint()
+
+    const label = isDotCom ? 'View on GitHub' : 'View on GitHub Enterprise'
+    const title = isDotCom ? 'View this commit on GitHub' : 'View this commit on GitHub Enterprise'
 
     return (
       <li className='commit-summary-meta-item'
-        title='View this commit on github.com'>
+        title={title}>
         <span aria-hidden='true'>
           <Octicon symbol={OcticonSymbol.markGithub} />
         </span>
 
-        <LinkButton uri={url}>View on GitHub</LinkButton>
+        <LinkButton uri={url}>{label}</LinkButton>
       </li>
     )
   }

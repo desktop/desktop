@@ -16,7 +16,7 @@ interface IMissingRepositoryProps {
 }
 
 /** The view displayed when a repository is missing. */
-export class MissingRepository extends React.Component<IMissingRepositoryProps, void> {
+export class MissingRepository extends React.Component<IMissingRepositoryProps, {}> {
   public render() {
     const buttons = new Array<JSX.Element>()
     buttons.push(

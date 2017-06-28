@@ -12,7 +12,7 @@ interface IUpdateAvailableProps {
  * A component which tells the user an update is available and gives them the
  * option of moving into the future or being a luddite.
  */
-export class UpdateAvailable extends React.Component<IUpdateAvailableProps, void> {
+export class UpdateAvailable extends React.Component<IUpdateAvailableProps, {}> {
 
   public render() {
     return (

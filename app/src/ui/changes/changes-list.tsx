@@ -61,7 +61,7 @@ interface IChangesListProps {
   readonly onIgnore: (pattern: string) => void
 }
 
-export class ChangesList extends React.Component<IChangesListProps, void> {
+export class ChangesList extends React.Component<IChangesListProps, {}> {
   private onIncludeAllChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
     this.props.onSelectAll(include)

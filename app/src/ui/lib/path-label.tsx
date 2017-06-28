@@ -25,7 +25,7 @@ const ResizeArrowPadding = 10
  * For other scenarios, only the current path is rendered.
  *
  */
-export class PathLabel extends React.Component<IPathLabelProps, void> {
+export class PathLabel extends React.Component<IPathLabelProps, {}> {
   public render() {
 
     const props: React.HTMLProps<HTMLLabelElement> = {

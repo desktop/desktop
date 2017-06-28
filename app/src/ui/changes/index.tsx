@@ -17,7 +17,7 @@ interface IChangesProps {
   readonly dispatcher: Dispatcher
 }
 
-export class Changes extends React.Component<IChangesProps, void> {
+export class Changes extends React.Component<IChangesProps, {}> {
 
   private onDiffLineIncludeChanged = (diffSelection: DiffSelection) => {
     const file = this.props.file

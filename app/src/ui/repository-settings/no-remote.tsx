@@ -11,7 +11,7 @@ interface INoRemoteProps {
 }
 
 /** The component for when a repository has no remote. */
-export class NoRemote extends React.Component<INoRemoteProps, void> {
+export class NoRemote extends React.Component<INoRemoteProps, {}> {
   public render() {
     return (
       <DialogContent>

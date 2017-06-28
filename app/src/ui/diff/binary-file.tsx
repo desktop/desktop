@@ -12,7 +12,7 @@ interface IBinaryFileProps {
 }
 
 /** represents the default view for a file that we cannot render a diff for */
-export class BinaryFile extends React.Component<IBinaryFileProps, void> {
+export class BinaryFile extends React.Component<IBinaryFileProps, {}> {
 
   private handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const fullPath = Path.join(this.props.repository.path, this.props.path)

@@ -18,7 +18,7 @@ interface IBlankSlateProps {
  * The blank slate view. This is shown when the user hasn't added any
  * repositories to the app.
  */
-export class BlankSlateView extends React.Component<IBlankSlateProps, void> {
+export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
   public render() {
     const BlankSlateImage = `file:///${__dirname}/static/empty-no-repo.svg`
 

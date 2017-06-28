@@ -22,6 +22,11 @@ const Scopes = [
   'user',
 ]
 
+enum HttpStatusCode {
+  NotModified = 304,
+  NotFound = 404,
+}
+
 /** The note URL used for authorizations the app creates. */
 const NoteURL = 'https://desktop.github.com/'
 
@@ -185,9 +190,13 @@ export class API {
   public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
     try {
       const response = await this.request('GET', `repos/${owner}/${name}`)
-      return parsedResponse<IAPIRepository>(response)
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(`fetchRepository: '${owner}/${name}' returned a 404`)
+        return null
+      }
+      return await parsedResponse<IAPIRepository>(response)
     } catch (e) {
-      log.warn(`fetchRepository: not found '${owner}/${name}'`, e)
+      log.warn(`fetchRepository: an error occurred for '${owner}/${name}'`, e)
       return null
     }
   }
@@ -229,10 +238,15 @@ export class API {
   /** Fetch a commit from the repository. */
   public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
     try {
-      const response = await this.request('GET', `repos/${owner}/${name}/commits/${sha}`)
+      const path = `repos/${owner}/${name}/commits/${sha}`
+      const response = await this.request('GET', path)
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(`fetchCommit: '${path}' returned a 404`)
+        return null
+      }
       return parsedResponse<IAPICommit>(response)
     } catch (e) {
-      log.warn(`fetchCommit: not found '${owner}/${name}@${sha}'`, e)
+      log.warn(`fetchCommit: returned an error '${owner}/${name}@${sha}'`, e)
       return null
     }
   }
@@ -320,6 +334,11 @@ export class API {
 
     do {
       const response = await this.request('GET', nextPath)
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(`fetchAll: '${path}' returned a 404`)
+        return []
+      }
+
       const items = await parsedResponse<ReadonlyArray<T>>(response)
       if (items) {
         buf.push(...items)
@@ -367,7 +386,13 @@ export class API {
     }
 
     try {
-      const response = await this.request('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
+      const path = `repos/${owner}/${name}/mentionables/users`
+      const response = await this.request('GET', path, undefined, headers)
+      if (response.status === HttpStatusCode.NotModified) { return null }
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(`fetchAll: '${path}' returned a 404`)
+        return null
+      }
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(response)
       const responseEtag = response.headers.get('etag')
       return { users, etag: responseEtag || '' }

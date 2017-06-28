@@ -9,7 +9,7 @@ interface INewImageDiffProps {
 }
 
 /** A component to render when a new image has been added to the repository */
-export class NewImageDiff extends React.Component<INewImageDiffProps, void> {
+export class NewImageDiff extends React.Component<INewImageDiffProps, {}> {
 
   public render() {
     return <div className='panel image' id='diff'>

@@ -35,7 +35,7 @@ interface ICodeMirrorHostProps {
 /**
  * A component hosting a CodeMirror instance
  */
-export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> {
+export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
 
   private wrapper: HTMLDivElement | null
   private codeMirror: CodeMirror.Editor | null

@@ -11,7 +11,7 @@ interface ICloningRepositoryProps {
 }
 
 /** The component for displaying a cloning repository's progress. */
-export class CloningRepositoryView extends React.Component<ICloningRepositoryProps, void> {
+export class CloningRepositoryView extends React.Component<ICloningRepositoryProps, {}> {
   public render() {
 
     /* The progress element won't take null for an answer.

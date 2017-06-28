@@ -28,7 +28,7 @@ const enum Tab {
   History = 1,
 }
 
-export class RepositoryView extends React.Component<IRepositoryProps, void> {
+export class RepositoryView extends React.Component<IRepositoryProps, {}> {
 
   private renderTabs(): JSX.Element {
     const hasChanges = this.props.state.changesState.workingDirectory.files.length > 0

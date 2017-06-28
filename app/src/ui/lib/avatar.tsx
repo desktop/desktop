@@ -13,7 +13,7 @@ interface IAvatarProps {
 }
 
 /** A component for displaying a user avatar. */
-export class Avatar extends React.Component<IAvatarProps, void> {
+export class Avatar extends React.Component<IAvatarProps, {}> {
   private getTitle(): string {
     if (this.props.title) {
       return this.props.title
