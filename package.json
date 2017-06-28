@@ -29,7 +29,12 @@
     "precommit": "lint-staged",
     "push": "lint-staged"
   },
-  "lint-staged": { "*.{ts,tsx}": ["prettier --parser typescript --write --single-quote --trailing-comma es5 --tab-width 2 --no-semi --print-width 100", "git add"] },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --parser typescript --write --single-quote --trailing-comma es5 --tab-width 2 --no-semi --print-width 100",
+      "git add"
+    ]
+  },
   "author": {
     "name": "GitHub, Inc.",
     "email": "opensource+desktop@github.com",
@@ -104,6 +109,12 @@
     "@types/uuid": "^2.0.29",
     "@types/winston": "^2.2.0",
     "husky": "^0.14.1",
-    "prettier": "^1.5.0"
-  }
+    "prettier": "^1.5.0",
+    "tslint-config-prettier": "^1.1.0"
+  },
+  "extends": [
+    "tslint:latest",
+    "tslint-react",
+    "tslint-config-prettier"
+  ]
 }
