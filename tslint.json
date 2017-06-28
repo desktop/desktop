@@ -52,10 +52,6 @@
     ],
     "prefer-const": true,
     "promise-must-complete": true,
-    "quotemark": [
-      true,
-      "single"
-    ],
     "react-no-unbound-dispatcher-props": true,
     "react-proper-lifecycle-methods": true,
     "react-readonly-props-and-state": true,
