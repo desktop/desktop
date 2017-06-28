@@ -25,8 +25,10 @@
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
-    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod"
+    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
+    "precommit": "lint-staged"
   },
+  "lint-staged": { "*.{ts,tsx}": ["prettier --parser typescript --write", "git add"] },
   "author": {
     "name": "GitHub, Inc.",
     "email": "opensource+desktop@github.com",
@@ -100,6 +102,7 @@
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
     "@types/winston": "^2.2.0",
+    "husky": "^0.14.1",
     "prettier": "^1.5.0"
   }
 }
