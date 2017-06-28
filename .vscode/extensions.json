@@ -3,6 +3,7 @@
     "eg2.tslint",
     "msjsdiag.debugger-for-chrome",
     "samverschueren.final-newline",
-    "DmitryDorofeev.empty-indent"
+    "DmitryDorofeev.empty-indent",
+    "esbenp.prettier-vscode"
   ]
 }
