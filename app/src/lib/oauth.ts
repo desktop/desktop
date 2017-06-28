@@ -1,4 +1,4 @@
-import { shell } from 'electron'
+import { shell } from './dispatcher/app-shell'
 import { Account } from '../models/account'
 import { fatalError } from './fatal-error'
 import {

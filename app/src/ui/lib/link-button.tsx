@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { shell } from 'electron'
+import { shell } from '../../lib/dispatcher/app-shell'
 import * as classNames from 'classnames'
 
 interface ILinkButtonProps {
