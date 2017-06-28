@@ -37,19 +37,21 @@ work should proceed:
 
 e.g. GitHub Desktop should support worktrees as a first class feature.
 
-### Future Work
+### Future Proposals
 
-The Desktop team is currently focused on quality and feature parity with the
-existing Mac and Windows apps as part of the 1.0 milestone. Some enhancements
-proposed go far beyond our current roadmap and plans, and it's great to know
-that you're also thinking about the future!
+The Desktop team has a [roadmap](roadmap.md) defined for the next few releases,
+so that you can see what our future plans look like. Some enhancements suggested
+by the community will be for things that are interesting but are also well
+beyond the current plans of the team. 
 
-To keep our issue tracker focused on what we need to do in the short term, we
-will be identifying these ambitious tasks to re-evaluate after we ship 1.0 by
-applying the `future-work` label and closing the issue.
+We will apply the `future-proposals` label to these issues, so that they can be
+searched for when it comes time to plan for the future. However, to keep
+our issue tracker focused on tasks currently on the roadmap we will close these
+future proposals to avoid information overload.
 
-Don't worry, you can view [the list](https://github.com/desktop/desktop/issues?q=is%3Aissue+label%3Afuture-work)
-of these tasks, and continue to add your thoughts and feedback there.
+You can view [the list](https://github.com/desktop/desktop/issues?q=is%3Aissue+label%3Afuture-proposals)
+of these `future-proposal` tasks, and continue to add your thoughts and feedback
+there.
 
 ## Out-of-scope
 
