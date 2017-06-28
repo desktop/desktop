@@ -13,7 +13,7 @@ export const shell: IAppShell = {
   beep: electronShell.beep,
   openExternal: electronShell.openExternal,
   showItemInFolder: (path) => {
-    ipcRenderer.send('open-external', { path })
+    ipcRenderer.send('show-item-in-folder', { path })
   },
   openItem: electronShell.openItem,
 }

@@ -276,7 +276,7 @@ app.on('ready', () => {
     reportError(error, extra)
   })
 
-  ipcMain.on('open-external', (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
+  ipcMain.on('show-item-in-folder', (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
     shell.showItemInFolder(path)
   })
 
