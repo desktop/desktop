@@ -28,7 +28,7 @@
     "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
     "precommit": "lint-staged"
   },
-  "lint-staged": { "*.{ts,tsx}": ["prettier --parser typescript --write", "git add"] },
+  "lint-staged": { "*.{ts,tsx}": ["prettier --parser typescript --write --single-quote --trailing-comma --tab-width 2 --no-semi", "git add"] },
   "author": {
     "name": "GitHub, Inc.",
     "email": "opensource+desktop@github.com",
