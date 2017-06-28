@@ -1,13 +1,30 @@
 # Roadmap
 
-Currently the team are focused on the 1.0 release, which should represent the
-set of features which enable users to replace the previous Classic Mac and
-Windows apps with this new Electron app.
+The following are our marketing releases as planned to date. They contain the broad features we're considering. The further away a release is, the less defined it is. Releases are subject to change at any time.
 
-Along with that, we'll be working on feedback and issues reported from the
-public beta. But feel free to open issues and start discussions on things
-you'd like to see in the app.
+## 1.0
 
-Over time, we'll be using [Milestones](https://github.com/desktop/desktop/milestones)
-to define the scope for each release, so that people will have visibility into
-how work is progressing.
+- See the [1.0 milestone](https://github.com/desktop/desktop/milestone/7)
+
+## 1.1
+
+- Relationship to _X_
+  -
+- Conflict resolution lite
+- Pull request checkout
+- Pull request CI status
+- Auto-config upstreams on fork
+
+## 1.2
+
+- Full conflict resolution
+- Fork if needed
+- Protected branches and default branch protection
+- CI status notifications lite
+
+## 1.3
+
+- Keep environment up-to-date
+- Linting
+- Save face
+- Repository list info
