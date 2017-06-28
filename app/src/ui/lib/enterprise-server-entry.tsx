@@ -29,7 +29,7 @@ interface IEnterpriseServerEntryProps {
   readonly onSubmit: (url: string) => void
 
   /** An array of additional buttons to render after the "Continue" button. */
-  readonly additionalButtons?: ReadonlyArray<JSX.Element> | number | string | boolean | {} | null
+  readonly additionalButtons?: ReadonlyArray<JSX.Element>
 }
 
 interface IEnterpriseServerEntryState {

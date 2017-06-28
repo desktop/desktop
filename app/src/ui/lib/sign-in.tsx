@@ -41,21 +41,33 @@ export class SignIn extends React.Component<ISignInProps, {}> {
   }
 
   private renderEndpointEntryStep(state: IEndpointEntryState) {
+    const children = this.props.children as (ReadonlyArray<JSX.Element> | null)
+    if (!children || !children.length) {
+      console.error('unexpected child elements provided to EnterpriseServerEntry - someone should look into this!')
+      return null
+    }
+
     return <EnterpriseServerEntry
       loading={state.loading}
       error={state.error}
       onSubmit={this.onEndpointEntered}
-      additionalButtons={this.props.children}
+      additionalButtons={children}
     />
   }
 
   private renderAuthenticationStep(state: IAuthenticationState) {
+    const children = this.props.children as (ReadonlyArray<JSX.Element> | null)
+    if (!children || !children.length) {
+      console.error('unexpected child elements provided to AuthenticationForm - someone should look into this!')
+      return null
+    }
+
     return (
       <AuthenticationForm
         loading={state.loading}
         error={state.error}
         supportsBasicAuth={state.supportsBasicAuth}
-        additionalButtons={this.props.children}
+        additionalButtons={children}
         onBrowserSignInRequested={this.onBrowserSignInRequested}
         onSubmit={this.onCredentialsEntered}
         forgotPasswordUrl={state.forgotPasswordUrl}

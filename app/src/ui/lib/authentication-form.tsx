@@ -26,7 +26,7 @@ interface IAuthenticationFormProps {
   readonly onBrowserSignInRequested: () => void
 
   /** An array of additional buttons to render after the "Sign In" button. */
-  readonly additionalButtons?: ReadonlyArray<JSX.Element> | number | string | boolean | {} | null
+  readonly additionalButtons?: ReadonlyArray<JSX.Element>
 
   /**
    * An error which, if present, is presented to the
