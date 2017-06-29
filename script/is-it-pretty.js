@@ -25,9 +25,9 @@ glob(globPattern, (err, matches) => {
     const fileContents = fs.readFileSync(match, 'utf8');
     const isPretty = prettier.check(fileContents, prettierOptions);
 
-      if (!isPretty) {
-        uglyFiles.push(match);
-      }
+    if (!isPretty) {
+      uglyFiles.push(match);
+    }
   }
 
   if (uglyFiles.length === 0) {
