@@ -159,7 +159,7 @@ pull requests.
 | --- | --- | --- |
 | `accepting-prs` | [search](https://github.com/desktop/desktop/labels/accepting-prs)  | Issues marked as ideal for external contributors. |
 | `tech-debt` | [search](https://github.com/desktop/desktop/labels/tech-debt) | Issues related to code or architecture decisions. |
-| `needs-design-input` | [search](https://github.com/desktop/desktop/labels/needs-design-input)  | Issues that require some design input from the maintainers as part of completing the work. |
+| `needs-design-input` | [search](https://github.com/desktop/desktop/labels/needs-design-input)  | Issues that require design input from the core team before the work can be started. |
 
 #### Workflow
 
