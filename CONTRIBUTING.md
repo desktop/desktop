@@ -157,7 +157,7 @@ pull requests.
 
 | Label name | :mag_right: | Description |
 | --- | --- | --- |
-| `Accepting PRs` | [search](https://github.com/desktop/desktop/labels/accepting-prs)  | Issues marked as ideal for external contributors. |
+| `accepting-prs` | [search](https://github.com/desktop/desktop/labels/accepting-prs)  | Issues marked as ideal for external contributors. |
 | `tech-debt` | [search](https://github.com/desktop/desktop/labels/tech-debt) | Issues related to code or architecture decisions. |
 | `needs-design-input` | [search](https://github.com/desktop/desktop/labels/needs-design-input)  | Issues that require some design input from the maintainers as part of completing the work. |
 
