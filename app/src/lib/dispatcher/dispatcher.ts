@@ -918,7 +918,11 @@ export class Dispatcher {
     }
   }
 
-  /** Install the CLI tool. */
+  /**
+   * Install the CLI tool.
+   *
+   * This is used only on macOS.
+   */
   public async installCLI() {
     try {
       await installCLI()
