@@ -23,7 +23,7 @@ export class Remote extends React.Component<IRemoteProps, {}> {
         <TextBox
           placeholder="Remote URL"
           value={remote.url}
-          onValueChange={this.props.onRemoteUrlChanged}
+          onValueChanged={this.props.onRemoteUrlChanged}
         />
       </DialogContent>
     )
