@@ -3,6 +3,11 @@ import * as Path from 'path'
 import * as Fs from 'fs-extra'
 import * as Os from 'os'
 
+const appFolder = Path.resolve(process.execPath, '..')
+const rootAppDir = Path.resolve(appFolder, '..')
+const updateDotExe = Path.resolve(Path.join(rootAppDir, 'Update.exe'))
+const exeName = Path.basename(process.execPath)
+
 // A lot of this code was cargo-culted from our Atom comrades:
 // https://github.com/atom/atom/blob/7c9f39e3f1d05ee423e0093e6b83f042ce11c90a/src/main-process/squirrel-update.coffee.
 
@@ -93,19 +98,14 @@ async function writeCLITrampoline(): Promise<string> {
 }
 
 /** Spawn the Squirrel.Windows `Update.exe` with a command. */
-async function spawnSquirrelUpdate(command: string): Promise<void> {
-  const appFolder = Path.resolve(process.execPath, '..')
-  const rootAppDir = Path.resolve(appFolder, '..')
-  const updateDotExe = Path.resolve(Path.join(rootAppDir, 'Update.exe'))
-  const exeName = Path.basename(process.execPath)
-
-  await spawn(updateDotExe, [ command, exeName ])
+async function spawnSquirrelUpdate(commands: ReadonlyArray<string>): Promise<void> {
+  await spawn(updateDotExe, commands)
 }
 
 type ShortcutLocations = ReadonlyArray<'StartMenu' | 'Desktop'>
 
 function createShortcut(locations: ShortcutLocations): Promise<void> {
-  return spawnSquirrelUpdate('--createShortcut')
+  return spawnSquirrelUpdate([ '--createShortcut', exeName, '-l', locations.join(',') ])
 }
 
 async function handleUninstall(): Promise<void> {
@@ -118,7 +118,7 @@ async function handleUninstall(): Promise<void> {
 }
 
 function removeShortcut(): Promise<void> {
-  return spawnSquirrelUpdate('--removeShortcut')
+  return spawnSquirrelUpdate([ '--removeShortcut', exeName ])
 }
 
 function updateShortcut(): Promise<void> {
