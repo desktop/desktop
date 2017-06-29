@@ -48,7 +48,8 @@ export class Repository implements IRepository {
   ) {
     this.path = path
     this.gitHubRepository = gitHubRepository
-    this.name = (gitHubRepository && gitHubRepository.name) || Path.basename(path)
+    this.name =
+      (gitHubRepository && gitHubRepository.name) || Path.basename(path)
     this.id = id
     this.missing = missing
   }

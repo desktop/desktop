@@ -21,7 +21,9 @@ export class IssuesStore {
    * repository. This value is used to request delta updates from the API
    * using the 'since' parameter.
    */
-  private async getLatestUpdatedAt(repository: GitHubRepository): Promise<Date | null> {
+  private async getLatestUpdatedAt(
+    repository: GitHubRepository
+  ): Promise<Date | null> {
     const gitHubRepositoryID = repository.dbID
     if (!gitHubRepositoryID) {
       return fatalError(
@@ -86,18 +88,23 @@ export class IssuesStore {
     }
 
     const issuesToDelete = issues.filter(i => i.state === 'closed')
-    const issuesToUpsert = issues.filter(i => i.state === 'open').map<IIssue>(i => {
-      return {
-        gitHubRepositoryID,
-        number: i.number,
-        title: i.title,
-        updated_at: i.updated_at,
-      }
-    })
+    const issuesToUpsert = issues
+      .filter(i => i.state === 'open')
+      .map<IIssue>(i => {
+        return {
+          gitHubRepositoryID,
+          number: i.number,
+          title: i.title,
+          updated_at: i.updated_at,
+        }
+      })
 
     const db = this.db
 
-    function findIssueInRepositoryByNumber(gitHubRepositoryID: number, issueNumber: number) {
+    function findIssueInRepositoryByNumber(
+      gitHubRepositoryID: number,
+      issueNumber: number
+    ) {
       return db.issues
         .where('[gitHubRepositoryID+number]')
         .equals([gitHubRepositoryID, issueNumber])
@@ -107,14 +114,20 @@ export class IssuesStore {
 
     await this.db.transaction('rw', this.db.issues, function*() {
       for (const issue of issuesToDelete) {
-        const existing = yield findIssueInRepositoryByNumber(gitHubRepositoryID, issue.number)
+        const existing = yield findIssueInRepositoryByNumber(
+          gitHubRepositoryID,
+          issue.number
+        )
         if (existing) {
           yield db.issues.delete(existing.id)
         }
       }
 
       for (const issue of issuesToUpsert) {
-        const existing = yield findIssueInRepositoryByNumber(gitHubRepositoryID, issue.number)
+        const existing = yield findIssueInRepositoryByNumber(
+          gitHubRepositoryID,
+          issue.number
+        )
         if (existing) {
           yield db.issues.update(existing.id, issue)
         } else {
@@ -131,7 +144,9 @@ export class IssuesStore {
   ): Promise<ReadonlyArray<IIssue>> {
     const gitHubRepositoryID = repository.dbID
     if (!gitHubRepositoryID) {
-      fatalError("Cannot get issues for a repository that hasn't been inserted into the database!")
+      fatalError(
+        "Cannot get issues for a repository that hasn't been inserted into the database!"
+      )
       return []
     }
 

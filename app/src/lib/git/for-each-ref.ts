@@ -61,7 +61,9 @@ export async function getBranches(
 
     const tip = new Commit(sha, summary, body, author, parentSHAs)
 
-    const type = ref.startsWith('refs/head') ? BranchType.Local : BranchType.Remote
+    const type = ref.startsWith('refs/head')
+      ? BranchType.Local
+      : BranchType.Remote
 
     return new Branch(name, upstream.length > 0 ? upstream : null, tip, type)
   })
@@ -70,7 +72,9 @@ export async function getBranches(
 }
 
 /** Get the name of the current branch. */
-export async function getCurrentBranch(repository: Repository): Promise<Branch | null> {
+export async function getCurrentBranch(
+  repository: Repository
+): Promise<Branch | null> {
   const revParseResult = await git(
     ['rev-parse', '--abbrev-ref', 'HEAD'],
     repository.path,

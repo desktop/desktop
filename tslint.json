@@ -71,7 +71,7 @@
       "never"
     ],
     "trailing-comma": [
-      true,
+      false,
       {
         "multiline": "always",
         "singleline": "never"

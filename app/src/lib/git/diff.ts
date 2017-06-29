@@ -4,7 +4,11 @@ import * as Fs from 'fs'
 import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
-import { WorkingDirectoryFileChange, FileChange, AppFileStatus } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  FileChange,
+  AppFileStatus,
+} from '../../models/status'
 import {
   DiffType,
   IRawDiff,
@@ -59,7 +63,11 @@ export async function getCommitDiff(
     file.path,
   ]
 
-  const { output } = await spawnAndComplete(args, repository.path, 'getCommitDiff')
+  const { output } = await spawnAndComplete(
+    args,
+    repository.path,
+    'getCommitDiff'
+  )
   if (!isValidBuffer(output)) {
     return { kind: DiffType.TooLarge, length: output.length }
   }
@@ -114,7 +122,15 @@ export async function getWorkingDirectoryDiff(
     // already staged to the renamed file which differs from our other diffs.
     // The closest I got to that was running hash-object and then using
     // git diff <blob> <blob> but that seems a bit excessive.
-    args = ['diff', '--no-ext-diff', '--patch-with-raw', '-z', '--no-color', '--', file.path]
+    args = [
+      'diff',
+      '--no-ext-diff',
+      '--patch-with-raw',
+      '-z',
+      '--no-color',
+      '--',
+      file.path,
+    ]
   } else {
     args = [
       'diff',
@@ -172,7 +188,11 @@ async function getImageDiff(
     if (file.status !== AppFileStatus.New) {
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
-      previous = await getBlobImage(repository, file.oldPath || file.path, 'HEAD')
+      previous = await getBlobImage(
+        repository,
+        file.oldPath || file.path,
+        'HEAD'
+      )
     }
   } else {
     // File status can't be conflicted for a file in a commit
@@ -186,7 +206,11 @@ async function getImageDiff(
       //
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
-      previous = await getBlobImage(repository, file.oldPath || file.path, `${commitish}^`)
+      previous = await getBlobImage(
+        repository,
+        file.oldPath || file.path,
+        `${commitish}^`
+      )
     }
   }
 

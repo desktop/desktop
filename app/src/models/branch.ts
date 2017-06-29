@@ -22,7 +22,12 @@ export class Branch {
   /** The commit associated with this branch */
   public readonly tip: Commit
 
-  public constructor(name: string, upstream: string | null, tip: Commit, type: BranchType) {
+  public constructor(
+    name: string,
+    upstream: string | null,
+    tip: Commit,
+    type: BranchType
+  ) {
     this.name = name
     this.upstream = upstream
     this.tip = tip

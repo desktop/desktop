@@ -1,7 +1,10 @@
 import { Dispatcher, AppStore, ErrorHandler } from './index'
 import { SelectionType } from '../app-state'
 import { GitError } from '../git/core'
-import { GitError as GitErrorType, RepositoryDoesNotExistErrorCode } from 'dugite'
+import {
+  GitError as GitErrorType,
+  RepositoryDoesNotExistErrorCode,
+} from 'dugite'
 import { ErrorWithMetadata } from '../error-with-metadata'
 
 /** An error which also has a code property. */
@@ -44,7 +47,9 @@ export async function defaultErrorHandler(
 }
 
 /** Create a new missing repository error handler with the given AppStore. */
-export function createMissingRepositoryHandler(appStore: AppStore): ErrorHandler {
+export function createMissingRepositoryHandler(
+  appStore: AppStore
+): ErrorHandler {
   return async (error: Error, dispatcher: Dispatcher) => {
     const appState = appStore.getState()
     const selectedState = appState.selectedState
@@ -67,7 +72,8 @@ export function createMissingRepositoryHandler(appStore: AppStore): ErrorHandler
     const errorWithCode = asErrorWithCode(error)
 
     const missing =
-      (error instanceof GitError && error.result.gitError === GitErrorType.NotAGitRepository) ||
+      (error instanceof GitError &&
+        error.result.gitError === GitErrorType.NotAGitRepository) ||
       (errorWithCode && errorWithCode.code === RepositoryDoesNotExistErrorCode)
 
     if (missing) {
@@ -80,7 +86,10 @@ export function createMissingRepositoryHandler(appStore: AppStore): ErrorHandler
 }
 
 /** Trap and handle uncaught errors to ensure the app exits cleanly */
-export async function unhandledExceptionHandler(error: Error, dispatcher: Dispatcher) {
+export async function unhandledExceptionHandler(
+  error: Error,
+  dispatcher: Dispatcher
+) {
   const e = asErrorWithMetadata(error)
   if (!e) {
     return error

@@ -11,7 +11,16 @@ export async function getRecentBranches(
   // of control when there's ginormous reflogs around (as in e.g. github/github).
   const regex = new RegExp(/.*? checkout: moving from .*? to (.*?)$/i)
   const result = await git(
-    ['log', '-g', '--no-abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500', '--'],
+    [
+      'log',
+      '-g',
+      '--no-abbrev-commit',
+      '--pretty=oneline',
+      'HEAD',
+      '-n',
+      '2500',
+      '--',
+    ],
     repository.path,
     'getRecentBranches',
     { successExitCodes: new Set([0, 128]) }

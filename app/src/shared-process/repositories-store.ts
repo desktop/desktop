@@ -1,4 +1,8 @@
-import { Database, IDatabaseGitHubRepository, IDatabaseRepository } from './database'
+import {
+  Database,
+  IDatabaseGitHubRepository,
+  IDatabaseRepository,
+} from './database'
 import { Owner } from '../models/owner'
 import { GitHubRepository } from '../models/github-repository'
 import { Repository } from '../models/repository'
@@ -30,7 +34,9 @@ export class RepositoriesStore {
       this.db.gitHubRepositories,
       this.db.owners,
       function*() {
-        const repos: ReadonlyArray<IDatabaseRepository> = yield db.repositories.toArray()
+        const repos: ReadonlyArray<
+          IDatabaseRepository
+        > = yield db.repositories.toArray()
         for (const repo of repos) {
           let inflatedRepo: Repository | null = null
           if (repo.gitHubRepositoryID) {
@@ -48,9 +54,19 @@ export class RepositoriesStore {
               gitHubRepository.defaultBranch,
               gitHubRepository.cloneURL
             )
-            inflatedRepo = new Repository(repo.path, repo.id!, gitHubRepo, repo.missing)
+            inflatedRepo = new Repository(
+              repo.path,
+              repo.id!,
+              gitHubRepo,
+              repo.missing
+            )
           } else {
-            inflatedRepo = new Repository(repo.path, repo.id!, null, repo.missing)
+            inflatedRepo = new Repository(
+              repo.path,
+              repo.id!,
+              null,
+              repo.missing
+            )
           }
           inflatedRepos.push(inflatedRepo)
         }
@@ -73,7 +89,9 @@ export class RepositoriesStore {
       this.db.gitHubRepositories,
       this.db.owners,
       function*() {
-        const repos: Array<IDatabaseRepository> = yield db.repositories.toArray()
+        const repos: Array<
+          IDatabaseRepository
+        > = yield db.repositories.toArray()
         const existing = repos.find(r => r.path === path)
         if (existing === undefined) {
           return
@@ -150,7 +168,10 @@ export class RepositoriesStore {
   }
 
   /** Update the repository's path. */
-  public async updateRepositoryPath(repository: Repository, path: string): Promise<Repository> {
+  public async updateRepositoryPath(
+    repository: Repository,
+    path: string
+  ): Promise<Repository> {
     const repoID = repository.id
     if (!repoID) {
       return fatalError(
@@ -172,7 +193,9 @@ export class RepositoriesStore {
   }
 
   /** Update or add the repository's GitHub repository. */
-  public async updateGitHubRepository(repository: Repository): Promise<Repository> {
+  public async updateGitHubRepository(
+    repository: Repository
+  ): Promise<Repository> {
     const repoID = repository.id
     if (!repoID) {
       return fatalError(
@@ -202,7 +225,9 @@ export class RepositoriesStore {
         if (localRepo.gitHubRepositoryID) {
           gitHubRepositoryID = localRepo.gitHubRepositoryID
 
-          existingGitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
+          existingGitHubRepo = yield db.gitHubRepositories.get(
+            localRepo.gitHubRepositoryID
+          )
           if (!existingGitHubRepo) {
             return fatalError(`Couldn't look up an existing GitHub repository.`)
           }

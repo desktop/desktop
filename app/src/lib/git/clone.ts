@@ -1,4 +1,9 @@
-import { git, envForAuthentication, IGitExecutionOptions, gitNetworkArguments } from './core'
+import {
+  git,
+  envForAuthentication,
+  IGitExecutionOptions,
+  gitNetworkArguments,
+} from './core'
 import { Account } from '../../models/account'
 import { ICloneProgress } from '../app-state'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
@@ -49,12 +54,17 @@ export async function clone(
     const title = `Cloning into ${path}`
     const kind = 'clone'
 
-    opts = executionOptionsWithProgress(opts, new CloneProgressParser(), progress => {
-      const description = progress.kind === 'progress' ? progress.details.text : progress.text
-      const value = progress.percent
+    opts = executionOptionsWithProgress(
+      opts,
+      new CloneProgressParser(),
+      progress => {
+        const description =
+          progress.kind === 'progress' ? progress.details.text : progress.text
+        const value = progress.percent
 
-      progressCallback({ kind, title, description, value })
-    })
+        progressCallback({ kind, title, description, value })
+      }
+    )
 
     // Initial progress
     progressCallback({ kind, title, value: 0 })

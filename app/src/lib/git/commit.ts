@@ -17,7 +17,9 @@ export async function createCommit(
   await stageFiles(repository, files)
 
   try {
-    await git(['commit', '-F', '-'], repository.path, 'createCommit', { stdin: message })
+    await git(['commit', '-F', '-'], repository.path, 'createCommit', {
+      stdin: message,
+    })
     return true
   } catch (e) {
     // Commit failures could come from a pre-commit hook rejection. So display
@@ -30,7 +32,9 @@ export async function createCommit(
         standardError = `, with output: '${output}'`
       }
       const exitCode = e.result.exitCode
-      const error = new Error(`Commit failed - exit code ${exitCode} received${standardError}`)
+      const error = new Error(
+        `Commit failed - exit code ${exitCode} received${standardError}`
+      )
       error.name = 'commit-failed'
       throw error
     } else {

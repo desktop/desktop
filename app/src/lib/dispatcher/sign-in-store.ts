@@ -280,12 +280,17 @@ export class SignInStore {
    * the authentication state will be updated with that error so that
    * the responsible component can present it to the user.
    */
-  public async authenticateWithBasicAuth(username: string, password: string): Promise<void> {
+  public async authenticateWithBasicAuth(
+    username: string,
+    password: string
+  ): Promise<void> {
     const currentState = this.state
 
     if (!currentState || currentState.kind !== SignInStep.Authentication) {
       const stepText = currentState ? currentState.kind : 'null'
-      return fatalError(`Sign in step '${stepText}' not compatible with authentication`)
+      return fatalError(
+        `Sign in step '${stepText}' not compatible with authentication`
+      )
     }
 
     const endpoint = currentState.endpoint
@@ -316,7 +321,10 @@ export class SignInStore {
 
       this.emitAuthenticate(user)
       this.setState({ kind: SignInStep.Success })
-    } else if (response.kind === AuthorizationResponseKind.TwoFactorAuthenticationRequired) {
+    } else if (
+      response.kind ===
+      AuthorizationResponseKind.TwoFactorAuthenticationRequired
+    ) {
       this.setState({
         kind: SignInStep.TwoFactorAuthentication,
         endpoint,
@@ -341,17 +349,23 @@ export class SignInStore {
           loading: false,
           error: new Error('Incorrect username or password.'),
         })
-      } else if (response.kind === AuthorizationResponseKind.UserRequiresVerification) {
+      } else if (
+        response.kind === AuthorizationResponseKind.UserRequiresVerification
+      ) {
         this.setState({
           ...currentState,
           loading: false,
           error: new Error(getUnverifiedUserErrorMessage(username)),
         })
-      } else if (response.kind === AuthorizationResponseKind.PersonalAccessTokenBlocked) {
+      } else if (
+        response.kind === AuthorizationResponseKind.PersonalAccessTokenBlocked
+      ) {
         this.setState({
           ...currentState,
           loading: false,
-          error: new Error('A personal access token cannot be used to login to GitHub Desktop.'),
+          error: new Error(
+            'A personal access token cannot be used to login to GitHub Desktop.'
+          ),
         })
       } else if (response.kind === AuthorizationResponseKind.EnterpriseTooOld) {
         this.setState({
@@ -381,7 +395,9 @@ export class SignInStore {
 
     if (!currentState || currentState.kind !== SignInStep.Authentication) {
       const stepText = currentState ? currentState.kind : 'null'
-      return fatalError(`Sign in step '${stepText}' not compatible with browser authentication`)
+      return fatalError(
+        `Sign in step '${stepText}' not compatible with browser authentication`
+      )
     }
 
     this.setState({ ...currentState, loading: true })
@@ -409,7 +425,11 @@ export class SignInStore {
    * to the enterprise instance.
    */
   public beginEnterpriseSignIn() {
-    this.setState({ kind: SignInStep.EndpointEntry, error: null, loading: false })
+    this.setState({
+      kind: SignInStep.EndpointEntry,
+      error: null,
+      loading: false,
+    })
   }
 
   /**
@@ -430,7 +450,9 @@ export class SignInStore {
 
     if (!currentState || currentState.kind !== SignInStep.EndpointEntry) {
       const stepText = currentState ? currentState.kind : 'null'
-      return fatalError(`Sign in step '${stepText}' not compatible with endpoint entry`)
+      return fatalError(
+        `Sign in step '${stepText}' not compatible with endpoint entry`
+      )
     }
 
     this.setState({ ...currentState, loading: true })
@@ -499,9 +521,14 @@ export class SignInStore {
   public async setTwoFactorOTP(otp: string) {
     const currentState = this.state
 
-    if (!currentState || currentState.kind !== SignInStep.TwoFactorAuthentication) {
+    if (
+      !currentState ||
+      currentState.kind !== SignInStep.TwoFactorAuthentication
+    ) {
       const stepText = currentState ? currentState.kind : 'null'
-      return fatalError(`Sign in step '${stepText}' not compatible with two factor authentication`)
+      return fatalError(
+        `Sign in step '${stepText}' not compatible with two factor authentication`
+      )
     }
 
     this.setState({ ...currentState, loading: true })
@@ -529,7 +556,10 @@ export class SignInStore {
       const token = response.token
       const user = await fetchUser(currentState.endpoint, token)
 
-      if (!this.state || this.state.kind !== SignInStep.TwoFactorAuthentication) {
+      if (
+        !this.state ||
+        this.state.kind !== SignInStep.TwoFactorAuthentication
+      ) {
         // Looks like the sign in flow has been aborted
         return
       }
@@ -549,17 +579,21 @@ export class SignInStore {
         case AuthorizationResponseKind.Error:
           this.emitError(
             new Error(
-              `The server responded with an error (${response.response.status})\n\n${response
-                .response.statusText}`
+              `The server responded with an error (${response.response
+                .status})\n\n${response.response.statusText}`
             )
           )
           break
         case AuthorizationResponseKind.UserRequiresVerification:
-          this.emitError(new Error(getUnverifiedUserErrorMessage(currentState.username)))
+          this.emitError(
+            new Error(getUnverifiedUserErrorMessage(currentState.username))
+          )
           break
         case AuthorizationResponseKind.PersonalAccessTokenBlocked:
           this.emitError(
-            new Error('A personal access token cannot be used to login to GitHub Desktop.')
+            new Error(
+              'A personal access token cannot be used to login to GitHub Desktop.'
+            )
           )
           break
         case AuthorizationResponseKind.EnterpriseTooOld:

@@ -142,8 +142,13 @@ export async function parsedResponse<T>(response: Response): Promise<T> {
  *
  * If the url already has a query the new parameters will be appended.
  */
-export function urlWithQueryString(url: string, params: { [key: string]: string }): string {
-  const qs = Object.keys(params).map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
+export function urlWithQueryString(
+  url: string,
+  params: { [key: string]: string }
+): string {
+  const qs = Object.keys(params)
+    .map(key => `${key}=${encodeURIComponent(params[key])}`)
+    .join('&')
 
   if (!qs.length) {
     return url

@@ -1,4 +1,9 @@
-import { git, envForAuthentication, IGitExecutionOptions, gitNetworkArguments } from './core'
+import {
+  git,
+  envForAuthentication,
+  IGitExecutionOptions,
+  gitNetworkArguments,
+} from './core'
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
@@ -34,22 +39,27 @@ export async function fetch(
     const title = `Fetching ${remote}`
     const kind = 'fetch'
 
-    opts = executionOptionsWithProgress(opts, new FetchProgressParser(), progress => {
-      // In addition to progress output from the remote end and from
-      // git itself, the stderr output from pull contains information
-      // about ref updates. We don't need to bring those into the progress
-      // stream so we'll just punt on anything we don't know about for now.
-      if (progress.kind === 'context') {
-        if (!progress.text.startsWith('remote: Counting objects')) {
-          return
+    opts = executionOptionsWithProgress(
+      opts,
+      new FetchProgressParser(),
+      progress => {
+        // In addition to progress output from the remote end and from
+        // git itself, the stderr output from pull contains information
+        // about ref updates. We don't need to bring those into the progress
+        // stream so we'll just punt on anything we don't know about for now.
+        if (progress.kind === 'context') {
+          if (!progress.text.startsWith('remote: Counting objects')) {
+            return
+          }
         }
+
+        const description =
+          progress.kind === 'progress' ? progress.details.text : progress.text
+        const value = progress.percent
+
+        progressCallback({ kind, title, description, value, remote })
       }
-
-      const description = progress.kind === 'progress' ? progress.details.text : progress.text
-      const value = progress.percent
-
-      progressCallback({ kind, title, description, value, remote })
-    })
+    )
 
     // Initial progress
     progressCallback({ kind, title, value: 0, remote })

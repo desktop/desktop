@@ -3,7 +3,11 @@ import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
 import { API, getAccountForEndpoint, getDotComAPIEndpoint } from '../api'
-import { GitHubUserDatabase, IGitHubUser, IMentionableAssociation } from './github-user-database'
+import {
+  GitHubUserDatabase,
+  IGitHubUser,
+  IMentionableAssociation,
+} from './github-user-database'
 import { fatalError } from '../fatal-error'
 
 /**
@@ -42,12 +46,16 @@ export class GitHubUserStore {
     return this.emitter.on('did-update', fn)
   }
 
-  private getUsersForEndpoint(endpoint: string): Map<string, IGitHubUser> | null {
+  private getUsersForEndpoint(
+    endpoint: string
+  ): Map<string, IGitHubUser> | null {
     return this.usersByEndpoint.get(endpoint) || null
   }
 
   /** Get the map of users for the repository. */
-  public getUsersForRepository(repository: Repository): Map<string, IGitHubUser> | null {
+  public getUsersForRepository(
+    repository: Repository
+  ): Map<string, IGitHubUser> | null {
     const endpoint = repository.gitHubRepository
       ? repository.gitHubRepository.endpoint
       : getDotComAPIEndpoint()
@@ -55,16 +63,25 @@ export class GitHubUserStore {
   }
 
   /** Update the mentionable users for the repository. */
-  public async updateMentionables(repository: GitHubRepository, account: Account): Promise<void> {
+  public async updateMentionables(
+    repository: GitHubRepository,
+    account: Account
+  ): Promise<void> {
     const api = API.fromAccount(account)
 
     const repositoryID = repository.dbID
     if (!repositoryID) {
-      return fatalError(`Cannot update mentionables for a repository that hasn't been cached yet.`)
+      return fatalError(
+        `Cannot update mentionables for a repository that hasn't been cached yet.`
+      )
     }
     const etag = this.mentionablesEtags.get(repositoryID) || null
 
-    const response = await api.fetchMentionables(repository.owner.login, repository.name, etag)
+    const response = await api.fetchMentionables(
+      repository.owner.login,
+      repository.name,
+      etag
+    )
     if (!response) {
       return
     }
@@ -149,7 +166,12 @@ export class GitHubUserStore {
     // TODO: Invalidate the stored user in the db after ... some reasonable time
     // period.
     if (!gitUser) {
-      gitUser = await this.findUserWithAPI(account, gitHubRepository, sha, email)
+      gitUser = await this.findUserWithAPI(
+        account,
+        gitHubRepository,
+        sha,
+        email
+      )
     }
 
     this.requestsInFlight.delete(key)
@@ -170,7 +192,11 @@ export class GitHubUserStore {
   ): Promise<IGitHubUser | null> {
     const api = API.fromAccount(account)
     if (sha) {
-      const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
+      const apiCommit = await api.fetchCommit(
+        repository.owner.login,
+        repository.name,
+        sha
+      )
       if (apiCommit && apiCommit.author) {
         return {
           email,
@@ -240,7 +266,10 @@ export class GitHubUserStore {
    * Note that both the user and the repository *must* have already been cached
    * before calling this method. Otherwise it will throw.
    */
-  private async storeMentionable(user: IGitHubUser, repository: GitHubRepository) {
+  private async storeMentionable(
+    user: IGitHubUser,
+    repository: GitHubRepository
+  ) {
     const userID = user.id
     if (!userID) {
       return fatalError(
@@ -256,18 +285,22 @@ export class GitHubUserStore {
     }
 
     const db = this.database
-    await this.database.transaction('rw', this.database.mentionables, function*() {
-      const existing = yield db.mentionables
-        .where('[userID+repositoryID]')
-        .equals([userID, repositoryID])
-        .limit(1)
-        .first()
-      if (existing) {
-        return
-      }
+    await this.database.transaction(
+      'rw',
+      this.database.mentionables,
+      function*() {
+        const existing = yield db.mentionables
+          .where('[userID+repositoryID]')
+          .equals([userID, repositoryID])
+          .limit(1)
+          .first()
+        if (existing) {
+          return
+        }
 
-      yield db.mentionables.put({ userID, repositoryID })
-    })
+        yield db.mentionables.put({ userID, repositoryID })
+      }
+    )
   }
 
   /**
@@ -298,18 +331,24 @@ export class GitHubUserStore {
     }
 
     const db = this.database
-    await this.database.transaction('rw', this.database.mentionables, function*() {
-      const associations: ReadonlyArray<IMentionableAssociation> = yield db.mentionables
-        .where('repositoryID')
-        .equals(repositoryID)
-        .toArray()
+    await this.database.transaction(
+      'rw',
+      this.database.mentionables,
+      function*() {
+        const associations: ReadonlyArray<
+          IMentionableAssociation
+        > = yield db.mentionables
+          .where('repositoryID')
+          .equals(repositoryID)
+          .toArray()
 
-      for (const association of associations) {
-        if (!userIDs.has(association.userID)) {
-          yield db.mentionables.delete(association.id!)
+        for (const association of associations) {
+          if (!userIDs.has(association.userID)) {
+            yield db.mentionables.delete(association.id!)
+          }
         }
       }
-    })
+    )
   }
 
   /** Get the mentionable users in the repository. */
@@ -318,7 +357,9 @@ export class GitHubUserStore {
   ): Promise<ReadonlyArray<IGitHubUser>> {
     const repositoryID = repository.dbID
     if (!repositoryID) {
-      return fatalError(`Cannot get mentionables for a repository that hasn't been cached yet.`)
+      return fatalError(
+        `Cannot get mentionables for a repository that hasn't been cached yet.`
+      )
     }
 
     const users = new Array<IGitHubUser>()
@@ -328,7 +369,9 @@ export class GitHubUserStore {
       this.database.mentionables,
       this.database.users,
       function*() {
-        const associations: ReadonlyArray<IMentionableAssociation> = yield db.mentionables
+        const associations: ReadonlyArray<
+          IMentionableAssociation
+        > = yield db.mentionables
           .where('repositoryID')
           .equals(repositoryID)
           .toArray()

@@ -29,7 +29,11 @@ export async function renameBranch(
   branch: Branch,
   newName: string
 ): Promise<void> {
-  await git(['branch', '-m', branch.nameWithoutRemote, newName], repository.path, 'renameBranch')
+  await git(
+    ['branch', '-m', branch.nameWithoutRemote, newName],
+    repository.path,
+    'renameBranch'
+  )
 }
 
 /**
@@ -62,7 +66,12 @@ export async function deleteBranch(
 
   // Delete local branch only if remote one is already deleted
   if (branchExistsOnRemote) {
-    const args = [...gitNetworkArguments, 'push', remote, `:${branch.nameWithoutRemote}`]
+    const args = [
+      ...gitNetworkArguments,
+      'push',
+      remote,
+      `:${branch.nameWithoutRemote}`,
+    ]
 
     const opts = { env: envForAuthentication(account) }
     await git(args, repository.path, 'deleteBranch', opts)
@@ -77,8 +86,19 @@ async function checkIfBranchExistsOnRemote(
   account: Account | null,
   remote: string
 ): Promise<boolean> {
-  const args = [...gitNetworkArguments, 'ls-remote', '--heads', remote, branch.nameWithoutRemote]
+  const args = [
+    ...gitNetworkArguments,
+    'ls-remote',
+    '--heads',
+    remote,
+    branch.nameWithoutRemote,
+  ]
   const opts = { env: envForAuthentication(account) }
-  const result = await git(args, repository.path, 'checkRemoteBranchExistence', opts)
+  const result = await git(
+    args,
+    repository.path,
+    'checkRemoteBranchExistence',
+    opts
+  )
   return result.stdout.length > 0
 }

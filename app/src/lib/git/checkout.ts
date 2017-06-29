@@ -33,20 +33,25 @@ export async function checkoutBranch(
     const kind = 'checkout'
     const targetBranch = name
 
-    processCallback = progressProcessCallback(new CheckoutProgressParser(), progress => {
-      if (progress.kind === 'progress') {
-        const description = progress.details.text
-        const value = progress.percent
+    processCallback = progressProcessCallback(
+      new CheckoutProgressParser(),
+      progress => {
+        if (progress.kind === 'progress') {
+          const description = progress.details.text
+          const value = progress.percent
 
-        progressCallback({ kind, title, description, value, targetBranch })
+          progressCallback({ kind, title, description, value, targetBranch })
+        }
       }
-    })
+    )
 
     // Initial progress
     progressCallback({ kind, title, value: 0, targetBranch })
   }
 
-  const args = processCallback ? ['checkout', '--progress', name, '--'] : ['checkout', name, '--']
+  const args = processCallback
+    ? ['checkout', '--progress', name, '--']
+    : ['checkout', name, '--']
 
   await git(args, repository.path, 'checkoutBranch', {
     processCallback,
@@ -58,5 +63,9 @@ export async function checkoutPaths(
   repository: Repository,
   paths: ReadonlyArray<string>
 ): Promise<void> {
-  await git(['checkout', 'HEAD', '--', ...paths], repository.path, 'checkoutPaths')
+  await git(
+    ['checkout', 'HEAD', '--', ...paths],
+    repository.path,
+    'checkoutPaths'
+  )
 }

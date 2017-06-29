@@ -6,7 +6,11 @@ import { IAheadBehind } from './git'
 import { Branch } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
-import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
+import {
+  FileChange,
+  WorkingDirectoryStatus,
+  WorkingDirectoryFileChange,
+} from '../models/status'
 import { CloningRepository, IGitHubUser, SignInState } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
@@ -23,7 +27,11 @@ export enum SelectionType {
 }
 
 export type PossibleSelections =
-  | { type: SelectionType.Repository; repository: Repository; state: IRepositoryState }
+  | {
+      type: SelectionType.Repository
+      repository: Repository
+      state: IRepositoryState
+    }
   | {
       type: SelectionType.CloningRepository
       repository: CloningRepository
@@ -167,7 +175,11 @@ export type Popup =
   | { type: PopupType.InstallGit; path: string }
   | { type: PopupType.PublishRepository; repository: Repository }
   | { type: PopupType.Acknowledgements }
-  | { type: PopupType.UntrustedCertificate; certificate: Electron.Certificate; url: string }
+  | {
+      type: PopupType.UntrustedCertificate
+      certificate: Electron.Certificate
+      url: string
+    }
   | { type: PopupType.RemoveRepository; repository: Repository }
   | { type: PopupType.TermsAndConditions }
 

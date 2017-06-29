@@ -53,7 +53,9 @@ function convertToAppStatus(status: FileEntry): AppFileStatus {
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
  */
-export async function getStatus(repository: Repository): Promise<IStatusResult> {
+export async function getStatus(
+  repository: Repository
+): Promise<IStatusResult> {
   const result = await git(
     ['status', '--untracked-files=all', '--branch', '--porcelain=2', '-z'],
     repository.path,
@@ -96,9 +98,18 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
 
       // for now we just poke at the existing summary
       const summary = convertToAppStatus(status)
-      const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
+      const selection = DiffSelection.fromInitialSelection(
+        DiffSelectionType.All
+      )
 
-      files.push(new WorkingDirectoryFileChange(entry.path, summary, selection, entry.oldPath))
+      files.push(
+        new WorkingDirectoryFileChange(
+          entry.path,
+          summary,
+          selection,
+          entry.oldPath
+        )
+      )
     } else if (entry.kind === 'header') {
       let m: RegExpMatchArray | null
       const value = entry.value

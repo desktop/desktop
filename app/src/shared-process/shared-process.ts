@@ -37,10 +37,13 @@ export class SharedProcess {
 
   /** Register the shared process to receive requests. */
   public register() {
-    ipcMain.on('shared/request', (event: Electron.IpcMessageEvent, args: any[]) => {
-      const message: IMessage = args[0]
-      this.send(message)
-    })
+    ipcMain.on(
+      'shared/request',
+      (event: Electron.IpcMessageEvent, args: any[]) => {
+        const message: IMessage = args[0]
+        this.send(message)
+      }
+    )
   }
 
   /** Send a message to the shared process' renderer. */

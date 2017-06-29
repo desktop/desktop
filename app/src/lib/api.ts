@@ -3,7 +3,13 @@ import * as URL from 'url'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
-import { request, parsedResponse, HTTPMethod, APIError, urlWithQueryString } from './http'
+import {
+  request,
+  parsedResponse,
+  HTTPMethod,
+  APIError,
+  urlWithQueryString,
+} from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 
@@ -186,7 +192,10 @@ export class API {
   }
 
   /** Fetch a repo by its owner and name. */
-  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
+  public async fetchRepository(
+    owner: string,
+    name: string
+  ): Promise<IAPIRepository | null> {
     try {
       const response = await this.request('GET', `repos/${owner}/${name}`)
       if (response.status === HttpStatusCode.NotFound) {
@@ -233,7 +242,11 @@ export class API {
   }
 
   /** Fetch a commit from the repository. */
-  public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
+  public async fetchCommit(
+    owner: string,
+    name: string,
+    sha: string
+  ): Promise<IAPICommit | null> {
     try {
       const path = `repos/${owner}/${name}/commits/${sha}`
       const response = await this.request('GET', path)
@@ -311,7 +324,10 @@ export class API {
     state: 'open' | 'closed' | 'all',
     since: Date | null
   ): Promise<ReadonlyArray<IAPIIssue>> {
-    const params = since && !isNaN(since.getTime()) ? { since: toGitHubIsoDateString(since) } : {}
+    const params =
+      since && !isNaN(since.getTime())
+        ? { since: toGitHubIsoDateString(since) }
+        : {}
 
     const url = urlWithQueryString(`repos/${owner}/${name}/issues`, params)
     try {
@@ -367,7 +383,10 @@ export class API {
    * Get the allowed poll interval for fetching. If an error occurs it will
    * return null.
    */
-  public async getFetchPollInterval(owner: string, name: string): Promise<number | null> {
+  public async getFetchPollInterval(
+    owner: string,
+    name: string
+  ): Promise<number | null> {
     const path = `repos/${owner}/${name}/git`
     try {
       const response = await this.request('HEAD', path)
@@ -408,7 +427,9 @@ export class API {
         log.warn(`fetchAll: '${path}' returned a 404`)
         return null
       }
-      const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(response)
+      const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
+        response
+      )
       const responseEtag = response.headers.get('etag')
       return { users, etag: responseEtag || '' }
     } catch (e) {
@@ -431,7 +452,10 @@ export enum AuthorizationResponseKind {
 export type AuthorizationResponse =
   | { kind: AuthorizationResponseKind.Authorized; token: string }
   | { kind: AuthorizationResponseKind.Failed; response: Response }
-  | { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired; type: AuthenticationMode }
+  | {
+      kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired
+      type: AuthenticationMode
+    }
   | { kind: AuthorizationResponseKind.Error; response: Response }
   | { kind: AuthorizationResponseKind.UserRequiresVerification }
   | { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
@@ -511,20 +535,26 @@ export async function createAuthorization(
     if (apiError) {
       if (
         response.status === 403 &&
-        apiError.message === 'This API can only be accessed with username and password Basic Auth'
+        apiError.message ===
+          'This API can only be accessed with username and password Basic Auth'
       ) {
         // Authorization API does not support providing personal access tokens
         return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
       } else if (response.status === 422) {
         if (apiError.errors) {
           for (const error of apiError.errors) {
-            const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
+            const isExpectedResource =
+              error.resource.toLowerCase() === 'oauthaccess'
             const isExpectedField = error.field.toLowerCase() === 'user'
             if (isExpectedField && isExpectedResource) {
-              return { kind: AuthorizationResponseKind.UserRequiresVerification }
+              return {
+                kind: AuthorizationResponseKind.UserRequiresVerification,
+              }
             }
           }
-        } else if (apiError.message === 'Invalid OAuth application client_id or secret.') {
+        } else if (
+          apiError.message === 'Invalid OAuth application client_id or secret.'
+        ) {
           return { kind: AuthorizationResponseKind.EnterpriseTooOld }
         }
       }
@@ -535,12 +565,23 @@ export async function createAuthorization(
 }
 
 /** Fetch the user authenticated by the token. */
-export async function fetchUser(endpoint: string, token: string): Promise<Account> {
+export async function fetchUser(
+  endpoint: string,
+  token: string
+): Promise<Account> {
   const api = new API(endpoint, token)
   try {
     const user = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    return new Account(user.login, endpoint, token, emails, user.avatar_url, user.id, user.name)
+    return new Account(
+      user.login,
+      endpoint,
+      token,
+      emails,
+      user.avatar_url,
+      user.id,
+      user.name
+    )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)
     throw e
@@ -548,7 +589,9 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
 }
 
 /** Get metadata from the server. */
-export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
+export async function fetchMetadata(
+  endpoint: string
+): Promise<IServerMetadata | null> {
   const url = `${endpoint}/meta`
 
   try {
@@ -563,7 +606,10 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
 
     return result
   } catch (e) {
-    log.error(`fetchMetadata: unable to load metadata from '${url}' as a fallback`, e)
+    log.error(
+      `fetchMetadata: unable to load metadata from '${url}' as a fallback`,
+      e
+    )
     return null
   }
 }
@@ -649,7 +695,10 @@ export function getAccountForEndpoint(
   return accounts.find(a => a.endpoint === endpoint) || null
 }
 
-export function getOAuthAuthorizationURL(endpoint: string, state: string): string {
+export function getOAuthAuthorizationURL(
+  endpoint: string,
+  state: string
+): string {
   const urlBase = getHTMLURL(endpoint)
   const scope = encodeURIComponent(Scopes.join(' '))
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
@@ -662,12 +711,18 @@ export async function requestOAuthToken(
 ): Promise<string | null> {
   try {
     const urlBase = getHTMLURL(endpoint)
-    const response = await request(urlBase, null, 'POST', 'login/oauth/access_token', {
-      client_id: ClientID,
-      client_secret: ClientSecret,
-      code: code,
-      state: state,
-    })
+    const response = await request(
+      urlBase,
+      null,
+      'POST',
+      'login/oauth/access_token',
+      {
+        client_id: ClientID,
+        client_secret: ClientSecret,
+        code: code,
+        state: state,
+      }
+    )
     const result = await parsedResponse<IAPIAccessToken>(response)
     return result.access_token
   } catch (e) {

@@ -1,4 +1,10 @@
-import { IRawDiff, DiffHunk, DiffHunkHeader, DiffLine, DiffLineType } from '../models/diff'
+import {
+  IRawDiff,
+  DiffHunk,
+  DiffHunkHeader,
+  DiffLine,
+  DiffLineType,
+} from '../models/diff'
 import { assertNever } from '../lib/fatal-error'
 
 // https://en.wikipedia.org/wiki/Diff_utility
@@ -189,7 +195,9 @@ export class DiffParser {
     const str = m[group]
     if (!str) {
       if (!defaultValue) {
-        throw new Error(`Group ${group} missing from regexp match and no defaultValue was provided`)
+        throw new Error(
+          `Group ${group} missing from regexp match and no defaultValue was provided`
+        )
       }
 
       return defaultValue
@@ -198,7 +206,9 @@ export class DiffParser {
     const num = parseInt(str, 10)
 
     if (isNaN(num)) {
-      throw new Error(`Could not parse capture group ${group} into number: ${str}`)
+      throw new Error(
+        `Could not parse capture group ${group} into number: ${str}`
+      )
     }
 
     return num
@@ -229,7 +239,12 @@ export class DiffParser {
     const newStartLine = this.numberFromGroup(m, 3)
     const newLineCount = this.numberFromGroup(m, 4, 1)
 
-    return new DiffHunkHeader(oldStartLine, oldLineCount, newStartLine, newLineCount)
+    return new DiffHunkHeader(
+      oldStartLine,
+      oldLineCount,
+      newStartLine,
+      newLineCount
+    )
   }
 
   /**
@@ -296,7 +311,9 @@ export class DiffParser {
       if (c === DiffPrefixNoNewline) {
         // See https://github.com/git/git/blob/21f862b498925194f8f1ebe8203b7a7df756555b/apply.c#L1725-L1732
         if (line.length < 12) {
-          throw new Error(`Expected no newline at end of file marker but got ${line}`)
+          throw new Error(
+            `Expected no newline at end of file marker but got ${line}`
+          )
         }
 
         const previousLineIndex = lines.length - 1
@@ -309,9 +326,19 @@ export class DiffParser {
       let diffLine: DiffLine
 
       if (c === DiffPrefixAdd) {
-        diffLine = new DiffLine(line, DiffLineType.Add, null, rollingDiffAfterCounter++)
+        diffLine = new DiffLine(
+          line,
+          DiffLineType.Add,
+          null,
+          rollingDiffAfterCounter++
+        )
       } else if (c === DiffPrefixDelete) {
-        diffLine = new DiffLine(line, DiffLineType.Delete, rollingDiffBeforeCounter++, null)
+        diffLine = new DiffLine(
+          line,
+          DiffLineType.Delete,
+          rollingDiffBeforeCounter++,
+          null
+        )
       } else if (c === DiffPrefixContext) {
         diffLine = new DiffLine(
           line,
@@ -330,7 +357,12 @@ export class DiffParser {
       throw new Error('Malformed diff, empty hunk')
     }
 
-    return new DiffHunk(header, lines, linesConsumed, linesConsumed + lines.length - 1)
+    return new DiffHunk(
+      header,
+      lines,
+      linesConsumed,
+      linesConsumed + lines.length - 1
+    )
   }
 
   /**

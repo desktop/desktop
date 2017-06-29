@@ -20,7 +20,8 @@ export function groupRepositories(
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
   const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
   for (const repository of repositories) {
-    const gitHubRepository = repository instanceof Repository ? repository.gitHubRepository : null
+    const gitHubRepository =
+      repository instanceof Repository ? repository.gitHubRepository : null
     let group: RepositoryGroupIdentifier = 'other'
     if (gitHubRepository) {
       if (gitHubRepository.endpoint === getDotComAPIEndpoint()) {

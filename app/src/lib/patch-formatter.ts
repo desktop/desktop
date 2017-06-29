@@ -87,9 +87,11 @@ function formatHunkHeader(
   // >
   // > In many versions of GNU diff, each range can omit the comma and trailing value s,
   // > in which case s defaults to 1
-  const lineInfoBefore = oldLineCount === 1 ? `${oldStartLine}` : `${oldStartLine},${oldLineCount}`
+  const lineInfoBefore =
+    oldLineCount === 1 ? `${oldStartLine}` : `${oldStartLine},${oldLineCount}`
 
-  const lineInfoAfter = newLineCount === 1 ? `${newStartLine}` : `${newStartLine},${newLineCount}`
+  const lineInfoAfter =
+    newLineCount === 1 ? `${newStartLine}` : `${newStartLine},${newLineCount}`
 
   sectionHeading = sectionHeading ? ` ${sectionHeading}` : ''
 
@@ -112,7 +114,10 @@ function formatHunkHeader(
  *
  * @param diff  The source diff
  */
-export function formatPatch(file: WorkingDirectoryFileChange, diff: ITextDiff): string {
+export function formatPatch(
+  file: WorkingDirectoryFileChange,
+  diff: ITextDiff
+): string {
   let patch = ''
 
   diff.hunks.forEach((hunk, hunkIndex) => {
@@ -202,7 +207,9 @@ export function formatPatch(file: WorkingDirectoryFileChange, diff: ITextDiff): 
   // If we get into this state we should never have been called in the first
   // place. Someone gave us a faulty diff and/or faulty selection state.
   if (!patch.length) {
-    throw new Error(`Could not generate a patch for file ${file.path}, patch empty`)
+    throw new Error(
+      `Could not generate a patch for file ${file.path}, patch empty`
+    )
   }
 
   patch = formatPatchHeaderForFile(file) + patch

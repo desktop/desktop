@@ -185,18 +185,55 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
   // normal, separator, submenu, checkbox or radio.
   switch (menuItem.type) {
     case 'normal':
-      return { id, type: 'menuItem', label, enabled, visible, accelerator, accessKey }
+      return {
+        id,
+        type: 'menuItem',
+        label,
+        enabled,
+        visible,
+        accelerator,
+        accessKey,
+      }
     case 'separator':
       return { id, type: 'separator', visible }
     case 'submenu':
       const menu = menuFromElectronMenu(menuItem.submenu as Electron.Menu, id)
-      return { id, type: 'submenuItem', label, enabled, visible, menu, accessKey }
+      return {
+        id,
+        type: 'submenuItem',
+        label,
+        enabled,
+        visible,
+        menu,
+        accessKey,
+      }
     case 'checkbox':
-      return { id, type: 'checkbox', label, enabled, visible, accelerator, checked, accessKey }
+      return {
+        id,
+        type: 'checkbox',
+        label,
+        enabled,
+        visible,
+        accelerator,
+        checked,
+        accessKey,
+      }
     case 'radio':
-      return { id, type: 'radio', label, enabled, visible, accelerator, checked, accessKey }
+      return {
+        id,
+        type: 'radio',
+        label,
+        enabled,
+        visible,
+        accelerator,
+        checked,
+        accessKey,
+      }
     default:
-      return assertNever(menuItem.type, `Unknown menu item type ${menuItem.type}`)
+      return assertNever(
+        menuItem.type,
+        `Unknown menu item type ${menuItem.type}`
+      )
   }
 }
 /**
@@ -220,7 +257,9 @@ export function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
       if (item.visible) {
         if (itemMayHaveAccessKey(item) && item.accessKey) {
           if (seenAccessKeys.has(item.accessKey.toLowerCase())) {
-            throw new Error(`Duplicate access key '${item.accessKey}' for item ${item.label}`)
+            throw new Error(
+              `Duplicate access key '${item.accessKey}' for item ${item.label}`
+            )
           } else {
             seenAccessKeys.add(item.accessKey.toLowerCase())
           }
@@ -236,7 +275,10 @@ export function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
  * Creates a map between MenuItem ids and MenuItems by recursing
  * through all items and all submenus.
  */
-function buildIdMap(menu: IMenu, map = new Map<string, MenuItem>()): Map<string, MenuItem> {
+function buildIdMap(
+  menu: IMenu,
+  map = new Map<string, MenuItem>()
+): Map<string, MenuItem> {
   for (const item of menu.items) {
     map.set(item.id, item)
     if (item.type === 'submenuItem') {
@@ -284,7 +326,10 @@ export function findItemByAccessKey(
 
   for (const item of items) {
     if (itemMayHaveAccessKey(item)) {
-      if (item.accessKey && item.accessKey.toLowerCase() === lowerCaseAccessKey) {
+      if (
+        item.accessKey &&
+        item.accessKey.toLowerCase() === lowerCaseAccessKey
+      ) {
         return item
       }
     }
@@ -420,7 +465,10 @@ export class AppMenu {
    *
    *                          Defaults to false.
    */
-  public withOpenedMenu(submenuItem: ISubmenuItem, selectFirstItem = false): AppMenu {
+  public withOpenedMenu(
+    submenuItem: ISubmenuItem,
+    selectFirstItem = false
+  ): AppMenu {
     const ourMenuItem = this.menuItemById.get(submenuItem.id)
 
     if (!ourMenuItem) {
@@ -428,10 +476,14 @@ export class AppMenu {
     }
 
     if (ourMenuItem.type !== 'submenuItem') {
-      throw new Error(`Attempt to open a submenu from an item of wrong type: ${ourMenuItem.type}`)
+      throw new Error(
+        `Attempt to open a submenu from an item of wrong type: ${ourMenuItem.type}`
+      )
     }
 
-    const parentMenuIndex = this.openMenus.findIndex(m => m.items.indexOf(ourMenuItem) !== -1)
+    const parentMenuIndex = this.openMenus.findIndex(
+      m => m.items.indexOf(ourMenuItem) !== -1
+    )
 
     // The parent menu has apparently been closed in between, we could go and
     // recreate it but it's probably not worth it.
@@ -520,7 +572,9 @@ export class AppMenu {
       return this
     }
 
-    const parentMenuIndex = this.openMenus.findIndex(m => m.items.indexOf(ourMenuItem) !== -1)
+    const parentMenuIndex = this.openMenus.findIndex(
+      m => m.items.indexOf(ourMenuItem) !== -1
+    )
 
     // The menu which the selected item belongs to is no longer open,
     // not much we can do about that.

@@ -18,7 +18,11 @@ export class DragDropSelection implements ISelectionStrategy {
   private maximumDirtyRange: number
   private minimumDirtyRange: number
 
-  public constructor(start: number, desiredSelection: boolean, snapshot: DiffSelection) {
+  public constructor(
+    start: number,
+    desiredSelection: boolean,
+    snapshot: DiffSelection
+  ) {
     this.start = start
     this.desiredSelection = desiredSelection
     this.snapshot = snapshot

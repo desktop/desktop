@@ -11,9 +11,14 @@ export interface IAheadBehind {
 
 /** Get the number of commits in HEAD. */
 export async function getCommitCount(repository: Repository): Promise<number> {
-  const result = await git(['rev-list', '--count', 'HEAD'], repository.path, 'getCommitCount', {
-    successExitCodes: new Set([0, 128]),
-  })
+  const result = await git(
+    ['rev-list', '--count', 'HEAD'],
+    repository.path,
+    'getCommitCount',
+    {
+      successExitCodes: new Set([0, 128]),
+    }
+  )
   // error code 128 is returned if the branch is unborn
   if (result.exitCode === 128) {
     return 0

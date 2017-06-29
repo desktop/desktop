@@ -21,7 +21,10 @@ export function matchGitHubRepository(
   return null
 }
 
-function matchRemoteWithAccount(account: Account, remote: string): GitHubRepository | null {
+function matchRemoteWithAccount(
+  account: Account,
+  remote: string
+): GitHubRepository | null {
   const htmlURL = getHTMLURL(account.endpoint)
   const parsed = URL.parse(htmlURL)
   const host = parsed.hostname
@@ -34,7 +37,12 @@ function matchRemoteWithAccount(account: Account, remote: string): GitHubReposit
   const owner = parsedRemote.owner
   const name = parsedRemote.name
 
-  if (host && parsedRemote.hostname.toLowerCase() === host.toLowerCase() && owner && name) {
+  if (
+    host &&
+    parsedRemote.hostname.toLowerCase() === host.toLowerCase() &&
+    owner &&
+    name
+  ) {
     return new GitHubRepository(name, new Owner(owner, account.endpoint), null)
   }
 

@@ -12,7 +12,10 @@ export function stop() {
 }
 
 /** Measure an async git operation. */
-export async function measure<T>(cmd: string, fn: () => Promise<T>): Promise<T> {
+export async function measure<T>(
+  cmd: string,
+  fn: () => Promise<T>
+): Promise<T> {
   const id = ++markID
   markBegin(id, cmd)
   const result = await fn()

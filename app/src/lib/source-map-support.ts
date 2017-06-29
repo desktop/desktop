@@ -69,7 +69,10 @@ const stackFrameMap = new WeakMap<Error, ReadonlyArray<any>>()
  * The `prepareStackTrace` that comes from the `source-map-support` module.
  * We'll use this when the user explicitly wants the stack source mapped.
  */
-let prepareStackTraceWithSourceMap: (error: Error, frames: ReadonlyArray<any>) => string
+let prepareStackTraceWithSourceMap: (
+  error: Error,
+  frames: ReadonlyArray<any>
+) => string
 
 /**
  * Capture the error's stack frames and return a standard, un-source mapped
@@ -122,6 +125,7 @@ function sourceMappedStackTrace(error: Error): string | undefined {
     // in our weak map. In order to get around that we'll eagerly access the
     // stack, forcing our handler to run which should ensure that the native
     // frames are stored in our weak map.
+    // tslint:disable-next-line:whitespace
     ;(error.stack || '').toString()
     frames = stackFrameMap.get(error)
   }

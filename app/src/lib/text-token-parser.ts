@@ -199,14 +199,22 @@ export class Tokenizer {
         const issueMatch = /\/issues\/(\d+)/.exec(maybeHyperlink)
         if (issueMatch) {
           const idText = issueMatch[1]
-          this._results.push({ kind: TokenType.Link, url: maybeHyperlink, text: `#${idText}` })
+          this._results.push({
+            kind: TokenType.Link,
+            url: maybeHyperlink,
+            text: `#${idText}`,
+          })
           return { nextIndex }
         }
       }
     }
 
     // just render a hyperlink with the full URL
-    this._results.push({ kind: TokenType.Link, url: maybeHyperlink, text: maybeHyperlink })
+    this._results.push({
+      kind: TokenType.Link,
+      url: maybeHyperlink,
+      text: maybeHyperlink,
+    })
     return { nextIndex }
   }
 
@@ -224,7 +232,9 @@ export class Tokenizer {
     }
   }
 
-  private tokenizeNonGitHubRepository(text: string): ReadonlyArray<TokenResult> {
+  private tokenizeNonGitHubRepository(
+    text: string
+  ): ReadonlyArray<TokenResult> {
     let i = 0
     while (i < text.length) {
       const element = text[i]
@@ -234,7 +244,9 @@ export class Tokenizer {
           break
 
         case 'h':
-          i = this.inspectAndMove(element, i, () => this.scanForHyperlink(text, i))
+          i = this.inspectAndMove(element, i, () =>
+            this.scanForHyperlink(text, i)
+          )
           break
 
         default:
@@ -261,15 +273,21 @@ export class Tokenizer {
           break
 
         case '#':
-          i = this.inspectAndMove(element, i, () => this.scanForIssue(text, i, repository))
+          i = this.inspectAndMove(element, i, () =>
+            this.scanForIssue(text, i, repository)
+          )
           break
 
         case '@':
-          i = this.inspectAndMove(element, i, () => this.scanForMention(text, i, repository))
+          i = this.inspectAndMove(element, i, () =>
+            this.scanForMention(text, i, repository)
+          )
           break
 
         case 'h':
-          i = this.inspectAndMove(element, i, () => this.scanForHyperlink(text, i, repository))
+          i = this.inspectAndMove(element, i, () =>
+            this.scanForHyperlink(text, i, repository)
+          )
           break
 
         default:

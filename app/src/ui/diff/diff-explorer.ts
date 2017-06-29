@@ -3,7 +3,10 @@ import { DiffLine, DiffHunk, ITextDiff } from '../../models/diff'
 /**
  * Locate the diff hunk for the given (absolute) line number in the diff.
  */
-export function diffHunkForIndex(diff: ITextDiff, index: number): DiffHunk | null {
+export function diffHunkForIndex(
+  diff: ITextDiff,
+  index: number
+): DiffHunk | null {
   const hunk = diff.hunks.find(h => {
     return index >= h.unifiedDiffStart && index <= h.unifiedDiffEnd
   })
@@ -13,7 +16,10 @@ export function diffHunkForIndex(diff: ITextDiff, index: number): DiffHunk | nul
 /**
  * Locate the diff line for the given (absolute) line number in the diff.
  */
-export function diffLineForIndex(diff: ITextDiff, index: number): DiffLine | null {
+export function diffLineForIndex(
+  diff: ITextDiff,
+  index: number
+): DiffLine | null {
   const hunk = diffHunkForIndex(diff, index)
   if (!hunk) {
     return null
@@ -47,7 +53,9 @@ export function findInteractiveDiffRange(
     }
   }
 
-  const start = contextLineBeforeIndex ? contextLineBeforeIndex : hunk.unifiedDiffStart + 1
+  const start = contextLineBeforeIndex
+    ? contextLineBeforeIndex
+    : hunk.unifiedDiffStart + 1
 
   let contextLineAfterIndex: number | null = null
 
@@ -60,7 +68,9 @@ export function findInteractiveDiffRange(
     }
   }
 
-  const end = contextLineAfterIndex ? contextLineAfterIndex : hunk.unifiedDiffEnd
+  const end = contextLineAfterIndex
+    ? contextLineAfterIndex
+    : hunk.unifiedDiffEnd
 
   return { start, end }
 }

@@ -1,10 +1,24 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater, dialog, shell } from 'electron'
+import {
+  app,
+  Menu,
+  MenuItem,
+  ipcMain,
+  BrowserWindow,
+  autoUpdater,
+  dialog,
+  shell,
+} from 'electron'
 
 import { AppWindow } from './app-window'
 import { CrashWindow } from './crash-window'
-import { buildDefaultMenu, MenuEvent, findMenuItemByID, setCrashMenu } from './menu'
+import {
+  buildDefaultMenu,
+  MenuEvent,
+  findMenuItemByID,
+  setCrashMenu,
+} from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
@@ -16,7 +30,10 @@ import { LogLevel } from '../lib/logging/log-level'
 import { log as writeLog } from './log'
 import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
-import { enableSourceMaps, withSourceMappedStack } from '../lib/source-map-support'
+import {
+  enableSourceMaps,
+  withSourceMappedStack,
+} from '../lib/source-map-support'
 import { now } from './now'
 
 enableSourceMaps()
@@ -58,7 +75,10 @@ function uncaughtException(error: Error) {
     mainWindow = null
   }
 
-  const crashWindow = new CrashWindow(isLaunchError ? 'launch' : 'generic', error)
+  const crashWindow = new CrashWindow(
+    isLaunchError ? 'launch' : 'generic',
+    error
+  )
 
   crashWindow.onDidLoad(() => {
     crashWindow.show()
@@ -72,7 +92,8 @@ function uncaughtException(error: Error) {
         message:
           `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
           `This has been reported to the team, but if you encounter this repeatedly please report ` +
-          `this issue to the GitHub Desktop issue tracker.\n\n${error.stack || error.message}`,
+          `this issue to the GitHub Desktop issue tracker.\n\n${error.stack ||
+            error.message}`,
       },
       response => {
         if (!__DEV__) {
@@ -194,18 +215,24 @@ app.on('ready', () => {
    * An event sent by the renderer asking that the menu item with the given id
    * is executed (ie clicked).
    */
-  ipcMain.on('execute-menu-item', (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
-    const menuItem = findMenuItemByID(menu, id)
-    if (menuItem) {
-      const window = BrowserWindow.fromWebContents(event.sender)
-      const fakeEvent = { preventDefault: () => {}, sender: event.sender }
-      menuItem.click(fakeEvent, window, event.sender)
+  ipcMain.on(
+    'execute-menu-item',
+    (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
+      const menuItem = findMenuItemByID(menu, id)
+      if (menuItem) {
+        const window = BrowserWindow.fromWebContents(event.sender)
+        const fakeEvent = { preventDefault: () => {}, sender: event.sender }
+        menuItem.click(fakeEvent, window, event.sender)
+      }
     }
-  })
+  )
 
   ipcMain.on(
     'update-menu-state',
-    (event: Electron.IpcMessageEvent, items: Array<{ id: string; state: IMenuItemState }>) => {
+    (
+      event: Electron.IpcMessageEvent,
+      items: Array<{ id: string; state: IMenuItemState }>
+    ) => {
       let sendMenuChangedEvent = false
 
       for (const item of items) {
@@ -216,7 +243,10 @@ app.on('ready', () => {
           // Only send the updated app menu when the state actually changes
           // or we might end up introducing a never ending loop between
           // the renderer and the main process
-          if (state.enabled !== undefined && menuItem.enabled !== state.enabled) {
+          if (
+            state.enabled !== undefined &&
+            menuItem.enabled !== state.enabled
+          ) {
             menuItem.enabled = state.enabled
             sendMenuChangedEvent = true
           }
@@ -270,7 +300,10 @@ app.on('ready', () => {
     'show-certificate-trust-dialog',
     (
       event: Electron.IpcMessageEvent,
-      { certificate, message }: { certificate: Electron.Certificate; message: string }
+      {
+        certificate,
+        message,
+      }: { certificate: Electron.Certificate; message: string }
     ) => {
       // This API's only implemented on macOS right now.
       if (__DARWIN__) {
@@ -281,13 +314,19 @@ app.on('ready', () => {
     }
   )
 
-  ipcMain.on('log', (event: Electron.IpcMessageEvent, level: LogLevel, message: string) => {
-    writeLog(level, message)
-  })
+  ipcMain.on(
+    'log',
+    (event: Electron.IpcMessageEvent, level: LogLevel, message: string) => {
+      writeLog(level, message)
+    }
+  )
 
-  ipcMain.on('uncaught-exception', (event: Electron.IpcMessageEvent, error: Error) => {
-    uncaughtException(error)
-  })
+  ipcMain.on(
+    'uncaught-exception',
+    (event: Electron.IpcMessageEvent, error: Error) => {
+      uncaughtException(error)
+    }
+  )
 
   ipcMain.on(
     'send-error-report',
@@ -327,13 +366,16 @@ app.on('web-contents-created', (event, contents) => {
   })
 })
 
-app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
-  callback(false)
+app.on(
+  'certificate-error',
+  (event, webContents, url, error, certificate, callback) => {
+    callback(false)
 
-  onDidLoad(window => {
-    window.sendCertificateError(certificate, error, url)
-  })
-})
+    onDidLoad(window => {
+      window.sendCertificateError(certificate, error, url)
+    })
+  }
+)
 
 function createWindow() {
   const window = new AppWindow()

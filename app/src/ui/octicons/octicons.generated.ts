@@ -127,7 +127,11 @@ export class OcticonSymbol {
     return new OcticonSymbol(8, 16, 'M7.5 8l-5 5L1 11.5 4.75 8 1 4.5 2.5 3z')
   }
   public static get chevronUp() {
-    return new OcticonSymbol(10, 16, 'M10 10l-1.5 1.5L5 7.75 1.5 11.5 0 10l5-5z')
+    return new OcticonSymbol(
+      10,
+      16,
+      'M10 10l-1.5 1.5L5 7.75 1.5 11.5 0 10l5-5z'
+    )
   }
   public static get circleSlash() {
     return new OcticonSymbol(
@@ -800,7 +804,11 @@ export class OcticonSymbol {
     return new OcticonSymbol(7, 16, 'M4 7V4H3v3H0v1h3v3h1V8h3V7H4z')
   }
   public static get primitiveDot() {
-    return new OcticonSymbol(8, 16, 'M0 8c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z')
+    return new OcticonSymbol(
+      8,
+      16,
+      'M0 8c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z'
+    )
   }
   public static get primitiveSquare() {
     return new OcticonSymbol(8, 16, 'M8 12H0V4h8z')

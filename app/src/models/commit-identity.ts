@@ -50,7 +50,12 @@ export class CommitIdentity {
     return new CommitIdentity(name, email, date, tzOffset)
   }
 
-  public constructor(name: string, email: string, date: Date, tzOffset?: number) {
+  public constructor(
+    name: string,
+    email: string,
+    date: Date,
+    tzOffset?: number
+  ) {
     this.name = name
     this.email = email
     this.date = date

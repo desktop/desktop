@@ -65,6 +65,9 @@ export function broadcastUpdate(
   })
 }
 
-ipcRenderer.on('shared/request', (event: Electron.IpcMessageEvent, args: any[]) => {
-  dispatch(args[0])
-})
+ipcRenderer.on(
+  'shared/request',
+  (event: Electron.IpcMessageEvent, args: any[]) => {
+    dispatch(args[0])
+  }
+)

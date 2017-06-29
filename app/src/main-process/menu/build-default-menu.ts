@@ -159,7 +159,9 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       {
         id: 'show-devtools',
-        label: __DARWIN__ ? 'Toggle Developer Tools' : '&Toggle developer tools',
+        label: __DARWIN__
+          ? 'Toggle Developer Tools'
+          : '&Toggle developer tools',
         accelerator: (() => {
           return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'
         })(),
@@ -249,12 +251,16 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       separator,
       {
-        label: __DARWIN__ ? 'Update From Default Branch' : '&Update from default branch',
+        label: __DARWIN__
+          ? 'Update From Default Branch'
+          : '&Update from default branch',
         id: 'update-branch',
         click: emit('update-branch'),
       },
       {
-        label: __DARWIN__ ? 'Merge Into Current Branch…' : '&Merge into current branch…',
+        label: __DARWIN__
+          ? 'Merge Into Current Branch…'
+          : '&Merge into current branch…',
         id: 'merge-branch',
         click: emit('merge-branch'),
       },
@@ -388,7 +394,9 @@ const ZoomOutFactors = ZoomInFactors.slice().reverse()
  */
 function findClosestValue(arr: Array<number>, value: number) {
   return arr.reduce((previous, current) => {
-    return Math.abs(current - value) < Math.abs(previous - value) ? current : previous
+    return Math.abs(current - value) < Math.abs(previous - value)
+      ? current
+      : previous
   })
 }
 
@@ -409,7 +417,8 @@ function zoom(direction: ZoomDirection): ClickHandler {
       webContents.send('zoom-factor-changed', 1)
     } else {
       webContents.getZoomFactor(rawZoom => {
-        const zoomFactors = direction === ZoomDirection.In ? ZoomInFactors : ZoomOutFactors
+        const zoomFactors =
+          direction === ZoomDirection.In ? ZoomInFactors : ZoomOutFactors
 
         // So the values that we get from getZoomFactor are floating point
         // precision numbers from chromium that don't always round nicely so
@@ -418,13 +427,15 @@ function zoom(direction: ZoomDirection): ClickHandler {
         const currentZoom = findClosestValue(zoomFactors, rawZoom)
 
         const nextZoomLevel = zoomFactors.find(
-          f => (direction === ZoomDirection.In ? f > currentZoom : f < currentZoom)
+          f =>
+            direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
         )
 
         // If we couldn't find a zoom level (likely due to manual manipulation
         // of the zoom factor in devtools) we'll just snap to the closest valid
         // factor we've got.
-        const newZoom = nextZoomLevel === undefined ? currentZoom : nextZoomLevel
+        const newZoom =
+          nextZoomLevel === undefined ? currentZoom : nextZoomLevel
 
         webContents.setZoomFactor(newZoom)
         webContents.send('zoom-factor-changed', newZoom)

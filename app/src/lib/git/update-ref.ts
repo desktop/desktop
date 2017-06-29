@@ -19,7 +19,11 @@ export async function updateRef(
   newValue: string,
   reason: string
 ): Promise<void> {
-  await git(['update-ref', ref, newValue, oldValue, '-m', reason], repository.path, 'updateRef')
+  await git(
+    ['update-ref', ref, newValue, oldValue, '-m', reason],
+    repository.path,
+    'updateRef'
+  )
 }
 
 /**
@@ -34,7 +38,11 @@ export async function deleteRef(
   ref: string,
   reason: string
 ): Promise<true | undefined> {
-  const result = await git(['update-ref', '-m', reason, '-d', ref], repository.path, 'deleteRef')
+  const result = await git(
+    ['update-ref', '-m', reason, '-d', ref],
+    repository.path,
+    'deleteRef'
+  )
 
   if (result.exitCode === 0) {
     return true

@@ -30,7 +30,6 @@ interface ISelectState {
  * Provide `children` elements for the contents of the `select` element.
  */
 export class Select extends React.Component<ISelectProps, ISelectState> {
-
   public componentWillMount() {
     const friendlyName = this.props.label || 'unknown'
     const inputId = createUniqueId(`Select_${friendlyName}`)
@@ -49,13 +48,15 @@ export class Select extends React.Component<ISelectProps, ISelectState> {
     const inputId = this.state.inputId
 
     return !!label
-      ? <label htmlFor={inputId}>{label}</label>
+      ? <label htmlFor={inputId}>
+          {label}
+        </label>
       : null
   }
 
   public render() {
     return (
-      <div className='select-component'>
+      <div className="select-component">
         {this.renderLabel()}
         <select
           id={this.state.inputId}

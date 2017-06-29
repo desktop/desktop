@@ -2,7 +2,10 @@ import { git } from './core'
 import { Repository } from '../../models/repository'
 
 /** Look up a config value by name in the repository. */
-export function getConfigValue(repository: Repository, name: string): Promise<string | null> {
+export function getConfigValue(
+  repository: Repository,
+  name: string
+): Promise<string | null> {
   return getConfigValueInPath(name, repository.path)
 }
 
@@ -12,11 +15,21 @@ export function getGlobalConfigValue(name: string): Promise<string | null> {
 }
 
 /** Set the local config value by name. */
-export async function setGlobalConfigValue(name: string, value: string): Promise<void> {
-  await git(['config', '--global', name, value], __dirname, 'setGlobalConfigValue')
+export async function setGlobalConfigValue(
+  name: string,
+  value: string
+): Promise<void> {
+  await git(
+    ['config', '--global', name, value],
+    __dirname,
+    'setGlobalConfigValue'
+  )
 }
 
-async function getConfigValueInPath(name: string, path: string | null): Promise<string | null> {
+async function getConfigValueInPath(
+  name: string,
+  path: string | null
+): Promise<string | null> {
   const flags = ['config', '-z']
   if (!path) {
     flags.push('--global')

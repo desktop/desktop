@@ -23,10 +23,15 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, {}> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
   private onCommitChanged = (commit: Commit) => {
-    this.props.dispatcher.changeHistoryCommitSelection(this.props.repository, commit.sha)
+    this.props.dispatcher.changeHistoryCommitSelection(
+      this.props.repository,
+      commit.sha
+    )
 
     this.loadChangedFilesScheduler.queue(() => {
-      this.props.dispatcher.loadChangedFilesForCurrentSelection(this.props.repository)
+      this.props.dispatcher.loadChangedFilesForCurrentSelection(
+        this.props.repository
+      )
     })
   }
 

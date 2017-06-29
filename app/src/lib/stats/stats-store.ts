@@ -102,7 +102,9 @@ export class StatsStore {
     try {
       const response = await this.post(stats)
       if (!response.ok) {
-        throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
+        throw new Error(
+          `Unexpected status: ${response.statusText} (${response.status})`
+        )
       }
 
       log.info('Stats reported.')
@@ -151,14 +153,19 @@ export class StatsStore {
   private categorizedRepositoryCounts(repositories: ReadonlyArray<Repository>) {
     return {
       repositoryCount: repositories.length,
-      gitHubRepositoryCount: repositories.filter(r => r.gitHubRepository).length,
+      gitHubRepositoryCount: repositories.filter(r => r.gitHubRepository)
+        .length,
     }
   }
 
   /** Determines if an account is a dotCom and/or enterprise user */
   private determineUserType(accounts: ReadonlyArray<Account>) {
-    const dotComAccount = !!accounts.find(a => a.endpoint === getDotComAPIEndpoint())
-    const enterpriseAccount = !!accounts.find(a => a.endpoint !== getDotComAPIEndpoint())
+    const dotComAccount = !!accounts.find(
+      a => a.endpoint === getDotComAPIEndpoint()
+    )
+    const enterpriseAccount = !!accounts.find(
+      a => a.endpoint !== getDotComAPIEndpoint()
+    )
 
     return {
       dotComAccount,
@@ -168,7 +175,9 @@ export class StatsStore {
 
   /** Calculate the average launch stats. */
   private async getAverageLaunchStats(): Promise<ILaunchStats> {
-    const launches: ReadonlyArray<ILaunchStats> | undefined = await this.db.launches.toArray()
+    const launches:
+      | ReadonlyArray<ILaunchStats>
+      | undefined = await this.db.launches.toArray()
     if (!launches || !launches.length) {
       return {
         mainReadyTime: -1,
@@ -187,7 +196,8 @@ export class StatsStore {
       return {
         mainReadyTime: running.mainReadyTime + current.mainReadyTime,
         loadTime: running.loadTime + current.loadTime,
-        rendererReadyTime: running.rendererReadyTime + current.rendererReadyTime,
+        rendererReadyTime:
+          running.rendererReadyTime + current.rendererReadyTime,
       }
     }, start)
 
@@ -200,7 +210,9 @@ export class StatsStore {
 
   /** Get the daily measures. */
   private async getDailyMeasures(): Promise<IDailyMeasures> {
-    const measures: IDailyMeasures | undefined = await this.db.dailyMeasures.limit(1).first()
+    const measures:
+      | IDailyMeasures
+      | undefined = await this.db.dailyMeasures.limit(1).first()
     return {
       ...DefaultDailyMeasures,
       ...measures,
@@ -215,7 +227,9 @@ export class StatsStore {
     const db = this.db
     const defaultMeasures = DefaultDailyMeasures
     await this.db.transaction('rw', this.db.dailyMeasures, function*() {
-      const measures: IDailyMeasures | null = yield db.dailyMeasures.limit(1).first()
+      const measures: IDailyMeasures | null = yield db.dailyMeasures
+        .limit(1)
+        .first()
       const measuresWithDefaults = {
         ...defaultMeasures,
         ...measures,
@@ -286,7 +300,9 @@ export class StatsStore {
         optIn,
       })
       if (!response.ok) {
-        throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
+        throw new Error(
+          `Unexpected status: ${response.statusText} (${response.status})`
+        )
       }
 
       localStorage.setItem(HasSentOptInPingKey, '1')

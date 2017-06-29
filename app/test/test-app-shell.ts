@@ -9,8 +9,8 @@ export const shell: IAppShell = {
     Fs.unlinkSync(path)
     return true
   },
-  beep: () => { },
-  showItemInFolder: (path: string) => { },
-  openExternal: (path: string) => { },
+  beep: () => {},
+  showItemInFolder: (path: string) => {},
+  openExternal: (path: string) => {},
   openItem: (path: string) => true,
 }

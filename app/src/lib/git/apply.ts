@@ -20,7 +20,11 @@ export async function applyPatchToIndex(
     // partial stages vs full-file stages happen. By using git add the
     // worst that could happen is that we re-stage a file already staged
     // by updateIndex.
-    await git(['add', '--u', '--', file.oldPath], repository.path, 'applyPatchToIndex')
+    await git(
+      ['add', '--u', '--', file.oldPath],
+      repository.path,
+      'applyPatchToIndex'
+    )
 
     // Figure out the blob oid of the removed file
     // <mode> SP <type> SP <object> TAB <file>
@@ -41,7 +45,13 @@ export async function applyPatchToIndex(
     )
   }
 
-  const applyArgs: string[] = ['apply', '--cached', '--unidiff-zero', '--whitespace=nowarn', '-']
+  const applyArgs: string[] = [
+    'apply',
+    '--cached',
+    '--unidiff-zero',
+    '--whitespace=nowarn',
+    '-',
+  ]
 
   const diff = await getWorkingDirectoryDiff(repository, file)
 

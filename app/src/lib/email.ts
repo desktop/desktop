@@ -12,12 +12,16 @@ import { IEmail } from '../models/email'
  *
  * @param emails array of email addresses associated with an account
  */
-export function lookupPreferredEmail(emails: ReadonlyArray<IEmail>): IEmail | null {
+export function lookupPreferredEmail(
+  emails: ReadonlyArray<IEmail>
+): IEmail | null {
   if (emails.length === 0) {
     return null
   }
 
-  const noReply = emails.find(e => e.email.toLowerCase().endsWith('@users.noreply.github.com'))
+  const noReply = emails.find(e =>
+    e.email.toLowerCase().endsWith('@users.noreply.github.com')
+  )
   if (noReply) {
     return noReply
   }

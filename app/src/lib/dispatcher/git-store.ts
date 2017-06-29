@@ -128,7 +128,9 @@ export class GitStore {
   }
 
   /** Register a function to be called when the store loads new commits. */
-  public onDidLoadNewCommits(fn: (commits: ReadonlyArray<Commit>) => void): Disposable {
+  public onDidLoadNewCommits(
+    fn: (commits: ReadonlyArray<Commit>) => void
+  ): Disposable {
     return this.emitter.on('did-load-new-commits', fn)
   }
 
@@ -221,7 +223,9 @@ export class GitStore {
   public async loadBranches() {
     const [localAndRemoteBranches, recentBranchNames] = await Promise.all([
       this.performFailableOperation(() => getBranches(this.repository)) || [],
-      this.performFailableOperation(() => getRecentBranches(this.repository, RecentBranchesLimit)),
+      this.performFailableOperation(() =>
+        getRecentBranches(this.repository, RecentBranchesLimit)
+      ),
     ])
 
     if (!localAndRemoteBranches) {
@@ -248,7 +252,9 @@ export class GitStore {
    * remote branches, i.e. remote branches that we already have a local
    * branch tracking.
    */
-  private mergeRemoteAndLocalBranches(branches: ReadonlyArray<Branch>): ReadonlyArray<Branch> {
+  private mergeRemoteAndLocalBranches(
+    branches: ReadonlyArray<Branch>
+  ): ReadonlyArray<Branch> {
     const localBranches = new Array<Branch>()
     const remoteBranches = new Array<Branch>()
 
@@ -304,7 +310,9 @@ export class GitStore {
     }
   }
 
-  private refreshRecentBranches(recentBranchNames: ReadonlyArray<string> | undefined) {
+  private refreshRecentBranches(
+    recentBranchNames: ReadonlyArray<string> | undefined
+  ) {
     if (!recentBranchNames || !recentBranchNames.length) {
       this._recentBranches = []
       return
@@ -372,7 +380,10 @@ export class GitStore {
       )
     } else {
       localCommits = await this.performFailableOperation(() =>
-        getCommits(this.repository, 'HEAD', CommitBatchSize, ['--not', '--remotes'])
+        getCommits(this.repository, 'HEAD', CommitBatchSize, [
+          '--not',
+          '--remotes',
+        ])
       )
     }
 
@@ -484,7 +495,12 @@ export class GitStore {
       return Promise.resolve()
     }
 
-    return this.fetchRemotes(account, [remote], backgroundTask, progressCallback)
+    return this.fetchRemotes(
+      account,
+      [remote],
+      backgroundTask,
+      progressCallback
+    )
   }
 
   /**
@@ -555,7 +571,10 @@ export class GitStore {
    *                  information on refspecs: https://www.git-scm.com/book/tr/v2/Git-Internals-The-Refspec
    *
    */
-  public async fetchRefspec(account: Account | null, refspec: string): Promise<void> {
+  public async fetchRefspec(
+    account: Account | null,
+    refspec: string
+  ): Promise<void> {
     // TODO: we should favour origin here
     const remotes = await getRemotes(this.repository)
 
@@ -577,7 +596,9 @@ export class GitStore {
   }
 
   public async loadStatus(): Promise<IStatusResult | null> {
-    const status = await this.performFailableOperation(() => getStatus(this.repository))
+    const status = await this.performFailableOperation(() =>
+      getStatus(this.repository)
+    )
 
     if (!status) {
       return null
@@ -592,7 +613,9 @@ export class GitStore {
         const cachedCommit = this.commits.get(currentTip)
         const branchTipCommit =
           cachedCommit ||
-          (await this.performFailableOperation(() => getCommit(this.repository, currentTip)))
+          (await this.performFailableOperation(() =>
+            getCommit(this.repository, currentTip)
+          ))
 
         if (!branchTipCommit) {
           throw new Error(`Could not load commit ${currentTip}`)
@@ -698,7 +721,9 @@ export class GitStore {
 
   /** Changes the URL for the remote that matches the given name  */
   public async setRemoteURL(name: string, url: string): Promise<void> {
-    await this.performFailableOperation(() => setRemoteURL(this.repository, name, url))
+    await this.performFailableOperation(() =>
+      setRemoteURL(this.repository, name, url)
+    )
     await this.loadCurrentRemote()
 
     this.emitUpdate()
@@ -762,27 +787,40 @@ export class GitStore {
     await removeFromIndex(this.repository, pattern)
   }
 
-  public async discardChanges(files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+  public async discardChanges(
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ): Promise<void> {
     const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
-    const absolutePaths = onDiskFiles.map(f => Path.join(this.repository.path, f.path))
+    const absolutePaths = onDiskFiles.map(f =>
+      Path.join(this.repository.path, f.path)
+    )
     for (const path of absolutePaths) {
       this.shell.moveItemToTrash(path)
     }
 
-    const touchesGitIgnore = files.some(f => Path.basename(f.path) === '.gitignore')
+    const touchesGitIgnore = files.some(
+      f => Path.basename(f.path) === '.gitignore'
+    )
     if (touchesGitIgnore && this.tip.kind === TipState.Valid) {
       const ref = await this.tip.branch.name
-      await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, ref))
+      await this.performFailableOperation(() =>
+        reset(this.repository, GitResetMode.Mixed, ref)
+      )
     }
 
     const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
 
     if (modifiedFiles.length) {
       // in case any files have been staged outside Desktop - renames and copies do this by default
-      await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, 'HEAD'))
+      await this.performFailableOperation(() =>
+        reset(this.repository, GitResetMode.Mixed, 'HEAD')
+      )
 
       const pathsToCheckout = modifiedFiles.map(f => {
-        if (f.status === AppFileStatus.Copied || f.status === AppFileStatus.Renamed) {
+        if (
+          f.status === AppFileStatus.Copied ||
+          f.status === AppFileStatus.Renamed
+        ) {
           // because of the above reset, we now need to discard the old path for these
           return f.oldPath!
         } else {
@@ -790,7 +828,9 @@ export class GitStore {
         }
       })
 
-      await this.performFailableOperation(() => checkoutPaths(this.repository, pathsToCheckout))
+      await this.performFailableOperation(() =>
+        checkoutPaths(this.repository, pathsToCheckout)
+      )
     }
   }
 
@@ -801,7 +841,11 @@ export class GitStore {
     // In the case where we're in the middle of a merge, we're gonna keep
     // finding the same merge message over and over. We don't need to keep
     // telling the world.
-    if (existingMessage && message && structuralEquals(existingMessage, message)) {
+    if (
+      existingMessage &&
+      message &&
+      structuralEquals(existingMessage, message)
+    ) {
       return
     }
 

@@ -27,7 +27,11 @@ export class Email implements IEmail {
     return new Email(obj.email, obj.verified, obj.primary)
   }
 
-  public constructor(email: string, verified: boolean = false, primary: boolean = false) {
+  public constructor(
+    email: string,
+    verified: boolean = false,
+    primary: boolean = false
+  ) {
     this.email = email
     this.verified = verified
     this.primary = primary

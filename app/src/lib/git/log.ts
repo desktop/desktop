@@ -157,7 +157,10 @@ export async function getChangedFiles(
 }
 
 /** Get the commit for the given ref. */
-export async function getCommit(repository: Repository, ref: string): Promise<Commit | null> {
+export async function getCommit(
+  repository: Repository,
+  ref: string
+): Promise<Commit | null> {
   const commits = await getCommits(repository, ref, 1)
   if (commits.length < 1) {
     return null

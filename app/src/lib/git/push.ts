@@ -62,15 +62,33 @@ export async function push(
     const title = `Pushing to ${remote}`
     const kind = 'push'
 
-    opts = executionOptionsWithProgress(opts, new PushProgressParser(), progress => {
-      const description = progress.kind === 'progress' ? progress.details.text : progress.text
-      const value = progress.percent
+    opts = executionOptionsWithProgress(
+      opts,
+      new PushProgressParser(),
+      progress => {
+        const description =
+          progress.kind === 'progress' ? progress.details.text : progress.text
+        const value = progress.percent
 
-      progressCallback({ kind, title, description, value, remote, branch: localBranch })
-    })
+        progressCallback({
+          kind,
+          title,
+          description,
+          value,
+          remote,
+          branch: localBranch,
+        })
+      }
+    )
 
     // Initial progress
-    progressCallback({ kind: 'push', title, value: 0, remote, branch: localBranch })
+    progressCallback({
+      kind: 'push',
+      title,
+      value: 0,
+      remote,
+      branch: localBranch,
+    })
   }
 
   const result = await git(args, repository.path, 'push', opts)

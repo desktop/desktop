@@ -17,8 +17,14 @@ import {
   IUpdateRepositoryPathAction,
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
-import { sendErrorReport, reportUncaughtException } from '../ui/main-process-proxy'
-import { enableSourceMaps, withSourceMappedStack } from '../lib/source-map-support'
+import {
+  sendErrorReport,
+  reportUncaughtException,
+} from '../ui/main-process-proxy'
+import {
+  enableSourceMaps,
+  withSourceMappedStack,
+} from '../lib/source-map-support'
 
 enableSourceMaps()
 
@@ -84,29 +90,37 @@ register('add-repositories', async ({ paths }: IAddRepositoriesAction) => {
   return addedRepos
 })
 
-register('remove-repositories', async ({ repositoryIDs }: IRemoveRepositoriesAction) => {
-  const removedRepoIDs: number[] = []
-  for (const repoID of repositoryIDs) {
-    await repositoriesStore.removeRepository(repoID)
-    removedRepoIDs.push(repoID)
-  }
+register(
+  'remove-repositories',
+  async ({ repositoryIDs }: IRemoveRepositoriesAction) => {
+    const removedRepoIDs: number[] = []
+    for (const repoID of repositoryIDs) {
+      await repositoriesStore.removeRepository(repoID)
+      removedRepoIDs.push(repoID)
+    }
 
-  broadcastUpdate()
-  return removedRepoIDs
-})
+    broadcastUpdate()
+    return removedRepoIDs
+  }
+)
 
 register('get-repositories', () => {
   return repositoriesStore.getRepositories()
 })
 
-register('update-github-repository', async ({ repository }: IUpdateGitHubRepositoryAction) => {
-  const inflatedRepository = Repository.fromJSON(repository as IRepository)
-  const updatedRepository = await repositoriesStore.updateGitHubRepository(inflatedRepository)
+register(
+  'update-github-repository',
+  async ({ repository }: IUpdateGitHubRepositoryAction) => {
+    const inflatedRepository = Repository.fromJSON(repository as IRepository)
+    const updatedRepository = await repositoriesStore.updateGitHubRepository(
+      inflatedRepository
+    )
 
-  broadcastUpdate()
+    broadcastUpdate()
 
-  return updatedRepository
-})
+    return updatedRepository
+  }
+)
 
 register(
   'update-repository-missing',
@@ -123,15 +137,21 @@ register(
   }
 )
 
-register('update-repository-path', async ({ repository, path }: IUpdateRepositoryPathAction) => {
-  const inflatedRepository = Repository.fromJSON(repository)
-  const updatedRepository = await repositoriesStore.updateRepositoryPath(inflatedRepository, path)
-  const newUpdatedRepository = await repositoriesStore.updateRepositoryMissing(
-    updatedRepository,
-    false
-  )
+register(
+  'update-repository-path',
+  async ({ repository, path }: IUpdateRepositoryPathAction) => {
+    const inflatedRepository = Repository.fromJSON(repository)
+    const updatedRepository = await repositoriesStore.updateRepositoryPath(
+      inflatedRepository,
+      path
+    )
+    const newUpdatedRepository = await repositoriesStore.updateRepositoryMissing(
+      updatedRepository,
+      false
+    )
 
-  broadcastUpdate()
+    broadcastUpdate()
 
-  return newUpdatedRepository
-})
+    return newUpdatedRepository
+  }
+)

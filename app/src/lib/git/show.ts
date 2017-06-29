@@ -26,7 +26,8 @@ export async function getBlobContents(
   path: string
 ): Promise<Buffer> {
   const successExitCodes = new Set([0, 1])
-  const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
+  const setBinaryEncoding: (process: ChildProcess) => void = cb =>
+    cb.stdout.setEncoding('binary')
 
   const args = ['show', `${commitish}:${path}`]
   const opts = {

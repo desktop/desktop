@@ -25,9 +25,7 @@ interface IDialogContentProps {
  * content in the dialog get applied consistently.
  */
 export class DialogContent extends React.Component<IDialogContentProps, {}> {
-
   public render() {
-
     const className = classNames('dialog-content', this.props.className)
 
     return (

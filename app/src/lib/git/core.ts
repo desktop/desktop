@@ -114,7 +114,9 @@ export async function git(
   const commandName = `${name}: git ${args.join(' ')}`
   log.debug(`Executing ${commandName}`)
 
-  const result = await GitPerf.measure(commandName, () => GitProcess.exec(args, path, options))
+  const result = await GitPerf.measure(commandName, () =>
+    GitProcess.exec(args, path, options)
+  )
 
   if (startTime) {
     const rawTime = performance.now() - startTime
@@ -127,7 +129,9 @@ export async function git(
   const exitCode = result.exitCode
 
   let gitError: DugiteError | null = null
-  const acceptableExitCode = opts.successExitCodes ? opts.successExitCodes.has(exitCode) : false
+  const acceptableExitCode = opts.successExitCodes
+    ? opts.successExitCodes.has(exitCode)
+    : false
   if (!acceptableExitCode) {
     gitError = GitProcess.parseError(result.stderr)
     if (!gitError) {
@@ -149,7 +153,9 @@ export async function git(
 
   // The caller should either handle this error, or expect that exit code.
   const errorMessage = []
-  errorMessage.push(`\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`)
+  errorMessage.push(
+    `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
+  )
 
   if (result.stdout) {
     errorMessage.push(result.stdout)
@@ -160,7 +166,9 @@ export async function git(
   }
 
   if (gitError) {
-    errorMessage.push(`(The error was parsed as ${gitError}: ${gitErrorDescription})`)
+    errorMessage.push(
+      `(The error was parsed as ${gitError}: ${gitErrorDescription})`
+    )
   }
 
   log.error(errorMessage.join('\n'))

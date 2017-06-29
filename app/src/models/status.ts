@@ -75,7 +75,11 @@ type UntrackedEntry = {
 }
 
 /** The union of possible entries from the git status */
-export type FileEntry = OrdinaryEntry | RenamedOrCopiedEntry | UnmergedEntry | UntrackedEntry
+export type FileEntry =
+  | OrdinaryEntry
+  | RenamedOrCopiedEntry
+  | UnmergedEntry
+  | UntrackedEntry
 
 /**
  * Convert a given FileStatus value to a human-readable string to be
@@ -170,14 +174,21 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given includedness. */
   public withIncludeAll(include: boolean): WorkingDirectoryFileChange {
-    const newSelection = include ? this.selection.withSelectAll() : this.selection.withSelectNone()
+    const newSelection = include
+      ? this.selection.withSelectAll()
+      : this.selection.withSelectNone()
 
     return this.withSelection(newSelection)
   }
 
   /** Create a new WorkingDirectoryFileChange with the given diff selection. */
   public withSelection(selection: DiffSelection): WorkingDirectoryFileChange {
-    return new WorkingDirectoryFileChange(this.path, this.status, selection, this.oldPath)
+    return new WorkingDirectoryFileChange(
+      this.path,
+      this.status,
+      selection,
+      this.oldPath
+    )
   }
 }
 
@@ -197,7 +208,10 @@ export class WorkingDirectoryStatus {
    */
   public readonly includeAll: boolean | null = true
 
-  public constructor(files: ReadonlyArray<WorkingDirectoryFileChange>, includeAll: boolean | null) {
+  public constructor(
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    includeAll: boolean | null
+  ) {
     this.files = files
     this.includeAll = includeAll
   }
@@ -211,7 +225,9 @@ export class WorkingDirectoryStatus {
   }
 
   /** Update by replacing the file with the same ID with a new file. */
-  public byReplacingFile(file: WorkingDirectoryFileChange): WorkingDirectoryStatus {
+  public byReplacingFile(
+    file: WorkingDirectoryFileChange
+  ): WorkingDirectoryStatus {
     const newFiles = this.files.map(f => {
       if (f.id === file.id) {
         return file

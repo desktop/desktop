@@ -81,7 +81,9 @@ export class BackgroundFetcher {
   }
 
   /** Perform a fetch and schedule the next one. */
-  private async performAndScheduleFetch(repository: GitHubRepository): Promise<void> {
+  private async performAndScheduleFetch(
+    repository: GitHubRepository
+  ): Promise<void> {
     if (this.stopped) {
       return
     }
@@ -103,16 +105,24 @@ export class BackgroundFetcher {
 
     // NB: We need to use `window.` here to make sure TypeScript looks at the
     // right type declaration :\
-    this.timeoutHandle = window.setTimeout(() => this.performAndScheduleFetch(repository), interval)
+    this.timeoutHandle = window.setTimeout(
+      () => this.performAndScheduleFetch(repository),
+      interval
+    )
   }
 
   /** Get the allowed fetch interval from the server. */
-  private async getFetchInterval(repository: GitHubRepository): Promise<number> {
+  private async getFetchInterval(
+    repository: GitHubRepository
+  ): Promise<number> {
     const api = API.fromAccount(this.account)
 
     let interval = DefaultFetchInterval
     try {
-      const pollInterval = await api.getFetchPollInterval(repository.owner.login, repository.name)
+      const pollInterval = await api.getFetchPollInterval(
+        repository.owner.login,
+        repository.name
+      )
       if (pollInterval) {
         interval = Math.max(pollInterval, MinimumInterval)
       } else {

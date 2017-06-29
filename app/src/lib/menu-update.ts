@@ -54,8 +54,14 @@ class MenuStateBuilder {
   }
 }
 
-function isRepositoryHostedOnGitHub(repository: Repository | CloningRepository) {
-  if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
+function isRepositoryHostedOnGitHub(
+  repository: Repository | CloningRepository
+) {
+  if (
+    !repository ||
+    repository instanceof CloningRepository ||
+    !repository.gitHubRepository
+  ) {
     return false
   }
 
@@ -152,13 +158,22 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
     menuStateBuilder.setEnabled('rename-branch', onNonDefaultBranch)
     menuStateBuilder.setEnabled('delete-branch', onNonDefaultBranch)
-    menuStateBuilder.setEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
+    menuStateBuilder.setEnabled(
+      'update-branch',
+      onNonDefaultBranch && hasDefaultBranch
+    )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
-    menuStateBuilder.setEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
+    menuStateBuilder.setEnabled(
+      'compare-branch',
+      isHostedOnGitHub && hasPublishedBranch
+    )
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
     menuStateBuilder.setEnabled('push', hasRemote && !networkActionInProgress)
-    menuStateBuilder.setEnabled('pull', hasPublishedBranch && !networkActionInProgress)
+    menuStateBuilder.setEnabled(
+      'pull',
+      hasPublishedBranch && !networkActionInProgress
+    )
     menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
   } else {
     for (const id of repositoryScopedIDs) {
@@ -167,7 +182,10 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
     menuStateBuilder.disable('view-repository-on-github')
 
-    if (selectedState && selectedState.type === SelectionType.MissingRepository) {
+    if (
+      selectedState &&
+      selectedState.type === SelectionType.MissingRepository
+    ) {
       if (selectedState.repository.gitHubRepository) {
         menuStateBuilder.enable('view-repository-on-github')
       }
@@ -212,7 +230,10 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
  * in the main process based on the AppState. All changes will be
  * batched together into one ipc message.
  */
-export function updateMenuState(state: IAppState, currentAppMenu: AppMenu | null) {
+export function updateMenuState(
+  state: IAppState,
+  currentAppMenu: AppMenu | null
+) {
   const menuState = getMenuState(state)
 
   // Try to avoid updating sending the IPC message at all

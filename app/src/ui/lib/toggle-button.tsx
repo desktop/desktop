@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 
 interface IToggleButtonProps {
-
   /**
    * Indicate whether the toggle button should be rendered in a defined state.
    *
@@ -38,8 +37,10 @@ interface IToggleButtonState {
 }
 
 /** A button component that can be unchecked or checked by the user. */
-export class ToggleButton extends React.Component<IToggleButtonProps, IToggleButtonState> {
-
+export class ToggleButton extends React.Component<
+  IToggleButtonProps,
+  IToggleButtonState
+> {
   public constructor(props: IToggleButtonProps) {
     super(props)
 
@@ -55,15 +56,20 @@ export class ToggleButton extends React.Component<IToggleButtonProps, IToggleBut
 
   public render() {
     const classNameState = this.isChecked() ? 'checked' : 'unchecked'
-    const className = classNames('button-component', this.props.className, classNameState)
+    const className = classNames(
+      'button-component',
+      this.props.className,
+      classNameState
+    )
 
     return (
       <button
         className={className}
         disabled={this.props.disabled}
         onClick={this.onClick}
-        type='button'
-        ref={this.props.onButtonRef}>
+        type="button"
+        ref={this.props.onButtonRef}
+      >
         {this.props.children}
       </button>
     )

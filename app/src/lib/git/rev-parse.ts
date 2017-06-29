@@ -12,16 +12,23 @@ import { RepositoryDoesNotExistErrorCode } from 'dugite'
  *
  * @returns null if the path provided doesn't reside within a Git repository.
  */
-export async function getTopLevelWorkingDirectory(path: string): Promise<string | null> {
+export async function getTopLevelWorkingDirectory(
+  path: string
+): Promise<string | null> {
   let result
 
   try {
     // Note, we use --show-cdup here instead of --show-toplevel because show-toplevel
     // dereferences symlinks and we want to resolve a path as closely as possible to
     // what the user gave us.
-    result = await git(['rev-parse', '--show-cdup'], path, 'getTopLevelWorkingDirectory', {
-      successExitCodes: new Set([0, 128]),
-    })
+    result = await git(
+      ['rev-parse', '--show-cdup'],
+      path,
+      'getTopLevelWorkingDirectory',
+      {
+        successExitCodes: new Set([0, 128]),
+      }
+    )
   } catch (err) {
     if (err.code === RepositoryDoesNotExistErrorCode) {
       return null
@@ -50,7 +57,9 @@ export async function getTopLevelWorkingDirectory(path: string): Promise<string 
  * Attempts to dereference the HEAD symbolic link to a commit sha.
  * Returns null if HEAD is unborn.
  */
-export async function resolveHEAD(repository: Repository): Promise<string | null> {
+export async function resolveHEAD(
+  repository: Repository
+): Promise<string | null> {
   const result = await git(
     ['rev-parse', '--verify', 'HEAD^{commit}'],
     repository.path,

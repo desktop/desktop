@@ -32,7 +32,9 @@ export function groupBranches(
 
   const recentBranchNames = new Set<string>()
   const defaultBranchName = defaultBranch ? defaultBranch.name : null
-  const recentBranchesWithoutDefault = recentBranches.filter(b => b.name !== defaultBranchName)
+  const recentBranchesWithoutDefault = recentBranches.filter(
+    b => b.name !== defaultBranchName
+  )
   if (recentBranchesWithoutDefault.length > 0) {
     const recentBranches = new Array<IBranchListItem>()
 

@@ -1,5 +1,8 @@
 /** Find the menu item with the given ID. */
-export function findMenuItemByID(menu: Electron.Menu, id: string): Electron.MenuItem | null {
+export function findMenuItemByID(
+  menu: Electron.Menu,
+  id: string
+): Electron.MenuItem | null {
   const items = menu.items
   for (const item of items) {
     // The electron type definition doesn't include the `id` field :(

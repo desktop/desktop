@@ -6,7 +6,9 @@ interface IFrontMatterResult<T> {
   readonly body: string
 }
 
-const frontMatter: <T>(path: string) => IFrontMatterResult<T> = require('front-matter')
+const frontMatter: <T>(
+  path: string
+) => IFrontMatterResult<T> = require('front-matter')
 
 interface IChooseALicense {
   readonly title: string
@@ -71,7 +73,9 @@ export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
             const license: ILicense = {
               name: result.attributes.nickname || result.attributes.title,
               featured: result.attributes.featured || false,
-              hidden: result.attributes.hidden === undefined || result.attributes.hidden,
+              hidden:
+                result.attributes.hidden === undefined ||
+                result.attributes.hidden,
               body: result.body.trim(),
             }
 
