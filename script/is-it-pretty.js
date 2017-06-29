@@ -3,8 +3,16 @@
 const prettier = require('prettier');
 const glob = require('glob');
 const fs = require('fs');
+const globPattern = 'app/{src, test}/**/*.{ts, tsx}'
+const prettierOptions = {
+  "parser": "typescript",
+  "singleQuote": true,
+  "trailingComma": "all",
+  "semi": false,
+  "printWidth": 100
+}
 
-glob("app/{src, test}/**/*.{ts, tsx}", (err, matches) => {
+glob(globPattern, (err, matches) => {
   if (err) {
     console.error(err);
     process.exit(1);
@@ -15,14 +23,7 @@ glob("app/{src, test}/**/*.{ts, tsx}", (err, matches) => {
 
   for (const match of matches) {
     const fileContents = fs.readFileSync(match, 'utf8');
-    const isPretty = prettier
-      .check(fileContents, {
-        "parser": "typescript",
-        "singleQuote": true,
-        "trailingComma": "es5",
-        "semi": false,
-        "printWidth": 100
-      });
+    const isPretty = prettier.check(fileContents, prettierOptions);
 
       if (!isPretty) {
         uglyFiles.push(match);
@@ -40,4 +41,4 @@ glob("app/{src, test}/**/*.{ts, tsx}", (err, matches) => {
 
     process.exit(1);
   }
-})
+});
