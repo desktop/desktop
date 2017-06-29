@@ -10,7 +10,7 @@ interface ICLIInstalledProps {
 }
 
 /** Tell the user the CLI tool was successfully installed. */
-export class CLIInstalled extends React.Component<ICLIInstalledProps, void> {
+export class CLIInstalled extends React.Component<ICLIInstalledProps, {}> {
   public render() {
     return (
       <Dialog
