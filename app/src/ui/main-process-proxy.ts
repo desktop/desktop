@@ -4,7 +4,7 @@ import { MenuIDs } from '../main-process/menu'
 import { IMenuItemState } from '../lib/menu-update'
 
 /** Set the menu item's enabledness. */
-export function updateMenuState(state: Array<{id: MenuIDs, state: IMenuItemState}>) {
+export function updateMenuState(state: Array<{ id: MenuIDs; state: IMenuItemState }>) {
   ipcRenderer.send('update-menu-state', state)
 }
 
@@ -75,8 +75,12 @@ let currentContextualMenuItems: ReadonlyArray<IMenuItem> | null = null
  */
 export function registerContextualMenuActionDispatcher() {
   ipcRenderer.on('contextual-menu-action', (event: Electron.IpcMessageEvent, index: number) => {
-    if (!currentContextualMenuItems) { return }
-    if (index >= currentContextualMenuItems.length) { return }
+    if (!currentContextualMenuItems) {
+      return
+    }
+    if (index >= currentContextualMenuItems.length) {
+      return
+    }
 
     const item = currentContextualMenuItems[index]
     const action = item.action
@@ -105,7 +109,7 @@ export function reportUncaughtException(error: Error) {
   ipcRenderer.send('uncaught-exception', getIpcFriendlyError(error))
 }
 
-export function sendErrorReport(error: Error, extra: { [key: string]: string } = { }) {
+export function sendErrorReport(error: Error, extra: { [key: string]: string } = {}) {
   ipcRenderer.send('send-error-report', {
     error: getIpcFriendlyError(error),
     extra,

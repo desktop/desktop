@@ -34,7 +34,7 @@ declare const __PROCESS_KIND__: 'main' | 'ui' | 'shared' | 'crash' | 'askpass'
  */
 declare function requestIdleCallback(fn: () => void, options?: { timeout: number }): number
 
-declare interface IDesktopLogger {
+interface IDesktopLogger {
   /**
    * Writes a log message at the 'error' level.
    *
@@ -139,5 +139,4 @@ declare namespace Electron {
   interface SystemPreferences {
     getUserDefault(key: 'AppleActionOnDoubleClick', type: 'string'): AppleActionOnDoubleClickPref
   }
-
 }

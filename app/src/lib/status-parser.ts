@@ -12,7 +12,7 @@ export interface IStatusEntry {
   readonly kind: 'entry'
 
   /** The path to the file relative to the repository root */
-  readonly path: string,
+  readonly path: string
 
   /** The two character long status code */
   readonly statusCode: string
@@ -48,8 +48,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<StatusItem> 
   const fields = output.split('\0')
   let field: string | undefined
 
-  while (field = fields.shift()) {
-
+  while ((field = fields.shift())) {
     if (field.startsWith('# ') && field.length > 2) {
       entries.push({ kind: 'header', value: field.substr(2) })
       continue
@@ -140,12 +139,10 @@ function parseUntrackedEntry(field: string): IStatusEntry {
   }
 }
 
-
 /**
  * Map the raw status text from Git to a structure we can work with in the app.
  */
 export function mapStatus(status: string): FileEntry {
-
   if (status === '??') {
     return {
       kind: 'untracked',
@@ -322,7 +319,7 @@ export function mapStatus(status: string): FileEntry {
     }
   }
 
-    if (status === 'UU') {
+  if (status === 'UU') {
     return {
       kind: 'conflicted',
       us: GitStatusEntry.Modified,

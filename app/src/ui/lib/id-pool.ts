@@ -9,7 +9,7 @@ function sanitizeId(id: string): string {
   // character since we have the poolPrefix which will
   // guarantee that.
   // See http://stackoverflow.com/a/79022/2114
-  return id.replace(/[^a-z0-9\-_:.]+/ig, '_')
+  return id.replace(/[^a-z0-9\-_:.]+/gi, '_')
 }
 
 /**
@@ -34,19 +34,18 @@ function sanitizeId(id: string): string {
  *                 a value exist. See TextBox for a good example).
  */
 export function createUniqueId(prefix: string): string {
-
   if (__DEV__) {
     if (activeIds.size > 50) {
-      console.warn(`Id pool contains ${activeIds.size} entries, it's possible that id's aren't being released properly.`)
+      console.warn(
+        `Id pool contains ${activeIds.size} entries, it's possible that id's aren't being released properly.`
+      )
     }
   }
 
   const safePrefix = sanitizeId(`${poolPrefix}${prefix}`)
 
   for (let i = 0; i < 100; i++) {
-    const id = i > 0
-      ? `${safePrefix}_${i}`
-      : safePrefix
+    const id = i > 0 ? `${safePrefix}_${i}` : safePrefix
 
     if (!activeIds.has(id)) {
       activeIds.add(id)

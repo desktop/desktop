@@ -19,7 +19,9 @@ export async function getTopLevelWorkingDirectory(path: string): Promise<string 
     // Note, we use --show-cdup here instead of --show-toplevel because show-toplevel
     // dereferences symlinks and we want to resolve a path as closely as possible to
     // what the user gave us.
-    result = await git([ 'rev-parse', '--show-cdup' ], path, 'getTopLevelWorkingDirectory', { successExitCodes: new Set([ 0, 128 ]) })
+    result = await git(['rev-parse', '--show-cdup'], path, 'getTopLevelWorkingDirectory', {
+      successExitCodes: new Set([0, 128]),
+    })
   } catch (err) {
     if (err.code === RepositoryDoesNotExistErrorCode) {
       return null
@@ -49,7 +51,12 @@ export async function getTopLevelWorkingDirectory(path: string): Promise<string 
  * Returns null if HEAD is unborn.
  */
 export async function resolveHEAD(repository: Repository): Promise<string | null> {
-  const result = await git([ 'rev-parse', '--verify', 'HEAD^{commit}' ], repository.path, 'resolveHEAD', { successExitCodes: new Set([ 0, 128 ]) })
+  const result = await git(
+    ['rev-parse', '--verify', 'HEAD^{commit}'],
+    repository.path,
+    'resolveHEAD',
+    { successExitCodes: new Set([0, 128]) }
+  )
   if (result.exitCode === 0) {
     return result.stdout
   } else {
@@ -59,5 +66,5 @@ export async function resolveHEAD(repository: Repository): Promise<string | null
 
 /** Is the path a git repository? */
 export async function isGitRepository(path: string): Promise<boolean> {
-  return await getTopLevelWorkingDirectory(path) !== null
+  return (await getTopLevelWorkingDirectory(path)) !== null
 }

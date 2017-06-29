@@ -34,7 +34,11 @@ export class BackgroundFetcher {
   /** Flag to indicate whether `stop` has been called. */
   private stopped = false
 
-  public constructor(repository: Repository, account: Account, fetch: (repository: Repository) => Promise<void>) {
+  public constructor(
+    repository: Repository,
+    account: Account,
+    fetch: (repository: Repository) => Promise<void>
+  ) {
     this.repository = repository
     this.account = account
     this.fetch = fetch
@@ -48,10 +52,15 @@ export class BackgroundFetcher {
     }
 
     const gitHubRepository = this.repository.gitHubRepository
-    if (!gitHubRepository) { return }
+    if (!gitHubRepository) {
+      return
+    }
 
     if (withInitialSkew) {
-      this.timeoutHandle = window.setTimeout(() => this.performAndScheduleFetch(gitHubRepository), skewInterval())
+      this.timeoutHandle = window.setTimeout(
+        () => this.performAndScheduleFetch(gitHubRepository),
+        skewInterval()
+      )
     } else {
       this.performAndScheduleFetch(gitHubRepository)
     }
@@ -73,7 +82,9 @@ export class BackgroundFetcher {
 
   /** Perform a fetch and schedule the next one. */
   private async performAndScheduleFetch(repository: GitHubRepository): Promise<void> {
-    if (this.stopped) { return }
+    if (this.stopped) {
+      return
+    }
 
     try {
       await this.fetch(this.repository)
@@ -81,10 +92,14 @@ export class BackgroundFetcher {
       log.error('Error performing periodic fetch', e)
     }
 
-    if (this.stopped) { return }
+    if (this.stopped) {
+      return
+    }
 
     const interval = await this.getFetchInterval(repository)
-    if (this.stopped) { return }
+    if (this.stopped) {
+      return
+    }
 
     // NB: We need to use `window.` here to make sure TypeScript looks at the
     // right type declaration :\

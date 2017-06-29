@@ -15,7 +15,9 @@ export interface IRepositoryListItem extends IFilterListItem {
   readonly needsDisambiguation: boolean
 }
 
-export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
+export function groupRepositories(
+  repositories: ReadonlyArray<Repositoryish>
+): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
   const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
   for (const repository of repositories) {
     const gitHubRepository = repository instanceof Repository ? repository.gitHubRepository : null
@@ -43,7 +45,9 @@ export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): R
 
   const addGroup = (identifier: RepositoryGroupIdentifier) => {
     const repositories = grouped.get(identifier)
-    if (!repositories || repositories.length === 0) { return }
+    if (!repositories || repositories.length === 0) {
+      return
+    }
 
     const names = new Map<string, number>()
     for (const repository of repositories) {

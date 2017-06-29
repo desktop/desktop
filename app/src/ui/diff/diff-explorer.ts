@@ -15,7 +15,9 @@ export function diffHunkForIndex(diff: ITextDiff, index: number): DiffHunk | nul
  */
 export function diffLineForIndex(diff: ITextDiff, index: number): DiffLine | null {
   const hunk = diffHunkForIndex(diff, index)
-  if (!hunk) { return null }
+  if (!hunk) {
+    return null
+  }
 
   return hunk.lines[index - hunk.unifiedDiffStart] || null
 }
@@ -24,8 +26,10 @@ export function diffLineForIndex(diff: ITextDiff, index: number): DiffLine | nul
  * For the given row in the diff, determine the range of elements that
  * should be displayed as interactive, as a hunk is not granular enough
  */
-export function findInteractiveDiffRange(diff: ITextDiff, index: number): { start: number, end: number } | null {
-
+export function findInteractiveDiffRange(
+  diff: ITextDiff,
+  index: number
+): { start: number; end: number } | null {
   const hunk = diffHunkForIndex(diff, index)
   if (!hunk) {
     return null
@@ -43,9 +47,7 @@ export function findInteractiveDiffRange(diff: ITextDiff, index: number): { star
     }
   }
 
-  const start = contextLineBeforeIndex
-    ? contextLineBeforeIndex
-    : hunk.unifiedDiffStart + 1
+  const start = contextLineBeforeIndex ? contextLineBeforeIndex : hunk.unifiedDiffStart + 1
 
   let contextLineAfterIndex: number | null = null
 
@@ -58,9 +60,7 @@ export function findInteractiveDiffRange(diff: ITextDiff, index: number): { star
     }
   }
 
-  const end = contextLineAfterIndex
-    ? contextLineAfterIndex
-    : hunk.unifiedDiffEnd
+  const end = contextLineAfterIndex ? contextLineAfterIndex : hunk.unifiedDiffEnd
 
   return { start, end }
 }

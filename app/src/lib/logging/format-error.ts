@@ -8,12 +8,8 @@ export function formatError(error: Error, title?: string) {
   error = withSourceMappedStack(error)
 
   if (error.stack) {
-    return title
-      ? `${title}\n${error.stack}`
-      : error.stack.trim()
+    return title ? `${title}\n${error.stack}` : error.stack.trim()
   } else {
-    return title
-      ? `${title}\n${error.name}: ${error.message}`
-      : `${error.name}: ${error.message}`
+    return title ? `${title}\n${error.name}: ${error.message}` : `${error.name}: ${error.message}`
   }
 }

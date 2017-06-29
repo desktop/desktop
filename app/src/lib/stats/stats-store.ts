@@ -73,8 +73,13 @@ export class StatsStore {
   }
 
   /** Report any stats which are eligible for reporting. */
-  public async reportStats(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>) {
-    if (this.optOut) { return }
+  public async reportStats(
+    accounts: ReadonlyArray<Account>,
+    repositories: ReadonlyArray<Repository>
+  ) {
+    if (this.optOut) {
+      return
+    }
 
     // Never report stats while in dev or test. They could be pretty crazy.
     if (__DEV__ || process.env.TEST_ENV) {
@@ -121,7 +126,10 @@ export class StatsStore {
   }
 
   /** Get the daily stats. */
-  private async getDailyStats(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>): Promise<DailyStats> {
+  private async getDailyStats(
+    accounts: ReadonlyArray<Account>,
+    repositories: ReadonlyArray<Repository>
+  ): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
     const dailyMeasures = await this.getDailyMeasures()
     const userType = this.determineUserType(accounts)
@@ -201,7 +209,9 @@ export class StatsStore {
     }
   }
 
-  private async updateDailyMeasures<K extends keyof IDailyMeasures>(fn: (measures: IDailyMeasures) => Pick<IDailyMeasures, K>): Promise<void> {
+  private async updateDailyMeasures<K extends keyof IDailyMeasures>(
+    fn: (measures: IDailyMeasures) => Pick<IDailyMeasures, K>
+  ): Promise<void> {
     const db = this.db
     const defaultMeasures = DefaultDailyMeasures
     await this.db.transaction('rw', this.db.dailyMeasures, function*() {

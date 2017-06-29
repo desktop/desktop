@@ -2,7 +2,11 @@ import { Emitter, Disposable } from 'event-kit'
 import { Account } from '../../models/account'
 import { assertNever, fatalError } from '../fatal-error'
 import { askUserToOAuth } from '../../lib/oauth'
-import { validateURL, InvalidURLErrorName, InvalidProtocolErrorName } from '../../ui/lib/enterprise-validate-url'
+import {
+  validateURL,
+  InvalidURLErrorName,
+  InvalidProtocolErrorName,
+} from '../../ui/lib/enterprise-validate-url'
 
 import {
   createAuthorization,
@@ -41,10 +45,10 @@ export enum SignInStep {
  * store can be in save the unitialized state (null).
  */
 export type SignInState =
-  IEndpointEntryState |
-  IAuthenticationState |
-  ITwoFactorAuthenticationState |
-  ISuccessState
+  | IEndpointEntryState
+  | IAuthenticationState
+  | ITwoFactorAuthenticationState
+  | ISuccessState
 
 /**
  * Base interface for shared properties between states
@@ -229,7 +233,9 @@ export class SignInStore {
         return true
       }
     } else {
-      throw new Error(`Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct and that your GitHub Enterprise instance is running version ${minimumSupportedEnterpriseVersion} or later.`)
+      throw new Error(
+        `Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct and that your GitHub Enterprise instance is running version ${minimumSupportedEnterpriseVersion} or later.`
+      )
     }
   }
 
@@ -322,7 +328,12 @@ export class SignInStore {
       })
     } else {
       if (response.kind === AuthorizationResponseKind.Error) {
-        this.emitError(new Error(`The server responded with an error while attempting to authenticate (${response.response.status})\n\n${response.response.statusText}`))
+        this.emitError(
+          new Error(
+            `The server responded with an error while attempting to authenticate (${response
+              .response.status})\n\n${response.response.statusText}`
+          )
+        )
         this.setState({ ...currentState, loading: false })
       } else if (response.kind === AuthorizationResponseKind.Failed) {
         this.setState({
@@ -430,9 +441,13 @@ export class SignInStore {
     } catch (e) {
       let error = e
       if (e.name === InvalidURLErrorName) {
-        error = new Error(`The GitHub Enterprise instance address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`)
+        error = new Error(
+          `The GitHub Enterprise instance address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`
+        )
       } else if (e.name === InvalidProtocolErrorName) {
-        error = new Error('Unsupported protocol. Only http or https is supported when authenticating with GitHub Enterprise instances.')
+        error = new Error(
+          'Unsupported protocol. Only http or https is supported when authenticating with GitHub Enterprise instances.'
+        )
       }
 
       this.setState({ ...currentState, loading: false, error })
@@ -460,7 +475,9 @@ export class SignInStore {
       let error = e
       // We'll get an ENOTFOUND if the address couldn't be resolved.
       if (e.code === 'ENOTFOUND') {
-        error = new Error('The server could not be found. Please verify that the URL is correct and that you have a stable internet connection.')
+        error = new Error(
+          'The server could not be found. Please verify that the URL is correct and that you have a stable internet connection.'
+        )
       }
 
       this.setState({ ...currentState, loading: false, error })
@@ -480,7 +497,6 @@ export class SignInStore {
    * the responsible component can present it to the user.
    */
   public async setTwoFactorOTP(otp: string) {
-
     const currentState = this.state
 
     if (!currentState || currentState.kind !== SignInStep.TwoFactorAuthentication) {
@@ -497,7 +513,7 @@ export class SignInStore {
         currentState.endpoint,
         currentState.username,
         currentState.password,
-        otp,
+        otp
       )
     } catch (e) {
       this.emitError(e)
@@ -531,13 +547,20 @@ export class SignInStore {
           })
           break
         case AuthorizationResponseKind.Error:
-          this.emitError(new Error(`The server responded with an error (${response.response.status})\n\n${response.response.statusText}`))
+          this.emitError(
+            new Error(
+              `The server responded with an error (${response.response.status})\n\n${response
+                .response.statusText}`
+            )
+          )
           break
         case AuthorizationResponseKind.UserRequiresVerification:
           this.emitError(new Error(getUnverifiedUserErrorMessage(currentState.username)))
           break
         case AuthorizationResponseKind.PersonalAccessTokenBlocked:
-          this.emitError(new Error('A personal access token cannot be used to login to GitHub Desktop.'))
+          this.emitError(
+            new Error('A personal access token cannot be used to login to GitHub Desktop.')
+          )
           break
         case AuthorizationResponseKind.EnterpriseTooOld:
           this.emitError(new Error(EnterpriseTooOldMessage))

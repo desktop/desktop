@@ -9,7 +9,12 @@ export interface IBranchListItem extends IFilterListItem {
   readonly branch: Branch
 }
 
-export function groupBranches(defaultBranch: Branch | null, currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>): ReadonlyArray<IFilterListGroup<IBranchListItem>> {
+export function groupBranches(
+  defaultBranch: Branch | null,
+  currentBranch: Branch | null,
+  allBranches: ReadonlyArray<Branch>,
+  recentBranches: ReadonlyArray<Branch>
+): ReadonlyArray<IFilterListGroup<IBranchListItem>> {
   const groups = new Array<IFilterListGroup<IBranchListItem>>()
 
   if (defaultBranch) {
@@ -46,14 +51,14 @@ export function groupBranches(defaultBranch: Branch | null, currentBranch: Branc
     })
   }
 
-  const remainingBranches = allBranches.filter(b => b.name !== defaultBranchName && !recentBranchNames.has(b.name))
-  const remainingItems = remainingBranches.map(b => (
-    {
-      text: b.name,
-      id: b.name,
-      branch: b,
-    }
-  ))
+  const remainingBranches = allBranches.filter(
+    b => b.name !== defaultBranchName && !recentBranchNames.has(b.name)
+  )
+  const remainingItems = remainingBranches.map(b => ({
+    text: b.name,
+    id: b.name,
+    branch: b,
+  }))
   groups.push({
     identifier: 'other',
     items: remainingItems,

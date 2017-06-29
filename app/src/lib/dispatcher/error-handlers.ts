@@ -34,7 +34,10 @@ function asErrorWithMetadata(error: Error): ErrorWithMetadata | null {
 }
 
 /** Handle errors by presenting them. */
-export async function defaultErrorHandler(error: Error, dispatcher: Dispatcher): Promise<Error | null> {
+export async function defaultErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
   await dispatcher.presentError(error)
 
   return null
@@ -49,7 +52,10 @@ export function createMissingRepositoryHandler(appStore: AppStore): ErrorHandler
       return error
     }
 
-    if (selectedState.type !== SelectionType.MissingRepository && selectedState.type !== SelectionType.Repository) {
+    if (
+      selectedState.type !== SelectionType.MissingRepository &&
+      selectedState.type !== SelectionType.Repository
+    ) {
       return error
     }
 
@@ -61,7 +67,7 @@ export function createMissingRepositoryHandler(appStore: AppStore): ErrorHandler
     const errorWithCode = asErrorWithCode(error)
 
     const missing =
-      error instanceof GitError && error.result.gitError === GitErrorType.NotAGitRepository ||
+      (error instanceof GitError && error.result.gitError === GitErrorType.NotAGitRepository) ||
       (errorWithCode && errorWithCode.code === RepositoryDoesNotExistErrorCode)
 
     if (missing) {
@@ -90,7 +96,10 @@ export async function unhandledExceptionHandler(error: Error, dispatcher: Dispat
 }
 
 /** Handle errors that happen as a result of a background task. */
-export async function backgroundTaskHandler(error: Error, dispatcher: Dispatcher): Promise<Error | null> {
+export async function backgroundTaskHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
   const e = asErrorWithMetadata(error)
   if (!e) {
     return error

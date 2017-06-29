@@ -24,14 +24,16 @@ export class IssuesStore {
   private async getLatestUpdatedAt(repository: GitHubRepository): Promise<Date | null> {
     const gitHubRepositoryID = repository.dbID
     if (!gitHubRepositoryID) {
-      return fatalError('Cannot get issues for a repository that hasn\'t been inserted into the database!')
+      return fatalError(
+        "Cannot get issues for a repository that hasn't been inserted into the database!"
+      )
     }
 
     const db = this.db
 
     const latestUpdatedIssue = await db.issues
       .where('[gitHubRepositoryID+updated_at]')
-      .between([ gitHubRepositoryID ], [ gitHubRepositoryID + 1 ], true, false)
+      .between([gitHubRepositoryID], [gitHubRepositoryID + 1], true, false)
       .last()
 
     if (!latestUpdatedIssue || !latestUpdatedIssue.updated_at) {
@@ -40,9 +42,7 @@ export class IssuesStore {
 
     const lastUpdatedAt = new Date(latestUpdatedIssue.updated_at)
 
-    return !isNaN(lastUpdatedAt.getTime())
-      ? lastUpdatedAt
-      : null
+    return !isNaN(lastUpdatedAt.getTime()) ? lastUpdatedAt : null
   }
 
   /**
@@ -63,36 +63,44 @@ export class IssuesStore {
     // it since we should get a 304 response from GitHub.
     const state = lastUpdatedAt ? 'all' : 'open'
 
-    const issues = await api.fetchIssues(repository.owner.login, repository.name, state, lastUpdatedAt)
+    const issues = await api.fetchIssues(
+      repository.owner.login,
+      repository.name,
+      state,
+      lastUpdatedAt
+    )
 
     this.storeIssues(issues, repository)
   }
 
-  private async storeIssues(issues: ReadonlyArray<IAPIIssue>, repository: GitHubRepository): Promise<void> {
+  private async storeIssues(
+    issues: ReadonlyArray<IAPIIssue>,
+    repository: GitHubRepository
+  ): Promise<void> {
     const gitHubRepositoryID = repository.dbID
     if (!gitHubRepositoryID) {
-      fatalError(`Cannot store issues for a repository that hasn't been inserted into the database!`)
+      fatalError(
+        `Cannot store issues for a repository that hasn't been inserted into the database!`
+      )
       return
     }
 
     const issuesToDelete = issues.filter(i => i.state === 'closed')
-    const issuesToUpsert = issues
-      .filter(i => i.state === 'open')
-      .map<IIssue>(i => {
-        return {
-          gitHubRepositoryID,
-          number: i.number,
-          title: i.title,
-          updated_at: i.updated_at,
-        }
-      })
+    const issuesToUpsert = issues.filter(i => i.state === 'open').map<IIssue>(i => {
+      return {
+        gitHubRepositoryID,
+        number: i.number,
+        title: i.title,
+        updated_at: i.updated_at,
+      }
+    })
 
     const db = this.db
 
     function findIssueInRepositoryByNumber(gitHubRepositoryID: number, issueNumber: number) {
       return db.issues
         .where('[gitHubRepositoryID+number]')
-        .equals([ gitHubRepositoryID, issueNumber ])
+        .equals([gitHubRepositoryID, issueNumber])
         .limit(1)
         .first()
     }
@@ -117,10 +125,13 @@ export class IssuesStore {
   }
 
   /** Get issues whose title or number matches the text. */
-  public async getIssuesMatching(repository: GitHubRepository, text: string): Promise<ReadonlyArray<IIssue>> {
+  public async getIssuesMatching(
+    repository: GitHubRepository,
+    text: string
+  ): Promise<ReadonlyArray<IIssue>> {
     const gitHubRepositoryID = repository.dbID
     if (!gitHubRepositoryID) {
-      fatalError('Cannot get issues for a repository that hasn\'t been inserted into the database!')
+      fatalError("Cannot get issues for a repository that hasn't been inserted into the database!")
       return []
     }
 
@@ -152,9 +163,7 @@ export class IssuesStore {
       .equals(gitHubRepositoryID)
       .filter(i => score(i) > 0)
 
-    const issues = await issuesCollection
-      .limit(IssueResultsHardLimit)
-      .toArray()
+    const issues = await issuesCollection.limit(IssueResultsHardLimit).toArray()
 
     return issues.sort((a, b) => score(b) - score(a))
   }

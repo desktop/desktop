@@ -24,8 +24,12 @@ import { IPullProgress } from '../app-state'
  *                           the '--progress' command line flag for
  *                           'git pull'.
  */
-export async function pull(repository: Repository, account: Account | null, remote: string, progressCallback?: (progress: IPullProgress) => void): Promise<void> {
-
+export async function pull(
+  repository: Repository,
+  account: Account | null,
+  remote: string,
+  progressCallback?: (progress: IPullProgress) => void
+): Promise<void> {
   let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
     expectedErrors: expectedAuthenticationErrors(),
@@ -35,7 +39,7 @@ export async function pull(repository: Repository, account: Account | null, remo
     const title = `Pulling ${remote}`
     const kind = 'pull'
 
-    opts = executionOptionsWithProgress(opts, new PullProgressParser, (progress) => {
+    opts = executionOptionsWithProgress(opts, new PullProgressParser(), progress => {
       // In addition to progress output from the remote end and from
       // git itself, the stderr output from pull contains information
       // about ref updates. We don't need to bring those into the progress
@@ -46,9 +50,7 @@ export async function pull(repository: Repository, account: Account | null, remo
         }
       }
 
-      const description = progress.kind === 'progress'
-        ? progress.details.text
-        : progress.text
+      const description = progress.kind === 'progress' ? progress.details.text : progress.text
 
       const value = progress.percent
 
@@ -60,8 +62,8 @@ export async function pull(repository: Repository, account: Account | null, remo
   }
 
   const args = progressCallback
-    ? [ ...gitNetworkArguments, 'pull', '--no-rebase', '--progress', remote ]
-    : [ ...gitNetworkArguments, 'pull', '--no-rebase', remote ]
+    ? [...gitNetworkArguments, 'pull', '--no-rebase', '--progress', remote]
+    : [...gitNetworkArguments, 'pull', '--no-rebase', remote]
 
   const result = await git(args, repository.path, 'pull', opts)
 

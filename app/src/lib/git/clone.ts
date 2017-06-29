@@ -6,9 +6,9 @@ import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 /** Additional arguments to provide when cloning a repository */
 export type CloneOptions = {
   /** The optional identity to provide when cloning. */
-  readonly account: Account | null,
+  readonly account: Account | null
   /** The branch to checkout after the clone has completed. */
-  readonly branch?: string,
+  readonly branch?: string
 }
 
 /**
@@ -31,13 +31,15 @@ export type CloneOptions = {
  *                           'git clone'.
  *
  */
-export async function clone(url: string, path: string, options: CloneOptions, progressCallback?: (progress: ICloneProgress) => void): Promise<void> {
+export async function clone(
+  url: string,
+  path: string,
+  options: CloneOptions,
+  progressCallback?: (progress: ICloneProgress) => void
+): Promise<void> {
   const env = envForAuthentication(options.account)
 
-  const args = [
-    ...gitNetworkArguments,
-    'clone', '--recursive', '--progress',
-]
+  const args = [...gitNetworkArguments, 'clone', '--recursive', '--progress']
 
   let opts: IGitExecutionOptions = { env }
 
@@ -47,10 +49,8 @@ export async function clone(url: string, path: string, options: CloneOptions, pr
     const title = `Cloning into ${path}`
     const kind = 'clone'
 
-    opts = executionOptionsWithProgress(opts, new CloneProgressParser(), (progress) => {
-      const description = progress.kind === 'progress'
-        ? progress.details.text
-        : progress.text
+    opts = executionOptionsWithProgress(opts, new CloneProgressParser(), progress => {
+      const description = progress.kind === 'progress' ? progress.details.text : progress.text
       const value = progress.percent
 
       progressCallback({ kind, title, description, value })

@@ -1,8 +1,8 @@
 import { GitProcess } from 'dugite'
 
 type ProcessOutput = {
-  output: Buffer,
-  error: Buffer,
+  output: Buffer
+  error: Buffer
 }
 
 /**
@@ -14,13 +14,17 @@ type ProcessOutput = {
  * @param name The name of the operation - for tracing purposes.
  * @param successExitCodes An optional array of exit codes that indicate success.
  */
-export function spawnAndComplete(args: string[], path: string, name: string, successExitCodes?: Set<number>): Promise<ProcessOutput> {
-
+export function spawnAndComplete(
+  args: string[],
+  path: string,
+  name: string,
+  successExitCodes?: Set<number>
+): Promise<ProcessOutput> {
   return new Promise<ProcessOutput>((resolve, reject) => {
     const commandName = `${name}: git ${args.join(' ')}`
     log.debug(`Executing ${commandName}`)
 
-    const startTime = (performance && performance.now) ? performance.now() : null
+    const startTime = performance && performance.now ? performance.now() : null
 
     const process = GitProcess.spawn(args, path)
 
@@ -75,9 +79,13 @@ export function spawnAndComplete(args: string[], path: string, name: string, suc
     process.on('exit', (code, signal) => {
       // mimic the experience of GitProcess.exec for handling known codes when
       // the process terminates
-      const exitCodes = successExitCodes || new Set([ 0 ])
+      const exitCodes = successExitCodes || new Set([0])
       if (!exitCodes.has(code)) {
-        reject(new Error(`Git returned an unexpected exit code '${code}' which should be handled by the caller.'`))
+        reject(
+          new Error(
+            `Git returned an unexpected exit code '${code}' which should be handled by the caller.'`
+          )
+        )
       }
     })
   })

@@ -1,6 +1,5 @@
 /** The data-only interface for Email for transport across IPC. */
 export interface IEmail {
-
   readonly email: string
   /**
    * Represents whether GitHub has confirmed the user has access to this

@@ -45,7 +45,6 @@ export class SharedProcess {
 
   /** Send a message to the shared process' renderer. */
   public send(msg: IMessage) {
-
     if (this.window.isDestroyed()) {
       return
     }
@@ -55,10 +54,12 @@ export class SharedProcess {
   }
 
   private drainMessageQueue() {
-    if (!this.loaded) { return }
+    if (!this.loaded) {
+      return
+    }
 
     for (const msg of this.messageQueue) {
-      this.window.webContents.send('shared/request', [ msg ])
+      this.window.webContents.send('shared/request', [msg])
     }
 
     this.messageQueue = []

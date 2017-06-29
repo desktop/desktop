@@ -1,11 +1,7 @@
 import { shell } from 'electron'
 import { Account } from '../models/account'
 import { fatalError } from './fatal-error'
-import {
-  getOAuthAuthorizationURL,
-  requestOAuthToken,
-  fetchUser,
-} from './api'
+import { getOAuthAuthorizationURL, requestOAuthToken, fetchUser } from './api'
 import { uuid } from './uuid'
 
 interface IOAuthState {

@@ -44,7 +44,15 @@ async function updateAccounts() {
     const api = API.fromAccount(account)
     const newAccount = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatar_url, newAccount.id, newAccount.name)
+    return new Account(
+      account.login,
+      account.endpoint,
+      account.token,
+      emails,
+      newAccount.avatar_url,
+      newAccount.id,
+      newAccount.name
+    )
   })
   broadcastUpdate()
 }
@@ -100,19 +108,28 @@ register('update-github-repository', async ({ repository }: IUpdateGitHubReposit
   return updatedRepository
 })
 
-register('update-repository-missing', async ({ repository, missing }: IUpdateRepositoryMissingAction) => {
-  const inflatedRepository = Repository.fromJSON(repository)
-  const updatedRepository = await repositoriesStore.updateRepositoryMissing(inflatedRepository, missing)
+register(
+  'update-repository-missing',
+  async ({ repository, missing }: IUpdateRepositoryMissingAction) => {
+    const inflatedRepository = Repository.fromJSON(repository)
+    const updatedRepository = await repositoriesStore.updateRepositoryMissing(
+      inflatedRepository,
+      missing
+    )
 
-  broadcastUpdate()
+    broadcastUpdate()
 
-  return updatedRepository
-})
+    return updatedRepository
+  }
+)
 
 register('update-repository-path', async ({ repository, path }: IUpdateRepositoryPathAction) => {
   const inflatedRepository = Repository.fromJSON(repository)
   const updatedRepository = await repositoriesStore.updateRepositoryPath(inflatedRepository, path)
-  const newUpdatedRepository = await repositoriesStore.updateRepositoryMissing(updatedRepository, false)
+  const newUpdatedRepository = await repositoriesStore.updateRepositoryMissing(
+    updatedRepository,
+    false
+  )
 
   broadcastUpdate()
 

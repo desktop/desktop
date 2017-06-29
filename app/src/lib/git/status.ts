@@ -27,7 +27,6 @@ export interface IStatusResult {
 }
 
 function convertToAppStatus(status: FileEntry): AppFileStatus {
-
   if (status.kind === 'ordinary') {
     switch (status.type) {
       case 'added':
@@ -55,7 +54,11 @@ function convertToAppStatus(status: FileEntry): AppFileStatus {
  *  and fail gracefully if the location is not a Git repository
  */
 export async function getStatus(repository: Repository): Promise<IStatusResult> {
-  const result = await git([ 'status', '--untracked-files=all', '--branch', '--porcelain=2', '-z' ], repository.path, 'getStatus')
+  const result = await git(
+    ['status', '--untracked-files=all', '--branch', '--porcelain=2', '-z'],
+    repository.path,
+    'getStatus'
+  )
 
   const files = new Array<WorkingDirectoryFileChange>()
 
@@ -72,8 +75,10 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
         // when a file is added in the index but then removed in the working
         // directory, the file won't be part of the commit, so we can skip
         // displaying this entry in the changes list
-        if (status.index === GitStatusEntry.Added
-            && status.workingTree === GitStatusEntry.Deleted) {
+        if (
+          status.index === GitStatusEntry.Added &&
+          status.workingTree === GitStatusEntry.Deleted
+        ) {
           continue
         }
       }
@@ -99,15 +104,15 @@ export async function getStatus(repository: Repository): Promise<IStatusResult> 
       const value = entry.value
 
       // This intentionally does not match branch.oid initial
-      if (m = value.match(/^branch\.oid ([a-f0-9]+)$/)) {
+      if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
         currentTip = m[1]
-      } else if (m = value.match(/^branch.head (.*)/)) {
+      } else if ((m = value.match(/^branch.head (.*)/))) {
         if (m[1] !== '(detached)') {
           currentBranch = m[1]
         }
-      } else if (m = value.match(/^branch.upstream (.*)/)) {
+      } else if ((m = value.match(/^branch.upstream (.*)/))) {
         currentUpstreamBranch = m[1]
-      } else if (m = value.match(/^branch.ab \+(\d+) -(\d+)$/)) {
+      } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
         const ahead = parseInt(m[1], 10)
         const behind = parseInt(m[2], 10)
 

@@ -11,7 +11,9 @@ export function findMenuItemByID(menu: Electron.Menu, id: string): Electron.Menu
     const submenu = item.submenu as Electron.Menu
     if (submenu) {
       const found = findMenuItemByID(submenu, id)
-      if (found) { return found }
+      if (found) {
+        return found
+      }
     }
   }
 

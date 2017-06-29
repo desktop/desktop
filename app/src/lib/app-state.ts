@@ -22,9 +22,14 @@ export enum SelectionType {
   MissingRepository,
 }
 
-export type PossibleSelections = { type: SelectionType.Repository, repository: Repository, state: IRepositoryState } |
-                                 { type: SelectionType.CloningRepository, repository: CloningRepository, progress: ICloneProgress } |
-                                 { type: SelectionType.MissingRepository, repository: Repository }
+export type PossibleSelections =
+  | { type: SelectionType.Repository; repository: Repository; state: IRepositoryState }
+  | {
+      type: SelectionType.CloningRepository
+      repository: CloningRepository
+      progress: ICloneProgress
+    }
+  | { type: SelectionType.MissingRepository; repository: Repository }
 
 /** All of the shared app state. */
 export interface IAppState {
@@ -142,24 +147,29 @@ export enum PopupType {
   TermsAndConditions,
 }
 
-export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
-                    { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
-                    { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
-                    { type: PopupType.Preferences } |
-                    { type: PopupType.MergeBranch, repository: Repository } |
-                    { type: PopupType.RepositorySettings, repository: Repository } |
-                    { type: PopupType.AddRepository, path?: string } |
-                    { type: PopupType.CreateRepository, path?: string } |
-                    { type: PopupType.CloneRepository, initialURL: string | null } |
-                    { type: PopupType.CreateBranch, repository: Repository } |
-                    { type: PopupType.SignIn } |
-                    { type: PopupType.About } |
-                    { type: PopupType.InstallGit, path: string } |
-                    { type: PopupType.PublishRepository, repository: Repository } |
-                    { type: PopupType.Acknowledgements } |
-                    { type: PopupType.UntrustedCertificate, certificate: Electron.Certificate, url: string } |
-                    { type: PopupType.RemoveRepository, repository: Repository } |
-                    { type: PopupType.TermsAndConditions }
+export type Popup =
+  | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
+  | { type: PopupType.DeleteBranch; repository: Repository; branch: Branch }
+  | {
+      type: PopupType.ConfirmDiscardChanges
+      repository: Repository
+      files: ReadonlyArray<WorkingDirectoryFileChange>
+    }
+  | { type: PopupType.Preferences }
+  | { type: PopupType.MergeBranch; repository: Repository }
+  | { type: PopupType.RepositorySettings; repository: Repository }
+  | { type: PopupType.AddRepository; path?: string }
+  | { type: PopupType.CreateRepository; path?: string }
+  | { type: PopupType.CloneRepository; initialURL: string | null }
+  | { type: PopupType.CreateBranch; repository: Repository }
+  | { type: PopupType.SignIn }
+  | { type: PopupType.About }
+  | { type: PopupType.InstallGit; path: string }
+  | { type: PopupType.PublishRepository; repository: Repository }
+  | { type: PopupType.Acknowledgements }
+  | { type: PopupType.UntrustedCertificate; certificate: Electron.Certificate; url: string }
+  | { type: PopupType.RemoveRepository; repository: Repository }
+  | { type: PopupType.TermsAndConditions }
 
 export enum FoldoutType {
   Repository,
@@ -169,14 +179,14 @@ export enum FoldoutType {
 }
 
 export type AppMenuFoldout = {
-  type: FoldoutType.AppMenu,
+  type: FoldoutType.AppMenu
 
   /**
    * Whether or not the application menu was opened with the Alt key, this
    * enables access key highlighting for applicable menu items as well as
    * keyboard navigation by pressing access keys.
    */
-  enableAccessKeyNavigation: boolean,
+  enableAccessKeyNavigation: boolean
 
   /**
    * Whether the menu was opened by pressing Alt (or Alt+X where X is an
@@ -185,14 +195,14 @@ export type AppMenuFoldout = {
    * selection and focus. Specifically it will ensure that the last opened
    * menu will receive focus.
    */
-  openedWithAccessKey?: boolean,
+  openedWithAccessKey?: boolean
 }
 
 export type Foldout =
-  { type: FoldoutType.Repository } |
-  { type: FoldoutType.Branch } |
-  { type: FoldoutType.AddMenu } |
-  AppMenuFoldout
+  | { type: FoldoutType.Repository }
+  | { type: FoldoutType.Branch }
+  | { type: FoldoutType.AddMenu }
+  | AppMenuFoldout
 
 export enum RepositorySection {
   Changes,
@@ -263,7 +273,8 @@ export interface IRepositoryState {
   readonly pushPullFetchProgress: Progress | null
 }
 
-export type Progress = IGenericProgress
+export type Progress =
+  | IGenericProgress
   | ICheckoutProgress
   | IFetchProgress
   | IPullProgress
@@ -274,7 +285,6 @@ export type Progress = IGenericProgress
  * need to support.
  */
 interface IProgress {
-
   /**
    * The overall progress of the operation, represented as a fraction between
    * 0 and 1.
@@ -327,7 +337,7 @@ export interface IFetchProgress extends IProgress {
   /**
    * The remote that's being fetched
    */
-  readonly remote: string,
+  readonly remote: string
 }
 
 /**
@@ -339,7 +349,7 @@ export interface IPullProgress extends IProgress {
   /**
    * The remote that's being pulled from
    */
-  readonly remote: string,
+  readonly remote: string
 }
 
 /**
@@ -351,12 +361,12 @@ export interface IPushProgress extends IProgress {
   /**
    * The remote that's being pushed to
    */
-  readonly remote: string,
+  readonly remote: string
 
   /**
    * The branch that's being pushed
    */
-  readonly branch: string,
+  readonly branch: string
 }
 
 /**

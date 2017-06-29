@@ -1,7 +1,12 @@
 import { assertNever } from '../lib/fatal-error'
 
 /** A type union of all possible types of menu items */
-export type MenuItem = IMenuItem | ISubmenuItem | ISeparatorMenuItem | ICheckboxMenuItem | IRadioMenuItem
+export type MenuItem =
+  | IMenuItem
+  | ISubmenuItem
+  | ISeparatorMenuItem
+  | ICheckboxMenuItem
+  | IRadioMenuItem
 
 /** A type union of all types of menu items which can be executed */
 export type ExecutableMenuItem = IMenuItem | ICheckboxMenuItem | IRadioMenuItem
@@ -163,7 +168,6 @@ function getAccessKey(text: string): string | null {
  * convert each item.
  */
 function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
-
   // Our menu items always have ids and Electron.MenuItem takes on whatever
   // properties was defined on the MenuItemOptions template used to create it
   // but doesn't surface those in the type declaration.
@@ -244,11 +248,15 @@ function buildIdMap(menu: IMenu, map = new Map<string, MenuItem>()): Map<string,
 }
 
 /** Type guard which narrows a MenuItem to one which supports access keys */
-export function itemMayHaveAccessKey(item: MenuItem): item is IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem {
-  return item.type === 'menuItem' ||
+export function itemMayHaveAccessKey(
+  item: MenuItem
+): item is IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem {
+  return (
+    item.type === 'menuItem' ||
     item.type === 'submenuItem' ||
     item.type === 'checkbox' ||
     item.type === 'radio'
+  )
 }
 
 /**
@@ -268,7 +276,10 @@ export function itemIsSelectable(item: MenuItem) {
  * item is selectable, consumers of this function need to perform that
  * check themselves when applicable.
  */
-export function findItemByAccessKey(accessKey: string, items: ReadonlyArray<MenuItem>): IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem | null {
+export function findItemByAccessKey(
+  accessKey: string,
+  items: ReadonlyArray<MenuItem>
+): IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem | null {
   const lowerCaseAccessKey = accessKey.toLowerCase()
 
   for (const item of items) {
@@ -298,7 +309,6 @@ export function findItemByAccessKey(accessKey: string, items: ReadonlyArray<Menu
  * the interactions are defined by the component using it.
  */
 export class AppMenu {
-
   /**
    * A list of currently open menus with their selected items
    * in the application menu.
@@ -327,13 +337,17 @@ export class AppMenu {
    */
   public static fromMenu(menu: IMenu): AppMenu {
     const map = buildIdMap(menu)
-    const openMenus = [ menu ]
+    const openMenus = [menu]
 
     return new AppMenu(menu, openMenus, map)
   }
 
   // Used by static constructors and transformers.
-  private constructor(menu: IMenu, openMenus: ReadonlyArray<IMenu>, menuItemById: Map<string, MenuItem>) {
+  private constructor(
+    menu: IMenu,
+    openMenus: ReadonlyArray<IMenu>,
+    menuItemById: Map<string, MenuItem>
+  ) {
     this.menu = menu
     this.openMenus = openMenus
     this.menuItemById = menuItemById
@@ -453,7 +467,9 @@ export class AppMenu {
 
     const ourMenuIndex = this.openMenus.findIndex(m => m.id === menu.id)
 
-    if (ourMenuIndex === -1) { return this }
+    if (ourMenuIndex === -1) {
+      return this
+    }
 
     const newOpenMenus = this.openMenus.slice(0, ourMenuIndex)
 
@@ -471,7 +487,9 @@ export class AppMenu {
   public withLastMenu(menu: IMenu) {
     const ourMenuIndex = this.openMenus.findIndex(m => m.id === menu.id)
 
-    if (ourMenuIndex === -1) { return this }
+    if (ourMenuIndex === -1) {
+      return this
+    }
 
     const newOpenMenus = this.openMenus.slice(0, ourMenuIndex + 1)
 
@@ -506,7 +524,9 @@ export class AppMenu {
 
     // The menu which the selected item belongs to is no longer open,
     // not much we can do about that.
-    if (parentMenuIndex === -1) { return this }
+    if (parentMenuIndex === -1) {
+      return this
+    }
 
     const newOpenMenus = this.openMenus.slice()
 
@@ -526,10 +546,11 @@ export class AppMenu {
       const menu = newOpenMenus[i]
       const childMenu = newOpenMenus[i + 1]
 
-      const selectedItem = menu.items.find(item =>
-        item.type === 'submenuItem' && item.id === childMenu.id)
+      const selectedItem = menu.items.find(
+        item => item.type === 'submenuItem' && item.id === childMenu.id
+      )
 
-      newOpenMenus[i] =  { ...menu, selectedItem }
+      newOpenMenus[i] = { ...menu, selectedItem }
     }
 
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
@@ -569,10 +590,11 @@ export class AppMenu {
       const menu = newOpenMenus[i]
       const childMenu = newOpenMenus[i + 1]
 
-      const selectedItem = menu.items.find(item =>
-        item.type === 'submenuItem' && item.id === childMenu.id)
+      const selectedItem = menu.items.find(
+        item => item.type === 'submenuItem' && item.id === childMenu.id
+      )
 
-      newOpenMenus[i] =  { ...menu, selectedItem }
+      newOpenMenus[i] = { ...menu, selectedItem }
     }
 
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
@@ -584,6 +606,6 @@ export class AppMenu {
    * all selection state is cleared.
    */
   public withReset() {
-    return new AppMenu(this.menu, [ this.menu ], this.menuItemById)
+    return new AppMenu(this.menu, [this.menu], this.menuItemById)
   }
 }

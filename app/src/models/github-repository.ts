@@ -34,10 +34,28 @@ export class GitHubRepository implements IGitHubRepository {
 
   /** Create a new GitHubRepository from its data-only representation. */
   public static fromJSON(json: IGitHubRepository): GitHubRepository {
-    return new GitHubRepository(json.name, Owner.fromJSON(json.owner), json.dbID, json.private, json.fork, json.htmlURL, json.defaultBranch, json.cloneURL)
+    return new GitHubRepository(
+      json.name,
+      Owner.fromJSON(json.owner),
+      json.dbID,
+      json.private,
+      json.fork,
+      json.htmlURL,
+      json.defaultBranch,
+      json.cloneURL
+    )
   }
 
-  public constructor(name: string, owner: Owner, dbID: number | null, private_: boolean | null = null, fork: boolean | null = null, htmlURL: string | null = null, defaultBranch: string | null = 'master', cloneURL: string | null = null) {
+  public constructor(
+    name: string,
+    owner: Owner,
+    dbID: number | null,
+    private_: boolean | null = null,
+    fork: boolean | null = null,
+    htmlURL: string | null = null,
+    defaultBranch: string | null = 'master',
+    cloneURL: string | null = null
+  ) {
     this.name = name
     this.owner = owner
     this.dbID = dbID
@@ -50,7 +68,16 @@ export class GitHubRepository implements IGitHubRepository {
 
   /** Create a new copy of the repository with the API information copied over. */
   public withAPI(apiRepository: IAPIRepository): GitHubRepository {
-    const newRepository = new GitHubRepository(this.name, this.owner, this.dbID, apiRepository.private, apiRepository.fork, apiRepository.html_url, apiRepository.default_branch, apiRepository.clone_url)
+    const newRepository = new GitHubRepository(
+      this.name,
+      this.owner,
+      this.dbID,
+      apiRepository.private,
+      apiRepository.fork,
+      apiRepository.html_url,
+      apiRepository.default_branch,
+      apiRepository.clone_url
+    )
 
     return structuralEquals(newRepository, this) ? this : newRepository
   }

@@ -15,7 +15,6 @@ export interface IMenuItemState {
  * Utility class for coalescing updates to menu items
  */
 class MenuStateBuilder {
-
   private readonly _state = new Map<MenuIDs, IMenuItemState>()
 
   /**
@@ -28,8 +27,11 @@ class MenuStateBuilder {
     return new Map<MenuIDs, IMenuItemState>(this._state)
   }
 
-  private updateMenuItem<K extends keyof IMenuItemState>(id: MenuIDs, state: Pick<IMenuItemState, K>) {
-    const currentState = this._state.get(id) || { }
+  private updateMenuItem<K extends keyof IMenuItemState>(
+    id: MenuIDs,
+    state: Pick<IMenuItemState, K>
+  ) {
+    const currentState = this._state.get(id) || {}
     this._state.set(id, merge(currentState, state))
   }
 
@@ -61,7 +63,11 @@ function isRepositoryHostedOnGitHub(repository: Repository | CloningRepository) 
 }
 
 function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
-  if (state.enabled !== undefined && menuItem.type !== 'separator' && menuItem.enabled !== state.enabled) {
+  if (
+    state.enabled !== undefined &&
+    menuItem.type !== 'separator' &&
+    menuItem.enabled !== state.enabled
+  ) {
     return false
   }
 
@@ -212,9 +218,7 @@ export function updateMenuState(state: IAppState, currentAppMenu: AppMenu | null
   // Try to avoid updating sending the IPC message at all
   // if we have a current app menu that we can compare against.
   if (currentAppMenu) {
-
-    for (const [ id, menuItemState ] of menuState.entries()) {
-
+    for (const [id, menuItemState] of menuState.entries()) {
       const appMenuItem = currentAppMenu.getItemById(id)
 
       if (appMenuItem && menuItemStateEqual(menuItemState, appMenuItem)) {
@@ -229,7 +233,7 @@ export function updateMenuState(state: IAppState, currentAppMenu: AppMenu | null
 
   // because we can't send Map over the wire, we need to convert
   // the remaining entries into an array that can be serialized
-  const array = new Array<{id: MenuIDs, state: IMenuItemState}>()
+  const array = new Array<{ id: MenuIDs; state: IMenuItemState }>()
   menuState.forEach((value, key) => array.push({ id: key, state: value }))
   ipcUpdateMenuState(array)
 }

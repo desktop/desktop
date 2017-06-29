@@ -53,9 +53,9 @@ export class AppWindow {
     }
 
     if (__DARWIN__) {
-        windowOptions.titleBarStyle = 'hidden'
+      windowOptions.titleBarStyle = 'hidden'
     } else if (__WIN32__) {
-        windowOptions.frame = false
+      windowOptions.frame = false
     }
 
     this.window = new BrowserWindow(windowOptions)
@@ -138,7 +138,9 @@ export class AppWindow {
    * signalled that it's ready.
    */
   private maybeEmitDidLoad() {
-    if (!this.rendererLoaded) { return }
+    if (!this.rendererLoaded) {
+      return
+    }
 
     this.emitter.emit('did-load', null)
   }

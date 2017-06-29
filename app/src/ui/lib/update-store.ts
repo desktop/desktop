@@ -43,7 +43,6 @@ class UpdateStore {
   private userInitiatedUpdate = true
 
   public constructor() {
-
     const lastSuccessfulCheckValue = localStorage.getItem(lastSuccessfulCheckKey)
 
     if (lastSuccessfulCheckValue) {

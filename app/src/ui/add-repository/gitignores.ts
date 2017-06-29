@@ -43,7 +43,11 @@ async function getGitIgnoreText(name: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const path = gitIgnores.get(name)
     if (!path) {
-      reject(new Error(`Unknown gitignore: ${name}. Only names returned from getGitIgnoreNames() can be used.`))
+      reject(
+        new Error(
+          `Unknown gitignore: ${name}. Only names returned from getGitIgnoreNames() can be used.`
+        )
+      )
       return
     }
 

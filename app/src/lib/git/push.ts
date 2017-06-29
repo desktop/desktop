@@ -33,7 +33,14 @@ import { IPushProgress } from '../app-state'
  *                           the '--progress' command line flag for
  *                           'git push'.
  */
-export async function push(repository: Repository, account: Account | null, remote: string, localBranch: string, remoteBranch: string | null, progressCallback?: (progress: IPushProgress) => void): Promise<void> {
+export async function push(
+  repository: Repository,
+  account: Account | null,
+  remote: string,
+  localBranch: string,
+  remoteBranch: string | null,
+  progressCallback?: (progress: IPushProgress) => void
+): Promise<void> {
   const args = [
     ...gitNetworkArguments,
     'push',
@@ -55,10 +62,8 @@ export async function push(repository: Repository, account: Account | null, remo
     const title = `Pushing to ${remote}`
     const kind = 'push'
 
-    opts = executionOptionsWithProgress(opts, new PushProgressParser(), (progress) => {
-      const description = progress.kind === 'progress'
-        ? progress.details.text
-        : progress.text
+    opts = executionOptionsWithProgress(opts, new PushProgressParser(), progress => {
+      const description = progress.kind === 'progress' ? progress.details.text : progress.text
       const value = progress.percent
 
       progressCallback({ kind, title, description, value, remote, branch: localBranch })

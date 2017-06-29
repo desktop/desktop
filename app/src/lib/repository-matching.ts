@@ -7,10 +7,15 @@ import { getHTMLURL } from './api'
 import { parseRemote } from './remote-parsing'
 
 /** Try to use the list of users and a remote URL to guess a GitHub repository. */
-export function matchGitHubRepository(accounts: ReadonlyArray<Account>, remote: string): GitHubRepository | null {
+export function matchGitHubRepository(
+  accounts: ReadonlyArray<Account>,
+  remote: string
+): GitHubRepository | null {
   for (const account of accounts) {
     const match = matchRemoteWithAccount(account, remote)
-    if (match) { return match }
+    if (match) {
+      return match
+    }
   }
 
   return null
@@ -22,7 +27,9 @@ function matchRemoteWithAccount(account: Account, remote: string): GitHubReposit
   const host = parsed.hostname
 
   const parsedRemote = parseRemote(remote)
-  if (!parsedRemote) { return null }
+  if (!parsedRemote) {
+    return null
+  }
 
   const owner = parsedRemote.owner
   const name = parsedRemote.name
