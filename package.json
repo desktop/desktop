@@ -28,7 +28,7 @@
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
     "precommit": "lint-staged",
-    "prepush": "npm run test:unit && npm run test:integration && npm run lint-staged"
+    "prepush": "lint-staged"
   },
   "lint-staged": {
     "app/{src, test}/**/*.{ts, tsx}": [
