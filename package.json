@@ -27,8 +27,7 @@
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
-    "precommit": "lint-staged",
-    "push": "lint-staged"
+    "precommit": "lint-staged"
   },
   "lint-staged": {
     "*.{ts, tsx}": [
