@@ -120,20 +120,20 @@ and provide the following information:
   GIFs on macOS and Windows.
 * **List some other applications where this enhancement exists, if applicable.**
 
-### Up For Grabs
+### Accepting PRs
 
-As the team is working towards the 1.0 release, we'll identify enhancements or
-bugs that can be categorised as tasks that:
+As part of building GitHub Desktop, we'll identify tasks that are good for
+external contributors to pick up. These tasks:
 
  - have low impact, or have a known workaround
- - should be fixed
+ - should be addressed
  - have a narrow scope and/or easy reproduction steps
  - can be worked on independent of other tasks
 
-These issues will be labelled as [`up-for-grabs`](https://github.com/desktop/desktop/labels/up-for-grabs)
+These issues will be labelled as [`accepting-prs`](https://github.com/desktop/desktop/labels/accepting-prs)
 in the repository. If you are interested in contributing to the project, please
-comment on the issue to let the maintainers (and community) know you are
-interested in picking this up.
+comment on the issue to let the core team (and the community) know you are
+interested in the issue.
 
 ## Additional Notes
 
