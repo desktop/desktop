@@ -78,7 +78,7 @@ export class AccountsStore {
 
     await this.secureStore.setItem(getKeyForAccount(updatedAccount), updatedAccount.login, updatedAccount.token)
 
-    this.accounts = [ ...this.accounts, updatedAccount ]
+    this.accounts = this.accounts.concat(updatedAccount)
 
     this.save()
   }
