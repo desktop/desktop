@@ -142,7 +142,7 @@ export class RepositoriesStore {
       gitHubRepository: undefined,
     })
 
-    await this.updateRepositoryMissing(repository, true)
+    await this.updateRepositoryMissing(repository, false)
 
     this.emitUpdate()
 
