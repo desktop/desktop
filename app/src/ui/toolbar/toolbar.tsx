@@ -8,7 +8,7 @@ interface IToolbarProps {
 export class Toolbar extends React.Component<IToolbarProps, {}> {
   public render() {
     return (
-      <div id={this.props.id} className='toolbar'>
+      <div id={this.props.id} className="toolbar">
         {this.props.children}
       </div>
     )

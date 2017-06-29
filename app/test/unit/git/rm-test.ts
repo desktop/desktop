@@ -6,7 +6,10 @@ import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
 import { removeFromIndex } from '../../../src/lib/git'
-import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
+import {
+  setupFixtureRepository,
+  setupEmptyRepository,
+} from '../../fixture-helper'
 
 import { GitProcess } from 'dugite'
 
@@ -35,7 +38,10 @@ describe('git/rm', () => {
 
     it('should remove the file from the index', async () => {
       const testFileName = 'README.md'
-      Fs.writeFileSync(Path.join(repository!.path, testFileName), `I'm just a bill`)
+      Fs.writeFileSync(
+        Path.join(repository!.path, testFileName),
+        `I'm just a bill`
+      )
 
       const result = await removeFromIndex(repository!, testFileName)
       expect(result.exitCode).to.equal(0)
@@ -48,7 +54,7 @@ describe('git/rm', () => {
 
       Fs.writeFileSync(fullPath, 'WRITING THE FIRST LINE\n')
 
-      await GitProcess.exec([ 'add', testFileName ], repo.path)
+      await GitProcess.exec(['add', testFileName], repo.path)
 
       Fs.writeFileSync(fullPath, 'WRITING OVER THE TOP\n')
 

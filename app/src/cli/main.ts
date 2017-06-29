@@ -6,10 +6,10 @@ const args = process.argv.slice(2)
 // At some point we may have other command line options, but for now we assume
 // the first arg is the path to open.
 const pathArg = args.length > 0 ? args[0] : null
-const repositoryPath = pathArg
-  ? Path.resolve(process.cwd(), pathArg)
-  : ''
-const url = `x-github-client://openLocalRepo/${encodeURIComponent(repositoryPath)}`
+const repositoryPath = pathArg ? Path.resolve(process.cwd(), pathArg) : ''
+const url = `x-github-client://openLocalRepo/${encodeURIComponent(
+  repositoryPath
+)}`
 
 const env = { ...process.env }
 // NB: We're gonna launch Desktop and we definitely don't want to carry over

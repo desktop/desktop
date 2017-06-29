@@ -20,7 +20,13 @@ export class Commit {
   /** The SHAs for the parents of the commit. */
   public readonly parentSHAs: ReadonlyArray<string>
 
-  public constructor(sha: string, summary: string, body: string, author: CommitIdentity, parentSHAs: ReadonlyArray<string>) {
+  public constructor(
+    sha: string,
+    summary: string,
+    body: string,
+    author: CommitIdentity,
+    parentSHAs: ReadonlyArray<string>
+  ) {
     this.sha = sha
     this.summary = summary
     this.body = body

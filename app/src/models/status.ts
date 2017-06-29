@@ -43,42 +43,43 @@ export enum AppFileStatus {
 /** The porcelain status for an ordinary changed entry */
 type OrdinaryEntry = {
   readonly kind: 'ordinary'
-   /** how we should represent the file in the application */
-  readonly type: 'added' | 'modified' | 'deleted',
+  /** how we should represent the file in the application */
+  readonly type: 'added' | 'modified' | 'deleted'
   /** the status of the index for this entry (if known) */
-  readonly index?: GitStatusEntry,
+  readonly index?: GitStatusEntry
   /** the status of the working tree for this entry (if known) */
-  readonly workingTree?: GitStatusEntry,
+  readonly workingTree?: GitStatusEntry
 }
 
 /** The porcelain status for a renamed or copied entry */
 type RenamedOrCopiedEntry = {
-  readonly kind: 'renamed' | 'copied',
+  readonly kind: 'renamed' | 'copied'
   /** the status of the index for this entry (if known) */
-  readonly index?: GitStatusEntry,
+  readonly index?: GitStatusEntry
   /** the status of the working tree for this entry (if known) */
-  readonly workingTree?: GitStatusEntry,
+  readonly workingTree?: GitStatusEntry
 }
 
 /** The porcelain status for an unmerged entry */
 type UnmergedEntry = {
-  readonly kind: 'conflicted',
+  readonly kind: 'conflicted'
   /** the first character of the short code ("ours")  */
-  readonly us: GitStatusEntry,
+  readonly us: GitStatusEntry
   /** the second character of the short code ("theirs")  */
-  readonly them: GitStatusEntry,
+  readonly them: GitStatusEntry
 }
 
 /** The porcelain status for an unmerged entry */
 type UntrackedEntry = {
-  readonly kind: 'untracked',
+  readonly kind: 'untracked'
 }
 
 /** The union of possible entries from the git status */
-export type FileEntry = OrdinaryEntry |
-  RenamedOrCopiedEntry |
-  UnmergedEntry |
-  UntrackedEntry
+export type FileEntry =
+  | OrdinaryEntry
+  | RenamedOrCopiedEntry
+  | UnmergedEntry
+  | UntrackedEntry
 
 /**
  * Convert a given FileStatus value to a human-readable string to be
@@ -90,12 +91,18 @@ export type FileEntry = OrdinaryEntry |
  */
 export function mapStatus(status: AppFileStatus): string {
   switch (status) {
-    case AppFileStatus.New: return 'New'
-    case AppFileStatus.Modified: return 'Modified'
-    case AppFileStatus.Deleted: return 'Deleted'
-    case AppFileStatus.Renamed: return 'Renamed'
-    case AppFileStatus.Conflicted: return 'Conflicted'
-    case AppFileStatus.Copied: return 'Copied'
+    case AppFileStatus.New:
+      return 'New'
+    case AppFileStatus.Modified:
+      return 'Modified'
+    case AppFileStatus.Deleted:
+      return 'Deleted'
+    case AppFileStatus.Renamed:
+      return 'Renamed'
+    case AppFileStatus.Conflicted:
+      return 'Conflicted'
+    case AppFileStatus.Copied:
+      return 'Copied'
   }
 
   return assertNever(status, `Unknown file status ${status}`)
@@ -108,14 +115,19 @@ export function mapStatus(status: AppFileStatus): string {
  * Used in file lists.
  */
 export function iconForStatus(status: AppFileStatus): OcticonSymbol {
-
   switch (status) {
-    case AppFileStatus.New: return OcticonSymbol.diffAdded
-    case AppFileStatus.Modified: return OcticonSymbol.diffModified
-    case AppFileStatus.Deleted: return OcticonSymbol.diffRemoved
-    case AppFileStatus.Renamed: return OcticonSymbol.diffRenamed
-    case AppFileStatus.Conflicted: return OcticonSymbol.alert
-    case AppFileStatus.Copied: return OcticonSymbol.diffAdded
+    case AppFileStatus.New:
+      return OcticonSymbol.diffAdded
+    case AppFileStatus.Modified:
+      return OcticonSymbol.diffModified
+    case AppFileStatus.Deleted:
+      return OcticonSymbol.diffRemoved
+    case AppFileStatus.Renamed:
+      return OcticonSymbol.diffRenamed
+    case AppFileStatus.Conflicted:
+      return OcticonSymbol.alert
+    case AppFileStatus.Copied:
+      return OcticonSymbol.diffAdded
   }
 
   return assertNever(status, `Unknown file status ${status}`)
@@ -146,11 +158,15 @@ export class FileChange {
 
 /** encapsulate the changes to a file in the working directory */
 export class WorkingDirectoryFileChange extends FileChange {
-
   /** contains the selection details for this file - all, nothing or partial */
   public readonly selection: DiffSelection
 
-  public constructor(path: string, status: AppFileStatus, selection: DiffSelection, oldPath?: string) {
+  public constructor(
+    path: string,
+    status: AppFileStatus,
+    selection: DiffSelection,
+    oldPath?: string
+  ) {
     super(path, status, oldPath)
 
     this.selection = selection
@@ -167,17 +183,23 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given diff selection. */
   public withSelection(selection: DiffSelection): WorkingDirectoryFileChange {
-    return new WorkingDirectoryFileChange(this.path, this.status, selection, this.oldPath)
+    return new WorkingDirectoryFileChange(
+      this.path,
+      this.status,
+      selection,
+      this.oldPath
+    )
   }
 }
 
 /** the state of the working directory for a repository */
 export class WorkingDirectoryStatus {
-
   /**
    * The list of changes in the repository's working directory
    */
-  public readonly files: ReadonlyArray<WorkingDirectoryFileChange> = new Array<WorkingDirectoryFileChange>()
+  public readonly files: ReadonlyArray<WorkingDirectoryFileChange> = new Array<
+    WorkingDirectoryFileChange
+  >()
 
   /**
    * Update the include checkbox state of the form
@@ -186,7 +208,10 @@ export class WorkingDirectoryStatus {
    */
   public readonly includeAll: boolean | null = true
 
-  public constructor(files: ReadonlyArray<WorkingDirectoryFileChange>, includeAll: boolean | null) {
+  public constructor(
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    includeAll: boolean | null
+  ) {
     this.files = files
     this.includeAll = includeAll
   }
@@ -200,7 +225,9 @@ export class WorkingDirectoryStatus {
   }
 
   /** Update by replacing the file with the same ID with a new file. */
-  public byReplacingFile(file: WorkingDirectoryFileChange): WorkingDirectoryStatus {
+  public byReplacingFile(
+    file: WorkingDirectoryFileChange
+  ): WorkingDirectoryStatus {
     const newFiles = this.files.map(f => {
       if (f.id === file.id) {
         return file

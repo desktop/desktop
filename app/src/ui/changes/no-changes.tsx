@@ -13,12 +13,14 @@ export class NoChanges extends React.Component<INoChangesProps, {}> {
   public render() {
     const opener = __DARWIN__ ? 'Finder' : 'Explorer'
     return (
-      <div className='panel blankslate' id='no-changes'>
-        <img src={BlankSlateImage} className='blankslate-image' />
+      <div className="panel blankslate" id="no-changes">
+        <img src={BlankSlateImage} className="blankslate-image" />
         <div>No local changes</div>
 
         <div>
-          Would you like to <LinkButton onClick={this.open}>open this repository</LinkButton> in {opener}?
+          Would you like to{' '}
+          <LinkButton onClick={this.open}>open this repository</LinkButton> in{' '}
+          {opener}?
         </div>
       </div>
     )

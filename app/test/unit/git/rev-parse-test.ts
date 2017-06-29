@@ -6,14 +6,16 @@ import * as os from 'os'
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
-import { isGitRepository, getTopLevelWorkingDirectory } from '../../../src/lib/git/rev-parse'
+import {
+  isGitRepository,
+  getTopLevelWorkingDirectory,
+} from '../../../src/lib/git/rev-parse'
 import { git } from '../../../src/lib/git/core'
 import { setupFixtureRepository } from '../../fixture-helper'
 
 const temp = require('temp').track()
 
 describe('git/rev-parse', () => {
-
   let repository: Repository | null = null
 
   beforeEach(() => {
@@ -45,7 +47,7 @@ describe('git/rev-parse', () => {
       const subdirPath = path.join(repository!.path, 'subdir')
 
       await new Promise<void>((resolve, reject) => {
-        Fs.mkdir(subdirPath, e => e ? reject(e) : resolve())
+        Fs.mkdir(subdirPath, e => (e ? reject(e) : resolve()))
       })
 
       const subDirResult = await getTopLevelWorkingDirectory(repository!.path)
@@ -63,20 +65,24 @@ describe('git/rev-parse', () => {
       expect(result).to.equal(p)
     })
 
-
     it('should return correct path for submodules', async () => {
-
-      const fixturePath = temp.mkdirSync('get-top-level-working-directory-test-')
+      const fixturePath = temp.mkdirSync(
+        'get-top-level-working-directory-test-'
+      )
 
       const firstRepoPath = path.join(fixturePath, 'repo1')
       const secondRepoPath = path.join(fixturePath, 'repo2')
 
-      await git([ 'init', 'repo1' ], fixturePath, '')
+      await git(['init', 'repo1'], fixturePath, '')
 
-      await git([ 'init', 'repo2' ], fixturePath, '')
+      await git(['init', 'repo2'], fixturePath, '')
 
-      await git([ 'commit', '--allow-empty', '-m', 'Initial commit' ], secondRepoPath, '')
-      await git([ 'submodule', 'add', '../repo2' ], firstRepoPath, '')
+      await git(
+        ['commit', '--allow-empty', '-m', 'Initial commit'],
+        secondRepoPath,
+        ''
+      )
+      await git(['submodule', 'add', '../repo2'], firstRepoPath, '')
 
       let result = await getTopLevelWorkingDirectory(firstRepoPath)
       expect(result).to.equal(firstRepoPath)

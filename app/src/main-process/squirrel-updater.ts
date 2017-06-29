@@ -35,7 +35,7 @@ export function handleSquirrelEvent(eventName: string): Promise<void> | null {
 }
 
 async function handleInstalled(): Promise<void> {
-  await createShortcut([ 'StartMenu', 'Desktop' ])
+  await createShortcut(['StartMenu', 'Desktop'])
   await installCLI()
 }
 
@@ -48,7 +48,7 @@ async function installCLI(): Promise<void> {
   const binPath = await writeCLITrampoline()
   const paths = await getPathSegments()
   if (paths.indexOf(binPath) < 0) {
-    await setPathSegments([ ...paths, binPath ])
+    await setPathSegments([...paths, binPath])
   }
 }
 
@@ -76,7 +76,10 @@ function getBinPath(): string {
 async function writeCLITrampoline(): Promise<string> {
   const binPath = getBinPath()
   const appFolder = Path.resolve(process.execPath, '..')
-  const versionedPath = Path.relative(binPath, Path.join(appFolder, 'resources', 'app', 'static', 'github.bat'))
+  const versionedPath = Path.relative(
+    binPath,
+    Path.join(appFolder, 'resources', 'app', 'static', 'github.bat')
+  )
   const trampline = `@echo off\n"%~dp0\\${versionedPath}" %*`
   const trampolinePath = Path.join(binPath, 'github.bat')
   return new Promise<string>((resolve, reject) => {
@@ -98,14 +101,21 @@ async function writeCLITrampoline(): Promise<string> {
 }
 
 /** Spawn the Squirrel.Windows `Update.exe` with a command. */
-async function spawnSquirrelUpdate(commands: ReadonlyArray<string>): Promise<void> {
+async function spawnSquirrelUpdate(
+  commands: ReadonlyArray<string>
+): Promise<void> {
   await spawn(updateDotExe, commands)
 }
 
 type ShortcutLocations = ReadonlyArray<'StartMenu' | 'Desktop'>
 
 function createShortcut(locations: ShortcutLocations): Promise<void> {
-  return spawnSquirrelUpdate([ '--createShortcut', exeName, '-l', locations.join(',') ])
+  return spawnSquirrelUpdate([
+    '--createShortcut',
+    exeName,
+    '-l',
+    locations.join(','),
+  ])
 }
 
 async function handleUninstall(): Promise<void> {
@@ -118,25 +128,27 @@ async function handleUninstall(): Promise<void> {
 }
 
 function removeShortcut(): Promise<void> {
-  return spawnSquirrelUpdate([ '--removeShortcut', exeName ])
+  return spawnSquirrelUpdate(['--removeShortcut', exeName])
 }
 
 function updateShortcut(): Promise<void> {
   const homeDirectory = Os.homedir()
   if (homeDirectory) {
-    const desktopShortcutPath = Path.join(homeDirectory, 'Desktop', 'GitHub Desktop.lnk')
+    const desktopShortcutPath = Path.join(
+      homeDirectory,
+      'Desktop',
+      'GitHub Desktop.lnk'
+    )
     return new Promise<void>((resolve, reject) => {
       Fs.exists(desktopShortcutPath, exists => {
         const locations: ShortcutLocations = exists
-          ? [ 'StartMenu', 'Desktop' ]
-          : [ 'StartMenu' ]
-        createShortcut(locations)
-          .then(resolve)
-          .catch(reject)
+          ? ['StartMenu', 'Desktop']
+          : ['StartMenu']
+        createShortcut(locations).then(resolve).catch(reject)
       })
     })
   } else {
-    return createShortcut([ 'StartMenu', 'Desktop' ])
+    return createShortcut(['StartMenu', 'Desktop'])
   }
 }
 
@@ -146,7 +158,12 @@ async function getPathSegments(): Promise<ReadonlyArray<string>> {
   const systemRoot = process.env['SystemRoot']
   if (systemRoot) {
     const system32Path = Path.join(process.env.SystemRoot, 'System32')
-    powershellPath = Path.join(system32Path, 'WindowsPowerShell', 'v1.0', 'powershell.exe')
+    powershellPath = Path.join(
+      system32Path,
+      'WindowsPowerShell',
+      'v1.0',
+      'powershell.exe'
+    )
   } else {
     powershellPath = 'powershell.exe'
   }
@@ -169,9 +186,7 @@ async function getPathSegments(): Promise<ReadonlyArray<string>> {
 
   const stdout = await spawn(powershellPath, args)
   const pathOutput = stdout.replace(/^\s+|\s+$/g, '')
-  return pathOutput
-    .split(/;+/)
-    .filter(segment => segment.length)
+  return pathOutput.split(/;+/).filter(segment => segment.length)
 }
 
 /** Set the user's `Path`. */
@@ -185,7 +200,7 @@ async function setPathSegments(paths: ReadonlyArray<string>): Promise<void> {
     setxPath = 'setx.exe'
   }
 
-  await spawn(setxPath, [ 'Path', paths.join(';') ])
+  await spawn(setxPath, ['Path', paths.join(';')])
 }
 
 /** Spawn a command with arguments and capture its output. */
