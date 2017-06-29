@@ -14,7 +14,7 @@ import * as Os from 'os'
 export function handleSquirrelEvent(eventName: string): Promise<void> | null {
   switch (eventName) {
     case '--squirrel-install':
-      return createShortcut([ 'StartMenu', 'Desktop' ])
+      return handleInstalled()
 
     case '--squirrel-updated':
       return handleUpdated()
@@ -29,9 +29,17 @@ export function handleSquirrelEvent(eventName: string): Promise<void> | null {
   return null
 }
 
+async function handleInstalled(): Promise<void> {
+  await createShortcut([ 'StartMenu', 'Desktop' ])
+  await installCLI()
+}
+
 async function handleUpdated(): Promise<void> {
   await updateShortcut()
+  await installCLI()
+}
 
+async function installCLI(): Promise<void> {
   const binPath = await writeCLITrampoline()
   const paths = await getPathSegments()
   if (paths.indexOf(binPath) < 0) {
