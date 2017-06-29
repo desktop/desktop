@@ -100,14 +100,19 @@ process.on('uncaughtException', (error: Error) => {
 let willQuit = false
 
 if (__WIN32__ && process.argv.length > 1) {
-  const promise = handleSquirrelEvent(process.argv[1])
+  const arg = process.argv[1]
+  const promise = handleSquirrelEvent(arg)
   if (promise) {
     willQuit = true
-    promise.then(() => {
-      app.quit()
-    })
+    promise
+      .then(() => {
+        app.quit()
+      })
+      .catch(e => {
+        log.error(`Failed handling Squirrel event: ${arg}`, e)
+      })
   } else {
-    handleAppURL(process.argv[1])
+    handleAppURL(arg)
   }
 }
 
