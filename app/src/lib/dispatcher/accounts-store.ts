@@ -37,7 +37,7 @@ export class AccountsStore {
   private dataStore: IDataStore
   private secureStore: ISecureStore
 
-  private accounts: Account[] = []
+  private accounts: ReadonlyArray<Account> = []
 
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
