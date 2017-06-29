@@ -13,10 +13,16 @@ export class Repository {
   /** Was the repository missing on disk last we checked? */
   public readonly missing: boolean
 
-  public constructor(path: string, id: number, gitHubRepository: GitHubRepository | null, missing: boolean) {
+  public constructor(
+    path: string,
+    id: number,
+    gitHubRepository: GitHubRepository | null,
+    missing: boolean
+  ) {
     this.path = path
     this.gitHubRepository = gitHubRepository
-    this.name = gitHubRepository && gitHubRepository.name || Path.basename(path)
+    this.name =
+      (gitHubRepository && gitHubRepository.name) || Path.basename(path)
     this.id = id
     this.missing = missing
   }

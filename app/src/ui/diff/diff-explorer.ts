@@ -3,7 +3,10 @@ import { DiffLine, DiffHunk, ITextDiff } from '../../models/diff'
 /**
  * Locate the diff hunk for the given (absolute) line number in the diff.
  */
-export function diffHunkForIndex(diff: ITextDiff, index: number): DiffHunk | null {
+export function diffHunkForIndex(
+  diff: ITextDiff,
+  index: number
+): DiffHunk | null {
   const hunk = diff.hunks.find(h => {
     return index >= h.unifiedDiffStart && index <= h.unifiedDiffEnd
   })
@@ -13,9 +16,14 @@ export function diffHunkForIndex(diff: ITextDiff, index: number): DiffHunk | nul
 /**
  * Locate the diff line for the given (absolute) line number in the diff.
  */
-export function diffLineForIndex(diff: ITextDiff, index: number): DiffLine | null {
+export function diffLineForIndex(
+  diff: ITextDiff,
+  index: number
+): DiffLine | null {
   const hunk = diffHunkForIndex(diff, index)
-  if (!hunk) { return null }
+  if (!hunk) {
+    return null
+  }
 
   return hunk.lines[index - hunk.unifiedDiffStart] || null
 }
@@ -24,8 +32,10 @@ export function diffLineForIndex(diff: ITextDiff, index: number): DiffLine | nul
  * For the given row in the diff, determine the range of elements that
  * should be displayed as interactive, as a hunk is not granular enough
  */
-export function findInteractiveDiffRange(diff: ITextDiff, index: number): { start: number, end: number } | null {
-
+export function findInteractiveDiffRange(
+  diff: ITextDiff,
+  index: number
+): { start: number; end: number } | null {
   const hunk = diffHunkForIndex(diff, index)
   if (!hunk) {
     return null

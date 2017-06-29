@@ -23,12 +23,12 @@ describe('git/core', () => {
 
   describe('error handling', () => {
     it('does not throw for errors that were expected', async () => {
-      const args = [ 'rev-list', '--left-right', '--count', 'some-ref', '--' ]
+      const args = ['rev-list', '--left-right', '--count', 'some-ref', '--']
 
       let threw = false
       try {
         const result = await git(args, repository!.path, 'test', {
-          expectedErrors: new Set([ GitError.BadRevision ]),
+          expectedErrors: new Set([GitError.BadRevision]),
         })
         expect(result.gitError).to.equal(GitError.BadRevision)
       } catch (e) {
@@ -39,12 +39,12 @@ describe('git/core', () => {
     })
 
     it('throws for errors that were not expected', async () => {
-      const args = [ 'rev-list', '--left-right', '--count', 'some-ref', '--' ]
+      const args = ['rev-list', '--left-right', '--count', 'some-ref', '--']
 
       let threw = false
       try {
         await git(args, repository!.path, 'test', {
-          expectedErrors: new Set([ GitError.SSHKeyAuditUnverified ]),
+          expectedErrors: new Set([GitError.SSHKeyAuditUnverified]),
         })
       } catch (e) {
         threw = true
@@ -56,12 +56,12 @@ describe('git/core', () => {
 
   describe('exit code handling', () => {
     it('does not throw for exit codes that were expected', async () => {
-      const args = [ 'rev-list', '--left-right', '--count', 'some-ref', '--' ]
+      const args = ['rev-list', '--left-right', '--count', 'some-ref', '--']
 
       let threw = false
       try {
         const result = await git(args, repository!.path, 'test', {
-          successExitCodes: new Set([ 128 ]),
+          successExitCodes: new Set([128]),
         })
         expect(result.exitCode).to.equal(128)
       } catch (e) {
@@ -72,12 +72,12 @@ describe('git/core', () => {
     })
 
     it('throws for exit codes that were not expected', async () => {
-      const args = [ 'rev-list', '--left-right', '--count', 'some-ref', '--' ]
+      const args = ['rev-list', '--left-right', '--count', 'some-ref', '--']
 
       let threw = false
       try {
         await git(args, repository!.path, 'test', {
-          successExitCodes: new Set([ 2 ]),
+          successExitCodes: new Set([2]),
         })
       } catch (e) {
         threw = true

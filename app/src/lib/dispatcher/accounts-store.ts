@@ -76,7 +76,11 @@ export class AccountsStore {
 
     const updatedAccount = await this.updatedAccount(account)
 
-    await this.secureStore.setItem(getKeyForAccount(updatedAccount), updatedAccount.login, updatedAccount.token)
+    await this.secureStore.setItem(
+      getKeyForAccount(updatedAccount),
+      updatedAccount.login,
+      updatedAccount.token
+    )
 
     this.accounts = this.accounts.concat(updatedAccount)
 
@@ -97,14 +101,24 @@ export class AccountsStore {
 
   private async updatedAccount(account: Account): Promise<Account> {
     if (!account.token) {
-      return fatalError(`Cannot update an account which doesn't have a token: ${account}`)
+      return fatalError(
+        `Cannot update an account which doesn't have a token: ${account}`
+      )
     }
 
     const api = API.fromAccount(account)
     const user = await api.fetchAccount()
     const emails = await api.fetchEmails()
 
-    return new Account(account.login, account.endpoint, account.token, emails, user.avatar_url, user.id, user.name)
+    return new Account(
+      account.login,
+      account.endpoint,
+      account.token,
+      emails,
+      user.avatar_url,
+      user.id,
+      user.name
+    )
   }
 
   /**
@@ -131,8 +145,19 @@ export class AccountsStore {
 
     const rawAccounts: ReadonlyArray<IAccount> = JSON.parse(raw)
     const accountsWithTokens = rawAccounts.map(async account => {
-      const accountWithoutToken = new Account(account.login, account.endpoint, '', account.emails, account.avatarURL, account.id, account.name)
-      const token = await this.secureStore.getItem(getKeyForAccount(accountWithoutToken), account.login)
+      const accountWithoutToken = new Account(
+        account.login,
+        account.endpoint,
+        '',
+        account.emails,
+        account.avatarURL,
+        account.id,
+        account.name
+      )
+      const token = await this.secureStore.getItem(
+        getKeyForAccount(accountWithoutToken),
+        account.login
+      )
       return accountWithoutToken.withToken(token || '')
     })
 
@@ -140,7 +165,9 @@ export class AccountsStore {
   }
 
   private save() {
-    const usersWithoutTokens = this.accounts.map(account => account.withToken(''))
+    const usersWithoutTokens = this.accounts.map(account =>
+      account.withToken('')
+    )
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
 
     this.emitUpdate()

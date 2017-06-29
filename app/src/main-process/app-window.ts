@@ -53,9 +53,9 @@ export class AppWindow {
     }
 
     if (__DARWIN__) {
-        windowOptions.titleBarStyle = 'hidden'
+      windowOptions.titleBarStyle = 'hidden'
     } else if (__WIN32__) {
-        windowOptions.frame = false
+      windowOptions.frame = false
     }
 
     this.window = new BrowserWindow(windowOptions)
@@ -119,11 +119,14 @@ export class AppWindow {
     })
 
     // TODO: This should be scoped by the window.
-    ipcMain.once('renderer-ready', (event: Electron.IpcMessageEvent, readyTime: number) => {
-      this._rendererReadyTime = readyTime
+    ipcMain.once(
+      'renderer-ready',
+      (event: Electron.IpcMessageEvent, readyTime: number) => {
+        this._rendererReadyTime = readyTime
 
-      this.maybeEmitDidLoad()
-    })
+        this.maybeEmitDidLoad()
+      }
+    )
 
     this.window.on('focus', () => this.window.webContents.send('focus'))
     this.window.on('blur', () => this.window.webContents.send('blur'))
@@ -138,7 +141,9 @@ export class AppWindow {
    * signalled that it's ready.
    */
   private maybeEmitDidLoad() {
-    if (!this.rendererLoaded) { return }
+    if (!this.rendererLoaded) {
+      return
+    }
 
     this.emitter.emit('did-load', null)
   }
@@ -211,15 +216,30 @@ export class AppWindow {
   }
 
   /** Send a certificate error to the renderer. */
-  public sendCertificateError(certificate: Electron.Certificate, error: string, url: string) {
-    this.window.webContents.send('certificate-error', { certificate, error, url })
+  public sendCertificateError(
+    certificate: Electron.Certificate,
+    error: string,
+    url: string
+  ) {
+    this.window.webContents.send('certificate-error', {
+      certificate,
+      error,
+      url,
+    })
   }
 
-  public showCertificateTrustDialog(certificate: Electron.Certificate, message: string) {
+  public showCertificateTrustDialog(
+    certificate: Electron.Certificate,
+    message: string
+  ) {
     // The Electron type definitions don't include `showCertificateTrustDialog`
     // yet.
     const d = dialog as any
-    d.showCertificateTrustDialog(this.window, { certificate, message }, () => {})
+    d.showCertificateTrustDialog(
+      this.window,
+      { certificate, message },
+      () => {}
+    )
   }
 
   /** Report the exception to the renderer. */

@@ -38,9 +38,18 @@ describe('RepositoriesStore', () => {
 
   describe('updating a GitHub repository', () => {
     it('adds a new GitHub repository', async () => {
-      const addedRepo = await repositoriesStore!.addRepository('/some/cool/path')
+      const addedRepo = await repositoriesStore!.addRepository(
+        '/some/cool/path'
+      )
 
-      const gitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'), 1, true, false, 'https://github.com/my-user/my-repo')
+      const gitHubRepo = new GitHubRepository(
+        'my-repo',
+        new Owner('my-user', 'https://api.github.com'),
+        1,
+        true,
+        false,
+        'https://github.com/my-user/my-repo'
+      )
       const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
       await repositoriesStore!.updateGitHubRepository(repoWithGitHub)
 
@@ -48,13 +57,25 @@ describe('RepositoriesStore', () => {
       const repo = repositories[0]
       expect(repo.gitHubRepository!.private).to.equal(true)
       expect(repo.gitHubRepository!.fork).to.equal(false)
-      expect(repo.gitHubRepository!.htmlURL).to.equal('https://github.com/my-user/my-repo')
+      expect(repo.gitHubRepository!.htmlURL).to.equal(
+        'https://github.com/my-user/my-repo'
+      )
     })
 
     it('updates an existing GitHub repository', async () => {
-      const addedRepo = await repositoriesStore!.addRepository('/some/cool/path')
+      const addedRepo = await repositoriesStore!.addRepository(
+        '/some/cool/path'
+      )
 
-      const gitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'), 1, true, false, 'https://github.com/my-user/my-repo', 'dev')
+      const gitHubRepo = new GitHubRepository(
+        'my-repo',
+        new Owner('my-user', 'https://api.github.com'),
+        1,
+        true,
+        false,
+        'https://github.com/my-user/my-repo',
+        'dev'
+      )
       const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
       await repositoriesStore!.updateGitHubRepository(repoWithGitHub)
 
@@ -63,7 +84,9 @@ describe('RepositoriesStore', () => {
       expect(repo.gitHubRepository!.private).to.equal(true)
       expect(repo.gitHubRepository!.fork).to.equal(false)
       expect(repo.gitHubRepository!.defaultBranch).to.equal('dev')
-      expect(repo.gitHubRepository!.htmlURL).to.equal('https://github.com/my-user/my-repo')
+      expect(repo.gitHubRepository!.htmlURL).to.equal(
+        'https://github.com/my-user/my-repo'
+      )
     })
   })
 })

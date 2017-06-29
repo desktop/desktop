@@ -22,7 +22,11 @@ import { TestStatsDatabase } from '../test-stats-database'
 import { TestIssuesDatabase } from '../test-issues-database'
 import { StatsStore } from '../../src/lib/stats'
 
-import { RepositorySection, SelectionType, IRepositoryState } from '../../src/lib/app-state'
+import {
+  RepositorySection,
+  SelectionType,
+  IRepositoryState,
+} from '../../src/lib/app-state'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
@@ -33,9 +37,7 @@ import { InMemoryStore } from '../in-memory-store'
 import { AsyncInMemoryStore } from '../async-in-memory-store'
 
 describe('AppStore', () => {
-
   async function createAppStore(): Promise<AppStore> {
-
     const db = new TestGitHubUserDatabase()
     await db.reset()
 
@@ -49,7 +51,10 @@ describe('AppStore', () => {
     await repositoriesDb.reset()
     const repositoriesStore = new RepositoriesStore(repositoriesDb)
 
-    const accountsStore = new AccountsStore(new InMemoryStore(), new AsyncInMemoryStore())
+    const accountsStore = new AccountsStore(
+      new InMemoryStore(),
+      new AsyncInMemoryStore()
+    )
 
     return new AppStore(
       new GitHubUserStore(db),
@@ -59,7 +64,7 @@ describe('AppStore', () => {
       new StatsStore(statsDb),
       new SignInStore(),
       accountsStore,
-      repositoriesStore,
+      repositoriesStore
     )
   }
 
@@ -86,7 +91,9 @@ describe('AppStore', () => {
         case SelectionType.Repository:
           return selectedState.state
         default:
-          throw new chai.AssertionError(`Got selected state of type ${selectedState.type} which is not supported.`)
+          throw new chai.AssertionError(
+            `Got selected state of type ${selectedState.type} which is not supported.`
+          )
       }
     }
 
@@ -101,8 +108,8 @@ describe('AppStore', () => {
 
       Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
 
-      await GitProcess.exec([ 'add', file ], repo.path)
-      await GitProcess.exec([ 'commit', '-m', 'added file' ], repo.path)
+      await GitProcess.exec(['add', file], repo.path)
+      await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
 
       firstCommit = await getCommit(repo, 'master')
       expect(firstCommit).to.not.equal(null)
@@ -116,7 +123,10 @@ describe('AppStore', () => {
 
       // select the repository and show the changes view
       await appStore._selectRepository(repository)
-      await appStore._changeRepositorySection(repository, RepositorySection.Changes)
+      await appStore._changeRepositorySection(
+        repository,
+        RepositorySection.Changes
+      )
 
       let state = getAppState(appStore)
       expect(state.localCommitSHAs.length).to.equal(1)

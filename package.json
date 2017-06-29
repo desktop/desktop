@@ -22,10 +22,21 @@
     "clean:tslint": "rimraf tslint-rules/*.js",
     "compile:tslint": "tsc -p tslint-rules",
     "lint": "npm run compile:tslint && tslint \"./app/src/**/*.ts\" \"./app/src/**/*.tsx\" \"./app/test/**/*.ts\" \"./app/test/**/*.tsx\"",
+    "check-prettiness": "node script/is-it-pretty",
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
-    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod"
+    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
+    "precommit": "lint-staged",
+    "prepush": "lint-staged",
+    "prettier:base": "prettier --parser typescript --single-quote --trailing-comma es5 --tab-width 2 --no-semi --print-width 80 --write",
+    "prettify": "npm run prettier:base 'app/src/**/*.ts' && npm run prettier:base 'app/src/**/*.tsx' && npm run prettier:base 'app/test/**/*.ts'"
+  },
+  "lint-staged": {
+    "app/{src, test}/**/*.{ts, tsx}": [
+      "npm run prettier:base",
+      "git add"
+    ]
   },
   "author": {
     "name": "GitHub, Inc.",

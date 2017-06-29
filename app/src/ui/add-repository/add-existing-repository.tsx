@@ -51,7 +51,10 @@ interface IAddExistingRepositoryState {
 }
 
 /** The component for adding an existing local repository. */
-export class AddExistingRepository extends React.Component<IAddExistingRepositoryProps, IAddExistingRepositoryState> {
+export class AddExistingRepository extends React.Component<
+  IAddExistingRepositoryProps,
+  IAddExistingRepositoryState
+> {
   public constructor(props: IAddExistingRepositoryProps) {
     super(props)
 
@@ -76,12 +79,16 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     }
 
     return (
-      <Row className='warning-helper-text'>
+      <Row className="warning-helper-text">
         <Octicon symbol={OcticonSymbol.alert} />
         <p>
           This directory does not appear to be a Git repository.
           <br />
-          Would you like to <LinkButton onClick={this.onCreateRepositoryClicked}>create a repository</LinkButton> here instead?
+          Would you like to{' '}
+          <LinkButton onClick={this.onCreateRepositoryClicked}>
+            create a repository
+          </LinkButton>{' '}
+          here instead?
         </p>
       </Row>
     )
@@ -92,19 +99,20 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
     return (
       <Dialog
-        id='add-existing-repository'
+        id="add-existing-repository"
         title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
         onSubmit={this.addRepository}
-        onDismissed={this.props.onDismissed}>
-
+        onDismissed={this.props.onDismissed}
+      >
         <DialogContent>
           <Row>
             <TextBox
               value={this.state.path}
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
-              placeholder='repository path'
+              placeholder="repository path"
               onChange={this.onPathChanged}
-              autoFocus/>
+              autoFocus={true}
+            />
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
           {this.renderWarning()}
@@ -112,7 +120,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
         <DialogFooter>
           <ButtonGroup>
-            <Button disabled={disabled} type='submit'>
+            <Button disabled={disabled} type="submit">
               {__DARWIN__ ? 'Add Repository' : 'Add repository'}
             </Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
@@ -130,13 +138,21 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   }
 
   private showFilePicker = async () => {
-    const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'createDirectory', 'openDirectory' ] })
-    if (!directory) { return }
+    const directory: string[] | null = remote.dialog.showOpenDialog({
+      properties: ['createDirectory', 'openDirectory'],
+    })
+    if (!directory) {
+      return
+    }
 
     const path = directory[0]
     const isRepository = await isGitRepository(path)
 
-    this.setState({ path, isRepository, showNonGitRepositoryWarning: !isRepository })
+    this.setState({
+      path,
+      isRepository,
+      showNonGitRepositoryWarning: !isRepository,
+    })
   }
 
   private resolvedPath(path: string): string {
@@ -145,7 +161,9 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
   private addRepository = async () => {
     const resolvedPath = this.resolvedPath(this.state.path)
-    const repositories = await this.props.dispatcher.addRepositories([ resolvedPath ])
+    const repositories = await this.props.dispatcher.addRepositories([
+      resolvedPath,
+    ])
 
     if (repositories && repositories.length) {
       const repository = repositories[0]

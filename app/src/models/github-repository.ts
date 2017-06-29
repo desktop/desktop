@@ -20,7 +20,16 @@ export class GitHubRepository {
   public readonly defaultBranch: string | null
   public readonly cloneURL: string | null
 
-  public constructor(name: string, owner: Owner, dbID: number | null, private_: boolean | null = null, fork: boolean | null = null, htmlURL: string | null = null, defaultBranch: string | null = 'master', cloneURL: string | null = null) {
+  public constructor(
+    name: string,
+    owner: Owner,
+    dbID: number | null,
+    private_: boolean | null = null,
+    fork: boolean | null = null,
+    htmlURL: string | null = null,
+    defaultBranch: string | null = 'master',
+    cloneURL: string | null = null
+  ) {
     this.name = name
     this.owner = owner
     this.dbID = dbID
@@ -33,7 +42,16 @@ export class GitHubRepository {
 
   /** Create a new copy of the repository with the API information copied over. */
   public withAPI(apiRepository: IAPIRepository): GitHubRepository {
-    const newRepository = new GitHubRepository(this.name, this.owner, this.dbID, apiRepository.private, apiRepository.fork, apiRepository.html_url, apiRepository.default_branch, apiRepository.clone_url)
+    const newRepository = new GitHubRepository(
+      this.name,
+      this.owner,
+      this.dbID,
+      apiRepository.private,
+      apiRepository.fork,
+      apiRepository.html_url,
+      apiRepository.default_branch,
+      apiRepository.clone_url
+    )
 
     return structuralEquals(newRepository, this) ? this : newRepository
   }
