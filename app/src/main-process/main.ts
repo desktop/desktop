@@ -276,7 +276,7 @@ app.on('ready', () => {
     reportError(error, extra)
   })
 
-  ipcMain.on('open-external', (event: Electron.IpcMessageEvent, { id, path }: { id: number, path: string }) => {
+  ipcMain.on('open-external', (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
     const result = shell.openExternal(path)
     event.sender.send('open-external-result', { result })
   })

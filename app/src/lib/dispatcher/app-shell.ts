@@ -13,7 +13,7 @@ export const shell: IAppShell = {
   beep: electronShell.beep,
   openExternal: (path) => {
     return new Promise<boolean>((resolve, reject) => {
-      ipcRenderer.once('open-external-result', (event: Electron.IpcMessageEvent, { result }: { result: boolean} ) => {
+      ipcRenderer.once('open-external-result', (event: Electron.IpcMessageEvent, { result }: { result: boolean }) => {
         resolve(result)
       })
 
