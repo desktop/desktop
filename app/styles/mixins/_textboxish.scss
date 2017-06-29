@@ -7,7 +7,7 @@
 @mixin textboxish {
   border: 1px solid var(--box-border-color);
   border-radius: var(--border-radius);
-  color: currentColor;
+  color: var(--textbox-color);
   font-size: var(--font-size);
   font-family: var(--font-family-sans-serif);
   height: var(--text-field-height);

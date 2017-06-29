@@ -866,6 +866,20 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference for Dark Mode
+   */
+  public setDarkModeSetting(value: boolean): Promise<void> {
+    return this.appStore._setDarkMode(value)
+  }
+
+  /**
+   * Gets the user's preference for Dark Mode
+   */
+  public getDarkModeSetting(): Promise<boolean> {
+    return this.appStore._getDarkMode()
+  }
+
+  /**
    * Reveals a file from a repository in the native file manager.
    * @param repository The currently active repository instance
    * @param path The path of the file relative to the root of the repository

@@ -119,6 +119,9 @@ export interface IAppState {
 
   /** Whether we should show a confirmation dialog */
   readonly confirmRepoRemoval: boolean
+
+  /** Whether we should show a confirmation dialog */
+  readonly usingDarkMode: boolean
 }
 
 export enum PopupType {

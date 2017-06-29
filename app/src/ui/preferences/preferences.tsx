@@ -19,6 +19,7 @@ interface IPreferencesProps {
   readonly onDismissed: () => void
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepoRemoval: boolean
+  readonly usingDarkMode: boolean
 }
 
 enum PreferencesTab {
@@ -33,6 +34,7 @@ interface IPreferencesState {
   readonly committerEmail: string
   readonly isOptedOut: boolean
   readonly confirmRepoRemoval: boolean
+  readonly usingDarkMode: boolean
 }
 
 /** The app-level preferences component. */
@@ -46,12 +48,14 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       committerEmail: '',
       isOptedOut: false,
       confirmRepoRemoval: false,
+      usingDarkMode: false,
     }
   }
 
   public async componentWillMount() {
     const isOptedOut = this.props.optOutOfUsageTracking
     const confirmRepoRemoval = this.props.confirmRepoRemoval
+    const usingDarkMode = this.props.usingDarkMode
 
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
@@ -77,7 +81,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
-    this.setState({ committerName, committerEmail, isOptedOut, confirmRepoRemoval })
+    this.setState({ committerName, committerEmail, isOptedOut, confirmRepoRemoval, usingDarkMode })
   }
 
   public render() {
@@ -137,8 +141,10 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
         return <Advanced
           isOptedOut={this.state.isOptedOut}
           confirmRepoRemoval={this.state.confirmRepoRemoval}
+          usingDarkMode={this.state.usingDarkMode}
           onOptOutSet={this.onOptOutSet}
           onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
+          onDarkModeSet={this.onDarkModeSet}
         />
       }
       default: return assertNever(index, `Unknown tab index: ${index}`)
@@ -151,6 +157,10 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
 
   private onConfirmRepoRemovalSet = (confirmRepoRemoval: boolean) => {
     this.setState({ confirmRepoRemoval })
+  }
+
+  private onDarkModeSet = (usingDarkMode: boolean) => {
+    this.setState({ usingDarkMode })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
@@ -181,10 +191,18 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
   }
 
   private onSave = async () => {
+    const useDarkMode = this.state.usingDarkMode
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
     await this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
     await this.props.dispatcher.setConfirmRepoRemovalSetting(this.state.confirmRepoRemoval)
+    await this.props.dispatcher.setDarkModeSetting(useDarkMode)
+
+    if (useDarkMode) {
+      document.body.classList.add('dark-mode')
+    } else {
+        document.body.classList.remove('dark-mode')
+    }
 
     this.props.onDismissed()
   }

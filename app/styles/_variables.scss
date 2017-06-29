@@ -6,7 +6,6 @@
 @import '~primer-support/lib/variables/color-system.scss';
 
 :root {
-
   --color-new: $green;
   --color-deleted: $red;
   --color-modified: $yellow;
@@ -17,6 +16,8 @@
   --text-secondary-color: $gray-500;
   --text-tertiary-color: $gray-400;
   --background-color: $white;
+
+  --textbox-color: --text-color;
 
   --button-height: 25px;
 
@@ -286,4 +287,140 @@
 
   // http://easings.net/#easeOutQuint
   --easing-ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+
+  //Dark Mode Colors
+  .dark-mode {
+    --text-color: $gray-000;
+    --text-secondary-color: $gray-500;
+    --text-tertiary-color: $gray-600;
+    --background-color: $black;
+
+    --textbox-color: $gray-900;
+
+    --secondary-button-background: $gray-900;
+    --secondary-button-hover-background: $black;
+    --secondary-button-text-color: var(--text-color);
+    --secondary-button-focus-shadow-color: rgba($gray-200, 0.25);
+    --secondary-button-focus-border-color: $gray-700;
+
+    /**
+    * Background color for custom scroll bars.
+    * The color is applied to the thumb part of the scrollbar.
+    *
+    * Note: Only applies to win32 platforms
+    */
+    --scroll-bar-thumb-background-color: rgba(0, 0, 0, 0.8);
+
+    // Box
+    //
+    // We use the term 'box' here to refer to a very high-level generic
+    // component that fits many use cases. A 'box' might be a list item
+    // or an item in a tab control header. It's up to each implementation
+    // to decide what states to support (active selection, selection, etc).
+
+    --box-alt-background-color: $gray-800;
+
+    /**
+    * Border color for boxes.
+    */
+    --box-border-color: $gray-700;
+
+    /**
+    * Background color for selected boxes without keyboard focus
+    */
+    --box-selected-background-color: $gray-800;
+
+    /**
+    * Text color for when a user hovers over a boxe with a
+    * pointing device. Should not be used by boxes that doesn't
+    * implement a hover state since this will conflict with
+    * selection and active selection
+    */
+    --box-hover-text-color: $gray-000;
+
+    /**
+    * Background color for when a user hovers over a boxe with a
+    * pointing device. Should not be used by boxes that doesn't
+    * implement a hover state since this will conflict with
+    * selection and active selection
+    */
+
+    /**
+    * Text color for selected boxes without keyboard focus
+    */
+    --box-selected-text-color: $gray-000;
+
+    /**
+    * Border color for selected boxes without keyboard focus
+    */
+    --box-selected-border-color: $gray-600;
+
+    /**
+    * Border color for selected boxes with active keyboard focus
+    */
+    --box-selected-active-border-color: $gray-600;
+
+    /** The height of the title bar area on Win32 platforms */
+    --win32-title-bar-background-color: $gray-000;
+
+    --base-border: 1px solid var(--box-border-color);
+
+    --shadow-color: rgba(71,83,95,0.19);
+    --base-box-shadow: 0 2px 7px var(--shadow-color);
+
+    --tab-bar-background-color: $black;
+
+    /**
+    * Variables for form elements
+    */
+    --text-field-focus-shadow-color: rgba($blue, 0.75);
+
+    /**
+    * Diff view
+    */
+
+    --diff-text-color: $gray-000;
+    --diff-background-color: $gray-900;
+    --diff-border-color: $gray-700;
+    --diff-gutter-color: $gray-700;
+
+    --diff-line-number-color: $gray-200;
+
+    --diff-selected-background-color: $blue-600;
+    --diff-selected-border-color: $blue-400;
+    --diff-selected-gutter-color: $blue-400;
+    --diff-selected-text-color: var(--background-color);
+
+    --diff-add-background-color: var(--diff-background-color);
+    --diff-add-border-color: $green-700;
+    --diff-add-gutter-color: $green-700;
+    --diff-add-text-color: $green;
+
+    --diff-delete-background-color: var(--diff-background-color);
+    --diff-delete-border-color: $red-700;
+    --diff-delete-gutter-color: $red-700;
+    --diff-delete-text-color: $red;
+
+    --diff-hunk-background-color: $blue-900;
+    --diff-hunk-border-color: $blue-700;
+    --diff-hunk-gutter-color: $blue-700;
+    --diff-hunk-text-color: $gray;
+
+    --diff-hover-background-color: $blue-700;
+    --diff-hover-border-color: $blue-600;
+    --diff-hover-gutter-color: $blue-600;
+    --diff-hover-text-color: var(--background-color);
+
+    // Colors for form errors
+    --form-error-background: $red-800;
+    --form-error-border-color: $red-700;
+    --form-error-text-color: $red-100;
+
+    /** Dialog */
+    --dialog-warning-color: $yellow-400;
+    --dialog-warning-text-color: $yellow-100;
+
+    /** Inline paths and code */
+    --path-segment-background: $blue-900;
+  }
 }

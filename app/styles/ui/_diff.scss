@@ -11,6 +11,7 @@
   color: var(--diff-text-color);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-monospace);
+  background: var(--background-color);
 
   span {
     // Force word breaks. This only matters when soft wrapping is on.
@@ -180,7 +181,7 @@
     color: var(--diff-hover-text-color);
 
     &:last-child {
-      border-color: var(--diff-hover-gutter-color);      
+      border-color: var(--diff-hover-gutter-color);
     }
   }
 }

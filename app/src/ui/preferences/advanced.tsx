@@ -8,13 +8,16 @@ import { SamplesURL } from '../../lib/stats'
 interface IAdvancedPreferencesProps {
   readonly isOptedOut: boolean,
   readonly confirmRepoRemoval: boolean,
+  readonly usingDarkMode: boolean,
   readonly onOptOutSet: (checked: boolean) => void
   readonly onConfirmRepoRemovalSet: (checked: boolean) => void
+  readonly onDarkModeSet: (checked: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
   readonly reportingOptOut: boolean
   readonly confirmRepoRemoval: boolean
+  readonly usingDarkMode: boolean
 }
 
 export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvancedPreferencesState> {
@@ -24,6 +27,7 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
     this.state = {
       reportingOptOut: this.props.isOptedOut,
       confirmRepoRemoval: this.props.confirmRepoRemoval,
+      usingDarkMode: this.props.usingDarkMode,
     }
   }
 
@@ -39,6 +43,13 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
 
     this.setState({ confirmRepoRemoval: value })
     this.props.onConfirmRepoRemovalSet(value)
+  }
+
+  private onDarkModeChanged = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ usingDarkMode: value })
+    this.props.onDarkModeSet(value)
   }
 
   public reportDesktopUsageLabel() {
@@ -63,6 +74,12 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
             label='Show confirmation dialog before removing repositories'
             value={this.state.confirmRepoRemoval ? CheckboxValue.On : CheckboxValue.Off}
             onChange={this.onConfirmRepoRemovalChanged} />
+        </Row>
+        <Row>
+          <Checkbox
+            label='Use Dark Mode'
+            value={this.state.usingDarkMode ? CheckboxValue.On : CheckboxValue.Off}
+            onChange={this.onDarkModeChanged} />
         </Row>
       </DialogContent>
     )

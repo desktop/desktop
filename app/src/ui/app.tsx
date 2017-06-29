@@ -667,6 +667,7 @@ export class App extends React.Component<IAppProps, IAppState> {
                 key='preferences'
                 dispatcher={this.props.dispatcher}
                 dotComAccount={this.getDotComAccount()}
+                usingDarkMode={this.state.usingDarkMode}
                 confirmRepoRemoval={this.state.confirmRepoRemoval}
                 optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
                 enterpriseAccount={this.getEnterpriseAccount()}
