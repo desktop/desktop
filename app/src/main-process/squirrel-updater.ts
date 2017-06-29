@@ -194,7 +194,7 @@ function spawn(command: string, args: ReadonlyArray<string>): Promise<string> {
         if (code === 0) {
           resolve(stdout)
         } else {
-          reject(new Error(`Command failed: ${stdout}`))
+          reject(new Error(`Command "${command} ${args}" failed: "${stdout}"`))
         }
       })
 
