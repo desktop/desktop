@@ -30,7 +30,7 @@
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "*.{ts, tsx}": [
+    "app/{src, test}/**/*.{ts, tsx}": [
       "prettier --parser typescript --write --single-quote --trailing-comma es5 --tab-width 2 --no-semi --print-width 100",
       "git add"
     ]
