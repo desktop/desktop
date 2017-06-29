@@ -17,8 +17,14 @@ import {
   IUpdateRepositoryPathAction,
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
-import { sendErrorReport, reportUncaughtException } from '../ui/main-process-proxy'
-import { enableSourceMaps, withSourceMappedStack } from '../lib/source-map-support'
+import {
+  sendErrorReport,
+  reportUncaughtException,
+} from '../ui/main-process-proxy'
+import {
+  enableSourceMaps,
+  withSourceMappedStack,
+} from '../lib/source-map-support'
 
 enableSourceMaps()
 
@@ -44,7 +50,15 @@ async function updateAccounts() {
     const api = API.fromAccount(account)
     const newAccount = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatar_url, newAccount.id, newAccount.name)
+    return new Account(
+      account.login,
+      account.endpoint,
+      account.token,
+      emails,
+      newAccount.avatar_url,
+      newAccount.id,
+      newAccount.name
+    )
   })
   broadcastUpdate()
 }
@@ -76,45 +90,68 @@ register('add-repositories', async ({ paths }: IAddRepositoriesAction) => {
   return addedRepos
 })
 
-register('remove-repositories', async ({ repositoryIDs }: IRemoveRepositoriesAction) => {
-  const removedRepoIDs: number[] = []
-  for (const repoID of repositoryIDs) {
-    await repositoriesStore.removeRepository(repoID)
-    removedRepoIDs.push(repoID)
-  }
+register(
+  'remove-repositories',
+  async ({ repositoryIDs }: IRemoveRepositoriesAction) => {
+    const removedRepoIDs: number[] = []
+    for (const repoID of repositoryIDs) {
+      await repositoriesStore.removeRepository(repoID)
+      removedRepoIDs.push(repoID)
+    }
 
-  broadcastUpdate()
-  return removedRepoIDs
-})
+    broadcastUpdate()
+    return removedRepoIDs
+  }
+)
 
 register('get-repositories', () => {
   return repositoriesStore.getRepositories()
 })
 
-register('update-github-repository', async ({ repository }: IUpdateGitHubRepositoryAction) => {
-  const inflatedRepository = Repository.fromJSON(repository as IRepository)
-  const updatedRepository = await repositoriesStore.updateGitHubRepository(inflatedRepository)
+register(
+  'update-github-repository',
+  async ({ repository }: IUpdateGitHubRepositoryAction) => {
+    const inflatedRepository = Repository.fromJSON(repository as IRepository)
+    const updatedRepository = await repositoriesStore.updateGitHubRepository(
+      inflatedRepository
+    )
 
-  broadcastUpdate()
+    broadcastUpdate()
 
-  return updatedRepository
-})
+    return updatedRepository
+  }
+)
 
-register('update-repository-missing', async ({ repository, missing }: IUpdateRepositoryMissingAction) => {
-  const inflatedRepository = Repository.fromJSON(repository)
-  const updatedRepository = await repositoriesStore.updateRepositoryMissing(inflatedRepository, missing)
+register(
+  'update-repository-missing',
+  async ({ repository, missing }: IUpdateRepositoryMissingAction) => {
+    const inflatedRepository = Repository.fromJSON(repository)
+    const updatedRepository = await repositoriesStore.updateRepositoryMissing(
+      inflatedRepository,
+      missing
+    )
 
-  broadcastUpdate()
+    broadcastUpdate()
 
-  return updatedRepository
-})
+    return updatedRepository
+  }
+)
 
-register('update-repository-path', async ({ repository, path }: IUpdateRepositoryPathAction) => {
-  const inflatedRepository = Repository.fromJSON(repository)
-  const updatedRepository = await repositoriesStore.updateRepositoryPath(inflatedRepository, path)
-  const newUpdatedRepository = await repositoriesStore.updateRepositoryMissing(updatedRepository, false)
+register(
+  'update-repository-path',
+  async ({ repository, path }: IUpdateRepositoryPathAction) => {
+    const inflatedRepository = Repository.fromJSON(repository)
+    const updatedRepository = await repositoriesStore.updateRepositoryPath(
+      inflatedRepository,
+      path
+    )
+    const newUpdatedRepository = await repositoriesStore.updateRepositoryMissing(
+      updatedRepository,
+      false
+    )
 
-  broadcastUpdate()
+    broadcastUpdate()
 
-  return newUpdatedRepository
-})
+    return newUpdatedRepository
+  }
+)

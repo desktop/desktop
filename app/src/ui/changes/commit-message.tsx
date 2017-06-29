@@ -36,11 +36,18 @@ interface ICommitMessageState {
   readonly lastContextualCommitMessage: ICommitMessage | null
 }
 
-export class CommitMessage extends React.Component<ICommitMessageProps, ICommitMessageState> {
+export class CommitMessage extends React.Component<
+  ICommitMessageProps,
+  ICommitMessageState
+> {
   public constructor(props: ICommitMessageProps) {
     super(props)
 
-    this.state = { summary: '', description: '', lastContextualCommitMessage: null }
+    this.state = {
+      summary: '',
+      description: '',
+      lastContextualCommitMessage: null,
+    }
   }
 
   public componentWillMount() {
@@ -58,7 +65,6 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   }
 
   private receiveProps(nextProps: ICommitMessageProps, initializing: boolean) {
-
     // If we're switching away from one repository to another we'll persist
     // our commit message in the dispatcher.
     if (nextProps.repository.id !== this.props.repository.id) {
@@ -90,14 +96,23 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     const lastContextualCommitMessage = this.state.lastContextualCommitMessage
     // If the contextual commit message changed, we'll use it as our commit
     // message.
-    if (nextContextualCommitMessage &&
-        (!lastContextualCommitMessage || !structuralEquals(nextContextualCommitMessage, lastContextualCommitMessage))) {
+    if (
+      nextContextualCommitMessage &&
+      (!lastContextualCommitMessage ||
+        !structuralEquals(
+          nextContextualCommitMessage,
+          lastContextualCommitMessage
+        ))
+    ) {
       this.setState({
         summary: nextContextualCommitMessage.summary,
         description: nextContextualCommitMessage.description,
         lastContextualCommitMessage: nextContextualCommitMessage,
       })
-    } else if (initializing || this.props.repository.id !== nextProps.repository.id) {
+    } else if (
+      initializing ||
+      this.props.repository.id !== nextProps.repository.id
+    ) {
       // We're either initializing (ie being mounted) or someone has switched
       // repositories. If we receive a message we'll take it
       if (nextProps.commitMessage) {
@@ -117,7 +132,9 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
         })
       }
     } else {
-      this.setState({ lastContextualCommitMessage: nextContextualCommitMessage })
+      this.setState({
+        lastContextualCommitMessage: nextContextualCommitMessage,
+      })
     }
   }
 
@@ -138,7 +155,9 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   }
 
   private async createCommit() {
-    if (!this.canCommit) { return }
+    if (!this.canCommit) {
+      return
+    }
 
     const success = await this.props.onCreateCommit({
       // We know that summary is non-null thanks to canCommit
@@ -152,9 +171,11 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   }
 
   private canCommit(): boolean {
-    return this.props.anyFilesSelected
-      && this.state.summary !== null
-      && this.state.summary.length > 0
+    return (
+      this.props.anyFilesSelected &&
+      this.state.summary !== null &&
+      this.state.summary.length > 0
+    )
   }
 
   private onKeyDown = (event: React.KeyboardEvent<Element>) => {
@@ -172,28 +193,29 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
       : undefined
     let avatarUser = undefined
     if (commitAuthor && this.props.gitHubUser) {
-      avatarUser = { ...commitAuthor, avatarURL: this.props.gitHubUser.avatarURL }
+      avatarUser = {
+        ...commitAuthor,
+        avatarURL: this.props.gitHubUser.avatarURL,
+      }
     }
 
-    return <Avatar user={avatarUser} title={avatarTitle}/>
+    return <Avatar user={avatarUser} title={avatarTitle} />
   }
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
     const buttonEnabled = this.canCommit() && !this.props.isCommitting
 
-    const loading = this.props.isCommitting
-      ? <Loading />
-      : undefined
+    const loading = this.props.isCommitting ? <Loading /> : undefined
 
     return (
-      <div id='commit-message' role='group' aria-label='Create commit'>
-        <div className='summary'>
+      <div id="commit-message" role="group" aria-label="Create commit">
+        <div className="summary">
           {this.renderAvatar()}
 
           <AutocompletingInput
-            className='summary-field'
-            placeholder='Summary'
+            className="summary-field"
+            placeholder="Summary"
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
             onKeyDown={this.onKeyDown}
@@ -202,8 +224,8 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
         </div>
 
         <AutocompletingTextArea
-          className='description-field'
-          placeholder='Description'
+          className="description-field"
+          placeholder="Description"
           value={this.state.description || ''}
           onValueChanged={this.onDescriptionChanged}
           onKeyDown={this.onKeyDown}
@@ -211,8 +233,8 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
         />
 
         <Button
-          type='submit'
-          className='commit-button'
+          type="submit"
+          className="commit-button"
           onClick={this.onSubmit}
           disabled={!buttonEnabled}
         >

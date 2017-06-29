@@ -31,29 +31,32 @@ interface ITitleBarState {
   readonly style?: React.CSSProperties
 }
 
-
 function getState(props: ITitleBarProps): ITitleBarState {
   return {
     style: props.windowZoomFactor
       ? { zoom: 1 / props.windowZoomFactor }
       : undefined,
-    }
+  }
 }
 
 export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
-
   public constructor(props: ITitleBarProps) {
     super(props)
     this.state = getState(props)
   }
 
   private onTitlebarDoubleClickDarwin = () => {
-    const actionOnDoubleClick = remote.systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
+    const actionOnDoubleClick = remote.systemPreferences.getUserDefault(
+      'AppleActionOnDoubleClick',
+      'string'
+    )
     const mainWindow = remote.getCurrentWindow()
 
     switch (actionOnDoubleClick) {
       case 'Maximize':
-        mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()
+        mainWindow.isMaximized()
+          ? mainWindow.unmaximize()
+          : mainWindow.maximize()
         break
       case 'Minimize':
         mainWindow.minimize()
@@ -74,9 +77,7 @@ export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
     const isMaximized = this.props.windowState === 'maximized'
 
     // No Windows controls when we're in full-screen mode.
-    const winControls = __WIN32__ && !inFullScreen
-      ? <WindowControls />
-      : null
+    const winControls = __WIN32__ && !inFullScreen ? <WindowControls /> : null
 
     // On Windows it's not possible to resize a frameless window if the
     // element that sits flush along the window edge has -webkit-app-region: drag.
@@ -84,26 +85,28 @@ export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
     // window controls need to disable dragging so we add a 3px tall element which
     // disables drag while still letting users drag the app by the titlebar below
     // those 3px.
-    const topResizeHandle = __WIN32__ && !isMaximized
-      ? <div className='resize-handle top' />
-      : null
+    const topResizeHandle =
+      __WIN32__ && !isMaximized ? <div className="resize-handle top" /> : null
 
     // And a 3px wide element on the left hand side.
-    const leftResizeHandle = __WIN32__ && !isMaximized
-      ? <div className='resize-handle left' />
-      : null
+    const leftResizeHandle =
+      __WIN32__ && !isMaximized ? <div className="resize-handle left" /> : null
 
-    const titleBarClass = this.props.titleBarStyle === 'light' ? 'light-title-bar' : ''
+    const titleBarClass =
+      this.props.titleBarStyle === 'light' ? 'light-title-bar' : ''
 
     const appIcon = this.props.showAppIcon
-      ? <Octicon className='app-icon' symbol={OcticonSymbol.markGithub} />
+      ? <Octicon className="app-icon" symbol={OcticonSymbol.markGithub} />
       : null
 
-    const onTitlebarDoubleClick = __DARWIN__ ? this.onTitlebarDoubleClickDarwin : undefined
+    const onTitlebarDoubleClick = __DARWIN__
+      ? this.onTitlebarDoubleClickDarwin
+      : undefined
 
     return (
       <div
-        className={titleBarClass} id='desktop-app-title-bar'
+        className={titleBarClass}
+        id="desktop-app-title-bar"
         onDoubleClick={onTitlebarDoubleClick}
         style={this.state.style}
       >

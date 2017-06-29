@@ -53,7 +53,11 @@ export class CloningRepositoriesStore {
    *
    * Returns a {Promise} which resolves to whether the clone was successful.
    */
-  public async clone(url: string, path: string, options: CloneOptions): Promise<boolean> {
+  public async clone(
+    url: string,
+    path: string,
+    options: CloneOptions
+  ): Promise<boolean> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
 
@@ -84,7 +88,9 @@ export class CloningRepositoriesStore {
   }
 
   /** Get the state of the repository. */
-  public getRepositoryState(repository: CloningRepository): ICloneProgress | null {
+  public getRepositoryState(
+    repository: CloningRepository
+  ): ICloneProgress | null {
     return this.stateByID.get(repository.id) || null
   }
 

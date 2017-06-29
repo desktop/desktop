@@ -23,7 +23,6 @@ interface ISignInProps {
  * Provide `children` elements to render additional buttons in the active form.
  */
 export class SignIn extends React.Component<ISignInProps, {}> {
-
   private onEndpointEntered = (url: string) => {
     this.props.dispatcher.setSignInEndpoint(url)
   }
@@ -41,24 +40,30 @@ export class SignIn extends React.Component<ISignInProps, {}> {
   }
 
   private renderEndpointEntryStep(state: IEndpointEntryState) {
-    const children = this.props.children as (ReadonlyArray<JSX.Element> | null)
+    const children = this.props.children as ReadonlyArray<JSX.Element> | null
     if (!children || !children.length) {
-      console.error('unexpected child elements provided to EnterpriseServerEntry - someone should look into this!')
+      console.error(
+        'unexpected child elements provided to EnterpriseServerEntry - someone should look into this!'
+      )
       return null
     }
 
-    return <EnterpriseServerEntry
-      loading={state.loading}
-      error={state.error}
-      onSubmit={this.onEndpointEntered}
-      additionalButtons={children}
-    />
+    return (
+      <EnterpriseServerEntry
+        loading={state.loading}
+        error={state.error}
+        onSubmit={this.onEndpointEntered}
+        additionalButtons={children}
+      />
+    )
   }
 
   private renderAuthenticationStep(state: IAuthenticationState) {
-    const children = this.props.children as (ReadonlyArray<JSX.Element> | null)
+    const children = this.props.children as ReadonlyArray<JSX.Element> | null
     if (!children || !children.length) {
-      console.error('unexpected child elements provided to AuthenticationForm - someone should look into this!')
+      console.error(
+        'unexpected child elements provided to AuthenticationForm - someone should look into this!'
+      )
       return null
     }
 
@@ -75,7 +80,9 @@ export class SignIn extends React.Component<ISignInProps, {}> {
     )
   }
 
-  private renderTwoFactorAuthenticationStep(state: ITwoFactorAuthenticationState) {
+  private renderTwoFactorAuthenticationStep(
+    state: ITwoFactorAuthenticationState
+  ) {
     return (
       <TwoFactorAuthentication
         loading={state.loading}

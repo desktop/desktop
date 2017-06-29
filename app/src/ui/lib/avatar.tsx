@@ -3,7 +3,6 @@ import { IAvatarUser } from '../../models/avatar'
 
 const DefaultAvatarURL = `file:///${__dirname}/static/default-avatar.png`
 
-
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
   readonly user?: IAvatarUser
@@ -40,8 +39,14 @@ export class Avatar extends React.Component<IAvatarProps, {}> {
       : `Avatar for unknown user`
 
     return (
-      <span title={title} className='avatar-container'>
-        <img className='avatar' title={title} src={url} alt={title} aria-label={ariaLabel} />
+      <span title={title} className="avatar-container">
+        <img
+          className="avatar"
+          title={title}
+          src={url}
+          alt={title}
+          aria-label={ariaLabel}
+        />
       </span>
     )
   }

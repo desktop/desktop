@@ -18,18 +18,20 @@ export class DeleteBranch extends React.Component<IDeleteBranchProps, {}> {
   public render() {
     return (
       <Dialog
-        id='delete-branch'
+        id="delete-branch"
         title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
-        type='warning'
+        type="warning"
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          <p>Delete branch "{this.props.branch.name}"?</p>
+          <p>
+            Delete branch "{this.props.branch.name}"?
+          </p>
           <p>This cannot be undone.</p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup destructive>
-            <Button type='submit'>Cancel</Button>
+          <ButtonGroup destructive={true}>
+            <Button type="submit">Cancel</Button>
             <Button onClick={this.deleteBranch}>Delete</Button>
           </ButtonGroup>
         </DialogFooter>

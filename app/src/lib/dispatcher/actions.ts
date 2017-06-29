@@ -50,7 +50,13 @@ export interface IUpdateRepositoryPathAction {
   readonly path: string
 }
 
-export type Action = IGetAccountsAction | IGetRepositoriesAction |
-                     IAddRepositoriesAction | IUpdateGitHubRepositoryAction |
-                     IRemoveRepositoriesAction | IAddAccountAction | IRemoveAccountAction |
-                     IUpdateRepositoryMissingAction | IUpdateRepositoryPathAction
+export type Action =
+  | IGetAccountsAction
+  | IGetRepositoriesAction
+  | IAddRepositoriesAction
+  | IUpdateGitHubRepositoryAction
+  | IRemoveRepositoriesAction
+  | IAddAccountAction
+  | IRemoveAccountAction
+  | IUpdateRepositoryMissingAction
+  | IUpdateRepositoryPathAction

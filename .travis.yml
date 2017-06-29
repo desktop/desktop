@@ -28,6 +28,7 @@ install:
   - npm install
 
 script:
+  - npm run check-prettiness
   - npm run lint
   - npm run build:prod
   - npm run test:setup

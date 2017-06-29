@@ -6,7 +6,7 @@ import { RepositoriesStore } from './repositories-store'
 const { BrowserWindow } = remote
 
 type SharedProcessFunction = (args: any) => Promise<any>
-const registeredFunctions: {[key: string]: SharedProcessFunction} = {}
+const registeredFunctions: { [key: string]: SharedProcessFunction } = {}
 
 /**
  * Dispatch the received message to the appropriate function and respond with
@@ -42,7 +42,7 @@ function dispatch(message: IMessage) {
     })
     .then(response => {
       BrowserWindow.getAllWindows().forEach(window => {
-        window.webContents.send(`shared/response/${guid}`, [ response ])
+        window.webContents.send(`shared/response/${guid}`, [response])
       })
     })
 }
@@ -53,15 +53,21 @@ export function register(name: string, fn: SharedProcessFunction) {
 }
 
 /** Tell all the windows that something was updated. */
-export function broadcastUpdate(accountsStore: AccountsStore, repositoriesStore: RepositoriesStore) {
-  BrowserWindow.getAllWindows().forEach(async (window) => {
+export function broadcastUpdate(
+  accountsStore: AccountsStore,
+  repositoriesStore: RepositoriesStore
+) {
+  BrowserWindow.getAllWindows().forEach(async window => {
     const repositories = await repositoriesStore.getRepositories()
     const accounts = await accountsStore.getAll()
     const state = { accounts, repositories }
-    window.webContents.send('shared/did-update', [ { state } ])
+    window.webContents.send('shared/did-update', [{ state }])
   })
 }
 
-ipcRenderer.on('shared/request', (event: Electron.IpcMessageEvent, args: any[]) => {
-  dispatch(args[0])
-})
+ipcRenderer.on(
+  'shared/request',
+  (event: Electron.IpcMessageEvent, args: any[]) => {
+    dispatch(args[0])
+  }
+)

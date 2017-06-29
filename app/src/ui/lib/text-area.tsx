@@ -60,7 +60,10 @@ export class TextArea extends React.Component<ITextAreaProps, {}> {
   }
 
   public render() {
-    const className = classNames('text-area-component', this.props.labelClassName)
+    const className = classNames(
+      'text-area-component',
+      this.props.labelClassName
+    )
     return (
       <label className={className}>
         {this.props.label}
@@ -74,7 +77,8 @@ export class TextArea extends React.Component<ITextAreaProps, {}> {
           value={this.props.value}
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
-          ref={this.props.onTextAreaRef}/>
+          ref={this.props.onTextAreaRef}
+        />
       </label>
     )
   }

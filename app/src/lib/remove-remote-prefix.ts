@@ -9,7 +9,7 @@
 export function removeRemotePrefix(name: string): string | null {
   const pieces = name.match(/.*?\/(.*)/)
   if (!pieces || pieces.length < 2) {
-     return null
+    return null
   }
 
   return pieces[1]

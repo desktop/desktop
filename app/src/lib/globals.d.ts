@@ -32,9 +32,12 @@ declare const __PROCESS_KIND__: 'main' | 'ui' | 'shared' | 'crash' | 'askpass'
  * Request an idle callback. See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
  * for more information.
  */
-declare function requestIdleCallback(fn: () => void, options?: { timeout: number }): number
+declare function requestIdleCallback(
+  fn: () => void,
+  options?: { timeout: number }
+): number
 
-declare interface IDesktopLogger {
+interface IDesktopLogger {
   /**
    * Writes a log message at the 'error' level.
    *
@@ -137,7 +140,9 @@ declare namespace Electron {
 
   // tslint:disable-next-line:interface-name
   interface SystemPreferences {
-    getUserDefault(key: 'AppleActionOnDoubleClick', type: 'string'): AppleActionOnDoubleClickPref
+    getUserDefault(
+      key: 'AppleActionOnDoubleClick',
+      type: 'string'
+    ): AppleActionOnDoubleClickPref
   }
-
 }

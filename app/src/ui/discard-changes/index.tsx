@@ -27,20 +27,26 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, {}> {
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
       <Dialog
-        id='discard-changes'
-        title={ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}
+        id="discard-changes"
+        title={
+          __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'
+        }
         onDismissed={this.props.onDismissed}
-        type='warning'
+        type="warning"
       >
         <DialogContent>
           {this.renderFileList()}
-          <p>Changes can be restored by retrieving them from the {trashName}.</p>
+          <p>
+            Changes can be restored by retrieving them from the {trashName}.
+          </p>
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup destructive>
-            <Button type='submit'>Cancel</Button>
-            <Button onClick={this.discard}>{__DARWIN__ ? 'Discard Changes' : 'Discard changes'}</Button>
+          <ButtonGroup destructive={true}>
+            <Button type="submit">Cancel</Button>
+            <Button onClick={this.discard}>
+              {__DARWIN__ ? 'Discard Changes' : 'Discard changes'}
+            </Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
@@ -49,21 +55,17 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, {}> {
 
   private renderFileList() {
     if (this.props.files.length > MaxFilesToList) {
-      return (
-        <p>
-          Are you sure you want to discard all changes?
-        </p>
-      )
+      return <p>Are you sure you want to discard all changes?</p>
     } else {
       return (
         <div>
           <p>Are you sure you want to discard all changes to:</p>
           <ul>
             {this.props.files.map(p =>
-              <li className='file-name' key={p.id}>
+              <li className="file-name" key={p.id}>
                 <PathText path={p.path} />
-              </li>)
-            }
+              </li>
+            )}
           </ul>
         </div>
       )
@@ -71,7 +73,10 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, {}> {
   }
 
   private discard = () => {
-    this.props.dispatcher.discardChanges(this.props.repository, this.props.files)
+    this.props.dispatcher.discardChanges(
+      this.props.repository,
+      this.props.files
+    )
     this.props.dispatcher.closePopup()
   }
 }
