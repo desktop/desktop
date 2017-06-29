@@ -7,9 +7,9 @@ const globPattern = 'app/{src, test}/**/*.{ts, tsx}'
 const prettierOptions = {
   "parser": "typescript",
   "singleQuote": true,
-  "trailingComma": "all",
+  "trailingComma": "es5",
   "semi": false,
-  "printWidth": 100
+  "printWidth": 80
 }
 
 glob(globPattern, (err, matches) => {
