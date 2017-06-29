@@ -28,11 +28,14 @@
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
     "precommit": "lint-staged",
-    "prepush": "lint-staged"
+    "prepush": "lint-staged",
+    "prettier:base": "prettier --parser typescript --single-quote --trailing-comma es5 --tab-width 2 --no-semi --print-width 100",
+    "prettier:check": "npm run prettier:base -l --debug-check 'app/{src, test}/**/*.{ts, tsx}'",
+    "prettier:write": "npm run prettier:base --write"
   },
   "lint-staged": {
     "app/{src, test}/**/*.{ts, tsx}": [
-      "prettier --parser typescript --write --single-quote --trailing-comma es5 --tab-width 2 --no-semi --print-width 100",
+      "npm run prettier:write",
       "git add"
     ]
   },
