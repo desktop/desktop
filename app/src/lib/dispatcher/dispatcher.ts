@@ -45,6 +45,7 @@ export class Dispatcher {
     this.appStore = appStore
   }
 
+  /** Load the initial state for the app. */
   public loadInitialState(): Promise<void> {
     return this.appStore.loadInitialState()
   }
