@@ -28,11 +28,13 @@
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
     "precommit": "lint-staged",
-    "prepush": "lint-staged"
+    "prepush": "lint-staged",
+    "prettier:base": "prettier --parser typescript --single-quote --trailing-comma all --tab-width 2 --no-semi --print-width 100 --write",
+    "prettify": "npm run prettier:base 'app/src/**/*.ts' && npm run prettier:base 'app/src/**/*.tsx' && npm run prettier:base 'app/test/**/*.ts'"
   },
   "lint-staged": {
     "app/{src, test}/**/*.{ts, tsx}": [
-      "prettier --parser typescript --write --single-quote --trailing-comma es5 --tab-width 2 --no-semi --print-width 100",
+      "npm run prettier:base",
       "git add"
     ]
   },
@@ -111,6 +113,7 @@
     "@types/winston": "^2.2.0",
     "husky": "^0.14.1",
     "prettier": "^1.5.0",
-    "tslint-config-prettier": "^1.1.0"
+    "tslint-config-prettier": "^1.1.0",
+    "tslint-react": "^3.0.0"
   }
 }
