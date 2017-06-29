@@ -112,10 +112,5 @@
     "husky": "^0.14.1",
     "prettier": "^1.5.0",
     "tslint-config-prettier": "^1.1.0"
-  },
-  "extends": [
-    "tslint:latest",
-    "tslint-react",
-    "tslint-config-prettier"
-  ]
+  }
 }
