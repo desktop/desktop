@@ -11,10 +11,16 @@ export function iconForRepository(repository: Repository | CloningRepository) {
   }
 
   const gitHubRepo = repository.gitHubRepository
-  if (!gitHubRepo) { return OcticonSymbol.deviceDesktop }
+  if (!gitHubRepo) {
+    return OcticonSymbol.deviceDesktop
+  }
 
-  if (gitHubRepo.private) { return OcticonSymbol.lock }
-  if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
+  if (gitHubRepo.private) {
+    return OcticonSymbol.lock
+  }
+  if (gitHubRepo.fork) {
+    return OcticonSymbol.repoForked
+  }
 
   return OcticonSymbol.repo
 }

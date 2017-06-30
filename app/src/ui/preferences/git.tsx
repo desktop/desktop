@@ -11,21 +11,21 @@ interface IGitProps {
   readonly onEmailChanged: (email: string) => void
 }
 
-export class Git extends React.Component<IGitProps, void> {
+export class Git extends React.Component<IGitProps, {}> {
   public render() {
     return (
       <DialogContent>
         <Row>
           <TextBox
-            label='Name'
+            label="Name"
             value={this.props.name}
             onValueChanged={this.props.onNameChanged}
-            autoFocus
+            autoFocus={true}
           />
         </Row>
         <Row>
           <TextBox
-            label='Email'
+            label="Email"
             value={this.props.email}
             onValueChanged={this.props.onEmailChanged}
           />

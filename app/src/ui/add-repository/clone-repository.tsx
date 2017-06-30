@@ -9,7 +9,10 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
 import { Account } from '../../models/account'
-import { parseRepositoryIdentifier, IRepositoryIdentifier } from '../../lib/remote-parsing'
+import {
+  parseRepositoryIdentifier,
+  IRepositoryIdentifier,
+} from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
@@ -48,7 +51,10 @@ interface ICloneRepositoryState {
 }
 
 /** The component for cloning a repository. */
-export class CloneRepository extends React.Component<ICloneRepositoryProps, ICloneRepositoryState> {
+export class CloneRepository extends React.Component<
+  ICloneRepositoryProps,
+  ICloneRepositoryState
+> {
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
@@ -68,7 +74,10 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
   }
 
   public componentWillReceiveProps(nextProps: ICloneRepositoryProps) {
-    if (nextProps.initialURL && nextProps.initialURL !== this.props.initialURL) {
+    if (
+      nextProps.initialURL &&
+      nextProps.initialURL !== this.props.initialURL
+    ) {
       this.onURLChanged(nextProps.initialURL)
     }
   }
@@ -79,43 +88,53 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       this.state.url.length === 0 ||
       this.state.path.length === 0 ||
       this.state.loading ||
-      !!error && error.name === DestinationExistsErrorName
+      (!!error && error.name === DestinationExistsErrorName)
 
     return (
       <Dialog
-        className='clone-repository'
-        title='Clone a repository'
+        className="clone-repository"
+        title="Clone a repository"
         onSubmit={this.clone}
         onDismissed={this.props.onDismissed}
-        loading={this.state.loading}>
-        {error ? <DialogError>{error.message}</DialogError> : null}
+        loading={this.state.loading}
+      >
+        {error
+          ? <DialogError>
+              {error.message}
+            </DialogError>
+          : null}
 
         <DialogContent>
           <p>
-            Enter a repository URL or GitHub username and repository (e.g., <span className='repository-pattern'>hubot/cool-repo</span>)
+            Enter a repository URL or GitHub username and repository (e.g.,{' '}
+            <span className="repository-pattern">hubot/cool-repo</span>)
           </p>
 
           <Row>
             <TextBox
-              placeholder='URL or username/repository'
+              placeholder="URL or username/repository"
               value={this.state.url}
               onValueChanged={this.onURLChanged}
-              autoFocus/>
+              autoFocus={true}
+            />
           </Row>
 
           <Row>
             <TextBox
               value={this.state.path}
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
-              placeholder='repository path'
-              onChange={this.onPathChanged}/>
+              placeholder="repository path"
+              onChange={this.onPathChanged}
+            />
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
         </DialogContent>
 
         <DialogFooter>
           <ButtonGroup>
-            <Button disabled={disabled} type='submit'>Clone</Button>
+            <Button disabled={disabled} type="submit">
+              Clone
+            </Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
@@ -125,9 +144,11 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private showFilePicker = () => {
     const directory: string[] | null = remote.dialog.showOpenDialog({
-      properties: [ 'createDirectory', 'openDirectory' ],
+      properties: ['createDirectory', 'openDirectory'],
     })
-    if (!directory) { return }
+    if (!directory) {
+      return
+    }
 
     const path = directory[0]
     const lastParsedIdentifier = this.state.lastParsedIdentifier
@@ -146,7 +167,9 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
   private checkPathValid(newPath: string) {
     FS.exists(newPath, exists => {
       // If the path changed while we were checking, we don't care anymore.
-      if (this.state.path !== newPath) { return }
+      if (this.state.path !== newPath) {
+        return
+      }
 
       let error: Error | null = null
       if (exists) {
@@ -194,12 +217,17 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
    * Lookup the account associated with the clone (if applicable) and resolve
    * the repository alias to the clone URL.
    */
-  private async resolveCloneDetails(): Promise<{ url: string, account: Account | null } | null> {
+  private async resolveCloneDetails(): Promise<{
+    url: string
+    account: Account | null
+  } | null> {
     const identifier = this.state.lastParsedIdentifier
     let url = this.state.url
 
     const account = await findAccountForRemoteURL(url, this.props.accounts)
-    if (!account) { return null }
+    if (!account) {
+      return null
+    }
 
     if (identifier) {
       const api = API.fromAccount(account)
@@ -218,7 +246,9 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     const path = this.state.path
     const cloneDetails = await this.resolveCloneDetails()
     if (!cloneDetails) {
-      const error = new Error(`We couldn't find that repository. Check that you are logged in, and the URL or repository alias are spelled correctly.`)
+      const error = new Error(
+        `We couldn't find that repository. Check that you are logged in, and the URL or repository alias are spelled correctly.`
+      )
       this.setState({ loading: false, error })
       return
     }

@@ -6,7 +6,9 @@ interface IFrontMatterResult<T> {
   readonly body: string
 }
 
-const frontMatter: <T>(path: string) => IFrontMatterResult<T> = require('front-matter')
+const frontMatter: <T>(
+  path: string
+) => IFrontMatterResult<T> = require('front-matter')
 
 interface IChooseALicense {
   readonly title: string
@@ -71,7 +73,9 @@ export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
             const license: ILicense = {
               name: result.attributes.nickname || result.attributes.title,
               featured: result.attributes.featured || false,
-              hidden: result.attributes.hidden === undefined || result.attributes.hidden,
+              hidden:
+                result.attributes.hidden === undefined ||
+                result.attributes.hidden,
               body: result.body.trim(),
             }
 
@@ -81,8 +85,12 @@ export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
           }
 
           cachedLicenses = licenses.sort((a, b) => {
-            if (a.featured) { return -1 }
-            if (b.featured) { return 1 }
+            if (a.featured) {
+              return -1
+            }
+            if (b.featured) {
+              return 1
+            }
             return a.name.localeCompare(b.name)
           })
 
@@ -104,7 +112,11 @@ function replaceToken(body: string, token: string, value: string): string {
   return newBody.replace(newPattern, value)
 }
 
-function replaceTokens(body: string, tokens: ReadonlyArray<keyof ILicenseFields>, fields: ILicenseFields): string {
+function replaceTokens(
+  body: string,
+  tokens: ReadonlyArray<keyof ILicenseFields>,
+  fields: ILicenseFields
+): string {
   let newBody = body
   for (const token of tokens) {
     const value = fields[token]
@@ -115,11 +127,21 @@ function replaceTokens(body: string, tokens: ReadonlyArray<keyof ILicenseFields>
 }
 
 /** Write the license to the the repository at the given path. */
-export function writeLicense(repositoryPath: string, license: ILicense, fields: ILicenseFields): Promise<void> {
+export function writeLicense(
+  repositoryPath: string,
+  license: ILicense,
+  fields: ILicenseFields
+): Promise<void> {
   const fullPath = Path.join(repositoryPath, 'LICENSE')
 
   return new Promise<void>((resolve, reject) => {
-    const tokens: ReadonlyArray<keyof ILicenseFields> = [ 'fullname', 'email', 'project', 'description', 'year' ]
+    const tokens: ReadonlyArray<keyof ILicenseFields> = [
+      'fullname',
+      'email',
+      'project',
+      'description',
+      'year',
+    ]
     const body = replaceTokens(license.body, tokens, fields)
 
     Fs.writeFile(fullPath, body, err => {

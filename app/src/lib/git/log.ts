@@ -11,17 +11,31 @@ import { CommitIdentity } from '../../models/commit-identity'
 function mapStatus(rawStatus: string): AppFileStatus {
   const status = rawStatus.trim()
 
-  if (status === 'M') { return AppFileStatus.Modified }      // modified
-  if (status === 'A') { return AppFileStatus.New }           // added
-  if (status === 'D') { return AppFileStatus.Deleted }       // deleted
-  if (status === 'R') { return AppFileStatus.Renamed }       // renamed
-  if (status === 'C') { return AppFileStatus.Copied }        // copied
+  if (status === 'M') {
+    return AppFileStatus.Modified
+  } // modified
+  if (status === 'A') {
+    return AppFileStatus.New
+  } // added
+  if (status === 'D') {
+    return AppFileStatus.Deleted
+  } // deleted
+  if (status === 'R') {
+    return AppFileStatus.Renamed
+  } // renamed
+  if (status === 'C') {
+    return AppFileStatus.Copied
+  } // copied
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
-  if (status.match(/R[0-9]+/)) { return AppFileStatus.Renamed }
+  if (status.match(/R[0-9]+/)) {
+    return AppFileStatus.Renamed
+  }
 
   // git log -C --name-status will return a CXXX - where XXX is a percentage
-  if (status.match(/C[0-9]+/)) { return AppFileStatus.Copied }
+  if (status.match(/C[0-9]+/)) {
+    return AppFileStatus.Copied
+  }
 
   return AppFileStatus.Modified
 }
@@ -29,7 +43,12 @@ function mapStatus(rawStatus: string): AppFileStatus {
 /**
  * Get the repository's commits using `revisionRange` and limited to `limit`
  */
-export async function getCommits(repository: Repository, revisionRange: string, limit: number, additionalArgs: ReadonlyArray<string> = []): Promise<ReadonlyArray<Commit>> {
+export async function getCommits(
+  repository: Repository,
+  revisionRange: string,
+  limit: number,
+  additionalArgs: ReadonlyArray<string> = []
+): Promise<ReadonlyArray<Commit>> {
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
   const prettyFormat = [
@@ -43,15 +62,21 @@ export async function getCommits(repository: Repository, revisionRange: string, 
     '%P', // parent SHAs
   ].join(`%x${delimiter}`)
 
-  const result = await git([
-    'log',
-    revisionRange,
-    `--date=raw`,
-    `--max-count=${limit}`,
-    `--pretty=${prettyFormat}`,
-    '-z',
-    '--no-color', ...additionalArgs,
-  ], repository.path, 'getCommits', { successExitCodes: new Set([ 0, 128 ]) })
+  const result = await git(
+    [
+      'log',
+      revisionRange,
+      `--date=raw`,
+      `--max-count=${limit}`,
+      `--pretty=${prettyFormat}`,
+      '-z',
+      '--no-color',
+      ...additionalArgs,
+    ],
+    repository.path,
+    'getCommits',
+    { successExitCodes: new Set([0, 128]) }
+  )
 
   // if the repository has an unborn HEAD, return an empty history of commits
   if (result.exitCode === 128) {
@@ -70,9 +95,7 @@ export async function getCommits(repository: Repository, revisionRange: string, 
     const body = pieces[2]
     const authorIdentity = pieces[3]
     const shaList = pieces[4]
-    const parentSHAs = shaList.length
-     ? shaList.split(' ')
-     : [ ]
+    const parentSHAs = shaList.length ? shaList.split(' ') : []
 
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
@@ -87,11 +110,25 @@ export async function getCommits(repository: Repository, revisionRange: string, 
 }
 
 /** Get the files that were changed in the given commit. */
-export async function getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
+export async function getChangedFiles(
+  repository: Repository,
+  sha: string
+): Promise<ReadonlyArray<FileChange>> {
   // opt-in for rename detection (-M) and copies detection (-C)
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
-  const args = [ 'log', sha, '-C', '-M', '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ]
+  const args = [
+    'log',
+    sha,
+    '-C',
+    '-M',
+    '-m',
+    '-1',
+    '--first-parent',
+    '--name-status',
+    '--format=format:',
+    '-z',
+  ]
   const result = await git(args, repository.path, 'getChangedFiles')
 
   const out = result.stdout
@@ -120,9 +157,14 @@ export async function getChangedFiles(repository: Repository, sha: string): Prom
 }
 
 /** Get the commit for the given ref. */
-export async function getCommit(repository: Repository, ref: string): Promise<Commit | null> {
+export async function getCommit(
+  repository: Repository,
+  ref: string
+): Promise<Commit | null> {
   const commits = await getCommits(repository, ref, 1)
-  if (commits.length < 1) { return null }
+  if (commits.length < 1) {
+    return null
+  }
 
   return commits[0]
 }

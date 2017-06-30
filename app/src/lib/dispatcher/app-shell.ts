@@ -11,16 +11,19 @@ export interface IAppShell {
 export const shell: IAppShell = {
   moveItemToTrash: electronShell.moveItemToTrash,
   beep: electronShell.beep,
-  openExternal: (path) => {
+  openExternal: path => {
     return new Promise<boolean>((resolve, reject) => {
-      ipcRenderer.once('open-external-result', (event: Electron.IpcMessageEvent, { result }: { result: boolean }) => {
-        resolve(result)
-      })
+      ipcRenderer.once(
+        'open-external-result',
+        (event: Electron.IpcMessageEvent, { result }: { result: boolean }) => {
+          resolve(result)
+        }
+      )
 
       ipcRenderer.send('open-external', { path })
     })
   },
-  showItemInFolder: (path) => {
+  showItemInFolder: path => {
     ipcRenderer.send('show-item-in-folder', { path })
   },
   openItem: electronShell.openItem,

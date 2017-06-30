@@ -48,7 +48,7 @@ interface ITextAreaProps {
 }
 
 /** A textarea element with app-standard styles. */
-export class TextArea extends React.Component<ITextAreaProps, void> {
+export class TextArea extends React.Component<ITextAreaProps, {}> {
   private onChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
     if (this.props.onChange) {
       this.props.onChange(event)
@@ -60,7 +60,10 @@ export class TextArea extends React.Component<ITextAreaProps, void> {
   }
 
   public render() {
-    const className = classNames('text-area-component', this.props.labelClassName)
+    const className = classNames(
+      'text-area-component',
+      this.props.labelClassName
+    )
     return (
       <label className={className}>
         {this.props.label}
@@ -74,7 +77,8 @@ export class TextArea extends React.Component<ITextAreaProps, void> {
           value={this.props.value}
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
-          ref={this.props.onTextAreaRef}/>
+          ref={this.props.onTextAreaRef}
+        />
       </label>
     )
   }

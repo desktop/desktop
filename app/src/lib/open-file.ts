@@ -1,7 +1,10 @@
 import { shell } from './dispatcher/app-shell'
 import { Dispatcher } from './dispatcher/dispatcher'
 
-export async function openFile(fullPath: string, dispatcher: Dispatcher): Promise<void> {
+export async function openFile(
+  fullPath: string,
+  dispatcher: Dispatcher
+): Promise<void> {
   const result = await shell.openExternal(`file://${fullPath}`)
 
   if (!result) {

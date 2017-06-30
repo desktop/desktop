@@ -11,14 +11,12 @@ interface ISignInDotComProps {
 }
 
 /** The Welcome flow step to login to GitHub.com. */
-export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
-
+export class SignInDotCom extends React.Component<ISignInDotComProps, {}> {
   public componentWillMount() {
     this.props.dispatcher.beginDotComSignIn()
   }
 
   public render() {
-
     const state = this.props.signInState
 
     if (!state) {
@@ -26,12 +24,10 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
     }
 
     return (
-      <div id='sign-in-dot-com'>
-        <h1 className='welcome-title'>Sign in to GitHub.com</h1>
+      <div id="sign-in-dot-com">
+        <h1 className="welcome-title">Sign in to GitHub.com</h1>
 
-        <SignIn
-          signInState={state}
-          dispatcher={this.props.dispatcher}>
+        <SignIn signInState={state} dispatcher={this.props.dispatcher}>
           <Button onClick={this.cancel}>Cancel</Button>
         </SignIn>
       </div>
