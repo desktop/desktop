@@ -96,34 +96,42 @@ export class GitError extends Error {
  * `successExitCodes` or an error not in `expectedErrors`, a `GitError` will be
  * thrown.
  */
-export async function git(args: string[], path: string, name: string, options?: IGitExecutionOptions): Promise<IGitResult> {
-
+export async function git(
+  args: string[],
+  path: string,
+  name: string,
+  options?: IGitExecutionOptions
+): Promise<IGitResult> {
   const defaultOptions: IGitExecutionOptions = {
-    successExitCodes: new Set([ 0 ]),
+    successExitCodes: new Set([0]),
     expectedErrors: new Set(),
   }
 
   const opts = { ...defaultOptions, ...options }
 
-  const startTime = (performance && performance.now) ? performance.now() : null
+  const startTime = performance && performance.now ? performance.now() : null
 
   const commandName = `${name}: git ${args.join(' ')}`
   log.debug(`Executing ${commandName}`)
 
-  const result = await GitPerf.measure(commandName, () => GitProcess.exec(args, path, options))
+  const result = await GitPerf.measure(commandName, () =>
+    GitProcess.exec(args, path, options)
+  )
 
   if (startTime) {
     const rawTime = performance.now() - startTime
     if (rawTime > 1000) {
-     const timeInSeconds = (rawTime / 1000).toFixed(3)
-     log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
+      const timeInSeconds = (rawTime / 1000).toFixed(3)
+      log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
     }
   }
 
   const exitCode = result.exitCode
 
   let gitError: DugiteError | null = null
-  const acceptableExitCode = opts.successExitCodes ? opts.successExitCodes.has(exitCode) : false
+  const acceptableExitCode = opts.successExitCodes
+    ? opts.successExitCodes.has(exitCode)
+    : false
   if (!acceptableExitCode) {
     gitError = GitProcess.parseError(result.stderr)
     if (!gitError) {
@@ -145,7 +153,9 @@ export async function git(args: string[], path: string, name: string, options?: 
 
   // The caller should either handle this error, or expect that exit code.
   const errorMessage = []
-  errorMessage.push(`\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`)
+  errorMessage.push(
+    `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
+  )
 
   if (result.stdout) {
     errorMessage.push(result.stdout)
@@ -156,7 +166,9 @@ export async function git(args: string[], path: string, name: string, options?: 
   }
 
   if (gitError) {
-    errorMessage.push(`(The error was parsed as ${gitError}: ${gitErrorDescription})`)
+    errorMessage.push(
+      `(The error was parsed as ${gitError}: ${gitErrorDescription})`
+    )
   }
 
   log.error(errorMessage.join('\n'))
@@ -166,43 +178,79 @@ export async function git(args: string[], path: string, name: string, options?: 
 
 function getDescriptionForError(error: DugiteError): string {
   switch (error) {
-    case DugiteError.SSHKeyAuditUnverified: return 'The SSH key is unverified.'
+    case DugiteError.SSHKeyAuditUnverified:
+      return 'The SSH key is unverified.'
     case DugiteError.SSHAuthenticationFailed:
     case DugiteError.SSHPermissionDenied:
-    case DugiteError.HTTPSAuthenticationFailed: return `Authentication failed. You may not have permission to access the repository. Open ${__DARWIN__ ? 'preferences' : 'options'} and verify that you're signed in with an account that has permission to access this repository.`
-    case DugiteError.RemoteDisconnection: return 'The remote disconnected. Check your Internet connection and try again.'
-    case DugiteError.HostDown: return 'The host is down. Check your Internet connection and try again.'
-    case DugiteError.RebaseConflicts: return 'We found some conflicts while trying to rebase. Please resolve the conflicts before continuing.'
-    case DugiteError.MergeConflicts: return 'We found some conflicts while trying to merge. Please resolve the conflicts and commit the changes.'
+    case DugiteError.HTTPSAuthenticationFailed:
+      return `Authentication failed. You may not have permission to access the repository. Open ${__DARWIN__
+        ? 'preferences'
+        : 'options'} and verify that you're signed in with an account that has permission to access this repository.`
+    case DugiteError.RemoteDisconnection:
+      return 'The remote disconnected. Check your Internet connection and try again.'
+    case DugiteError.HostDown:
+      return 'The host is down. Check your Internet connection and try again.'
+    case DugiteError.RebaseConflicts:
+      return 'We found some conflicts while trying to rebase. Please resolve the conflicts before continuing.'
+    case DugiteError.MergeConflicts:
+      return 'We found some conflicts while trying to merge. Please resolve the conflicts and commit the changes.'
     case DugiteError.HTTPSRepositoryNotFound:
-    case DugiteError.SSHRepositoryNotFound: return 'The repository does not seem to exist anymore. You may not have access, or it may have been deleted or renamed.'
-    case DugiteError.PushNotFastForward: return 'The repository has been updated since you last pulled. Try pulling before pushing.'
-    case DugiteError.BranchDeletionFailed: return 'Could not delete the branch. It was probably already deleted.'
-    case DugiteError.DefaultBranchDeletionFailed: return `The branch is the repository's default branch and cannot be deleted.`
-    case DugiteError.RevertConflicts: return 'To finish reverting, please merge and commit the changes.'
-    case DugiteError.EmptyRebasePatch: return 'There aren’t any changes left to apply.'
-    case DugiteError.NoMatchingRemoteBranch: return 'There aren’t any remote branches that match the current branch.'
-    case DugiteError.NothingToCommit: return 'There are no changes to commit.'
-    case DugiteError.NoSubmoduleMapping: return 'A submodule was removed from .gitmodules, but the folder still exists in the repository. Delete the folder, commit the change, then try again.'
-    case DugiteError.SubmoduleRepositoryDoesNotExist: return 'A submodule points to a location which does not exist.'
-    case DugiteError.InvalidSubmoduleSHA: return 'A submodule points to a commit which does not exist.'
-    case DugiteError.LocalPermissionDenied: return 'Permission denied.'
-    case DugiteError.InvalidMerge: return 'This is not something we can merge.'
-    case DugiteError.InvalidRebase: return 'This is not something we can rebase.'
-    case DugiteError.NonFastForwardMergeIntoEmptyHead: return 'The merge you attempted is not a fast-forward, so it cannot be performed on an empty branch.'
-    case DugiteError.PatchDoesNotApply: return 'The requested changes conflict with one or more files in the repository.'
-    case DugiteError.BranchAlreadyExists: return 'A branch with that name already exists.'
-    case DugiteError.BadRevision: return 'Bad revision.'
-    case DugiteError.NotAGitRepository: return 'This is not a git repository.'
-    case DugiteError.ProtectedBranchForcePush: return 'This branch is protected from force-push operations.'
-    case DugiteError.ProtectedBranchRequiresReview: return 'This branch is protected and any changes requires an approved review. Open a pull request with changes targeting this branch instead.'
-    case DugiteError.PushWithFileSizeExceedingLimit: return 'The push operation includes a file which exceeds GitHub\'s file size restriction of 100MB. Please remove the file from history and try again.'
-    case DugiteError.HexBranchNameRejected: return 'The branch name cannot be a 40-character string of hexadecimal characters, as this is the format that Git uses for representing objects.'
-    case DugiteError.ForcePushRejected: return 'The force push has been rejected for the current branch.'
-    case DugiteError.InvalidRefLength: return 'A ref cannot be longer than 255 characters.'
-    case DugiteError.CannotMergeUnrelatedHistories: return 'Unable to merge unrelated histories in this repository.'
-    case DugiteError.PushWithPrivateEmail: return 'Cannot push these commits as they contain an email address marked as private on GitHub.'
-    default: return assertNever(error, `Unknown error: ${error}`)
+    case DugiteError.SSHRepositoryNotFound:
+      return 'The repository does not seem to exist anymore. You may not have access, or it may have been deleted or renamed.'
+    case DugiteError.PushNotFastForward:
+      return 'The repository has been updated since you last pulled. Try pulling before pushing.'
+    case DugiteError.BranchDeletionFailed:
+      return 'Could not delete the branch. It was probably already deleted.'
+    case DugiteError.DefaultBranchDeletionFailed:
+      return `The branch is the repository's default branch and cannot be deleted.`
+    case DugiteError.RevertConflicts:
+      return 'To finish reverting, please merge and commit the changes.'
+    case DugiteError.EmptyRebasePatch:
+      return 'There aren’t any changes left to apply.'
+    case DugiteError.NoMatchingRemoteBranch:
+      return 'There aren’t any remote branches that match the current branch.'
+    case DugiteError.NothingToCommit:
+      return 'There are no changes to commit.'
+    case DugiteError.NoSubmoduleMapping:
+      return 'A submodule was removed from .gitmodules, but the folder still exists in the repository. Delete the folder, commit the change, then try again.'
+    case DugiteError.SubmoduleRepositoryDoesNotExist:
+      return 'A submodule points to a location which does not exist.'
+    case DugiteError.InvalidSubmoduleSHA:
+      return 'A submodule points to a commit which does not exist.'
+    case DugiteError.LocalPermissionDenied:
+      return 'Permission denied.'
+    case DugiteError.InvalidMerge:
+      return 'This is not something we can merge.'
+    case DugiteError.InvalidRebase:
+      return 'This is not something we can rebase.'
+    case DugiteError.NonFastForwardMergeIntoEmptyHead:
+      return 'The merge you attempted is not a fast-forward, so it cannot be performed on an empty branch.'
+    case DugiteError.PatchDoesNotApply:
+      return 'The requested changes conflict with one or more files in the repository.'
+    case DugiteError.BranchAlreadyExists:
+      return 'A branch with that name already exists.'
+    case DugiteError.BadRevision:
+      return 'Bad revision.'
+    case DugiteError.NotAGitRepository:
+      return 'This is not a git repository.'
+    case DugiteError.ProtectedBranchForcePush:
+      return 'This branch is protected from force-push operations.'
+    case DugiteError.ProtectedBranchRequiresReview:
+      return 'This branch is protected and any changes requires an approved review. Open a pull request with changes targeting this branch instead.'
+    case DugiteError.PushWithFileSizeExceedingLimit:
+      return "The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again."
+    case DugiteError.HexBranchNameRejected:
+      return 'The branch name cannot be a 40-character string of hexadecimal characters, as this is the format that Git uses for representing objects.'
+    case DugiteError.ForcePushRejected:
+      return 'The force push has been rejected for the current branch.'
+    case DugiteError.InvalidRefLength:
+      return 'A ref cannot be longer than 255 characters.'
+    case DugiteError.CannotMergeUnrelatedHistories:
+      return 'Unable to merge unrelated histories in this repository.'
+    case DugiteError.PushWithPrivateEmail:
+      return 'Cannot push these commits as they contain an email address marked as private on GitHub.'
+    default:
+      return assertNever(error, `Unknown error: ${error}`)
   }
 }
 
@@ -227,18 +275,19 @@ function getAskPassScriptPath(): string {
 export const gitNetworkArguments: ReadonlyArray<string> = [
   // Explicitly unset any defined credential helper, we rely on our
   // own askpass for authentication.
-  '-c' , 'credential.helper=',
+  '-c',
+  'credential.helper=',
 ]
 
 /** Get the environment for authenticating remote operations. */
 export function envForAuthentication(account: Account | null): Object {
   const env = {
-    'DESKTOP_PATH': process.execPath,
-    'DESKTOP_ASKPASS_SCRIPT': getAskPassScriptPath(),
-    'GIT_ASKPASS': getAskPassTrampolinePath(),
+    DESKTOP_PATH: process.execPath,
+    DESKTOP_ASKPASS_SCRIPT: getAskPassScriptPath(),
+    GIT_ASKPASS: getAskPassTrampolinePath(),
     // supported since Git 2.3, this is used to ensure we never interactively prompt
     // for credentials - even as a fallback
-    'GIT_TERMINAL_PROMPT': '0',
+    GIT_TERMINAL_PROMPT: '0',
   }
 
   if (!account) {
@@ -246,16 +295,16 @@ export function envForAuthentication(account: Account | null): Object {
   }
 
   return Object.assign(env, {
-    'DESKTOP_USERNAME': account.login,
-    'DESKTOP_ENDPOINT': account.endpoint,
+    DESKTOP_USERNAME: account.login,
+    DESKTOP_ENDPOINT: account.endpoint,
   })
 }
 
 export function expectedAuthenticationErrors(): Set<DugiteError> {
   return new Set([
-      DugiteError.HTTPSAuthenticationFailed,
-      DugiteError.SSHAuthenticationFailed,
-      DugiteError.HTTPSRepositoryNotFound,
-      DugiteError.SSHRepositoryNotFound,
+    DugiteError.HTTPSAuthenticationFailed,
+    DugiteError.SSHAuthenticationFailed,
+    DugiteError.HTTPSRepositoryNotFound,
+    DugiteError.SSHRepositoryNotFound,
   ])
 }

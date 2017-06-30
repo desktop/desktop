@@ -38,14 +38,15 @@ interface ISegmentedItemProps {
 }
 
 export class SegmentedItem extends React.Component<ISegmentedItemProps, {}> {
-
   private onClick = () => {
     this.props.onClick(this.props.index)
   }
 
   public render() {
     const description = this.props.description
-      ? <p>{this.props.description}</p>
+      ? <p>
+          {this.props.description}
+        </p>
       : undefined
 
     const isSelected = this.props.isSelected
@@ -55,11 +56,13 @@ export class SegmentedItem extends React.Component<ISegmentedItemProps, {}> {
       <li
         className={className}
         onClick={this.onClick}
-        role='radio'
+        role="radio"
         id={this.props.id}
         aria-checked={isSelected ? 'true' : 'false'}
       >
-        <div className='title'>{this.props.title}</div>
+        <div className="title">
+          {this.props.title}
+        </div>
         {description}
       </li>
     )

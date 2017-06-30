@@ -50,8 +50,10 @@ interface IPersistingResizableState {
  * Soft deprecated, new consumers should opt for the pure
  * Resizable component and manage persistence themselves.
  */
-export class PersistingResizable extends React.Component<IPersistingResizableProps, IPersistingResizableState> {
-
+export class PersistingResizable extends React.Component<
+  IPersistingResizableProps,
+  IPersistingResizableState
+> {
   public static defaultProps: IPersistingResizableProps = {
     configKey: 'resizable-width',
     defaultWidth: 250,
@@ -65,7 +67,10 @@ export class PersistingResizable extends React.Component<IPersistingResizablePro
   }
 
   private getPersistedWidth(): number | undefined {
-    const storedWidth = parseInt(localStorage.getItem(this.props.configKey) || '', 10)
+    const storedWidth = parseInt(
+      localStorage.getItem(this.props.configKey) || '',
+      10
+    )
     if (!storedWidth || isNaN(storedWidth)) {
       return this.props.defaultWidth
     }
@@ -86,9 +91,10 @@ export class PersistingResizable extends React.Component<IPersistingResizablePro
   }
 
   private getCurrentWidth(): number {
-    return (this.state && this.state.width)
+    return this.state && this.state.width
       ? this.state.width
-      : this.props.defaultWidth || PersistingResizable.defaultProps.defaultWidth!
+      : this.props.defaultWidth ||
+        PersistingResizable.defaultProps.defaultWidth!
   }
 
   private handleResize = (newWidth: number) => {
@@ -111,7 +117,7 @@ export class PersistingResizable extends React.Component<IPersistingResizablePro
         onResize={this.handleResize}
         onReset={this.handleReset}
       >
-      {this.props.children}
+        {this.props.children}
       </Resizable>
     )
   }

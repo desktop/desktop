@@ -15,7 +15,6 @@ export interface IMenuItemState {
  * Utility class for coalescing updates to menu items
  */
 class MenuStateBuilder {
-
   private readonly _state = new Map<MenuIDs, IMenuItemState>()
 
   /**
@@ -28,8 +27,11 @@ class MenuStateBuilder {
     return new Map<MenuIDs, IMenuItemState>(this._state)
   }
 
-  private updateMenuItem<K extends keyof IMenuItemState>(id: MenuIDs, state: Pick<IMenuItemState, K>) {
-    const currentState = this._state.get(id) || { }
+  private updateMenuItem<K extends keyof IMenuItemState>(
+    id: MenuIDs,
+    state: Pick<IMenuItemState, K>
+  ) {
+    const currentState = this._state.get(id) || {}
     this._state.set(id, merge(currentState, state))
   }
 
@@ -52,8 +54,14 @@ class MenuStateBuilder {
   }
 }
 
-function isRepositoryHostedOnGitHub(repository: Repository | CloningRepository) {
-  if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
+function isRepositoryHostedOnGitHub(
+  repository: Repository | CloningRepository
+) {
+  if (
+    !repository ||
+    repository instanceof CloningRepository ||
+    !repository.gitHubRepository
+  ) {
     return false
   }
 
@@ -61,7 +69,11 @@ function isRepositoryHostedOnGitHub(repository: Repository | CloningRepository) 
 }
 
 function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
-  if (state.enabled !== undefined && menuItem.type !== 'separator' && menuItem.enabled !== state.enabled) {
+  if (
+    state.enabled !== undefined &&
+    menuItem.type !== 'separator' &&
+    menuItem.enabled !== state.enabled
+  ) {
     return false
   }
 
@@ -146,13 +158,22 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
     menuStateBuilder.setEnabled('rename-branch', onNonDefaultBranch)
     menuStateBuilder.setEnabled('delete-branch', onNonDefaultBranch)
-    menuStateBuilder.setEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
+    menuStateBuilder.setEnabled(
+      'update-branch',
+      onNonDefaultBranch && hasDefaultBranch
+    )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
-    menuStateBuilder.setEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
+    menuStateBuilder.setEnabled(
+      'compare-branch',
+      isHostedOnGitHub && hasPublishedBranch
+    )
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
     menuStateBuilder.setEnabled('push', hasRemote && !networkActionInProgress)
-    menuStateBuilder.setEnabled('pull', hasPublishedBranch && !networkActionInProgress)
+    menuStateBuilder.setEnabled(
+      'pull',
+      hasPublishedBranch && !networkActionInProgress
+    )
     menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
   } else {
     for (const id of repositoryScopedIDs) {
@@ -161,7 +182,10 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
     menuStateBuilder.disable('view-repository-on-github')
 
-    if (selectedState && selectedState.type === SelectionType.MissingRepository) {
+    if (
+      selectedState &&
+      selectedState.type === SelectionType.MissingRepository
+    ) {
       if (selectedState.repository.gitHubRepository) {
         menuStateBuilder.enable('view-repository-on-github')
       }
@@ -206,15 +230,16 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
  * in the main process based on the AppState. All changes will be
  * batched together into one ipc message.
  */
-export function updateMenuState(state: IAppState, currentAppMenu: AppMenu | null) {
+export function updateMenuState(
+  state: IAppState,
+  currentAppMenu: AppMenu | null
+) {
   const menuState = getMenuState(state)
 
   // Try to avoid updating sending the IPC message at all
   // if we have a current app menu that we can compare against.
   if (currentAppMenu) {
-
-    for (const [ id, menuItemState ] of menuState.entries()) {
-
+    for (const [id, menuItemState] of menuState.entries()) {
       const appMenuItem = currentAppMenu.getItemById(id)
 
       if (appMenuItem && menuItemStateEqual(menuItemState, appMenuItem)) {
@@ -229,7 +254,7 @@ export function updateMenuState(state: IAppState, currentAppMenu: AppMenu | null
 
   // because we can't send Map over the wire, we need to convert
   // the remaining entries into an array that can be serialized
-  const array = new Array<{id: MenuIDs, state: IMenuItemState}>()
+  const array = new Array<{ id: MenuIDs; state: IMenuItemState }>()
   menuState.forEach((value, key) => array.push({ id: key, state: value }))
   ipcUpdateMenuState(array)
 }

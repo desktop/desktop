@@ -23,14 +23,16 @@ export function parseRemote(url: string): IGitRemoteURL | null {
   // git@github.com:octocat/Hello-World.git
   // git:github.com/octocat/Hello-World.git
   const regexes = [
-    new RegExp('^https?://(?:.+@)?(.+)/(.+)/(.+?)(?:\.git\/?)?$'),
-    new RegExp('^git@(.+):(.+)/(.+?)(?:\.git)?$'),
-    new RegExp('^git:(.+)/(.+)/(.+?)(?:\.git)?$'),
+    new RegExp('^https?://(?:.+@)?(.+)/(.+)/(.+?)(?:.git/?)?$'),
+    new RegExp('^git@(.+):(.+)/(.+?)(?:.git)?$'),
+    new RegExp('^git:(.+)/(.+)/(.+?)(?:.git)?$'),
   ]
 
   for (const regex of regexes) {
     const result = url.match(regex)
-    if (!result) { continue }
+    if (!result) {
+      continue
+    }
 
     const hostname = result[1]
     const owner = result[2]
@@ -49,7 +51,9 @@ export interface IRepositoryIdentifier {
 }
 
 /** Try to parse an owner and name from a URL or owner/name shortcut. */
-export function parseRepositoryIdentifier(url: string): IRepositoryIdentifier | null {
+export function parseRepositoryIdentifier(
+  url: string
+): IRepositoryIdentifier | null {
   const parsed = parseRemote(url)
   // If we can parse it as a remote URL, we'll assume they gave us a proper
   // URL. If not, we'll try treating it as a GitHub repository owner/name

@@ -131,7 +131,6 @@ interface IDialogState {
  * out of the dialog without first dismissing it.
  */
 export class Dialog extends React.Component<IDialogProps, IDialogState> {
-
   private dialogElement: HTMLElement | null = null
   private dismissGraceTimeoutId?: number
 
@@ -149,7 +148,10 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private scheduleDismissGraceTimeout() {
     this.clearDismissGraceTimeout()
-    this.dismissGraceTimeoutId = window.setTimeout(this.onDismissGraceTimer, dismissGracePeriodMs)
+    this.dismissGraceTimeoutId = window.setTimeout(
+      this.onDismissGraceTimer,
+      dismissGracePeriodMs
+    )
   }
 
   private onDismissGraceTimer = () => {
@@ -180,7 +182,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   public componentDidMount() {
     // This cast to any is necessary since React doesn't know about the
     // dialog element yet.
-    (this.dialogElement as any).showModal()
+    // tslint:disable-next-line:whitespace
+    ;(this.dialogElement as any).showModal()
 
     this.setState({ isAppearing: true })
     this.scheduleDismissGraceTimeout()
@@ -206,7 +209,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   private onDialogClick = (e: React.MouseEvent<HTMLElement>) => {
-
     if (!this.isDismissable) {
       return
     }
@@ -302,11 +304,13 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public render() {
-
-    const className = classNames({
-      error: this.props.type === 'error',
-      warning: this.props.type === 'warning',
-    }, this.props.className)
+    const className = classNames(
+      {
+        error: this.props.type === 'error',
+        warning: this.props.type === 'warning',
+      },
+      this.props.className
+    )
 
     return (
       <dialog
@@ -316,13 +320,13 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         className={className}
         aria-labelledby={this.state.titleId}
       >
-          {this.renderHeader()}
+        {this.renderHeader()}
 
-          <form onSubmit={this.onSubmit} autoFocus>
-            <fieldset disabled={this.props.disabled}>
-              {this.props.children}
-            </fieldset>
-          </form>
+        <form onSubmit={this.onSubmit} autoFocus={true}>
+          <fieldset disabled={this.props.disabled}>
+            {this.props.children}
+          </fieldset>
+        </form>
       </dialog>
     )
   }

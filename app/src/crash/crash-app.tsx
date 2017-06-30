@@ -2,15 +2,18 @@ import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
 import { ICrashDetails, ErrorType } from './shared'
 import { TitleBar } from '../ui/window/title-bar'
-import { WindowState, getWindowState, windowStateChannelName } from '../lib/window-state'
+import {
+  WindowState,
+  getWindowState,
+  windowStateChannelName,
+} from '../lib/window-state'
 import { Octicon, OcticonSymbol } from '../ui/octicons'
 import { Button } from '../ui/lib/button'
 import { LinkButton } from '../ui/lib/link-button'
 import { getVersion } from '../ui/lib/app-proxy'
 import { getOS } from '../lib/get-os'
 
-interface ICrashAppProps {
-}
+interface ICrashAppProps {}
 
 interface ICrashAppState {
   /**
@@ -43,13 +46,12 @@ const issuesUri = 'https://github.com/desktop/desktop/issues'
  * current operating system.
  */
 function prepareErrorMessage(error: Error) {
-
   let message
 
   if (error.stack) {
     message = error.stack
       .split('\n')
-      .map((line) => {
+      .map(line => {
         // The stack trace lines come in two forms:
         //
         // `at Function.module.exports.Emitter.simpleDispatch (SOME_USER_SPECIFIC_PATH/app/node_modules/event-kit/lib/emitter.js:25:14)`
@@ -68,7 +70,6 @@ function prepareErrorMessage(error: Error) {
   }
 
   return `${message}\n\nVersion: ${getVersion()}\nOS: ${getOS()}\n`
-
 }
 
 /**
@@ -82,7 +83,6 @@ function prepareErrorMessage(error: Error) {
  * process itself crashes we've failed.
  */
 export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
-
   public constructor(props: ICrashAppProps) {
     super(props)
 
@@ -98,9 +98,12 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
       this.setState({ windowState: getWindowState(window) })
     })
 
-    ipcRenderer.on('error', (event: Electron.IpcMessageEvent, crashDetails: ICrashDetails) => {
-      this.setState(crashDetails)
-    })
+    ipcRenderer.on(
+      'error',
+      (event: Electron.IpcMessageEvent, crashDetails: ICrashDetails) => {
+        this.setState(crashDetails)
+      }
+    )
 
     ipcRenderer.send('crash-ready')
   }
@@ -111,14 +114,17 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   }
 
   private renderTitle() {
-    const message = this.state.type === 'launch'
-      ? 'GitHub Desktop failed to launch'
-      : 'GitHub Desktop encountered an error'
+    const message =
+      this.state.type === 'launch'
+        ? 'GitHub Desktop failed to launch'
+        : 'GitHub Desktop encountered an error'
 
     return (
       <header>
-        <Octicon symbol={OcticonSymbol.stop} className='error-icon' />
-        <h1>{message}</h1>
+        <Octicon symbol={OcticonSymbol.stop} className="error-icon" />
+        <h1>
+          {message}
+        </h1>
       </header>
     )
   }
@@ -128,17 +134,18 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
       return (
         <p>
           GitHub Desktop encountered a catastrophic error that prevents it from
-          launching. This has been reported to the team, but if you encounter this
-          repeatedly please report this issue to the
-          GitHub Desktop <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
+          launching. This has been reported to the team, but if you encounter
+          this repeatedly please report this issue to the GitHub Desktop{' '}
+          <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
         </p>
       )
     } else {
       return (
         <p>
-          GitHub Desktop has encountered an unrecoverable error and will need to restart.
-          This has been reported to the team, but if you encounter this repeatedly please
-          report this issue to the GitHub Desktop <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
+          GitHub Desktop has encountered an unrecoverable error and will need to
+          restart. This has been reported to the team, but if you encounter this
+          repeatedly please report this issue to the GitHub Desktop{' '}
+          <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
         </p>
       )
     }
@@ -151,11 +158,19 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
       return
     }
 
-    return <pre className='error'>{prepareErrorMessage(error)}</pre>
+    return (
+      <pre className="error">
+        {prepareErrorMessage(error)}
+      </pre>
+    )
   }
 
   private renderFooter() {
-    return <div className='footer'>{this.renderQuitButton()}</div>
+    return (
+      <div className="footer">
+        {this.renderQuitButton()}
+      </div>
+    )
   }
 
   private renderQuitButton() {
@@ -169,26 +184,22 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     }
 
     return (
-      <Button
-        type='submit'
-        onClick={this.onQuitButtonClicked}
-      >
+      <Button type="submit" onClick={this.onQuitButtonClicked}>
         {quitText}
       </Button>
     )
   }
 
   private renderBackgroundGraphics() {
-    return <img className='background-graphic-bottom' src={BottomImageUri} />
+    return <img className="background-graphic-bottom" src={BottomImageUri} />
   }
 
   public render() {
-
     return (
-      <div id='crash-app'>
+      <div id="crash-app">
         <TitleBar
           showAppIcon={false}
-          titleBarStyle='light'
+          titleBarStyle="light"
           windowState={this.state.windowState}
         />
         <main>

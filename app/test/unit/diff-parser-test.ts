@@ -66,7 +66,9 @@ index e1d4871..3bd3ee0 100644
     expect(lines.length).to.equal(8)
 
     let i = 0
-    expect(lines[i].text).to.equal('@@ -18,6 +18,7 @@ export function parseRawDiff(lines: ReadonlyArray<string>): Diff {')
+    expect(lines[i].text).to.equal(
+      '@@ -18,6 +18,7 @@ export function parseRawDiff(lines: ReadonlyArray<string>): Diff {'
+    )
     expect(lines[i].type).to.equal(DiffLineType.Hunk)
     expect(lines[i].oldLineNumber).to.equal(null)
     expect(lines[i].newLineNumber).to.equal(null)
@@ -266,7 +268,6 @@ index 1910281..257cc56 100644
     expect(lines[i].newLineNumber).to.equal(1)
     expect(lines[i].noTrailingNewLine).to.be.false
     i++
-
   })
 
   it('parses diffs where neither file version has a trailing newline', () => {
@@ -316,7 +317,6 @@ index 1910281..ba0e162 100644
     expect(lines[i].newLineNumber).to.equal(1)
     expect(lines[i].noTrailingNewLine).to.be.true
     i++
-
   })
 
   it('parses binary diffs', () => {

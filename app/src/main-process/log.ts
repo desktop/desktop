@@ -48,10 +48,7 @@ function initializeWinston(path: string): winston.LogMethod {
   })
 
   winston.configure({
-    transports: [
-      consoleLogger,
-      fileLogger,
-    ],
+    transports: [consoleLogger, fileLogger],
   })
 
   return winston.log
@@ -69,20 +66,18 @@ let loggerPromise: Promise<winston.LogMethod> | null = null
  *          for when the event has been written to all destinations.
  */
 function getLogger(): Promise<winston.LogMethod> {
-
   if (loggerPromise) {
     return loggerPromise
   }
 
   loggerPromise = new Promise<winston.LogMethod>((resolve, reject) => {
-
     const logPath = getLogPath()
 
     mkdirIfNeeded(logPath)
       .then(() => {
         resolve(initializeWinston(getLogFilePath(logPath)))
       })
-      .catch((error) => {
+      .catch(error => {
         reject(error)
       })
   })
@@ -103,7 +98,7 @@ export async function log(level: LogLevel, message: string) {
   try {
     const logger = await getLogger()
     await new Promise<void>((resolve, reject) => {
-      logger(level, message, (error) => {
+      logger(level, message, error => {
         if (error) {
           reject(error)
         } else {

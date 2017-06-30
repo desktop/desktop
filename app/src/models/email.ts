@@ -1,6 +1,5 @@
 /** The data-only interface for Email for transport across IPC. */
 export interface IEmail {
-
   readonly email: string
   /**
    * Represents whether GitHub has confirmed the user has access to this
@@ -28,7 +27,11 @@ export class Email implements IEmail {
     return new Email(obj.email, obj.verified, obj.primary)
   }
 
-  public constructor(email: string, verified: boolean = false, primary: boolean = false) {
+  public constructor(
+    email: string,
+    verified: boolean = false,
+    primary: boolean = false
+  ) {
     this.email = email
     this.verified = verified
     this.primary = primary

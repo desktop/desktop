@@ -19,7 +19,11 @@ import {
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
-import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
+import {
+  FileChange,
+  WorkingDirectoryStatus,
+  WorkingDirectoryFileChange,
+} from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
@@ -27,7 +31,10 @@ import { caseInsensitiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
-import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
+import {
+  CloningRepository,
+  CloningRepositoriesStore,
+} from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
 import { shell } from './app-shell'
@@ -111,7 +118,9 @@ export class AppStore {
   private readonly _issuesStore: IssuesStore
 
   /** The issues store for all repositories. */
-  public get issuesStore(): IssuesStore { return this._issuesStore }
+  public get issuesStore(): IssuesStore {
+    return this._issuesStore
+  }
 
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
@@ -147,9 +156,18 @@ export class AppStore {
   private readonly statsStore: StatsStore
 
   /** The function to resolve the current Open in Desktop flow. */
-  private resolveOpenInDesktop: ((repository: Repository | null) => void) | null = null
+  private resolveOpenInDesktop:
+    | ((repository: Repository | null) => void)
+    | null = null
 
-  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore, signInStore: SignInStore) {
+  public constructor(
+    gitHubUserStore: GitHubUserStore,
+    cloningRepositoriesStore: CloningRepositoriesStore,
+    emojiStore: EmojiStore,
+    issuesStore: IssuesStore,
+    statsStore: StatsStore,
+    signInStore: SignInStore
+  ) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
@@ -161,10 +179,13 @@ export class AppStore {
     const window = remote.getCurrentWindow()
     this.windowState = getWindowState(window)
 
-    ipcRenderer.on('window-state-changed', (event: Electron.IpcMessageEvent, args: any[]) => {
-      this.windowState = getWindowState(window)
-      this.emitUpdate()
-    })
+    ipcRenderer.on(
+      'window-state-changed',
+      (event: Electron.IpcMessageEvent, args: any[]) => {
+        this.windowState = getWindowState(window)
+        this.emitUpdate()
+      }
+    )
 
     window.webContents.getZoomFactor(factor => {
       this.onWindowZoomFactorChanged(factor)
@@ -174,9 +195,12 @@ export class AppStore {
       this.onWindowZoomFactorChanged(zoomFactor)
     })
 
-    ipcRenderer.on('app-menu', (event: Electron.IpcMessageEvent, { menu }: { menu: IMenu }) => {
-      this.setAppMenu(menu)
-    })
+    ipcRenderer.on(
+      'app-menu',
+      (event: Electron.IpcMessageEvent, { menu }: { menu: IMenu }) => {
+        this.setAppMenu(menu)
+      }
+    )
 
     getAppMenu()
 
@@ -190,7 +214,9 @@ export class AppStore {
 
     this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
-    this.signInStore.onDidAuthenticate(account => this.emitAuthenticate(account))
+    this.signInStore.onDidAuthenticate(account =>
+      this.emitAuthenticate(account)
+    )
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
   }
@@ -214,7 +240,9 @@ export class AppStore {
       return
     }
 
-    if (this.emitQueued) { return }
+    if (this.emitQueued) {
+      return
+    }
 
     this.emitQueued = true
 
@@ -279,7 +307,10 @@ export class AppStore {
         diff: null,
       },
       changesState: {
-        workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
+        workingDirectory: new WorkingDirectoryStatus(
+          new Array<WorkingDirectoryFileChange>(),
+          true
+        ),
         selectedFileID: null,
         diff: null,
         contextualCommitMessage: null,
@@ -310,7 +341,9 @@ export class AppStore {
   public getRepositoryState(repository: Repository): IRepositoryState {
     let state = this.repositoryState.get(repository.id)
     if (state) {
-      const gitHubUsers = this.gitHubUserStore.getUsersForRepository(repository) || new Map<string, IGitHubUser>()
+      const gitHubUsers =
+        this.gitHubUserStore.getUsersForRepository(repository) ||
+        new Map<string, IGitHubUser>()
       return merge(state, { gitHubUsers })
     }
 
@@ -319,13 +352,19 @@ export class AppStore {
     return state
   }
 
-  private updateRepositoryState<K extends keyof IRepositoryState>(repository: Repository, fn: (state: IRepositoryState) => Pick<IRepositoryState, K>) {
+  private updateRepositoryState<K extends keyof IRepositoryState>(
+    repository: Repository,
+    fn: (state: IRepositoryState) => Pick<IRepositoryState, K>
+  ) {
     const currentState = this.getRepositoryState(repository)
     const newValues = fn(currentState)
     this.repositoryState.set(repository.id, merge(currentState, newValues))
   }
 
-  private updateHistoryState<K extends keyof IHistoryState>(repository: Repository, fn: (historyState: IHistoryState) => Pick<IHistoryState, K>) {
+  private updateHistoryState<K extends keyof IHistoryState>(
+    repository: Repository,
+    fn: (historyState: IHistoryState) => Pick<IHistoryState, K>
+  ) {
     this.updateRepositoryState(repository, state => {
       const historyState = state.historyState
       const newValues = fn(historyState)
@@ -333,7 +372,10 @@ export class AppStore {
     })
   }
 
-  private updateChangesState<K extends keyof IChangesState>(repository: Repository, fn: (changesState: IChangesState) => Pick<IChangesState, K>) {
+  private updateChangesState<K extends keyof IChangesState>(
+    repository: Repository,
+    fn: (changesState: IChangesState) => Pick<IChangesState, K>
+  ) {
     this.updateRepositoryState(repository, state => {
       const changesState = state.changesState
       const newState = merge(changesState, fn(changesState))
@@ -341,7 +383,10 @@ export class AppStore {
     })
   }
 
-  private updateBranchesState(repository: Repository, fn: (branchesState: IBranchesState) => IBranchesState) {
+  private updateBranchesState(
+    repository: Repository,
+    fn: (branchesState: IBranchesState) => IBranchesState
+  ) {
     this.updateRepositoryState(repository, state => {
       const branchesState = fn(state.branchesState)
       return { branchesState }
@@ -350,11 +395,17 @@ export class AppStore {
 
   private getSelectedState(): PossibleSelections | null {
     const repository = this.selectedRepository
-    if (!repository) { return null }
+    if (!repository) {
+      return null
+    }
 
     if (repository instanceof CloningRepository) {
-      const progress = this.cloningRepositoriesStore.getRepositoryState(repository)
-      if (!progress) { return null }
+      const progress = this.cloningRepositoriesStore.getRepositoryState(
+        repository
+      )
+      if (!progress) {
+        return null
+      }
 
       return {
         type: SelectionType.CloningRepository,
@@ -405,42 +456,44 @@ export class AppStore {
   }
 
   private onGitStoreUpdated(repository: Repository, gitStore: GitStore) {
-    this.updateHistoryState(repository, state => (
-      { history: gitStore.history }
-    ))
+    this.updateHistoryState(repository, state => ({
+      history: gitStore.history,
+    }))
 
-    this.updateBranchesState(repository, state => (
-      {
-        tip: gitStore.tip,
-        defaultBranch: gitStore.defaultBranch,
-        allBranches: gitStore.allBranches,
-        recentBranches: gitStore.recentBranches,
-      }
-    ))
+    this.updateBranchesState(repository, state => ({
+      tip: gitStore.tip,
+      defaultBranch: gitStore.defaultBranch,
+      allBranches: gitStore.allBranches,
+      recentBranches: gitStore.recentBranches,
+    }))
 
-    this.updateChangesState(repository, state => (
-      {
-        commitMessage: gitStore.commitMessage,
-        contextualCommitMessage: gitStore.contextualCommitMessage,
-      }
-    ))
+    this.updateChangesState(repository, state => ({
+      commitMessage: gitStore.commitMessage,
+      contextualCommitMessage: gitStore.contextualCommitMessage,
+    }))
 
-    this.updateRepositoryState(repository, state => (
-      {
-        commits: gitStore.commits,
-        localCommitSHAs: gitStore.localCommitSHAs,
-        aheadBehind: gitStore.aheadBehind,
-        remote: gitStore.remote,
-        lastFetched: gitStore.lastFetched,
-      }
-    ))
+    this.updateRepositoryState(repository, state => ({
+      commits: gitStore.commits,
+      localCommitSHAs: gitStore.localCommitSHAs,
+      aheadBehind: gitStore.aheadBehind,
+      remote: gitStore.remote,
+      lastFetched: gitStore.lastFetched,
+    }))
 
     this.emitUpdate()
   }
 
-  private onGitStoreLoadedCommits(repository: Repository, commits: ReadonlyArray<Commit>) {
+  private onGitStoreLoadedCommits(
+    repository: Repository,
+    commits: ReadonlyArray<Commit>
+  ) {
     for (const commit of commits) {
-      this.gitHubUserStore._loadAndCacheUser(this.accounts, repository, commit.sha, commit.author.email)
+      this.gitHubUserStore._loadAndCacheUser(
+        this.accounts,
+        repository,
+        commit.sha,
+        commit.author.email
+      )
     }
   }
 
@@ -455,7 +508,9 @@ export class AppStore {
     if (!gitStore) {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
-      gitStore.onDidLoadNewCommits(commits => this.onGitStoreLoadedCommits(repository, commits))
+      gitStore.onDidLoadNewCommits(commits =>
+        this.onGitStoreLoadedCommits(repository, commits)
+      )
       gitStore.onDidError(error => this.emitError(error))
 
       this.gitStores.set(repository.id, gitStore)
@@ -499,15 +554,23 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadChangedFilesForCurrentSelection(repository: Repository): Promise<void> {
+  public async _loadChangedFilesForCurrentSelection(
+    repository: Repository
+  ): Promise<void> {
     const state = this.getRepositoryState(repository)
     const selection = state.historyState.selection
     const currentSHA = selection.sha
-    if (!currentSHA) { return }
+    if (!currentSHA) {
+      return
+    }
 
     const gitStore = this.getGitStore(repository)
-    const changedFiles = await gitStore.performFailableOperation(() => getChangedFiles(repository, currentSHA))
-    if (!changedFiles) { return }
+    const changedFiles = await gitStore.performFailableOperation(() =>
+      getChangedFiles(repository, currentSHA)
+    )
+    if (!changedFiles) {
+      return
+    }
 
     // The selection could have changed between when we started loading the
     // changed files and we finished. We might wanna store the changed files per
@@ -521,9 +584,8 @@ export class AppStore {
 
     const noFileSelected = selection.file === null
 
-    const firstFileOrDefault = noFileSelected && changedFiles.length
-      ? changedFiles[0]
-      : selection.file
+    const firstFileOrDefault =
+      noFileSelected && changedFiles.length ? changedFiles[0] : selection.file
 
     const selectionOrFirstFile = {
       file: firstFileOrDefault,
@@ -540,10 +602,15 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeHistoryCommitSelection(repository: Repository, sha: string): Promise<void> {
+  public async _changeHistoryCommitSelection(
+    repository: Repository,
+    sha: string
+  ): Promise<void> {
     this.updateHistoryState(repository, state => {
       const commitChanged = state.selection.sha !== sha
-      const changedFiles = commitChanged ? new Array<FileChange>() : state.changedFiles
+      const changedFiles = commitChanged
+        ? new Array<FileChange>()
+        : state.changedFiles
       const file = commitChanged ? null : state.selection.file
       const selection = { sha, file }
       const diff = null
@@ -554,8 +621,10 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeHistoryFileSelection(repository: Repository, file: FileChange): Promise<void> {
-
+  public async _changeHistoryFileSelection(
+    repository: Repository,
+    file: FileChange
+  ): Promise<void> {
     this.updateHistoryState(repository, state => {
       const selection = { sha: state.selection.sha, file }
       const diff = null
@@ -568,7 +637,9 @@ export class AppStore {
 
     if (!sha) {
       if (__DEV__) {
-        throw new Error('No currently selected sha yet we\'ve been asked to switch file selection')
+        throw new Error(
+          "No currently selected sha yet we've been asked to switch file selection"
+        )
       } else {
         return
       }
@@ -579,9 +650,18 @@ export class AppStore {
     const stateAfterLoad = this.getRepositoryState(repository)
 
     // A whole bunch of things could have happened since we initiated the diff load
-    if (stateAfterLoad.historyState.selection.sha !== stateBeforeLoad.historyState.selection.sha) { return }
-    if (!stateAfterLoad.historyState.selection.file) { return }
-    if (stateAfterLoad.historyState.selection.file.id !== file.id) { return }
+    if (
+      stateAfterLoad.historyState.selection.sha !==
+      stateBeforeLoad.historyState.selection.sha
+    ) {
+      return
+    }
+    if (!stateAfterLoad.historyState.selection.file) {
+      return
+    }
+    if (stateAfterLoad.historyState.selection.file.id !== file.id) {
+      return
+    }
 
     this.updateHistoryState(repository, state => {
       const selection = { sha: state.selection.sha, file }
@@ -592,15 +672,21 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _selectRepository(repository: Repository | CloningRepository | null): Promise<Repository | null> {
+  public async _selectRepository(
+    repository: Repository | CloningRepository | null
+  ): Promise<Repository | null> {
     const previouslySelectedRepository = this.selectedRepository
     this.selectedRepository = repository
     this.emitUpdate()
 
     this.stopBackgroundFetching()
 
-    if (!repository) { return Promise.resolve(null) }
-    if (!(repository instanceof Repository)) { return Promise.resolve(null) }
+    if (!repository) {
+      return Promise.resolve(null)
+    }
+    if (!(repository instanceof Repository)) {
+      return Promise.resolve(null)
+    }
 
     localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
@@ -620,7 +706,9 @@ export class AppStore {
     await this._refreshRepository(repository)
 
     // The selected repository could have changed while we were refreshing.
-    if (this.selectedRepository !== repository) { return null }
+    if (this.selectedRepository !== repository) {
+      return null
+    }
 
     // "Clone in Desktop" from a cold start can trigger this twice, and
     // for edge cases where _selectRepository is re-entract, calling this here
@@ -635,7 +723,9 @@ export class AppStore {
 
   public async _updateIssues(repository: GitHubRepository) {
     const user = getAccountForEndpoint(this.accounts, repository.endpoint)
-    if (!user) { return }
+    if (!user) {
+      return
+    }
 
     try {
       await this._issuesStore.fetchIssues(repository, user)
@@ -654,48 +744,69 @@ export class AppStore {
 
   private refreshMentionables(repository: Repository) {
     const account = this.getAccountForRepository(repository)
-    if (!account) { return }
+    if (!account) {
+      return
+    }
 
     const gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) { return }
+    if (!gitHubRepository) {
+      return
+    }
 
     this.gitHubUserStore.updateMentionables(gitHubRepository, account)
   }
 
-  private startBackgroundFetching(repository: Repository, withInitialSkew: boolean) {
+  private startBackgroundFetching(
+    repository: Repository,
+    withInitialSkew: boolean
+  ) {
     if (this.currentBackgroundFetcher) {
-      fatalError(`We should only have on background fetcher active at once, but we're trying to start background fetching on ${repository.name} while another background fetcher is still active!`)
+      fatalError(
+        `We should only have on background fetcher active at once, but we're trying to start background fetching on ${repository.name} while another background fetcher is still active!`
+      )
       return
     }
 
     const account = this.getAccountForRepository(repository)
-    if (!account) { return }
+    if (!account) {
+      return
+    }
 
-    if (!repository.gitHubRepository) { return }
+    if (!repository.gitHubRepository) {
+      return
+    }
 
-    const fetcher = new BackgroundFetcher(repository, account, r => this.performFetch(r, account, true))
+    const fetcher = new BackgroundFetcher(repository, account, r =>
+      this.performFetch(r, account, true)
+    )
     fetcher.start(withInitialSkew)
     this.currentBackgroundFetcher = fetcher
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _loadFromSharedProcess(accounts: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>, initialLoad: boolean) {
+  public _loadFromSharedProcess(
+    accounts: ReadonlyArray<Account>,
+    repositories: ReadonlyArray<Repository>,
+    initialLoad: boolean
+  ) {
     this.accounts = accounts
     this.repositories = repositories
 
     // doing this that the current user can be found by any of their email addresses
     for (const account of accounts) {
-      const userAssociations: ReadonlyArray<IGitHubUser> = account.emails.map(email => (
+      const userAssociations: ReadonlyArray<
+        IGitHubUser
+      > = account.emails.map(email =>
         // NB: We're not using object spread here because `account` has more
         // keys than we want.
-        {
+        ({
           endpoint: account.endpoint,
           email: email.email,
           login: account.login,
           avatarURL: account.avatarURL,
           name: account.name,
-        }
-      ))
+        })
+      )
 
       for (const user of userAssociations) {
         this.gitHubUserStore.cacheUser(user)
@@ -703,19 +814,27 @@ export class AppStore {
     }
 
     const selectedRepository = this.selectedRepository
-    let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
+    let newSelectedRepository: Repository | CloningRepository | null = this
+      .selectedRepository
     if (selectedRepository) {
-      const r = this.repositories.find(r =>
-        r.constructor === selectedRepository.constructor
-        && r.id === selectedRepository.id) || null
+      const r =
+        this.repositories.find(
+          r =>
+            r.constructor === selectedRepository.constructor &&
+            r.id === selectedRepository.id
+        ) || null
 
       newSelectedRepository = r
     }
 
     if (newSelectedRepository === null && this.repositories.length > 0) {
-      const lastSelectedID = parseInt(localStorage.getItem(LastSelectedRepositoryIDKey) || '', 10)
+      const lastSelectedID = parseInt(
+        localStorage.getItem(LastSelectedRepositoryIDKey) || '',
+        10
+      )
       if (lastSelectedID && !isNaN(lastSelectedID)) {
-        newSelectedRepository = this.repositories.find(r => r.id === lastSelectedID) || null
+        newSelectedRepository =
+          this.repositories.find(r => r.id === lastSelectedID) || null
       }
 
       if (!newSelectedRepository) {
@@ -725,14 +844,19 @@ export class AppStore {
 
     this._selectRepository(newSelectedRepository)
 
-    this.sidebarWidth = parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) || defaultSidebarWidth
-    this.commitSummaryWidth = parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) || defaultCommitSummaryWidth
+    this.sidebarWidth =
+      parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) ||
+      defaultSidebarWidth
+    this.commitSummaryWidth =
+      parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) ||
+      defaultCommitSummaryWidth
 
     const confirmRepoRemovalValue = localStorage.getItem(confirmRepoRemovalKey)
 
-    this.confirmRepoRemoval = confirmRepoRemovalValue === null
-      ? confirmRepoRemovalDefault
-      : confirmRepoRemovalValue === '1'
+    this.confirmRepoRemoval =
+      confirmRepoRemovalValue === null
+        ? confirmRepoRemovalDefault
+        : confirmRepoRemovalValue === '1'
 
     if (initialLoad) {
       // For the intitial load, synchronously emit the update so that the window
@@ -744,7 +868,10 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadStatus(repository: Repository, clearPartialState: boolean = false): Promise<void> {
+  public async _loadStatus(
+    repository: Repository,
+    clearPartialState: boolean = false
+  ): Promise<void> {
     const gitStore = this.getGitStore(repository)
     const status = await gitStore.loadStatus()
 
@@ -753,32 +880,37 @@ export class AppStore {
     }
 
     this.updateChangesState(repository, state => {
-
       // Populate a map for all files in the current working directory state
       const filesByID = new Map<string, WorkingDirectoryFileChange>()
       state.workingDirectory.files.forEach(f => filesByID.set(f.id, f))
 
       // Attempt to preserve the selection state for each file in the new
       // working directory state by looking at the current files
-      const mergedFiles = status.workingDirectory.files.map(file => {
-        const existingFile = filesByID.get(file.id)
-        if (existingFile) {
-
-          if (clearPartialState) {
-            if (existingFile.selection.getSelectionType() === DiffSelectionType.Partial) {
-              return file.withIncludeAll(false)
+      const mergedFiles = status.workingDirectory.files
+        .map(file => {
+          const existingFile = filesByID.get(file.id)
+          if (existingFile) {
+            if (clearPartialState) {
+              if (
+                existingFile.selection.getSelectionType() ===
+                DiffSelectionType.Partial
+              ) {
+                return file.withIncludeAll(false)
+              }
             }
-          }
 
-          return file.withSelection(existingFile.selection)
-        } else {
-          return file
-        }
-      })
-      .sort((x, y) => caseInsensitiveCompare(x.path, y.path))
+            return file.withSelection(existingFile.selection)
+          } else {
+            return file
+          }
+        })
+        .sort((x, y) => caseInsensitiveCompare(x.path, y.path))
 
       const includeAll = this.getIncludeAllState(mergedFiles)
-      const workingDirectory = new WorkingDirectoryStatus(mergedFiles, includeAll)
+      const workingDirectory = new WorkingDirectoryStatus(
+        mergedFiles,
+        includeAll
+      )
 
       let selectedFileID = state.selectedFileID
       const matchedFile = mergedFiles.find(x => x.id === selectedFileID)
@@ -791,7 +923,9 @@ export class AppStore {
       // The file selection could have changed if the previously selected file
       // is no longer selectable (it was reverted or committed) but if it hasn't
       // changed we can reuse the diff.
-      const sameSelectedFileExists = state.selectedFileID ? workingDirectory.findFileWithID(state.selectedFileID) : null
+      const sameSelectedFileExists = state.selectedFileID
+        ? workingDirectory.findFileWithID(state.selectedFileID)
+        : null
       const diff = sameSelectedFileExists ? state.diff : null
       return { workingDirectory, selectedFileID, diff }
     })
@@ -801,22 +935,32 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeRepositorySection(repository: Repository, selectedSection: RepositorySection): Promise<void> {
+  public async _changeRepositorySection(
+    repository: Repository,
+    selectedSection: RepositorySection
+  ): Promise<void> {
     this.updateRepositoryState(repository, state => ({ selectedSection }))
     this.emitUpdate()
 
     if (selectedSection === RepositorySection.History) {
       return this.refreshHistorySection(repository)
     } else if (selectedSection === RepositorySection.Changes) {
-      return this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: false })
+      return this.refreshChangesSection(repository, {
+        includingStatus: true,
+        clearPartialState: false,
+      })
     }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
-    this.updateChangesState(repository, state => (
-      { selectedFileID: selectedFile ? selectedFile.id : null, diff: null }
-    ))
+  public async _changeChangesSelection(
+    repository: Repository,
+    selectedFile: WorkingDirectoryFileChange | null
+  ): Promise<void> {
+    this.updateChangesState(repository, state => ({
+      selectedFileID: selectedFile ? selectedFile.id : null,
+      diff: null,
+    }))
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
@@ -827,16 +971,27 @@ export class AppStore {
    * in the working directory. This operation is a noop if there's no currently
    * selected file.
    */
-  private async updateChangesDiffForCurrentSelection(repository: Repository): Promise<void> {
+  private async updateChangesDiffForCurrentSelection(
+    repository: Repository
+  ): Promise<void> {
     const stateBeforeLoad = this.getRepositoryState(repository)
     const changesStateBeforeLoad = stateBeforeLoad.changesState
     const selectedFileIDBeforeLoad = changesStateBeforeLoad.selectedFileID
-    if (!selectedFileIDBeforeLoad) { return }
+    if (!selectedFileIDBeforeLoad) {
+      return
+    }
 
-    const selectedFileBeforeLoad = changesStateBeforeLoad.workingDirectory.findFileWithID(selectedFileIDBeforeLoad)
-    if (!selectedFileBeforeLoad) { return }
+    const selectedFileBeforeLoad = changesStateBeforeLoad.workingDirectory.findFileWithID(
+      selectedFileIDBeforeLoad
+    )
+    if (!selectedFileBeforeLoad) {
+      return
+    }
 
-    const diff = await getWorkingDirectoryDiff(repository, selectedFileBeforeLoad)
+    const diff = await getWorkingDirectoryDiff(
+      repository,
+      selectedFileBeforeLoad
+    )
 
     const stateAfterLoad = this.getRepositoryState(repository)
     const changesState = stateAfterLoad.changesState
@@ -844,11 +999,19 @@ export class AppStore {
 
     // A different file could have been selected while we were loading the diff
     // in which case we no longer care about the diff we just loaded.
-    if (!selectedFileID) { return }
-    if (selectedFileID !== selectedFileIDBeforeLoad) { return }
+    if (!selectedFileID) {
+      return
+    }
+    if (selectedFileID !== selectedFileIDBeforeLoad) {
+      return
+    }
 
-    const currentlySelectedFile = changesState.workingDirectory.findFileWithID(selectedFileID)
-    if (!currentlySelectedFile) { return }
+    const currentlySelectedFile = changesState.workingDirectory.findFileWithID(
+      selectedFileID
+    )
+    if (!currentlySelectedFile) {
+      return
+    }
 
     const selectableLines = new Set<number>()
     if (diff.kind === DiffType.Text) {
@@ -867,17 +1030,23 @@ export class AppStore {
       })
     }
 
-    const newSelection = currentlySelectedFile.selection.withSelectableLines(selectableLines)
+    const newSelection = currentlySelectedFile.selection.withSelectableLines(
+      selectableLines
+    )
     const selectedFile = currentlySelectedFile.withSelection(newSelection)
-    const workingDirectory = changesState.workingDirectory.byReplacingFile(selectedFile)
+    const workingDirectory = changesState.workingDirectory.byReplacingFile(
+      selectedFile
+    )
 
     this.updateChangesState(repository, state => ({ diff, workingDirectory }))
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
-
+  public async _commitIncludedChanges(
+    repository: Repository,
+    message: ICommitMessage
+  ): Promise<boolean> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files
     const selectedFiles = files.filter(file => {
@@ -896,23 +1065,32 @@ export class AppStore {
     if (result) {
       this.statsStore.recordCommit()
 
-      const includedPartialSelections = files.some(file => (
-        file.selection.getSelectionType() === DiffSelectionType.Partial
-      ))
+      const includedPartialSelections = files.some(
+        file => file.selection.getSelectionType() === DiffSelectionType.Partial
+      )
       if (includedPartialSelections) {
         this.statsStore.recordPartialCommit()
       }
 
       await this._refreshRepository(repository)
-      await this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
+      await this.refreshChangesSection(repository, {
+        includingStatus: true,
+        clearPartialState: true,
+      })
     }
 
     return result || false
   }
 
-  private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
-    const allSelected = files.every(f => f.selection.getSelectionType() === DiffSelectionType.All)
-    const noneSelected = files.every(f => f.selection.getSelectionType() === DiffSelectionType.None)
+  private getIncludeAllState(
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ): boolean | null {
+    const allSelected = files.every(
+      f => f.selection.getSelectionType() === DiffSelectionType.All
+    )
+    const noneSelected = files.every(
+      f => f.selection.getSelectionType() === DiffSelectionType.None
+    )
 
     let includeAll: boolean | null = null
     if (allSelected) {
@@ -925,14 +1103,24 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
-    const selection = include ? file.selection.withSelectAll() : file.selection.withSelectNone()
+  public _changeFileIncluded(
+    repository: Repository,
+    file: WorkingDirectoryFileChange,
+    include: boolean
+  ): Promise<void> {
+    const selection = include
+      ? file.selection.withSelectAll()
+      : file.selection.withSelectNone()
     this.updateWorkingDirectoryFileSelection(repository, file, selection)
     return Promise.resolve()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: DiffSelection): Promise<void> {
+  public _changeFileLineSelection(
+    repository: Repository,
+    file: WorkingDirectoryFileChange,
+    diffSelection: DiffSelection
+  ): Promise<void> {
     this.updateWorkingDirectoryFileSelection(repository, file, diffSelection)
     return Promise.resolve()
   }
@@ -941,10 +1129,15 @@ export class AppStore {
    * Updates the selection for the given file in the working directory state and
    * emits an update event.
    */
-  private updateWorkingDirectoryFileSelection(repository: Repository, file: WorkingDirectoryFileChange, selection: DiffSelection) {
+  private updateWorkingDirectoryFileSelection(
+    repository: Repository,
+    file: WorkingDirectoryFileChange,
+    selection: DiffSelection
+  ) {
     this.updateChangesState(repository, state => {
-      const newFiles = state.workingDirectory.files.map(f =>
-        f.id === file.id ? f.withSelection(selection) : f)
+      const newFiles = state.workingDirectory.files.map(
+        f => (f.id === file.id ? f.withSelection(selection) : f)
+      )
 
       const includeAll = this.getIncludeAllState(newFiles)
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
@@ -956,9 +1149,14 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
+  public _changeIncludeAllFiles(
+    repository: Repository,
+    includeAll: boolean
+  ): Promise<void> {
     this.updateChangesState(repository, state => {
-      const workingDirectory = state.workingDirectory.withIncludeAllFiles(includeAll)
+      const workingDirectory = state.workingDirectory.withIncludeAllFiles(
+        includeAll
+      )
       return { workingDirectory }
     })
 
@@ -969,7 +1167,9 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _refreshRepository(repository: Repository): Promise<void> {
-    if (repository.missing) { return }
+    if (repository.missing) {
+      return
+    }
 
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
@@ -977,17 +1177,17 @@ export class AppStore {
     // When refreshing we *always* check the status so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
-    await Promise.all([
-      this._loadStatus(repository),
-      gitStore.loadBranches(),
-    ])
+    await Promise.all([this._loadStatus(repository), gitStore.loadBranches()])
 
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
     if (section === RepositorySection.History) {
       refreshSectionPromise = this.refreshHistorySection(repository)
     } else if (section === RepositorySection.Changes) {
-      refreshSectionPromise = this.refreshChangesSection(repository, { includingStatus: false, clearPartialState: false })
+      refreshSectionPromise = this.refreshChangesSection(repository, {
+        includingStatus: false,
+        clearPartialState: false,
+      })
     } else {
       return assertNever(section, `Unknown section: ${section}`)
     }
@@ -1006,7 +1206,10 @@ export class AppStore {
    *
    * This will be called automatically when appropriate.
    */
-  private async refreshChangesSection(repository: Repository, options: { includingStatus: boolean, clearPartialState: boolean }): Promise<void> {
+  private async refreshChangesSection(
+    repository: Repository,
+    options: { includingStatus: boolean; clearPartialState: boolean }
+  ): Promise<void> {
     if (options.includingStatus) {
       await this._loadStatus(repository, options.clearPartialState)
     }
@@ -1033,7 +1236,10 @@ export class AppStore {
 
   private async refreshAuthor(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    const commitAuthor = await gitStore.performFailableOperation(() => getAuthorIdentity(repository)) || null
+    const commitAuthor =
+      (await gitStore.performFailableOperation(() =>
+        getAuthorIdentity(repository)
+      )) || null
 
     this.updateRepositoryState(repository, state => ({ commitAuthor }))
     this.emitUpdate()
@@ -1054,7 +1260,9 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(): Promise<void> {
     const currentPopup = this.currentPopup
-    if (!currentPopup) { return Promise.resolve() }
+    if (!currentPopup) {
+      return Promise.resolve()
+    }
 
     if (currentPopup.type === PopupType.CloneRepository) {
       this._completeOpenInDesktop(() => Promise.resolve(null))
@@ -1074,7 +1282,6 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _closeFoldout(foldout: FoldoutType): Promise<void> {
-
     if (!this.currentFoldout) {
       return
     }
@@ -1088,9 +1295,15 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createBranch(repository: Repository, name: string, startPoint?: string): Promise<Repository> {
+  public async _createBranch(
+    repository: Repository,
+    name: string,
+    startPoint?: string
+  ): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
-    const createResult = await gitStore.performFailableOperation(() => createBranch(repository, name, startPoint))
+    const createResult = await gitStore.performFailableOperation(() =>
+      createBranch(repository, name, startPoint)
+    )
 
     if (createResult !== true) {
       return repository
@@ -1099,7 +1312,10 @@ export class AppStore {
     return await this._checkoutBranch(repository, name)
   }
 
-  private updateCheckoutProgress(repository: Repository, checkoutProgress: ICheckoutProgress | null) {
+  private updateCheckoutProgress(
+    repository: Repository,
+    checkoutProgress: ICheckoutProgress | null
+  ) {
     this.updateRepositoryState(repository, state => ({ checkoutProgress }))
 
     if (this.selectedRepository === repository) {
@@ -1108,12 +1324,15 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _checkoutBranch(repository: Repository, name: string): Promise<Repository> {
+  public async _checkoutBranch(
+    repository: Repository,
+    name: string
+  ): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
     const kind = 'checkout'
 
     await gitStore.performFailableOperation(() => {
-      return checkoutBranch(repository, name, (progress) => {
+      return checkoutBranch(repository, name, progress => {
         this.updateCheckoutProgress(repository, progress)
       })
     })
@@ -1135,35 +1354,58 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _repositoryWithRefreshedGitHubRepository(repository: Repository): Promise<Repository> {
-    const updatedRepository = await this.updateGitHubRepositoryAssociation(repository)
+  public async _repositoryWithRefreshedGitHubRepository(
+    repository: Repository
+  ): Promise<Repository> {
+    const updatedRepository = await this.updateGitHubRepositoryAssociation(
+      repository
+    )
     const gitHubRepository = updatedRepository.gitHubRepository
-    if (!gitHubRepository) { return updatedRepository }
+    if (!gitHubRepository) {
+      return updatedRepository
+    }
 
     const account = this.getAccountForRepository(updatedRepository)
-    if (!account) { return updatedRepository }
+    if (!account) {
+      return updatedRepository
+    }
 
     const api = API.fromAccount(account)
-    const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
+    const apiRepo = await api.fetchRepository(
+      gitHubRepository.owner.login,
+      gitHubRepository.name
+    )
     if (!apiRepo) {
       return updatedRepository
     }
 
-    return updatedRepository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
+    return updatedRepository.withGitHubRepository(
+      gitHubRepository.withAPI(apiRepo)
+    )
   }
 
-  private async updateGitHubRepositoryAssociation(repository: Repository): Promise<Repository> {
+  private async updateGitHubRepositoryAssociation(
+    repository: Repository
+  ): Promise<Repository> {
     const gitHubRepository = await this.guessGitHubRepository(repository)
-    if (gitHubRepository === repository.gitHubRepository || !gitHubRepository) { return repository }
+    if (gitHubRepository === repository.gitHubRepository || !gitHubRepository) {
+      return repository
+    }
 
-    if (repository.gitHubRepository && gitHubRepository && structuralEquals(repository.gitHubRepository, gitHubRepository)) {
+    if (
+      repository.gitHubRepository &&
+      gitHubRepository &&
+      structuralEquals(repository.gitHubRepository, gitHubRepository)
+    ) {
       return repository
     }
 
     return repository.withGitHubRepository(gitHubRepository)
   }
 
-  private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
+  private async guessGitHubRepository(
+    repository: Repository
+  ): Promise<GitHubRepository | null> {
     const remote = await getDefaultRemote(repository)
     return remote ? matchGitHubRepository(this.accounts, remote.url) : null
   }
@@ -1187,30 +1429,47 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
+  public async _renameBranch(
+    repository: Repository,
+    branch: Branch,
+    newName: string
+  ): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => renameBranch(repository, branch, newName))
+    await gitStore.performFailableOperation(() =>
+      renameBranch(repository, branch, newName)
+    )
 
     return this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _deleteBranch(repository: Repository, branch: Branch, account: Account | null): Promise<void> {
-    const defaultBranch = this.getRepositoryState(repository).branchesState.defaultBranch
+  public async _deleteBranch(
+    repository: Repository,
+    branch: Branch,
+    account: Account | null
+  ): Promise<void> {
+    const defaultBranch = this.getRepositoryState(repository).branchesState
+      .defaultBranch
     if (!defaultBranch) {
       return Promise.reject(new Error(`No default branch!`))
     }
 
     const gitStore = this.getGitStore(repository)
 
-    await gitStore.performFailableOperation(() => checkoutBranch(repository, defaultBranch.name))
-    await gitStore.performFailableOperation(() => deleteBranch(repository, branch, account))
+    await gitStore.performFailableOperation(() =>
+      checkoutBranch(repository, defaultBranch.name)
+    )
+    await gitStore.performFailableOperation(() =>
+      deleteBranch(repository, branch, account)
+    )
 
     return this._refreshRepository(repository)
   }
 
-
-  private updatePushPullFetchProgress(repository: Repository, pushPullFetchProgress: Progress | null) {
+  private updatePushPullFetchProgress(
+    repository: Repository,
+    pushPullFetchProgress: Progress | null
+  ) {
     this.updateRepositoryState(repository, state => ({ pushPullFetchProgress }))
 
     if (this.selectedRepository === repository) {
@@ -1218,7 +1477,10 @@ export class AppStore {
     }
   }
 
-  public async _push(repository: Repository, account: Account | null): Promise<void> {
+  public async _push(
+    repository: Repository,
+    account: Account | null
+  ): Promise<void> {
     const gitStore = this.getGitStore(repository)
     const remote = gitStore.remote
     if (!remote) {
@@ -1260,29 +1522,42 @@ export class AppStore {
         const refreshWeight = 0.1
 
         // Scale pull and fetch weights to be between 0 and 0.9.
-        const scale = (1 / ((pushWeight + fetchWeight)) * (1 - refreshWeight))
+        const scale = 1 / (pushWeight + fetchWeight) * (1 - refreshWeight)
 
         pushWeight *= scale
         fetchWeight *= scale
 
         await gitStore.performFailableOperation(async () => {
+          await pushRepo(
+            repository,
+            account,
+            remote.name,
+            branch.name,
+            branch.upstreamWithoutRemote,
+            progress => {
+              this.updatePushPullFetchProgress(repository, {
+                ...progress,
+                title: pushTitle,
+                value: pushWeight * progress.value,
+              })
+            }
+          )
 
-          await pushRepo(repository, account, remote.name, branch.name, branch.upstreamWithoutRemote, (progress) => {
-            this.updatePushPullFetchProgress(repository, {
-              ...progress,
-              title: pushTitle,
-              value: pushWeight * progress.value,
-            })
-          })
+          await gitStore.fetchRemotes(
+            account,
+            [remote],
+            false,
+            fetchProgress => {
+              this.updatePushPullFetchProgress(repository, {
+                ...fetchProgress,
+                value: pushWeight + fetchProgress.value * fetchWeight,
+              })
+            }
+          )
 
-          await gitStore.fetchRemotes(account, [ remote ], false, (fetchProgress) => {
-            this.updatePushPullFetchProgress(repository, {
-              ...fetchProgress,
-              value: pushWeight + fetchProgress.value * fetchWeight,
-            })
-          })
-
-          const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+          const refreshTitle = __DARWIN__
+            ? 'Refreshing Repository'
+            : 'Refreshing repository'
           const refreshStartProgress = pushWeight + fetchWeight
 
           this.updatePushPullFetchProgress(repository, {
@@ -1308,10 +1583,15 @@ export class AppStore {
     })
   }
 
-  private async isCommitting(repository: Repository, fn: () => Promise<boolean>): Promise<boolean | void> {
+  private async isCommitting(
+    repository: Repository,
+    fn: () => Promise<boolean>
+  ): Promise<boolean | void> {
     const state = this.getRepositoryState(repository)
     // ensure the user doesn't try and commit again
-    if (state.isCommitting) { return }
+    if (state.isCommitting) {
+      return
+    }
 
     this.updateRepositoryState(repository, state => ({ isCommitting: true }))
     this.emitUpdate()
@@ -1324,24 +1604,36 @@ export class AppStore {
     }
   }
 
-  private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
+  private async withPushPull(
+    repository: Repository,
+    fn: () => Promise<void>
+  ): Promise<void> {
     const state = this.getRepositoryState(repository)
     // Don't allow concurrent network operations.
-    if (state.isPushPullFetchInProgress) { return }
+    if (state.isPushPullFetchInProgress) {
+      return
+    }
 
-    this.updateRepositoryState(repository, state => ({ isPushPullFetchInProgress: true }))
+    this.updateRepositoryState(repository, state => ({
+      isPushPullFetchInProgress: true,
+    }))
     this.emitUpdate()
 
     try {
       await fn()
     } finally {
-      this.updateRepositoryState(repository, state => ({ isPushPullFetchInProgress: false }))
+      this.updateRepositoryState(repository, state => ({
+        isPushPullFetchInProgress: false,
+      }))
       this.emitUpdate()
     }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _pull(repository: Repository, account: Account | null): Promise<void> {
+  public async _pull(
+    repository: Repository,
+    account: Account | null
+  ): Promise<void> {
     return this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
@@ -1361,7 +1653,6 @@ export class AppStore {
       }
 
       if (state.branchesState.tip.kind === TipState.Valid) {
-
         const title = `Pulling ${remote.name}`
         const kind = 'pull'
         this.updatePushPullFetchProgress(repository, {
@@ -1381,7 +1672,7 @@ export class AppStore {
           const refreshWeight = 0.1
 
           // Scale pull and fetch weights to be between 0 and 0.9.
-          const scale = (1 / ((pullWeight + fetchWeight)) * (1 - refreshWeight))
+          const scale = 1 / (pullWeight + fetchWeight) * (1 - refreshWeight)
 
           pullWeight *= scale
           fetchWeight *= scale
@@ -1392,10 +1683,13 @@ export class AppStore {
                 ...progress,
                 value: progress.value * pullWeight,
               })
-            }))
+            })
+          )
 
           const refreshStartProgress = pullWeight + fetchWeight
-          const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+          const refreshTitle = __DARWIN__
+            ? 'Refreshing Repository'
+            : 'Refreshing repository'
 
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
@@ -1425,9 +1719,8 @@ export class AppStore {
     const branches = state.branchesState.allBranches
 
     const tip = state.branchesState.tip
-    const currentBranchName = tip.kind === TipState.Valid
-      ? tip.branch.name
-      : null
+    const currentBranchName =
+      tip.kind === TipState.Valid ? tip.branch.name : null
 
     // A branch is only eligible for being fast forwarded if:
     //  1. It's local.
@@ -1435,12 +1728,18 @@ export class AppStore {
     //  3. It has an upstream.
     //  4. It's not ahead of its upstream.
     const eligibleBranches = branches.filter(b => {
-      return b.type === BranchType.Local && b.name !== currentBranchName && b.upstream
+      return (
+        b.type === BranchType.Local &&
+        b.name !== currentBranchName &&
+        b.upstream
+      )
     })
 
     for (const branch of eligibleBranches) {
       const aheadBehind = await getBranchAheadBehind(repository, branch)
-      if (!aheadBehind) { continue }
+      if (!aheadBehind) {
+        continue
+      }
 
       const { ahead, behind } = aheadBehind
       if (ahead === 0 && behind > 0) {
@@ -1449,7 +1748,13 @@ export class AppStore {
         // `eligibleBranches`.
         const upstreamRef = branch.upstream!
         const localRef = formatAsLocalRef(branch.name)
-        await updateRef(repository, localRef, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
+        await updateRef(
+          repository,
+          localRef,
+          branch.tip.sha,
+          upstreamRef,
+          'pull: Fast-forward'
+        )
       }
     }
   }
@@ -1457,18 +1762,34 @@ export class AppStore {
   /** Get the authenticated user for the repository. */
   public getAccountForRepository(repository: Repository): Account | null {
     const gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) { return null }
+    if (!gitHubRepository) {
+      return null
+    }
 
     return getAccountForEndpoint(this.accounts, gitHubRepository.endpoint)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<void> {
+  public async _publishRepository(
+    repository: Repository,
+    name: string,
+    description: string,
+    private_: boolean,
+    account: Account,
+    org: IAPIUser | null
+  ): Promise<void> {
     const api = API.fromAccount(account)
-    const apiRepository = await api.createRepository(org, name, description, private_)
+    const apiRepository = await api.createRepository(
+      org,
+      name,
+      description,
+      private_
+    )
 
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.clone_url))
+    await gitStore.performFailableOperation(() =>
+      addRemote(repository, 'origin', apiRepository.clone_url)
+    )
     await gitStore.loadCurrentRemote()
 
     // skip pushing if the current branch is a detached HEAD or the repository
@@ -1479,11 +1800,15 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clone(url: string, path: string, options: { account: Account | null, branch?: string }): { promise: Promise<boolean>, repository: CloningRepository } {
+  public _clone(
+    url: string,
+    path: string,
+    options: { account: Account | null; branch?: string }
+  ): { promise: Promise<boolean>; repository: CloningRepository } {
     const promise = this.cloningRepositoriesStore.clone(url, path, options)
-    const repository = this.cloningRepositoriesStore
-                           .repositories
-                           .find(r => r.url === url && r.path === path) !
+    const repository = this.cloningRepositoriesStore.repositories.find(
+      r => r.url === url && r.path === path
+    )!
 
     return { promise, repository }
   }
@@ -1492,14 +1817,20 @@ export class AppStore {
     this.cloningRepositoriesStore.remove(repository)
   }
 
-  public async _discardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>) {
+  public async _discardChanges(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) {
     const gitStore = this.getGitStore(repository)
     await gitStore.discardChanges(files)
 
     return this._refreshRepository(repository)
   }
 
-  public async _undoCommit(repository: Repository, commit: Commit): Promise<void> {
+  public async _undoCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
     await gitStore.undoCommit(commit)
@@ -1527,7 +1858,11 @@ export class AppStore {
    * these actions.
    *
    */
-  public async fetchRefspec(repository: Repository, refspec: string, account: Account | null): Promise<void> {
+  public async fetchRefspec(
+    repository: Repository,
+    refspec: string,
+    account: Account | null
+  ): Promise<void> {
     const gitStore = this.getGitStore(repository)
     await gitStore.fetchRefspec(account, refspec)
 
@@ -1539,7 +1874,11 @@ export class AppStore {
     return this.performFetch(repository, account, false)
   }
 
-  private async performFetch(repository: Repository, account: Account | null, backgroundTask: boolean): Promise<void> {
+  private async performFetch(
+    repository: Repository,
+    account: Account | null,
+    backgroundTask: boolean
+  ): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
 
@@ -1547,14 +1886,16 @@ export class AppStore {
         const fetchWeight = 0.9
         const refreshWeight = 0.1
 
-        await gitStore.fetch(account, backgroundTask, (progress) => {
+        await gitStore.fetch(account, backgroundTask, progress => {
           this.updatePushPullFetchProgress(repository, {
             ...progress,
             value: progress.value * fetchWeight,
           })
         })
 
-        const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+        const refreshTitle = __DARWIN__
+          ? 'Refreshing Repository'
+          : 'Refreshing repository'
 
         this.updatePushPullFetchProgress(repository, {
           kind: 'generic',
@@ -1568,7 +1909,7 @@ export class AppStore {
           kind: 'generic',
           title: refreshTitle,
           description: 'Fast-forwarding branches',
-          value: fetchWeight + (refreshWeight * 0.5),
+          value: fetchWeight + refreshWeight * 0.5,
         })
 
         await this.fastForwardBranches(repository)
@@ -1620,7 +1961,10 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public _setCommitMessage(repository: Repository, message: ICommitMessage | null): Promise<void> {
+  public _setCommitMessage(
+    repository: Repository,
+    message: ICommitMessage | null
+  ): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.setCommitMessage(message)
   }
@@ -1647,7 +1991,9 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public _setAppMenuState(update: (appMenu: AppMenu) => AppMenu): Promise<void> {
+  public _setAppMenuState(
+    update: (appMenu: AppMenu) => AppMenu
+  ): Promise<void> {
     if (this.appMenu) {
       this.appMenu = update(this.appMenu)
       this.emitUpdate()
@@ -1664,7 +2010,10 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public async _mergeBranch(repository: Repository, branch: string): Promise<void> {
+  public async _mergeBranch(
+    repository: Repository,
+    branch: string
+  ): Promise<void> {
     const gitStore = this.getGitStore(repository)
     await gitStore.merge(branch)
 
@@ -1672,7 +2021,11 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _setRemoteURL(repository: Repository, name: string, url: string): Promise<void> {
+  public _setRemoteURL(
+    repository: Repository,
+    name: string,
+    url: string
+  ): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.setRemoteURL(name, url)
   }
@@ -1690,7 +2043,10 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _saveGitIgnore(repository: Repository, text: string): Promise<void> {
+  public async _saveGitIgnore(
+    repository: Repository,
+    text: string
+  ): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.saveGitIgnore(text)
   }
@@ -1761,7 +2117,10 @@ export class AppStore {
     return this.signInStore.setEndpoint(url)
   }
 
-  public _setSignInCredentials(username: string, password: string): Promise<void> {
+  public _setSignInCredentials(
+    username: string,
+    password: string
+  ): Promise<void> {
     return this.signInStore.authenticateWithBasicAuth(username, password)
   }
 
@@ -1790,7 +2149,9 @@ export class AppStore {
    */
   public _startOpenInDesktop(fn: () => void): Promise<Repository | null> {
     // tslint:disable-next-line:promise-must-complete
-    const p = new Promise<Repository | null>(resolve => this.resolveOpenInDesktop = resolve)
+    const p = new Promise<Repository | null>(
+      resolve => (this.resolveOpenInDesktop = resolve)
+    )
     fn()
     return p
   }
@@ -1799,7 +2160,9 @@ export class AppStore {
    * Complete any active Open in Desktop flow with the repository returned by
    * the given function.
    */
-  public async _completeOpenInDesktop(fn: () => Promise<Repository | null>): Promise<Repository | null> {
+  public async _completeOpenInDesktop(
+    fn: () => Promise<Repository | null>
+  ): Promise<Repository | null> {
     const resolve = this.resolveOpenInDesktop
     this.resolveOpenInDesktop = null
 
