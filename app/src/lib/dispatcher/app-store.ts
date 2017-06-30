@@ -241,22 +241,6 @@ export class AppStore {
     })
   }
 
-  /**
-   * Load the intial state of the app and synchronously emit an update event.
-   */
-  public async loadInitialState(): Promise<void> {
-    const [accounts, repositories] = await Promise.all([
-      this.accountsStore.getAll(),
-      this.repositoriesStore.getAll(),
-    ])
-
-    this.accounts = accounts
-    this.repositories = repositories
-    this.emitUpdateNow()
-
-    this.accountsStore.refresh()
-  }
-
   /** Load the emoji from disk. */
   public loadEmoji() {
     const rootDir = getAppPath()
@@ -811,12 +795,13 @@ export class AppStore {
     this.currentBackgroundFetcher = fetcher
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public _loadFromSharedProcess(
-    accounts: ReadonlyArray<Account>,
-    repositories: ReadonlyArray<Repository>,
-    initialLoad: boolean
-  ) {
+  /** Load the initial state for the app. */
+  public async loadInitialState() {
+    const [accounts, repositories] = await Promise.all([
+      this.accountsStore.getAll(),
+      this.repositoriesStore.getAll(),
+    ])
+
     this.accounts = accounts
     this.repositories = repositories
 
@@ -886,13 +871,9 @@ export class AppStore {
         ? confirmRepoRemovalDefault
         : confirmRepoRemovalValue === '1'
 
-    if (initialLoad) {
-      // For the intitial load, synchronously emit the update so that the window
-      // is drawn with the initial state before we show it.
-      this.emitUpdateNow()
-    } else {
-      this.emitUpdate()
-    }
+    this.emitUpdateNow()
+
+    this.accountsStore.refresh()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
