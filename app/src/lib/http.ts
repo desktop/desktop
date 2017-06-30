@@ -75,12 +75,19 @@ async function deserialize<T>(response: Response): Promise<T> {
  * @param jsonBody      - The JSON body to send.
  * @param customHeaders - Any optional additional headers to send.
  */
-export function request(endpoint: string, token: string | null, method: HTTPMethod, path: string, jsonBody?: Object, customHeaders?: Object): Promise<Response> {
+export function request(
+  endpoint: string,
+  token: string | null,
+  method: HTTPMethod,
+  path: string,
+  jsonBody?: Object,
+  customHeaders?: Object
+): Promise<Response> {
   const relativePath = path[0] === '/' ? path.substr(1) : path
   const url = encodeURI(`${endpoint}/${relativePath}`)
 
   let headers: any = {
-    'Accept': 'application/vnd.github.v3+json, application/json',
+    Accept: 'application/vnd.github.v3+json, application/json',
     'Content-Type': 'application/json',
     'User-Agent': getUserAgent(),
   }
@@ -135,7 +142,10 @@ export async function parsedResponse<T>(response: Response): Promise<T> {
  *
  * If the url already has a query the new parameters will be appended.
  */
-export function urlWithQueryString(url: string, params: { [key: string]: string }): string {
+export function urlWithQueryString(
+  url: string,
+  params: { [key: string]: string }
+): string {
   const qs = Object.keys(params)
     .map(key => `${key}=${encodeURIComponent(params[key])}`)
     .join('&')

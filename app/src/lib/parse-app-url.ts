@@ -43,7 +43,9 @@ export function parseAppURL(url: string): URLActionType {
   const parsedURL = URL.parse(url, true)
   const hostname = parsedURL.hostname
   const unknown: IUnknownAction = { name: 'unknown' }
-  if (!hostname) { return unknown }
+  if (!hostname) {
+    return unknown
+  }
 
   const actionName = hostname.toLowerCase()
   if (actionName === 'oauth') {
@@ -54,7 +56,9 @@ export function parseAppURL(url: string): URLActionType {
   // - bail out if it's not defined
   // - bail out if you only have `/`
   const pathName = parsedURL.pathname
-  if (!pathName || pathName.length <= 1) { return unknown }
+  if (!pathName || pathName.length <= 1) {
+    return unknown
+  }
 
   // Trim the trailing / from the URL
   const parsedPath = pathName.substr(1)
@@ -73,14 +77,20 @@ export function parseAppURL(url: string): URLActionType {
 
     if (pr) {
       // if anything other than a number is used for the PR value, exit
-      if (!/^\d+$/.test(pr)) { return unknown }
+      if (!/^\d+$/.test(pr)) {
+        return unknown
+      }
 
       // we also expect the branch for a forked PR to be a given ref format
-      if (!/^pr\/\d+$/.test(branch)) { return unknown }
+      if (!/^pr\/\d+$/.test(branch)) {
+        return unknown
+      }
     }
 
     if (branch) {
-      if (testForInvalidChars(branch)) { return unknown }
+      if (testForInvalidChars(branch)) {
+        return unknown
+      }
     }
 
     return {

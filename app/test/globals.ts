@@ -15,8 +15,8 @@ g['__RELEASE_ENV__'] = 'test'
 g['__SHA__'] = 'test'
 
 g['log'] = <IDesktopLogger>{
-  error: () => { },
-  warn: () => { },
-  info: () => { },
-  debug: () => { },
+  error: () => {},
+  warn: () => {},
+  info: () => {},
+  debug: () => {},
 }

@@ -25,7 +25,7 @@ function formatPatchHeader(from: string | null, to: string | null): string {
   //
   // We skip the time stamp to match git
   const fromPath = from ? `a/${from}` : '/dev/null'
-  const toPath =  to ? `b/${to}` : '/dev/null'
+  const toPath = to ? `b/${to}` : '/dev/null'
 
   return `--- ${fromPath}\n+++ ${toPath}\n`
 }
@@ -76,28 +76,26 @@ function formatHunkHeader(
   oldLineCount: number,
   newStartLine: number,
   newLineCount: number,
-  sectionHeading?: string | null) {
+  sectionHeading?: string | null
+) {
+  // > @@ -l,s +l,s @@ optional section heading
+  // >
+  // > The hunk range information contains two hunk ranges. The range for the hunk of the original
+  // > file is preceded by a minus symbol, and the range for the new file is preceded by a plus
+  // > symbol. Each hunk range is of the format l,s where l is the starting line number and s is
+  // > the number of lines the change hunk applies to for each respective file.
+  // >
+  // > In many versions of GNU diff, each range can omit the comma and trailing value s,
+  // > in which case s defaults to 1
+  const lineInfoBefore =
+    oldLineCount === 1 ? `${oldStartLine}` : `${oldStartLine},${oldLineCount}`
 
-    // > @@ -l,s +l,s @@ optional section heading
-    // >
-    // > The hunk range information contains two hunk ranges. The range for the hunk of the original
-    // > file is preceded by a minus symbol, and the range for the new file is preceded by a plus
-    // > symbol. Each hunk range is of the format l,s where l is the starting line number and s is
-    // > the number of lines the change hunk applies to for each respective file.
-    // >
-    // > In many versions of GNU diff, each range can omit the comma and trailing value s,
-    // > in which case s defaults to 1
-    const lineInfoBefore = oldLineCount === 1
-      ? `${oldStartLine}`
-      : `${oldStartLine},${oldLineCount}`
+  const lineInfoAfter =
+    newLineCount === 1 ? `${newStartLine}` : `${newStartLine},${newLineCount}`
 
-    const lineInfoAfter = newLineCount === 1
-      ? `${newStartLine}`
-      : `${newStartLine},${newLineCount}`
+  sectionHeading = sectionHeading ? ` ${sectionHeading}` : ''
 
-    sectionHeading = sectionHeading ? ` ${sectionHeading}` : ''
-
-    return `@@ -${lineInfoBefore} +${lineInfoAfter} @@${sectionHeading}\n`
+  return `@@ -${lineInfoBefore} +${lineInfoAfter} @@${sectionHeading}\n`
 }
 
 /**
@@ -116,11 +114,13 @@ function formatHunkHeader(
  *
  * @param diff  The source diff
  */
-export function formatPatch(file: WorkingDirectoryFileChange, diff: ITextDiff): string {
+export function formatPatch(
+  file: WorkingDirectoryFileChange,
+  diff: ITextDiff
+): string {
   let patch = ''
 
   diff.hunks.forEach((hunk, hunkIndex) => {
-
     let hunkBuf = ''
 
     let oldCount = 0
@@ -132,7 +132,9 @@ export function formatPatch(file: WorkingDirectoryFileChange, diff: ITextDiff): 
       const absoluteIndex = hunk.unifiedDiffStart + lineIndex
 
       // We write our own hunk headers
-      if (line.type === DiffLineType.Hunk) { return }
+      if (line.type === DiffLineType.Hunk) {
+        return
+      }
 
       // Context lines can always be let through, they will
       // never appear for new files.
@@ -146,8 +148,12 @@ export function formatPatch(file: WorkingDirectoryFileChange, diff: ITextDiff): 
         // Use the line as-is
         hunkBuf += `${line.text}\n`
 
-        if (line.type === DiffLineType.Add) { newCount++ }
-        if (line.type === DiffLineType.Delete) { oldCount++ }
+        if (line.type === DiffLineType.Add) {
+          newCount++
+        }
+        if (line.type === DiffLineType.Delete) {
+          oldCount++
+        }
 
         anyAdditionsOrDeletions = true
       } else {
@@ -156,11 +162,15 @@ export function formatPatch(file: WorkingDirectoryFileChange, diff: ITextDiff): 
         // partial patch. If the user has elected not to commit a particular
         // addition we need to generate a patch that pretends that the line
         // never existed.
-        if (file.status === AppFileStatus.New) { return }
+        if (file.status === AppFileStatus.New) {
+          return
+        }
 
         // An unselected added line has no impact on this patch, pretend
         // it was never added to the old file by dropping it.
-        if (line.type === DiffLineType.Add) { return }
+        if (line.type === DiffLineType.Add) {
+          return
+        }
 
         // An unselected deleted line has never happened as far as this patch
         // is concerned which means that we should treat it as if it's still
@@ -176,21 +186,30 @@ export function formatPatch(file: WorkingDirectoryFileChange, diff: ITextDiff): 
       }
 
       if (line.noTrailingNewLine) {
-        hunkBuf += '\ No newline at end of file\n'
+        hunkBuf += ' No newline at end of file\n'
       }
     })
 
     // Skip writing this hunk if all there is is context lines.
-    if (!anyAdditionsOrDeletions)  { return }
+    if (!anyAdditionsOrDeletions) {
+      return
+    }
 
-    patch += formatHunkHeader(hunk.header.oldStartLine, oldCount, hunk.header.newStartLine, newCount)
+    patch += formatHunkHeader(
+      hunk.header.oldStartLine,
+      oldCount,
+      hunk.header.newStartLine,
+      newCount
+    )
     patch += hunkBuf
   })
 
   // If we get into this state we should never have been called in the first
   // place. Someone gave us a faulty diff and/or faulty selection state.
   if (!patch.length) {
-    throw new Error(`Could not generate a patch for file ${file.path}, patch empty`)
+    throw new Error(
+      `Could not generate a patch for file ${file.path}, patch empty`
+    )
   }
 
   patch = formatPatchHeaderForFile(file) + patch

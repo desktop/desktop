@@ -17,7 +17,7 @@ interface ICommitListProps {
 }
 
 /** A component which displays the list of commits. */
-export class CommitList extends React.Component<ICommitListProps, void> {
+export class CommitList extends React.Component<ICommitListProps, {}> {
   private list: List | null
 
   private renderCommit = (row: number) => {
@@ -27,13 +27,21 @@ export class CommitList extends React.Component<ICommitListProps, void> {
       return null
     }
 
-    const gitHubUser = this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
+    const gitHubUser =
+      this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
     let avatarUser = null
     if (gitHubUser) {
       avatarUser = { ...commit.author, avatarURL: gitHubUser.avatarURL }
     }
 
-    return <CommitListItem key={commit.sha} commit={commit} user={avatarUser} emoji={this.props.emoji}/>
+    return (
+      <CommitListItem
+        key={commit.sha}
+        commit={commit}
+        user={avatarUser}
+        emoji={this.props.emoji}
+      />
+    )
   }
 
   private onRowChanged = (row: number) => {
@@ -53,7 +61,9 @@ export class CommitList extends React.Component<ICommitListProps, void> {
 
   private rowForSHA(sha_: string | null): number {
     const sha = sha_
-    if (!sha) { return -1 }
+    if (!sha) {
+      return -1
+    }
 
     return this.props.history.findIndex(s => s === sha)
   }
@@ -63,29 +73,25 @@ export class CommitList extends React.Component<ICommitListProps, void> {
   }
 
   public render() {
-
     if (this.props.history.length === 0) {
-      return (
-        <div className='panel blankslate'>
-          No history
-        </div>
-      )
+      return <div className="panel blankslate">No history</div>
     }
 
     return (
-      <div id='commit-list'>
-        <List ref={this.onListRef}
-              rowCount={this.props.history.length}
-              rowHeight={RowHeight}
-              selectedRow={this.rowForSHA(this.props.selectedSHA)}
-              rowRenderer={this.renderCommit}
-              onSelectionChanged={this.onRowChanged}
-              onScroll={this.onScroll}
-              invalidationProps={{
-                history: this.props.history,
-                gitHubUsers: this.props.gitHubUsers,
-              }}
-            />
+      <div id="commit-list">
+        <List
+          ref={this.onListRef}
+          rowCount={this.props.history.length}
+          rowHeight={RowHeight}
+          selectedRow={this.rowForSHA(this.props.selectedSHA)}
+          rowRenderer={this.renderCommit}
+          onSelectionChanged={this.onRowChanged}
+          onScroll={this.onScroll}
+          invalidationProps={{
+            history: this.props.history,
+            gitHubUsers: this.props.gitHubUsers,
+          }}
+        />
       </div>
     )
   }

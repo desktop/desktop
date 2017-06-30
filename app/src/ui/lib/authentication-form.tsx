@@ -8,7 +8,6 @@ import { TextBox } from './text-box'
 import { Errors } from './errors'
 
 interface IAuthenticationFormProps {
-
   /** Does the server support basic auth? */
   readonly supportsBasicAuth: boolean
 
@@ -52,7 +51,10 @@ interface IAuthenticationFormState {
 }
 
 /** The GitHub authentication component. */
-export class AuthenticationForm extends React.Component<IAuthenticationFormProps, IAuthenticationFormState> {
+export class AuthenticationForm extends React.Component<
+  IAuthenticationFormProps,
+  IAuthenticationFormState
+> {
   public constructor(props: IAuthenticationFormProps) {
     super(props)
 
@@ -61,7 +63,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
   public render() {
     return (
-      <Form className='sign-in-form' onSubmit={this.signIn}>
+      <Form className="sign-in-form" onSubmit={this.signIn}>
         {this.renderUsernamePassword()}
 
         {this.renderSignInWithBrowser()}
@@ -70,24 +72,28 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   }
 
   private renderUsernamePassword() {
-    if (!this.props.supportsBasicAuth) { return null }
+    if (!this.props.supportsBasicAuth) {
+      return null
+    }
 
     const disabled = this.props.loading
     return (
       <div>
         <TextBox
-          label='Username or email address'
+          label="Username or email address"
           disabled={disabled}
           autoFocus={true}
-          onChange={this.onUsernameChange}/>
+          onChange={this.onUsernameChange}
+        />
 
         <TextBox
-          label='Password'
-          type='password'
+          label="Password"
+          type="password"
           disabled={disabled}
           onChange={this.onPasswordChange}
-          labelLinkText='Forgot password?'
-          labelLinkUri={this.props.forgotPasswordUrl}/>
+          labelLinkText="Forgot password?"
+          labelLinkUri={this.props.forgotPasswordUrl}
+        />
 
         {this.renderError()}
 
@@ -97,13 +103,17 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   }
 
   private renderActions() {
-    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length || this.props.loading)
+    const signInDisabled = Boolean(
+      !this.state.username.length ||
+        !this.state.password.length ||
+        this.props.loading
+    )
     return (
-      <div className='actions'>
-        {this.props.supportsBasicAuth ?
-          <Button type='submit' disabled={signInDisabled}>
-            {this.props.loading ? <Loading/> : null } Sign in
-          </Button>
+      <div className="actions">
+        {this.props.supportsBasicAuth
+          ? <Button type="submit" disabled={signInDisabled}>
+              {this.props.loading ? <Loading /> : null} Sign in
+            </Button>
           : null}
         {this.props.additionalButtons}
       </div>
@@ -112,23 +122,33 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
   private renderSignInWithBrowser() {
     const basicAuth = this.props.supportsBasicAuth
-    const browserSignInLink =
-          <LinkButton className='welcome-link-button link-with-icon' onClick={this.signInWithBrowser}>
-            Sign in using your browser
-            <Octicon symbol={OcticonSymbol.linkExternal} />
-          </LinkButton>
+    const browserSignInLink = (
+      <LinkButton
+        className="welcome-link-button link-with-icon"
+        onClick={this.signInWithBrowser}
+      >
+        Sign in using your browser
+        <Octicon symbol={OcticonSymbol.linkExternal} />
+      </LinkButton>
+    )
 
-  const browserSignInButton =
-    <Button type='submit' onClick={this.signInWithBrowser}>
-      Sign in using your browser
-    </Button>
+    const browserSignInButton = (
+      <Button type="submit" onClick={this.signInWithBrowser}>
+        Sign in using your browser
+      </Button>
+    )
 
     return (
       <div>
-        {basicAuth ? <hr className='short-rule' /> : null}
-        {basicAuth ? null : <p>Your GitHub Enterprise instance requires you to sign in with your browser.</p>}
+        {basicAuth ? <hr className="short-rule" /> : null}
+        {basicAuth
+          ? null
+          : <p>
+              Your GitHub Enterprise instance requires you to sign in with your
+              browser.
+            </p>}
 
-        <div className='sign-in-footer'>
+        <div className="sign-in-footer">
           {basicAuth ? browserSignInLink : browserSignInButton}
           {basicAuth ? null : this.renderActions()}
         </div>
@@ -138,9 +158,15 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
   private renderError() {
     const error = this.props.error
-    if (!error) { return null }
+    if (!error) {
+      return null
+    }
 
-    return <Errors>{error.message}</Errors>
+    return (
+      <Errors>
+        {error.message}
+      </Errors>
+    )
   }
 
   private onUsernameChange = (event: React.FormEvent<HTMLInputElement>) => {

@@ -12,7 +12,7 @@ export interface IStatusEntry {
   readonly kind: 'entry'
 
   /** The path to the file relative to the repository root */
-  readonly path: string,
+  readonly path: string
 
   /** The two character long status code */
   readonly statusCode: string
@@ -28,7 +28,9 @@ const UntrackedEntryType = '?'
 const IgnoredEntryType = '!'
 
 /** Parses output from git status --porcelain -z into file status entries */
-export function parsePorcelainStatus(output: string): ReadonlyArray<StatusItem> {
+export function parsePorcelainStatus(
+  output: string
+): ReadonlyArray<StatusItem> {
   const entries = new Array<StatusItem>()
 
   // See https://git-scm.com/docs/git-status
@@ -48,8 +50,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<StatusItem> 
   const fields = output.split('\0')
   let field: string | undefined
 
-  while (field = fields.shift()) {
-
+  while ((field = fields.shift())) {
     if (field.startsWith('# ') && field.length > 2) {
       entries.push({ kind: 'header', value: field.substr(2) })
       continue
@@ -93,15 +94,22 @@ function parseChangedEntry(field: string): IStatusEntry {
 // 2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>
 const renamedOrCopiedEntryRe = /^2 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([RC]\d+) (.*?)$/
 
-function parsedRenamedOrCopiedEntry(field: string, oldPath: string | undefined): IStatusEntry {
+function parsedRenamedOrCopiedEntry(
+  field: string,
+  oldPath: string | undefined
+): IStatusEntry {
   const match = renamedOrCopiedEntryRe.exec(field)
 
   if (!match) {
-    throw new Error(`Failed to parse status line for renamed or copied entry: ${field}`)
+    throw new Error(
+      `Failed to parse status line for renamed or copied entry: ${field}`
+    )
   }
 
   if (!oldPath) {
-    throw new Error('Failed to parse renamed or copied entry, could not parse old path')
+    throw new Error(
+      'Failed to parse renamed or copied entry, could not parse old path'
+    )
   }
 
   return {
@@ -140,12 +148,10 @@ function parseUntrackedEntry(field: string): IStatusEntry {
   }
 }
 
-
 /**
  * Map the raw status text from Git to a structure we can work with in the app.
  */
 export function mapStatus(status: string): FileEntry {
-
   if (status === '??') {
     return {
       kind: 'untracked',
@@ -322,7 +328,7 @@ export function mapStatus(status: string): FileEntry {
     }
   }
 
-    if (status === 'UU') {
+  if (status === 'UU') {
     return {
       kind: 'conflicted',
       us: GitStatusEntry.Modified,

@@ -60,13 +60,16 @@ interface IVerticalSegmentedControlState {
  * A component for presenting a small number of choices to the user. Equivalent
  * of a radio button group but styled as a vertically oriented segmented control.
  */
-export class VerticalSegmentedControl extends React.Component<IVerticalSegmentedControlProps, IVerticalSegmentedControlState> {
+export class VerticalSegmentedControl extends React.Component<
+  IVerticalSegmentedControlProps,
+  IVerticalSegmentedControlState
+> {
   private listRef: HTMLUListElement | null = null
   private formRef: HTMLFormElement | null = null
 
   public constructor(props: IVerticalSegmentedControlProps) {
     super(props)
-    this.state = { }
+    this.state = {}
   }
 
   private updateListId(label: string | undefined) {
@@ -159,14 +162,15 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
   }
 
   public render() {
-
     if (!this.props.items.length) {
       return null
     }
 
     const selectedIndex = this.props.selectedIndex
     const label = this.props.label
-      ? <legend onClick={this.onLegendClick}>{this.props.label}</legend>
+      ? <legend onClick={this.onLegendClick}>
+          {this.props.label}
+        </legend>
       : undefined
 
     const activeDescendant = this.getListItemId(selectedIndex)
@@ -175,19 +179,20 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
     // we can't use a label to point to a list (https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable).
     // See http://stackoverflow.com/a/13273907/2114
     return (
-      <fieldset className='vertical-segmented-control' ref={this.onFieldsetRef}>
+      <fieldset className="vertical-segmented-control" ref={this.onFieldsetRef}>
         {label}
         <ul
           ref={this.onListRef}
           id={this.state.listId}
-          className='vertical-segmented-control'
+          className="vertical-segmented-control"
           tabIndex={0}
           onKeyDown={this.onKeyDown}
-          role='radiogroup'
+          role="radiogroup"
           aria-activedescendant={activeDescendant}
         >
           {this.props.items.map((item, index) =>
-            this.renderItem(item, index, index === selectedIndex))}
+            this.renderItem(item, index, index === selectedIndex)
+          )}
         </ul>
       </fieldset>
     )

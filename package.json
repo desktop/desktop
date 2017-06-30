@@ -22,10 +22,21 @@
     "clean:tslint": "rimraf tslint-rules/*.js",
     "compile:tslint": "tsc -p tslint-rules",
     "lint": "npm run compile:tslint && tslint \"./app/src/**/*.ts\" \"./app/src/**/*.tsx\" \"./app/test/**/*.ts\" \"./app/test/**/*.tsx\"",
+    "check-prettiness": "node script/is-it-pretty",
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
-    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod"
+    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
+    "precommit": "lint-staged",
+    "prepush": "lint-staged",
+    "prettier:base": "prettier --parser typescript --single-quote --trailing-comma es5 --tab-width 2 --no-semi --print-width 80 --write",
+    "prettify": "npm run prettier:base 'app/src/**/*.ts' && npm run prettier:base 'app/src/**/*.tsx' && npm run prettier:base 'app/test/**/*.ts'"
+  },
+  "lint-staged": {
+    "app/{src, test}/**/*.{ts, tsx}": [
+      "npm run prettier:base",
+      "git add"
+    ]
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -74,7 +85,7 @@
     "ts-node": "^3.0.2",
     "tslint": "^4.5.1",
     "tslint-microsoft-contrib": "^4.0.1",
-    "typescript": "2.3.2",
+    "typescript": "2.3.4",
     "vrsource-tslint-rules": "^0.12.0",
     "webpack": "^2.4.1",
     "webpack-dev-middleware": "^1.10.1",
@@ -92,13 +103,18 @@
     "@types/keytar": "^4.0.0",
     "@types/mocha": "^2.2.29",
     "@types/node": "^7.0.18",
-    "@types/react": "15.0.23",
-    "@types/react-addons-test-utils": "^0.14.17",
-    "@types/react-dom": "^15.5.0",
-    "@types/react-transition-group": "^1.1.0",
-    "@types/react-virtualized": "^9.7.0",
+    "@types/react": "15.0.31",
+    "@types/react-addons-test-utils": "0.14.19",
+    "@types/react-dom": "15.5.1",
+    "@types/react-transition-group": "1.1.1",
+    "@types/react-virtualized": "9.7.2",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
-    "@types/winston": "^2.2.0"
+    "@types/winston": "^2.2.0",
+    "husky": "^0.14.1",
+    "lint-staged": "^4.0.0",
+    "prettier": "^1.5.0",
+    "tslint-config-prettier": "^1.1.0",
+    "tslint-react": "^3.0.0"
   }
 }

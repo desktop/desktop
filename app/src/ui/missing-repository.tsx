@@ -16,31 +16,42 @@ interface IMissingRepositoryProps {
 }
 
 /** The view displayed when a repository is missing. */
-export class MissingRepository extends React.Component<IMissingRepositoryProps, void> {
+export class MissingRepository extends React.Component<
+  IMissingRepositoryProps,
+  {}
+> {
   public render() {
     const buttons = new Array<JSX.Element>()
     buttons.push(
-      <Button key='locate' onClick={this.locate} type='submit'>
+      <Button key="locate" onClick={this.locate} type="submit">
         Locate…
-      </Button>)
+      </Button>
+    )
 
     if (this.canCloneAgain()) {
       buttons.push(
-        <Button key='clone-again' onClick={this.cloneAgain}>
+        <Button key="clone-again" onClick={this.cloneAgain}>
           Clone Again
-        </Button>)
+        </Button>
+      )
     }
 
     buttons.push(
-      <Button key='remove' onClick={this.remove}>
+      <Button key="remove" onClick={this.remove}>
         Remove
-      </Button>)
+      </Button>
+    )
 
     return (
-      <UiView id='missing-repository-view'>
-        <div className='title-container'>
-          <div className='title'>Can't find "{this.props.repository.name}"</div>
-          <div className='details'>It was last seen at <span className='path'>{this.props.repository.path}</span></div>
+      <UiView id="missing-repository-view">
+        <div className="title-container">
+          <div className="title">
+            Can't find "{this.props.repository.name}"
+          </div>
+          <div className="details">
+            It was last seen at{' '}
+            <span className="path">{this.props.repository.path}</span>
+          </div>
         </div>
 
         <Row>
@@ -56,7 +67,7 @@ export class MissingRepository extends React.Component<IMissingRepositoryProps, 
   }
 
   private remove = () => {
-    this.props.dispatcher.removeRepositories([ this.props.repository ])
+    this.props.dispatcher.removeRepositories([this.props.repository])
   }
 
   private locate = () => {
@@ -65,14 +76,22 @@ export class MissingRepository extends React.Component<IMissingRepositoryProps, 
 
   private cloneAgain = async () => {
     const gitHubRepository = this.props.repository.gitHubRepository
-    if (!gitHubRepository) { return }
+    if (!gitHubRepository) {
+      return
+    }
 
     const cloneURL = gitHubRepository.cloneURL
-    if (!cloneURL) { return }
+    if (!cloneURL) {
+      return
+    }
 
     try {
       const user = await findAccountForRemoteURL(cloneURL, this.props.accounts)
-      await this.props.dispatcher.cloneAgain(cloneURL, this.props.repository.path, user)
+      await this.props.dispatcher.cloneAgain(
+        cloneURL,
+        this.props.repository.path,
+        user
+      )
     } catch (error) {
       this.props.dispatcher.postError(error)
     }

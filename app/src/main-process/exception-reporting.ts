@@ -3,8 +3,10 @@ import { app, net } from 'electron'
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 
 /** Report the error to Central. */
-export async function reportError(error: Error, extra?: { [key: string]: string }) {
-
+export async function reportError(
+  error: Error,
+  extra?: { [key: string]: string }
+) {
   if (__DEV__) {
     return
   }
@@ -36,19 +38,24 @@ export async function reportError(error: Error, extra?: { [key: string]: string 
     },
   }
 
-  const body = [ ...data.entries() ]
-    .map(([ key, value ]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+  const body = [...data.entries()]
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+    )
     .join('&')
 
   try {
     await new Promise<void>((resolve, reject) => {
       const request = net.request(requestOptions)
 
-      request.on('response', (response) => {
+      request.on('response', response => {
         if (response.statusCode === 200) {
           resolve()
         } else {
-          reject(`Got ${response.statusCode} - ${response.statusMessage} from central`)
+          reject(
+            `Got ${response.statusCode} - ${response.statusMessage} from central`
+          )
         }
       })
 

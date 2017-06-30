@@ -37,15 +37,17 @@ export class SharedProcess {
 
   /** Register the shared process to receive requests. */
   public register() {
-    ipcMain.on('shared/request', (event: Electron.IpcMessageEvent, args: any[]) => {
-      const message: IMessage = args[0]
-      this.send(message)
-    })
+    ipcMain.on(
+      'shared/request',
+      (event: Electron.IpcMessageEvent, args: any[]) => {
+        const message: IMessage = args[0]
+        this.send(message)
+      }
+    )
   }
 
   /** Send a message to the shared process' renderer. */
   public send(msg: IMessage) {
-
     if (this.window.isDestroyed()) {
       return
     }
@@ -55,10 +57,12 @@ export class SharedProcess {
   }
 
   private drainMessageQueue() {
-    if (!this.loaded) { return }
+    if (!this.loaded) {
+      return
+    }
 
     for (const msg of this.messageQueue) {
-      this.window.webContents.send('shared/request', [ msg ])
+      this.window.webContents.send('shared/request', [msg])
     }
 
     this.messageQueue = []

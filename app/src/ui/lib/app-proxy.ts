@@ -74,7 +74,7 @@ export function getUserDataPath(): string {
  */
 export function getDocumentsPath(): string {
   if (!documentsPath) {
-    const app =  getApp()
+    const app = getApp()
     try {
       documentsPath = app.getPath('documents')
     } catch (ex) {

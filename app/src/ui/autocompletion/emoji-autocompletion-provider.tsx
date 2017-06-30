@@ -25,8 +25,8 @@ export interface IEmojiHit {
 }
 
 /** Autocompletion provider for emoji. */
-export class EmojiAutocompletionProvider implements IAutocompletionProvider<IEmojiHit> {
-
+export class EmojiAutocompletionProvider
+  implements IAutocompletionProvider<IEmojiHit> {
   public readonly kind = 'emoji'
 
   private emoji: Map<string, string>
@@ -39,14 +39,16 @@ export class EmojiAutocompletionProvider implements IAutocompletionProvider<IEmo
     return /(?:^|\n| )(?::)([a-z0-9\\+\\-][a-z0-9_]*)?/g
   }
 
-  public async getAutocompletionItems(text: string): Promise<ReadonlyArray<IEmojiHit>> {
-
+  public async getAutocompletionItems(
+    text: string
+  ): Promise<ReadonlyArray<IEmojiHit>> {
     // Empty strings is falsy, this is the happy path to avoid
     // sorting and matching when the user types a ':'. We want
     // to open the popup with suggestions as fast as possible.
     if (!text) {
-      return Array.from(this.emoji.keys())
-        .map<IEmojiHit>(emoji => { return { emoji: emoji, matchStart: 0, matchLength: 0 } })
+      return Array.from(this.emoji.keys()).map<IEmojiHit>(emoji => {
+        return { emoji: emoji, matchStart: 0, matchLength: 0 }
+      })
     }
 
     const results = new Array<IEmojiHit>()
@@ -70,18 +72,20 @@ export class EmojiAutocompletionProvider implements IAutocompletionProvider<IEmo
     //
     // If both those start and length are equal we sort
     // alphabetically
-    return results.sort((x, y) =>
+    return results.sort(
+      (x, y) =>
         compare(x.matchStart, y.matchStart) ||
         compare(x.emoji.length, y.emoji.length) ||
-        compare(x.emoji, y.emoji))
+        compare(x.emoji, y.emoji)
+    )
   }
 
   public renderItem(hit: IEmojiHit) {
     const emoji = hit.emoji
 
     return (
-      <div className='emoji' key={emoji}>
-        <img className='icon' src={this.emoji.get(emoji)}/>
+      <div className="emoji" key={emoji}>
+        <img className="icon" src={this.emoji.get(emoji)} />
         {this.renderHighlightedTitle(hit)}
       </div>
     )
@@ -91,13 +95,19 @@ export class EmojiAutocompletionProvider implements IAutocompletionProvider<IEmo
     const emoji = hit.emoji
 
     if (!hit.matchLength) {
-      return <div className='title'>{emoji}</div>
+      return (
+        <div className="title">
+          {emoji}
+        </div>
+      )
     }
 
     return (
-      <div className='title'>
+      <div className="title">
         {emoji.substr(0, hit.matchStart)}
-        <mark>{emoji.substr(hit.matchStart, hit.matchLength)}</mark>
+        <mark>
+          {emoji.substr(hit.matchStart, hit.matchLength)}
+        </mark>
         {emoji.substr(hit.matchStart + hit.matchLength)}
       </div>
     )

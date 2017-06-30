@@ -92,7 +92,6 @@ interface ITextBoxState {
 
 /** An input element with app-standard styles. */
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
-
   public componentWillMount() {
     const friendlyName = this.props.label || this.props.placeholder
     const inputId = createUniqueId(`TextBox_${friendlyName}`)
@@ -125,9 +124,9 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
       <LinkButton
         uri={this.props.labelLinkUri}
         onClick={this.props.onLabelLinkClick}
-        className='link-label'
+        className="link-label"
       >
-          {this.props.labelLinkText}
+        {this.props.labelLinkText}
       </LinkButton>
     )
   }
@@ -138,8 +137,10 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
 
     return (
-      <div className='label-container'>
-        <label htmlFor={this.state.inputId}>{this.props.label}</label>
+      <div className="label-container">
+        <label htmlFor={this.state.inputId}>
+          {this.props.label}
+        </label>
         {this.renderLabelLink()}
       </div>
     )
@@ -163,7 +164,8 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
           ref={this.props.onInputRef}
-          tabIndex={this.props.tabIndex}/>
+          tabIndex={this.props.tabIndex}
+        />
       </div>
     )
   }

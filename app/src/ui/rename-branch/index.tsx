@@ -21,7 +21,10 @@ interface IRenameBranchState {
   readonly newName: string
 }
 
-export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBranchState> {
+export class RenameBranch extends React.Component<
+  IRenameBranchProps,
+  IRenameBranchState
+> {
   public constructor(props: IRenameBranchProps) {
     super(props)
 
@@ -29,29 +32,36 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
   }
 
   public render() {
-    const disabled = !this.state.newName.length || /^\s*$/.test(this.state.newName)
+    const disabled =
+      !this.state.newName.length || /^\s*$/.test(this.state.newName)
     return (
       <Dialog
-        id='rename-branch'
-        title={ __DARWIN__ ? 'Rename Branch' : 'Rename branch'}
+        id="rename-branch"
+        title={__DARWIN__ ? 'Rename Branch' : 'Rename branch'}
         onDismissed={this.cancel}
         onSubmit={this.renameBranch}
       >
         <DialogContent>
           <Row>
             <TextBox
-              label='Name'
+              label="Name"
               autoFocus={true}
               value={this.state.newName}
               onChange={this.onNameChange}
-              onKeyDown={this.onKeyDown}/>
+              onKeyDown={this.onKeyDown}
+            />
           </Row>
-          {renderBranchNameWarning(this.state.newName, sanitizedBranchName(this.state.newName))}
+          {renderBranchNameWarning(
+            this.state.newName,
+            sanitizedBranchName(this.state.newName)
+          )}
         </DialogContent>
 
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit' disabled={disabled}>Rename {this.props.branch.name}</Button>
+            <Button type="submit" disabled={disabled}>
+              Rename {this.props.branch.name}
+            </Button>
             <Button onClick={this.cancel}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
@@ -75,7 +85,11 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
 
   private renameBranch = () => {
     const name = sanitizedBranchName(this.state.newName)
-    this.props.dispatcher.renameBranch(this.props.repository, this.props.branch, name)
+    this.props.dispatcher.renameBranch(
+      this.props.repository,
+      this.props.branch,
+      name
+    )
     this.props.dispatcher.closePopup()
   }
 }

@@ -5,13 +5,9 @@ import { TextBox } from './text-box'
 import { Form } from './form'
 import { Errors } from './errors'
 
-import {
-  getWelcomeMessage,
-  AuthenticationMode,
- } from '../../lib/2fa'
+import { getWelcomeMessage, AuthenticationMode } from '../../lib/2fa'
 
 interface ITwoFactorAuthenticationProps {
-
   /**
    * A callback which is invoked once the user has entered a
    * OTP token and submitted it either by clicking on the submit
@@ -20,7 +16,13 @@ interface ITwoFactorAuthenticationProps {
   readonly onOTPEntered: (otp: string) => void
 
   /** An array of additional buttons to render after the "Sign In" button. */
-  readonly additionalButtons?: ReadonlyArray<JSX.Element>
+  readonly additionalButtons?:
+    | ReadonlyArray<JSX.Element>
+    | number
+    | string
+    | boolean
+    | {}
+    | null
 
   /**
    * An error which, if present, is presented to the
@@ -48,7 +50,10 @@ interface ITwoFactorAuthenticationState {
 }
 
 /** The two-factor authentication component. */
-export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthenticationProps, ITwoFactorAuthenticationState> {
+export class TwoFactorAuthentication extends React.Component<
+  ITwoFactorAuthenticationProps,
+  ITwoFactorAuthenticationState
+> {
   public constructor(props: ITwoFactorAuthenticationProps) {
     super(props)
 
@@ -61,28 +66,31 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     // ensure user has entered non-whitespace characters
     const codeProvided = /\S+/.test(this.state.otp)
     const signInDisabled = !codeProvided || this.props.loading
-    const errors =  this.props.error
-      ? <Errors>{this.props.error.message}</Errors>
+    const errors = this.props.error
+      ? <Errors>
+          {this.props.error.message}
+        </Errors>
       : null
 
     return (
       <div>
-        <p className='welcome-text'>
-          { getWelcomeMessage(this.props.type) }
+        <p className="welcome-text">
+          {getWelcomeMessage(this.props.type)}
         </p>
 
         <Form onSubmit={this.signIn}>
           <TextBox
-            label='Authentication code'
+            label="Authentication code"
             disabled={textEntryDisabled}
             autoFocus={true}
-            onValueChanged={this.onOTPChange}/>
+            onValueChanged={this.onOTPChange}
+          />
 
           {errors}
 
-          <div className='actions'>
-            <Button type='submit' disabled={signInDisabled}>
-              {this.props.loading ? <Loading/> : null} Verify
+          <div className="actions">
+            <Button type="submit" disabled={signInDisabled}>
+              {this.props.loading ? <Loading /> : null} Verify
             </Button>
             {this.props.additionalButtons}
           </div>
