@@ -18,9 +18,9 @@ describe('AccountsStore', () => {
 
   describe('adding a new user', () => {
     it('contains the added user', async () => {
-      const newAccountLogin = 'tonald-drump'
+      const newAccountLogin = 'joan'
       await accountsStore!.addAccount(
-        new Account(newAccountLogin, '', '', new Array<Email>(), '', 1, '')
+        new Account(newAccountLogin, '', 'deadbeef', new Array<Email>(), '', 1, '')
       )
 
       const users = await accountsStore!.getAll()
