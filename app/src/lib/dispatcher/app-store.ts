@@ -2094,7 +2094,7 @@ export class AppStore {
   }
 
   /** Takes a URL and opens it using the system default application */
-  public _openInBrowser(url: string) {
+  public _openInBrowser(url: string): Promise<boolean> {
     return shell.openExternal(url)
   }
 
