@@ -11,6 +11,8 @@ export const shell: IAppShell = {
   },
   beep: () => {},
   showItemInFolder: (path: string) => {},
-  openExternal: (path: string) => {},
+  openExternal: (path: string) => {
+    return Promise.resolve(true)
+  },
   openItem: (path: string) => true,
 }
