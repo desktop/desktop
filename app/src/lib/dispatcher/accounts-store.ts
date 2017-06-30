@@ -74,7 +74,12 @@ export class AccountsStore {
   public async addAccount(account: Account): Promise<void> {
     await this.loadingPromise
 
-    const updatedAccount = await this.updatedAccount(account)
+    let updatedAccount = account
+    try {
+      updatedAccount = await this.updatedAccount(account)
+    } catch (e) {
+      log.warn(`Failed to fetch user ${account.login}`, e)
+    }
 
     await this.secureStore.setItem(
       getKeyForAccount(updatedAccount),
