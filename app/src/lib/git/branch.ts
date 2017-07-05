@@ -46,7 +46,11 @@ export async function deleteBranch(
   account: Account | null
 ): Promise<true> {
   if (branch.type === BranchType.Local) {
-    await git(['branch', '-D', branch.name], repository.path, 'deleteBranch')
+    await git(
+      ['branch', '-D', branch.name],
+      repository.path,
+      'deleteLocalBranch'
+    )
   }
 
   const remote = branch.remote
@@ -74,7 +78,7 @@ export async function deleteBranch(
     ]
 
     const opts = { env: envForAuthentication(account) }
-    await git(args, repository.path, 'deleteBranch', opts)
+    await git(args, repository.path, 'deleteRemoteBranch', opts)
   }
 
   return true
