@@ -22,7 +22,6 @@ const holdDuration = 750
  * easily at the moment).
  */
 export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
-
   private infoDisappearTimeoutId: number | null = null
   private transitionGroupDisappearTimeoutId: number | null = null
 
@@ -38,7 +37,8 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
   }
 
   public componentWillReceiveProps(nextProps: IZoomInfoProps) {
-    const hasChanged = this.state.windowZoomFactor !== nextProps.windowZoomFactor
+    const hasChanged =
+      this.state.windowZoomFactor !== nextProps.windowZoomFactor
 
     if (!hasChanged) {
       return
@@ -54,17 +54,18 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
 
     this.infoDisappearTimeoutId = window.setTimeout(
       this.onInfoDisappearTimeout,
-      holdDuration,
+      holdDuration
     )
 
     this.transitionGroupDisappearTimeoutId = window.setTimeout(
       this.onTransitionGroupDisappearTimeout,
-      holdDuration + transitionDuration,
+      holdDuration + transitionDuration
     )
 
-    const transitionName = nextProps.windowZoomFactor > this.state.windowZoomFactor
-      ? 'zoom-in'
-      : 'zoom-out'
+    const transitionName =
+      nextProps.windowZoomFactor > this.state.windowZoomFactor
+        ? 'zoom-in'
+        : 'zoom-out'
 
     this.setState({
       windowZoomFactor: nextProps.windowZoomFactor,
@@ -91,22 +92,23 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
 
     return (
       <div>
-        <span>{zoomPercent}</span>
+        <span>
+          {zoomPercent}
+        </span>
       </div>
     )
   }
 
   public render() {
-
     if (!this.state.renderTransitionGroup) {
       return null
     }
 
     return (
       <CSSTransitionGroup
-        id='window-zoom-info'
+        id="window-zoom-info"
         transitionName={this.state.transitionName}
-        component='div'
+        component="div"
         transitionAppear={true}
         transitionEnter={false}
         transitionLeave={true}

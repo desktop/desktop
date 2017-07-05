@@ -1,7 +1,15 @@
 import { expect, use as chaiUse } from 'chai'
-import { setupEmptyRepository, setupFixtureRepository } from '../../fixture-helper'
+import {
+  setupEmptyRepository,
+  setupFixtureRepository,
+} from '../../fixture-helper'
 import { Repository } from '../../../src/models/repository'
-import { TipState, IDetachedHead, IValidBranch, IUnbornRepository } from '../../../src/models/tip'
+import {
+  TipState,
+  IDetachedHead,
+  IValidBranch,
+  IUnbornRepository,
+} from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/dispatcher/git-store'
 import { shell } from '../../test-app-shell'
 import { GitProcess } from 'dugite'
@@ -25,7 +33,7 @@ describe('git/branch', () => {
     it('returns correct ref if checkout occurs', async () => {
       const repository = await setupEmptyRepository()
 
-      await GitProcess.exec([ 'checkout', '-b', 'not-master' ], repository.path)
+      await GitProcess.exec(['checkout', '-b', 'not-master'], repository.path)
 
       const store = new GitStore(repository, shell)
       await store.loadStatus()
@@ -46,7 +54,9 @@ describe('git/branch', () => {
 
       expect(tip.kind).to.equal(TipState.Detached)
       const detached = tip as IDetachedHead
-      expect(detached.currentSha).to.equal('2acb028231d408aaa865f9538b1c89de5a2b9da8')
+      expect(detached.currentSha).to.equal(
+        '2acb028231d408aaa865f9538b1c89de5a2b9da8'
+      )
     })
 
     it('returns current branch when on a valid HEAD', async () => {
@@ -60,7 +70,9 @@ describe('git/branch', () => {
       expect(tip.kind).to.equal(TipState.Valid)
       const onBranch = tip as IValidBranch
       expect(onBranch.branch.name).to.equal('commit-with-long-description')
-      expect(onBranch.branch.tip.sha).to.equal('dfa96676b65e1c0ed43ca25492252a5e384c8efd')
+      expect(onBranch.branch.tip.sha).to.equal(
+        'dfa96676b65e1c0ed43ca25492252a5e384c8efd'
+      )
     })
 
     it('returns non-origin remote', async () => {

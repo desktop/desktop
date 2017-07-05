@@ -15,28 +15,57 @@ interface IRepositoryListItemProps {
 
   /** Called when the repository should be shown in the shell. */
   readonly onOpenInShell: (repository: Repositoryish) => void
+
+  /** Does the repository need to be disambiguated in the list? */
+  readonly needsDisambiguation: boolean
 }
 
 /** A repository item. */
-export class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
+export class RepositoryListItem extends React.Component<
+  IRepositoryListItemProps,
+  {}
+> {
   public render() {
     const repository = this.props.repository
     const path = repository.path
-    const gitHubRepo = repository instanceof Repository ? repository.gitHubRepository : null
+    const gitHubRepo =
+      repository instanceof Repository ? repository.gitHubRepository : null
     const tooltip = gitHubRepo
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
       : path
 
+    let prefix: string | null = null
+    if (this.props.needsDisambiguation && gitHubRepo) {
+      prefix = `${gitHubRepo.owner.login}/`
+    }
+
     return (
-      <div onContextMenu={this.onContextMenu} className='repository-list-item' title={tooltip}>
+      <div
+        onContextMenu={this.onContextMenu}
+        className="repository-list-item"
+        title={tooltip}
+      >
         <Octicon symbol={iconForRepository(repository)} />
-        <div className='name'>{repository.name}</div>
+
+        <div className="name">
+          {prefix
+            ? <span className="prefix">
+                {prefix}
+              </span>
+            : null}
+          <span>
+            {repository.name}
+          </span>
+        </div>
       </div>
     )
   }
 
   public shouldComponentUpdate(nextProps: IRepositoryListItemProps): boolean {
-    if (nextProps.repository instanceof Repository && this.props.repository instanceof Repository) {
+    if (
+      nextProps.repository instanceof Repository &&
+      this.props.repository instanceof Repository
+    ) {
       return nextProps.repository.id !== this.props.repository.id
     } else {
       return true

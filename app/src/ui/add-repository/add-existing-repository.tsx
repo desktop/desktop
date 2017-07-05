@@ -18,6 +18,11 @@ const untildify: (str: string) => string = require('untildify')
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
+
+  /** An optional path to prefill the path text box with.
+   * Defaults to the empty string if not defined.
+   */
+  readonly path?: string
 }
 
 interface IAddExistingRepositoryState {
@@ -32,7 +37,7 @@ interface IAddExistingRepositoryState {
    * If set to false the user will be prevented from submitting this dialog
    * and given the option to create a new repository instead.
    */
-  readonly isGitRepository: boolean
+  readonly isRepository: boolean
 
   /**
    * Indicates whether or not to render a warning message about the entered path
@@ -46,17 +51,26 @@ interface IAddExistingRepositoryState {
 }
 
 /** The component for adding an existing local repository. */
-export class AddExistingRepository extends React.Component<IAddExistingRepositoryProps, IAddExistingRepositoryState> {
-  private checkGitRepositoryToken = 0
-
+export class AddExistingRepository extends React.Component<
+  IAddExistingRepositoryProps,
+  IAddExistingRepositoryState
+> {
   public constructor(props: IAddExistingRepositoryProps) {
     super(props)
 
+    const path = this.props.path ? this.props.path : ''
+
     this.state = {
-      path: '',
-      isGitRepository: false,
+      path,
+      isRepository: false,
       showNonGitRepositoryWarning: false,
     }
+  }
+
+  public async componentDidMount() {
+    const isRepository = await isGitRepository(this.state.path)
+
+    this.setState({ isRepository })
   }
 
   private renderWarning() {
@@ -65,33 +79,40 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     }
 
     return (
-      <Row className='warning-helper-text'>
+      <Row className="warning-helper-text">
         <Octicon symbol={OcticonSymbol.alert} />
         <p>
-          This directory does not appear to be a git repository. Would you like to <LinkButton onClick={this.onCreateRepositoryClicked}>create a repository</LinkButton> here instead?
+          This directory does not appear to be a Git repository.
+          <br />
+          Would you like to{' '}
+          <LinkButton onClick={this.onCreateRepositoryClicked}>
+            create a repository
+          </LinkButton>{' '}
+          here instead?
         </p>
       </Row>
     )
   }
 
   public render() {
-    const disabled = this.state.path.length === 0 || !this.state.isGitRepository
+    const disabled = this.state.path.length === 0 || !this.state.isRepository
 
     return (
       <Dialog
-        id='add-existing-repository'
+        id="add-existing-repository"
         title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
         onSubmit={this.addRepository}
-        onDismissed={this.props.onDismissed}>
-
+        onDismissed={this.props.onDismissed}
+      >
         <DialogContent>
           <Row>
             <TextBox
               value={this.state.path}
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
-              placeholder='repository path'
+              placeholder="repository path"
               onChange={this.onPathChanged}
-              autoFocus/>
+              autoFocus={true}
+            />
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
           {this.renderWarning()}
@@ -99,7 +120,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
         <DialogFooter>
           <ButtonGroup>
-            <Button disabled={disabled} type='submit'>
+            <Button disabled={disabled} type="submit">
               {__DARWIN__ ? 'Add Repository' : 'Add repository'}
             </Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
@@ -109,29 +130,29 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     )
   }
 
-  private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
+  private onPathChanged = async (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.checkIfPathIsRepository(path)
+    const isRepository = await isGitRepository(path)
+
+    this.setState({ path, isRepository })
   }
 
-  private showFilePicker = () => {
-    const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'createDirectory', 'openDirectory' ] })
-    if (!directory) { return }
+  private showFilePicker = async () => {
+    const directory: string[] | null = remote.dialog.showOpenDialog({
+      properties: ['createDirectory', 'openDirectory'],
+    })
+    if (!directory) {
+      return
+    }
 
     const path = directory[0]
-    this.checkIfPathIsRepository(path)
-  }
+    const isRepository = await isGitRepository(path)
 
-  private async checkIfPathIsRepository(path: string) {
-    this.setState({ path, isGitRepository: false })
-    const token = ++this.checkGitRepositoryToken
-    const isRepo = await isGitRepository(this.resolvedPath(path))
-
-    // Another path check was requested so don't update state based on the old
-    // path.
-    if (token !== this.checkGitRepositoryToken) { return }
-
-    this.setState({ isGitRepository: isRepo, showNonGitRepositoryWarning: !isRepo })
+    this.setState({
+      path,
+      isRepository,
+      showNonGitRepositoryWarning: !isRepository,
+    })
   }
 
   private resolvedPath(path: string): string {
@@ -140,7 +161,9 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
   private addRepository = async () => {
     const resolvedPath = this.resolvedPath(this.state.path)
-    const repositories = await this.props.dispatcher.addRepositories([ resolvedPath ])
+    const repositories = await this.props.dispatcher.addRepositories([
+      resolvedPath,
+    ])
 
     if (repositories && repositories.length) {
       const repository = repositories[0]

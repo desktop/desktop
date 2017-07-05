@@ -32,7 +32,11 @@ export class AccountsStore {
   public async addAccount(account: Account): Promise<void> {
     await this.loadingPromise
 
-    await this.secureStore.setItem(getKeyForAccount(account), account.login, account.token)
+    await this.secureStore.setItem(
+      getKeyForAccount(account),
+      account.login,
+      account.token
+    )
 
     this.accounts.push(account)
 
@@ -79,8 +83,19 @@ export class AccountsStore {
 
     const rawAccounts: ReadonlyArray<IAccount> = JSON.parse(raw)
     const accountsWithTokens = rawAccounts.map(async account => {
-      const accountWithoutToken = new Account(account.login, account.endpoint, '', account.emails, account.avatarURL, account.id, account.name)
-      const token = await this.secureStore.getItem(getKeyForAccount(accountWithoutToken), account.login)
+      const accountWithoutToken = new Account(
+        account.login,
+        account.endpoint,
+        '',
+        account.emails,
+        account.avatarURL,
+        account.id,
+        account.name
+      )
+      const token = await this.secureStore.getItem(
+        getKeyForAccount(accountWithoutToken),
+        account.login
+      )
       return accountWithoutToken.withToken(token || '')
     })
 
@@ -88,7 +103,9 @@ export class AccountsStore {
   }
 
   private save() {
-    const usersWithoutTokens = this.accounts.map(account => account.withToken(''))
+    const usersWithoutTokens = this.accounts.map(account =>
+      account.withToken('')
+    )
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
   }
 }

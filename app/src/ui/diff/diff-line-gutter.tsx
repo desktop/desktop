@@ -35,7 +35,11 @@ interface IDiffGutterProps {
   /**
    * Callback to apply hover effect to specific lines in the diff
    */
-  readonly updateRangeHoverState: (start: number, end: number, active: boolean) => void
+  readonly updateRangeHoverState: (
+    start: number,
+    end: number,
+    active: boolean
+  ) => void
 
   /**
    * Callback to query whether a selection gesture is currently underway
@@ -49,7 +53,11 @@ interface IDiffGutterProps {
   /**
    * Callback to signal when the mouse button is pressed on this element
    */
-  readonly onMouseDown: (index: number, diff: ITextDiff, isRangeSelection: boolean) => void
+  readonly onMouseDown: (
+    index: number,
+    diff: ITextDiff,
+    isRangeSelection: boolean
+  ) => void
 
   /**
    * Callback to signal when the mouse is hovering over this element
@@ -75,8 +83,7 @@ function isMouseCursorNearEdge(ev: MouseEvent): boolean {
 }
 
 /** The gutter for a diff's line. */
-export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
-
+export class DiffLineGutter extends React.Component<IDiffGutterProps, {}> {
   private elem_?: HTMLSpanElement
 
   /**
@@ -126,10 +133,14 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private getLineClassName(): string {
     const type = this.props.line.type
     switch (type) {
-      case DiffLineType.Add: return 'diff-add'
-      case DiffLineType.Delete: return 'diff-delete'
-      case DiffLineType.Context: return 'diff-context'
-      case DiffLineType.Hunk: return 'diff-hunk'
+      case DiffLineType.Add:
+        return 'diff-add'
+      case DiffLineType.Delete:
+        return 'diff-delete'
+      case DiffLineType.Context:
+        return 'diff-context'
+      case DiffLineType.Hunk:
+        return 'diff-hunk'
     }
 
     return assertNever(type, `Unknown DiffLineType ${type}`)
@@ -202,7 +213,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     if (isRangeSelection && range && isSelectionActive) {
       this.props.updateRangeHoverState(range.start, range.end, true)
     } else {
-
       // clear range selection in case range was previously higlighted
       this.props.updateRangeHoverState(range.start, range.end, false)
 
@@ -240,7 +250,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
         elem.addEventListener('mousedown', this.mouseDownHandler)
       }
     } else {
-
       // this callback fires a second time when the DOM element
       // is unmounted, so we can use this as a chance to cleanup
 
@@ -257,10 +266,13 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   public render() {
     return (
-      <span className={this.getLineClass()}
-            ref={this.applyEventHandlers}>
-        <span className='diff-line-number before'>{this.props.line.oldLineNumber || ' '}</span>
-        <span className='diff-line-number after'>{this.props.line.newLineNumber || ' '}</span>
+      <span className={this.getLineClass()} ref={this.applyEventHandlers}>
+        <span className="diff-line-number before">
+          {this.props.line.oldLineNumber || ' '}
+        </span>
+        <span className="diff-line-number after">
+          {this.props.line.newLineNumber || ' '}
+        </span>
       </span>
     )
   }

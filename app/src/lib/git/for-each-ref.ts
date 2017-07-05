@@ -5,8 +5,10 @@ import { Branch, BranchType } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
 
 /** Get all the branches. */
-export async function getBranches(repository: Repository, ...prefixes: string[]): Promise<ReadonlyArray<Branch>> {
-
+export async function getBranches(
+  repository: Repository,
+  ...prefixes: string[]
+): Promise<ReadonlyArray<Branch>> {
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
 
@@ -23,10 +25,14 @@ export async function getBranches(repository: Repository, ...prefixes: string[])
   ].join('%00')
 
   if (!prefixes || !prefixes.length) {
-    prefixes = [ 'refs/heads', 'refs/remotes' ]
+    prefixes = ['refs/heads', 'refs/remotes']
   }
 
-  const result = await git([ 'for-each-ref', `--format=${format}`, ...prefixes ], repository.path, 'getBranches')
+  const result = await git(
+    ['for-each-ref', `--format=${format}`, ...prefixes],
+    repository.path,
+    'getBranches'
+  )
   const names = result.stdout
   const lines = names.split(delimiterString)
 
@@ -35,7 +41,7 @@ export async function getBranches(repository: Repository, ...prefixes: string[])
 
   const branches = lines.map((line, ix) => {
     // preceding newline character after first row
-    const pieces = (ix > 0 ? line.substr(1) : line ).split('\0')
+    const pieces = (ix > 0 ? line.substr(1) : line).split('\0')
 
     const ref = pieces[0]
     const name = pieces[1]
@@ -66,8 +72,15 @@ export async function getBranches(repository: Repository, ...prefixes: string[])
 }
 
 /** Get the name of the current branch. */
-export async function getCurrentBranch(repository: Repository): Promise<Branch | null> {
-  const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, 'getCurrentBranch', { successExitCodes: new Set([ 0, 1, 128 ]) })
+export async function getCurrentBranch(
+  repository: Repository
+): Promise<Branch | null> {
+  const revParseResult = await git(
+    ['rev-parse', '--abbrev-ref', 'HEAD'],
+    repository.path,
+    'getCurrentBranch',
+    { successExitCodes: new Set([0, 1, 128]) }
+  )
   // error code 1 is returned if no upstream
   // error code 128 is returned if the branch is unborn
   if (revParseResult.exitCode === 1 || revParseResult.exitCode === 128) {

@@ -13,7 +13,7 @@ const sourceMapSupport = require('source-map-support')
  * since it's possible that the error which caused us to spawn the crash
  * process was related to source maps.
  */
-const knownFilesWithSourceMap = [ 'renderer.js', 'main.js', 'shared.js' ]
+const knownFilesWithSourceMap = ['renderer.js', 'main.js', 'shared.js']
 
 function retrieveSourceMap(source: string) {
   // This is a happy path in case we know for certain that we won't be
@@ -69,7 +69,10 @@ const stackFrameMap = new WeakMap<Error, ReadonlyArray<any>>()
  * The `prepareStackTrace` that comes from the `source-map-support` module.
  * We'll use this when the user explicitly wants the stack source mapped.
  */
-let prepareStackTraceWithSourceMap: (error: Error, frames: ReadonlyArray<any>) => string
+let prepareStackTraceWithSourceMap: (
+  error: Error,
+  frames: ReadonlyArray<any>
+) => string
 
 /**
  * Capture the error's stack frames and return a standard, un-source mapped
@@ -81,9 +84,7 @@ function prepareStackTrace(error: Error, frames: ReadonlyArray<any>) {
   // Ideally we'd use the default `Error.prepareStackTrace` here but it's
   // undefined so V8 must doing something fancy. Instead we'll do a decent
   // impression.
-  return error + frames
-    .map(frame => `\n    at ${frame}`)
-    .join('')
+  return error + frames.map(frame => `\n    at ${frame}`).join('')
 }
 
 /** Enable source map support in the current process. */
@@ -124,7 +125,8 @@ function sourceMappedStackTrace(error: Error): string | undefined {
     // in our weak map. In order to get around that we'll eagerly access the
     // stack, forcing our handler to run which should ensure that the native
     // frames are stored in our weak map.
-    (error.stack || '').toString()
+    // tslint:disable-next-line:whitespace
+    ;(error.stack || '').toString()
     frames = stackFrameMap.get(error)
   }
 
