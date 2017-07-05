@@ -55,8 +55,6 @@ export async function deleteBranch(
 
   const remote = branch.remote
 
-  // If the user is not authenticated, the push is going to fail
-  // Let this propagate and leave it to the caller to handle
   if (!remote) {
     return true
   }
@@ -68,7 +66,6 @@ export async function deleteBranch(
     remote
   )
 
-  // Delete local branch only if remote one is already deleted
   if (branchExistsOnRemote) {
     const args = [
       ...gitNetworkArguments,
@@ -78,6 +75,9 @@ export async function deleteBranch(
     ]
 
     const opts = { env: envForAuthentication(account) }
+
+    // If the user is not authenticated, the push is going to fail
+    // Let this propagate and leave it to the caller to handle
     await git(args, repository.path, 'deleteRemoteBranch', opts)
   }
 
