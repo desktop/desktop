@@ -3,9 +3,9 @@ import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { Account } from '../../models/account'
 
-/** 
+/**
  * Create a new branch from the given start point.
- * 
+ *
  * @param repository - The repository in which to create the new branch
  * @param name       - The name of the new branch
  * @param startPoint - A committish string that the new branch should be based
