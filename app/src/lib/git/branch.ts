@@ -56,7 +56,7 @@ export async function deleteBranch(
 
   const remote = branch.remote
 
-  if (includeRemote || !remote) {
+  if (!includeRemote || !remote) {
     return true
   }
 
