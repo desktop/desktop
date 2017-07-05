@@ -614,9 +614,13 @@ export class Dispatcher {
    * Delete the branch. This will delete both the local branch and the remote
    * branch, and then check out the default branch.
    */
-  public deleteBranch(repository: Repository, branch: Branch): Promise<void> {
+  public deleteBranch(
+    repository: Repository,
+    branch: Branch,
+    includeRemote: boolean
+  ): Promise<void> {
     return this.withAuthenticatingUser(repository, (repo, user) =>
-      this.appStore._deleteBranch(repo, branch, user)
+      this.appStore._deleteBranch(repo, branch, user, includeRemote)
     )
   }
 

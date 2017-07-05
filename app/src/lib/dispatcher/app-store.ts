@@ -1446,7 +1446,8 @@ export class AppStore {
   public async _deleteBranch(
     repository: Repository,
     branch: Branch,
-    account: Account | null
+    account: Account | null,
+    includeRemote: boolean
   ): Promise<void> {
     const defaultBranch = this.getRepositoryState(repository).branchesState
       .defaultBranch
@@ -1460,7 +1461,7 @@ export class AppStore {
       checkoutBranch(repository, defaultBranch.name)
     )
     await gitStore.performFailableOperation(() =>
-      deleteBranch(repository, branch, account)
+      deleteBranch(repository, branch, account, includeRemote)
     )
 
     return this._refreshRepository(repository)
