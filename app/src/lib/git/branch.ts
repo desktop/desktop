@@ -44,7 +44,7 @@ export async function deleteBranch(
   repository: Repository,
   branch: Branch,
   account: Account | null,
-  includeRemote: boolean = false
+  includeRemote: boolean
 ): Promise<true> {
   if (branch.type === BranchType.Local) {
     await git(
