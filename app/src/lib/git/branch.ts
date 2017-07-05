@@ -37,13 +37,14 @@ export async function renameBranch(
 }
 
 /**
- * Delete the branch. If the branch has a remote branch, it too will be
+ * Delete the branch. If the branch has a remote branch and `includeRemote` is true, it too will be
  * deleted. Silently deletes local branch if remote one is already deleted.
  */
 export async function deleteBranch(
   repository: Repository,
   branch: Branch,
-  account: Account | null
+  account: Account | null,
+  includeRemote: boolean = false
 ): Promise<true> {
   if (branch.type === BranchType.Local) {
     await git(
@@ -55,7 +56,7 @@ export async function deleteBranch(
 
   const remote = branch.remote
 
-  if (!remote) {
+  if (includeRemote || !remote) {
     return true
   }
 
