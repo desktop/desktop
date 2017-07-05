@@ -40,7 +40,7 @@ export class DeleteBranch extends React.Component<IDeleteBranchProps, {}> {
   }
 
   private deleteBranch = () => {
-    this.props.dispatcher.deleteBranch(this.props.repository, this.props.branch)
+    this.props.dispatcher.deleteBranch(this.props.repository, this.props.branch, false)
     this.props.dispatcher.closePopup()
   }
 }
