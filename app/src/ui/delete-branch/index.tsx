@@ -46,7 +46,7 @@ export class DeleteBranch extends React.Component<
           <p>This cannot be undone.</p>
           <Checkbox
           disabled={this.props.branch.remote === null}
-            label="Include branch on remote"
+            label='Additionally delete this branch on the remote'
             value={
               this.state.includeRemoteBranch
                 ? CheckboxValue.On
