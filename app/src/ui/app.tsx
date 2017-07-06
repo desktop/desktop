@@ -259,6 +259,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
+      case 'create-pull-request':
+        return this.createPullRequest()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -1188,6 +1190,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.CreateBranch,
       repository,
     })
+  }
+
+  private createPullRequest = () => {
+    // Todo
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
