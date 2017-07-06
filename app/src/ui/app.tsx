@@ -1193,7 +1193,21 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private createPullRequest = () => {
-    // Todo
+    const selection = this.state.selectedState
+
+    if (!selection || selection.type !== SelectionType.Repository) {
+      return
+    }
+
+    const aheadBehind = selection.state.aheadBehind
+
+    if (selection.state.remote === null) {
+      //Todo: Show popup to publish branch
+    } else if (aheadBehind !== null && aheadBehind.ahead) {
+      //Todo: Show popup to push commits
+    }
+
+    //Todo: Open PR
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
