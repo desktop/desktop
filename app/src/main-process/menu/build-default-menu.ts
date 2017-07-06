@@ -272,6 +272,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         accelerator: 'CmdOrCtrl+Shift+C',
         click: emit('compare-branch'),
       },
+      {
+        label: __DARWIN__ ? 'Create Pull Request' : 'Create Pull Request',
+        id: 'create-pull-request',
+        click: emit('create-pull-request'),
+      },
     ],
   })
 
