@@ -18,12 +18,20 @@ import { Repository } from '../../models/repository'
  * @param paths      The relative paths in the working directory to update
  *                   with information from the index.
  */
-export async function checkoutIndex(repository: Repository, paths: ReadonlyArray<string>) {
+export async function checkoutIndex(
+  repository: Repository,
+  paths: ReadonlyArray<string>
+) {
   if (!paths.length) {
     return
   }
 
-  await git([ 'checkout-index', '-f', '-u', '-q', '--stdin', '-z' ], repository.path, 'checkoutIndex', {
-    stdin: paths.join('\0'),
-  })
+  await git(
+    ['checkout-index', '-f', '-u', '-q', '--stdin', '-z'],
+    repository.path,
+    'checkoutIndex',
+    {
+      stdin: paths.join('\0'),
+    }
+  )
 }

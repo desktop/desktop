@@ -30,8 +30,10 @@ interface IDiscardChangesState {
 const MaxFilesToList = 10
 
 /** A component to confirm and then discard changes. */
-export class DiscardChanges extends React.Component<IDiscardChangesProps, IDiscardChangesState> {
-
+export class DiscardChanges extends React.Component<
+  IDiscardChangesProps,
+  IDiscardChangesState
+> {
   public constructor(props: IDiscardChangesProps) {
     super(props)
 
@@ -72,7 +74,8 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, IDisca
     if (this.props.files.length > MaxFilesToList) {
       return (
         <p>
-          Are you sure you want to discard all {this.props.files.length} changed files?
+          Are you sure you want to discard all {this.props.files.length} changed
+          files?
         </p>
       )
     } else {
@@ -94,7 +97,10 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, IDisca
   private discard = async () => {
     this.setState({ isDiscardingChanges: true })
 
-    await this.props.dispatcher.discardChanges(this.props.repository, this.props.files)
+    await this.props.dispatcher.discardChanges(
+      this.props.repository,
+      this.props.files
+    )
     this.props.onDismissed()
   }
 }

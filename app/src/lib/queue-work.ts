@@ -19,7 +19,10 @@ async function awaitAnimationFrame(): Promise<number> {
  * @param worker A worker which, given a work item, performs work and returns
  *               either a promise or a synchronous result
  */
-export async function queueWorkHigh<T>(items: Iterable<T>, worker: (item: T) => Promise<any> | any) {
+export async function queueWorkHigh<T>(
+  items: Iterable<T>,
+  worker: (item: T) => Promise<any> | any
+) {
   const iterator = items[Symbol.iterator]()
   let next = iterator.next()
 
