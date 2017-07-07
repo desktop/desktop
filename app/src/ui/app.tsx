@@ -1213,22 +1213,42 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private createPullRequest = () => {
+  private createPullRequest = () =>  {
     const selection = this.state.selectedState
 
     if (!selection || selection.type !== SelectionType.Repository) {
       return
     }
 
+    const tip = selection.state.branchesState.tip
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const dispatcher = this.props.dispatcher
+    const repository = selection.repository
+    const branch = tip.branch
     const aheadBehind = selection.state.aheadBehind
 
     if (selection.state.remote === null) {
-      //Todo: Show popup to publish branch
-    } else if (aheadBehind !== null && aheadBehind.ahead) {
-      //Todo: Show popup to push commits
-    }
+      dispatcher.showPopup({
+        type: PopupType.PublishBranch,
+        repository,
+        branch
+      })
+    } else if (aheadBehind !== null && aheadBehind.ahead > 0) {
+      dispatcher.showPopup({
+        type: PopupType.PushBranchCommits,
+        unPushedCommits: aheadBehind.ahead,
+        repository,
+        branch,
+      })
+    } else {
+      const url = 'https://www.github.com/'
 
-    //Todo: Open PR
+      this.props.dispatcher.openInBrowser(url)
+    }
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
