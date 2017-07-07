@@ -263,7 +263,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'boomtown':
         return this.boomtown()
       case 'create-pull-request':
-        return this.createPullRequest()
+        return this.openPullRequest()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -1216,7 +1216,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private createPullRequest = () =>  {
+  private openPullRequest() {
     const selection = this.state.selectedState
 
     if (!selection || selection.type !== SelectionType.Repository) {
