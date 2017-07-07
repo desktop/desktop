@@ -21,7 +21,7 @@ export class PublishBranch extends React.Component<IPublishBranchProps> {
         key="push-branch"
         title={__DARWIN__ ? 'Publish Repository' : 'Publish Repository'}
         onDismissed={this.cancel}
-        onSubmit={this.push}
+        onSubmit={this.cancel}
       >
         <DialogContent>
           <p>
@@ -32,8 +32,8 @@ export class PublishBranch extends React.Component<IPublishBranchProps> {
 
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">Publish branch and open pull request</Button>
-            <Button onClick={this.cancel}>Cancel</Button>
+            <Button type="submit">Cancel</Button>
+            <Button onClick={this.push}>Publish branch and open pull request</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>

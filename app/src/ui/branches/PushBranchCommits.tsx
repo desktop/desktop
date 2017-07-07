@@ -26,7 +26,7 @@ export class PushBranchCommits extends React.Component<IPushBranchCommitsProps> 
             : `You have ${this.props.unPushedCommits} commits`
         }
         onDismissed={this.cancel}
-        onSubmit={this.push}
+        onSubmit={this.cancel}
       >
         <DialogContent>
           <p>
@@ -37,8 +37,8 @@ export class PushBranchCommits extends React.Component<IPushBranchCommitsProps> 
 
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">Psuh commits and open pull request</Button>
-            <Button onClick={this.cancel}>Cancel</Button>
+            <Button type="submit">Cancel</Button>
+            <Button onClick={this.push}>Push commits and open pull request</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
