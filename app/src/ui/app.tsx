@@ -1234,23 +1234,27 @@ export class App extends React.Component<IAppProps, IAppState> {
     const branch = tip.branch
     const aheadBehind = selection.state.aheadBehind
 
-    if (selection.state.remote === null) {
+    if (!repository) {
+      //Should probably publish repo
+    }
+    else if (!aheadBehind) {
       dispatcher.showPopup({
         type: PopupType.PublishBranch,
         repository,
-        branch
-      })
-    } else if (aheadBehind !== null && aheadBehind.ahead > 0) {
-      dispatcher.showPopup({
-        type: PopupType.PushBranchCommits,
-        unPushedCommits: aheadBehind.ahead,
-        repository,
         branch,
       })
+    } else if (aheadBehind.ahead > 0) {
+      dispatcher.showPopup({
+        type: PopupType.PushBranchCommits,
+        repository,
+        branch,
+        unPushedCommits: aheadBehind.ahead,
+      })
     } else {
-      const url = 'https://www.github.com/'
+      this.OpenPullRequestOnGithub(repository, branch)
+    }
+  }
 
-      this.props.dispatcher.openInBrowser(url)
   private OpenPullRequestOnGithub = (repository: Repository, branch: Branch) => {
     const gitHubRepository = repository.gitHubRepository
 
