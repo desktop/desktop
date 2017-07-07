@@ -996,6 +996,22 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.TermsAndConditions:
         return <TermsAndConditions onDismissed={this.onPopupDismissed} />
+      case PopupType.PublishBranch:
+        return (
+          <PublishBranch
+            repository={popup.repository}
+            branch={popup.branch}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      case PopupType.PushBranchCommits:
+        return (
+          <PushBranchCommits
+            repository={popup.repository}
+            branch={popup.branch}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
