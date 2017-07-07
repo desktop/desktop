@@ -30,7 +30,7 @@
     "precommit": "lint-staged",
     "prepush": "lint-staged",
     "prettier:base": "prettier --parser typescript --single-quote --trailing-comma es5 --tab-width 2 --no-semi --print-width 80 --write",
-    "prettify": "npm run prettier:base 'app/src/**/*.ts' && npm run prettier:base 'app/src/**/*.tsx' && npm run prettier:base 'app/test/**/*.ts'"
+    "prettify": "npm run prettier:base \"app/src/**/*.ts\" && npm run prettier:base \"app/src/**/*.tsx\" && npm run prettier:base \"app/test/**/*.ts\""
   },
   "lint-staged": {
     "app/{src, test}/**/*.{ts, tsx}": [
