@@ -1248,6 +1248,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       const url = 'https://www.github.com/'
 
       this.props.dispatcher.openInBrowser(url)
+  private OpenPullRequestOnGithub = (repository: Repository, branch: Branch) => {
+    const gitHubRepository = repository.gitHubRepository
+
+    if (!gitHubRepository) {
+      return
+    }
+
+    const baseURL = gitHubRepository.htmlURL
+
+    if (baseURL) {
+    this.props.dispatcher.openInBrowser(baseURL)
     }
   }
 
