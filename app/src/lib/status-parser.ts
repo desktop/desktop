@@ -1,3 +1,5 @@
+import { FileEntry, GitStatusEntry } from '../models/status'
+
 type StatusItem = IStatusHeader | IStatusEntry
 
 export interface IStatusHeader {
@@ -10,7 +12,7 @@ export interface IStatusEntry {
   readonly kind: 'entry'
 
   /** The path to the file relative to the repository root */
-  readonly path: string,
+  readonly path: string
 
   /** The two character long status code */
   readonly statusCode: string
@@ -26,7 +28,9 @@ const UntrackedEntryType = '?'
 const IgnoredEntryType = '!'
 
 /** Parses output from git status --porcelain -z into file status entries */
-export function parsePorcelainStatus(output: string): ReadonlyArray<StatusItem> {
+export function parsePorcelainStatus(
+  output: string
+): ReadonlyArray<StatusItem> {
   const entries = new Array<StatusItem>()
 
   // See https://git-scm.com/docs/git-status
@@ -46,8 +50,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<StatusItem> 
   const fields = output.split('\0')
   let field: string | undefined
 
-  while (field = fields.shift()) {
-
+  while ((field = fields.shift())) {
     if (field.startsWith('# ') && field.length > 2) {
       entries.push({ kind: 'header', value: field.substr(2) })
       continue
@@ -91,15 +94,22 @@ function parseChangedEntry(field: string): IStatusEntry {
 // 2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><sep><origPath>
 const renamedOrCopiedEntryRe = /^2 ([MADRCU?!.]{2}) (N\.\.\.|S[C.][M.][U.]) (\d+) (\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) ([RC]\d+) (.*?)$/
 
-function parsedRenamedOrCopiedEntry(field: string, oldPath: string | undefined): IStatusEntry {
+function parsedRenamedOrCopiedEntry(
+  field: string,
+  oldPath: string | undefined
+): IStatusEntry {
   const match = renamedOrCopiedEntryRe.exec(field)
 
   if (!match) {
-    throw new Error(`Failed to parse status line for renamed or copied entry: ${field}`)
+    throw new Error(
+      `Failed to parse status line for renamed or copied entry: ${field}`
+    )
   }
 
   if (!oldPath) {
-    throw new Error('Failed to parse renamed or copied entry, could not parse old path')
+    throw new Error(
+      'Failed to parse renamed or copied entry, could not parse old path'
+    )
   }
 
   return {
@@ -135,5 +145,200 @@ function parseUntrackedEntry(field: string): IStatusEntry {
     // might want to consider changing this (and mapStatus) in the future.
     statusCode: '??',
     path,
+  }
+}
+
+/**
+ * Map the raw status text from Git to a structure we can work with in the app.
+ */
+export function mapStatus(status: string): FileEntry {
+  if (status === '??') {
+    return {
+      kind: 'untracked',
+      index: GitStatusEntry.Untracked,
+      workingTree: GitStatusEntry.Untracked,
+    }
+  }
+
+  if (status === '.M') {
+    return {
+      kind: 'ordinary',
+      type: 'modified',
+      index: GitStatusEntry.Unchanged,
+      workingTree: GitStatusEntry.Modified,
+    }
+  }
+
+  if (status === 'M.') {
+    return {
+      kind: 'ordinary',
+      type: 'modified',
+      index: GitStatusEntry.Modified,
+      workingTree: GitStatusEntry.Unchanged,
+    }
+  }
+
+  if (status === '.A') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      index: GitStatusEntry.Unchanged,
+      workingTree: GitStatusEntry.Added,
+    }
+  }
+
+  if (status === 'A.') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      index: GitStatusEntry.Added,
+      workingTree: GitStatusEntry.Unchanged,
+    }
+  }
+
+  if (status === '.D') {
+    return {
+      kind: 'ordinary',
+      type: 'deleted',
+      index: GitStatusEntry.Unchanged,
+      workingTree: GitStatusEntry.Deleted,
+    }
+  }
+
+  if (status === 'D.') {
+    return {
+      kind: 'ordinary',
+      type: 'deleted',
+      index: GitStatusEntry.Deleted,
+      workingTree: GitStatusEntry.Unchanged,
+    }
+  }
+
+  if (status === 'R.') {
+    return {
+      kind: 'renamed',
+      index: GitStatusEntry.Renamed,
+      workingTree: GitStatusEntry.Unchanged,
+    }
+  }
+
+  if (status === '.R') {
+    return {
+      kind: 'renamed',
+      index: GitStatusEntry.Unchanged,
+      workingTree: GitStatusEntry.Renamed,
+    }
+  }
+
+  if (status === 'C.') {
+    return {
+      kind: 'copied',
+      index: GitStatusEntry.Copied,
+      workingTree: GitStatusEntry.Unchanged,
+    }
+  }
+
+  if (status === '.C') {
+    return {
+      kind: 'copied',
+      index: GitStatusEntry.Unchanged,
+      workingTree: GitStatusEntry.Copied,
+    }
+  }
+
+  if (status === 'AD') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      index: GitStatusEntry.Added,
+      workingTree: GitStatusEntry.Deleted,
+    }
+  }
+
+  if (status === 'AM') {
+    return {
+      kind: 'ordinary',
+      type: 'added',
+      index: GitStatusEntry.Added,
+      workingTree: GitStatusEntry.Modified,
+    }
+  }
+
+  if (status === 'RM') {
+    return {
+      kind: 'renamed',
+      index: GitStatusEntry.Renamed,
+      workingTree: GitStatusEntry.Modified,
+    }
+  }
+
+  if (status === 'RD') {
+    return {
+      kind: 'renamed',
+      index: GitStatusEntry.Renamed,
+      workingTree: GitStatusEntry.Deleted,
+    }
+  }
+
+  if (status === 'DD') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Deleted,
+      them: GitStatusEntry.Deleted,
+    }
+  }
+
+  if (status === 'AU') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Added,
+      them: GitStatusEntry.Modified,
+    }
+  }
+
+  if (status === 'UD') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Modified,
+      them: GitStatusEntry.Deleted,
+    }
+  }
+
+  if (status === 'UA') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Modified,
+      them: GitStatusEntry.Added,
+    }
+  }
+
+  if (status === 'DU') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Deleted,
+      them: GitStatusEntry.Modified,
+    }
+  }
+
+  if (status === 'AA') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Added,
+      them: GitStatusEntry.Added,
+    }
+  }
+
+  if (status === 'UU') {
+    return {
+      kind: 'conflicted',
+      us: GitStatusEntry.Modified,
+      them: GitStatusEntry.Modified,
+    }
+  }
+
+  // as a fallback, we assume the file is modified in some way
+  return {
+    kind: 'ordinary',
+    type: 'modified',
   }
 }

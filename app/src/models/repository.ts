@@ -29,16 +29,27 @@ export class Repository implements IRepository {
   public static fromJSON(json: IRepository): Repository {
     const gitHubRepository = json.gitHubRepository
     if (gitHubRepository) {
-       return new Repository(json.path, json.id, GitHubRepository.fromJSON(gitHubRepository), json.missing)
+      return new Repository(
+        json.path,
+        json.id,
+        GitHubRepository.fromJSON(gitHubRepository),
+        json.missing
+      )
     } else {
       return new Repository(json.path, json.id, null, json.missing)
     }
   }
 
-  public constructor(path: string, id: number, gitHubRepository: GitHubRepository | null, missing: boolean) {
+  public constructor(
+    path: string,
+    id: number,
+    gitHubRepository: GitHubRepository | null,
+    missing: boolean
+  ) {
     this.path = path
     this.gitHubRepository = gitHubRepository
-    this.name = gitHubRepository && gitHubRepository.name || Path.basename(path)
+    this.name =
+      (gitHubRepository && gitHubRepository.name) || Path.basename(path)
     this.id = id
     this.missing = missing
   }

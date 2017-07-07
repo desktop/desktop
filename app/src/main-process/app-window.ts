@@ -2,7 +2,7 @@ import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
 import { MenuEvent } from './menu'
-import { URLActionType } from '../lib/parse-url'
+import { URLActionType } from '../lib/parse-app-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
@@ -32,7 +32,7 @@ export class AppWindow {
       defaultHeight: this.minHeight,
     })
 
-    const windowOptions: Electron.BrowserWindowOptions = {
+    const windowOptions: Electron.BrowserWindowConstructorOptions = {
       x: savedWindowState.x,
       y: savedWindowState.y,
       width: savedWindowState.width,
@@ -53,9 +53,9 @@ export class AppWindow {
     }
 
     if (__DARWIN__) {
-        windowOptions.titleBarStyle = 'hidden'
+      windowOptions.titleBarStyle = 'hidden'
     } else if (__WIN32__) {
-        windowOptions.frame = false
+      windowOptions.frame = false
     }
 
     this.window = new BrowserWindow(windowOptions)
@@ -66,7 +66,7 @@ export class AppWindow {
       quitting = true
     })
 
-    ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
+    ipcMain.on('will-quit', (event: Electron.IpcMessageEvent) => {
       quitting = true
       event.returnValue = true
     })
@@ -119,11 +119,14 @@ export class AppWindow {
     })
 
     // TODO: This should be scoped by the window.
-    ipcMain.once('renderer-ready', (event: Electron.IpcMainEvent, readyTime: number) => {
-      this._rendererReadyTime = readyTime
+    ipcMain.once(
+      'renderer-ready',
+      (event: Electron.IpcMessageEvent, readyTime: number) => {
+        this._rendererReadyTime = readyTime
 
-      this.maybeEmitDidLoad()
-    })
+        this.maybeEmitDidLoad()
+      }
+    )
 
     this.window.on('focus', () => this.window.webContents.send('focus'))
     this.window.on('blur', () => this.window.webContents.send('blur'))
@@ -138,7 +141,9 @@ export class AppWindow {
    * signalled that it's ready.
    */
   private maybeEmitDidLoad() {
-    if (!this.rendererLoaded) { return }
+    if (!this.rendererLoaded) {
+      return
+    }
 
     this.emitter.emit('did-load', null)
   }
@@ -162,6 +167,11 @@ export class AppWindow {
 
   public isMinimized() {
     return this.window.isMinimized()
+  }
+
+  /** Is the window currently visible? */
+  public isVisible() {
+    return this.window.isVisible()
   }
 
   public restore() {
@@ -206,15 +216,30 @@ export class AppWindow {
   }
 
   /** Send a certificate error to the renderer. */
-  public sendCertificateError(certificate: Electron.Certificate, error: string, url: string) {
-    this.window.webContents.send('certificate-error', { certificate, error, url })
+  public sendCertificateError(
+    certificate: Electron.Certificate,
+    error: string,
+    url: string
+  ) {
+    this.window.webContents.send('certificate-error', {
+      certificate,
+      error,
+      url,
+    })
   }
 
-  public showCertificateTrustDialog(certificate: Electron.Certificate, message: string) {
+  public showCertificateTrustDialog(
+    certificate: Electron.Certificate,
+    message: string
+  ) {
     // The Electron type definitions don't include `showCertificateTrustDialog`
     // yet.
     const d = dialog as any
-    d.showCertificateTrustDialog(this.window, { certificate, message }, () => {})
+    d.showCertificateTrustDialog(
+      this.window,
+      { certificate, message },
+      () => {}
+    )
   }
 
   /** Report the exception to the renderer. */

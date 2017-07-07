@@ -19,7 +19,7 @@ change over time as we learn and refine how we work with the community.
 [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
   * [Suggesting Enhancements](#suggesting-enhancements)
-  * [Up for Grabs](#up-for-grabs)
+  * [Accepting PRs](#accepting-prs)
 
 [Additional Notes](#additional-notes)
   * [Issue and Pull Request Labels](#issue-and-pull-request-labels)
@@ -37,7 +37,7 @@ Please report unacceptable behavior to [opensource+desktop@github.com](mailto:op
 Currently GitHub Desktop is in a public beta, and the team is focused on
 triaging reported issues and working towards a 1.0 milestone - where the
 application can be used in place of the classic Mac and Windows applications.
-You can follow this progress progress under the [Milestones](https://github.com/desktop/desktop/milestones)
+You can follow this progress under the [Milestones](https://github.com/desktop/desktop/milestones)
 tab.
 
 We're still thinking about where we want to take GitHub Desktop after we reach
@@ -78,7 +78,7 @@ The information we are interested in includes:
  - details about your environment - which build, which operating system
  - details about reproducing the issue - what steps to take, what happens, how
    often it happens
- - other relevant information - log files, screenshots, etc
+ - other relevant information - log files, screenshots, etc.
 
 ### Suggesting Enhancements
 
@@ -114,26 +114,26 @@ and provide the following information:
   much detail as possible. This additional context helps the maintainers to
   understand the enhancement from your perspective
 * **Explain why this enhancement would be useful** to GitHub Desktop users.
-* **Include screenshots and animated GIFs** if relevent to help you demonstrate
+* **Include screenshots and animated GIFs** if relevant to help you demonstrate
   the steps or point out the part of GitHub Desktop which the suggestion is
   related to. You can use [this tool](http://www.cockos.com/licecap/) to record
   GIFs on macOS and Windows.
 * **List some other applications where this enhancement exists, if applicable.**
 
-### Up For Grabs
+### Accepting PRs
 
-As the team is working towards the 1.0 release, we'll identify enhancements or
-bugs that can be categorised as tasks that:
+As part of building GitHub Desktop, we'll identify tasks that are good for
+external contributors to pick up. These tasks:
 
  - have low impact, or have a known workaround
- - should be fixed
+ - should be addressed
  - have a narrow scope and/or easy reproduction steps
  - can be worked on independent of other tasks
 
-These issues will be labelled as [`up-for-grabs`](https://github.com/desktop/desktop/labels/up-for-grabs)
+These issues will be labelled as [`accepting-prs`](https://github.com/desktop/desktop/labels/accepting-prs)
 in the repository. If you are interested in contributing to the project, please
-comment on the issue to let the maintainers (and community) know you are
-interested in picking this up.
+comment on the issue to let the core team (and the community) know you are
+interested in the issue.
 
 ## Additional Notes
 
@@ -148,7 +148,6 @@ pull requests.
 | --- | --- | --- |
 | `enhancement` | [search](https://github.com/desktop/desktop/labels/enhancement) | Feature requests. |
 | `bug` | [search](https://github.com/desktop/desktop/labels/bug)  | Confirmed bugs or reports that are very likely to be bugs. |
-| `question` | [search](https://github.com/desktop/desktop/labels/question)  | Questions more than bug reports or feature requests (e.g. how do I do X). |
 | `more-information-needed` | [search](https://github.com/desktop/desktop/labels/more-information-needed) | More information needs to be collected about these problems or feature requests (e.g. steps to reproduce). |
 | `needs-reproduction` | [search](https://github.com/desktop/desktop/labels/needs-reproduction)  | Likely bugs, but haven't been reliably reproduced. |
 | `macOS` | [search](https://github.com/desktop/desktop/labels/macOS)  | Issues specific to macOS users. |
@@ -158,10 +157,9 @@ pull requests.
 
 | Label name | :mag_right: | Description |
 | --- | --- | --- |
-| `up-for-grabs` | [search](https://github.com/desktop/desktop/labels/up-for-grabs)  | Issues marked as ideal for external contributors. |
-| `polish` | [search](https://github.com/desktop/desktop/labels/polish) | Issues not critical to the application but would provide a better experience if resolved. |
+| `accepting-prs` | [search](https://github.com/desktop/desktop/labels/accepting-prs)  | Issues marked as ideal for external contributors. |
 | `tech-debt` | [search](https://github.com/desktop/desktop/labels/tech-debt) | Issues related to code or architecture decisions. |
-| `design` | [search](https://github.com/desktop/desktop/labels/design)  | Issues that require some design input from the maintainers as part of completing the work. |
+| `needs-design-input` | [search](https://github.com/desktop/desktop/labels/needs-design-input)  | Issues that require design input from the core team before the work can be started. |
 
 #### Workflow
 

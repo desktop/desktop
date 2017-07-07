@@ -1,20 +1,29 @@
 import * as React from 'react'
 import { Branch } from '../../models/branch'
-import { groupBranches, IBranchListItem, BranchGroupIdentifier } from './group-branches'
+import {
+  groupBranches,
+  IBranchListItem,
+  BranchGroupIdentifier,
+} from './group-branches'
 import { BranchListItem } from './branch'
-import { FilterList, IFilterListGroup, SelectionSource } from '../lib/filter-list'
+import {
+  FilterList,
+  IFilterListGroup,
+  SelectionSource,
+} from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
  * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
  */
-const BranchesFilterList: new() => FilterList<IBranchListItem> = FilterList as any
+const BranchesFilterList: new () => FilterList<
+  IBranchListItem
+> = FilterList as any
 
 const RowHeight = 30
 
 interface IBranchListProps {
-
   /**
    * See IBranchesState.defaultBranch
    */
@@ -44,7 +53,10 @@ interface IBranchListProps {
    * Called when a key down happens in the filter field. Users have a chance to
    * respond or cancel the default behavior by calling `preventDefault`.
    */
-  readonly onFilterKeyDown?: (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => void
+  readonly onFilterKeyDown?: (
+    filter: string,
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => void
 
   /** Called when an item is clicked. */
   readonly onItemClick?: (item: Branch) => void
@@ -60,7 +72,10 @@ interface IBranchListProps {
    *                       either a pointer device press, or a keyboard event
    *                       (arrow up/down)
    */
-  readonly onSelectionChanged?: (selectedItem: Branch | null, source: SelectionSource) => void
+  readonly onSelectionChanged?: (
+    selectedItem: Branch | null,
+    source: SelectionSource
+  ) => void
 }
 
 interface IBranchListState {
@@ -69,18 +84,26 @@ interface IBranchListState {
 }
 
 function createState(props: IBranchListProps): IBranchListState {
-  const groups = groupBranches(props.defaultBranch, props.currentBranch, props.allBranches, props.recentBranches)
+  const groups = groupBranches(
+    props.defaultBranch,
+    props.currentBranch,
+    props.allBranches,
+    props.recentBranches
+  )
 
   let selectedItem: IBranchListItem | null = null
   const selectedBranch = props.selectedBranch
   if (selectedBranch) {
     for (const group of groups) {
-      selectedItem = group.items.find(i => {
-        const branch = i.branch
-        return branch.name === selectedBranch.name
-      }) || null
+      selectedItem =
+        group.items.find(i => {
+          const branch = i.branch
+          return branch.name === selectedBranch.name
+        }) || null
 
-      if (selectedItem) { break }
+      if (selectedItem) {
+        break
+      }
     }
   }
 
@@ -88,8 +111,10 @@ function createState(props: IBranchListProps): IBranchListState {
 }
 
 /** The Branches list component. */
-export class BranchList extends React.Component<IBranchListProps, IBranchListState> {
-
+export class BranchList extends React.Component<
+  IBranchListProps,
+  IBranchListState
+> {
   public constructor(props: IBranchListProps) {
     super(props)
     this.state = createState(props)
@@ -98,11 +123,16 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
   private renderItem = (item: IBranchListItem) => {
     const branch = item.branch
     const commit = branch.tip
-    const currentBranchName = this.props.currentBranch ? this.props.currentBranch.name : null
-    return <BranchListItem
-      name={branch.name}
-      isCurrentBranch={branch.name === currentBranchName}
-      lastCommitDate={commit ? commit.author.date : null}/>
+    const currentBranchName = this.props.currentBranch
+      ? this.props.currentBranch.name
+      : null
+    return (
+      <BranchListItem
+        name={branch.name}
+        isCurrentBranch={branch.name === currentBranchName}
+        lastCommitDate={commit ? commit.author.date : null}
+      />
+    )
   }
 
   private getGroupLabel(identifier: BranchGroupIdentifier) {
@@ -118,7 +148,11 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
   }
 
   private renderGroupHeader = (identifier: BranchGroupIdentifier) => {
-    return <div className='branches-list-content filter-list-group-header'>{this.getGroupLabel(identifier)}</div>
+    return (
+      <div className="branches-list-content filter-list-group-header">
+        {this.getGroupLabel(identifier)}
+      </div>
+    )
   }
 
   private onItemClick = (item: IBranchListItem) => {
@@ -127,9 +161,15 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
     }
   }
 
-  private onSelectionChanged = (selectedItem: IBranchListItem | null, source: SelectionSource) => {
+  private onSelectionChanged = (
+    selectedItem: IBranchListItem | null,
+    source: SelectionSource
+  ) => {
     if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(selectedItem ? selectedItem.branch : null, source)
+      this.props.onSelectionChanged(
+        selectedItem ? selectedItem.branch : null,
+        source
+      )
     }
   }
 
@@ -140,7 +180,7 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
   public render() {
     return (
       <BranchesFilterList
-        className='branches-list'
+        className="branches-list"
         rowHeight={RowHeight}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
@@ -149,7 +189,8 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
         onFilterKeyDown={this.props.onFilterKeyDown}
         onSelectionChanged={this.onSelectionChanged}
         groups={this.state.groups}
-        invalidationProps={this.props.allBranches}/>
+        invalidationProps={this.props.allBranches}
+      />
     )
   }
 }

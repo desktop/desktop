@@ -7,7 +7,8 @@ import * as Path from 'path'
 export function writeGitAttributes(path: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     const fullPath = Path.join(path, '.gitattributes')
-    const contents = '# Auto detect text files and perform LF normalization\n* text=auto'
+    const contents =
+      '# Auto detect text files and perform LF normalization\n* text=auto'
 
     FS.writeFile(fullPath, contents, err => {
       if (err) {

@@ -10,12 +10,12 @@ interface IAccessTextProps {
    *
    * At most one character is allowed to have a preceeding ampersand character.
    */
-  readonly text: string,
+  readonly text: string
 
   /**
    * Whether or not to highlight the access key (if one exists).
    */
-  readonly highlight?: boolean,
+  readonly highlight?: boolean
 }
 
 function unescape(accessText: string) {
@@ -27,37 +27,53 @@ function unescape(accessText: string) {
  * prefixed with &) on Windows. On non-Windows platform access key prefixes
  * are removed before rendering.
  */
-export class AccessText extends React.Component<IAccessTextProps, void> {
+export class AccessText extends React.Component<IAccessTextProps, {}> {
   public shouldComponentUpdate(nextProps: IAccessTextProps) {
-    return this.props.text !== nextProps.text ||
+    return (
+      this.props.text !== nextProps.text ||
       this.props.highlight !== nextProps.highlight
+    )
   }
 
   public render() {
-
     // Match everything (if anything) before an ampersand followed by anything that's
     // not an ampersand and then capture the remainder.
     const m = this.props.text.match(/^(.*?)?(?:&([^&]))(.*)?$/)
 
     if (!m) {
-      return <span>{this.props.text}</span>
+      return (
+        <span>
+          {this.props.text}
+        </span>
+      )
     }
 
     const elements = new Array<JSX.Element>()
 
     if (m[1]) {
-      elements.push(<span key={1} aria-hidden={true}>{unescape(m[1])}</span>)
+      elements.push(
+        <span key={1} aria-hidden={true}>
+          {unescape(m[1])}
+        </span>
+      )
     }
 
-    const className = classNames(
-      'access-key',
-      { highlight: this.props.highlight },
+    const className = classNames('access-key', {
+      highlight: this.props.highlight,
+    })
+
+    elements.push(
+      <span aria-hidden={true} key={2} className={className}>
+        {m[2]}
+      </span>
     )
 
-    elements.push(<span aria-hidden={true} key={2} className={className}>{m[2]}</span>)
-
     if (m[3]) {
-      elements.push(<span key={3} aria-hidden={true}>{unescape(m[3])}</span>)
+      elements.push(
+        <span key={3} aria-hidden={true}>
+          {unescape(m[3])}
+        </span>
+      )
     }
 
     const preText = m[1] ? unescape(m[1]) : ''
@@ -66,6 +82,10 @@ export class AccessText extends React.Component<IAccessTextProps, void> {
 
     const plainText = `${preText}${accessKeyText}${postText}`
 
-    return <span aria-label={plainText}>{elements}</span>
+    return (
+      <span aria-label={plainText}>
+        {elements}
+      </span>
+    )
   }
 }

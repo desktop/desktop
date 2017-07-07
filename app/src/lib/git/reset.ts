@@ -26,17 +26,25 @@ export const enum GitResetMode {
 
 function resetModeToFlag(mode: GitResetMode): string {
   switch (mode) {
-    case GitResetMode.Hard: return '--hard'
-    case GitResetMode.Mixed: return '--mixed'
-    case GitResetMode.Soft: return '--soft'
-    default: return assertNever(mode, `Unknown reset mode: ${mode}`)
+    case GitResetMode.Hard:
+      return '--hard'
+    case GitResetMode.Mixed:
+      return '--mixed'
+    case GitResetMode.Soft:
+      return '--soft'
+    default:
+      return assertNever(mode, `Unknown reset mode: ${mode}`)
   }
 }
 
 /** Reset with the mode to the ref. */
-export async function reset(repository: Repository, mode: GitResetMode, ref: string): Promise<true> {
+export async function reset(
+  repository: Repository,
+  mode: GitResetMode,
+  ref: string
+): Promise<true> {
   const modeFlag = resetModeToFlag(mode)
-  await git([ 'reset', modeFlag, ref, '--' ], repository.path, 'reset')
+  await git(['reset', modeFlag, ref, '--'], repository.path, 'reset')
   return true
 }
 
@@ -55,19 +63,23 @@ export async function reset(repository: Repository, mode: GitResetMode, ref: str
  * @param paths     The paths that should be updated in the index with information
  *                  from the given tree
  */
-export async function resetPaths(repository: Repository, mode: GitResetMode, ref: string, paths: ReadonlyArray<string>): Promise<void> {
-
+export async function resetPaths(
+  repository: Repository,
+  mode: GitResetMode,
+  ref: string,
+  paths: ReadonlyArray<string>
+): Promise<void> {
   if (!paths.length) {
     return
   }
 
   const modeFlag = resetModeToFlag(mode)
-  await git([ 'reset', modeFlag, ref, '--', ...paths ], repository.path, 'reset')
+  await git(['reset', modeFlag, ref, '--', ...paths], repository.path, 'reset')
   return
 }
 
 /** Unstage all paths. */
 export async function unstageAll(repository: Repository): Promise<true> {
-  await git([ 'reset', '--', '.' ], repository.path, 'unstageAll')
+  await git(['reset', '--', '.'], repository.path, 'unstageAll')
   return true
 }

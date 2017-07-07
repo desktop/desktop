@@ -9,7 +9,7 @@ import * as Path from 'path'
 import { GitProcess } from 'dugite'
 
 import { GitStore } from '../../src/lib/dispatcher/git-store'
-import { FileStatus } from '../../src/models/status'
+import { AppFileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { TipState, IValidBranch } from '../../src/models/tip'
@@ -20,7 +20,6 @@ import { getCommit, getStatus } from '../../src/lib/git'
 
 describe('GitStore', () => {
   it('can discard changes from a repository', async () => {
-
     const repo = await setupEmptyRepository()
     const gitStore = new GitStore(repo, shell)
 
@@ -30,8 +29,8 @@ describe('GitStore', () => {
     Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
 
     // commit the file
-    await GitProcess.exec([ 'add', file ], repo.path)
-    await GitProcess.exec([ 'commit', '-m', 'added file' ], repo.path)
+    await GitProcess.exec(['add', file], repo.path)
+    await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
 
     Fs.writeFileSync(filePath, 'WRITING SOME NEW WORDS\n')
 
@@ -46,12 +45,12 @@ describe('GitStore', () => {
 
     expect(files.length).to.equal(2)
     expect(files[0].path).to.equal('README.md')
-    expect(files[0].status).to.equal(FileStatus.Deleted)
+    expect(files[0].status).to.equal(AppFileStatus.Deleted)
     expect(files[1].path).to.equal('.gitignore')
-    expect(files[1].status).to.equal(FileStatus.New)
+    expect(files[1].status).to.equal(AppFileStatus.New)
 
     // discard the .gitignore change
-    await gitStore.discardChanges([ files[1] ])
+    await gitStore.discardChanges([files[1]])
 
     // we should see the original file, modified
     status = await getStatus(repo)
@@ -59,11 +58,10 @@ describe('GitStore', () => {
 
     expect(files.length).to.equal(1)
     expect(files[0].path).to.equal('README.md')
-    expect(files[0].status).to.equal(FileStatus.Modified)
+    expect(files[0].status).to.equal(AppFileStatus.Modified)
   })
 
   it('can discard a renamed file', async () => {
-
     const repo = await setupEmptyRepository()
     const gitStore = new GitStore(repo, shell)
 
@@ -74,9 +72,9 @@ describe('GitStore', () => {
     Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
 
     // commit the file, and then rename it
-    await GitProcess.exec([ 'add', file ], repo.path)
-    await GitProcess.exec([ 'commit', '-m', 'added file' ], repo.path)
-    await GitProcess.exec([ 'mv', file, renamedFile ], repo.path)
+    await GitProcess.exec(['add', file], repo.path)
+    await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
+    await GitProcess.exec(['mv', file, renamedFile], repo.path)
 
     const statusBeforeDiscard = await getStatus(repo)
     const filesToDiscard = statusBeforeDiscard.workingDirectory.files
@@ -91,7 +89,6 @@ describe('GitStore', () => {
   })
 
   describe('undo first commit', () => {
-
     let repo: Repository | null = null
     let firstCommit: Commit | null = null
 
@@ -105,8 +102,8 @@ describe('GitStore', () => {
 
       Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
 
-      await GitProcess.exec([ 'add', file ], repo.path)
-      await GitProcess.exec([ 'commit', '-m', commitMessage ], repo.path)
+      await GitProcess.exec(['add', file], repo.path)
+      await GitProcess.exec(['commit', '-m', commitMessage], repo.path)
 
       firstCommit = await getCommit(repo!, 'master')
       expect(firstCommit).to.not.equal(null)

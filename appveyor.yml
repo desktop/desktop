@@ -28,6 +28,7 @@ install:
   - npm install
 
 build_script:
+  - npm run check-prettiness
   - npm run lint
   - npm run build:prod
 
