@@ -11,6 +11,7 @@ interface IPushBranchCommitsProps {
   readonly repository: Repository
   readonly branch: Branch
   readonly unPushedCommits: number
+  readonly onPushed: (repository: Repository, branch: Branch) => void
   readonly onDismissed: () => void
 }
 

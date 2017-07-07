@@ -10,6 +10,7 @@ interface IPublishBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
+  readonly onPushed: (repository: Repository, branch: Branch) => void
   readonly onDismissed: () => void
 }
 
