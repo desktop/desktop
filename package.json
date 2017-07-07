@@ -31,9 +31,10 @@
     "prepush": "lint-staged",
     "prettier:base": "prettier --parser typescript --single-quote --trailing-comma es5 --no-semi --write",
     "prettify": "npm run prettier:base \"app/{src, test}/**/*.{ts, tsx}\""
+    "prettify": "npm run prettier:base \"app/{src,test}/**/*.{ts,tsx}\""
   },
   "lint-staged": {
-    "app/{src, test}/**/*.{ts, tsx}": [
+    "app/{src,test}/**/*.{ts,tsx}": [
       "npm run prettier:base",
       "git add"
     ]
