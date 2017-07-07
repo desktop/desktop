@@ -29,7 +29,7 @@
     "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
     "precommit": "lint-staged",
     "prepush": "lint-staged",
-    "prettier:base": "prettier --parser typescript --single-quote --trailing-comma es5 --tab-width 2 --no-semi --print-width 80 --write",
+    "prettier:base": "prettier --parser typescript --single-quote --trailing-comma es5 --no-semi --write",
     "prettify": "npm run prettier:base \"app/{src, test}/**/*.{ts, tsx}\""
   },
   "lint-staged": {
