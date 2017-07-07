@@ -153,6 +153,8 @@ export enum PopupType {
   UntrustedCertificate,
   RemoveRepository,
   TermsAndConditions,
+  PublishBranch,
+  PushBranchCommits,
 }
 
 export type Popup =
