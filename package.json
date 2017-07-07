@@ -28,7 +28,6 @@
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
     "precommit": "lint-staged",
-    "prepush": "lint-staged",
     "prettier:base": "prettier --single-quote --trailing-comma es5 --no-semi --write",
     "prettify": "npm run prettier:base \"app/{src,test}/**/*.{ts,tsx}\""
   },
