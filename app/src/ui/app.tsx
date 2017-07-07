@@ -67,6 +67,8 @@ import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
+import { PublishBranch } from './branches/PublishBranch'
+import { PushBranchCommits } from './branches/PushBranchCommits'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -999,6 +1001,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.PublishBranch:
         return (
           <PublishBranch
+            dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
             onDismissed={this.onPopupDismissed}
@@ -1007,8 +1010,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.PushBranchCommits:
         return (
           <PushBranchCommits
+            dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
+            unPushedCommits={popup.unPushedCommits}
             onDismissed={this.onPopupDismissed}
           />
         )
