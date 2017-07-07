@@ -45,8 +45,11 @@ export class PublishBranch extends React.Component<IPublishBranchProps> {
     this.props.onDismissed()
   }
 
-  private push() {
-    this.props.dispatcher.push(this.props.repository)
+  private push = async () => {
+    const props = this.props
+
+    await this.props.dispatcher.push(props.repository)
+    this.props.onPushed(props.repository, props.branch)
     this.props.onDismissed()
   }
 }
