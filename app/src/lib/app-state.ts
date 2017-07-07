@@ -184,6 +184,16 @@ export type Popup =
     }
   | { type: PopupType.RemoveRepository; repository: Repository }
   | { type: PopupType.TermsAndConditions }
+  | {
+      type: PopupType.PublishBranch
+      repository: Repository
+      branch: Branch
+    }
+  | {
+      type: PopupType.PushBranchCommits
+      repository: Repository
+      branch: Branch
+    }
 
 export enum FoldoutType {
   Repository,
