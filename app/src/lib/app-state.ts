@@ -193,6 +193,7 @@ export type Popup =
       type: PopupType.PushBranchCommits
       repository: Repository
       branch: Branch
+      unPushedCommits: number
     }
 
 export enum FoldoutType {
