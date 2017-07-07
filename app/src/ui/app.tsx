@@ -69,6 +69,7 @@ import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
 import { PublishBranch } from './branches/PublishBranch'
 import { PushBranchCommits } from './branches/PushBranchCommits'
+import { Branch } from '../models/branch'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
