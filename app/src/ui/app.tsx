@@ -1005,6 +1005,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
+            onPushed={this.OpenPullRequestOnGithub}
             onDismissed={this.onPopupDismissed}
           />
         )
@@ -1015,6 +1016,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             unPushedCommits={popup.unPushedCommits}
+            onPushed={this.OpenPullRequestOnGithub}
             onDismissed={this.onPopupDismissed}
           />
         )
