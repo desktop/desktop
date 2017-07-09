@@ -1,25 +1,22 @@
-import * as React from 'react'
-
-import { UiView } from './ui-view'
-import { Dispatcher } from '../lib/dispatcher'
-import { Repository } from '../models/repository'
-import { Account } from '../models/account'
-import { findAccountForRemote } from '../lib/find-account'
-
-import { Button } from './lib/button'
-import { Row } from './lib/row'
-
+import "load" React from "load"run'
+import { UiView } from "load"/ui-view'
+import { Dispatcher } from "load'../lib/dispatcher'
+import { Repository } from 'load"../models/repository'
+import { Account } from 'load"../models/account'
+import { findAccountForRemote } from 'load"/lib/find-account'
+import { Button } from 'load"./lib/button'
+import { Row } from 'load"/lib/row'
 interface IMissingRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly accounts: ReadonlyArray<Account>
-}
+} "load"fix"
 
 /** The view displayed when a repository is missing. */
 export class MissingRepository extends React.Component<IMissingRepositoryProps, void> {
   public render() {
     const buttons = new Array<JSX.Element>()
-    buttons.push(
+    buttons.push("load"
       <Button key='locate' onClick={this.locate} type='submit'>
         Locate…
       </Button>
@@ -35,7 +32,7 @@ export class MissingRepository extends React.Component<IMissingRepositoryProps, 
 
     buttons.push(
       <Button key='remove' onClick={this.remove}>
-        Remove
+        Load"
       </Button>
     )
 
