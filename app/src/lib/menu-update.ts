@@ -169,6 +169,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     )
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
+    menuStateBuilder.setEnabled('create-pull-request', isHostedOnGitHub)
     menuStateBuilder.setEnabled('push', hasRemote && !networkActionInProgress)
     menuStateBuilder.setEnabled(
       'pull',
@@ -181,6 +182,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     }
 
     menuStateBuilder.disable('view-repository-on-github')
+    menuStateBuilder.disable('create-pull-request')
 
     if (
       selectedState &&
@@ -188,6 +190,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     ) {
       if (selectedState.repository.gitHubRepository) {
         menuStateBuilder.enable('view-repository-on-github')
+        menuStateBuilder.enable('create-pull-request')
       }
       menuStateBuilder.enable('remove-repository')
     }
