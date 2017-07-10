@@ -1234,16 +1234,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     const branch = tip.branch
     const aheadBehind = selection.state.aheadBehind
 
-    if (!repository) {
-      //Should probably publish repo
-    }
-    else if (!aheadBehind) {
+    if (!aheadBehind) {
+      //Pubilish branch
       dispatcher.showPopup({
         type: PopupType.PublishBranch,
         repository,
         branch,
       })
     } else if (aheadBehind.ahead > 0) {
+      //Push commits
       dispatcher.showPopup({
         type: PopupType.PushBranchCommits,
         repository,
@@ -1255,17 +1254,20 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private OpenPullRequestOnGithub = (repository: Repository, branch: Branch) => {
+  private OpenPullRequestOnGithub = (
+    repository: Repository,
+    branch: Branch
+  ) => {
     const gitHubRepository = repository.gitHubRepository
 
     if (!gitHubRepository) {
       return
     }
 
-    const baseURL = gitHubRepository.htmlURL
+    const baseURL = `${gitHubRepository.htmlURL}/compare/${gitHubRepository.defaultBranch}...${branch.nameWithoutRemote}`
 
     if (baseURL) {
-    this.props.dispatcher.openInBrowser(baseURL)
+      this.props.dispatcher.openInBrowser(baseURL)
     }
   }
 
