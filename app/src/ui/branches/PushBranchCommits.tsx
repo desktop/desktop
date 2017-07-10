@@ -15,7 +15,9 @@ interface IPushBranchCommitsProps {
   readonly onDismissed: () => void
 }
 
-export class PushBranchCommits extends React.Component<IPushBranchCommitsProps> {
+export class PushBranchCommits extends React.Component<
+  IPushBranchCommitsProps
+> {
   public render() {
     return (
       <Dialog
@@ -39,7 +41,9 @@ export class PushBranchCommits extends React.Component<IPushBranchCommitsProps> 
         <DialogFooter>
           <ButtonGroup>
             <Button type="submit">Cancel</Button>
-            <Button onClick={this.push}>Push commits and open pull request</Button>
+            <Button onClick={this.push}>
+              Push commits and open pull request
+            </Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
