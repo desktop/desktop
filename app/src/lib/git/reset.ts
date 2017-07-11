@@ -75,7 +75,6 @@ export async function resetPaths(
 
   const modeFlag = resetModeToFlag(mode)
   await git(['reset', modeFlag, ref, '--', ...paths], repository.path, 'reset')
-  return
 }
 
 /** Unstage all paths. */
