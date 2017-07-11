@@ -779,7 +779,7 @@ export class GitStore {
     const pathsToReset = new Array<string>()
 
     await queueWorkHigh(files, async file => {
-      if (file.status !== FileStatus.Deleted) {
+      if (file.status !== AppFileStatus.Deleted) {
         // N.B. moveItemToTrash is synchronous can take a fair bit of time
         // which is why we're running it inside this work queue that spreads
         // out the calls across as many animation frames as it needs to.
@@ -789,8 +789,8 @@ export class GitStore {
       }
 
       if (
-        file.status === FileStatus.Copied ||
-        file.status === FileStatus.Renamed
+        file.status === AppFileStatus.Copied ||
+        file.status === AppFileStatus.Renamed
       ) {
         // file.path is the "destination" or "new" file in a copy or rename.
         // we've already deleted it so all we need to do is make sure the
