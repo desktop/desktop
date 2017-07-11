@@ -5,12 +5,14 @@ import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Advanced } from './advanced'
 import { Git } from './git'
+import { FileTypeList, IFileTypeItem } from './filetypes'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogFooter } from '../dialog'
 import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
+import { IEditorInfo } from '../../lib/dispatcher/app-shell'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -23,6 +25,7 @@ interface IPreferencesProps {
 
 enum PreferencesTab {
   Accounts = 0,
+  FileTypes,
   Git,
   Advanced,
 }
@@ -37,6 +40,9 @@ interface IPreferencesState {
 
 /** The app-level preferences component. */
 export class Preferences extends React.Component<IPreferencesProps, IPreferencesState> {
+
+  private fileTypes: Array<IFileTypeItem> | null
+
   public constructor(props: IPreferencesProps) {
     super(props)
 
@@ -90,6 +96,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       >
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedIndex}>
           <span>Accounts</span>
+          <span>File Types</span>
           <span>Git</span>
           <span>Advanced</span>
         </TabBar>
@@ -141,6 +148,33 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
           onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
         />
       }
+      case PreferencesTab.FileTypes: {
+
+        if (this.fileTypes == null)
+        {
+          const result = new Array<IFileTypeItem>()
+          for (const o in localStorage) {
+            if ( o.startsWith('external-editors-')) {
+              const raw = localStorage[o]
+              const editors: ReadonlyArray<IEditorInfo> = JSON.parse(raw)
+              for (const e of editors) {
+                result.push( {
+                  id: e.name,
+                  text: o.substring(17),
+                  extension: o.substring(17),
+                  cmd: e.cmd,
+                })
+              }
+            }
+          }
+
+          this.fileTypes = result
+        }
+        return <FileTypeList
+        allTypes={this.fileTypes}
+        selectedType={''}
+        />
+      }
       default: return assertNever(index, `Unknown tab index: ${index}`)
     }
   }
@@ -166,6 +200,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     switch (index) {
       case PreferencesTab.Accounts: return null
       case PreferencesTab.Advanced:
+      case PreferencesTab.FileTypes:
       case PreferencesTab.Git: {
         return (
           <DialogFooter>
@@ -186,6 +221,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     await this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
     await this.props.dispatcher.setConfirmRepoRemovalSetting(this.state.confirmRepoRemoval)
 
+    console.log( this.fileTypes)
     this.props.onDismissed()
   }
 

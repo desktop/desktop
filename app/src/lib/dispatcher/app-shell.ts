@@ -18,6 +18,8 @@ export interface IAppShell {
   readonly openExternal: (path: string) => void
   readonly openItem: (path: string) => boolean
   readonly getEditors: (path: string) => Promise<IEditorLauncher[]>
+  readonly setEditors:  (ext: string, info: IEditorInfo) => void
+  readonly getAllEditors: () => Map<string, ReadonlyArray<IEditorInfo>>
 }
 
 class AppLauncher implements IEditorLauncher {
@@ -49,14 +51,23 @@ class AppLauncher implements IEditorLauncher {
     })
   }
 }
-function getEditorList(path: string ): Promise<IEditorLauncher[]> {
-  const result = new Array<IEditorLauncher>()
-  //
-  // localStorage.setItem('external-editors-', '[{"name":"Visual Studio", "cmd":"\\"C:\\\\Program Files (x86)\\\\Microsoft Visual Studio\\\\2017\\\\Community\\\\Common7\\\\IDE\\\\devenv.exe\\" \\"{path}\\""}]')
-  // localStorage.setItem('external-editors-.json', '[{"name":"Visual Studio", "cmd":"\\"C:\\\\Program Files (x86)\\\\Microsoft Visual Studio\\\\2017\\\\Community\\\\Common7\\\\IDE\\\\devenv.exe\\" \\"{path}\\""}]')
-  //
-  const ext = Path.extname(path)
-  if (localStorage.getItem('external-editors-') === null) {
+
+function parseLaunchers(raw: string): ReadonlyArray<IEditorInfo> {
+  if (raw) {
+    try {
+      const editorInfo: ReadonlyArray<IEditorInfo> = JSON.parse(raw)
+      return editorInfo
+    }catch (e) {
+    }
+  }
+
+  return new Array<IEditorInfo>();
+}
+
+function getAllEditors(): Map<string, ReadonlyArray<IEditorInfo>> {
+  const result = new Map<string, ReadonlyArray<IEditorInfo>>()
+
+if (localStorage.getItem('external-editors-') === null) {
     const editorInfo = Array<IEditorInfo>()
     if (__DARWIN__) {
       editorInfo.push( {
@@ -92,14 +103,31 @@ function getEditorList(path: string ): Promise<IEditorLauncher[]> {
 
   }
 
-  const raw = localStorage.getItem('external-editors-' + ext)
-  if (raw) {
-    try {
-    const editorInfo: ReadonlyArray<IEditorInfo> = JSON.parse(raw)
+  for (const o in localStorage) {
+    if (o.startsWith('external-editors-')) {
+      const launchers: ReadonlyArray<IEditorInfo> = parseLaunchers( localStorage[o] )
+      const ext = o.substring(17)
+      result.set(ext, launchers)
+    }
+  }
+
+  return result
+}
+
+function setEditorList(ext: string, info: IEditorInfo) {
+  const data = JSON.stringify(info)
+  const key = 'external-editor-' + ext
+  localStorage.setItem(key, data)
+}
+
+function getEditorList(path: string ): Promise<IEditorLauncher[]> {
+  const result = new Array<IEditorLauncher>()
+  const ext = Path.extname(path)
+
+  const editorInfo: ReadonlyArray<IEditorInfo>|undefined = getAllEditors().get(ext)
+  if(editorInfo) {
     for (let i = 0; i < editorInfo.length; i++) {
       result.push( new AppLauncher( editorInfo[i].name, editorInfo[i].cmd, path ) )
-    }} catch (e) {
-      console.log(e)
     }
   }
 
@@ -112,4 +140,6 @@ export const shell: IAppShell = {
   openExternal: electronShell.openExternal,
   openItem: electronShell.openItem,
   getEditors: getEditorList,
+  setEditors: setEditorList,
+  getAllEditors: getAllEditors,
 }

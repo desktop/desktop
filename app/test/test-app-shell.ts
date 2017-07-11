@@ -1,13 +1,8 @@
 /* tslint:disable:no-sync-functions */
 
-import { IAppShell } from '../src/lib/dispatcher/app-shell'
+import { IAppShell, IEditorInfo, IEditorLauncher } from '../src/lib/dispatcher/app-shell'
 
 import * as Fs from 'fs'
-
-export interface IEditorInfo {
-  readonly name: string
-  readonly exec: () => void
-}
 
 export const shell: IAppShell = {
   moveItemToTrash: (path: string): boolean => {
@@ -17,5 +12,7 @@ export const shell: IAppShell = {
   beep: () => { },
   openExternal: (path: string) => { },
   openItem: (path: string) => true,
-  getEditors: (path: string) => { return Promise.resolve( Array<IEditorInfo>())  },
+  getEditors: (path: string) => { return Promise.resolve( Array<IEditorLauncher>())  },
+  setEditors: (ext: string, info: IEditorInfo) => {},
+  getAllEditors: () => { return new Map<string, ReadonlyArray<IEditorInfo>>() },
 }
