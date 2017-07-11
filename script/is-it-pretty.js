@@ -3,7 +3,7 @@
 const prettier = require('prettier');
 const glob = require('glob');
 const fs = require('fs');
-const globPattern = 'app/{src, test}/**/*.{ts, tsx}'
+const globPattern = 'app/{src,test}/**/*.{ts,tsx}'
 const prettierOptions = {
   "parser": "typescript",
   "singleQuote": true,
