@@ -1005,7 +1005,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
-            onPushed={this.OpenPullRequestOnGithub}
+            onPushed={this.openPullRequestOnGithub}
             onDismissed={this.onPopupDismissed}
           />
         )
@@ -1016,7 +1016,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             unPushedCommits={popup.unPushedCommits}
-            onPushed={this.OpenPullRequestOnGithub}
+            onPushed={this.openPullRequestOnGithub}
             onDismissed={this.onPopupDismissed}
           />
         )
@@ -1235,14 +1235,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     const aheadBehind = selection.state.aheadBehind
 
     if (!aheadBehind) {
-      //Pubilish branch
       dispatcher.showPopup({
         type: PopupType.PublishBranch,
         repository,
         branch,
       })
     } else if (aheadBehind.ahead > 0) {
-      //Push commits
       dispatcher.showPopup({
         type: PopupType.PushBranchCommits,
         repository,
@@ -1250,25 +1248,23 @@ export class App extends React.Component<IAppProps, IAppState> {
         unPushedCommits: aheadBehind.ahead,
       })
     } else {
-      this.OpenPullRequestOnGithub(repository, branch)
+      this.openPullRequestOnGithub(repository, branch)
     }
   }
 
-  private OpenPullRequestOnGithub = (
+  private openPullRequestOnGithub = (
     repository: Repository,
     branch: Branch
   ) => {
     const gitHubRepository = repository.gitHubRepository
 
-    if (!gitHubRepository) {
+    if (!gitHubRepository || !gitHubRepository.htmlURL) {
       return
     }
 
-    const baseURL = `${gitHubRepository.htmlURL}/compare/${gitHubRepository.defaultBranch}...${branch.nameWithoutRemote}`
+    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
 
-    if (baseURL) {
-      this.props.dispatcher.openInBrowser(baseURL)
-    }
+    this.props.dispatcher.openInBrowser(baseURL)
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
