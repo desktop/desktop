@@ -10,7 +10,7 @@ We have a first responder rotation. The goals of the rotation are:
 Each rotation is a week long. While first responder your duties are:
 
 1. Triage issues.
-  * Follow up or continue any troubleshooting.
+  * Troubleshoot or follow up on troubleshooting started by the previous first responder.
   * Review the [more-information-needed](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+label%3Amore-information-needed) and [needs-reproduction](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+label%3Aneeds-reproduction) issues and close any that have gone 2 weeks with no new activity.
   * See https://github.com/desktop/issue-triage/blob/master/issue-triage.md for more information on our issue triage process.
 1. Review community pull requests.
