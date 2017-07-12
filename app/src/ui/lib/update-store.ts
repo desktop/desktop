@@ -11,6 +11,9 @@ import { getVersion } from './app-proxy'
 import { sendWillQuitSync } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 
+/** The environment which should be checked for updates. */
+export type UpdateEnvironment = 'production' | 'beta'
+
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
   /** The auto updater is checking for updates. */
@@ -155,22 +158,22 @@ class UpdateStore {
     }
   }
 
-  private getFeedURL(username: string): string {
-    return `${UpdatesURLBase}?version=${getVersion()}&username=${username}`
+  private getFeedURL(env: UpdateEnvironment): string {
+    return `${UpdatesURLBase}?version=${getVersion()}&env=${env}`
   }
 
   /**
-   * Check for updates using the given username.
+   * Check for updates.
    *
-   * @param username     - The username used to check for updates.
+   * @param env          - The environment to check for updates.
    * @param inBackground - Are we checking for updates in the background, or was
    *                       this check user-initiated?
    */
-  public checkForUpdates(username: string, inBackground: boolean) {
+  public checkForUpdates(env: UpdateEnvironment, inBackground: boolean) {
     this.userInitiatedUpdate = !inBackground
 
     try {
-      autoUpdater.setFeedURL(this.getFeedURL(username))
+      autoUpdater.setFeedURL(this.getFeedURL(env))
       autoUpdater.checkForUpdates()
     } catch (e) {
       this.emitError(e)
