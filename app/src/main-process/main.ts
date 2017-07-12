@@ -393,7 +393,6 @@ function createWindow() {
 
   window.onClose(() => {
     mainWindow = null
-
     if (!__DARWIN__ && !preventQuit) {
       app.quit()
     }
