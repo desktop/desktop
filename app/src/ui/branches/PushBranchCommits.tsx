@@ -45,7 +45,7 @@ export class PushBranchCommits extends React.Component<
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup>
+          <ButtonGroup destructive={true}>
             <Button type="submit">Cancel</Button>
             <Button onClick={this.push}>
               {__DARWIN__

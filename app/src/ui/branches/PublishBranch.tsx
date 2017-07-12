@@ -33,7 +33,7 @@ export class PublishBranch extends React.Component<IPublishBranchProps> {
         </DialogContent>
 
         <DialogFooter>
-          <ButtonGroup>
+          <ButtonGroup destructive={true}>
             <Button type="submit">Cancel</Button>
             <Button onClick={this.push}>
               {__DARWIN__
