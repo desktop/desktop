@@ -19,8 +19,8 @@ export class PublishBranch extends React.Component<IPublishBranchProps> {
     return (
       <Dialog
         id="publish-branch"
-        key="push-branch"
-        title={__DARWIN__ ? 'Publish Repository' : 'Publish Repository'}
+        key="publish-branch"
+        title={__DARWIN__ ? 'Publish Branch' : 'Publish branch'}
         onDismissed={this.cancel}
         onSubmit={this.cancel}
       >
