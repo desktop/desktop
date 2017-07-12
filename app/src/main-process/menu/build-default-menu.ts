@@ -1,4 +1,5 @@
-import { shell, Menu, ipcMain } from 'electron'
+import { Menu, ipcMain } from 'electron'
+import { shell } from '../../lib/dispatcher/app-shell'
 import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'

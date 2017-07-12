@@ -775,7 +775,7 @@ export class Dispatcher {
   }
 
   /** Open the URL in a browser */
-  public openInBrowser(url: string) {
+  public openInBrowser(url: string): Promise<boolean> {
     return this.appStore._openInBrowser(url)
   }
 
