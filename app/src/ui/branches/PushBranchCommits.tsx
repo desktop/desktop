@@ -20,7 +20,6 @@ export class PushBranchCommits extends React.Component<
 > {
   public render() {
     const numberOfCommits = this.props.unPushedCommits
-    const commitString = numberOfCommits === 1 ? 'commit' : 'commits'
 
     return (
       <Dialog
@@ -28,15 +27,19 @@ export class PushBranchCommits extends React.Component<
         key="push-branch-commits"
         title={
           __DARWIN__
-            ? `Your Branch is Ahead by ${numberOfCommits} ${commitString}`
-            : `Your branch is ahead by ${numberOfCommits} ${commitString}`
+            ? `Your Branch is Ahead by ${numberOfCommits} ${this.createCommitString(
+                true
+              )}`
+            : `Your branch is ahead by ${numberOfCommits} ${this.createCommitString(
+                true
+              )}`
         }
         onDismissed={this.cancel}
         onSubmit={this.cancel}
       >
         <DialogContent>
           <p>
-            {`Would you like to push ${numberOfCommits} ${commitString} to`}{' '}
+            {`Would you like to push ${numberOfCommits} ${this.createCommitString()} to `}
             <b>{this.props.branch.name}</b> and oepn a pull request?
           </p>
         </DialogContent>
@@ -51,6 +54,23 @@ export class PushBranchCommits extends React.Component<
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private createCommitString(platformize: boolean = false) {
+    const numberOfCommits = this.props.unPushedCommits
+    const pluralize = numberOfCommits !== 1
+
+    let result = 'commit'
+
+    if (platformize && __DARWIN__) {
+      result = 'Commit'
+    }
+
+    if (pluralize) {
+      result += 's'
+    }
+
+    return result
   }
 
   private cancel = () => {
