@@ -40,7 +40,7 @@ export class PushBranchCommits extends React.Component<
         <DialogContent>
           <p>
             {`Would you like to push ${numberOfCommits} ${this.createCommitString()} to `}
-            <b>{this.props.branch.name}</b> and oepn a pull request?
+            <b>{this.props.branch.name}</b> and open a pull request?
           </p>
         </DialogContent>
 

@@ -27,7 +27,7 @@ export class PublishBranch extends React.Component<IPublishBranchProps> {
         <DialogContent>
           <p>
             Your branch must be published before opening a pull request. Would
-            you like to publish <b>{this.props.branch.name}</b> and oepn a pull
+            you like to publish <b>{this.props.branch.name}</b> and open a pull
             request?
           </p>
         </DialogContent>
