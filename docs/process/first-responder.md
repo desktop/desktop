@@ -10,6 +10,7 @@ The goals of the rotation are to:
 
 1. Ensure community issues and PRs are answered in a timely manner.
 1. Ensure support load is shared across the whole team.
+1. Free up the rest of the team to focus on milestone work.
 1. Allocate time to less prioritized work.
 
 It's kind of a [big block of cheese](https://www.youtube.com/watch?v=Vm9HZq53rqU) situation.
