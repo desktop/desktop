@@ -1,17 +1,17 @@
 # First Responder Rotation
 
-We have a first responder rotation. Each rotation is a week long. While first responder your duties are:
-
-1. Triage issues.
-1. Review community pull requests.
-1. Address technical debt, pet bugs, etc.
-
-The goals of the rotation are to:
+We have a first responder rotation. The goals of the rotation are:
 
 1. Ensure community issues and PRs are answered in a timely manner.
 1. Ensure support load is shared across the whole team.
 1. Free up the rest of the team to focus on milestone work.
 1. Allocate time to less prioritized work.
+
+Each rotation is a week long. While first responder your duties are:
+
+1. Triage issues.
+1. Review community pull requests.
+1. Address technical debt, pet bugs, etc.
 
 It's kind of a [big block of cheese](https://www.youtube.com/watch?v=Vm9HZq53rqU) situation.
 
