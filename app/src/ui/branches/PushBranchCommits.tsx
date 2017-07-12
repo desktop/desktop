@@ -48,7 +48,9 @@ export class PushBranchCommits extends React.Component<
           <ButtonGroup>
             <Button type="submit">Cancel</Button>
             <Button onClick={this.push}>
-              Push commits and open pull request
+              {__DARWIN__
+                ? 'Push Commits and Open Pull Request'
+                : 'Push commits and open pull request'}
             </Button>
           </ButtonGroup>
         </DialogFooter>

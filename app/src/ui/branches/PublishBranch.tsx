@@ -36,7 +36,9 @@ export class PublishBranch extends React.Component<IPublishBranchProps> {
           <ButtonGroup>
             <Button type="submit">Cancel</Button>
             <Button onClick={this.push}>
-              Publish branch and open pull request
+              {__DARWIN__
+                ? 'Publish Branch and Open Pull Request'
+                : 'Publish branch and open pull request'}
             </Button>
           </ButtonGroup>
         </DialogFooter>
