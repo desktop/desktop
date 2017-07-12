@@ -19,22 +19,25 @@ export class PushBranchCommits extends React.Component<
   IPushBranchCommitsProps
 > {
   public render() {
+    const numberOfCommits = this.props.unPushedCommits
+    const commitString = numberOfCommits === 1 ? 'commit' : 'commits'
+
     return (
       <Dialog
         id="push-branch-commits"
-        key="push-branch"
+        key="push-branch-commits"
         title={
           __DARWIN__
-            ? `You Have ${this.props.unPushedCommits} Commits`
-            : `You have ${this.props.unPushedCommits} commits`
+            ? `Your Branch is Ahead by ${numberOfCommits} ${commitString}`
+            : `Your branch is ahead by ${numberOfCommits} ${commitString}`
         }
         onDismissed={this.cancel}
         onSubmit={this.cancel}
       >
         <DialogContent>
           <p>
-            The branch must be published before opening a PR. Would you like to
-            publish <em>{this.props.branch.name}</em> and oepn a pull request?
+            {`Would you like to push ${numberOfCommits} ${commitString} to`}{' '}
+            <b>{this.props.branch.name}</b> and oepn a pull request?
           </p>
         </DialogContent>
 
