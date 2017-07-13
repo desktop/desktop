@@ -174,8 +174,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.postError(error)
     })
 
-    setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
-    this.checkForUpdates()
+    setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
+    this.checkForUpdates(true)
 
     ipcRenderer.on(
       'launch-timing-stats',
@@ -273,7 +273,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private checkForUpdates() {
+  private checkForUpdates(inBackground: boolean) {
     if (
       __RELEASE_CHANNEL__ === 'development' ||
       __RELEASE_CHANNEL__ === 'test'
@@ -281,12 +281,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    updateStore.checkForUpdates(this.getUsernameForUpdateCheck(), true)
-  }
-
-  private getUsernameForUpdateCheck() {
-    const dotComAccount = this.getDotComAccount()
-    return dotComAccount ? dotComAccount.login : ''
+    updateStore.checkForUpdates(inBackground)
   }
 
   private getDotComAccount(): Account | null {
@@ -955,7 +950,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             applicationName={getName()}
             applicationVersion={getVersion()}
-            usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
+            onCheckForUpdates={this.onCheckForUpdates}
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
           />
@@ -1003,6 +998,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onCheckForUpdates = () => {
+    this.checkForUpdates(false)
   }
 
   private showAcknowledgements = () => {

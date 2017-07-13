@@ -7,7 +7,6 @@ const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
 
-import { getVersion } from './app-proxy'
 import { sendWillQuitSync } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 
@@ -30,9 +29,6 @@ export interface IUpdateState {
   status: UpdateStatus
   lastSuccessfulCheck: Date | null
 }
-
-const UpdatesURLBase =
-  'https://central.github.com/api/deployments/desktop/desktop/latest'
 
 /** A store which contains the current state of the auto updater. */
 class UpdateStore {
@@ -155,22 +151,17 @@ class UpdateStore {
     }
   }
 
-  private getFeedURL(username: string): string {
-    return `${UpdatesURLBase}?version=${getVersion()}&username=${username}`
-  }
-
   /**
-   * Check for updates using the given username.
+   * Check for updates.
    *
-   * @param username     - The username used to check for updates.
    * @param inBackground - Are we checking for updates in the background, or was
    *                       this check user-initiated?
    */
-  public checkForUpdates(username: string, inBackground: boolean) {
+  public checkForUpdates(inBackground: boolean) {
     this.userInitiatedUpdate = !inBackground
 
     try {
-      autoUpdater.setFeedURL(this.getFeedURL(username))
+      autoUpdater.setFeedURL(__UPDATES_URL__)
       autoUpdater.checkForUpdates()
     } catch (e) {
       this.emitError(e)
