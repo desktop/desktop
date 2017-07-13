@@ -82,7 +82,13 @@ function packageWindows() {
     setupIcon: iconSource,
     loadingGif: splashScreenPath,
     exe: `${productName}.exe`,
-    remoteReleases: distInfo.getUpdatesURL(),
+  }
+
+  // Only production and beta channels include deltas. Test releases aren't
+  // necessarily sequential so deltas wouldn't make sense.
+  const ChannelsWithDeltas = ['production', 'beta']
+  if (ChannelsWithDeltas.indexOf(distInfo.getReleaseChannel()) > -1) {
+    options.remoteReleases = distInfo.getUpdatesURL()
   }
 
   if (process.env.APPVEYOR) {
