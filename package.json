@@ -29,7 +29,7 @@
     "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
     "precommit": "lint-staged",
     "prettier:base": "prettier --single-quote --trailing-comma es5 --no-semi --write",
-    "prettify": "npm run prettier:base \"{app/{src,test}/**/*.{ts,tsx},script/!(*.ps1|*.bat|setup-macos-keychain)}\""
+    "prettify": "npm run prettier:base \"{app/{src,test}/**/*.{ts,tsx,js},app/webpack.*.js,script/!(*.ps1|*.bat|setup-macos-keychain)}\""
   },
   "lint-staged": {
     "app/{src,test}/**/*.{ts,tsx}": [
