@@ -31,7 +31,11 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
     let avatarUser = null
     if (gitHubUser) {
-      avatarUser = { ...commit.author, avatarURL: gitHubUser.avatarURL }
+      avatarUser = {
+        email: commit.author.email,
+        name: commit.author.name,
+        avatarURL: gitHubUser.avatarURL,
+      }
     }
 
     return (
