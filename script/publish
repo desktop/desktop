@@ -3,23 +3,17 @@
 'use strict'
 
 const TEST_PUBLISH = false
+const PUBLISH_CHANNELS = ['production', 'test', 'beta']
+const distInfo = require('./dist-info')
 
-let branchName = ''
-if (process.platform === 'darwin') {
-  branchName = process.env.TRAVIS_BRANCH
-} else if (process.platform === 'win32') {
-  branchName = process.env.APPVEYOR_REPO_BRANCH
-}
-
-if (!/^__release.*/.test(branchName) && !TEST_PUBLISH) {
-  console.log(`${branchName} isn't a release branch. Skipping publish.`)
+if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
+  console.log('Not a publishable build. Skipping publish.')
   process.exit(0)
 }
 
 const fs = require('fs')
 const cp = require('child_process')
 const AWS = require('aws-sdk')
-const distInfo = require('./dist-info')
 const crypto = require('crypto')
 const request = require('request')
 
