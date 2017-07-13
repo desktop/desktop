@@ -128,6 +128,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
       <Resizable
         id="repository-sidebar"
         width={this.props.sidebarWidth}
+        maximumWidth={window.innerWidth * 0.75}
         onReset={this.handleSidebarWidthReset}
         onResize={this.handleSidebarResize}
       >
