@@ -27,13 +27,12 @@
   }
 
   kbd {
-    background: rgba($gray-000, 0.2);
     border-radius: var(--border-radius);
+    border: var(--base-border);
     display: inline-block;
     font-family: var(--font-family-monospace);
-    font-size: var(--font-size-sm);
     padding: var(--spacing-half);
-    line-height: 9px;
+    line-height: 1;
   }
 }
 
