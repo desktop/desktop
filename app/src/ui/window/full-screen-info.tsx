@@ -70,13 +70,21 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
     this.setState({ renderTransitionGroup: false })
   }
 
-  public render() {
+  private renderFullScreenNotification() {
     if (!this.state.renderInfo) {
       return null
     }
 
     const kbdShortcut = __DARWIN__ ? '⌃⌘F' : 'F11'
 
+    return (
+      <div key="notification" className="toast-notification">
+        Press <kbd>{kbdShortcut}</kbd> to exit fullscreen
+      </div>
+    )
+  }
+
+  public render() {
     return (
       <CSSTransitionGroup
         className="toast-notification-container"
@@ -88,9 +96,7 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
         transitionAppearTimeout={transitionDuration}
         transitionLeaveTimeout={transitionDuration}
       >
-        <div className="toast-notification">
-          Press <kbd>{kbdShortcut}</kbd> to exit fullscreen
-        </div>
+        {this.renderFullScreenNotification()}
       </CSSTransitionGroup>
     )
   }
