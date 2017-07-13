@@ -82,7 +82,7 @@ function packageWindows() {
     setupIcon: iconSource,
     loadingGif: splashScreenPath,
     exe: `${productName}.exe`,
-    remoteReleases: distInfo.getReleasesURL(),
+    remoteReleases: distInfo.getUpdatesURL(),
   }
 
   if (process.env.APPVEYOR) {
