@@ -190,7 +190,6 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     ) {
       if (selectedState.repository.gitHubRepository) {
         menuStateBuilder.enable('view-repository-on-github')
-        menuStateBuilder.enable('create-pull-request')
       }
       menuStateBuilder.enable('remove-repository')
     }
