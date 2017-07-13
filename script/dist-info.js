@@ -70,6 +70,19 @@ function getWindowsFullNugetPackagePath() {
   )
 }
 
+function getWindowsDeltaNugetPackageName() {
+  return `${getWindowsIdentifierName()}-${getVersion()}-delta.nupkg`
+}
+
+function getWindowsDeltaNugetPackagePath() {
+  return path.join(
+    getDistPath(),
+    '..',
+    'installer',
+    getWindowsDeltaNugetPackageName()
+  )
+}
+
 function getBundleID() {
   return appPackage.bundleID
 }
@@ -139,4 +152,6 @@ module.exports = {
   getBundleSizes,
   getReleaseChannel,
   getUpdatesURL,
+  getWindowsDeltaNugetPackageName,
+  getWindowsDeltaNugetPackagePath,
 }
