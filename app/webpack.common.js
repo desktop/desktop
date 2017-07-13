@@ -6,7 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
-const distInfo = require(`${__dirname}/../script/dist-info`)
+const distInfo = require('../script/dist-info')
 
 const devClientId = '3a723b10ac5575cc5bb9'
 const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
@@ -49,7 +49,7 @@ const replacements = {
   __WIN32__: process.platform === 'win32',
   __DEV__: channel === 'development',
   __RELEASE_CHANNEL__: JSON.stringify(channel),
-  __UPDATES_URL__: distInfo.getUpdatesURL(),
+  __UPDATES_URL__: JSON.stringify(distInfo.getUpdatesURL()),
   __SHA__: JSON.stringify(revParse(path.resolve(__dirname, '../.git'), 'HEAD')),
   'process.platform': JSON.stringify(process.platform),
   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
