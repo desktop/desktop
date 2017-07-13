@@ -10,10 +10,25 @@ interface IPushBranchCommitsProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
-  readonly publish?: boolean
-  readonly unPushedCommits?: number
   readonly onConfirm: (repository: Repository, branch: Branch) => void
   readonly onDismissed: () => void
+
+  /**
+   * When set to true, the publish branch dialog is returned.
+   *
+   * @type {boolean}
+   * @memberof IPushBranchCommitsProps
+   */
+  readonly publish?: boolean
+
+  /**
+   * Used to show the number of commits a branch is ahead by.
+   * This only needs to be set if `publish` is false or undefined.
+   *
+   * @type {number}
+   * @memberof IPushBranchCommitsProps
+   */
+  readonly unPushedCommits?: number
 }
 
 export class PushBranchCommits extends React.Component<
