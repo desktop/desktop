@@ -59,13 +59,7 @@ export class SignIn extends React.Component<ISignInProps, {}> {
   }
 
   private renderAuthenticationStep(state: IAuthenticationState) {
-    const children = this.props.children as ReadonlyArray<JSX.Element> | null
-    if (!children || !children.length) {
-      console.error(
-        'unexpected child elements provided to AuthenticationForm - someone should look into this!'
-      )
-      return null
-    }
+    const children = this.props.children as ReadonlyArray<JSX.Element>
 
     return (
       <AuthenticationForm
