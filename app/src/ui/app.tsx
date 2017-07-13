@@ -158,7 +158,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       const status = state.status
 
       if (
-        !(__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') &&
+        !(
+          __RELEASE_CHANNEL__ === 'development' ||
+          __RELEASE_CHANNEL__ === 'test'
+        ) &&
         status === UpdateStatus.UpdateReady
       ) {
         this.props.dispatcher.setUpdateBannerVisibility(true)
@@ -271,7 +274,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private checkForUpdates() {
-    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') {
+    if (
+      __RELEASE_CHANNEL__ === 'development' ||
+      __RELEASE_CHANNEL__ === 'test'
+    ) {
       return
     }
 

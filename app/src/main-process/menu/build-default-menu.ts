@@ -156,7 +156,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
             focusedWindow.reload()
           }
         },
-        visible: __RELEASE_ENV__ !== 'production',
+        visible: __RELEASE_CHANNEL__ !== 'production',
       },
       {
         id: 'show-devtools',
@@ -177,7 +177,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click(item: any, focusedWindow: Electron.BrowserWindow) {
           sharedProcess.show()
         },
-        visible: __RELEASE_ENV__ !== 'production',
+        visible: __RELEASE_CHANNEL__ !== 'production',
       },
     ],
   })

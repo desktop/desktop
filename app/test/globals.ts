@@ -11,7 +11,8 @@ const g: any = global
 g['__WIN32__'] = process.platform === 'win32'
 g['__DARWIN__'] = process.platform === 'darwin'
 g['__DEV__'] = 'false'
-g['__RELEASE_ENV__'] = 'test'
+g['__RELEASE_CHANNEL__'] = 'development'
+g['__UPDATES_URL__'] = ''
 g['__SHA__'] = 'test'
 
 g['log'] = <IDesktopLogger>{

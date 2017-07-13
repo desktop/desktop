@@ -6,11 +6,12 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
+const distInfo = require(`${__dirname}/../script/dist-info`)
 
 const devClientId = '3a723b10ac5575cc5bb9'
 const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
 
-const environment = process.env.NODE_ENV || 'development'
+const channel = distInfo.getReleaseChannel()
 
 /**
  * Attempt to dereference the given ref without requiring a Git environment
@@ -46,11 +47,11 @@ const replacements = {
   ),
   __DARWIN__: process.platform === 'darwin',
   __WIN32__: process.platform === 'win32',
-  __DEV__: environment === 'development',
-  __RELEASE_ENV__: JSON.stringify(environment),
+  __DEV__: channel === 'development',
+  __RELEASE_CHANNEL__: JSON.stringify(channel),
   __SHA__: JSON.stringify(revParse(path.resolve(__dirname, '../.git'), 'HEAD')),
   'process.platform': JSON.stringify(process.platform),
-  'process.env.NODE_ENV': JSON.stringify(environment),
+  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   'process.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV),
 }
 
