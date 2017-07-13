@@ -12,9 +12,9 @@ const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
 const distInfo = require('./dist-info')
 
-const isProductionBuild = process.env.NODE_ENV === 'production'
+const isPublishableBuild = distInfo.getReleaseChannel() !== 'development'
 
-console.log(`Building for ${process.env.NODE_ENV}…`)
+console.log(`Building for ${distInfo.getReleaseChannel()}…`)
 
 console.log('Removing old distribution…')
 fs.removeSync(path.join(projectRoot, 'dist'))
@@ -42,7 +42,7 @@ updateLicenseDump(err => {
     )
     console.error(err)
 
-    if (isProductionBuild) {
+    if (isPublishableBuild) {
       process.exit(1)
       return
     }
@@ -88,7 +88,7 @@ function packageApp(callback) {
       {
         name: distInfo.getBundleID(),
         schemes: [
-          isProductionBuild
+          isPublishableBuild
             ? 'x-github-desktop-auth'
             : 'x-github-desktop-dev-auth',
           'x-github-client',
@@ -163,7 +163,7 @@ function copyDependencies() {
   const oldDevDependencies = originalPackage.devDependencies
   const newDevDependencies = {}
 
-  if (!isProductionBuild) {
+  if (!isPublishableBuild) {
     for (var [name, spec] of Object.entries(oldDevDependencies)) {
       if (externals.indexOf(name) !== -1) {
         newDevDependencies[name] = spec
@@ -179,7 +179,7 @@ function copyDependencies() {
     devDependencies: newDevDependencies,
   })
 
-  if (isProductionBuild) {
+  if (isPublishableBuild) {
     delete updatedPackage.devDependencies
   }
 
@@ -198,7 +198,7 @@ function copyDependencies() {
     cp.execSync('npm install', { cwd: outRoot, env: process.env })
   }
 
-  if (!isProductionBuild) {
+  if (!isPublishableBuild) {
     console.log(
       '  Installing 7zip (dependency for electron-devtools-installer)'
     )
