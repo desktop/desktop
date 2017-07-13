@@ -49,6 +49,7 @@ const replacements = {
   __WIN32__: process.platform === 'win32',
   __DEV__: channel === 'development',
   __RELEASE_CHANNEL__: JSON.stringify(channel),
+  __UPDATES_URL__: distInfo.getUpdatesURL(),
   __SHA__: JSON.stringify(revParse(path.resolve(__dirname, '../.git'), 'HEAD')),
   'process.platform': JSON.stringify(process.platform),
   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
