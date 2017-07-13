@@ -99,12 +99,13 @@ function getBundleSizes() {
 }
 
 function getReleaseChannel() {
-  let branchName = ''
+  let branchName
   if (process.platform === 'darwin') {
     branchName = process.env.TRAVIS_BRANCH
   } else if (process.platform === 'win32') {
     branchName = process.env.APPVEYOR_REPO_BRANCH
   }
+  branchName = branchName || ''
 
   // Branch name format: __release-CHANNEL-DEPLOY_ID
   const pieces = branchName.split('-')
