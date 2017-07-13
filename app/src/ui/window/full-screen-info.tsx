@@ -13,7 +13,6 @@ const transitionDuration = 100
 const holdDuration = 3000
 
 export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
-
   private infoDisappearTimeoutId: number | null = null
   private transitionGroupDisappearTimeoutId: number | null = null
 
@@ -28,7 +27,8 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
   }
 
   private showFullScreenNotification() {
-    const hasChangedWindowState = this.state.lastWindowState !== getWindowState(remote.getCurrentWindow())
+    const hasChangedWindowState =
+      this.state.lastWindowState !== getWindowState(remote.getCurrentWindow())
 
     this.setState({
       lastWindowState: getWindowState(remote.getCurrentWindow()),
@@ -48,12 +48,12 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
 
     this.infoDisappearTimeoutId = window.setTimeout(
       this.onInfoDisappearTimeout,
-      holdDuration,
+      holdDuration
     )
 
     this.transitionGroupDisappearTimeoutId = window.setTimeout(
       this.onTransitionGroupDisappearTimeout,
-      holdDuration + transitionDuration,
+      holdDuration + transitionDuration
     )
 
     this.setState({
@@ -70,7 +70,7 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
     this.setState({ renderTransitionGroup: false })
   }
 
-  public render () {
+  public render() {
     if (!this.state.renderInfo) {
       return null
     }
@@ -79,16 +79,17 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
 
     return (
       <CSSTransitionGroup
-        className='toast-notification-container'
-        transitionName='toast-animation' component='div'
+        className="toast-notification-container"
+        transitionName="toast-animation"
+        component="div"
         transitionAppear={true}
         transitionEnter={false}
         transitionLeave={true}
         transitionAppearTimeout={transitionDuration}
         transitionLeaveTimeout={transitionDuration}
       >
-        <div className='toast-notification'>
-          Press <kbd className='kbd'>{kbdShortcut}</kbd> to exit fullscreen
+        <div className="toast-notification">
+          Press <kbd className="kbd">{kbdShortcut}</kbd> to exit fullscreen
         </div>
       </CSSTransitionGroup>
     )
