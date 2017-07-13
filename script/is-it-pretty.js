@@ -3,7 +3,8 @@
 const prettier = require('prettier')
 const glob = require('glob')
 const fs = require('fs')
-const globPattern = 'app/{src,test}/**/*.{ts,tsx}'
+const globPattern =
+  '{app/{src,test}/**/*.{ts,tsx,js},app/webpack.*.js,script/!(*.ps1|*.bat|setup-macos-keychain)}'
 const prettierOptions = {
   parser: 'typescript',
   singleQuote: true,

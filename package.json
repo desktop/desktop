@@ -32,7 +32,7 @@
     "prettify": "npm run prettier:base \"{app/{src,test}/**/*.{ts,tsx,js},app/webpack.*.js,script/!(*.ps1|*.bat|setup-macos-keychain)}\""
   },
   "lint-staged": {
-    "app/{src,test}/**/*.{ts,tsx}": [
+    "{app/{src,test}/**/*.{ts,tsx,js},app/webpack.*.js,script/!(*.ps1|*.bat|setup-macos-keychain)}": [
       "npm run prettier:base",
       "git add"
     ]
