@@ -13,13 +13,13 @@ function reviewLogs() {
   }
 
   const files = fs.readdirSync(directory)
-    files.forEach(file => {
-      if (file.endsWith('.log')) {
-        console.log(`opening ${file}`)
-        const fullPath = path.join(directory, file)
-        const text = fs.readFileSync(fullPath, 'utf-8')
-        console.log(text)
-      }
+  files.forEach(file => {
+    if (file.endsWith('.log')) {
+      console.log(`opening ${file}`)
+      const fullPath = path.join(directory, file)
+      const text = fs.readFileSync(fullPath, 'utf-8')
+      console.log(text)
+    }
   })
 }
 
