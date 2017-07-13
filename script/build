@@ -38,7 +38,7 @@ console.log('Updating our licenses dump…')
 updateLicenseDump(err => {
   if (err) {
     console.error(
-      'Error updating the license dump. This is fatal for a production build.'
+      'Error updating the license dump. This is fatal for a published build.'
     )
     console.error(err)
 
