@@ -11,6 +11,9 @@ import { getVersion } from './app-proxy'
 import { sendWillQuitSync } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 
+/** The release channel which should be checked for updates. */
+type ReleaseChannel = 'production' | 'beta'
+
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
   /** The auto updater is checking for updates. */
@@ -155,22 +158,22 @@ class UpdateStore {
     }
   }
 
-  private getFeedURL(username: string): string {
-    return `${UpdatesURLBase}?version=${getVersion()}&username=${username}`
+  private getFeedURL(channel: ReleaseChannel): string {
+    return `${UpdatesURLBase}?version=${getVersion()}&env=${channel}`
   }
 
   /**
-   * Check for updates using the given username.
+   * Check for updates.
    *
-   * @param username     - The username used to check for updates.
+   * @param channel      - The release channel to check for updates.
    * @param inBackground - Are we checking for updates in the background, or was
    *                       this check user-initiated?
    */
-  public checkForUpdates(username: string, inBackground: boolean) {
+  public checkForUpdates(channel: ReleaseChannel, inBackground: boolean) {
     this.userInitiatedUpdate = !inBackground
 
     try {
-      autoUpdater.setFeedURL(this.getFeedURL(username))
+      autoUpdater.setFeedURL(this.getFeedURL(channel))
       autoUpdater.checkForUpdates()
     } catch (e) {
       this.emitError(e)
