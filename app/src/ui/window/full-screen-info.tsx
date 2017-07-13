@@ -1,18 +1,23 @@
 import * as React from 'react'
 import { CSSTransitionGroup } from 'react-transition-group'
-import { remote } from 'electron'
-import { WindowState, getWindowState } from '../../lib/window-state'
+import { WindowState } from '../../lib/window-state'
+
+interface IFullScreenInfoProps {
+  readonly windowState: WindowState
+}
 
 interface IFullScreenInfoState {
   readonly renderInfo: boolean
   readonly renderTransitionGroup: boolean
-  readonly lastWindowState: WindowState
 }
 
 const transitionDuration = 100
 const holdDuration = 3000
 
-export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
+export class FullScreenInfo extends React.Component<
+  IFullScreenInfoProps,
+  IFullScreenInfoState
+> {
   private infoDisappearTimeoutId: number | null = null
   private transitionGroupDisappearTimeoutId: number | null = null
 
@@ -20,24 +25,23 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
     super()
 
     this.state = {
-      lastWindowState: getWindowState(remote.getCurrentWindow()),
       renderInfo: false,
       renderTransitionGroup: false,
     }
   }
 
-  private showFullScreenNotification() {
-    const hasChangedWindowState =
-      this.state.lastWindowState !== getWindowState(remote.getCurrentWindow())
+  public componentWillReceiveProps(nextProps: IFullScreenInfoProps) {
+    // Have we entered into full screen?
+    const hasEnteredFullScreen =
+      nextProps.windowState === 'full-screen' &&
+      this.props.windowState !== 'full-screen'
 
-    this.setState({
-      lastWindowState: getWindowState(remote.getCurrentWindow()),
-    })
+    // If we haven't we don't have to do anything
+    if (!hasEnteredFullScreen) {
+      return
+    }
 
-    return hasChangedWindowState && remote.getCurrentWindow().isFullScreen()
-  }
-
-  public componentWillReceiveProps(nextProps: any) {
+    // Since we have we'll clear all timeouts and present a notification
     if (this.infoDisappearTimeoutId !== null) {
       clearTimeout(this.infoDisappearTimeoutId)
     }
@@ -57,8 +61,8 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
     )
 
     this.setState({
-      renderTransitionGroup: this.showFullScreenNotification(),
-      renderInfo: this.showFullScreenNotification(),
+      renderTransitionGroup: true,
+      renderInfo: true,
     })
   }
 

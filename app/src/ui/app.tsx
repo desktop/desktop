@@ -1026,7 +1026,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderFullScreenInfo() {
-    return <FullScreenInfo />
+    return <FullScreenInfo windowState={this.state.windowState} />
   }
 
   private clearError = (error: Error) => {
