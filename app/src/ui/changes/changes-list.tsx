@@ -3,7 +3,10 @@ import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
 import { List, ClickSource } from '../list'
 
-import { WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
+import {
+  WorkingDirectoryStatus,
+  WorkingDirectoryFileChange,
+} from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
@@ -25,12 +28,21 @@ interface IChangesListProps {
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
-  readonly onDiscardAllChanges: (files: ReadonlyArray<WorkingDirectoryFileChange>) => void
+  readonly onDiscardAllChanges: (
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) => void
+
   /**
    * Called to reveal a file in the native file manager.
    * @param path The path of the file relative to the root of the repository
    */
   readonly onRevealInFileManager: (path: string) => void
+
+  /**
+   * Called to open a file it its default application
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenItem: (path: string) => void
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
@@ -54,7 +66,7 @@ interface IChangesListProps {
   readonly onIgnore: (pattern: string) => void
 }
 
-export class ChangesList extends React.Component<IChangesListProps, void> {
+export class ChangesList extends React.Component<IChangesListProps, {}> {
   private onIncludeAllChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
     this.props.onSelectAll(include)
@@ -64,9 +76,10 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     const file = this.props.workingDirectory.files[row]
     const selection = file.selection.getSelectionType()
 
-    const includeAll = selection === DiffSelectionType.All
-      ? true
-      : (selection === DiffSelectionType.None ? false : null)
+    const includeAll =
+      selection === DiffSelectionType.All
+        ? true
+        : selection === DiffSelectionType.None ? false : null
 
     return (
       <ChangedFile
@@ -78,6 +91,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.onDiscardChanges}
         onRevealInFileManager={this.props.onRevealInFileManager}
+        onOpenItem={this.props.onOpenItem}
         availableWidth={this.props.availableWidth}
         onIgnore={this.props.onIgnore}
       />
@@ -102,7 +116,9 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
   private onDiscardChanges = (path: string) => {
     const workingDirectory = this.props.workingDirectory
     const file = workingDirectory.files.find(f => f.path === path)
-    if (!file) { return }
+    if (!file) {
+      return
+    }
 
     this.props.onDiscardChanges(file)
   }
@@ -123,30 +139,36 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
 
   public render() {
     const fileList = this.props.workingDirectory.files
-    const selectedRow = fileList.findIndex(file => file.id === this.props.selectedFileID)
+    const selectedRow = fileList.findIndex(
+      file => file.id === this.props.selectedFileID
+    )
     const fileCount = fileList.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
-    const anyFilesSelected = fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
+    const anyFilesSelected =
+      fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
 
     return (
-      <div className='changes-list-container file-list'>
-        <div className='header' onContextMenu={this.onContextMenu}>
+      <div className="changes-list-container file-list">
+        <div className="header" onContextMenu={this.onContextMenu}>
           <Checkbox
             label={filesDescription}
             value={this.includeAllValue}
             onChange={this.onIncludeAllChanged}
+            disabled={fileCount === 0}
           />
         </div>
 
-        <List id='changes-list'
-              rowCount={this.props.workingDirectory.files.length}
-              rowHeight={RowHeight}
-              rowRenderer={this.renderRow}
-              selectedRow={selectedRow}
-              onSelectionChanged={this.props.onFileSelectionChanged}
-              invalidationProps={this.props.workingDirectory}
-              onRowClick={this.props.onRowClick}/>
+        <List
+          id="changes-list"
+          rowCount={this.props.workingDirectory.files.length}
+          rowHeight={RowHeight}
+          rowRenderer={this.renderRow}
+          selectedRow={selectedRow}
+          onSelectionChanged={this.props.onFileSelectionChanged}
+          invalidationProps={this.props.workingDirectory}
+          onRowClick={this.props.onRowClick}
+        />
 
         <CommitMessage
           onCreateCommit={this.props.onCreateCommit}
@@ -159,7 +181,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
           commitMessage={this.props.commitMessage}
           contextualCommitMessage={this.props.contextualCommitMessage}
           autocompletionProviders={this.props.autocompletionProviders}
-          isCommitting={this.props.isCommitting}/>
+          isCommitting={this.props.isCommitting}
+        />
       </div>
     )
   }

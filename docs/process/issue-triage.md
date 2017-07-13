@@ -15,8 +15,8 @@ We will use the `more-information-needed` and `reproduction-required` labels to
 indicate when issues are incomplete.
 
 Once enough detail has been captured about the issue, and it can be reproduced
-by one of the maintainers, these should be prioritised by the team. Severe bugs
-or bugs affecting many users would be prioritised above minor or low impact
+by one of the maintainers, these should be prioritized by the team. Severe bugs
+or bugs affecting many users would be prioritized above minor or low impact
 bugs.
 
 ## Enhancements
@@ -37,8 +37,21 @@ work should proceed:
 
 e.g. GitHub Desktop should support worktrees as a first class feature.
 
-For work that we may evaluate post-1.0, we will label the issue `future-work`
-and close it out, to keep our short-term backlog under control.
+### Future Proposals
+
+The Desktop team has a [roadmap](roadmap.md) defined for the next few releases,
+so that you can see what our future plans look like. Some enhancements suggested
+by the community will be for things that are interesting but are also well
+beyond the current plans of the team. 
+
+We will apply the `future-proposal` label to these issues, so that they can be
+searched for when it comes time to plan for the future. However, to keep
+our issue tracker focused on tasks currently on the roadmap we will close these
+future proposals to avoid information overload.
+
+You can view [the list](https://github.com/desktop/desktop/issues?q=is%3Aissue+label%3Afuture-proposal)
+of these `future-proposal` tasks, and continue to add your thoughts and feedback
+there.
 
 ## Out-of-scope
 

@@ -18,7 +18,11 @@ export class DragDropSelection implements ISelectionStrategy {
   private maximumDirtyRange: number
   private minimumDirtyRange: number
 
-  public constructor(start: number, desiredSelection: boolean, snapshot: DiffSelection) {
+  public constructor(
+    start: number,
+    desiredSelection: boolean,
+    snapshot: DiffSelection
+  ) {
     this.start = start
     this.desiredSelection = desiredSelection
     this.snapshot = snapshot
@@ -69,12 +73,13 @@ export class DragDropSelection implements ISelectionStrategy {
    * apply the selection strategy result to the current diff
    */
   public done(): DiffSelection {
-    const length = (this.upperIndex - this.lowerIndex) + 1
+    const length = this.upperIndex - this.lowerIndex + 1
 
     const newSelection = this.snapshot.withRangeSelection(
       this.lowerIndex,
       length,
-      this.desiredSelection)
+      this.desiredSelection
+    )
 
     return newSelection
   }
@@ -83,8 +88,9 @@ export class DragDropSelection implements ISelectionStrategy {
    * Compute the range of lines to repaint, based on how far the user
    * has moved their cursor
    */
-  private determineDirtyRange(elements: Map<number, DiffLineGutter>): { start: number, end: number} {
-
+  private determineDirtyRange(
+    elements: Map<number, DiffLineGutter>
+  ): { start: number; end: number } {
     // as user can go back and forth when doing drag-and-drop, we should
     // update rows outside the current selected range
 
@@ -124,7 +130,6 @@ export class DragDropSelection implements ISelectionStrategy {
    * repaint the current diff gutter to visualize the current state
    */
   public paint(elements: Map<number, DiffLineGutter>) {
-
     const { start, end } = this.determineDirtyRange(elements)
 
     // range is not inclusive of the last number, which means the edge of

@@ -4,7 +4,10 @@ import { Button } from './lib/button'
 import { ButtonGroup } from './lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from './dialog'
 import { LinkButton } from './lib/link-button'
-import { dialogTransitionEnterTimeout, dialogTransitionLeaveTimeout } from './app'
+import {
+  dialogTransitionEnterTimeout,
+  dialogTransitionLeaveTimeout,
+} from './app'
 import { GitError } from '../lib/git/core'
 import { GitError as GitErrorType } from 'dugite'
 import { Popup, PopupType } from '../lib/app-state'
@@ -109,38 +112,54 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   private renderGitErrorFooter(error: GitError) {
     const gitErrorType = error.result.gitError
 
-    switch (gitErrorType)  {
+    switch (gitErrorType) {
       case GitErrorType.HTTPSAuthenticationFailed: {
         return (
           <ButtonGroup>
-            <Button type='submit'>Close</Button>
+            <Button type="submit">Close</Button>
             <Button onClick={this.showPreferencesDialog}>
               {__DARWIN__ ? 'Open Preferences' : 'Open options'}
             </Button>
-          </ButtonGroup>)
+          </ButtonGroup>
+        )
       }
       default:
         return (
           <ButtonGroup>
-            <Button type='submit'>Close</Button>
-          </ButtonGroup>)
+            <Button type="submit">Close</Button>
+          </ButtonGroup>
+        )
     }
   }
 
   private renderErrorMessage(error: Error, unhandled: boolean) {
     if (unhandled) {
       const errorDetails = error.stack
-        ? <p className='monospace'>{error.stack}</p>
-        : <p>{error.message}</p>
+        ? <p className="monospace">
+            {error.stack}
+          </p>
+        : <p>
+            {error.message}
+          </p>
 
       return (
         <div>
-          <p>GitHub Desktop encountered an uncaught exception, leaving it in an invalid state.</p>
           <p>
-            This has been reported to the team, but if you encounter this repeatedly please report this issue to the GitHub Desktop <LinkButton uri='https://github.com/desktop/desktop/issues'>issue tracker</LinkButton>.
+            GitHub Desktop encountered an uncaught exception, leaving it in an
+            invalid state.
+          </p>
+          <p>
+            This has been reported to the team, but if you encounter this
+            repeatedly please report this issue to the GitHub Desktop{' '}
+            <LinkButton uri="https://github.com/desktop/desktop/issues">
+              issue tracker
+            </LinkButton>.
           </p>
           {errorDetails}
-          <p>Due to this error, the application will now quit and will need to be restarted.</p>
+          <p>
+            Due to this error, the application will now quit and will need to be
+            restarted.
+          </p>
         </div>
       )
     }
@@ -151,14 +170,21 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       // See getResultMessage in core.ts
       // If the error message is the same as stderr or stdout then we know
       // it's output from git and we'll display it in fixed-width font
-      if (error.message === error.result.stderr || error.message === error.result.stdout) {
+      if (
+        error.message === error.result.stderr ||
+        error.message === error.result.stdout
+      ) {
         monospace = true
       }
     }
 
     const className = monospace ? 'monospace' : undefined
 
-    return <p className={className}>{error.message}</p>
+    return (
+      <p className={className}>
+        {error.message}
+      </p>
+    )
   }
 
   private renderDialog() {
@@ -173,13 +199,14 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     return (
       <Dialog
-        id='app-error'
-        type='error'
-        key='error'
+        id="app-error"
+        type="error"
+        key="error"
         title={title}
         dismissable={!unhandled}
         onDismissed={this.onDismissed}
-        disabled={this.state.disabled}>
+        disabled={this.state.disabled}
+      >
         <DialogContent>
           {this.renderErrorMessage(error, unhandled)}
         </DialogContent>
@@ -194,7 +221,9 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     if (unhandled) {
       return (
         <ButtonGroup>
-          <Button onClick={this.closeAndExit} type='submit'>Quit</Button>
+          <Button onClick={this.closeAndExit} type="submit">
+            Quit
+          </Button>
         </ButtonGroup>
       )
     }
@@ -205,15 +234,16 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     return (
       <ButtonGroup>
-        <Button type='submit'>Close</Button>
-      </ButtonGroup>)
+        <Button type="submit">Close</Button>
+      </ButtonGroup>
+    )
   }
 
   public render() {
     return (
       <CSSTransitionGroup
-        transitionName='modal'
-        component='div'
+        transitionName="modal"
+        component="div"
         transitionEnterTimeout={dialogTransitionEnterTimeout}
         transitionLeaveTimeout={dialogTransitionLeaveTimeout}
       >

@@ -4,13 +4,13 @@ import * as ChildProcess from 'child_process'
 import * as os from 'os'
 
 type IndexLookup = {
-  [propName: string]: string;
+  [propName: string]: string
 }
 
 /**
  * The names of any env vars that we shouldn't copy from the shell environment.
  */
-const BlacklistedNames = new Set([ 'LOCAL_GIT_DIRECTORY' ])
+const BlacklistedNames = new Set(['LOCAL_GIT_DIRECTORY'])
 
 /**
  * Inspect whether the current process needs to be patched to get important
@@ -27,8 +27,8 @@ export function shellNeedsPatching(process: NodeJS.Process): boolean {
 }
 
 type ShellResult = {
-  stdout: string,
-  error: Error | null,
+  stdout: string
+  error: Error | null
 }
 
 /**
@@ -39,7 +39,7 @@ type ShellResult = {
 async function getRawShellEnv(): Promise<string | null> {
   const shell = getUserShell()
 
-  const promise = new Promise<ShellResult>((resolve) => {
+  const promise = new Promise<ShellResult>(resolve => {
     let child: ChildProcess.ChildProcess | null = null
     let error: Error | null = null
     let stdout = ''
@@ -57,9 +57,12 @@ async function getRawShellEnv(): Promise<string | null> {
       cleanup()
     }, 5000)
 
-    const options =  { detached: true, stdio: [ 'ignore', 'pipe', process.stderr ] }
+    const options = {
+      detached: true,
+      stdio: ['ignore', 'pipe', process.stderr],
+    }
 
-    child = ChildProcess.spawn(shell, [ '-ilc', 'command env' ], options)
+    child = ChildProcess.spawn(shell, ['-ilc', 'command env'], options)
 
     const buffers: Array<Buffer> = []
 
@@ -83,11 +86,11 @@ async function getRawShellEnv(): Promise<string | null> {
     })
   })
 
-  const { stdout, error }  = await promise
+  const { stdout, error } = await promise
 
   if (error) {
-     // just swallow the error and move on with everything
-     return null
+    // just swallow the error and move on with everything
+    return null
   }
 
   return stdout
@@ -107,7 +110,9 @@ function getUserShell() {
  *
  * @param updateEnvironment a callback to fire if a valid environment is found
  */
-async function getEnvironmentFromShell(updateEnvironment: (env: IndexLookup) => void): Promise<void> {
+async function getEnvironmentFromShell(
+  updateEnvironment: (env: IndexLookup) => void
+): Promise<void> {
   if (__WIN32__) {
     return
   }
@@ -117,7 +122,7 @@ async function getEnvironmentFromShell(updateEnvironment: (env: IndexLookup) => 
     return
   }
 
-  const env: IndexLookup = { }
+  const env: IndexLookup = {}
 
   for (const line of shellEnvText.split(os.EOL)) {
     if (line.includes('=')) {
@@ -145,7 +150,9 @@ async function getEnvironmentFromShell(updateEnvironment: (env: IndexLookup) => 
  */
 function mergeEnvironmentVariables(env: IndexLookup) {
   for (const key in env) {
-    if (BlacklistedNames.has(key)) { continue }
+    if (BlacklistedNames.has(key)) {
+      continue
+    }
 
     process.env[key] = env[key]
   }

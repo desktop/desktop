@@ -11,7 +11,6 @@ import { GitProcess } from 'dugite'
 const temp = require('temp').track()
 
 describe('git/log', () => {
-
   let repository: Repository | null = null
 
   beforeEach(() => {
@@ -30,13 +29,18 @@ describe('git/log', () => {
 
       const firstCommit = commits[commits.length - 1]
       expect(firstCommit.summary).to.equal('first')
-      expect(firstCommit.sha).to.equal('7cd6640e5b6ca8dbfd0b33d0281ebe702127079c')
+      expect(firstCommit.sha).to.equal(
+        '7cd6640e5b6ca8dbfd0b33d0281ebe702127079c'
+      )
     })
   })
 
   describe('getChangedFiles', () => {
     it('loads the files changed in the commit', async () => {
-      const files = await getChangedFiles(repository!, '7cd6640e5b6ca8dbfd0b33d0281ebe702127079c')
+      const files = await getChangedFiles(
+        repository!,
+        '7cd6640e5b6ca8dbfd0b33d0281ebe702127079c'
+      )
       expect(files.length).to.equal(1)
       expect(files[0].path).to.equal('README.md')
       expect(files[0].status).to.equal(AppFileStatus.New)
@@ -64,7 +68,10 @@ describe('git/log', () => {
       repository = new Repository(testRepoPath, -1, null, false)
 
       // ensure the test repository is configured to detect copies
-      await GitProcess.exec([ 'config', 'diff.renames', 'copies' ], repository.path)
+      await GitProcess.exec(
+        ['config', 'diff.renames', 'copies'],
+        repository.path
+      )
 
       const files = await getChangedFiles(repository, 'a500bf415')
       expect(files.length).to.equal(2)

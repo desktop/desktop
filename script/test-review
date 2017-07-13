@@ -7,7 +7,7 @@ const path = require('path')
 const { getUserDataPath } = require('./dist-info')
 
 function reviewLogs() {
-  const directory = getUserDataPath()
+  const directory = path.join(getUserDataPath(), 'logs')
   if (!fs.existsSync(directory)) {
     return
   }
