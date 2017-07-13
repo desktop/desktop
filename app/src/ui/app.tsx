@@ -67,7 +67,6 @@ import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
-import { PublishBranch } from './branches/PublishBranch'
 import { PushBranchCommits } from './branches/PushBranchCommits'
 import { Branch } from '../models/branch'
 
@@ -1001,11 +1000,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         return <TermsAndConditions onDismissed={this.onPopupDismissed} />
       case PopupType.PublishBranch:
         return (
-          <PublishBranch
+          <PushBranchCommits
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
-            onPushed={this.openPullRequestOnGithub}
+            publish={true}
+            onConfirm={this.openPullRequestOnGithub}
             onDismissed={this.onPopupDismissed}
           />
         )
@@ -1016,7 +1016,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             unPushedCommits={popup.unPushedCommits}
-            onPushed={this.openPullRequestOnGithub}
+            onConfirm={this.openPullRequestOnGithub}
             onDismissed={this.onPopupDismissed}
           />
         )
