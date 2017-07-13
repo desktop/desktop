@@ -10,8 +10,9 @@ interface IPushBranchCommitsProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
-  readonly unPushedCommits: number
-  readonly onPushed: (repository: Repository, branch: Branch) => void
+  readonly publish?: boolean
+  readonly unPushedCommits?: number
+  readonly onConfirm: (repository: Repository, branch: Branch) => void
   readonly onDismissed: () => void
 }
 
@@ -19,43 +20,77 @@ export class PushBranchCommits extends React.Component<
   IPushBranchCommitsProps
 > {
   public render() {
-    const numberOfCommits = this.props.unPushedCommits
-
     return (
       <Dialog
         id="push-branch-commits"
         key="push-branch-commits"
-        title={
-          __DARWIN__
-            ? `Your Branch is Ahead by ${numberOfCommits} ${this.createCommitString(
-                true
-              )}`
-            : `Your branch is ahead by ${numberOfCommits} ${this.createCommitString(
-                true
-              )}`
-        }
+        title={this.renderDialogTitle()}
         onDismissed={this.cancel}
         onSubmit={this.cancel}
       >
         <DialogContent>
-          <p>
-            {`Would you like to push ${numberOfCommits} ${this.createCommitString()} to `}
-            <b>{this.props.branch.name}</b> and open a pull request?
-          </p>
+          {this.renderDialogContent()}
         </DialogContent>
 
         <DialogFooter>
           <ButtonGroup destructive={true}>
             <Button type="submit">Cancel</Button>
             <Button onClick={this.push}>
-              {__DARWIN__
-                ? 'Push Commits and Open Pull Request'
-                : 'Push commits and open pull request'}
+              {this.renderButtonText()}
             </Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private renderDialogContent() {
+    if (this.props.publish) {
+      return (
+        <p>
+          Your branch must be published before opening a pull request. Would you
+          like to publish <b>{this.props.branch.name}</b> and open a pull
+          request?
+        </p>
+      )
+    }
+
+    const numberOfCommits = this.props.unPushedCommits
+
+    return (
+      <p>
+        {`Would you like to push ${numberOfCommits} ${this.createCommitString()} to `}
+        <b>{this.props.branch.name}</b> and open a pull request?
+      </p>
+    )
+  }
+
+  private renderDialogTitle() {
+    if (this.props.publish) {
+      return __DARWIN__ ? 'Publish Branch' : 'Publish branch'
+    }
+
+    const numberOfCommits = this.props.unPushedCommits
+
+    return __DARWIN__
+      ? `Your Branch is Ahead by ${numberOfCommits} ${this.createCommitString(
+          true
+        )}`
+      : `Your branch is ahead by ${numberOfCommits} ${this.createCommitString(
+          true
+        )}`
+  }
+
+  private renderButtonText() {
+    if (this.props.publish) {
+      return __DARWIN__
+        ? 'Publish Branch and Open Pull Request'
+        : 'Publish branch and open pull request'
+    }
+
+    return __DARWIN__
+      ? 'Push Commits and Open Pull Request'
+      : 'Push commits and open pull request'
   }
 
   private createCommitString(platformize: boolean = false) {
@@ -83,7 +118,7 @@ export class PushBranchCommits extends React.Component<
     const props = this.props
 
     await this.props.dispatcher.push(props.repository)
-    this.props.onPushed(props.repository, props.branch)
+    this.props.onConfirm(props.repository, props.branch)
     this.props.onDismissed()
   }
 }
