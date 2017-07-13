@@ -57,9 +57,7 @@ async function installCLI(): Promise<void> {
  * outside path which includes the installed app version.
  */
 function getBinPath(): string {
-  const appFolder = Path.resolve(process.execPath, '..')
-  const rootAppDir = Path.resolve(appFolder, '..')
-  return Path.join(rootAppDir, 'bin')
+  return Path.resolve(process.execPath, '../../bin')
 }
 
 /**
@@ -78,7 +76,7 @@ async function writeCLITrampoline(): Promise<string> {
   const appFolder = Path.resolve(process.execPath, '..')
   const versionedPath = Path.relative(
     binPath,
-    Path.join(appFolder, 'resources', 'app', 'static', 'github.bat')
+    Path.join(appFolder, 'resources/app/static/github.bat')
   )
   const trampline = `@echo off\n"%~dp0\\${versionedPath}" %*`
   const trampolinePath = Path.join(binPath, 'github.bat')
