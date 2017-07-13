@@ -137,7 +137,7 @@ function shouldMakeDelta() {
   // Only production and beta channels include deltas. Test releases aren't
   // necessarily sequential so deltas wouldn't make sense.
   const channelsWithDeltas = ['production', 'beta']
-  return channelsWithDeltas.indexOf(distInfo.getReleaseChannel()) > -1
+  return channelsWithDeltas.indexOf(getReleaseChannel()) > -1
 }
 
 module.exports = {
