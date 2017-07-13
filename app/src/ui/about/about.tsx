@@ -248,7 +248,14 @@ export class About extends React.Component<IAboutProps, IAboutState> {
             {name}
           </h2>
           <p className="no-padding">
-            <LinkButton title='Click to copy' className='version-text' onClick={this.onClickVersion}>Version {version}</LinkButton> ({releaseNotesLink})
+            <LinkButton
+              title="Click to copy"
+              className="version-text"
+              onClick={this.onClickVersion}
+            >
+              Version {version}
+            </LinkButton>{' '}
+            ({releaseNotesLink})
           </p>
           <p className="no-padding">
             <LinkButton onClick={this.props.onShowTermsAndConditions}>
