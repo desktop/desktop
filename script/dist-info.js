@@ -98,6 +98,27 @@ function getBundleSizes() {
   return { rendererSize: rendererStats.size, mainSize: mainStats.size }
 }
 
+function getReleaseChannel() {
+  let branchName = ''
+  if (process.platform === 'darwin') {
+    branchName = process.env.TRAVIS_BRANCH
+  } else if (process.platform === 'win32') {
+    branchName = process.env.APPVEYOR_REPO_BRANCH
+  }
+
+  // Branch name format: __release-CHANNEL-DEPLOY_ID
+  const pieces = branchName.split('-')
+  if (pieces.length < 3 || pieces[0] !== '__release') {
+    return 'development'
+  }
+
+  return pieces[1]
+}
+
+function getUpdatesURL() {
+  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${getVersion()}&env=${getReleaseChannel()}`
+}
+
 module.exports = {
   getDistPath,
   getProductName,
@@ -115,4 +136,6 @@ module.exports = {
   getUserDataPath,
   getWindowsIdentifierName,
   getBundleSizes,
+  getReleaseChannel,
+  getUpdatesURL,
 }
