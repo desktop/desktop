@@ -133,6 +133,13 @@ function getUpdatesURL() {
   return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${getVersion()}&env=${getReleaseChannel()}`
 }
 
+function shouldMakeDelta() {
+  // Only production and beta channels include deltas. Test releases aren't
+  // necessarily sequential so deltas wouldn't make sense.
+  const channelsWithDeltas = ['production', 'beta']
+  return channelsWithDeltas.indexOf(distInfo.getReleaseChannel()) > -1
+}
+
 module.exports = {
   getDistPath,
   getProductName,
@@ -154,4 +161,5 @@ module.exports = {
   getUpdatesURL,
   getWindowsDeltaNugetPackageName,
   getWindowsDeltaNugetPackagePath,
+  shouldMakeDelta,
 }

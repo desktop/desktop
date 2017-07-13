@@ -84,10 +84,7 @@ function packageWindows() {
     exe: `${productName}.exe`,
   }
 
-  // Only production and beta channels include deltas. Test releases aren't
-  // necessarily sequential so deltas wouldn't make sense.
-  const ChannelsWithDeltas = ['production', 'beta']
-  if (ChannelsWithDeltas.indexOf(distInfo.getReleaseChannel()) > -1) {
+  if (distInfo.shouldMakeDelta()) {
     options.remoteReleases = distInfo.getUpdatesURL()
   }
 

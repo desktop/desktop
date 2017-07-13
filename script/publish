@@ -73,11 +73,17 @@ function uploadWindowsAssets() {
       distInfo.getWindowsFullNugetPackageName(),
       distInfo.getWindowsFullNugetPackagePath()
     ),
-    upload(
-      distInfo.getWindowsDeltaNugetPackageName(),
-      distInfo.getWindowsDeltaNugetPackagePath()
-    ),
   ]
+
+  if (distInfo.shouldMakeDelta()) {
+    uploads.push(
+      upload(
+        distInfo.getWindowsDeltaNugetPackageName(),
+        distInfo.getWindowsDeltaNugetPackagePath()
+      )
+    )
+  }
+
   return Promise.all(uploads)
 }
 
