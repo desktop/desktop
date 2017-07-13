@@ -138,7 +138,7 @@ function updateDeploy(artifacts) {
   const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
     context: process.platform,
-    branch_name: branchName,
+    branch_name: distInfo.getReleaseBranchName(),
     artifacts,
     stats: {
       platform: process.platform,

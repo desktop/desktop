@@ -111,17 +111,20 @@ function getBundleSizes() {
   return { rendererSize: rendererStats.size, mainSize: mainStats.size }
 }
 
-function getReleaseChannel() {
+function getReleaseBranchName() {
   let branchName
   if (process.platform === 'darwin') {
     branchName = process.env.TRAVIS_BRANCH
   } else if (process.platform === 'win32') {
     branchName = process.env.APPVEYOR_REPO_BRANCH
   }
-  branchName = branchName || ''
 
+  return branchName || ''
+}
+
+function getReleaseChannel() {
   // Branch name format: __release-CHANNEL-DEPLOY_ID
-  const pieces = branchName.split('-')
+  const pieces = getReleaseBranchName().split('-')
   if (pieces.length < 3 || pieces[0] !== '__release') {
     return process.env.NODE_ENV || 'development'
   }
@@ -162,4 +165,5 @@ module.exports = {
   getWindowsDeltaNugetPackageName,
   getWindowsDeltaNugetPackagePath,
   shouldMakeDelta,
+  getReleaseBranchName,
 }
