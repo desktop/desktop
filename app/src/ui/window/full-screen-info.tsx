@@ -85,6 +85,10 @@ export class FullScreenInfo extends React.Component<any, IFullScreenInfoState> {
   }
 
   public render() {
+    if (!this.state.renderTransitionGroup) {
+      return null
+    }
+
     return (
       <CSSTransitionGroup
         className="toast-notification-container"
