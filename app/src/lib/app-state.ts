@@ -153,6 +153,7 @@ export enum PopupType {
   UntrustedCertificate,
   RemoveRepository,
   TermsAndConditions,
+  CLIInstalled,
 }
 
 export type Popup =
@@ -182,6 +183,7 @@ export type Popup =
     }
   | { type: PopupType.RemoveRepository; repository: Repository }
   | { type: PopupType.TermsAndConditions }
+  | { type: PopupType.CLIInstalled }
 
 export enum FoldoutType {
   Repository,
