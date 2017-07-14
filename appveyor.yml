@@ -5,7 +5,6 @@ platform:
 
 environment:
   nodejs_version: "7"
-  DEBUG: "electron-windows-installer:main"
 
 cache:
   - node_modules
