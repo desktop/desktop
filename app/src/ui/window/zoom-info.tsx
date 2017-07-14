@@ -59,7 +59,7 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
 
     this.transitionGroupDisappearTimeoutId = window.setTimeout(
       this.onTransitionGroupDisappearTimeout,
-      holdDuration + transitionDuration
+      transitionDuration + holdDuration + transitionDuration
     )
 
     const transitionName =
