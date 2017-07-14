@@ -84,6 +84,8 @@ function packageWindows() {
     loadingGif: splashScreenPath,
     exe: `${nugetPkgName}.exe`,
     title: productName,
+    setupExe: distInfo.getWindowsStandaloneName(),
+    setupMsi: distInfo.getWindowsInstallerName(),
   }
 
   if (distInfo.shouldMakeDelta()) {
