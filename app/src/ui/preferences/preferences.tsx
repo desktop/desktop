@@ -159,10 +159,11 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
             console.log(key + ' ' + value)
             for (const e of value) {
               result.push( {
-                id: e.name,
-                text: key,
+                id:  key,
+                text:  e.name,
                 extension: key,
                 cmd: e.cmd,
+                keep: true,
                 dirty: false,
               })
             }
@@ -224,14 +225,20 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     if (this.fileTypes != null) {
       for (const fileType of this.fileTypes) {
         if (fileType.dirty) {
-          const result = new Array<IEditorInfo>()
-          const ei: IEditorInfo = {
-            name: fileType.id,
-            cmd: fileType.cmd,
-          }
-          result.push( ei )
 
-          shell.setEditors(fileType.extension, result)
+          if (fileType.keep) {
+            const result = new Array<IEditorInfo>()
+            const ei: IEditorInfo = {
+              name: fileType.id,
+              cmd: fileType.cmd,
+            }
+            result.push( ei )
+            // update
+            shell.setEditors(fileType.extension, result)
+          } else {
+            // delete
+            shell.removeEditors(fileType.extension)
+          }
         }
       }
     }

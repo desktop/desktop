@@ -20,6 +20,7 @@ export interface IAppShell {
   readonly getEditors: (path: string) => Promise<IEditorLauncher[]>
   readonly setEditors:  (ext: string, info: IEditorInfo[]) => void
   readonly getAllEditors: () => Map<string, ReadonlyArray<IEditorInfo>>
+  readonly removeEditors: (ext: string) => void
 }
 
 class AppLauncher implements IEditorLauncher {
@@ -135,6 +136,11 @@ function getEditorList(path: string ): Promise<IEditorLauncher[]> {
   return Promise.resolve(result)
 }
 
+function removeEditors(ext: string) {
+  const key = 'external-editors-' + ext
+  localStorage.removeItem( key )
+}
+
 export const shell: IAppShell = {
   moveItemToTrash: electronShell.moveItemToTrash,
   beep: electronShell.beep,
@@ -143,4 +149,5 @@ export const shell: IAppShell = {
   getEditors: getEditorList,
   setEditors: setEditorList,
   getAllEditors: getAllEditors,
+  removeEditors: removeEditors,
 }

@@ -14,5 +14,6 @@ export const shell: IAppShell = {
   openItem: (path: string) => true,
   getEditors: (path: string) => { return Promise.resolve( Array<IEditorLauncher>())  },
   setEditors: (ext: string, info: IEditorInfo[]) => {},
+  removeEditors: (ext: string) => {},
   getAllEditors: () => { return new Map<string, ReadonlyArray<IEditorInfo>>() },
 }

@@ -4,6 +4,7 @@ import { DialogContent } from '../dialog'
 import { FilterList, SelectionSource } from '../lib/filter-list'
 import { IFilterListItem, IFilterListGroup } from '../lib/filter-list'
 import { TextBox } from '../lib/text-box'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 const RowHeight = 47
 
@@ -12,6 +13,7 @@ export interface IFileTypeItem extends IFilterListItem {
   readonly text: string
   extension: string
   cmd: string
+  keep: boolean
   dirty: boolean
 }
 
@@ -100,17 +102,29 @@ export class FileTypeList extends React.Component<IFileTypeListProps, IFileTypeL
   private renderItem = (item: IFileTypeItem) => {
     return (
       <div className='extension-list-item'>
-          <TextBox
-            label={item.extension}
-            value={item.cmd}
-            placeholder='Command'
-            autoFocus={true}
-            onChange={(event: React.FormEvent<HTMLInputElement>) => {
+        <div>
+          <Checkbox
+            tabIndex={-1}
+            label={item.extension + ' ' + item.text}
+            value={item.keep ? CheckboxValue.On : CheckboxValue.Off}
+          onChange={(event: React.FormEvent<HTMLInputElement>) => {
+               const keep = event.currentTarget.checked
+               item.keep = keep
+               item.dirty = true
+               this.setState( createState(this.props) )
+          }}
+          />
+        </div>
+        <TextBox
+          value={item.cmd}
+          placeholder='Command'
+          autoFocus={true}
+          onChange={(event: React.FormEvent<HTMLInputElement>) => {
                item.cmd = event.currentTarget.value
                item.dirty = true
                this.setState( createState(this.props) )
-            }}
-            />
+          }}
+          />
       </div>
     )
   }
