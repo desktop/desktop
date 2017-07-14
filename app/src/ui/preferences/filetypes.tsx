@@ -12,6 +12,7 @@ export interface IFileTypeItem extends IFilterListItem {
   readonly text: string
   extension: string
   cmd: string
+  dirty: boolean
 }
 
 const FileTypeFilterList: new() => FilterList<IFileTypeItem> = FilterList as any
@@ -106,6 +107,7 @@ export class FileTypeList extends React.Component<IFileTypeListProps, IFileTypeL
             autoFocus={true}
             onChange={(event: React.FormEvent<HTMLInputElement>) => {
                item.cmd = event.currentTarget.value
+               item.dirty = true
                this.setState( createState(this.props) )
             }}
             />

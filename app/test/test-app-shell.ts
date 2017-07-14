@@ -13,6 +13,6 @@ export const shell: IAppShell = {
   openExternal: (path: string) => { },
   openItem: (path: string) => true,
   getEditors: (path: string) => { return Promise.resolve( Array<IEditorLauncher>())  },
-  setEditors: (ext: string, info: IEditorInfo) => {},
+  setEditors: (ext: string, info: IEditorInfo[]) => {},
   getAllEditors: () => { return new Map<string, ReadonlyArray<IEditorInfo>>() },
 }

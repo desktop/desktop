@@ -18,7 +18,7 @@ export interface IAppShell {
   readonly openExternal: (path: string) => void
   readonly openItem: (path: string) => boolean
   readonly getEditors: (path: string) => Promise<IEditorLauncher[]>
-  readonly setEditors:  (ext: string, info: IEditorInfo) => void
+  readonly setEditors:  (ext: string, info: IEditorInfo[]) => void
   readonly getAllEditors: () => Map<string, ReadonlyArray<IEditorInfo>>
 }
 
@@ -64,10 +64,11 @@ function parseLaunchers(raw: string): ReadonlyArray<IEditorInfo> {
   return new Array<IEditorInfo>();
 }
 
+
 function getAllEditors(): Map<string, ReadonlyArray<IEditorInfo>> {
   const result = new Map<string, ReadonlyArray<IEditorInfo>>()
 
-if (localStorage.getItem('external-editors-') === null) {
+  if (localStorage.getItem('external-editors-') === null) {
     const editorInfo = Array<IEditorInfo>()
     if (__DARWIN__) {
       editorInfo.push( {
@@ -114,9 +115,9 @@ if (localStorage.getItem('external-editors-') === null) {
   return result
 }
 
-function setEditorList(ext: string, info: IEditorInfo) {
+function setEditorList(ext: string, info: IEditorInfo[]) {
   const data = JSON.stringify(info)
-  const key = 'external-editor-' + ext
+  const key = 'external-editors-' + ext
   localStorage.setItem(key, data)
 }
 

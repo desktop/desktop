@@ -12,7 +12,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogFooter } from '../dialog'
 import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
-import { IEditorInfo } from '../../lib/dispatcher/app-shell'
+import { shell, IEditorInfo } from '../../lib/dispatcher/app-shell'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -153,21 +153,21 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
         if (this.fileTypes == null)
         {
           const result = new Array<IFileTypeItem>()
-          for (const o in localStorage) {
-            if ( o.startsWith('external-editors-')) {
-              const raw = localStorage[o]
-              const editors: ReadonlyArray<IEditorInfo> = JSON.parse(raw)
-              for (const e of editors) {
-                result.push( {
-                  id: e.name,
-                  text: o.substring(17),
-                  extension: o.substring(17),
-                  cmd: e.cmd,
-                })
-              }
+          const editors: Map<string, ReadonlyArray<IEditorInfo>> = shell.getAllEditors()
+          console.log(editors)
+          editors.forEach( (value: ReadonlyArray<IEditorInfo>, key: string) => {
+            console.log(key + ' ' + value)
+            for (const e of value) {
+              result.push( {
+                id: e.name,
+                text: key,
+                extension: key,
+                cmd: e.cmd,
+                dirty: false,
+              })
             }
-          }
 
+        })
           this.fileTypes = result
         }
         return <FileTypeList
@@ -221,7 +221,20 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     await this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
     await this.props.dispatcher.setConfirmRepoRemovalSetting(this.state.confirmRepoRemoval)
 
-    console.log( this.fileTypes)
+    if (this.fileTypes != null) {
+      for (const fileType of this.fileTypes) {
+        if (fileType.dirty) {
+          const result = new Array<IEditorInfo>()
+          const ei: IEditorInfo = {
+            name: fileType.id,
+            cmd: fileType.cmd,
+          }
+          result.push( ei )
+
+          shell.setEditors(fileType.extension, result)
+        }
+      }
+    }
     this.props.onDismissed()
   }
 
