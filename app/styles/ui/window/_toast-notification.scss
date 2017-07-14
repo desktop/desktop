@@ -12,7 +12,7 @@
   left: 0;
 
   .toast-notification {
-    padding: var(--spacing);
+    padding: var(--spacing) var(--spacing-double);
     min-width: 100px;
     background: rgba($gray-900, 0.6);
     color: $gray-000;
