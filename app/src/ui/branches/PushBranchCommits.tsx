@@ -14,16 +14,8 @@ interface IPushBranchCommitsProps {
   readonly onDismissed: () => void
 
   /**
-   * When set to true, the publish branch dialog is returned.
-   *
-   * @type {boolean}
-   * @memberof IPushBranchCommitsProps
-   */
-  readonly publish?: boolean
-
-  /**
    * Used to show the number of commits a branch is ahead by.
-   * This only needs to be set if `publish` is false or undefined.
+   * If this value is undefined, component defaults to publish view.
    *
    * @type {number}
    * @memberof IPushBranchCommitsProps
@@ -34,6 +26,14 @@ interface IPushBranchCommitsProps {
 export class PushBranchCommits extends React.Component<
   IPushBranchCommitsProps
 > {
+  private isPublish: boolean
+
+  public constructor(props: IPushBranchCommitsProps) {
+    super(props)
+
+    this.isPublish = props.unPushedCommits === undefined
+  }
+
   public render() {
     return (
       <Dialog
@@ -60,7 +60,7 @@ export class PushBranchCommits extends React.Component<
   }
 
   private renderDialogContent() {
-    if (this.props.publish) {
+    if (this.isPublish) {
       return (
         <p>
           Your branch must be published before opening a pull request. Would you
@@ -81,7 +81,7 @@ export class PushBranchCommits extends React.Component<
   }
 
   private renderDialogTitle() {
-    if (this.props.publish) {
+    if (this.isPublish) {
       return __DARWIN__ ? 'Publish Branch' : 'Publish branch'
     }
 
@@ -97,7 +97,7 @@ export class PushBranchCommits extends React.Component<
   }
 
   private renderButtonText() {
-    if (this.props.publish) {
+    if (this.isPublish) {
       return __DARWIN__
         ? 'Publish Branch and Open Pull Request'
         : 'Publish branch and open pull request'

@@ -1004,7 +1004,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
-            publish={true}
             onConfirm={this.openPullRequestOnGithub}
             onDismissed={this.onPopupDismissed}
           />
