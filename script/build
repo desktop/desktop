@@ -62,10 +62,7 @@ updateLicenseDump(err => {
 
 function packageApp(callback) {
   const options = {
-    name:
-      process.platform === 'win32'
-        ? distInfo.getWindowsIdentifierName()
-        : distInfo.getProductName(),
+    name: distInfo.getExecutableName(),
     platform: process.platform,
     arch: 'x64',
     asar: false, // TODO: Probably wanna enable this down the road.

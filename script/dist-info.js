@@ -11,8 +11,16 @@ function getDistPath() {
   return path.join(
     projectRoot,
     'dist',
-    `${getProductName()}-${process.platform}-x64`
+    `${getExecutableName()}-${process.platform}-x64`
   )
+}
+
+function getExecutableName() {
+  const suffix = process.env.NODE_ENV === 'development' ? '-dev' : ''
+
+  return process.platform === 'win32'
+    ? `${getWindowsIdentifierName()}${suffix}`
+    : getProductName()
 }
 
 function getProductName() {
@@ -40,7 +48,7 @@ function getOSXZipPath() {
 }
 
 function getWindowsInstallerName() {
-  const productName = getProductName()
+  const productName = getExecutableName()
   return `${productName}Setup.msi`
 }
 
@@ -49,7 +57,7 @@ function getWindowsInstallerPath() {
 }
 
 function getWindowsStandaloneName() {
-  const productName = getProductName()
+  const productName = getExecutableName()
   return `${productName}Setup.exe`
 }
 
@@ -89,7 +97,7 @@ function getBundleID() {
 
 function getUserDataPath() {
   if (process.platform === 'win32') {
-    return path.join(process.env.APPDATA, getProductName())
+    return path.join(process.env.APPDATA, getExecutableName())
   } else if (process.platform === 'darwin') {
     const home = os.homedir()
     return path.join(home, 'Library', 'Application Support', getProductName())
@@ -166,4 +174,5 @@ module.exports = {
   getWindowsDeltaNugetPackagePath,
   shouldMakeDelta,
   getReleaseBranchName,
+  getExecutableName,
 }

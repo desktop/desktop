@@ -6,7 +6,7 @@ const fs = require('fs')
 const distInfo = require('./dist-info')
 
 const distPath = distInfo.getDistPath()
-const productName = distInfo.getProductName()
+const productName = distInfo.getExecutableName()
 
 let binaryPath = ''
 if (process.platform === 'darwin') {
