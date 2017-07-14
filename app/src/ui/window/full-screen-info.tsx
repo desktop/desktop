@@ -13,7 +13,6 @@ interface IFullScreenInfoState {
 
 const transitionAppearDuration = 100
 const transitionLeaveDuration = 250
-const transitionDuration = 250
 const holdDuration = 3000
 
 export class FullScreenInfo extends React.Component<
@@ -55,7 +54,7 @@ export class FullScreenInfo extends React.Component<
 
       this.transitionGroupDisappearTimeoutId = window.setTimeout(
         this.onTransitionGroupDisappearTimeout,
-        transitionDuration + holdDuration + transitionDuration
+        transitionAppearDuration + holdDuration + transitionLeaveDuration
       )
 
       this.setState({
