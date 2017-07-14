@@ -28,17 +28,18 @@ const config = {
     new BabelPlugin({
       test: /\.js$/,
       sourceMaps: true,
-      compact: true, 
+      compact: true,
       minified: true,
       comments: false,
       presets: ['babili'],
-    })
+    }),
   ],
 }
 
 const mainConfig = merge({}, common.main, config)
 const sharedConfig = merge({}, common.shared, config)
 const askPassConfig = merge({}, common.askPass, config)
+const cliConfig = merge({}, common.cli, config)
 
 const rendererConfig = merge({}, common.renderer, config, {
   module: {
@@ -50,15 +51,15 @@ const rendererConfig = merge({}, common.renderer, config, {
         test: /\.(scss|css)$/,
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
-          use: [ 'css-loader', 'sass-loader' ]
-        })
+          use: ['css-loader', 'sass-loader'],
+        }),
       },
     ],
   },
   plugins: [
     // Necessary to be able to use ExtractTextPlugin as a loader.
     new ExtractTextPlugin('ui.css'),
-  ]
+  ],
 })
 
 const crashConfig = merge({}, common.crash, config, {
@@ -71,15 +72,22 @@ const crashConfig = merge({}, common.crash, config, {
         test: /\.(scss|css)$/,
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
-          use: [ 'css-loader', 'sass-loader' ]
-        })
+          use: ['css-loader', 'sass-loader'],
+        }),
       },
     ],
   },
   plugins: [
     // Necessary to be able to use ExtractTextPlugin as a loader.
     new ExtractTextPlugin('crash.css'),
-  ]
+  ],
 })
 
-module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig, crashConfig ]
+module.exports = [
+  mainConfig,
+  sharedConfig,
+  rendererConfig,
+  askPassConfig,
+  crashConfig,
+  cliConfig,
+]

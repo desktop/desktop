@@ -68,6 +68,7 @@ import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
 import { FullScreenInfo } from './window/full-screen-info'
+import { CLIInstalled } from './cli-installed'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -172,8 +173,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.postError(error)
     })
 
-    setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
-    this.checkForUpdates()
+    setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
+    this.checkForUpdates(true)
 
     ipcRenderer.on(
       'launch-timing-stats',
@@ -260,6 +261,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
+      case 'install-cli':
+        return this.props.dispatcher.installCLI()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -271,17 +274,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private checkForUpdates() {
+  private checkForUpdates(inBackground: boolean) {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') {
       return
     }
 
-    updateStore.checkForUpdates(this.getUsernameForUpdateCheck(), true)
-  }
-
-  private getUsernameForUpdateCheck() {
-    const dotComAccount = this.getDotComAccount()
-    return dotComAccount ? dotComAccount.login : ''
+    updateStore.checkForUpdates(
+      __RELEASE_ENV__ === 'beta' ? 'beta' : 'production',
+      inBackground
+    )
   }
 
   private getDotComAccount(): Account | null {
@@ -950,7 +951,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             applicationName={getName()}
             applicationVersion={getVersion()}
-            usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
+            onCheckForUpdates={this.onCheckForUpdates}
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
           />
@@ -995,9 +996,15 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.TermsAndConditions:
         return <TermsAndConditions onDismissed={this.onPopupDismissed} />
+      case PopupType.CLIInstalled:
+        return <CLIInstalled onDismissed={this.onPopupDismissed} />
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onCheckForUpdates = () => {
+    this.checkForUpdates(false)
   }
 
   private showAcknowledgements = () => {

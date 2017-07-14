@@ -22,3 +22,4 @@ export type MenuEvent =
   | 'clone-repository'
   | 'show-about'
   | 'boomtown'
+  | 'install-cli'
