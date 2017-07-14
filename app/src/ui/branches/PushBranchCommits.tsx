@@ -6,6 +6,16 @@ import { Button } from '../../ui/lib/button'
 import { Dialog, DialogContent, DialogFooter } from '../../ui/dialog'
 import { Repository } from '../../models/repository'
 
+/**
+ * This component gets shown if the user attempts to open a PR with
+ * a) An un-published branch
+ * b) A branch that is ahead of its base branch
+ *
+ * In both cases, this asks the user if they'd like to push/publish the branch.
+ * If they confirm we push/publish then open the PR page on dotcom.
+ *
+ * @interface IPushBranchCommitsProps
+ */
 interface IPushBranchCommitsProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
