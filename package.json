@@ -62,7 +62,7 @@
     "electron": "1.6.11",
     "electron-mocha": "3.5.0",
     "electron-packager": "^8.7.2",
-    "electron-winstaller": "^2.6.3",
+    "electron-winstaller": "^2.5.2",
     "express": "^4.15.0",
     "extract-text-webpack-plugin": "^2.1.0",
     "fs-extra": "^2.1.2",
