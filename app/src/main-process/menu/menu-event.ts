@@ -23,3 +23,4 @@ export type MenuEvent =
   | 'show-about'
   | 'boomtown'
   | 'create-pull-request'
+  | 'install-cli'

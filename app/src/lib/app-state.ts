@@ -153,8 +153,8 @@ export enum PopupType {
   UntrustedCertificate,
   RemoveRepository,
   TermsAndConditions,
-  PublishBranch,
   PushBranchCommits,
+  CLIInstalled,
 }
 
 export type Popup =
@@ -185,16 +185,12 @@ export type Popup =
   | { type: PopupType.RemoveRepository; repository: Repository }
   | { type: PopupType.TermsAndConditions }
   | {
-      type: PopupType.PublishBranch
-      repository: Repository
-      branch: Branch
-    }
-  | {
       type: PopupType.PushBranchCommits
       repository: Repository
       branch: Branch
-      unPushedCommits: number
+      unPushedCommits?: number
     }
+  | { type: PopupType.CLIInstalled }
 
 export enum FoldoutType {
   Repository,
