@@ -228,8 +228,7 @@ export class AppStore {
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
 
-    accountsStore.onDidUpdate(async () => {
-      const accounts = await this.accountsStore.getAll()
+    accountsStore.onDidUpdate(accounts => {
       this.accounts = accounts
       this.emitUpdate()
     })
