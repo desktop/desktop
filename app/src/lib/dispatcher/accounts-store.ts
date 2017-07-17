@@ -74,20 +74,20 @@ export class AccountsStore {
   public async addAccount(account: Account): Promise<void> {
     await this.loadingPromise
 
-    let updatedAccount = account
+    let updated = account
     try {
-      updatedAccount = await this.updatedAccount(account)
+      updated = await updatedAccount(account)
     } catch (e) {
       log.warn(`Failed to fetch user ${account.login}`, e)
     }
 
     await this.secureStore.setItem(
-      getKeyForAccount(updatedAccount),
-      updatedAccount.login,
-      updatedAccount.token
+      getKeyForAccount(updated),
+      updated.login,
+      updated.token
     )
 
-    this.accounts = this.accounts.concat(updatedAccount)
+    this.accounts = this.accounts.concat(updated)
 
     this.save()
   }
@@ -96,34 +96,12 @@ export class AccountsStore {
   public async refresh(): Promise<void> {
     const updatedAccounts = new Array<Account>()
     for (const account of this.accounts) {
-      const updated = await this.updatedAccount(account)
+      const updated = await updatedAccount(account)
       updatedAccounts.push(updated)
     }
 
     this.accounts = updatedAccounts
     this.emitUpdate()
-  }
-
-  private async updatedAccount(account: Account): Promise<Account> {
-    if (!account.token) {
-      return fatalError(
-        `Cannot update an account which doesn't have a token: ${account}`
-      )
-    }
-
-    const api = API.fromAccount(account)
-    const user = await api.fetchAccount()
-    const emails = await api.fetchEmails()
-
-    return new Account(
-      account.login,
-      account.endpoint,
-      account.token,
-      emails,
-      user.avatar_url,
-      user.id,
-      user.name
-    )
   }
 
   /**
@@ -177,4 +155,26 @@ export class AccountsStore {
 
     this.emitUpdate()
   }
+}
+
+async function updatedAccount(account: Account): Promise<Account> {
+  if (!account.token) {
+    return fatalError(
+      `Cannot update an account which doesn't have a token: ${account}`
+    )
+  }
+
+  const api = API.fromAccount(account)
+  const user = await api.fetchAccount()
+  const emails = await api.fetchEmails()
+
+  return new Account(
+    account.login,
+    account.endpoint,
+    account.token,
+    emails,
+    user.avatar_url,
+    user.id,
+    user.name
+  )
 }
