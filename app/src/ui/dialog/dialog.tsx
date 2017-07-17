@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { assertNever } from '../../lib/fatal-error'
 
 /**
  * The time (in milliseconds) from when the dialog is mounted
@@ -297,9 +299,27 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         titleId={this.state.titleId}
         dismissable={this.isDismissable()}
         onDismissed={this.onDismiss}
-        type={this.props.type}
         loading={this.props.loading}
       />
+    )
+  }
+
+  private renderIcon() {
+    if (this.props.loading === true) {
+      return <Octicon className="icon spin" symbol={OcticonSymbol.sync} />
+    }
+
+    if (this.props.type === undefined || this.props.type === 'normal') {
+      return null
+    } else if (this.props.type === 'error') {
+      return <Octicon className="icon" symbol={OcticonSymbol.stop} />
+    } else if (this.props.type === 'warning') {
+      return <Octicon className="icon" symbol={OcticonSymbol.alert} />
+    }
+
+    return assertNever(
+      this.props.type,
+      `Unknown dialog header type ${this.props.type}`
     )
   }
 
@@ -321,6 +341,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         aria-labelledby={this.state.titleId}
       >
         {this.renderHeader()}
+        {this.renderIcon()}
 
         <form onSubmit={this.onSubmit} autoFocus={true}>
           <fieldset disabled={this.props.disabled}>
