@@ -68,12 +68,21 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
     )
   }
 
+  private renderIcon() {
+    if (this.props.loading === true) {
+      return <Octicon className="icon spin" symbol={OcticonSymbol.sync} />
+    }
+
+    return null
+  }
+
   public render() {
     return (
       <header className="dialog-header">
         <h1 id={this.props.titleId}>
           {this.props.title}
         </h1>
+        {this.renderIcon()}
         {this.renderCloseButton()}
       </header>
     )
