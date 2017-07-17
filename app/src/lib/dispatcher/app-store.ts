@@ -237,6 +237,7 @@ export class AppStore {
     repositoriesStore.onDidUpdate(async () => {
       const repositories = await this.repositoriesStore.getAll()
       this.repositories = repositories
+      this.updateRepositorySelection()
       this.emitUpdate()
     })
   }
@@ -826,36 +827,7 @@ export class AppStore {
       }
     }
 
-    const selectedRepository = this.selectedRepository
-    let newSelectedRepository: Repository | CloningRepository | null = this
-      .selectedRepository
-    if (selectedRepository) {
-      const r =
-        this.repositories.find(
-          r =>
-            r.constructor === selectedRepository.constructor &&
-            r.id === selectedRepository.id
-        ) || null
-
-      newSelectedRepository = r
-    }
-
-    if (newSelectedRepository === null && this.repositories.length > 0) {
-      const lastSelectedID = parseInt(
-        localStorage.getItem(LastSelectedRepositoryIDKey) || '',
-        10
-      )
-      if (lastSelectedID && !isNaN(lastSelectedID)) {
-        newSelectedRepository =
-          this.repositories.find(r => r.id === lastSelectedID) || null
-      }
-
-      if (!newSelectedRepository) {
-        newSelectedRepository = this.repositories[0]
-      }
-    }
-
-    this._selectRepository(newSelectedRepository)
+    this.updateRepositorySelection()
 
     this.sidebarWidth =
       parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) ||
@@ -874,6 +846,45 @@ export class AppStore {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+  }
+
+  private updateRepositorySelection() {
+    const selectedRepository = this.selectedRepository
+    let newSelectedRepository: Repository | CloningRepository | null = this
+      .selectedRepository
+    if (selectedRepository) {
+      const r =
+        this.repositories.find(
+          r =>
+            r.constructor === selectedRepository.constructor &&
+            r.id === selectedRepository.id
+        ) || null
+
+      newSelectedRepository = r
+    }
+
+    let changed = false
+    if (newSelectedRepository === null && this.repositories.length > 0) {
+      const lastSelectedID = parseInt(
+        localStorage.getItem(LastSelectedRepositoryIDKey) || '',
+        10
+      )
+      if (lastSelectedID && !isNaN(lastSelectedID)) {
+        newSelectedRepository =
+          this.repositories.find(r => r.id === lastSelectedID) || null
+      }
+
+      if (!newSelectedRepository) {
+        newSelectedRepository = this.repositories[0]
+      }
+
+      changed = true
+    }
+
+    if (changed) {
+      this._selectRepository(newSelectedRepository)
+      this.emitUpdate()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
