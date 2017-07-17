@@ -113,14 +113,17 @@ export class AuthenticationForm extends React.Component<
               {this.props.loading ? <Loading /> : null} Sign in
             </Button>
           : null}
+
         {this.props.additionalButtons}
 
-        <LinkButton
-          className="forgot-password-link"
-          uri={this.props.forgotPasswordUrl}
-        >
-          Forgot password
-        </LinkButton>
+        {this.props.supportsBasicAuth
+          ? <LinkButton
+              className="forgot-password-link"
+              uri={this.props.forgotPasswordUrl}
+            >
+              Forgot password
+            </LinkButton>
+          : null}
       </div>
     )
   }
