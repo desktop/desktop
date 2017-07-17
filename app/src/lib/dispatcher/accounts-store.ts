@@ -55,9 +55,7 @@ export class AccountsStore {
   }
 
   /** Register a function to be called when the store updates. */
-  public onDidUpdate(
-    fn: (accounts: ReadonlyArray<Account>) => void
-  ): Disposable {
+  public onDidUpdate(fn: () => void): Disposable {
     return this.emitter.on('did-update', fn)
   }
 
