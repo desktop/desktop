@@ -35,15 +35,31 @@ export class Account implements IAccount {
 
   /** Create a new Account from some JSON. */
   public static fromJSON(obj: IAccount): Account {
-    return new Account(obj.login, obj.endpoint, obj.token, obj.emails, obj.avatarURL, obj.id, obj.name)
+    return new Account(
+      obj.login,
+      obj.endpoint,
+      obj.token,
+      obj.emails,
+      obj.avatarURL,
+      obj.id,
+      obj.name
+    )
   }
 
   /** Create an account which can be used to perform unauthenticated API actions */
   public static anonymous(): Account {
-    return new Account('', getDotComAPIEndpoint(), '', [ ], '', -1, '')
+    return new Account('', getDotComAPIEndpoint(), '', [], '', -1, '')
   }
 
-  public constructor(login: string, endpoint: string, token: string, emails: ReadonlyArray<IEmail>, avatarURL: string, id: number, name: string) {
+  public constructor(
+    login: string,
+    endpoint: string,
+    token: string,
+    emails: ReadonlyArray<IEmail>,
+    avatarURL: string,
+    id: number,
+    name: string
+  ) {
     this.login = login
     this.endpoint = endpoint
     this.token = token
@@ -54,6 +70,14 @@ export class Account implements IAccount {
   }
 
   public withToken(token: string): Account {
-    return new Account(this.login, this.endpoint, token, this.emails, this.avatarURL, this.id, this.name)
+    return new Account(
+      this.login,
+      this.endpoint,
+      token,
+      this.emails,
+      this.avatarURL,
+      this.id,
+      this.name
+    )
   }
 }

@@ -2,7 +2,7 @@ import { git } from './core'
 import { Repository } from '../../models/repository'
 import { DiffSelectionType } from '../../models/diff'
 import { applyPatchToIndex } from './apply'
-import { FileStatus, WorkingDirectoryFileChange } from '../../models/status'
+import { AppFileStatus, WorkingDirectoryFileChange } from '../../models/status'
 
 interface IUpdateIndexOptions {
   /**
@@ -60,13 +60,16 @@ interface IUpdateIndexOptions {
  *
  * @param options See the IUpdateIndexOptions interface for more details.
  */
-async function updateIndex(repository: Repository, paths: ReadonlyArray<string>, options: IUpdateIndexOptions = { }) {
-
+async function updateIndex(
+  repository: Repository,
+  paths: ReadonlyArray<string>,
+  options: IUpdateIndexOptions = {}
+) {
   if (!paths.length) {
     return
   }
 
-  const args = [ 'update-index' ]
+  const args = ['update-index']
 
   if (options.add !== false) {
     args.push('--add')
@@ -99,7 +102,10 @@ async function updateIndex(repository: Repository, paths: ReadonlyArray<string>,
  * the job of this function is to set up the index in such a way that it
  * reflects what the user has selected in the app.
  */
-export async function stageFiles(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+export async function stageFiles(
+  repository: Repository,
+  files: ReadonlyArray<WorkingDirectoryFileChange>
+): Promise<void> {
   const normal = []
   const oldRenamed = []
   const partial = []
@@ -107,7 +113,7 @@ export async function stageFiles(repository: Repository, files: ReadonlyArray<Wo
   for (const file of files) {
     if (file.selection.getSelectionType() === DiffSelectionType.All) {
       normal.push(file.path)
-      if (file.status === FileStatus.Renamed && file.oldPath) {
+      if (file.status === AppFileStatus.Renamed && file.oldPath) {
         oldRenamed.push(file.oldPath)
       }
     } else {

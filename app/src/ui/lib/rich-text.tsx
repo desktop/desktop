@@ -31,28 +31,47 @@ interface IRichTextProps {
  * with the appropriate image tag, and also highlights username and issue mentions
  * with hyperlink tags if it has a repository to read.
  */
-export class RichText extends React.Component<IRichTextProps, void> {
+export class RichText extends React.Component<IRichTextProps, {}> {
   public render() {
     const str = this.props.text
 
     // If we've been given an empty string then return null so that we don't end
     // up introducing an extra empty <span>.
-    if (!str.length) { return null }
+    if (!str.length) {
+      return null
+    }
 
     const tokenizer = new Tokenizer(this.props.emoji, this.props.repository)
 
     const elements = tokenizer.tokenize(str).map((token, index) => {
       switch (token.kind) {
         case TokenType.Emoji:
-          return <img key={index} alt={token.text} className='emoji' src={token.path}/>
+          return (
+            <img
+              key={index}
+              alt={token.text}
+              className="emoji"
+              src={token.path}
+            />
+          )
         case TokenType.Link:
           if (this.props.renderUrlsAsLinks !== false) {
-            return <LinkButton key={index} uri={token.url} children={token.text} />
+            return (
+              <LinkButton key={index} uri={token.url} children={token.text} />
+            )
           } else {
-            return <span key={index}>{token.text}</span>
+            return (
+              <span key={index}>
+                {token.text}
+              </span>
+            )
           }
         case TokenType.Text:
-          return <span key={index}>{token.text}</span>
+          return (
+            <span key={index}>
+              {token.text}
+            </span>
+          )
         default:
           return assertNever(token, 'Unknown token type: ${r.kind}')
       }
@@ -60,7 +79,7 @@ export class RichText extends React.Component<IRichTextProps, void> {
 
     return (
       <div className={this.props.className} title={str}>
-        { elements }
+        {elements}
       </div>
     )
   }

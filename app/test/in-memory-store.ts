@@ -1,5 +1,5 @@
 export class InMemoryStore {
-  private store: {[key: string]: string}
+  private store: { [key: string]: string }
 
   public constructor() {
     this.store = {}

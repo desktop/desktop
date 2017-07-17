@@ -28,5 +28,4 @@ export interface IEditorConfigurationExtra extends EditorConfiguration {
    * and output will, by default, use that same separator.
    */
   readonly lineSeparator?: string
-
 }

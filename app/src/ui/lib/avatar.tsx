@@ -1,8 +1,7 @@
 import * as React from 'react'
 import { IAvatarUser } from '../../models/avatar'
 
-const DefaultAvatarURL = 'https://github.com/hubot.png'
-
+const DefaultAvatarURL = `file:///${__dirname}/static/default-avatar.png`
 
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
@@ -13,7 +12,7 @@ interface IAvatarProps {
 }
 
 /** A component for displaying a user avatar. */
-export class Avatar extends React.Component<IAvatarProps, void> {
+export class Avatar extends React.Component<IAvatarProps, {}> {
   private getTitle(): string {
     if (this.props.title) {
       return this.props.title
@@ -40,8 +39,14 @@ export class Avatar extends React.Component<IAvatarProps, void> {
       : `Avatar for unknown user`
 
     return (
-      <span title={title} className='avatar-container'>
-        <img className='avatar' title={title} src={url} alt={title} aria-label={ariaLabel} />
+      <span title={title} className="avatar-container">
+        <img
+          className="avatar"
+          title={title}
+          src={url}
+          alt={title}
+          aria-label={ariaLabel}
+        />
       </span>
     )
   }
