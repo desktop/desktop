@@ -2287,7 +2287,7 @@ export class AppStore {
       return refreshedRepository
     }
 
-    return this.repositoriesStore.updateGitHubRepository(repository)
+    return this.repositoriesStore.updateGitHubRepository(refreshedRepository)
   }
 
   public async _cloneAgain(
