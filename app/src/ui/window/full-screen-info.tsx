@@ -15,6 +15,12 @@ const transitionAppearDuration = 100
 const transitionLeaveDuration = 250
 const holdDuration = 3000
 
+/**
+ * A component which displays the status and fullscreen keyboard shortcut
+ * when the window becomes fullscreen. This component is rendered on top of all
+ * other content (except for dialogs, we can't put ourselves on top of dialogs
+ * easily at the moment).
+ */
 export class FullScreenInfo extends React.Component<
   IFullScreenInfoProps,
   IFullScreenInfoState
