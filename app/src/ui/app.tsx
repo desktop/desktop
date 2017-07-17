@@ -67,6 +67,9 @@ import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
+import { PushBranchCommits } from './branches/PushBranchCommits'
+import { Branch } from '../models/branch'
+import { CLIInstalled } from './cli-installed'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -259,6 +262,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
+      case 'create-pull-request':
+        return this.openPullRequest()
+      case 'install-cli':
+        return this.props.dispatcher.installCLI()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -992,6 +999,19 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.TermsAndConditions:
         return <TermsAndConditions onDismissed={this.onPopupDismissed} />
+      case PopupType.PushBranchCommits:
+        return (
+          <PushBranchCommits
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            branch={popup.branch}
+            unPushedCommits={popup.unPushedCommits}
+            onConfirm={this.openPullRequestOnGithub}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
+      case PopupType.CLIInstalled:
+        return <CLIInstalled onDismissed={this.onPopupDismissed} />
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -1190,6 +1210,57 @@ export class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.CreateBranch,
       repository,
     })
+  }
+
+  private openPullRequest() {
+    const selection = this.state.selectedState
+
+    if (!selection || selection.type !== SelectionType.Repository) {
+      return
+    }
+
+    const tip = selection.state.branchesState.tip
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const dispatcher = this.props.dispatcher
+    const repository = selection.repository
+    const branch = tip.branch
+    const aheadBehind = selection.state.aheadBehind
+
+    if (!aheadBehind) {
+      dispatcher.showPopup({
+        type: PopupType.PushBranchCommits,
+        repository,
+        branch,
+      })
+    } else if (aheadBehind.ahead > 0) {
+      dispatcher.showPopup({
+        type: PopupType.PushBranchCommits,
+        repository,
+        branch,
+        unPushedCommits: aheadBehind.ahead,
+      })
+    } else {
+      this.openPullRequestOnGithub(repository, branch)
+    }
+  }
+
+  private openPullRequestOnGithub = (
+    repository: Repository,
+    branch: Branch
+  ) => {
+    const gitHubRepository = repository.gitHubRepository
+
+    if (!gitHubRepository || !gitHubRepository.htmlURL) {
+      return
+    }
+
+    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
+
+    this.props.dispatcher.openInBrowser(baseURL)
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
