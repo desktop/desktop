@@ -231,25 +231,6 @@ dialog {
     }
   }
 
-  // Custom branding of a warning dialog. Used for dangerous actions
-  &.warning {
-    .dialog-header {
-      .icon { color: var(--dialog-warning-color); }
-      h1 { color: var(--dialog-warning-text-color); }
-    }
-
-    border-top: 3px solid var(--dialog-warning-color);
-  }
-
-  // Custom branding of an error dialog. Used for displaying errors
-  &.error {
-    .dialog-header {
-      color: var(--dialog-error-color);
-    }
-
-    border-top: 3px solid var(--dialog-error-color);
-  }
-
   // Inline error component rendered at the top of the dialog just below
   // the header (if the dialog has one).
   .dialog-error {
