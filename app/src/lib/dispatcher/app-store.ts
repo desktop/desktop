@@ -1608,8 +1608,8 @@ export class AppStore {
 
   private async isCommitting(
     repository: Repository,
-    fn: () => Promise<boolean>
-  ): Promise<boolean | void> {
+    fn: () => Promise<boolean | undefined>
+  ): Promise<boolean | undefined> {
     const state = this.getRepositoryState(repository)
     // ensure the user doesn't try and commit again
     if (state.isCommitting) {

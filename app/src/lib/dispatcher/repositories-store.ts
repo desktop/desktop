@@ -176,9 +176,10 @@ export class RepositoriesStore {
       ? updatedRepository.gitHubRepository.dbID
       : null
     await this.db.repositories.put({
-      ...updatedRepository,
+      id: updatedRepository.id,
+      path: updatedRepository.path,
+      missing: updatedRepository.missing,
       gitHubRepositoryID,
-      gitHubRepository: undefined,
     })
 
     this.emitUpdate()
@@ -203,9 +204,10 @@ export class RepositoriesStore {
       ? updatedRepository.gitHubRepository.dbID
       : null
     await this.db.repositories.put({
-      ...updatedRepository,
+      id: updatedRepository.id,
+      missing: updatedRepository.missing,
+      path: updatedRepository.path,
       gitHubRepositoryID,
-      gitHubRepository: undefined,
     })
 
     await this.updateRepositoryMissing(repository, false)
@@ -274,7 +276,7 @@ export class RepositoriesStore {
           }
         }
 
-        let updatedInfo = {
+        let updatedInfo: IDatabaseGitHubRepository = {
           private: newGitHubRepo.private,
           fork: newGitHubRepo.fork,
           htmlURL: newGitHubRepo.htmlURL,

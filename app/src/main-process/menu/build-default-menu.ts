@@ -28,6 +28,12 @@ export function buildDefaultMenu(): Electron.Menu {
         },
         separator,
         {
+          label: 'Install Command Line Tool…',
+          id: 'install-cli',
+          click: emit('install-cli'),
+        },
+        separator,
+        {
           role: 'services',
           submenu: [],
         },
@@ -263,6 +269,12 @@ export function buildDefaultMenu(): Electron.Menu {
         id: 'compare-branch',
         accelerator: 'CmdOrCtrl+Shift+C',
         click: emit('compare-branch'),
+      },
+      {
+        label: __DARWIN__ ? 'Create Pull Request' : 'Create &pull request',
+        id: 'create-pull-request',
+        accelerator: 'CmdOrCtrl+Shift+P',
+        click: emit('create-pull-request'),
       },
     ],
   })

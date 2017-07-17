@@ -114,11 +114,22 @@ process.on('uncaughtException', (error: Error) => {
   uncaughtException(error)
 })
 
+let willQuit = false
+
 if (__WIN32__ && process.argv.length > 1) {
-  if (handleSquirrelEvent(process.argv[1])) {
-    app.quit()
+  const arg = process.argv[1]
+  const promise = handleSquirrelEvent(arg)
+  if (promise) {
+    willQuit = true
+    promise
+      .then(() => {
+        app.quit()
+      })
+      .catch(e => {
+        log.error(`Failed handling Squirrel event: ${arg}`, e)
+      })
   } else {
-    handleAppURL(process.argv[1])
+    handleAppURL(arg)
   }
 }
 
@@ -156,6 +167,8 @@ const isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
 })
 
 if (isDuplicateInstance) {
+  willQuit = true
+
   app.quit()
 }
 
@@ -168,7 +181,7 @@ app.on('will-finish-launching', () => {
 })
 
 app.on('ready', () => {
-  if (isDuplicateInstance) {
+  if (willQuit) {
     return
   }
 

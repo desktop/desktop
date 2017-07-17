@@ -194,7 +194,8 @@ export class CommitMessage extends React.Component<
     let avatarUser = undefined
     if (commitAuthor && this.props.gitHubUser) {
       avatarUser = {
-        ...commitAuthor,
+        email: commitAuthor.email,
+        name: commitAuthor.name,
         avatarURL: this.props.gitHubUser.avatarURL,
       }
     }
