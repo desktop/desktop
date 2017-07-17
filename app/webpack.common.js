@@ -6,6 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
+const cp = require('child_process')
 
 const devClientId = '3a723b10ac5575cc5bb9'
 const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
@@ -37,6 +38,15 @@ function revParse(gitDir, ref) {
   return refMatch[1] || revParse(gitDir, refMatch[2])
 }
 
+function getSHA () {
+  // CircleCI does some funny stuff where HEAD points to an packed ref, but
+  // luckily it gives us the SHA we want in the environment.
+  const circleSHA = process.env.CIRCLE_SHA1
+  if (circleSHA) { return circleSHA }
+
+  return revParse(path.resolve(__dirname, '../.git'), 'HEAD')
+}
+
 const replacements = {
   __OAUTH_CLIENT_ID__: JSON.stringify(
     process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId
@@ -48,7 +58,7 @@ const replacements = {
   __WIN32__: process.platform === 'win32',
   __DEV__: environment === 'development',
   __RELEASE_ENV__: JSON.stringify(environment),
-  __SHA__: JSON.stringify(revParse(path.resolve(__dirname, '../.git'), 'HEAD')),
+  __SHA__: JSON.stringify(getSHA()),
   'process.platform': JSON.stringify(process.platform),
   'process.env.NODE_ENV': JSON.stringify(environment),
   'process.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV),
@@ -167,12 +177,7 @@ const askPassConfig = merge({}, commonConfig, {
   entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
   target: 'node',
   plugins: [
-    new webpack.DefinePlugin(
-      Object.assign({}, replacements, {
-        __PROCESS_KIND__: JSON.stringify('askpass'),
-      })
-    ),
-  ],
+
 })
 
 const crashConfig = merge({}, commonConfig, {
