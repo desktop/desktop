@@ -1,5 +1,6 @@
 {
   "releases": {
+    "0.7.1": [],
     "0.7.0": [
       "[New] Added the Branch > Create Pull Request menu item - #2135",
       "[New] Added the `github` command line tool - #696",
