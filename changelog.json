@@ -1,7 +1,20 @@
 {
   "releases": {
-    "0.6.3": [
-
+    "0.7.1": [],
+    "0.7.0": [
+      "[New] Added the Branch > Create Pull Request menu item - #2135",
+      "[New] Added the `github` command line tool - #696",
+      "[Improved] Better error message when publishing a repository fails - #2089",
+      "[Improved] Windows: Don't recreate the desktop shortcut if it's been deleted - #1759",
+      "[Fixed] Cloning a repository's wiki - #1624",
+      "[Fixed] Don't call GitHub Enterprise GitHub.com - #2094",
+      "[Fixed] Don't push after publishing a new repository if the branch is unborn - #2086",
+      "[Fixed] Don't close dialogs when clicking the title bar - #2056",
+      "[Fixed] Windows: Clicking 'Show in Explorer' doesn't bring Explorer to the front - #2127",
+      "[Fixed] Windows: Opening links doesn't bring the browser to the front - #1945",
+      "[Fixed] macOS: Closing the window wouldn't exit fullscreen -  #1901",
+      "[Fixed] Scale blankslate images so they look nicer on high resolution displays - #1946",
+      "[Fixed] Windows: Installer not completing or getting stuck in a loop - #1875 #1863"
     ],
     "0.6.2": [
       "[New] Link to User Guides from the Help menu - #1963",
