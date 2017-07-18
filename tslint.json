@@ -1,4 +1,8 @@
 {
+  "extends": [
+    "tslint-react",
+    "tslint-config-prettier"
+  ],
   "rulesDirectory": [
     "node_modules/vrsource-tslint-rules/rules",
     "node_modules/tslint-microsoft-contrib/",
@@ -16,9 +20,9 @@
     "interface-name": [ true, "always-prefix"],
     "jsdoc-format": true,
     "literal-spacing": [
-      true,
+      false,
       {
-        "array": ["always"],
+        "array": ["never"],
         "object": ["always"]
       }
     ],
@@ -52,10 +56,6 @@
     ],
     "prefer-const": true,
     "promise-must-complete": true,
-    "quotemark": [
-      true,
-      "single"
-    ],
     "react-no-unbound-dispatcher-props": true,
     "react-proper-lifecycle-methods": true,
     "react-readonly-props-and-state": true,
@@ -71,7 +71,7 @@
       "never"
     ],
     "trailing-comma": [
-      true,
+      false,
       {
         "multiline": "always",
         "singleline": "never"

@@ -24,8 +24,7 @@ interface IInstallGitProps {
  * A dialog indicating that Git wasn't found, to direct the user to an
  * external resource for more information about setting up their environment.
  */
-export class InstallGit extends React.Component<IInstallGitProps, void> {
-
+export class InstallGit extends React.Component<IInstallGitProps, {}> {
   public constructor(props: IInstallGitProps) {
     super(props)
   }
@@ -43,22 +42,28 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
   public render() {
     return (
       <Dialog
-        id='install-git'
-        type='warning'
+        id="install-git"
+        type="warning"
         title={__DARWIN__ ? 'Open in Terminal' : 'Open command prompt'}
         onSubmit={this.props.onDismissed}
-        onDismissed={this.props.onDismissed}>
+        onDismissed={this.props.onDismissed}
+      >
         <DialogContent>
           <p>
-            We were unable to locate Git on your system. This means you won't be able to execute any Git commands in the {__DARWIN__ ? 'Terminal window' : 'command prompt'}.
+            We were unable to locate Git on your system. This means you won't be
+            able to execute any Git commands in the{' '}
+            {__DARWIN__ ? 'Terminal window' : 'command prompt'}.
           </p>
           <p>
-            To help you get Git installed and configured for your operating system, we have some external resources available.
+            To help you get Git installed and configured for your operating
+            system, we have some external resources available.
           </p>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit' onClick={this.onContinue}>Open without Git</Button>
+            <Button type="submit" onClick={this.onContinue}>
+              Open without Git
+            </Button>
             <Button onClick={this.onExternalLink}>Install Git</Button>
           </ButtonGroup>
         </DialogFooter>

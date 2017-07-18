@@ -1,21 +1,9 @@
-import { Owner, IOwner } from './owner'
+import { Owner } from './owner'
 import { IAPIRepository } from '../lib/api'
 import { structuralEquals } from '../lib/equality'
 
-/** The data-only interface for GitHubRepository for transport across IPC. */
-export interface IGitHubRepository {
-  readonly dbID: number | null
-  readonly name: string
-  readonly owner: IOwner
-  readonly private: boolean | null
-  readonly fork: boolean | null
-  readonly htmlURL: string | null
-  readonly defaultBranch: string | null
-  readonly cloneURL: string | null
-}
-
 /** A GitHub repository. */
-export class GitHubRepository implements IGitHubRepository {
+export class GitHubRepository {
   /**
    * The ID of the repository in the app's local database. This is no relation
    * to the API ID.
@@ -32,12 +20,16 @@ export class GitHubRepository implements IGitHubRepository {
   public readonly defaultBranch: string | null
   public readonly cloneURL: string | null
 
-  /** Create a new GitHubRepository from its data-only representation. */
-  public static fromJSON(json: IGitHubRepository): GitHubRepository {
-    return new GitHubRepository(json.name, Owner.fromJSON(json.owner), json.dbID, json.private, json.fork, json.htmlURL, json.defaultBranch, json.cloneURL)
-  }
-
-  public constructor(name: string, owner: Owner, dbID: number | null, private_: boolean | null = null, fork: boolean | null = null, htmlURL: string | null = null, defaultBranch: string | null = 'master', cloneURL: string | null = null) {
+  public constructor(
+    name: string,
+    owner: Owner,
+    dbID: number | null,
+    private_: boolean | null = null,
+    fork: boolean | null = null,
+    htmlURL: string | null = null,
+    defaultBranch: string | null = 'master',
+    cloneURL: string | null = null
+  ) {
     this.name = name
     this.owner = owner
     this.dbID = dbID
@@ -50,7 +42,16 @@ export class GitHubRepository implements IGitHubRepository {
 
   /** Create a new copy of the repository with the API information copied over. */
   public withAPI(apiRepository: IAPIRepository): GitHubRepository {
-    const newRepository = new GitHubRepository(this.name, this.owner, this.dbID, apiRepository.private, apiRepository.fork, apiRepository.html_url, apiRepository.default_branch, apiRepository.clone_url)
+    const newRepository = new GitHubRepository(
+      this.name,
+      this.owner,
+      this.dbID,
+      apiRepository.private,
+      apiRepository.fork,
+      apiRepository.html_url,
+      apiRepository.default_branch,
+      apiRepository.clone_url
+    )
 
     return structuralEquals(newRepository, this) ? this : newRepository
   }

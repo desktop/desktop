@@ -171,7 +171,6 @@ export class GitProgressParser {
    *                accordingly.
    */
   public constructor(steps: ReadonlyArray<IProgressStep>) {
-
     if (!steps.length) {
       throw new Error('must specify at least one step')
     }
@@ -206,7 +205,6 @@ export class GitProgressParser {
       const step = this.steps[i]
 
       if (i >= this.stepIndex && progress.title === step.title) {
-
         if (progress.total) {
           percent += step.weight * (progress.value / progress.total)
         }
@@ -245,7 +243,6 @@ const valueOnlyRe = /^\d+$/
  *          or null if the line could not be parsed as a Git progress line.
  */
 export function parse(line: string): IGitProgressInfo | null {
-
   const titleLength = line.lastIndexOf(': ')
 
   if (titleLength === 0) {
@@ -298,7 +295,7 @@ export function parse(line: string): IGitProgressInfo | null {
   let done = false
 
   // We don't parse throughput at the moment so let's just loop
-  // through the remaining 
+  // through the remaining
   for (let i = 1; i < progressParts.length; i++) {
     if (progressParts[i] === 'done.') {
       done = true

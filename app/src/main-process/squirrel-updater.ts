@@ -17,11 +17,11 @@ export function handleSquirrelEvent(eventName: string): boolean {
   switch (eventName) {
     case '--squirrel-install':
     case '--squirrel-updated':
-      spawnUpdate([ '--createShortcut', exeName ])
+      spawnUpdate(['--createShortcut', exeName])
       return true
 
     case '--squirrel-uninstall':
-      spawnUpdate([ '--removeShortcut', exeName ])
+      spawnUpdate(['--removeShortcut', exeName])
       setTimeout(app.quit, 1000)
       return true
 

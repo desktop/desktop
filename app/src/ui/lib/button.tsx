@@ -16,9 +16,6 @@ export interface IButtonProps {
    */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
-  /** The title of the button. */
-  readonly children?: string
-
   /** Is the button disabled? */
   readonly disabled?: boolean
 
@@ -69,9 +66,12 @@ export interface IButtonProps {
   readonly ariaHasPopup?: boolean
 }
 
-/** A button component. */
-export class Button extends React.Component<IButtonProps, void> {
-
+/**
+ * A button component.
+ *
+ * Provide `children` elements to represent the title of the button.
+ */
+export class Button extends React.Component<IButtonProps, {}> {
   private innerButton: HTMLButtonElement | null = null
 
   private onButtonRef = (button: HTMLButtonElement | null) => {
@@ -112,24 +112,20 @@ export class Button extends React.Component<IButtonProps, void> {
   public render() {
     const className = classNames(
       'button-component',
-       { 'small-button': this.props.size === 'small' },
-       this.props.className,
+      { 'small-button': this.props.size === 'small' },
+      this.props.className
     )
 
     let ariaExpanded: string | undefined = undefined
 
     if (this.props.ariaExpanded !== undefined) {
-      ariaExpanded = this.props.ariaExpanded
-        ? 'true'
-        : 'false'
+      ariaExpanded = this.props.ariaExpanded ? 'true' : 'false'
     }
 
     let ariaHasPopup: string | undefined = undefined
 
     if (this.props.ariaHasPopup !== undefined) {
-      ariaHasPopup = this.props.ariaHasPopup
-        ? 'true'
-        : 'false'
+      ariaHasPopup = this.props.ariaHasPopup ? 'true' : 'false'
     }
 
     return (

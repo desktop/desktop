@@ -9,7 +9,6 @@ import { setupFixtureRepository } from '../../fixture-helper'
 const temp = require('temp').track()
 
 describe('git/config', () => {
-
   let repository: Repository | null = null
 
   beforeEach(() => {
@@ -28,7 +27,10 @@ describe('git/config', () => {
     })
 
     it('returns null for undefined values', async () => {
-      const value = await getConfigValue(repository!, 'core.the-meaning-of-life')
+      const value = await getConfigValue(
+        repository!,
+        'core.the-meaning-of-life'
+      )
       expect(value).to.equal(null)
     })
   })

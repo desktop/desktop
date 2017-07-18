@@ -114,10 +114,6 @@
   }
 
   &-meta-item {
-    a {
-      -webkit-user-select: text;
-      user-select: text;
-    }
     @include ellipsis;
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);

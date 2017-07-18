@@ -28,7 +28,7 @@ const config = {
     new BabelPlugin({
       test: /\.js$/,
       sourceMaps: true,
-      compact: true, 
+      compact: true,
       minified: true,
       comments: false,
       presets: ['babili'],
@@ -37,7 +37,6 @@ const config = {
 }
 
 const mainConfig = merge({}, common.main, config)
-const sharedConfig = merge({}, common.shared, config)
 const askPassConfig = merge({}, common.askPass, config)
 
 const rendererConfig = merge({}, common.renderer, config, {
@@ -57,7 +56,7 @@ const rendererConfig = merge({}, common.renderer, config, {
   },
   plugins: [
     // Necessary to be able to use ExtractTextPlugin as a loader.
-    new ExtractTextPlugin('styles.css'),
+    new ExtractTextPlugin('ui.css'),
   ]
 })
 
@@ -78,8 +77,8 @@ const crashConfig = merge({}, common.crash, config, {
   },
   plugins: [
     // Necessary to be able to use ExtractTextPlugin as a loader.
-    new ExtractTextPlugin('styles.css'),
+    new ExtractTextPlugin('crash.css'),
   ]
 })
 
-module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig, crashConfig ]
+module.exports = [ mainConfig, rendererConfig, askPassConfig, crashConfig ]

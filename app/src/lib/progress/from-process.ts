@@ -15,8 +15,8 @@ const byline = require('byline')
 export function executionOptionsWithProgress(
   options: IGitExecutionOptions,
   parser: GitProgressParser,
-  progressCallback: (progress: IGitProgress | IGitOutput) => void): IGitExecutionOptions {
-
+  progressCallback: (progress: IGitProgress | IGitOutput) => void
+): IGitExecutionOptions {
   return merge(options, {
     processCallback: progressProcessCallback(parser, progressCallback),
   })
@@ -29,9 +29,9 @@ export function executionOptionsWithProgress(
  */
 export function progressProcessCallback(
   parser: GitProgressParser,
-  progressCallback: (progress: IGitProgress | IGitOutput) => void): (process: ChildProcess) => void {
-
-  return (process) => {
+  progressCallback: (progress: IGitProgress | IGitOutput) => void
+): (process: ChildProcess) => void {
+  return process => {
     byline(process.stderr).on('data', (line: string) => {
       progressCallback(parser.parse(line))
     })
