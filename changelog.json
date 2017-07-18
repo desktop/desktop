@@ -14,7 +14,8 @@
       "[Fixed] Windows: Opening links doesn't bring the browser to the front - #1945",
       "[Fixed] macOS: Closing the window wouldn't exit fullscreen -  #1901",
       "[Fixed] Scale blankslate images so they look nicer on high resolution displays - #1946",
-      "[Fixed] Windows: Installer not completing or getting stuck in a loop - #1875 #1863"
+      "[Fixed] Windows: Installer not completing or getting stuck in a loop - #1875 #1863",
+      "[Fixed] Move the 'Forgot Password' link to fix the tab order of the sign in view - #2200"
     ],
     "0.6.2": [
       "[New] Link to User Guides from the Help menu - #1963",
