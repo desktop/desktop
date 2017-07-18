@@ -91,8 +91,6 @@ export class AuthenticationForm extends React.Component<
           type="password"
           disabled={disabled}
           onChange={this.onPasswordChange}
-          labelLinkText="Forgot password?"
-          labelLinkUri={this.props.forgotPasswordUrl}
         />
 
         {this.renderError()}
@@ -115,7 +113,17 @@ export class AuthenticationForm extends React.Component<
               {this.props.loading ? <Loading /> : null} Sign in
             </Button>
           : null}
+
         {this.props.additionalButtons}
+
+        {this.props.supportsBasicAuth
+          ? <LinkButton
+              className="forgot-password-link"
+              uri={this.props.forgotPasswordUrl}
+            >
+              Forgot password
+            </LinkButton>
+          : null}
       </div>
     )
   }
