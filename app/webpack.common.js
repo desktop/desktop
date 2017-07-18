@@ -30,24 +30,32 @@ function revParse(gitDir, ref) {
   const refMatch = refRe.exec(refContents)
 
   if (!refMatch) {
-    throw new Error(`Could not de-reference HEAD to SHA, invalid ref in ${refPath}: ${refContents}`)
+    throw new Error(
+      `Could not de-reference HEAD to SHA, invalid ref in ${refPath}: ${refContents}`
+    )
   }
 
   return refMatch[1] || revParse(gitDir, refMatch[2])
 }
 
-function getSHA () {
+function getSHA() {
   // CircleCI does some funny stuff where HEAD points to an packed ref, but
   // luckily it gives us the SHA we want in the environment.
   const circleSHA = process.env.CIRCLE_SHA1
-  if (circleSHA) { return circleSHA }
+  if (circleSHA) {
+    return circleSHA
+  }
 
   return revParse(path.resolve(__dirname, '../.git'), 'HEAD')
 }
 
 const replacements = {
-  __OAUTH_CLIENT_ID__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId),
-  __OAUTH_SECRET__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_SECRET || devClientSecret),
+  __OAUTH_CLIENT_ID__: JSON.stringify(
+    process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId
+  ),
+  __OAUTH_SECRET__: JSON.stringify(
+    process.env.DESKTOP_OAUTH_CLIENT_SECRET || devClientSecret
+  ),
   __DARWIN__: process.platform === 'darwin',
   __WIN32__: process.platform === 'win32',
   __DEV__: environment === 'development',
@@ -61,11 +69,11 @@ const replacements = {
 const outputDir = 'out'
 
 const commonConfig = {
-  externals: [ '7zip' ],
+  externals: ['7zip'],
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', outputDir),
-    libraryTarget: 'commonjs2'
+    libraryTarget: 'commonjs2',
   },
   module: {
     rules: [
@@ -79,32 +87,32 @@ const commonConfig = {
               useBabel: true,
               useCache: true,
             },
-          }
+          },
         ],
         exclude: /node_modules/,
       },
       {
         test: /\.node$/,
         use: [
-          { loader: 'node-native-loader', options: { name: "[name].[ext]" } }
+          { loader: 'node-native-loader', options: { name: '[name].[ext]' } },
         ],
-      }
+      },
     ],
   },
   plugins: [
-    new CleanWebpackPlugin([ outputDir ], { verbose: false }),
+    new CleanWebpackPlugin([outputDir], { verbose: false }),
     // This saves us a bunch of bytes by pruning locales (which we don't use)
     // from moment.
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
     new webpack.NoEmitOnErrorsPlugin(),
   ],
   resolve: {
-    extensions: [ '.js', '.ts', '.tsx' ],
-    modules: [ path.resolve(__dirname, 'node_modules/') ],
+    extensions: ['.js', '.ts', '.tsx'],
+    modules: [path.resolve(__dirname, 'node_modules/')],
   },
   node: {
     __dirname: false,
-    __filename: false
+    __filename: false,
   },
 }
 
@@ -112,8 +120,12 @@ const mainConfig = merge({}, commonConfig, {
   entry: { main: path.resolve(__dirname, 'src/main-process/main') },
   target: 'electron-main',
   plugins: [
-    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('main') })),
-  ]
+    new webpack.DefinePlugin(
+      Object.assign({}, replacements, {
+        __PROCESS_KIND__: JSON.stringify('main'),
+      })
+    ),
+  ],
 })
 
 const rendererConfig = merge({}, commonConfig, {
@@ -123,16 +135,20 @@ const rendererConfig = merge({}, commonConfig, {
     rules: [
       {
         test: /\.(jpe?g|png|gif|ico)$/,
-        use: ['file?name=[path][name].[ext]']
-      }
-    ]
+        use: ['file?name=[path][name].[ext]'],
+      },
+    ],
   },
   plugins: [
     new HtmlWebpackPlugin({
-      'template': path.join(__dirname, 'static', 'index.html'),
-      'chunks': ['renderer']
+      template: path.join(__dirname, 'static', 'index.html'),
+      chunks: ['renderer'],
     }),
-    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('ui') })),
+    new webpack.DefinePlugin(
+      Object.assign({}, replacements, {
+        __PROCESS_KIND__: JSON.stringify('ui'),
+      })
+    ),
   ],
 })
 
@@ -141,17 +157,21 @@ const sharedConfig = merge({}, commonConfig, {
   target: 'electron-renderer',
   plugins: [
     new HtmlWebpackPlugin({
-      'template': path.join(__dirname, 'static', 'error.html'),
+      template: path.join(__dirname, 'static', 'error.html'),
       // without this we overwrite index.html
-      'filename': 'error.html',
+      filename: 'error.html',
       // we don't need any scripts to run on this page
-      'excludeChunks': [ 'main', 'renderer', 'shared', 'ask-pass' ]
+      excludeChunks: ['main', 'renderer', 'shared', 'ask-pass'],
     }),
     new HtmlWebpackPlugin({
-      'filename': 'shared.html',
-      'chunks': ['shared']
+      filename: 'shared.html',
+      chunks: ['shared'],
     }),
-    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('shared') })),
+    new webpack.DefinePlugin(
+      Object.assign({}, replacements, {
+        __PROCESS_KIND__: JSON.stringify('shared'),
+      })
+    ),
   ],
 })
 
@@ -159,8 +179,12 @@ const askPassConfig = merge({}, commonConfig, {
   entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
   target: 'node',
   plugins: [
-    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('askpass') })),
-  ]
+    new webpack.DefinePlugin(
+      Object.assign({}, replacements, {
+        __PROCESS_KIND__: JSON.stringify('askpass'),
+      })
+    ),
+  ],
 })
 
 const crashConfig = merge({}, commonConfig, {
@@ -170,9 +194,25 @@ const crashConfig = merge({}, commonConfig, {
     new HtmlWebpackPlugin({
       title: 'GitHub Desktop',
       filename: 'crash.html',
-      chunks: ['crash']
+      chunks: ['crash'],
     }),
-    new webpack.DefinePlugin(Object.assign({ }, replacements, { '__PROCESS_KIND__': JSON.stringify('crash') })),
+    new webpack.DefinePlugin(
+      Object.assign({}, replacements, {
+        __PROCESS_KIND__: JSON.stringify('crash'),
+      })
+    ),
+  ],
+})
+
+const cliConfig = merge({}, commonConfig, {
+  entry: { cli: path.resolve(__dirname, 'src/cli/main') },
+  target: 'node',
+  plugins: [
+    new webpack.DefinePlugin(
+      Object.assign({}, replacements, {
+        __PROCESS_KIND__: JSON.stringify('cli'),
+      })
+    ),
   ],
 })
 
@@ -182,6 +222,7 @@ module.exports = {
   renderer: rendererConfig,
   askPass: askPassConfig,
   crash: crashConfig,
+  cli: cliConfig,
   replacements: replacements,
   externals: commonConfig.externals,
 }
