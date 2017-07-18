@@ -8,6 +8,14 @@
 // allow easy layout using generalized components and elements such as <Row>
 // and <p>.
 dialog {
+
+  // These are custom version of the alert and stop octicons that have been
+  // scaled and adjusted to render crisply at 24px.
+  //
+  // Related: https://css-tricks.com/probably-dont-base64-svg/
+  --dialog-icon-alert: url('data:image/svg+xml;utf8,<svg height="24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="m 12,0.5 c -0.5,0 -1.5,0 -2,1 L 5,10 0.33203125,18.234375 C -0.5,20 0.5,22 2.4902344,22 L 12,22 21.509766,22 C 23.5,22 24.5,20 23.667969,18.234375 L 19,10 14,1.5 c -0.5,-1 -1.5,-1 -2,-1 z m -1,5.5 2,0 0,8 -2,0 z m 0,10 2,0 0,2 -2,0 z" /></svg>');
+  --dialog-icon-stop: url('data:image/svg+xml;utf8,<svg height="24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="m 16,2 -9,0 -6,6 0,9 6,6 9,0 6,-6 0,-9 z m 4.5,14.25 -5.25,5.25 -7.5,0 -5.25,-5.25 0,-7.5 5.25,-5.25 7.5,0 5.25,5.25 z M 10,6 l 3,0 0,8 -3,0 z m 0,10 3,0 0,3 -3,0 z" /></svg>');
+
   border: var(--base-border);
   box-shadow: var(--base-box-shadow);
   padding: 0;
@@ -143,6 +151,43 @@ dialog {
       &:focus {
         outline: 0;
       }
+    }
+  }
+
+  &.warning, &.error {
+    .dialog-content {
+      position: relative;
+      margin-left: var(--spacing-double);
+      // A zero padding would mean the icon and the text lines up so we
+      // add another double spacing plus the width of the icon to ensure
+      // we have a decently horizontally centered placement of the icon.
+      padding-left: calc(var(--spacing-double) + 24px);
+
+      &::before {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0;
+        height: 24px;
+        width: 24px;
+        -webkit-mask-repeat: no-repeat;
+      }
+    }
+  }
+
+  &.warning {
+    .dialog-content::before {
+      // https://codepen.io/noahblon/post/coloring-svgs-in-css-background-images
+      background-color: var(--dialog-warning-color);
+      -webkit-mask: var(--dialog-icon-alert);
+    }
+  }
+
+  &.error {
+    .dialog-content::before {
+      // https://codepen.io/noahblon/post/coloring-svgs-in-css-background-images
+      background-color: var(--dialog-error-color);
+      -webkit-mask: var(--dialog-icon-stop);
     }
   }
 
