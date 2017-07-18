@@ -5,8 +5,6 @@
   min-width: 0;
 
   .header {
-    span { user-select: text; }
-
     background: var(--box-alt-background-color);
     border-bottom: 1px solid var(--diff-border-color);
 
@@ -30,10 +28,6 @@
       vertical-align: text-bottom;
       position: relative;
       top: 1px;
-    }
-
-    .line-endings {
-      margin-right: var(--spacing-half);
     }
   }
 

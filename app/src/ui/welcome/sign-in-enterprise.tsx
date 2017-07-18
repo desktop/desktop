@@ -11,11 +11,10 @@ interface ISignInEnterpriseProps {
 }
 
 /** The Welcome flow step to login to an Enterprise instance. */
-export class SignInEnterprise extends React.Component<
-  ISignInEnterpriseProps,
-  {}
-> {
+export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, void> {
+
   public render() {
+
     const state = this.props.signInState
 
     if (!state) {
@@ -23,12 +22,13 @@ export class SignInEnterprise extends React.Component<
     }
 
     return (
-      <div id="sign-in-enterprise">
-        <h1 className="welcome-title">
-          Sign in to your GitHub Enterprise server
-        </h1>
+      <div id='sign-in-enterprise'>
+        <h1 className='welcome-title'>Sign in to your GitHub Enterprise server</h1>
 
-        <SignIn signInState={state} dispatcher={this.props.dispatcher}>
+        <SignIn
+          signInState={state}
+          dispatcher={this.props.dispatcher}
+        >
           <Button onClick={this.cancel}>Cancel</Button>
         </SignIn>
       </div>

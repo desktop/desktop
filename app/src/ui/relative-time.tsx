@@ -35,10 +35,8 @@ const MAX_INTERVAL = 2147483647
  * This component will automatically re-render when the relative time
  * changes by scheduling state changes at reasonable intervals.
  */
-export class RelativeTime extends React.Component<
-  IRelativeTimeProps,
-  IRelativeTimeState
-> {
+export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeTimeState> {
+
   private timer: number | null
 
   public constructor(props: IRelativeTimeProps) {
@@ -53,16 +51,9 @@ export class RelativeTime extends React.Component<
     }
   }
 
-  private updateAndSchedule(
-    absoluteText: string,
-    relativeText: string,
-    timeout: number
-  ) {
+  private updateAndSchedule(absoluteText: string, relativeText: string, timeout: number) {
     this.clearTimer()
-    this.timer = window.setTimeout(
-      this.updateFromScheduler,
-      Math.min(timeout, MAX_INTERVAL)
-    )
+    this.timer = window.setTimeout(this.updateFromScheduler, Math.min(timeout, MAX_INTERVAL))
     this.setState({ absoluteText, relativeText })
   }
 
@@ -108,22 +99,15 @@ export class RelativeTime extends React.Component<
     this.clearTimer()
   }
 
-  public shouldComponentUpdate(
-    nextProps: IRelativeTimeProps,
-    nextState: IRelativeTimeState
-  ) {
-    return (
-      nextProps.date !== this.props.date ||
-      nextState.absoluteText !== this.state.absoluteText ||
-      nextState.relativeText !== this.state.relativeText
-    )
+  public shouldComponentUpdate(nextProps: IRelativeTimeProps, nextState: IRelativeTimeState) {
+    return nextProps.date !== this.props.date
+      || nextState.absoluteText !== this.state.absoluteText
+      || nextState.relativeText !== this.state.relativeText
   }
 
   public render() {
     return (
-      <span title={this.state.absoluteText}>
-        {this.state.relativeText}
-      </span>
+      <span title={this.state.absoluteText}>{this.state.relativeText}</span>
     )
   }
 }

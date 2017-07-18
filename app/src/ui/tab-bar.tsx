@@ -7,29 +7,25 @@ interface ITabBarProps {
 
   /** A function which is called when a tab is clicked on. */
   readonly onTabClicked: (index: number) => void
+
+  readonly children?: ReadonlyArray<JSX.Element>
 }
 
-/**
- * The tab bar component.
- *
- * Set `children` to an array of JSX.Elements to represent the tab bar items.
- */
-export class TabBar extends React.Component<ITabBarProps, {}> {
+/** The tab bar component. */
+export class TabBar extends React.Component<ITabBarProps, void> {
+
   private readonly tabRefsByIndex = new Map<number, HTMLButtonElement>()
 
   public render() {
     return (
-      <div className="tab-bar" role="tablist">
+      <div className='tab-bar' role='tablist'>
         {this.renderItems()}
       </div>
     )
   }
 
-  private onSelectAdjacentTab = (
-    direction: 'next' | 'previous',
-    index: number
-  ) => {
-    const children = this.props.children as ReadonlyArray<JSX.Element> | null
+  private onSelectAdjacentTab = (direction: 'next' | 'previous', index: number) => {
+    const children = this.props.children as (ReadonlyArray<JSX.Element> | null)
 
     if (!children || !children.length) {
       return
@@ -38,7 +34,7 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
     const delta = direction === 'next' ? 1 : -1
 
     // http://javascript.about.com/od/problemsolving/a/modulobug.htm
-    const nextTabIndex = (index + delta + children.length) % children.length
+    const nextTabIndex = ((index + delta) + children.length) % children.length
 
     const button = this.tabRefsByIndex.get(nextTabIndex)
 
@@ -62,10 +58,8 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
   }
 
   private renderItems() {
-    const children = this.props.children as ReadonlyArray<JSX.Element> | null
-    if (!children) {
-      return null
-    }
+    const children = this.props.children as (ReadonlyArray<JSX.Element> | null)
+    if (!children) { return null }
 
     return children.map((child, index) => {
       const selected = index === this.props.selectedIndex
@@ -88,18 +82,12 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
 interface ITabBarItemProps {
   readonly index: number
   readonly selected: boolean
-  readonly onClick: (index: number) => void
-  readonly onSelectAdjacent: (
-    direction: 'next' | 'previous',
-    index: number
-  ) => void
-  readonly onButtonRef: (
-    index: number,
-    button: HTMLButtonElement | null
-  ) => void
+  readonly onClick: (index: number ) => void
+  readonly onSelectAdjacent: (direction: 'next' | 'previous', index: number) => void
+  readonly onButtonRef: (index: number, button: HTMLButtonElement | null) => void
 }
 
-class TabBarItem extends React.Component<ITabBarItemProps, {}> {
+class TabBarItem extends React.Component<ITabBarItemProps, void> {
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     this.props.onClick(this.props.index)
   }
@@ -126,11 +114,11 @@ class TabBarItem extends React.Component<ITabBarItemProps, {}> {
         ref={this.onButtonRef}
         className={className}
         onClick={this.onClick}
-        role="tab"
+        role='tab'
         aria-selected={selected}
         tabIndex={selected ? 0 : -1}
         onKeyDown={this.onKeyDown}
-        type="button"
+        type='button'
       >
         {this.props.children}
       </button>

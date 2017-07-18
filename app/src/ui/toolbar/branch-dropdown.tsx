@@ -32,24 +32,24 @@ interface IBranchDropdownProps {
 /**
  * A drop down for selecting the currently checked out branch.
  */
-export class BranchDropdown extends React.Component<IBranchDropdownProps, {}> {
+export class BranchDropdown extends React.Component<IBranchDropdownProps, void> {
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
 
     const tip = repositoryState.branchesState.tip
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    const currentBranch = tip.kind === TipState.Valid
+      ? tip.branch
+      : null
 
-    return (
-      <Branches
-        allBranches={branchesState.allBranches}
-        recentBranches={branchesState.recentBranches}
-        currentBranch={currentBranch}
-        defaultBranch={branchesState.defaultBranch}
-        dispatcher={this.props.dispatcher}
-        repository={this.props.repository}
-      />
-    )
+    return <Branches
+      allBranches={branchesState.allBranches}
+      recentBranches={branchesState.recentBranches}
+      currentBranch={currentBranch}
+      defaultBranch={branchesState.defaultBranch}
+      dispatcher={this.props.dispatcher}
+      repository={this.props.repository}
+    />
   }
 
   private onDropDownStateChanged = (state: DropdownState) => {
@@ -62,6 +62,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, {}> {
   }
 
   public render() {
+
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
 
@@ -115,20 +116,18 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, {}> {
     const isOpen = this.props.isOpen
     const currentState: DropdownState = isOpen && canOpen ? 'open' : 'closed'
 
-    return (
-      <ToolbarDropdown
-        className="branch-button"
-        icon={icon}
-        iconClassName={iconClassName}
-        title={title}
-        description={description}
-        tooltip={tooltip}
-        onDropdownStateChanged={this.onDropDownStateChanged}
-        dropdownContentRenderer={this.renderBranchFoldout}
-        dropdownState={currentState}
-        showDisclosureArrow={canOpen}
-        progressValue={progressValue}
-      />
-    )
+    return <ToolbarDropdown
+      className='branch-button'
+      icon={icon}
+      iconClassName={iconClassName}
+      title={title}
+      description={description}
+      tooltip={tooltip}
+      onDropdownStateChanged={this.onDropDownStateChanged}
+      dropdownContentRenderer={this.renderBranchFoldout}
+      dropdownState={currentState}
+      showDisclosureArrow={canOpen}
+      progressValue={progressValue}
+    />
   }
 }

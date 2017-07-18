@@ -15,14 +15,14 @@ import {
 interface ISignInProps {
   readonly signInState: SignInState
   readonly dispatcher: Dispatcher
+
+  /** An array of additional buttons to render after the "Sign In" button. */
+  readonly children?: ReadonlyArray<JSX.Element>
 }
 
-/**
- * The sign in flow for GitHub.
- *
- * Provide `children` elements to render additional buttons in the active form.
- */
-export class SignIn extends React.Component<ISignInProps, {}> {
+/** The sign in flow for GitHub. */
+export class SignIn extends React.Component<ISignInProps, void> {
+
   private onEndpointEntered = (url: string) => {
     this.props.dispatcher.setSignInEndpoint(url)
   }
@@ -40,39 +40,21 @@ export class SignIn extends React.Component<ISignInProps, {}> {
   }
 
   private renderEndpointEntryStep(state: IEndpointEntryState) {
-    const children = this.props.children as ReadonlyArray<JSX.Element> | null
-    if (!children || !children.length) {
-      console.error(
-        'unexpected child elements provided to EnterpriseServerEntry - someone should look into this!'
-      )
-      return null
-    }
-
-    return (
-      <EnterpriseServerEntry
-        loading={state.loading}
-        error={state.error}
-        onSubmit={this.onEndpointEntered}
-        additionalButtons={children}
-      />
-    )
+    return <EnterpriseServerEntry
+      loading={state.loading}
+      error={state.error}
+      onSubmit={this.onEndpointEntered}
+      additionalButtons={this.props.children}
+    />
   }
 
   private renderAuthenticationStep(state: IAuthenticationState) {
-    const children = this.props.children as ReadonlyArray<JSX.Element> | null
-    if (!children || !children.length) {
-      console.error(
-        'unexpected child elements provided to AuthenticationForm - someone should look into this!'
-      )
-      return null
-    }
-
     return (
       <AuthenticationForm
         loading={state.loading}
         error={state.error}
         supportsBasicAuth={state.supportsBasicAuth}
-        additionalButtons={children}
+        additionalButtons={this.props.children}
         onBrowserSignInRequested={this.onBrowserSignInRequested}
         onSubmit={this.onCredentialsEntered}
         forgotPasswordUrl={state.forgotPasswordUrl}
@@ -80,9 +62,7 @@ export class SignIn extends React.Component<ISignInProps, {}> {
     )
   }
 
-  private renderTwoFactorAuthenticationStep(
-    state: ITwoFactorAuthenticationState
-  ) {
+  private renderTwoFactorAuthenticationStep(state: ITwoFactorAuthenticationState) {
     return (
       <TwoFactorAuthentication
         loading={state.loading}

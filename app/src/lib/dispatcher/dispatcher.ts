@@ -1,19 +1,14 @@
 import * as Path from 'path'
 
-import { remote } from 'electron'
+import { ipcRenderer, remote, shell } from 'electron'
 import { Disposable } from 'event-kit'
 
-import { Account } from '../../models/account'
-import { Repository } from '../../models/repository'
+import { Account, IAccount } from '../../models/account'
+import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import {
-  RepositorySection,
-  Popup,
-  PopupType,
-  Foldout,
-  FoldoutType,
-} from '../app-state'
+import { RepositorySection, Popup, PopupType, Foldout, FoldoutType } from '../app-state'
+import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
 import { Branch } from '../../models/branch'
@@ -25,18 +20,40 @@ import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
+import { structuralEquals } from '../equality'
 import { isGitOnPath } from '../open-shell'
-import { shell } from './app-shell'
-import {
-  URLActionType,
-  IOpenRepositoryFromURLAction,
-  IUnknownAction,
-} from '../parse-app-url'
-import {
-  requestAuthenticatedUser,
-  resolveOAuthRequest,
-  rejectOAuthRequest,
-} from '../../lib/oauth'
+import { uuid } from '../uuid'
+import { URLActionType, IOpenRepositoryArgs } from '../parse-url'
+import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../../lib/oauth'
+import { validatedRepositoryPath } from './validated-repository-path'
+
+/**
+ * Extend Error so that we can create new Errors with a callstack different from
+ * the callsite.
+ */
+class IPCError extends Error {
+  public readonly message: string
+  public readonly stack: string
+
+  public constructor(name: string, message: string, stack: string) {
+    super(name)
+    this.name = name
+    this.message = message
+    this.stack = stack
+  }
+}
+
+interface IResult<T> {
+  type: 'result'
+  readonly result: T
+}
+
+interface IError {
+  type: 'error'
+  readonly error: Error
+}
+
+type IPCResponse<T> = IResult<T> | IError
 
 /**
  * An error handler function.
@@ -44,52 +61,135 @@ import {
  * If the returned {Promise} returns an error, it will be passed to the next
  * error handler. If it returns null, error propagation is halted.
  */
-export type ErrorHandler = (
-  error: Error,
-  dispatcher: Dispatcher
-) => Promise<Error | null>
+export type ErrorHandler = (error: Error, dispatcher: Dispatcher) => Promise<Error | null>
 
 /**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
  * decouples the consumer of state from where/how it is stored.
  */
 export class Dispatcher {
-  private readonly appStore: AppStore
+  private appStore: AppStore
 
   private readonly errorHandlers = new Array<ErrorHandler>()
 
   public constructor(appStore: AppStore) {
     this.appStore = appStore
+
+    appStore.onDidAuthenticate((user) => {
+      this.addAccount(user)
+    })
+
+    ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
 
-  /** Load the initial state for the app. */
-  public loadInitialState(): Promise<void> {
-    return this.appStore.loadInitialState()
+  public async loadInitialState(): Promise<void> {
+    const users = await this.loadUsers()
+    const repositories = await this.loadRepositories()
+    this.appStore._loadFromSharedProcess(users, repositories, true)
+  }
+
+  private dispatchToSharedProcess<T>(action: Action): Promise<T> {
+    return this.send(action.name, action)
+  }
+
+  private send<T>(name: string, args: Object): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+
+      const requestGuid = uuid()
+      ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
+        const response: IPCResponse<T> = args[0]
+        if (response.type === 'result') {
+          resolve(response.result)
+        } else {
+          const errorInfo = response.error
+          const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
+          if (__DEV__) {
+          }
+
+          reject(error)
+        }
+      })
+
+      ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
+    })
+  }
+
+  private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {
+    const state: { repositories: ReadonlyArray<IRepository>, accounts: ReadonlyArray<IAccount> } = args[0].state
+    const inflatedAccounts = state.accounts.map(Account.fromJSON)
+    const inflatedRepositories = state.repositories.map(Repository.fromJSON)
+    this.appStore._loadFromSharedProcess(inflatedAccounts, inflatedRepositories, false)
+  }
+
+  /** Get the users */
+  private async loadUsers(): Promise<ReadonlyArray<Account>> {
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IAccount>>({ name: 'get-accounts' })
+    return json.map(Account.fromJSON)
+  }
+
+  /** Get the repositories the user has added to the app. */
+  private async loadRepositories(): Promise<ReadonlyArray<Repository>> {
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'get-repositories' })
+    return json.map(Repository.fromJSON)
   }
 
   /**
    * Add the repositories at the given paths. If a path isn't a repository, then
    * this will post an error to that affect.
    */
-  public addRepositories(
-    paths: ReadonlyArray<string>
-  ): Promise<ReadonlyArray<Repository>> {
-    return this.appStore._addRepositories(paths)
+  public async addRepositories(paths: ReadonlyArray<string>): Promise<ReadonlyArray<Repository>> {
+    const validatedPaths = new Array<string>()
+    for (const path of paths) {
+      const validatedPath = await validatedRepositoryPath(path)
+      if (validatedPath) {
+        validatedPaths.push(validatedPath)
+      } else {
+        this.postError({ name: 'add-repository', message: `${path} isn't a git repository.` })
+      }
+    }
+
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', paths: validatedPaths })
+    const addedRepositories = json.map(Repository.fromJSON)
+
+    const refreshedRepositories = new Array<Repository>()
+    for (const repository of addedRepositories) {
+      const refreshedRepository = await this.refreshGitHubRepositoryInfo(repository)
+      refreshedRepositories.push(refreshedRepository)
+    }
+
+    return refreshedRepositories
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
-  public removeRepositories(
-    repositories: ReadonlyArray<Repository | CloningRepository>
-  ): Promise<void> {
-    return this.appStore._removeRepositories(repositories)
+  public async removeRepositories(repositories: ReadonlyArray<Repository | CloningRepository>): Promise<void> {
+    const localRepositories = repositories.filter(r => r instanceof Repository) as ReadonlyArray<Repository>
+    const cloningRepositories = repositories.filter(r => r instanceof CloningRepository) as ReadonlyArray<CloningRepository>
+    cloningRepositories.forEach(r => {
+      this.appStore._removeCloningRepository(r)
+    })
+
+    const repositoryIDs = localRepositories.map(r => r.id)
+    await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
+
+    this.showFoldout({ type: FoldoutType.Repository })
+  }
+
+  /** Refresh the associated GitHub repository. */
+  private async refreshGitHubRepositoryInfo(repository: Repository): Promise<Repository> {
+    const refreshedRepository = await this.appStore._repositoryWithRefreshedGitHubRepository(repository)
+
+    if (structuralEquals(refreshedRepository, repository)) {
+      return refreshedRepository
+    }
+
+    const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-github-repository', repository: refreshedRepository })
+    return Repository.fromJSON(repo)
   }
 
   /** Update the repository's `missing` flag. */
-  public async updateRepositoryMissing(
-    repository: Repository,
-    missing: boolean
-  ): Promise<Repository> {
-    return this.appStore._updateRepositoryMissing(repository, missing)
+  public async updateRepositoryMissing(repository: Repository, missing: boolean): Promise<Repository> {
+    const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-missing', repository, missing })
+    return Repository.fromJSON(repo)
   }
 
   /** Load the history for the repository. */
@@ -103,9 +203,7 @@ export class Dispatcher {
   }
 
   /** Load the changed files for the current history selection. */
-  public loadChangedFilesForCurrentSelection(
-    repository: Repository
-  ): Promise<void> {
+  public loadChangedFilesForCurrentSelection(repository: Repository): Promise<void> {
     return this.appStore._loadChangedFilesForCurrentSelection(repository)
   }
 
@@ -118,10 +216,7 @@ export class Dispatcher {
    *            the history list, represented as a SHA-1 hash
    *            digest. This should match exactly that of Commit.Sha
    */
-  public changeHistoryCommitSelection(
-    repository: Repository,
-    sha: string
-  ): Promise<void> {
+  public changeHistoryCommitSelection(repository: Repository, sha: string): Promise<void> {
     return this.appStore._changeHistoryCommitSelection(repository, sha)
   }
 
@@ -133,18 +228,19 @@ export class Dispatcher {
    * @param file A FileChange instance among those available in
    *            IHistoryState.changedFiles
    */
-  public changeHistoryFileSelection(
-    repository: Repository,
-    file: FileChange
-  ): Promise<void> {
+  public changeHistoryFileSelection(repository: Repository, file: FileChange): Promise<void> {
     return this.appStore._changeHistoryFileSelection(repository, file)
   }
 
   /** Select the repository. */
-  public selectRepository(
-    repository: Repository | CloningRepository
-  ): Promise<Repository | null> {
-    return this.appStore._selectRepository(repository)
+  public async selectRepository(repository: Repository | CloningRepository): Promise<Repository | null> {
+    let repo = await this.appStore._selectRepository(repository)
+
+    if (repository instanceof Repository) {
+      repo = await this.refreshGitHubRepositoryInfo(repository)
+    }
+
+    return repo
   }
 
   /** Load the working directory status. */
@@ -153,18 +249,12 @@ export class Dispatcher {
   }
 
   /** Change the selected section in the repository. */
-  public changeRepositorySection(
-    repository: Repository,
-    section: RepositorySection
-  ): Promise<void> {
+  public changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
     return this.appStore._changeRepositorySection(repository, section)
   }
 
   /** Change the currently selected file in Changes. */
-  public changeChangesSelection(
-    repository: Repository,
-    selectedFile: WorkingDirectoryFileChange
-  ): Promise<void> {
+  public changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange): Promise<void> {
     return this.appStore._changeChangesSelection(repository, selectedFile)
   }
 
@@ -172,40 +262,22 @@ export class Dispatcher {
    * Commit the changes which were marked for inclusion, using the given commit
    * summary and description.
    */
-  public async commitIncludedChanges(
-    repository: Repository,
-    message: ICommitMessage
-  ): Promise<boolean> {
+  public async commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
     return this.appStore._commitIncludedChanges(repository, message)
   }
 
   /** Change the file's includedness. */
-  public changeFileIncluded(
-    repository: Repository,
-    file: WorkingDirectoryFileChange,
-    include: boolean
-  ): Promise<void> {
+  public changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
     return this.appStore._changeFileIncluded(repository, file, include)
   }
 
   /** Change the file's line selection state. */
-  public changeFileLineSelection(
-    repository: Repository,
-    file: WorkingDirectoryFileChange,
-    diffSelection: DiffSelection
-  ): Promise<void> {
-    return this.appStore._changeFileLineSelection(
-      repository,
-      file,
-      diffSelection
-    )
+  public changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: DiffSelection): Promise<void> {
+    return this.appStore._changeFileLineSelection(repository, file, diffSelection)
   }
 
   /** Change the Include All state. */
-  public changeIncludeAllFiles(
-    repository: Repository,
-    includeAll: boolean
-  ): Promise<void> {
+  public changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
     return this.appStore._changeIncludeAllFiles(repository, includeAll)
   }
 
@@ -242,62 +314,66 @@ export class Dispatcher {
    * If the startPoint argument is omitted the new branch will be created based
    * off of the current state of HEAD.
    */
-  public createBranch(
-    repository: Repository,
-    name: string,
-    startPoint?: string
-  ): Promise<Repository> {
+  public createBranch(repository: Repository, name: string, startPoint?: string): Promise<Repository> {
     return this.appStore._createBranch(repository, name, startPoint)
   }
 
   /** Check out the given branch. */
-  public checkoutBranch(
-    repository: Repository,
-    name: string
-  ): Promise<Repository> {
+  public checkoutBranch(repository: Repository, name: string): Promise<Repository> {
     return this.appStore._checkoutBranch(repository, name)
   }
 
+  /**
+   * Perform a function which may need authentication on a repository. This may
+   * first update the GitHub association for the repository.
+   */
+  private async withAuthenticatingUser<T>(repository: Repository, fn: (repository: Repository, account: Account | null) => Promise<T>): Promise<T> {
+    let updatedRepository = repository
+    let account = this.appStore.getAccountForRepository(updatedRepository)
+    // If we don't have a user association, it might be because we haven't yet
+    // tried to associate the repository with a GitHub repository, or that
+    // association is out of date. So try again before we bail on providing an
+    // authenticating user.
+    if (!account) {
+      updatedRepository = await this.refreshGitHubRepositoryInfo(repository)
+      account = this.appStore.getAccountForRepository(updatedRepository)
+    }
+
+    return fn(updatedRepository, account)
+  }
+
   /** Push the current branch. */
-  public push(repository: Repository): Promise<void> {
-    return this.appStore._push(repository)
+  public async push(repository: Repository): Promise<void> {
+    return this.withAuthenticatingUser(
+      repository,
+      (repo, user) => this.appStore._push(repo, user))
   }
 
   /** Pull the current branch. */
-  public pull(repository: Repository): Promise<void> {
-    return this.appStore._pull(repository)
+  public async pull(repository: Repository): Promise<void> {
+    return this.withAuthenticatingUser(
+      repository,
+      (repo, user) => this.appStore._pull(repo, user))
   }
 
   /** Fetch a specific refspec for the repository. */
-  public fetchRefspec(
-    repository: Repository,
-    fetchspec: string
-  ): Promise<void> {
-    return this.appStore._fetchRefspec(repository, fetchspec)
+  public fetchRefspec(repository: Repository, fetchspec: string): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repo, user) => {
+      return this.appStore.fetchRefspec(repo, fetchspec, user)
+    })
   }
 
   /** Fetch all refs for the repository */
   public fetch(repository: Repository): Promise<void> {
-    return this.appStore._fetch(repository)
+    return this.withAuthenticatingUser(
+      repository,
+      (repo, user) => this.appStore.fetch(repo, user))
   }
 
   /** Publish the repository to GitHub with the given properties. */
-  public publishRepository(
-    repository: Repository,
-    name: string,
-    description: string,
-    private_: boolean,
-    account: Account,
-    org: IAPIUser | null
-  ): Promise<Repository> {
-    return this.appStore._publishRepository(
-      repository,
-      name,
-      description,
-      private_,
-      account,
-      org
-    )
+  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<Repository> {
+    await this.appStore._publishRepository(repository, name, description, private_, account, org)
+    return this.refreshGitHubRepositoryInfo(repository)
   }
 
   /**
@@ -310,15 +386,11 @@ export class Dispatcher {
       const handler = this.errorHandlers[i]
       currentError = await handler(currentError, this)
 
-      if (!currentError) {
-        break
-      }
+      if (!currentError) { break }
     }
 
     if (currentError) {
-      fatalError(
-        `Unhandled error ${currentError}. This shouldn't happen! All errors should be handled, even if it's just by the default handler.`
-      )
+      fatalError(`Unhandled error ${currentError}. This shouldn't happen! All errors should be handled, even if it's just by the default handler.`)
     }
   }
 
@@ -340,20 +412,26 @@ export class Dispatcher {
    * Clone a missing repository to the previous path, and update it's
    * state in the repository list if the clone completes without error.
    */
-  public cloneAgain(
-    url: string,
-    path: string,
-    account: Account | null
-  ): Promise<void> {
-    return this.appStore._cloneAgain(url, path, account)
-  }
+  public async cloneAgain(url: string, path: string, account: Account | null): Promise<void> {
+    const { promise, repository } = this.appStore._clone(url, path, { account })
+    await this.selectRepository(repository)
+    const success = await promise
+    if (!success) { return }
+
+    // In the background the shared process has updated the repository list.
+    // To ensure a smooth transition back, we should lookup the new repository
+    // and update it's state after the clone has completed
+    const repositories = await this.loadRepositories()
+    const found = repositories.find(r => r.path === path) || null
+
+    if (found) {
+      const updatedRepository = await this.updateRepositoryMissing(found, false)
+      await this.selectRepository(updatedRepository)
+    }
+ }
 
   /** Clone the repository to the path. */
-  public async clone(
-    url: string,
-    path: string,
-    options: { account: Account | null; branch?: string }
-  ): Promise<Repository | null> {
+  public async clone(url: string, path: string, options: { account: Account | null, branch?: string }): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
       const { promise, repository } = this.appStore._clone(url, path, options)
       await this.selectRepository(repository)
@@ -363,7 +441,7 @@ export class Dispatcher {
         return null
       }
 
-      const addedRepositories = await this.addRepositories([path])
+      const addedRepositories = await this.addRepositories([ path ])
       const addedRepository = addedRepositories[0]
       await this.selectRepository(addedRepository)
 
@@ -372,11 +450,7 @@ export class Dispatcher {
   }
 
   /** Rename the branch to a new name. */
-  public renameBranch(
-    repository: Repository,
-    branch: Branch,
-    newName: string
-  ): Promise<void> {
+  public renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
     return this.appStore._renameBranch(repository, branch, newName)
   }
 
@@ -385,14 +459,13 @@ export class Dispatcher {
    * branch, and then check out the default branch.
    */
   public deleteBranch(repository: Repository, branch: Branch): Promise<void> {
-    return this.appStore._deleteBranch(repository, branch)
+    return this.withAuthenticatingUser(
+      repository,
+      (repo, user) => this.appStore._deleteBranch(repo, branch, user))
   }
 
   /** Discard the changes to the given files. */
-  public discardChanges(
-    repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
-  ): Promise<void> {
+  public discardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
     return this.appStore._discardChanges(repository, files)
   }
 
@@ -460,21 +533,18 @@ export class Dispatcher {
    * Set the commit summary and description for a work-in-progress
    * commit in the changes view for a particular repository.
    */
-  public setCommitMessage(
-    repository: Repository,
-    message: ICommitMessage | null
-  ): Promise<void> {
+  public setCommitMessage(repository: Repository, message: ICommitMessage | null): Promise<void> {
     return this.appStore._setCommitMessage(repository, message)
   }
 
   /** Add the account to the app. */
-  public addAccount(account: Account): Promise<void> {
-    return this.appStore._addAccount(account)
+  public async addAccount(account: Account): Promise<void> {
+    return this.dispatchToSharedProcess<void>({ name: 'add-account', account })
   }
 
   /** Remove the given account from the app. */
   public removeAccount(account: Account): Promise<void> {
-    return this.appStore._removeAccount(account)
+    return this.dispatchToSharedProcess<void>({ name: 'remove-account', account })
   }
 
   /**
@@ -531,16 +601,12 @@ export class Dispatcher {
   }
 
   /** Changes the URL for the remote that matches the given name  */
-  public setRemoteURL(
-    repository: Repository,
-    name: string,
-    url: string
-  ): Promise<void> {
+  public setRemoteURL(repository: Repository, name: string, url: string): Promise<void> {
     return this.appStore._setRemoteURL(repository, name, url)
   }
 
   /** Open the URL in a browser */
-  public openInBrowser(url: string): Promise<boolean> {
+  public openInBrowser(url: string) {
     return this.appStore._openInBrowser(url)
   }
 
@@ -565,10 +631,7 @@ export class Dispatcher {
    * If the repository root doesn't contain a .gitignore file one
    * will be created, otherwise the current file will be overwritten.
    */
-  public async saveGitIgnore(
-    repository: Repository,
-    text: string
-  ): Promise<void> {
+  public async saveGitIgnore(repository: Repository, text: string): Promise<void> {
     await this.appStore._saveGitIgnore(repository, text)
     await this.appStore._refreshRepository(repository)
   }
@@ -643,10 +706,7 @@ export class Dispatcher {
    * the authentication state will be updated with that error so that
    * the responsible component can present it to the user.
    */
-  public setSignInCredentials(
-    username: string,
-    password: string
-  ): Promise<void> {
+  public setSignInCredentials(username: string, password: string): Promise<void> {
     return this.appStore._setSignInCredentials(username, password)
   }
 
@@ -723,7 +783,7 @@ export class Dispatcher {
    */
   public async relocateRepository(repository: Repository): Promise<void> {
     const directories = remote.dialog.showOpenDialog({
-      properties: ['openDirectory'],
+      properties: [ 'openDirectory' ],
     })
 
     if (directories && directories.length > 0) {
@@ -733,11 +793,8 @@ export class Dispatcher {
   }
 
   /** Update the repository's path. */
-  private async updateRepositoryPath(
-    repository: Repository,
-    path: string
-  ): Promise<void> {
-    await this.appStore._updateRepositoryPath(repository, path)
+  private async updateRepositoryPath(repository: Repository, path: string): Promise<void> {
+    await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-path', repository, path })
   }
 
   public async setAppFocusState(isFocused: boolean): Promise<void> {
@@ -748,7 +805,7 @@ export class Dispatcher {
     switch (action.name) {
       case 'oauth':
         try {
-          const user = await requestAuthenticatedUser(action.code)
+          const user = await requestAuthenticatedUser(action.args.code)
           if (user) {
             resolveOAuthRequest(user)
           } else {
@@ -759,51 +816,20 @@ export class Dispatcher {
         }
         break
 
-      case 'open-repository-from-url':
-        const { pr, url, branch } = action
+      case 'open-repository':
+        const { pr, url, branch } = action.args
         // a forked PR will provide both these values, despite the branch not existing
         // in the repository - drop the branch argument in this case so a clone will
         // checkout the default branch when it clones
-        const branchToClone = pr && branch ? null : branch || null
+        const branchToClone = (pr && branch) ? null : (branch || null)
         const repository = await this.openRepository(url, branchToClone)
         if (repository) {
-          this.handleCloneInDesktopOptions(repository, action)
-        }
-        break
-
-      case 'open-repository-from-path':
-        const state = this.appStore.getState()
-        const repositories = state.repositories
-        const existingRepository = repositories.find(r => {
-          if (__WIN32__) {
-            // Windows is guaranteed to be case-insensitive so we can be a
-            // bit more accepting.
-            return (
-              Path.normalize(r.path).toLowerCase() ===
-              Path.normalize(action.path).toLowerCase()
-            )
-          } else {
-            return Path.normalize(r.path) === Path.normalize(action.path)
-          }
-        })
-
-        if (existingRepository) {
-          this.selectRepository(existingRepository)
-        } else {
-          return this.showPopup({
-            type: PopupType.AddRepository,
-            path: action.path,
-          })
+          this.handleCloneInDesktopOptions(repository, action.args)
         }
         break
 
       default:
-        const unknownAction: IUnknownAction = action
-        log.warn(
-          `Unknown URL action: ${unknownAction.name} - payload: ${JSON.stringify(
-            unknownAction
-          )}`
-        )
+        log.warn(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
     }
   }
 
@@ -814,21 +840,8 @@ export class Dispatcher {
     return this.appStore._setConfirmRepoRemoval(value)
   }
 
-  /**
-   * Reveals a file from a repository in the native file manager.
-   * @param repository The currently active repository instance
-   * @param path The path of the file relative to the root of the repository
-   */
-  public revealInFileManager(repository: Repository, path: string) {
-    const normalized = Path.join(repository.path, path)
-    return shell.showItemInFolder(normalized)
-  }
-
-  private async handleCloneInDesktopOptions(
-    repository: Repository,
-    action: IOpenRepositoryFromURLAction
-  ): Promise<void> {
-    const { filepath, pr, branch } = action
+  private async handleCloneInDesktopOptions(repository: Repository, args: IOpenRepositoryArgs): Promise<void> {
+    const { filepath, pr, branch } = args
 
     // we need to refetch for a forked PR and check that out
     if (pr && branch) {
@@ -844,18 +857,13 @@ export class Dispatcher {
     }
   }
 
-  private async openRepository(
-    url: string,
-    branch: string | null
-  ): Promise<Repository | null> {
+  private async openRepository(url: string, branch: string | null): Promise<Repository | null> {
     const state = this.appStore.getState()
     const repositories = state.repositories
     const existingRepository = repositories.find(r => {
       if (r instanceof Repository) {
         const gitHubRepository = r.gitHubRepository
-        if (!gitHubRepository) {
-          return false
-        }
+        if (!gitHubRepository) { return false }
         return gitHubRepository.cloneURL === url
       } else {
         return false
@@ -864,9 +872,7 @@ export class Dispatcher {
 
     if (existingRepository) {
       const repo = await this.selectRepository(existingRepository)
-      if (!repo || !branch) {
-        return repo
-      }
+      if (!repo || !branch) { return repo }
 
       return this.checkoutBranch(repo, branch)
     } else {

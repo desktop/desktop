@@ -12,20 +12,19 @@ interface IRemoteProps {
 }
 
 /** The Remote component. */
-export class Remote extends React.Component<IRemoteProps, {}> {
+export class Remote extends React.Component<IRemoteProps, void> {
   public render() {
     const remote = this.props.remote
     return (
       <DialogContent>
-        <div>
-          Primary remote repository ({remote.name})
-        </div>
-        <TextBox
-          placeholder="Remote URL"
-          value={remote.url}
-          onValueChanged={this.props.onRemoteUrlChanged}
-        />
+        <div>Primary remote repository ({remote.name})</div>
+        <TextBox placeholder='Remote URL' value={remote.url} onChange={this.onChange}/>
       </DialogContent>
     )
+  }
+
+  private onChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const url = event.currentTarget.value
+    this.props.onRemoteUrlChanged(url)
   }
 }

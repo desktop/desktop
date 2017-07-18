@@ -52,22 +52,22 @@ interface IAppMenuBarState {
  * child menus of their own (ie submenu items).
  */
 function createState(props: IAppMenuBarProps): IAppMenuBarState {
-  if (!props.appMenu.length) {
-    return { menuItems: [] }
-  }
-
-  const topLevelMenu = props.appMenu[0]
-  const items = topLevelMenu.items
-
-  const menuItems = new Array<ISubmenuItem>()
-
-  for (const item of items) {
-    if (item.type === 'submenuItem' && item.visible) {
-      menuItems.push(item)
+    if (!props.appMenu.length) {
+      return { menuItems: [ ] }
     }
-  }
 
-  return { menuItems }
+    const topLevelMenu = props.appMenu[0]
+    const items = topLevelMenu.items
+
+    const menuItems = new Array<ISubmenuItem>()
+
+    for (const item of items) {
+      if (item.type === 'submenuItem' && item.visible) {
+        menuItems.push(item)
+      }
+    }
+
+    return { menuItems }
 }
 
 /**
@@ -75,14 +75,10 @@ function createState(props: IAppMenuBarProps): IAppMenuBarState {
  * bar section of the app and utilizes foldouts for displaying interactive
  * menus.
  */
-export class AppMenuBar extends React.Component<
-  IAppMenuBarProps,
-  IAppMenuBarState
-> {
+export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarState> {
+
   private menuBar: HTMLDivElement | null = null
-  private readonly menuButtonRefsByMenuItemId: {
-    [id: string]: AppMenuBarButton
-  } = {}
+  private readonly menuButtonRefsByMenuItemId: { [id: string]: AppMenuBarButton} = { }
   private focusOutTimeout: number | null = null
 
   /**
@@ -155,21 +151,19 @@ export class AppMenuBar extends React.Component<
   public render() {
     return (
       <div
-        id="app-menu-bar"
+        id='app-menu-bar'
         ref={this.onMenuBarRef}
-        role="menubar"
-        aria-label="Application menu"
-      >
+        role='menubar'
+        aria-label='Application menu'>
         {this.state.menuItems.map(this.renderMenuItem, this)}
       </div>
     )
   }
 
   private isMenuItemOpen(item: ISubmenuItem) {
-    const openMenu =
-      this.props.foldoutState && this.props.appMenu.length > 1
-        ? this.props.appMenu[1]
-        : null
+    const openMenu = this.props.foldoutState && this.props.appMenu.length > 1
+      ? this.props.appMenu[1]
+      : null
 
     return openMenu !== null && openMenu.id === item.id
   }
@@ -179,6 +173,7 @@ export class AppMenuBar extends React.Component<
    * menu bar. This has no effect when a menu is currently open.
    */
   private focusFirstMenuItem() {
+
     // Menu currently open?
     if (this.props.appMenu.length > 1) {
       return
@@ -206,6 +201,7 @@ export class AppMenuBar extends React.Component<
   }
 
   private restoreFocusOrBlur() {
+
     if (!this.hasFocus) {
       return
     }
@@ -284,10 +280,8 @@ export class AppMenuBar extends React.Component<
     }
   }
 
-  private onMenuClose = (
-    item: ISubmenuItem,
-    source: 'keyboard' | 'pointer' | 'item-executed'
-  ) => {
+  private onMenuClose = (item: ISubmenuItem, source: 'keyboard' | 'pointer' | 'item-executed') => {
+
     if (source === 'pointer' || source === 'item-executed') {
       this.restoreFocusOrBlur()
     }
@@ -300,13 +294,8 @@ export class AppMenuBar extends React.Component<
       ? this.props.foldoutState.enableAccessKeyNavigation
       : false
 
-    this.props.dispatcher.showFoldout({
-      type: FoldoutType.AppMenu,
-      enableAccessKeyNavigation,
-    })
-    this.props.dispatcher.setAppMenuState(m =>
-      m.withOpenedMenu(item, selectFirstItem)
-    )
+    this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation })
+    this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item, selectFirstItem))
   }
 
   private onMenuButtonMouseEnter = (item: ISubmenuItem) => {
@@ -319,12 +308,10 @@ export class AppMenuBar extends React.Component<
     }
   }
 
-  private moveToAdjacentMenu(
-    direction: 'next' | 'previous',
-    sourceItem: ISubmenuItem
-  ) {
+  private moveToAdjacentMenu(direction: 'next' | 'previous', sourceItem: ISubmenuItem) {
     const rootItems = this.state.menuItems
-    const menuItemIx = rootItems.findIndex(item => item.id === sourceItem.id)
+    const menuItemIx = rootItems
+      .findIndex(item => item.id === sourceItem.id)
 
     if (menuItemIx === -1) {
       return
@@ -333,8 +320,7 @@ export class AppMenuBar extends React.Component<
     const delta = direction === 'next' ? 1 : -1
 
     // http://javascript.about.com/od/problemsolving/a/modulobug.htm
-    const nextMenuItemIx =
-      (menuItemIx + delta + rootItems.length) % rootItems.length
+    const nextMenuItemIx = ((menuItemIx + delta) + rootItems.length) % rootItems.length
     const nextItem = rootItems[nextMenuItemIx]
 
     if (!nextItem) {
@@ -349,9 +335,7 @@ export class AppMenuBar extends React.Component<
     const openMenu = foldoutState !== null && this.props.appMenu.length > 1
 
     if (openMenu) {
-      this.props.dispatcher.setAppMenuState(m =>
-        m.withOpenedMenu(nextItem, true)
-      )
+      this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(nextItem, true))
     } else {
       const nextButton = this.menuButtonRefsByMenuItemId[nextItem.id]
 
@@ -361,10 +345,8 @@ export class AppMenuBar extends React.Component<
     }
   }
 
-  private onMenuButtonKeyDown = (
-    item: ISubmenuItem,
-    event: React.KeyboardEvent<HTMLDivElement>
-  ) => {
+  private onMenuButtonKeyDown = (item: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => {
+
     if (event.defaultPrevented) {
       return
     }
@@ -380,30 +362,26 @@ export class AppMenuBar extends React.Component<
         this.restoreFocusOrBlur()
         event.preventDefault()
       }
-    } else if (event.key === 'ArrowLeft') {
+    } else  if (event.key === 'ArrowLeft') {
       this.moveToAdjacentMenu('previous', item)
       event.preventDefault()
     } else if (event.key === 'ArrowRight') {
       this.moveToAdjacentMenu('next', item)
       event.preventDefault()
     } else if (foldoutState.enableAccessKeyNavigation) {
+
       if (event.altKey || event.ctrlKey || event.metaKey) {
         return
       }
 
-      const menuItemForAccessKey = findItemByAccessKey(
-        event.key,
-        this.state.menuItems
-      )
+      const menuItemForAccessKey = findItemByAccessKey(event.key, this.state.menuItems)
 
       if (menuItemForAccessKey && itemIsSelectable(menuItemForAccessKey)) {
         if (menuItemForAccessKey.type === 'submenuItem') {
-          this.props.dispatcher.setAppMenuState(menu =>
-            menu
-              .withReset()
-              .withSelectedItem(menuItemForAccessKey)
-              .withOpenedMenu(menuItemForAccessKey, true)
-          )
+          this.props.dispatcher.setAppMenuState(menu => menu
+            .withReset()
+            .withSelectedItem(menuItemForAccessKey)
+            .withOpenedMenu(menuItemForAccessKey, true))
         } else {
           this.restoreFocusOrBlur()
           this.props.dispatcher.executeMenuItem(menuItemForAccessKey)
@@ -414,21 +392,16 @@ export class AppMenuBar extends React.Component<
     }
   }
 
-  private onMenuButtonDidMount = (
-    menuItem: ISubmenuItem,
-    button: AppMenuBarButton
-  ) => {
+  private onMenuButtonDidMount = (menuItem: ISubmenuItem, button: AppMenuBarButton) => {
     this.menuButtonRefsByMenuItemId[menuItem.id] = button
   }
 
-  private onMenuButtonWillUnmount = (
-    menuItem: ISubmenuItem,
-    button: AppMenuBarButton
-  ) => {
+  private onMenuButtonWillUnmount = (menuItem: ISubmenuItem, button: AppMenuBarButton) => {
     delete this.menuButtonRefsByMenuItemId[menuItem.id]
   }
 
   private renderMenuItem(item: ISubmenuItem): JSX.Element {
+
     const foldoutState = this.props.foldoutState
 
     // Slice away the top menu so that each menu bar button receives

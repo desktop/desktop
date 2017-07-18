@@ -6,8 +6,8 @@ import { Row } from '../../ui/lib/row'
 import { SamplesURL } from '../../lib/stats'
 
 interface IAdvancedPreferencesProps {
-  readonly isOptedOut: boolean
-  readonly confirmRepoRemoval: boolean
+  readonly isOptedOut: boolean,
+  readonly confirmRepoRemoval: boolean,
   readonly onOptOutSet: (checked: boolean) => void
   readonly onConfirmRepoRemovalSet: (checked: boolean) => void
 }
@@ -17,10 +17,7 @@ interface IAdvancedPreferencesState {
   readonly confirmRepoRemoval: boolean
 }
 
-export class Advanced extends React.Component<
-  IAdvancedPreferencesProps,
-  IAdvancedPreferencesState
-> {
+export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvancedPreferencesState> {
   public constructor(props: IAdvancedPreferencesProps) {
     super(props)
 
@@ -30,18 +27,14 @@ export class Advanced extends React.Component<
     }
   }
 
-  private onReportingOptOutChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
+  private onReportingOptOutChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const value = !event.currentTarget.checked
 
     this.setState({ reportingOptOut: value })
     this.props.onOptOutSet(value)
   }
 
-  private onConfirmRepoRemovalChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
+  private onConfirmRepoRemovalChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const value = event.currentTarget.checked
 
     this.setState({ confirmRepoRemoval: value })
@@ -51,8 +44,7 @@ export class Advanced extends React.Component<
   public reportDesktopUsageLabel() {
     return (
       <span>
-        Help GitHub Desktop improve by submitting{' '}
-        <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>
+        Help GitHub Desktop improve by submitting <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>
       </span>
     )
   }
@@ -63,22 +55,14 @@ export class Advanced extends React.Component<
         <Row>
           <Checkbox
             label={this.reportDesktopUsageLabel()}
-            value={
-              this.state.reportingOptOut ? CheckboxValue.Off : CheckboxValue.On
-            }
-            onChange={this.onReportingOptOutChanged}
-          />
+            value={this.state.reportingOptOut ? CheckboxValue.Off : CheckboxValue.On}
+            onChange={this.onReportingOptOutChanged} />
         </Row>
         <Row>
           <Checkbox
-            label="Show confirmation dialog before removing repositories"
-            value={
-              this.state.confirmRepoRemoval
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onConfirmRepoRemovalChanged}
-          />
+            label='Show confirmation dialog before removing repositories'
+            value={this.state.confirmRepoRemoval ? CheckboxValue.On : CheckboxValue.Off}
+            onChange={this.onConfirmRepoRemovalChanged} />
         </Row>
       </DialogContent>
     )

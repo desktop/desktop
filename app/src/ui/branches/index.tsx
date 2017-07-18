@@ -20,6 +20,7 @@ interface IBranchesState {
 
 /** The Branches list component. */
 export class Branches extends React.Component<IBranchesProps, IBranchesState> {
+
   public constructor(props: IBranchesProps) {
     super(props)
 
@@ -32,17 +33,11 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     const currentBranch = this.props.currentBranch
 
     if (!currentBranch || currentBranch.name !== item.name) {
-      this.props.dispatcher.checkoutBranch(
-        this.props.repository,
-        item.nameWithoutRemote
-      )
+      this.props.dispatcher.checkoutBranch(this.props.repository, item.nameWithoutRemote)
     }
   }
 
-  private onFilterKeyDown = (
-    filter: string,
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
+  private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       if (filter.length === 0) {
         this.props.dispatcher.closeFoldout(FoldoutType.Branch)
@@ -57,7 +52,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   public render() {
     return (
-      <div className="branches-list-container">
+      <div className='branches-list-container'>
         <BranchList
           defaultBranch={this.props.defaultBranch}
           currentBranch={this.props.currentBranch}

@@ -9,10 +9,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogFooter } from '../dialog'
-import {
-  getGlobalConfigValue,
-  setGlobalConfigValue,
-} from '../../lib/git/config'
+import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
 
 interface IPreferencesProps {
@@ -39,10 +36,7 @@ interface IPreferencesState {
 }
 
 /** The app-level preferences component. */
-export class Preferences extends React.Component<
-  IPreferencesProps,
-  IPreferencesState
-> {
+export class Preferences extends React.Component<IPreferencesProps, IPreferencesState> {
   public constructor(props: IPreferencesProps) {
     super(props)
 
@@ -66,6 +60,7 @@ export class Preferences extends React.Component<
       const account = this.props.dotComAccount || this.props.enterpriseAccount
 
       if (account) {
+
         if (!committerName) {
           committerName = account.login
         }
@@ -82,26 +77,18 @@ export class Preferences extends React.Component<
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
-    this.setState({
-      committerName,
-      committerEmail,
-      isOptedOut,
-      confirmRepoRemoval,
-    })
+    this.setState({ committerName, committerEmail, isOptedOut, confirmRepoRemoval })
   }
 
   public render() {
     return (
       <Dialog
-        id="preferences"
+        id='preferences'
         title={__DARWIN__ ? 'Preferences' : 'Options'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSave}
       >
-        <TabBar
-          onTabClicked={this.onTabClicked}
-          selectedIndex={this.state.selectedIndex}
-        >
+        <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedIndex}>
           <span>Accounts</span>
           <span>Git</span>
           <span>Advanced</span>
@@ -131,37 +118,30 @@ export class Preferences extends React.Component<
     const index = this.state.selectedIndex
     switch (index) {
       case PreferencesTab.Accounts:
-        return (
-          <Accounts
-            dotComAccount={this.props.dotComAccount}
-            enterpriseAccount={this.props.enterpriseAccount}
-            onDotComSignIn={this.onDotComSignIn}
-            onEnterpriseSignIn={this.onEnterpriseSignIn}
-            onLogout={this.onLogout}
-          />
-        )
+        return <Accounts
+          dotComAccount={this.props.dotComAccount}
+          enterpriseAccount={this.props.enterpriseAccount}
+          onDotComSignIn={this.onDotComSignIn}
+          onEnterpriseSignIn={this.onEnterpriseSignIn}
+          onLogout={this.onLogout}
+        />
       case PreferencesTab.Git: {
-        return (
-          <Git
-            name={this.state.committerName}
-            email={this.state.committerEmail}
-            onNameChanged={this.onCommitterNameChanged}
-            onEmailChanged={this.onCommitterEmailChanged}
-          />
-        )
+        return <Git
+          name={this.state.committerName}
+          email={this.state.committerEmail}
+          onNameChanged={this.onCommitterNameChanged}
+          onEmailChanged={this.onCommitterEmailChanged}
+        />
       }
       case PreferencesTab.Advanced: {
-        return (
-          <Advanced
-            isOptedOut={this.state.isOptedOut}
-            confirmRepoRemoval={this.state.confirmRepoRemoval}
-            onOptOutSet={this.onOptOutSet}
-            onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
-          />
-        )
+        return <Advanced
+          isOptedOut={this.state.isOptedOut}
+          confirmRepoRemoval={this.state.confirmRepoRemoval}
+          onOptOutSet={this.onOptOutSet}
+          onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
+        />
       }
-      default:
-        return assertNever(index, `Unknown tab index: ${index}`)
+      default: return assertNever(index, `Unknown tab index: ${index}`)
     }
   }
 
@@ -184,21 +164,19 @@ export class Preferences extends React.Component<
   private renderFooter() {
     const index = this.state.selectedIndex
     switch (index) {
-      case PreferencesTab.Accounts:
-        return null
+      case PreferencesTab.Accounts: return null
       case PreferencesTab.Advanced:
       case PreferencesTab.Git: {
         return (
           <DialogFooter>
             <ButtonGroup>
-              <Button type="submit">Save</Button>
+              <Button type='submit'>Save</Button>
               <Button onClick={this.props.onDismissed}>Cancel</Button>
             </ButtonGroup>
           </DialogFooter>
         )
       }
-      default:
-        return assertNever(index, `Unknown tab index: ${index}`)
+      default: return assertNever(index, `Unknown tab index: ${index}`)
     }
   }
 
@@ -206,9 +184,7 @@ export class Preferences extends React.Component<
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
     await this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
-    await this.props.dispatcher.setConfirmRepoRemovalSetting(
-      this.state.confirmRepoRemoval
-    )
+    await this.props.dispatcher.setConfirmRepoRemovalSetting(this.state.confirmRepoRemoval)
 
     this.props.onDismissed()
   }

@@ -34,36 +34,32 @@ interface IOcticonProps {
  * @see OcticonProps
  * @extends React.Component<OcticonProps, void>
  */
-export class Octicon extends React.Component<IOcticonProps, {}> {
+export class Octicon extends React.Component<IOcticonProps, void> {
+
   public static defaultProps: IOcticonProps = {
     symbol: OcticonSymbol.markGithub,
   }
 
   public shouldComponentUpdate(nextProps: IOcticonProps) {
-    if (
-      nextProps.symbol.w !== this.props.symbol.w ||
-      nextProps.symbol.h !== this.props.symbol.h ||
-      nextProps.symbol.d !== this.props.symbol.d ||
-      nextProps.className !== this.props.className
-    ) {
-      return true
-    }
 
-    return false
+    if (nextProps.symbol.w !== this.props.symbol.w ||
+       nextProps.symbol.h !== this.props.symbol.h ||
+       nextProps.symbol.d !== this.props.symbol.d ||
+       nextProps.className !== this.props.className) {
+       return true
+     }
+
+     return false
   }
 
   private renderTitle() {
     const title = this.props.title
 
     if (!title) {
-      return null
+     return null
     }
 
-    return (
-      <title>
-        {title}
-      </title>
-    )
+    return <title>{title}</title>
   }
 
   public render() {
@@ -72,14 +68,9 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
     const className = classNames('octicon', this.props.className)
 
     return (
-      <svg
-        aria-hidden="true"
-        className={className}
-        version="1.1"
-        viewBox={viewBox}
-      >
+      <svg aria-hidden='true' className={className} version='1.1' viewBox={viewBox}>
         <path d={symbol.d}>
-          {this.renderTitle()}
+          { this.renderTitle() }
         </path>
       </svg>
     )

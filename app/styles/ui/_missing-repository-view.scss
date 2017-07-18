@@ -42,9 +42,12 @@
 
   /* xl-sized title */
   .title {
-    @include ellipsis;
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-light);
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
 
   .details {

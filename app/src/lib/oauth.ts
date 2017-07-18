@@ -1,7 +1,11 @@
-import { shell } from './dispatcher/app-shell'
+import { shell } from 'electron'
 import { Account } from '../models/account'
 import { fatalError } from './fatal-error'
-import { getOAuthAuthorizationURL, requestOAuthToken, fetchUser } from './api'
+import {
+  getOAuthAuthorizationURL,
+  requestOAuthToken,
+  fetchUser,
+} from './api'
 import { uuid } from './uuid'
 
 interface IOAuthState {
@@ -38,20 +42,12 @@ export function askUserToOAuth(endpoint: string) {
  * Request the authenticated using, using the code given to us by the OAuth
  * callback.
  */
-export async function requestAuthenticatedUser(
-  code: string
-): Promise<Account | null> {
+export async function requestAuthenticatedUser(code: string): Promise<Account | null> {
   if (!oauthState) {
-    return fatalError(
-      '`askUserToOAuth` must be called before requesting an authenticated user.'
-    )
+    return fatalError('`askUserToOAuth` must be called before requesting an authenticated user.')
   }
 
-  const token = await requestOAuthToken(
-    oauthState.endpoint,
-    oauthState.state,
-    code
-  )
+  const token = await requestOAuthToken(oauthState.endpoint, oauthState.state, code)
   if (token) {
     return fetchUser(oauthState.endpoint, token)
   } else {
@@ -67,9 +63,7 @@ export async function requestAuthenticatedUser(
  */
 export function resolveOAuthRequest(account: Account) {
   if (!oauthState) {
-    return fatalError(
-      '`askUserToOAuth` must be called before resolving an auth request.'
-    )
+    return fatalError('`askUserToOAuth` must be called before resolving an auth request.')
   }
 
   oauthState.resolve(account)
@@ -85,9 +79,7 @@ export function resolveOAuthRequest(account: Account) {
  */
 export function rejectOAuthRequest(error: Error) {
   if (!oauthState) {
-    return fatalError(
-      '`askUserToOAuth` must be called before rejecting an auth request.'
-    )
+    return fatalError('`askUserToOAuth` must be called before rejecting an auth request.')
   }
 
   oauthState.reject(error)

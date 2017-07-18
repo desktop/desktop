@@ -40,7 +40,7 @@ The [CONTRIBUTING.md](./CONTRIBUTING.md) document will help you get setup and
 familiar with the source. The [documentation](docs/) folder also contains more
 resources relevant to the project.
 
-If you're looking for something to work on, check out the [accepting-prs](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+label%3Aaccepting-prs) label.
+If you're looking for something to work on, check out the [up-for-grabs](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+label%3Aup-for-grabs) label.
 
 ## More Resources
 

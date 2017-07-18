@@ -22,12 +22,7 @@ export class Branch {
   /** The commit associated with this branch */
   public readonly tip: Commit
 
-  public constructor(
-    name: string,
-    upstream: string | null,
-    tip: Commit,
-    type: BranchType
-  ) {
+  public constructor(name: string, upstream: string | null, tip: Commit, type: BranchType) {
     this.name = name
     this.upstream = upstream
     this.tip = tip
@@ -37,14 +32,10 @@ export class Branch {
   /** The name of the upstream's remote. */
   public get remote(): string | null {
     const upstream = this.upstream
-    if (!upstream) {
-      return null
-    }
+    if (!upstream) { return null }
 
     const pieces = upstream.match(/(.*?)\/.*/)
-    if (!pieces || pieces.length < 2) {
-      return null
-    }
+    if (!pieces || pieces.length < 2) { return null }
 
     return pieces[1]
   }
@@ -53,9 +44,7 @@ export class Branch {
    * The name of the branch's upstream without the remote prefix.
    */
   public get upstreamWithoutRemote(): string | null {
-    if (!this.upstream) {
-      return null
-    }
+    if (!this.upstream) { return null }
 
     return removeRemotePrefix(this.upstream)
   }

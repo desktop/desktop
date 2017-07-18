@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 export interface IResizableProps extends React.Props<Resizable> {
+
   readonly width: number
 
   /** The maximum width the panel can be resized to.
@@ -39,7 +40,8 @@ export interface IResizableProps extends React.Props<Resizable> {
  * Note: this component is pure, consumers must subscribe to the
  * onResize and onReset event and update the width prop accordingly.
  */
-export class Resizable extends React.Component<IResizableProps, {}> {
+export class Resizable extends React.Component<IResizableProps, void> {
+
   public static defaultProps: IResizableProps = {
     width: 250,
     minimumWidth: 150,
@@ -64,10 +66,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
    * maximum widths as determined by props
    */
   private clampWidth(width: number) {
-    return Math.max(
-      this.props.minimumWidth!,
-      Math.min(this.props.maximumWidth!, width)
-    )
+    return Math.max(this.props.minimumWidth!, Math.min(this.props.maximumWidth!, width))
   }
 
   /**
@@ -86,9 +85,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
    * Handler for when the user moves the mouse while dragging
    */
   private handleDragMove = (e: MouseEvent) => {
-    if (!this.startWidth) {
-      return
-    }
+    if (!this.startWidth) { return }
 
     const deltaX = e.clientX - this.startX
     const newWidth = this.startWidth + deltaX
@@ -121,6 +118,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
   }
 
   public render() {
+
     const style: React.CSSProperties = {
       width: this.getCurrentWidth(),
       maximumWidth: this.props.maximumWidth,
@@ -128,13 +126,9 @@ export class Resizable extends React.Component<IResizableProps, {}> {
     }
 
     return (
-      <div id={this.props.id} className="resizable-component" style={style}>
+      <div id={this.props.id} className='resizable-component' style={style}>
         {this.props.children}
-        <div
-          onMouseDown={this.handleDragStart}
-          onDoubleClick={this.handleDoubleClick}
-          className="resize-handle"
-        />
+        <div onMouseDown={this.handleDragStart} onDoubleClick={this.handleDoubleClick} className='resize-handle'></div>
       </div>
     )
   }

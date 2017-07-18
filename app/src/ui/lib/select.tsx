@@ -13,6 +13,9 @@ interface ISelectProps {
 
   /** Called when the user changes the selected valued. */
   readonly onChange?: (event: React.FormEvent<HTMLSelectElement>) => void
+
+  /** The <option>'s for the select control. */
+  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 interface ISelectState {
@@ -24,12 +27,9 @@ interface ISelectState {
   readonly inputId?: string
 }
 
-/**
- * A select element with app-standard styles.
- *
- * Provide `children` elements for the contents of the `select` element.
- */
+/** A select element with app-standard styles. */
 export class Select extends React.Component<ISelectProps, ISelectState> {
+
   public componentWillMount() {
     const friendlyName = this.props.label || 'unknown'
     const inputId = createUniqueId(`Select_${friendlyName}`)
@@ -48,15 +48,13 @@ export class Select extends React.Component<ISelectProps, ISelectState> {
     const inputId = this.state.inputId
 
     return !!label
-      ? <label htmlFor={inputId}>
-          {label}
-        </label>
+      ? <label htmlFor={inputId}>{label}</label>
       : null
   }
 
   public render() {
     return (
-      <div className="select-component">
+      <div className='select-component'>
         {this.renderLabel()}
         <select
           id={this.state.inputId}

@@ -10,26 +10,29 @@ interface IGitIgnoreProps {
 }
 
 /** A view for creating or modifying the repository's gitignore file */
-export class GitIgnore extends React.Component<IGitIgnoreProps, {}> {
+export class GitIgnore extends React.Component<IGitIgnoreProps, void> {
+
   public render() {
+
     return (
       <DialogContent>
         <p>
           The .gitignore file controls which files are tracked by Git and which
-          are ignored. Check out{' '}
-          <LinkButton onClick={this.props.onShowExamples}>
-            git-scm.com
-          </LinkButton>{' '}
-          for more information about the file format, or simply ignore a file by
+          are ignored. Check out <LinkButton onClick={this.props.onShowExamples}>git-scm.com</LinkButton> for
+          more information about the file format, or simply ignore a file by
           right clicking on it in the uncommitted changes view.
         </p>
         <TextArea
-          placeholder="Ignored files"
+          placeholder='Ignored files'
           value={this.props.text || ''}
-          onValueChanged={this.props.onIgnoreTextChanged}
-          rows={6}
-        />
+          onChange={this.onChange}
+          rows={6} />
       </DialogContent>
     )
+  }
+
+  private onChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
+    const text = event.currentTarget.value
+    this.props.onIgnoreTextChanged(text)
   }
 }

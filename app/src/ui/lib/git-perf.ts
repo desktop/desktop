@@ -12,10 +12,7 @@ export function stop() {
 }
 
 /** Measure an async git operation. */
-export async function measure<T>(
-  cmd: string,
-  fn: () => Promise<T>
-): Promise<T> {
+export async function measure<T>(cmd: string, fn: () => Promise<T>): Promise<T> {
   const id = ++markID
   markBegin(id, cmd)
   const result = await fn()
@@ -25,9 +22,7 @@ export async function measure<T>(
 
 /** Mark the beginning of a git operation. */
 function markBegin(id: number, cmd: string) {
-  if (!measuringPerf) {
-    return
-  }
+  if (!measuringPerf) { return }
 
   const markName = `${id}::${cmd}`
   performance.mark(markName)
@@ -35,9 +30,7 @@ function markBegin(id: number, cmd: string) {
 
 /** Mark the end of a git operation. */
 function markEnd(id: number, cmd: string) {
-  if (!measuringPerf) {
-    return
-  }
+  if (!measuringPerf) { return }
 
   const markName = `${id}::${cmd}`
   const measurementName = cmd

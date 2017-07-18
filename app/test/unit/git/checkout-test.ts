@@ -1,8 +1,5 @@
 import { expect, use as chaiUse } from 'chai'
-import {
-  setupEmptyRepository,
-  setupFixtureRepository,
-} from '../../fixture-helper'
+import { setupEmptyRepository, setupFixtureRepository } from '../../fixture-helper'
 import { Repository } from '../../../src/models/repository'
 import { checkoutBranch } from '../../../src/lib/git'
 import { TipState, IValidBranch } from '../../../src/models/tip'
@@ -35,6 +32,7 @@ describe('git/checkout', () => {
     const store = new GitStore(repository, shell)
     await store.loadStatus()
     const tip = store.tip
+
 
     expect(tip.kind).to.equal(TipState.Valid)
 

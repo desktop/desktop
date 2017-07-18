@@ -15,7 +15,6 @@
 
   --text-color: $gray-900;
   --text-secondary-color: $gray-500;
-  --text-tertiary-color: $gray-400;
   --background-color: $white;
 
   --button-height: 25px;
@@ -137,17 +136,11 @@
    */
   --box-selected-active-border-color: $gray-400;
 
-  /**
-   * The height of the title bar area on Win32 platforms
-   * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
-  */
+  /** The height of the title bar area on Win32 platforms */
   --win32-title-bar-height: 28px;
   --win32-title-bar-background-color: $gray-900;
 
-  /**
-   * The height of the title bar area on darwin platforms
-   * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
-  */
+  /** The height of the title bar area on darwin platforms */
   --darwin-title-bar-height: 22px;
 
   --spacing: 10px;

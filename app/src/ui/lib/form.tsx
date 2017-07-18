@@ -10,7 +10,7 @@ interface IFormProps {
 }
 
 /** A form element with app-standard styles. */
-export class Form extends React.Component<IFormProps, {}> {
+export class Form extends React.Component<IFormProps, void> {
   public render() {
     const className = classNames('form-component', this.props.className)
     return (

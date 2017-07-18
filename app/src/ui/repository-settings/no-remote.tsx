@@ -11,16 +11,12 @@ interface INoRemoteProps {
 }
 
 /** The component for when a repository has no remote. */
-export class NoRemote extends React.Component<INoRemoteProps, {}> {
+export class NoRemote extends React.Component<INoRemoteProps, void> {
   public render() {
     return (
       <DialogContent>
-        <CallToAction actionTitle="Publish" onAction={this.props.onPublish}>
-          <div>
-            Publish your repository to GitHub. Need help?{' '}
-            <LinkButton uri={HelpURL}>Learn more</LinkButton> about remote
-            repositories.
-          </div>
+        <CallToAction actionTitle='Publish' onAction={this.props.onPublish}>
+          <div>Publish your repository to GitHub. Need help? <LinkButton uri={HelpURL}>Learn more</LinkButton> about remote repositories.</div>
         </CallToAction>
       </DialogContent>
     )

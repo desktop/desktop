@@ -8,7 +8,7 @@ const minHeight = 500
 
 /**
  * A wrapper around the BrowserWindow instance for our crash process.
- *
+ * 
  * The crash process is responsible for presenting the user with an
  * error after the main process or any renderer process has crashed due
  * to an uncaught exception or when the main renderer has failed to load.
@@ -23,7 +23,7 @@ export class CrashWindow {
   private hasSentReadyEvent = false
 
   public constructor(errorType: ErrorType, error: Error) {
-    const windowOptions: Electron.BrowserWindowConstructorOptions = {
+    const windowOptions: Electron.BrowserWindowOptions = {
       width: minWidth,
       height: minHeight,
       minWidth: minWidth,
@@ -94,7 +94,7 @@ export class CrashWindow {
       }
     })
 
-    ipcMain.on('crash-ready', (event: Electron.IpcMessageEvent) => {
+    ipcMain.on('crash-ready', (event: Electron.IpcMainEvent) => {
       log.debug(`Crash process is ready`)
 
       this.hasSentReadyEvent = true
@@ -103,7 +103,7 @@ export class CrashWindow {
       this.maybeEmitDidLoad()
     })
 
-    ipcMain.on('crash-quit', (event: Electron.IpcMessageEvent) => {
+    ipcMain.on('crash-quit', (event: Electron.IpcMainEvent) => {
       log.debug('Got quit signal from crash process')
       this.window.close()
     })

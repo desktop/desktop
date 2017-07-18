@@ -21,37 +21,33 @@ export type ProgressCallback = (progress: ICheckoutProgress) => void
  *                           enables the '--progress' command line flag for
  *                           'git checkout'.
  */
-export async function checkoutBranch(
-  repository: Repository,
-  name: string,
-  progressCallback?: ProgressCallback
-): Promise<void> {
+export async function checkoutBranch(repository: Repository, name: string, progressCallback?: ProgressCallback): Promise<void> {
+
   let processCallback: ProcessCallback | undefined = undefined
 
   if (progressCallback) {
+
     const title = `Checking out branch ${name}`
     const kind = 'checkout'
     const targetBranch = name
 
-    processCallback = progressProcessCallback(
-      new CheckoutProgressParser(),
-      progress => {
-        if (progress.kind === 'progress') {
-          const description = progress.details.text
-          const value = progress.percent
+    processCallback = progressProcessCallback(new CheckoutProgressParser(), (progress) => {
+      if (progress.kind === 'progress') {
 
-          progressCallback({ kind, title, description, value, targetBranch })
-        }
+        const description = progress.details.text
+        const value = progress.percent
+
+        progressCallback({ kind, title, description, value, targetBranch })
       }
-    )
+    })
 
     // Initial progress
     progressCallback({ kind, title, value: 0, targetBranch })
   }
 
   const args = processCallback
-    ? ['checkout', '--progress', name, '--']
-    : ['checkout', name, '--']
+    ? [ 'checkout', '--progress', name, '--' ]
+    : [ 'checkout', name, '--' ]
 
   await git(args, repository.path, 'checkoutBranch', {
     processCallback,
@@ -59,13 +55,6 @@ export async function checkoutBranch(
 }
 
 /** Check out the paths at HEAD. */
-export async function checkoutPaths(
-  repository: Repository,
-  paths: ReadonlyArray<string>
-): Promise<void> {
-  await git(
-    ['checkout', 'HEAD', '--', ...paths],
-    repository.path,
-    'checkoutPaths'
-  )
+export async function checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
+  await git([ 'checkout', 'HEAD', '--', ...paths ], repository.path, 'checkoutPaths')
 }

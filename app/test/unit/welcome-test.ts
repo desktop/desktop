@@ -1,15 +1,13 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import {
-  hasShownWelcomeFlow,
-  markWelcomeFlowComplete,
-} from '../../src/lib/welcome'
+import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../../src/lib/welcome'
 
 describe('Welcome', () => {
   const key = 'has-shown-welcome-flow'
 
   describe('hasShownWelcomeFlow', () => {
+
     beforeEach(() => {
       localStorage.removeItem(key)
     })

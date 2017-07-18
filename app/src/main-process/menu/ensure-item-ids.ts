@@ -1,4 +1,4 @@
-function getItemId(template: Electron.MenuItemConstructorOptions) {
+function getItemId(template: Electron.MenuItemOptions) {
   return template.id || template.label || template.role || 'unknown'
 }
 
@@ -13,11 +13,7 @@ function getItemId(template: Electron.MenuItemConstructorOptions) {
  * Note that this does not do anything to prevent the case where items have
  * explicitly been given duplicate ids.
  */
-export function ensureItemIds(
-  template: ReadonlyArray<Electron.MenuItemConstructorOptions>,
-  prefix = '@',
-  seenIds = new Set<string>()
-) {
+export function ensureItemIds(template: ReadonlyArray<Electron.MenuItemOptions>, prefix = '@', seenIds = new Set<string>()) {
   for (const item of template) {
     let counter = 0
     let id = item.id
@@ -35,9 +31,7 @@ export function ensureItemIds(
     seenIds.add(id)
 
     if (item.submenu) {
-      const subMenuTemplate = item.submenu as ReadonlyArray<
-        Electron.MenuItemConstructorOptions
-      >
+      const subMenuTemplate = item.submenu as ReadonlyArray<Electron.MenuItemOptions>
       ensureItemIds(subMenuTemplate, item.id, seenIds)
     }
   }

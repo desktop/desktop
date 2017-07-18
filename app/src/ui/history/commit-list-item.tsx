@@ -12,22 +12,21 @@ interface ICommitProps {
 }
 
 /** A component which displays a single commit in a commit list. */
-export class CommitListItem extends React.Component<ICommitProps, {}> {
+export class CommitListItem extends React.Component<ICommitProps, void> {
   public render() {
     const commit = this.props.commit
     const author = commit.author
 
     return (
-      <div className="commit">
+      <div className='commit'>
         <Avatar user={this.props.user || undefined} />
-        <div className="info">
+        <div className='info'>
           <RichText
-            className="summary"
+            className='summary'
             emoji={this.props.emoji}
             text={commit.summary}
-            renderUrlsAsLinks={false}
-          />
-          <div className="byline">
+            renderUrlsAsLinks={false} />
+          <div className='byline'>
             <RelativeTime date={author.date} /> by {author.name}
           </div>
         </div>

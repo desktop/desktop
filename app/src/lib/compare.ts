@@ -19,12 +19,8 @@
  *
  */
 export function compare<T>(x: T, y: T): number {
-  if (x < y) {
-    return -1
-  }
-  if (x > y) {
-    return 1
-  }
+  if (x < y) { return -1 }
+  if (x > y) { return 1 }
 
   return 0
 }
@@ -50,12 +46,8 @@ export function compare<T>(x: T, y: T): number {
  *
  */
 export function compareDescending<T>(x: T, y: T): number {
-  if (x < y) {
-    return 1
-  }
-  if (x > y) {
-    return -1
-  }
+  if (x < y) { return 1 }
+  if (x > y) { return -1 }
 
   return 0
 }

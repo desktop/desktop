@@ -15,10 +15,7 @@ interface IConfirmRemoveRepositoryProps {
   readonly onDismissed: () => void
 }
 
-export class ConfirmRemoveRepository extends React.Component<
-  IConfirmRemoveRepositoryProps,
-  {}
-> {
+export class ConfirmRemoveRepository extends React.Component<IConfirmRemoveRepositoryProps, void> {
   private cancel = () => {
     this.props.onDismissed()
   }
@@ -31,25 +28,22 @@ export class ConfirmRemoveRepository extends React.Component<
   public render() {
     return (
       <Dialog
-        id="confirm-remove-repository"
-        key="remove-repository-confirmation"
-        type="warning"
-        title={__DARWIN__ ? 'Remove Repository' : 'Remove repository'}
+        id='confirm-remove-repository'
+        key='remove-repository-confirmation'
+        type='warning'
+        title={ __DARWIN__ ? 'Remove Repository' : 'Remove repository' }
         onDismissed={this.cancel}
         onSubmit={this.cancel}
       >
         <DialogContent>
-          <p>
-            Are you sure you want to remove the repository "{this.props.repository.name}"?
-          </p>
-          <p className="description">
-            The repository will be removed from GitHub Desktop but will remain
-            on disk.
+          <p>Are you sure you want to remove the repository "{this.props.repository.name}"?</p>
+          <p className='description'>
+            The repository will be removed from GitHub Desktop but will remain on disk.
           </p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup destructive={true}>
-            <Button type="submit">Cancel</Button>
+          <ButtonGroup destructive>
+            <Button type='submit'>Cancel</Button>
             <Button onClick={this.onConfirmed}>Remove</Button>
           </ButtonGroup>
         </DialogFooter>

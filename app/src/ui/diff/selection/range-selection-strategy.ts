@@ -10,12 +10,7 @@ export class RangeSelection implements ISelectionStrategy {
   private readonly _desiredSelection: boolean
   private readonly _snapshot: DiffSelection
 
-  public constructor(
-    start: number,
-    end: number,
-    desiredSelection: boolean,
-    snapshot: DiffSelection
-  ) {
+  public constructor(start: number, end: number, desiredSelection: boolean, snapshot: DiffSelection) {
     this._start = start
     this._end = end
     this._desiredSelection = desiredSelection
@@ -46,13 +41,13 @@ export class RangeSelection implements ISelectionStrategy {
   }
 
   public done(): DiffSelection {
-    const length = this._end - this._start + 1
+
+    const length = (this._end - this._start) + 1
 
     const newSelection = this._snapshot.withRangeSelection(
       this._start,
       length,
-      this._desiredSelection
-    )
+      this._desiredSelection)
 
     return newSelection
   }

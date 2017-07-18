@@ -118,16 +118,10 @@ function createSignature (body) {
 }
 
 function updateDeploy (artifacts) {
-  const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
     context: process.platform,
     branch_name: branchName,
-    artifacts,
-    stats: {
-      platform: process.platform,
-      rendererBundleSize: rendererSize,
-      mainBundleSize: mainSize,
-    }
+    artifacts
   }
   const signature = createSignature(body)
   const options = {

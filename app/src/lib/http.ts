@@ -4,64 +4,23 @@ import * as appProxy from '../ui/lib/app-proxy'
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
 /**
- * The structure of error messages returned from the GitHub API.
- *
- * Details: https://developer.github.com/v3/#client-errors
- */
-export interface IError {
-  readonly message: string
-  readonly resource: string
-  readonly field: string
-}
-
-/**
- * The partial server response when an error has been returned.
- *
- * Details: https://developer.github.com/v3/#client-errors
- */
-export interface IAPIError {
-  readonly errors?: IError[]
-  readonly message?: string
-}
-
-/** An error from getting an unexpected response to an API call. */
-export class APIError extends Error {
-  /** The error as sent from the API, if one could be parsed. */
-  public readonly apiError: IAPIError | null
-
-  public constructor(response: Response, apiError: IAPIError | null) {
-    let message
-    if (apiError && apiError.message) {
-      message = apiError.message
-
-      const errors = apiError.errors
-      const additionalMessages = errors && errors.map(e => e.message).join(', ')
-      if (additionalMessages) {
-        message = `${message} (${additionalMessages})`
-      }
-    } else {
-      message = `API error ${response.url}: ${response.statusText} (${response.status})`
-    }
-
-    super(message)
-
-    this.apiError = apiError
-  }
-}
-
-/**
  * Deserialize the HTTP response body into an expected object shape
  *
- * Note: this doesn't validate the expected shape, and will only fail if it
- * encounters invalid JSON.
+ * Note: this doesn't validate the expected shape, and will only fail
+ * if it encounters invalid JSON
  */
-async function deserialize<T>(response: Response): Promise<T> {
+export async function deserialize<T>(response: Response | string): Promise<T | null> {
   try {
-    const json = await response.json()
-    return json as T
+    if (response instanceof Response) {
+      const json = await response.json()
+      return json as T
+    } else {
+      const json = await JSON.parse(response)
+      return json as T
+    }
   } catch (e) {
-    log.warn(`Unable to deserialize JSON string to object ${response}`, e)
-    throw e
+    log.error(`Unable to deserialize JSON string to object ${response}`, e)
+    return null
   }
 }
 
@@ -69,94 +28,36 @@ async function deserialize<T>(response: Response): Promise<T> {
  * Make an API request.
  *
  * @param endpoint      - The API endpoint.
- * @param token         - The token to use for authentication.
+ * @param authorization - The value to pass in the `Authorization` header.
  * @param method        - The HTTP method.
  * @param path          - The path, including any query string parameters.
- * @param jsonBody      - The JSON body to send.
+ * @param body          - The body to send.
  * @param customHeaders - Any optional additional headers to send.
  */
-export function request(
-  endpoint: string,
-  token: string | null,
-  method: HTTPMethod,
-  path: string,
-  jsonBody?: Object,
-  customHeaders?: Object
-): Promise<Response> {
-  const relativePath = path[0] === '/' ? path.substr(1) : path
-  const url = encodeURI(`${endpoint}/${relativePath}`)
+export function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
+  const url = new URL(path, endpoint)
 
-  let headers: any = {
-    Accept: 'application/vnd.github.v3+json, application/json',
+  const headers: any = Object.assign({}, {
+    'Accept': 'application/vnd.github.v3+json, application/json',
     'Content-Type': 'application/json',
     'User-Agent': getUserAgent(),
-  }
+  }, customHeaders)
 
-  if (token) {
-    headers['Authorization'] = `token ${token}`
-  }
-
-  headers = {
-    ...headers,
-    ...customHeaders,
+  if (authorization) {
+    headers['Authorization'] = authorization
   }
 
   const options = {
     headers,
     method,
-    body: JSON.stringify(jsonBody),
+    body: JSON.stringify(body),
   }
 
-  return fetch(url, options)
+  return fetch(url.href, options)
 }
 
 /** Get the user agent to use for all requests. */
-function getUserAgent() {
+export function getUserAgent() {
   const platform = __DARWIN__ ? 'Macintosh' : 'Windows'
   return `GitHubDesktop/${appProxy.getVersion()} (${platform})`
-}
-
-/**
- * If the response was OK, parse it as JSON and return the result. If not, parse
- * the API error and throw it.
- */
-export async function parsedResponse<T>(response: Response): Promise<T> {
-  if (response.ok) {
-    return deserialize<T>(response)
-  } else {
-    let apiError: IAPIError | null
-    // Deserializing the API error could throw. If it does, we'll throw a more
-    // general API error.
-    try {
-      apiError = await deserialize<IAPIError>(response)
-    } catch (e) {
-      throw new APIError(response, null)
-    }
-
-    throw apiError
-  }
-}
-
-/**
- * Appends the parameters provided to the url as query string parameters.
- *
- * If the url already has a query the new parameters will be appended.
- */
-export function urlWithQueryString(
-  url: string,
-  params: { [key: string]: string }
-): string {
-  const qs = Object.keys(params)
-    .map(key => `${key}=${encodeURIComponent(params[key])}`)
-    .join('&')
-
-  if (!qs.length) {
-    return url
-  }
-
-  if (url.indexOf('?') === -1) {
-    return `${url}?${qs}`
-  } else {
-    return `${url}&${qs}`
-  }
 }

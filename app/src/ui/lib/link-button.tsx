@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { shell } from '../../lib/dispatcher/app-shell'
+import { shell } from 'electron'
 import * as classNames from 'classnames'
 
 interface ILinkButtonProps {
@@ -9,6 +9,9 @@ interface ILinkButtonProps {
   /** A function to call on click. */
   readonly onClick?: () => void
 
+  /** The title of the button. */
+  readonly children?: string
+
   /** CSS classes attached to the component */
   readonly className?: string
 
@@ -17,17 +20,10 @@ interface ILinkButtonProps {
 
   /** Disable the link from being clicked */
   readonly disabled?: boolean
-
-  /** title-text or tooltip for the link */
-  readonly title?: string
 }
 
-/**
- * A link component.
- *
- * Provide `children` elements for the title of the rendered hyperlink.
- */
-export class LinkButton extends React.Component<ILinkButtonProps, {}> {
+/** A link component. */
+export class LinkButton extends React.Component<ILinkButtonProps, void> {
   public render() {
     const href = this.props.uri || ''
     const className = classNames('link-button-component', this.props.className)
@@ -37,7 +33,6 @@ export class LinkButton extends React.Component<ILinkButtonProps, {}> {
         className={className}
         href={href}
         onClick={this.onClick}
-        title={this.props.title}
         tabIndex={this.props.tabIndex}
         disabled={this.props.disabled}
       >

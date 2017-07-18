@@ -6,7 +6,7 @@
   "description": "GitHub Desktop build dependencies",
   "scripts": {
     "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 mocha -t 10000 --compilers ts:ts-node/register,tsx:ts-node/register app/test/integration/*.ts",
-    "test:unit": "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 electron-mocha -t 10000 --renderer --compilers ts:ts-node/register,tsx:ts-node/register --require ./app/test/globals.ts app/test/unit/*.ts app/test/unit/git/*.ts app/test/unit/progress/*.ts app/test/unit/main-process/* app/test/unit/*.tsx",
+    "test:unit": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 electron-mocha -t 10000 --renderer --compilers ts:ts-node/register,tsx:ts-node/register --require ./app/test/globals.ts app/test/unit/*.ts app/test/unit/git/*.ts app/test/unit/progress/*.ts app/test/unit/main-process/* app/test/unit/*.tsx",
     "test": "npm run test:unit && npm run test:integration",
     "test:setup": "node script/test-setup",
     "test:review": "node script/test-review",
@@ -22,21 +22,10 @@
     "clean:tslint": "rimraf tslint-rules/*.js",
     "compile:tslint": "tsc -p tslint-rules",
     "lint": "npm run compile:tslint && tslint \"./app/src/**/*.ts\" \"./app/src/**/*.tsx\" \"./app/test/**/*.ts\" \"./app/test/**/*.tsx\"",
-    "check-prettiness": "node script/is-it-pretty",
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
-    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
-    "precommit": "lint-staged",
-    "prepush": "lint-staged",
-    "prettier:base": "prettier --parser typescript --single-quote --trailing-comma es5 --tab-width 2 --no-semi --print-width 80 --write",
-    "prettify": "npm run prettier:base 'app/src/**/*.ts' && npm run prettier:base 'app/src/**/*.tsx' && npm run prettier:base 'app/test/**/*.ts'"
-  },
-  "lint-staged": {
-    "app/{src, test}/**/*.{ts, tsx}": [
-      "npm run prettier:base",
-      "git add"
-    ]
+    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod"
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -60,8 +49,8 @@
     "clean-webpack-plugin": "^0.1.16",
     "cross-env": "^3.2.3",
     "css-loader": "^0.26.2",
-    "electron": "1.6.11",
-    "electron-mocha": "3.5.0",
+    "electron": "1.6.7",
+    "electron-mocha": "3.3.0",
     "electron-packager": "8.6.0",
     "electron-winstaller": "2.5.2",
     "express": "^4.15.0",
@@ -71,7 +60,7 @@
     "html-webpack-plugin": "^2.28.0",
     "klaw-sync": "^1.1.2",
     "legal-eagle": "0.15.0",
-    "mocha": "^3.4.2",
+    "mocha": "^3.0.2",
     "node-native-loader": "^1.1.1",
     "node-sass": "^4.5.2",
     "parallel-webpack": "^1.6.1",
@@ -85,7 +74,7 @@
     "ts-node": "^3.0.2",
     "tslint": "^4.5.1",
     "tslint-microsoft-contrib": "^4.0.1",
-    "typescript": "2.3.4",
+    "typescript": "2.3.2",
     "vrsource-tslint-rules": "^0.12.0",
     "webpack": "^2.4.1",
     "webpack-dev-middleware": "^1.10.1",
@@ -98,23 +87,20 @@
     "@types/chai-datetime": "0.0.30",
     "@types/classnames": "^0.0.32",
     "@types/codemirror": "0.0.38",
+    "@types/electron": "^1.4.36",
+    "@types/electron-window-state": "^2.0.28",
     "@types/event-kit": "^1.2.28",
     "@types/fs-extra": "2.1.0",
     "@types/keytar": "^4.0.0",
     "@types/mocha": "^2.2.29",
-    "@types/node": "^7.0.18",
-    "@types/react": "15.0.31",
-    "@types/react-addons-test-utils": "0.14.19",
-    "@types/react-dom": "15.5.1",
-    "@types/react-transition-group": "1.1.1",
-    "@types/react-virtualized": "9.7.2",
+    "@types/node": "^6.0.31",
+    "@types/react": "15.0.23",
+    "@types/react-addons-test-utils": "^0.14.17",
+    "@types/react-dom": "^15.5.0",
+    "@types/react-transition-group": "^1.1.0",
+    "@types/react-virtualized": "^9.7.0",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
-    "@types/winston": "^2.2.0",
-    "husky": "^0.14.1",
-    "lint-staged": "^4.0.0",
-    "prettier": "^1.5.0",
-    "tslint-config-prettier": "^1.1.0",
-    "tslint-react": "^3.0.0"
+    "@types/winston": "^2.2.0"
   }
 }

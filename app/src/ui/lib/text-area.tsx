@@ -28,18 +28,6 @@ interface ITextAreaProps {
   /** Called when the user changes the value in the textarea field. */
   readonly onChange?: (event: React.FormEvent<HTMLTextAreaElement>) => void
 
-  /**
-   * Called when the user changes the value in the textarea.
-   *
-   * This differs from the onChange event in that it passes only the new
-   * value and not the event itself. Subscribe to the onChange event if you
-   * need the ability to prevent the action from occurring.
-   *
-   * This callback will not be invoked if the callback from onChange calls
-   * preventDefault.
-   */
-  readonly onValueChanged?: (value: string) => void
-
   /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void
 
@@ -48,22 +36,9 @@ interface ITextAreaProps {
 }
 
 /** A textarea element with app-standard styles. */
-export class TextArea extends React.Component<ITextAreaProps, {}> {
-  private onChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
-    if (this.props.onChange) {
-      this.props.onChange(event)
-    }
-
-    if (this.props.onValueChanged && !event.defaultPrevented) {
-      this.props.onValueChanged(event.currentTarget.value)
-    }
-  }
-
+export class TextArea extends React.Component<ITextAreaProps, void> {
   public render() {
-    const className = classNames(
-      'text-area-component',
-      this.props.labelClassName
-    )
+    const className = classNames('text-area-component', this.props.labelClassName)
     return (
       <label className={className}>
         {this.props.label}
@@ -75,10 +50,9 @@ export class TextArea extends React.Component<ITextAreaProps, {}> {
           rows={this.props.rows || 3}
           placeholder={this.props.placeholder}
           value={this.props.value}
-          onChange={this.onChange}
+          onChange={this.props.onChange}
           onKeyDown={this.props.onKeyDown}
-          ref={this.props.onTextAreaRef}
-        />
+          ref={this.props.onTextAreaRef}/>
       </label>
     )
   }

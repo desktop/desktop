@@ -33,10 +33,7 @@ interface IRepositorySettingsState {
   readonly errors?: ReadonlyArray<JSX.Element | string>
 }
 
-export class RepositorySettings extends React.Component<
-  IRepositorySettingsProps,
-  IRepositorySettingsState
-> {
+export class RepositorySettings extends React.Component<IRepositorySettingsProps, IRepositorySettingsState> {
   public constructor(props: IRepositorySettingsProps) {
     super(props)
 
@@ -51,17 +48,11 @@ export class RepositorySettings extends React.Component<
 
   public async componentWillMount() {
     try {
-      const ignoreText = await this.props.dispatcher.readGitIgnore(
-        this.props.repository
-      )
+      const ignoreText = await this.props.dispatcher.readGitIgnore(this.props.repository)
       this.setState({ ignoreText })
     } catch (e) {
-      log.error(
-        `RepositorySettings: unable to read .gitignore file at ${this.props
-          .repository.path}`,
-        e
-      )
-      this.setState({ errors: [`Could not read .gitignore: ${e}`] })
+      log.error(`RepositorySettings: unable to read .gitignore file at ${this.props.repository.path}`, e)
+      this.setState({ errors: [ `Could not read .gitignore: ${e}` ] })
     }
   }
 
@@ -74,18 +65,14 @@ export class RepositorySettings extends React.Component<
 
     return errors.map((err, ix) => {
       const key = `err-${ix}`
-      return (
-        <DialogError key={key}>
-          {err}
-        </DialogError>
-      )
+      return <DialogError key={key}>{err}</DialogError>
     })
   }
 
   public render() {
     return (
       <Dialog
-        id="repository-settings"
+        id='repository-settings'
         title={__DARWIN__ ? 'Repository Settings' : 'Repository settings'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
@@ -93,14 +80,9 @@ export class RepositorySettings extends React.Component<
       >
         {this.renderErrors()}
 
-        <TabBar
-          onTabClicked={this.onTabClicked}
-          selectedIndex={this.state.selectedTab}
-        >
+        <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
           <span>Remote</span>
-          <span>
-            {__DARWIN__ ? 'Ignored Files' : 'Ignored files'}
-          </span>
+          <span>{ __DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
         </TabBar>
 
         {this.renderActiveTab()}
@@ -119,7 +101,7 @@ export class RepositorySettings extends React.Component<
     return (
       <DialogFooter>
         <ButtonGroup>
-          <Button type="submit">Save</Button>
+          <Button type='submit'>Save</Button>
           <Button onClick={this.props.onDismissed}>Cancel</Button>
         </ButtonGroup>
       </DialogFooter>
@@ -139,17 +121,15 @@ export class RepositorySettings extends React.Component<
             />
           )
         } else {
-          return <NoRemote onPublish={this.onPublish} />
+          return <NoRemote onPublish={this.onPublish}/>
         }
       }
       case RepositorySettingsTab.IgnoredFiles: {
-        return (
-          <GitIgnore
-            text={this.state.ignoreText}
-            onIgnoreTextChanged={this.onIgnoreTextChanged}
-            onShowExamples={this.onShowGitIgnoreExamples}
-          />
-        )
+        return <GitIgnore
+          text={this.state.ignoreText}
+          onIgnoreTextChanged={this.onIgnoreTextChanged}
+          onShowExamples={this.onShowGitIgnoreExamples}
+        />
       }
     }
 
@@ -157,10 +137,7 @@ export class RepositorySettings extends React.Component<
   }
 
   private onPublish = () => {
-    this.props.dispatcher.showPopup({
-      type: PopupType.PublishRepository,
-      repository: this.props.repository,
-    })
+    this.props.dispatcher.showPopup({ type: PopupType.PublishRepository, repository: this.props.repository })
   }
 
   private onShowGitIgnoreExamples = () => {
@@ -168,6 +145,7 @@ export class RepositorySettings extends React.Component<
   }
 
   private onSubmit = async () => {
+
     this.setState({ disabled: true, errors: undefined })
     const errors = new Array<JSX.Element | string>()
 
@@ -177,14 +155,10 @@ export class RepositorySettings extends React.Component<
           await this.props.dispatcher.setRemoteURL(
             this.props.repository,
             this.props.remote.name,
-            this.state.remote.url
+            this.state.remote.url,
           )
         } catch (e) {
-          log.error(
-            `RepositorySettings: unable to set remote URL at ${this.props
-              .repository.path}`,
-            e
-          )
+          log.error(`RepositorySettings: unable to set remote URL at ${this.props.repository.path}`, e)
           errors.push(`Failed setting the remote URL: ${e}`)
         }
       }
@@ -192,16 +166,9 @@ export class RepositorySettings extends React.Component<
 
     if (this.state.ignoreTextHasChanged && this.state.ignoreText !== null) {
       try {
-        await this.props.dispatcher.saveGitIgnore(
-          this.props.repository,
-          this.state.ignoreText || ''
-        )
+        await this.props.dispatcher.saveGitIgnore(this.props.repository, this.state.ignoreText || '')
       } catch (e) {
-        log.error(
-          `RepositorySettings: unable to save gitignore at ${this.props
-            .repository.path}`,
-          e
-        )
+        log.error(`RepositorySettings: unable to save gitignore at ${this.props.repository.path}`, e)
         errors.push(`Failed saving the .gitignore file: ${e}`)
       }
     }
@@ -214,6 +181,7 @@ export class RepositorySettings extends React.Component<
   }
 
   private onRemoteUrlChanged = (url: string) => {
+
     const remote = this.props.remote
 
     if (!remote) {

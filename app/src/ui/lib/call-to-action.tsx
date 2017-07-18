@@ -10,18 +10,16 @@ interface ICallToActionProps {
   readonly onAction: () => void
 }
 
-/**
+/** 
  * A call-to-action component which displays its children as the message
  * followed by an action button.
  */
-export class CallToAction extends React.Component<ICallToActionProps, {}> {
+export class CallToAction extends React.Component<ICallToActionProps, void> {
   public render() {
     return (
-      <Row className="call-to-action">
+      <Row className='call-to-action'>
         {this.props.children}
-        <Button className="action-button" type="submit" onClick={this.onClick}>
-          {this.props.actionTitle}
-        </Button>
+        <Button className='action-button' type='submit' onClick={this.onClick}>{this.props.actionTitle}</Button>
       </Row>
     )
   }

@@ -24,8 +24,10 @@ interface IDialogContentProps {
  * to avoid excessive nesting and to ensure that styles applying to phrasing
  * content in the dialog get applied consistently.
  */
-export class DialogContent extends React.Component<IDialogContentProps, {}> {
+export class DialogContent extends React.Component<IDialogContentProps, void> {
+
   public render() {
+
     const className = classNames('dialog-content', this.props.className)
 
     return (

@@ -1,10 +1,7 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
 import { lookupPreferredEmail } from '../../lib/email'
-import {
-  getGlobalConfigValue,
-  setGlobalConfigValue,
-} from '../../lib/git/config'
+import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 import { CommitListItem } from '../history/commit-list-item'
 import { Account } from '../../models/account'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -22,6 +19,9 @@ interface IConfigureGitUserProps {
 
   /** The label for the button which saves config changes. */
   readonly saveLabel?: string
+
+  /** Additional elements that are rendered below the form. */
+  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 interface IConfigureGitUserState {
@@ -30,15 +30,8 @@ interface IConfigureGitUserState {
   readonly avatarURL: string | null
 }
 
-/**
- * A component which allows the user to configure their Git user.
- *
- * Provide `children` elements which will be rendered below the form.
- */
-export class ConfigureGitUser extends React.Component<
-  IConfigureGitUserProps,
-  IConfigureGitUserState
-> {
+/** A component which allows the user to configure their Git user. */
+export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IConfigureGitUserState> {
   public constructor(props: IConfigureGitUserProps) {
     super(props)
 
@@ -51,7 +44,9 @@ export class ConfigureGitUser extends React.Component<
 
     const user = this.props.accounts[0]
     if ((!name || !name.length) && user) {
-      name = user.name && user.name.length ? user.name : user.login
+      name = user.name && user.name.length
+        ? user.name
+        : user.login
     }
 
     if ((!email || !email.length) && user) {
@@ -67,76 +62,42 @@ export class ConfigureGitUser extends React.Component<
 
   private dateWithMinuteOffset(date: Date, minuteOffset: number): Date {
     const copy = new Date(date.getTime())
-    copy.setTime(copy.getTime() + minuteOffset * 60 * 1000)
+    copy.setTime(copy.getTime() + (minuteOffset * 60 * 1000))
     return copy
   }
 
   public render() {
     const now = new Date()
-    const dummyAuthor1 = new CommitIdentity(
-      'Hubot',
-      this.state.email,
-      this.dateWithMinuteOffset(now, -2)
-    )
+    const dummyAuthor1 = new CommitIdentity('Hubot', this.state.email, this.dateWithMinuteOffset(now, -2))
     const dummyCommit1 = new Commit('', 'Do more things', '', dummyAuthor1, [])
 
-    const dummyAuthor3 = new CommitIdentity(
-      'Hubot',
-      this.state.email,
-      this.dateWithMinuteOffset(now, -60)
-    )
+    const dummyAuthor3 = new CommitIdentity('Hubot', this.state.email, this.dateWithMinuteOffset(now, -60))
     const dummyCommit3 = new Commit('', 'Add some things', '', dummyAuthor3, [])
 
     // NB: We're using the name as the commit SHA:
     //  1. `Commit` is referentially transparent wrt the SHA. So in order to get
     //     it to update when we name changes, we need to change the SHA.
     //  2. We don't display the SHA so the user won't ever know our secret.
-    const dummyAuthor2 = new CommitIdentity(
-      this.state.name,
-      this.state.email,
-      this.dateWithMinuteOffset(now, -30)
-    )
-    const dummyCommit2 = new Commit(
-      this.state.name,
-      'Fix all the things',
-      '',
-      dummyAuthor2,
-      []
-    )
+    const dummyAuthor2 = new CommitIdentity(this.state.name, this.state.email, this.dateWithMinuteOffset(now, -30))
+    const dummyCommit2 = new Commit(this.state.name, 'Fix all the things', '', dummyAuthor2, [])
     const emoji = new Map()
     return (
-      <div id="configure-git-user">
-        <Form className="sign-in-form" onSubmit={this.save}>
-          <TextBox
-            label="Name"
-            placeholder="Hubot"
-            value={this.state.name}
-            onChange={this.onNameChange}
-          />
+      <div id='configure-git-user'>
+        <Form className='sign-in-form' onSubmit={this.save}>
+          <TextBox label='Name' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
 
-          <TextBox
-            label="Email"
-            placeholder="hubot@github.com"
-            value={this.state.email}
-            onChange={this.onEmailChange}
-          />
+          <TextBox label='Email' placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
 
           <Row>
-            <Button type="submit">
-              {this.props.saveLabel || 'Save'}
-            </Button>
+            <Button type='submit'>{this.props.saveLabel || 'Save'}</Button>
             {this.props.children}
           </Row>
         </Form>
 
-        <div id="commit-list" className="commit-list-example">
-          <CommitListItem commit={dummyCommit1} emoji={emoji} user={null} />
-          <CommitListItem
-            commit={dummyCommit2}
-            emoji={emoji}
-            user={this.getAvatarUser()}
-          />
-          <CommitListItem commit={dummyCommit3} emoji={emoji} user={null} />
+        <div id='commit-list' className='commit-list-example'>
+          <CommitListItem commit={dummyCommit1} emoji={emoji} user={null}/>
+          <CommitListItem commit={dummyCommit2} emoji={emoji} user={this.getAvatarUser()}/>
+          <CommitListItem commit={dummyCommit3} emoji={emoji} user={null}/>
         </div>
       </div>
     )
@@ -173,9 +134,7 @@ export class ConfigureGitUser extends React.Component<
   }
 
   private avatarURLForEmail(email: string): string | null {
-    const matchingAccount = this.props.accounts.find(
-      a => a.emails.findIndex(e => e.email === email) > -1
-    )
+    const matchingAccount = this.props.accounts.find(a => a.emails.findIndex(e => e.email === email) > -1)
     return matchingAccount ? matchingAccount.avatarURL : null
   }
 

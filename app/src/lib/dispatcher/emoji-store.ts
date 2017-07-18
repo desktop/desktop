@@ -44,7 +44,9 @@ export class EmojiStore {
 
     // The combining characters are always stored on disk
     // as zero-padded 4 character strings. Don't ask me why.
-    return str.length >= 4 ? str : ('0000' + str).substring(str.length)
+    return str.length >= 4
+      ? str
+      : ('0000' + str).substring(str.length)
   }
 
   /**
@@ -53,6 +55,7 @@ export class EmojiStore {
    * emoji unicode string was invalid.
    */
   private getUrlFromUnicodeEmoji(emoji: string): string | null {
+
     const codePoint = emoji.codePointAt(0)
 
     if (!codePoint) {
@@ -85,8 +88,10 @@ export class EmojiStore {
    */
   public read(rootDir: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
+
       const path = Path.join(rootDir, 'emoji.json')
       Fs.readFile(path, 'utf8', (err, data) => {
+
         if (err) {
           reject(err)
           return
@@ -97,6 +102,7 @@ export class EmojiStore {
         try {
           const db: IGemojiDb = JSON.parse(data)
           db.forEach(emoji => {
+
             // Custom emoji don't have a unicode string and are instead stored
             // on disk as their first alias.
             const url = emoji.emoji

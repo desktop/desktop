@@ -33,10 +33,7 @@ export interface IToolbarDropdownProps {
    * @param source   - Whether the state change was caused by a keyboard or
    *                   pointer interaction.
    */
-  readonly onDropdownStateChanged: (
-    state: DropdownState,
-    source: 'keyboard' | 'pointer'
-  ) => void
+  readonly onDropdownStateChanged: (state: DropdownState, source: 'keyboard' | 'pointer') => void
 
   /**
    * A function that's called when the user hovers over the button with
@@ -134,10 +131,8 @@ interface IToolbarDropdownState {
 /**
  * A toolbar dropdown button
  */
-export class ToolbarDropdown extends React.Component<
-  IToolbarDropdownProps,
-  IToolbarDropdownState
-> {
+export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToolbarDropdownState> {
+
   private innerButton: ToolbarButton | null = null
 
   public constructor(props: IToolbarDropdownProps) {
@@ -158,20 +153,17 @@ export class ToolbarDropdown extends React.Component<
   }
 
   private renderDropdownArrow(): JSX.Element | null {
-    if (this.props.showDisclosureArrow === false) {
-      return null
-    }
+    if (this.props.showDisclosureArrow === false) { return null }
 
     const state = this.props.dropdownState
 
-    return (
-      <Octicon symbol={this.dropdownIcon(state)} className="dropdownArrow" />
-    )
+    return <Octicon symbol={this.dropdownIcon(state)} className='dropdownArrow' />
   }
 
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    const newState: DropdownState =
-      this.props.dropdownState === 'open' ? 'closed' : 'open'
+    const newState: DropdownState = this.props.dropdownState === 'open'
+      ? 'closed'
+      : 'open'
 
     // This is probably one of the hackiest things I've ever done.
     // We need to be able to determine whether the button was clicked
@@ -181,13 +173,15 @@ export class ToolbarDropdown extends React.Component<
     // pointer device. So far, the only way I've been able to tell the
     // two apart is that keyboard derived clicks don't have a pointer
     // position.
-    const source = !event.clientX && !event.clientY ? 'keyboard' : 'pointer'
+    const source = !event.clientX && !event.clientY
+      ? 'keyboard'
+      : 'pointer'
 
     this.props.onDropdownStateChanged(newState, source)
   }
 
   private updateClientRectIfNecessary() {
-    if (this.props.dropdownState === 'open' && this.innerButton) {
+    if (this.props.dropdownState  === 'open' && this.innerButton) {
       const newRect = this.innerButton.getButtonBoundingClientRect()
       if (newRect) {
         const currentRect = this.state.clientRect
@@ -207,7 +201,7 @@ export class ToolbarDropdown extends React.Component<
     this.innerButton = null
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate = () => {
     this.updateClientRectIfNecessary()
   }
 
@@ -259,13 +253,9 @@ export class ToolbarDropdown extends React.Component<
     // bar to instantly close before even receiving the onDropdownStateChanged
     // event from us.
     return (
-      <div id="foldout-container" style={this.getFoldoutContainerStyle()}>
-        <div
-          className="overlay"
-          tabIndex={-1}
-          onClick={this.handleOverlayClick}
-        />
-        <div className="foldout" style={this.getFoldoutStyle()}>
+      <div id='foldout-container' style={this.getFoldoutContainerStyle()}>
+        <div className='overlay' tabIndex={-1} onClick={this.handleOverlayClick}></div>
+        <div className='foldout' style={this.getFoldoutStyle()}>
           {this.props.dropdownContentRenderer()}
         </div>
       </div>
@@ -286,13 +276,16 @@ export class ToolbarDropdown extends React.Component<
   }
 
   public render() {
+
     const className = classNames(
       'toolbar-dropdown',
       this.props.dropdownState,
-      this.props.className
+      this.props.className,
     )
 
-    const ariaExpanded = this.props.dropdownState === 'open' ? 'true' : 'false'
+    const ariaExpanded = this.props.dropdownState === 'open'
+      ? 'true'
+      : 'false'
 
     return (
       <div
