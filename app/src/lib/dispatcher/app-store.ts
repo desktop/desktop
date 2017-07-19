@@ -1367,7 +1367,15 @@ export class AppStore {
 
     const account = this.getAccountForRepository(updatedRepository)
     if (!account) {
-      return updatedRepository
+      if (!repository.gitHubRepository) {
+        return updatedRepository
+      }
+
+      if (gitHubRepository.endpoint !== repository.gitHubRepository.endpoint) {
+        return updatedRepository
+      }
+
+      return repository
     }
 
     const api = API.fromAccount(account)
@@ -1375,8 +1383,9 @@ export class AppStore {
       gitHubRepository.owner.login,
       gitHubRepository.name
     )
+
     if (!apiRepo) {
-      return updatedRepository
+      return repository.gitHubRepository ? repository : updatedRepository
     }
 
     return updatedRepository.withGitHubRepository(
