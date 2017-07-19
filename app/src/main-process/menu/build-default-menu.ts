@@ -201,7 +201,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       {
         id: 'pull',
         label: __DARWIN__ ? 'Pull' : 'Pu&ll',
-        accelerator: 'CmdOrCtrl+Shift+P',
         click: emit('pull'),
       },
       {
