@@ -145,16 +145,10 @@ export class PushBranchCommits extends React.Component<
 
   private renderButtonGroup() {
     if (renderPublishView(this.props.unPushedCommits)) {
-      const buttonText = __DARWIN__
-        ? 'Publish Branch and Open Pull Request'
-        : 'Publish branch and open pull request'
-
       return (
         <ButtonGroup destructive={true}>
           <Button type="submit">Cancel</Button>
-          <Button onClick={this.onPushOrPublishButtonClick}>
-            {buttonText}
-          </Button>
+          <Button onClick={this.onPushOrPublishButtonClick}>Yes</Button>
         </ButtonGroup>
       )
     }
