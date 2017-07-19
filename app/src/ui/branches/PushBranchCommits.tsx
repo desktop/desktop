@@ -119,7 +119,7 @@ export class PushBranchCommits extends React.Component<
       )
     }
 
-    const commits = pluralizeCommits(this.props.unPushedCommits, true)
+    const commits = pluralizeCommits(this.props.unPushedCommits)
 
     return (
       <DialogContent>
@@ -136,11 +136,11 @@ export class PushBranchCommits extends React.Component<
       return __DARWIN__ ? 'Publish Branch' : 'Publish branch'
     }
 
-    const numberOfCommits = this.props.unPushedCommits
+    const commits = pluralizeCommits(this.props.unPushedCommits, true)
 
     return __DARWIN__
-      ? `Your Branch is Ahead by ${pluralizeCommits(numberOfCommits, true)}`
-      : `Your branch is ahead by ${pluralizeCommits(numberOfCommits, true)}`
+      ? `Your Branch is Ahead by ${commits}`
+      : `Your branch is ahead by ${commits}`
   }
 
   private renderButtonText() {
