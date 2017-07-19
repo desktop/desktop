@@ -25,7 +25,6 @@ import {
   defaultErrorHandler,
   createMissingRepositoryHandler,
   backgroundTaskHandler,
-  unhandledExceptionHandler,
   AccountsStore,
   RepositoriesDatabase,
   RepositoriesStore,
@@ -122,7 +121,6 @@ const dispatcher = new Dispatcher(appStore)
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
-dispatcher.registerErrorHandler(unhandledExceptionHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
