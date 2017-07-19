@@ -96,12 +96,7 @@ export class PushBranchCommits extends React.Component<
         {this.renderDialogContent()}
 
         <DialogFooter>
-          <ButtonGroup destructive={true}>
-            <Button type="submit">Cancel</Button>
-            <Button onClick={this.onPushOrPublishButtonClick}>
-              {this.renderButtonText()}
-            </Button>
-          </ButtonGroup>
+          {this.renderButtonGroup()}
         </DialogFooter>
       </Dialog>
     )
@@ -125,8 +120,12 @@ export class PushBranchCommits extends React.Component<
     return (
       <DialogContent>
         <p>
-          Would you like to push {commits} to
-          <Ref>{this.props.branch.name}</Ref> and open a pull request?
+          You have {commits} local commits that haven't been pushed to the
+          remote.
+        </p>
+        <p>
+          Would you like to push your changes to{' '}
+          <Ref>{this.props.branch.name}</Ref> before creating your pull request?
         </p>
       </DialogContent>
     )
@@ -144,34 +143,57 @@ export class PushBranchCommits extends React.Component<
       : `Your branch is ahead by ${commits}`
   }
 
-  private renderButtonText() {
+  private renderButtonGroup() {
     if (renderPublishView(this.props.unPushedCommits)) {
-      return __DARWIN__
+      const buttonText = __DARWIN__
         ? 'Publish Branch and Open Pull Request'
         : 'Publish branch and open pull request'
+
+      return (
+        <ButtonGroup destructive={true}>
+          <Button type="submit">Cancel</Button>
+          <Button onClick={this.onPushOrPublishButtonClick}>
+            {buttonText}
+          </Button>
+        </ButtonGroup>
+      )
     }
 
-    return __DARWIN__
-      ? 'Push Commits and Open Pull Request'
-      : 'Push commits and open pull request'
+    return (
+      <ButtonGroup destructive={true}>
+        <Button type="submit" onClick={this.onCreateWithoutPushButtonClick}>
+          No
+        </Button>
+        <Button onClick={this.onPushOrPublishButtonClick}>Yes</Button>
+      </ButtonGroup>
+    )
   }
 
   private cancel = () => {
     this.props.onDismissed()
   }
 
+  private onCreateWithoutPushButtonClick(
+    e: React.MouseEvent<HTMLButtonElement>
+  ) {
+    e.preventDefault()
+
+    this.props.onConfirm(this.props.repository, this.props.branch)
+    this.props.onDismissed()
+  }
+
   private onPushOrPublishButtonClick = async () => {
-    const props = this.props
+    const { repository, branch } = this.props
 
     this.setState({ loading: true })
 
     try {
-      await this.props.dispatcher.push(props.repository)
+      await this.props.dispatcher.push(repository)
     } finally {
       this.setState({ loading: false })
     }
 
-    this.props.onConfirm(props.repository, props.branch)
+    this.props.onConfirm(repository, branch)
     this.props.onDismissed()
   }
 }
