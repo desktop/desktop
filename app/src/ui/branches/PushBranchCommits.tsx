@@ -5,6 +5,7 @@ import { ButtonGroup } from '../../ui/lib/button-group'
 import { Button } from '../../ui/lib/button'
 import { Dialog, DialogContent, DialogFooter } from '../../ui/dialog'
 import { Repository } from '../../models/repository'
+import { Ref } from '../lib/ref'
 
 interface IPushBranchCommitsProps {
   readonly dispatcher: Dispatcher
@@ -112,8 +113,8 @@ export class PushBranchCommits extends React.Component<
         <DialogContent>
           <p>Your branch must be published before opening a pull request.</p>
           <p>
-            Would you like to publish <b>{this.props.branch.name}</b> and open a
-            pull request?
+            Would you like to publish <Ref>{this.props.branch.name}</Ref> and
+            open a pull request?
           </p>
         </DialogContent>
       )
@@ -125,7 +126,7 @@ export class PushBranchCommits extends React.Component<
       <DialogContent>
         <p>
           Would you like to push {commits} to
-          <b>{this.props.branch.name}</b> and open a pull request?
+          <Ref>{this.props.branch.name}</Ref> and open a pull request?
         </p>
       </DialogContent>
     )
