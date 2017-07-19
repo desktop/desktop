@@ -67,6 +67,7 @@ import { ConfirmRemoveRepository } from '../ui/remove-repository/confirm-remove-
 import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
+import { FullScreenInfo } from './window/full-screen-info'
 import { PushBranchCommits } from './branches/PushBranchCommits'
 import { Branch } from '../models/branch'
 import { CLIInstalled } from './cli-installed'
@@ -1046,6 +1047,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <ZoomInfo windowZoomFactor={this.state.windowZoomFactor} />
   }
 
+  private renderFullScreenInfo() {
+    return <FullScreenInfo windowState={this.state.windowState} />
+  }
+
   private clearError = (error: Error) => {
     this.props.dispatcher.clearError(error)
   }
@@ -1395,6 +1400,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           ? this.renderWelcomeFlow()
           : this.renderApp()}
         {this.renderZoomInfo()}
+        {this.renderFullScreenInfo()}
       </div>
     )
   }

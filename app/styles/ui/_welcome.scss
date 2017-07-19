@@ -9,6 +9,10 @@
     flex-direction: column;
   }
 
+  .actions {
+    display: flex;
+  }
+
   #sign-in-dot-com {
     display: flex;
     flex-direction: column;
@@ -115,7 +119,7 @@
     position: absolute;
     right: var(--spacing);
     bottom: var(--spacing);
-    
+
     height: auto;
     max-height: 100%;
     width: 40%;
@@ -127,7 +131,7 @@
     position: absolute;
     right: 80px;
     top: 40px;
-    
+
     height: auto;
     max-height: 100%;
     width: 20%;
@@ -180,4 +184,9 @@
   justify-content: center;
   max-width: 500px;
   width: 100%;
+}
+
+.forgot-password-link {
+  align-self: center;
+  margin-left: var(--spacing);
 }
