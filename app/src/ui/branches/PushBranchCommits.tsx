@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Branch } from '../../models/branch'
-import { ButtonGroup } from '../../ui/lib/button-group'
-import { Button } from '../../ui/lib/button'
-import { Dialog, DialogContent, DialogFooter } from '../../ui/dialog'
+import { ButtonGroup } from '../lib/button-group'
+import { Button } from '../lib/button'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Repository } from '../../models/repository'
 import { Ref } from '../lib/ref'
 
