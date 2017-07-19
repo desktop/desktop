@@ -53,6 +53,12 @@ function pluralizeCommits(
     : `${numberOfCommits} ${unit}s`
 }
 
+function renderPublishView(
+  unPushedCommits: number | undefined
+): unPushedCommits is undefined {
+  return unPushedCommits === undefined
+}
+
 /**
  * This component gets shown if the user attempts to open a PR with
  * a) An un-published branch
@@ -98,7 +104,7 @@ export class PushBranchCommits extends React.Component<
   }
 
   private renderDialogContent() {
-    if (this.props.unPushedCommits === undefined) {
+    if (renderPublishView(this.props.unPushedCommits)) {
       return (
         <p>
           Your branch must be published before opening a pull request. Would you
@@ -119,7 +125,7 @@ export class PushBranchCommits extends React.Component<
   }
 
   private renderDialogTitle() {
-    if (this.props.unPushedCommits === undefined) {
+    if (renderPublishView(this.props.unPushedCommits)) {
       return __DARWIN__ ? 'Publish Branch' : 'Publish branch'
     }
 
@@ -131,7 +137,7 @@ export class PushBranchCommits extends React.Component<
   }
 
   private renderButtonText() {
-    if (this.props.unPushedCommits === undefined) {
+    if (renderPublishView(this.props.unPushedCommits)) {
       return __DARWIN__
         ? 'Publish Branch and Open Pull Request'
         : 'Publish branch and open pull request'
