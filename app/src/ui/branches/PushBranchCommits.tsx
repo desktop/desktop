@@ -92,9 +92,7 @@ export class PushBranchCommits extends React.Component<
         onSubmit={this.cancel}
         loading={this.state.loading}
       >
-        <DialogContent>
-          {this.renderDialogContent()}
-        </DialogContent>
+        {this.renderDialogContent()}
 
         <DialogFooter>
           <ButtonGroup destructive={true}>
@@ -111,21 +109,25 @@ export class PushBranchCommits extends React.Component<
   private renderDialogContent() {
     if (renderPublishView(this.props.unPushedCommits)) {
       return (
-        <p>
-          Your branch must be published before opening a pull request. Would you
-          like to publish <b>{this.props.branch.name}</b> and open a pull
-          request?
-        </p>
+        <DialogContent>
+          <p>Your branch must be published before opening a pull request.</p>
+          <p>
+            Would you like to publish <b>{this.props.branch.name}</b> and open a
+            pull request?
+          </p>
+        </DialogContent>
       )
     }
 
     const commits = pluralizeCommits(this.props.unPushedCommits, true)
 
     return (
-      <p>
-        Would you like to push {commits} to
-        <b>{this.props.branch.name}</b> and open a pull request?
-      </p>
+      <DialogContent>
+        <p>
+          Would you like to push {commits} to
+          <b>{this.props.branch.name}</b> and open a pull request?
+        </p>
+      </DialogContent>
     )
   }
 
