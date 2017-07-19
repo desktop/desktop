@@ -46,6 +46,7 @@ const replacements = {
   ),
   __DARWIN__: process.platform === 'darwin',
   __WIN32__: process.platform === 'win32',
+  __LINUX__: process.platform === 'linux',
   __DEV__: environment === 'development',
   __RELEASE_ENV__: JSON.stringify(environment),
   __SHA__: JSON.stringify(revParse(path.resolve(__dirname, '../.git'), 'HEAD')),
