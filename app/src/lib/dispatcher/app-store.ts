@@ -1364,6 +1364,7 @@ export class AppStore {
     )
 
     const updatedGitHubRepository = updatedRepository.gitHubRepository
+
     if (!updatedGitHubRepository) {
       return updatedRepository
     }
