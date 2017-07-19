@@ -31,6 +31,26 @@ interface IPushBranchCommitsState {
 }
 
 /**
+ * Returns a string used for communicating the number of commits
+ * that will be pushed to the user. If only one commit is to be pushed
+ * we return the singular 'commit', if any other amount of commits
+ * are to be pushed we return the plural 'commits'. If the
+ * capitalize parameter is true we'll capitalize the 'c' in commit
+ * on macOS.
+ *
+ * @param numberOfCommits The number of commits that will be pushed
+ * @param capitalize      Whether or not to capitalize the unit (commit)
+ *                        on macOS
+ */
+function pluralizeCommits(
+  numberOfCommits: number,
+  capitalize: boolean = false
+) {
+  const unit = __DARWIN__ && capitalize ? 'Commit' : 'commit'
+  return numberOfCommits === 1 ? unit : `${unit}s`
+}
+
+/**
  * This component gets shown if the user attempts to open a PR with
  * a) An un-published branch
  * b) A branch that is ahead of its base branch
@@ -42,15 +62,6 @@ export class PushBranchCommits extends React.Component<
   IPushBranchCommitsProps,
   IPushBranchCommitsState
 > {
-  /**
-   * Gets a value indicating whether we're asking the user for permission to
-   * publish the branch or just push the local commits to the remote in case
-   * the branch is already published
-   */
-  private get isPublish(): boolean {
-    return this.props.unPushedCommits === undefined
-  }
-
   public constructor(props: IPushBranchCommitsProps) {
     super(props)
 
@@ -84,7 +95,7 @@ export class PushBranchCommits extends React.Component<
   }
 
   private renderDialogContent() {
-    if (this.isPublish) {
+    if (this.props.unPushedCommits === undefined) {
       return (
         <p>
           Your branch must be published before opening a pull request. Would you
@@ -98,30 +109,34 @@ export class PushBranchCommits extends React.Component<
 
     return (
       <p>
-        {`Would you like to push ${numberOfCommits} ${this.createCommitString()} to `}
+        {`Would you like to push ${numberOfCommits} ${pluralizeCommits(
+          numberOfCommits
+        )} to `}
         <b>{this.props.branch.name}</b> and open a pull request?
       </p>
     )
   }
 
   private renderDialogTitle() {
-    if (this.isPublish) {
+    if (this.props.unPushedCommits === undefined) {
       return __DARWIN__ ? 'Publish Branch' : 'Publish branch'
     }
 
     const numberOfCommits = this.props.unPushedCommits
 
     return __DARWIN__
-      ? `Your Branch is Ahead by ${numberOfCommits} ${this.createCommitString(
+      ? `Your Branch is Ahead by ${numberOfCommits} ${pluralizeCommits(
+          numberOfCommits,
           true
         )}`
-      : `Your branch is ahead by ${numberOfCommits} ${this.createCommitString(
+      : `Your branch is ahead by ${numberOfCommits} ${pluralizeCommits(
+          numberOfCommits,
           true
         )}`
   }
 
   private renderButtonText() {
-    if (this.isPublish) {
+    if (this.props.unPushedCommits === undefined) {
       return __DARWIN__
         ? 'Publish Branch and Open Pull Request'
         : 'Publish branch and open pull request'
@@ -130,23 +145,6 @@ export class PushBranchCommits extends React.Component<
     return __DARWIN__
       ? 'Push Commits and Open Pull Request'
       : 'Push commits and open pull request'
-  }
-
-  private createCommitString(platformize: boolean = false) {
-    const numberOfCommits = this.props.unPushedCommits
-    const pluralize = numberOfCommits !== 1
-
-    let result = 'commit'
-
-    if (platformize && __DARWIN__) {
-      result = 'Commit'
-    }
-
-    if (pluralize) {
-      result += 's'
-    }
-
-    return result
   }
 
   private cancel = () => {
