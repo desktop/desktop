@@ -133,7 +133,7 @@ export async function parsedResponse<T>(response: Response): Promise<T> {
       throw new APIError(response, null)
     }
 
-    throw apiError
+    throw new APIError(response, apiError)
   }
 }
 
