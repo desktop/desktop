@@ -59,7 +59,7 @@ function pluralizeCommits(
  * renderPublishView(this.props.unPushedCommits).
  */
 function renderPublishView(
-  unPushedCommits?: number | undefined
+  unPushedCommits: number | undefined
 ): unPushedCommits is undefined {
   return unPushedCommits === undefined
 }
