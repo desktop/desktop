@@ -1357,11 +1357,14 @@ export class AppStore {
   public async _repositoryWithRefreshedGitHubRepository(
     repository: Repository
   ): Promise<Repository> {
+    const oldGitHubRepository = repository.gitHubRepository
+
     const updatedRepository = await this.updateGitHubRepositoryAssociation(
       repository
     )
-    const gitHubRepository = updatedRepository.gitHubRepository
-    if (!gitHubRepository) {
+
+    const updatedGitHubRepository = updatedRepository.gitHubRepository
+    if (!updatedGitHubRepository) {
       return updatedRepository
     }
 
@@ -1372,12 +1375,12 @@ export class AppStore {
       // instance won't have any API information while the previous one might.
       // We'll only swap it out if the endpoint has changed in which case the
       // old API information will be invalid anyway.
-      if (!repository.gitHubRepository) {
+      if (!oldGitHubRepository) {
         return updatedRepository
       }
 
       // The endpoints have changed, all bets are off
-      if (gitHubRepository.endpoint !== repository.gitHubRepository.endpoint) {
+      if (updatedGitHubRepository.endpoint !== oldGitHubRepository.endpoint) {
         return updatedRepository
       }
 
@@ -1386,8 +1389,8 @@ export class AppStore {
 
     const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(
-      gitHubRepository.owner.login,
-      gitHubRepository.name
+      updatedGitHubRepository.owner.login,
+      updatedGitHubRepository.name
     )
 
     if (!apiRepo) {
@@ -1403,11 +1406,11 @@ export class AppStore {
       // return exact repository given if no association could be found or
       // a copy of the given repository with only the gitHubRepository property
       // changed.
-      return repository.gitHubRepository ? repository : updatedRepository
+      return oldGitHubRepository ? repository : updatedRepository
     }
 
     return updatedRepository.withGitHubRepository(
-      gitHubRepository.withAPI(apiRepo)
+      updatedGitHubRepository.withAPI(apiRepo)
     )
   }
 
