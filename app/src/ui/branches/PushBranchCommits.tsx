@@ -119,11 +119,11 @@ export class PushBranchCommits extends React.Component<
       )
     }
 
-    const numberOfCommits = this.props.unPushedCommits
+    const commits = pluralizeCommits(this.props.unPushedCommits, true)
 
     return (
       <p>
-        {`Would you like to push ${pluralizeCommits(numberOfCommits)} to `}
+        Would you like to push {commits} to
         <b>{this.props.branch.name}</b> and open a pull request?
       </p>
     )
