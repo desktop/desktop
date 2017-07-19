@@ -43,15 +43,10 @@ interface IPushBranchCommitsState {
  * @param capitalize      Whether or not to capitalize the unit (commit)
  *                        on macOS
  */
-function pluralizeCommits(
-  numberOfCommits: number,
-  capitalize: boolean = false
-) {
-  const unit = __DARWIN__ && capitalize ? 'Commit' : 'commit'
-
+function pluralizeCommits(numberOfCommits: number) {
   return numberOfCommits === 1
-    ? `${numberOfCommits} ${unit}`
-    : `${numberOfCommits} ${unit}s`
+    ? `${numberOfCommits} commit`
+    : `${numberOfCommits} commits`
 }
 
 /**
@@ -133,14 +128,10 @@ export class PushBranchCommits extends React.Component<
 
   private renderDialogTitle() {
     if (renderPublishView(this.props.unPushedCommits)) {
-      return __DARWIN__ ? 'Publish Branch' : 'Publish branch'
+      return __DARWIN__ ? 'Publish Branch?' : 'Publish branch?'
     }
 
-    const commits = pluralizeCommits(this.props.unPushedCommits, true)
-
-    return __DARWIN__
-      ? `Your Branch is Ahead by ${commits}`
-      : `Your branch is ahead by ${commits}`
+    return __DARWIN__ ? `Push Local Changes?` : `Push local changes?`
   }
 
   private renderButtonGroup() {
