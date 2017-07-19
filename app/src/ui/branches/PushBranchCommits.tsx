@@ -31,12 +31,13 @@ interface IPushBranchCommitsProps {
 export class PushBranchCommits extends React.Component<
   IPushBranchCommitsProps
 > {
-  private isPublish: boolean
-
-  public constructor(props: IPushBranchCommitsProps) {
-    super(props)
-
-    this.isPublish = props.unPushedCommits === undefined
+  /**
+   * Gets a value indicating whether we're asking the user for permission to
+   * publish the branch or just push the local commits to the remote in case
+   * the branch is already published
+   */
+  private get isPublish(): boolean {
+    return this.props.unPushedCommits === undefined
   }
 
   public render() {
