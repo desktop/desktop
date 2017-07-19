@@ -103,8 +103,8 @@ export class PushBranchCommits extends React.Component<
         <DialogContent>
           <p>Your branch must be published before opening a pull request.</p>
           <p>
-            Would you like to publish <Ref>{this.props.branch.name}</Ref> and
-            open a pull request?
+            Would you like to publish <Ref>{this.props.branch.name}</Ref> now
+            and open a pull request?
           </p>
         </DialogContent>
       )
