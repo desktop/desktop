@@ -40,13 +40,16 @@ interface IPushBranchCommitsState {
  * on macOS.
  *
  * @param numberOfCommits The number of commits that will be pushed
- * @param capitalize      Whether or not to capitalize the unit (commit)
- *                        on macOS
+ * @param unit            A string written in such a way that without
+ *                        modification it can be paired with the digit 1
+ *                        such as 'commit' and which, when a 's' is appended
+ *                        to it can be paired with a zero digit or a number
+ *                        greater than one.
  */
-function pluralizeCommits(numberOfCommits: number) {
+function pluralize(numberOfCommits: number, unit: string) {
   return numberOfCommits === 1
-    ? `${numberOfCommits} commit`
-    : `${numberOfCommits} commits`
+    ? `${numberOfCommits} ${unit}`
+    : `${numberOfCommits} ${unit}s`
 }
 
 /**
@@ -110,13 +113,12 @@ export class PushBranchCommits extends React.Component<
       )
     }
 
-    const commits = pluralizeCommits(this.props.unPushedCommits)
+    const localCommits = pluralize(this.props.unPushedCommits, 'local commit')
 
     return (
       <DialogContent>
         <p>
-          You have {commits} local commits that haven't been pushed to the
-          remote.
+          You have {localCommits} that haven't been pushed to the remote yet.
         </p>
         <p>
           Would you like to push your changes to{' '}
