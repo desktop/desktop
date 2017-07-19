@@ -1367,10 +1367,16 @@ export class AppStore {
 
     const account = this.getAccountForRepository(updatedRepository)
     if (!account) {
+      // If the repository given to us had a GitHubRepository instance we want
+      // to try to preserve that if possible since the updated GitHubRepository
+      // instance won't have any API information while the previous one might.
+      // We'll only swap it out if the endpoint has changed in which case the
+      // old API information will be invalid anyway.
       if (!repository.gitHubRepository) {
         return updatedRepository
       }
 
+      // The endpoints have changed, all bets are off
       if (gitHubRepository.endpoint !== repository.gitHubRepository.endpoint) {
         return updatedRepository
       }
@@ -1385,6 +1391,18 @@ export class AppStore {
     )
 
     if (!apiRepo) {
+      // If we've failed to retrieve the repository information from the API
+      // we generally want to keep whatever information we used to have from
+      // a previously successful API request rather than return the
+      // updatedRepository which only contains a subset of the fields we'd get
+      // from the API. The only circumstance where we would want to return the
+      // updated repository is if we previously didn't have an association and
+      // have now been able to infer one based on the remote.
+      //
+      // Note that the updateGitHubRepositoryAssociation method will either
+      // return exact repository given if no association could be found or
+      // a copy of the given repository with only the gitHubRepository property
+      // changed.
       return repository.gitHubRepository ? repository : updatedRepository
     }
 
