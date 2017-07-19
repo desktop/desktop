@@ -16,9 +16,6 @@ interface IPushBranchCommitsProps {
   /**
    * Used to show the number of commits a branch is ahead by.
    * If this value is undefined, component defaults to publish view.
-   *
-   * @type {number}
-   * @memberof IPushBranchCommitsProps
    */
   readonly unPushedCommits?: number
 }
@@ -30,10 +27,6 @@ interface IPushBranchCommitsProps {
  *
  * In both cases, this asks the user if they'd like to push/publish the branch.
  * If they confirm we push/publish then open the PR page on dotcom.
- *
- * @export
- * @class PushBranchCommits
- * @extends {React.Component<IPushBranchCommitsProps>}
  */
 export class PushBranchCommits extends React.Component<
   IPushBranchCommitsProps
