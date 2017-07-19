@@ -23,7 +23,6 @@ import {
   defaultErrorHandler,
   createMissingRepositoryHandler,
   backgroundTaskHandler,
-  unhandledExceptionHandler,
 } from '../lib/dispatcher'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
@@ -109,7 +108,6 @@ const dispatcher = new Dispatcher(appStore)
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
-dispatcher.registerErrorHandler(unhandledExceptionHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
