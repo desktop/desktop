@@ -47,7 +47,10 @@ function pluralizeCommits(
   capitalize: boolean = false
 ) {
   const unit = __DARWIN__ && capitalize ? 'Commit' : 'commit'
-  return numberOfCommits === 1 ? unit : `${unit}s`
+
+  return numberOfCommits === 1
+    ? `${numberOfCommits} ${unit}`
+    : `${numberOfCommits} ${unit}s`
 }
 
 /**
@@ -109,9 +112,7 @@ export class PushBranchCommits extends React.Component<
 
     return (
       <p>
-        {`Would you like to push ${numberOfCommits} ${pluralizeCommits(
-          numberOfCommits
-        )} to `}
+        {`Would you like to push ${pluralizeCommits(numberOfCommits)} to `}
         <b>{this.props.branch.name}</b> and open a pull request?
       </p>
     )
@@ -125,14 +126,8 @@ export class PushBranchCommits extends React.Component<
     const numberOfCommits = this.props.unPushedCommits
 
     return __DARWIN__
-      ? `Your Branch is Ahead by ${numberOfCommits} ${pluralizeCommits(
-          numberOfCommits,
-          true
-        )}`
-      : `Your branch is ahead by ${numberOfCommits} ${pluralizeCommits(
-          numberOfCommits,
-          true
-        )}`
+      ? `Your Branch is Ahead by ${pluralizeCommits(numberOfCommits, true)}`
+      : `Your branch is ahead by ${pluralizeCommits(numberOfCommits, true)}`
   }
 
   private renderButtonText() {
