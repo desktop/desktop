@@ -97,7 +97,7 @@ export class PushBranchCommits extends React.Component<
         <DialogFooter>
           <ButtonGroup destructive={true}>
             <Button type="submit">Cancel</Button>
-            <Button onClick={this.push}>
+            <Button onClick={this.onPushOrPublishButtonClick}>
               {this.renderButtonText()}
             </Button>
           </ButtonGroup>
@@ -159,7 +159,7 @@ export class PushBranchCommits extends React.Component<
     this.props.onDismissed()
   }
 
-  private push = async () => {
+  private onPushOrPublishButtonClick = async () => {
     const props = this.props
 
     this.setState({ loading: true })
