@@ -20,6 +20,16 @@ interface IPushBranchCommitsProps {
   readonly unPushedCommits?: number
 }
 
+interface IPushBranchCommitsState {
+  /**
+   * A value indicating whether we're currently working on publishing
+   * or pushing the branch to the remote. This value is used to tell
+   * the dialog to apply the loading state which adds a spinner and
+   * disables form controls for the duration of the operation.
+   */
+  readonly loading: boolean
+}
+
 /**
  * This component gets shown if the user attempts to open a PR with
  * a) An un-published branch
@@ -29,7 +39,8 @@ interface IPushBranchCommitsProps {
  * If they confirm we push/publish then open the PR page on dotcom.
  */
 export class PushBranchCommits extends React.Component<
-  IPushBranchCommitsProps
+  IPushBranchCommitsProps,
+  IPushBranchCommitsState
 > {
   /**
    * Gets a value indicating whether we're asking the user for permission to
@@ -40,6 +51,12 @@ export class PushBranchCommits extends React.Component<
     return this.props.unPushedCommits === undefined
   }
 
+  public constructor(props: IPushBranchCommitsProps) {
+    super(props)
+
+    this.state = { loading: false }
+  }
+
   public render() {
     return (
       <Dialog
@@ -48,6 +65,7 @@ export class PushBranchCommits extends React.Component<
         title={this.renderDialogTitle()}
         onDismissed={this.cancel}
         onSubmit={this.cancel}
+        loading={this.state.loading}
       >
         <DialogContent>
           {this.renderDialogContent()}
@@ -138,7 +156,14 @@ export class PushBranchCommits extends React.Component<
   private push = async () => {
     const props = this.props
 
-    await this.props.dispatcher.push(props.repository)
+    this.setState({ loading: true })
+
+    try {
+      await this.props.dispatcher.push(props.repository)
+    } finally {
+      this.setState({ loading: false })
+    }
+
     this.props.onConfirm(props.repository, props.branch)
     this.props.onDismissed()
   }
