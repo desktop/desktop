@@ -53,8 +53,13 @@ function pluralizeCommits(
     : `${numberOfCommits} ${unit}s`
 }
 
+/**
+ * Simple type guard which allows us to substitute the non-obvious
+ * this.props.unPushedCommits === undefined checks with
+ * renderPublishView(this.props.unPushedCommits).
+ */
 function renderPublishView(
-  unPushedCommits: number | undefined
+  unPushedCommits?: number | undefined
 ): unPushedCommits is undefined {
   return unPushedCommits === undefined
 }
