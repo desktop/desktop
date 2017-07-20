@@ -676,6 +676,14 @@ export class AppStore {
     repository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
     const previouslySelectedRepository = this.selectedRepository
+
+    if (
+      previouslySelectedRepository &&
+      previouslySelectedRepository instanceof Repository
+    ) {
+      this.removeGitStore(previouslySelectedRepository)
+    }
+
     this.selectedRepository = repository
     this.emitUpdate()
 
