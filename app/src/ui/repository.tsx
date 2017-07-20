@@ -10,6 +10,7 @@ import { TabBar } from './tab-bar'
 import {
   IRepositoryState as IRepositoryModelState,
   RepositorySection,
+  ImageDiffType,
 } from '../lib/app-state'
 import { Dispatcher, IssuesStore, GitHubUserStore } from '../lib/dispatcher'
 import { assertNever } from '../lib/fatal-error'
@@ -24,6 +25,7 @@ interface IRepositoryProps {
   readonly commitSummaryWidth: number
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
+  readonly imageDiffType: ImageDiffType
 }
 
 const enum Tab {
@@ -160,6 +162,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
             dispatcher={this.props.dispatcher}
             file={selectedFile}
             diff={diff}
+            imageDiffType={this.props.imageDiffType}
           />
         )
       }
@@ -174,6 +177,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
           localCommitSHAs={this.props.state.localCommitSHAs}
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
+          imageDiffType={this.props.imageDiffType}
         />
       )
     } else {

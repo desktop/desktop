@@ -15,6 +15,7 @@ import {
   SelectionType,
   ICheckoutProgress,
   Progress,
+  ImageDiffType,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -88,6 +89,9 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 const confirmRepoRemovalDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 
+const imageDiffTypeDefault: ImageDiffType = ImageDiffType.TwoUp
+const imageDiffTypeKey: string = 'imageDiffType'
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -152,6 +156,7 @@ export class AppStore {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
+  private imageDiffType: ImageDiffType = imageDiffTypeDefault
 
   private readonly statsStore: StatsStore
 
@@ -452,6 +457,7 @@ export class AppStore {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       confirmRepoRemoval: this.confirmRepoRemoval,
+      imageDiffType: this.imageDiffType,
     }
   }
 
@@ -857,6 +863,13 @@ export class AppStore {
       confirmRepoRemovalValue === null
         ? confirmRepoRemovalDefault
         : confirmRepoRemovalValue === '1'
+
+    const imageDiffTypeValue = localStorage.getItem(imageDiffTypeKey)
+
+    this.imageDiffType =
+      imageDiffTypeValue === null
+        ? imageDiffTypeDefault
+        : parseInt(imageDiffTypeValue)
 
     if (initialLoad) {
       // For the intitial load, synchronously emit the update so that the window
@@ -2103,6 +2116,14 @@ export class AppStore {
   public _setConfirmRepoRemoval(confirmRepoRemoval: boolean): Promise<void> {
     this.confirmRepoRemoval = confirmRepoRemoval
     localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _changeImageDiffType(type: ImageDiffType): Promise<void> {
+    this.imageDiffType = type
+    localStorage.setItem(imageDiffTypeKey, JSON.stringify(this.imageDiffType))
     this.emitUpdate()
 
     return Promise.resolve()

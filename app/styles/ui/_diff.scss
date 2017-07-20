@@ -36,7 +36,7 @@
       // Add a little bit of space to the left of code diff
       // `padding-left` here means mouse move events are not raised
       padding-left: var(--spacing-half);
-      align-self: center;      
+      align-self: center;
     }
 
     svg.no-newline {
@@ -180,7 +180,7 @@
     color: var(--diff-hover-text-color);
 
     &:last-child {
-      border-color: var(--diff-hover-gutter-color);      
+      border-color: var(--diff-hover-gutter-color);
     }
   }
 }
@@ -228,7 +228,7 @@
   min-width: 0;
   min-height: 0;
   object-fit: contain;
-  padding: 0 var(--spacing);
+  padding: 0;
 }
 // ***************************************************************************************************************************
 #diff a {
@@ -239,4 +239,129 @@
 
 #diff a:link {
   color: (orange);
+}
+
+.panel.image {
+  padding-top: 10px;
+
+  .tab-bar {
+    width: 350px;
+    margin: 10px auto 0;
+  }
+
+  .image-diff__before {
+    color: var(--color-deleted);
+  }
+  .image-diff__after {
+    color: var(--color-new);
+  }
+
+  .image-diff__before,
+  .image-diff__after {
+    text-align: center;
+
+    img {
+      @include checkboard-background;
+      border: 1px solid currentColor;
+    }
+  }
+
+  .image-diff__header {
+    font-weight: var(--font-weight-semibold);
+    padding-bottom: 10px;
+  }
+
+  .image-diff__footer {
+    color: var(--text-secondary-color);
+    .strong {
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+}
+
+.image-diff_inner {
+
+  &--two-up {
+    display: flex;
+    justify-content: center;
+
+    .image-diff__before {
+      margin-right: 7.5px;
+    }
+    .image-diff__after {
+      margin-left: 7.5px;
+    }
+  }
+
+  &--difference {
+    position: relative;
+
+    .image-diff__before,
+    .image-diff__after {
+      position: absolute;
+      top: 0;
+      left: 0;
+      img : {
+        border: 0;
+        background: transparent;
+      }
+    }
+  }
+
+  &--fade {
+    @include checkboard-background;
+    margin: 0;
+    position: relative;
+
+    .image-diff__before,
+    .image-diff__after {
+      position: absolute;
+      margin: 0;
+
+      img {
+        border: 0;
+        background: transparent;
+      }
+    }
+
+    .image-diff__before {
+      border: 1px solid var(--color-deleted);
+    }
+    .image-diff__after {
+      border: 1px solid var(--color-new);
+    }
+  }
+
+  &--swipe {
+    margin: 0;
+    position: relative;
+
+    .image-diff__before,
+    .image-diff__after {
+      @include checkboard-background;
+      position: absolute;
+      margin: 0;
+
+      img {
+        border: 0;
+        background: transparent;
+      }
+    }
+
+    .image-diff__before {
+      border: 1px solid var(--color-deleted);
+      right: 0;
+    }
+    .image-diff__after {
+      border: 1px solid var(--color-new);
+    }
+
+    .image-diff--swiper {
+      border-left: 1px solid var(--text-secondary-color);
+      margin: 0;
+      overflow: hidden;
+      position: absolute;
+      right: 0;
+    }
+  }
 }
