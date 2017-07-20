@@ -60,7 +60,7 @@ const replacements = {
 const outputDir = 'out'
 
 const externals = ['7zip']
-if (environment === 'development') {
+if (channel === 'development') {
   externals.push('devtron')
 }
 
