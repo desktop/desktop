@@ -57,8 +57,13 @@ const replacements = {
 
 const outputDir = 'out'
 
+const externals = ['7zip']
+if (environment === 'development') {
+  externals.push('devtron')
+}
+
 const commonConfig = {
-  externals: ['7zip'],
+  externals: externals,
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', outputDir),
