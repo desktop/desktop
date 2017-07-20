@@ -13,6 +13,9 @@ declare const __DARWIN__: boolean
 /** Is the app being built to run on Win32? */
 declare const __WIN32__: boolean
 
+/** Is the app being built to run on Linux? */
+declare const __LINUX__: boolean
+
 /**
  * The commit id of the repository HEAD at build time.
  * Represented as a 40 character SHA-1 hexadecimal digest string.

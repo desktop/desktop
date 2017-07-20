@@ -80,8 +80,13 @@ function getUserDataPath() {
   } else if (process.platform === 'darwin') {
     const home = os.homedir()
     return path.join(home, 'Library', 'Application Support', getProductName())
+  } else if (process.platform === 'linux') {
+    const home = os.homedir()
+    return path.join(home, '.' + getProductName())
   } else {
-    console.error(`I dunno how to review for ${process.platform} :(`)
+    console.error(
+      `I dunno how to review for ${process.platform} ${process.arch} :(`
+    )
     process.exit(1)
   }
 }
