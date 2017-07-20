@@ -47,6 +47,7 @@ const replacements = {
   ),
   __DARWIN__: process.platform === 'darwin',
   __WIN32__: process.platform === 'win32',
+  __LINUX__: process.platform === 'linux',
   __DEV__: channel === 'development',
   __RELEASE_CHANNEL__: JSON.stringify(channel),
   __UPDATES_URL__: JSON.stringify(distInfo.getUpdatesURL()),
@@ -58,8 +59,13 @@ const replacements = {
 
 const outputDir = 'out'
 
+const externals = ['7zip']
+if (environment === 'development') {
+  externals.push('devtron')
+}
+
 const commonConfig = {
-  externals: ['7zip'],
+  externals: externals,
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', outputDir),

@@ -21,7 +21,7 @@
     "package": "node script/package",
     "clean:tslint": "rimraf tslint-rules/*.js",
     "compile:tslint": "tsc -p tslint-rules",
-    "lint": "npm run compile:tslint && tslint \"./app/src/**/*.ts\" \"./app/src/**/*.tsx\" \"./app/test/**/*.ts\" \"./app/test/**/*.tsx\"",
+    "lint": "npm run compile:tslint && tslint \"./app/{src,test}/**/*.{ts,tsx}\"",
     "check-prettiness": "node script/is-it-pretty",
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
