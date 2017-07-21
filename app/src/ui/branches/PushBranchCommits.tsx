@@ -33,11 +33,7 @@ interface IPushBranchCommitsState {
 
 /**
  * Returns a string used for communicating the number of commits
- * that will be pushed to the user. If only one commit is to be pushed
- * we return the singular 'commit', if any other amount of commits
- * are to be pushed we return the plural 'commits'. If the
- * capitalize parameter is true we'll capitalize the 'c' in commit
- * on macOS.
+ * that will be pushed to the user.
  *
  * @param numberOfCommits The number of commits that will be pushed
  * @param unit            A string written in such a way that without
