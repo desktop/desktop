@@ -137,7 +137,9 @@ export class PushBranchCommits extends React.Component<
       return (
         <ButtonGroup destructive={true}>
           <Button type="submit">Cancel</Button>
-          <Button onClick={this.onPushOrPublishButtonClick}>Yes</Button>
+          <Button onClick={this.onPushOrPublishButtonClick}>
+            Yes, publish branch
+          </Button>
         </ButtonGroup>
       )
     }
@@ -145,9 +147,11 @@ export class PushBranchCommits extends React.Component<
     return (
       <ButtonGroup destructive={true}>
         <Button type="submit" onClick={this.onCreateWithoutPushButtonClick}>
-          No
+          No, open the PR without pushing
         </Button>
-        <Button onClick={this.onPushOrPublishButtonClick}>Yes</Button>
+        <Button onClick={this.onPushOrPublishButtonClick}>
+          Yes, push commits
+        </Button>
       </ButtonGroup>
     )
   }
