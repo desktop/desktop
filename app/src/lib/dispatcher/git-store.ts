@@ -83,7 +83,7 @@ export class GitStore {
 
   private readonly requestsInFight = new Set<string>()
 
-  private readonly repository: Repository
+  public readonly repository: Repository
 
   private _tip: Tip = { kind: TipState.Unknown }
 
@@ -296,6 +296,8 @@ export class GitStore {
     if (gitHubRepository && gitHubRepository.defaultBranch) {
       defaultBranchName = gitHubRepository.defaultBranch
     }
+
+    console.log(`refreshDefaultBranch: ${defaultBranchName}`)
 
     if (defaultBranchName) {
       // Find the default branch among all of our branches, giving
