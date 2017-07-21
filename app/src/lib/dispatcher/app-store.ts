@@ -238,7 +238,7 @@ export class AppStore {
       console.info('repositories updated')
       const repositories = await this.repositoriesStore.getAll()
       this.repositories = repositories
-      this.updateRepositorySelection()
+      this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
   }
@@ -831,7 +831,7 @@ export class AppStore {
       }
     }
 
-    this.updateRepositorySelection()
+    this.updateRepositorySelectionAfterRepositoriesChanged()
 
     this.sidebarWidth =
       parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) ||
@@ -852,7 +852,7 @@ export class AppStore {
     this.accountsStore.refresh()
   }
 
-  private updateRepositorySelection() {
+  private updateRepositorySelectionAfterRepositoriesChanged() {
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this
       .selectedRepository
