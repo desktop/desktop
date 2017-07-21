@@ -235,6 +235,7 @@ export class AppStore {
     })
 
     repositoriesStore.onDidUpdate(async () => {
+      console.info('repositories updated')
       const repositories = await this.repositoriesStore.getAll()
       this.repositories = repositories
       this.updateRepositorySelection()
@@ -514,7 +515,13 @@ export class AppStore {
 
   private getGitStore(repository: Repository): GitStore {
     let gitStore = this.gitStores.get(repository.id)
-    if (!gitStore) {
+    // The repository might have changed in which case we need to throw out the
+    // old GitStore and make a new one.
+    if (gitStore && structuralEquals(repository, gitStore.repository)) {
+      return gitStore
+    } else {
+      console.info(`Creating a new GitStore for ${repository.name}`)
+
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits =>
@@ -523,9 +530,9 @@ export class AppStore {
       gitStore.onDidError(error => this.emitError(error))
 
       this.gitStores.set(repository.id, gitStore)
-    }
 
-    return gitStore
+      return gitStore
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1433,6 +1440,8 @@ export class AppStore {
       // changed.
       return oldGitHubRepository ? repository : updatedRepository
     }
+
+    console.info(`branch from api: ${apiRepo.default_branch}`)
 
     const withUpdatedGitHubRepository = updatedRepository.withGitHubRepository(
       updatedGitHubRepository.withAPI(apiRepo)
