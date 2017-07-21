@@ -1511,7 +1511,7 @@ export class AppStore {
         const defaultBranch = this.getRepositoryState(repository).branchesState
           .defaultBranch
         if (!defaultBranch) {
-          return Promise.reject(new Error(`No default branch!`))
+          throw new Error(`No default branch!`)
         }
 
         const gitStore = this.getGitStore(repository)
@@ -2291,8 +2291,7 @@ export class AppStore {
         const refreshedRepo = await this.refreshGitHubRepositoryInfo(addedRepo)
         addedRepositories.push(refreshedRepo)
       } else {
-        const error = new Error('add-repository')
-        error.message = `${path} isn't a git repository.`
+        const error = new Error(`${path} isn't a git repository.`)
         this.emitError(error)
       }
     }
