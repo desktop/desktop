@@ -517,11 +517,7 @@ export class AppStore {
     let gitStore = this.gitStores.get(repository.id)
     // The repository might have changed in which case we need to throw out the
     // old GitStore and make a new one.
-    if (gitStore && structuralEquals(repository, gitStore.repository)) {
-      return gitStore
-    } else {
-      console.info(`Creating a new GitStore for ${repository.name}`)
-
+    if (!gitStore) {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits =>
@@ -530,9 +526,9 @@ export class AppStore {
       gitStore.onDidError(error => this.emitError(error))
 
       this.gitStores.set(repository.id, gitStore)
-
-      return gitStore
     }
+
+    return gitStore
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
