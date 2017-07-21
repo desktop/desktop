@@ -1,8 +1,8 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { RepositoriesStore } from '../../src/shared-process/repositories-store'
-import { TestDatabase } from '../test-database'
+import { RepositoriesStore } from '../../src/lib/dispatcher'
+import { TestRepositoriesDatabase } from '../test-repositories-database'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
 
@@ -10,7 +10,7 @@ describe('RepositoriesStore', () => {
   let repositoriesStore: RepositoriesStore | null = null
 
   beforeEach(async () => {
-    const db = new TestDatabase()
+    const db = new TestRepositoriesDatabase()
     await db.reset()
 
     repositoriesStore = new RepositoriesStore(db)
@@ -21,7 +21,7 @@ describe('RepositoriesStore', () => {
       const repoPath = '/some/cool/path'
       await repositoriesStore!.addRepository(repoPath)
 
-      const repositories = await repositoriesStore!.getRepositories()
+      const repositories = await repositoriesStore!.getAll()
       expect(repositories[0].path).to.equal(repoPath)
     })
   })
@@ -31,7 +31,7 @@ describe('RepositoriesStore', () => {
       await repositoriesStore!.addRepository('/some/cool/path')
       await repositoriesStore!.addRepository('/some/other/path')
 
-      const repositories = await repositoriesStore!.getRepositories()
+      const repositories = await repositoriesStore!.getAll()
       expect(repositories.length).to.equal(2)
     })
   })
@@ -53,7 +53,7 @@ describe('RepositoriesStore', () => {
       const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
       await repositoriesStore!.updateGitHubRepository(repoWithGitHub)
 
-      const repositories = await repositoriesStore!.getRepositories()
+      const repositories = await repositoriesStore!.getAll()
       const repo = repositories[0]
       expect(repo.gitHubRepository!.private).to.equal(true)
       expect(repo.gitHubRepository!.fork).to.equal(false)
@@ -79,7 +79,7 @@ describe('RepositoriesStore', () => {
       const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
       await repositoriesStore!.updateGitHubRepository(repoWithGitHub)
 
-      const repositories = await repositoriesStore!.getRepositories()
+      const repositories = await repositoriesStore!.getAll()
       const repo = repositories[0]
       expect(repo.gitHubRepository!.private).to.equal(true)
       expect(repo.gitHubRepository!.fork).to.equal(false)

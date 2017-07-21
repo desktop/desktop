@@ -14,6 +14,8 @@ import {
   EmojiStore,
   IssuesStore,
   SignInStore,
+  RepositoriesStore,
+  AccountsStore,
 } from '../../src/lib/dispatcher'
 import { TestGitHubUserDatabase } from '../test-github-user-database'
 import { TestStatsDatabase } from '../test-stats-database'
@@ -30,6 +32,9 @@ import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
 
 import { setupEmptyRepository } from '../fixture-helper'
+import { TestRepositoriesDatabase } from '../test-repositories-database'
+import { InMemoryStore } from '../in-memory-store'
+import { AsyncInMemoryStore } from '../async-in-memory-store'
 
 describe('AppStore', () => {
   async function createAppStore(): Promise<AppStore> {
@@ -42,13 +47,24 @@ describe('AppStore', () => {
     const statsDb = new TestStatsDatabase()
     await statsDb.reset()
 
+    const repositoriesDb = new TestRepositoriesDatabase()
+    await repositoriesDb.reset()
+    const repositoriesStore = new RepositoriesStore(repositoriesDb)
+
+    const accountsStore = new AccountsStore(
+      new InMemoryStore(),
+      new AsyncInMemoryStore()
+    )
+
     return new AppStore(
       new GitHubUserStore(db),
       new CloningRepositoriesStore(),
       new EmojiStore(),
       new IssuesStore(issuesDb),
       new StatsStore(statsDb),
-      new SignInStore()
+      new SignInStore(),
+      accountsStore,
+      repositoriesStore
     )
   }
 
