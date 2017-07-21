@@ -145,6 +145,7 @@ export class AccountsStore {
     })
 
     this.accounts = await Promise.all(accountsWithTokens)
+    this.emitUpdate()
   }
 
   private save() {
