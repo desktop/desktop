@@ -863,7 +863,6 @@ export class AppStore {
       newSelectedRepository = r
     }
 
-    let changed = false
     if (newSelectedRepository === null && this.repositories.length > 0) {
       const lastSelectedID = parseInt(
         localStorage.getItem(LastSelectedRepositoryIDKey) || '',
@@ -877,11 +876,15 @@ export class AppStore {
       if (!newSelectedRepository) {
         newSelectedRepository = this.repositories[0]
       }
-
-      changed = true
     }
 
-    if (changed) {
+    const repositoryChanged =
+      (selectedRepository &&
+        newSelectedRepository &&
+        !structuralEquals(selectedRepository, newSelectedRepository)) ||
+      (selectedRepository && !newSelectedRepository) ||
+      (!selectedRepository && newSelectedRepository)
+    if (repositoryChanged) {
       this._selectRepository(newSelectedRepository)
       this.emitUpdate()
     }
