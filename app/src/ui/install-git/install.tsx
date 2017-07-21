@@ -44,7 +44,7 @@ export class InstallGit extends React.Component<IInstallGitProps, {}> {
       <Dialog
         id="install-git"
         type="warning"
-        title={__DARWIN__ ? 'Open in Terminal' : 'Open command prompt'}
+        title={__DARWIN__ ? 'Unable to Locate Git' : 'Unable to locate Git'}
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}
       >
