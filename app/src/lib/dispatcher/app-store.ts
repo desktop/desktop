@@ -864,7 +864,6 @@ export class AppStore {
       newSelectedRepository = r
     }
 
-    let changed = false
     if (newSelectedRepository === null && this.repositories.length > 0) {
       const lastSelectedID = parseInt(
         localStorage.getItem(LastSelectedRepositoryIDKey) || '',
@@ -878,11 +877,15 @@ export class AppStore {
       if (!newSelectedRepository) {
         newSelectedRepository = this.repositories[0]
       }
-
-      changed = true
     }
 
-    if (changed) {
+    const repositoryChanged =
+      (selectedRepository &&
+        newSelectedRepository &&
+        !structuralEquals(selectedRepository, newSelectedRepository)) ||
+      (selectedRepository && !newSelectedRepository) ||
+      (!selectedRepository && newSelectedRepository)
+    if (repositoryChanged) {
       this._selectRepository(newSelectedRepository)
       this.emitUpdate()
     }
@@ -1509,7 +1512,7 @@ export class AppStore {
         const defaultBranch = this.getRepositoryState(repository).branchesState
           .defaultBranch
         if (!defaultBranch) {
-          return Promise.reject(new Error(`No default branch!`))
+          throw new Error(`No default branch!`)
         }
 
         const gitStore = this.getGitStore(repository)
@@ -2289,8 +2292,7 @@ export class AppStore {
         const refreshedRepo = await this.refreshGitHubRepositoryInfo(addedRepo)
         addedRepositories.push(refreshedRepo)
       } else {
-        const error = new Error('add-repository')
-        error.message = `${path} isn't a git repository.`
+        const error = new Error(`${path} isn't a git repository.`)
         this.emitError(error)
       }
     }
@@ -2345,8 +2347,8 @@ export class AppStore {
       return
     }
 
-    const repositories = await this.repositoriesStore.getAll()
-    const found = repositories.find(r => r.path === path) || null
+    const repositories = this.repositories
+    const found = repositories.find(r => r.path === path)
 
     if (found) {
       const updatedRepository = await this._updateRepositoryMissing(

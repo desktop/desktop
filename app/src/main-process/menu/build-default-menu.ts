@@ -273,7 +273,7 @@ export function buildDefaultMenu(): Electron.Menu {
       {
         label: __DARWIN__ ? 'Create Pull Request' : 'Create &pull request',
         id: 'create-pull-request',
-        accelerator: 'CmdOrCtrl+Shift+P',
+        accelerator: 'CmdOrCtrl+R',
         click: emit('create-pull-request'),
       },
     ],
