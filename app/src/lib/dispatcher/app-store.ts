@@ -2347,7 +2347,7 @@ export class AppStore {
     }
 
     const repositories = await this.repositoriesStore.getAll()
-    const found = repositories.find(r => r.path === path) || null
+    const found = repositories.find(r => r.path === path)
 
     if (found) {
       const updatedRepository = await this._updateRepositoryMissing(
