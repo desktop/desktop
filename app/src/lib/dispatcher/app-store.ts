@@ -2346,7 +2346,7 @@ export class AppStore {
       return
     }
 
-    const repositories = await this.repositoriesStore.getAll()
+    const repositories = this.repositories
     const found = repositories.find(r => r.path === path)
 
     if (found) {
