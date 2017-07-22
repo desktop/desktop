@@ -1,24 +1,18 @@
 /* tslint:disable:no-sync-functions */
 
 import * as path from 'path'
-import * as cp from 'child_process'
 import * as fs from 'fs-extra'
-import * as packager from 'electron-packager'
 
 const legalEagle: LegalEagle = require('legal-eagle')
 
 import {
   getReleaseChannel,
   getDistRoot,
-  getExecutableName,
-  getBundleID,
-  getCompanyName,
-  getProductName,
   getVersion,
 } from './dist-info'
 
 const projectRoot = path.join(__dirname, '..')
-const outRoot = path.join(projectRoot, 'out')
+const outRoot = path.join(projectRoot, 'app', 'dist')
 
 const isPublishableBuild = getReleaseChannel() !== 'development'
 
@@ -27,20 +21,11 @@ console.log(`Building for ${getReleaseChannel()}…`)
 console.log('Removing old distribution…')
 fs.removeSync(getDistRoot())
 
-console.log('Copying dependencies…')
-copyDependencies()
-
 console.log('Packaging emoji…')
 copyEmoji()
 
 console.log('Copying static resources…')
 copyStaticResources()
-
-const isFork = process.env.CIRCLE_PR_USERNAME
-if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
-  console.log('Setting up keychain…')
-  cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
-}
 
 console.log('Updating our licenses dump…')
 updateLicenseDump(err => {
@@ -55,99 +40,7 @@ updateLicenseDump(err => {
       return
     }
   }
-
-  console.log('Packaging…')
-  packageApp((err, appPaths) => {
-    if (err) {
-      console.error(err)
-      process.exit(1)
-    } else {
-      console.log(`Built to ${appPaths}`)
-    }
-  })
 })
-
-/**
- * The additional packager options not included in the existing typing.
- *
- * See https://github.com/desktop/desktop/issues/2429 for some history on this.
- */
-interface IPackageAdditionalOptions {
-  readonly protocols: ReadonlyArray<{
-    readonly name: string
-    readonly schemes: ReadonlyArray<string>
-  }>
-}
-
-function packageApp(
-  callback: (error: Error | null, appPaths: string | string[]) => void
-) {
-  // not sure if this is needed anywhere, so I'm just going to inline it here
-  // for now and see what the future brings...
-  const toPackagePlatform = (platform: NodeJS.Platform) => {
-    if (platform === 'win32' || platform === 'darwin' || platform === 'linux') {
-      return platform
-    }
-    throw new Error(
-      `Unable to convert to platform for electron-packager: '${process.platform}`
-    )
-  }
-
-  const options: packager.Options & IPackageAdditionalOptions = {
-    name: getExecutableName(),
-    platform: toPackagePlatform(process.platform),
-    arch: 'x64',
-    asar: false, // TODO: Probably wanna enable this down the road.
-    out: getDistRoot(),
-    icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
-    dir: outRoot,
-    overwrite: true,
-    tmpdir: false,
-    derefSymlinks: false,
-    prune: false, // We'll prune them ourselves below.
-    ignore: [
-      new RegExp('/node_modules/electron($|/)'),
-      new RegExp('/node_modules/electron-packager($|/)'),
-      new RegExp('/\\.git($|/)'),
-      new RegExp('/node_modules/\\.bin($|/)'),
-    ],
-    appCopyright: 'Copyright © 2017 GitHub, Inc.',
-
-    // macOS
-    appBundleId: getBundleID(),
-    appCategoryType: 'public.app-category.developer-tools',
-    osxSign: true,
-    protocols: [
-      {
-        name: getBundleID(),
-        schemes: [
-          isPublishableBuild
-            ? 'x-github-desktop-auth'
-            : 'x-github-desktop-dev-auth',
-          'x-github-client',
-          'github-mac',
-        ],
-      },
-    ],
-
-    // Windows
-    win32metadata: {
-      CompanyName: getCompanyName(),
-      FileDescription: '',
-      OriginalFilename: '',
-      ProductName: getProductName(),
-      InternalName: getProductName(),
-    },
-  }
-
-  packager(options, (err: Error, appPaths: string | string[]) => {
-    if (err) {
-      callback(err, appPaths)
-    } else {
-      callback(null, appPaths)
-    }
-  })
-}
 
 function removeAndCopy(source: string, destination: string) {
   fs.removeSync(destination)
@@ -174,119 +67,6 @@ function copyStaticResources() {
     fs.copySync(platformSpecific, destination)
   }
   fs.copySync(common, destination, { clobber: false })
-}
-
-function copyDependencies() {
-  const originalPackage: Package = require(path.join(
-    projectRoot,
-    'app',
-    'package.json'
-  ))
-
-  const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
-  const externals = commonConfig.externals
-  const oldDependencies = originalPackage.dependencies
-  const newDependencies: PackageLookup = {}
-
-  for (const name of Object.keys(oldDependencies)) {
-    const spec = oldDependencies[name]
-    if (externals.indexOf(name) !== -1) {
-      newDependencies[name] = spec
-    }
-  }
-
-  const oldDevDependencies = originalPackage.devDependencies
-  const newDevDependencies: PackageLookup = {}
-
-  if (!isPublishableBuild) {
-    for (const name of Object.keys(oldDevDependencies)) {
-      const spec = oldDevDependencies[name]
-      if (externals.indexOf(name) !== -1) {
-        newDevDependencies[name] = spec
-      }
-    }
-  }
-
-  // The product name changes depending on whether it's a prod build or dev
-  // build, so that we can have them running side by side.
-  const updatedPackage = Object.assign({}, originalPackage, {
-    productName: getProductName(),
-    dependencies: newDependencies,
-    devDependencies: newDevDependencies,
-  })
-
-  if (isPublishableBuild) {
-    delete updatedPackage.devDependencies
-  }
-
-  fs.writeFileSync(
-    path.join(outRoot, 'package.json'),
-    JSON.stringify(updatedPackage)
-  )
-
-  fs.removeSync(path.resolve(outRoot, 'node_modules'))
-
-  if (
-    Object.keys(newDependencies).length ||
-    Object.keys(newDevDependencies).length
-  ) {
-    console.log('  Installing npm dependencies…')
-    cp.execSync('npm install', { cwd: outRoot, env: process.env })
-  }
-
-  if (!isPublishableBuild) {
-    console.log(
-      '  Installing 7zip (dependency for electron-devtools-installer)'
-    )
-
-    const sevenZipSource = path.resolve(projectRoot, 'app/node_modules/7zip')
-    const sevenZipDestination = path.resolve(outRoot, 'node_modules/7zip')
-
-    fs.mkdirpSync(sevenZipDestination)
-    fs.copySync(sevenZipSource, sevenZipDestination)
-  }
-
-  console.log('  Copying git environment…')
-  const gitDir = path.resolve(outRoot, 'git')
-  fs.removeSync(gitDir)
-  fs.mkdirpSync(gitDir)
-  fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
-
-  if (process.platform === 'win32') {
-    console.log('  Cleaning unneeded Git components…')
-    const files = [
-      'Bitbucket.Authentication.dll',
-      'GitHub.Authentication.exe',
-      'Microsoft.Alm.Authentication.dll',
-      'Microsoft.Alm.Git.dll',
-      'Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll',
-      'Microsoft.IdentityModel.Clients.ActiveDirectory.dll',
-      'Microsoft.Vsts.Authentication.dll',
-      'git-askpass.exe',
-      'git-credential-manager.exe',
-    ]
-
-    const gitCoreDir = path.join(gitDir, 'mingw64', 'libexec', 'git-core')
-
-    for (const file of files) {
-      const filePath = path.join(gitCoreDir, file)
-      try {
-        fs.unlinkSync(filePath)
-      } catch (err) {
-        // probably already cleaned up
-      }
-    }
-  }
-
-  if (process.platform === 'darwin') {
-    console.log('  Copying app-path binary…')
-    const appPathMain = path.resolve(outRoot, 'main')
-    fs.removeSync(appPathMain)
-    fs.copySync(
-      path.resolve(projectRoot, 'app/node_modules/app-path/main'),
-      appPathMain
-    )
-  }
 }
 
 function updateLicenseDump(callback: (err: Error | null) => void) {

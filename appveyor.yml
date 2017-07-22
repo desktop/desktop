@@ -30,18 +30,15 @@ install:
   - npm ls --dev
 
 build_script:
+  - npm run release
   - npm run check-prettiness
   - npm run lint
-  - npm run build:prod
 
 test_script:
   - node --version
   - npm --version
   - npm run test:setup
   - ./script/test-appveyor.bat
-
-on_success:
-  - npm run publish
 
 on_finish:
   - npm run test:review
