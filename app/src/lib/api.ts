@@ -330,10 +330,12 @@ export class API {
     state: 'open' | 'closed' | 'all',
     since: Date | null
   ): Promise<ReadonlyArray<IAPIIssue>> {
-    const params =
-      since && !isNaN(since.getTime())
-        ? { since: toGitHubIsoDateString(since) }
-        : {}
+    const params: { [key: string]: string } = {
+      state,
+    }
+    if (since && !isNaN(since.getTime())) {
+      params.since = toGitHubIsoDateString(since)
+    }
 
     const url = urlWithQueryString(`repos/${owner}/${name}/issues`, params)
     try {
