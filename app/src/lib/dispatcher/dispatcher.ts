@@ -13,6 +13,7 @@ import {
   PopupType,
   Foldout,
   FoldoutType,
+  ImageDiffType,
 } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
@@ -1131,5 +1132,9 @@ export class Dispatcher {
 
       this.postError(e)
     }
+  }
+
+  public changeImageDiffType(type: ImageDiffType): Promise<void> {
+    return this.appStore._changeImageDiffType(type)
   }
 }

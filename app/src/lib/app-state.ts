@@ -26,6 +26,13 @@ export enum SelectionType {
   MissingRepository,
 }
 
+export enum ImageDiffType {
+  TwoUp,
+  Swipe,
+  OnionSkin,
+  Difference,
+}
+
 export type PossibleSelections =
   | {
       type: SelectionType.Repository
@@ -132,6 +139,9 @@ export interface IAppState {
 
   /** Whether we should show a confirmation dialog */
   readonly confirmRepoRemoval: boolean
+
+  /** What type of visual diff mode we should use to compare images */
+  readonly imageDiffType: ImageDiffType
 }
 
 export enum PopupType {
