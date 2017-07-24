@@ -7,10 +7,12 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Account } from '../../models/account'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
+  readonly account: Account | null
   readonly branch: Branch
   readonly onDismissed: () => void
 }
@@ -45,8 +47,8 @@ export class DeleteBranch extends React.Component<
           </p>
           <p>This cannot be undone.</p>
           <Checkbox
-          disabled={this.props.branch.remote === null}
-            label='Additionally delete this branch on the remote'
+            disabled={this.props.branch.remote === null}
+            label="Additionally delete this branch on the remote"
             value={
               this.state.includeRemoteBranch
                 ? CheckboxValue.On
@@ -77,6 +79,7 @@ export class DeleteBranch extends React.Component<
     this.props.dispatcher.deleteBranch(
       this.props.repository,
       this.props.branch,
+      this.props.account,
       this.state.includeRemoteBranch
     )
     this.props.dispatcher.closePopup()

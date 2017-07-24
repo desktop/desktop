@@ -388,10 +388,14 @@ export class Dispatcher {
   public deleteBranch(
     repository: Repository,
     branch: Branch,
+    account: Account | null,
     includeRemote: boolean
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repo, user) =>
-      this.appStore._deleteBranch(repo, branch, user, includeRemote)
+    return this.appStore._deleteBranch(
+      repository,
+      branch,
+      account,
+      includeRemote
     )
   }
 
