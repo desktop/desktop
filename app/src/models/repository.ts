@@ -44,4 +44,17 @@ export class Repository {
   public withPath(path: string): Repository {
     return new Repository(path, this.id, this.gitHubRepository, this.missing)
   }
+
+  /**
+   * A hash of the properties of the object.
+   *
+   * Objects with the same hash are guaranteed to be structurally equal.
+   */
+  public get hash(): string {
+    return `${this.id}+
+      ${this.gitHubRepository && this.gitHubRepository.hash}+
+      ${this.path}+
+      ${this.missing}+
+      ${this.name}`
+  }
 }

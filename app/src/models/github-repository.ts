@@ -64,4 +64,21 @@ export class GitHubRepository {
   public get fullName(): string {
     return `${this.owner.login}/${this.name}`
   }
+
+  /**
+   * A hash of the properties of the object.
+   *
+   * Objects with the same hash are guaranteed to be structurally equal.
+   */
+  public get hash(): string {
+    return `${this.dbID}+
+      ${this.defaultBranch}+
+      ${this.private}+
+      ${this.cloneURL}+
+      ${this.fork}+
+      ${this.name}+
+      ${this.owner}+
+      ${this.htmlURL}+
+      ${this.owner.hash}`
+  }
 }
