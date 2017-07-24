@@ -734,6 +734,11 @@
       "from": "rimraf@>=2.5.4 <3.0.0",
       "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.6.1.tgz"
     },
+    "runas": {
+      "version": "3.1.1",
+      "from": "runas@latest",
+      "resolved": "https://registry.npmjs.org/runas/-/runas-3.1.1.tgz"
+    },
     "safe-buffer": {
       "version": "5.0.1",
       "from": "safe-buffer@>=5.0.1 <6.0.0",

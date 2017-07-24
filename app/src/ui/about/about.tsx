@@ -29,7 +29,8 @@ interface IAboutProps {
    */
   readonly applicationVersion: string
 
-  readonly usernameForUpdateCheck: string
+  /** A function to call to kick off an update check. */
+  readonly onCheckForUpdates: () => void
 
   readonly onShowAcknowledgements: () => void
 
@@ -90,16 +91,15 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     }
   }
 
-  private onCheckForUpdates = () => {
-    updateStore.checkForUpdates(this.props.usernameForUpdateCheck, false)
-  }
-
   private onQuitAndInstall = () => {
     updateStore.quitAndInstallUpdate()
   }
 
   private renderUpdateButton() {
-    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') {
+    if (
+      __RELEASE_CHANNEL__ === 'development' ||
+      __RELEASE_CHANNEL__ === 'test'
+    ) {
       return null
     }
 
@@ -119,7 +119,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
         return (
           <Row>
-            <Button disabled={disabled} onClick={this.onCheckForUpdates}>
+            <Button disabled={disabled} onClick={this.props.onCheckForUpdates}>
               Check for Updates
             </Button>
           </Row>
@@ -175,7 +175,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private renderUpdateDetails() {
-    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') {
+    if (
+      __RELEASE_CHANNEL__ === 'development' ||
+      __RELEASE_CHANNEL__ === 'test'
+    ) {
       return (
         <p>
           The application is currently running in development or test mode and
@@ -204,7 +207,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private renderUpdateErrors() {
-    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') {
+    if (
+      __RELEASE_CHANNEL__ === 'development' ||
+      __RELEASE_CHANNEL__ === 'test'
+    ) {
       return null
     }
 
