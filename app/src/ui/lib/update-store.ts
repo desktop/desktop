@@ -7,12 +7,8 @@ const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
 
-import { getVersion } from './app-proxy'
 import { sendWillQuitSync } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
-
-/** The release channel which should be checked for updates. */
-type ReleaseChannel = 'production' | 'beta'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -33,9 +29,6 @@ export interface IUpdateState {
   status: UpdateStatus
   lastSuccessfulCheck: Date | null
 }
-
-const UpdatesURLBase =
-  'https://central.github.com/api/deployments/desktop/desktop/latest'
 
 /** A store which contains the current state of the auto updater. */
 class UpdateStore {
@@ -158,22 +151,17 @@ class UpdateStore {
     }
   }
 
-  private getFeedURL(channel: ReleaseChannel): string {
-    return `${UpdatesURLBase}?version=${getVersion()}&env=${channel}`
-  }
-
   /**
    * Check for updates.
    *
-   * @param channel      - The release channel to check for updates.
    * @param inBackground - Are we checking for updates in the background, or was
    *                       this check user-initiated?
    */
-  public checkForUpdates(channel: ReleaseChannel, inBackground: boolean) {
+  public checkForUpdates(inBackground: boolean) {
     this.userInitiatedUpdate = !inBackground
 
     try {
-      autoUpdater.setFeedURL(this.getFeedURL(channel))
+      autoUpdater.setFeedURL(__UPDATES_URL__)
       autoUpdater.checkForUpdates()
     } catch (e) {
       this.emitError(e)

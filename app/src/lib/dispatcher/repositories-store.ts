@@ -1,12 +1,13 @@
+import { Emitter, Disposable } from 'event-kit'
 import {
-  Database,
+  RepositoriesDatabase,
   IDatabaseGitHubRepository,
   IDatabaseRepository,
-} from './database'
-import { Owner } from '../models/owner'
-import { GitHubRepository } from '../models/github-repository'
-import { Repository } from '../models/repository'
-import { fatalError } from '../lib/fatal-error'
+} from './repositories-database'
+import { Owner } from '../../models/owner'
+import { GitHubRepository } from '../../models/github-repository'
+import { Repository } from '../../models/repository'
+import { fatalError } from '../fatal-error'
 
 // NB: We can't use async/await within Dexie transactions. This is because Dexie
 // uses its own Promise implementation and TypeScript doesn't know about it. See
@@ -18,14 +19,25 @@ import { fatalError } from '../lib/fatal-error'
 
 /** The store for local repositories. */
 export class RepositoriesStore {
-  private db: Database
+  private db: RepositoriesDatabase
 
-  public constructor(db: Database) {
+  private readonly emitter = new Emitter()
+
+  public constructor(db: RepositoriesDatabase) {
     this.db = db
   }
 
+  private emitUpdate() {
+    this.emitter.emit('did-update', {})
+  }
+
+  /** Register a function to be called when the store updates. */
+  public onDidUpdate(fn: () => void): Disposable {
+    return this.emitter.on('did-update', fn)
+  }
+
   /** Get all the local repositories. */
-  public async getRepositories(): Promise<ReadonlyArray<Repository>> {
+  public async getAll(): Promise<ReadonlyArray<Repository>> {
     const inflatedRepos: Repository[] = []
     const db = this.db
     const transaction = this.db.transaction(
@@ -135,11 +147,16 @@ export class RepositoriesStore {
       gitHubRepositoryID: null,
       missing: false,
     })
+
+    this.emitUpdate()
+
     return new Repository(path, id, null, false)
   }
 
   public async removeRepository(repoID: number): Promise<void> {
     await this.db.repositories.delete(repoID)
+
+    this.emitUpdate()
   }
 
   /** Update the repository's `missing` flag. */
@@ -164,6 +181,8 @@ export class RepositoriesStore {
       missing: updatedRepository.missing,
       gitHubRepositoryID,
     })
+
+    this.emitUpdate()
 
     return updatedRepository
   }
@@ -190,6 +209,10 @@ export class RepositoriesStore {
       path: updatedRepository.path,
       gitHubRepositoryID,
     })
+
+    await this.updateRepositoryMissing(repository, false)
+
+    this.emitUpdate()
 
     return updatedRepository
   }
@@ -273,6 +296,8 @@ export class RepositoriesStore {
     )
 
     await transaction
+
+    this.emitUpdate()
 
     return repository.withGitHubRepository(
       new GitHubRepository(

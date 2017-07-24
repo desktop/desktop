@@ -6,12 +6,12 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
-const cp = require('child_process')
+const distInfo = require('../script/dist-info')
 
 const devClientId = '3a723b10ac5575cc5bb9'
 const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
 
-const environment = process.env.NODE_ENV || 'development'
+const channel = distInfo.getReleaseChannel()
 
 /**
  * Attempt to dereference the given ref without requiring a Git environment
@@ -58,18 +58,25 @@ const replacements = {
   ),
   __DARWIN__: process.platform === 'darwin',
   __WIN32__: process.platform === 'win32',
-  __DEV__: environment === 'development',
-  __RELEASE_ENV__: JSON.stringify(environment),
+  __LINUX__: process.platform === 'linux',
+  __DEV__: channel === 'development',
+  __RELEASE_CHANNEL__: JSON.stringify(channel),
+  __UPDATES_URL__: JSON.stringify(distInfo.getUpdatesURL()),
   __SHA__: JSON.stringify(getSHA()),
   'process.platform': JSON.stringify(process.platform),
-  'process.env.NODE_ENV': JSON.stringify(environment),
+  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   'process.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV),
 }
 
 const outputDir = 'out'
 
+const externals = ['7zip']
+if (channel === 'development') {
+  externals.push('devtron')
+}
+
 const commonConfig = {
-  externals: ['7zip'],
+  externals: externals,
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', outputDir),
@@ -152,29 +159,6 @@ const rendererConfig = merge({}, commonConfig, {
   ],
 })
 
-const sharedConfig = merge({}, commonConfig, {
-  entry: { shared: path.resolve(__dirname, 'src/shared-process/index') },
-  target: 'electron-renderer',
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, 'static', 'error.html'),
-      // without this we overwrite index.html
-      filename: 'error.html',
-      // we don't need any scripts to run on this page
-      excludeChunks: ['main', 'renderer', 'shared', 'ask-pass'],
-    }),
-    new HtmlWebpackPlugin({
-      filename: 'shared.html',
-      chunks: ['shared'],
-    }),
-    new webpack.DefinePlugin(
-      Object.assign({}, replacements, {
-        __PROCESS_KIND__: JSON.stringify('shared'),
-      })
-    ),
-  ],
-})
-
 const askPassConfig = merge({}, commonConfig, {
   entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
   target: 'node',
@@ -218,7 +202,6 @@ const cliConfig = merge({}, commonConfig, {
 
 module.exports = {
   main: mainConfig,
-  shared: sharedConfig,
   renderer: rendererConfig,
   askPass: askPassConfig,
   crash: crashConfig,

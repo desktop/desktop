@@ -7,21 +7,6 @@ const merge = require('webpack-merge')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const BabelPlugin = require('babel-webpack-plugin')
 
-let branchName = ''
-if (process.platform === 'darwin') {
-  branchName = process.env.TRAVIS_BRANCH
-} else if (process.platform === 'win32') {
-  branchName = process.env.APPVEYOR_REPO_BRANCH
-}
-
-let environment = 'production'
-if (branchName && branchName.length > 0) {
-  const matches = branchName.match(/^__release-([a-zA-Z]+)-.*/)
-  if (matches && matches.length === 2) {
-    environment = matches[1]
-  }
-}
-
 const config = {
   devtool: 'source-map',
   plugins: [
@@ -37,7 +22,6 @@ const config = {
 }
 
 const mainConfig = merge({}, common.main, config)
-const sharedConfig = merge({}, common.shared, config)
 const askPassConfig = merge({}, common.askPass, config)
 const cliConfig = merge({}, common.cli, config)
 
@@ -85,7 +69,6 @@ const crashConfig = merge({}, common.crash, config, {
 
 module.exports = [
   mainConfig,
-  sharedConfig,
   rendererConfig,
   askPassConfig,
   crashConfig,

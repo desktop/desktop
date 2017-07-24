@@ -1,13 +1,12 @@
 import { Menu, ipcMain } from 'electron'
 import { shell } from '../../lib/dispatcher/app-shell'
-import { SharedProcess } from '../../shared-process/shared-process'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogPath } from '../../lib/logging/get-log-path'
 import { mkdirIfNeeded } from '../../lib/file-system'
 import { log } from '../log'
 
-export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
+export function buildDefaultMenu(): Electron.Menu {
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
@@ -162,7 +161,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
             focusedWindow.reload()
           }
         },
-        visible: __RELEASE_ENV__ !== 'production',
+        visible: __RELEASE_CHANNEL__ !== 'production',
       },
       {
         id: 'show-devtools',
@@ -177,13 +176,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
             focusedWindow.webContents.toggleDevTools()
           }
         },
-      },
-      {
-        label: __DARWIN__ ? 'Debug Shared Process' : '&Debug shared process',
-        click(item: any, focusedWindow: Electron.BrowserWindow) {
-          sharedProcess.show()
-        },
-        visible: __RELEASE_ENV__ !== 'production',
       },
     ],
   })
@@ -281,7 +273,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       {
         label: __DARWIN__ ? 'Create Pull Request' : 'Create &pull request',
         id: 'create-pull-request',
-        accelerator: 'CmdOrCtrl+Shift+P',
+        accelerator: 'CmdOrCtrl+R',
         click: emit('create-pull-request'),
       },
     ],

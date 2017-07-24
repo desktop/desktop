@@ -9,7 +9,7 @@
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
   },
-  "description": "Extend your GitHub workflow beyond your browser with GitHub Desktop",
+  "description": "Simple collaboration from your desktop",
   "author": {
     "name": "GitHub, Inc.",
     "email": "opensource+desktop@github.com",

@@ -15,6 +15,11 @@ export function openShell(fullPath: string, shell?: string) {
     return spawn('START', [shell || 'cmd'], { shell: true, cwd: fullPath })
   }
 
+  if (__LINUX__) {
+    const commandArgs = ['--working-directory', fullPath]
+    return spawn('gnome-terminal', commandArgs, { shell: true })
+  }
+
   return fatalError('Unsupported OS')
 }
 
@@ -22,7 +27,8 @@ export function isGitOnPath(): Promise<boolean> {
   // Modern versions of macOS ship with a Git shim that guides you through
   // the process of setting everything up. We trust this is available, so
   // don't worry about looking for it here.
-  if (__DARWIN__) {
+  // I decide linux user have git too :)
+  if (__DARWIN__ || __LINUX__) {
     return Promise.resolve(true)
   }
 
