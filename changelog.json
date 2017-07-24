@@ -17,6 +17,14 @@
       "[Fixed] Windows: Installer not completing or getting stuck in a loop - #1875 #1863",
       "[Fixed] Move the 'Forgot Password' link to fix the tab order of the sign in view - #2200"
     ],
+    "0.6.3-beta7": [],
+    "0.6.3-beta6": [],
+    "0.6.3-beta5": [],
+    "0.6.3-beta4": [],
+    "0.6.3-beta3": [],
+    "0.6.3-beta2": [],
+    "0.6.3-beta1": [],
+    "0.6.3-beta0": [],
     "0.6.2": [
       "[New] Link to User Guides from the Help menu - #1963",
       "[New] Added the 'Open in External Editor' contextual menu item to changed files - #2023",

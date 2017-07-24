@@ -61,7 +61,7 @@
     "css-loader": "^0.26.2",
     "electron": "1.6.11",
     "electron-mocha": "3.5.0",
-    "electron-packager": "8.6.0",
+    "electron-packager": "^8.7.2",
     "electron-winstaller": "2.5.2",
     "express": "^4.15.0",
     "extract-text-webpack-plugin": "^2.1.0",
