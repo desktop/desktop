@@ -1,7 +1,7 @@
 ### Download Desktop
   - [ ] User can download latest (Mac & Windows) Desktop from https://desktop.github.com/    
-    - [ ] Mac: https://central.github.com/mac/latest 
-    - [ ] Windows: https://github-windows.s3.amazonaws.com/GitHubSetup.exe
+    - [ ] Mac: https://central.github.com/deployments/desktop/desktop/latest/darwin
+    - [ ] Windows: https://central.github.com/deployments/desktop/desktop/latest/win32
   - [ ] Release notes page is up-to-date
   - [ ] Help page is accessible
 
@@ -58,10 +58,11 @@
 
 ### Application
   - [ ] Minimize, Maximize, Close buttons work in top nav
-  - [ ] Double-clicking local desktop icon opens the application
-  - [ ] Double clicking top nav bar toggles full-screen / last used screen-size
+  - [ ] Double-clicking local desktop icon opens the application (Mac only)
+  - [ ] Double clicking top nav bar toggles full-screen / last used screen-size (Mac only)
+  - [ ] Clicking Desktop icon in dock/taskbar opens the application
 
-### GitHub Desktop menu
+### GitHub Desktop menu top-level
   - [ ] About GitHub Desktop
     - [ ] Current version shown
     - [ ]  Links to release notes, terms, licenses
@@ -84,18 +85,19 @@
       - [ ] Repository close option is checked by default; user can change
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
-  - [ ] Install command line tool installs tool at `/usr/local/bin/github` (ok to install more than once)
+  - [ ] Install command line tool installs tool at `/usr/local/bin/github` (ok to install more than once, Mac only as Windows done automagically)
     - [ ] Clicking `OK` closes modal
   - [ ] Quit Desktop (⌘Q)
     - [ ] Quitting and reopening Desktop returns you to last visited repo
 
-### File menu
+### File top-level menu
   - [ ] Create New Repository (Mac: ⌘N; Windows: Ctrl+N)
   - [ ] Clone a Repository (Mac: ⇧⌘O; Windows: Ctrl+Shift+O)
   - [ ] Add a Local Repository (Mac: ⌘O; Windows: Ctrl+O)
   - [ ] Options... (Windows only: Ctrl+,)
+  - [ ] Exit (Windows only; quits the app)
 
-### Edit menu 
+### Edit top-level menu
   - [ ] Undo (Mac: ⌘Z; Windows: Ctrl+Z)
   - [ ] Redo (Mac: ⇧⌘Z; Windows: Ctrl+Y)
   - [ ] Cut (Mac: ⌘X; Windows: Ctrl+X)
@@ -103,7 +105,7 @@
   - [ ] Paste (Mac: ⌘V; Windows: Ctrl+V)
   - [ ] Select all (Mac: ⌘A; Windows: Ctrl+A)
 
-### View menu
+### View top-level menu
   - [ ] Show Changes (Mac: ⌘1; Windows: Ctrl+1)
   - [ ] Show History (Mac: ⌘2; Windows: Ctrl+2)
   - [ ] Show Repositories List (Mac: ⌘T; Windows: Ctrl+T)
@@ -114,7 +116,7 @@
   - [ ] Zoom Out (Mac: ⌘-; Windows: Ctrl+-)
   - [ ] Toggle Developer Tools (Mac: ⌥⌘I; Windows: Ctrl+Shift+I)
 
-### Repository menu. (Only enabled if one repo present)
+### Repository top-level menu. (Only enabled if one repo present)
   - [ ] Push (Mac: ⌘P; Windows: Ctrl+P)
     - [ ] Commits from repo pushed to .com; error message shown if conflicts
   - [ ] Pull (Mac: ⇧⌘P; Windows: Ctrl+Shirt+P)
@@ -136,7 +138,7 @@
 	- [ ] `Saved` button saves last entry; changes create a new commit
 	- [ ] `Cancel` button closes modal
 
-### Branch menu
+### Branch top-level menu
   - [ ] New Branch (Mac: ⇧⌘N; Windows: Ctrl+Shift+N)
     - [ ] Clicking `Create Branch` makes new branch based on the entered name, if not a duplicate
     - [ ] Master branch is mentioned in the list
@@ -156,7 +158,7 @@
   - [ ] Compare on GitHub (Mac: ⇧⌘C; Windows: Ctrl+Shift+C) (if repo already published on `github.com`)
   - [ ] Create Pull request (Mac: ⌘R; Windows: Ctrl+R) opens Pull Request on `github.com` 
 
-### Help menu
+### Help top-level menu
   - [ ] `Report Issue` opens issue template in Desktop repo on `github.com`
   - [ ] `User Guides` opens Desktop help page on `github.com`
   - [ ] `Show Logs` opens Finder/Explorer logs on local
