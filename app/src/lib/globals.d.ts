@@ -36,7 +36,7 @@ declare const __UPDATES_URL__: string
  * The currently executing process kind, this is specific to desktop
  * and identifies the processes that we have.
  */
-declare const __PROCESS_KIND__: 'main' | 'ui' | 'shared' | 'crash' | 'askpass'
+declare const __PROCESS_KIND__: 'main' | 'ui' | 'crash' | 'askpass'
 
 /**
  * Request an idle callback. See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback

@@ -26,7 +26,7 @@ if (process.env.NODE_ENV === 'production') {
   return
 }
 
-const [mainConfig, sharedConfig, rendererConfig, askPassConfig] = configs
+const [mainConfig, rendererConfig, askPassConfig] = configs
 
 const server = express()
 const compiler = webpack(rendererConfig)
