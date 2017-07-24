@@ -122,11 +122,11 @@ if (__WIN32__ && process.argv.length > 1) {
   if (promise) {
     willQuit = true
     promise
-      .then(() => {
-        app.quit()
-      })
       .catch(e => {
         log.error(`Failed handling Squirrel event: ${arg}`, e)
+      })
+      .then(() => {
+        app.quit()
       })
   } else {
     handleAppURL(arg)
