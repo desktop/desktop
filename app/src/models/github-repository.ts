@@ -1,6 +1,5 @@
 import { Owner } from './owner'
 import { IAPIRepository } from '../lib/api'
-import { structuralEquals } from '../lib/equality'
 
 /** A GitHub repository. */
 export class GitHubRepository {
@@ -53,7 +52,7 @@ export class GitHubRepository {
       apiRepository.clone_url
     )
 
-    return structuralEquals(newRepository, this) ? this : newRepository
+    return newRepository.hash === this.hash ? this : newRepository
   }
 
   public get endpoint(): string {

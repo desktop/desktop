@@ -1442,7 +1442,7 @@ export class AppStore {
     const withUpdatedGitHubRepository = updatedRepository.withGitHubRepository(
       updatedGitHubRepository.withAPI(apiRepo)
     )
-    if (structuralEquals(withUpdatedGitHubRepository, repository)) {
+    if (withUpdatedGitHubRepository.hash === repository.hash) {
       return withUpdatedGitHubRepository
     }
 
@@ -1462,7 +1462,7 @@ export class AppStore {
     if (
       repository.gitHubRepository &&
       gitHubRepository &&
-      structuralEquals(repository.gitHubRepository, gitHubRepository)
+      repository.gitHubRepository.hash === gitHubRepository.hash
     ) {
       return repository
     }
@@ -2333,7 +2333,7 @@ export class AppStore {
       repository
     )
 
-    if (structuralEquals(refreshedRepository, repository)) {
+    if (refreshedRepository.hash === repository.hash) {
       return refreshedRepository
     }
 
