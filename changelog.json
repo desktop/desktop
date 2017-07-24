@@ -1,6 +1,7 @@
 {
   "releases": {
     "0.7.1": [],
+    "0.7.1-beta2": [],
     "0.7.1-beta1": [],
     "0.7.1-beta0": [
       "[Improved] Redesigned error and warning dialogs to be clearer - #2277",
