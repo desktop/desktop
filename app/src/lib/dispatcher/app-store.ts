@@ -125,8 +125,8 @@ export class AppStore {
     return this._issuesStore
   }
 
-  /** GitStores keyed by their associated Repository ID. */
-  private readonly gitStores = new Map<number, GitStore>()
+  /** GitStores keyed by their hash. */
+  private readonly gitStores = new Map<string, GitStore>()
 
   private readonly signInStore: SignInStore
 
@@ -508,13 +508,13 @@ export class AppStore {
   }
 
   private removeGitStore(repository: Repository) {
-    if (this.gitStores.has(repository.id)) {
-      this.gitStores.delete(repository.id)
+    if (this.gitStores.has(repository.hash)) {
+      this.gitStores.delete(repository.hash)
     }
   }
 
   private getGitStore(repository: Repository): GitStore {
-    let gitStore = this.gitStores.get(repository.id)
+    let gitStore = this.gitStores.get(repository.hash)
     // The repository might have changed in which case we need to throw out the
     // old GitStore and make a new one.
     if (!gitStore) {
@@ -525,7 +525,7 @@ export class AppStore {
       )
       gitStore.onDidError(error => this.emitError(error))
 
-      this.gitStores.set(repository.id, gitStore)
+      this.gitStores.set(repository.hash, gitStore)
     }
 
     return gitStore
