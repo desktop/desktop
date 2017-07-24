@@ -61,7 +61,6 @@ process.on('uncaughtException', (error: Error) => {
 })
 
 let handlingSquirrelEvent = false
-
 if (__WIN32__ && process.argv.length > 1) {
   const arg = process.argv[1]
   log.info(`Handling command line arg: ${arg}`)
@@ -94,6 +93,9 @@ function handleAppURL(url: string) {
 }
 
 let isDuplicateInstance = false
+// If we're handling a Squirrel event we don't wanna enforce single instance. We
+// want to let the updated instance launch and do its work. It will then quit
+// once it's done.
 if (!handlingSquirrelEvent) {
   isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
