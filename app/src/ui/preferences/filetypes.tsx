@@ -5,8 +5,10 @@ import { FilterList, SelectionSource } from '../lib/filter-list'
 import { IFilterListItem, IFilterListGroup } from '../lib/filter-list'
 import { TextBox } from '../lib/text-box'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { Row } from '../../ui/lib/row'
+import { Button } from '../lib/button'
 
-const RowHeight = 47
+// const RowHeight = 47
 
 export interface IFileTypeItem extends IFilterListItem {
   readonly id: string
@@ -129,12 +131,39 @@ export class FileTypeList extends React.Component<IFileTypeListProps, IFileTypeL
     )
   }
 
+  private RowHeight(info: {index: number}): number {
+    return info.index === 0 ? 0 : 47
+  }
+
+  private add = () => {
+    // TODO: add to props.allTypes
+    return () => {
+    console.log(this)
+    console.log(this.props)
+    //this.setState( createState(this.props) )
+    }
+  }
+
   public render() {
     return (
       <DialogContent>
+        <Row>
+         <TextBox
+            value={''}
+            placeholder='Extension'
+            autoFocus={true}
+            />
+          <TextBox
+            value={''}
+            placeholder='Command'
+            autoFocus={true}
+            />
+           <Button onClick={this.add()}>{'Add'}</Button>
+        </Row>
+        <Row>
       <FileTypeFilterList
         className='extension-list-container'
-        rowHeight={RowHeight}
+        rowHeight={this.RowHeight}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
@@ -143,6 +172,7 @@ export class FileTypeList extends React.Component<IFileTypeListProps, IFileTypeL
         onSelectionChanged={this.onSelectionChanged}
         groups={this.state.groups}
         invalidationProps={null}/>
+        </Row>
       </DialogContent>
     )
   }
