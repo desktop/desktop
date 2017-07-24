@@ -93,27 +93,30 @@ function handleAppURL(url: string) {
   })
 }
 
-const isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
-  // Someone tried to run a second instance, we should focus our window.
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) {
-      mainWindow.restore()
+let isDuplicateInstance = false
+if (!handlingSquirrelEvent) {
+  isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore()
+      }
+
+      if (!mainWindow.isVisible()) {
+        mainWindow.show()
+      }
+
+      mainWindow.focus()
     }
 
-    if (!mainWindow.isVisible()) {
-      mainWindow.show()
+    if (args.length > 1) {
+      handleAppURL(args[1])
     }
+  })
 
-    mainWindow.focus()
+  if (isDuplicateInstance) {
+    app.quit()
   }
-
-  if (args.length > 1) {
-    handleAppURL(args[1])
-  }
-})
-
-if (isDuplicateInstance) {
-  app.quit()
 }
 
 if (shellNeedsPatching(process)) {
