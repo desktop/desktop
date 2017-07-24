@@ -1,5 +1,4 @@
-import { Menu, ipcMain } from 'electron'
-import { shell } from '../../lib/dispatcher/app-shell'
+import { Menu, ipcMain, shell } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogPath } from '../../lib/logging/get-log-path'
