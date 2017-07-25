@@ -47,6 +47,7 @@ export function getGenericPassword(
   return TokenStore.getItem(key, username)
 }
 
+/** Set the username for the host. */
 export function setGenericUsername(
   hostname: string,
   username: string
@@ -55,6 +56,7 @@ export function setGenericUsername(
   return TokenStore.setItem(key, UsernameKey, username)
 }
 
+/** Set the password for the username and host. */
 export function setGenericPassword(
   hostname: string,
   username: string,
