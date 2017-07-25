@@ -92,11 +92,38 @@ interface ITextBoxState {
 
 /** An input element with app-standard styles. */
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
+  private instance?: HTMLInputElement
+
+  private caretPosition = -1
+  private cachedString = ''
+
   public componentWillMount() {
     const friendlyName = this.props.label || this.props.placeholder
     const inputId = createUniqueId(`TextBox_${friendlyName}`)
 
     this.setState({ inputId })
+  }
+
+  private storeCaretPosition = (target: HTMLInputElement) => {
+    this.caretPosition = target.selectionEnd
+    this.cachedString = target.value
+  }
+
+  private updateCaretPosition = () => {
+    if (this.instance === undefined || this.props.value === undefined) {
+      return
+    }
+
+    const before = this.cachedString.substr(0, this.caretPosition)
+    const index = this.props.value.indexOf(before) + this.caretPosition
+
+    if (index !== -1) {
+      this.instance.selectionStart = this.instance.selectionEnd = index
+    }
+  }
+
+  public componentDidUpdate() {
+    this.updateCaretPosition()
   }
 
   public componentWillUnmount() {
@@ -106,12 +133,22 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
+    this.storeCaretPosition(event.currentTarget)
+
     if (this.props.onChange) {
       this.props.onChange(event)
     }
 
     if (this.props.onValueChanged && !event.defaultPrevented) {
       this.props.onValueChanged(event.currentTarget.value)
+    }
+  }
+
+  private onRef = (instance: HTMLInputElement) => {
+    this.instance = instance
+
+    if (this.props.onInputRef) {
+      this.props.onInputRef(instance)
     }
   }
 
@@ -163,7 +200,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           value={this.props.value}
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
-          ref={this.props.onInputRef}
+          ref={this.onRef}
           tabIndex={this.props.tabIndex}
         />
       </div>
