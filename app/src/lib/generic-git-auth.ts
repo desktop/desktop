@@ -24,12 +24,8 @@ export function getGenericHostname(remoteURL: string): string {
   return remoteURL
 }
 
-function getKeyForGenericEndpoint(hostname: string): string {
-  return getKeyForEndpoint(`${hostname} (generic)`)
-}
-
 function getKeyForUsername(hostname: string): string {
-  return getKeyForGenericEndpoint(`login@${hostname}`)
+  return getKeyForEndpoint(`login@${hostname}`)
 }
 
 /** Get the username for the host. */
@@ -43,7 +39,7 @@ export function getGenericPassword(
   hostname: string,
   username: string
 ): Promise<string | null> {
-  const key = getKeyForGenericEndpoint(hostname)
+  const key = getKeyForEndpoint(hostname)
   return TokenStore.getItem(key, username)
 }
 
@@ -62,6 +58,6 @@ export function setGenericPassword(
   username: string,
   password: string
 ): Promise<void> {
-  const key = getKeyForGenericEndpoint(hostname)
+  const key = getKeyForEndpoint(hostname)
   return TokenStore.setItem(key, username, password)
 }
