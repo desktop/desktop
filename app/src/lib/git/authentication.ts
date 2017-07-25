@@ -2,8 +2,19 @@ import * as Path from 'path'
 
 import { GitError as DugiteError } from 'dugite'
 
+/**
+ * Information which can be used to potentially authenticate with a git server.
+ */
+export interface IAuthenticationIdentifier {
+  /** The login/username to authenticate with. */
+  readonly login: string
+
+  /** The endpoint with which the user is authenticating. */
+  readonly endpoint: string
+}
+
 /** Get the environment for authenticating remote operations. */
-export function envForAuthentication(account: Account | null): Object {
+export function envForAuthentication(auth: IAuthenticationIdentifier | null): Object {
   const env = {
     DESKTOP_PATH: process.execPath,
     DESKTOP_ASKPASS_SCRIPT: getAskPassScriptPath(),
@@ -13,14 +24,14 @@ export function envForAuthentication(account: Account | null): Object {
     GIT_TERMINAL_PROMPT: '0',
   }
 
-  if (!account) {
+  if (!auth) {
     return env
   }
 
   return {
     ...env,
-    DESKTOP_USERNAME: account.login,
-    DESKTOP_ENDPOINT: account.endpoint,
+    DESKTOP_USERNAME: auth.login,
+    DESKTOP_ENDPOINT: auth.endpoint,
   }
 }
 
