@@ -155,6 +155,7 @@ export enum PopupType {
   TermsAndConditions,
   PushBranchCommits,
   CLIInstalled,
+  GenericGitAuthentication,
 }
 
 export type Popup =
@@ -191,6 +192,7 @@ export type Popup =
       unPushedCommits?: number
     }
   | { type: PopupType.CLIInstalled }
+  | { type: PopupType.GenericGitAuthentication; hostname: string }
 
 export enum FoldoutType {
   Repository,

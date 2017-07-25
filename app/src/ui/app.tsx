@@ -71,6 +71,7 @@ import { FullScreenInfo } from './window/full-screen-info'
 import { PushBranchCommits } from './branches/PushBranchCommits'
 import { Branch } from '../models/branch'
 import { CLIInstalled } from './cli-installed'
+import { GenericGitAuthentication } from './generic-git-auth'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1016,10 +1017,20 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.CLIInstalled:
         return <CLIInstalled onDismissed={this.onPopupDismissed} />
+      case PopupType.GenericGitAuthentication:
+        return (
+          <GenericGitAuthentication
+            hostname=""
+            onCancel={this.onPopupDismissed}
+            onSave={this.onSaveCredentials}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
   }
+
+  private onSaveCredentials = (username: string, password: string) => {}
 
   private onCheckForUpdates = () => {
     this.checkForUpdates(false)
