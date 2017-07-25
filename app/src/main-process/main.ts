@@ -63,7 +63,6 @@ process.on('uncaughtException', (error: Error) => {
 let handlingSquirrelEvent = false
 if (__WIN32__ && process.argv.length > 1) {
   const arg = process.argv[1]
-  log.info(`Handling command line arg: ${arg}`)
 
   const promise = handleSquirrelEvent(arg)
   if (promise) {
@@ -76,8 +75,6 @@ if (__WIN32__ && process.argv.length > 1) {
         app.quit()
       })
   } else {
-    log.info(`"${arg}" is not a recognized Squirrel event. Trying as a URL.`)
-
     handleAppURL(arg)
   }
 }

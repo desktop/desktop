@@ -40,12 +40,8 @@ async function handleInstalled(): Promise<void> {
 }
 
 async function handleUpdated(): Promise<void> {
-  log.info('Updating shorcut...')
   await updateShortcut()
-
-  log.info('Installing CLI...')
   await installCLI()
-  log.info('Done!')
 }
 
 async function installCLI(): Promise<void> {
