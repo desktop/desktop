@@ -235,7 +235,11 @@ export class CommitSummary extends React.Component<
     const authorTitle = `${author.name} <${author.email}>`
     let avatarUser = undefined
     if (this.props.gitHubUser) {
-      avatarUser = { ...author, avatarURL: this.props.gitHubUser.avatarURL }
+      avatarUser = {
+        email: author.email,
+        name: author.name,
+        avatarURL: this.props.gitHubUser.avatarURL,
+      }
     }
 
     const className = classNames({

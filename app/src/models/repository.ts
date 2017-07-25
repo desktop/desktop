@@ -1,21 +1,9 @@
 import * as Path from 'path'
 
-import { GitHubRepository, IGitHubRepository } from './github-repository'
-
-/** The data-only interface for Repository for transport across IPC. */
-export interface IRepository {
-  readonly id: number
-  /** The working directory of this repository */
-  readonly path: string
-  readonly gitHubRepository: IGitHubRepository | null
-  readonly name: string
-
-  /** Was the repository missing on disk last we checked? */
-  readonly missing: boolean
-}
+import { GitHubRepository } from './github-repository'
 
 /** A local repository. */
-export class Repository implements IRepository {
+export class Repository {
   public readonly id: number
   /** The working directory of this repository */
   public readonly path: string
@@ -24,21 +12,6 @@ export class Repository implements IRepository {
 
   /** Was the repository missing on disk last we checked? */
   public readonly missing: boolean
-
-  /** Create a new Repository from a data-only representation. */
-  public static fromJSON(json: IRepository): Repository {
-    const gitHubRepository = json.gitHubRepository
-    if (gitHubRepository) {
-      return new Repository(
-        json.path,
-        json.id,
-        GitHubRepository.fromJSON(gitHubRepository),
-        json.missing
-      )
-    } else {
-      return new Repository(json.path, json.id, null, json.missing)
-    }
-  }
 
   public constructor(
     path: string,

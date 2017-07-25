@@ -13,20 +13,30 @@ declare const __DARWIN__: boolean
 /** Is the app being built to run on Win32? */
 declare const __WIN32__: boolean
 
+/** Is the app being built to run on Linux? */
+declare const __LINUX__: boolean
+
 /**
  * The commit id of the repository HEAD at build time.
  * Represented as a 40 character SHA-1 hexadecimal digest string.
  */
 declare const __SHA__: string
 
-/** The environment for which the release was created. */
-declare const __RELEASE_ENV__: 'production' | 'beta' | 'test' | 'development'
+/** The channel for which the release was created. */
+declare const __RELEASE_CHANNEL__:
+  | 'production'
+  | 'beta'
+  | 'test'
+  | 'development'
+
+/** The URL for Squirrel's updates. */
+declare const __UPDATES_URL__: string
 
 /**
  * The currently executing process kind, this is specific to desktop
  * and identifies the processes that we have.
  */
-declare const __PROCESS_KIND__: 'main' | 'ui' | 'shared' | 'crash' | 'askpass'
+declare const __PROCESS_KIND__: 'main' | 'ui' | 'crash' | 'askpass'
 
 /**
  * The DOMHighResTimeStamp type is a double and is used to store a time value.
