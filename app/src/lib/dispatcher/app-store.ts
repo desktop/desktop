@@ -81,9 +81,9 @@ import { RepositoriesStore } from './repositories-store'
 import { validatedRepositoryPath } from './validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import {
-  getGenericLogin,
   getGenericPassword,
   getGenericHostname,
+  getGenericUsername,
 } from '../generic-git-auth'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -2390,18 +2390,22 @@ export class AppStore {
     }
 
     const hostname = getGenericHostname(remote.url)
-    const login = await getGenericLogin(hostname)
-    if (!login) {
-      // TODO: Prompt
+    const username = await getGenericUsername(hostname)
+    if (username == null) {
+      this._showPopup({ type: PopupType.GenericGitAuthentication, hostname })
+
+      // TODO: Should we really still call this fn?
       return fn(updatedRepository, null)
     }
 
-    const password = await getGenericPassword(hostname, login)
-    if (!password) {
-      // TODO: Prompt
+    const password = await getGenericPassword(hostname, username)
+    if (password == null) {
+      this._showPopup({ type: PopupType.GenericGitAuthentication, hostname })
+
+      // TODO: Should we really still call this fn?
       return fn(updatedRepository, null)
     }
 
-    return fn(updatedRepository, { login, endpoint: hostname })
+    return fn(updatedRepository, { login: username, endpoint: hostname })
   }
 }
