@@ -27,8 +27,8 @@ export interface IDatabaseRepository {
   readonly missing: boolean
 }
 
-/** The app database. */
-export class Database extends Dexie {
+/** The repositories database. */
+export class RepositoriesDatabase extends Dexie {
   /** The local repositories table. */
   public repositories: Dexie.Table<IDatabaseRepository, number>
 

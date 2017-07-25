@@ -23,3 +23,4 @@ export type MenuIDs =
   | 'add-local-repository'
   | 'clone-repository'
   | 'about'
+  | 'create-pull-request'

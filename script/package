@@ -19,54 +19,83 @@ if (process.platform === 'darwin') {
   process.exit(1)
 }
 
-function packageOSX () {
+function packageOSX() {
   const dest = distInfo.getOSXZipPath()
   fs.removeSync(dest)
 
-  cp.execSync(`ditto -ck --keepParent "${distPath}/${productName}.app" "${dest}"`)
+  cp.execSync(
+    `ditto -ck --keepParent "${distPath}/${productName}.app" "${dest}"`
+  )
   console.log(`Zipped to ${dest}`)
 }
 
-function packageWindows () {
+function packageWindows() {
   const electronInstaller = require('electron-winstaller')
   const outputDir = path.join(distPath, '..', 'installer')
-  const setupCertificatePath = path.join(__dirname, 'setup-windows-certificate.ps1')
-  const cleanupCertificatePath = path.join(__dirname, 'cleanup-windows-certificate.ps1')
+  const setupCertificatePath = path.join(
+    __dirname,
+    'setup-windows-certificate.ps1'
+  )
+  const cleanupCertificatePath = path.join(
+    __dirname,
+    'cleanup-windows-certificate.ps1'
+  )
 
   if (process.env.APPVEYOR) {
     cp.execSync(`powershell ${setupCertificatePath}`)
   }
 
-  const iconSource = path.join(__dirname, '..', 'app', 'static', 'logos', 'icon-logo.ico')
+  const iconSource = path.join(
+    __dirname,
+    '..',
+    'app',
+    'static',
+    'logos',
+    'icon-logo.ico'
+  )
 
   if (!fs.existsSync(iconSource)) {
     console.error(`expected setup icon not found at location: ${iconSource}`)
     process.exit(1)
   }
 
-  const splashScreenPath = path.resolve(__dirname, '../app/static/logos/win32-installer-splash.gif')
+  const splashScreenPath = path.resolve(
+    __dirname,
+    '../app/static/logos/win32-installer-splash.gif'
+  )
 
   if (!fs.existsSync(splashScreenPath)) {
-    console.error(`expected setup splash screen gif not found at location: ${splashScreenPath}`)
+    console.error(
+      `expected setup splash screen gif not found at location: ${splashScreenPath}`
+    )
     process.exit(1)
   }
 
   const iconUrl = 'https://desktop.githubusercontent.com/app-icon.ico'
 
+  const nugetPkgName = distInfo.getWindowsIdentifierName()
   const options = {
-    name: distInfo.getWindowsIdentifierName(),
+    name: nugetPkgName,
     appDirectory: distPath,
     outputDirectory: outputDir,
     authors: distInfo.getCompanyName(),
     iconUrl: iconUrl,
     setupIcon: iconSource,
     loadingGif: splashScreenPath,
-    exe: `${productName}.exe`
+    exe: `${nugetPkgName}.exe`,
+    title: productName,
+    setupExe: distInfo.getWindowsStandaloneName(),
+    setupMsi: distInfo.getWindowsInstallerName(),
+  }
+
+  if (distInfo.shouldMakeDelta()) {
+    options.remoteReleases = distInfo.getUpdatesURL()
   }
 
   if (process.env.APPVEYOR) {
     const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
-    options.signWithParams = `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256`
+    options.signWithParams = `/f ${certificatePath} /p ${process.env
+      .WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256`
   }
 
   electronInstaller

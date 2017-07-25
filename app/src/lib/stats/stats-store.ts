@@ -30,7 +30,35 @@ const DefaultDailyMeasures: IDailyMeasures = {
   openShellCount: 0,
 }
 
-type DailyStats = { version: string } & ILaunchStats & IDailyMeasures
+interface ICalculatedStats {
+  /** The app version. */
+  readonly version: string
+
+  /** The OS version. */
+  readonly osVersion: string
+
+  /** The platform. */
+  readonly platform: string
+
+  /** The number of total repositories. */
+  readonly repositoryCount: number
+
+  /** The number of GitHub repositories. */
+  readonly gitHubRepositoryCount: number
+
+  /** The install ID. */
+  readonly guid: string
+
+  /** Is the user logged in with a GitHub.com account? */
+  readonly dotComAccount: boolean
+
+  /** Is the user logged in with an Enterprise account? */
+  readonly enterpriseAccount: boolean
+
+  readonly eventType: 'usage'
+}
+
+type DailyStats = ICalculatedStats & ILaunchStats & IDailyMeasures
 
 /** The store for the app's stats. */
 export class StatsStore {
