@@ -79,9 +79,12 @@ import { openShell } from '../open-shell'
 import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
 import { validatedRepositoryPath } from './validated-repository-path'
-import { getKeyForEndpoint } from '../auth'
-import { TokenStore } from './token-store'
 import { IGitAccount } from '../git/authentication'
+import {
+  getGenericLogin,
+  getGenericPassword,
+  getGenericHostname,
+} from '../generic-git-auth'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -2376,11 +2379,29 @@ export class AppStore {
       account = this.getAccountForRepository(updatedRepository)
     }
 
-    // if (!account) {
-    // const key = getKeyForEndpoint(endpoint)
-    // const password = await TokenStore.getItem(key, username)
-    // }
+    if (account) {
+      return fn(updatedRepository, account)
+    }
 
-    return fn(updatedRepository, account)
+    const gitStore = this.getGitStore(repository)
+    const remote = gitStore.remote
+    if (!remote) {
+      return fn(updatedRepository, null)
+    }
+
+    const hostname = getGenericHostname(remote.url)
+    const login = await getGenericLogin(hostname)
+    if (!login) {
+      // TODO: Prompt
+      return fn(updatedRepository, null)
+    }
+
+    const password = await getGenericPassword(hostname, login)
+    if (!password) {
+      // TODO: Prompt
+      return fn(updatedRepository, null)
+    }
+
+    return fn(updatedRepository, { login, endpoint: hostname })
   }
 }
