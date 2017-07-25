@@ -79,6 +79,9 @@ import { openShell } from '../open-shell'
 import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
 import { validatedRepositoryPath } from './validated-repository-path'
+import { getKeyForEndpoint } from '../auth'
+import { TokenStore } from './token-store'
+import { IGitAccount } from '../git/authentication'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1547,7 +1550,7 @@ export class AppStore {
 
   private async performPush(
     repository: Repository,
-    account: Account | null
+    account: IGitAccount | null
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
     const remote = gitStore.remote
@@ -1706,7 +1709,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   private async performPull(
     repository: Repository,
-    account: Account | null
+    account: IGitAccount | null
   ): Promise<void> {
     return this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
@@ -1958,7 +1961,7 @@ export class AppStore {
 
   private async performFetch(
     repository: Repository,
-    account: Account | null,
+    account: IGitAccount | null,
     backgroundTask: boolean
   ): Promise<void> {
     await this.withPushPull(repository, async () => {
@@ -2360,7 +2363,7 @@ export class AppStore {
 
   private async withAuthenticatingUser<T>(
     repository: Repository,
-    fn: (repository: Repository, account: Account | null) => Promise<T>
+    fn: (repository: Repository, account: IGitAccount | null) => Promise<T>
   ): Promise<T> {
     let updatedRepository = repository
     let account = this.getAccountForRepository(updatedRepository)
@@ -2372,6 +2375,11 @@ export class AppStore {
       updatedRepository = await this.refreshGitHubRepositoryInfo(repository)
       account = this.getAccountForRepository(updatedRepository)
     }
+
+    // if (!account) {
+    // const key = getKeyForEndpoint(endpoint)
+    // const password = await TokenStore.getItem(key, username)
+    // }
 
     return fn(updatedRepository, account)
   }

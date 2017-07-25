@@ -3,9 +3,9 @@ import * as Path from 'path'
 import { GitError as DugiteError } from 'dugite'
 
 /**
- * Information which can be used to potentially authenticate with a git server.
+ * An account which can be used to potentially authenticate with a git server.
  */
-export interface IAuthenticationIdentifier {
+export interface IGitAccount {
   /** The login/username to authenticate with. */
   readonly login: string
 
@@ -14,7 +14,7 @@ export interface IAuthenticationIdentifier {
 }
 
 /** Get the environment for authenticating remote operations. */
-export function envForAuthentication(auth: IAuthenticationIdentifier | null): Object {
+export function envForAuthentication(auth: IGitAccount | null): Object {
   const env = {
     DESKTOP_PATH: process.execPath,
     DESKTOP_ASKPASS_SCRIPT: getAskPassScriptPath(),
