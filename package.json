@@ -27,15 +27,8 @@
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
-    "precommit": "lint-staged",
     "prettier:base": "prettier --single-quote --trailing-comma es5 --no-semi --write",
     "prettify": "npm run prettier:base \"{app/{src,test}/**/*.{ts,tsx,js},app/webpack.*.js,script/!(*.ps1|*.bat|setup-macos-keychain)}\""
-  },
-  "lint-staged": {
-    "{app/{src,test}/**/*.{ts,tsx,js},app/webpack.*.js,script/!(*.ps1|*.bat|setup-macos-keychain)}": [
-      "npm run prettier:base",
-      "git add"
-    ]
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -111,8 +104,6 @@
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
     "@types/winston": "^2.2.0",
-    "husky": "^0.14.1",
-    "lint-staged": "^4.0.0",
     "prettier": "^1.5.0",
     "tslint-config-prettier": "^1.1.0",
     "tslint-react": "^3.0.0"
