@@ -178,14 +178,14 @@ export class CreateBranch extends React.Component<
       } else {
         const items = [
           {
-            title: defaultBranch.name,
-            description:
-              "The default branch in your repository. Pick this to start on something new that's not dependent on your current branch.",
-          },
-          {
             title: currentBranch.name,
             description:
               'The currently checked out branch. Pick this if you need to build on work done in this branch.',
+          },
+          {
+            title: defaultBranch.name,
+            description:
+              "The default branch in your repository. Pick this to start on something new that's not dependent on your current branch.",
           },
         ]
 
