@@ -102,14 +102,11 @@ function getUserDataPath() {
     const home = os.homedir()
     return path.join(home, 'Library', 'Application Support', getProductName())
   } else if (process.platform === 'linux') {
-    if (process.env.XDG_CONFIG_HOME) {
-      return path.join(process.env.XDG_CONFIG_HOME, getProductName())
-    }
     const home = os.homedir()
-    return path.join(home, '.config', getProductName())
+    return path.join(home, '.' + getProductName())
   } else {
     console.error(
-      `I dunno how to resolve the user data path for ${process.platform} ${process.arch} :(`
+      `I dunno how to review for ${process.platform} ${process.arch} :(`
     )
     process.exit(1)
   }
