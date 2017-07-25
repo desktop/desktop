@@ -3,6 +3,12 @@ import { parseRemote } from './remote-parsing'
 import { getKeyForEndpoint } from './auth'
 import { TokenStore } from './dispatcher/token-store'
 
+/**
+ * Keytar can only store passwords keyed by a username. So we store the actual
+ * username under this key.
+ */
+const UsernameKey = 'username'
+
 /** Get the hostname to use for the given remote. */
 export function getGenericHostname(remoteURL: string): string {
   const parsed = parseRemote(remoteURL)
@@ -22,22 +28,38 @@ function getKeyForGenericEndpoint(hostname: string): string {
   return getKeyForEndpoint(`${hostname} (generic)`)
 }
 
-function getKeyForLogin(hostname: string): string {
+function getKeyForUsername(hostname: string): string {
   return getKeyForGenericEndpoint(`login@${hostname}`)
 }
 
-/** Get the user login for the host. */
-export function getGenericLogin(hostname: string): Promise<string | null> {
-  const key = getKeyForLogin(hostname)
-  console.log(`get login for ${key}`)
-  return TokenStore.getItem(key, 'login')
+/** Get the username for the host. */
+export function getGenericUsername(hostname: string): Promise<string | null> {
+  const key = getKeyForUsername(hostname)
+  return TokenStore.getItem(key, UsernameKey)
 }
 
 /** Get the password for the host. */
 export function getGenericPassword(
   hostname: string,
-  login: string
+  username: string
 ): Promise<string | null> {
   const key = getKeyForGenericEndpoint(hostname)
-  return TokenStore.getItem(key, login)
+  return TokenStore.getItem(key, username)
+}
+
+export function setGenericUsername(
+  hostname: string,
+  username: string
+): Promise<void> {
+  const key = getKeyForUsername(hostname)
+  return TokenStore.setItem(key, UsernameKey, username)
+}
+
+export function setGenericPassword(
+  hostname: string,
+  username: string,
+  password: string
+): Promise<void> {
+  const key = getKeyForGenericEndpoint(hostname)
+  return TokenStore.setItem(key, username, password)
 }

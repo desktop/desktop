@@ -8,7 +8,11 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 interface IGenericGitAuthenticationProps {
   readonly hostname: string
-  readonly onSave: (username: string, password: string) => void
+  readonly onSave: (
+    hostname: string,
+    username: string,
+    password: string
+  ) => void
   readonly onCancel: () => void
 }
 
@@ -78,6 +82,10 @@ export class GenericGitAuthentication extends React.Component<
   }
 
   private save = () => {
-    this.props.onSave(this.state.username, this.state.password)
+    this.props.onSave(
+      this.props.hostname,
+      this.state.username,
+      this.state.password
+    )
   }
 }

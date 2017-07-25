@@ -38,6 +38,7 @@ import {
   rejectOAuthRequest,
 } from '../../lib/oauth'
 import { installCLI } from '../../ui/lib/install-cli'
+import * as GenericGitAuth from '../generic-git-auth'
 
 /**
  * An error handler function.
@@ -892,5 +893,15 @@ export class Dispatcher {
 
       this.postError(e)
     }
+  }
+
+  /** Save the generic git credentials. */
+  public async saveGenericGitCredentials(
+    hostname: string,
+    username: string,
+    password: string
+  ): Promise<void> {
+    await GenericGitAuth.setGenericUsername(hostname, username)
+    await GenericGitAuth.setGenericPassword(hostname, username, password)
   }
 }

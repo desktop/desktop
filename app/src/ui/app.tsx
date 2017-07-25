@@ -1020,7 +1020,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.GenericGitAuthentication:
         return (
           <GenericGitAuthentication
-            hostname=""
+            hostname={popup.hostname}
             onCancel={this.onPopupDismissed}
             onSave={this.onSaveCredentials}
           />
@@ -1030,7 +1030,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private onSaveCredentials = (username: string, password: string) => {}
+  private onSaveCredentials = (
+    hostname: string,
+    username: string,
+    password: string
+  ) => {
+    this.props.dispatcher.saveGenericGitCredentials(
+      hostname,
+      username,
+      password
+    )
+  }
 
   private onCheckForUpdates = () => {
     this.checkForUpdates(false)
