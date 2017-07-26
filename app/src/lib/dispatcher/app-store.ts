@@ -2392,17 +2392,11 @@ export class AppStore {
     const hostname = getGenericHostname(remote.url)
     const username = await getGenericUsername(hostname)
     if (username == null) {
-      this._showPopup({ type: PopupType.GenericGitAuthentication, hostname })
-
-      // TODO: Should we really still call this fn?
       return fn(updatedRepository, null)
     }
 
     const password = await getGenericPassword(hostname, username)
     if (password == null) {
-      this._showPopup({ type: PopupType.GenericGitAuthentication, hostname })
-
-      // TODO: Should we really still call this fn?
       return fn(updatedRepository, null)
     }
 
