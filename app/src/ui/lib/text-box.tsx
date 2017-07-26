@@ -47,7 +47,7 @@ interface ITextBoxProps {
   readonly type?: 'text' | 'search' | 'password'
 
   /** A callback to receive the underlying `input` instance. */
-  readonly onInputRef?: (instance: HTMLInputElement) => void
+  readonly onInputRef?: (instance: HTMLInputElement | null) => void
 
   /**
    * An optional text for a link label element. A link label is, for the purposes
@@ -92,7 +92,7 @@ interface ITextBoxState {
 
 /** An input element with app-standard styles. */
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
-  private instance?: HTMLInputElement
+  private instance: HTMLInputElement | null = null
 
   private caretPosition = -1
   private cachedString = ''
@@ -121,7 +121,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
    *  - example workaround: https://gist.github.com/shiftkey/a713712182288b0870952fd5a1bfcebe
    */
   private updateCaretPosition = () => {
-    if (this.instance === undefined || this.props.value === undefined) {
+    if (this.instance === null || this.props.value === undefined) {
       return
     }
 
@@ -155,7 +155,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
-  private onRef = (instance: HTMLInputElement) => {
+  private onRef = (instance: HTMLInputElement | null) => {
     this.instance = instance
 
     if (this.props.onInputRef) {
