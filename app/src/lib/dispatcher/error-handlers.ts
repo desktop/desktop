@@ -36,6 +36,15 @@ function asErrorWithMetadata(error: Error): ErrorWithMetadata | null {
   }
 }
 
+/** Cast the error to a `GitError` if possible. Otherwise return null. */
+function asGitError(error: Error): GitError | null {
+  if (error instanceof GitError) {
+    return error
+  } else {
+    return null
+  }
+}
+
 /** Handle errors by presenting them. */
 export async function defaultErrorHandler(
   error: Error,
@@ -70,10 +79,10 @@ export function createMissingRepositoryHandler(
     }
 
     const errorWithCode = asErrorWithCode(error)
-
+    const gitError = asGitError(error)
     const missing =
-      (error instanceof GitError &&
-        error.result.gitError === GitErrorType.NotAGitRepository) ||
+      (gitError &&
+        gitError.result.gitError === GitErrorType.NotAGitRepository) ||
       (errorWithCode && errorWithCode.code === RepositoryDoesNotExistErrorCode)
 
     if (missing) {
