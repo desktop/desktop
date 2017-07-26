@@ -1,4 +1,9 @@
-import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
+import {
+  git,
+  IGitExecutionOptions,
+  gitNetworkArguments,
+  GitError,
+} from './core'
 import { Repository } from '../../models/repository'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
 import { IPushProgress } from '../app-state'
@@ -91,6 +96,6 @@ export async function push(
   const result = await git(args, repository.path, 'push', opts)
 
   if (result.gitErrorDescription) {
-    throw new Error(result.gitErrorDescription)
+    throw new GitError(result, args)
   }
 }
