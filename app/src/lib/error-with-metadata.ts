@@ -1,6 +1,11 @@
+import { Repository } from '../models/repository'
+
 export interface IErrorMetadata {
   /** Was the action which caused this error part of a background task? */
   readonly backgroundTask?: boolean
+
+  /** The repository from which this error originated. */
+  readonly repository?: Repository
 }
 
 /** An error which contains additional metadata. */
