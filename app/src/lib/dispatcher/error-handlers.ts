@@ -115,6 +115,7 @@ export async function backgroundTaskHandler(
   }
 }
 
+/** Handle git authentication errors in a manner that seems Right And Good. */
 export async function gitAuthenticationErrorHandler(
   error: Error,
   dispatcher: Dispatcher
