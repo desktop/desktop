@@ -1,10 +1,9 @@
-#!/usr/bin/env node
+/* tslint:disable:no-sync-functions */
 
-'use strict'
+import * as fs from 'fs'
+import * as path from 'path'
+import * as cp from 'child_process'
 
-const fs = require('fs')
-const path = require('path')
-const cp = require('child_process')
 const { getUserDataPath, getDistPath, getProductName } = require('./dist-info')
 
 const isFork = process.env.TRAVIS_SECURE_ENV_VARS !== 'true'
@@ -25,15 +24,13 @@ console.log(`Git config:\n${output}\n\n`)
 
 // clear existing log files
 const directory = path.join(getUserDataPath(), 'logs')
-if (!fs.existsSync(directory)) {
-  return
+if (fs.existsSync(directory)) {
+  const files = fs.readdirSync(directory)
+  files.forEach(file => {
+    if (file.endsWith('.log')) {
+      console.log(`deleting ${file}`)
+      const fullPath = path.join(directory, file)
+      fs.unlinkSync(fullPath)
+    }
+  })
 }
-
-const files = fs.readdirSync(directory)
-files.forEach(file => {
-  if (file.endsWith('.log')) {
-    console.log(`deleting ${file}`)
-    const fullPath = path.join(directory, file)
-    fs.unlinkSync(fullPath)
-  }
-})
