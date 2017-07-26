@@ -10,7 +10,7 @@ import { IPullProgress } from '../app-state'
 import {
   IGitAccount,
   envForAuthentication,
-  expectedAuthenticationErrors,
+  AuthenticationErrors,
 } from './authentication'
 
 /**
@@ -34,7 +34,7 @@ export async function pull(
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
-    expectedErrors: expectedAuthenticationErrors(),
+    expectedErrors: AuthenticationErrors,
   }
 
   if (progressCallback) {

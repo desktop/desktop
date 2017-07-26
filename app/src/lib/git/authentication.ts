@@ -36,14 +36,12 @@ export function envForAuthentication(auth: IGitAccount | null): Object {
 }
 
 /** The set of errors which fit under the "authentication failed" umbrella. */
-export function expectedAuthenticationErrors(): Set<DugiteError> {
-  return new Set([
-    DugiteError.HTTPSAuthenticationFailed,
-    DugiteError.SSHAuthenticationFailed,
-    DugiteError.HTTPSRepositoryNotFound,
-    DugiteError.SSHRepositoryNotFound,
-  ])
-}
+export const AuthenticationErrors: ReadonlySet<DugiteError> = new Set([
+  DugiteError.HTTPSAuthenticationFailed,
+  DugiteError.SSHAuthenticationFailed,
+  DugiteError.HTTPSRepositoryNotFound,
+  DugiteError.SSHRepositoryNotFound,
+])
 
 function getAskPassTrampolinePath(): string {
   const extension = __WIN32__ ? 'bat' : 'sh'

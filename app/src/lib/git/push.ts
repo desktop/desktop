@@ -10,7 +10,7 @@ import { IPushProgress } from '../app-state'
 import {
   IGitAccount,
   envForAuthentication,
-  expectedAuthenticationErrors,
+  AuthenticationErrors,
 } from './authentication'
 
 /**
@@ -56,7 +56,7 @@ export async function push(
 
   let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
-    expectedErrors: expectedAuthenticationErrors(),
+    expectedErrors: AuthenticationErrors,
   }
 
   if (progressCallback) {
