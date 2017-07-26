@@ -1,23 +1,13 @@
 /* tslint:disable:no-sync-functions */
 
 import * as fs from 'fs'
-import * as path from 'path'
-const { getUserDataPath } = require('./dist-info')
+import { getLogFiles } from './review-logs'
 
 function reviewLogs() {
-  const directory = path.join(getUserDataPath(), 'logs')
-  if (!fs.existsSync(directory)) {
-    return
-  }
-
-  const files = fs.readdirSync(directory)
-  files.forEach(file => {
-    if (file.endsWith('.log')) {
-      console.log(`opening ${file}`)
-      const fullPath = path.join(directory, file)
-      const text = fs.readFileSync(fullPath, 'utf-8')
-      console.log(text)
-    }
+  getLogFiles().forEach(file => {
+    console.log(`opening ${file}:`)
+    const text = fs.readFileSync(file, 'utf-8')
+    console.log(text)
   })
 }
 

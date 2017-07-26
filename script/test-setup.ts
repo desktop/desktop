@@ -1,10 +1,10 @@
 /* tslint:disable:no-sync-functions */
 
 import * as fs from 'fs'
-import * as path from 'path'
 import * as cp from 'child_process'
+import { getLogFiles } from './review-logs'
 
-const { getUserDataPath, getDistPath, getProductName } = require('./dist-info')
+const { getDistPath, getProductName } = require('./dist-info')
 
 const isFork = process.env.TRAVIS_SECURE_ENV_VARS !== 'true'
 
@@ -22,15 +22,8 @@ if (process.platform === 'darwin' && process.env.TRAVIS && !isFork) {
 const output = cp.execSync('git config -l --show-origin', { encoding: 'utf-8' })
 console.log(`Git config:\n${output}\n\n`)
 
-// clear existing log files
-const directory = path.join(getUserDataPath(), 'logs')
-if (fs.existsSync(directory)) {
-  const files = fs.readdirSync(directory)
-  files.forEach(file => {
-    if (file.endsWith('.log')) {
-      console.log(`deleting ${file}`)
-      const fullPath = path.join(directory, file)
-      fs.unlinkSync(fullPath)
-    }
-  })
-}
+// delete existing log files
+getLogFiles().forEach(file => {
+  console.log(`deleting ${file}`)
+  fs.unlinkSync(file)
+})
