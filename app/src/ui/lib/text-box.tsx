@@ -106,7 +106,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
   /*
    * Store the selection end and previous string between updates so that the
-   * caret posiiton can be reapplied to the input element.
+   * caret position can be reapplied to the input element.
    */
   private storeCaretPosition = (target: HTMLInputElement) => {
     this.caretPosition = target.selectionEnd
@@ -115,7 +115,10 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
   /*
    * Update the caret position of the input element if it can be reapplied.
-   * Reference: https://gist.github.com/shiftkey/a713712182288b0870952fd5a1bfcebe
+   *
+   * References:
+   *  - upstream issue: https://github.com/facebook/react/issues/955
+   *  - example workaround: https://gist.github.com/shiftkey/a713712182288b0870952fd5a1bfcebe
    */
   private updateCaretPosition = () => {
     if (this.instance === undefined || this.props.value === undefined) {
