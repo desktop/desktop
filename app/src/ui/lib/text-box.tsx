@@ -47,7 +47,7 @@ interface ITextBoxProps {
   readonly type?: 'text' | 'search' | 'password'
 
   /** A callback to receive the underlying `input` instance. */
-  readonly onInputRef?: (instance: HTMLInputElement) => void
+  readonly onInputRef?: (instance: HTMLInputElement | null) => void
 
   /**
    * An optional text for a link label element. A link label is, for the purposes
@@ -92,11 +92,49 @@ interface ITextBoxState {
 
 /** An input element with app-standard styles. */
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
+  private instance: HTMLInputElement | null = null
+
+  private caretPosition = -1
+  private cachedString = ''
+
   public componentWillMount() {
     const friendlyName = this.props.label || this.props.placeholder
     const inputId = createUniqueId(`TextBox_${friendlyName}`)
 
     this.setState({ inputId })
+  }
+
+  /*
+   * Store the selection end and previous string between updates so that the
+   * caret position can be reapplied to the input element.
+   */
+  private storeCaretPosition = (target: HTMLInputElement) => {
+    this.caretPosition = target.selectionEnd
+    this.cachedString = target.value
+  }
+
+  /*
+   * Update the caret position of the input element if it can be reapplied.
+   *
+   * References:
+   *  - upstream issue: https://github.com/facebook/react/issues/955
+   *  - example workaround: https://gist.github.com/shiftkey/a713712182288b0870952fd5a1bfcebe
+   */
+  private updateCaretPosition = () => {
+    if (this.instance === null || this.props.value === undefined) {
+      return
+    }
+
+    const before = this.cachedString.substr(0, this.caretPosition)
+    const index = this.props.value.indexOf(before) + this.caretPosition
+
+    if (index !== -1) {
+      this.instance.selectionStart = this.instance.selectionEnd = index
+    }
+  }
+
+  public componentDidUpdate() {
+    this.updateCaretPosition()
   }
 
   public componentWillUnmount() {
@@ -106,12 +144,22 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
+    this.storeCaretPosition(event.currentTarget)
+
     if (this.props.onChange) {
       this.props.onChange(event)
     }
 
     if (this.props.onValueChanged && !event.defaultPrevented) {
       this.props.onValueChanged(event.currentTarget.value)
+    }
+  }
+
+  private onRef = (instance: HTMLInputElement | null) => {
+    this.instance = instance
+
+    if (this.props.onInputRef) {
+      this.props.onInputRef(instance)
     }
   }
 
@@ -163,7 +211,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           value={this.props.value}
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
-          ref={this.props.onInputRef}
+          ref={this.onRef}
           tabIndex={this.props.tabIndex}
         />
       </div>
