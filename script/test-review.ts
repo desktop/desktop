@@ -1,9 +1,7 @@
-#!/usr/bin/env node
+/* tslint:disable:no-sync-functions */
 
-'use strict'
-
-const fs = require('fs')
-const path = require('path')
+import * as fs from 'fs'
+import * as path from 'path'
 const { getUserDataPath } = require('./dist-info')
 
 function reviewLogs() {
