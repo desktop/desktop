@@ -133,7 +133,13 @@ export async function gitAuthenticationErrorHandler(
     return error
   }
 
-  console.log(dugiteError)
-  debugger
-  return error
+  const repository = e.metadata.repository
+  if (!repository) {
+    return error
+  }
+
+  // TODO: Retry action after they've provided credentials
+  await dispatcher.promptForGenericGitAuthentication(repository)
+
+  return null
 }

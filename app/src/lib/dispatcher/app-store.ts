@@ -81,7 +81,6 @@ import { RepositoriesStore } from './repositories-store'
 import { validatedRepositoryPath } from './validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
-import { ErrorWithMetadata } from '../error-with-metadata'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -2392,5 +2391,21 @@ export class AppStore {
     }
 
     return fn(updatedRepository, account)
+  }
+
+  public async promptForGenericGitAuthentication(
+    repository: Repository
+  ): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    const remote = gitStore.remote
+    if (!remote) {
+      return
+    }
+
+    const hostname = getGenericHostname(remote.url)
+    return this._showPopup({
+      type: PopupType.GenericGitAuthentication,
+      hostname,
+    })
   }
 }
