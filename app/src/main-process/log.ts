@@ -13,10 +13,10 @@ require('winston-daily-rotate-file')
  */
 const MaxLogFiles = 14
 
-/** resolve the log file location based on the current environment */
+/** resolve the log file location based on the current channel */
 function getLogFilePath(directory: string): string {
-  const environment = process.env.NODE_ENV || 'production'
-  const fileName = `desktop.${environment}.log`
+  const channel = __RELEASE_CHANNEL__
+  const fileName = `desktop.${channel}.log`
   return Path.join(directory, fileName)
 }
 

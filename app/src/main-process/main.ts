@@ -7,141 +7,76 @@ import {
   ipcMain,
   BrowserWindow,
   autoUpdater,
-  dialog,
   shell,
 } from 'electron'
 
 import { AppWindow } from './app-window'
-import { CrashWindow } from './crash-window'
-import {
-  buildDefaultMenu,
-  MenuEvent,
-  findMenuItemByID,
-  setCrashMenu,
-} from './menu'
+import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
-import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
 import { IMenuItemState } from '../lib/menu-update'
 import { LogLevel } from '../lib/logging/log-level'
 import { log as writeLog } from './log'
-import { formatError } from '../lib/logging/format-error'
 import { reportError } from './exception-reporting'
 import {
   enableSourceMaps,
   withSourceMappedStack,
 } from '../lib/source-map-support'
 import { now } from './now'
+import { showUncaughtException } from './show-uncaught-exception'
 
 enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
-let sharedProcess: SharedProcess | null = null
 
 const launchTime = now()
 
 let preventQuit = false
 let readyTime: number | null = null
-let hasReportedUncaughtException = false
 
 type OnDidLoadFn = (window: AppWindow) => void
 /** See the `onDidLoad` function. */
 let onDidLoadFns: Array<OnDidLoadFn> | null = []
 
-function uncaughtException(error: Error) {
-  log.error(formatError(error))
-
-  if (hasReportedUncaughtException) {
-    return
-  }
-
-  hasReportedUncaughtException = true
+function handleUncaughtException(error: Error) {
   preventQuit = true
-
-  setCrashMenu()
-
-  const isLaunchError = !mainWindow
 
   if (mainWindow) {
     mainWindow.destroy()
     mainWindow = null
   }
 
-  if (sharedProcess) {
-    sharedProcess.destroy()
-    mainWindow = null
-  }
-
-  const crashWindow = new CrashWindow(
-    isLaunchError ? 'launch' : 'generic',
-    error
-  )
-
-  crashWindow.onDidLoad(() => {
-    crashWindow.show()
-  })
-
-  crashWindow.onFailedToLoad(() => {
-    dialog.showMessageBox(
-      {
-        type: 'error',
-        title: __DARWIN__ ? `Unrecoverable Error` : 'Unrecoverable error',
-        message:
-          `GitHub Desktop has encountered an unrecoverable error and will need to restart.\n\n` +
-          `This has been reported to the team, but if you encounter this repeatedly please report ` +
-          `this issue to the GitHub Desktop issue tracker.\n\n${error.stack ||
-            error.message}`,
-      },
-      response => {
-        if (!__DEV__) {
-          app.relaunch()
-        }
-        app.quit()
-      }
-    )
-  })
-
-  crashWindow.onClose(() => {
-    if (!__DEV__) {
-      app.relaunch()
-    }
-    app.quit()
-  })
-
-  crashWindow.load()
+  const isLaunchError = !mainWindow
+  showUncaughtException(isLaunchError, error)
 }
 
 process.on('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
 
   reportError(error)
-  uncaughtException(error)
+  handleUncaughtException(error)
 })
 
-let willQuit = false
-
+let handlingSquirrelEvent = false
 if (__WIN32__ && process.argv.length > 1) {
   const arg = process.argv[1]
+
   const promise = handleSquirrelEvent(arg)
   if (promise) {
-    willQuit = true
+    handlingSquirrelEvent = true
     promise
-      .then(() => {
-        app.quit()
-      })
       .catch(e => {
         log.error(`Failed handling Squirrel event: ${arg}`, e)
+      })
+      .then(() => {
+        app.quit()
       })
   } else {
     handleAppURL(arg)
   }
-}
-
-if (shellNeedsPatching(process)) {
-  updateEnvironmentForProcess()
 }
 
 function handleAppURL(url: string) {
@@ -154,29 +89,37 @@ function handleAppURL(url: string) {
   })
 }
 
-const isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
-  // Someone tried to run a second instance, we should focus our window.
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) {
-      mainWindow.restore()
+let isDuplicateInstance = false
+// If we're handling a Squirrel event we don't want to enforce single instance.
+// We want to let the updated instance launch and do its work. It will then quit
+// once it's done.
+if (!handlingSquirrelEvent) {
+  isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore()
+      }
+
+      if (!mainWindow.isVisible()) {
+        mainWindow.show()
+      }
+
+      mainWindow.focus()
     }
 
-    if (!mainWindow.isVisible()) {
-      mainWindow.show()
+    if (args.length > 1) {
+      handleAppURL(args[1])
     }
+  })
 
-    mainWindow.focus()
+  if (isDuplicateInstance) {
+    app.quit()
   }
+}
 
-  if (args.length > 1) {
-    handleAppURL(args[1])
-  }
-})
-
-if (isDuplicateInstance) {
-  willQuit = true
-
-  app.quit()
+if (shellNeedsPatching(process)) {
+  updateEnvironmentForProcess()
 }
 
 app.on('will-finish-launching', () => {
@@ -188,7 +131,7 @@ app.on('will-finish-launching', () => {
 })
 
 app.on('ready', () => {
-  if (willQuit) {
+  if (isDuplicateInstance || handlingSquirrelEvent) {
     return
   }
 
@@ -209,12 +152,9 @@ app.on('ready', () => {
     app.setAsDefaultProtocolClient('github-windows')
   }
 
-  sharedProcess = new SharedProcess()
-  sharedProcess.register()
-
   createWindow()
 
-  const menu = buildDefaultMenu(sharedProcess)
+  const menu = buildDefaultMenu()
   Menu.setApplicationMenu(menu)
 
   ipcMain.on('menu-event', (event: Electron.IpcMessageEvent, args: any[]) => {
@@ -337,7 +277,7 @@ app.on('ready', () => {
   ipcMain.on(
     'uncaught-exception',
     (event: Electron.IpcMessageEvent, error: Error) => {
-      uncaughtException(error)
+      handleUncaughtException(error)
     }
   )
 

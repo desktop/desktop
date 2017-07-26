@@ -1,6 +1,16 @@
 {
   "releases": {
     "0.7.1": [],
+    "0.7.1-beta3": [],
+    "0.7.1-beta2": [],
+    "0.7.1-beta1": [],
+    "0.7.1-beta0": [
+      "[Improved] Redesigned error and warning dialogs to be clearer - #2277",
+      "[Fixed] Preserve existing GitHub API information when API requests fail - #2282",
+      "[Fixed] Pass through error messages as received from the API - #2279",
+      "[Fixed] The Pull and Create Pull Request menu items had the same shortcut - #2274",
+      "[Fixed] Launching the `github` command line tool from a Fish shell - #2299"
+    ],
     "0.7.0": [
       "[New] Added the Branch > Create Pull Request menu item - #2135",
       "[New] Added the `github` command line tool - #696",
@@ -17,6 +27,14 @@
       "[Fixed] Windows: Installer not completing or getting stuck in a loop - #1875 #1863",
       "[Fixed] Move the 'Forgot Password' link to fix the tab order of the sign in view - #2200"
     ],
+    "0.6.3-beta7": [],
+    "0.6.3-beta6": [],
+    "0.6.3-beta5": [],
+    "0.6.3-beta4": [],
+    "0.6.3-beta3": [],
+    "0.6.3-beta2": [],
+    "0.6.3-beta1": [],
+    "0.6.3-beta0": [],
     "0.6.2": [
       "[New] Link to User Guides from the Help menu - #1963",
       "[New] Added the 'Open in External Editor' contextual menu item to changed files - #2023",

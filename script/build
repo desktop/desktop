@@ -12,9 +12,9 @@ const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
 const distInfo = require('./dist-info')
 
-const isProductionBuild = process.env.NODE_ENV === 'production'
+const isPublishableBuild = distInfo.getReleaseChannel() !== 'development'
 
-console.log(`Building for ${process.env.NODE_ENV}…`)
+console.log(`Building for ${distInfo.getReleaseChannel()}…`)
 
 console.log('Removing old distribution…')
 fs.removeSync(path.join(projectRoot, 'dist'))
@@ -38,11 +38,11 @@ console.log('Updating our licenses dump…')
 updateLicenseDump(err => {
   if (err) {
     console.error(
-      'Error updating the license dump. This is fatal for a production build.'
+      'Error updating the license dump. This is fatal for a published build.'
     )
     console.error(err)
 
-    if (isProductionBuild) {
+    if (isPublishableBuild) {
       process.exit(1)
       return
     }
@@ -62,7 +62,7 @@ updateLicenseDump(err => {
 
 function packageApp(callback) {
   const options = {
-    name: distInfo.getProductName(),
+    name: distInfo.getExecutableName(),
     platform: process.platform,
     arch: 'x64',
     asar: false, // TODO: Probably wanna enable this down the road.
@@ -88,7 +88,7 @@ function packageApp(callback) {
       {
         name: distInfo.getBundleID(),
         schemes: [
-          isProductionBuild
+          isPublishableBuild
             ? 'x-github-desktop-auth'
             : 'x-github-desktop-dev-auth',
           'x-github-client',
@@ -142,7 +142,9 @@ function copyStaticResources() {
   const common = path.join(projectRoot, 'app', 'static', 'common')
   const destination = path.join(outRoot, 'static')
   fs.removeSync(destination)
-  fs.copySync(platformSpecific, destination)
+  if (fs.existsSync(platformSpecific)) {
+    fs.copySync(platformSpecific, destination)
+  }
   fs.copySync(common, destination, { clobber: false })
 }
 
@@ -163,7 +165,7 @@ function copyDependencies() {
   const oldDevDependencies = originalPackage.devDependencies
   const newDevDependencies = {}
 
-  if (!isProductionBuild) {
+  if (!isPublishableBuild) {
     for (var [name, spec] of Object.entries(oldDevDependencies)) {
       if (externals.indexOf(name) !== -1) {
         newDevDependencies[name] = spec
@@ -179,7 +181,7 @@ function copyDependencies() {
     devDependencies: newDevDependencies,
   })
 
-  if (isProductionBuild) {
+  if (isPublishableBuild) {
     delete updatedPackage.devDependencies
   }
 
@@ -198,7 +200,7 @@ function copyDependencies() {
     cp.execSync('npm install', { cwd: outRoot, env: process.env })
   }
 
-  if (!isProductionBuild) {
+  if (!isPublishableBuild) {
     console.log(
       '  Installing 7zip (dependency for electron-devtools-installer)'
     )

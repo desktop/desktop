@@ -73,15 +73,23 @@ function packageWindows() {
 
   const iconUrl = 'https://desktop.githubusercontent.com/app-icon.ico'
 
+  const nugetPkgName = distInfo.getWindowsIdentifierName()
   const options = {
-    name: distInfo.getWindowsIdentifierName(),
+    name: nugetPkgName,
     appDirectory: distPath,
     outputDirectory: outputDir,
     authors: distInfo.getCompanyName(),
     iconUrl: iconUrl,
     setupIcon: iconSource,
     loadingGif: splashScreenPath,
-    exe: `${productName}.exe`,
+    exe: `${nugetPkgName}.exe`,
+    title: productName,
+    setupExe: distInfo.getWindowsStandaloneName(),
+    setupMsi: distInfo.getWindowsInstallerName(),
+  }
+
+  if (distInfo.shouldMakeDelta()) {
+    options.remoteReleases = distInfo.getUpdatesURL()
   }
 
   if (process.env.APPVEYOR) {

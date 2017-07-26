@@ -110,7 +110,7 @@ export class AddExistingRepository extends React.Component<
               value={this.state.path}
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
               placeholder="repository path"
-              onChange={this.onPathChanged}
+              onValueChanged={this.onPathChanged}
               autoFocus={true}
             />
             <Button onClick={this.showFilePicker}>Choose…</Button>
@@ -130,8 +130,7 @@ export class AddExistingRepository extends React.Component<
     )
   }
 
-  private onPathChanged = async (event: React.FormEvent<HTMLInputElement>) => {
-    const path = event.currentTarget.value
+  private onPathChanged = async (path: string) => {
     const isRepository = await isGitRepository(path)
 
     this.setState({ path, isRepository })

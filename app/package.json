@@ -3,13 +3,13 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.7.0",
+  "version": "0.7.1-beta3",
   "main": "./main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
   },
-  "description": "Extend your GitHub workflow beyond your browser with GitHub Desktop",
+  "description": "Simple collaboration from your desktop",
   "author": {
     "name": "GitHub, Inc.",
     "email": "opensource+desktop@github.com",
