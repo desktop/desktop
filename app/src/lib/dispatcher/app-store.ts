@@ -80,11 +80,8 @@ import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
 import { validatedRepositoryPath } from './validated-repository-path'
 import { IGitAccount } from '../git/authentication'
-import {
-  getGenericPassword,
-  getGenericHostname,
-  getGenericUsername,
-} from '../generic-git-auth'
+import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
+import { ErrorWithMetadata } from '../error-with-metadata'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -2369,7 +2366,10 @@ export class AppStore {
     fn: (repository: Repository, account: IGitAccount | null) => Promise<T>
   ): Promise<T> {
     let updatedRepository = repository
-    let account = this.getAccountForRepository(updatedRepository)
+    let account: IGitAccount | null = this.getAccountForRepository(
+      updatedRepository
+    )
+
     // If we don't have a user association, it might be because we haven't yet
     // tried to associate the repository with a GitHub repository, or that
     // association is out of date. So try again before we bail on providing an
@@ -2379,27 +2379,18 @@ export class AppStore {
       account = this.getAccountForRepository(updatedRepository)
     }
 
-    if (account) {
-      return fn(updatedRepository, account)
+    if (!account) {
+      const gitStore = this.getGitStore(repository)
+      const remote = gitStore.remote
+      if (remote) {
+        const hostname = getGenericHostname(remote.url)
+        const username = await getGenericUsername(hostname)
+        if (username != null) {
+          account = { login: username, endpoint: hostname }
+        }
+      }
     }
 
-    const gitStore = this.getGitStore(repository)
-    const remote = gitStore.remote
-    if (!remote) {
-      return fn(updatedRepository, null)
-    }
-
-    const hostname = getGenericHostname(remote.url)
-    const username = await getGenericUsername(hostname)
-    if (username == null) {
-      return fn(updatedRepository, null)
-    }
-
-    const password = await getGenericPassword(hostname, username)
-    if (password == null) {
-      return fn(updatedRepository, null)
-    }
-
-    return fn(updatedRepository, { login: username, endpoint: hostname })
+    return fn(updatedRepository, account)
   }
 }
