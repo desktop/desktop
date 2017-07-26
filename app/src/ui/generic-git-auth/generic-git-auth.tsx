@@ -5,6 +5,7 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Monospaced } from '../lib/monospaced'
 
 interface IGenericGitAuthenticationProps {
   readonly hostname: string
@@ -36,14 +37,19 @@ export class GenericGitAuthentication extends React.Component<
     return (
       <Dialog
         id="generic-git-auth"
-        title="Authentication"
+        title={
+          __DARWIN__
+            ? `Authenticate With ${this.props.hostname}`
+            : `Authenticate with ${this.props.hostname}`
+        }
         onDismissed={this.props.onDismiss}
         onSubmit={this.save}
       >
         <DialogContent>
-          <div>
-            Authenticate with {this.props.hostname}
-          </div>
+          <p>
+            Enter the credentials to use to authenticate with{' '}
+            <Monospaced>{this.props.hostname}</Monospaced>.
+          </p>
 
           <Row>
             <TextBox
