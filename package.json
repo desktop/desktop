@@ -5,8 +5,8 @@
   },
   "description": "GitHub Desktop build dependencies",
   "scripts": {
-    "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 mocha -t 10000 --compilers ts:ts-node/register,tsx:ts-node/register app/test/integration/*.ts",
-    "test:unit": "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 electron-mocha -t 10000 --renderer --compilers ts:ts-node/register,tsx:ts-node/register --require ./app/test/globals.ts app/test/unit/*.ts app/test/unit/git/*.ts app/test/unit/progress/*.ts app/test/unit/main-process/* app/test/unit/*.tsx",
+    "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe mocha -t 10000 --compilers ts:ts-node/register,tsx:ts-node/register app/test/integration/*.ts",
+    "test:unit": "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe electron-mocha -t 10000 --renderer --compilers ts:ts-node/register,tsx:ts-node/register --require ./app/test/globals.ts app/test/unit/*.ts app/test/unit/git/*.ts app/test/unit/progress/*.ts app/test/unit/main-process/* app/test/unit/*.tsx",
     "test": "npm run test:unit && npm run test:integration",
     "test:setup": "node script/test-setup",
     "test:review": "node script/test-review",
@@ -90,6 +90,7 @@
     "webpack-dev-middleware": "^1.10.1",
     "webpack-hot-middleware": "^2.18.0",
     "webpack-merge": "^4.1.0",
+    "xvfb-maybe": "^0.2.1",
     "xml2js": "^0.4.16"
   },
   "devDependencies": {
