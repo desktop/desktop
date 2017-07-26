@@ -5,7 +5,7 @@ import { TokenStore } from './dispatcher/token-store'
 
 /**
  * Keytar can only store passwords keyed by a username. So we store the actual
- * username under this key.
+ * username under this key. This is ... less than ideal.
  */
 const UsernameKey = 'username'
 
