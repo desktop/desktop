@@ -57,6 +57,7 @@ export class GenericGitAuthentication extends React.Component<
           <Row>
             <TextBox
               label="Password"
+              type="password"
               value={this.state.password}
               onValueChanged={this.onPasswordChange}
             />
