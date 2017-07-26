@@ -1,5 +1,4 @@
-import { Dispatcher, AppStore, ErrorHandler } from './index'
-import { SelectionType } from '../app-state'
+import { Dispatcher } from './index'
 import { GitError } from '../git/core'
 import {
   GitError as DugiteError,
@@ -51,48 +50,43 @@ export async function defaultErrorHandler(
   error: Error,
   dispatcher: Dispatcher
 ): Promise<Error | null> {
-  await dispatcher.presentError(error)
+  const e = asErrorWithMetadata(error) || error
+  await dispatcher.presentError(e)
 
   return null
 }
 
-/** Create a new missing repository error handler with the given AppStore. */
-export function createMissingRepositoryHandler(
-  appStore: AppStore
-): ErrorHandler {
-  return async (error: Error, dispatcher: Dispatcher) => {
-    const appState = appStore.getState()
-    const selectedState = appState.selectedState
-    if (!selectedState) {
-      return error
-    }
-
-    if (
-      selectedState.type !== SelectionType.MissingRepository &&
-      selectedState.type !== SelectionType.Repository
-    ) {
-      return error
-    }
-
-    const repository = selectedState.repository
-    if (repository.missing) {
-      return null
-    }
-
-    const errorWithCode = asErrorWithCode(error)
-    const gitError = asGitError(error)
-    const missing =
-      (gitError &&
-        gitError.result.gitError === DugiteError.NotAGitRepository) ||
-      (errorWithCode && errorWithCode.code === RepositoryDoesNotExistErrorCode)
-
-    if (missing) {
-      await dispatcher.updateRepositoryMissing(selectedState.repository, true)
-      return null
-    }
-
+/** Handler for when a repository disappears 😱. */
+export async function missingRepositoryHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
     return error
   }
+
+  const repository = e.metadata.repository
+  if (!repository) {
+    return error
+  }
+
+  if (repository.missing) {
+    return null
+  }
+
+  const errorWithCode = asErrorWithCode(e.underlyingError)
+  const gitError = asGitError(e.underlyingError)
+  const missing =
+    (gitError && gitError.result.gitError === DugiteError.NotAGitRepository) ||
+    (errorWithCode && errorWithCode.code === RepositoryDoesNotExistErrorCode)
+
+  if (missing) {
+    await dispatcher.updateRepositoryMissing(repository, true)
+    return null
+  }
+
+  return error
 }
 
 /** Handle errors that happen as a result of a background task. */
@@ -120,7 +114,12 @@ export async function gitAuthenticationErrorHandler(
   error: Error,
   dispatcher: Dispatcher
 ): Promise<Error | null> {
-  const gitError = asGitError(error)
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
   if (!gitError) {
     return error
   }

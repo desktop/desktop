@@ -23,7 +23,7 @@ import {
   IssuesStore,
   SignInStore,
   defaultErrorHandler,
-  createMissingRepositoryHandler,
+  missingRepositoryHandler,
   backgroundTaskHandler,
   AccountsStore,
   RepositoriesDatabase,
@@ -122,7 +122,7 @@ const dispatcher = new Dispatcher(appStore)
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
-dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
+dispatcher.registerErrorHandler(missingRepositoryHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
