@@ -90,8 +90,8 @@ function handleAppURL(url: string) {
 }
 
 let isDuplicateInstance = false
-// If we're handling a Squirrel event we don't wanna enforce single instance. We
-// want to let the updated instance launch and do its work. It will then quit
+// If we're handling a Squirrel event we don't want to enforce single instance.
+// We want to let the updated instance launch and do its work. It will then quit
 // once it's done.
 if (!handlingSquirrelEvent) {
   isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
