@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { clipboard } from 'electron'
 import * as classNames from 'classnames'
-import { clipboard } from 'electron'
 
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -200,9 +199,7 @@ export class CommitSummary extends React.Component<
     )
   }
 
-  private onShowCommitOptions = (event: React.MouseEvent<any>) => {
-    event.preventDefault()
-
+  private onShowCommitOptions = () => {
     const items: IMenuItem[] = [
       {
         label: __DARWIN__ ? 'Revert This Commit' : 'Revert this commit',
@@ -216,7 +213,9 @@ export class CommitSummary extends React.Component<
       {
         label: 'View on GitHub',
         action: this.onViewOnGitHub,
-        enabled: !this.props.isLocal && this.props.repository.gitHubRepository !== null,
+        enabled:
+          !this.props.isLocal &&
+          this.props.repository.gitHubRepository !== null,
       },
     ]
 
@@ -224,7 +223,10 @@ export class CommitSummary extends React.Component<
   }
 
   private onRevertCommit = async () => {
-    await this.props.dispatcher.revertCommit(this.props.repository, this.props.sha)
+    await this.props.dispatcher.revertCommit(
+      this.props.repository,
+      this.props.sha
+    )
   }
 
   private onCopySHA = () => {
@@ -335,17 +337,8 @@ export class CommitSummary extends React.Component<
 
             {this.renderExternalLink()}
 
-            <li className='commit-summary-meta-item'
-              title=''
-              aria-label=''
-              onContextMenu={this.onShowCommitOptions}
-            >
-            <a onClick={this.onShowCommitOptions}>
-              <span aria-hidden='true'>
-                <Octicon symbol={OcticonSymbol.gear} />
-              </span>
-              <Octicon symbol={OcticonSymbol.triangleDown} />
-              </a>
+            <li className="commit-summary-meta-item">
+              <LinkButton title="More..." onClick={this.onShowCommitOptions} />
             </li>
           </ul>
         </div>

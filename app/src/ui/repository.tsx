@@ -175,19 +175,23 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
           localCommitSHAs={this.props.state.localCommitSHAs}
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
+          onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         />
-      }
+      )
     } else if (selectedSection === RepositorySection.History) {
-      return <History repository={this.props.repository}
-        dispatcher={this.props.dispatcher}
-        history={this.props.state.historyState}
-        emoji={this.props.emoji}
-        commits={this.props.state.commits}
-        localCommitSHAs={this.props.state.localCommitSHAs}
-        commitSummaryWidth={this.props.commitSummaryWidth}
-        gitHubUsers={this.props.state.gitHubUsers}
-        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-      />
+      return (
+        <History
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+          history={this.props.state.historyState}
+          emoji={this.props.emoji}
+          commits={this.props.state.commits}
+          localCommitSHAs={this.props.state.localCommitSHAs}
+          commitSummaryWidth={this.props.commitSummaryWidth}
+          gitHubUsers={this.props.state.gitHubUsers}
+          onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        />
+      )
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
