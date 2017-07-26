@@ -2,10 +2,11 @@ import { Dispatcher, AppStore, ErrorHandler } from './index'
 import { SelectionType } from '../app-state'
 import { GitError } from '../git/core'
 import {
-  GitError as GitErrorType,
+  GitError as DugiteError,
   RepositoryDoesNotExistErrorCode,
 } from 'dugite'
 import { ErrorWithMetadata } from '../error-with-metadata'
+import { AuthenticationErrors } from '../git/authentication'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -82,7 +83,7 @@ export function createMissingRepositoryHandler(
     const gitError = asGitError(error)
     const missing =
       (gitError &&
-        gitError.result.gitError === GitErrorType.NotAGitRepository) ||
+        gitError.result.gitError === DugiteError.NotAGitRepository) ||
       (errorWithCode && errorWithCode.code === RepositoryDoesNotExistErrorCode)
 
     if (missing) {
@@ -123,7 +124,16 @@ export async function gitAuthenticationErrorHandler(
     return error
   }
 
-  console.log(error)
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (!AuthenticationErrors.has(dugiteError)) {
+    return error
+  }
+
+  console.log(dugiteError)
   debugger
   return error
 }
