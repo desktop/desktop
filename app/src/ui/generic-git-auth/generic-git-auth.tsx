@@ -37,18 +37,15 @@ export class GenericGitAuthentication extends React.Component<
     return (
       <Dialog
         id="generic-git-auth"
-        title={
-          __DARWIN__
-            ? `Authenticate With ${this.props.hostname}`
-            : `Authenticate with ${this.props.hostname}`
-        }
+        title={__DARWIN__ ? `Authentication Failed` : `Authentication failed`}
         onDismissed={this.props.onDismiss}
         onSubmit={this.save}
       >
         <DialogContent>
           <p>
-            Enter the credentials to use to authenticate with{' '}
-            <Monospaced>{this.props.hostname}</Monospaced>.
+            We were unable to authenticate with{' '}
+            <Monospaced>{this.props.hostname}</Monospaced>. Please enter your
+            username and password to try again.
           </p>
 
           <Row>
