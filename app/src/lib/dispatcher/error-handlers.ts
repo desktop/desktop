@@ -113,3 +113,17 @@ export async function backgroundTaskHandler(
     return error
   }
 }
+
+export async function gitAuthenticationErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const gitError = asGitError(error)
+  if (!gitError) {
+    return error
+  }
+
+  console.log(error)
+  debugger
+  return error
+}
