@@ -13,7 +13,7 @@ interface IGenericGitAuthenticationProps {
     username: string,
     password: string
   ) => void
-  readonly onCancel: () => void
+  readonly onDismiss: () => void
 }
 
 interface IGenericGitAuthenticationState {
@@ -37,7 +37,7 @@ export class GenericGitAuthentication extends React.Component<
       <Dialog
         id="generic-git-auth"
         title="Authentication"
-        onDismissed={this.props.onCancel}
+        onDismissed={this.props.onDismiss}
         onSubmit={this.save}
       >
         <DialogContent>
@@ -66,7 +66,7 @@ export class GenericGitAuthentication extends React.Component<
         <DialogFooter>
           <ButtonGroup>
             <Button type="submit">Save</Button>
-            <Button onClick={this.props.onCancel}>Cancel</Button>
+            <Button onClick={this.props.onDismiss}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>

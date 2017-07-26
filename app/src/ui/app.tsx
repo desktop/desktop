@@ -1021,7 +1021,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <GenericGitAuthentication
             hostname={popup.hostname}
-            onCancel={this.onPopupDismissed}
+            onDismiss={this.onPopupDismissed}
             onSave={this.onSaveCredentials}
           />
         )
@@ -1040,6 +1040,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       username,
       password
     )
+    this.onPopupDismissed()
   }
 
   private onCheckForUpdates = () => {
