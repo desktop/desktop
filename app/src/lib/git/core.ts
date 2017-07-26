@@ -19,13 +19,13 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
    * caller. Unexpected exit codes will be logged and an
    * error thrown. Defaults to 0 if undefined.
    */
-  readonly successExitCodes?: Set<number>
+  readonly successExitCodes?: ReadonlySet<number>
 
   /**
    * The git errors which are expected by the caller. Unexpected errors will
    * be logged and an error thrown.
    */
-  readonly expectedErrors?: Set<DugiteError>
+  readonly expectedErrors?: ReadonlySet<DugiteError>
 }
 
 /**
