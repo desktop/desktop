@@ -455,9 +455,10 @@ export class GitStore {
       const result = await fn()
       return result
     } catch (e) {
-      if (errorMetadata) {
-        e = new ErrorWithMetadata(e, errorMetadata)
-      }
+      e = new ErrorWithMetadata(e, {
+        repository: this.repository,
+        ...errorMetadata,
+      })
 
       this.emitError(e)
       return undefined
