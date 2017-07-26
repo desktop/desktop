@@ -12,9 +12,9 @@ const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
 const distInfo = require('./dist-info')
 
-const isProductionBuild = process.env.NODE_ENV === 'production'
+const isPublishableBuild = distInfo.getReleaseChannel() !== 'development'
 
-console.log(`Building for ${process.env.NODE_ENV}…`)
+console.log(`Building for ${distInfo.getReleaseChannel()}…`)
 
 console.log('Removing old distribution…')
 fs.removeSync(path.join(projectRoot, 'dist'))
@@ -37,10 +37,12 @@ if (process.platform === 'darwin' && process.env.TRAVIS && !isFork) {
 console.log('Updating our licenses dump…')
 updateLicenseDump(err => {
   if (err) {
-    console.error('Error updating the license dump. This is fatal for a production build.')
+    console.error(
+      'Error updating the license dump. This is fatal for a published build.'
+    )
     console.error(err)
 
-    if (isProductionBuild) {
+    if (isPublishableBuild) {
       process.exit(1)
       return
     }
@@ -58,9 +60,9 @@ updateLicenseDump(err => {
   })
 })
 
-function packageApp (callback) {
+function packageApp(callback) {
   const options = {
-    name: distInfo.getProductName(),
+    name: distInfo.getExecutableName(),
     platform: process.platform,
     arch: 'x64',
     asar: false, // TODO: Probably wanna enable this down the road.
@@ -75,33 +77,35 @@ function packageApp (callback) {
       '/node_modules/electron($|/)',
       '/node_modules/electron-packager($|/)',
       '/\\.git($|/)',
-      '/node_modules/\\.bin($|/)'
+      '/node_modules/\\.bin($|/)',
     ],
-    'appCopyright': 'Copyright © 2017 GitHub, Inc.',
+    appCopyright: 'Copyright © 2017 GitHub, Inc.',
 
     // macOS
-    'appBundleId': distInfo.getBundleID(),
-    'appCategoryType': 'public.app-category.developer-tools',
-    'protocols': [
+    appBundleId: distInfo.getBundleID(),
+    appCategoryType: 'public.app-category.developer-tools',
+    protocols: [
       {
         name: distInfo.getBundleID(),
         schemes: [
-          isProductionBuild ? 'x-github-desktop-auth': 'x-github-desktop-dev-auth',
+          isPublishableBuild
+            ? 'x-github-desktop-auth'
+            : 'x-github-desktop-dev-auth',
           'x-github-client',
-          'github-mac'
-        ]
-      }
+          'github-mac',
+        ],
+      },
     ],
-    'osxSign': true,
+    osxSign: true,
 
     // Windows
     win32metadata: {
-      'CompanyName': distInfo.getCompanyName(),
-      'FileDescription': '',
-      'OriginalFilename': '',
-      'ProductName': distInfo.getProductName(),
-      'InternalName': distInfo.getProductName()
-    }
+      CompanyName: distInfo.getCompanyName(),
+      FileDescription: '',
+      OriginalFilename: '',
+      ProductName: distInfo.getProductName(),
+      InternalName: distInfo.getProductName(),
+    },
   }
 
   packager(options, (err, appPaths) => {
@@ -113,7 +117,7 @@ function packageApp (callback) {
   })
 }
 
-function copyEmoji () {
+function copyEmoji() {
   const copyImages = () => {
     const source = path.join(projectRoot, 'gemoji', 'images', 'emoji')
     const destination = path.join(outRoot, 'emoji')
@@ -132,23 +136,25 @@ function copyEmoji () {
   copyJson()
 }
 
-function copyStaticResources () {
+function copyStaticResources() {
   const dirName = process.platform
   const platformSpecific = path.join(projectRoot, 'app', 'static', dirName)
   const common = path.join(projectRoot, 'app', 'static', 'common')
   const destination = path.join(outRoot, 'static')
   fs.removeSync(destination)
-  fs.copySync(platformSpecific, destination)
+  if (fs.existsSync(platformSpecific)) {
+    fs.copySync(platformSpecific, destination)
+  }
   fs.copySync(common, destination, { clobber: false })
 }
 
-function copyDependencies () {
+function copyDependencies() {
   const originalPackage = require(path.join(projectRoot, 'app', 'package.json'))
 
   const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
   const externals = commonConfig.externals
   const oldDependencies = originalPackage.dependencies
-  const newDependencies = { }
+  const newDependencies = {}
 
   for (var [name, spec] of Object.entries(oldDependencies)) {
     if (externals.indexOf(name) !== -1) {
@@ -157,9 +163,9 @@ function copyDependencies () {
   }
 
   const oldDevDependencies = originalPackage.devDependencies
-  const newDevDependencies = { }
+  const newDevDependencies = {}
 
-  if (!isProductionBuild) {
+  if (!isPublishableBuild) {
     for (var [name, spec] of Object.entries(oldDevDependencies)) {
       if (externals.indexOf(name) !== -1) {
         newDevDependencies[name] = spec
@@ -175,21 +181,29 @@ function copyDependencies () {
     devDependencies: newDevDependencies,
   })
 
-  if (isProductionBuild) {
+  if (isPublishableBuild) {
     delete updatedPackage.devDependencies
   }
 
-  fs.writeFileSync(path.join(outRoot, 'package.json'), JSON.stringify(updatedPackage))
+  fs.writeFileSync(
+    path.join(outRoot, 'package.json'),
+    JSON.stringify(updatedPackage)
+  )
 
   fs.removeSync(path.resolve(outRoot, 'node_modules'))
 
-  if (Object.keys(newDependencies).length || Object.keys(newDevDependencies).length) {
+  if (
+    Object.keys(newDependencies).length ||
+    Object.keys(newDevDependencies).length
+  ) {
     console.log('  Installing npm dependencies…')
     cp.execSync('npm install', { cwd: outRoot, env: process.env })
   }
 
-  if (!isProductionBuild) {
-    console.log('  Installing 7zip (dependency for electron-devtools-installer)')
+  if (!isPublishableBuild) {
+    console.log(
+      '  Installing 7zip (dependency for electron-devtools-installer)'
+    )
 
     const sevenZipSource = path.resolve(projectRoot, 'app/node_modules/7zip')
     const sevenZipDestination = path.resolve(outRoot, 'node_modules/7zip')
@@ -205,51 +219,59 @@ function copyDependencies () {
   fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 }
 
-function updateLicenseDump (callback) {
+function updateLicenseDump(callback) {
   const appRoot = path.join(projectRoot, 'app')
   const outPath = path.join(outRoot, 'static', 'licenses.json')
   const licenseOverrides = require('./license-overrides')
 
-  legalEagle({ path: appRoot, overrides: licenseOverrides, omitPermissive: true }, (err, summary) => {
-    if (err) {
-      callback(err)
-      return
-    }
-
-    if (Object.keys(summary).length > 0) {
-      const overridesPath = path.join(__dirname, 'license-overrides.js')
-      let licensesMessage = ''
-      for (const key in summary) {
-        const license = summary[key]
-        licensesMessage += `${key} (${license.repository}): ${license.license}\n`
+  legalEagle(
+    { path: appRoot, overrides: licenseOverrides, omitPermissive: true },
+    (err, summary) => {
+      if (err) {
+        callback(err)
+        return
       }
 
-      const message = `The following dependencies have unknown or non-permissive licenses. Check it out and update ${overridesPath} if appropriate:\n${licensesMessage}`
-      callback(new Error(message))
-    } else {
-      legalEagle({ path: appRoot, overrides: licenseOverrides }, (err, summary) => {
-        if (err) {
-          callback(err)
-          return
+      if (Object.keys(summary).length > 0) {
+        const overridesPath = path.join(__dirname, 'license-overrides.js')
+        let licensesMessage = ''
+        for (const key in summary) {
+          const license = summary[key]
+          licensesMessage += `${key} (${license.repository}): ${license.license}\n`
         }
 
-        // legal-eagle still chooses to ignore the LICENSE at the root
-        // this injects the current license and pins the source URL before we
-        // dump the JSON file to disk
-        const licenseSource = path.join(projectRoot, 'LICENSE')
-        const licenseText = fs.readFileSync(licenseSource, { encoding: 'utf-8' })
-        const appVersion = distInfo.getVersion()
+        const message = `The following dependencies have unknown or non-permissive licenses. Check it out and update ${overridesPath} if appropriate:\n${licensesMessage}`
+        callback(new Error(message))
+      } else {
+        legalEagle(
+          { path: appRoot, overrides: licenseOverrides },
+          (err, summary) => {
+            if (err) {
+              callback(err)
+              return
+            }
 
-        summary[`desktop@${appVersion}`] = {
-          repository: 'https://github.com/desktop/desktop',
-          license: 'MIT',
-          source: `https://github.com/desktop/desktop/blob/release-${appVersion}/LICENSE`,
-          sourceText: licenseText
-        }
+            // legal-eagle still chooses to ignore the LICENSE at the root
+            // this injects the current license and pins the source URL before we
+            // dump the JSON file to disk
+            const licenseSource = path.join(projectRoot, 'LICENSE')
+            const licenseText = fs.readFileSync(licenseSource, {
+              encoding: 'utf-8',
+            })
+            const appVersion = distInfo.getVersion()
 
-        fs.writeFileSync(outPath, JSON.stringify(summary), 'utf8')
-        callback(null)
-      })
+            summary[`desktop@${appVersion}`] = {
+              repository: 'https://github.com/desktop/desktop',
+              license: 'MIT',
+              source: `https://github.com/desktop/desktop/blob/release-${appVersion}/LICENSE`,
+              sourceText: licenseText,
+            }
+
+            fs.writeFileSync(outPath, JSON.stringify(summary), 'utf8')
+            callback(null)
+          }
+        )
+      }
     }
-  })
+  )
 }

@@ -33,8 +33,7 @@ interface IChangedFileProps {
 }
 
 /** a changed file in the working directory for a given repository */
-export class ChangedFile extends React.Component<IChangedFileProps, void> {
-
+export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
     this.props.onIncludeChanged(this.props.path, include)
@@ -59,18 +58,23 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     const statusWidth = 16
     const filePadding = 5
 
-    const availablePathWidth = this.props.availableWidth - listItemPadding - checkboxWidth - filePadding - statusWidth
+    const availablePathWidth =
+      this.props.availableWidth -
+      listItemPadding -
+      checkboxWidth -
+      filePadding -
+      statusWidth
 
     return (
-      <div className='file' onContextMenu={this.onContextMenu}>
-
+      <div className="file" onContextMenu={this.onContextMenu}>
         <Checkbox
           // The checkbox doesn't need to be tab reachable since we emulate
           // checkbox behavior on the list item itself, ie hitting space bar
           // while focused on a row will toggle selection.
           tabIndex={-1}
           value={this.checkboxValue}
-          onChange={this.handleCheckboxChange}/>
+          onChange={this.handleCheckboxChange}
+        />
 
         <PathLabel
           path={this.props.path}
@@ -79,9 +83,11 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           availableWidth={availablePathWidth}
         />
 
-        <Octicon symbol={iconForStatus(status)}
-                 className={'status status-' + fileStatus.toLowerCase()}
-                 title={fileStatus} />
+        <Octicon
+          symbol={iconForStatus(status)}
+          className={'status status-' + fileStatus.toLowerCase()}
+          title={fileStatus}
+        />
       </div>
     )
   }
@@ -106,7 +112,9 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
     if (extension.length) {
       items.push({
-        label: __DARWIN__ ? `Ignore All ${extension} Files` : `Ignore all ${extension} files`,
+        label: __DARWIN__
+          ? `Ignore All ${extension} Files`
+          : `Ignore all ${extension} files`,
         action: () => this.props.onIgnore(`*${extension}`),
         enabled: fileName !== GitIgnoreFileName,
       })
@@ -120,10 +128,12 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
         enabled: this.props.status !== AppFileStatus.Deleted,
       },
       {
-        label: __DARWIN__ ? 'Open with External Editor' : 'Open with external editor',
+        label: __DARWIN__
+          ? 'Open with External Editor'
+          : 'Open with external editor',
         action: () => this.props.onOpenItem(this.props.path),
         enabled: this.props.status !== AppFileStatus.Deleted,
-      },
+      }
     )
 
     showContextualMenu(items)

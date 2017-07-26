@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { clipboard } from 'electron'
 import * as classNames from 'classnames'
+import { clipboard } from 'electron'
 
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -10,6 +11,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Avatar } from '../lib/avatar'
+import { getDotComAPIEndpoint } from '../../lib/api'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Dispatcher } from '../../lib/dispatcher'
 
@@ -37,9 +39,12 @@ interface ICommitSummaryState {
 interface IResizeObserverEntry {
   readonly target: Element
   readonly contentRect: ClientRect
-};
+}
 
-export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitSummaryState> {
+export class CommitSummary extends React.Component<
+  ICommitSummaryProps,
+  ICommitSummaryState
+> {
   private descriptionScrollViewRef: HTMLDivElement | null
   private readonly resizeObserver: any | null = null
   private updateOverflowTimeoutId: number | null = null
@@ -52,20 +57,22 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     const ResizeObserver = (window as any).ResizeObserver
 
     if (ResizeObserver || false) {
-      this.resizeObserver = new ResizeObserver((entries: ReadonlyArray<IResizeObserverEntry>) => {
-        for (const entry of entries) {
-          if (entry.target === this.descriptionScrollViewRef) {
-            // We might end up causing a recursive update by updating the state
-            // when we're reacting to a resize so we'll defer it until after
-            // react is done with this frame.
-            if (this.updateOverflowTimeoutId !== null) {
-              clearImmediate(this.updateOverflowTimeoutId)
-            }
+      this.resizeObserver = new ResizeObserver(
+        (entries: ReadonlyArray<IResizeObserverEntry>) => {
+          for (const entry of entries) {
+            if (entry.target === this.descriptionScrollViewRef) {
+              // We might end up causing a recursive update by updating the state
+              // when we're reacting to a resize so we'll defer it until after
+              // react is done with this frame.
+              if (this.updateOverflowTimeoutId !== null) {
+                clearImmediate(this.updateOverflowTimeoutId)
+              }
 
-            this.updateOverflowTimeoutId = setImmediate(this.onResized)
+              this.updateOverflowTimeoutId = setImmediate(this.onResized)
+            }
           }
         }
-      })
+      )
     }
   }
 
@@ -96,7 +103,10 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private renderExpander() {
-    if (!this.props.body.length || (!this.props.isExpanded && !this.state.isOverflowed)) {
+    if (
+      !this.props.body.length ||
+      (!this.props.isExpanded && !this.state.isOverflowed)
+    ) {
       return null
     }
 
@@ -105,9 +115,9 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     const icon = expanded ? OcticonSymbol.unfold : OcticonSymbol.fold
 
     return (
-      <a onClick={onClick} className='expander'>
+      <a onClick={onClick} className="expander">
         <Octicon symbol={icon} />
-        { expanded ? 'Collapse' : 'Expand' }
+        {expanded ? 'Collapse' : 'Expand'}
       </a>
     )
   }
@@ -167,16 +177,18 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private renderDescription() {
-
     if (!this.props.body) {
       return null
     }
 
     return (
-      <div className='commit-summary-description-container'>
-        <div className='commit-summary-description-scroll-view' ref={this.onDescriptionScrollViewRef}>
+      <div className="commit-summary-description-container">
+        <div
+          className="commit-summary-description-scroll-view"
+          ref={this.onDescriptionScrollViewRef}
+        >
           <RichText
-            className='commit-summary-description'
+            className="commit-summary-description"
             emoji={this.props.emoji}
             repository={this.props.repository}
             text={this.props.body}
@@ -224,26 +236,32 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private renderExternalLink() {
-    let url: string | null = null
-    if (!this.props.isLocal) {
-      const gitHubRepository = this.props.repository.gitHubRepository
-      if (gitHubRepository) {
-        url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
-      }
-    }
-
-    if (!url) {
+    if (this.props.isLocal) {
       return null
     }
 
+    const gitHubRepository = this.props.repository.gitHubRepository
+    if (!gitHubRepository) {
+      return null
+    }
+
+    const url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
+    const isDotCom = gitHubRepository.endpoint === getDotComAPIEndpoint()
+
+    const label = isDotCom ? 'View on GitHub' : 'View on GitHub Enterprise'
+    const title = isDotCom
+      ? 'View this commit on GitHub'
+      : 'View this commit on GitHub Enterprise'
+
     return (
-      <li className='commit-summary-meta-item'
-        title='View this commit on github.com'>
-        <span aria-hidden='true'>
+      <li className="commit-summary-meta-item" title={title}>
+        <span aria-hidden="true">
           <Octicon symbol={OcticonSymbol.markGithub} />
         </span>
 
-        <LinkButton uri={url}>View on GitHub</LinkButton>
+        <LinkButton uri={url}>
+          {label}
+        </LinkButton>
       </li>
     )
   }
@@ -257,7 +275,11 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     const authorTitle = `${author.name} <${author.email}>`
     let avatarUser = undefined
     if (this.props.gitHubUser) {
-      avatarUser = { ...author, avatarURL: this.props.gitHubUser.avatarURL }
+      avatarUser = {
+        email: author.email,
+        name: author.name,
+        avatarURL: this.props.gitHubUser.avatarURL,
+      }
     }
 
     const className = classNames({
@@ -267,36 +289,44 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     })
 
     return (
-      <div id='commit-summary' className={className}>
-        <div className='commit-summary-header'>
+      <div id="commit-summary" className={className}>
+        <div className="commit-summary-header">
           <RichText
-            className='commit-summary-title'
+            className="commit-summary-title"
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={this.props.summary} />
+            text={this.props.summary}
+          />
 
-          <ul className='commit-summary-meta'>
-            <li className='commit-summary-meta-item'
-              title={authorTitle} aria-label='Author'>
-              <span aria-hidden='true'>
+          <ul className="commit-summary-meta">
+            <li
+              className="commit-summary-meta-item"
+              title={authorTitle}
+              aria-label="Author"
+            >
+              <span aria-hidden="true">
                 <Avatar user={avatarUser} />
               </span>
 
               {author.name}
             </li>
 
-            <li className='commit-summary-meta-item'
-              title='Copy SHA to clipboard' aria-label='SHA'>
-              <span aria-hidden='true'>
+            <li
+              className="commit-summary-meta-item"
+              title="Copy SHA to clipboard"
+              aria-label="SHA"
+            >
+              <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
 
-              <LinkButton onClick={this.onCopyShaToClipboard}>{shortSHA}</LinkButton>
+              <LinkButton onClick={this.onCopyShaToClipboard}>
+                {shortSHA}
+              </LinkButton>
             </li>
 
-            <li className='commit-summary-meta-item'
-              title={filesDescription}>
-              <span aria-hidden='true'>
+            <li className="commit-summary-meta-item" title={filesDescription}>
+              <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.diff} />
               </span>
 

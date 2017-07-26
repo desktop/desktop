@@ -29,7 +29,8 @@ interface IAboutProps {
    */
   readonly applicationVersion: string
 
-  readonly usernameForUpdateCheck: string
+  /** A function to call to kick off an update check. */
+  readonly onCheckForUpdates: () => void
 
   readonly onShowAcknowledgements: () => void
 
@@ -48,7 +49,6 @@ const releaseNotesUri = 'https://desktop.github.com/release-notes/'
  * running application such as name and version.
  */
 export class About extends React.Component<IAboutProps, IAboutState> {
-
   private closeButton: Button | null = null
   private updateStoreEventHandle: Disposable | null = null
 
@@ -69,7 +69,9 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   public componentDidMount() {
-    this.updateStoreEventHandle = updateStore.onDidChange(this.onUpdateStateChanged)
+    this.updateStoreEventHandle = updateStore.onDidChange(
+      this.onUpdateStateChanged
+    )
     this.setState({ updateState: updateStore.state })
 
     // A modal dialog autofocuses the first element that can receive
@@ -89,17 +91,15 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     }
   }
 
-  private onCheckForUpdates = () => {
-    updateStore.checkForUpdates(this.props.usernameForUpdateCheck, false)
-  }
-
   private onQuitAndInstall = () => {
     updateStore.quitAndInstallUpdate()
   }
 
   private renderUpdateButton() {
-
-    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') {
+    if (
+      __RELEASE_CHANNEL__ === 'development' ||
+      __RELEASE_CHANNEL__ === 'test'
+    ) {
       return null
     }
 
@@ -109,9 +109,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       case UpdateStatus.UpdateReady:
         return (
           <Row>
-            <Button onClick={this.onQuitAndInstall}>
-              Install Update
-            </Button>
+            <Button onClick={this.onQuitAndInstall}>Install Update</Button>
           </Row>
         )
       case UpdateStatus.UpdateNotAvailable:
@@ -121,19 +119,22 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
         return (
           <Row>
-            <Button disabled={disabled} onClick={this.onCheckForUpdates} >
+            <Button disabled={disabled} onClick={this.props.onCheckForUpdates}>
               Check for Updates
             </Button>
           </Row>
         )
       default:
-        return assertNever(updateStatus, `Unknown update status ${updateStatus}`)
+        return assertNever(
+          updateStatus,
+          `Unknown update status ${updateStatus}`
+        )
     }
   }
 
   private renderCheckingForUpdate() {
     return (
-      <Row className='update-status'>
+      <Row className="update-status">
         <Loading />
         <span>Checking for updates…</span>
       </Row>
@@ -142,7 +143,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
   private renderUpdateAvailable() {
     return (
-      <Row className='update-status'>
+      <Row className="update-status">
         <Loading />
         <span>Downloading update…</span>
       </Row>
@@ -150,7 +151,6 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private renderUpdateNotAvailable() {
-
     const lastCheckedDate = this.state.updateState.lastSuccessfulCheck
 
     // This case is rendered as an error
@@ -159,27 +159,30 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     }
 
     return (
-      <p className='update-status'>
-        You have the latest version (last checked <RelativeTime date={lastCheckedDate} />)
+      <p className="update-status">
+        You have the latest version (last checked{' '}
+        <RelativeTime date={lastCheckedDate} />)
       </p>
     )
   }
 
   private renderUpdateReady() {
     return (
-      <p className='update-status'>
+      <p className="update-status">
         An update has been downloaded and is ready to be installed.
       </p>
     )
   }
 
   private renderUpdateDetails() {
-
-    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') {
+    if (
+      __RELEASE_CHANNEL__ === 'development' ||
+      __RELEASE_CHANNEL__ === 'test'
+    ) {
       return (
         <p>
-          The application is currently running in development or test mode
-          and will not receive any updates.
+          The application is currently running in development or test mode and
+          will not receive any updates.
         </p>
       )
     }
@@ -187,26 +190,36 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     const updateState = this.state.updateState
 
     switch (updateState.status) {
-      case UpdateStatus.CheckingForUpdates: return this.renderCheckingForUpdate()
-      case UpdateStatus.UpdateAvailable: return this.renderUpdateAvailable()
-      case UpdateStatus.UpdateNotAvailable: return this.renderUpdateNotAvailable()
-      case UpdateStatus.UpdateReady: return this.renderUpdateReady()
+      case UpdateStatus.CheckingForUpdates:
+        return this.renderCheckingForUpdate()
+      case UpdateStatus.UpdateAvailable:
+        return this.renderUpdateAvailable()
+      case UpdateStatus.UpdateNotAvailable:
+        return this.renderUpdateNotAvailable()
+      case UpdateStatus.UpdateReady:
+        return this.renderUpdateReady()
       default:
-        return assertNever(updateState.status, `Unknown update status ${updateState.status}`)
+        return assertNever(
+          updateState.status,
+          `Unknown update status ${updateState.status}`
+        )
     }
   }
 
   private renderUpdateErrors() {
-    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') {
+    if (
+      __RELEASE_CHANNEL__ === 'development' ||
+      __RELEASE_CHANNEL__ === 'test'
+    ) {
       return null
     }
 
     if (!this.state.updateState.lastSuccessfulCheck) {
       return (
         <DialogError>
-          Couldn't determine the last time an update check was performed. You may
-          be running an old version. Please try manually checking for updates and
-          contact GitHub Support if the problem persists
+          Couldn't determine the last time an update check was performed. You
+          may be running an old version. Please try manually checking for
+          updates and contact GitHub Support if the problem persists
         </DialogError>
       )
     }
@@ -215,30 +228,38 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   public render() {
-
     const name = this.props.applicationName
     const version = this.props.applicationVersion
-    const releaseNotesLink = <LinkButton uri={releaseNotesUri}>release notes</LinkButton>
+    const releaseNotesLink = (
+      <LinkButton uri={releaseNotesUri}>release notes</LinkButton>
+    )
 
     return (
       <Dialog
-        id='about'
+        id="about"
         onSubmit={this.props.onDismissed}
-        onDismissed={this.props.onDismissed}>
+        onDismissed={this.props.onDismissed}
+      >
         {this.renderUpdateErrors()}
         <DialogContent>
-          <Row className='logo'>
+          <Row className="logo">
             <Octicon symbol={OcticonSymbol.markGithub} />
           </Row>
-          <h2>{name}</h2>
-          <p className='no-padding'>
+          <h2>
+            {name}
+          </h2>
+          <p className="no-padding">
             Version {version} ({releaseNotesLink})
           </p>
-          <p className='no-padding'>
-            <LinkButton onClick={this.props.onShowTermsAndConditions}>Terms and Conditions</LinkButton>
+          <p className="no-padding">
+            <LinkButton onClick={this.props.onShowTermsAndConditions}>
+              Terms and Conditions
+            </LinkButton>
           </p>
           <p>
-            <LinkButton onClick={this.props.onShowAcknowledgements}>License and Open Source Notices</LinkButton>
+            <LinkButton onClick={this.props.onShowAcknowledgements}>
+              License and Open Source Notices
+            </LinkButton>
           </p>
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}
@@ -246,7 +267,12 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
         <DialogFooter>
           <ButtonGroup>
-            <Button ref={this.onCloseButtonRef} onClick={this.props.onDismissed}>Close</Button>
+            <Button
+              ref={this.onCloseButtonRef}
+              onClick={this.props.onDismissed}
+            >
+              Close
+            </Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>

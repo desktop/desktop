@@ -11,7 +11,7 @@ import { Repository } from '../src/models/repository'
 import { GitProcess } from 'dugite'
 
 type KlawEntry = {
-  path: string,
+  path: string
 }
 
 /**
@@ -24,16 +24,21 @@ export function setupFixtureRepository(repositoryName: string): string {
   const testRepoPath = temp.mkdirSync('desktop-git-test-')
   FSE.copySync(testRepoFixturePath, testRepoPath)
 
-  FSE.renameSync(Path.join(testRepoPath, '_git'), Path.join(testRepoPath, '.git'))
+  FSE.renameSync(
+    Path.join(testRepoPath, '_git'),
+    Path.join(testRepoPath, '.git')
+  )
 
-  const ignoreHiddenFiles = function(item: KlawEntry){
+  const ignoreHiddenFiles = function(item: KlawEntry) {
     const basename = Path.basename(item.path)
     return basename === '.' || basename[0] !== '.'
   }
 
   const entries: ReadonlyArray<KlawEntry> = klawSync(testRepoPath)
   const visiblePaths = entries.filter(ignoreHiddenFiles)
-  const submodules = visiblePaths.filter(entry => Path.basename(entry.path) === '_git')
+  const submodules = visiblePaths.filter(
+    entry => Path.basename(entry.path) === '_git'
+  )
 
   submodules.forEach(entry => {
     const directory = Path.dirname(entry.path)
@@ -49,7 +54,7 @@ export function setupFixtureRepository(repositoryName: string): string {
  */
 export async function setupEmptyRepository(): Promise<Repository> {
   const repoPath = temp.mkdirSync('desktop-empty-repo-')
-  await GitProcess.exec([ 'init' ], repoPath)
+  await GitProcess.exec(['init'], repoPath)
 
   return new Repository(repoPath, -1, null, false)
 }
@@ -67,22 +72,22 @@ export async function setupConflictedRepo(): Promise<Repository> {
   const filePath = Path.join(repo.path, 'foo')
 
   FSE.writeFileSync(filePath, '')
-  await GitProcess.exec([ 'add', 'foo' ], repo.path)
-  await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+  await GitProcess.exec(['add', 'foo'], repo.path)
+  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
 
-  await GitProcess.exec([ 'branch', 'other-branch' ], repo.path)
+  await GitProcess.exec(['branch', 'other-branch'], repo.path)
 
   FSE.writeFileSync(filePath, 'b1')
-  await GitProcess.exec([ 'add', 'foo' ], repo.path)
-  await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+  await GitProcess.exec(['add', 'foo'], repo.path)
+  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
 
-  await GitProcess.exec([ 'checkout', 'other-branch' ], repo.path)
+  await GitProcess.exec(['checkout', 'other-branch'], repo.path)
 
   FSE.writeFileSync(filePath, 'b2')
-  await GitProcess.exec([ 'add', 'foo' ], repo.path)
-  await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+  await GitProcess.exec(['add', 'foo'], repo.path)
+  await GitProcess.exec(['commit', '-m', 'Commit'], repo.path)
 
-  await GitProcess.exec([ 'merge', 'master' ], repo.path)
+  await GitProcess.exec(['merge', 'master'], repo.path)
 
   return repo
 }

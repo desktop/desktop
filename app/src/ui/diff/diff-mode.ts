@@ -23,7 +23,10 @@ export function getDiffMode(): string {
 
   diffModeDefined = true
 
-  CodeMirror.defineMode(DiffModeName, function(config: CodeMirror.EditorConfiguration, modeOptions?: any) {
+  CodeMirror.defineMode(DiffModeName, function(
+    config: CodeMirror.EditorConfiguration,
+    modeOptions?: any
+  ) {
     return {
       token: parseToken,
     }

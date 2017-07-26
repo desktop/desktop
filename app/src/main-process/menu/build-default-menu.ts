@@ -1,13 +1,11 @@
-import { shell, Menu, ipcMain } from 'electron'
-import { SharedProcess } from '../../shared-process/shared-process'
+import { Menu, ipcMain, shell } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogPath } from '../../lib/logging/get-log-path'
 import { mkdirIfNeeded } from '../../lib/file-system'
 import { log } from '../log'
 
-
-export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
+export function buildDefaultMenu(): Electron.Menu {
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
@@ -26,6 +24,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           id: 'preferences',
           accelerator: 'CmdOrCtrl+,',
           click: emit('show-preferences'),
+        },
+        separator,
+        {
+          label: 'Install Command Line Tool…',
+          id: 'install-cli',
+          click: emit('install-cli'),
         },
         separator,
         {
@@ -79,7 +83,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click: emit('show-preferences'),
       },
       separator,
-      { role: 'quit' },
+      { role: 'quit' }
     )
   }
 
@@ -151,31 +155,26 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         label: '&Reload',
         id: 'reload-window',
         accelerator: 'CmdOrCtrl+R',
-        click (item: any, focusedWindow: Electron.BrowserWindow) {
+        click(item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
             focusedWindow.reload()
           }
         },
-        visible: __RELEASE_ENV__ !== 'production',
+        visible: __RELEASE_CHANNEL__ !== 'production',
       },
       {
         id: 'show-devtools',
-        label: __DARWIN__ ? 'Toggle Developer Tools' : '&Toggle developer tools',
+        label: __DARWIN__
+          ? 'Toggle Developer Tools'
+          : '&Toggle developer tools',
         accelerator: (() => {
           return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'
         })(),
-        click (item: any, focusedWindow: Electron.BrowserWindow) {
+        click(item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
             focusedWindow.webContents.toggleDevTools()
           }
         },
-      },
-      {
-        label: __DARWIN__ ? 'Debug Shared Process' : '&Debug shared process',
-        click (item: any, focusedWindow: Electron.BrowserWindow) {
-          sharedProcess.show()
-        },
-        visible: __RELEASE_ENV__ !== 'production',
       },
     ],
   })
@@ -250,12 +249,16 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       separator,
       {
-        label: __DARWIN__ ? 'Update From Default Branch' : '&Update from default branch',
+        label: __DARWIN__
+          ? 'Update From Default Branch'
+          : '&Update from default branch',
         id: 'update-branch',
         click: emit('update-branch'),
       },
       {
-        label: __DARWIN__ ? 'Merge Into Current Branch…' : '&Merge into current branch…',
+        label: __DARWIN__
+          ? 'Merge Into Current Branch…'
+          : '&Merge into current branch…',
         id: 'merge-branch',
         click: emit('merge-branch'),
       },
@@ -265,6 +268,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         id: 'compare-branch',
         accelerator: 'CmdOrCtrl+Shift+C',
         click: emit('compare-branch'),
+      },
+      {
+        label: __DARWIN__ ? 'Create Pull Request' : 'Create &pull request',
+        id: 'create-pull-request',
+        accelerator: 'CmdOrCtrl+R',
+        click: emit('create-pull-request'),
       },
     ],
   })
@@ -304,31 +313,27 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         .then(() => {
           shell.showItemInFolder(logPath)
         })
-        .catch((err) => {
+        .catch(err => {
           log('error', err.message)
         })
     },
   }
 
-  const helpItems = [
-    submitIssueItem,
-    showUserGuides,
-    showLogsItem,
-  ]
+  const helpItems = [submitIssueItem, showUserGuides, showLogsItem]
 
   if (__DEV__) {
     helpItems.push(
       separator,
       {
         label: 'Crash main process…',
-        click () {
+        click() {
           throw new Error('Boomtown!')
         },
       },
       {
         label: 'Crash renderer process…',
         click: emit('boomtown'),
-      },
+      }
     )
   }
 
@@ -357,7 +362,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   return Menu.buildFromTemplate(template)
 }
 
-type ClickHandler = (menuItem: Electron.MenuItem, browserWindow: Electron.BrowserWindow, event: Electron.Event) => void
+type ClickHandler = (
+  menuItem: Electron.MenuItem,
+  browserWindow: Electron.BrowserWindow,
+  event: Electron.Event
+) => void
 
 /**
  * Utility function returning a Click event handler which, when invoked, emits
@@ -380,7 +389,7 @@ enum ZoomDirection {
 }
 
 /** The zoom steps that we support, these factors must sorted */
-const ZoomInFactors = [ 1, 1.1, 1.25, 1.5, 1.75, 2 ]
+const ZoomInFactors = [1, 1.1, 1.25, 1.5, 1.75, 2]
 const ZoomOutFactors = ZoomInFactors.slice().reverse()
 
 /**
@@ -411,11 +420,9 @@ function zoom(direction: ZoomDirection): ClickHandler {
       webContents.setZoomFactor(1)
       webContents.send('zoom-factor-changed', 1)
     } else {
-      webContents.getZoomFactor((rawZoom) => {
-
-        const zoomFactors = direction === ZoomDirection.In
-          ? ZoomInFactors
-          : ZoomOutFactors
+      webContents.getZoomFactor(rawZoom => {
+        const zoomFactors =
+          direction === ZoomDirection.In ? ZoomInFactors : ZoomOutFactors
 
         // So the values that we get from getZoomFactor are floating point
         // precision numbers from chromium that don't always round nicely so
@@ -423,15 +430,16 @@ function zoom(direction: ZoomDirection): ClickHandler {
         // zoom factors the value is referring to.
         const currentZoom = findClosestValue(zoomFactors, rawZoom)
 
-        const nextZoomLevel = zoomFactors
-          .find(f => direction === ZoomDirection.In ? f > currentZoom : f < currentZoom)
+        const nextZoomLevel = zoomFactors.find(
+          f =>
+            direction === ZoomDirection.In ? f > currentZoom : f < currentZoom
+        )
 
         // If we couldn't find a zoom level (likely due to manual manipulation
         // of the zoom factor in devtools) we'll just snap to the closest valid
         // factor we've got.
-        const newZoom = nextZoomLevel === undefined
-          ? currentZoom
-          : nextZoomLevel
+        const newZoom =
+          nextZoomLevel === undefined ? currentZoom : nextZoomLevel
 
         webContents.setZoomFactor(newZoom)
         webContents.send('zoom-factor-changed', newZoom)

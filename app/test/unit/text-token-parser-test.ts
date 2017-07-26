@@ -1,12 +1,16 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { Tokenizer, TokenType, EmojiMatch, HyperlinkMatch } from '../../src/lib/text-token-parser'
+import {
+  Tokenizer,
+  TokenType,
+  EmojiMatch,
+  HyperlinkMatch,
+} from '../../src/lib/text-token-parser'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Repository } from '../../src/models/repository'
 
-
-const emoji = new Map<string, string>([ [ ':shipit:', '/some/path.png' ] ])
+const emoji = new Map<string, string>([[':shipit:', '/some/path.png']])
 
 describe('Tokenizer', () => {
   describe('basic tests', () => {
@@ -20,12 +24,12 @@ describe('Tokenizer', () => {
     })
 
     it('returns emoji between two string elements', () => {
-      const text = 'let\'s :shipit: this thing'
+      const text = "let's :shipit: this thing"
       const tokenizer = new Tokenizer(emoji)
       const results = tokenizer.tokenize(text)
       expect(results.length).to.equal(3)
       expect(results[0].kind).to.equal(TokenType.Text)
-      expect(results[0].text).to.equal('let\'s ')
+      expect(results[0].text).to.equal("let's ")
       expect(results[1].kind).to.equal(TokenType.Emoji)
       expect(results[1].text).to.equal(':shipit:')
       expect(results[2].kind).to.equal(TokenType.Text)
@@ -34,7 +38,6 @@ describe('Tokenizer', () => {
   })
 
   describe('with GitHub repository', () => {
-
     const host = 'https://github.com'
     const endpoint = 'https://api.github.com'
     const login = 'shiftkey'
@@ -57,12 +60,17 @@ describe('Tokenizer', () => {
       fork: false,
       htmlURL: htmlURL,
       defaultBranch: 'master',
-      withAPI: (apiRepository) => {
+      withAPI: apiRepository => {
         return gitHubRepository!
       },
     }
 
-    const repository = new Repository('some/path/to/repo', 1, gitHubRepository, false)
+    const repository = new Repository(
+      'some/path/to/repo',
+      1,
+      gitHubRepository,
+      false
+    )
 
     it('renders an emoji match', () => {
       const text = 'releasing the thing :shipit:'
@@ -94,7 +102,9 @@ describe('Tokenizer', () => {
       const results = tokenizer.tokenize(text)
       expect(results.length).to.equal(1)
       expect(results[0].kind).to.equal(TokenType.Text)
-      expect(results[0].text).to.equal('the email address support@github.com should be ignored')
+      expect(results[0].text).to.equal(
+        'the email address support@github.com should be ignored'
+      )
     })
 
     it('render mention when text starts with a @', () => {
@@ -174,7 +184,9 @@ describe('Tokenizer', () => {
       expect(mention.url).to.equal(expectedUri)
 
       expect(results[2].kind).to.equal(TokenType.Text)
-      expect(results[2].text).to.equal(' from desktop/computering-icons-for-all')
+      expect(results[2].text).to.equal(
+        ' from desktop/computering-icons-for-all'
+      )
     })
 
     it('converts full URL to issue shorthand', () => {
@@ -189,7 +201,6 @@ changed over time.
 This fixes https://github.com/shiftkey/some-repo/issues/1034
 
 Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
-
 
       const expectedBefore = `Note: we keep a "black list" of authentication methods for which we do
 not want to enable http.emptyAuth automatically. A white list would be
@@ -217,7 +228,9 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
       const issue = results[1] as HyperlinkMatch
 
       expect(issue.text).to.equal('#1034')
-      expect(issue.url).to.equal('https://github.com/shiftkey/some-repo/issues/1034')
+      expect(issue.url).to.equal(
+        'https://github.com/shiftkey/some-repo/issues/1034'
+      )
 
       expect(results[2].kind).to.equal(TokenType.Text)
       expect(results[2].text).to.equal(expectedAfter)
@@ -225,7 +238,6 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
   })
 
   describe('with non-GitHub repository', () => {
-
     it('renders an emoji match', () => {
       const text = 'releasing the thing :shipit:'
       const tokenizer = new Tokenizer(emoji)
@@ -260,7 +272,8 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
     })
 
     it('does not render link for issue reference', () => {
-      const text = 'Merge pull request #955 from desktop/computering-icons-for-all'
+      const text =
+        'Merge pull request #955 from desktop/computering-icons-for-all'
       const tokenizer = new Tokenizer(emoji)
       const results = tokenizer.tokenize(text)
       expect(results.length).to.equal(1)
@@ -291,9 +304,12 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
       expect(results[1].kind).to.equal(TokenType.Link)
       const mention = results[1] as HyperlinkMatch
 
-      expect(mention.text).to.equal('https://github.com/shiftkey/some-repo/issues/1034')
-      expect(mention.url).to.equal('https://github.com/shiftkey/some-repo/issues/1034')
+      expect(mention.text).to.equal(
+        'https://github.com/shiftkey/some-repo/issues/1034'
+      )
+      expect(mention.url).to.equal(
+        'https://github.com/shiftkey/some-repo/issues/1034'
+      )
     })
-
   })
 })

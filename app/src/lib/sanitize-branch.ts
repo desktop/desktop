@@ -6,7 +6,8 @@ const invalidCharacterRegex = /[\x00-\x20\x7F~^:?*\[\\|""<>]|@{|\.\.+|^\.|\.$|\.
 
 /** Sanitize a proposed branch name by replacing illegal characters. */
 export function sanitizedBranchName(name: string): string {
-  return name.replace(invalidCharacterRegex, '-')
+  return name
+    .replace(invalidCharacterRegex, '-')
     .replace(/--+/g, '-')
     .replace(/^-/g, '')
 }

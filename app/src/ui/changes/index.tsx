@@ -17,31 +17,37 @@ interface IChangesProps {
   readonly dispatcher: Dispatcher
 }
 
-export class Changes extends React.Component<IChangesProps, void> {
-
+export class Changes extends React.Component<IChangesProps, {}> {
   private onDiffLineIncludeChanged = (diffSelection: DiffSelection) => {
     const file = this.props.file
-    this.props.dispatcher.changeFileLineSelection(this.props.repository, file, diffSelection)
+    this.props.dispatcher.changeFileLineSelection(
+      this.props.repository,
+      file,
+      diffSelection
+    )
   }
 
   public render() {
     const diff = this.props.diff
     const file = this.props.file
     return (
-      <div className='changed-file'>
+      <div className="changed-file">
         <ChangedFileDetails
           path={file.path}
           oldPath={file.oldPath}
           status={file.status}
-          diff={diff} />
+          diff={diff}
+        />
 
-        <div className='diff-wrapper'>
-          <Diff repository={this.props.repository}
+        <div className="diff-wrapper">
+          <Diff
+            repository={this.props.repository}
             file={file}
             readOnly={false}
             onIncludeChanged={this.onDiffLineIncludeChanged}
             diff={diff}
-            dispatcher={this.props.dispatcher} />
+            dispatcher={this.props.dispatcher}
+          />
         </div>
       </div>
     )

@@ -34,7 +34,10 @@ interface IAcknowledgementsState {
 }
 
 /** The component which displays the licenses for packages used in the app. */
-export class Acknowledgements extends React.Component<IAcknowledgementsProps, IAcknowledgementsState> {
+export class Acknowledgements extends React.Component<
+  IAcknowledgementsProps,
+  IAcknowledgementsState
+> {
   public constructor(props: IAcknowledgementsProps) {
     super(props)
 
@@ -62,9 +65,11 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
 
   private renderLicenses(licenses: Licenses) {
     const elements = []
-    for (const [ index, key ] of Object.keys(licenses).sort().entries()) {
+    for (const [index, key] of Object.keys(licenses).sort().entries()) {
       // The first entry is Desktop itself. We don't need to thank us.
-      if (index === 0) { continue }
+      if (index === 0) {
+        continue
+      }
 
       const license = licenses[key]
       const repository = license.repository
@@ -72,7 +77,11 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
 
       if (repository) {
         const uri = normalizedGitHubURL(repository)
-        nameElement = <LinkButton uri={uri}>{key}</LinkButton>
+        nameElement = (
+          <LinkButton uri={uri}>
+            {key}
+          </LinkButton>
+        )
       } else {
         nameElement = key
       }
@@ -87,8 +96,16 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
         licenseText = 'Unknown license'
       }
 
-      const nameHeader = <h2 key={`${key}-header`}>{nameElement}</h2>
-      const licenseParagraph = <p key={`${key}-text`} className='license-text'>{licenseText}</p>
+      const nameHeader = (
+        <h2 key={`${key}-header`}>
+          {nameElement}
+        </h2>
+      )
+      const licenseParagraph = (
+        <p key={`${key}-text`} className="license-text">
+          {licenseText}
+        </p>
+      )
 
       elements.push(nameHeader, licenseParagraph)
     }
@@ -103,35 +120,38 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
     if (licenses) {
       const key = `desktop@${this.props.applicationVersion}`
       const entry = licenses[key]
-      desktopLicense = <p className='license-text'>{entry.sourceText}</p>
+      desktopLicense = (
+        <p className="license-text">
+          {entry.sourceText}
+        </p>
+      )
     }
 
     return (
       <Dialog
-        id='acknowledgements'
-        title='License and Open Source Notices'
+        id="acknowledgements"
+        title="License and Open Source Notices"
         onSubmit={this.props.onDismissed}
-        onDismissed={this.props.onDismissed}>
+        onDismissed={this.props.onDismissed}
+      >
         <DialogContent>
-
           <p>
             <LinkButton uri={WebsiteURL}>GitHub Desktop</LinkButton> is an open
             source project published under the MIT License. You can view the
-            source code and contribute to this project on <LinkButton uri={RepositoryURL}>GitHub</LinkButton>.
+            source code and contribute to this project on{' '}
+            <LinkButton uri={RepositoryURL}>GitHub</LinkButton>.
           </p>
 
           {desktopLicense}
 
-          <p>
-            GitHub Desktop also distributes these libraries:
-          </p>
+          <p>GitHub Desktop also distributes these libraries:</p>
 
-          {licenses ? this.renderLicenses(licenses) : <Loading/>}
+          {licenses ? this.renderLicenses(licenses) : <Loading />}
         </DialogContent>
 
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit'>Close</Button>
+            <Button type="submit">Close</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>

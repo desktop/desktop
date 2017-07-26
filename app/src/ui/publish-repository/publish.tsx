@@ -1,5 +1,8 @@
 import * as React from 'react'
-import { PublishRepository, IPublishRepositorySettings } from './publish-repository'
+import {
+  PublishRepository,
+  IPublishRepositorySettings,
+} from './publish-repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -75,17 +78,24 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   public render() {
     return (
       <Dialog
-        id='publish-repository'
-        title={ __DARWIN__ ? 'Publish Repository' : 'Publish repository'}
+        id="publish-repository"
+        title={__DARWIN__ ? 'Publish Repository' : 'Publish repository'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.publishRepository}
       >
-        <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.currentTab}>
+        <TabBar
+          onTabClicked={this.onTabClicked}
+          selectedIndex={this.state.currentTab}
+        >
           <span>GitHub.com</span>
           <span>Enterprise</span>
         </TabBar>
 
-        {this.state.error ? <DialogError>{this.state.error.message}</DialogError> : null}
+        {this.state.error
+          ? <DialogError>
+              {this.state.error.message}
+            </DialogError>
+          : null}
 
         {this.renderContent()}
         {this.renderFooter()}
@@ -97,10 +107,13 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     const tab = this.state.currentTab
     const account = this.getAccountForTab(tab)
     if (account) {
-      return <PublishRepository
-        account={account}
-        settings={this.state.publishSettings}
-        onSettingsChanged={this.onSettingsChanged}/>
+      return (
+        <PublishRepository
+          account={account}
+          settings={this.state.publishSettings}
+          onSettingsChanged={this.onSettingsChanged}
+        />
+      )
     } else {
       return (
         <DialogContent>
@@ -132,13 +145,21 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       case PublishTab.DotCom:
         return (
           <CallToAction actionTitle={signInTitle} onAction={this.signInDotCom}>
-            <div>Sign in to your GitHub.com account to access your repositories.</div>
+            <div>
+              Sign in to your GitHub.com account to access your repositories.
+            </div>
           </CallToAction>
         )
       case PublishTab.Enterprise:
         return (
-          <CallToAction actionTitle={signInTitle} onAction={this.signInEnterprise}>
-            <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
+          <CallToAction
+            actionTitle={signInTitle}
+            onAction={this.signInEnterprise}
+          >
+            <div>
+              If you have a GitHub Enterprise account at work, sign in to it to
+              get access to your repositories.
+            </div>
           </CallToAction>
         )
       default:
@@ -154,7 +175,9 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       return (
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Publish Repository' : 'Publish repository'}</Button>
+            <Button type="submit" disabled={disabled}>
+              {__DARWIN__ ? 'Publish Repository' : 'Publish repository'}
+            </Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
@@ -173,7 +196,6 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private publishRepository = async () => {
-
     this.setState({ error: null })
 
     const tab = this.state.currentTab
@@ -192,7 +214,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         settings.description,
         settings.private,
         account,
-        settings.org)
+        settings.org
+      )
 
       this.props.onDismissed()
     } catch (e) {
