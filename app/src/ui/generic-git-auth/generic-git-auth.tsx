@@ -9,8 +9,10 @@ import { Monospaced } from '../lib/monospaced'
 import { RetryAction } from '../../lib/retry-actions'
 
 interface IGenericGitAuthenticationProps {
+  /** The hostname with which the user tried to authenticate. */
   readonly hostname: string
 
+  /** The function to call when the user saves their credentials. */
   readonly onSave: (
     hostname: string,
     username: string,
@@ -18,8 +20,10 @@ interface IGenericGitAuthenticationProps {
     retryAction: RetryAction
   ) => void
 
+  /** The function to call when the user dismisses the dialog. */
   readonly onDismiss: () => void
 
+  /** The action to retry after getting credentials. */
   readonly retryAction: RetryAction
 }
 

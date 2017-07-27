@@ -7,7 +7,7 @@ export enum RetryActionType {
   Fetch,
 }
 
-/** The retriable actions. */
+/** The retriable actions and their associated data. */
 export type RetryAction =
   | { type: RetryActionType.Push; repository: Repository }
   | { type: RetryActionType.Pull; repository: Repository }
