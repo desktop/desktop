@@ -72,7 +72,7 @@ import { PushBranchCommits } from './branches/PushBranchCommits'
 import { Branch } from '../models/branch'
 import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
-import { RetryAction, RetryActionType } from '../lib/retry-actions'
+import { RetryAction } from '../lib/retry-actions'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
