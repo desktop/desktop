@@ -1895,7 +1895,7 @@ export class AppStore {
   public _clone(
     url: string,
     path: string,
-    options: { account: Account | null; branch?: string }
+    options: { account: IGitAccount | null; branch?: string }
   ): { promise: Promise<boolean>; repository: CloningRepository } {
     const promise = this.cloningRepositoriesStore.clone(url, path, options)
     const repository = this.cloningRepositoriesStore.repositories.find(

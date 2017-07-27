@@ -40,6 +40,7 @@ import {
 import { installCLI } from '../../ui/lib/install-cli'
 import * as GenericGitAuth from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
+import { IGitAccount } from '../git/authentication'
 
 /**
  * An error handler function.
@@ -355,7 +356,7 @@ export class Dispatcher {
   public async clone(
     url: string,
     path: string,
-    options: { account: Account | null; branch?: string }
+    options: { account: IGitAccount | null; branch?: string }
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
       const { promise, repository } = this.appStore._clone(url, path, options)
