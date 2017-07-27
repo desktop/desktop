@@ -24,7 +24,7 @@ import { ICommitMessage } from './git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
-import { fatalError } from '../fatal-error'
+import { fatalError, assertNever } from '../fatal-error'
 import { isGitOnPath } from '../open-shell'
 import { shell } from './app-shell'
 import {
@@ -39,7 +39,7 @@ import {
 } from '../../lib/oauth'
 import { installCLI } from '../../ui/lib/install-cli'
 import * as GenericGitAuth from '../generic-git-auth'
-import { RetryAction } from '../retry-actions'
+import { RetryAction, RetryActionType } from '../retry-actions'
 
 /**
  * An error handler function.
@@ -912,5 +912,26 @@ export class Dispatcher {
   ): Promise<void> {
     await GenericGitAuth.setGenericUsername(hostname, username)
     await GenericGitAuth.setGenericPassword(hostname, username, password)
+  }
+
+  /** Perform the given retry action. */
+  public performRetry(retryAction: RetryAction): Promise<void> {
+    const type = retryAction.type
+    switch (type) {
+      case RetryActionType.Push:
+        return this.push(retryAction.repository)
+
+      case RetryActionType.Pull:
+        return this.pull(retryAction.repository)
+
+      case RetryActionType.Fetch:
+        return this.fetch(retryAction.repository)
+
+      default:
+        assertNever(type, `Unknown retry action: ${retryAction}`)
+        break
+    }
+
+    return Promise.resolve()
   }
 }

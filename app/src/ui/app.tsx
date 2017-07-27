@@ -1046,20 +1046,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       password
     )
 
-    this.performRetry(retryAction)
-  }
-
-  private performRetry(retryAction: RetryAction): Promise<void> {
-    switch (retryAction.type) {
-      case RetryActionType.Push:
-        return this.props.dispatcher.push(retryAction.repository)
-
-      default:
-        assertNever(retryAction.type, `Unknown retry action: ${retryAction}`)
-        break
-    }
-
-    return Promise.resolve()
+    this.props.dispatcher.performRetry(retryAction)
   }
 
   private onCheckForUpdates = () => {
