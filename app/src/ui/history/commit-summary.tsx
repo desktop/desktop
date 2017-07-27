@@ -338,7 +338,9 @@ export class CommitSummary extends React.Component<
             {this.renderExternalLink()}
 
             <li className="commit-summary-meta-item">
-              <LinkButton title="More..." onClick={this.onShowCommitOptions} />
+              <LinkButton onClick={this.onShowCommitOptions}>
+                More...
+              </LinkButton>
             </li>
           </ul>
         </div>
