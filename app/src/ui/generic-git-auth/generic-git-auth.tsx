@@ -6,15 +6,21 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Monospaced } from '../lib/monospaced'
+import { RetryAction } from '../../lib/error-with-metadata'
 
 interface IGenericGitAuthenticationProps {
   readonly hostname: string
+
   readonly onSave: (
     hostname: string,
     username: string,
-    password: string
+    password: string,
+    retryAction: RetryAction
   ) => void
+
   readonly onDismiss: () => void
+
+  readonly retryAction: RetryAction
 }
 
 interface IGenericGitAuthenticationState {
@@ -69,7 +75,9 @@ export class GenericGitAuthentication extends React.Component<
 
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">Save</Button>
+            <Button type="submit">
+              {__DARWIN__ ? 'Save and Retry' : 'Save and retry'}
+            </Button>
             <Button onClick={this.props.onDismiss}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
@@ -89,7 +97,8 @@ export class GenericGitAuthentication extends React.Component<
     this.props.onSave(
       this.props.hostname,
       this.state.username,
-      this.state.password
+      this.state.password,
+      this.props.retryAction
     )
   }
 }

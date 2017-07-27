@@ -81,6 +81,7 @@ import { RepositoriesStore } from './repositories-store'
 import { validatedRepositoryPath } from './validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
+import { RetryActionType, RetryAction } from '../error-with-metadata'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1597,56 +1598,61 @@ export class AppStore {
         pushWeight *= scale
         fetchWeight *= scale
 
-        await gitStore.performFailableOperation(async () => {
-          await pushRepo(
-            repository,
-            account,
-            remote.name,
-            branch.name,
-            branch.upstreamWithoutRemote,
-            progress => {
-              this.updatePushPullFetchProgress(repository, {
-                ...progress,
-                title: pushTitle,
-                value: pushWeight * progress.value,
-              })
-            }
-          )
+        const retryAction = { type: RetryActionType.Push, repository }
 
-          await gitStore.fetchRemotes(
-            account,
-            [remote],
-            false,
-            fetchProgress => {
-              this.updatePushPullFetchProgress(repository, {
-                ...fetchProgress,
-                value: pushWeight + fetchProgress.value * fetchWeight,
-              })
-            }
-          )
+        await gitStore.performFailableOperation(
+          async () => {
+            await pushRepo(
+              repository,
+              account,
+              remote.name,
+              branch.name,
+              branch.upstreamWithoutRemote,
+              progress => {
+                this.updatePushPullFetchProgress(repository, {
+                  ...progress,
+                  title: pushTitle,
+                  value: pushWeight * progress.value,
+                })
+              }
+            )
 
-          const refreshTitle = __DARWIN__
-            ? 'Refreshing Repository'
-            : 'Refreshing repository'
-          const refreshStartProgress = pushWeight + fetchWeight
+            await gitStore.fetchRemotes(
+              account,
+              [remote],
+              false,
+              fetchProgress => {
+                this.updatePushPullFetchProgress(repository, {
+                  ...fetchProgress,
+                  value: pushWeight + fetchProgress.value * fetchWeight,
+                })
+              }
+            )
 
-          this.updatePushPullFetchProgress(repository, {
-            kind: 'generic',
-            title: refreshTitle,
-            value: refreshStartProgress,
-          })
+            const refreshTitle = __DARWIN__
+              ? 'Refreshing Repository'
+              : 'Refreshing repository'
+            const refreshStartProgress = pushWeight + fetchWeight
 
-          await this._refreshRepository(repository)
+            this.updatePushPullFetchProgress(repository, {
+              kind: 'generic',
+              title: refreshTitle,
+              value: refreshStartProgress,
+            })
 
-          this.updatePushPullFetchProgress(repository, {
-            kind: 'generic',
-            title: refreshTitle,
-            description: 'Fast-forwarding branches',
-            value: refreshStartProgress + refreshWeight * 0.5,
-          })
+            await this._refreshRepository(repository)
 
-          await this.fastForwardBranches(repository)
-        })
+            this.updatePushPullFetchProgress(repository, {
+              kind: 'generic',
+              title: refreshTitle,
+              description: 'Fast-forwarding branches',
+              value: refreshStartProgress + refreshWeight * 0.5,
+            })
+
+            await this.fastForwardBranches(repository)
+          },
+          { retryAction }
+        )
 
         this.updatePushPullFetchProgress(repository, null)
       }
@@ -2394,7 +2400,8 @@ export class AppStore {
   }
 
   public async promptForGenericGitAuthentication(
-    repository: Repository
+    repository: Repository,
+    retryAction: RetryAction
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
     const remote = gitStore.remote
@@ -2406,6 +2413,7 @@ export class AppStore {
     return this._showPopup({
       type: PopupType.GenericGitAuthentication,
       hostname,
+      retryAction,
     })
   }
 }

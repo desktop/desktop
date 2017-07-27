@@ -16,6 +16,7 @@ import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
+import { RetryAction } from './error-with-metadata'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -192,7 +193,11 @@ export type Popup =
       unPushedCommits?: number
     }
   | { type: PopupType.CLIInstalled }
-  | { type: PopupType.GenericGitAuthentication; hostname: string }
+  | {
+      type: PopupType.GenericGitAuthentication
+      hostname: string
+      retryAction: RetryAction
+    }
 
 export enum FoldoutType {
   Repository,

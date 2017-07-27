@@ -72,6 +72,7 @@ import { PushBranchCommits } from './branches/PushBranchCommits'
 import { Branch } from '../models/branch'
 import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
+import { RetryAction, RetryActionType } from '../lib/error-with-metadata'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1023,6 +1024,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             hostname={popup.hostname}
             onDismiss={this.onPopupDismissed}
             onSave={this.onSaveCredentials}
+            retryAction={popup.retryAction}
           />
         )
       default:
@@ -1030,17 +1032,34 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private onSaveCredentials = (
+  private onSaveCredentials = async (
     hostname: string,
     username: string,
-    password: string
+    password: string,
+    retryAction: RetryAction
   ) => {
-    this.props.dispatcher.saveGenericGitCredentials(
+    this.onPopupDismissed()
+
+    await this.props.dispatcher.saveGenericGitCredentials(
       hostname,
       username,
       password
     )
-    this.onPopupDismissed()
+
+    this.performRetry(retryAction)
+  }
+
+  private performRetry(retryAction: RetryAction): Promise<void> {
+    switch (retryAction.type) {
+      case RetryActionType.Push:
+        return this.props.dispatcher.push(retryAction.repository)
+
+      default:
+        assertNever(retryAction.type, `Unknown retry action: ${retryAction}`)
+        break
+    }
+
+    return Promise.resolve()
   }
 
   private onCheckForUpdates = () => {

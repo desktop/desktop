@@ -39,6 +39,7 @@ import {
 } from '../../lib/oauth'
 import { installCLI } from '../../ui/lib/install-cli'
 import * as GenericGitAuth from '../generic-git-auth'
+import { RetryAction } from '../error-with-metadata'
 
 /**
  * An error handler function.
@@ -897,9 +898,10 @@ export class Dispatcher {
 
   /** Prompt the user to authenticate for a generic git server. */
   public promptForGenericGitAuthentication(
-    repository: Repository
+    repository: Repository,
+    retry: RetryAction
   ): Promise<void> {
-    return this.appStore.promptForGenericGitAuthentication(repository)
+    return this.appStore.promptForGenericGitAuthentication(repository, retry)
   }
 
   /** Save the generic git credentials. */

@@ -138,8 +138,13 @@ export async function gitAuthenticationErrorHandler(
     return error
   }
 
-  // TODO: Retry action after they've provided credentials
-  await dispatcher.promptForGenericGitAuthentication(repository)
+  const retry = e.metadata.retryAction
+  if (!retry) {
+    log.error(`No retry action provided for a git authentication error.`, e)
+    return error
+  }
+
+  await dispatcher.promptForGenericGitAuthentication(repository, retry)
 
   return null
 }
