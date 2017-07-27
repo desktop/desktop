@@ -916,9 +916,8 @@ export class Dispatcher {
   }
 
   /** Perform the given retry action. */
-  public performRetry(retryAction: RetryAction): Promise<void> {
-    const type = retryAction.type
-    switch (type) {
+  public async performRetry(retryAction: RetryAction): Promise<void> {
+    switch (retryAction.type) {
       case RetryActionType.Push:
         return this.push(retryAction.repository)
 
@@ -928,11 +927,12 @@ export class Dispatcher {
       case RetryActionType.Fetch:
         return this.fetch(retryAction.repository)
 
-      default:
-        assertNever(type, `Unknown retry action: ${retryAction}`)
+      case RetryActionType.Clone:
+        await this.clone(retryAction.url, retryAction.path, retryAction.options)
         break
-    }
 
-    return Promise.resolve()
+      default:
+        return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
+    }
   }
 }
