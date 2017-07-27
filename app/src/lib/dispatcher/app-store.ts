@@ -1598,8 +1598,10 @@ export class AppStore {
         pushWeight *= scale
         fetchWeight *= scale
 
-        const retryAction = { type: RetryActionType.Push, repository }
-
+        const retryAction: RetryAction = {
+          type: RetryActionType.Push,
+          repository,
+        }
         await gitStore.performFailableOperation(
           async () => {
             await pushRepo(
@@ -1759,13 +1761,19 @@ export class AppStore {
           pullWeight *= scale
           fetchWeight *= scale
 
-          await gitStore.performFailableOperation(() =>
-            pullRepo(repository, account, remote.name, progress => {
-              this.updatePushPullFetchProgress(repository, {
-                ...progress,
-                value: progress.value * pullWeight,
-              })
-            })
+          const retryAction: RetryAction = {
+            type: RetryActionType.Pull,
+            repository,
+          }
+          await gitStore.performFailableOperation(
+            () =>
+              pullRepo(repository, account, remote.name, progress => {
+                this.updatePushPullFetchProgress(repository, {
+                  ...progress,
+                  value: progress.value * pullWeight,
+                })
+              }),
+            { retryAction }
           )
 
           const refreshStartProgress = pullWeight + fetchWeight

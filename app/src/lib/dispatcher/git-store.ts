@@ -36,6 +36,7 @@ import {
   getCommit,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
+import { RetryAction, RetryActionType } from '../retry-actions'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -555,11 +556,15 @@ export class GitStore {
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
+    const retryAction: RetryAction = {
+      type: RetryActionType.Fetch,
+      repository: this.repository,
+    }
     await this.performFailableOperation(
       () => {
         return fetchRepo(this.repository, account, remote, progressCallback)
       },
-      { backgroundTask }
+      { backgroundTask, retryAction }
     )
   }
 
