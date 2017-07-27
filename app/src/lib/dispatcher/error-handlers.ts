@@ -138,6 +138,13 @@ export async function gitAuthenticationErrorHandler(
     return error
   }
 
+  // If it's a GitHub repository then it's not some generic git server
+  // authentication problem, but more likely a legit permission problem. So let
+  // the error continue to bubble up.
+  if (repository.gitHubRepository) {
+    return error
+  }
+
   const retry = e.metadata.retryAction
   if (!retry) {
     log.error(`No retry action provided for a git authentication error.`, e)
