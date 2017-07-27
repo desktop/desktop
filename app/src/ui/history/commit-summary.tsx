@@ -304,8 +304,10 @@ export class CommitSummary extends React.Component<
             </li>
 
             <li className="commit-summary-meta-item">
-              <LinkButton onClick={this.onShowCommitOptions}>
-                More...
+              <LinkButton className="more-dropdown" onClick={this.onShowCommitOptions}>
+                Actions
+
+                <Octicon symbol={OcticonSymbol.triangleDown} />
               </LinkButton>
             </li>
           </ul>
