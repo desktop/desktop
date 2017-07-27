@@ -52,7 +52,6 @@ class UpdateStore {
       }
     }
 
-
     autoUpdater.on('error', this.onAutoUpdaterError)
     autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
     autoUpdater.on('update-available', this.onUpdateAvailable)
@@ -65,7 +64,10 @@ class UpdateStore {
     if (!process.env.TEST_ENV) {
       window.addEventListener('beforeunload', () => {
         autoUpdater.removeListener('error', this.onAutoUpdaterError)
-        autoUpdater.removeListener('checking-for-update', this.onCheckingForUpdate)
+        autoUpdater.removeListener(
+          'checking-for-update',
+          this.onCheckingForUpdate
+        )
         autoUpdater.removeListener('update-available', this.onUpdateAvailable)
         autoUpdater.removeListener(
           'update-not-available',
