@@ -61,6 +61,7 @@
   - [ ] Double-clicking local desktop icon opens the application (Mac only)
   - [ ] Double clicking top nav bar toggles full-screen / last used screen-size (Mac only)
   - [ ] Clicking Desktop icon in dock/taskbar opens the application
+  - [ ] Changing desktop icon name while app is open results in package error; closed app name change is sucessful
 
 ### GitHub Desktop menu top-level
   - [ ] About GitHub Desktop
