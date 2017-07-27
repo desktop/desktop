@@ -6,7 +6,7 @@ import { getLogFiles } from './review-logs'
 const distInfo = require('./dist-info')
 
 const getDistPath: () => string = distInfo.getDistPath
-const getProductName: () => string = distInfo.getUserDataPath
+const getProductName: () => string = distInfo.getProductName
 
 const isFork = process.env.TRAVIS_SECURE_ENV_VARS !== 'true'
 
