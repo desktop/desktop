@@ -10,7 +10,6 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Avatar } from '../lib/avatar'
-import { getDotComAPIEndpoint } from '../../lib/api'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Dispatcher } from '../../lib/dispatcher'
 
@@ -237,37 +236,6 @@ export class CommitSummary extends React.Component<
     this.props.onViewCommitOnGitHub(this.props.sha)
   }
 
-  private renderExternalLink() {
-    if (this.props.isLocal) {
-      return null
-    }
-
-    const gitHubRepository = this.props.repository.gitHubRepository
-    if (!gitHubRepository) {
-      return null
-    }
-
-    const url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
-    const isDotCom = gitHubRepository.endpoint === getDotComAPIEndpoint()
-
-    const label = isDotCom ? 'View on GitHub' : 'View on GitHub Enterprise'
-    const title = isDotCom
-      ? 'View this commit on GitHub'
-      : 'View this commit on GitHub Enterprise'
-
-    return (
-      <li className="commit-summary-meta-item" title={title}>
-        <span aria-hidden="true">
-          <Octicon symbol={OcticonSymbol.markGithub} />
-        </span>
-
-        <LinkButton uri={url}>
-          {label}
-        </LinkButton>
-      </li>
-    )
-  }
-
   public render() {
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
@@ -334,8 +302,6 @@ export class CommitSummary extends React.Component<
 
               {filesDescription}
             </li>
-
-            {this.renderExternalLink()}
 
             <li className="commit-summary-meta-item">
               <LinkButton onClick={this.onShowCommitOptions}>
