@@ -3,8 +3,10 @@
 import * as fs from 'fs'
 import * as cp from 'child_process'
 import { getLogFiles } from './review-logs'
+const distInfo = require('./dist-info')
 
-const { getDistPath, getProductName } = require('./dist-info')
+const getDistPath: () => string = distInfo.getUserDataPath
+const getProductName: () => string = distInfo.getUserDataPath
 
 const isFork = process.env.TRAVIS_SECURE_ENV_VARS !== 'true'
 
