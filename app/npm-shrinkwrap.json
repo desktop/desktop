@@ -531,9 +531,9 @@
       }
     },
     "keytar": {
-      "version": "4.0.2",
-      "from": "keytar@4.0.2",
-      "resolved": "https://registry.npmjs.org/keytar/-/keytar-4.0.2.tgz"
+      "version": "4.0.4",
+      "from": "keytar@4.0.4",
+      "resolved": "https://registry.npmjs.org/keytar/-/keytar-4.0.4.tgz"
     },
     "loader-utils": {
       "version": "1.1.0",
