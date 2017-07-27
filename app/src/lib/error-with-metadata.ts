@@ -1,10 +1,5 @@
 import { Repository } from '../models/repository'
-
-export const enum RetryActionType {
-  Push = 1,
-}
-
-export type RetryAction = { type: RetryActionType.Push; repository: Repository }
+import { RetryAction } from './retry-actions'
 
 export interface IErrorMetadata {
   /** Was the action which caused this error part of a background task? */

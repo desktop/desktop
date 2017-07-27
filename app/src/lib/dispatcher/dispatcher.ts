@@ -39,7 +39,7 @@ import {
 } from '../../lib/oauth'
 import { installCLI } from '../../ui/lib/install-cli'
 import * as GenericGitAuth from '../generic-git-auth'
-import { RetryAction } from '../error-with-metadata'
+import { RetryAction } from '../retry-actions'
 
 /**
  * An error handler function.

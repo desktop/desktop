@@ -81,7 +81,7 @@ import { RepositoriesStore } from './repositories-store'
 import { validatedRepositoryPath } from './validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
-import { RetryActionType, RetryAction } from '../error-with-metadata'
+import { RetryActionType, RetryAction } from '../retry-actions'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 

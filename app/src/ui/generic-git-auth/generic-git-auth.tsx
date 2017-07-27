@@ -6,7 +6,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Monospaced } from '../lib/monospaced'
-import { RetryAction } from '../../lib/error-with-metadata'
+import { RetryAction } from '../../lib/retry-actions'
 
 interface IGenericGitAuthenticationProps {
   readonly hostname: string
