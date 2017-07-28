@@ -18,6 +18,9 @@ const exeName = Path.basename(process.execPath)
  */
 export function handleSquirrelEvent(eventName: string): Promise<void> | null {
   switch (eventName) {
+    case '--squirrel-firstrun':
+      return Promise.resolve()
+
     case '--squirrel-install':
       return handleInstalled()
 
