@@ -12,7 +12,9 @@ export function getProgressFilePath(): Promise<string> {
 // `<direction> <current>/<total files> <downloaded>/<total> <name>`
 const LFSProgressLineRe = /^(.+?)\s{1}(\d+)\/(\d+)\s{1}(\d+)\/(\d+)\s{1}(.+)$/
 
+/** The progress parser for Git LFS. */
 export class GitLFSProgressParser {
+  /** Parse the progress line. */
   public parse(line: string): IGitProgress | IGitOutput {
     const cannotParseResult: IGitOutput = {
       kind: 'context',
