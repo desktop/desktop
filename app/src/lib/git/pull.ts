@@ -40,7 +40,7 @@ export async function pull(
     const title = `Pulling ${remote}`
     const kind = 'pull'
 
-    opts = executionOptionsWithProgress(
+    opts = await executionOptionsWithProgress(
       opts,
       new PullProgressParser(),
       progress => {

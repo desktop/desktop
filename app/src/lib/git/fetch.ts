@@ -40,7 +40,7 @@ export async function fetch(
     const title = `Fetching ${remote}`
     const kind = 'fetch'
 
-    opts = executionOptionsWithProgress(
+    opts = await executionOptionsWithProgress(
       opts,
       new FetchProgressParser(),
       progress => {

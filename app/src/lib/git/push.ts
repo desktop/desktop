@@ -63,7 +63,7 @@ export async function push(
     const title = `Pushing to ${remote}`
     const kind = 'push'
 
-    opts = executionOptionsWithProgress(
+    opts = await executionOptionsWithProgress(
       opts,
       new PushProgressParser(),
       progress => {

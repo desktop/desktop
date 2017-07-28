@@ -34,7 +34,7 @@ export async function checkoutBranch(
     const kind = 'checkout'
     const targetBranch = name
 
-    opts = executionOptionsWithProgress(
+    opts = await executionOptionsWithProgress(
       opts,
       new CheckoutProgressParser(),
       progress => {

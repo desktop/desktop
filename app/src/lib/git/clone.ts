@@ -54,7 +54,7 @@ export async function clone(
     const title = `Cloning into ${path}`
     const kind = 'clone'
 
-    opts = executionOptionsWithProgress(
+    opts = await executionOptionsWithProgress(
       opts,
       new CloneProgressParser(),
       progress => {
