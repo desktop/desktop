@@ -77,6 +77,7 @@
       - [ ] GitHub.com name, handle, avatar, `sign out` button, if user signed in
       - [ ] Enterprise handle, avatar,  `sign out` button, if user signed in
       - [ ] User can sign out of either account
+      - [ ] User can sign-in to both Enterprise and GitHub.com at same time  
     - [ ] Git
       - [ ] Username and email are displayed if `.gitconfig` configured for Welcome flow
       - [ ] `Save` button saves any changes made
