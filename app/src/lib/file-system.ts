@@ -42,7 +42,12 @@ export function getTempFilePath(name: string): Promise<string> {
   })
 }
 
-/** Tail the file and call the callback on every line. */
+/**
+ * Tail the file and call the callback on every line.
+ *
+ * Note that this will not stop tailing until the returned `Disposable` is
+ * disposed of.
+ */
 export function tailByLine(
   path: string,
   cb: (line: string) => void
