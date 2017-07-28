@@ -26,7 +26,6 @@ export class RepositoryListItem extends React.Component<
   IRepositoryListItemProps,
   {}
 > {
-
   private editorItems: Array<IMenuItem>
   private editorsResolved: boolean
 
@@ -69,8 +68,10 @@ export class RepositoryListItem extends React.Component<
           <span>
             {repository.name}
           </span>
-          <span>{this.editorsResolved ? '' : '(searching...)'}</span>
-      </div>
+          <span>
+            {this.editorsResolved ? '' : '(searching...)'}
+          </span>
+        </div>
       </div>
     )
   }
@@ -87,18 +88,18 @@ export class RepositoryListItem extends React.Component<
   }
 
   private buildEditorList(): void {
-
     this.editorsResolved = false
     this.editorItems = new Array<IMenuItem>()
 
     const repository = this.props.repository
     if (repository instanceof Repository) {
-      shell.getEditors(repository.path)
-      .then( (res) => {
+      shell.getEditors(repository.path).then(res => {
         for (let i = 0; i < res.length; i++) {
-          this.editorItems.push( {
-            label:  'Open with ' + res[i].name,
-            action: () => { res[i].exec() },
+          this.editorItems.push({
+            label: 'Open with ' + res[i].name,
+            action: () => {
+              res[i].exec()
+            },
           })
         }
 
@@ -135,7 +136,6 @@ export class RepositoryListItem extends React.Component<
 
     items.push.apply(items, this.editorItems)
     showContextualMenu(items)
-
   }
 
   private removeRepository = () => {

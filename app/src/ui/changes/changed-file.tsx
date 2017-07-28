@@ -137,21 +137,23 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       }
     )
 
-    shell.getEditors(this.props.path)
-    .then( (res) => {
+    shell
+      .getEditors(this.props.path)
+      .then(res => {
         for (let i = 0; i < res.length; i++) {
-          items.push( {
+          items.push({
             label: 'Open with ' + res[i].name,
-            action: () => { res[i].exec() },
+            action: () => {
+              res[i].exec()
+            },
           })
         }
         showContextualMenu(items)
-    })
-    .catch( (e) => {
-      // Couldn't get list for some reason
-      // display what we have so far..
-      showContextualMenu(items)
-    })
-
+      })
+      .catch(e => {
+        // Couldn't get list for some reason
+        // display what we have so far..
+        showContextualMenu(items)
+      })
   }
 }

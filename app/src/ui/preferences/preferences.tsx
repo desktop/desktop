@@ -45,8 +45,7 @@ interface IPreferencesState {
 export class Preferences extends React.Component<
   IPreferencesProps,
   IPreferencesState
-  > {
-
+> {
   private fileTypes: Array<IFileTypeItem> | null
 
   public constructor(props: IPreferencesProps) {
@@ -168,10 +167,12 @@ export class Preferences extends React.Component<
         )
       }
       case PreferencesTab.FileTypes: {
-
         if (this.fileTypes == null) {
           const result = new Array<IFileTypeItem>()
-          const editors: Map<string, ReadonlyArray<IEditorInfo>> = shell.getAllEditors()
+          const editors: Map<
+            string,
+            ReadonlyArray<IEditorInfo>
+          > = shell.getAllEditors()
           console.log(editors)
           editors.forEach((value: ReadonlyArray<IEditorInfo>, key: string) => {
             console.log(key + ' ' + value)
@@ -185,14 +186,10 @@ export class Preferences extends React.Component<
                 dirty: false,
               })
             }
-
           })
           this.fileTypes = result
         }
-        return <FileTypeList
-          allTypes={this.fileTypes}
-          selectedType={''}
-        />
+        return <FileTypeList allTypes={this.fileTypes} selectedType={''} />
       }
       default:
         return assertNever(index, `Unknown tab index: ${index}`)
@@ -248,7 +245,6 @@ export class Preferences extends React.Component<
     if (this.fileTypes != null) {
       for (const fileType of this.fileTypes) {
         if (fileType.dirty) {
-
           if (fileType.keep) {
             const result = new Array<IEditorInfo>()
             const ei: IEditorInfo = {
