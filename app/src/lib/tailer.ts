@@ -11,7 +11,7 @@ interface ICurrentFileTailState {
 
 /** Tail a file and read changes as they happen. */
 export class Tailer {
-  private readonly path: string
+  public readonly path: string
 
   private readonly emitter = new Emitter()
 
