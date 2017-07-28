@@ -1,4 +1,4 @@
-import { shell as electronShell } from 'electron'
+import { shell as electronShell, ipcRenderer } from 'electron'
 import { exec } from 'child_process'
 import * as Path from 'path'
 
@@ -15,8 +15,9 @@ export interface IEditorLauncher {
 export interface IAppShell {
   readonly moveItemToTrash: (path: string) => boolean
   readonly beep: () => void
-  readonly openExternal: (path: string) => void
+  readonly openExternal: (path: string) => Promise<boolean>
   readonly openItem: (path: string) => boolean
+  readonly showItemInFolder: (path: string) => void
   readonly getEditors: (path: string) => Promise<IEditorLauncher[]>
   readonly setEditors:  (ext: string, info: IEditorInfo[]) => void
   readonly getAllEditors: () => Map<string, ReadonlyArray<IEditorInfo>>
@@ -144,7 +145,21 @@ function removeEditors(ext: string) {
 export const shell: IAppShell = {
   moveItemToTrash: electronShell.moveItemToTrash,
   beep: electronShell.beep,
-  openExternal: electronShell.openExternal,
+  openExternal: path => {
+    return new Promise<boolean>((resolve, reject) => {
+      ipcRenderer.once(
+        'open-external-result',
+        (event: Electron.IpcMessageEvent, { result }: { result: boolean }) => {
+          resolve(result)
+        }
+      )
+
+      ipcRenderer.send('open-external', { path })
+    })
+  },
+  showItemInFolder: path => {
+    ipcRenderer.send('show-item-in-folder', { path })
+  },
   openItem: electronShell.openItem,
   getEditors: getEditorList,
   setEditors: setEditorList,

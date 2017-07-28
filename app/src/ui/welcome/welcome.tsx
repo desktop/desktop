@@ -1,5 +1,10 @@
 import * as React from 'react'
-import { Dispatcher, AppStore, SignInState, SignInStep } from '../../lib/dispatcher'
+import {
+  Dispatcher,
+  AppStore,
+  SignInState,
+  SignInStep,
+} from '../../lib/dispatcher'
 import { assertNever } from '../../lib/fatal-error'
 import { Start } from './start'
 import { SignInDotCom } from './sign-in-dot-com'
@@ -100,42 +105,50 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
     switch (step) {
       case WelcomeStep.Start:
-        return <Start advance={this.advanceToStep}/>
+        return <Start advance={this.advanceToStep} />
 
       case WelcomeStep.SignInToDotCom:
-        return <SignInDotCom
-          dispatcher={this.props.dispatcher}
-          advance={this.advanceToStep}
-          signInState={signInState}
-        />
+        return (
+          <SignInDotCom
+            dispatcher={this.props.dispatcher}
+            advance={this.advanceToStep}
+            signInState={signInState}
+          />
+        )
 
       case WelcomeStep.SignInToEnterprise:
-        return <SignInEnterprise
-          dispatcher={this.props.dispatcher}
-          advance={this.advanceToStep}
-          signInState={signInState}
-        />
+        return (
+          <SignInEnterprise
+            dispatcher={this.props.dispatcher}
+            advance={this.advanceToStep}
+            signInState={signInState}
+          />
+        )
 
       case WelcomeStep.ConfigureGit:
-        return <ConfigureGit
-          advance={this.advanceToStep}
-          accounts={this.props.appStore.getState().accounts}
-        />
+        return (
+          <ConfigureGit
+            advance={this.advanceToStep}
+            accounts={this.props.appStore.getState().accounts}
+          />
+        )
 
       case WelcomeStep.UsageOptOut:
-        return <UsageOptOut
-          dispatcher={this.props.dispatcher}
-          advance={this.advanceToStep}
-          optOut={this.props.appStore.getStatsOptOut()}
-          done={this.done}
-        />
+        return (
+          <UsageOptOut
+            dispatcher={this.props.dispatcher}
+            advance={this.advanceToStep}
+            optOut={this.props.appStore.getStatsOptOut()}
+            done={this.done}
+          />
+        )
 
-      default: return assertNever(step, `Unknown welcome step: ${step}`)
+      default:
+        return assertNever(step, `Unknown welcome step: ${step}`)
     }
   }
 
   private advanceToStep = (step: WelcomeStep) => {
-
     if (step === WelcomeStep.SignInToDotCom) {
       this.props.dispatcher.beginDotComSignIn()
     } else if (step === WelcomeStep.SignInToEnterprise) {
@@ -151,17 +164,20 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
   public render() {
     return (
-      <UiView id='welcome'>
-        <div className='welcome-left'>
-          <div className='welcome-content'>
+      <UiView id="welcome">
+        <div className="welcome-left">
+          <div className="welcome-content">
             {this.getComponentForCurrentStep()}
-            <img className='welcome-graphic-top' src={WelcomeLeftTopImageUri} />
-            <img className='welcome-graphic-bottom' src={WelcomeLeftBottomImageUri} />
+            <img className="welcome-graphic-top" src={WelcomeLeftTopImageUri} />
+            <img
+              className="welcome-graphic-bottom"
+              src={WelcomeLeftBottomImageUri}
+            />
           </div>
         </div>
 
-        <div className='welcome-right'>
-         <img className='welcome-graphic' src={WelcomeRightImageUri} />
+        <div className="welcome-right">
+          <img className="welcome-graphic" src={WelcomeRightImageUri} />
         </div>
       </UiView>
     )

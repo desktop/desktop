@@ -1,6 +1,13 @@
-const deepEquals: (actual: object, expected: object, opts?: { strict: boolean }) => boolean = require('deep-equal')
+const deepEquals: (
+  actual: object,
+  expected: object,
+  opts?: { strict: boolean }
+) => boolean = require('deep-equal')
 
-export function structuralEquals<T extends object>(actual: T, expected: T): boolean {
+export function structuralEquals<T extends object>(
+  actual: T,
+  expected: T
+): boolean {
   return deepEquals(actual, expected, { strict: true })
 }
 
@@ -21,7 +28,12 @@ export function shallowEquals(x: any, y: any) {
   }
 
   // After this we know that neither side is null or undefined
-  if (x === null || y === null || typeof x !== 'object' || typeof y !== 'object') {
+  if (
+    x === null ||
+    y === null ||
+    typeof x !== 'object' ||
+    typeof y !== 'object'
+  ) {
     return false
   }
 
@@ -34,7 +46,10 @@ export function shallowEquals(x: any, y: any) {
 
   for (let i = 0; i < xKeys.length; i++) {
     const key = xKeys[i]
-    if (!Object.prototype.hasOwnProperty.call(y, key) || !Object.is(x[key], y[key])) {
+    if (
+      !Object.prototype.hasOwnProperty.call(y, key) ||
+      !Object.is(x[key], y[key])
+    ) {
       return false
     }
   }

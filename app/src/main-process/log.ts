@@ -1,9 +1,9 @@
-import * as Fs from 'fs-extra'
 import * as Path from 'path'
 import * as winston from 'winston'
 
 import { getLogPath } from '../lib/logging/get-log-path'
 import { LogLevel } from '../lib/logging/log-level'
+import { mkdirIfNeeded } from '../lib/file-system'
 
 require('winston-daily-rotate-file')
 
@@ -13,10 +13,10 @@ require('winston-daily-rotate-file')
  */
 const MaxLogFiles = 14
 
-/** resolve the log file location based on the current environment */
+/** resolve the log file location based on the current channel */
 function getLogFilePath(directory: string): string {
-  const environment = process.env.NODE_ENV || 'production'
-  const fileName = `desktop.${environment}.log`
+  const channel = __RELEASE_CHANNEL__
+  const fileName = `desktop.${channel}.log`
   return Path.join(directory, fileName)
 }
 
@@ -48,10 +48,7 @@ function initializeWinston(path: string): winston.LogMethod {
   })
 
   winston.configure({
-    transports: [
-      consoleLogger,
-      fileLogger,
-    ],
+    transports: [consoleLogger, fileLogger],
   })
 
   return winston.log
@@ -69,24 +66,20 @@ let loggerPromise: Promise<winston.LogMethod> | null = null
  *          for when the event has been written to all destinations.
  */
 function getLogger(): Promise<winston.LogMethod> {
-
   if (loggerPromise) {
     return loggerPromise
   }
 
   loggerPromise = new Promise<winston.LogMethod>((resolve, reject) => {
-
     const logPath = getLogPath()
 
-    Fs.mkdir(logPath, (error) => {
-      if (error && error.code !== 'EEXIST') {
+    mkdirIfNeeded(logPath)
+      .then(() => {
+        resolve(initializeWinston(getLogFilePath(logPath)))
+      })
+      .catch(error => {
         reject(error)
-        return
-      }
-
-      const logger = initializeWinston(getLogFilePath(logPath))
-      resolve(logger)
-    })
+      })
   })
 
   return loggerPromise
@@ -105,7 +98,7 @@ export async function log(level: LogLevel, message: string) {
   try {
     const logger = await getLogger()
     await new Promise<void>((resolve, reject) => {
-      logger(level, message, (error) => {
+      logger(level, message, error => {
         if (error) {
           reject(error)
         } else {

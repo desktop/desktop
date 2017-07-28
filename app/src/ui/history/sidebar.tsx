@@ -19,14 +19,19 @@ interface IHistorySidebarProps {
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
-export class HistorySidebar extends React.Component<IHistorySidebarProps, void> {
+export class HistorySidebar extends React.Component<IHistorySidebarProps, {}> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
   private onCommitChanged = (commit: Commit) => {
-    this.props.dispatcher.changeHistoryCommitSelection(this.props.repository, commit.sha)
+    this.props.dispatcher.changeHistoryCommitSelection(
+      this.props.repository,
+      commit.sha
+    )
 
     this.loadChangedFilesScheduler.queue(() => {
-      this.props.dispatcher.loadChangedFilesForCurrentSelection(this.props.repository)
+      this.props.dispatcher.loadChangedFilesForCurrentSelection(
+        this.props.repository
+      )
     })
   }
 

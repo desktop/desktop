@@ -5,8 +5,10 @@ import { Repository } from '../../models/repository'
 import { getWorkingDirectoryDiff } from './diff'
 import { formatPatch } from '../patch-formatter'
 
-export async function applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
-
+export async function applyPatchToIndex(
+  repository: Repository,
+  file: WorkingDirectoryFileChange
+): Promise<void> {
   // If the file was a rename we have to recreate that rename since we've
   // just blown away the index. Think of this block of weird looking commands
   // as running `git mv`.
@@ -18,20 +20,38 @@ export async function applyPatchToIndex(repository: Repository, file: WorkingDir
     // partial stages vs full-file stages happen. By using git add the
     // worst that could happen is that we re-stage a file already staged
     // by updateIndex.
-    await git([ 'add', '--u', '--', file.oldPath ], repository.path, 'applyPatchToIndex')
+    await git(
+      ['add', '--u', '--', file.oldPath],
+      repository.path,
+      'applyPatchToIndex'
+    )
 
     // Figure out the blob oid of the removed file
     // <mode> SP <type> SP <object> TAB <file>
-    const oldFile = await git([ 'ls-tree', 'HEAD', '--', file.oldPath ], repository.path, 'applyPatchToIndex')
+    const oldFile = await git(
+      ['ls-tree', 'HEAD', '--', file.oldPath],
+      repository.path,
+      'applyPatchToIndex'
+    )
 
-    const [ info ] = oldFile.stdout.split('\t', 1)
-    const [ mode, , oid ] = info.split(' ', 3)
+    const [info] = oldFile.stdout.split('\t', 1)
+    const [mode, , oid] = info.split(' ', 3)
 
     // Add the old file blob to the index under the new name
-    await git([ 'update-index', '--add', '--cacheinfo', mode, oid, file.path ], repository.path, 'applyPatchToIndex')
+    await git(
+      ['update-index', '--add', '--cacheinfo', mode, oid, file.path],
+      repository.path,
+      'applyPatchToIndex'
+    )
   }
 
-  const applyArgs: string[] = [ 'apply', '--cached', '--unidiff-zero', '--whitespace=nowarn', '-' ]
+  const applyArgs: string[] = [
+    'apply',
+    '--cached',
+    '--unidiff-zero',
+    '--whitespace=nowarn',
+    '-',
+  ]
 
   const diff = await getWorkingDirectoryDiff(repository, file)
 

@@ -17,7 +17,7 @@ interface ICodeMirrorHostProps {
   readonly className?: string
 
   /** The text contents for the editor */
-  readonly value: string,
+  readonly value: string
 
   /** Any CodeMirror specific settings */
   readonly options?: CodeMirror.EditorConfiguration
@@ -26,17 +26,23 @@ interface ICodeMirrorHostProps {
   readonly isSelectionEnabled?: () => boolean
 
   /** Callback for when CodeMirror renders (or re-renders) a line */
-  readonly onRenderLine?: (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void
+  readonly onRenderLine?: (
+    cm: CodeMirror.Editor,
+    line: CodeMirror.LineHandle,
+    element: HTMLElement
+  ) => void
 
   /** Callback for when CodeMirror has completed a batch of changes to the editor */
-  readonly onChanges?: (cm: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void
+  readonly onChanges?: (
+    cm: CodeMirror.Editor,
+    change: CodeMirror.EditorChangeLinkedList[]
+  ) => void
 }
 
 /**
  * A component hosting a CodeMirror instance
  */
-export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> {
-
+export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
   private wrapper: HTMLDivElement | null
   private codeMirror: CodeMirror.Editor | null
 
@@ -92,18 +98,27 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
         // NOTE:
         // - `head` is the part of the selection that is moving
         // - `anchor` is the other end
-        changeObj.update([ { head: { line: 0, ch: 0 } , anchor: { line: 0, ch: 0 } } ])
+        changeObj.update([
+          { head: { line: 0, ch: 0 }, anchor: { line: 0, ch: 0 } },
+        ])
       }
     }
   }
 
-  private onChanges = (cm: CodeMirror.Editor, changes: CodeMirror.EditorChangeLinkedList[]) => {
+  private onChanges = (
+    cm: CodeMirror.Editor,
+    changes: CodeMirror.EditorChangeLinkedList[]
+  ) => {
     if (this.props.onChanges) {
       this.props.onChanges(cm, changes)
     }
   }
 
-  private onRenderLine = (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => {
+  private onRenderLine = (
+    cm: CodeMirror.Editor,
+    line: CodeMirror.LineHandle,
+    element: HTMLElement
+  ) => {
     if (this.props.onRenderLine) {
       this.props.onRenderLine(cm, line, element)
     }
@@ -114,9 +129,6 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   }
 
   public render() {
-    return (
-      <div className={this.props.className} ref={this.onRef}>
-      </div>
-    )
+    return <div className={this.props.className} ref={this.onRef} />
   }
 }

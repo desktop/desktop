@@ -57,7 +57,10 @@ interface IAppMenuBarButtonProps {
    *                   pointer interaction, or if it was closed due to an
    *                   item being activated (executed).
    */
-  readonly onClose: (menuItem: ISubmenuItem, source: 'keyboard' | 'pointer' | 'item-executed') => void
+  readonly onClose: (
+    menuItem: ISubmenuItem,
+    source: 'keyboard' | 'pointer' | 'item-executed'
+  ) => void
 
   /**
    * A function that's called when the menu item is opened by the user clicking
@@ -92,7 +95,10 @@ interface IAppMenuBarButtonProps {
    * event.preventDefault if they act on the event in order to make sure that
    * the menu bar button component doesn't act on the same key.
    */
-  readonly onKeyDown: (menuItem: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => void
+  readonly onKeyDown: (
+    menuItem: ISubmenuItem,
+    event: React.KeyboardEvent<HTMLDivElement>
+  ) => void
 
   /**
    * A function that's called once the component has been mounted. This, and
@@ -109,7 +115,10 @@ interface IAppMenuBarButtonProps {
    * consumers of this not rely on reference equality when tracking components
    * and instead use the id of the menuItem.
    */
-  readonly onDidMount?: (menuItem: ISubmenuItem, button: AppMenuBarButton) => void
+  readonly onDidMount?: (
+    menuItem: ISubmenuItem,
+    button: AppMenuBarButton
+  ) => void
 
   /**
    * A function that's called directly before the component unmounts. This, and
@@ -125,7 +134,10 @@ interface IAppMenuBarButtonProps {
    * consumers of this not rely on reference equality when tracking components
    * and instead use the id of the menuItem.
    */
-  readonly onWillUnmount?: (menuItem: ISubmenuItem, button: AppMenuBarButton) => void
+  readonly onWillUnmount?: (
+    menuItem: ISubmenuItem,
+    button: AppMenuBarButton
+  ) => void
 
   readonly dispatcher: Dispatcher
 }
@@ -135,8 +147,10 @@ interface IAppMenuBarButtonProps {
  * in order to render the menu item as well as a foldout containing the item's
  * submenu (if open).
  */
-export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, void> {
-
+export class AppMenuBarButton extends React.Component<
+  IAppMenuBarButtonProps,
+  {}
+> {
   private innerDropDown: ToolbarDropdown | null = null
 
   /**
@@ -169,7 +183,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   }
 
   public render() {
-
     const item = this.props.menuItem
     const dropDownState = this.isMenuOpen ? 'open' : 'closed'
     const disabled = !item.enabled
@@ -186,7 +199,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         onKeyDown={this.onKeyDown}
         disabled={disabled}
         tabIndex={-1}
-        role='menuitem'
+        role="menuitem"
       >
         <MenuListItem
           item={item}
@@ -207,7 +220,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-
     if (event.defaultPrevented) {
       return
     }
@@ -223,7 +235,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   }
 
   private onMenuClose = (closeSource: CloseSource) => {
-
     // If the user closes the menu by hitting escape we explicitly move focus
     // to the button so that it's highlighted and responds to Arrow keys.
     if (closeSource.type === 'keyboard' && closeSource.event.key === 'Escape') {
@@ -233,7 +244,10 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     this.props.onClose(this.props.menuItem, closeSource.type)
   }
 
-  private onDropdownStateChanged = (state: 'closed' | 'open', source: 'keyboard' | 'pointer') => {
+  private onDropdownStateChanged = (
+    state: 'closed' | 'open',
+    source: 'keyboard' | 'pointer'
+  ) => {
     if (this.isMenuOpen) {
       this.props.onClose(this.props.menuItem, source)
     } else {
@@ -248,13 +262,15 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
       return null
     }
 
-    return <AppMenu
-      dispatcher={this.props.dispatcher}
-      onClose={this.onMenuClose}
-      openedWithAccessKey={this.props.openedWithAccessKey}
-      state={menuState}
-      enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
-      autoHeight={true}
-    />
+    return (
+      <AppMenu
+        dispatcher={this.props.dispatcher}
+        onClose={this.onMenuClose}
+        openedWithAccessKey={this.props.openedWithAccessKey}
+        state={menuState}
+        enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
+        autoHeight={true}
+      />
+    )
   }
 }

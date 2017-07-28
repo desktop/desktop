@@ -22,7 +22,10 @@ interface IRepositoryListItemProps {
 }
 
 /** A repository item. */
-export class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
+export class RepositoryListItem extends React.Component<
+  IRepositoryListItemProps,
+  {}
+> {
 
   private editorItems: Array<IMenuItem>
   private editorsResolved: boolean
@@ -38,7 +41,8 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
   public render() {
     const repository = this.props.repository
     const path = repository.path
-    const gitHubRepo = repository instanceof Repository ? repository.gitHubRepository : null
+    const gitHubRepo =
+      repository instanceof Repository ? repository.gitHubRepository : null
     const tooltip = gitHubRepo
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
       : path
@@ -49,12 +53,22 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
     }
 
     return (
-      <div onContextMenu={this.onContextMenu} className='repository-list-item' title={tooltip}>
+      <div
+        onContextMenu={this.onContextMenu}
+        className="repository-list-item"
+        title={tooltip}
+      >
         <Octicon symbol={iconForRepository(repository)} />
 
-        <div className='name'>
-          {prefix ? <span className='prefix'>{prefix}</span> : null}
-          <span>{repository.name}</span>
+        <div className="name">
+          {prefix
+            ? <span className="prefix">
+                {prefix}
+              </span>
+            : null}
+          <span>
+            {repository.name}
+          </span>
           <span>{this.editorsResolved ? '' : '(searching...)'}</span>
       </div>
       </div>
@@ -62,7 +76,10 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
   }
 
   public shouldComponentUpdate(nextProps: IRepositoryListItemProps): boolean {
-    if (nextProps.repository instanceof Repository && this.props.repository instanceof Repository) {
+    if (
+      nextProps.repository instanceof Repository &&
+      this.props.repository instanceof Repository
+    ) {
       return nextProps.repository.id !== this.props.repository.id
     } else {
       return true

@@ -12,9 +12,11 @@ interface IChangedFileDetailsProps {
 }
 
 /** Displays information about a file */
-export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps, void> {
+export class ChangedFileDetails extends React.Component<
+  IChangedFileDetailsProps,
+  {}
+> {
   public render() {
-
     const status = this.props.status
     const fileStatus = mapStatus(status)
 
@@ -22,24 +24,32 @@ export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps
     const diff = this.props.diff
     if (diff.kind === DiffType.Text) {
       if (diff.lineEndingsChange) {
-        const message = `Warning: line endings have changed from '${diff.lineEndingsChange.from}' to '${diff.lineEndingsChange.to}'.`
-        metadataElement = <Octicon symbol={OcticonSymbol.alert}
-                            className={'line-endings'}
-                            title={message} />
+        const message = `Warning: line endings have changed from '${diff
+          .lineEndingsChange.from}' to '${diff.lineEndingsChange.to}'.`
+        metadataElement = (
+          <Octicon
+            symbol={OcticonSymbol.alert}
+            className={'line-endings'}
+            title={message}
+          />
+        )
       }
     }
 
     return (
-      <div className='header'>
+      <div className="header">
         <PathLabel
           path={this.props.path}
           oldPath={this.props.oldPath}
-          status={this.props.status} />
-        { metadataElement }
+          status={this.props.status}
+        />
+        {metadataElement}
 
-        <Octicon symbol={iconForStatus(status)}
-            className={'status status-' + fileStatus.toLowerCase()}
-            title={fileStatus} />
+        <Octicon
+          symbol={iconForStatus(status)}
+          className={'status status-' + fileStatus.toLowerCase()}
+          title={fileStatus}
+        />
       </div>
     )
   }

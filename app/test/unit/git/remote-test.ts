@@ -3,13 +3,20 @@
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
-import { getRemotes, getDefaultRemote, addRemote, removeRemote } from '../../../src/lib/git/remote'
-import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
+import {
+  getRemotes,
+  getDefaultRemote,
+  addRemote,
+  removeRemote,
+} from '../../../src/lib/git/remote'
+import {
+  setupFixtureRepository,
+  setupEmptyRepository,
+} from '../../fixture-helper'
 
 const temp = require('temp').track()
 
 describe('git/remote', () => {
-
   after(() => {
     temp.cleanupSync()
   })
@@ -60,7 +67,11 @@ describe('git/remote', () => {
   describe('addRemote', () => {
     it('can set origin and return it as default', async () => {
       const repository = await setupEmptyRepository()
-      await addRemote(repository, 'origin', 'https://github.com/desktop/desktop')
+      await addRemote(
+        repository,
+        'origin',
+        'https://github.com/desktop/desktop'
+      )
 
       const result = await getDefaultRemote(repository)
 

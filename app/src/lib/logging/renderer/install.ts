@@ -10,7 +10,11 @@ const g = global as any
  * details about what transports we set up.
  */
 function log(level: LogLevel, message: string, error?: Error) {
-  ipcRenderer.send('log', level, formatLogMessage(`[${__PROCESS_KIND__}] ${message}`, error))
+  ipcRenderer.send(
+    'log',
+    level,
+    formatLogMessage(`[${__PROCESS_KIND__}] ${message}`, error)
+  )
 }
 
 g.log = <IDesktopLogger>{

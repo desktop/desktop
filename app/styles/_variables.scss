@@ -137,11 +137,17 @@
    */
   --box-selected-active-border-color: $gray-400;
 
-  /** The height of the title bar area on Win32 platforms */
+  /**
+   * The height of the title bar area on Win32 platforms
+   * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
+  */
   --win32-title-bar-height: 28px;
   --win32-title-bar-background-color: $gray-900;
 
-  /** The height of the title bar area on darwin platforms */
+  /**
+   * The height of the title bar area on darwin platforms
+   * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
+  */
   --darwin-title-bar-height: 22px;
 
   --spacing: 10px;

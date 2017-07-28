@@ -10,7 +10,9 @@ const configs = require('../app/webpack.development')
 function startApp() {
   const runningApp = run({ stdio: 'inherit' })
   if (!runningApp) {
-    console.error("Couldn't launch the app. You probably need to build it first. Run `npm run build:dev`.")
+    console.error(
+      "Couldn't launch the app. You probably need to build it first. Run `npm run build:dev`."
+    )
     process.exit(1)
   }
 
@@ -24,16 +26,18 @@ if (process.env.NODE_ENV === 'production') {
   return
 }
 
-const [ mainConfig, sharedConfig, rendererConfig, askPassConfig ] = configs
+const [mainConfig, rendererConfig, askPassConfig] = configs
 
 const server = express()
 const compiler = webpack(rendererConfig)
 const port = process.env.PORT || 3000
 
-server.use(require('webpack-dev-middleware')(compiler, {
-  publicPath: rendererConfig.output.publicPath,
-  noInfo: true
-}))
+server.use(
+  require('webpack-dev-middleware')(compiler, {
+    publicPath: rendererConfig.output.publicPath,
+    noInfo: true,
+  })
+)
 
 server.use(require('webpack-hot-middleware')(compiler))
 
