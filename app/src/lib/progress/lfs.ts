@@ -3,7 +3,7 @@ import { getTempFilePath } from '../file-system'
 import { IGitProgress, IGitProgressInfo, IGitOutput } from './git'
 
 /** Create the Git LFS progress reporting file and return the path. */
-export async function createProgressFile(): Promise<string> {
+export async function createLFSProgressFile(): Promise<string> {
   const path = await getTempFilePath('GitHubDesktop-lfs-progress')
   return new Promise<string>((resolve, reject) => {
     Fs.writeFile(path, '', err => {
