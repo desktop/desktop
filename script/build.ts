@@ -278,7 +278,7 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
       } else {
         legalEagle(
           { path: appRoot, overrides: licenseOverrides },
-          (error, summary) => {
+          (err, summary) => {
             if (err) {
               callback(err)
               return
@@ -300,7 +300,9 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
               sourceText: licenseText,
             }
 
-            fs.writeFileSync(outPath, JSON.stringify(summary), 'utf8')
+            fs.writeFileSync(outPath, JSON.stringify(summary), {
+              encoding: 'utf8',
+            })
             callback(null)
           }
         )
