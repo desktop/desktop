@@ -54,6 +54,7 @@
     "cross-env": "^5.0.5",
     "css-loader": "^0.28.5",
     "electron": "1.7.8",
+    "electron-installer-debian": "^0.5.2",
     "electron-mocha": "^4.0.0",
     "electron-packager": "^8.7.2",
     "electron-winstaller": "2.5.2",

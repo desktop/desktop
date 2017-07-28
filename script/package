@@ -9,11 +9,14 @@ const distInfo = require('./dist-info')
 
 const distPath = distInfo.getDistPath()
 const productName = distInfo.getProductName()
+const outputDir = path.join(distPath, '..', 'installer')
 
 if (process.platform === 'darwin') {
   packageOSX()
 } else if (process.platform === 'win32') {
   packageWindows()
+} else if (process.platform === 'linux') {
+  packageLinux()
 } else {
   console.error(`I dunno how to package for ${process.platform} :(`)
   process.exit(1)
@@ -31,7 +34,6 @@ function packageOSX() {
 
 function packageWindows() {
   const electronInstaller = require('electron-winstaller')
-  const outputDir = path.join(distPath, '..', 'installer')
   const setupCertificatePath = path.join(
     __dirname,
     'setup-windows-certificate.ps1'
@@ -108,5 +110,37 @@ function packageWindows() {
       cp.execSync(`powershell ${cleanupCertificatePath}`)
       console.error(`Error packaging: ${e}`)
       process.exit(1)
+    })
+}
+
+function packageDebian() {
+  const installer = require('electron-installer-debian')
+
+  var options = {
+    src: distPath,
+    dest: outputDir,
+    arch: 'amd64',
+  }
+
+  return new Promise((resolve, reject) => {
+    console.log('Creating .deb package...')
+    installer(options, function(err) {
+      if (err) {
+        reject(err)
+      } else {
+        resolve()
+      }
+    })
+  })
+}
+
+function packageLinux() {
+  Promise.all([packageDebian()])
+    .catch(err => {
+      console.error(err, err.stack)
+      process.exit(1)
+    })
+    .then(() => {
+      console.log(`Successfully created packages at ${outputDir}`)
     })
 }
