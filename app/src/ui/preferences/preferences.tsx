@@ -45,7 +45,7 @@ interface IPreferencesState {
 export class Preferences extends React.Component<
   IPreferencesProps,
   IPreferencesState
-> {
+  > {
 
   private fileTypes: Array<IFileTypeItem> | null
 
@@ -140,46 +140,45 @@ export class Preferences extends React.Component<
       case PreferencesTab.Accounts:
         return (
           <Accounts
-          dotComAccount={this.props.dotComAccount}
-          enterpriseAccount={this.props.enterpriseAccount}
-          onDotComSignIn={this.onDotComSignIn}
-          onEnterpriseSignIn={this.onEnterpriseSignIn}
-          onLogout={this.onLogout}
-        />
+            dotComAccount={this.props.dotComAccount}
+            enterpriseAccount={this.props.enterpriseAccount}
+            onDotComSignIn={this.onDotComSignIn}
+            onEnterpriseSignIn={this.onEnterpriseSignIn}
+            onLogout={this.onLogout}
+          />
         )
       case PreferencesTab.Git: {
         return (
           <Git
-          name={this.state.committerName}
-          email={this.state.committerEmail}
-          onNameChanged={this.onCommitterNameChanged}
-          onEmailChanged={this.onCommitterEmailChanged}
-        />
+            name={this.state.committerName}
+            email={this.state.committerEmail}
+            onNameChanged={this.onCommitterNameChanged}
+            onEmailChanged={this.onCommitterEmailChanged}
+          />
         )
       }
       case PreferencesTab.Advanced: {
         return (
           <Advanced
-          isOptedOut={this.state.isOptedOut}
-          confirmRepoRemoval={this.state.confirmRepoRemoval}
-          onOptOutSet={this.onOptOutSet}
-          onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
-        />
+            isOptedOut={this.state.isOptedOut}
+            confirmRepoRemoval={this.state.confirmRepoRemoval}
+            onOptOutSet={this.onOptOutSet}
+            onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
+          />
         )
       }
       case PreferencesTab.FileTypes: {
 
-        if (this.fileTypes == null)
-        {
+        if (this.fileTypes == null) {
           const result = new Array<IFileTypeItem>()
           const editors: Map<string, ReadonlyArray<IEditorInfo>> = shell.getAllEditors()
           console.log(editors)
-          editors.forEach( (value: ReadonlyArray<IEditorInfo>, key: string) => {
+          editors.forEach((value: ReadonlyArray<IEditorInfo>, key: string) => {
             console.log(key + ' ' + value)
             for (const e of value) {
-              result.push( {
-                id:  key,
-                text:  e.name,
+              result.push({
+                id: key,
+                text: e.name,
                 extension: key,
                 cmd: e.cmd,
                 keep: true,
@@ -187,12 +186,12 @@ export class Preferences extends React.Component<
               })
             }
 
-        })
+          })
           this.fileTypes = result
         }
         return <FileTypeList
-        allTypes={this.fileTypes}
-        selectedType={''}
+          allTypes={this.fileTypes}
+          selectedType={''}
         />
       }
       default:
@@ -256,7 +255,7 @@ export class Preferences extends React.Component<
               name: fileType.id,
               cmd: fileType.cmd,
             }
-            result.push( ei )
+            result.push(ei)
             // update
             shell.setEditors(fileType.extension, result)
           } else {

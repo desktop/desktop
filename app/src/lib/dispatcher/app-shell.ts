@@ -19,7 +19,7 @@ export interface IAppShell {
   readonly openItem: (path: string) => boolean
   readonly showItemInFolder: (path: string) => void
   readonly getEditors: (path: string) => Promise<IEditorLauncher[]>
-  readonly setEditors:  (ext: string, info: IEditorInfo[]) => void
+  readonly setEditors: (ext: string, info: IEditorInfo[]) => void
   readonly getAllEditors: () => Map<string, ReadonlyArray<IEditorInfo>>
   readonly removeEditors: (ext: string) => void
 }
@@ -31,15 +31,15 @@ class AppLauncher implements IEditorLauncher {
 
   public constructor(name: string, cmd: string, path: string) {
     this.name = name
-    this.cmd  = cmd
+    this.cmd = cmd
     this.path = path
   }
 
   public exec(): Promise<void> {
     const cmd = this.cmd.replace('{path}', this.path)
-    return new Promise<void>( (resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       console.log('Executing ' + cmd)
-      exec(cmd , (err, stdout: string, stderr: string) => {
+      exec(cmd, (err, stdout: string, stderr: string) => {
         // Log any errors
         console.log('stdout:' + stdout)
         console.log('stderr:' + stderr)
@@ -59,11 +59,11 @@ function parseLaunchers(raw: string): ReadonlyArray<IEditorInfo> {
     try {
       const editorInfo: ReadonlyArray<IEditorInfo> = JSON.parse(raw)
       return editorInfo
-    }catch (e) {
+    } catch (e) {
     }
   }
 
-  return new Array<IEditorInfo>();
+  return new Array<IEditorInfo>()
 }
 
 
@@ -73,22 +73,22 @@ function getAllEditors(): Map<string, ReadonlyArray<IEditorInfo>> {
   if (localStorage.getItem('external-editors-') === null) {
     const editorInfo = Array<IEditorInfo>()
     if (__DARWIN__) {
-      editorInfo.push( {
+      editorInfo.push({
         name: 'Atom',
         cmd: '"/Applications/Atom.app/Contents/MacOS/Atom\" \"{path}\"',
       })
-      editorInfo.push( {
+      editorInfo.push({
         name: 'VS Code',
         cmd: '"/Applications/Visual Studio Code.app/Contents/MacOS/Electron\" \"{path}\"',
       })
     } else {
 
-      editorInfo.push( {
+      editorInfo.push({
         name: 'Visual Studio',
         cmd: '\C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\IDE\\devenv.exe\" \"{path}\"',
       })
 
-      editorInfo.push( {
+      editorInfo.push({
         name: 'VS Code',
         cmd: '\"C:\Program Files (x86)\Microsoft VS Code\Code.exe\" \"{path}\"',
       })
@@ -108,7 +108,7 @@ function getAllEditors(): Map<string, ReadonlyArray<IEditorInfo>> {
 
   for (const o in localStorage) {
     if (o.startsWith('external-editors-')) {
-      const launchers: ReadonlyArray<IEditorInfo> = parseLaunchers( localStorage[o] )
+      const launchers: ReadonlyArray<IEditorInfo> = parseLaunchers(localStorage[o])
       const ext = o.substring(17)
       result.set(ext, launchers)
     }
@@ -123,14 +123,14 @@ function setEditorList(ext: string, info: IEditorInfo[]) {
   localStorage.setItem(key, data)
 }
 
-function getEditorList(path: string ): Promise<IEditorLauncher[]> {
+function getEditorList(path: string): Promise<IEditorLauncher[]> {
   const result = new Array<IEditorLauncher>()
   const ext = Path.extname(path)
 
-  const editorInfo: ReadonlyArray<IEditorInfo>|undefined = getAllEditors().get(ext)
-  if(editorInfo) {
+  const editorInfo: ReadonlyArray<IEditorInfo> | undefined = getAllEditors().get(ext)
+  if (editorInfo) {
     for (let i = 0; i < editorInfo.length; i++) {
-      result.push( new AppLauncher( editorInfo[i].name, editorInfo[i].cmd, path ) )
+      result.push(new AppLauncher(editorInfo[i].name, editorInfo[i].cmd, path))
     }
   }
 
@@ -139,7 +139,7 @@ function getEditorList(path: string ): Promise<IEditorLauncher[]> {
 
 function removeEditors(ext: string) {
   const key = 'external-editors-' + ext
-  localStorage.removeItem( key )
+  localStorage.removeItem(key)
 }
 
 export const shell: IAppShell = {

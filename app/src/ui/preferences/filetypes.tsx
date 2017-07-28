@@ -19,7 +19,7 @@ export interface IFileTypeItem extends IFilterListItem {
   dirty: boolean
 }
 
-const FileTypeFilterList: new() => FilterList<IFileTypeItem> = FilterList as any
+const FileTypeFilterList: new () => FilterList<IFileTypeItem> = FilterList as any
 
 interface IFileTypeListProps {
 
@@ -65,11 +65,11 @@ interface IFileTypeListState {
 function createState(props: IFileTypeListProps): IFileTypeListState {
 
   const groups = new Array<IFilterListGroup<IFileTypeItem>>()
-  groups.push( {
-      identifier: 'default',
-      items: (props.allTypes == null) ? new Array<IFileTypeItem>()
-                                      : props.allTypes,
-  } )
+  groups.push({
+    identifier: 'default',
+    items: (props.allTypes == null) ? new Array<IFileTypeItem>()
+      : props.allTypes,
+  })
   return {
     groups: groups,
     selectedItem: null,
@@ -85,7 +85,7 @@ export class FileTypeList extends React.Component<IFileTypeListProps, IFileTypeL
   }
 
   private renderGroupHeader = (identifier: string) => {
-    return <div></div>
+    return <div />
   }
 
   private onItemClick = (item: IFileTypeItem) => {
@@ -98,7 +98,24 @@ export class FileTypeList extends React.Component<IFileTypeListProps, IFileTypeL
     if (this.props.onSelectionChanged) {
       this.props.onSelectionChanged(selectedItem ? selectedItem : null, source)
     }
-    this.setState( { selectedItem })
+    this.setState({ selectedItem })
+  }
+
+  private removeEntry = (item: IFileTypeItem) => {
+    return (event: React.FormEvent<HTMLInputElement>) => {
+      const keep = event.currentTarget.checked
+      item.keep = keep
+      item.dirty = true
+      this.setState(createState(this.props))
+    }
+  }
+
+  private updateCommand = (item: IFileTypeItem) => {
+    return (event: React.FormEvent<HTMLInputElement>) => {
+      item.cmd = event.currentTarget.value
+      item.dirty = true
+      this.setState(createState(this.props))
+    }
   }
 
   private renderItem = (item: IFileTypeItem) => {
@@ -109,38 +126,29 @@ export class FileTypeList extends React.Component<IFileTypeListProps, IFileTypeL
             tabIndex={-1}
             label={item.extension + ' ' + item.text}
             value={item.keep ? CheckboxValue.On : CheckboxValue.Off}
-          onChange={(event: React.FormEvent<HTMLInputElement>) => {
-               const keep = event.currentTarget.checked
-               item.keep = keep
-               item.dirty = true
-               this.setState( createState(this.props) )
-          }}
+            onChange={this.removeEntry(item)}
           />
         </div>
         <TextBox
           value={item.cmd}
           placeholder='Command'
           autoFocus={true}
-          onChange={(event: React.FormEvent<HTMLInputElement>) => {
-               item.cmd = event.currentTarget.value
-               item.dirty = true
-               this.setState( createState(this.props) )
-          }}
-          />
+          onChange={this.updateCommand(item)}
+        />
       </div>
     )
   }
 
-  private RowHeight(info: {index: number}): number {
+  private RowHeight(info: { index: number }): number {
     return info.index === 0 ? 0 : 47
   }
 
   private add = () => {
     // TODO: add to props.allTypes
     return () => {
-    console.log(this)
-    console.log(this.props)
-    //this.setState( createState(this.props) )
+      console.log(this)
+      console.log(this.props)
+      //this.setState( createState(this.props) )
     }
   }
 
@@ -148,30 +156,30 @@ export class FileTypeList extends React.Component<IFileTypeListProps, IFileTypeL
     return (
       <DialogContent>
         <Row>
-         <TextBox
+          <TextBox
             value={''}
             placeholder='Extension'
             autoFocus={true}
-            />
+          />
           <TextBox
             value={''}
             placeholder='Command'
             autoFocus={true}
-            />
-           <Button onClick={this.add()}>{'Add'}</Button>
+          />
+          <Button onClick={this.add()}>{'Add'}</Button>
         </Row>
         <Row>
-      <FileTypeFilterList
-        className='extension-list-container'
-        rowHeight={this.RowHeight}
-        selectedItem={this.state.selectedItem}
-        renderItem={this.renderItem}
-        renderGroupHeader={this.renderGroupHeader}
-        onItemClick={this.onItemClick}
-        onFilterKeyDown={this.props.onFilterKeyDown}
-        onSelectionChanged={this.onSelectionChanged}
-        groups={this.state.groups}
-        invalidationProps={null}/>
+          <FileTypeFilterList
+            className='extension-list-container'
+            rowHeight={this.RowHeight}
+            selectedItem={this.state.selectedItem}
+            renderItem={this.renderItem}
+            renderGroupHeader={this.renderGroupHeader}
+            onItemClick={this.onItemClick}
+            onFilterKeyDown={this.props.onFilterKeyDown}
+            onSelectionChanged={this.onSelectionChanged}
+            groups={this.state.groups}
+            invalidationProps={null} />
         </Row>
       </DialogContent>
     )
