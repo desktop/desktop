@@ -21,7 +21,7 @@ export interface IFileTypeItem extends IFilterListItem {
 
 const FileTypeFilterList: new () => FilterList<
   IFileTypeItem
-> = FilterList as any
+  > = FilterList as any
 
 interface IFileTypeListProps {
   /**
@@ -99,7 +99,7 @@ function createState(
 export class FileTypeList extends React.Component<
   IFileTypeListProps,
   IFileTypeListState
-> {
+  > {
   public constructor(props: IFileTypeListProps) {
     super(props)
     this.state = createState(props, null)
@@ -168,7 +168,6 @@ export class FileTypeList extends React.Component<
   }
 
   private add = () => {
-    // TODO: add to props.allTypes
     return () => {
       const e: IFileTypeItem = {
         id: this.state.newEntry.id,
@@ -191,7 +190,6 @@ export class FileTypeList extends React.Component<
     newEntry.extension = value
 
     this.setState(createState(this.props, newEntry))
-    // this.props.extension = value
   }
 
   private changeCommand = (event: React.FormEvent<HTMLInputElement>) => {
@@ -199,7 +197,6 @@ export class FileTypeList extends React.Component<
     const newEntry: IFileTypeItem = this.state.newEntry
     newEntry.cmd = value
     this.setState(createState(this.props, newEntry))
-    // this.props.command = value
   }
 
   private changeName = (event: React.FormEvent<HTMLInputElement>) => {
@@ -207,7 +204,6 @@ export class FileTypeList extends React.Component<
     const newEntry: IFileTypeItem = this.state.newEntry
     newEntry.text = value
     this.setState(createState(this.props, newEntry))
-    // this.props.command = value
   }
 
   public render() {
@@ -218,17 +214,20 @@ export class FileTypeList extends React.Component<
             value={this.state.newEntry.extension}
             placeholder="Extension"
             autoFocus={true}
+            className='new-editor-extension'
             onChange={this.changeExtension}
           />
           <TextBox
             value={this.state.newEntry.text}
             placeholder="Name"
+            className='new-editor-name'
             autoFocus={true}
             onChange={this.changeName}
           />
           <TextBox
             value={this.state.newEntry.cmd}
             placeholder="Command"
+            className='new-editor-cmd'
             autoFocus={true}
             onChange={this.changeCommand}
           />
