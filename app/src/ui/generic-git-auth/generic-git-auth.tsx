@@ -44,6 +44,7 @@ export class GenericGitAuthentication extends React.Component<
   }
 
   public render() {
+    const disabled = !this.state.password.length && !this.state.username.length
     return (
       <Dialog
         id="generic-git-auth"
@@ -79,7 +80,7 @@ export class GenericGitAuthentication extends React.Component<
 
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit">
+            <Button type="submit" disabled={disabled}>
               {__DARWIN__ ? 'Save and Retry' : 'Save and retry'}
             </Button>
             <Button onClick={this.props.onDismiss}>Cancel</Button>
