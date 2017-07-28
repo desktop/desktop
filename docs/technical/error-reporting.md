@@ -35,6 +35,7 @@ If an error passes through all the registered error handlers, the final error
 handler will call [`Dispatcher#presentError`](https://github.com/desktop/desktop/blob/75445ea61177347b2df08e846aae30e637d5f1de/app/src/lib/dispatcher/dispatcher.ts#L334).
 That will present the generic error dialog to the user.
 
+```
 +------------------------+
 |                        |
 |  Dispatcher#postError  |
@@ -54,6 +55,7 @@ That will present the generic error dialog to the user.
 | Dispatcher#presentError |
 |                         |
 +-------------------------+
+```
 
 ### Subclasses
 
