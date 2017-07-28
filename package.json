@@ -5,11 +5,11 @@
   },
   "description": "GitHub Desktop build dependencies",
   "scripts": {
-    "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 mocha -t 10000 --compilers ts:ts-node/register,tsx:ts-node/register app/test/integration/*.ts",
-    "test:unit": "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 electron-mocha -t 10000 --renderer --compilers ts:ts-node/register,tsx:ts-node/register --require ./app/test/globals.ts app/test/unit/*.ts app/test/unit/git/*.ts app/test/unit/progress/*.ts app/test/unit/main-process/* app/test/unit/*.tsx",
+    "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe mocha -t 10000 --compilers ts:ts-node/register,tsx:ts-node/register app/test/integration/*.ts",
+    "test:unit": "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe electron-mocha -t 10000 --renderer --compilers ts:ts-node/register,tsx:ts-node/register --require ./app/test/globals.ts app/test/unit/*.ts app/test/unit/git/*.ts app/test/unit/progress/*.ts app/test/unit/main-process/* app/test/unit/*.tsx",
     "test": "npm run test:unit && npm run test:integration",
-    "test:setup": "node script/test-setup",
-    "test:review": "node script/test-review",
+    "test:setup": "ts-node script/test-setup.ts",
+    "test:review": "ts-node script/test-review.ts",
     "postinstall": "cd app && npm install && cd .. && git submodule update --recursive --init && npm run compile:tslint",
     "start": "cross-env NODE_ENV=development node script/start",
     "start:prod": "cross-env NODE_ENV=production node script/start",
@@ -27,15 +27,8 @@
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
-    "precommit": "lint-staged",
     "prettier:base": "prettier --single-quote --trailing-comma es5 --no-semi --write",
     "prettify": "npm run prettier:base \"{app/{src,test}/**/*.{ts,tsx,js},app/webpack.*.js,script/!(*.ps1|*.bat|setup-macos-keychain)}\""
-  },
-  "lint-staged": {
-    "{app/{src,test}/**/*.{ts,tsx,js},app/webpack.*.js,script/!(*.ps1|*.bat|setup-macos-keychain)}": [
-      "npm run prettier:base",
-      "git add"
-    ]
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -90,6 +83,7 @@
     "webpack-dev-middleware": "^1.10.1",
     "webpack-hot-middleware": "^2.18.0",
     "webpack-merge": "^4.1.0",
+    "xvfb-maybe": "^0.2.1",
     "xml2js": "^0.4.16"
   },
   "devDependencies": {
@@ -110,8 +104,6 @@
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
     "@types/winston": "^2.2.0",
-    "husky": "^0.14.1",
-    "lint-staged": "^4.0.0",
     "prettier": "^1.5.0",
     "tslint-config-prettier": "^1.1.0",
     "tslint-react": "^3.0.0"
