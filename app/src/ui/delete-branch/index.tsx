@@ -8,6 +8,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Account } from '../../models/account'
+import { Ref } from '../lib/ref'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -43,7 +44,7 @@ export class DeleteBranch extends React.Component<
       >
         <DialogContent>
           <p>
-            Delete branch "{this.props.branch.name}"?
+            Delete branch <Ref>{this.props.branch.name}</Ref>?
           </p>
           <p>This cannot be undone.</p>
           <Checkbox
