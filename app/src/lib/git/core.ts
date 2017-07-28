@@ -28,6 +28,9 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
    * be logged and an error thrown.
    */
   readonly expectedErrors?: Set<DugiteError>
+
+  /** Should it track & report LFS progress? */
+  readonly trackLFSProgress?: boolean
 }
 
 /**
