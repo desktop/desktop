@@ -30,7 +30,7 @@ export function mkdirIfNeeded(directoryPath: string): Promise<void> {
  */
 export function getTempFilePath(name: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
-    const tempDir = Path.join(Os.tmpdir(), name, Path.sep)
+    const tempDir = Path.join(Os.tmpdir(), name)
     Fs.mkdtemp(tempDir, (err, directory) => {
       if (err) {
         reject(err)
