@@ -24,8 +24,11 @@ export function mkdirIfNeeded(directoryPath: string): Promise<void> {
   })
 }
 
-/** Create a temp file with the given name. */
-export function mkTempFile(name: string): Promise<string> {
+/**
+ * Get a path to a temp file using the given name. Note that the file itself
+ * will not be created.
+ */
+export function getTempFilePath(name: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const tempDir = Path.join(Os.tmpdir(), name, Path.sep)
     Fs.mkdtemp(tempDir, (err, directory) => {

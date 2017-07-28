@@ -1,8 +1,8 @@
-import { mkTempFile } from '../file-system'
+import { getTempFilePath } from '../file-system'
 import { IGitProgress, IGitProgressInfo, IGitOutput } from './git'
 
-export function createProgressFile(): Promise<string> {
-  return mkTempFile('GitHubDesktop-lfs-progress')
+export function getProgressFilePath(): Promise<string> {
+  return getTempFilePath('GitHubDesktop-lfs-progress')
 }
 
 // The regex for parsing LFS progress lines. See
