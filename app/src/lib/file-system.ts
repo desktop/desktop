@@ -1,4 +1,6 @@
 import * as Fs from 'fs-extra'
+import * as Os from 'os'
+import * as Path from 'path'
 import { Disposable } from 'event-kit'
 import { Tailer } from './tailer'
 
@@ -18,6 +20,21 @@ export function mkdirIfNeeded(directoryPath: string): Promise<void> {
         return
       }
       resolve()
+    })
+  })
+}
+
+/** Create a temp file with the given name. */
+export function mkTempFile(name: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const tempDir = Path.join(Os.tmpdir(), name, Path.sep)
+    Fs.mkdtemp(tempDir, (err, directory) => {
+      if (err) {
+        reject(err)
+      } else {
+        const fullPath = Path.join(directory, name)
+        resolve(fullPath)
+      }
     })
   })
 }
