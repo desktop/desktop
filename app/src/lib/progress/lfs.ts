@@ -66,8 +66,9 @@ export class GitLFSProgressParser {
     }
 
     const percent = downloadedBytes / totalBytes
+    const verb = this.directionToHumanFacingVerb(direction)
     const info: IGitProgressInfo = {
-      title: `Downloading ${name}…`,
+      title: `${verb} "${name}" (${current} of ${totalFiles})…`,
       value: downloadedBytes,
       total: totalBytes,
       percent,
@@ -78,6 +79,19 @@ export class GitLFSProgressParser {
       kind: 'progress',
       percent,
       details: info,
+    }
+  }
+
+  private directionToHumanFacingVerb(direction: string): string {
+    switch (direction) {
+      case 'download':
+        return 'Downloading'
+      case 'upload':
+        return 'Uploading'
+      case 'checkout':
+        return 'Checking out'
+      default:
+        return 'Downloading'
     }
   }
 }
