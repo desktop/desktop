@@ -33,6 +33,7 @@ export async function pull(
   let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
     expectedErrors: expectedAuthenticationErrors(),
+    trackLFSProgress: true,
   }
 
   if (progressCallback) {

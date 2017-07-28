@@ -27,7 +27,7 @@ export async function checkoutBranch(
   name: string,
   progressCallback?: ProgressCallback
 ): Promise<void> {
-  let opts: IGitExecutionOptions = {}
+  let opts: IGitExecutionOptions = { trackLFSProgress: true }
 
   if (progressCallback) {
     const title = `Checking out branch ${name}`

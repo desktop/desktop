@@ -46,7 +46,7 @@ export async function clone(
 
   const args = [...gitNetworkArguments, 'clone', '--recursive', '--progress']
 
-  let opts: IGitExecutionOptions = { env }
+  let opts: IGitExecutionOptions = { env, trackLFSProgress: true }
 
   if (progressCallback) {
     args.push('--progress')

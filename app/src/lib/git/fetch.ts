@@ -11,9 +11,9 @@ import { IFetchProgress } from '../app-state'
 
 /**
  * Fetch from the given remote.
- * 
+ *
  * @param repository - The repository to fetch into
- * 
+ *
  * @param account    - The account to use when authenticating with the remote
  *
  * @param remote     - The remote to fetch from
@@ -33,6 +33,7 @@ export async function fetch(
   let opts: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
     env: envForAuthentication(account),
+    trackLFSProgress: true,
   }
 
   if (progressCallback) {
