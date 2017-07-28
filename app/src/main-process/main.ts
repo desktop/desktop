@@ -1,14 +1,6 @@
 import '../lib/logging/main/install'
 
-import {
-  app,
-  Menu,
-  MenuItem,
-  ipcMain,
-  BrowserWindow,
-  autoUpdater,
-  shell,
-} from 'electron'
+import { app, Menu, MenuItem, ipcMain, BrowserWindow, shell } from 'electron'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
@@ -305,12 +297,6 @@ app.on('ready', () => {
       shell.showItemInFolder(path)
     }
   )
-
-  autoUpdater.on('error', err => {
-    onDidLoad(window => {
-      window.sendAutoUpdaterError(err)
-    })
-  })
 })
 
 app.on('activate', () => {

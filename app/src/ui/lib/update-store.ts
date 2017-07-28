@@ -1,4 +1,4 @@
-import { remote, ipcRenderer } from 'electron'
+import { remote } from 'electron'
 
 // Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
 // use with `remote`.
@@ -52,16 +52,7 @@ class UpdateStore {
       }
     }
 
-    // We're using our own error event instead of `autoUpdater`s so that we can
-    // properly serialize the `Error` object for transport over IPC. See
-    // https://github.com/desktop/desktop/issues/1266.
-    ipcRenderer.on(
-      'auto-updater-error',
-      (event: Electron.IpcMessageEvent, error: Error) => {
-        this.onAutoUpdaterError(error)
-      }
-    )
-
+    autoUpdater.on('error', this.onAutoUpdaterError)
     autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
     autoUpdater.on('update-available', this.onUpdateAvailable)
     autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
@@ -72,6 +63,7 @@ class UpdateStore {
     // let's just avoid it.
     if (!process.env.TEST_ENV) {
       window.addEventListener('beforeunload', () => {
+        autoUpdater.removeListener('error', this.onAutoUpdaterError)
         autoUpdater.removeListener(
           'checking-for-update',
           this.onCheckingForUpdate
