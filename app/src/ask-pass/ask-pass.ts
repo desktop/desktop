@@ -19,8 +19,7 @@ export async function responseForPrompt(
     }
 
     const key = getKeyForEndpoint(endpoint)
-    const password = await TokenStore.getItem(key, username)
-    return password
+    return await TokenStore.getItem(key, username)
   }
 
   return null
