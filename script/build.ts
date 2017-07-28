@@ -67,8 +67,12 @@ function packageApp(
 ) {
   // not sure if this is needed anywhere, so I'm just going to inline it here
   // for now and see what the future brings...
-  function toPackagePlatform(platform: NodeJS.Platform): packager.platform {
-    if (process.platform === 'win32' || process.platform === 'darwin') {
+  const toPackagePlatform = (platform: NodeJS.Platform) => {
+    if (
+      process.platform === 'win32' ||
+      process.platform === 'darwin' ||
+      process.platform === 'linux'
+    ) {
       return process.platform
     }
     throw new Error(
