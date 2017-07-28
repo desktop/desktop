@@ -1,7 +1,10 @@
-import { git } from './core'
+import { git, IGitExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { ChildProcess } from 'child_process'
-import { CheckoutProgressParser, progressProcessCallback } from '../progress'
+import {
+  CheckoutProgressParser,
+  executionOptionsWithProgress,
+} from '../progress'
 import { ICheckoutProgress } from '../app-state'
 
 type ProcessCallback = (process: ChildProcess) => void
@@ -9,12 +12,12 @@ export type ProgressCallback = (progress: ICheckoutProgress) => void
 
 /**
  * Check out the given branch.
- * 
+ *
  * @param repository - The repository in which the branch checkout should
  *                     take place
- * 
+ *
  * @param name       - The branch name that should be checked out
- * 
+ *
  * @param progressCallback - An optional function which will be invoked
  *                           with information about the current progress
  *                           of the checkout operation. When provided this
@@ -26,14 +29,15 @@ export async function checkoutBranch(
   name: string,
   progressCallback?: ProgressCallback
 ): Promise<void> {
-  let processCallback: ProcessCallback | undefined = undefined
+  let opts: IGitExecutionOptions = {}
 
   if (progressCallback) {
     const title = `Checking out branch ${name}`
     const kind = 'checkout'
     const targetBranch = name
 
-    processCallback = progressProcessCallback(
+    opts = executionOptionsWithProgress(
+      opts,
       new CheckoutProgressParser(),
       progress => {
         if (progress.kind === 'progress') {
@@ -49,13 +53,11 @@ export async function checkoutBranch(
     progressCallback({ kind, title, value: 0, targetBranch })
   }
 
-  const args = processCallback
+  const args = progressCallback
     ? ['checkout', '--progress', name, '--']
     : ['checkout', name, '--']
 
-  await git(args, repository.path, 'checkoutBranch', {
-    processCallback,
-  })
+  await git(args, repository.path, 'checkoutBranch', opts)
 }
 
 /** Check out the paths at HEAD. */
