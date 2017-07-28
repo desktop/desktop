@@ -1,13 +1,11 @@
 import { git, IGitExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
-import { ChildProcess } from 'child_process'
 import {
   CheckoutProgressParser,
   executionOptionsWithProgress,
 } from '../progress'
 import { ICheckoutProgress } from '../app-state'
 
-type ProcessCallback = (process: ChildProcess) => void
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
 /**
