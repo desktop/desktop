@@ -31,7 +31,6 @@ import {
   getCommits,
   merge,
   setRemoteURL,
-  removeFromIndex,
   getStatus,
   IStatusResult,
   getCommit,
@@ -768,8 +767,6 @@ export class GitStore {
     const currentContents = ensureTrailingNewline(text)
     const newText = ensureTrailingNewline(`${currentContents}${pattern}`)
     await this.saveGitIgnore(newText)
-
-    await removeFromIndex(this.repository, pattern)
   }
 
   public async discardChanges(
