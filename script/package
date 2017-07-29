@@ -113,6 +113,27 @@ function packageWindows() {
     })
 }
 
+function packageRedhat() {
+  const installer = require('electron-installer-redhat')
+
+  var options = {
+    src: distPath,
+    dest: outputDir,
+    arch: 'amd64',
+  }
+
+  return new Promise((resolve, reject) => {
+    console.log('Creating .rpm package...')
+    installer(options, function(err) {
+      if (err) {
+        reject(err)
+      } else {
+        resolve()
+      }
+    })
+  })
+}
+
 function packageDebian() {
   const installer = require('electron-installer-debian')
 
@@ -135,7 +156,7 @@ function packageDebian() {
 }
 
 function packageLinux() {
-  Promise.all([packageDebian()])
+  Promise.all([packageRedhat()])
     .catch(err => {
       console.error(err, err.stack)
       process.exit(1)

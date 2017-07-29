@@ -24,6 +24,8 @@ addons:
       # packages required for electron-installer-debian
       - fakeroot
       - dpkg
+      # packages required for electron-installer-redhat
+      - rpm
 
 branches:
   only:
