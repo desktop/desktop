@@ -64,6 +64,8 @@ export function tailByLine(
     })
   })
 
+  tailer.start()
+
   return new Disposable(() => {
     disposable.dispose()
     tailer.stop()
