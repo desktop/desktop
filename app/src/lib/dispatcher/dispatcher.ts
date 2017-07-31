@@ -899,7 +899,7 @@ export class Dispatcher {
 
   /** Prompt the user to authenticate for a generic git server. */
   public promptForGenericGitAuthentication(
-    repository: Repository,
+    repository: Repository | CloningRepository,
     retry: RetryAction
   ): Promise<void> {
     return this.appStore.promptForGenericGitAuthentication(repository, retry)

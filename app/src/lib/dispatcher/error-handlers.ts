@@ -6,6 +6,7 @@ import {
 } from 'dugite'
 import { ErrorWithMetadata } from '../error-with-metadata'
 import { AuthenticationErrors } from '../git/authentication'
+import { Repository } from '../../models/repository'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -67,7 +68,7 @@ export async function missingRepositoryHandler(
   }
 
   const repository = e.metadata.repository
-  if (!repository) {
+  if (!repository || !(repository instanceof Repository)) {
     return error
   }
 
@@ -141,7 +142,7 @@ export async function gitAuthenticationErrorHandler(
   // If it's a GitHub repository then it's not some generic git server
   // authentication problem, but more likely a legit permission problem. So let
   // the error continue to bubble up.
-  if (repository.gitHubRepository) {
+  if (repository instanceof Repository && repository.gitHubRepository) {
     return error
   }
 

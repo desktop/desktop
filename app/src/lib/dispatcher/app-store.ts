@@ -2408,16 +2408,23 @@ export class AppStore {
   }
 
   public async promptForGenericGitAuthentication(
-    repository: Repository,
+    repository: Repository | CloningRepository,
     retryAction: RetryAction
   ): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    const remote = gitStore.remote
-    if (!remote) {
-      return
+    let url
+    if (repository instanceof Repository) {
+      const gitStore = this.getGitStore(repository)
+      const remote = gitStore.remote
+      if (!remote) {
+        return
+      }
+
+      url = remote.url
+    } else {
+      url = repository.url
     }
 
-    const hostname = getGenericHostname(remote.url)
+    const hostname = getGenericHostname(url)
     return this._showPopup({
       type: PopupType.GenericGitAuthentication,
       hostname,

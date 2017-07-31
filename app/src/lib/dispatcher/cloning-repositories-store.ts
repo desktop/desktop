@@ -83,7 +83,7 @@ export class CloningRepositoriesStore {
         path,
         options,
       }
-      e = new ErrorWithMetadata(e, { retryAction })
+      e = new ErrorWithMetadata(e, { retryAction, repository })
 
       this.emitError(e)
     }
