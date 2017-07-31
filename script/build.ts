@@ -128,12 +128,6 @@ function packageApp(
       OriginalFilename: '',
       ProductName: distInfo.getProductName(),
       InternalName: distInfo.getProductName(),
-      // these keys are expected as part of the configuration
-      //
-      // TODO: get this clarified as optional in @types/electron-packager if
-      //       that's the contract
-      'requested-execution-level': undefined,
-      'application-manifest': undefined,
     },
   }
 
