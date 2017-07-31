@@ -218,5 +218,33 @@ describe('GitStore', () => {
       const files = status.workingDirectory.files
       expect(files.length).to.equal(0)
     })
+
+    it('appends a newline with autocrlf and safeclrf set', async () => {
+      const repo = await setupEmptyRepository()
+      const gitStore = new GitStore(repo, shell)
+
+      await GitProcess.exec(
+        ['config', '--local', 'core.autocrlf', 'true'],
+        repo.path
+      )
+      await GitProcess.exec(
+        ['config', '--local', 'core.safecrlf', 'true'],
+        repo.path
+      )
+
+      await gitStore.saveGitIgnore('node_modules')
+      await GitProcess.exec(['add', '.gitignore'], repo.path)
+      await GitProcess.exec(
+        ['commit', '-m', 'create the ignore file'],
+        repo.path
+      )
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+      expect(files.length).to.equal(0)
+
+      const contents = await gitStore.readGitIgnore()
+      expect(contents!.endsWith('\r\n'))
+    })
   })
 })
