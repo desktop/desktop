@@ -188,63 +188,59 @@ describe('GitStore', () => {
       expect(files.length).to.equal(0)
     })
 
-    it('respects autocrlf and safecrlf values when updating', async () => {
-      const repo = await setupEmptyRepository()
-      const gitStore = new GitStore(repo, shell)
+    describe('autocrlf and safecrlf', () => {
+      let repo: Repository | null
+      let gitStore: GitStore | null
 
-      await GitProcess.exec(
-        ['config', '--local', 'core.autocrlf', 'true'],
-        repo.path
-      )
-      await GitProcess.exec(
-        ['config', '--local', 'core.safecrlf', 'true'],
-        repo.path
-      )
+      beforeEach(async () => {
+        repo = await setupEmptyRepository()
+        gitStore = new GitStore(repo!, shell)
 
-      // first pass - save a single entry
-      await gitStore.saveGitIgnore('node_modules\n')
-      await GitProcess.exec(['add', '.gitignore'], repo.path)
-      await GitProcess.exec(
-        ['commit', '-m', 'create the ignore file'],
-        repo.path
-      )
+        await GitProcess.exec(
+          ['config', '--local', 'core.autocrlf', 'true'],
+          repo.path
+        )
+        await GitProcess.exec(
+          ['config', '--local', 'core.safecrlf', 'true'],
+          repo.path
+        )
+      })
 
-      // second pass - update the file with a new entry
-      await gitStore.saveGitIgnore('node_modules\n*.exe\n')
-      await GitProcess.exec(['add', '.gitignore'], repo.path)
-      await GitProcess.exec(['commit', '-m', 'update the file'], repo.path)
+      it('respects config when updating', async () => {
+        const fixture = gitStore!
+        const path = repo!.path
 
-      const status = await getStatus(repo)
-      const files = status.workingDirectory.files
-      expect(files.length).to.equal(0)
-    })
+        // first pass - save a single entry
+        await fixture.saveGitIgnore('node_modules\n')
+        await GitProcess.exec(['add', '.gitignore'], path)
+        await GitProcess.exec(['commit', '-m', 'create the ignore file'], path)
 
-    it('appends a newline with autocrlf and safeclrf set', async () => {
-      const repo = await setupEmptyRepository()
-      const gitStore = new GitStore(repo, shell)
+        // second pass - update the file with a new entry
+        await fixture.saveGitIgnore('node_modules\n*.exe\n')
+        await GitProcess.exec(['add', '.gitignore'], path)
+        await GitProcess.exec(['commit', '-m', 'update the file'], path)
 
-      await GitProcess.exec(
-        ['config', '--local', 'core.autocrlf', 'true'],
-        repo.path
-      )
-      await GitProcess.exec(
-        ['config', '--local', 'core.safecrlf', 'true'],
-        repo.path
-      )
+        const status = await getStatus(repo!)
+        const files = status.workingDirectory.files
+        expect(files.length).to.equal(0)
+      })
 
-      await gitStore.saveGitIgnore('node_modules')
-      await GitProcess.exec(['add', '.gitignore'], repo.path)
-      await GitProcess.exec(
-        ['commit', '-m', 'create the ignore file'],
-        repo.path
-      )
+      it('appends newline to file', async () => {
+        const fixture = gitStore!
+        const path = repo!.path
 
-      const status = await getStatus(repo)
-      const files = status.workingDirectory.files
-      expect(files.length).to.equal(0)
+        await fixture.saveGitIgnore('node_modules')
+        await GitProcess.exec(['add', '.gitignore'], path)
+        const commit = await GitProcess.exec(
+          ['commit', '-m', 'create the ignore file'],
+          path
+        )
 
-      const contents = await gitStore.readGitIgnore()
-      expect(contents!.endsWith('\r\n'))
+        expect(commit.exitCode).to.equal(0)
+
+        const contents = await fixture.readGitIgnore()
+        expect(contents!.endsWith('\r\n'))
+      })
     })
   })
 })
