@@ -1891,13 +1891,40 @@ export class AppStore {
     return this.refreshGitHubRepositoryInfo(repository)
   }
 
+  private async getAccountForRemoteURL(
+    remote: string
+  ): Promise<IGitAccount | null> {
+    const gitHubRepository = matchGitHubRepository(this.accounts, remote)
+    if (gitHubRepository) {
+      const account = getAccountForEndpoint(
+        this.accounts,
+        gitHubRepository.endpoint
+      )
+      if (account) {
+        return account
+      }
+    }
+
+    const hostname = getGenericHostname(remote)
+    const username = await getGenericUsername(hostname)
+    if (username != null) {
+      return { login: username, endpoint: hostname }
+    }
+
+    return null
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clone(
+  public async _clone(
     url: string,
     path: string,
-    options: { account: IGitAccount | null; branch?: string }
-  ): { promise: Promise<boolean>; repository: CloningRepository } {
-    const promise = this.cloningRepositoriesStore.clone(url, path, options)
+    options?: { branch?: string }
+  ): Promise<{ promise: Promise<boolean>; repository: CloningRepository }> {
+    const account = await this.getAccountForRemoteURL(url)
+    const promise = this.cloningRepositoriesStore.clone(url, path, {
+      ...options,
+      account,
+    })
     const repository = this.cloningRepositoriesStore.repositories.find(
       r => r.url === url && r.path === path
     )!
@@ -2350,12 +2377,8 @@ export class AppStore {
     return this.repositoriesStore.updateGitHubRepository(refreshedRepository)
   }
 
-  public async _cloneAgain(
-    url: string,
-    path: string,
-    account: Account | null
-  ): Promise<void> {
-    const { promise, repository } = this._clone(url, path, { account })
+  public async _cloneAgain(url: string, path: string): Promise<void> {
+    const { promise, repository } = await this._clone(url, path)
     await this._selectRepository(repository)
     const success = await promise
     if (!success) {
