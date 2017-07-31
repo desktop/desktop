@@ -160,9 +160,9 @@ export class PushBranchCommits extends React.Component<
     this.props.onDismissed()
   }
 
-  private onCreateWithoutPushButtonClick(
+  private onCreateWithoutPushButtonClick = (
     e: React.MouseEvent<HTMLButtonElement>
-  ) {
+  ) => {
     e.preventDefault()
 
     this.props.onConfirm(this.props.repository, this.props.branch)
