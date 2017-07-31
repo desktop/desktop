@@ -906,8 +906,10 @@ async function validateGitIgnoreContents(
 
   return new Promise<string>((resolve, reject) => {
     if (autocrlf === 'true' && safecrlf === 'true') {
-      // TODO: actually sanitize the output properly
-      resolve(text)
+      // based off https://stackoverflow.com/a/141069/1363815
+      const normalizedText = text.replace(/\r\n|\n\r|\n|\r/g, '\r\n')
+      resolve(normalizedText)
+      return
     }
 
     if (text.endsWith('\n')) {
