@@ -59,7 +59,7 @@
 ### Application
   - [ ] Minimize, Maximize, Close buttons work in top nav
   - [ ] Double-clicking local desktop icon opens the application (Mac only)
-  - [ ] Double clicking top nav bar toggles full-screen / last used screen-size (Mac only)
+  - [ ] Double clicking top nav bar toggles full-screen / last used screen-size (Mac only); Exit by (Mac: ^⌘f11; Windows: Alt)
   - [ ] Clicking Desktop icon in dock/taskbar opens the application
   - [ ] Changing desktop icon name while app is open results in package error; closed app name change is sucessful
 
@@ -232,6 +232,3 @@
   - [ ] User cannot Push/Pull without being signed in; error message surfaced
     - [ ] Push/Pull works with public/private/Enterprise repos
   - [ ] When a branch is local-only make sure that the `Sync` button changes to `Publish` and it publishes
-
-### Windows-specific Tests (TBD)
-
