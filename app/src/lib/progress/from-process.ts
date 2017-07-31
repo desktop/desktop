@@ -56,7 +56,9 @@ function createProgressProcessCallback(
 
       process.on('close', () => {
         disposable.dispose()
-        Fs.unlink(lfsProgressPath)
+        // NB: We don't really care about errors deleting the file, but Node
+        // gets kinda bothered if we don't provide a callback.
+        Fs.unlink(lfsProgressPath, () => {})
       })
     }
 
