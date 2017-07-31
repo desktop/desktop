@@ -40,7 +40,6 @@ import {
 import { installCLI } from '../../ui/lib/install-cli'
 import * as GenericGitAuth from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
-import { IGitAccount } from '../git/authentication'
 
 /**
  * An error handler function.
@@ -344,22 +343,22 @@ export class Dispatcher {
    * Clone a missing repository to the previous path, and update it's
    * state in the repository list if the clone completes without error.
    */
-  public cloneAgain(
-    url: string,
-    path: string,
-    account: Account | null
-  ): Promise<void> {
-    return this.appStore._cloneAgain(url, path, account)
+  public cloneAgain(url: string, path: string): Promise<void> {
+    return this.appStore._cloneAgain(url, path)
   }
 
   /** Clone the repository to the path. */
   public async clone(
     url: string,
     path: string,
-    options: { account: IGitAccount | null; branch?: string }
+    options?: { branch?: string }
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
-      const { promise, repository } = this.appStore._clone(url, path, options)
+      const { promise, repository } = await this.appStore._clone(
+        url,
+        path,
+        options
+      )
       await this.selectRepository(repository)
       const success = await promise
       // TODO: this exit condition is not great, bob
