@@ -1,6 +1,8 @@
 {
   "releases": {
-    "0.7.3-beta0": [],
+    "0.7.3-beta0": [
+      "[Fixed] 'Create Without Pushing' button throwing an exception while opening a pull request - #2368"
+    ],
     "0.7.2": ["[Fixed] Issues with auto-updating to 0.7.1."],
     "0.7.2-beta0": [],
     "0.7.1": [
