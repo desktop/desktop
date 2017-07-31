@@ -105,6 +105,22 @@ function packageApp(
     appCategoryType: 'public.app-category.developer-tools',
     osxSign: true,
 
+    // because `protocols` is an internal data structure to electron-packager
+    // we need to provide two arrays of entries that will get merged as part
+    // of the packaging proess
+    protocolName: [
+      distInfo.getBundleID(),
+      distInfo.getBundleID(),
+      distInfo.getBundleID(),
+    ],
+    protocol: [
+      isPublishableBuild
+        ? 'x-github-desktop-auth'
+        : 'x-github-desktop-dev-auth',
+      'x-github-client',
+      'github-mac',
+    ],
+
     // Windows
     win32metadata: {
       CompanyName: distInfo.getCompanyName(),
@@ -120,24 +136,6 @@ function packageApp(
       'application-manifest': undefined,
     },
   }
-
-  // `protocols` isn't a part of the config provided to electron-packager
-  //
-  // TODO: get this incorporated into @types/electron-packager if it's
-  //       still supported there
-  const hack: any = options
-  hack.protocols = [
-    {
-      name: distInfo.getBundleID(),
-      schemes: [
-        isPublishableBuild
-          ? 'x-github-desktop-auth'
-          : 'x-github-desktop-dev-auth',
-        'x-github-client',
-        'github-mac',
-      ],
-    },
-  ]
 
   packager(options, (err: Error, appPaths: string | string[]) => {
     if (err) {
