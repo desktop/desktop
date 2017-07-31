@@ -205,6 +205,7 @@
   - [ ] Commit created if user clicks `Commit to X` button with commit message and at least one checked file
     - [ ] `Fetch origin` changes to `Push` with number of commits badge
   - [ ] Avatar of user is shown
+  - [ ] User can at-mention those associated with the resepctive repo; either subject or description field is ok
   - [ ] Description field is optional
   - [ ] User can undo last commit
     - [ ] `Push` with number of commits badge is decremented or reverts to `Fetch origin`
