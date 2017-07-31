@@ -54,11 +54,12 @@ export function tailByLine(
 ): Disposable {
   const tailer = new Tailer(path)
   const disposable = tailer.onDataAvailable(stream => {
-    byline(stream).on('data', (line: string) => {
+    byline(stream).on('data', (buffer: Buffer) => {
       if (disposable.disposed) {
         return
       }
 
+      const line = buffer.toString()
       cb(line)
     })
   })
