@@ -1399,7 +1399,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         <MissingRepository
           repository={selectedState.repository}
           dispatcher={this.props.dispatcher}
-          accounts={this.state.accounts}
         />
       )
     } else {
