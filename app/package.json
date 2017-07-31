@@ -45,7 +45,8 @@
     "uuid": "^3.0.1",
     "wicg-focus-ring": "^1.0.1",
     "winston": "^2.3.1",
-    "winston-daily-rotate-file": "^1.4.5"
+    "winston-daily-rotate-file": "^1.4.5",
+    "yargs": "^8.0.2"
   },
   "devDependencies": {
     "devtron": "^1.4.0",

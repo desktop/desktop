@@ -83,8 +83,8 @@
     "webpack-dev-middleware": "^1.10.1",
     "webpack-hot-middleware": "^2.18.0",
     "webpack-merge": "^4.1.0",
-    "xvfb-maybe": "^0.2.1",
-    "xml2js": "^0.4.16"
+    "xml2js": "^0.4.16",
+    "xvfb-maybe": "^0.2.1"
   },
   "devDependencies": {
     "@types/chai": "^3.4.30",
@@ -104,6 +104,7 @@
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
     "@types/winston": "^2.2.0",
+    "@types/yargs": "^8.0.1",
     "prettier": "^1.5.0",
     "tslint-config-prettier": "^1.1.0",
     "tslint-react": "^3.0.0"
