@@ -33,7 +33,6 @@ export async function pull(
   let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
     expectedErrors: expectedAuthenticationErrors(),
-    trackLFSProgress: true,
   }
 
   if (progressCallback) {
@@ -41,7 +40,7 @@ export async function pull(
     const kind = 'pull'
 
     opts = await executionOptionsWithProgress(
-      opts,
+      { ...opts, trackLFSProgress: true },
       new PullProgressParser(),
       progress => {
         // In addition to progress output from the remote end and from

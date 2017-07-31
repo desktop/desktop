@@ -33,7 +33,6 @@ export async function fetch(
   let opts: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
     env: envForAuthentication(account),
-    trackLFSProgress: true,
   }
 
   if (progressCallback) {
@@ -41,7 +40,7 @@ export async function fetch(
     const kind = 'fetch'
 
     opts = await executionOptionsWithProgress(
-      opts,
+      { ...opts, trackLFSProgress: true },
       new FetchProgressParser(),
       progress => {
         // In addition to progress output from the remote end and from

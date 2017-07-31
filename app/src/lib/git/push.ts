@@ -55,7 +55,6 @@ export async function push(
   let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
     expectedErrors: expectedAuthenticationErrors(),
-    trackLFSProgress: true,
   }
 
   if (progressCallback) {
@@ -64,7 +63,7 @@ export async function push(
     const kind = 'push'
 
     opts = await executionOptionsWithProgress(
-      opts,
+      { ...opts, trackLFSProgress: true },
       new PushProgressParser(),
       progress => {
         const description =
