@@ -4,7 +4,7 @@ import { openDesktop } from '../open-desktop'
 
 export const command = 'open [path]'
 export const aliases = '* [path]'
-export const describe = 'open a git repository in GitHub Desktop'
+export const describe = 'Open a git repository in GitHub Desktop'
 
 interface IOpenArgs {
   path: string

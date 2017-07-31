@@ -6,36 +6,38 @@ import * as yargs from 'yargs'
 import { openDesktop } from '../open-desktop'
 
 interface ICloneArgs {
-  url?: string,
-  pr?: number,
-  branch?: string,
-  path?: string,
+  url?: string
+  pr?: number
+  branch?: string
+  path?: string
 }
 
 export const command = 'clone <url|slug> [path]'
 export const describe = 'Clone a repository'
 export const builder = (yargs: yargs.Argv) => {
-  yargs.options({
-    pr: {
-      alias: 'p',
-      type: 'number',
-      describe: 'the PR to open',
-    },
-    branch: {
-      alias: 'b',
-      type: 'string',
-      describe: 'the branch to switch to',
-    },
-  }).check((argv) => {
-    const { pr, url: cloneUrl } = argv as ICloneArgs
-    if (!cloneUrl) {
-      throw new Error('Clone URL must be specified')
-    }
-    if (Number.isNaN(pr as number)) {
-      throw new Error('PR number must be a valid number.')
-    }
-    return true // checks passed
-  }, false)
+  yargs
+    .options({
+      pr: {
+        alias: 'p',
+        type: 'number',
+        describe: 'The PR number to open',
+      },
+      branch: {
+        alias: 'b',
+        type: 'string',
+        describe: 'The branch to switch to after cloning',
+      },
+    })
+    .check(argv => {
+      const { pr, url: cloneUrl } = argv as ICloneArgs
+      if (!cloneUrl) {
+        throw new Error('Clone URL must be specified')
+      }
+      if (Number.isNaN(pr as number)) {
+        throw new Error('PR number must be a valid number.')
+      }
+      return true // checks passed
+    }, false)
 }
 
 export const handler = ({ url: cloneUrl, pr, branch, path }: ICloneArgs) => {
@@ -61,7 +63,7 @@ export const handler = ({ url: cloneUrl, pr, branch, path }: ICloneArgs) => {
   const url = `x-github-client://openRepo/${cloneUrl}?${QueryString.stringify({
     pr,
     branch,
-    filepath: path
+    filepath: path,
   })}`
   openDesktop(url)
 }
