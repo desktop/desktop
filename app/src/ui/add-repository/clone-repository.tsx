@@ -17,6 +17,7 @@ import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 import { Monospaced } from '../lib/monospaced'
+import { IGitAccount } from '../../lib/git/authentication'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -220,7 +221,7 @@ export class CloneRepository extends React.Component<
    */
   private async resolveCloneDetails(): Promise<{
     url: string
-    account: Account | null
+    account: IGitAccount | null
   } | null> {
     const identifier = this.state.lastParsedIdentifier
     let url = this.state.url
@@ -262,7 +263,7 @@ export class CloneRepository extends React.Component<
     }
   }
 
-  private cloneImpl(url: string, path: string, account: Account | null) {
+  private cloneImpl(url: string, path: string, account: IGitAccount | null) {
     this.props.dispatcher.clone(url, path, { account })
     this.props.onDismissed()
 
