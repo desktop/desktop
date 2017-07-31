@@ -14,5 +14,5 @@ export function openDesktop (url: string) {
     default:
       command = 'open'
   }
-  return ChildProcess.exec(`${command} ${url}`, { env })
+  return ChildProcess.spawn(command, [url], { env })
 }
