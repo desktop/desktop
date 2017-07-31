@@ -17,7 +17,7 @@ We have three channels to which we can release: `production`, `beta`, and `test`
 1. Commit & push the changes.
 1. Run `.release! desktop/YOUR_BRANCH to {production|beta|test}`.
   * We're using `.release` with a bang so that we don't have to wait for any current CI on the branch to finish. This might feel a little wrong, but it's OK since making the release itself will also run CI.
-1. If you're releasing a production update, release a beta update too so that beta users are on the latest release as well.
+1. If you're releasing a production update, release a beta update for the next version too, so that beta users are on the latest release.
 
 ## Error Reporting
 
