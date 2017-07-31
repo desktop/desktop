@@ -54,7 +54,7 @@ function createProgressProcessCallback(
         progressCallback(lfsParser.parse(line))
       })
 
-      process.on('exit', () => {
+      process.on('close', () => {
         disposable.dispose()
         Fs.unlink(lfsProgressPath)
       })
