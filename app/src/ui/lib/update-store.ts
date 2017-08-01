@@ -150,6 +150,13 @@ class UpdateStore {
    *                       this check user-initiated?
    */
   public checkForUpdates(inBackground: boolean) {
+    // An update has been downloaded and the app is waiting to be restarted.
+    // Checking for updates again may result in the running app being nuked
+    // when it finds a subsequent update.
+    if (__WIN32__ && this.status === UpdateStatus.UpdateReady) {
+      return
+    }
+
     this.userInitiatedUpdate = !inBackground
 
     try {

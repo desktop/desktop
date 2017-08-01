@@ -71,6 +71,8 @@ import { FullScreenInfo } from './window/full-screen-info'
 import { PushBranchCommits } from './branches/PushBranchCommits'
 import { Branch } from '../models/branch'
 import { CLIInstalled } from './cli-installed'
+import { GenericGitAuthentication } from './generic-git-auth'
+import { RetryAction } from '../lib/retry-actions'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1016,9 +1018,35 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.CLIInstalled:
         return <CLIInstalled onDismissed={this.onPopupDismissed} />
+      case PopupType.GenericGitAuthentication:
+        return (
+          <GenericGitAuthentication
+            hostname={popup.hostname}
+            onDismiss={this.onPopupDismissed}
+            onSave={this.onSaveCredentials}
+            retryAction={popup.retryAction}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onSaveCredentials = async (
+    hostname: string,
+    username: string,
+    password: string,
+    retryAction: RetryAction
+  ) => {
+    this.onPopupDismissed()
+
+    await this.props.dispatcher.saveGenericGitCredentials(
+      hostname,
+      username,
+      password
+    )
+
+    this.props.dispatcher.performRetry(retryAction)
   }
 
   private onCheckForUpdates = () => {
@@ -1371,7 +1399,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         <MissingRepository
           repository={selectedState.repository}
           dispatcher={this.props.dispatcher}
-          accounts={this.state.accounts}
         />
       )
     } else {

@@ -160,7 +160,7 @@ export function buildDefaultMenu(): Electron.Menu {
             focusedWindow.reload()
           }
         },
-        visible: __RELEASE_CHANNEL__ !== 'production',
+        visible: __RELEASE_CHANNEL__ === 'development',
       },
       {
         id: 'show-devtools',
