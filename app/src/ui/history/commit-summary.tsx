@@ -217,7 +217,7 @@ export class CommitSummary extends React.Component<
       {
         label: label,
         action: this.onViewOnGitHub,
-        enabled: !this.props.isLocal && !gitHubRepository,
+        enabled: !this.props.isLocal && !!gitHubRepository,
       },
     ]
 
