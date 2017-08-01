@@ -9,7 +9,7 @@ export interface IErrorMetadata {
   /** The repository from which this error originated. */
   readonly repository?: Repository | CloningRepository
 
-  /** The action to retry, if possible. */
+  /** The action to retry if applicable. */
   readonly retryAction?: RetryAction
 }
 
