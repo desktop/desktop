@@ -28,8 +28,19 @@ app. [`postError`](https://github.com/desktop/desktop/blob/fb4e73560127f491ccf5f
 calls the [registered](https://github.com/desktop/desktop/blob/fb4e73560127f491ccf5f59984a310481911f2b6/app/src/lib/dispatcher/dispatcher.ts#L711)
 [error handlers](https://github.com/desktop/desktop/blob/fb4e73560127f491ccf5f59984a310481911f2b6/app/src/lib/dispatcher/error-handlers.ts),
 starting with the most recently registered. The error handlers have the chance
-to pass the error through untouched, change it before it goes to the next
-handler, or swallow the error entirely.
+to pass the error through untouched, return a different or more specific error,
+or swallow the error entirely.
+
+Error handlers must have the following type:
+
+```typescript
+export async function myCoolErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  // code goes here
+}
+```
 
 If an error passes through all the registered error handlers, the final error
 handler will call [`Dispatcher#presentError`](https://github.com/desktop/desktop/blob/75445ea61177347b2df08e846aae30e637d5f1de/app/src/lib/dispatcher/dispatcher.ts#L334).
