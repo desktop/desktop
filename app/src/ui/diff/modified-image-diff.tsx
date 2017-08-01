@@ -12,6 +12,14 @@ interface IModifiedImageDiffProps {
   readonly onChangeDiffType: (type: ImageDiffType) => void
 }
 
+interface IModifiedImageDiffState {
+  readonly value: ImageDiffType
+  readonly naturalWidthBefore: number | null
+  readonly naturalHeightBefore: number | null
+  readonly naturalWidthAfter: number | null
+  readonly naturalHeightAfter: number | null
+}
+
 const SIZE_CONTROLS = 60
 const PADDING = 20
 
@@ -51,13 +59,7 @@ const getDimensions = (
 /** A component which renders the changes to an image in the repository */
 export class ModifiedImageDiff extends React.Component<
   IModifiedImageDiffProps,
-  {
-    value: number
-    naturalWidthBefore: number | null
-    naturalHeightBefore: number | null
-    naturalWidthAfter: number | null
-    naturalHeightAfter: number | null
-  }
+  IModifiedImageDiffState
 > {
   private _container: HTMLDivElement | null
 
