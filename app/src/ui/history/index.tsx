@@ -100,7 +100,7 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
         dispatcher={this.props.dispatcher}
         summary={commit.summary}
         body={commit.body}
-        sha={commit.sha}
+        commit={commit}
         author={commit.author}
         files={this.props.history.changedFiles}
         emoji={this.props.emoji}

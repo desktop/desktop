@@ -13,13 +13,14 @@ import { Avatar } from '../lib/avatar'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { Commit } from '../../models/commit'
 
 interface ICommitSummaryProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly summary: string
   readonly body: string
-  readonly sha: string
+  readonly commit: Commit
   readonly author: CommitIdentity
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
@@ -227,23 +228,23 @@ export class CommitSummary extends React.Component<
   private onRevertCommit = async () => {
     await this.props.dispatcher.revertCommit(
       this.props.repository,
-      this.props.sha
+      this.props.commit
     )
   }
 
   private onCopySHA = () => {
-    clipboard.writeText(this.props.sha)
+    clipboard.writeText(this.props.commit.sha)
   }
 
   private onViewOnGitHub = () => {
-    this.props.onViewCommitOnGitHub(this.props.sha)
+    this.props.onViewCommitOnGitHub(this.props.commit.sha)
   }
 
   public render() {
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
-    const shortSHA = this.props.sha.slice(0, 7)
+    const shortSHA = this.props.commit.sha.slice(0, 7)
     const author = this.props.author
     const authorTitle = `${author.name} <${author.email}>`
     let avatarUser = undefined

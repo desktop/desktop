@@ -857,9 +857,9 @@ export class GitStore {
   /** Reverts the commit with the given SHA */
   public async revertCommit(
     repository: Repository,
-    SHA: string
+    commit: Commit
   ): Promise<void> {
-    await this.performFailableOperation(() => revertCommit(repository, SHA))
+    await this.performFailableOperation(() => revertCommit(repository, commit))
 
     this.emitUpdate()
   }
