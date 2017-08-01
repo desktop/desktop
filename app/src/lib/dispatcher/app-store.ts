@@ -2376,7 +2376,7 @@ export class AppStore {
   }
 
   public async _cloneAgain(url: string, path: string): Promise<void> {
-    const { promise, repository } = await this._clone(url, path)
+    const { promise, repository } = this._clone(url, path)
     await this._selectRepository(repository)
     const success = await promise
     if (!success) {

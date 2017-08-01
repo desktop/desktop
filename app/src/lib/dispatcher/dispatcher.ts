@@ -906,7 +906,7 @@ export class Dispatcher {
     username: string,
     password: string
   ): Promise<void> {
-    await GenericGitAuth.setGenericUsername(hostname, username)
+    GenericGitAuth.setGenericUsername(hostname, username)
     await GenericGitAuth.setGenericPassword(hostname, username, password)
   }
 
