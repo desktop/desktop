@@ -187,6 +187,7 @@
   - [ ] Any changed files appear in the list, with respective +/•/- sign; with arrow keys enabled
     - [ ] User can check none, or check one or more files to commit; list is scrollable
       - [ ] User can select one or more lines to commit; diff is scrollable
+      - [ ] Right-clicking any file allows user to discard the file; pending confirmation dialogue
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers sizes
 
