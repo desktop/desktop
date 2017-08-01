@@ -13,7 +13,7 @@ interface IModifiedImageDiffProps {
 }
 
 interface IModifiedImageDiffState {
-  readonly value: ImageDiffType
+  readonly value: number
   readonly naturalWidthBefore: number | null
   readonly naturalHeightBefore: number | null
   readonly naturalWidthAfter: number | null
@@ -66,7 +66,7 @@ export class ModifiedImageDiff extends React.Component<
   public constructor(props: IModifiedImageDiffProps) {
     super(props)
     this.state = {
-      value: ImageDiffType.Swipe,
+      value: 1,
       naturalWidthBefore: null,
       naturalHeightBefore: null,
       naturalWidthAfter: null,
