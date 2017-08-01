@@ -81,7 +81,7 @@ export class ModifiedImageDiff extends React.Component<
   }
 
   private handleImgLoadBefore = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const { naturalHeight, naturalWidth } = e.target as HTMLImageElement
+    const { naturalHeight, naturalWidth } = e.currentTarget
     this.setState({
       naturalHeightBefore: naturalHeight,
       naturalWidthBefore: naturalWidth,
@@ -89,7 +89,7 @@ export class ModifiedImageDiff extends React.Component<
   }
 
   private handleImgLoadAfter = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const { naturalHeight, naturalWidth } = e.target as HTMLImageElement
+    const { naturalHeight, naturalWidth } = e.currentTarget
     this.setState({
       naturalHeightAfter: naturalHeight,
       naturalWidthAfter: naturalWidth,
