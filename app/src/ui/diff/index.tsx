@@ -74,8 +74,8 @@ interface IDiffProps {
   /** propagate errors up to the main application */
   readonly dispatcher: Dispatcher
 
-  readonly imageDiffType: number
   /** The type of image diff to display. */
+  readonly imageDiffType: ImageDiffType
 }
 
 /** A component which renders a diff for a file. */

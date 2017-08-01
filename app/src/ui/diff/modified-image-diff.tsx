@@ -9,7 +9,7 @@ interface IModifiedImageDiffProps {
   readonly previous: Image
   readonly current: Image
   readonly diffType: ImageDiffType
-  readonly onChangeDiffType: (type: number) => void
+  readonly onChangeDiffType: (type: ImageDiffType) => void
 }
 
 const SIZE_CONTROLS = 60
@@ -64,7 +64,7 @@ export class ModifiedImageDiff extends React.Component<
   public constructor(props: IModifiedImageDiffProps) {
     super(props)
     this.state = {
-      value: 1,
+      value: ImageDiffType.Swipe,
       naturalWidthBefore: null,
       naturalHeightBefore: null,
       naturalWidthAfter: null,
