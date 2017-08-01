@@ -199,7 +199,7 @@ export class CommitSummary extends React.Component<
     let label: string = ''
     const gitHubRepository = this.props.repository.gitHubRepository
 
-    if (gitHubRepository !== null) {
+    if (gitHubRepository) {
       const isDotCom = gitHubRepository.endpoint === getDotComAPIEndpoint()
       label = isDotCom ? 'View on GitHub' : 'View on GitHub Enterprise'
     }
