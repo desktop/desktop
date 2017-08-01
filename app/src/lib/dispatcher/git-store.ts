@@ -5,7 +5,6 @@ import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
 import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
-import { Account } from '../../models/account'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 import { IFetchProgress } from '../app-state'
@@ -37,6 +36,8 @@ import {
   getCommit,
   getConfigValue,
 } from '../git'
+import { IGitAccount } from '../git/authentication'
+import { RetryAction, RetryActionType } from '../retry-actions'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -456,9 +457,10 @@ export class GitStore {
       const result = await fn()
       return result
     } catch (e) {
-      if (errorMetadata) {
-        e = new ErrorWithMetadata(e, errorMetadata)
-      }
+      e = new ErrorWithMetadata(e, {
+        repository: this.repository,
+        ...errorMetadata,
+      })
 
       this.emitError(e)
       return undefined
@@ -487,7 +489,7 @@ export class GitStore {
    *                           the overall fetch progress.
    */
   public async fetch(
-    account: Account | null,
+    account: IGitAccount | null,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
@@ -514,7 +516,7 @@ export class GitStore {
    *                           the overall fetch progress.
    */
   public async fetchRemotes(
-    account: Account | null,
+    account: IGitAccount | null,
     remotes: ReadonlyArray<IRemote>,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
@@ -550,16 +552,20 @@ export class GitStore {
    *                           the overall fetch progress.
    */
   public async fetchRemote(
-    account: Account | null,
+    account: IGitAccount | null,
     remote: string,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
+    const retryAction: RetryAction = {
+      type: RetryActionType.Fetch,
+      repository: this.repository,
+    }
     await this.performFailableOperation(
       () => {
         return fetchRepo(this.repository, account, remote, progressCallback)
       },
-      { backgroundTask }
+      { backgroundTask, retryAction }
     )
   }
 
@@ -573,7 +579,7 @@ export class GitStore {
    *
    */
   public async fetchRefspec(
-    account: Account | null,
+    account: IGitAccount | null,
     refspec: string
   ): Promise<void> {
     // TODO: we should favour origin here
