@@ -75,10 +75,6 @@ export class CommitSummary extends React.Component<
     }
   }
 
-  private onCopyShaToClipboard = () => {
-    clipboard.writeText(this.props.sha)
-  }
-
   private onResized = () => {
     if (this.props.isExpanded) {
       return
@@ -288,18 +284,13 @@ export class CommitSummary extends React.Component<
               {author.name}
             </li>
 
-            <li
-              className="commit-summary-meta-item"
-              title="Copy SHA to clipboard"
-              aria-label="SHA"
-            >
+            <li className="commit-summary-meta-item" aria-label="SHA">
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
-
-              <LinkButton onClick={this.onCopyShaToClipboard}>
+              <span>
                 {shortSHA}
-              </LinkButton>
+              </span>
             </li>
 
             <li className="commit-summary-meta-item" title={filesDescription}>
