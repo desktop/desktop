@@ -12,16 +12,20 @@ interface IModifiedImageDiffProps {
   readonly onChangeDiffType: (type: ImageDiffType) => void
 }
 
+interface IImageSize {
+  readonly width: number
+  readonly height: number
+}
+
 interface IModifiedImageDiffState {
   /**
    * The current value used as a parameter for whatever image diff mode is
    * active. For example, for onion skin diffs, this is the alpha value.
    */
   readonly value: number
-  readonly naturalWidthBefore: number | null
-  readonly naturalHeightBefore: number | null
-  readonly naturalWidthAfter: number | null
-  readonly naturalHeightAfter: number | null
+
+  readonly naturalSizeBefore: IImageSize | null
+  readonly naturalSizeAfter: IImageSize | null
 }
 
 const SIZE_CONTROLS = 60
@@ -71,10 +75,8 @@ export class ModifiedImageDiff extends React.Component<
     super(props)
     this.state = {
       value: 1,
-      naturalWidthBefore: null,
-      naturalHeightBefore: null,
-      naturalWidthAfter: null,
-      naturalHeightAfter: null,
+      naturalSizeBefore: null,
+      naturalSizeAfter: null,
     }
   }
 
@@ -85,28 +87,23 @@ export class ModifiedImageDiff extends React.Component<
   }
 
   private handleImgLoadBefore = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const { naturalHeight, naturalWidth } = e.currentTarget
-    this.setState({
-      naturalHeightBefore: naturalHeight,
-      naturalWidthBefore: naturalWidth,
-    })
+    const size = {
+      width: e.currentTarget.naturalWidth,
+      height: e.currentTarget.naturalHeight,
+    }
+    this.setState({ naturalSizeBefore: size })
   }
 
   private handleImgLoadAfter = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const { naturalHeight, naturalWidth } = e.currentTarget
-    this.setState({
-      naturalHeightAfter: naturalHeight,
-      naturalWidthAfter: naturalWidth,
-    })
+    const size = {
+      width: e.currentTarget.naturalWidth,
+      height: e.currentTarget.naturalHeight,
+    }
+    this.setState({ naturalSizeAfter: size })
   }
 
   private getScaledDimensions() {
-    const {
-      naturalWidthBefore,
-      naturalHeightBefore,
-      naturalWidthAfter,
-      naturalHeightAfter,
-    } = this.state
+    const { naturalSizeBefore, naturalSizeAfter } = this.state
 
     const widthContainer =
       (this._container && this._container.getBoundingClientRect().width) || 0
@@ -116,16 +113,16 @@ export class ModifiedImageDiff extends React.Component<
     let height = 0
     let width = 0
 
-    if (naturalHeightBefore && naturalHeightAfter) {
+    if (naturalSizeBefore && naturalSizeAfter) {
       const before = getDimensions(
-        naturalHeightBefore,
-        naturalWidthBefore,
+        naturalSizeBefore.height,
+        naturalSizeBefore.width,
         widthContainer,
         heightContainer
       )
       const after = getDimensions(
-        naturalHeightAfter,
-        naturalWidthAfter,
+        naturalSizeAfter.height,
+        naturalSizeAfter.width,
         widthContainer,
         heightContainer
       )
@@ -186,9 +183,10 @@ export class ModifiedImageDiff extends React.Component<
             style,
           })}
           <div className="image-diff__footer">
-            <span className="strong">W:</span> {this.state.naturalWidthBefore}px
-            | <span className="strong">H:</span>{' '}
-            {this.state.naturalHeightBefore}px
+            <span className="strong">W:</span>{' '}
+            {this.state.naturalSizeBefore!.width}px |{' '}
+            <span className="strong">H:</span>{' '}
+            {this.state.naturalSizeBefore!.height}px
           </div>
         </div>
         <div className="image-diff__after">
@@ -198,8 +196,10 @@ export class ModifiedImageDiff extends React.Component<
             style,
           })}
           <div className="image-diff__footer">
-            <span className="strong">W:</span> {this.state.naturalWidthAfter}px
-            | <span className="strong">H:</span> {this.state.naturalHeightAfter}px
+            <span className="strong">W:</span>{' '}
+            {this.state.naturalSizeAfter!.width}px |{' '}
+            <span className="strong">H:</span>{' '}
+            {this.state.naturalSizeAfter!.height}px
           </div>
         </div>
       </div>
