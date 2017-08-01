@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # The least terrible way to resolve a symlink to its real path.
 function realpath() {
   /usr/bin/python -c "import os,sys; print os.path.realpath(sys.argv[1])" "$0";

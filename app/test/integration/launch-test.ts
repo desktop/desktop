@@ -49,7 +49,7 @@ describe('App', function(this: any) {
     return app.client
       .waitUntil(() => app.browserWindow.isVisible(), 5000)
       .getWindowCount()
-      .should.eventually.equal(2)
+      .should.eventually.equal(1)
       .browserWindow.isMinimized()
       .should.eventually.be.false.browserWindow.isDevToolsOpened()
       .should.eventually.be.false.browserWindow.isVisible()

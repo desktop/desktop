@@ -3,7 +3,7 @@ const expect = chai.expect
 
 import { Account } from '../../src/models/account'
 import { Email } from '../../src/models/email'
-import { AccountsStore } from '../../src/shared-process/accounts-store'
+import { AccountsStore } from '../../src/lib/dispatcher'
 import { InMemoryStore } from '../in-memory-store'
 import { AsyncInMemoryStore } from '../async-in-memory-store'
 
@@ -18,9 +18,17 @@ describe('AccountsStore', () => {
 
   describe('adding a new user', () => {
     it('contains the added user', async () => {
-      const newAccountLogin = 'tonald-drump'
+      const newAccountLogin = 'joan'
       await accountsStore!.addAccount(
-        new Account(newAccountLogin, '', '', new Array<Email>(), '', 1, '')
+        new Account(
+          newAccountLogin,
+          '',
+          'deadbeef',
+          new Array<Email>(),
+          '',
+          1,
+          ''
+        )
       )
 
       const users = await accountsStore!.getAll()
