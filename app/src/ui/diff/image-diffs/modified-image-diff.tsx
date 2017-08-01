@@ -13,6 +13,10 @@ interface IModifiedImageDiffProps {
 }
 
 interface IModifiedImageDiffState {
+  /**
+   * The current value used as a parameter for whatever image diff mode is
+   * active. For example, for onion skin diffs, this is the alpha value.
+   */
   readonly value: number
   readonly naturalWidthBefore: number | null
   readonly naturalHeightBefore: number | null
