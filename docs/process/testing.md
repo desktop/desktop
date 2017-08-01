@@ -159,6 +159,7 @@
     - [ ] `Cancel` button closes modal
   - [ ] Compare on GitHub (Mac: ⇧⌘C; Windows: Ctrl+Shift+C) (if repo already published on `github.com`)
   - [ ] Create Pull request (Mac: ⌘R; Windows: Ctrl+R) opens Pull Request on `github.com` 
+    - [ ] If branch unpublished, dialogue asks to publish the branch
 
 ### Help top-level menu
   - [ ] `Report Issue` opens issue template in Desktop repo on `github.com`
