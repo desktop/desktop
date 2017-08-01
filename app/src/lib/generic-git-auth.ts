@@ -3,12 +3,6 @@ import { parseRemote } from './remote-parsing'
 import { getKeyForEndpoint } from './auth'
 import { TokenStore } from './dispatcher/token-store'
 
-/**
- * Keytar can only store passwords keyed by a username. So we store the actual
- * username under this key. This is ... less than ideal.
- */
-const UsernameKey = 'username'
-
 /** Get the hostname to use for the given remote. */
 export function getGenericHostname(remoteURL: string): string {
   const parsed = parseRemote(remoteURL)
@@ -25,13 +19,13 @@ export function getGenericHostname(remoteURL: string): string {
 }
 
 function getKeyForUsername(hostname: string): string {
-  return getKeyForEndpoint(`login@${hostname}`)
+  return `genericGitAuth/username/${hostname}`
 }
 
 /** Get the username for the host. */
-export function getGenericUsername(hostname: string): Promise<string | null> {
+export function getGenericUsername(hostname: string): string | null {
   const key = getKeyForUsername(hostname)
-  return TokenStore.getItem(key, UsernameKey)
+  return localStorage.getItem(key)
 }
 
 /** Get the password for the host. */
@@ -44,12 +38,9 @@ export function getGenericPassword(
 }
 
 /** Set the username for the host. */
-export function setGenericUsername(
-  hostname: string,
-  username: string
-): Promise<void> {
+export function setGenericUsername(hostname: string, username: string) {
   const key = getKeyForUsername(hostname)
-  return TokenStore.setItem(key, UsernameKey, username)
+  return localStorage.setItem(key, username)
 }
 
 /** Set the password for the username and host. */

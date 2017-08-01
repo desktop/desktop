@@ -354,11 +354,7 @@ export class Dispatcher {
     options?: { branch?: string }
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
-      const { promise, repository } = await this.appStore._clone(
-        url,
-        path,
-        options
-      )
+      const { promise, repository } = this.appStore._clone(url, path, options)
       await this.selectRepository(repository)
       const success = await promise
       // TODO: this exit condition is not great, bob
