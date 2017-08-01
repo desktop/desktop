@@ -165,7 +165,7 @@
   - [ ] `Report Issue` opens issue template in Desktop repo on `github.com`
   - [ ] `User Guides` opens Desktop help page on `github.com`
   - [ ] `Show Logs` opens Finder/Explorer logs on local
-    - [ ] Mac: `ls ~/Library/Application\ Support/GitHub\ Desktop/*.log`
+    - [ ] Mac: `ls ~/Library/Application\ Support/GitHub\ Desktop/Logs/*.log`
     - [ ] Windows: `%LOCALAPPDATA%\\Desktop\\*.desktop.production.log`
   - [ ] About GitHub Desktop (Windows only)
 
