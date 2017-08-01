@@ -902,9 +902,10 @@ export class GitStore {
  * This setting looks at core.autocrlf to decide which line endings to use
  * when updating the .gitignore file.
  *
- * If core.safecrlf is also set, adding this file to the index will cause
+ * If core.safecrlf is also set, adding this file to the index may cause
  * Git to return a non-zero exit code, leaving the working directory in a
- * confusing state for the user.
+ * confusing state for the user. So we should reformat the file in that
+ * case.
  *
  * @param text The text to format.
  * @param repository The repository associated with the gitignore file.
