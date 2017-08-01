@@ -766,7 +766,7 @@ export class GitStore {
     const repository = this.repository
     const ignorePath = Path.join(repository.path, '.gitignore')
 
-    const fileContents = await validateGitIgnoreContents(text, repository)
+    const fileContents = await formatGitIgnoreContents(text, repository)
 
     return new Promise<void>((resolve, reject) => {
       Fs.writeFile(ignorePath, fileContents, err => {
@@ -783,8 +783,8 @@ export class GitStore {
   public async ignore(pattern: string): Promise<void> {
     const text = (await this.readGitIgnore()) || ''
     const repository = this.repository
-    const currentContents = await validateGitIgnoreContents(text, repository)
-    const newText = await validateGitIgnoreContents(
+    const currentContents = await formatGitIgnoreContents(text, repository)
+    const newText = await formatGitIgnoreContents(
       `${currentContents}${pattern}`,
       repository
     )
@@ -897,7 +897,20 @@ export class GitStore {
   }
 }
 
-async function validateGitIgnoreContents(
+/**
+ * Format the gitignore text based on the current config settings.
+ *
+ * This setting looks at core.autocrlf to decide which line endings to use
+ * when updating the .gitignore file.
+ *
+ * If core.safecrlf is also set, adding this file to the index will cause
+ * Git to return a non-zero exit code, leaving the working directory in a
+ * confusing state for the user.
+ *
+ * @param text The text to format.
+ * @param repository The repository associated with the gitignore file.
+ */
+async function formatGitIgnoreContents(
   text: string,
   repository: Repository
 ): Promise<string> {
