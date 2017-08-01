@@ -7,6 +7,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
+import { Monospaced } from '../lib/monospaced'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
@@ -62,8 +63,10 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, {}> {
           <p>Are you sure you want to discard all changes to:</p>
           <ul>
             {this.props.files.map(p =>
-              <li className="file-name" key={p.id}>
-                <PathText path={p.path} />
+              <li key={p.id}>
+                <Monospaced>
+                  <PathText path={p.path} />
+                </Monospaced>
               </li>
             )}
           </ul>

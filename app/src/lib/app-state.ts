@@ -16,6 +16,7 @@ import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
+import { RetryAction } from './retry-actions'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -173,6 +174,7 @@ export enum PopupType {
   TermsAndConditions,
   PushBranchCommits,
   CLIInstalled,
+  GenericGitAuthentication,
 }
 
 export type Popup =
@@ -209,6 +211,11 @@ export type Popup =
       unPushedCommits?: number
     }
   | { type: PopupType.CLIInstalled }
+  | {
+      type: PopupType.GenericGitAuthentication
+      hostname: string
+      retryAction: RetryAction
+    }
 
 export enum FoldoutType {
   Repository,
