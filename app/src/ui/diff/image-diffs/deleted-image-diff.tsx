@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Image } from '../../models/diff'
+import { Image } from '../../../models/diff'
 import { renderImage } from './render-image'
 
 interface IDeletedImageDiffProps {

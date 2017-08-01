@@ -2,9 +2,11 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Disposable } from 'event-kit'
 
-import { NewImageDiff } from './new-image-diff'
-import { ModifiedImageDiff } from './modified-image-diff'
-import { DeletedImageDiff } from './deleted-image-diff'
+import {
+  NewImageDiff,
+  ModifiedImageDiff,
+  DeletedImageDiff,
+} from './image-diffs'
 import { BinaryFile } from './binary-file'
 
 import { Editor } from 'codemirror'

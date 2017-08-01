@@ -1,9 +1,9 @@
 import * as React from 'react'
 
-import { ImageDiffType } from '../../lib/app-state'
-import { Image } from '../../models/diff'
+import { ImageDiffType } from '../../../lib/app-state'
+import { Image } from '../../../models/diff'
 import { renderImage } from './render-image'
-import { TabBar, TabBarType } from '../tab-bar'
+import { TabBar, TabBarType } from '../../tab-bar'
 
 interface IModifiedImageDiffProps {
   readonly previous: Image
