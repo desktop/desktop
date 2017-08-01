@@ -1428,7 +1428,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const baseURL = repository.gitHubRepository.htmlURL
 
     if (baseURL) {
-      this.props.dispatcher.openInBrowser(`${baseURL}/commits/${SHA}`)
+      this.props.dispatcher.openInBrowser(`${baseURL}/commit/${SHA}`)
     }
   }
 }
