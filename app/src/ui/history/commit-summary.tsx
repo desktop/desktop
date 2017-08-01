@@ -12,6 +12,7 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { Avatar } from '../lib/avatar'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Dispatcher } from '../../lib/dispatcher'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface ICommitSummaryProps {
   readonly dispatcher: Dispatcher
@@ -199,6 +200,14 @@ export class CommitSummary extends React.Component<
   }
 
   private onShowCommitOptions = () => {
+    let label: string = ''
+    const gitHubRepository = this.props.repository.gitHubRepository
+
+    if (gitHubRepository !== null) {
+      const isDotCom = gitHubRepository.endpoint === getDotComAPIEndpoint()
+      label = isDotCom ? 'View on GitHub' : 'View on GitHub Enterprise'
+    }
+
     const items: IMenuItem[] = [
       {
         label: __DARWIN__ ? 'Revert This Commit' : 'Revert this commit',
@@ -210,11 +219,9 @@ export class CommitSummary extends React.Component<
         action: this.onCopySHA,
       },
       {
-        label: 'View on GitHub',
+        label: label,
         action: this.onViewOnGitHub,
-        enabled:
-          !this.props.isLocal &&
-          this.props.repository.gitHubRepository !== null,
+        enabled: !this.props.isLocal && gitHubRepository !== null,
       },
     ]
 
@@ -304,9 +311,11 @@ export class CommitSummary extends React.Component<
             </li>
 
             <li className="commit-summary-meta-item">
-              <LinkButton className="more-dropdown" onClick={this.onShowCommitOptions}>
+              <LinkButton
+                className="more-dropdown"
+                onClick={this.onShowCommitOptions}
+              >
                 Actions
-
                 <Octicon symbol={OcticonSymbol.triangleDown} />
               </LinkButton>
             </li>
