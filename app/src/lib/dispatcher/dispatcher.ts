@@ -895,6 +895,7 @@ export class Dispatcher {
     }
   }
 
+  /** Change the current image diff type. */
   public changeImageDiffType(type: ImageDiffType): Promise<void> {
     return this.appStore._changeImageDiffType(type)
   }
