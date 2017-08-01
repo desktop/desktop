@@ -765,7 +765,6 @@ export class GitStore {
   public async saveGitIgnore(text: string): Promise<void> {
     const repository = this.repository
     const ignorePath = Path.join(repository.path, '.gitignore')
-
     const fileContents = await formatGitIgnoreContents(text, repository)
 
     return new Promise<void>((resolve, reject) => {
