@@ -209,7 +209,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   private onDialogClick = (e: React.MouseEvent<HTMLElement>) => {
-    if (!this.isDismissable) {
+    if (this.isDismissable() === false) {
       return
     }
 

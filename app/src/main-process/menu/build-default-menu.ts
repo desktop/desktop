@@ -1,5 +1,4 @@
-import { Menu, ipcMain } from 'electron'
-import { shell } from '../../lib/dispatcher/app-shell'
+import { Menu, ipcMain, shell } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogPath } from '../../lib/logging/get-log-path'
@@ -161,7 +160,7 @@ export function buildDefaultMenu(): Electron.Menu {
             focusedWindow.reload()
           }
         },
-        visible: __RELEASE_CHANNEL__ !== 'production',
+        visible: __RELEASE_CHANNEL__ === 'development',
       },
       {
         id: 'show-devtools',

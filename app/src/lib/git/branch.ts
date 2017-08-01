@@ -1,11 +1,11 @@
-import { git, envForAuthentication, gitNetworkArguments } from './core'
+import { git, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
-import { Account } from '../../models/account'
+import { IGitAccount, envForAuthentication } from './authentication'
 
-/** 
+/**
  * Create a new branch from the given start point.
- * 
+ *
  * @param repository - The repository in which to create the new branch
  * @param name       - The name of the new branch
  * @param startPoint - A committish string that the new branch should be based
@@ -43,7 +43,7 @@ export async function renameBranch(
 export async function deleteBranch(
   repository: Repository,
   branch: Branch,
-  account: Account | null
+  account: IGitAccount | null
 ): Promise<true> {
   if (branch.type === BranchType.Local) {
     await git(['branch', '-D', branch.name], repository.path, 'deleteBranch')
@@ -83,7 +83,7 @@ export async function deleteBranch(
 async function checkIfBranchExistsOnRemote(
   repository: Repository,
   branch: Branch,
-  account: Account | null,
+  account: IGitAccount | null,
   remote: string
 ): Promise<boolean> {
   const args = [

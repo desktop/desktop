@@ -4,6 +4,8 @@ import { Emitter, Disposable } from 'event-kit'
 
 import { clone as cloneRepo, CloneOptions } from '../git'
 import { ICloneProgress } from '../app-state'
+import { RetryAction, RetryActionType } from '../retry-actions'
+import { ErrorWithMetadata } from '../error-with-metadata'
 
 let CloningRepositoryID = 1
 
@@ -74,6 +76,15 @@ export class CloningRepositoriesStore {
       })
     } catch (e) {
       success = false
+
+      const retryAction: RetryAction = {
+        type: RetryActionType.Clone,
+        url,
+        path,
+        options,
+      }
+      e = new ErrorWithMetadata(e, { retryAction, repository })
+
       this.emitError(e)
     }
 
