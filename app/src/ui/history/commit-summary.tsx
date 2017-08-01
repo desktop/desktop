@@ -8,7 +8,6 @@ import { RichText } from '../lib/rich-text'
 import { LinkButton } from '../lib/link-button'
 import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import { CommitIdentity } from '../../models/commit-identity'
 import { Avatar } from '../lib/avatar'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Dispatcher } from '../../lib/dispatcher'
@@ -18,10 +17,7 @@ import { Commit } from '../../models/commit'
 interface ICommitSummaryProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly summary: string
-  readonly body: string
   readonly commit: Commit
-  readonly author: CommitIdentity
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
@@ -100,7 +96,7 @@ export class CommitSummary extends React.Component<
 
   private renderExpander() {
     if (
-      !this.props.body.length ||
+      !this.props.commit.body.length ||
       (!this.props.isExpanded && !this.state.isOverflowed)
     ) {
       return null
@@ -151,7 +147,7 @@ export class CommitSummary extends React.Component<
   }
 
   public componentWillUpdate(nextProps: ICommitSummaryProps) {
-    if (nextProps.body !== this.props.body) {
+    if (nextProps.commit.body !== this.props.commit.body) {
       this.setState({ isOverflowed: false })
     }
   }
@@ -161,7 +157,10 @@ export class CommitSummary extends React.Component<
     if (!this.props.isExpanded) {
       // If the body has changed or we've just toggled the expanded
       // state we'll recalculate whether we overflow or not.
-      if (prevProps.body !== this.props.body || prevProps.isExpanded) {
+      if (
+        prevProps.commit.body !== this.props.commit.body ||
+        prevProps.isExpanded
+      ) {
         this.updateOverflow()
       }
     } else {
@@ -173,7 +172,7 @@ export class CommitSummary extends React.Component<
   }
 
   private renderDescription() {
-    if (!this.props.body) {
+    if (!this.props.commit.body) {
       return null
     }
 
@@ -187,7 +186,7 @@ export class CommitSummary extends React.Component<
             className="commit-summary-description"
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={this.props.body}
+            text={this.props.commit.body}
           />
         </div>
 
@@ -218,7 +217,7 @@ export class CommitSummary extends React.Component<
       {
         label: label,
         action: this.onViewOnGitHub,
-        enabled: !this.props.isLocal && gitHubRepository !== null,
+        enabled: !this.props.isLocal && !gitHubRepository,
       },
     ]
 
@@ -245,7 +244,7 @@ export class CommitSummary extends React.Component<
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const shortSHA = this.props.commit.sha.slice(0, 7)
-    const author = this.props.author
+    const author = this.props.commit.author
     const authorTitle = `${author.name} <${author.email}>`
     let avatarUser = undefined
     if (this.props.gitHubUser) {
@@ -269,7 +268,7 @@ export class CommitSummary extends React.Component<
             className="commit-summary-title"
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={this.props.summary}
+            text={this.props.commit.summary}
           />
 
           <ul className="commit-summary-meta">
