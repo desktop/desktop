@@ -24,7 +24,10 @@ interface IModifiedImageDiffState {
    */
   readonly value: number
 
+  /** The size of the previous image. */
   readonly previousImageSize: IImageSize | null
+
+  /** The size of the current image. */
   readonly currentImageSize: IImageSize | null
 }
 
@@ -80,13 +83,12 @@ export class ModifiedImageDiff extends React.Component<
     }
   }
 
-  private handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({
-      value: parseFloat(e.currentTarget.value),
-    })
+  private onValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.currentTarget.value)
+    this.setState({ value })
   }
 
-  private handleImgLoadBefore = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  private onPreviousImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const size = {
       width: e.currentTarget.naturalWidth,
       height: e.currentTarget.naturalHeight,
@@ -94,7 +96,7 @@ export class ModifiedImageDiff extends React.Component<
     this.setState({ previousImageSize: size })
   }
 
-  private handleImgLoadAfter = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  private onCurrentImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const size = {
       width: e.currentTarget.naturalWidth,
       height: e.currentTarget.naturalHeight,
@@ -179,7 +181,7 @@ export class ModifiedImageDiff extends React.Component<
         <div className="image-diff__before">
           <div className="image-diff__header">Deleted</div>
           {renderImage(this.props.previous, {
-            onLoad: this.handleImgLoadBefore,
+            onLoad: this.onPreviousImageLoad,
             style,
           })}
           <div className="image-diff__footer">
@@ -192,7 +194,7 @@ export class ModifiedImageDiff extends React.Component<
         <div className="image-diff__after">
           <div className="image-diff__header">Added</div>
           {renderImage(this.props.current, {
-            onLoad: this.handleImgLoadAfter,
+            onLoad: this.onCurrentImageLoad,
             style,
           })}
           <div className="image-diff__footer">
@@ -222,7 +224,7 @@ export class ModifiedImageDiff extends React.Component<
       >
         <div className="image-diff__before">
           {renderImage(this.props.previous, {
-            onLoad: this.handleImgLoadBefore,
+            onLoad: this.onPreviousImageLoad,
             style: {
               maxHeight: height,
               maxWidth: width,
@@ -231,7 +233,7 @@ export class ModifiedImageDiff extends React.Component<
         </div>
         <div className="image-diff__after">
           {renderImage(this.props.current, {
-            onLoad: this.handleImgLoadAfter,
+            onLoad: this.onCurrentImageLoad,
             style: {
               maxHeight: height,
               maxWidth: width,
@@ -259,7 +261,7 @@ export class ModifiedImageDiff extends React.Component<
       >
         <div className="image-diff__before" style={style}>
           {renderImage(this.props.previous, {
-            onLoad: this.handleImgLoadBefore,
+            onLoad: this.onPreviousImageLoad,
             style: {
               maxHeight: height,
               maxWidth: width,
@@ -274,7 +276,7 @@ export class ModifiedImageDiff extends React.Component<
           }}
         >
           {renderImage(this.props.current, {
-            onLoad: this.handleImgLoadAfter,
+            onLoad: this.onCurrentImageLoad,
             style: {
               maxHeight: height,
               maxWidth: width,
@@ -288,7 +290,7 @@ export class ModifiedImageDiff extends React.Component<
           min={0}
           value={this.state.value}
           step={0.001}
-          onChange={this.handleValueChange}
+          onChange={this.onValueChange}
         />
       </div>
     )
@@ -310,7 +312,7 @@ export class ModifiedImageDiff extends React.Component<
       >
         <div className="image-diff__after" style={style}>
           {renderImage(this.props.current, {
-            onLoad: this.handleImgLoadAfter,
+            onLoad: this.onCurrentImageLoad,
             style: {
               maxHeight: height,
               maxWidth: width,
@@ -326,7 +328,7 @@ export class ModifiedImageDiff extends React.Component<
         >
           <div className="image-diff__before" style={style}>
             {renderImage(this.props.previous, {
-              onLoad: this.handleImgLoadBefore,
+              onLoad: this.onPreviousImageLoad,
               style: {
                 maxHeight: height,
                 maxWidth: width,
@@ -341,7 +343,7 @@ export class ModifiedImageDiff extends React.Component<
           min={0}
           value={this.state.value}
           step={0.001}
-          onChange={this.handleValueChange}
+          onChange={this.onValueChange}
         />
       </div>
     )
