@@ -24,8 +24,8 @@ interface IModifiedImageDiffState {
    */
   readonly value: number
 
-  readonly naturalSizeBefore: IImageSize | null
-  readonly naturalSizeAfter: IImageSize | null
+  readonly previousImageSize: IImageSize | null
+  readonly currentImageSize: IImageSize | null
 }
 
 const SIZE_CONTROLS = 60
@@ -75,8 +75,8 @@ export class ModifiedImageDiff extends React.Component<
     super(props)
     this.state = {
       value: 1,
-      naturalSizeBefore: null,
-      naturalSizeAfter: null,
+      previousImageSize: null,
+      currentImageSize: null,
     }
   }
 
@@ -91,7 +91,7 @@ export class ModifiedImageDiff extends React.Component<
       width: e.currentTarget.naturalWidth,
       height: e.currentTarget.naturalHeight,
     }
-    this.setState({ naturalSizeBefore: size })
+    this.setState({ previousImageSize: size })
   }
 
   private handleImgLoadAfter = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -99,11 +99,11 @@ export class ModifiedImageDiff extends React.Component<
       width: e.currentTarget.naturalWidth,
       height: e.currentTarget.naturalHeight,
     }
-    this.setState({ naturalSizeAfter: size })
+    this.setState({ currentImageSize: size })
   }
 
   private getScaledDimensions() {
-    const { naturalSizeBefore, naturalSizeAfter } = this.state
+    const { previousImageSize, currentImageSize } = this.state
 
     const widthContainer =
       (this._container && this._container.getBoundingClientRect().width) || 0
@@ -113,16 +113,16 @@ export class ModifiedImageDiff extends React.Component<
     let height = 0
     let width = 0
 
-    if (naturalSizeBefore && naturalSizeAfter) {
+    if (previousImageSize && currentImageSize) {
       const before = getDimensions(
-        naturalSizeBefore.height,
-        naturalSizeBefore.width,
+        previousImageSize.height,
+        previousImageSize.width,
         widthContainer,
         heightContainer
       )
       const after = getDimensions(
-        naturalSizeAfter.height,
-        naturalSizeAfter.width,
+        currentImageSize.height,
+        currentImageSize.width,
         widthContainer,
         heightContainer
       )
@@ -184,9 +184,9 @@ export class ModifiedImageDiff extends React.Component<
           })}
           <div className="image-diff__footer">
             <span className="strong">W:</span>{' '}
-            {this.state.naturalSizeBefore!.width}px |{' '}
+            {this.state.previousImageSize!.width}px |{' '}
             <span className="strong">H:</span>{' '}
-            {this.state.naturalSizeBefore!.height}px
+            {this.state.previousImageSize!.height}px
           </div>
         </div>
         <div className="image-diff__after">
@@ -197,9 +197,9 @@ export class ModifiedImageDiff extends React.Component<
           })}
           <div className="image-diff__footer">
             <span className="strong">W:</span>{' '}
-            {this.state.naturalSizeAfter!.width}px |{' '}
+            {this.state.currentImageSize!.width}px |{' '}
             <span className="strong">H:</span>{' '}
-            {this.state.naturalSizeAfter!.height}px
+            {this.state.currentImageSize!.height}px
           </div>
         </div>
       </div>
