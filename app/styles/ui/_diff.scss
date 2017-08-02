@@ -53,8 +53,9 @@
     border-bottom: var(--base-border);
   }
 
-  &-focused &-selected, &-selected {
-    background: var(--diff-selected-background-color)
+  &-focused &-selected,
+  &-selected {
+    background: var(--diff-selected-background-color);
   }
 
   &-selectedtext {
@@ -70,7 +71,7 @@
   height: 100%;
 
   .before {
-     border-right: 1px solid var(--diff-border-color);
+    border-right: 1px solid var(--diff-border-color);
   }
 
   .after {
@@ -159,7 +160,6 @@
   }
 }
 
-
 .diff-line-selected {
   .diff-line-number {
     background: var(--diff-selected-background-color);
@@ -172,7 +172,6 @@
   }
 }
 
-
 .diff-line-hover {
   .diff-line-number {
     background: var(--diff-hover-background-color);
@@ -184,7 +183,6 @@
     }
   }
 }
-
 
 // Windows has custom scroll bars, see _scroll.scss
 @include win32-context {
@@ -207,7 +205,9 @@
 
     // This is a div that sits in the corner between the horizontal
     // and vertical scroll bar and has an opaque background by default.
-    &-scrollbar-filler { background: transparent; }
+    &-scrollbar-filler {
+      background: transparent;
+    }
   }
 }
 
@@ -235,7 +235,6 @@
   text-decoration: none;
   margin-left: var(--spacing-half);
 }
-
 
 #diff a:link {
   color: (orange);
@@ -280,7 +279,6 @@
 }
 
 .image-diff_inner {
-
   &--two-up {
     display: flex;
     justify-content: center;
