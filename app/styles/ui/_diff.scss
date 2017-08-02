@@ -317,6 +317,7 @@
   &--fade {
     @include checkboard-background;
     margin: 0;
+    margin-bottom: 30px;
     position: relative;
 
     .image-diff__before,

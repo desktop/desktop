@@ -178,7 +178,7 @@ export class ModifiedImageDiff extends React.Component<
         return this.renderSwipe(height, width)
 
       case ImageDiffType.OnionSkin:
-        return this.renderOnionSkin(height, width, containerWidth)
+        return this.renderOnionSkin(height, width)
 
       case ImageDiffType.Difference:
         return this.renderDifference(height, width, containerWidth)
@@ -225,13 +225,8 @@ export class ModifiedImageDiff extends React.Component<
     )
   }
 
-  private renderOnionSkin(
-    height: number,
-    width: number,
-    containerWidth: number
-  ) {
+  private renderOnionSkin(height: number, width: number) {
     const maxSize = { height, width }
-    const left = (containerWidth - PADDING - width) / 2 + PADDING / 2
     return (
       <OnionSkin
         maxSize={maxSize}
@@ -239,7 +234,6 @@ export class ModifiedImageDiff extends React.Component<
         current={this.props.current}
         onPreviousImageLoad={this.onPreviousImageLoad}
         onCurrentImageLoad={this.onCurrentImageLoad}
-        left={left}
       />
     )
   }

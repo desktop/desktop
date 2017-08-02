@@ -3,9 +3,17 @@ import { IImageSize } from './modified-image-diff'
 import { renderImage } from './render-image'
 import { Image } from '../../../models/diff'
 
+/** The height of the controls. */
+const ControlHeight = 30
+
+/** The amount the slider is inset on its X axis. */
+const SliderXInset = 129
+
+/** The padding between the slider and the image on the Y axis. */
+const SliderYPadding = 10
+
 interface IOnionSkinProps {
   readonly maxSize: IImageSize
-  readonly left: number
 
   readonly previous: Image
   readonly current: Image
@@ -29,24 +37,18 @@ export class OnionSkin extends React.Component<
   }
 
   public render() {
+    const height = this.props.maxSize.height - ControlHeight
     const style = {
-      height: this.props.maxSize.height,
+      height,
       width: this.props.maxSize.width,
     }
     return (
-      <div
-        className="image-diff_inner--fade"
-        style={{
-          ...style,
-          marginBottom: 30,
-          left: this.props.left,
-        }}
-      >
+      <div className="image-diff_inner--fade" style={style}>
         <div className="image-diff__before" style={style}>
           {renderImage(this.props.previous, {
             onLoad: this.onPreviousImageLoad,
             style: {
-              maxHeight: this.props.maxSize.height,
+              maxHeight: height,
               maxWidth: this.props.maxSize.width,
             },
           })}
@@ -61,16 +63,16 @@ export class OnionSkin extends React.Component<
           {renderImage(this.props.current, {
             onLoad: this.onCurrentImageLoad,
             style: {
-              maxHeight: this.props.maxSize.height,
+              maxHeight: height,
               maxWidth: this.props.maxSize.width,
             },
           })}
         </div>
         <input
           style={{
-            margin: `${this.props.maxSize.height + 10}px 0 0 ${(this.props
-              .maxSize.width -
-              129) /
+            margin: `${height + SliderYPadding}px 0 0 ${(this.props.maxSize
+              .width -
+              SliderXInset) /
               2}px`,
           }}
           type="range"
