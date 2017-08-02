@@ -94,16 +94,11 @@ export class ModifiedImageDiff extends React.Component<
   private getScaledDimensions() {
     const { previousImageSize, currentImageSize } = this.state
 
-    const containerWidth =
-      (this.container &&
-        this.container.getBoundingClientRect().width - PADDING) ||
-      0
+    const boundingRect =
+      this.container && this.container.getBoundingClientRect()
+    const containerWidth = (boundingRect && boundingRect.width - PADDING) || 0
     const containerHeight =
-      (this.container &&
-        this.container.getBoundingClientRect().height -
-          PADDING -
-          SIZE_CONTROLS) ||
-      0
+      (boundingRect && boundingRect.height - PADDING - SIZE_CONTROLS) || 0
     const containerSize = { width: containerWidth, height: containerHeight }
 
     let height = 0
