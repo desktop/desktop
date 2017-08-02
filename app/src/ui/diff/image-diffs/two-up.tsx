@@ -18,9 +18,9 @@ interface ITwoUpProps {
 
 export class TwoUp extends React.Component<ITwoUpProps, {}> {
   public render() {
-    const style = {
-      maxHeight: this.props.maxSize.height,
+    const style: React.CSSProperties = {
       maxWidth: this.props.maxSize.width,
+      maxHeight: this.props.maxSize.height,
     }
 
     const zeroSize = { width: 0, height: 0 }
