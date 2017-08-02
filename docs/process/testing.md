@@ -222,9 +222,9 @@
   - [ ] Creating a new branch shows `Publish branch` button
     - [ ] Publishing successful if logged in only; else error message
       - [ ] `Create Pull Request` menu option shows warning if branch not published yet
-  - [ ] Renamed branches updated on .com and vice-versa
+  - [ ] Renamed branches updated on .com and vice-versa if logged in; else error message
     - [ ] Opens modal with ability to enter new name
-  - [ ] Deleted branches updated on .com and vice-versa
+  - [ ] Deleted branches updated on .com and vice-versa if logged in; else error message
     - [ ] Deleting branch show warning message
 
 ### Fetching origin/Pull
