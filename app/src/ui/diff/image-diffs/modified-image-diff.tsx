@@ -125,8 +125,6 @@ export class ModifiedImageDiff extends React.Component<
     }
 
     const boundingRect = container.getBoundingClientRect()
-    console.log(boundingRect)
-    console.log(container)
     const containerWidth = boundingRect.width
     const containerHeight = boundingRect.height
     const containerSize = { width: containerWidth, height: containerHeight }
@@ -136,7 +134,7 @@ export class ModifiedImageDiff extends React.Component<
       currentImageSize,
       containerSize
     )
-    console.log(maxFitSize)
+
     return {
       ...maxFitSize,
       containerWidth,
