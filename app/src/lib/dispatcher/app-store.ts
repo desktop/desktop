@@ -2428,6 +2428,16 @@ export class AppStore {
     return fn(updatedRepository, account)
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _revertCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+
+    gitStore.revertCommit(repository, commit)
+  }
+
   public async promptForGenericGitAuthentication(
     repository: Repository | CloningRepository,
     retryAction: RetryAction

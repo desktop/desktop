@@ -35,6 +35,7 @@ import {
   IStatusResult,
   getCommit,
   getConfigValue,
+  revertCommit,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -861,6 +862,16 @@ export class GitStore {
     }
 
     this._contextualCommitMessage = message
+    this.emitUpdate()
+  }
+
+  /** Reverts the commit with the given SHA */
+  public async revertCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    await this.performFailableOperation(() => revertCommit(repository, commit))
+
     this.emitUpdate()
   }
 
