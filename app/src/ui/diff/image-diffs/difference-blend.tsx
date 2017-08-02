@@ -5,7 +5,6 @@ import { Image } from '../../../models/diff'
 
 interface IDifferenceBlendProps {
   readonly maxSize: IImageSize
-  readonly left: number
 
   readonly previous: Image
   readonly current: Image
@@ -25,7 +24,6 @@ export class DifferenceBlend extends React.Component<
         style={{
           height: this.props.maxSize.height,
           width: this.props.maxSize.width,
-          left: this.props.left,
         }}
       >
         <div className="image-diff__before">
@@ -37,6 +35,7 @@ export class DifferenceBlend extends React.Component<
             },
           })}
         </div>
+
         <div className="image-diff__after">
           {renderImage(this.props.current, {
             onLoad: this.onCurrentImageLoad,

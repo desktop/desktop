@@ -29,8 +29,6 @@ interface IModifiedImageDiffState {
   readonly currentImageSize: IImageSize | null
 }
 
-const PADDING = 20
-
 /**
  * Get the size which fits in the container without scaling and maintaining
  * aspect ratio.
@@ -181,7 +179,7 @@ export class ModifiedImageDiff extends React.Component<
         return this.renderOnionSkin(height, width)
 
       case ImageDiffType.Difference:
-        return this.renderDifference(height, width, containerWidth)
+        return this.renderDifference(height, width)
 
       default:
         return assertNever(type, `Unknown diff type: ${type}`)
@@ -206,13 +204,8 @@ export class ModifiedImageDiff extends React.Component<
     )
   }
 
-  private renderDifference(
-    height: number,
-    width: number,
-    containerWidth: number
-  ) {
+  private renderDifference(height: number, width: number) {
     const maxSize = { width, height }
-    const left = (containerWidth - PADDING - width) / 2 + PADDING / 2
     return (
       <DifferenceBlend
         maxSize={maxSize}
@@ -220,7 +213,6 @@ export class ModifiedImageDiff extends React.Component<
         current={this.props.current}
         onPreviousImageLoad={this.onPreviousImageLoad}
         onCurrentImageLoad={this.onCurrentImageLoad}
-        left={left}
       />
     )
   }
