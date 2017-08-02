@@ -1,5 +1,3 @@
-import * as Path from 'path'
-import { Account } from '../../models/account'
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
 
@@ -21,13 +19,13 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
    * caller. Unexpected exit codes will be logged and an
    * error thrown. Defaults to 0 if undefined.
    */
-  readonly successExitCodes?: Set<number>
+  readonly successExitCodes?: ReadonlySet<number>
 
   /**
    * The git errors which are expected by the caller. Unexpected errors will
    * be logged and an error thrown.
    */
-  readonly expectedErrors?: Set<DugiteError>
+  readonly expectedErrors?: ReadonlySet<DugiteError>
 }
 
 /**
@@ -254,15 +252,6 @@ function getDescriptionForError(error: DugiteError): string {
   }
 }
 
-function getAskPassTrampolinePath(): string {
-  const extension = __WIN32__ ? 'bat' : 'sh'
-  return Path.resolve(__dirname, 'static', `ask-pass-trampoline.${extension}`)
-}
-
-function getAskPassScriptPath(): string {
-  return Path.resolve(__dirname, 'ask-pass.js')
-}
-
 /**
  * An array of command line arguments for network operation that unset
  * or hard-code git configuration values that should not be read from
@@ -278,33 +267,3 @@ export const gitNetworkArguments: ReadonlyArray<string> = [
   '-c',
   'credential.helper=',
 ]
-
-/** Get the environment for authenticating remote operations. */
-export function envForAuthentication(account: Account | null): Object {
-  const env = {
-    DESKTOP_PATH: process.execPath,
-    DESKTOP_ASKPASS_SCRIPT: getAskPassScriptPath(),
-    GIT_ASKPASS: getAskPassTrampolinePath(),
-    // supported since Git 2.3, this is used to ensure we never interactively prompt
-    // for credentials - even as a fallback
-    GIT_TERMINAL_PROMPT: '0',
-  }
-
-  if (!account) {
-    return env
-  }
-
-  return Object.assign(env, {
-    DESKTOP_USERNAME: account.login,
-    DESKTOP_ENDPOINT: account.endpoint,
-  })
-}
-
-export function expectedAuthenticationErrors(): Set<DugiteError> {
-  return new Set([
-    DugiteError.HTTPSAuthenticationFailed,
-    DugiteError.SSHAuthenticationFailed,
-    DugiteError.HTTPSRepositoryNotFound,
-    DugiteError.SSHRepositoryNotFound,
-  ])
-}

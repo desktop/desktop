@@ -5,7 +5,6 @@ import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
 import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
-import { Account } from '../../models/account'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 import { IFetchProgress } from '../app-state'
@@ -35,7 +34,11 @@ import {
   getStatus,
   IStatusResult,
   getCommit,
+  getConfigValue,
+  revertCommit,
 } from '../git'
+import { IGitAccount } from '../git/authentication'
+import { RetryAction, RetryActionType } from '../retry-actions'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -455,9 +458,10 @@ export class GitStore {
       const result = await fn()
       return result
     } catch (e) {
-      if (errorMetadata) {
-        e = new ErrorWithMetadata(e, errorMetadata)
-      }
+      e = new ErrorWithMetadata(e, {
+        repository: this.repository,
+        ...errorMetadata,
+      })
 
       this.emitError(e)
       return undefined
@@ -486,7 +490,7 @@ export class GitStore {
    *                           the overall fetch progress.
    */
   public async fetch(
-    account: Account | null,
+    account: IGitAccount | null,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
@@ -513,7 +517,7 @@ export class GitStore {
    *                           the overall fetch progress.
    */
   public async fetchRemotes(
-    account: Account | null,
+    account: IGitAccount | null,
     remotes: ReadonlyArray<IRemote>,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
@@ -549,16 +553,20 @@ export class GitStore {
    *                           the overall fetch progress.
    */
   public async fetchRemote(
-    account: Account | null,
+    account: IGitAccount | null,
     remote: string,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
+    const retryAction: RetryAction = {
+      type: RetryActionType.Fetch,
+      repository: this.repository,
+    }
     await this.performFailableOperation(
       () => {
         return fetchRepo(this.repository, account, remote, progressCallback)
       },
-      { backgroundTask }
+      { backgroundTask, retryAction }
     )
   }
 
@@ -572,7 +580,7 @@ export class GitStore {
    *
    */
   public async fetchRefspec(
-    account: Account | null,
+    account: IGitAccount | null,
     refspec: string
   ): Promise<void> {
     // TODO: we should favour origin here
@@ -764,7 +772,7 @@ export class GitStore {
   public async saveGitIgnore(text: string): Promise<void> {
     const repository = this.repository
     const ignorePath = Path.join(repository.path, '.gitignore')
-    const fileContents = ensureTrailingNewline(text)
+    const fileContents = await formatGitIgnoreContents(text, repository)
 
     return new Promise<void>((resolve, reject) => {
       Fs.writeFile(ignorePath, fileContents, err => {
@@ -780,8 +788,12 @@ export class GitStore {
   /** Ignore the given path or pattern. */
   public async ignore(pattern: string): Promise<void> {
     const text = (await this.readGitIgnore()) || ''
-    const currentContents = ensureTrailingNewline(text)
-    const newText = ensureTrailingNewline(`${currentContents}${pattern}`)
+    const repository = this.repository
+    const currentContents = await formatGitIgnoreContents(text, repository)
+    const newText = await formatGitIgnoreContents(
+      `${currentContents}${pattern}`,
+      repository
+    )
     await this.saveGitIgnore(newText)
 
     await removeFromIndex(this.repository, pattern)
@@ -853,6 +865,16 @@ export class GitStore {
     this.emitUpdate()
   }
 
+  /** Reverts the commit with the given SHA */
+  public async revertCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    await this.performFailableOperation(() => revertCommit(repository, commit))
+
+    this.emitUpdate()
+  }
+
   /**
    * Get the merge message in the repository. This will resolve to null if the
    * repository isn't in the middle of a merge.
@@ -891,12 +913,45 @@ export class GitStore {
   }
 }
 
-function ensureTrailingNewline(text: string): string {
-  // mixed line endings might be an issue here
-  if (!text.endsWith('\n')) {
-    const linesEndInCRLF = text.indexOf('\r\n')
-    return linesEndInCRLF === -1 ? `${text}\n` : `${text}\r\n`
-  } else {
-    return text
-  }
+/**
+ * Format the gitignore text based on the current config settings.
+ *
+ * This setting looks at core.autocrlf to decide which line endings to use
+ * when updating the .gitignore file.
+ *
+ * If core.safecrlf is also set, adding this file to the index may cause
+ * Git to return a non-zero exit code, leaving the working directory in a
+ * confusing state for the user. So we should reformat the file in that
+ * case.
+ *
+ * @param text The text to format.
+ * @param repository The repository associated with the gitignore file.
+ */
+async function formatGitIgnoreContents(
+  text: string,
+  repository: Repository
+): Promise<string> {
+  const autocrlf = await getConfigValue(repository, 'core.autocrlf')
+  const safecrlf = await getConfigValue(repository, 'core.safecrlf')
+
+  return new Promise<string>((resolve, reject) => {
+    if (autocrlf === 'true' && safecrlf === 'true') {
+      // based off https://stackoverflow.com/a/141069/1363815
+      const normalizedText = text.replace(/\r\n|\n\r|\n|\r/g, '\r\n')
+      resolve(normalizedText)
+      return
+    }
+
+    if (text.endsWith('\n')) {
+      resolve(text)
+      return
+    }
+
+    const linesEndInCRLF = autocrlf === 'true'
+    if (linesEndInCRLF) {
+      resolve(`${text}\n`)
+    } else {
+      resolve(`${text}\r\n`)
+    }
+  })
 }

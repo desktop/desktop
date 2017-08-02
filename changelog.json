@@ -1,6 +1,24 @@
 {
   "releases": {
-    "0.7.1": [],
+    "0.7.3-beta0": [
+      "[Fixed] 'Create Without Pushing' button throwing an exception while opening a pull request - #2368"
+    ],
+    "0.7.2": ["[Fixed] Issues with auto-updating to 0.7.1."],
+    "0.7.2-beta0": [],
+    "0.7.1": [
+      "[Improved] Redesigned error and warning dialogs to be clearer - #2277",
+      "[Improved] Create Pull Request dialog shows more feedback while it's working - #2265",
+      "[Improved] Version text is now copiable - #1935",
+      "[Fixed] Preserve existing GitHub API information when API requests fail - #2282",
+      "[Fixed] Pass through error messages as received from the API - #2279",
+      "[Fixed] The Pull and Create Pull Request menu items had the same shortcut - #2274",
+      "[Fixed] Launching the `github` command line tool from a Fish shell - #2299",
+      "[Fixed] Help menu items now work - #2314",
+      "[Fixed] Windows: `github` command line tool not installing after updating - #2312",
+      "[Fixed] Caret position jumping around while changing the path for adding a local repository - #2222",
+      "[Fixed] Error dialogs being closed too easily - #2211",
+      "[Fixed] Windows: Non-ASCII credentials were mangled - #189"
+    ],
     "0.7.1-beta5": [
       "[Improved] Redesigned error and warning dialogs to be clearer - #2277",
       "[Improved] Create Pull Request dialog shows more feedback while it's working - #2265",
