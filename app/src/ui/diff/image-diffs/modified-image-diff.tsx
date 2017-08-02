@@ -81,11 +81,7 @@ function getMaxFitSize(
 
   const width = Math.max(previousSize.width, currentSize.width)
   const height = Math.max(previousSize.height, currentSize.height)
-
-  return {
-    width,
-    height,
-  }
+  return { width, height }
 }
 
 /** A component which renders the changes to an image in the repository */
@@ -105,18 +101,12 @@ export class ModifiedImageDiff extends React.Component<
   }
 
   private onPreviousImageLoad = (img: HTMLImageElement) => {
-    const size = {
-      width: img.naturalWidth,
-      height: img.naturalHeight,
-    }
+    const size = { width: img.naturalWidth, height: img.naturalHeight }
     this.setState({ previousImageSize: size })
   }
 
   private onCurrentImageLoad = (img: HTMLImageElement) => {
-    const size = {
-      width: img.naturalWidth,
-      height: img.naturalHeight,
-    }
+    const size = { width: img.naturalWidth, height: img.naturalHeight }
     this.setState({ currentImageSize: size })
   }
 
@@ -146,7 +136,6 @@ export class ModifiedImageDiff extends React.Component<
     return {
       ...maxFitSize,
       containerWidth,
-      containerHeight,
     }
   }
 
@@ -180,16 +169,23 @@ export class ModifiedImageDiff extends React.Component<
     const type = this.props.diffType
     switch (type) {
       case ImageDiffType.TwoUp:
-        return this.render2Up(width, height, containerWidth)
+        return (
+          <TwoUp
+            {...this.getCommonProps(width, height)}
+            containerWidth={containerWidth}
+            previousImageSize={this.state.previousImageSize}
+            currentImageSize={this.state.currentImageSize}
+          />
+        )
 
       case ImageDiffType.Swipe:
-        return this.renderSwipe(width, height)
+        return <Swipe {...this.getCommonProps(width, height)} />
 
       case ImageDiffType.OnionSkin:
-        return this.renderOnionSkin(width, height)
+        return <OnionSkin {...this.getCommonProps(width, height)} />
 
       case ImageDiffType.Difference:
-        return this.renderDifference(width, height)
+        return <DifferenceBlend {...this.getCommonProps(width, height)} />
 
       default:
         return assertNever(type, `Unknown diff type: ${type}`)
@@ -208,28 +204,5 @@ export class ModifiedImageDiff extends React.Component<
       onPreviousImageLoad: this.onPreviousImageLoad,
       onCurrentImageLoad: this.onCurrentImageLoad,
     }
-  }
-
-  private render2Up(width: number, height: number, containerWidth: number) {
-    return (
-      <TwoUp
-        {...this.getCommonProps(width, height)}
-        containerWidth={containerWidth}
-        previousImageSize={this.state.previousImageSize}
-        currentImageSize={this.state.currentImageSize}
-      />
-    )
-  }
-
-  private renderDifference(width: number, height: number) {
-    return <DifferenceBlend {...this.getCommonProps(width, height)} />
-  }
-
-  private renderOnionSkin(width: number, height: number) {
-    return <OnionSkin {...this.getCommonProps(width, height)} />
-  }
-
-  private renderSwipe(width: number, height: number) {
-    return <Swipe {...this.getCommonProps(width, height)} />
   }
 }
