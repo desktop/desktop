@@ -32,19 +32,19 @@ interface IModifiedImageDiffState {
 const SIZE_CONTROLS = 60
 export const PADDING = 20
 
-function getFittingSize(
+function getAspectFitSize(
   imageSize: IImageSize,
   containerSize: IImageSize
 ): IImageSize {
-  // keep some padding
-  const containerWidth = containerSize.width - PADDING
-  const containerHeight = containerSize.height - PADDING - SIZE_CONTROLS
-
   // check wether we will need to scale the images or not
   const heightRatio =
-    containerHeight < imageSize.height ? imageSize.height / containerHeight : 1
+    containerSize.height < imageSize.height
+      ? imageSize.height / containerSize.height
+      : 1
   const widthRatio =
-    containerWidth < imageSize.width ? imageSize.width / containerWidth : 1
+    containerSize.width < imageSize.width
+      ? imageSize.width / containerSize.width
+      : 1
 
   // Use max to prevent scaling up the image
   let ratio = Math.max(1, widthRatio)
@@ -95,17 +95,23 @@ export class ModifiedImageDiff extends React.Component<
     const { previousImageSize, currentImageSize } = this.state
 
     const containerWidth =
-      (this.container && this.container.getBoundingClientRect().width) || 0
+      (this.container &&
+        this.container.getBoundingClientRect().width - PADDING) ||
+      0
     const containerHeight =
-      (this.container && this.container.getBoundingClientRect().height) || 0
+      (this.container &&
+        this.container.getBoundingClientRect().height -
+          PADDING -
+          SIZE_CONTROLS) ||
+      0
     const containerSize = { width: containerWidth, height: containerHeight }
 
     let height = 0
     let width = 0
 
     if (previousImageSize && currentImageSize) {
-      const previousSize = getFittingSize(previousImageSize, containerSize)
-      const currentSize = getFittingSize(currentImageSize, containerSize)
+      const previousSize = getAspectFitSize(previousImageSize, containerSize)
+      const currentSize = getAspectFitSize(currentImageSize, containerSize)
 
       height = Math.max(previousSize.height, currentSize.height)
       width = Math.max(previousSize.width, currentSize.height)
@@ -163,10 +169,10 @@ export class ModifiedImageDiff extends React.Component<
     }
   }
 
-  private render2Up(height: number, width: number, widthContainer: number) {
+  private render2Up(height: number, width: number, containerWidth: number) {
     const maxSize = {
       height: height + SIZE_CONTROLS,
-      width: Math.min((widthContainer - 20) / 2, width),
+      width: Math.min((containerWidth - 20) / 2, width),
     }
     return (
       <TwoUp
