@@ -45,12 +45,16 @@ export class DeleteBranch extends React.Component<
         <DialogContent>
           <p>
             Delete branch <Ref>{this.props.branch.name}</Ref>?
+            <br />
+            This action cannot be undone.
           </p>
-          <p>This action cannot be undone.</p>
-          <b>
-            The branch also exists on the remote, do you wish to delete it there
-            as well?
-          </b>
+
+          <p>
+            <strong>
+              The branch also exists on the remote, do you wish to delete it there
+              as well?
+            </strong>
+          </p>
           <Checkbox
             disabled={this.props.branch.remote === null}
             label="Yes, delete this branch on the remote"
