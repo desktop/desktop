@@ -9,6 +9,9 @@ const ControlHeight = 30
 /** How much bigger the slider should be than the images. */
 const SliderOverflow = 14
 
+/** The padding between the slider and the image on the Y axis. */
+const SliderYPadding = 10
+
 interface ISwipeProps {
   readonly maxSize: IImageSize
 
@@ -66,7 +69,7 @@ export class Swipe extends React.Component<ISwipeProps, ISwipeState> {
         </div>
         <input
           style={{
-            margin: `${height}px 0 0 -${SliderOverflow / 2}px`,
+            margin: `${height + SliderYPadding}px 0 0 -${SliderOverflow / 2}px`,
             width: this.props.maxSize.width + SliderOverflow,
           }}
           type="range"
