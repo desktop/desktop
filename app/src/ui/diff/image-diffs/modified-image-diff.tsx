@@ -66,7 +66,7 @@ export class ModifiedImageDiff extends React.Component<
   IModifiedImageDiffProps,
   IModifiedImageDiffState
 > {
-  private _container: HTMLDivElement | null
+  private container: HTMLDivElement | null
 
   public constructor(props: IModifiedImageDiffProps) {
     super(props)
@@ -102,9 +102,9 @@ export class ModifiedImageDiff extends React.Component<
     const { previousImageSize, currentImageSize } = this.state
 
     const containerWidth =
-      (this._container && this._container.getBoundingClientRect().width) || 0
+      (this.container && this.container.getBoundingClientRect().width) || 0
     const containerHeight =
-      (this._container && this._container.getBoundingClientRect().height) || 0
+      (this.container && this.container.getBoundingClientRect().height) || 0
     const containerSize = { width: containerWidth, height: containerHeight }
 
     let height = 0
@@ -127,7 +127,7 @@ export class ModifiedImageDiff extends React.Component<
   }
 
   private onContainerRef = (c: HTMLDivElement | null) => {
-    this._container = c
+    this.container = c
   }
 
   public render() {
