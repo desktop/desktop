@@ -22,6 +22,11 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
       maxHeight: this.props.maxSize.height,
       maxWidth: this.props.maxSize.width,
     }
+
+    const zeroSize = { width: 0, height: 0 }
+    const previousImageSize = this.props.previousImageSize || zeroSize
+    const currentImageSize = this.props.currentImageSize || zeroSize
+
     return (
       <div className="image-diff_inner--two-up">
         <div className="image-diff__before">
@@ -31,10 +36,8 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             style,
           })}
           <div className="image-diff__footer">
-            <span className="strong">W:</span>{' '}
-            {this.props.previousImageSize!.width}px |{' '}
-            <span className="strong">H:</span>{' '}
-            {this.props.previousImageSize!.height}px
+            <span className="strong">W:</span> {previousImageSize.width}px |{' '}
+            <span className="strong">H:</span> {previousImageSize.height}px
           </div>
         </div>
         <div className="image-diff__after">
@@ -44,10 +47,8 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             style,
           })}
           <div className="image-diff__footer">
-            <span className="strong">W:</span>{' '}
-            {this.props.currentImageSize!.width}px |{' '}
-            <span className="strong">H:</span>{' '}
-            {this.props.currentImageSize!.height}px
+            <span className="strong">W:</span> {currentImageSize.width}px |{' '}
+            <span className="strong">H:</span> {currentImageSize.height}px
           </div>
         </div>
       </div>
