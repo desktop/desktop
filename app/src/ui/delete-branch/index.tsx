@@ -51,8 +51,8 @@ export class DeleteBranch extends React.Component<
 
           <p>
             <strong>
-              The branch also exists on the remote, do you wish to delete it there
-              as well?
+              The branch also exists on the remote, do you wish to delete it
+              there as well?
             </strong>
           </p>
           <Checkbox
