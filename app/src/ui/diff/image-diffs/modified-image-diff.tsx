@@ -29,7 +29,6 @@ interface IModifiedImageDiffState {
   readonly currentImageSize: IImageSize | null
 }
 
-const SIZE_CONTROLS = 60
 const PADDING = 20
 
 /**
@@ -126,11 +125,20 @@ export class ModifiedImageDiff extends React.Component<
     }
 
     const boundingRect = container.getBoundingClientRect()
-    const containerWidth = boundingRect.width - PADDING
-    const containerHeight = boundingRect.height - PADDING - SIZE_CONTROLS
+    console.log(boundingRect)
+    console.log(container)
+    const containerWidth = boundingRect.width
+    const containerHeight = boundingRect.height
     const containerSize = { width: containerWidth, height: containerHeight }
+
+    const maxFitSize = getMaxFitSize(
+      previousImageSize,
+      currentImageSize,
+      containerSize
+    )
+    console.log(maxFitSize)
     return {
-      ...getMaxFitSize(previousImageSize, currentImageSize, containerSize),
+      ...maxFitSize,
       containerWidth,
       containerHeight,
     }
@@ -142,8 +150,10 @@ export class ModifiedImageDiff extends React.Component<
 
   public render() {
     return (
-      <div className="panel image" id="diff" ref={this.onContainerRef}>
-        {this.renderCurrentDiffType()}
+      <div className="panel image" id="diff">
+        <div className="image-diff-container" ref={this.onContainerRef}>
+          {this.renderCurrentDiffType()}
+        </div>
 
         <TabBar
           selectedIndex={this.props.diffType}
@@ -182,7 +192,7 @@ export class ModifiedImageDiff extends React.Component<
 
   private render2Up(height: number, width: number, containerWidth: number) {
     const maxSize = {
-      height: height - SIZE_CONTROLS,
+      height,
       width: Math.min((containerWidth - 20) / 2, width),
     }
     return (

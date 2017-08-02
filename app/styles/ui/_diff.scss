@@ -241,6 +241,7 @@
 }
 
 .panel.image {
+  display: flex;
   padding-top: 10px;
 
   .tab-bar {
@@ -278,9 +279,15 @@
   }
 }
 
+.image-diff-container {
+  display: flex;
+  flex: 1;
+}
+
 .image-diff_inner {
   &--two-up {
     display: flex;
+    flex: 1;
     justify-content: center;
 
     .image-diff__before {

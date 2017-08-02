@@ -3,6 +3,9 @@ import { renderImage } from './render-image'
 import { IImageSize } from './modified-image-diff'
 import { Image } from '../../../models/diff'
 
+/** The height of the Deleted/Added labels at the top. */
+const HeaderHeight = 20
+
 interface ITwoUpProps {
   readonly maxSize: IImageSize
 
@@ -20,7 +23,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
   public render() {
     const style: React.CSSProperties = {
       maxWidth: this.props.maxSize.width,
-      maxHeight: this.props.maxSize.height,
+      maxHeight: this.props.maxSize.height - HeaderHeight,
     }
 
     const zeroSize = { width: 0, height: 0 }
@@ -35,17 +38,20 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             onLoad: this.onPreviousImageLoad,
             style,
           })}
+
           <div className="image-diff__footer">
             <span className="strong">W:</span> {previousImageSize.width}px |{' '}
             <span className="strong">H:</span> {previousImageSize.height}px
           </div>
         </div>
+
         <div className="image-diff__after">
           <div className="image-diff__header">Added</div>
           {renderImage(this.props.current, {
             onLoad: this.onCurrentImageLoad,
             style,
           })}
+
           <div className="image-diff__footer">
             <span className="strong">W:</span> {currentImageSize.width}px |{' '}
             <span className="strong">H:</span> {currentImageSize.height}px
