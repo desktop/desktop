@@ -282,6 +282,7 @@
 .image-diff-container {
   display: flex;
   flex: 1;
+  justify-content: center;
 }
 
 .image-diff_inner {
@@ -339,6 +340,7 @@
 
   &--swipe {
     margin: 0;
+    margin-bottom: 30px;
     position: relative;
 
     .image-diff__before,
