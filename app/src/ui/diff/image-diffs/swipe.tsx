@@ -3,9 +3,14 @@ import { IImageSize } from './modified-image-diff'
 import { Image } from '../../../models/diff'
 import { renderImage } from './render-image'
 
+/** The height of the controls. */
+const ControlHeight = 30
+
+/** How much bigger the slider should be than the images. */
+const SliderOverflow = 14
+
 interface ISwipeProps {
   readonly maxSize: IImageSize
-  readonly left: number
 
   readonly previous: Image
   readonly current: Image
@@ -26,24 +31,18 @@ export class Swipe extends React.Component<ISwipeProps, ISwipeState> {
   }
 
   public render() {
+    const height = this.props.maxSize.height - ControlHeight
     const style = {
-      height: this.props.maxSize.height,
+      height,
       width: this.props.maxSize.width,
     }
     return (
-      <div
-        className="image-diff_inner--swipe"
-        style={{
-          ...style,
-          marginBottom: 30,
-          left: this.props.left,
-        }}
-      >
+      <div className="image-diff_inner--swipe" style={style}>
         <div className="image-diff__after" style={style}>
           {renderImage(this.props.current, {
             onLoad: this.onCurrentImageLoad,
             style: {
-              maxHeight: this.props.maxSize.height,
+              maxHeight: height,
               maxWidth: this.props.maxSize.width,
             },
           })}
@@ -52,14 +51,14 @@ export class Swipe extends React.Component<ISwipeProps, ISwipeState> {
           className="image-diff--swiper"
           style={{
             width: this.props.maxSize.width * (1 - this.state.swipePercentage),
-            height: this.props.maxSize.height + 10,
+            height: height,
           }}
         >
           <div className="image-diff__before" style={style}>
             {renderImage(this.props.previous, {
               onLoad: this.onPreviousImageLoad,
               style: {
-                maxHeight: this.props.maxSize.height,
+                maxHeight: height,
                 maxWidth: this.props.maxSize.width,
               },
             })}
@@ -67,8 +66,8 @@ export class Swipe extends React.Component<ISwipeProps, ISwipeState> {
         </div>
         <input
           style={{
-            margin: `${this.props.maxSize.height + 10}px 0 0 -7px`,
-            width: this.props.maxSize.width + 14,
+            margin: `${height}px 0 0 -${SliderOverflow / 2}px`,
+            width: this.props.maxSize.width + SliderOverflow,
           }}
           type="range"
           max={1}
