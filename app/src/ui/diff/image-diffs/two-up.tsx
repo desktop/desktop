@@ -3,8 +3,11 @@ import { renderImage } from './render-image'
 import { IImageSize } from './modified-image-diff'
 import { Image } from '../../../models/diff'
 
-/** The height of the Deleted/Added labels at the top. */
-const HeaderHeight = 20
+/**
+ * The height of the Deleted/Added labels at the top and the image dimension
+ * labels.
+ */
+const ControlsHeight = 60
 
 interface ITwoUpProps {
   readonly maxSize: IImageSize
@@ -23,7 +26,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
   public render() {
     const style: React.CSSProperties = {
       maxWidth: this.props.maxSize.width,
-      maxHeight: this.props.maxSize.height - HeaderHeight,
+      maxHeight: this.props.maxSize.height - ControlsHeight,
     }
 
     const zeroSize = { width: 0, height: 0 }
