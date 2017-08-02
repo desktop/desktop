@@ -9,8 +9,11 @@ import { Image } from '../../../models/diff'
  */
 const ControlsHeight = 60
 
+const XPadding = 20
+
 interface ITwoUpProps {
   readonly maxSize: IImageSize
+  readonly containerWidth: number
 
   readonly previous: Image
   readonly current: Image
@@ -25,7 +28,10 @@ interface ITwoUpProps {
 export class TwoUp extends React.Component<ITwoUpProps, {}> {
   public render() {
     const style: React.CSSProperties = {
-      maxWidth: this.props.maxSize.width,
+      maxWidth: Math.min(
+        (this.props.containerWidth - XPadding) / 2,
+        this.props.maxSize.width
+      ),
       maxHeight: this.props.maxSize.height - ControlsHeight,
     }
 

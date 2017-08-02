@@ -170,76 +170,53 @@ export class ModifiedImageDiff extends React.Component<
     const type = this.props.diffType
     switch (type) {
       case ImageDiffType.TwoUp:
-        return this.render2Up(height, width, containerWidth)
+        return this.render2Up(width, height, containerWidth)
 
       case ImageDiffType.Swipe:
-        return this.renderSwipe(height, width)
+        return this.renderSwipe(width, height)
 
       case ImageDiffType.OnionSkin:
-        return this.renderOnionSkin(height, width)
+        return this.renderOnionSkin(width, height)
 
       case ImageDiffType.Difference:
-        return this.renderDifference(height, width)
+        return this.renderDifference(width, height)
 
       default:
         return assertNever(type, `Unknown diff type: ${type}`)
     }
   }
 
-  private render2Up(height: number, width: number, containerWidth: number) {
-    const maxSize = {
-      height,
-      width: Math.min((containerWidth - 20) / 2, width),
+  private getCommonProps(width: number, height: number) {
+    const maxSize = { width, height }
+    return {
+      maxSize,
+      previous: this.props.previous,
+      current: this.props.current,
+      onPreviousImageLoad: this.onPreviousImageLoad,
+      onCurrentImageLoad: this.onCurrentImageLoad,
     }
+  }
+
+  private render2Up(width: number, height: number, containerWidth: number) {
     return (
       <TwoUp
-        maxSize={maxSize}
-        previous={this.props.previous}
-        current={this.props.current}
+        {...this.getCommonProps(width, height)}
+        containerWidth={containerWidth}
         previousImageSize={this.state.previousImageSize}
         currentImageSize={this.state.currentImageSize}
-        onPreviousImageLoad={this.onPreviousImageLoad}
-        onCurrentImageLoad={this.onCurrentImageLoad}
       />
     )
   }
 
-  private renderDifference(height: number, width: number) {
-    const maxSize = { width, height }
-    return (
-      <DifferenceBlend
-        maxSize={maxSize}
-        previous={this.props.previous}
-        current={this.props.current}
-        onPreviousImageLoad={this.onPreviousImageLoad}
-        onCurrentImageLoad={this.onCurrentImageLoad}
-      />
-    )
+  private renderDifference(width: number, height: number) {
+    return <DifferenceBlend {...this.getCommonProps(width, height)} />
   }
 
-  private renderOnionSkin(height: number, width: number) {
-    const maxSize = { height, width }
-    return (
-      <OnionSkin
-        maxSize={maxSize}
-        previous={this.props.previous}
-        current={this.props.current}
-        onPreviousImageLoad={this.onPreviousImageLoad}
-        onCurrentImageLoad={this.onCurrentImageLoad}
-      />
-    )
+  private renderOnionSkin(width: number, height: number) {
+    return <OnionSkin {...this.getCommonProps(width, height)} />
   }
 
-  private renderSwipe(height: number, width: number) {
-    const maxSize = { width, height }
-    return (
-      <Swipe
-        maxSize={maxSize}
-        previous={this.props.previous}
-        current={this.props.current}
-        onPreviousImageLoad={this.onPreviousImageLoad}
-        onCurrentImageLoad={this.onCurrentImageLoad}
-      />
-    )
+  private renderSwipe(width: number, height: number) {
+    return <Swipe {...this.getCommonProps(width, height)} />
   }
 }
