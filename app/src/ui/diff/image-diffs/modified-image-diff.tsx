@@ -7,6 +7,7 @@ import { TwoUp } from './two-up'
 import { DifferenceBlend } from './difference-blend'
 import { OnionSkin } from './onion-skin'
 import { Swipe } from './swipe'
+import { assertNever } from '../../../lib/fatal-error'
 
 interface IModifiedImageDiffProps {
   readonly previous: Image
@@ -67,6 +68,7 @@ export class ModifiedImageDiff extends React.Component<
 
   public constructor(props: IModifiedImageDiffProps) {
     super(props)
+
     this.state = {
       previousImageSize: null,
       currentImageSize: null,
@@ -122,17 +124,10 @@ export class ModifiedImageDiff extends React.Component<
   }
 
   public render() {
-    const { height, width, containerWidth } = this.getScaledDimensions()
     return (
       <div className="panel image" id="diff" ref={this.onContainerRef}>
-        {this.props.diffType === ImageDiffType.TwoUp &&
-          this.render2Up(height, width, containerWidth)}
-        {this.props.diffType === ImageDiffType.Swipe &&
-          this.renderSwipe(height, width, containerWidth)}
-        {this.props.diffType === ImageDiffType.OnionSkin &&
-          this.renderFade(height, width, containerWidth)}
-        {this.props.diffType === ImageDiffType.Difference &&
-          this.renderDifference(height, width, containerWidth)}
+        {this.renderCurrentDiffType()}
+
         <TabBar
           selectedIndex={this.props.diffType}
           onTabClicked={this.props.onChangeDiffType}
@@ -145,6 +140,27 @@ export class ModifiedImageDiff extends React.Component<
         </TabBar>
       </div>
     )
+  }
+
+  private renderCurrentDiffType() {
+    const { height, width, containerWidth } = this.getScaledDimensions()
+    const type = this.props.diffType
+    switch (type) {
+      case ImageDiffType.TwoUp:
+        return this.render2Up(height, width, containerWidth)
+
+      case ImageDiffType.Swipe:
+        return this.renderSwipe(height, width, containerWidth)
+
+      case ImageDiffType.OnionSkin:
+        return this.renderOnionSkin(height, width, containerWidth)
+
+      case ImageDiffType.Difference:
+        return this.renderDifference(height, width, containerWidth)
+
+      default:
+        return assertNever(type, `Unknown diff type: ${type}`)
+    }
   }
 
   private render2Up(height: number, width: number, widthContainer: number) {
@@ -183,7 +199,11 @@ export class ModifiedImageDiff extends React.Component<
     )
   }
 
-  private renderFade(height: number, width: number, containerWidth: number) {
+  private renderOnionSkin(
+    height: number,
+    width: number,
+    containerWidth: number
+  ) {
     const maxSize = { height, width }
     return (
       <OnionSkin
