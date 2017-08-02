@@ -1,20 +1,9 @@
 import * as React from 'react'
 import { renderImage } from './render-image'
-import { IImageSize } from './modified-image-diff'
-import { Image } from '../../../models/diff'
-
-interface IDifferenceBlendProps {
-  readonly maxSize: IImageSize
-
-  readonly previous: Image
-  readonly current: Image
-
-  readonly onPreviousImageLoad: (img: HTMLImageElement) => void
-  readonly onCurrentImageLoad: (img: HTMLImageElement) => void
-}
+import { ICommonImageDiffProperties } from './modified-image-diff'
 
 export class DifferenceBlend extends React.Component<
-  IDifferenceBlendProps,
+  ICommonImageDiffProperties,
   {}
 > {
   public render() {

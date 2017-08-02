@@ -1,6 +1,5 @@
 import * as React from 'react'
-import { IImageSize } from './modified-image-diff'
-import { Image } from '../../../models/diff'
+import { ICommonImageDiffProperties } from './modified-image-diff'
 import { renderImage } from './render-image'
 
 /** The height of the controls. */
@@ -12,22 +11,15 @@ const SliderOverflow = 14
 /** The padding between the slider and the image on the Y axis. */
 const SliderYPadding = 10
 
-interface ISwipeProps {
-  readonly maxSize: IImageSize
-
-  readonly previous: Image
-  readonly current: Image
-
-  readonly onPreviousImageLoad: (img: HTMLImageElement) => void
-  readonly onCurrentImageLoad: (img: HTMLImageElement) => void
-}
-
 interface ISwipeState {
   readonly swipePercentage: number
 }
 
-export class Swipe extends React.Component<ISwipeProps, ISwipeState> {
-  public constructor(props: ISwipeProps) {
+export class Swipe extends React.Component<
+  ICommonImageDiffProperties,
+  ISwipeState
+> {
+  public constructor(props: ICommonImageDiffProperties) {
     super(props)
 
     this.state = { swipePercentage: 1 }

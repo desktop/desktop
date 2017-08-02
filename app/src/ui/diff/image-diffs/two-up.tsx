@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { renderImage } from './render-image'
-import { IImageSize } from './modified-image-diff'
-import { Image } from '../../../models/diff'
+import { IImageSize, ICommonImageDiffProperties } from './modified-image-diff'
 
 /**
  * The height of the Deleted/Added labels at the top and the image dimension
@@ -11,18 +10,11 @@ const ControlsHeight = 60
 
 const XPadding = 20
 
-interface ITwoUpProps {
-  readonly maxSize: IImageSize
+interface ITwoUpProps extends ICommonImageDiffProperties {
   readonly containerWidth: number
-
-  readonly previous: Image
-  readonly current: Image
 
   readonly previousImageSize: IImageSize | null
   readonly currentImageSize: IImageSize | null
-
-  readonly onPreviousImageLoad: (img: HTMLImageElement) => void
-  readonly onCurrentImageLoad: (img: HTMLImageElement) => void
 }
 
 export class TwoUp extends React.Component<ITwoUpProps, {}> {

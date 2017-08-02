@@ -21,6 +21,16 @@ export interface IImageSize {
   readonly height: number
 }
 
+export interface ICommonImageDiffProperties {
+  readonly maxSize: IImageSize
+
+  readonly previous: Image
+  readonly current: Image
+
+  readonly onPreviousImageLoad: (img: HTMLImageElement) => void
+  readonly onCurrentImageLoad: (img: HTMLImageElement) => void
+}
+
 interface IModifiedImageDiffState {
   /** The size of the previous image. */
   readonly previousImageSize: IImageSize | null
@@ -186,7 +196,10 @@ export class ModifiedImageDiff extends React.Component<
     }
   }
 
-  private getCommonProps(width: number, height: number) {
+  private getCommonProps(
+    width: number,
+    height: number
+  ): ICommonImageDiffProperties {
     const maxSize = { width, height }
     return {
       maxSize,

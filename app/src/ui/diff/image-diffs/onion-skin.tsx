@@ -1,7 +1,6 @@
 import * as React from 'react'
-import { IImageSize } from './modified-image-diff'
+import { ICommonImageDiffProperties } from './modified-image-diff'
 import { renderImage } from './render-image'
-import { Image } from '../../../models/diff'
 
 /** The height of the controls. */
 const ControlHeight = 30
@@ -12,25 +11,15 @@ const SliderXInset = 129
 /** The padding between the slider and the image on the Y axis. */
 const SliderYPadding = 10
 
-interface IOnionSkinProps {
-  readonly maxSize: IImageSize
-
-  readonly previous: Image
-  readonly current: Image
-
-  readonly onPreviousImageLoad: (img: HTMLImageElement) => void
-  readonly onCurrentImageLoad: (img: HTMLImageElement) => void
-}
-
 interface IOnionSkinState {
   readonly crossfade: number
 }
 
 export class OnionSkin extends React.Component<
-  IOnionSkinProps,
+  ICommonImageDiffProperties,
   IOnionSkinState
 > {
-  public constructor(props: IOnionSkinProps) {
+  public constructor(props: ICommonImageDiffProperties) {
     super(props)
 
     this.state = { crossfade: 1 }
