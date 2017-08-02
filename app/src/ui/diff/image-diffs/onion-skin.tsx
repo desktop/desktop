@@ -1,11 +1,11 @@
 import * as React from 'react'
-import { PADDING, IImageSize } from './modified-image-diff'
+import { IImageSize } from './modified-image-diff'
 import { renderImage } from './render-image'
 import { Image } from '../../../models/diff'
 
 interface IOnionSkinProps {
   readonly maxSize: IImageSize
-  readonly containerWidth: number
+  readonly left: number
 
   readonly previous: Image
   readonly current: Image
@@ -39,10 +39,7 @@ export class OnionSkin extends React.Component<
         style={{
           ...style,
           marginBottom: 30,
-          left:
-            (this.props.containerWidth - PADDING - this.props.maxSize.width) /
-              2 +
-            PADDING / 2,
+          left: this.props.left,
         }}
       >
         <div className="image-diff__before" style={style}>

@@ -30,7 +30,7 @@ interface IModifiedImageDiffState {
 }
 
 const SIZE_CONTROLS = 60
-export const PADDING = 20
+const PADDING = 20
 
 function getAspectFitSize(
   imageSize: IImageSize,
@@ -193,14 +193,15 @@ export class ModifiedImageDiff extends React.Component<
     containerWidth: number
   ) {
     const maxSize = { width, height }
+    const left = (containerWidth - PADDING - width) / 2 + PADDING / 2
     return (
       <DifferenceBlend
         maxSize={maxSize}
-        containerWidth={containerWidth}
         previous={this.props.previous}
         current={this.props.current}
         onPreviousImageLoad={this.onPreviousImageLoad}
         onCurrentImageLoad={this.onCurrentImageLoad}
+        left={left}
       />
     )
   }
@@ -211,28 +212,30 @@ export class ModifiedImageDiff extends React.Component<
     containerWidth: number
   ) {
     const maxSize = { height, width }
+    const left = (containerWidth - PADDING - width) / 2 + PADDING / 2
     return (
       <OnionSkin
         maxSize={maxSize}
-        containerWidth={containerWidth}
         previous={this.props.previous}
         current={this.props.current}
         onPreviousImageLoad={this.onPreviousImageLoad}
         onCurrentImageLoad={this.onCurrentImageLoad}
+        left={left}
       />
     )
   }
 
   private renderSwipe(height: number, width: number, containerWidth: number) {
     const maxSize = { width, height }
+    const left = (containerWidth - PADDING - width) / 2 + PADDING / 2
     return (
       <Swipe
         maxSize={maxSize}
-        containerWidth={containerWidth}
         previous={this.props.previous}
         current={this.props.current}
         onPreviousImageLoad={this.onPreviousImageLoad}
         onCurrentImageLoad={this.onCurrentImageLoad}
+        left={left}
       />
     )
   }

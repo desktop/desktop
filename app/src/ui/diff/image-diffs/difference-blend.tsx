@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { renderImage } from './render-image'
-import { IImageSize, PADDING } from './modified-image-diff'
+import { IImageSize } from './modified-image-diff'
 import { Image } from '../../../models/diff'
 
 interface IDifferenceBlendProps {
   readonly maxSize: IImageSize
-  readonly containerWidth: number
+  readonly left: number
 
   readonly previous: Image
   readonly current: Image
@@ -25,10 +25,7 @@ export class DifferenceBlend extends React.Component<
         style={{
           height: this.props.maxSize.height,
           width: this.props.maxSize.width,
-          left:
-            (this.props.containerWidth - PADDING - this.props.maxSize.width) /
-              2 +
-            PADDING / 2,
+          left: this.props.left,
         }}
       >
         <div className="image-diff__before">
