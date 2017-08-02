@@ -216,7 +216,7 @@
 ### Branches
   - [ ] Current branch always shows if repository present
   - [ ] Opening list shows all branches in categorized format with a working filter
-    - [ ] ESC clears the filter
+    - [ ] `ESC` clears the filter
   - [ ] Default branch labeled and listed first, with timestamp
   - [ ] Selecting a branch switches branches
   - [ ] Creating a new branch shows `Publish branch` button
@@ -233,4 +233,4 @@
     - [ ] Pull Requests and Commits can co-exist; error surfaces if merge commit
   - [ ] User cannot Push/Pull without being signed in; error message surfaced
     - [ ] Push/Pull works with public/private/Enterprise repos
-  - [ ] When a branch is local-only make sure that the `Sync` button changes to `Publish` and it publishes
+  - [ ] When a branch is local-only make sure that the `Fetch` button changes to `Publish` and it publishes
