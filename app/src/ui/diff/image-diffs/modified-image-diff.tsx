@@ -34,25 +34,19 @@ interface IModifiedImageDiffState {
 const SIZE_CONTROLS = 60
 const PADDING = 20
 
-const getDimensions = (
-  naturalHeight: number | null,
-  naturalWidth: number | null,
-  _containerWidth: number,
-  _containerHeight: number
-) => {
+function getFittingSize(
+  imageSize: IImageSize,
+  containerSize: IImageSize
+): IImageSize {
   // keep some padding
-  const containerWidth = _containerWidth - PADDING
-  const containerHeight = _containerHeight - PADDING - SIZE_CONTROLS
+  const containerWidth = containerSize.width - PADDING
+  const containerHeight = containerSize.height - PADDING - SIZE_CONTROLS
 
   // check wether we will need to scale the images or not
   const heightRatio =
-    containerHeight < (naturalHeight || 0)
-      ? (naturalHeight || 0) / containerHeight
-      : 1
+    containerHeight < imageSize.height ? imageSize.height / containerHeight : 1
   const widthRatio =
-    containerWidth < (naturalWidth || 0)
-      ? (naturalWidth || 0) / containerWidth
-      : 1
+    containerWidth < imageSize.width ? imageSize.width / containerWidth : 1
 
   // Use max to prevent scaling up the image
   let ratio = Math.max(1, widthRatio)
@@ -62,8 +56,8 @@ const getDimensions = (
   }
 
   return {
-    width: (naturalWidth || 0) / ratio,
-    height: (naturalHeight || 0) / ratio,
+    width: imageSize.width / ratio,
+    height: imageSize.height / ratio,
   }
 }
 
@@ -107,37 +101,28 @@ export class ModifiedImageDiff extends React.Component<
   private getScaledDimensions() {
     const { previousImageSize, currentImageSize } = this.state
 
-    const widthContainer =
+    const containerWidth =
       (this._container && this._container.getBoundingClientRect().width) || 0
-    const heightContainer =
+    const containerHeight =
       (this._container && this._container.getBoundingClientRect().height) || 0
+    const containerSize = { width: containerWidth, height: containerHeight }
 
     let height = 0
     let width = 0
 
     if (previousImageSize && currentImageSize) {
-      const before = getDimensions(
-        previousImageSize.height,
-        previousImageSize.width,
-        widthContainer,
-        heightContainer
-      )
-      const after = getDimensions(
-        currentImageSize.height,
-        currentImageSize.width,
-        widthContainer,
-        heightContainer
-      )
+      const previousSize = getFittingSize(previousImageSize, containerSize)
+      const currentSize = getFittingSize(currentImageSize, containerSize)
 
-      height = Math.max(before.height, after.height)
-      width = Math.max(before.width, after.height)
+      height = Math.max(previousSize.height, currentSize.height)
+      width = Math.max(previousSize.width, currentSize.height)
     }
 
     return {
       height,
       width,
-      heightContainer,
-      widthContainer,
+      containerHeight,
+      containerWidth,
     }
   }
 
@@ -146,17 +131,17 @@ export class ModifiedImageDiff extends React.Component<
   }
 
   public render() {
-    const { height, width, widthContainer } = this.getScaledDimensions()
+    const { height, width, containerWidth } = this.getScaledDimensions()
     return (
       <div className="panel image" id="diff" ref={this.onContainerRef}>
         {this.props.diffType === ImageDiffType.TwoUp &&
-          this.render2Up(height, width, widthContainer)}
+          this.render2Up(height, width, containerWidth)}
         {this.props.diffType === ImageDiffType.Swipe &&
-          this.renderSwipe(height, width, widthContainer)}
+          this.renderSwipe(height, width, containerWidth)}
         {this.props.diffType === ImageDiffType.OnionSkin &&
-          this.renderFade(height, width, widthContainer)}
+          this.renderFade(height, width, containerWidth)}
         {this.props.diffType === ImageDiffType.Difference &&
-          this.renderDifference(height, width, widthContainer)}
+          this.renderDifference(height, width, containerWidth)}
         <TabBar
           selectedIndex={this.props.diffType}
           onTabClicked={this.props.onChangeDiffType}
