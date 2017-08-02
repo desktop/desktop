@@ -2,14 +2,9 @@ import * as React from 'react'
 
 import { Image } from '../../../models/diff'
 
-interface IRenderImageOptions {
-  readonly style?: {}
-  readonly onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void
-}
-
 export function renderImage(
   image: Image | undefined,
-  options?: IRenderImageOptions
+  props?: React.HTMLProps<HTMLImageElement>
 ) {
   if (!image) {
     return null
@@ -17,5 +12,5 @@ export function renderImage(
 
   const imageSource = `data:${image.mediaType};base64,${image.contents}`
 
-  return <img src={imageSource} {...options} />
+  return <img src={imageSource} {...props} />
 }
