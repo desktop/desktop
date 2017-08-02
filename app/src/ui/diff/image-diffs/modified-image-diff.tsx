@@ -32,11 +32,14 @@ interface IModifiedImageDiffState {
 const SIZE_CONTROLS = 60
 const PADDING = 20
 
+/**
+ * Get the size which fits in the container without scaling and maintaining
+ * aspect ratio.
+ */
 function getAspectFitSize(
   imageSize: IImageSize,
   containerSize: IImageSize
 ): IImageSize {
-  // check wether we will need to scale the images or not
   const heightRatio =
     containerSize.height < imageSize.height
       ? imageSize.height / containerSize.height
@@ -46,10 +49,8 @@ function getAspectFitSize(
       ? imageSize.width / containerSize.width
       : 1
 
-  // Use max to prevent scaling up the image
   let ratio = Math.max(1, widthRatio)
   if (widthRatio < heightRatio) {
-    // fit to height
     ratio = Math.max(1, heightRatio)
   }
 
@@ -59,6 +60,10 @@ function getAspectFitSize(
   }
 }
 
+/**
+ * Get the size which will fit the bigger of the two images while maintaining
+ * aspect ratio.
+ */
 function getMaxFitSize(
   previousImageSize: IImageSize,
   currentImageSize: IImageSize,
@@ -67,12 +72,12 @@ function getMaxFitSize(
   const previousSize = getAspectFitSize(previousImageSize, containerSize)
   const currentSize = getAspectFitSize(currentImageSize, containerSize)
 
+  const width = Math.max(previousSize.width, currentSize.width)
   const height = Math.max(previousSize.height, currentSize.height)
-  const width = Math.max(previousSize.width, currentSize.height)
 
   return {
-    height,
     width,
+    height,
   }
 }
 
