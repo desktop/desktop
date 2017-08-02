@@ -2,8 +2,11 @@ import * as React from 'react'
 
 import { ImageDiffType } from '../../../lib/app-state'
 import { Image } from '../../../models/diff'
-import { renderImage } from './render-image'
 import { TabBar, TabBarType } from '../../tab-bar'
+import { TwoUp } from './two-up'
+import { DifferenceBlend } from './difference-blend'
+import { OnionSkin } from './onion-skin'
+import { Swipe } from './swipe'
 
 interface IModifiedImageDiffProps {
   readonly previous: Image
@@ -12,18 +15,12 @@ interface IModifiedImageDiffProps {
   readonly onChangeDiffType: (type: ImageDiffType) => void
 }
 
-interface IImageSize {
+export interface IImageSize {
   readonly width: number
   readonly height: number
 }
 
 interface IModifiedImageDiffState {
-  /**
-   * The current value used as a parameter for whatever image diff mode is
-   * active. For example, for onion skin diffs, this is the alpha value.
-   */
-  readonly value: number
-
   /** The size of the previous image. */
   readonly previousImageSize: IImageSize | null
 
@@ -32,7 +29,7 @@ interface IModifiedImageDiffState {
 }
 
 const SIZE_CONTROLS = 60
-const PADDING = 20
+export const PADDING = 20
 
 function getFittingSize(
   imageSize: IImageSize,
@@ -71,29 +68,23 @@ export class ModifiedImageDiff extends React.Component<
   public constructor(props: IModifiedImageDiffProps) {
     super(props)
     this.state = {
-      value: 1,
       previousImageSize: null,
       currentImageSize: null,
     }
   }
 
-  private onValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.currentTarget.value)
-    this.setState({ value })
-  }
-
-  private onPreviousImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  private onPreviousImageLoad = (img: HTMLImageElement) => {
     const size = {
-      width: e.currentTarget.naturalWidth,
-      height: e.currentTarget.naturalHeight,
+      width: img.naturalWidth,
+      height: img.naturalHeight,
     }
     this.setState({ previousImageSize: size })
   }
 
-  private onCurrentImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  private onCurrentImageLoad = (img: HTMLImageElement) => {
     const size = {
-      width: e.currentTarget.naturalWidth,
-      height: e.currentTarget.naturalHeight,
+      width: img.naturalWidth,
+      height: img.naturalHeight,
     }
     this.setState({ currentImageSize: size })
   }
@@ -157,180 +148,66 @@ export class ModifiedImageDiff extends React.Component<
   }
 
   private render2Up(height: number, width: number, widthContainer: number) {
-    const style = {
-      maxHeight: height + SIZE_CONTROLS,
-      maxWidth: Math.min((widthContainer - 20) / 2, width),
+    const maxSize = {
+      height: height + SIZE_CONTROLS,
+      width: Math.min((widthContainer - 20) / 2, width),
     }
     return (
-      <div className="image-diff_inner--two-up">
-        <div className="image-diff__before">
-          <div className="image-diff__header">Deleted</div>
-          {renderImage(this.props.previous, {
-            onLoad: this.onPreviousImageLoad,
-            style,
-          })}
-          <div className="image-diff__footer">
-            <span className="strong">W:</span>{' '}
-            {this.state.previousImageSize!.width}px |{' '}
-            <span className="strong">H:</span>{' '}
-            {this.state.previousImageSize!.height}px
-          </div>
-        </div>
-        <div className="image-diff__after">
-          <div className="image-diff__header">Added</div>
-          {renderImage(this.props.current, {
-            onLoad: this.onCurrentImageLoad,
-            style,
-          })}
-          <div className="image-diff__footer">
-            <span className="strong">W:</span>{' '}
-            {this.state.currentImageSize!.width}px |{' '}
-            <span className="strong">H:</span>{' '}
-            {this.state.currentImageSize!.height}px
-          </div>
-        </div>
-      </div>
+      <TwoUp
+        maxSize={maxSize}
+        previous={this.props.previous}
+        current={this.props.current}
+        previousImageSize={this.state.previousImageSize}
+        currentImageSize={this.state.currentImageSize}
+        onPreviousImageLoad={this.onPreviousImageLoad}
+        onCurrentImageLoad={this.onCurrentImageLoad}
+      />
     )
   }
 
   private renderDifference(
     height: number,
     width: number,
-    widthContainer: number
+    containerWidth: number
   ) {
+    const maxSize = { width, height }
     return (
-      <div
-        className="image-diff_inner--difference"
-        style={{
-          height,
-          width,
-          left: (widthContainer - PADDING - width) / 2 + PADDING / 2,
-        }}
-      >
-        <div className="image-diff__before">
-          {renderImage(this.props.previous, {
-            onLoad: this.onPreviousImageLoad,
-            style: {
-              maxHeight: height,
-              maxWidth: width,
-            },
-          })}
-        </div>
-        <div className="image-diff__after">
-          {renderImage(this.props.current, {
-            onLoad: this.onCurrentImageLoad,
-            style: {
-              maxHeight: height,
-              maxWidth: width,
-              mixBlendMode: 'difference',
-            },
-          })}
-        </div>
-      </div>
+      <DifferenceBlend
+        maxSize={maxSize}
+        containerWidth={containerWidth}
+        previous={this.props.previous}
+        current={this.props.current}
+        onPreviousImageLoad={this.onPreviousImageLoad}
+        onCurrentImageLoad={this.onCurrentImageLoad}
+      />
     )
   }
 
-  private renderFade(height: number, width: number, widthContainer: number) {
-    const style = {
-      height,
-      width,
-    }
+  private renderFade(height: number, width: number, containerWidth: number) {
+    const maxSize = { height, width }
     return (
-      <div
-        className="image-diff_inner--fade"
-        style={{
-          ...style,
-          marginBottom: 30,
-          left: (widthContainer - PADDING - width) / 2 + PADDING / 2,
-        }}
-      >
-        <div className="image-diff__before" style={style}>
-          {renderImage(this.props.previous, {
-            onLoad: this.onPreviousImageLoad,
-            style: {
-              maxHeight: height,
-              maxWidth: width,
-            },
-          })}
-        </div>
-        <div
-          className="image-diff__after"
-          style={{
-            ...style,
-            opacity: this.state.value,
-          }}
-        >
-          {renderImage(this.props.current, {
-            onLoad: this.onCurrentImageLoad,
-            style: {
-              maxHeight: height,
-              maxWidth: width,
-            },
-          })}
-        </div>
-        <input
-          style={{ margin: `${height + 10}px 0 0 ${(width - 129) / 2}px` }}
-          type="range"
-          max={1}
-          min={0}
-          value={this.state.value}
-          step={0.001}
-          onChange={this.onValueChange}
-        />
-      </div>
+      <OnionSkin
+        maxSize={maxSize}
+        containerWidth={containerWidth}
+        previous={this.props.previous}
+        current={this.props.current}
+        onPreviousImageLoad={this.onPreviousImageLoad}
+        onCurrentImageLoad={this.onCurrentImageLoad}
+      />
     )
   }
 
-  private renderSwipe(height: number, width: number, widthContainer: number) {
-    const style = {
-      height,
-      width,
-    }
+  private renderSwipe(height: number, width: number, containerWidth: number) {
+    const maxSize = { width, height }
     return (
-      <div
-        className="image-diff_inner--swipe"
-        style={{
-          ...style,
-          marginBottom: 30,
-          left: (widthContainer - PADDING - width) / 2 + PADDING / 2,
-        }}
-      >
-        <div className="image-diff__after" style={style}>
-          {renderImage(this.props.current, {
-            onLoad: this.onCurrentImageLoad,
-            style: {
-              maxHeight: height,
-              maxWidth: width,
-            },
-          })}
-        </div>
-        <div
-          className="image-diff--swiper"
-          style={{
-            width: width * (1 - this.state.value),
-            height: height + 10,
-          }}
-        >
-          <div className="image-diff__before" style={style}>
-            {renderImage(this.props.previous, {
-              onLoad: this.onPreviousImageLoad,
-              style: {
-                maxHeight: height,
-                maxWidth: width,
-              },
-            })}
-          </div>
-        </div>
-        <input
-          style={{ margin: `${height + 10}px 0 0 -7px`, width: width + 14 }}
-          type="range"
-          max={1}
-          min={0}
-          value={this.state.value}
-          step={0.001}
-          onChange={this.onValueChange}
-        />
-      </div>
+      <Swipe
+        maxSize={maxSize}
+        containerWidth={containerWidth}
+        previous={this.props.previous}
+        current={this.props.current}
+        onPreviousImageLoad={this.onPreviousImageLoad}
+        onCurrentImageLoad={this.onCurrentImageLoad}
+      />
     )
   }
 }
