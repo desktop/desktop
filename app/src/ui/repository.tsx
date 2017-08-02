@@ -25,6 +25,7 @@ interface IRepositoryProps {
   readonly commitSummaryWidth: number
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
+  readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
 }
 
@@ -177,6 +178,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
           localCommitSHAs={this.props.state.localCommitSHAs}
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
+          onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
           imageDiffType={this.props.imageDiffType}
         />
       )

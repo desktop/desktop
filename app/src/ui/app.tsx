@@ -1385,6 +1385,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           commitSummaryWidth={this.state.commitSummaryWidth}
           issuesStore={this.props.appStore.issuesStore}
           gitHubUserStore={this.props.appStore.gitHubUserStore}
+          onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={this.state.imageDiffType}
         />
       )
@@ -1439,6 +1440,24 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onSelectionChanged = (repository: Repository | CloningRepository) => {
     this.props.dispatcher.selectRepository(repository)
     this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+  }
+
+  private onViewCommitOnGitHub = async (SHA: string) => {
+    const repository = this.getRepository()
+
+    if (
+      !repository ||
+      repository instanceof CloningRepository ||
+      !repository.gitHubRepository
+    ) {
+      return
+    }
+
+    const baseURL = repository.gitHubRepository.htmlURL
+
+    if (baseURL) {
+      this.props.dispatcher.openInBrowser(`${baseURL}/commit/${SHA}`)
+    }
   }
 }
 
