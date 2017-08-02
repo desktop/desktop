@@ -53,6 +53,7 @@ export class OnionSkin extends React.Component<
             },
           })}
         </div>
+
         <div
           className="image-diff__after"
           style={{
@@ -68,6 +69,7 @@ export class OnionSkin extends React.Component<
             },
           })}
         </div>
+
         <input
           style={{
             margin: `${height + SliderYPadding}px 0 0 ${(this.props.maxSize
