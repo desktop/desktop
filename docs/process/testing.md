@@ -7,11 +7,12 @@
 
 ### Welcome Flow
   - [ ] Create your account (/join?source=github-desktop)
-    - [ ] User is not automatically logged into Desktop post creation
+    - [ ] User is not automatically logged into Desktop post account creation
   - [ ] `Sign in to Github.com` link
     - [ ] `Sign in` successful if valid username/email and password
       - [ ] If 2FA activated, user sent auth code to enter 
 	- [ ] Sign in successful with active 2FA code, user goes to Configure Git
+	  - [ ] User sees Repository landing page if sign in successful
 	  - [ ] Error message if code is wrong or inactive 
       - [ ] Error message if incorrect username/email or password
     - [ ] Forgot link (/password_reset)
@@ -21,16 +22,17 @@
   - [ ] `Sign in to Enterprise` link (works with v2.8 and up)
     - [ ] `Continue` successful if server address is valid, else error message
       - [ ] `Sign in using your browser` opens default browser
-  - [ ] Browser login, [insert custom security measure], Authorize GitHub Desktop, “accept” link
+        - [ ] Browser login, [insert custom security measure], Authorize GitHub Desktop, “accept” link
     - [ ] User goes to Configure Git if successful
     - [ ] `Cancel` returns to initial Welcome Flow
     - [ ] User served generic message if not authorized to access Enterprise server
-  - [ ] Skip username+password step
+  - [ ] Skip "username+password" step
     - [ ] Configure Git
       - [ ] Name and email pulled from global `.gitconfig` file, if configured
   	- [ ] If recognized, avatar is present
       - [ ] `Continue` okay if fields populated or blank
-  	- [ ] Valid login credentials from dotcom or Enterprise carried through 
+  	- [ ] Valid login credentials from dotcom or Enterprise carried through
+	  - [ ] User sees Repository landing page if sign in successful
   - [ ] Usage Data
     - [ ] Checked by default; user can uncheck
       - [ ] Clicking `Finish`, and user is signed in successfully to Desktop
