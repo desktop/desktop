@@ -242,6 +242,7 @@
 
 .panel.image {
   display: flex;
+  flex: 1;
   padding-top: 10px;
 
   .tab-bar {
@@ -279,10 +280,35 @@
   }
 }
 
-.image-diff-container {
-  display: flex;
+.onion-skin-sizing-container {
+  margin: 0;
+  margin-bottom: var(--spacing-half);
   flex: 1;
+  display: flex;
   justify-content: center;
+
+  .image-diff__before,
+  .image-diff__after {
+    position: absolute;
+    margin: 0;
+
+    img {
+      border: 0;
+      background: transparent;
+    }
+  }
+
+  .image-diff__before {
+    border: 1px solid var(--color-deleted);
+  }
+  .image-diff__after {
+    border: 1px solid var(--color-new);
+  }
+
+  .image-container {
+    @include checkboard-background;
+    position: relative;
+  }
 }
 
 .image-diff_inner {
@@ -315,27 +341,12 @@
   }
 
   &--fade {
-    @include checkboard-background;
-    margin: 0;
-    margin-bottom: 30px;
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 
-    .image-diff__before,
-    .image-diff__after {
-      position: absolute;
-      margin: 0;
-
-      img {
-        border: 0;
-        background: transparent;
-      }
-    }
-
-    .image-diff__before {
-      border: 1px solid var(--color-deleted);
-    }
-    .image-diff__after {
-      border: 1px solid var(--color-new);
+    .slider {
+      align-self: center;
     }
   }
 

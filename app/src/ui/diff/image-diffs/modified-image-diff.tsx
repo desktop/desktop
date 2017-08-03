@@ -146,9 +146,7 @@ export class ModifiedImageDiff extends React.Component<
   public render() {
     return (
       <div className="panel image" id="diff">
-        <div className="image-diff-container" ref={this.onContainerRef}>
-          {this.renderCurrentDiffType()}
-        </div>
+        {this.renderCurrentDiffType()}
 
         <TabBar
           selectedIndex={this.props.diffType}
@@ -182,7 +180,12 @@ export class ModifiedImageDiff extends React.Component<
         return <Swipe {...this.getCommonProps(width, height)} />
 
       case ImageDiffType.OnionSkin:
-        return <OnionSkin {...this.getCommonProps(width, height)} />
+        return (
+          <OnionSkin
+            {...this.getCommonProps(width, height)}
+            onContainerRef={this.onContainerRef}
+          />
+        )
 
       case ImageDiffType.Difference:
         return <DifferenceBlend {...this.getCommonProps(width, height)} />
