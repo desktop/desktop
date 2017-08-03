@@ -25,7 +25,7 @@
     - [ ] User goes to Configure Git if successful
     - [ ] `Cancel` returns to initial Welcome Flow
     - [ ] User served generic message if not authorized to access Enterprise server
-  - [ ] Skip step
+  - [ ] Skip username+password step
     - [ ] Configure Git
       - [ ] Name and email pulled from global `.gitconfig` file, if configured
   	- [ ] If recognized, avatar is present
