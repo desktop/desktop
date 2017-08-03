@@ -18,6 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "byline": "^4.2.2",
+    "chalk": "^2.0.1",
     "classnames": "^2.2.5",
     "codemirror": "^5.24.2",
     "deep-equal": "^1.0.1",
@@ -30,6 +31,7 @@
     "fs-extra": "^2.1.2",
     "keytar": "^4.0.4",
     "moment": "^2.17.1",
+    "mri": "^1.1.0",
     "primer-support": "^4.0.0",
     "react": "^15.6.1",
     "react-addons-shallow-compare": "^15.6.0",
@@ -38,6 +40,7 @@
     "react-virtualized": "9.8.0",
     "runas": "^3.1.1",
     "source-map-support": "^0.4.15",
+    "strip-ansi": "^4.0.0",
     "textarea-caret": "^3.0.2",
     "ua-parser-js": "^0.7.12",
     "untildify": "^3.0.2",
@@ -45,8 +48,7 @@
     "uuid": "^3.0.1",
     "wicg-focus-ring": "^1.0.1",
     "winston": "^2.3.1",
-    "winston-daily-rotate-file": "^1.4.5",
-    "yargs": "^8.0.2"
+    "winston-daily-rotate-file": "^1.4.5"
   },
   "devDependencies": {
     "devtron": "^1.4.0",
