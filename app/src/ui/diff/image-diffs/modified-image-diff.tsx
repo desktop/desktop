@@ -188,7 +188,12 @@ export class ModifiedImageDiff extends React.Component<
         )
 
       case ImageDiffType.Difference:
-        return <DifferenceBlend {...this.getCommonProps(width, height)} />
+        return (
+          <DifferenceBlend
+            {...this.getCommonProps(width, height)}
+            onContainerRef={this.onContainerRef}
+          />
+        )
 
       default:
         return assertNever(type, `Unknown diff type: ${type}`)

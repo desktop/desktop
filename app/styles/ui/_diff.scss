@@ -311,6 +311,27 @@
   }
 }
 
+.diff-blend-sizing-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+
+  .image-container {
+    position: relative;
+
+    .image-diff__before,
+    .image-diff__after {
+      position: absolute;
+      top: 0;
+      left: 0;
+      img : {
+        border: 0;
+        background: transparent;
+      }
+    }
+  }
+}
+
 .image-diff_inner {
   &--two-up {
     display: flex;
@@ -326,18 +347,9 @@
   }
 
   &--difference {
-    position: relative;
-
-    .image-diff__before,
-    .image-diff__after {
-      position: absolute;
-      top: 0;
-      left: 0;
-      img : {
-        border: 0;
-        background: transparent;
-      }
-    }
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
 
   &--fade {

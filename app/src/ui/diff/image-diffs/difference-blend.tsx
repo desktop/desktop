@@ -2,38 +2,52 @@ import * as React from 'react'
 import { renderImage } from './render-image'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 
+interface IDifferenceBlendProps extends ICommonImageDiffProperties {
+  readonly onContainerRef: (e: HTMLElement | null) => void
+}
+
 export class DifferenceBlend extends React.Component<
-  ICommonImageDiffProperties,
+  IDifferenceBlendProps,
   {}
 > {
   public render() {
     return (
       <div
         className="image-diff_inner--difference"
-        style={{
-          height: this.props.maxSize.height,
-          width: this.props.maxSize.width,
-        }}
+        ref={this.props.onContainerRef}
       >
-        <div className="image-diff__before">
-          {renderImage(this.props.previous, {
-            onLoad: this.onPreviousImageLoad,
-            style: {
-              maxHeight: this.props.maxSize.height,
-              maxWidth: this.props.maxSize.width,
-            },
-          })}
-        </div>
+        <div
+          className="diff-blend-sizing-container"
+          ref={this.props.onContainerRef}
+        >
+          <div
+            className="image-container"
+            style={{
+              width: this.props.maxSize.width,
+              height: this.props.maxSize.height,
+            }}
+          >
+            <div className="image-diff__before">
+              {renderImage(this.props.previous, {
+                onLoad: this.onPreviousImageLoad,
+                style: {
+                  maxHeight: this.props.maxSize.height,
+                  maxWidth: this.props.maxSize.width,
+                },
+              })}
+            </div>
 
-        <div className="image-diff__after">
-          {renderImage(this.props.current, {
-            onLoad: this.onCurrentImageLoad,
-            style: {
-              maxHeight: this.props.maxSize.height,
-              maxWidth: this.props.maxSize.width,
-              mixBlendMode: 'difference',
-            },
-          })}
+            <div className="image-diff__after">
+              {renderImage(this.props.current, {
+                onLoad: this.onCurrentImageLoad,
+                style: {
+                  maxHeight: this.props.maxSize.height,
+                  maxWidth: this.props.maxSize.width,
+                  mixBlendMode: 'difference',
+                },
+              })}
+            </div>
+          </div>
         </div>
       </div>
     )
