@@ -25,7 +25,7 @@ interface IAdvancedPreferencesState {
 export class Advanced extends React.Component<
   IAdvancedPreferencesProps,
   IAdvancedPreferencesState
-> {
+  > {
   public constructor(props: IAdvancedPreferencesProps) {
     super(props)
 
@@ -37,7 +37,8 @@ export class Advanced extends React.Component<
 
   public async componentDidMount() {
     const availableEditors = await getAvailableEditors()
-    this.setState({ availableEditors })
+    const editorLabels = availableEditors.map(editor => editor.app)
+    this.setState({ availableEditors: editorLabels })
   }
 
   private onReportingOptOutChanged = (
