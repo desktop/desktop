@@ -9,6 +9,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Account } from '../../models/account'
 import { Ref } from '../lib/ref'
+import { findAccountForRemoteURL } from '../../lib/find-account'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
