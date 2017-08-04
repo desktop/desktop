@@ -84,11 +84,22 @@ export class DeleteBranch extends React.Component<
     this.setState({ includeRemoteBranch: value })
   }
 
-  private deleteBranch = () => {
+  private deleteBranch = async () => {
+    const repo = this.props.repository.gitHubRepository
+    let account: Account | null = null
+
+    if (!!repo) {
+      const url = repo.cloneURL
+
+      if (!!url) {
+        account = await findAccountForRemoteURL(url, this.props.accounts)
+      }
+    }
+
     this.props.dispatcher.deleteBranch(
       this.props.repository,
       this.props.branch,
-      this.props.account,
+      account,
       this.state.includeRemoteBranch
     )
     this.props.dispatcher.closePopup()
