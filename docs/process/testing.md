@@ -129,8 +129,9 @@
     - [ ] Repo is removed from Repo List; confirmation option if enabled
   - [ ] View on GitHub (Mac: ⌥⌘G; Windows: Ctrl+Alt+G)
     - [ ] Repo on .com is opened; must be logged in if private repo or Enterprise
-  - [ ] Open in Terminal
+  - [ ] Open in Terminal/Command prompt
     - [ ] Local repo is opened
+    - [ ] If git not installed, modal asks to Open with Git or Install Git
   - [ ] Show in Finder/Explorer (Mac: ⇧⌘F; Windows: Ctrl+Shift+F)
     - [ ] Local repo is opened
   - [ ] Repository settings
