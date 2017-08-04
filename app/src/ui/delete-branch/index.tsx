@@ -50,22 +50,7 @@ export class DeleteBranch extends React.Component<
             This action cannot be undone.
           </p>
 
-          <p>
-            <strong>
-              The branch also exists on the remote, do you wish to delete it
-              there as well?
-            </strong>
-          </p>
-          <Checkbox
-            disabled={this.props.branch.remote === null}
-            label="Yes, delete this branch on the remote"
-            value={
-              this.state.includeRemoteBranch
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onIncludeRemoteChanged}
-          />
+          {this.renderDeleteOnRemote()}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup destructive={true}>
@@ -75,6 +60,32 @@ export class DeleteBranch extends React.Component<
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private renderDeleteOnRemote() {
+    if (!!this.props.branch.remote) {
+      return (
+        <div>
+          <p>
+            <strong>
+              The branch also exists on the remote, do you wish to delete it
+              there as well?
+            </strong>
+          </p>
+          <Checkbox
+            label="Yes, delete this branch on the remote"
+            value={
+              this.state.includeRemoteBranch
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onIncludeRemoteChanged}
+          />
+        </div>
+      )
+    }
+
+    return null
   }
 
   private onIncludeRemoteChanged = (
