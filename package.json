@@ -41,6 +41,7 @@
     "npm": ">= 4"
   },
   "dependencies": {
+    "@types/electron-packager": "^8.7.1",
     "awesome-typescript-loader": "^3.1.2",
     "aws-sdk": "^2.23.0",
     "babel-core": "^6.24.1",
@@ -83,8 +84,8 @@
     "webpack-dev-middleware": "^1.10.1",
     "webpack-hot-middleware": "^2.18.0",
     "webpack-merge": "^4.1.0",
-    "xvfb-maybe": "^0.2.1",
-    "xml2js": "^0.4.16"
+    "xml2js": "^0.4.16",
+    "xvfb-maybe": "^0.2.1"
   },
   "devDependencies": {
     "@types/chai": "^3.4.30",
