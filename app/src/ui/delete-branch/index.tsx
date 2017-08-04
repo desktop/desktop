@@ -13,7 +13,7 @@ import { Ref } from '../lib/ref'
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly account: Account | null
+  readonly accounts: ReadonlyArray<Account>
   readonly branch: Branch
   readonly onDismissed: () => void
 }
