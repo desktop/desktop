@@ -17,7 +17,7 @@ const command: ICommandModule = {
       description: 'The path to the repository to open. Defaults to `.`',
       type: 'string',
       required: false,
-    }
+    },
   ],
   handler({ _: [pathArg] }: IOpenArgs) {
     const repositoryPath = Path.resolve(process.cwd(), pathArg || '.')

@@ -6,10 +6,7 @@ type StringArray = ReadonlyArray<string>
 
 const files: StringArray = require('./command-list.json')
 
-export type CommandHandler = (
-  args: mriArgv,
-  argv: StringArray
-) => void
+export type CommandHandler = (args: mriArgv, argv: StringArray) => void
 export { mriArgv }
 
 export interface IOption {
