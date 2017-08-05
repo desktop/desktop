@@ -1,0 +1,104 @@
+parser: typescript-eslint-parser
+plugins:
+  - typescript
+  - babel
+  - react
+extends:
+  - prettier
+  - prettier/react
+
+rules:
+  ##########
+  # CUSTOM #
+  ##########
+  insecure-random: error
+
+  ###########
+  # PLUGINS #
+  ###########
+  # TYPESCRIPT
+  typescript/interface-name-prefix:
+    - error
+    - always
+  typescript/explicit-member-accessibility: error
+  typescript/no-unused-vars: error
+  ## blocked by https://github.com/nzakas/eslint-plugin-typescript/pull/23
+  # typescript/member-ordering: error
+  ##
+
+  # Babel
+  babel/no-invalid-this: error
+  babel/semi:
+    - error
+    - never
+
+  # React
+  react/jsx-boolean-value:
+    - error
+    - always
+  react/jsx-curly-spacing: error
+  react/jsx-equals-spacing: error
+  react/jsx-key: error
+  react/jsx-no-bind: error
+  react/no-string-refs: error
+
+  ###########
+  # BUILTIN #
+  ###########
+  curly: error
+  ## blocked by https://github.com/eslint/typescript-eslint-parser/issues/344
+  # indent:
+  #   - error
+  #   - 2
+  #   - SwitchCase: 1
+  ##
+
+  array-bracket-spacing:
+    - warn
+    - never
+  object-curly-spacing:
+    - warn
+    - always
+  no-new-wrappers: error
+  no-redeclare:
+    - error
+    - builtinGlobals: true
+  no-eval: error
+  no-sync: error
+  no-trailing-spaces:
+    - error
+    # why?
+    - ignoreComments: true
+  no-unused-expressions: error
+  no-use-before-define:
+    - error
+    - functions: false
+      variables: false
+  no-var: error
+  prefer-const: error
+  no-extra-semi: error
+  comma-dangle:
+    - error
+    - always-multiline
+  eqeqeq:
+    - error
+    - smart
+  space-before-blocks: error
+  keyword-spacing: error
+  space-infix-ops: error
+  semi-spacing: error
+  comma-spacing: error
+
+  ###########
+  # SPECIAL #
+  ###########
+  no-restricted-syntax:
+    - error
+    # no-default-export
+    - selector: ExportDefaultDeclaration
+      message: Use of default exports is forbidden
+
+parserOptions:
+  sourceType: module
+  ecmaFeatures:
+    jsx: true
