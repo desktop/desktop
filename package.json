@@ -41,7 +41,6 @@
     "npm": ">= 4"
   },
   "dependencies": {
-    "@types/electron-packager": "^8.7.1",
     "awesome-typescript-loader": "^3.1.2",
     "aws-sdk": "^2.23.0",
     "babel-core": "^6.24.1",
@@ -92,7 +91,7 @@
     "@types/chai-datetime": "0.0.30",
     "@types/classnames": "^0.0.32",
     "@types/codemirror": "0.0.38",
-    "@types/electron-packager": "^8.7.0",
+    "@types/electron-packager": "^8.7.1",
     "@types/event-kit": "^1.2.28",
     "@types/fs-extra": "2.1.0",
     "@types/keytar": "^4.0.0",
