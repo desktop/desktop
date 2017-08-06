@@ -25,7 +25,7 @@ interface IAdvancedPreferencesState {
 export class Advanced extends React.Component<
   IAdvancedPreferencesProps,
   IAdvancedPreferencesState
-  > {
+> {
   public constructor(props: IAdvancedPreferencesProps) {
     super(props)
 
