@@ -104,6 +104,7 @@
     "@types/react-virtualized": "9.7.2",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
+    "@types/winreg": "^1.2.30",
     "@types/winston": "^2.2.0",
     "prettier": "^1.5.0",
     "tslint-config-prettier": "^1.1.0",

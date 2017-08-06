@@ -1,12 +1,5 @@
 import * as path from 'path'
-
-type RegistryItem = {
-  name: string
-  value: string
-  type: string
-}
-
-const Registry = require('winreg')
+import * as Registry from 'winreg'
 
 export function findAtomExecutable(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -15,10 +8,7 @@ export function findAtomExecutable(): Promise<string> {
       key: '\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
     })
 
-    regKey.values(function(
-      err: Error | null,
-      items: ReadonlyArray<RegistryItem>
-    ) {
+    regKey.values((err, items) => {
       if (err) {
         reject(err)
         return
@@ -51,17 +41,13 @@ export function findAtomExecutable(): Promise<string> {
 
 export function findSublimeTextExecutable(): Promise<string> {
   return new Promise((resolve, reject) => {
-    const Registry = require('winreg')
     const regKey = new Registry({
       hive: Registry.HKLM,
       key:
         '\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
     })
 
-    regKey.values(function(
-      err: Error | null,
-      items: ReadonlyArray<any> /* array of RegistryItem */
-    ) {
+    regKey.values((err, items) => {
       if (err) {
         reject(err)
         return
