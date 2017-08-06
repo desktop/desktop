@@ -125,7 +125,7 @@ function sourceMappedStackTrace(error: Error): string | undefined {
     // in our weak map. In order to get around that we'll eagerly access the
     // stack, forcing our handler to run which should ensure that the native
     // frames are stored in our weak map.
-    (error.stack || '').toString()
+    ;(error.stack || '').toString()
     frames = stackFrameMap.get(error)
   }
 

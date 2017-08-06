@@ -11,12 +11,7 @@
   "rules": {
     "button-group-order": true,
     "class-name": true,
-    "indent": [
-      true,
-      "spaces"
-    ],
     "jsdoc-format": true,
-    "jsx-no-multiline-js": true,
     "member-ordering": [
       true,
       "static-before-instance",
