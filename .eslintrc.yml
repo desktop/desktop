@@ -22,6 +22,11 @@ rules:
     - always
   typescript/explicit-member-accessibility: error
   typescript/no-unused-vars: error
+  typescript/no-use-before-define:
+    - error
+    - functions: false
+      variables: false
+      typedefs: false
   ## blocked by https://github.com/nzakas/eslint-plugin-typescript/pull/23
   # typescript/member-ordering: error
   ##
@@ -48,10 +53,6 @@ rules:
   no-eval: error
   no-sync: error
   no-unused-expressions: error
-  no-use-before-define:
-    - error
-    - functions: false
-      variables: false
   no-var: error
   prefer-const: error
   eqeqeq:
