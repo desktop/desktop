@@ -1,0 +1,3 @@
+rules:
+  # throws with Chai
+  no-unused-expressions: off
