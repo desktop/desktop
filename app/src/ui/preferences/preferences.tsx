@@ -36,6 +36,7 @@ interface IPreferencesState {
   readonly committerEmail: string
   readonly isOptedOut: boolean
   readonly confirmRepoRemoval: boolean
+  readonly selectedEditor: string
 }
 
 /** The app-level preferences component. */
@@ -52,6 +53,7 @@ export class Preferences extends React.Component<
       committerEmail: '',
       isOptedOut: false,
       confirmRepoRemoval: false,
+      selectedEditor: 'atom',
     }
   }
 
@@ -157,6 +159,7 @@ export class Preferences extends React.Component<
             confirmRepoRemoval={this.state.confirmRepoRemoval}
             onOptOutSet={this.onOptOutSet}
             onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
+            onSelectedEditorChanged={this.onSelectedEditorChanged}
           />
         )
       }
@@ -179,6 +182,10 @@ export class Preferences extends React.Component<
 
   private onCommitterEmailChanged = (committerEmail: string) => {
     this.setState({ committerEmail })
+  }
+
+  private onSelectedEditorChanged = (selectedEditor: string) => {
+    this.setState({ selectedEditor })
   }
 
   private renderFooter() {
