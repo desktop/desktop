@@ -68,12 +68,8 @@ function packageApp(
   // not sure if this is needed anywhere, so I'm just going to inline it here
   // for now and see what the future brings...
   const toPackagePlatform = (platform: NodeJS.Platform) => {
-    if (
-      process.platform === 'win32' ||
-      process.platform === 'darwin' ||
-      process.platform === 'linux'
-    ) {
-      return process.platform
+    if (platform === 'win32' || platform === 'darwin' || platform === 'linux') {
+      return platform
     }
     throw new Error(
       `Unable to convert to platform for electron-packager: '${process.platform}`
