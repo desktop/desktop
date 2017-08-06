@@ -1,4 +1,8 @@
-import * as path from 'path'
+import { findApp } from './available-editors-darwin'
+import {
+  findSublimeTextExecutable,
+  findAtomExecutable,
+} from './available-editors-win32'
 
 export type EditorLookup = {
   app: string
@@ -8,144 +12,19 @@ export type EditorLookup = {
 async function getAvailableEditorsDarwin(): Promise<
   ReadonlyArray<EditorLookup>
 > {
-  const appPath: (id: string) => Promise<string> = require('app-path')
-
-  const atom = await appPath('com.github.atom')
-    .catch(error => {
-      log.debug('Unable to locate Atom installation', error)
-      return ''
-    })
-    .then(path => {
-      return { app: 'Atom', path }
-    })
-
-  const code = await appPath('com.microsoft.VSCode')
-    .catch(error => {
-      log.debug('Unable to locate VSCode installation', error)
-      return ''
-    })
-    .then(path => {
-      return { app: 'Visual Studio Code', path }
-    })
+  const atom = await findApp('com.github.atom', 'Atom')
+  const code = await findApp('com.microsoft.VSCode', 'Visual Studio Code')
 
   // TODO: what about Sublime Text 2?
-  const sublime = await appPath('com.sublimetext.3')
-    .catch(error => {
-      log.debug('Unable to locate Sublime Text installation', error)
-      return ''
-    })
-    .then(path => {
-      return { app: 'Sublime Text', path }
-    })
+  const sublime = await findApp('com.sublimetext.3', 'Sublime Text')
 
   const results = [atom, code, sublime]
   return results.filter(result => result.path !== '')
 }
 
-type RegistryItem = {
-  name: string
-  value: string
-  type: string
-}
-
-function findAtomExecutable(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const Registry = require('winreg')
-    const regKey = new Registry({
-      hive: Registry.HKCU,
-      key: '\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
-    })
-
-    regKey.values(function(
-      err: Error | null,
-      items: ReadonlyArray<RegistryItem>
-    ) {
-      if (err) {
-        reject(err)
-        return
-      }
-
-      let displayName = ''
-      let publisher = ''
-      let installLocation = ''
-
-      for (const item of items) {
-        if (item.name === 'DisplayName') {
-          displayName = item.value
-        } else if (item.name === 'Publisher') {
-          publisher = item.value
-        } else if (item.name === 'InstallLocation') {
-          installLocation = item.value
-        }
-      }
-
-      if (displayName === 'Atom' && publisher === 'GitHub Inc.') {
-        resolve(path.join(installLocation, 'atom.exe'))
-        return
-      }
-
-      console.debug('Registry entry does not match expected settings for Atom')
-      resolve('')
-    })
-  })
-}
-
-function findSublimeTextExecutable(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const Registry = require('winreg')
-    const regKey = new Registry({
-      hive: Registry.HKLM,
-      key:
-        '\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
-    })
-
-    regKey.values(function(
-      err: Error | null,
-      items: ReadonlyArray<any> /* array of RegistryItem */
-    ) {
-      if (err) {
-        reject(err)
-        return
-      }
-
-      let displayName = ''
-      let publisher = ''
-      let installLocation = ''
-
-      for (const item of items) {
-        if (item.name === 'Inno Setup: Icon Group') {
-          displayName = item.value
-        } else if (item.name === 'Publisher') {
-          publisher = item.value
-        } else if (item.name === 'Inno Setup: App Path') {
-          installLocation = item.value
-        }
-      }
-
-      if (
-        displayName === 'Sublime Text' &&
-        publisher === 'Sublime HQ Pty Ltd'
-      ) {
-        resolve(path.join(installLocation, 'sublime_text.exe'))
-        return
-      }
-
-      console.debug(
-        'Registry entry does not match expected settings for Sublime Text'
-      )
-      resolve('')
-    })
-  })
-}
-
 async function getAvailableEditorsWindows(): Promise<
   ReadonlyArray<EditorLookup>
 > {
-  // Atom - look for the uninstall registry entry and then read it's path
-  //        registry entry: `Computer\HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\atom`
-  //        interesting keys: `DisplayName=Atom` and `Publisher=GitHub Inc`
-  //        value we want: `InstallLocation=C:\Users\shiftkey\AppData\Local\atom`
-  //        can then launch path.join($InstallLocation, 'atom.exe') with the provided path
   const atom = await findAtomExecutable()
     .catch(error => {
       log.debug('Unable to locate Atom installation', error)
@@ -165,7 +44,6 @@ async function getAvailableEditorsWindows(): Promise<
       return { app: 'Sublime Text', path }
     })
 
-  // Sublime Text
   const sublime = await findSublimeTextExecutable()
     .catch(error => {
       log.debug('Unable to locate Sublime text installation', error)
