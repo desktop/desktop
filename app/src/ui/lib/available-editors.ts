@@ -2,6 +2,7 @@ import { findApp } from './available-editors-darwin'
 import {
   findSublimeTextExecutable,
   findAtomExecutable,
+  findCodeExecutable,
 } from './available-editors-win32'
 
 export type EditorLookup = {
@@ -11,7 +12,7 @@ export type EditorLookup = {
 
 async function getAvailableEditorsDarwin(): Promise<
   ReadonlyArray<EditorLookup>
-> {
+  > {
   const atom = await findApp('com.github.atom', 'Atom')
   const code = await findApp('com.microsoft.VSCode', 'Visual Studio Code')
 
@@ -24,7 +25,7 @@ async function getAvailableEditorsDarwin(): Promise<
 
 async function getAvailableEditorsWindows(): Promise<
   ReadonlyArray<EditorLookup>
-> {
+  > {
   const atom = await findAtomExecutable()
     .catch(error => {
       log.debug('Unable to locate Atom installation', error)
@@ -34,14 +35,13 @@ async function getAvailableEditorsWindows(): Promise<
       return { app: 'Atom', path }
     })
 
-  // VSCode - no real registry results that are easily to find short of enumerating. what to do?
-  const code = await Promise.resolve('')
+  const code = await findCodeExecutable()
     .catch(error => {
       log.debug('Unable to locate VSCode installation', error)
       return ''
     })
     .then(path => {
-      return { app: 'Sublime Text', path }
+      return { app: 'Visual Studio Code', path }
     })
 
   const sublime = await findSublimeTextExecutable()
