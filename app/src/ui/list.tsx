@@ -472,14 +472,12 @@ export class List extends React.Component<IListProps, IListState> {
         className={className}
         tabIndex={tabIndex}
         ref={ref}
-        // tslint:disable-next-line jsx-no-lambda
+        /* eslint-disable react/jsx-no-bind */
         onMouseOver={e => this.onRowMouseOver(rowIndex, e)}
-        // tslint:disable-next-line jsx-no-lambda
         onMouseDown={e => this.handleMouseDown(rowIndex, e)}
-        // tslint:disable-next-line jsx-no-lambda
         onClick={e => this.onRowClick(rowIndex, e)}
-        // tslint:disable-next-line jsx-no-lambda
         onKeyDown={e => this.handleRowKeyDown(rowIndex, e)}
+        /* eslint-enable react/jsx-no-bind */
         style={style}
       >
         {element}

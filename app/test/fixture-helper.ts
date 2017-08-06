@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import * as Path from 'path'
 import * as FSE from 'fs-extra'
