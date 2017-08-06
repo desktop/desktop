@@ -136,23 +136,19 @@ function packageApp(
   })
 }
 
+const removeAndCopy = (source: string, destination: string) => {
+  fs.removeSync(destination)
+  fs.copySync(source, destination)
+}
+
 function copyEmoji() {
-  const copyImages = () => {
-    const source = path.join(projectRoot, 'gemoji', 'images', 'emoji')
-    const destination = path.join(outRoot, 'emoji')
-    fs.removeSync(destination)
-    fs.copySync(source, destination)
-  }
+  const emojiImages = path.join(projectRoot, 'gemoji', 'images', 'emoji')
+  const emojiImagesDestination = path.join(outRoot, 'emoji')
+  removeAndCopy(emojiImages, emojiImagesDestination)
 
-  const copyJson = () => {
-    const source = path.join(projectRoot, 'gemoji', 'db', 'emoji.json')
-    const destination = path.join(outRoot, 'emoji.json')
-    fs.removeSync(destination)
-    fs.copySync(source, destination)
-  }
-
-  copyImages()
-  copyJson()
+  const emojiJSON = path.join(projectRoot, 'gemoji', 'db', 'emoji.json')
+  const emojiJSONDestination = path.join(outRoot, 'emoji.json')
+  removeAndCopy(emojiJSON, emojiJSONDestination)
 }
 
 function copyStaticResources() {
