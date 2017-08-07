@@ -2221,8 +2221,6 @@ export class AppStore {
   }
 
   public _setExternalEditor(selectedEditor: string): Promise<void> {
-    console.debug(`setting editor: ${selectedEditor}`)
-
     this.selectedExternalEditor = selectedEditor
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
