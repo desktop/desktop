@@ -128,8 +128,8 @@ export class AppStore {
     return this._issuesStore
   }
 
-  /** GitStores keyed by their associated Repository ID. */
-  private readonly gitStores = new Map<number, GitStore>()
+  /** GitStores keyed by their hash. */
+  private readonly gitStores = new Map<string, GitStore>()
 
   private readonly signInStore: SignInStore
 
@@ -238,9 +238,10 @@ export class AppStore {
     })
 
     repositoriesStore.onDidUpdate(async () => {
+      console.info('repositories updated')
       const repositories = await this.repositoriesStore.getAll()
       this.repositories = repositories
-      this.updateRepositorySelection()
+      this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
   }
@@ -510,13 +511,13 @@ export class AppStore {
   }
 
   private removeGitStore(repository: Repository) {
-    if (this.gitStores.has(repository.id)) {
-      this.gitStores.delete(repository.id)
+    if (this.gitStores.has(repository.hash)) {
+      this.gitStores.delete(repository.hash)
     }
   }
 
   private getGitStore(repository: Repository): GitStore {
-    let gitStore = this.gitStores.get(repository.id)
+    let gitStore = this.gitStores.get(repository.hash)
     if (!gitStore) {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
@@ -525,7 +526,7 @@ export class AppStore {
       )
       gitStore.onDidError(error => this.emitError(error))
 
-      this.gitStores.set(repository.id, gitStore)
+      this.gitStores.set(repository.hash, gitStore)
     }
 
     return gitStore
@@ -688,6 +689,7 @@ export class AppStore {
     repository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
     const previouslySelectedRepository = this.selectedRepository
+
     this.selectedRepository = repository
     this.emitUpdate()
 
@@ -830,7 +832,7 @@ export class AppStore {
       }
     }
 
-    this.updateRepositorySelection()
+    this.updateRepositorySelectionAfterRepositoriesChanged()
 
     this.sidebarWidth =
       parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) ||
@@ -851,7 +853,7 @@ export class AppStore {
     this.accountsStore.refresh()
   }
 
-  private updateRepositorySelection() {
+  private updateRepositorySelectionAfterRepositoriesChanged() {
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this
       .selectedRepository
@@ -1436,10 +1438,12 @@ export class AppStore {
       return oldGitHubRepository ? repository : updatedRepository
     }
 
+    console.info(`branch from api: ${apiRepo.default_branch}`)
+
     const withUpdatedGitHubRepository = updatedRepository.withGitHubRepository(
       updatedGitHubRepository.withAPI(apiRepo)
     )
-    if (structuralEquals(withUpdatedGitHubRepository, repository)) {
+    if (withUpdatedGitHubRepository.hash === repository.hash) {
       return withUpdatedGitHubRepository
     }
 
@@ -1459,7 +1463,7 @@ export class AppStore {
     if (
       repository.gitHubRepository &&
       gitHubRepository &&
-      structuralEquals(repository.gitHubRepository, gitHubRepository)
+      repository.gitHubRepository.hash === gitHubRepository.hash
     ) {
       return repository
     }
@@ -2368,7 +2372,7 @@ export class AppStore {
       repository
     )
 
-    if (structuralEquals(refreshedRepository, repository)) {
+    if (refreshedRepository.hash === repository.hash) {
       return refreshedRepository
     }
 

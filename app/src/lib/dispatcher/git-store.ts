@@ -300,6 +300,8 @@ export class GitStore {
       defaultBranchName = gitHubRepository.defaultBranch
     }
 
+    console.log(`refreshDefaultBranch: ${defaultBranchName}`)
+
     if (defaultBranchName) {
       // Find the default branch among all of our branches, giving
       // priority to local branches by sorting them before remotes
