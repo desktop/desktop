@@ -7,7 +7,7 @@ import { fatalError } from '../../lib/fatal-error'
 /**
  * Get the executable path to launch for a given editor, or null if it cannot
  * be found.
-  *
+ *
  * @param externalEditor Friendly name for the editor.
  */
 async function getPathToEditor(externalEditor: string): Promise<string | null> {
