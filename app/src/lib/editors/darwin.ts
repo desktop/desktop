@@ -1,29 +1,47 @@
 const appPath: (id: string) => Promise<string> = require('app-path')
 
+import * as Fs from 'fs'
+
 import { FoundEditor } from './models'
+
+function pathExists(path: string): Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
+    Fs.exists(path, exists => {
+      resolve(exists)
+    })
+  })
+}
 
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<FoundEditor>
-> {
+  > {
   const results: Array<FoundEditor> = []
 
   const atomLabel = 'Atom'
 
   try {
     await appPath('com.github.atom')
-    // TODO: check this shim exists
-    const atom = { app: atomLabel, exists: true, path: '/usr/local/bin/atom' }
-    results.push(atom)
+    const path = '/usr/local/bin/atom'
+    const exists = await pathExists(path)
+    if (exists) {
+      results.push({ app: atomLabel, path })
+    } else {
+      log.info(`Command line interface for ${atomLabel} not found at '${path}'`)
+    }
   } catch (error) {
     log.debug(`Unable to locate ${atomLabel} installation`, error)
   }
 
   const codeLabel = 'Visual Studio Code'
-  let code: FoundEditor | null = null
   try {
     await appPath('com.microsoft.VSCode')
-    // TODO: check this shim exists
-    code = { app: codeLabel, path: '/usr/local/bin/code' }
+    const path = '/usr/local/bin/code'
+    const exists = await pathExists(path)
+    if (exists) {
+      results.push({ app: codeLabel, path })
+    } else {
+      log.info(`Command line interface for ${codeLabel} not found at '${path}'`)
+    }
   } catch (error) {
     log.debug(`Unable to locate ${codeLabel} installation`, error)
   }
