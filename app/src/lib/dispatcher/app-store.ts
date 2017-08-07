@@ -76,6 +76,8 @@ import {
 } from '../git'
 
 import { openShell } from '../open-shell'
+// TODO: move these files under lib
+import { openInExternalEditor } from '../../ui/lib/available-editors'
 import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
 import { validatedRepositoryPath } from './validated-repository-path'
@@ -2170,6 +2172,13 @@ export class AppStore {
   /** Takes a URL and opens it using the system default application */
   public _openInBrowser(url: string): Promise<boolean> {
     return shell.openExternal(url)
+  }
+
+  /** Takes a URL and opens it using the system default application */
+  public _openInExternalEditor(path: string): Promise<void> {
+    const state = this.getState()
+    const program = state.selectedExternalEditor
+    return openInExternalEditor(path, program)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

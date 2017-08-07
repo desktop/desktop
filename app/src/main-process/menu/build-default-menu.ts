@@ -219,6 +219,13 @@ export function buildDefaultMenu(): Electron.Menu {
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
       },
+      {
+        label: __DARWIN__
+          ? 'Open in External Editor'
+          : 'Open in External Editor',
+        id: 'open-external-editor',
+        click: emit('open-external-editor'),
+      },
       separator,
       {
         label: __DARWIN__ ? 'Repository Settings…' : 'Repository &settings…',

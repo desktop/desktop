@@ -272,6 +272,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.openPullRequest()
       case 'install-cli':
         return this.props.dispatcher.installCLI()
+      case 'open-external-editor':
+        return this.openCurrentRepositoryInExternalEditor()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -693,6 +695,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.openInShell(repository)
+  }
+
+  private openCurrentRepositoryInExternalEditor() {
+    const repository = this.getRepository()
+    if (!repository) {
+      return
+    }
+
+    this.openInExternalEditor(repository)
   }
 
   /**
@@ -1137,6 +1148,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.openShell(repository.path)
+  }
+
+  private openInExternalEditor = (
+    repository: Repository | CloningRepository
+  ) => {
+    if (!(repository instanceof Repository)) {
+      return
+    }
+
+    this.props.dispatcher.openInExternalEditor(repository.path)
   }
 
   private showRepository = (repository: Repository | CloningRepository) => {

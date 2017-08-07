@@ -567,6 +567,11 @@ export class Dispatcher {
     }
   }
 
+  /** Opens a Git repository in the user provided program */
+  public async openInExternalEditor(path: string): Promise<void> {
+    return this.appStore._openInExternalEditor(path)
+  }
+
   /**
    * Persist the given content to the repository's root .gitignore.
    *
