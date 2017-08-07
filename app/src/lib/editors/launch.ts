@@ -3,8 +3,6 @@ import { spawn } from 'child_process'
 import { getAvailableEditors } from './lookup'
 import { pathExists } from './shared'
 
-import { fatalError } from '../../lib/fatal-error'
-
 /**
  * Open a given folder in the external editor.
  *
