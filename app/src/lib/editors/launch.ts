@@ -12,7 +12,7 @@ import { fatalError } from '../../lib/fatal-error'
  */
 async function getPathToEditor(externalEditor: string): Promise<string | null> {
   const programs = await getAvailableEditors()
-  const match = programs.find(p => p.name === name)
+  const match = programs.find(p => p.name === externalEditor)
   if (match) {
     return match.path
   }
