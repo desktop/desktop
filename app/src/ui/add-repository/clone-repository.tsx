@@ -16,6 +16,7 @@ import {
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
+import { Monospaced } from '../lib/monospaced'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -107,7 +108,7 @@ export class CloneRepository extends React.Component<
         <DialogContent>
           <p>
             Enter a repository URL or GitHub username and repository (e.g.,{' '}
-            <span className="repository-pattern">hubot/cool-repo</span>)
+            <Monospaced>hubot/cool-repo</Monospaced>)
           </p>
 
           <Row>
@@ -217,19 +218,12 @@ export class CloneRepository extends React.Component<
    * Lookup the account associated with the clone (if applicable) and resolve
    * the repository alias to the clone URL.
    */
-  private async resolveCloneDetails(): Promise<{
-    url: string
-    account: Account | null
-  } | null> {
+  private async resolveCloneURL(): Promise<string | null> {
     const identifier = this.state.lastParsedIdentifier
     let url = this.state.url
 
     const account = await findAccountForRemoteURL(url, this.props.accounts)
-    if (!account) {
-      return null
-    }
-
-    if (identifier) {
+    if (identifier && account) {
       const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
@@ -237,15 +231,15 @@ export class CloneRepository extends React.Component<
       }
     }
 
-    return { url, account }
+    return url
   }
 
   private clone = async () => {
     this.setState({ loading: true })
 
     const path = this.state.path
-    const cloneDetails = await this.resolveCloneDetails()
-    if (!cloneDetails) {
+    const url = await this.resolveCloneURL()
+    if (!url) {
       const error = new Error(
         `We couldn't find that repository. Check that you are logged in, and the URL or repository alias are spelled correctly.`
       )
@@ -254,15 +248,15 @@ export class CloneRepository extends React.Component<
     }
 
     try {
-      this.cloneImpl(cloneDetails.url, path, cloneDetails.account)
+      this.cloneImpl(url, path)
     } catch (e) {
       log.error(`CloneRepostiory: clone failed to complete to ${path}`, e)
       this.setState({ loading: false, error: e })
     }
   }
 
-  private cloneImpl(url: string, path: string, account: Account | null) {
-    this.props.dispatcher.clone(url, path, { account })
+  private cloneImpl(url: string, path: string) {
+    this.props.dispatcher.clone(url, path)
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))
