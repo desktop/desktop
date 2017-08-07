@@ -23,6 +23,10 @@ export class CloningRepository {
   public get name(): string {
     return Path.basename(this.path)
   }
+
+  public get hash(): string {
+    return `${this.id}+${this.path}+${this.url}`
+  }
 }
 
 /** The store in charge of repository currently being cloned. */

@@ -52,7 +52,6 @@ import { StatsStore, ILaunchStats } from '../stats'
 import { SignInStore } from './sign-in-store'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
-import { structuralEquals } from '../equality'
 import { fatalError } from '../fatal-error'
 import { updateMenuState } from '../menu-update'
 
@@ -886,7 +885,7 @@ export class AppStore {
     const repositoryChanged =
       (selectedRepository &&
         newSelectedRepository &&
-        !structuralEquals(selectedRepository, newSelectedRepository)) ||
+        selectedRepository.hash !== newSelectedRepository.hash) ||
       (selectedRepository && !newSelectedRepository) ||
       (!selectedRepository && newSelectedRepository)
     if (repositoryChanged) {
