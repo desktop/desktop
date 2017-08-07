@@ -237,7 +237,6 @@ export class AppStore {
     })
 
     repositoriesStore.onDidUpdate(async () => {
-      console.info('repositories updated')
       const repositories = await this.repositoriesStore.getAll()
       this.repositories = repositories
       this.updateRepositorySelectionAfterRepositoriesChanged()
@@ -1436,8 +1435,6 @@ export class AppStore {
       // changed.
       return oldGitHubRepository ? repository : updatedRepository
     }
-
-    console.info(`branch from api: ${apiRepo.default_branch}`)
 
     const withUpdatedGitHubRepository = updatedRepository.withGitHubRepository(
       updatedGitHubRepository.withAPI(apiRepo)
