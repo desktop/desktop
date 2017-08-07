@@ -31,9 +31,14 @@ export async function getAvailableEditors(): Promise<
   const results: Array<FoundEditor> = []
 
   try {
-    // invoked without assigning the result so we verify the app is installed
-    await appPath('com.github.atom')
-    const shimPath = '/usr/local/bin/atom'
+    const installPath = await appPath('com.github.atom')
+    const shimPath = Path.join(
+      installPath,
+      'Contents',
+      'Resources',
+      'app',
+      'atom.sh'
+    )
     const exists = await pathExists(shimPath)
     if (exists) {
       results.push({ name: AtomLabel, path: shimPath })
@@ -47,9 +52,16 @@ export async function getAvailableEditors(): Promise<
   }
 
   try {
-    // invoked without assigning the result so we verify the app is installed
-    await appPath('com.microsoft.VSCode')
-    const shimPath = '/usr/local/bin/code'
+    const installPath = await appPath('com.microsoft.VSCode')
+    const shimPath = Path.join(
+      installPath,
+      'Contents',
+      'Resources',
+      'app',
+      'bin',
+      'code'
+    )
+
     const exists = await pathExists(shimPath)
     if (exists) {
       results.push({ name: VisualStudioCodeLabel, path: shimPath })
