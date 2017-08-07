@@ -86,7 +86,7 @@ export class GitStore {
 
   private readonly requestsInFight = new Set<string>()
 
-  public readonly repository: Repository
+  private readonly repository: Repository
 
   private _tip: Tip = { kind: TipState.Unknown }
 

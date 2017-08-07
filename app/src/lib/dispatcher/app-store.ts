@@ -518,8 +518,6 @@ export class AppStore {
 
   private getGitStore(repository: Repository): GitStore {
     let gitStore = this.gitStores.get(repository.hash)
-    // The repository might have changed in which case we need to throw out the
-    // old GitStore and make a new one.
     if (!gitStore) {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
