@@ -1,12 +1,12 @@
 import { spawn } from 'child_process'
 
 import { fatalError } from '../../lib/fatal-error'
-import { findApp } from './available-editors-darwin'
+import { findApp } from './darwin'
 import {
   findSublimeTextExecutable,
   findAtomExecutable,
   findCodeExecutable,
-} from './available-editors-win32'
+} from './win32'
 
 export type EditorLookup = {
   app: string
@@ -15,7 +15,7 @@ export type EditorLookup = {
 
 async function getAvailableEditorsDarwin(): Promise<
   ReadonlyArray<EditorLookup>
-> {
+  > {
   const atom = await findApp('com.github.atom', 'Atom')
   const code = await findApp('com.microsoft.VSCode', 'Visual Studio Code')
 
@@ -28,7 +28,7 @@ async function getAvailableEditorsDarwin(): Promise<
 
 async function getAvailableEditorsWindows(): Promise<
   ReadonlyArray<EditorLookup>
-> {
+  > {
   const atom = await findAtomExecutable()
     .catch(error => {
       log.debug('Unable to locate Atom installation', error)

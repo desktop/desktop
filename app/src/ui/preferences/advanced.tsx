@@ -5,7 +5,7 @@ import { LinkButton } from '../lib/link-button'
 import { Row } from '../../ui/lib/row'
 import { SamplesURL } from '../../lib/stats'
 import { Select } from '../lib/select'
-import { getAvailableEditors } from '../lib/available-editors'
+import { getAvailableEditors } from '../../lib/editors/lookup'
 
 interface IAdvancedPreferencesProps {
   readonly isOptedOut: boolean
@@ -26,7 +26,7 @@ interface IAdvancedPreferencesState {
 export class Advanced extends React.Component<
   IAdvancedPreferencesProps,
   IAdvancedPreferencesState
-> {
+  > {
   public constructor(props: IAdvancedPreferencesProps) {
     super(props)
 
