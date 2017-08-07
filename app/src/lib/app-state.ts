@@ -134,6 +134,9 @@ export interface IAppState {
 
   /** Whether we should show a confirmation dialog */
   readonly confirmRepoRemoval: boolean
+
+  /** The external editor to use when opening repositories */
+  readonly selectedExternalEditor: string
 }
 
 export enum PopupType {

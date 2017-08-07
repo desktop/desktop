@@ -10,6 +10,7 @@ import { getAvailableEditors } from '../lib/available-editors'
 interface IAdvancedPreferencesProps {
   readonly isOptedOut: boolean
   readonly confirmRepoRemoval: boolean
+  readonly selectedExternalEditor: string
   readonly onOptOutSet: (checked: boolean) => void
   readonly onConfirmRepoRemovalSet: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: string) => void
@@ -18,7 +19,7 @@ interface IAdvancedPreferencesProps {
 interface IAdvancedPreferencesState {
   readonly reportingOptOut: boolean
   readonly availableEditors?: ReadonlyArray<string>
-  readonly selectedEditor?: string
+  readonly selectedExternalEditor?: string
   readonly confirmRepoRemoval: boolean
 }
 
@@ -32,6 +33,7 @@ export class Advanced extends React.Component<
     this.state = {
       reportingOptOut: this.props.isOptedOut,
       confirmRepoRemoval: this.props.confirmRepoRemoval,
+      selectedExternalEditor: this.props.selectedExternalEditor,
     }
   }
 
@@ -63,6 +65,7 @@ export class Advanced extends React.Component<
     event: React.FormEvent<HTMLSelectElement>
   ) => {
     const value = event.currentTarget.value
+    this.setState({ selectedExternalEditor: value })
     this.props.onSelectedEditorChanged(value)
   }
 
@@ -77,13 +80,12 @@ export class Advanced extends React.Component<
 
   public render() {
     const options = this.state.availableEditors || []
-
     return (
       <DialogContent>
         <Row>
           <Select
             label={__DARWIN__ ? 'External Editor' : 'External editor'}
-            value={this.state.selectedEditor}
+            value={this.state.selectedExternalEditor}
             onChange={this.onSelectedEditorChanged}
           >
             {options.map(n =>

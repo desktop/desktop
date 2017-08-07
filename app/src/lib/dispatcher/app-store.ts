@@ -94,6 +94,9 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 const confirmRepoRemovalDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 
+const externalEditorDefault: string = 'Atom'
+const externalEditorKey: string = 'externalEditor'
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -161,6 +164,8 @@ export class AppStore {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
+
+  private selectedExternalEditor: string = externalEditorDefault
 
   private readonly statsStore: StatsStore
 
@@ -464,6 +469,7 @@ export class AppStore {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       confirmRepoRemoval: this.confirmRepoRemoval,
+      selectedExternalEditor: this.selectedExternalEditor,
     }
   }
 
@@ -2196,6 +2202,16 @@ export class AppStore {
   public _setConfirmRepoRemoval(confirmRepoRemoval: boolean): Promise<void> {
     this.confirmRepoRemoval = confirmRepoRemoval
     localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setExternalEditor(selectedEditor: string): Promise<void> {
+    console.debug(`setting editor: ${selectedEditor}`)
+
+    this.selectedExternalEditor = selectedEditor
+    localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
 
     return Promise.resolve()

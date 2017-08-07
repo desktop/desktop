@@ -823,6 +823,13 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference for an external program to open repositories in.
+   */
+  public setExternalEditor(value: string): Promise<void> {
+    return this.appStore._setExternalEditor(value)
+  }
+
+  /**
    * Reveals a file from a repository in the native file manager.
    * @param repository The currently active repository instance
    * @param path The path of the file relative to the root of the repository
