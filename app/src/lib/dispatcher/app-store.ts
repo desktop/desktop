@@ -173,8 +173,8 @@ export class AppStore {
 
   /** The function to resolve the current Open in Desktop flow. */
   private resolveOpenInDesktop:
-  | ((repository: Repository | null) => void)
-  | null = null
+    | ((repository: Repository | null) => void)
+    | null = null
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -821,17 +821,17 @@ export class AppStore {
     for (const account of accounts) {
       const userAssociations: ReadonlyArray<
         IGitHubUser
-        > = account.emails.map(email =>
-          // NB: We're not using object spread here because `account` has more
-          // keys than we want.
-          ({
-            endpoint: account.endpoint,
-            email: email.email,
-            login: account.login,
-            avatarURL: account.avatarURL,
-            name: account.name,
-          })
-        )
+      > = account.emails.map(email =>
+        // NB: We're not using object spread here because `account` has more
+        // keys than we want.
+        ({
+          endpoint: account.endpoint,
+          email: email.email,
+          login: account.login,
+          avatarURL: account.avatarURL,
+          name: account.name,
+        })
+      )
 
       for (const user of userAssociations) {
         this.gitHubUserStore.cacheUser(user)
@@ -857,9 +857,7 @@ export class AppStore {
     const externalEditorValue = localStorage.getItem(externalEditorKey)
 
     this.selectedExternalEditor =
-      externalEditorValue === null
-        ? externalEditorDefault
-        : externalEditorValue
+      externalEditorValue === null ? externalEditorDefault : externalEditorValue
 
     this.emitUpdateNow()
 

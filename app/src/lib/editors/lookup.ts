@@ -12,7 +12,7 @@ export type EditorLookup = {
 
 async function getAvailableEditorsDarwin(): Promise<
   ReadonlyArray<EditorLookup>
-  > {
+> {
   const atom = await findApp('com.github.atom', 'Atom')
   const code = await findApp('com.microsoft.VSCode', 'Visual Studio Code')
 
@@ -25,7 +25,7 @@ async function getAvailableEditorsDarwin(): Promise<
 
 async function getAvailableEditorsWindows(): Promise<
   ReadonlyArray<EditorLookup>
-  > {
+> {
   const atom = await findAtomExecutable()
     .catch(error => {
       log.debug('Unable to locate Atom installation', error)
@@ -71,4 +71,3 @@ export function getAvailableEditors(): Promise<ReadonlyArray<EditorLookup>> {
   )
   return Promise.resolve([])
 }
-
