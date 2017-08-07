@@ -83,6 +83,11 @@ export class Advanced extends React.Component<
     const label = __DARWIN__ ? 'External Editor' : 'External editor'
 
     if (options.length === 0) {
+      // this is emulating the <Select/> component's UI so the styles are
+      // consistent for either case.
+      //
+      // TODO: see whether it makes sense to have a fallback UI
+      // which we display when the select list is empty
       return (
         <div className="select-component">
           <label>
