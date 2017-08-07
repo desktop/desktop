@@ -854,6 +854,13 @@ export class AppStore {
         ? confirmRepoRemovalDefault
         : confirmRepoRemovalValue === '1'
 
+    const externalEditorValue = localStorage.getItem(externalEditorKey)
+
+    this.selectedExternalEditor =
+      externalEditorValue === null
+        ? externalEditorDefault
+        : externalEditorValue
+
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
