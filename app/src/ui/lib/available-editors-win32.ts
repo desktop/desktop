@@ -29,7 +29,7 @@ export function findAtomExecutable(): Promise<string> {
       }
 
       if (displayName === 'Atom' && publisher === 'GitHub Inc.') {
-        resolve(path.join(installLocation, 'atom.exe'))
+        resolve(path.join(installLocation, 'bin', 'atom.cmd'))
         return
       }
 
@@ -71,7 +71,7 @@ export function findCodeExecutable(): Promise<string> {
         displayName === 'Visual Studio Code' &&
         publisher === 'Microsoft Corporation'
       ) {
-        resolve(path.join(installLocation, 'Code.exe'))
+        resolve(path.join(installLocation, 'bin', 'code.cmd'))
         return
       }
 
