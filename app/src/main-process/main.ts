@@ -146,8 +146,26 @@ app.on('ready', () => {
 
   createWindow()
 
-  const menu = buildDefaultMenu()
+  let menu = buildDefaultMenu()
   Menu.setApplicationMenu(menu)
+
+  ipcMain.on(
+    'external-editor-changed',
+    (
+      event: Electron.IpcMessageEvent,
+      {
+        selectedEditor,
+      }: {
+        selectedEditor: string
+      }
+    ) => {
+      menu = buildDefaultMenu(selectedEditor)
+      Menu.setApplicationMenu(menu)
+      if (mainWindow) {
+        mainWindow.sendAppMenu()
+      }
+    }
+  )
 
   ipcMain.on('menu-event', (event: Electron.IpcMessageEvent, args: any[]) => {
     const { name }: { name: MenuEvent } = event as any

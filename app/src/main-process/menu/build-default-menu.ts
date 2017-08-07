@@ -5,7 +5,8 @@ import { getLogPath } from '../../lib/logging/get-log-path'
 import { mkdirIfNeeded } from '../../lib/file-system'
 import { log } from '../log'
 
-export function buildDefaultMenu(): Electron.Menu {
+export function buildDefaultMenu(selectedEditor?: string): Electron.Menu {
+  const editorLabel = selectedEditor || 'External Editor'
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
@@ -220,9 +221,7 @@ export function buildDefaultMenu(): Electron.Menu {
         click: emit('open-working-directory'),
       },
       {
-        label: __DARWIN__
-          ? 'Open in External Editor'
-          : 'Open in External Editor',
+        label: `Open in ${editorLabel}`,
         id: 'open-external-editor',
         accelerator: 'CmdOrCtrl+Shift+A',
         click: emit('open-external-editor'),
