@@ -76,7 +76,6 @@ import {
 } from '../git'
 
 import { openShell } from '../open-shell'
-// TODO: move these files under lib
 import { launchExternalEditor } from '../editors'
 import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
