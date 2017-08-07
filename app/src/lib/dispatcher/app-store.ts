@@ -104,7 +104,7 @@ export class AppStore {
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
 
-  private repositoryState = new Map<number, IRepositoryState>()
+  private repositoryState = new Map<string, IRepositoryState>()
   private showWelcomeFlow = false
 
   private currentPopup: Popup | null = null
@@ -351,7 +351,7 @@ export class AppStore {
 
   /** Get the state for the repository. */
   public getRepositoryState(repository: Repository): IRepositoryState {
-    let state = this.repositoryState.get(repository.id)
+    let state = this.repositoryState.get(repository.hash)
     if (state) {
       const gitHubUsers =
         this.gitHubUserStore.getUsersForRepository(repository) ||
@@ -360,7 +360,7 @@ export class AppStore {
     }
 
     state = this.getInitialRepositoryState()
-    this.repositoryState.set(repository.id, state)
+    this.repositoryState.set(repository.hash, state)
     return state
   }
 
@@ -370,7 +370,7 @@ export class AppStore {
   ) {
     const currentState = this.getRepositoryState(repository)
     const newValues = fn(currentState)
-    this.repositoryState.set(repository.id, merge(currentState, newValues))
+    this.repositoryState.set(repository.hash, merge(currentState, newValues))
   }
 
   private updateHistoryState<K extends keyof IHistoryState>(
