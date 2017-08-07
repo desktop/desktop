@@ -210,6 +210,7 @@ export function buildDefaultMenu(): Electron.Menu {
       {
         label: __DARWIN__ ? 'Open in Terminal' : 'Op&en command prompt',
         id: 'open-in-shell',
+        accelerator: 'Ctrl+`',
         click: emit('open-in-shell'),
       },
       {
