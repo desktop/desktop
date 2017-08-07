@@ -76,7 +76,6 @@ export class GitHubRepository {
       ${this.cloneURL}+
       ${this.fork}+
       ${this.name}+
-      ${this.owner}+
       ${this.htmlURL}+
       ${this.owner.hash}`
   }
