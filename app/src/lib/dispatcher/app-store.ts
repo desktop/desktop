@@ -2184,7 +2184,7 @@ export class AppStore {
   public _openInExternalEditor(path: string): Promise<void> {
     const state = this.getState()
     const program = state.selectedExternalEditor
-    return launchExternalEditor(path, program, this.emitError)
+    return launchExternalEditor(path, program, error => this.emitError(error))
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
