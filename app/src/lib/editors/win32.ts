@@ -45,7 +45,7 @@ export function findCodeExecutable(): Promise<string> {
     const regKey = new Registry({
       hive: Registry.HKLM,
       key:
-      '\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
+        '\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
     })
 
     regKey.values((err, items) => {
@@ -86,7 +86,7 @@ export function findSublimeTextExecutable(): Promise<string> {
     const regKey = new Registry({
       hive: Registry.HKLM,
       key:
-      '\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
+        '\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
     })
 
     regKey.values((err, items) => {
@@ -124,7 +124,7 @@ export function findSublimeTextExecutable(): Promise<string> {
 
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<FoundEditor>
-  > {
+> {
   const results: Array<FoundEditor> = []
 
   try {
