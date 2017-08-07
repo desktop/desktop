@@ -1,9 +1,18 @@
 import * as path from 'path'
 import * as Registry from 'winreg'
 
-import { FoundEditor } from './models'
+import {
+  FoundEditor,
+  AtomLabel,
+  VisualStudioCodeLabel,
+  SublimeTextLabel,
+} from './shared'
 
-export function findAtomExecutable(): Promise<string> {
+/**
+ * Find the Atom executable shim using the install information from the
+ * registry.
+ */
+function findAtomExecutable(): Promise<string> {
   return new Promise((resolve, reject) => {
     const regKey = new Registry({
       hive: Registry.HKCU,
@@ -40,7 +49,11 @@ export function findAtomExecutable(): Promise<string> {
   })
 }
 
-export function findCodeExecutable(): Promise<string> {
+/**
+ * Find the Visual Studio Code executable shim using the install information
+ * from the registry.
+ */
+function findCodeExecutable(): Promise<string> {
   return new Promise((resolve, reject) => {
     const regKey = new Registry({
       hive: Registry.HKLM,
@@ -81,6 +94,10 @@ export function findCodeExecutable(): Promise<string> {
   })
 }
 
+/**
+ * Find the Sublime Text executable shim using the install information from the
+ * registry.
+ */
 export function findSublimeTextExecutable(): Promise<string> {
   return new Promise((resolve, reject) => {
     const regKey = new Registry({
@@ -122,6 +139,10 @@ export function findSublimeTextExecutable(): Promise<string> {
   })
 }
 
+/**
+ * Lookup the known external editors using the Windows registry to find the
+ * installed applications and their location.
+ */
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<FoundEditor>
 > {
@@ -129,26 +150,23 @@ export async function getAvailableEditors(): Promise<
 
   try {
     const path = await findAtomExecutable()
-    const atom = { app: 'Atom', path }
-    results.push(atom)
+    results.push({ name: AtomLabel, path })
   } catch (error) {
-    log.debug('Unable to locate Atom installation', error)
+    log.debug(`Unable to locate ${AtomLabel} installation`, error)
   }
 
   try {
     const path = await findCodeExecutable()
-    const code = { app: 'Visual Studio Code', path }
-    results.push(code)
+    results.push({ name: VisualStudioCodeLabel, path })
   } catch (error) {
-    log.debug('Unable to locate VSCode installation', error)
+    log.debug(`Unable to locate ${VisualStudioCodeLabel} installation`, error)
   }
 
   try {
     const path = await findSublimeTextExecutable()
-    const sublime = { app: 'Sublime Text', exists: true, path }
-    results.push(sublime)
+    results.push({ name: SublimeTextLabel, path })
   } catch (error) {
-    log.debug('Unable to locate Sublime Text installation', error)
+    log.debug(`Unable to locate ${SublimeTextLabel} installation`, error)
   }
   return results
 }

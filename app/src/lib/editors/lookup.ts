@@ -1,13 +1,18 @@
-import { FoundEditor } from './models'
+import { FoundEditor } from './shared'
 import { getAvailableEditors as getAvailableEditorsDarwin } from './darwin'
 import { getAvailableEditors as getAvailableEditorsWindows } from './win32'
+import { fatalError } from '../fatal-error'
 
-let editorCache: ReadonlyArray<FoundEditor> = []
+let editorCache: ReadonlyArray<FoundEditor> | null = null
 
+/**
+ * Resolve a list of installed editors on the user's machine, using the known
+ * install identifiers that each OS supports.
+ */
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<FoundEditor>
 > {
-  if (editorCache.length > 0) {
+  if (editorCache && editorCache.length > 0) {
     return editorCache
   }
 
@@ -21,8 +26,7 @@ export async function getAvailableEditors(): Promise<
     return editorCache
   }
 
-  console.warn(
+  return fatalError(
     `Platform not currently supported for resolving editors: ${process.platform}`
   )
-  return editorCache
 }

@@ -1,8 +1,17 @@
-const appPath: (id: string) => Promise<string> = require('app-path')
-
 import * as Fs from 'fs'
+import * as Path from 'path'
 
-import { FoundEditor } from './models'
+/**
+ * appPath will raise an error if it cannot find the program.
+ */
+const appPath: (bundleId: string) => Promise<string> = require('app-path')
+
+import {
+  FoundEditor,
+  AtomLabel,
+  VisualStudioCodeLabel,
+  SublimeTextLabel,
+} from './shared'
 
 function pathExists(path: string): Promise<boolean> {
   return new Promise<boolean>((resolve, reject) => {
@@ -12,48 +21,60 @@ function pathExists(path: string): Promise<boolean> {
   })
 }
 
+/**
+ * Lookup the known external editors using the bundle ID that each uses
+ * to register itself on a user's machine.
+ */
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<FoundEditor>
-  > {
+> {
   const results: Array<FoundEditor> = []
 
-  const atomLabel = 'Atom'
-
   try {
+    // invoked without assigning the result so we verify the app is installed
     await appPath('com.github.atom')
-    const path = '/usr/local/bin/atom'
-    const exists = await pathExists(path)
+    const shimPath = '/usr/local/bin/atom'
+    const exists = await pathExists(shimPath)
     if (exists) {
-      results.push({ app: atomLabel, path })
+      results.push({ name: AtomLabel, path: shimPath })
     } else {
-      log.info(`Command line interface for ${atomLabel} not found at '${path}'`)
+      log.info(
+        `Command line interface for ${AtomLabel} not found at '${shimPath}'`
+      )
     }
   } catch (error) {
-    log.debug(`Unable to locate ${atomLabel} installation`, error)
+    log.debug(`Unable to locate ${AtomLabel} installation`, error)
   }
 
-  const codeLabel = 'Visual Studio Code'
   try {
+    // invoked without assigning the result so we verify the app is installed
     await appPath('com.microsoft.VSCode')
-    const path = '/usr/local/bin/code'
-    const exists = await pathExists(path)
+    const shimPath = '/usr/local/bin/code'
+    const exists = await pathExists(shimPath)
     if (exists) {
-      results.push({ app: codeLabel, path })
+      results.push({ name: VisualStudioCodeLabel, path: shimPath })
     } else {
-      log.info(`Command line interface for ${codeLabel} not found at '${path}'`)
+      log.info(
+        `Command line interface for ${VisualStudioCodeLabel} not found at '${shimPath}'`
+      )
     }
   } catch (error) {
-    log.debug(`Unable to locate ${codeLabel} installation`, error)
+    log.debug(`Unable to locate ${VisualStudioCodeLabel} installation`, error)
   }
 
-  const sublimeLabel = 'Sublime Text'
   try {
-    const path = await appPath('com.sublimetext.3')
-    // TODO: does a shim exist? what should I be invoking?
-    const sublime = { app: sublimeLabel, path }
+    const sublimeApp = await appPath('com.sublimetext.3')
+    const path = Path.join(
+      sublimeApp,
+      'Contents',
+      'SharedSupport',
+      'bin',
+      'subl'
+    )
+    const sublime = { name: SublimeTextLabel, path }
     results.push(sublime)
   } catch (error) {
-    log.debug(`Unable to locate ${codeLabel} installation`, error)
+    log.debug(`Unable to locate ${SublimeTextLabel} installation`, error)
   }
 
   return results

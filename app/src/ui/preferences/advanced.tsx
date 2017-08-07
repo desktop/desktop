@@ -39,7 +39,7 @@ export class Advanced extends React.Component<
 
   public async componentDidMount() {
     const availableEditors = await getAvailableEditors()
-    const editorLabels = availableEditors.map(editor => editor.app)
+    const editorLabels = availableEditors.map(editor => editor.name)
     this.setState({ availableEditors: editorLabels })
   }
 
