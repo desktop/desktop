@@ -136,7 +136,7 @@ function packageApp(
   })
 }
 
-const removeAndCopy = (source: string, destination: string) => {
+function removeAndCopy(source: string, destination: string) {
   fs.removeSync(destination)
   fs.copySync(source, destination)
 }
