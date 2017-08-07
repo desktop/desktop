@@ -1,6 +1,8 @@
 import * as path from 'path'
 import * as Registry from 'winreg'
 
+import { FoundEditor } from './models'
+
 export function findAtomExecutable(): Promise<string> {
   return new Promise((resolve, reject) => {
     const regKey = new Registry({
@@ -33,8 +35,7 @@ export function findAtomExecutable(): Promise<string> {
         return
       }
 
-      console.debug('Registry entry does not match expected settings for Atom')
-      resolve('')
+      reject('Registry entry does not match expected settings for Atom')
     })
   })
 }
@@ -44,7 +45,7 @@ export function findCodeExecutable(): Promise<string> {
     const regKey = new Registry({
       hive: Registry.HKLM,
       key:
-        '\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
+      '\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
     })
 
     regKey.values((err, items) => {
@@ -75,8 +76,7 @@ export function findCodeExecutable(): Promise<string> {
         return
       }
 
-      console.debug('Registry entry does not match expected settings for Atom')
-      resolve('')
+      reject('Registry entry does not match expected settings for VSCode')
     })
   })
 }
@@ -86,7 +86,7 @@ export function findSublimeTextExecutable(): Promise<string> {
     const regKey = new Registry({
       hive: Registry.HKLM,
       key:
-        '\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
+      '\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
     })
 
     regKey.values((err, items) => {
@@ -117,10 +117,38 @@ export function findSublimeTextExecutable(): Promise<string> {
         return
       }
 
-      console.debug(
-        'Registry entry does not match expected settings for Sublime Text'
-      )
-      resolve('')
+      reject('Registry entry does not match expected settings for Sublime Text')
     })
   })
+}
+
+export async function getAvailableEditors(): Promise<
+  ReadonlyArray<FoundEditor>
+  > {
+  const results: Array<FoundEditor> = []
+
+  try {
+    const path = await findAtomExecutable()
+    const atom = { app: 'Atom', path }
+    results.push(atom)
+  } catch (error) {
+    log.debug('Unable to locate Atom installation', error)
+  }
+
+  try {
+    const path = await findCodeExecutable()
+    const code = { app: 'Visual Studio Code', path }
+    results.push(code)
+  } catch (error) {
+    log.debug('Unable to locate VSCode installation', error)
+  }
+
+  try {
+    const path = await findSublimeTextExecutable()
+    const sublime = { app: 'Sublime Text', exists: true, path }
+    results.push(sublime)
+  } catch (error) {
+    log.debug('Unable to locate Sublime Text installation', error)
+  }
+  return results
 }
