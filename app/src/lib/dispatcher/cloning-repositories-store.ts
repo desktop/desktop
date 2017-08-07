@@ -24,6 +24,11 @@ export class CloningRepository {
     return Path.basename(this.path)
   }
 
+  /**
+   * A hash of the properties of the object.
+   *
+   * Objects with the same hash are guaranteed to be structurally equal.
+   */
   public get hash(): string {
     return `${this.id}+${this.path}+${this.url}`
   }
