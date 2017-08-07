@@ -10,6 +10,8 @@ export type EditorLookup = {
   path: string
 }
 
+let editorCache: ReadonlyArray<EditorLookup> = []
+
 async function getAvailableEditorsDarwin(): Promise<
   ReadonlyArray<EditorLookup>
 > {
@@ -57,17 +59,25 @@ async function getAvailableEditorsWindows(): Promise<
   return results.filter(result => result.path !== '')
 }
 
-export function getAvailableEditors(): Promise<ReadonlyArray<EditorLookup>> {
+export async function getAvailableEditors(): Promise<
+  ReadonlyArray<EditorLookup>
+> {
+  if (editorCache.length > 0) {
+    return editorCache
+  }
+
   if (__DARWIN__) {
-    return getAvailableEditorsDarwin()
+    editorCache = await getAvailableEditorsDarwin()
+    return editorCache
   }
 
   if (__WIN32__) {
-    return getAvailableEditorsWindows()
+    editorCache = await getAvailableEditorsWindows()
+    return editorCache
   }
 
   console.warn(
     `Platform not currently supported for resolving editors: ${process.platform}`
   )
-  return Promise.resolve([])
+  return editorCache
 }
