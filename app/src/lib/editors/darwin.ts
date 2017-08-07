@@ -1,4 +1,3 @@
-import * as Fs from 'fs'
 import * as Path from 'path'
 
 /**
@@ -8,18 +7,11 @@ const appPath: (bundleId: string) => Promise<string> = require('app-path')
 
 import {
   FoundEditor,
+  pathExists,
   AtomLabel,
   VisualStudioCodeLabel,
   SublimeTextLabel,
 } from './shared'
-
-function pathExists(path: string): Promise<boolean> {
-  return new Promise<boolean>((resolve, reject) => {
-    Fs.exists(path, exists => {
-      resolve(exists)
-    })
-  })
-}
 
 /**
  * Lookup the known external editors using the bundle ID that each uses

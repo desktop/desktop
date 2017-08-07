@@ -1,23 +1,9 @@
 import { spawn } from 'child_process'
 
 import { getAvailableEditors } from './lookup'
+import { pathExists } from './shared'
 
 import { fatalError } from '../../lib/fatal-error'
-
-/**
- * Get the executable path to launch for a given editor, or null if it cannot
- * be found.
- *
- * @param externalEditor Friendly name for the editor.
- */
-async function getPathToEditor(externalEditor: string): Promise<string | null> {
-  const programs = await getAvailableEditors()
-  const match = programs.find(p => p.name === externalEditor)
-  if (match) {
-    return match.path
-  }
-  return null
-}
 
 /**
  * Open a given folder in the external editor.
@@ -28,20 +14,38 @@ async function getPathToEditor(externalEditor: string): Promise<string | null> {
  */
 export async function launchExternalEditor(
   path: string,
-  externalEditor: string
+  externalEditor: string,
+  onError: (error: Error) => void
 ): Promise<void> {
-  const editorPath = await getPathToEditor(externalEditor)
-
-  if (editorPath === null) {
-    console.warn(`Unable to find path for ${externalEditor}`)
+  const editors = await getAvailableEditors()
+  if (editors.length === 0) {
+    onError(new Error('No editors installed, install Atom?'))
     return
   }
 
-  if (__WIN32__ || __DARWIN__) {
-    // all tested editors support passing the folder name as the first argument
-    spawn(editorPath, [path])
+  const match = editors.find(p => p.name === externalEditor)
+  if (!match) {
+    onError(new Error(`Could not find editor '${externalEditor}', what to do?`))
     return
   }
 
-  return fatalError('Unsupported OS')
+  const editorPath = match.path
+  const exists = await pathExists(editorPath)
+  if (exists) {
+    if (__WIN32__ || __DARWIN__) {
+      spawn(editorPath, [path])
+    } else {
+      onError(
+        new Error(
+          `Open in External Editor has not been implemented for platform: '${process.platform}'`
+        )
+      )
+    }
+  } else {
+    onError(
+      new Error(
+        `Could not find executable for '${externalEditor}' at path '${match.path}'`
+      )
+    )
+  }
 }
