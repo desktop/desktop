@@ -224,6 +224,7 @@ export function buildDefaultMenu(): Electron.Menu {
           ? 'Open in External Editor'
           : 'Open in External Editor',
         id: 'open-external-editor',
+        accelerator: 'CmdOrCtrl+Shift+A',
         click: emit('open-external-editor'),
       },
       separator,
