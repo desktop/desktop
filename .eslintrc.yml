@@ -23,6 +23,7 @@ rules:
   typescript/interface-name-prefix:
     - error
     - always
+  typescript/no-angle-bracket-type-assertion: error
   typescript/explicit-member-accessibility: error
   typescript/no-unused-vars: error
   typescript/no-use-before-define:

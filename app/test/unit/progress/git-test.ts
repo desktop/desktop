@@ -72,14 +72,14 @@ describe('GitProgressParser', () => {
     const result = parse('remote: Counting objects: 167587')
 
     expect(result).to.deep.equal(
-      <IGitProgressInfo>{
+      {
         title: 'remote: Counting objects',
         text: 'remote: Counting objects: 167587',
         value: 167587,
         done: false,
         percent: undefined,
         total: undefined,
-      }
+      } as IGitProgressInfo
     )
   })
 
@@ -87,14 +87,14 @@ describe('GitProgressParser', () => {
     const result = parse('remote: Counting objects: 167587, done.')
 
     expect(result).to.deep.equal(
-      <IGitProgressInfo>{
+      {
         title: 'remote: Counting objects',
         text: 'remote: Counting objects: 167587, done.',
         value: 167587,
         done: true,
         percent: undefined,
         total: undefined,
-      }
+      } as IGitProgressInfo
     )
   })
 
@@ -102,14 +102,14 @@ describe('GitProgressParser', () => {
     const result = parse('remote: Compressing objects:  72% (16/22)')
 
     expect(result).to.deep.equal(
-      <IGitProgressInfo>{
+      {
         title: 'remote: Compressing objects',
         text: 'remote: Compressing objects:  72% (16/22)',
         value: 16,
         done: false,
         percent: 72,
         total: 22,
-      }
+      } as IGitProgressInfo
     )
   })
 
@@ -117,14 +117,14 @@ describe('GitProgressParser', () => {
     const result = parse('remote: Compressing objects: 100% (22/22), done.')
 
     expect(result).to.deep.equal(
-      <IGitProgressInfo>{
+      {
         title: 'remote: Compressing objects',
         text: 'remote: Compressing objects: 100% (22/22), done.',
         value: 22,
         done: true,
         percent: 100,
         total: 22,
-      }
+      } as IGitProgressInfo
     )
   })
 
@@ -134,7 +134,7 @@ describe('GitProgressParser', () => {
     )
 
     expect(result).to.deep.equal(
-      <IGitProgressInfo>{
+      {
         title: 'Receiving objects',
         text:
           'Receiving objects:  99% (166741/167587), 267.24 MiB | 2.40 MiB/s',
@@ -142,7 +142,7 @@ describe('GitProgressParser', () => {
         done: false,
         percent: 99,
         total: 167587,
-      }
+      } as IGitProgressInfo
     )
   })
 
@@ -152,7 +152,7 @@ describe('GitProgressParser', () => {
     )
 
     expect(result).to.deep.equal(
-      <IGitProgressInfo>{
+      {
         title: 'Receiving objects',
         text:
           'Receiving objects: 100% (167587/167587), 279.67 MiB | 2.43 MiB/s, done.',
@@ -160,7 +160,7 @@ describe('GitProgressParser', () => {
         done: true,
         percent: 100,
         total: 167587,
-      }
+      } as IGitProgressInfo
     )
   })
 
