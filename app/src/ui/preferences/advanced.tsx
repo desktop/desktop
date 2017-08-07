@@ -78,22 +78,44 @@ export class Advanced extends React.Component<
     )
   }
 
-  public render() {
+  private renderExternalEditor() {
     const options = this.state.availableEditors || []
+    const label = __DARWIN__ ? 'External Editor' : 'External editor'
+
+    if (options.length === 0) {
+      return (
+        <div className="select-component">
+          <label>
+            {label}
+          </label>
+          <span>
+            No editors found.{' '}
+            <LinkButton uri="https://atom.io/">Install Atom?</LinkButton>
+          </span>
+        </div>
+      )
+    }
+
+    return (
+      <Select
+        label={label}
+        value={this.state.selectedExternalEditor}
+        onChange={this.onSelectedEditorChanged}
+      >
+        {options.map(n =>
+          <option key={n} value={n}>
+            {n}
+          </option>
+        )}
+      </Select>
+    )
+  }
+
+  public render() {
     return (
       <DialogContent>
         <Row>
-          <Select
-            label={__DARWIN__ ? 'External Editor' : 'External editor'}
-            value={this.state.selectedExternalEditor}
-            onChange={this.onSelectedEditorChanged}
-          >
-            {options.map(n =>
-              <option key={n} value={n}>
-                {n}
-              </option>
-            )}
-          </Select>
+          {this.renderExternalEditor()}
         </Row>
         <Row>
           <Checkbox
