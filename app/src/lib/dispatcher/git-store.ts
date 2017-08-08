@@ -13,6 +13,7 @@ import { IAppShell } from '../../lib/dispatcher/app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
 import { structuralEquals } from '../../lib/equality'
 import { compare } from '../../lib/compare'
+import { queueWorkHigh } from '../../lib/queue-work'
 
 import {
   reset,
@@ -29,11 +30,13 @@ import {
   getCommits,
   merge,
   setRemoteURL,
-  removeFromIndex,
-  checkoutPaths,
   getStatus,
   IStatusResult,
   getCommit,
+  IndexStatus,
+  getIndexChanges,
+  checkoutIndex,
+  resetPaths,
   getConfigValue,
   revertCommit,
 } from '../git'
@@ -47,25 +50,6 @@ const LoadingHistoryRequestKey = 'history'
 
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
-
-/** File statuses which indicate the file exists on disk. */
-const OnDiskStatuses = new Set([
-  AppFileStatus.New,
-  AppFileStatus.Modified,
-  AppFileStatus.Renamed,
-  AppFileStatus.Conflicted,
-])
-
-/**
- * File statuses which indicate the file has previously been committed to the
- * repository.
- */
-const CommittedStatuses = new Set([
-  AppFileStatus.Modified,
-  AppFileStatus.Deleted,
-  AppFileStatus.Renamed,
-  AppFileStatus.Conflicted,
-])
 
 /** A commit message summary and description. */
 export interface ICommitMessage {
@@ -795,55 +779,79 @@ export class GitStore {
       repository
     )
     await this.saveGitIgnore(newText)
-
-    await removeFromIndex(this.repository, pattern)
   }
 
   public async discardChanges(
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<void> {
-    const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
-    const absolutePaths = onDiskFiles.map(f =>
-      Path.join(this.repository.path, f.path)
-    )
-    for (const path of absolutePaths) {
-      this.shell.moveItemToTrash(path)
-    }
+    const pathsToCheckout = new Array<string>()
+    const pathsToReset = new Array<string>()
 
-    const touchesGitIgnore = files.some(
-      f => Path.basename(f.path) === '.gitignore'
-    )
-    if (touchesGitIgnore && this.tip.kind === TipState.Valid) {
-      const ref = await this.tip.branch.name
-      await this.performFailableOperation(() =>
-        reset(this.repository, GitResetMode.Mixed, ref)
-      )
-    }
+    await queueWorkHigh(files, async file => {
+      if (file.status !== AppFileStatus.Deleted) {
+        // N.B. moveItemToTrash is synchronous can take a fair bit of time
+        // which is why we're running it inside this work queue that spreads
+        // out the calls across as many animation frames as it needs to.
+        this.shell.moveItemToTrash(
+          Path.resolve(this.repository.path, file.path)
+        )
+      }
 
-    const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
+      if (
+        file.status === AppFileStatus.Copied ||
+        file.status === AppFileStatus.Renamed
+      ) {
+        // file.path is the "destination" or "new" file in a copy or rename.
+        // we've already deleted it so all we need to do is make sure the
+        // index forgets about it.
+        pathsToReset.push(file.path)
 
-    if (modifiedFiles.length) {
-      // in case any files have been staged outside Desktop - renames and copies do this by default
-      await this.performFailableOperation(() =>
-        reset(this.repository, GitResetMode.Mixed, 'HEAD')
-      )
-
-      const pathsToCheckout = modifiedFiles.map(f => {
-        if (
-          f.status === AppFileStatus.Copied ||
-          f.status === AppFileStatus.Renamed
-        ) {
-          // because of the above reset, we now need to discard the old path for these
-          return f.oldPath!
-        } else {
-          return f.path
+        // Checkout the old path though
+        if (file.oldPath) {
+          pathsToCheckout.push(file.oldPath)
+          pathsToReset.push(file.oldPath)
         }
-      })
+      } else {
+        pathsToCheckout.push(file.path)
+        pathsToReset.push(file.path)
+      }
+    })
 
-      await this.performFailableOperation(() =>
-        checkoutPaths(this.repository, pathsToCheckout)
+    // Check the index to see which files actually have changes there as compared to HEAD
+    const changedFilesInIndex = await getIndexChanges(this.repository)
+
+    // Only reset paths if they have changes in the index
+    const necessaryPathsToReset = pathsToReset.filter(x =>
+      changedFilesInIndex.has(x)
+    )
+
+    // Don't attempt to checkout files that doesn't exist in the index after our reset.
+    const necessaryPathsToCheckout = pathsToCheckout.filter(
+      x => changedFilesInIndex.get(x) !== IndexStatus.Added
+    )
+
+    // We're trying to not invoke git linearly with the number of files to discard
+    // so we're doing our discards in three conceptual steps.
+    //
+    // 1. Figure out what the index thinks has changed as compared to the previous
+    //    commit. For users who exclusive interact with Git using Desktop this will
+    //    almost always empty which, as it turns out, is great for us.
+    //
+    // 2. Figure out if any of the files that we've been asked to discard are changed
+    //    in the index and if so, reset them such that the index is set up just as
+    //    the previous commit for the paths we're discarding.
+    //
+    // 3. Checkout all the files that we've discarded that existed in the previous
+    //    commit from the index.
+    await this.performFailableOperation(async () => {
+      await resetPaths(
+        this.repository,
+        GitResetMode.Mixed,
+        'HEAD',
+        necessaryPathsToReset
       )
-    }
+      await checkoutIndex(this.repository, necessaryPathsToCheckout)
+    })
   }
 
   /** Load the contextual commit message if there is one. */
