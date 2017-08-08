@@ -826,7 +826,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="delete-branch"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
-            accounts={this.state.accounts}
             branch={popup.branch}
             onDismissed={this.onPopupDismissed}
           />
