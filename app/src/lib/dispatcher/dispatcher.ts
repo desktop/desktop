@@ -386,15 +386,9 @@ export class Dispatcher {
   public deleteBranch(
     repository: Repository,
     branch: Branch,
-    account: Account | null,
     includeRemote: boolean
   ): Promise<void> {
-    return this.appStore._deleteBranch(
-      repository,
-      branch,
-      account,
-      includeRemote
-    )
+    return this.appStore._deleteBranch(repository, branch, includeRemote)
   }
 
   /** Discard the changes to the given files. */
