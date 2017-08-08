@@ -4,6 +4,9 @@ async function awaitAnimationFrame(): Promise<number> {
   })
 }
 
+/** The amount of time in milliseconds that we'll dedicate to queued work. */
+const WorkWindowMs = 10
+
 /**
  * Split up high-priority synchronous work items across multiple animation frames.
  *
@@ -38,6 +41,6 @@ export async function queueWorkHigh<T>(
       // ensure we get an awaitable promise back.
       await Promise.resolve(worker(next.value))
       next = iterator.next()
-    } while (!next.done && performance.now() - start < 10)
+    } while (!next.done && performance.now() - start < WorkWindowMs)
   }
 }
