@@ -94,11 +94,12 @@ export class DeleteBranch extends React.Component<
   }
 
   private deleteBranch = async () => {
-    this.props.dispatcher.deleteBranch(
+    await this.props.dispatcher.deleteBranch(
       this.props.repository,
       this.props.branch,
       this.state.includeRemoteBranch
     )
-    this.props.dispatcher.closePopup()
+
+    return this.props.dispatcher.closePopup()
   }
 }
