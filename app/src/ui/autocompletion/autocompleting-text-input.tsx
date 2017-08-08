@@ -240,13 +240,18 @@ export abstract class AutocompletingTextInput<
       React.HTMLAttributes<ElementType>,
       ElementType
     >(this.getElementTagName(), {
-      ref: this.onRef,
       type: 'text',
       placeholder: this.props.placeholder,
       value: this.props.value,
+      ref: this.onRef,
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
+      onBlur: this.onBlur,
     })
+  }
+
+  private onBlur = (e: React.FocusEvent<ElementType>) => {
+    this.close()
   }
 
   private onRef = (ref: ElementType | null) => {
@@ -291,7 +296,7 @@ export abstract class AutocompletingTextInput<
       this.props.onValueChanged(newText)
     }
 
-    this.setState({ autocompletionState: null })
+    this.close()
   }
 
   private getMovementDirection(
@@ -355,8 +360,12 @@ export abstract class AutocompletingTextInput<
         this.insertCompletion(item)
       }
     } else if (event.key === 'Escape') {
-      this.setState({ autocompletionState: null })
+      this.close()
     }
+  }
+
+  private close() {
+    this.setState({ autocompletionState: null })
   }
 
   private async attemptAutocompletion(
