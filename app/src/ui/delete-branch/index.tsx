@@ -5,7 +5,9 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Ref } from '../lib/ref'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -14,7 +16,22 @@ interface IDeleteBranchProps {
   readonly onDismissed: () => void
 }
 
-export class DeleteBranch extends React.Component<IDeleteBranchProps, {}> {
+interface IDeleteBranchState {
+  readonly includeRemoteBranch: boolean
+}
+
+export class DeleteBranch extends React.Component<
+  IDeleteBranchProps,
+  IDeleteBranchState
+> {
+  public constructor(props: IDeleteBranchProps) {
+    super(props)
+
+    this.state = {
+      includeRemoteBranch: false,
+    }
+  }
+
   public render() {
     return (
       <Dialog
@@ -25,9 +42,12 @@ export class DeleteBranch extends React.Component<IDeleteBranchProps, {}> {
       >
         <DialogContent>
           <p>
-            Delete branch "{this.props.branch.name}"?
+            Delete branch <Ref>{this.props.branch.name}</Ref>?
+            <br />
+            This action cannot be undone.
           </p>
-          <p>This cannot be undone.</p>
+
+          {this.renderDeleteOnRemote()}
         </DialogContent>
         <DialogFooter>
           <ButtonGroup destructive={true}>
@@ -39,8 +59,47 @@ export class DeleteBranch extends React.Component<IDeleteBranchProps, {}> {
     )
   }
 
+  private renderDeleteOnRemote() {
+    if (this.props.branch.remote) {
+      return (
+        <div>
+          <p>
+            <strong>
+              The branch also exists on the remote, do you wish to delete it
+              there as well?
+            </strong>
+          </p>
+          <Checkbox
+            label="Yes, delete this branch on the remote"
+            value={
+              this.state.includeRemoteBranch
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onIncludeRemoteChanged}
+          />
+        </div>
+      )
+    }
+
+    return null
+  }
+
+  private onIncludeRemoteChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ includeRemoteBranch: value })
+  }
+
   private deleteBranch = () => {
-    this.props.dispatcher.deleteBranch(this.props.repository, this.props.branch)
-    this.props.dispatcher.closePopup()
+    this.props.dispatcher.deleteBranch(
+      this.props.repository,
+      this.props.branch,
+      this.state.includeRemoteBranch
+    )
+
+    return this.props.dispatcher.closePopup()
   }
 }
