@@ -1519,28 +1519,29 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _deleteBranch(repository: Repository, branch: Branch): Promise<void> {
-    return this.withAuthenticatingUser(
-      repository,
-      async (repository, account) => {
-        const defaultBranch = this.getRepositoryState(repository).branchesState
-          .defaultBranch
-        if (!defaultBranch) {
-          throw new Error(`No default branch!`)
-        }
-
-        const gitStore = this.getGitStore(repository)
-
-        await gitStore.performFailableOperation(() =>
-          checkoutBranch(repository, defaultBranch.name)
-        )
-        await gitStore.performFailableOperation(() =>
-          deleteBranch(repository, branch, account)
-        )
-
-        return this._refreshRepository(repository)
+  public async _deleteBranch(
+    repository: Repository,
+    branch: Branch,
+    includeRemote: boolean
+  ): Promise<void> {
+    return this.withAuthenticatingUser(repository, async (repo, account) => {
+      const defaultBranch = this.getRepositoryState(repository).branchesState
+        .defaultBranch
+      if (!defaultBranch) {
+        throw new Error(`No default branch!`)
       }
-    )
+
+      const gitStore = this.getGitStore(repository)
+
+      await gitStore.performFailableOperation(() =>
+        checkoutBranch(repository, defaultBranch.name)
+      )
+      await gitStore.performFailableOperation(() =>
+        deleteBranch(repository, branch, account, includeRemote)
+      )
+
+      return this._refreshRepository(repository)
+    })
   }
 
   private updatePushPullFetchProgress(

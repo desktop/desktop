@@ -23,29 +23,43 @@ describe('GitStore', () => {
     const repo = await setupEmptyRepository()
     const gitStore = new GitStore(repo, shell)
 
-    const file = 'README.md'
-    const filePath = Path.join(repo.path, file)
+    const readmeFile = 'README.md'
+    const readmeFilePath = Path.join(repo.path, readmeFile)
 
-    Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+    Fs.writeFileSync(readmeFilePath, 'SOME WORDS GO HERE\n')
 
-    // commit the file
-    await GitProcess.exec(['add', file], repo.path)
-    await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
+    const licenseFile = 'LICENSE.md'
+    const licenseFilePath = Path.join(repo.path, licenseFile)
 
-    Fs.writeFileSync(filePath, 'WRITING SOME NEW WORDS\n')
+    Fs.writeFileSync(licenseFilePath, 'SOME WORDS GO HERE\n')
+
+    // commit the readme file but leave the license
+    await GitProcess.exec(['add', readmeFile], repo.path)
+    await GitProcess.exec(['commit', '-m', 'added readme file'], repo.path)
+
+    Fs.writeFileSync(readmeFilePath, 'WRITING SOME NEW WORDS\n')
 
     // setup requires knowing about the current tip
     await gitStore.loadStatus()
-
-    // ignore the file
-    await gitStore.ignore(file)
 
     let status = await getStatus(repo)
     let files = status.workingDirectory.files
 
     expect(files.length).to.equal(2)
     expect(files[0].path).to.equal('README.md')
-    expect(files[0].status).to.equal(AppFileStatus.Deleted)
+    expect(files[0].status).to.equal(AppFileStatus.Modified)
+    expect(files[1].path).to.equal('LICENSE.md')
+    expect(files[1].status).to.equal(AppFileStatus.New)
+
+    // ignore the file
+    await gitStore.ignore(licenseFile)
+
+    status = await getStatus(repo)
+    files = status.workingDirectory.files
+
+    expect(files.length).to.equal(2)
+    expect(files[0].path).to.equal('README.md')
+    expect(files[0].status).to.equal(AppFileStatus.Modified)
     expect(files[1].path).to.equal('.gitignore')
     expect(files[1].status).to.equal(AppFileStatus.New)
 
@@ -56,9 +70,11 @@ describe('GitStore', () => {
     status = await getStatus(repo)
     files = status.workingDirectory.files
 
-    expect(files.length).to.equal(1)
+    expect(files.length).to.equal(2)
     expect(files[0].path).to.equal('README.md')
     expect(files[0].status).to.equal(AppFileStatus.Modified)
+    expect(files[1].path).to.equal('LICENSE.md')
+    expect(files[1].status).to.equal(AppFileStatus.New)
   })
 
   it('can discard a renamed file', async () => {
