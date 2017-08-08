@@ -24,6 +24,7 @@ interface IHistoryProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly commitSummaryWidth: number
   readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly onViewCommitOnGitHub: (SHA: string) => void
 }
 
 interface IHistoryState {
@@ -96,10 +97,8 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
 
     return (
       <CommitSummary
-        summary={commit.summary}
-        body={commit.body}
-        sha={commit.sha}
-        author={commit.author}
+        dispatcher={this.props.dispatcher}
+        commit={commit}
         files={this.props.history.changedFiles}
         emoji={this.props.emoji}
         repository={this.props.repository}
@@ -107,6 +106,7 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
         gitHubUser={gitHubUser}
         onExpandChanged={this.onExpandChanged}
         isExpanded={this.state.isExpanded}
+        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
     )
   }
