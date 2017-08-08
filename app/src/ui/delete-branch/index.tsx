@@ -60,7 +60,7 @@ export class DeleteBranch extends React.Component<
   }
 
   private renderDeleteOnRemote() {
-    if (!!this.props.branch.remote) {
+    if (this.props.branch.remote) {
       return (
         <div>
           <p>
@@ -93,8 +93,8 @@ export class DeleteBranch extends React.Component<
     this.setState({ includeRemoteBranch: value })
   }
 
-  private deleteBranch = async () => {
-    await this.props.dispatcher.deleteBranch(
+  private deleteBranch = () => {
+    this.props.dispatcher.deleteBranch(
       this.props.repository,
       this.props.branch,
       this.state.includeRemoteBranch
