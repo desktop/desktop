@@ -7,14 +7,12 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Account } from '../../models/account'
 import { Ref } from '../lib/ref'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly accounts: ReadonlyArray<Account>
   readonly branch: Branch
   readonly onDismissed: () => void
 }
