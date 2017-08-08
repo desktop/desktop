@@ -1,7 +1,6 @@
 import { FoundEditor, ExternalEditorError } from './shared'
 import { getAvailableEditors as getAvailableEditorsDarwin } from './darwin'
 import { getAvailableEditors as getAvailableEditorsWindows } from './win32'
-import { fatalError } from '../fatal-error'
 
 let editorCache: ReadonlyArray<FoundEditor> | null = null
 
@@ -26,7 +25,7 @@ export async function getAvailableEditors(): Promise<
     return editorCache
   }
 
-  return fatalError(
+  return Promise.reject(
     `Platform not currently supported for resolving editors: ${process.platform}`
   )
 }
