@@ -236,14 +236,21 @@ export abstract class AutocompletingTextInput<
   protected abstract getElementTagName(): 'textarea' | 'input'
 
   private renderTextInput() {
-    return React.createElement<any, any>(this.getElementTagName(), {
-      ref: (ref: ElementType) => (this.element = ref),
+    return React.createElement<
+      React.HTMLAttributes<ElementType>,
+      ElementType
+    >(this.getElementTagName(), {
+      ref: this.onRef,
       type: 'text',
       placeholder: this.props.placeholder,
       value: this.props.value,
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
     })
+  }
+
+  private onRef = (ref: ElementType | null) => {
+    this.element = ref
   }
 
   public render() {
