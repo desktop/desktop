@@ -8,7 +8,6 @@ import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
-import { findAccountForRemoteURL } from '../../lib/find-account'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -95,17 +94,6 @@ export class DeleteBranch extends React.Component<
   }
 
   private deleteBranch = async () => {
-    const repo = this.props.repository.gitHubRepository
-    let account: Account | null = null
-
-    if (!!repo) {
-      const url = repo.cloneURL
-
-      if (!!url) {
-        account = await findAccountForRemoteURL(url, this.props.accounts)
-      }
-    }
-
     this.props.dispatcher.deleteBranch(
       this.props.repository,
       this.props.branch,
