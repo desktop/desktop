@@ -844,6 +844,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <Preferences
             key="preferences"
+            initialFocusTab={popup.initialFocusTab}
             dispatcher={this.props.dispatcher}
             dotComAccount={this.getDotComAccount()}
             confirmRepoRemoval={this.state.confirmRepoRemoval}

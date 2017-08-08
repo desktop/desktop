@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
+import { PreferencesTab } from '../../models/preferences'
 import { Dispatcher } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
@@ -22,12 +23,7 @@ interface IPreferencesProps {
   readonly onDismissed: () => void
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepoRemoval: boolean
-}
-
-enum PreferencesTab {
-  Accounts = 0,
-  Git,
-  Advanced,
+  readonly initialFocusTab?: PreferencesTab
 }
 
 interface IPreferencesState {
@@ -47,7 +43,7 @@ export class Preferences extends React.Component<
     super(props)
 
     this.state = {
-      selectedIndex: PreferencesTab.Accounts,
+      selectedIndex: this.props.initialFocusTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
       isOptedOut: false,
