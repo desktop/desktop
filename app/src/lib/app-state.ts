@@ -168,7 +168,7 @@ export type Popup =
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
     }
-  | { type: PopupType.Preferences; initialFocusTab?: PreferencesTab }
+  | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | { type: PopupType.MergeBranch; repository: Repository }
   | { type: PopupType.RepositorySettings; repository: Repository }
   | { type: PopupType.AddRepository; path?: string }

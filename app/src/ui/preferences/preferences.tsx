@@ -23,7 +23,7 @@ interface IPreferencesProps {
   readonly onDismissed: () => void
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepoRemoval: boolean
-  readonly initialFocusTab?: PreferencesTab
+  readonly initialSelectedTab?: PreferencesTab
 }
 
 interface IPreferencesState {
@@ -43,7 +43,7 @@ export class Preferences extends React.Component<
     super(props)
 
     this.state = {
-      selectedIndex: this.props.initialFocusTab || PreferencesTab.Accounts,
+      selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
       isOptedOut: false,
