@@ -111,7 +111,6 @@ export class DeleteBranch extends React.Component<
     this.props.dispatcher.deleteBranch(
       this.props.repository,
       this.props.branch,
-      account,
       this.state.includeRemoteBranch
     )
     this.props.dispatcher.closePopup()
