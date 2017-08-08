@@ -1,6 +1,9 @@
 import * as React from 'react'
 
-import { Dialog, DialogContent } from '../dialog'
+import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { shell } from '../../lib/dispatcher/app-shell'
 
 interface IEditorErrorProps {
   /**
@@ -8,6 +11,22 @@ interface IEditorErrorProps {
    * ways described in the Dialog component's dismissable prop.
    */
   readonly onDismissed: () => void
+
+  /**
+   * Event to trigger if the user navigates to the Preferences dialog
+   */
+  readonly showPreferencesDialog: () => void
+
+  /**
+   * The text to display to the user relating to this error.
+   */
+  readonly message: string
+
+  /** Render the "Install Atom" link as the default action */
+  readonly suggestAtom?: boolean
+
+  /** Render the "Open Preferences" link as the default action */
+  readonly viewPreferences?: boolean
 }
 
 /**
@@ -19,22 +38,60 @@ export class EditorError extends React.Component<IEditorErrorProps, {}> {
     super(props)
   }
 
+  private onExternalLink = () => {
+    const url = `https://atom.io/`
+    shell.openExternal(url)
+  }
+
+  private onShowPreferencesDialog = () => {
+    this.props.onDismissed()
+    this.props.showPreferencesDialog()
+  }
+
   public render() {
+    const title = __DARWIN__
+      ? 'Unable to Open External Editor'
+      : 'Unable to open external editor'
+
+    let buttonGroup: JSX.Element | null = null
+    if (this.props.viewPreferences) {
+      buttonGroup = (
+        <ButtonGroup>
+          <Button type="submit" onClick={this.props.onDismissed}>
+            Close
+          </Button>
+          <Button onClick={this.onShowPreferencesDialog}>
+            {__DARWIN__ ? 'Open Preferences' : 'Open options'}
+          </Button>
+        </ButtonGroup>
+      )
+    } else if (this.props.suggestAtom) {
+      buttonGroup = (
+        <ButtonGroup>
+          <Button type="submit" onClick={this.props.onDismissed}>
+            Close
+          </Button>
+          <Button onClick={this.onExternalLink}>'Download Atom'</Button>
+        </ButtonGroup>
+      )
+    }
+
     return (
       <Dialog
         id="external-editor-error"
-        type="warning"
-        title={
-          __DARWIN__
-            ? 'Unable to Open External Editor'
-            : 'Unable to open external editor'
-        }
+        type="error"
+        title={title}
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          <p>Something broke with the editor, lol.</p>
+          <p>
+            {this.props.message}
+          </p>
         </DialogContent>
+        <DialogFooter>
+          {buttonGroup}
+        </DialogFooter>
       </Dialog>
     )
   }

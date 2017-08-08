@@ -28,12 +28,10 @@ export async function launchExternalEditor(
 
   const match = editors.find(p => p.name === externalEditor)
   if (!match) {
-    onError(
-      new ExternalEditorError(
-        `The editor '${externalEditor}' could not be found. Please open Preferences and choose an available editor.`,
-        { openPreferences: true }
-      )
-    )
+    const menuItemName = __DARWIN__ ? 'Preferences' : 'Options'
+    const message = `The editor '${externalEditor}' could not be found. Please open ${menuItemName} and choose an available editor.`
+
+    onError(new ExternalEditorError(message, { openPreferences: true }))
     return
   }
 

@@ -179,6 +179,7 @@ export async function externalEditorErrorHandler(
 
   await dispatcher.showPopup({
     type: PopupType.ExternalEditorFailed,
+    message: e.message,
     suggestAtom,
     openPreferences,
   })

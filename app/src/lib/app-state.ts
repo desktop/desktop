@@ -205,6 +205,7 @@ export type Popup =
     }
   | {
       type: PopupType.ExternalEditorFailed
+      message: string
       suggestAtom?: boolean
       openPreferences?: boolean
     }

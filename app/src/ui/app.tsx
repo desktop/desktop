@@ -1042,7 +1042,25 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.ExternalEditorFailed:
-        return <EditorError key="about" onDismissed={this.onPopupDismissed} />
+        const openPreferences = popup.openPreferences
+        const suggestAtom = popup.suggestAtom
+        const showPreferencesDialog = () => {
+          // TODO: focus on the Advanced tab
+          this.props.dispatcher.showPopup({
+            type: PopupType.Preferences,
+          })
+        }
+
+        return (
+          <EditorError
+            key="about"
+            message={popup.message}
+            onDismissed={this.onPopupDismissed}
+            showPreferencesDialog={showPreferencesDialog}
+            viewPreferences={openPreferences}
+            suggestAtom={suggestAtom}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
