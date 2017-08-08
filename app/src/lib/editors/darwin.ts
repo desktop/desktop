@@ -141,3 +141,26 @@ export async function getAvailableEditors(): Promise<
 
   return results
 }
+
+/**
+ * Find the first editor that exists on the user's machine, or return null if
+ * no matches are found.
+ */
+export async function getFirstEditorOrDefault(): Promise<FoundEditor | null> {
+  const atom = await findAtomApplication()
+  if (atom.installed && atom.pathExists) {
+    return { name: atom.name, path: atom.path }
+  }
+
+  const code = await findCodeApplication()
+  if (code.installed && code.pathExists) {
+    return { name: code.name, path: code.path }
+  }
+
+  const sublime = await findSublimeTextApplication()
+  if (sublime.installed && sublime.pathExists) {
+    return { name: sublime.name, path: sublime.path }
+  }
+
+  return null
+}

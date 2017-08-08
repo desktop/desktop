@@ -1,6 +1,12 @@
 import { FoundEditor, ExternalEditorError } from './shared'
-import { getAvailableEditors as getAvailableEditorsDarwin } from './darwin'
-import { getAvailableEditors as getAvailableEditorsWindows } from './win32'
+import {
+  getAvailableEditors as getAvailableEditorsDarwin,
+  getFirstEditorOrDefault as getFirstEditorOrDefaultDarwin,
+} from './darwin'
+import {
+  getAvailableEditors as getAvailableEditorsWindows,
+  getFirstEditorOrDefault as getFirstEditorOrDefaultWindows,
+} from './win32'
 
 let editorCache: ReadonlyArray<FoundEditor> | null = null
 
@@ -30,6 +36,31 @@ export async function getAvailableEditors(): Promise<
   )
 }
 
+/**
+ * Find the first editor that exists on the user's machine, or return null if
+ * no matches are found.
+ */
+export function getFirstEditorOrDefault(): Promise<FoundEditor | null> {
+  if (__DARWIN__) {
+    return getFirstEditorOrDefaultDarwin()
+  }
+
+  if (__WIN32__) {
+    return getFirstEditorOrDefaultWindows()
+  }
+
+  return Promise.reject(
+    `Platform not currently supported for resolving editors: ${process.platform}`
+  )
+}
+
+/**
+ * Find an editor installed on the machine using the friendly name, or the
+ * first valid editor if `null` is provided.
+ *
+ * Will throw an error if no editors are found, or if the editor name cannot
+ * be found (i.e. it has been removed).
+ */
 export async function findEditorOrDefault(
   name: string | null
 ): Promise<FoundEditor> {
