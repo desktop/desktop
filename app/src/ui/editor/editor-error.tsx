@@ -71,7 +71,7 @@ export class EditorError extends React.Component<IEditorErrorProps, {}> {
           <Button type="submit" onClick={this.props.onDismissed}>
             Close
           </Button>
-          <Button onClick={this.onExternalLink}>'Download Atom'</Button>
+          <Button onClick={this.onExternalLink}>Download Atom</Button>
         </ButtonGroup>
       )
     }
