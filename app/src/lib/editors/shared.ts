@@ -1,5 +1,25 @@
 import * as Fs from 'fs'
 
+type ProgramNotFound = {
+  name: string
+  installed: false
+}
+
+type ProgramMissing = {
+  name: string
+  installed: true
+  pathExists: false
+}
+
+type ProgramFound = {
+  name: string
+  installed: true
+  pathExists: true
+  path: string
+}
+
+export type LookupResult = ProgramNotFound | ProgramMissing | ProgramFound
+
 /**
  * A found external editor on the user's machine
  */

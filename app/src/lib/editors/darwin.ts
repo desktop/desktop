@@ -6,32 +6,13 @@ import * as Path from 'path'
 const appPath: (bundleId: string) => Promise<string> = require('app-path')
 
 import {
+  LookupResult,
   FoundEditor,
   pathExists,
   AtomLabel,
   VisualStudioCodeLabel,
   SublimeTextLabel,
 } from './shared'
-
-type ProgramNotFound = {
-  name: string
-  installed: false
-}
-
-type ProgramMissing = {
-  name: string
-  installed: true
-  pathExists: false
-}
-
-type ProgramFound = {
-  name: string
-  installed: true
-  pathExists: true
-  path: string
-}
-
-type LookupResult = ProgramNotFound | ProgramMissing | ProgramFound
 
 async function findAtomApplication(): Promise<LookupResult> {
   const name = AtomLabel
@@ -61,7 +42,7 @@ async function findAtomApplication(): Promise<LookupResult> {
       path,
     }
   } catch (error) {
-    log.debug(`Unable to locate ${AtomLabel} installation`, error)
+    log.debug(`Unable to locate ${name} installation`, error)
     return { name, installed: false }
   }
 }

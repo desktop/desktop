@@ -1,27 +1,31 @@
-import * as path from 'path'
+import * as Path from 'path'
 import * as Registry from 'winreg'
 
 import {
+  LookupResult,
   FoundEditor,
   AtomLabel,
   VisualStudioCodeLabel,
   SublimeTextLabel,
+  pathExists,
 } from './shared'
 
 /**
  * Find the Atom executable shim using the install information from the
  * registry.
  */
-function findAtomExecutable(): Promise<string> {
-  return new Promise((resolve, reject) => {
+function findAtomApplication(): Promise<LookupResult> {
+  return new Promise<LookupResult>((resolve, reject) => {
+    const name = AtomLabel
     const regKey = new Registry({
       hive: Registry.HKCU,
       key: '\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
     })
 
-    regKey.values((err, items) => {
-      if (err) {
-        reject(err)
+    regKey.values((error, items) => {
+      if (error) {
+        log.debug(`Unable to locate ${name} installation`, error)
+        resolve({ name, installed: false })
         return
       }
 
@@ -39,12 +43,39 @@ function findAtomExecutable(): Promise<string> {
         }
       }
 
-      if (displayName === 'Atom' && publisher === 'GitHub Inc.') {
-        resolve(path.join(installLocation, 'bin', 'atom.cmd'))
+      const isExpectedInstall =
+        displayName === 'Atom' && publisher === 'GitHub Inc.'
+
+      if (!isExpectedInstall) {
+        log.debug(
+          `Registry entry for ${name} did not match expected publisher settings`
+        )
+        resolve({
+          name,
+          installed: true,
+          pathExists: false,
+        })
         return
       }
 
-      reject('Registry entry does not match expected settings for Atom')
+      const path = Path.join(installLocation, 'bin', 'atom.cmd')
+      pathExists(path).then(exists => {
+        if (!exists) {
+          log.debug(`Command line interface for ${name} not found at '${path}'`)
+          resolve({
+            name,
+            installed: true,
+            pathExists: false,
+          })
+        } else {
+          resolve({
+            name,
+            installed: true,
+            pathExists: true,
+            path,
+          })
+        }
+      })
     })
   })
 }
@@ -53,17 +84,19 @@ function findAtomExecutable(): Promise<string> {
  * Find the Visual Studio Code executable shim using the install information
  * from the registry.
  */
-function findCodeExecutable(): Promise<string> {
-  return new Promise((resolve, reject) => {
+function findCodeApplication(): Promise<LookupResult> {
+  return new Promise<LookupResult>((resolve, reject) => {
+    const name = VisualStudioCodeLabel
     const regKey = new Registry({
       hive: Registry.HKLM,
       key:
         '\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
     })
 
-    regKey.values((err, items) => {
-      if (err) {
-        reject(err)
+    regKey.values((error, items) => {
+      if (error) {
+        log.debug(`Unable to locate ${name} installation`, error)
+        resolve({ name, installed: false })
         return
       }
 
@@ -81,15 +114,40 @@ function findCodeExecutable(): Promise<string> {
         }
       }
 
-      if (
+      const isExpectedInstall =
         displayName === 'Visual Studio Code' &&
         publisher === 'Microsoft Corporation'
-      ) {
-        resolve(path.join(installLocation, 'bin', 'code.cmd'))
+
+      if (!isExpectedInstall) {
+        log.debug(
+          `Registry entry for ${name} did not match expected publisher settings`
+        )
+        resolve({
+          name,
+          installed: true,
+          pathExists: false,
+        })
         return
       }
 
-      reject('Registry entry does not match expected settings for VSCode')
+      const path = Path.join(installLocation, 'bin', 'code.cmd')
+      pathExists(path).then(exists => {
+        if (!exists) {
+          log.debug(`Command line interface for ${name} not found at '${path}'`)
+          resolve({
+            name,
+            installed: true,
+            pathExists: false,
+          })
+        } else {
+          resolve({
+            name,
+            installed: true,
+            pathExists: true,
+            path,
+          })
+        }
+      })
     })
   })
 }
@@ -98,17 +156,20 @@ function findCodeExecutable(): Promise<string> {
  * Find the Sublime Text executable shim using the install information from the
  * registry.
  */
-export function findSublimeTextExecutable(): Promise<string> {
+export function findSublimeTextApplication(): Promise<LookupResult> {
   return new Promise((resolve, reject) => {
+    const name = SublimeTextLabel
+
     const regKey = new Registry({
       hive: Registry.HKLM,
       key:
         '\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
     })
 
-    regKey.values((err, items) => {
-      if (err) {
-        reject(err)
+    regKey.values((error, items) => {
+      if (error) {
+        log.debug(`Unable to locate ${name} installation`, error)
+        resolve({ name, installed: false })
         return
       }
 
@@ -126,15 +187,39 @@ export function findSublimeTextExecutable(): Promise<string> {
         }
       }
 
-      if (
-        displayName === 'Sublime Text' &&
-        publisher === 'Sublime HQ Pty Ltd'
-      ) {
-        resolve(path.join(installLocation, 'sublime_text.exe'))
+      const expectedInstall =
+        displayName === 'Sublime Text' && publisher === 'Sublime HQ Pty Ltd'
+
+      if (!expectedInstall) {
+        log.debug(
+          `Registry entry for ${name} did not match expected publisher settings`
+        )
+        resolve({
+          name,
+          installed: true,
+          pathExists: false,
+        })
         return
       }
 
-      reject('Registry entry does not match expected settings for Sublime Text')
+      const path = Path.join(installLocation, 'subl.exe')
+      pathExists(path).then(exists => {
+        if (!exists) {
+          log.debug(`Command line interface for ${name} not found at '${path}'`)
+          resolve({
+            name,
+            installed: true,
+            pathExists: false,
+          })
+        } else {
+          resolve({
+            name,
+            installed: true,
+            pathExists: true,
+            path,
+          })
+        }
+      })
     })
   })
 }
@@ -148,25 +233,20 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<FoundEditor> = []
 
-  try {
-    const path = await findAtomExecutable()
-    results.push({ name: AtomLabel, path })
-  } catch (error) {
-    log.debug(`Unable to locate ${AtomLabel} installation`, error)
+  const atom = await findAtomApplication()
+  if (atom.installed && atom.pathExists) {
+    results.push({ name: atom.name, path: atom.path })
   }
 
-  try {
-    const path = await findCodeExecutable()
-    results.push({ name: VisualStudioCodeLabel, path })
-  } catch (error) {
-    log.debug(`Unable to locate ${VisualStudioCodeLabel} installation`, error)
+  const code = await findCodeApplication()
+  if (code.installed && code.pathExists) {
+    results.push({ name: code.name, path: code.path })
   }
 
-  try {
-    const path = await findSublimeTextExecutable()
-    results.push({ name: SublimeTextLabel, path })
-  } catch (error) {
-    log.debug(`Unable to locate ${SublimeTextLabel} installation`, error)
+  const sublime = await findSublimeTextApplication()
+  if (sublime.installed && sublime.pathExists) {
+    results.push({ name: sublime.name, path: sublime.path })
   }
+
   return results
 }
