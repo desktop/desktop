@@ -27,7 +27,6 @@ export async function launchExternalEditor(
   }
 
   throw new ExternalEditorError(
-    `'Open in External Editor' has not been implemented for platform: '${process.platform}'`,
-    {}
+    `'Open in External Editor' has not been implemented for platform: '${process.platform}'`
   )
 }
