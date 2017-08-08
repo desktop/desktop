@@ -119,7 +119,7 @@ async function findSublimeTextApplication(): Promise<LookupResult> {
  */
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<FoundEditor>
-  > {
+> {
   const results: Array<FoundEditor> = []
 
   const [atom, code, sublime] = await Promise.all([
