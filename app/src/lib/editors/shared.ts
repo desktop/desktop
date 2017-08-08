@@ -46,8 +46,12 @@ export const SublimeTextLabel = 'Sublime Text'
  */
 export function pathExists(path: string): Promise<boolean> {
   return new Promise<boolean>((resolve, reject) => {
-    Fs.exists(path, exists => {
-      resolve(exists)
+    Fs.stat(path, (error, stats) => {
+      if (error) {
+        resolve(false)
+      } else {
+        resolve(true)
+      }
     })
   })
 }
