@@ -1510,25 +1510,26 @@ export class AppStore {
   public async _deleteBranch(
     repository: Repository,
     branch: Branch,
-    account: Account | null,
     includeRemote: boolean
   ): Promise<void> {
-    const defaultBranch = this.getRepositoryState(repository).branchesState
-      .defaultBranch
-    if (!defaultBranch) {
-      throw new Error(`No default branch!`)
-    }
+    return this.withAuthenticatingUser(repository, async (repo, account) => {
+      const defaultBranch = this.getRepositoryState(repository).branchesState
+        .defaultBranch
+      if (!defaultBranch) {
+        throw new Error(`No default branch!`)
+      }
 
-    const gitStore = this.getGitStore(repository)
+      const gitStore = this.getGitStore(repository)
 
-    await gitStore.performFailableOperation(() =>
-      checkoutBranch(repository, defaultBranch.name)
-    )
-    await gitStore.performFailableOperation(() =>
-      deleteBranch(repository, branch, account, includeRemote)
-    )
+      await gitStore.performFailableOperation(() =>
+        checkoutBranch(repository, defaultBranch.name)
+      )
+      await gitStore.performFailableOperation(() =>
+        deleteBranch(repository, branch, account, includeRemote)
+      )
 
-    return this._refreshRepository(repository)
+      return this._refreshRepository(repository)
+    })
   }
 
   private updatePushPullFetchProgress(
