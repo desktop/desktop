@@ -81,7 +81,7 @@ export async function getIndexChanges(
   let result = await git(
     [...args, 'HEAD'],
     repository.path,
-    'getChangedPathsInIndex',
+    'getIndexChanges',
     {
       successExitCodes: new Set([0, 128]),
     }
@@ -94,7 +94,7 @@ export async function getIndexChanges(
     result = await git(
       [...args, '4b825dc642cb6eb9a060e54bf8d69288fbee4904'],
       repository.path,
-      'getChangedPathsInIndex'
+      'getIndexChanges'
     )
   }
 
