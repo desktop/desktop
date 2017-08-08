@@ -1,4 +1,4 @@
-import { FoundEditor } from './shared'
+import { FoundEditor, ExternalEditorError } from './shared'
 import { getAvailableEditors as getAvailableEditorsDarwin } from './darwin'
 import { getAvailableEditors as getAvailableEditorsWindows } from './win32'
 import { fatalError } from '../fatal-error'
@@ -29,4 +29,30 @@ export async function getAvailableEditors(): Promise<
   return fatalError(
     `Platform not currently supported for resolving editors: ${process.platform}`
   )
+}
+
+export async function findEditorOrDefault(
+  name: string | null
+): Promise<FoundEditor> {
+  const editors = await getAvailableEditors()
+  if (editors.length === 0) {
+    throw new ExternalEditorError(
+      'No suitable editors installed for GitHub Desktop to launch.',
+      { suggestAtom: true }
+    )
+  }
+
+  if (name === null) {
+    return editors[0]
+  }
+
+  const match = editors.find(p => p.name === name) || null
+  if (!match) {
+    const menuItemName = __DARWIN__ ? 'Preferences' : 'Options'
+    const message = `The editor '${name}' could not be found. Please open ${menuItemName} and choose an available editor.`
+
+    throw new ExternalEditorError(message, { openPreferences: true })
+  }
+
+  return match
 }

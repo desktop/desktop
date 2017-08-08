@@ -83,6 +83,7 @@ import { validatedRepositoryPath } from './validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { RetryActionType, RetryAction } from '../retry-actions'
+import { findEditorOrDefault } from '../editors'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -2181,10 +2182,15 @@ export class AppStore {
   }
 
   /** Takes a URL and opens it using the system default application */
-  public _openInExternalEditor(path: string): Promise<void> {
+  public async _openInExternalEditor(path: string): Promise<void> {
     const state = this.getState()
-    const program = state.selectedExternalEditor
-    return launchExternalEditor(path, program, error => this.emitError(error))
+    const selectedEditor = state.selectedExternalEditor
+    try {
+      const match = await findEditorOrDefault(selectedEditor)
+      return launchExternalEditor(path, match)
+    } catch (error) {
+      this.emitError(error)
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

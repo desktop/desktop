@@ -44,7 +44,7 @@ export class ExternalEditorError extends Error {
   /** The error's metadata. */
   public readonly metadata: IErrorMetadata
 
-  public constructor(message: string, metadata: IErrorMetadata) {
+  public constructor(message: string, metadata: IErrorMetadata = {}) {
     super(message)
 
     this.metadata = metadata
