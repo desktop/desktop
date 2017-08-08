@@ -55,6 +55,7 @@ import {
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { InstallGit } from './install-git'
+import { EditorError } from './editor'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
 import { shell } from '../lib/dispatcher/app-shell'
@@ -1040,6 +1041,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             retryAction={popup.retryAction}
           />
         )
+      case PopupType.ExternalEditorFailed:
+        return <EditorError key="about" onDismissed={this.onPopupDismissed} />
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }

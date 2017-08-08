@@ -31,3 +31,22 @@ export function pathExists(path: string): Promise<boolean> {
     })
   })
 }
+
+interface IErrorMetadata {
+  /** The error dialog should link off to the Atom website */
+  suggestAtom?: boolean
+
+  /** The error dialog should direct the user to open Preferences */
+  openPreferences?: boolean
+}
+
+export class ExternalEditorError extends Error {
+  /** The error's metadata. */
+  public readonly metadata: IErrorMetadata
+
+  public constructor(message: string, metadata: IErrorMetadata) {
+    super(message)
+
+    this.metadata = metadata
+  }
+}

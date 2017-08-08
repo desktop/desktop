@@ -161,6 +161,7 @@ export enum PopupType {
   PushBranchCommits,
   CLIInstalled,
   GenericGitAuthentication,
+  ExternalEditorFailed,
 }
 
 export type Popup =
@@ -201,6 +202,11 @@ export type Popup =
       type: PopupType.GenericGitAuthentication
       hostname: string
       retryAction: RetryAction
+    }
+  | {
+      type: PopupType.ExternalEditorFailed
+      suggestAtom?: boolean
+      openPreferences?: boolean
     }
 
 export enum FoldoutType {

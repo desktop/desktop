@@ -1,7 +1,7 @@
 import { spawn } from 'child_process'
 
 import { getAvailableEditors } from './lookup'
-import { pathExists } from './shared'
+import { pathExists, ExternalEditorError } from './shared'
 
 /**
  * Open a given folder in the external editor.
@@ -17,13 +17,23 @@ export async function launchExternalEditor(
 ): Promise<void> {
   const editors = await getAvailableEditors()
   if (editors.length === 0) {
-    onError(new Error('No editors installed, install Atom?'))
+    onError(
+      new ExternalEditorError(
+        'No suitable editors installed for GitHub Desktop to launch',
+        { suggestAtom: true }
+      )
+    )
     return
   }
 
   const match = editors.find(p => p.name === externalEditor)
   if (!match) {
-    onError(new Error(`Could not find editor '${externalEditor}', what to do?`))
+    onError(
+      new ExternalEditorError(
+        `The editor '${externalEditor}' could not be found. Please open Preferences and choose an available editor.`,
+        { openPreferences: true }
+      )
+    )
     return
   }
 
@@ -34,15 +44,17 @@ export async function launchExternalEditor(
       spawn(editorPath, [path])
     } else {
       onError(
-        new Error(
-          `Open in External Editor has not been implemented for platform: '${process.platform}'`
+        new ExternalEditorError(
+          `'Open in External Editor' has not been implemented for platform: '${process.platform}'`,
+          {}
         )
       )
     }
   } else {
     onError(
-      new Error(
-        `Could not find executable for '${externalEditor}' at path '${match.path}'`
+      new ExternalEditorError(
+        `Could not find executable for '${externalEditor}' at path '${match.path}'.  Please open Preferences and choose an available editor.`,
+        { openPreferences: true }
       )
     )
   }

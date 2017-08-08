@@ -5,8 +5,10 @@ import {
   RepositoryDoesNotExistErrorCode,
 } from 'dugite'
 import { ErrorWithMetadata } from '../error-with-metadata'
+import { ExternalEditorError } from '../editors/shared'
 import { AuthenticationErrors } from '../git/authentication'
 import { Repository } from '../../models/repository'
+import { PopupType } from '../../lib/app-state'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -44,6 +46,13 @@ function asGitError(error: Error): GitError | null {
   } else {
     return null
   }
+}
+
+function asEditorError(error: Error): ExternalEditorError | null {
+  if (error instanceof ExternalEditorError) {
+    return error
+  }
+  return null
 }
 
 /** Handle errors by presenting them. */
@@ -153,6 +162,26 @@ export async function gitAuthenticationErrorHandler(
   }
 
   await dispatcher.promptForGenericGitAuthentication(repository, retry)
+
+  return null
+}
+
+export async function externalEditorErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asEditorError(error)
+  if (!e) {
+    return error
+  }
+
+  const { suggestAtom, openPreferences } = e.metadata
+
+  await dispatcher.showPopup({
+    type: PopupType.ExternalEditorFailed,
+    suggestAtom,
+    openPreferences,
+  })
 
   return null
 }
