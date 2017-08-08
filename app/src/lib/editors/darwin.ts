@@ -79,7 +79,7 @@ async function findCodeApplication(): Promise<LookupResult> {
   }
 }
 
-async function findSublimeApplication(): Promise<LookupResult> {
+async function findSublimeTextApplication(): Promise<LookupResult> {
   const name = SublimeTextLabel
   try {
     const sublimeApp = await appPath('com.sublimetext.3')
@@ -121,17 +121,20 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<FoundEditor> = []
 
-  const atom = await findAtomApplication()
+  const [atom, code, sublime] = await Promise.all([
+    findAtomApplication(),
+    findCodeApplication(),
+    findSublimeTextApplication(),
+  ])
+
   if (atom.installed && atom.pathExists) {
     results.push({ name: atom.name, path: atom.path })
   }
 
-  const code = await findCodeApplication()
   if (code.installed && code.pathExists) {
     results.push({ name: code.name, path: code.path })
   }
 
-  const sublime = await findSublimeApplication()
   if (sublime.installed && sublime.pathExists) {
     results.push({ name: sublime.name, path: sublime.path })
   }
