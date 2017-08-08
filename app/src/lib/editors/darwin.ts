@@ -50,13 +50,14 @@ async function findAtomApplication(): Promise<LookupResult> {
 async function findCodeApplication(): Promise<LookupResult> {
   const name = VisualStudioCodeLabel
   try {
-    const installPath = await appPath('com.github.atom')
+    const installPath = await appPath('com.microsoft.VSCode')
     const path = Path.join(
       installPath,
       'Contents',
       'Resources',
       'app',
-      'atom.sh'
+      'bin',
+      'code'
     )
     const exists = await pathExists(path)
     if (!exists) {
@@ -118,7 +119,7 @@ async function findSublimeTextApplication(): Promise<LookupResult> {
  */
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<FoundEditor>
-> {
+  > {
   const results: Array<FoundEditor> = []
 
   const [atom, code, sublime] = await Promise.all([
