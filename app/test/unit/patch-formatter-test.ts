@@ -325,40 +325,37 @@ describe('patch formatting', () => {
       expect(patch).to.have.string('+added line 2')
     })
 
-    it.only(
-      'creates the right patch when a `No newline` marker is involved',
-      async () => {
-        const rawDiff = [
-          '--- a/file.md',
-          '+++ b/file.md',
-          '@@ -23,5 +24,5 @@ and more stuff',
-          ' ',
-          ' ',
-          ' ',
-          '-',
-          '-and fun stuff? I dnno',
-          '\\ No newline at end of file',
-          '+and fun stuff? I dnno',
-          '+it could be,',
-        ].join('\n')
-        const diff = await parseDiff(rawDiff)
+    it('creates the right patch when a `No newline` marker is involved', async () => {
+      const rawDiff = [
+        '--- a/file.md',
+        '+++ b/file.md',
+        '@@ -23,5 +24,5 @@ and more stuff',
+        ' ',
+        ' ',
+        ' ',
+        '-',
+        '-and fun stuff? I dnno',
+        '\\ No newline at end of file',
+        '+and fun stuff? I dnno',
+        '+it could be,',
+      ].join('\n')
+      const diff = await parseDiff(rawDiff)
 
-        // Select the second added line
-        const selection = DiffSelection.fromInitialSelection(
-          DiffSelectionType.None
-        ).withLineSelection(7, true)
+      // Select the second added line
+      const selection = DiffSelection.fromInitialSelection(
+        DiffSelectionType.None
+      ).withLineSelection(7, true)
 
-        const file = new WorkingDirectoryFileChange(
-          'file.md',
-          AppFileStatus.Modified,
-          selection
-        )
+      const file = new WorkingDirectoryFileChange(
+        'file.md',
+        AppFileStatus.Modified,
+        selection
+      )
 
-        const patch = formatPatch(file, diff)
+      const patch = formatPatch(file, diff)
 
-        expect(patch).to.contain('\\ No newline at end of file')
-        expect(patch).to.contain('+it could be')
-      }
-    )
+      expect(patch).to.contain('\\ No newline at end of file')
+      expect(patch).to.contain('+it could be')
+    })
   })
 })
