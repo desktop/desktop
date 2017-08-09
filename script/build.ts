@@ -62,6 +62,18 @@ updateLicenseDump(err => {
   })
 })
 
+/**
+ * The additional packager options not included in the existing typing.
+ *
+ * See https://github.com/desktop/desktop/issues/2429 for some history on this.
+ */
+interface IPackageAdditionalOptions {
+  readonly protocols: ReadonlyArray<{
+    readonly name: string
+    schemes: ReadonlyArray<string>
+  }>
+}
+
 function packageApp(
   callback: (error: Error | null, appPaths: string | string[]) => void
 ) {
@@ -76,7 +88,7 @@ function packageApp(
     )
   }
 
-  const options: packager.Options = {
+  const options: packager.Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: 'x64',
@@ -100,21 +112,17 @@ function packageApp(
     appBundleId: distInfo.getBundleID(),
     appCategoryType: 'public.app-category.developer-tools',
     osxSign: true,
-
-    // because `protocols` is an internal data structure to electron-packager
-    // we need to provide two arrays of entries that will get merged as part
-    // of the packaging proess
-    protocolName: [
-      distInfo.getBundleID(),
-      distInfo.getBundleID(),
-      distInfo.getBundleID(),
-    ],
-    protocol: [
-      isPublishableBuild
-        ? 'x-github-desktop-auth'
-        : 'x-github-desktop-dev-auth',
-      'x-github-client',
-      'github-mac',
+    protocols: [
+      {
+        name: distInfo.getBundleID(),
+        schemes: [
+          isPublishableBuild
+            ? 'x-github-desktop-auth'
+            : 'x-github-desktop-dev-auth',
+          'x-github-client',
+          'github-mac',
+        ],
+      },
     ],
 
     // Windows
