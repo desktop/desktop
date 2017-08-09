@@ -23,7 +23,7 @@
     "compile:tslint": "tsc -p tslint-rules",
     "lint": "npm run compile:tslint && npm run tslint && npm run eslint-check && npm run eslint",
     "tslint": "tslint ./tslint-rules/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
-    "eslint": "eslint --rulesdir=./eslint-rules --ext=.js,.ts,.jsx,.tsx ./eslint-rules ./tslint-rules/*.ts ./app/{src,typings,test}",
+    "eslint": "ts-node script/eslint",
     "eslint-check": "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
@@ -112,6 +112,7 @@
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
     "@types/winston": "^2.2.0",
+    "eslint_d": "^5.1.0",
     "prettier": "^1.5.0",
     "tslint-config-prettier": "^1.1.0",
     "tslint-react": "^3.0.0"
