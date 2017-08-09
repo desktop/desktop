@@ -17,6 +17,7 @@ import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
 import { RetryAction } from './retry-actions'
+import { PreferencesTab } from '../models/preferences'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -167,7 +168,7 @@ export type Popup =
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
     }
-  | { type: PopupType.Preferences }
+  | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | { type: PopupType.MergeBranch; repository: Repository }
   | { type: PopupType.RepositorySettings; repository: Repository }
   | { type: PopupType.AddRepository; path?: string }
