@@ -67,9 +67,7 @@ describe('GitProgressParser', () => {
 
     expect(result.kind).to.equal('context')
   })
-})
 
-describe('progress parser', () => {
   it('parses progress with no total', () => {
     const result = parse('remote: Counting objects: 167587')
 
