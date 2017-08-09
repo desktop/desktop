@@ -10,28 +10,28 @@ export type CommandHandler = (args: mriArgv, argv: StringArray) => void
 export { mriArgv }
 
 export interface IOption {
-  type: TypeName
-  aliases?: StringArray
-  description: string
-  default?: any
+  readonly type: TypeName
+  readonly aliases?: StringArray
+  readonly description: string
+  readonly default?: any
 }
 
 interface IArgument {
-  name: string
-  required: boolean
-  description: string
-  type: TypeName
+  readonly name: string
+  readonly required: boolean
+  readonly description: string
+  readonly type: TypeName
 }
 
 export interface ICommandModule {
   name?: string
-  command: string
-  description: string
-  handler: CommandHandler
-  aliases?: StringArray
-  options?: { [flag: string]: IOption }
-  args?: ReadonlyArray<IArgument>
-  unknownOptionHandler?: (flag: string) => void
+  readonly command: string
+  readonly description: string
+  readonly handler: CommandHandler
+  readonly aliases?: StringArray
+  readonly options?: { [flag: string]: IOption }
+  readonly args?: ReadonlyArray<IArgument>
+  readonly unknownOptionHandler?: (flag: string) => void
 }
 
 const loadModule: (name: string) => ICommandModule = name =>
