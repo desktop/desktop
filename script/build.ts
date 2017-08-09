@@ -70,7 +70,7 @@ updateLicenseDump(err => {
 interface IPackageAdditionalOptions {
   readonly protocols: ReadonlyArray<{
     readonly name: string
-    schemes: ReadonlyArray<string>
+    readonly schemes: ReadonlyArray<string>
   }>
 }
 
