@@ -8,19 +8,23 @@ interface IOpenArgs extends mriArgv {
 }
 
 const command: ICommandModule = {
-  command: 'open [path]',
-  aliases: ['[path]'],
+  command: 'open <path>',
+  aliases: ['<path>'],
   description: 'Open a git repository in GitHub Desktop',
   args: [
     {
       name: 'path',
-      description: 'The path to the repository to open. Defaults to `.`',
+      description: 'The path to the repository to open',
       type: 'string',
       required: false,
     },
   ],
   handler({ _: [pathArg] }: IOpenArgs) {
-    const repositoryPath = Path.resolve(process.cwd(), pathArg || '.')
+    if (!pathArg) {
+      // just open Desktop
+      openDesktop('x-github-client://')
+    }
+    const repositoryPath = Path.resolve(process.cwd(), pathArg)
     const url = `x-github-client://openLocalRepo/${encodeURIComponent(
       repositoryPath
     )}`
