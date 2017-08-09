@@ -40,7 +40,9 @@ function revParse(gitDir, ref) {
 
 let cliCommands = Fs.readdirSync(
   path.resolve(__dirname, 'src', 'cli', 'commands')
-).filter(name => name.endsWith('.ts')).map(name => name.replace(/\.ts$/, ''))
+)
+  .filter(name => name.endsWith('.ts'))
+  .map(name => name.replace(/\.ts$/, ''))
 const replacements = {
   __OAUTH_CLIENT_ID__: JSON.stringify(
     process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId
