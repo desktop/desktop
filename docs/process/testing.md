@@ -63,12 +63,13 @@
   - [ ] Double-clicking local desktop icon opens the application (Mac only)
   - [ ] Double clicking top nav bar toggles full-screen / last used screen-size (Mac only); Exit by (Mac: ^⌘f11; Windows: Alt)
   - [ ] Clicking Desktop icon in dock/taskbar opens the application
-  - [ ] Changing desktop icon name while app is open results in package error; closed app name change is sucessful
+  - [ ] Changing desktop icon name while app is open results in package error; closed app name change is successful
 
 ### GitHub Desktop menu top-level
   - [ ] About GitHub Desktop
     - [ ] Current version shown
     - [ ]  Links to release notes, terms, licenses
+    - [ ] Clicking the version number copies to clipboard
     - [ ] Clicking `Check for updates` button timestamps last attempt
       - [ ] If update available, `Install Update` button will quit app and install update
       - [ ] If update available, download banner is present in main window with `restart` and `what’s new` links
