@@ -7,12 +7,21 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
+import { Monospaced } from '../lib/monospaced'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   readonly onDismissed: () => void
+}
+
+interface IDiscardChangesState {
+  /**
+   * Whether or not we're currently in the process of discarding
+   * changes. This is used to display a loading state
+   */
+  readonly isDiscardingChanges: boolean
 }
 
 /**
@@ -22,7 +31,16 @@ interface IDiscardChangesProps {
 const MaxFilesToList = 10
 
 /** A component to confirm and then discard changes. */
-export class DiscardChanges extends React.Component<IDiscardChangesProps, {}> {
+export class DiscardChanges extends React.Component<
+  IDiscardChangesProps,
+  IDiscardChangesState
+> {
+  public constructor(props: IDiscardChangesProps) {
+    super(props)
+
+    this.state = { isDiscardingChanges: false }
+  }
+
   public render() {
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
@@ -55,15 +73,22 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, {}> {
 
   private renderFileList() {
     if (this.props.files.length > MaxFilesToList) {
-      return <p>Are you sure you want to discard all changes?</p>
+      return (
+        <p>
+          Are you sure you want to discard all {this.props.files.length} changed
+          files?
+        </p>
+      )
     } else {
       return (
         <div>
           <p>Are you sure you want to discard all changes to:</p>
           <ul>
             {this.props.files.map(p =>
-              <li className="file-name" key={p.id}>
-                <PathText path={p.path} />
+              <li key={p.id}>
+                <Monospaced>
+                  <PathText path={p.path} />
+                </Monospaced>
               </li>
             )}
           </ul>
@@ -72,11 +97,13 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, {}> {
     }
   }
 
-  private discard = () => {
-    this.props.dispatcher.discardChanges(
+  private discard = async () => {
+    this.setState({ isDiscardingChanges: true })
+
+    await this.props.dispatcher.discardChanges(
       this.props.repository,
       this.props.files
     )
-    this.props.dispatcher.closePopup()
+    this.props.onDismissed()
   }
 }

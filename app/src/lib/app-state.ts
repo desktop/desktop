@@ -16,6 +16,8 @@ import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
+import { RetryAction } from './retry-actions'
+import { PreferencesTab } from '../models/preferences'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -155,6 +157,7 @@ export enum PopupType {
   TermsAndConditions,
   PushBranchCommits,
   CLIInstalled,
+  GenericGitAuthentication,
 }
 
 export type Popup =
@@ -165,7 +168,7 @@ export type Popup =
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
     }
-  | { type: PopupType.Preferences }
+  | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | { type: PopupType.MergeBranch; repository: Repository }
   | { type: PopupType.RepositorySettings; repository: Repository }
   | { type: PopupType.AddRepository; path?: string }
@@ -191,6 +194,11 @@ export type Popup =
       unPushedCommits?: number
     }
   | { type: PopupType.CLIInstalled }
+  | {
+      type: PopupType.GenericGitAuthentication
+      hostname: string
+      retryAction: RetryAction
+    }
 
 export enum FoldoutType {
   Repository,

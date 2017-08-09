@@ -5,7 +5,6 @@ import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
 import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
-import { Account } from '../../models/account'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 import { IFetchProgress } from '../app-state'
@@ -14,6 +13,7 @@ import { IAppShell } from '../../lib/dispatcher/app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
 import { structuralEquals } from '../../lib/equality'
 import { compare } from '../../lib/compare'
+import { queueWorkHigh } from '../../lib/queue-work'
 
 import {
   reset,
@@ -30,12 +30,18 @@ import {
   getCommits,
   merge,
   setRemoteURL,
-  removeFromIndex,
-  checkoutPaths,
   getStatus,
   IStatusResult,
   getCommit,
+  IndexStatus,
+  getIndexChanges,
+  checkoutIndex,
+  resetPaths,
+  getConfigValue,
+  revertCommit,
 } from '../git'
+import { IGitAccount } from '../git/authentication'
+import { RetryAction, RetryActionType } from '../retry-actions'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -44,25 +50,6 @@ const LoadingHistoryRequestKey = 'history'
 
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
-
-/** File statuses which indicate the file exists on disk. */
-const OnDiskStatuses = new Set([
-  AppFileStatus.New,
-  AppFileStatus.Modified,
-  AppFileStatus.Renamed,
-  AppFileStatus.Conflicted,
-])
-
-/**
- * File statuses which indicate the file has previously been committed to the
- * repository.
- */
-const CommittedStatuses = new Set([
-  AppFileStatus.Modified,
-  AppFileStatus.Deleted,
-  AppFileStatus.Renamed,
-  AppFileStatus.Conflicted,
-])
 
 /** A commit message summary and description. */
 export interface ICommitMessage {
@@ -455,9 +442,10 @@ export class GitStore {
       const result = await fn()
       return result
     } catch (e) {
-      if (errorMetadata) {
-        e = new ErrorWithMetadata(e, errorMetadata)
-      }
+      e = new ErrorWithMetadata(e, {
+        repository: this.repository,
+        ...errorMetadata,
+      })
 
       this.emitError(e)
       return undefined
@@ -486,7 +474,7 @@ export class GitStore {
    *                           the overall fetch progress.
    */
   public async fetch(
-    account: Account | null,
+    account: IGitAccount | null,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
@@ -513,7 +501,7 @@ export class GitStore {
    *                           the overall fetch progress.
    */
   public async fetchRemotes(
-    account: Account | null,
+    account: IGitAccount | null,
     remotes: ReadonlyArray<IRemote>,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
@@ -549,16 +537,20 @@ export class GitStore {
    *                           the overall fetch progress.
    */
   public async fetchRemote(
-    account: Account | null,
+    account: IGitAccount | null,
     remote: string,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
+    const retryAction: RetryAction = {
+      type: RetryActionType.Fetch,
+      repository: this.repository,
+    }
     await this.performFailableOperation(
       () => {
         return fetchRepo(this.repository, account, remote, progressCallback)
       },
-      { backgroundTask }
+      { backgroundTask, retryAction }
     )
   }
 
@@ -572,7 +564,7 @@ export class GitStore {
    *
    */
   public async fetchRefspec(
-    account: Account | null,
+    account: IGitAccount | null,
     refspec: string
   ): Promise<void> {
     // TODO: we should favour origin here
@@ -764,7 +756,7 @@ export class GitStore {
   public async saveGitIgnore(text: string): Promise<void> {
     const repository = this.repository
     const ignorePath = Path.join(repository.path, '.gitignore')
-    const fileContents = ensureTrailingNewline(text)
+    const fileContents = await formatGitIgnoreContents(text, repository)
 
     return new Promise<void>((resolve, reject) => {
       Fs.writeFile(ignorePath, fileContents, err => {
@@ -780,58 +772,86 @@ export class GitStore {
   /** Ignore the given path or pattern. */
   public async ignore(pattern: string): Promise<void> {
     const text = (await this.readGitIgnore()) || ''
-    const currentContents = ensureTrailingNewline(text)
-    const newText = ensureTrailingNewline(`${currentContents}${pattern}`)
+    const repository = this.repository
+    const currentContents = await formatGitIgnoreContents(text, repository)
+    const newText = await formatGitIgnoreContents(
+      `${currentContents}${pattern}`,
+      repository
+    )
     await this.saveGitIgnore(newText)
-
-    await removeFromIndex(this.repository, pattern)
   }
 
   public async discardChanges(
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<void> {
-    const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
-    const absolutePaths = onDiskFiles.map(f =>
-      Path.join(this.repository.path, f.path)
-    )
-    for (const path of absolutePaths) {
-      this.shell.moveItemToTrash(path)
-    }
+    const pathsToCheckout = new Array<string>()
+    const pathsToReset = new Array<string>()
 
-    const touchesGitIgnore = files.some(
-      f => Path.basename(f.path) === '.gitignore'
-    )
-    if (touchesGitIgnore && this.tip.kind === TipState.Valid) {
-      const ref = await this.tip.branch.name
-      await this.performFailableOperation(() =>
-        reset(this.repository, GitResetMode.Mixed, ref)
-      )
-    }
+    await queueWorkHigh(files, async file => {
+      if (file.status !== AppFileStatus.Deleted) {
+        // N.B. moveItemToTrash is synchronous can take a fair bit of time
+        // which is why we're running it inside this work queue that spreads
+        // out the calls across as many animation frames as it needs to.
+        this.shell.moveItemToTrash(
+          Path.resolve(this.repository.path, file.path)
+        )
+      }
 
-    const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
+      if (
+        file.status === AppFileStatus.Copied ||
+        file.status === AppFileStatus.Renamed
+      ) {
+        // file.path is the "destination" or "new" file in a copy or rename.
+        // we've already deleted it so all we need to do is make sure the
+        // index forgets about it.
+        pathsToReset.push(file.path)
 
-    if (modifiedFiles.length) {
-      // in case any files have been staged outside Desktop - renames and copies do this by default
-      await this.performFailableOperation(() =>
-        reset(this.repository, GitResetMode.Mixed, 'HEAD')
-      )
-
-      const pathsToCheckout = modifiedFiles.map(f => {
-        if (
-          f.status === AppFileStatus.Copied ||
-          f.status === AppFileStatus.Renamed
-        ) {
-          // because of the above reset, we now need to discard the old path for these
-          return f.oldPath!
-        } else {
-          return f.path
+        // Checkout the old path though
+        if (file.oldPath) {
+          pathsToCheckout.push(file.oldPath)
+          pathsToReset.push(file.oldPath)
         }
-      })
+      } else {
+        pathsToCheckout.push(file.path)
+        pathsToReset.push(file.path)
+      }
+    })
 
-      await this.performFailableOperation(() =>
-        checkoutPaths(this.repository, pathsToCheckout)
+    // Check the index to see which files actually have changes there as compared to HEAD
+    const changedFilesInIndex = await getIndexChanges(this.repository)
+
+    // Only reset paths if they have changes in the index
+    const necessaryPathsToReset = pathsToReset.filter(x =>
+      changedFilesInIndex.has(x)
+    )
+
+    // Don't attempt to checkout files that doesn't exist in the index after our reset.
+    const necessaryPathsToCheckout = pathsToCheckout.filter(
+      x => changedFilesInIndex.get(x) !== IndexStatus.Added
+    )
+
+    // We're trying to not invoke git linearly with the number of files to discard
+    // so we're doing our discards in three conceptual steps.
+    //
+    // 1. Figure out what the index thinks has changed as compared to the previous
+    //    commit. For users who exclusive interact with Git using Desktop this will
+    //    almost always empty which, as it turns out, is great for us.
+    //
+    // 2. Figure out if any of the files that we've been asked to discard are changed
+    //    in the index and if so, reset them such that the index is set up just as
+    //    the previous commit for the paths we're discarding.
+    //
+    // 3. Checkout all the files that we've discarded that existed in the previous
+    //    commit from the index.
+    await this.performFailableOperation(async () => {
+      await resetPaths(
+        this.repository,
+        GitResetMode.Mixed,
+        'HEAD',
+        necessaryPathsToReset
       )
-    }
+      await checkoutIndex(this.repository, necessaryPathsToCheckout)
+    })
   }
 
   /** Load the contextual commit message if there is one. */
@@ -850,6 +870,16 @@ export class GitStore {
     }
 
     this._contextualCommitMessage = message
+    this.emitUpdate()
+  }
+
+  /** Reverts the commit with the given SHA */
+  public async revertCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    await this.performFailableOperation(() => revertCommit(repository, commit))
+
     this.emitUpdate()
   }
 
@@ -891,12 +921,45 @@ export class GitStore {
   }
 }
 
-function ensureTrailingNewline(text: string): string {
-  // mixed line endings might be an issue here
-  if (!text.endsWith('\n')) {
-    const linesEndInCRLF = text.indexOf('\r\n')
-    return linesEndInCRLF === -1 ? `${text}\n` : `${text}\r\n`
-  } else {
-    return text
-  }
+/**
+ * Format the gitignore text based on the current config settings.
+ *
+ * This setting looks at core.autocrlf to decide which line endings to use
+ * when updating the .gitignore file.
+ *
+ * If core.safecrlf is also set, adding this file to the index may cause
+ * Git to return a non-zero exit code, leaving the working directory in a
+ * confusing state for the user. So we should reformat the file in that
+ * case.
+ *
+ * @param text The text to format.
+ * @param repository The repository associated with the gitignore file.
+ */
+async function formatGitIgnoreContents(
+  text: string,
+  repository: Repository
+): Promise<string> {
+  const autocrlf = await getConfigValue(repository, 'core.autocrlf')
+  const safecrlf = await getConfigValue(repository, 'core.safecrlf')
+
+  return new Promise<string>((resolve, reject) => {
+    if (autocrlf === 'true' && safecrlf === 'true') {
+      // based off https://stackoverflow.com/a/141069/1363815
+      const normalizedText = text.replace(/\r\n|\n\r|\n|\r/g, '\r\n')
+      resolve(normalizedText)
+      return
+    }
+
+    if (text.endsWith('\n')) {
+      resolve(text)
+      return
+    }
+
+    const linesEndInCRLF = autocrlf === 'true'
+    if (linesEndInCRLF) {
+      resolve(`${text}\n`)
+    } else {
+      resolve(`${text}\r\n`)
+    }
+  })
 }

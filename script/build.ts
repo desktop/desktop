@@ -1,20 +1,23 @@
-#!/usr/bin/env node
+/* tslint:disable:no-sync-functions */
 
-'use strict'
+import * as path from 'path'
+import * as cp from 'child_process'
+import * as fs from 'fs-extra'
+import * as packager from 'electron-packager'
 
-const path = require('path')
-const cp = require('child_process')
-const fs = require('fs-extra')
-const packager = require('electron-packager')
-const legalEagle = require('legal-eagle')
+const legalEagle: LegalEagle = require('legal-eagle')
+
+const distInfo = require('./dist-info')
+const getReleaseChannel: () => string = distInfo.getReleaseChannel
+const getVersion: () => string = distInfo.getVersion
+const getExecutableName: () => string = distInfo.getExecutableName
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
-const distInfo = require('./dist-info')
 
-const isPublishableBuild = distInfo.getReleaseChannel() !== 'development'
+const isPublishableBuild = getReleaseChannel() !== 'development'
 
-console.log(`Building for ${distInfo.getReleaseChannel()}…`)
+console.log(`Building for ${getReleaseChannel()}…`)
 
 console.log('Removing old distribution…')
 fs.removeSync(path.join(projectRoot, 'dist'))
@@ -55,15 +58,27 @@ updateLicenseDump(err => {
       process.exit(1)
     } else {
       console.log(`Built to ${appPaths}`)
-      process.exit(0)
     }
   })
 })
 
-function packageApp(callback) {
-  const options = {
-    name: distInfo.getExecutableName(),
-    platform: process.platform,
+function packageApp(
+  callback: (error: Error | null, appPaths: string | string[]) => void
+) {
+  // not sure if this is needed anywhere, so I'm just going to inline it here
+  // for now and see what the future brings...
+  const toPackagePlatform = (platform: NodeJS.Platform) => {
+    if (platform === 'win32' || platform === 'darwin' || platform === 'linux') {
+      return platform
+    }
+    throw new Error(
+      `Unable to convert to platform for electron-packager: '${process.platform}`
+    )
+  }
+
+  const options: packager.Options = {
+    name: getExecutableName(),
+    platform: toPackagePlatform(process.platform),
     arch: 'x64',
     asar: false, // TODO: Probably wanna enable this down the road.
     out: path.join(projectRoot, 'dist'),
@@ -74,29 +89,33 @@ function packageApp(callback) {
     derefSymlinks: false,
     prune: false, // We'll prune them ourselves below.
     ignore: [
-      '/node_modules/electron($|/)',
-      '/node_modules/electron-packager($|/)',
-      '/\\.git($|/)',
-      '/node_modules/\\.bin($|/)',
+      new RegExp('/node_modules/electron($|/)'),
+      new RegExp('/node_modules/electron-packager($|/)'),
+      new RegExp('/\\.git($|/)'),
+      new RegExp('/node_modules/\\.bin($|/)'),
     ],
     appCopyright: 'Copyright © 2017 GitHub, Inc.',
 
     // macOS
     appBundleId: distInfo.getBundleID(),
     appCategoryType: 'public.app-category.developer-tools',
-    protocols: [
-      {
-        name: distInfo.getBundleID(),
-        schemes: [
-          isPublishableBuild
-            ? 'x-github-desktop-auth'
-            : 'x-github-desktop-dev-auth',
-          'x-github-client',
-          'github-mac',
-        ],
-      },
-    ],
     osxSign: true,
+
+    // because `protocols` is an internal data structure to electron-packager
+    // we need to provide two arrays of entries that will get merged as part
+    // of the packaging proess
+    protocolName: [
+      distInfo.getBundleID(),
+      distInfo.getBundleID(),
+      distInfo.getBundleID(),
+    ],
+    protocol: [
+      isPublishableBuild
+        ? 'x-github-desktop-auth'
+        : 'x-github-desktop-dev-auth',
+      'x-github-client',
+      'github-mac',
+    ],
 
     // Windows
     win32metadata: {
@@ -108,32 +127,28 @@ function packageApp(callback) {
     },
   }
 
-  packager(options, (err, appPaths) => {
+  packager(options, (err: Error, appPaths: string | string[]) => {
     if (err) {
-      callback(err, null)
+      callback(err, appPaths)
     } else {
       callback(null, appPaths)
     }
   })
 }
 
+function removeAndCopy(source: string, destination: string) {
+  fs.removeSync(destination)
+  fs.copySync(source, destination)
+}
+
 function copyEmoji() {
-  const copyImages = () => {
-    const source = path.join(projectRoot, 'gemoji', 'images', 'emoji')
-    const destination = path.join(outRoot, 'emoji')
-    fs.removeSync(destination)
-    fs.copySync(source, destination)
-  }
+  const emojiImages = path.join(projectRoot, 'gemoji', 'images', 'emoji')
+  const emojiImagesDestination = path.join(outRoot, 'emoji')
+  removeAndCopy(emojiImages, emojiImagesDestination)
 
-  const copyJson = () => {
-    const source = path.join(projectRoot, 'gemoji', 'db', 'emoji.json')
-    const destination = path.join(outRoot, 'emoji.json')
-    fs.removeSync(destination)
-    fs.copySync(source, destination)
-  }
-
-  copyImages()
-  copyJson()
+  const emojiJSON = path.join(projectRoot, 'gemoji', 'db', 'emoji.json')
+  const emojiJSONDestination = path.join(outRoot, 'emoji.json')
+  removeAndCopy(emojiJSON, emojiJSONDestination)
 }
 
 function copyStaticResources() {
@@ -149,24 +164,30 @@ function copyStaticResources() {
 }
 
 function copyDependencies() {
-  const originalPackage = require(path.join(projectRoot, 'app', 'package.json'))
+  const originalPackage: Package = require(path.join(
+    projectRoot,
+    'app',
+    'package.json'
+  ))
 
   const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
   const externals = commonConfig.externals
   const oldDependencies = originalPackage.dependencies
-  const newDependencies = {}
+  const newDependencies: PackageLookup = {}
 
-  for (var [name, spec] of Object.entries(oldDependencies)) {
+  for (const name of Object.keys(oldDependencies)) {
+    const spec = oldDependencies[name]
     if (externals.indexOf(name) !== -1) {
       newDependencies[name] = spec
     }
   }
 
   const oldDevDependencies = originalPackage.devDependencies
-  const newDevDependencies = {}
+  const newDevDependencies: PackageLookup = {}
 
   if (!isPublishableBuild) {
-    for (var [name, spec] of Object.entries(oldDevDependencies)) {
+    for (const name of Object.keys(oldDevDependencies)) {
+      const spec = oldDevDependencies[name]
       if (externals.indexOf(name) !== -1) {
         newDevDependencies[name] = spec
       }
@@ -219,10 +240,10 @@ function copyDependencies() {
   fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 }
 
-function updateLicenseDump(callback) {
+function updateLicenseDump(callback: (err: Error | null) => void) {
   const appRoot = path.join(projectRoot, 'app')
   const outPath = path.join(outRoot, 'static', 'licenses.json')
-  const licenseOverrides = require('./license-overrides')
+  const licenseOverrides: LicenseLookup = require('./license-overrides')
 
   legalEagle(
     { path: appRoot, overrides: licenseOverrides, omitPermissive: true },
@@ -258,7 +279,7 @@ function updateLicenseDump(callback) {
             const licenseText = fs.readFileSync(licenseSource, {
               encoding: 'utf-8',
             })
-            const appVersion = distInfo.getVersion()
+            const appVersion = getVersion()
 
             summary[`desktop@${appVersion}`] = {
               repository: 'https://github.com/desktop/desktop',
@@ -267,7 +288,9 @@ function updateLicenseDump(callback) {
               sourceText: licenseText,
             }
 
-            fs.writeFileSync(outPath, JSON.stringify(summary), 'utf8')
+            fs.writeFileSync(outPath, JSON.stringify(summary), {
+              encoding: 'utf8',
+            })
             callback(null)
           }
         )

@@ -160,7 +160,7 @@ export function buildDefaultMenu(): Electron.Menu {
             focusedWindow.reload()
           }
         },
-        visible: __RELEASE_CHANNEL__ !== 'production',
+        visible: __RELEASE_CHANNEL__ === 'development',
       },
       {
         id: 'show-devtools',
@@ -210,6 +210,7 @@ export function buildDefaultMenu(): Electron.Menu {
       {
         label: __DARWIN__ ? 'Open in Terminal' : 'Op&en command prompt',
         id: 'open-in-shell',
+        accelerator: 'Ctrl+`',
         click: emit('open-in-shell'),
       },
       {

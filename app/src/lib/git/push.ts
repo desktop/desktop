@@ -1,15 +1,17 @@
 import {
   git,
-  envForAuthentication,
-  expectedAuthenticationErrors,
   IGitExecutionOptions,
   gitNetworkArguments,
+  GitError,
 } from './core'
-
 import { Repository } from '../../models/repository'
-import { Account } from '../../models/account'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
 import { IPushProgress } from '../app-state'
+import {
+  IGitAccount,
+  envForAuthentication,
+  AuthenticationErrors,
+} from './authentication'
 
 /**
  * Push from the remote to the branch, optionally setting the upstream.
@@ -35,7 +37,7 @@ import { IPushProgress } from '../app-state'
  */
 export async function push(
   repository: Repository,
-  account: Account | null,
+  account: IGitAccount | null,
   remote: string,
   localBranch: string,
   remoteBranch: string | null,
@@ -54,7 +56,7 @@ export async function push(
 
   let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
-    expectedErrors: expectedAuthenticationErrors(),
+    expectedErrors: AuthenticationErrors,
   }
 
   if (progressCallback) {
@@ -94,6 +96,6 @@ export async function push(
   const result = await git(args, repository.path, 'push', opts)
 
   if (result.gitErrorDescription) {
-    throw new Error(result.gitErrorDescription)
+    throw new GitError(result, args)
   }
 }

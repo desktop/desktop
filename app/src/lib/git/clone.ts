@@ -1,17 +1,12 @@
-import {
-  git,
-  envForAuthentication,
-  IGitExecutionOptions,
-  gitNetworkArguments,
-} from './core'
-import { Account } from '../../models/account'
+import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { ICloneProgress } from '../app-state'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
+import { envForAuthentication, IGitAccount } from './authentication'
 
 /** Additional arguments to provide when cloning a repository */
 export type CloneOptions = {
   /** The optional identity to provide when cloning. */
-  readonly account: Account | null
+  readonly account: IGitAccount | null
   /** The branch to checkout after the clone has completed. */
   readonly branch?: string
 }
