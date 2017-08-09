@@ -29,6 +29,8 @@ declare const __RELEASE_CHANNEL__:
   | 'test'
   | 'development'
 
+declare const __CLI_COMMANDS__: ReadonlyArray<string>
+
 /** The URL for Squirrel's updates. */
 declare const __UPDATES_URL__: string
 

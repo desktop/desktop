@@ -4,8 +4,6 @@ import { TypeName } from './util'
 
 type StringArray = ReadonlyArray<string>
 
-const files: StringArray = require('./command-list.json')
-
 export type CommandHandler = (args: mriArgv, argv: StringArray) => void
 export { mriArgv }
 
@@ -43,7 +41,7 @@ interface ICommands {
 }
 export const commands: ICommands = {}
 
-for (const fileName of files) {
+for (const fileName of __CLI_COMMANDS__) {
   const mod = loadModule(fileName)
   if (!mod.name) {
     mod.name = fileName
