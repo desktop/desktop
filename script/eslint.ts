@@ -3,6 +3,7 @@
 import ChildProcess = require('child_process')
 
 const ESLINT_ARGS = [
+  '--cache',
   '--rulesdir=./eslint-rules',
   '--ext=.js,.ts,.jsx,.tsx',
   './eslint-rules',
