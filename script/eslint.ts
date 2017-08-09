@@ -6,6 +6,7 @@ const ESLINT_ARGS = [
   '--cache',
   '--rulesdir=./eslint-rules',
   '--ext=.js,.ts,.jsx,.tsx',
+  './script',
   './eslint-rules',
   './tslint-rules/*.ts',
   './app/{src,typings,test}',
