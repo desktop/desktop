@@ -510,7 +510,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
       //
       // The only way to unsubscribe is to pass the exact same function given to the
       // 'on' function to the 'off' so we need a reference to ourselves, basically.
-      let deleteHandler: () => void
+      let deleteHandler: () => void // eslint-disable-line prefer-const
 
       // Since we manually render a react component we have to take care of unmounting
       // it or else we'll leak memory. This disposable will unmount the component.

@@ -23,7 +23,7 @@
     "compile:tslint": "tsc -p tslint-rules",
     "lint": "npm run compile:tslint && npm run tslint && npm run eslint-check && npm run eslint",
     "tslint": "tslint ./tslint-rules/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
-    "eslint": "eslint --rulesdir ./eslint-rules --ext .js,.ts,.jsx ./eslint-rules ./tslint-rules/*.ts ./app/{src,typings,test}",
+    "eslint": "eslint --rulesdir=./eslint-rules --ext=.js,.ts,.jsx,.tsx ./eslint-rules ./tslint-rules/*.ts ./app/{src,typings,test}",
     "eslint-check": "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
     "check-prettiness": "node script/is-it-pretty",
     "publish": "node script/publish",

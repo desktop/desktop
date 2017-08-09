@@ -13,7 +13,7 @@ import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../lib/app-state'
 import * as Path from 'path'
 
-const untildify: (str: string) => string = require('untildify')
+import untildify = require('untildify')
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
