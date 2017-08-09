@@ -5,6 +5,7 @@
   },
   "description": "GitHub Desktop build dependencies",
   "scripts": {
+    "cli": "ts-node --require ./app/src/cli/dev-commands-gbl app/src/cli/main.ts",
     "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe mocha -t 10000 --compilers ts:ts-node/register,tsx:ts-node/register app/test/integration/*.ts",
     "test:unit": "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe electron-mocha -t 10000 --renderer --compilers ts:ts-node/register,tsx:ts-node/register --require ./app/test/globals.ts app/test/unit/*.{ts,tsx} app/test/unit/**/*.{ts,tsx}",
     "test": "npm run test:unit && npm run test:integration",
