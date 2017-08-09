@@ -1,4 +1,3 @@
-/// <reference path="../../typings/mri.d.ts"/>
 import * as mri from 'mri'
 import * as chalk from 'chalk'
 
