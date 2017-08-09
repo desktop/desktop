@@ -22,16 +22,6 @@
 import * as ts from 'typescript'
 import * as Lint from 'tslint'
 
-export class Rule extends Lint.Rules.AbstractRule {
-    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
-      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
-        return this.applyWithWalker(new ReactNoUnboundDispatcherPropsWalker(sourceFile, this.getOptions()))
-      } else {
-          return []
-      }
-    }
-}
-
 // The walker takes care of all the work.
 class ReactNoUnboundDispatcherPropsWalker extends Lint.RuleWalker {
 
@@ -94,4 +84,14 @@ class ReactNoUnboundDispatcherPropsWalker extends Lint.RuleWalker {
       }
     })
   }
+}
+
+export class Rule extends Lint.Rules.AbstractRule {
+    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
+      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
+        return this.applyWithWalker(new ReactNoUnboundDispatcherPropsWalker(sourceFile, this.getOptions()))
+      } else {
+          return []
+      }
+    }
 }

@@ -15,16 +15,6 @@ interface IExpectedParameter {
   readonly type: string
 }
 
-export class Rule extends Lint.Rules.AbstractRule {
-    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
-      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
-        return this.applyWithWalker(new ReactProperLifecycleMethodsWalker(sourceFile, this.getOptions()))
-      } else {
-          return []
-      }
-    }
-}
-
 class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
 
   private propsTypeName: string
@@ -184,4 +174,13 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
 
     this.addFailure(this.createFailure(start, width, message))
   }
+}
+export class Rule extends Lint.Rules.AbstractRule {
+    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
+      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
+        return this.applyWithWalker(new ReactProperLifecycleMethodsWalker(sourceFile, this.getOptions()))
+      } else {
+          return []
+      }
+    }
 }

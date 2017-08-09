@@ -13,16 +13,6 @@
 import * as ts from 'typescript'
 import * as Lint from 'tslint'
 
-export class Rule extends Lint.Rules.AbstractRule {
-    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
-      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
-        return this.applyWithWalker(new ReactReadonlyPropsAndStateWalker(sourceFile, this.getOptions()))
-      } else {
-          return []
-      }
-    }
-}
-
 // The walker takes care of all the work.
 class ReactReadonlyPropsAndStateWalker extends Lint.RuleWalker {
   protected visitInterfaceDeclaration(node: ts.InterfaceDeclaration): void {
@@ -64,4 +54,14 @@ class ReactReadonlyPropsAndStateWalker extends Lint.RuleWalker {
 
     return false
   }
+}
+
+export class Rule extends Lint.Rules.AbstractRule {
+    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
+      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
+        return this.applyWithWalker(new ReactReadonlyPropsAndStateWalker(sourceFile, this.getOptions()))
+      } else {
+          return []
+      }
+    }
 }

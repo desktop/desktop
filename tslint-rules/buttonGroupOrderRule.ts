@@ -26,16 +26,6 @@
 import * as ts from 'typescript'
 import * as Lint from 'tslint'
 
-export class Rule extends Lint.Rules.AbstractRule {
-    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
-      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
-        return this.applyWithWalker(new ButtonGroupOrderWalker(sourceFile, this.getOptions()))
-      } else {
-        return []
-      }
-    }
-}
-
 class ButtonGroupOrderWalker extends Lint.RuleWalker {
 
   /**
@@ -119,4 +109,14 @@ class ButtonGroupOrderWalker extends Lint.RuleWalker {
       this.addFailure(this.createFailure(start, width, message))
     }
   }
+}
+
+export class Rule extends Lint.Rules.AbstractRule {
+    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
+      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
+        return this.applyWithWalker(new ButtonGroupOrderWalker(sourceFile, this.getOptions()))
+      } else {
+        return []
+      }
+    }
 }
