@@ -16,20 +16,22 @@ import * as Lint from 'tslint'
 // The walker takes care of all the work.
 class ReactReadonlyPropsAndStateWalker extends Lint.RuleWalker {
   protected visitInterfaceDeclaration(node: ts.InterfaceDeclaration): void {
-      if (node.name.text.endsWith('Props')) {
-        this.ensureReadOnly(node.members)
-      }
+    if (node.name.text.endsWith('Props')) {
+      this.ensureReadOnly(node.members)
+    }
 
-      if (node.name.text.endsWith('State')) {
-        this.ensureReadOnly(node.members)
-      }
+    if (node.name.text.endsWith('State')) {
+      this.ensureReadOnly(node.members)
+    }
 
-      super.visitInterfaceDeclaration(node)
+    super.visitInterfaceDeclaration(node)
   }
 
   private ensureReadOnly(members: ts.NodeArray<ts.TypeElement>) {
     members.forEach(member => {
-      if (member.kind !== ts.SyntaxKind.PropertySignature) { return }
+      if (member.kind !== ts.SyntaxKind.PropertySignature) {
+        return
+      }
 
       const propertySignature = member as ts.PropertySignature
 
@@ -46,7 +48,9 @@ class ReactReadonlyPropsAndStateWalker extends Lint.RuleWalker {
   private isReadOnly(propertySignature: ts.PropertySignature): boolean {
     const modifiers = propertySignature.modifiers
 
-    if (!modifiers) { return false }
+    if (!modifiers) {
+      return false
+    }
 
     if (modifiers.find(m => m.kind === ts.SyntaxKind.ReadonlyKeyword)) {
       return true
@@ -57,11 +61,13 @@ class ReactReadonlyPropsAndStateWalker extends Lint.RuleWalker {
 }
 
 export class Rule extends Lint.Rules.AbstractRule {
-    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
-      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
-        return this.applyWithWalker(new ReactReadonlyPropsAndStateWalker(sourceFile, this.getOptions()))
-      } else {
-          return []
-      }
+  public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
+    if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
+      return this.applyWithWalker(
+        new ReactReadonlyPropsAndStateWalker(sourceFile, this.getOptions())
+      )
+    } else {
+      return []
     }
+  }
 }

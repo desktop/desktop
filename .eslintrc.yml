@@ -3,6 +3,8 @@ plugins:
   - typescript
   - babel
   - react
+  - prettier
+
 extends:
   - prettier
   - prettier/react
@@ -62,6 +64,12 @@ rules:
   ###########
   # SPECIAL #
   ###########
+  prettier/prettier:
+    - error
+    - singleQuote: true
+      trailingComma: es5
+      semi: false
+      parser: typescript
   no-restricted-syntax:
     - error
     # no-default-export

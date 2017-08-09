@@ -25,13 +25,10 @@
     "tslint": "tslint ./tslint-rules/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
     "eslint": "eslint --rulesdir=./eslint-rules --ext=.js,.ts,.jsx,.tsx ./eslint-rules ./tslint-rules/*.ts ./app/{src,typings,test}",
     "eslint-check": "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
-    "check-prettiness": "node script/is-it-pretty",
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
-    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
-    "prettier:base": "prettier --single-quote --trailing-comma es5 --no-semi --write",
-    "prettify": "npm run prettier:base \"{app/{src,test}/**/*.{ts,tsx,js},app/webpack.*.js,script/!(*.ps1|*.bat|setup-macos-keychain)}\""
+    "rebuild-hard:prod": "npm run clean-slate && npm run build:prod"
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -62,6 +59,7 @@
     "eslint": "^4.3.0",
     "eslint-config-prettier": "^2.3.0",
     "eslint-plugin-babel": "^4.1.2",
+    "eslint-plugin-prettier": "^2.1.2",
     "eslint-plugin-react": "^7.1.0",
     "eslint-plugin-typescript": "^0.3.0",
     "express": "^4.15.0",
