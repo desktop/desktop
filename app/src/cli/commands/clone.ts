@@ -6,7 +6,6 @@ import { openDesktop } from '../open-desktop'
 import { ICommandModule, mriArgv } from '../load-commands'
 
 interface ICloneArgs extends mriArgv {
-  pr?: number
   branch?: string
 }
 
@@ -33,13 +32,8 @@ const command: ICommandModule = {
       aliases: ['b'],
       description: 'The branch to switch to after cloning',
     },
-    pr: {
-      type: 'number',
-      aliases: ['p'],
-      description: 'The PR branch to switch to after cloning',
-    },
   },
-  handler({ _: [cloneUrl, path], pr, branch }: ICloneArgs) {
+  handler({ _: [cloneUrl, path], branch }: ICloneArgs) {
     if (!cloneUrl) {
       throw new CommandError('Clone URL must be specified')
     }
@@ -50,18 +44,12 @@ const command: ICommandModule = {
       // invalid URL, assume a GitHub repo
       cloneUrl = `https://github.com/${cloneUrl}`
     }
-    if (pr) {
-      branch = 'pr/' + pr
-    } else if (Number.isNaN(pr as number)) {
-      throw new CommandError('PR number must be a valid number.')
-    }
     if (!path) {
       const urlComponents = cloneUrl.split('/')
       path = urlComponents[urlComponents.length - 1]
     }
     const url = `x-github-client://openRepo/${cloneUrl}?${QueryString.stringify(
       {
-        pr,
         branch,
         filepath: path,
       }
