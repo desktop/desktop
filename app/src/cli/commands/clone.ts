@@ -10,19 +10,13 @@ interface ICloneArgs extends mriArgv {
 }
 
 const command: ICommandModule = {
-  command: 'clone <url|slug> [path]',
+  command: 'clone <url|slug>',
   description: 'Clone a repository',
   args: [
     {
       name: 'url|slug',
       required: true,
       description: 'The URL to clone, or the GitHub repo slug to clone',
-      type: 'string',
-    },
-    {
-      name: 'path',
-      required: false,
-      description: 'The path to clone to',
       type: 'string',
     },
   ],
@@ -33,7 +27,7 @@ const command: ICommandModule = {
       description: 'The branch to switch to after cloning',
     },
   },
-  handler({ _: [cloneUrl, path], branch }: ICloneArgs) {
+  handler({ _: [cloneUrl], branch }: ICloneArgs) {
     if (!cloneUrl) {
       throw new CommandError('Clone URL must be specified')
     }
@@ -44,14 +38,9 @@ const command: ICommandModule = {
       // invalid URL, assume a GitHub repo
       cloneUrl = `https://github.com/${cloneUrl}`
     }
-    if (!path) {
-      const urlComponents = cloneUrl.split('/')
-      path = urlComponents[urlComponents.length - 1]
-    }
     const url = `x-github-client://openRepo/${cloneUrl}?${QueryString.stringify(
       {
         branch,
-        filepath: path,
       }
     )}`
     openDesktop(url)
