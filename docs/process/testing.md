@@ -91,10 +91,10 @@
       - [ ] Repository close option is checked by default; user can change
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
-  - [ ] Install command line tool installs tool at `/usr/local/bin/github` (ok to install more than once, Mac only as Windows done automagically)
+  - [ ] Install command line tool installs tool at `/usr/local/bin/github` (ok to install more than once; Mac only as Windows done automagically)
     - [ ] Clicking `OK` closes modal
-  - [ ] Quit Desktop (⌘Q)
-    - [ ] Quitting and reopening Desktop returns you to last visited repo
+  - [ ] Quit/Exit Desktop (Mac: ⌘Q)
+    - [ ] Quitting/Exiting and reopening Desktop returns you to last visited repo
 
 ### File top-level menu
   - [ ] Create New Repository (Mac: ⌘N; Windows: Ctrl+N)
