@@ -87,6 +87,7 @@
       - [ ] `Cancel` button does not save any changes made; modal closed
     - [ ] Advanced
       - [ ] Usage data selection carried through from Welcome flow; user can change
+        - [ ] Check `stats-opt-out` value in Dev Tools > Application > Local storage
       - [ ] Repository close option is checked by default; user can change
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
