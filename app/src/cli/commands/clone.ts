@@ -6,7 +6,7 @@ import { openDesktop } from '../open-desktop'
 import { ICommandModule, mriArgv } from '../load-commands'
 
 interface ICloneArgs extends mriArgv {
-  branch?: string
+  readonly branch?: string
 }
 
 const command: ICommandModule = {

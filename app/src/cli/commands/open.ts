@@ -4,7 +4,7 @@ import { ICommandModule, mriArgv } from '../load-commands'
 import { openDesktop } from '../open-desktop'
 
 interface IOpenArgs extends mriArgv {
-  path: string
+  readonly path: string
 }
 
 const command: ICommandModule = {
