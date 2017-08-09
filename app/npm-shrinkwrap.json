@@ -703,6 +703,12 @@
       "from": "react-addons-shallow-compare@15.6.0",
       "resolved": "https://registry.npmjs.org/react-addons-shallow-compare/-/react-addons-shallow-compare-15.6.0.tgz"
     },
+    "react-addons-test-utils": {
+      "version": "15.4.2",
+      "from": "react-addons-test-utils@15.4.2",
+      "resolved": "https://registry.npmjs.org/react-addons-test-utils/-/react-addons-test-utils-15.4.2.tgz",
+      "dev": true
+    },
     "react-dom": {
       "version": "15.6.1",
       "from": "react-dom@15.6.1",
