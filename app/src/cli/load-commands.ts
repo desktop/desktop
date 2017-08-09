@@ -34,8 +34,9 @@ export interface ICommandModule {
   readonly unknownOptionHandler?: (flag: string) => void
 }
 
-const loadModule: (name: string) => ICommandModule = name =>
-  require(`./commands/${name}.ts`)
+function loadModule(name: string): ICommandModule {
+  return require(`./commands/${name}.ts`)
+}
 
 interface ICommands {
   [command: string]: ICommandModule
