@@ -359,9 +359,9 @@
       "resolved": "https://registry.npmjs.org/fbjs/-/fbjs-0.8.14.tgz"
     },
     "file-uri-to-path": {
-      "version": "0.0.2",
-      "from": "file-uri-to-path@0.0.2",
-      "resolved": "https://registry.npmjs.org/file-uri-to-path/-/file-uri-to-path-0.0.2.tgz"
+      "version": "1.0.0",
+      "from": "file-uri-to-path@>=1.0.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/file-uri-to-path/-/file-uri-to-path-1.0.0.tgz"
     },
     "forever-agent": {
       "version": "0.6.1",
