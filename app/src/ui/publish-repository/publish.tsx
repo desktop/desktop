@@ -224,6 +224,9 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private onTabClicked = (index: PublishTab) => {
-    this.setState({ currentTab: index })
+    // Clear the selected org since dot com and Enterprise will have a different
+    // set of orgs.
+    const settings = { ...this.state.publishSettings, org: null }
+    this.setState({ currentTab: index, publishSettings: settings })
   }
 }

@@ -236,14 +236,26 @@ export abstract class AutocompletingTextInput<
   protected abstract getElementTagName(): 'textarea' | 'input'
 
   private renderTextInput() {
-    return React.createElement<any, any>(this.getElementTagName(), {
-      ref: (ref: ElementType) => (this.element = ref),
+    return React.createElement<
+      React.HTMLAttributes<ElementType>,
+      ElementType
+    >(this.getElementTagName(), {
       type: 'text',
       placeholder: this.props.placeholder,
       value: this.props.value,
+      ref: this.onRef,
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
+      onBlur: this.onBlur,
     })
+  }
+
+  private onBlur = (e: React.FocusEvent<ElementType>) => {
+    this.close()
+  }
+
+  private onRef = (ref: ElementType | null) => {
+    this.element = ref
   }
 
   public render() {
@@ -284,7 +296,7 @@ export abstract class AutocompletingTextInput<
       this.props.onValueChanged(newText)
     }
 
-    this.setState({ autocompletionState: null })
+    this.close()
   }
 
   private getMovementDirection(
@@ -348,8 +360,12 @@ export abstract class AutocompletingTextInput<
         this.insertCompletion(item)
       }
     } else if (event.key === 'Escape') {
-      this.setState({ autocompletionState: null })
+      this.close()
     }
+  }
+
+  private close() {
+    this.setState({ autocompletionState: null })
   }
 
   private async attemptAutocompletion(

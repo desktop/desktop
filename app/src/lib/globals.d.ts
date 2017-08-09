@@ -39,12 +39,68 @@ declare const __UPDATES_URL__: string
 declare const __PROCESS_KIND__: 'main' | 'ui' | 'crash' | 'askpass'
 
 /**
- * Request an idle callback. See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
- * for more information.
+ * The DOMHighResTimeStamp type is a double and is used to store a time value.
+ *
+ * The value could be a discrete point in time or the difference in time between
+ * two discrete points in time. The unit is milliseconds and should be accurate
+ * to 5 µs (microseconds). However, if the browser is unable to provide a time
+ * value accurate to 5 microseconds (due, for example, to hardware or software
+ * constraints), the browser can represent the value as a time in milliseconds
+ * accurate to a millisecond.
+ *
+ * See https://developer.mozilla.org/en-US/docs/Web/API/DOMHighResTimeStamp
+ */
+declare type DOMHighResTimeStamp = number
+
+/**
+ * The IdleDeadline interface is used as the data type of the input parameter to
+ * idle callbacks established by calling Window.requestIdleCallback(). It offers
+ * a method, timeRemaining(), which lets you determine how much longer the user
+ * agent estimates it will remain idle and a property, didTimeout, which lets
+ * you determine if your callback is executing because its timeout duration
+ * expired.
+ *
+ * https://developer.mozilla.org/en-US/docs/Web/API/IdleDeadline
+ */
+interface IdleDeadline {
+  readonly didTimeout: boolean
+  readonly timeRemaining: () => DOMHighResTimeStamp
+}
+
+/**
+ * Contains optional configuration parameters for the requestIdleCallback
+ * function.
+ *
+ * See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
+ */
+interface IdleCallbackOptions {
+  /**
+   * If timeout is specified and has a positive value, and the callback has not
+   * already been called by the time timeout milliseconds have passed, the
+   * timeout will be called during the next idle period, even if doing so risks
+   * causing a negative performance impact..
+   */
+  readonly timeout: number
+}
+
+/**
+ * The window.requestIdleCallback() method queues a function to be called during
+ * a browser's idle periods. This enables developers to perform background and
+ * low priority work on the main event loop, without impacting latency-critical
+ * events such as animation and input response. Functions are generally called
+ * in first-in-first-out order; however, callbacks which have a timeout
+ * specified may be called out-of-order if necessary in order to run them before
+ * the timeout elapses.
+ *
+ * See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
+ *
+ * @param options Contains optional configuration parameters. Currently only one
+ *                property is defined:
+ *                  timeout:
  */
 declare function requestIdleCallback(
-  fn: () => void,
-  options?: { timeout: number }
+  fn: (deadline: IdleDeadline) => void,
+  options?: IdleCallbackOptions
 ): number
 
 interface IDesktopLogger {
