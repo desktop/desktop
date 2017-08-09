@@ -46,7 +46,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly className?: string
 
   /** The height of the rows. */
-  readonly rowHeight: number
+  readonly rowHeight: number | ((info: { index: number }) => number)
 
   /** The ordered groups to display in the list. */
   readonly groups: ReadonlyArray<IFilterListGroup<T>>

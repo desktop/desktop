@@ -6,6 +6,7 @@ import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { shell } from '../../lib/dispatcher/app-shell'
 
 const GitIgnoreFileName = '.gitignore'
 
@@ -136,6 +137,23 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       }
     )
 
-    showContextualMenu(items)
+    shell
+      .getEditors(this.props.path)
+      .then(res => {
+        for (let i = 0; i < res.length; i++) {
+          items.push({
+            label: 'Open with ' + res[i].name,
+            action: () => {
+              res[i].exec()
+            },
+          })
+        }
+        showContextualMenu(items)
+      })
+      .catch(e => {
+        // Couldn't get list for some reason
+        // display what we have so far..
+        showContextualMenu(items)
+      })
   }
 }

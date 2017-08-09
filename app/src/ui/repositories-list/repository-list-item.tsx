@@ -3,6 +3,7 @@ import { Repository } from '../../models/repository'
 import { Octicon, iconForRepository } from '../octicons'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
+import { shell } from '../../lib/dispatcher/app-shell'
 
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
@@ -25,6 +26,17 @@ export class RepositoryListItem extends React.Component<
   IRepositoryListItemProps,
   {}
 > {
+  private editorItems: Array<IMenuItem>
+  private editorsResolved: boolean
+
+  public constructor(props?: IRepositoryListItemProps, context?: any) {
+    super(props, context)
+
+    /* start looking for list of editors for the repo
+     * This can take a little while, so start early
+     */
+    this.buildEditorList()
+  }
   public render() {
     const repository = this.props.repository
     const path = repository.path
@@ -56,6 +68,9 @@ export class RepositoryListItem extends React.Component<
           <span>
             {repository.name}
           </span>
+          <span>
+            {this.editorsResolved ? '' : '(searching...)'}
+          </span>
         </div>
       </div>
     )
@@ -72,13 +87,36 @@ export class RepositoryListItem extends React.Component<
     }
   }
 
+  private buildEditorList(): void {
+    this.editorsResolved = false
+    this.editorItems = new Array<IMenuItem>()
+
+    const repository = this.props.repository
+    if (repository instanceof Repository) {
+      shell.getEditors(repository.path).then(res => {
+        for (let i = 0; i < res.length; i++) {
+          this.editorItems.push({
+            label: 'Open with ' + res[i].name,
+            action: () => {
+              res[i].exec()
+            },
+          })
+        }
+
+        this.editorsResolved = true
+
+        this.forceUpdate()
+      })
+    }
+  }
+
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
     const repository = this.props.repository
     const missing = repository instanceof Repository && repository.missing
 
-    const items: ReadonlyArray<IMenuItem> = [
+    const items: Array<IMenuItem> = [
       {
         label: __DARWIN__ ? 'Open in Terminal' : 'Open command prompt',
         action: this.openInShell,
@@ -95,6 +133,8 @@ export class RepositoryListItem extends React.Component<
         action: this.removeRepository,
       },
     ]
+
+    items.push.apply(items, this.editorItems)
     showContextualMenu(items)
   }
 

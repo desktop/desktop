@@ -5,6 +5,7 @@ import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Advanced } from './advanced'
 import { Git } from './git'
+import { FileTypeList, IFileTypeItem } from './filetypes'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -14,6 +15,7 @@ import {
   setGlobalConfigValue,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
+import { shell, IEditorInfo } from '../../lib/dispatcher/app-shell'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -26,6 +28,7 @@ interface IPreferencesProps {
 
 enum PreferencesTab {
   Accounts = 0,
+  FileTypes,
   Git,
   Advanced,
 }
@@ -43,6 +46,8 @@ export class Preferences extends React.Component<
   IPreferencesProps,
   IPreferencesState
 > {
+  private fileTypes: Array<IFileTypeItem> | null
+
   public constructor(props: IPreferencesProps) {
     super(props)
 
@@ -103,6 +108,7 @@ export class Preferences extends React.Component<
           selectedIndex={this.state.selectedIndex}
         >
           <span>Accounts</span>
+          <span>File Types</span>
           <span>Git</span>
           <span>Advanced</span>
         </TabBar>
@@ -160,6 +166,31 @@ export class Preferences extends React.Component<
           />
         )
       }
+      case PreferencesTab.FileTypes: {
+        if (this.fileTypes == null) {
+          const result = new Array<IFileTypeItem>()
+          const editors: Map<
+            string,
+            ReadonlyArray<IEditorInfo>
+          > = shell.getAllEditors()
+          console.log(editors)
+          editors.forEach((value: ReadonlyArray<IEditorInfo>, key: string) => {
+            console.log(key + ' ' + value)
+            for (const e of value) {
+              result.push({
+                id: key,
+                text: e.name,
+                extension: key,
+                cmd: e.cmd,
+                keep: true,
+                dirty: false,
+              })
+            }
+          })
+          this.fileTypes = result
+        }
+        return <FileTypeList allTypes={this.fileTypes} selectedType={''} />
+      }
       default:
         return assertNever(index, `Unknown tab index: ${index}`)
     }
@@ -187,6 +218,7 @@ export class Preferences extends React.Component<
       case PreferencesTab.Accounts:
         return null
       case PreferencesTab.Advanced:
+      case PreferencesTab.FileTypes:
       case PreferencesTab.Git: {
         return (
           <DialogFooter>
@@ -210,6 +242,25 @@ export class Preferences extends React.Component<
       this.state.confirmRepoRemoval
     )
 
+    if (this.fileTypes != null) {
+      for (const fileType of this.fileTypes) {
+        if (fileType.dirty) {
+          if (fileType.keep) {
+            const result = new Array<IEditorInfo>()
+            const ei: IEditorInfo = {
+              name: fileType.id,
+              cmd: fileType.cmd,
+            }
+            result.push(ei)
+            // update
+            shell.setEditors(fileType.extension, result)
+          } else {
+            // delete
+            shell.removeEditors(fileType.extension)
+          }
+        }
+      }
+    }
     this.props.onDismissed()
   }
 
