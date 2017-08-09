@@ -1,5 +1,10 @@
 import * as React from 'react'
-import { IMenu, ISubmenuItem, findItemByAccessKey, itemIsSelectable } from '../../models/app-menu'
+import {
+  IMenu,
+  ISubmenuItem,
+  findItemByAccessKey,
+  itemIsSelectable,
+} from '../../models/app-menu'
 import { AppMenuBarButton } from './app-menu-bar-button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { AppMenuFoldout, FoldoutType } from '../../lib/app-state'
