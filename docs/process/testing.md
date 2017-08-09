@@ -75,7 +75,7 @@
       - [ ] If update available, download banner is present in main window with `restart` and `what’s new` links
       - [ ] If checking for update or download latest update, the `Check for updates` button is disabled
     - [ ] `Close` button closes modal 
-  - [ ] Preferences (Mac: ⌘,)
+  - [ ] Preferences/Options (Mac/Windows: ⌘,)
     - [ ] Accounts
       - [ ] GitHub.com name, handle, avatar, `sign out` button, if user signed in
       - [ ] Enterprise handle, avatar,  `sign out` button, if user signed in
