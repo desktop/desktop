@@ -186,7 +186,7 @@ export function formatPatch(
       }
 
       if (line.noTrailingNewLine) {
-        hunkBuf += ' No newline at end of file\n'
+        hunkBuf += '\\ No newline at end of file\n'
       }
     })
 
