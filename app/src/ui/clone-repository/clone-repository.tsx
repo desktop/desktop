@@ -1,24 +1,17 @@
-import { remote } from 'electron'
 import * as Path from 'path'
 import * as React from 'react'
-import * as FS from 'fs'
-import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
-import { Row } from '../lib/row'
 import { Account } from '../../models/account'
-import {
-  parseRepositoryIdentifier,
-  IRepositoryIdentifier,
-} from '../../lib/remote-parsing'
+import { IRepositoryIdentifier } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
-import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
-import { Monospaced } from '../lib/monospaced'
+import { Dialog, DialogError, DialogFooter } from '../dialog'
 import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
+import { CloneGenericRepository } from './generic-clone'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -80,21 +73,6 @@ export class CloneRepository extends React.Component<
     }
   }
 
-  public componentDidMount() {
-    if (this.props.initialURL) {
-      this.onURLChanged(this.props.initialURL)
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: ICloneRepositoryProps) {
-    if (
-      nextProps.initialURL &&
-      nextProps.initialURL !== this.props.initialURL
-    ) {
-      this.onURLChanged(nextProps.initialURL)
-    }
-  }
-
   public render() {
     const error = this.state.error
     const disabled =
@@ -118,37 +96,14 @@ export class CloneRepository extends React.Component<
           <span>GitHub</span>
           <span>URL</span>
         </TabBar>
+
         {error
           ? <DialogError>
               {error.message}
             </DialogError>
           : null}
 
-        <DialogContent>
-          <p>
-            Enter a repository URL or GitHub username and repository (e.g.,{' '}
-            <Monospaced>hubot/cool-repo</Monospaced>)
-          </p>
-
-          <Row>
-            <TextBox
-              placeholder="URL or username/repository"
-              value={this.state.url}
-              onValueChanged={this.onURLChanged}
-              autoFocus={true}
-            />
-          </Row>
-
-          <Row>
-            <TextBox
-              value={this.state.path}
-              label={__DARWIN__ ? 'Local Path' : 'Local path'}
-              placeholder="repository path"
-              onChange={this.onPathChanged}
-            />
-            <Button onClick={this.showFilePicker}>Choose…</Button>
-          </Row>
-        </DialogContent>
+        {this.renderActiveTab()}
 
         <DialogFooter>
           <ButtonGroup>
@@ -162,75 +117,23 @@ export class CloneRepository extends React.Component<
     )
   }
 
-  private showFilePicker = () => {
-    const directory: string[] | null = remote.dialog.showOpenDialog({
-      properties: ['createDirectory', 'openDirectory'],
-    })
-    if (!directory) {
-      return
-    }
+  private renderActiveTab() {
+    const index = this.state.selectedIndex
 
-    const path = directory[0]
-    const lastParsedIdentifier = this.state.lastParsedIdentifier
-    if (lastParsedIdentifier) {
-      this.updatePath(Path.join(path, lastParsedIdentifier.name))
+    if (index === CloneRepositoryTab.Generic) {
+      return (
+        <CloneGenericRepository
+          initialURL={this.props.initialURL}
+          onError={this.onError}
+        />
+      )
     } else {
-      this.updatePath(path)
+      return null
     }
   }
 
-  private updatePath(newPath: string) {
-    this.setState({ path: newPath })
-    this.checkPathValid(newPath)
-  }
-
-  private checkPathValid(newPath: string) {
-    FS.exists(newPath, exists => {
-      // If the path changed while we were checking, we don't care anymore.
-      if (this.state.path !== newPath) {
-        return
-      }
-
-      let error: Error | null = null
-      if (exists) {
-        error = new Error('The destination already exists.')
-        error.name = DestinationExistsErrorName
-      }
-
-      this.setState({ error })
-    })
-  }
-
-  private onURLChanged = (input: string) => {
-    const url = input
-    const parsed = parseRepositoryIdentifier(url)
-    const lastParsedIdentifier = this.state.lastParsedIdentifier
-
-    let newPath: string
-    if (lastParsedIdentifier) {
-      if (parsed) {
-        newPath = Path.join(Path.dirname(this.state.path), parsed.name)
-      } else {
-        newPath = Path.dirname(this.state.path)
-      }
-    } else if (parsed) {
-      newPath = Path.join(this.state.path, parsed.name)
-    } else {
-      newPath = this.state.path
-    }
-
-    this.setState({
-      url,
-      path: newPath,
-      lastParsedIdentifier: parsed,
-    })
-
-    this.checkPathValid(newPath)
-  }
-
-  private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const path = event.currentTarget.value
-    this.updatePath(path)
+  private onError(error: Error | null) {
+    this.setState({ error })
   }
 
   /**

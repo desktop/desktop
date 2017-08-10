@@ -4,16 +4,12 @@ import * as React from 'react'
 import * as FS from 'fs'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
-import { Dispatcher } from '../../lib/dispatcher'
-import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
+import { getDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
-import { Account } from '../../models/account'
 import {
   parseRepositoryIdentifier,
   IRepositoryIdentifier,
 } from '../../lib/remote-parsing'
-import { findAccountForRemoteURL } from '../../lib/find-account'
-import { API } from '../../lib/api'
 import { DialogContent } from '../dialog'
 import { Monospaced } from '../lib/monospaced'
 
@@ -21,15 +17,10 @@ import { Monospaced } from '../lib/monospaced'
 const DestinationExistsErrorName = 'DestinationExistsError'
 
 interface ICloneGenericRepositoryProps {
-  readonly dispatcher: Dispatcher
-  readonly onDismissed: () => void
-  readonly onClone: (path: string, url: string) => Promise<void>
-
-  /** The logged in accounts. */
-  readonly accounts: ReadonlyArray<Account>
-
   /** The initial URL or `owner/name` shortcut to use. */
   readonly initialURL: string | null
+
+  readonly onError: (error: Error | null) => void
 }
 
 interface ICloneGenericRepositoryState {
@@ -38,12 +29,6 @@ interface ICloneGenericRepositoryState {
 
   /** The local path to clone to. */
   readonly path: string
-
-  /** Are we currently trying to load the entered repository? */
-  readonly loading: boolean
-
-  /** The current error if one occurred. */
-  readonly error: Error | null
 
   /**
    * The repository identifier that was last parsed from the user-entered URL.
@@ -62,8 +47,6 @@ export class CloneGenericRepository extends React.Component<
     this.state = {
       url: '',
       path: getDefaultDir(),
-      loading: false,
-      error: null,
       lastParsedIdentifier: null,
     }
   }
@@ -143,12 +126,13 @@ export class CloneGenericRepository extends React.Component<
       }
 
       let error: Error | null = null
+
       if (exists) {
         error = new Error('The destination already exists.')
         error.name = DestinationExistsErrorName
       }
 
-      this.setState({ error })
+      this.props.onError(error)
     })
   }
 
@@ -182,53 +166,5 @@ export class CloneGenericRepository extends React.Component<
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
     this.updatePath(path)
-  }
-
-  /**
-   * Lookup the account associated with the clone (if applicable) and resolve
-   * the repository alias to the clone URL.
-   */
-  private async resolveCloneURL(): Promise<string | null> {
-    const identifier = this.state.lastParsedIdentifier
-    let url = this.state.url
-
-    const account = await findAccountForRemoteURL(url, this.props.accounts)
-    if (identifier && account) {
-      const api = API.fromAccount(account)
-      const repo = await api.fetchRepository(identifier.owner, identifier.name)
-      if (repo) {
-        url = repo.clone_url
-      }
-    }
-
-    return url
-  }
-
-  private clone = async () => {
-    this.setState({ loading: true })
-
-    const path = this.state.path
-    const url = await this.resolveCloneURL()
-    if (!url) {
-      const error = new Error(
-        `We couldn't find that repository. Check that you are logged in, and the URL or repository alias are spelled correctly.`
-      )
-      this.setState({ loading: false, error })
-      return
-    }
-
-    try {
-      this.cloneImpl(url, path)
-    } catch (e) {
-      log.error(`CloneRepostiory: clone failed to complete to ${path}`, e)
-      this.setState({ loading: false, error: e })
-    }
-  }
-
-  private cloneImpl(url: string, path: string) {
-    this.props.dispatcher.clone(url, path)
-    this.props.onDismissed()
-
-    setDefaultDir(Path.resolve(path, '..'))
   }
 }
