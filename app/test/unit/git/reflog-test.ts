@@ -24,7 +24,7 @@ async function createAndCheckout(
   await checkoutBranch(repository, name)
 }
 
-describe.only('git/reflog', () => {
+describe('git/reflog', () => {
   let repository: Repository | null = null
 
   beforeEach(() => {
