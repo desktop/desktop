@@ -130,13 +130,27 @@ export class ConfigureGitUser extends React.Component<
         </Form>
 
         <div id="commit-list" className="commit-list-example">
-          <CommitListItem commit={dummyCommit1} emoji={emoji} user={null} />
+          <CommitListItem
+            commit={dummyCommit1}
+            emoji={emoji}
+            user={null}
+            repository={null}
+            isLocal={false}
+          />
           <CommitListItem
             commit={dummyCommit2}
             emoji={emoji}
             user={this.getAvatarUser()}
+            repository={null}
+            isLocal={false}
           />
-          <CommitListItem commit={dummyCommit3} emoji={emoji} user={null} />
+          <CommitListItem
+            commit={dummyCommit3}
+            emoji={emoji}
+            user={null}
+            repository={null}
+            isLocal={false}
+          />
         </div>
       </div>
     )

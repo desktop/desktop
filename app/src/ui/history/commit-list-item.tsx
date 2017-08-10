@@ -1,15 +1,22 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
+import { Repository } from '../../models/repository'
 import { IAvatarUser } from '../../models/avatar'
 import { RichText } from '../lib/rich-text'
 import { Avatar } from '../lib/avatar'
 import { RelativeTime } from '../relative-time'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import { clipboard } from 'electron'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 
 interface ICommitProps {
+  readonly repository: Repository | null
   readonly commit: Commit
   readonly user: IAvatarUser | null
   readonly emoji: Map<string, string>
+  readonly isLocal: boolean
+  readonly onRevertCommit?: (commit: Commit) => void
+  readonly onViewCommitOnGitHub?: (sha: string) => void
 }
 
 /** A component which displays a single commit in a commit list. */
@@ -43,12 +50,47 @@ export class CommitListItem extends React.Component<ICommitProps, {}> {
     )
   }
 
+  private onCopySHA = () => {
+    clipboard.writeText(this.props.commit.sha)
+  }
+
+  private onViewOnGitHub = () => {
+    if (this.props.onViewCommitOnGitHub) {
+      this.props.onViewCommitOnGitHub(this.props.commit.sha)
+    }
+  }
+
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
+    let label: string = ''
+    const gitHubRepository = this.props.repository
+      ? this.props.repository.gitHubRepository
+      : null
+
+    if (gitHubRepository) {
+      const isDotCom = gitHubRepository.endpoint === getDotComAPIEndpoint()
+      label = isDotCom ? 'View on GitHub' : 'View on GitHub Enterprise'
+    }
+
     const items: IMenuItem[] = [
       {
-        label: __DARWIN__ ? 'Do Something…' : 'Do something…',
+        label: __DARWIN__ ? 'Revert This Commit' : 'Revert this commit',
+        action: () => {
+          if (this.props.onRevertCommit) {
+            this.props.onRevertCommit(this.props.commit)
+          }
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Copy SHA',
+        action: this.onCopySHA,
+      },
+      {
+        label: label,
+        action: this.onViewOnGitHub,
+        enabled: !this.props.isLocal && !!gitHubRepository,
       },
     ]
 
