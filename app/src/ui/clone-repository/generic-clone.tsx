@@ -21,6 +21,10 @@ interface ICloneGenericRepositoryProps {
   readonly initialURL: string | null
 
   readonly onError: (error: Error | null) => void
+
+  readonly onPathChanged: (path: string) => void
+
+  readonly onUrlChanged: (url: string) => void
 }
 
 interface ICloneGenericRepositoryState {
@@ -88,60 +92,75 @@ export class CloneGenericRepository extends React.Component<
             value={this.state.path}
             label={__DARWIN__ ? 'Local Path' : 'Local path'}
             placeholder="repository path"
-            onChange={this.onPathChanged}
+            onValueChanged={this.onPathChanged}
           />
-          <Button onClick={this.showFilePicker}>Choose…</Button>
+          <Button onClick={this.pickAndSetDirectory}>Choose…</Button>
         </Row>
       </DialogContent>
     )
   }
 
-  private showFilePicker = () => {
-    const directory: string[] | null = remote.dialog.showOpenDialog({
+  private pickAndSetDirectory = async () => {
+    const directories = remote.dialog.showOpenDialog({
       properties: ['createDirectory', 'openDirectory'],
     })
-    if (!directory) {
+
+    if (!directories) {
       return
     }
 
-    const path = directory[0]
     const lastParsedIdentifier = this.state.lastParsedIdentifier
-    if (lastParsedIdentifier) {
-      this.updatePath(Path.join(path, lastParsedIdentifier.name))
-    } else {
-      this.updatePath(path)
+    const directory = lastParsedIdentifier
+      ? Path.join(directories[0], lastParsedIdentifier.name)
+      : directories[0]
+    const doesDirectoryExist = await this.doesPathExist(directory)
+
+    if (!doesDirectoryExist) {
+      return this.onPathChanged(directory)
     }
+
+    this.dispatchPathExistsError()
   }
 
-  private updatePath(newPath: string) {
-    this.setState({ path: newPath })
-    this.checkPathValid(newPath)
+  private dispatchPathExistsError() {
+    const error: Error = new Error('The destination already exists.')
+    error.name = DestinationExistsErrorName
+    this.props.onError(error)
   }
 
-  private checkPathValid(newPath: string) {
-    FS.exists(newPath, exists => {
+  private doesPathExist(path: string) {
+    return new Promise<boolean | undefined>((resolve, reject) => {
       // If the path changed while we were checking, we don't care anymore.
-      if (this.state.path !== newPath) {
-        return
+      if (this.state.path !== path) {
+        return resolve()
       }
 
-      let error: Error | null = null
+      FS.stat(path, (err, stats) => {
+        if (err) {
+          if (err.code === 'ENOENT') {
+            return resolve(false)
+          }
 
-      if (exists) {
-        error = new Error('The destination already exists.')
-        error.name = DestinationExistsErrorName
-      }
+          return reject(err)
+        }
 
-      this.props.onError(error)
+        //File must already exist
+        if (stats) {
+          return resolve(true)
+        }
+
+        return resolve(false)
+      })
     })
   }
 
-  private onURLChanged = (input: string) => {
+  private onURLChanged = async (input: string) => {
     const url = input
     const parsed = parseRepositoryIdentifier(url)
     const lastParsedIdentifier = this.state.lastParsedIdentifier
 
     let newPath: string
+
     if (lastParsedIdentifier) {
       if (parsed) {
         newPath = Path.join(Path.dirname(this.state.path), parsed.name)
@@ -154,17 +173,25 @@ export class CloneGenericRepository extends React.Component<
       newPath = this.state.path
     }
 
-    this.setState({
-      url,
-      path: newPath,
-      lastParsedIdentifier: parsed,
-    })
+    const pathExist = await this.doesPathExist(newPath)
 
-    this.checkPathValid(newPath)
+    if (!pathExist) {
+      this.setState({
+        url,
+        lastParsedIdentifier: parsed,
+      })
+
+      this.props.onUrlChanged(url)
+      this.onPathChanged(newPath)
+
+      return
+    }
+
+    this.dispatchPathExistsError()
   }
 
-  private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const path = event.currentTarget.value
-    this.updatePath(path)
+  private onPathChanged = (input: string) => {
+    this.setState({ path: input })
+    this.props.onPathChanged(input)
   }
 }
