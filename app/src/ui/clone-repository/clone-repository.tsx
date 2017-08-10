@@ -125,6 +125,8 @@ export class CloneRepository extends React.Component<
         <CloneGenericRepository
           initialURL={this.props.initialURL}
           onError={this.onError}
+          onPathChanged={this.onPathChanged}
+          onUrlChanged={this.onUrlChanged}
         />
       )
     } else {
@@ -133,7 +135,15 @@ export class CloneRepository extends React.Component<
   }
 
   private onError(error: Error | null) {
-    this.setState({ error })
+    this.setState({ error: error })
+  }
+
+  private onPathChanged(path: string) {
+    this.setState({ path: path })
+  }
+
+  private onUrlChanged(url: string) {
+    this.setState({ url: url })
   }
 
   /**
