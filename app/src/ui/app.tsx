@@ -605,7 +605,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       paths.push(file.path)
     }
 
-    this.addRepositories(paths)
+    // If they're bulk adding repositories then just blindly try to add them.
+    // But if they just dragged one, use the dialog so that they can initialize
+    // it if needed.
+    if (paths.length > 1) {
+      this.addRepositories(paths)
+    } else {
+      this.props.dispatcher.showPopup({
+        type: PopupType.AddRepository,
+        path: paths[0],
+      })
+    }
   }
 
   private removeRepository = (
