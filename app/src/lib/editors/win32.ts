@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import * as Registry from 'winreg'
+import { readKeys } from './registry'
 
 import {
   LookupResult,
@@ -14,214 +14,189 @@ import {
  * Find the Atom executable shim using the install information from the
  * registry.
  */
-function findAtomApplication(): Promise<LookupResult> {
-  return new Promise<LookupResult>((resolve, reject) => {
-    const name = AtomLabel
-    const regKey = new Registry({
-      hive: Registry.HKCU,
-      key: '\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
-    })
+async function findAtomApplication(): Promise<LookupResult> {
+  const name = AtomLabel
+  try {
+    const keys = await readKeys(
+      'HKEY_CURRENT_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom'
+    )
 
-    regKey.values((error, items) => {
-      if (error) {
-        log.debug(`Unable to locate ${name} installation`, error)
-        resolve({ name, installed: false })
-        return
+    let displayName = ''
+    let publisher = ''
+    let installLocation = ''
+
+    for (const item of keys) {
+      if (item.name === 'DisplayName') {
+        displayName = item.value
+      } else if (item.name === 'Publisher') {
+        publisher = item.value
+      } else if (item.name === 'InstallLocation') {
+        installLocation = item.value
       }
+    }
 
-      let displayName = ''
-      let publisher = ''
-      let installLocation = ''
+    const isExpectedInstall =
+      displayName === 'Atom' && publisher === 'GitHub Inc.'
 
-      for (const item of items) {
-        if (item.name === 'DisplayName') {
-          displayName = item.value
-        } else if (item.name === 'Publisher') {
-          publisher = item.value
-        } else if (item.name === 'InstallLocation') {
-          installLocation = item.value
-        }
+    if (!isExpectedInstall) {
+      log.debug(
+        `Registry entry for ${name} did not match expected publisher settings`
+      )
+      return {
+        name,
+        installed: true,
+        pathExists: false,
       }
+    }
 
-      const isExpectedInstall =
-        displayName === 'Atom' && publisher === 'GitHub Inc.'
-
-      if (!isExpectedInstall) {
-        log.debug(
-          `Registry entry for ${name} did not match expected publisher settings`
-        )
-        resolve({
-          name,
-          installed: true,
-          pathExists: false,
-        })
-        return
+    const path = Path.join(installLocation, 'bin', 'atom.cmd')
+    const exists = await pathExists(path)
+    if (!exists) {
+      log.debug(`Command line interface for ${name} not found at '${path}'`)
+      return {
+        name,
+        installed: true,
+        pathExists: false,
       }
-
-      const path = Path.join(installLocation, 'bin', 'atom.cmd')
-      pathExists(path).then(exists => {
-        if (!exists) {
-          log.debug(`Command line interface for ${name} not found at '${path}'`)
-          resolve({
-            name,
-            installed: true,
-            pathExists: false,
-          })
-        } else {
-          resolve({
-            name,
-            installed: true,
-            pathExists: true,
-            path,
-          })
-        }
-      })
-    })
-  })
+    } else {
+      return {
+        name,
+        installed: true,
+        pathExists: true,
+        path,
+      }
+    }
+  } catch (error) {
+    log.debug(`Unable to locate ${name} installation`, error)
+    return { name, installed: false }
+  }
 }
 
 /**
  * Find the Visual Studio Code executable shim using the install information
  * from the registry.
  */
-function findCodeApplication(): Promise<LookupResult> {
-  return new Promise<LookupResult>((resolve, reject) => {
-    const name = VisualStudioCodeLabel
-    const regKey = new Registry({
-      hive: Registry.HKLM,
-      key:
-        '\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
-    })
+async function findCodeApplication(): Promise<LookupResult> {
+  const name = VisualStudioCodeLabel
 
-    regKey.values((error, items) => {
-      if (error) {
-        log.debug(`Unable to locate ${name} installation`, error)
-        resolve({ name, installed: false })
-        return
+  try {
+    const keys = await readKeys(
+      'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1'
+    )
+
+    let displayName = ''
+    let publisher = ''
+    let installLocation = ''
+
+    for (const item of keys) {
+      if (item.name === 'Inno Setup: Icon Group') {
+        displayName = item.value
+      } else if (item.name === 'Publisher') {
+        publisher = item.value
+      } else if (item.name === 'Inno Setup: App Path') {
+        installLocation = item.value
       }
+    }
 
-      let displayName = ''
-      let publisher = ''
-      let installLocation = ''
+    const isExpectedInstall =
+      displayName === 'Visual Studio Code' &&
+      publisher === 'Microsoft Corporation'
 
-      for (const item of items) {
-        if (item.name === 'Inno Setup: Icon Group') {
-          displayName = item.value
-        } else if (item.name === 'Publisher') {
-          publisher = item.value
-        } else if (item.name === 'Inno Setup: App Path') {
-          installLocation = item.value
-        }
+    if (!isExpectedInstall) {
+      log.debug(
+        `Registry entry for ${name} did not match expected publisher settings`
+      )
+      return {
+        name,
+        installed: true,
+        pathExists: false,
       }
+    }
 
-      const isExpectedInstall =
-        displayName === 'Visual Studio Code' &&
-        publisher === 'Microsoft Corporation'
-
-      if (!isExpectedInstall) {
-        log.debug(
-          `Registry entry for ${name} did not match expected publisher settings`
-        )
-        resolve({
-          name,
-          installed: true,
-          pathExists: false,
-        })
-        return
+    const path = Path.join(installLocation, 'bin', 'code.cmd')
+    const exists = await pathExists(path)
+    if (!exists) {
+      log.debug(`Command line interface for ${name} not found at '${path}'`)
+      return {
+        name,
+        installed: true,
+        pathExists: false,
       }
-
-      const path = Path.join(installLocation, 'bin', 'code.cmd')
-      pathExists(path).then(exists => {
-        if (!exists) {
-          log.debug(`Command line interface for ${name} not found at '${path}'`)
-          resolve({
-            name,
-            installed: true,
-            pathExists: false,
-          })
-        } else {
-          resolve({
-            name,
-            installed: true,
-            pathExists: true,
-            path,
-          })
-        }
-      })
-    })
-  })
+    } else {
+      return {
+        name,
+        installed: true,
+        pathExists: true,
+        path,
+      }
+    }
+  } catch (error) {
+    log.debug(`Unable to locate ${name} installation`, error)
+    return { name, installed: false }
+  }
 }
 
 /**
  * Find the Sublime Text executable shim using the install information from the
  * registry.
  */
-export function findSublimeTextApplication(): Promise<LookupResult> {
-  return new Promise((resolve, reject) => {
-    const name = SublimeTextLabel
+export async function findSublimeTextApplication(): Promise<LookupResult> {
+  const name = SublimeTextLabel
 
-    const regKey = new Registry({
-      hive: Registry.HKLM,
-      key:
-        '\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
-    })
+  try {
+    const keys = await readKeys(
+      'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1'
+    )
 
-    regKey.values((error, items) => {
-      if (error) {
-        log.debug(`Unable to locate ${name} installation`, error)
-        resolve({ name, installed: false })
-        return
+    let displayName = ''
+    let publisher = ''
+    let installLocation = ''
+
+    for (const item of keys) {
+      if (item.name === 'Inno Setup: Icon Group') {
+        displayName = item.value
+      } else if (item.name === 'Publisher') {
+        publisher = item.value
+      } else if (item.name === 'Inno Setup: App Path') {
+        installLocation = item.value
       }
+    }
 
-      let displayName = ''
-      let publisher = ''
-      let installLocation = ''
+    const expectedInstall =
+      displayName === 'Sublime Text' && publisher === 'Sublime HQ Pty Ltd'
 
-      for (const item of items) {
-        if (item.name === 'Inno Setup: Icon Group') {
-          displayName = item.value
-        } else if (item.name === 'Publisher') {
-          publisher = item.value
-        } else if (item.name === 'Inno Setup: App Path') {
-          installLocation = item.value
-        }
+    if (!expectedInstall) {
+      log.debug(
+        `Registry entry for ${name} did not match expected publisher settings`
+      )
+      return {
+        name,
+        installed: true,
+        pathExists: false,
       }
+    }
 
-      const expectedInstall =
-        displayName === 'Sublime Text' && publisher === 'Sublime HQ Pty Ltd'
-
-      if (!expectedInstall) {
-        log.debug(
-          `Registry entry for ${name} did not match expected publisher settings`
-        )
-        resolve({
-          name,
-          installed: true,
-          pathExists: false,
-        })
-        return
+    const path = Path.join(installLocation, 'subl.exe')
+    const exists = await pathExists(path)
+    if (!exists) {
+      log.debug(`Command line interface for ${name} not found at '${path}'`)
+      return {
+        name,
+        installed: true,
+        pathExists: false,
       }
-
-      const path = Path.join(installLocation, 'subl.exe')
-      pathExists(path).then(exists => {
-        if (!exists) {
-          log.debug(`Command line interface for ${name} not found at '${path}'`)
-          resolve({
-            name,
-            installed: true,
-            pathExists: false,
-          })
-        } else {
-          resolve({
-            name,
-            installed: true,
-            pathExists: true,
-            path,
-          })
-        }
-      })
-    })
-  })
+    } else {
+      return {
+        name,
+        installed: true,
+        pathExists: true,
+        path,
+      }
+    }
+  } catch (error) {
+    log.debug(`Unable to locate ${name} installation`, error)
+    return { name, installed: false }
+  }
 }
 
 /**
