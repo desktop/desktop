@@ -1,18 +1,19 @@
 import * as Fs from 'fs'
+import { ExternalEditor } from '../../models/editors'
 
 interface IProgramNotFound {
-  readonly name: string
+  readonly editor: ExternalEditor
   readonly installed: false
 }
 
 interface IProgramMissing {
-  readonly name: string
+  readonly editor: ExternalEditor
   readonly installed: true
   readonly pathExists: false
 }
 
 interface IProgramFound {
-  readonly name: string
+  readonly editor: ExternalEditor
   readonly installed: true
   readonly pathExists: true
   readonly path: string
@@ -27,17 +28,12 @@ export type FoundEditor = {
   /**
    * The friendly name of the editor, to be used in labels
    */
-  name: string
+  editor: string
   /**
    * The executable associated with the editor to launch
    */
   path: string
 }
-
-// labels for the editors, to reduce duplication in the codebase
-export const AtomLabel = 'Atom'
-export const VisualStudioCodeLabel = 'Visual Studio Code'
-export const SublimeTextLabel = 'Sublime Text'
 
 /**
  * Helper function to promisify fs.exists

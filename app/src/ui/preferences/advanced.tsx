@@ -39,7 +39,7 @@ export class Advanced extends React.Component<
 
   public async componentDidMount() {
     const availableEditors = await getAvailableEditors()
-    const editorLabels = availableEditors.map(editor => editor.name)
+    const editorLabels = availableEditors.map(editor => editor.editor)
     let selectedExternalEditor = this.props.selectedExternalEditor
 
     if (editorLabels.length) {

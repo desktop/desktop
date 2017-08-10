@@ -76,7 +76,7 @@ export async function findEditorOrDefault(
     return editors[0]
   }
 
-  const match = editors.find(p => p.name === name) || null
+  const match = editors.find(p => p.editor === name) || null
   if (!match) {
     const menuItemName = __DARWIN__ ? 'Preferences' : 'Options'
     const message = `The editor '${name}' could not be found. Please open ${menuItemName} and choose an available editor.`

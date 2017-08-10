@@ -1,21 +1,15 @@
 import * as Path from 'path'
+import { ExternalEditor } from '../../models/editors'
 
 /**
  * appPath will raise an error if it cannot find the program.
  */
 const appPath: (bundleId: string) => Promise<string> = require('app-path')
 
-import {
-  LookupResult,
-  FoundEditor,
-  pathExists,
-  AtomLabel,
-  VisualStudioCodeLabel,
-  SublimeTextLabel,
-} from './shared'
+import { LookupResult, FoundEditor, pathExists } from './shared'
 
 async function findAtomApplication(): Promise<LookupResult> {
-  const name = AtomLabel
+  const editor = ExternalEditor.Atom
 
   try {
     const installPath = await appPath('com.github.atom')
@@ -28,27 +22,27 @@ async function findAtomApplication(): Promise<LookupResult> {
     )
     const exists = await pathExists(path)
     if (!exists) {
-      log.debug(`Command line interface for ${name} not found at '${path}'`)
+      log.debug(`Command line interface for ${editor} not found at '${path}'`)
       return {
-        name,
+        editor,
         installed: true,
         pathExists: false,
       }
     }
     return {
-      name,
+      editor,
       installed: true,
       pathExists: true,
       path,
     }
   } catch (error) {
-    log.debug(`Unable to locate ${name} installation`, error)
-    return { name, installed: false }
+    log.debug(`Unable to locate ${editor} installation`, error)
+    return { editor, installed: false }
   }
 }
 
 async function findCodeApplication(): Promise<LookupResult> {
-  const name = VisualStudioCodeLabel
+  const editor = ExternalEditor.VisualStudioCode
   try {
     const installPath = await appPath('com.microsoft.VSCode')
     const path = Path.join(
@@ -61,27 +55,27 @@ async function findCodeApplication(): Promise<LookupResult> {
     )
     const exists = await pathExists(path)
     if (!exists) {
-      log.debug(`Command line interface for ${name} not found at '${path}'`)
+      log.debug(`Command line interface for ${editor} not found at '${path}'`)
       return {
-        name,
+        editor,
         installed: true,
         pathExists: false,
       }
     }
     return {
-      name,
+      editor,
       installed: true,
       pathExists: true,
       path,
     }
   } catch (error) {
-    log.debug(`Unable to locate ${name} installation`, error)
-    return { name, installed: false }
+    log.debug(`Unable to locate ${editor} installation`, error)
+    return { editor, installed: false }
   }
 }
 
 async function findSublimeTextApplication(): Promise<LookupResult> {
-  const name = SublimeTextLabel
+  const editor = ExternalEditor.SublimeText
   try {
     const sublimeApp = await appPath('com.sublimetext.3')
     const path = Path.join(
@@ -94,22 +88,22 @@ async function findSublimeTextApplication(): Promise<LookupResult> {
 
     const exists = await pathExists(path)
     if (!exists) {
-      log.debug(`Command line interface for ${name} not found at '${path}'`)
+      log.debug(`Command line interface for ${editor} not found at '${path}'`)
       return {
-        name,
+        editor,
         installed: true,
         pathExists: false,
       }
     }
     return {
-      name,
+      editor,
       installed: true,
       pathExists: true,
       path,
     }
   } catch (error) {
-    log.debug(`Unable to locate ${SublimeTextLabel} installation`, error)
-    return { name, installed: false }
+    log.debug(`Unable to locate ${editor} installation`, error)
+    return { editor, installed: false }
   }
 }
 
@@ -129,15 +123,15 @@ export async function getAvailableEditors(): Promise<
   ])
 
   if (atom.installed && atom.pathExists) {
-    results.push({ name: atom.name, path: atom.path })
+    results.push({ editor: atom.editor, path: atom.path })
   }
 
   if (code.installed && code.pathExists) {
-    results.push({ name: code.name, path: code.path })
+    results.push({ editor: code.editor, path: code.path })
   }
 
   if (sublime.installed && sublime.pathExists) {
-    results.push({ name: sublime.name, path: sublime.path })
+    results.push({ editor: sublime.editor, path: sublime.path })
   }
 
   return results
@@ -150,17 +144,17 @@ export async function getAvailableEditors(): Promise<
 export async function getFirstEditorOrDefault(): Promise<FoundEditor | null> {
   const atom = await findAtomApplication()
   if (atom.installed && atom.pathExists) {
-    return { name: atom.name, path: atom.path }
+    return { editor: atom.editor, path: atom.path }
   }
 
   const code = await findCodeApplication()
   if (code.installed && code.pathExists) {
-    return { name: code.name, path: code.path }
+    return { editor: code.editor, path: code.path }
   }
 
   const sublime = await findSublimeTextApplication()
   if (sublime.installed && sublime.pathExists) {
-    return { name: sublime.name, path: sublime.path }
+    return { editor: sublime.editor, path: sublime.path }
   }
 
   return null
