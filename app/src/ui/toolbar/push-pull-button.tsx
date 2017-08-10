@@ -162,7 +162,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       return 'Publish this repository to GitHub'
     }
     if (!this.props.aheadBehind) {
-      const isGitHub = this.props.repository.gitHubRepository !== null
+      const isGitHub = !!this.props.repository.gitHubRepository
       return isGitHub
         ? 'Publish this branch to GitHub'
         : 'Publish this branch to the remote'
