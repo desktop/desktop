@@ -25,6 +25,7 @@ import {
   defaultErrorHandler,
   missingRepositoryHandler,
   backgroundTaskHandler,
+  pushNeedsPullHandler,
   AccountsStore,
   RepositoriesDatabase,
   RepositoriesStore,
@@ -121,6 +122,7 @@ const dispatcher = new Dispatcher(appStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
+dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(missingRepositoryHandler)
 
