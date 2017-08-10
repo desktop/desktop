@@ -80,7 +80,7 @@ export class AddExistingRepository extends React.Component<
       return
     }
 
-    this.setState({ isRepository })
+    this.setState({ isRepository, showNonGitRepositoryWarning: !isRepository })
   }
 
   private renderWarning() {
