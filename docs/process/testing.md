@@ -201,7 +201,10 @@
   - [ ] All commits listed in chronological order, with avatar, date and name; list is scrollable with arrow keys enabled
 
 ### Diffs		
-  - [ ] All commits have link to GitHub, SHA, # of files changed, avatar, commit message, commit description (optional)
+  - [ ] All commits have avatar, short SHA, # of files changed, actions dropdown, commit message, commit description (optional)
+    - [ ] `Actions` dropdown: Revert commit, Copy SHA, View on GitHub
+      - [ ] Reverting commit repopulates commit area
+        - [ ] Error message if no changes to commit
   - [ ] All files within a commit listed, with respective +/•/- sign; list is scrollable
     - [ ] Diffs are viewable; list is scrollable with arrow keys enabled
       - [ ] Green is for additions, red for deletions
