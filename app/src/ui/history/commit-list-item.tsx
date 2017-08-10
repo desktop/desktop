@@ -4,6 +4,7 @@ import { IAvatarUser } from '../../models/avatar'
 import { RichText } from '../lib/rich-text'
 import { Avatar } from '../lib/avatar'
 import { RelativeTime } from '../relative-time'
+import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 
 interface ICommitProps {
   readonly commit: Commit
@@ -18,7 +19,7 @@ export class CommitListItem extends React.Component<ICommitProps, {}> {
     const author = commit.author
 
     return (
-      <div className="commit">
+      <div className="commit" onContextMenu={this.onContextMenu}>
         <Avatar user={this.props.user || undefined} />
         <div className="info">
           <RichText
@@ -40,5 +41,17 @@ export class CommitListItem extends React.Component<ICommitProps, {}> {
       this.props.commit.sha !== nextProps.commit.sha ||
       this.props.user !== nextProps.user
     )
+  }
+
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Do Something…' : 'Do something…',
+      },
+    ]
+
+    showContextualMenu(items)
   }
 }
