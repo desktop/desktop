@@ -43,7 +43,6 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       }
     }
 
-    // TODO: where are we getting this from?
     const isLocal = this.props.localCommitSHAs.indexOf(commit.sha) > -1
 
     return (
