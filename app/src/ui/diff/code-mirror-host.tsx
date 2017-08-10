@@ -89,6 +89,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
       cm.off('changes', this.onChanges)
       cm.off('renderLine', this.onRenderLine)
       cm.off('beforeSelectionChange', this.beforeSelectionChanged)
+      cm.off('copy', this.onCopy as any)
 
       this.codeMirror = null
     }
