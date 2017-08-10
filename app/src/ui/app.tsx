@@ -1053,7 +1053,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <EditorError
-            key="about"
+            key="editor-error"
             message={popup.message}
             onDismissed={this.onPopupDismissed}
             showPreferencesDialog={showPreferencesDialog}

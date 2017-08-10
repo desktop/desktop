@@ -1,24 +1,24 @@
 import * as Fs from 'fs'
 
-type ProgramNotFound = {
-  name: string
-  installed: false
+interface IProgramNotFound {
+  readonly name: string
+  readonly installed: false
 }
 
-type ProgramMissing = {
-  name: string
-  installed: true
-  pathExists: false
+interface IProgramMissing {
+  readonly name: string
+  readonly installed: true
+  readonly pathExists: false
 }
 
-type ProgramFound = {
-  name: string
-  installed: true
-  pathExists: true
-  path: string
+interface IProgramFound {
+  readonly name: string
+  readonly installed: true
+  readonly pathExists: true
+  readonly path: string
 }
 
-export type LookupResult = ProgramNotFound | ProgramMissing | ProgramFound
+export type LookupResult = IProgramNotFound | IProgramMissing | IProgramFound
 
 /**
  * A found external editor on the user's machine

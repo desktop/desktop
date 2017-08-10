@@ -2181,7 +2181,7 @@ export class AppStore {
     return shell.openExternal(url)
   }
 
-  /** Takes a URL and opens it using the system default application */
+  /** Takes a repository path and opens it using the user's configured editor */
   public async _openInExternalEditor(path: string): Promise<void> {
     const state = this.getState()
     const selectedEditor = state.selectedExternalEditor
