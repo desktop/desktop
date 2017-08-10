@@ -40,7 +40,19 @@ export class Advanced extends React.Component<
   public async componentDidMount() {
     const availableEditors = await getAvailableEditors()
     const editorLabels = availableEditors.map(editor => editor.name)
-    this.setState({ availableEditors: editorLabels })
+    let selectedExternalEditor = this.props.selectedExternalEditor
+
+    if (editorLabels.length) {
+      const indexOf = editorLabels.indexOf(selectedExternalEditor)
+      if (indexOf === -1) {
+        // if the editor cannot be found, select the first entry
+        // so that the user can immediately save changes
+        selectedExternalEditor = editorLabels[0]
+        this.props.onSelectedEditorChanged(selectedExternalEditor)
+      }
+    }
+
+    this.setState({ availableEditors: editorLabels, selectedExternalEditor })
   }
 
   private onReportingOptOutChanged = (
