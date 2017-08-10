@@ -17,6 +17,7 @@ import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
 import { RetryAction } from './retry-actions'
+import { ExternalEditor } from '../models/editors'
 import { PreferencesTab } from '../models/preferences'
 
 export { ICommitMessage }
@@ -136,7 +137,7 @@ export interface IAppState {
   readonly confirmRepoRemoval: boolean
 
   /** The external editor to use when opening repositories */
-  readonly selectedExternalEditor: string
+  readonly selectedExternalEditor: ExternalEditor
 }
 
 export enum PopupType {

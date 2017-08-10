@@ -32,6 +32,10 @@ import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import {
+  ExternalEditor,
+  parse as parseExternalEditor,
+} from '../../models/editors'
+import {
   CloningRepository,
   CloningRepositoriesStore,
 } from './cloning-repositories-store'
@@ -96,7 +100,7 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 const confirmRepoRemovalDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 
-const externalEditorDefault: string = 'Atom'
+const externalEditorDefault = ExternalEditor.Atom
 const externalEditorKey: string = 'externalEditor'
 
 export class AppStore {
@@ -167,7 +171,7 @@ export class AppStore {
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
 
-  private selectedExternalEditor: string = externalEditorDefault
+  private selectedExternalEditor: ExternalEditor = externalEditorDefault
 
   private readonly statsStore: StatsStore
 
@@ -855,9 +859,7 @@ export class AppStore {
         : confirmRepoRemovalValue === '1'
 
     const externalEditorValue = localStorage.getItem(externalEditorKey)
-
-    this.selectedExternalEditor =
-      externalEditorValue === null ? externalEditorDefault : externalEditorValue
+    this.selectedExternalEditor = parseExternalEditor(externalEditorValue)
 
     this.updateExternalEditorMenuItem(this.selectedExternalEditor)
 
@@ -2228,7 +2230,7 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public _setExternalEditor(selectedEditor: string): Promise<void> {
+  public _setExternalEditor(selectedEditor: ExternalEditor): Promise<void> {
     this.selectedExternalEditor = selectedEditor
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()

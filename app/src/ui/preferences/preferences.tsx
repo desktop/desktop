@@ -1,6 +1,10 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
+import {
+  ExternalEditor,
+  parse as parseExternalEditor,
+} from '../../models/editors'
 import { Dispatcher } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
@@ -24,7 +28,7 @@ interface IPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepoRemoval: boolean
-  readonly selectedExternalEditor: string
+  readonly selectedExternalEditor: ExternalEditor
 }
 
 interface IPreferencesState {
@@ -33,7 +37,7 @@ interface IPreferencesState {
   readonly committerEmail: string
   readonly isOptedOut: boolean
   readonly confirmRepoRemoval: boolean
-  readonly selectedExternalEditor: string
+  readonly selectedExternalEditor: ExternalEditor
 }
 
 /** The app-level preferences component. */
@@ -50,7 +54,7 @@ export class Preferences extends React.Component<
       committerEmail: '',
       isOptedOut: false,
       confirmRepoRemoval: false,
-      selectedExternalEditor: '',
+      selectedExternalEditor: ExternalEditor.Atom,
     }
   }
 
@@ -184,7 +188,8 @@ export class Preferences extends React.Component<
     this.setState({ committerEmail })
   }
 
-  private onSelectedEditorChanged = (selectedExternalEditor: string) => {
+  private onSelectedEditorChanged = (value: string) => {
+    const selectedExternalEditor = parseExternalEditor(value)
     this.setState({ selectedExternalEditor })
   }
 
