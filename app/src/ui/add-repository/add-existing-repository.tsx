@@ -68,7 +68,17 @@ export class AddExistingRepository extends React.Component<
   }
 
   public async componentDidMount() {
-    const isRepository = await isGitRepository(this.state.path)
+    const pathToCheck = this.state.path
+    if (pathToCheck.length < 1) {
+      return
+    }
+
+    const isRepository = await isGitRepository(pathToCheck)
+    // The path might have changed while we were checking, in which case we
+    // don't care about the result anymore.
+    if (this.state.path !== pathToCheck) {
+      return
+    }
 
     this.setState({ isRepository })
   }
