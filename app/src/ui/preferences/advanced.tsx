@@ -101,7 +101,7 @@ export class Advanced extends React.Component<
       // TODO: see whether it makes sense to have a fallback UI
       // which we display when the select list is empty
       return (
-        <div className="select-component">
+        <div className="select-component no-options-found">
           <label>
             {label}
           </label>
