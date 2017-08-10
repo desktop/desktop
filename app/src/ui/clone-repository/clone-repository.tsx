@@ -134,15 +134,15 @@ export class CloneRepository extends React.Component<
     }
   }
 
-  private onError(error: Error | null) {
+  private onError = (error: Error | null) => {
     this.setState({ error: error })
   }
 
-  private onPathChanged(path: string) {
+  private onPathChanged = (path: string) => {
     this.setState({ path: path })
   }
 
-  private onUrlChanged(url: string) {
+  private onUrlChanged = (url: string) => {
     this.setState({ url: url })
   }
 

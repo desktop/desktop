@@ -113,10 +113,13 @@ export class CloneGenericRepository extends React.Component<
     const directory = lastParsedIdentifier
       ? Path.join(directories[0], lastParsedIdentifier.name)
       : directories[0]
+
+    this.onPathChanged(directory)
+
     const doesDirectoryExist = await this.doesPathExist(directory)
 
     if (!doesDirectoryExist) {
-      return this.onPathChanged(directory)
+      return
     }
 
     this.dispatchPathExistsError()
@@ -175,23 +178,22 @@ export class CloneGenericRepository extends React.Component<
 
     const pathExist = await this.doesPathExist(newPath)
 
-    if (!pathExist) {
-      this.setState({
-        url,
-        lastParsedIdentifier: parsed,
-      })
+    this.setState({
+      url,
+      path: newPath,
+      lastParsedIdentifier: parsed,
+    })
 
-      this.props.onUrlChanged(url)
-      this.onPathChanged(newPath)
-
-      return
+    if (pathExist) {
+      this.dispatchPathExistsError()
     }
 
-    this.dispatchPathExistsError()
+    this.props.onUrlChanged(url)
+    this.props.onPathChanged(newPath)
   }
 
-  private onPathChanged = (input: string) => {
-    this.setState({ path: input })
-    this.props.onPathChanged(input)
+  private onPathChanged = (path: string) => {
+    this.setState({ path })
+    this.props.onPathChanged(path)
   }
 }
