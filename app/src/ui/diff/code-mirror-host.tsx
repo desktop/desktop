@@ -39,8 +39,8 @@ interface ICodeMirrorHostProps {
   ) => void
 
   /**
-   * Called when content has been copied. The default behavior may be prevent by
-   * called `preventDefault` on the event.
+   * Called when content has been copied. The default behavior may be prevented
+   * by calling `preventDefault` on the event.
    */
   readonly onCopy?: (selection: string, event: Event) => void
 }
