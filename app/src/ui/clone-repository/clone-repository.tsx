@@ -17,6 +17,8 @@ import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 import { Monospaced } from '../lib/monospaced'
+import { TabBar } from '../tab-bar'
+import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -30,6 +32,10 @@ interface ICloneRepositoryProps {
 
   /** The initial URL or `owner/name` shortcut to use. */
   readonly initialURL: string | null
+
+  /** The initial tab to open on load
+   */
+  readonly initialSelectedTab?: CloneRepositoryTab
 }
 
 interface ICloneRepositoryState {
@@ -49,6 +55,11 @@ interface ICloneRepositoryState {
    * The repository identifier that was last parsed from the user-entered URL.
    */
   readonly lastParsedIdentifier: IRepositoryIdentifier | null
+
+  /**
+   * The default tab to open on load
+   */
+  readonly selectedIndex: CloneRepositoryTab
 }
 
 /** The component for cloning a repository. */
@@ -65,6 +76,7 @@ export class CloneRepository extends React.Component<
       loading: false,
       error: null,
       lastParsedIdentifier: null,
+      selectedIndex: this.props.initialSelectedTab || CloneRepositoryTab.GitHub,
     }
   }
 
@@ -99,6 +111,13 @@ export class CloneRepository extends React.Component<
         onDismissed={this.props.onDismissed}
         loading={this.state.loading}
       >
+        <TabBar
+          onTabClicked={this.onTabClicked}
+          selectedIndex={this.state.selectedIndex}
+        >
+          <span>GitHub</span>
+          <span>URL</span>
+        </TabBar>
         {error
           ? <DialogError>
               {error.message}
@@ -260,5 +279,9 @@ export class CloneRepository extends React.Component<
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))
+  }
+
+  private onTabClicked = (index: number) => {
+    this.setState({ selectedIndex: index })
   }
 }
