@@ -601,8 +601,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   private handleDragAndDrop(fileList: FileList) {
     const paths: string[] = []
     for (let i = 0; i < fileList.length; i++) {
-      const path = fileList[i]
-      paths.push(path.path)
+      const file = fileList[i]
+      paths.push(file.path)
     }
 
     this.addRepositories(paths)
