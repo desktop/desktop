@@ -1,3 +1,10 @@
+// This module is a stripped back version of winreg:
+// https://github.com/fresc81/node-winreg
+//
+// I was seeing significant overhead when spawning the process to enumerate
+// the keys found by `reg.exe`, and rather than trying to fix and potentially
+// regress other parts I've extracted just the bit that I need to use.
+
 import { spawn } from 'child_process'
 
 type RegistryEntry = {
