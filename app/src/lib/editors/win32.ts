@@ -23,7 +23,17 @@ interface IRegistryEntry {
   readonly value: string
 }
 
-function readRegistryKey(key: string): Promise<ReadonlyArray<IRegistryEntry>> {
+/**
+ * Read registry keys found at the expected location.
+ *
+ * This method will return an empty list if the expected key does not exist,
+ * instead of throwing an error.
+ *
+ * @param key The registry key to lookup
+ */
+function readRegistryKeySafe(
+  key: string
+): Promise<ReadonlyArray<IRegistryEntry>> {
   return new Promise<ReadonlyArray<IRegistryEntry>>((resolve, reject) => {
     const proc = spawn(regPath, ['QUERY', key], {
       cwd: undefined,
@@ -33,9 +43,10 @@ function readRegistryKey(key: string): Promise<ReadonlyArray<IRegistryEntry>> {
     let errorThrown = false
     proc.on('close', code => {
       if (errorThrown) {
-        return
+        resolve([])
       } else if (code !== 0) {
-        reject(`Unable to find registry key - exit code ${code} returned`)
+        log.debug(`Unable to find registry key - exit code ${code} returned`)
+        resolve([])
       } else {
         const output = Buffer.concat(buffers).toString('utf8')
         const lines = output.split('\n')
@@ -74,24 +85,47 @@ function readRegistryKey(key: string): Promise<ReadonlyArray<IRegistryEntry>> {
 
     proc.on('error', err => {
       errorThrown = true
-      reject(err)
+      log.debug('An error occurred while trying to find the program', err)
     })
   })
 }
 
-function getRegistryKey(editor: ExternalEditor): string {
+/**
+ * Resolve a set of registry keys associated with the installed application.
+ *
+ * This is because some tools (like VSCode) may support a 64-bit or 32-bit
+ * version of the tool - we should use whichever they have installed.
+ *
+ * @param editor The external editor that may be installed locally.
+ */
+function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
   switch (editor) {
     case ExternalEditor.Atom:
-      return 'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom'
+      return [
+        'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
+      ]
     case ExternalEditor.VisualStudioCode:
-      return 'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1'
+      return [
+        // 64-bit version of VSCode - not available from home page but just made available
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{EA457B21-F73E-494C-ACAB-524FDE069978}_is1',
+        // 32-bit version of VSCode - what most people will be using for the forseeable future
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
+      ]
     case ExternalEditor.SublimeText:
-      return 'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1'
+      return [
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
+      ]
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
 }
 
+/**
+ * Resolve the command-line interface for the editor.
+ *
+ * @param editor The external editor which is installed
+ * @param installLocation The known install location of the editor
+ */
 function getExecutableShim(
   editor: ExternalEditor,
   installLocation: string
@@ -108,6 +142,13 @@ function getExecutableShim(
   }
 }
 
+/**
+ * Confirm the found installation matches the expected identifier details
+ *
+ * @param editor The external editor
+ * @param displayName The display name as listed in the registry
+ * @param publisher The publisher who created the installer
+ */
 function isExpectedInstallation(
   editor: ExternalEditor,
   displayName: string,
@@ -131,6 +172,12 @@ function isExpectedInstallation(
   }
 }
 
+/**
+ * Map the registry information to a list of known installer fields.
+ *
+ * @param editor The external editor being resolved
+ * @param keys The collection of registry key-value pairs
+ */
 function extractApplicationInformation(
   editor: ExternalEditor,
   keys: ReadonlyArray<IRegistryEntry>
@@ -174,48 +221,54 @@ function extractApplicationInformation(
 }
 
 async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
-  const registryKey = getRegistryKey(editor)
+  const registryKeys = getRegistryKeys(editor)
 
-  try {
-    const keys = await readRegistryKey(registryKey)
-
-    const {
-      displayName,
-      publisher,
-      installLocation,
-    } = extractApplicationInformation(editor, keys)
-
-    if (!isExpectedInstallation(editor, displayName, publisher)) {
-      log.debug(
-        `Registry entry for ${editor} did not match expected publisher settings`
-      )
-      return {
-        editor,
-        installed: true,
-        pathExists: false,
-      }
+  let keys: ReadonlyArray<IRegistryEntry> = []
+  for (const key of registryKeys) {
+    keys = await readRegistryKeySafe(key)
+    if (keys.length > 0) {
+      break
     }
+  }
 
-    const path = getExecutableShim(editor, installLocation)
-    const exists = await pathExists(path)
-    if (!exists) {
-      log.debug(`Command line interface for ${editor} not found at '${path}'`)
-      return {
-        editor,
-        installed: true,
-        pathExists: false,
-      }
-    } else {
-      return {
-        editor,
-        installed: true,
-        pathExists: true,
-        path,
-      }
+  if (keys.length === 0) {
+    return { editor, installed: false }
+  }
+
+  const {
+    displayName,
+    publisher,
+    installLocation,
+  } = extractApplicationInformation(editor, keys)
+
+  if (!isExpectedInstallation(editor, displayName, publisher)) {
+    log.debug(
+      `Registry entry for ${editor} did not match expected publisher settings`
+    )
+    return {
+      editor,
+      installed: true,
+      pathExists: false,
     }
-  } catch (error) {}
+  }
 
-  return { editor, installed: false }
+  const path = getExecutableShim(editor, installLocation)
+  const exists = await pathExists(path)
+  if (!exists) {
+    log.debug(`Command line interface for ${editor} not found at '${path}'`)
+    return {
+      editor,
+      installed: true,
+      pathExists: false,
+    }
+  }
+
+  return {
+    editor,
+    installed: true,
+    pathExists: true,
+    path,
+  }
 }
 
 /**
