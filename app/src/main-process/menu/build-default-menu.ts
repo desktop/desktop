@@ -3,9 +3,13 @@ import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogPath } from '../../lib/logging/get-log-path'
 import { mkdirIfNeeded } from '../../lib/file-system'
+import { ExternalEditor } from '../../models/editors'
+
 import { log } from '../log'
 
-export function buildDefaultMenu(selectedEditor?: string): Electron.Menu {
+export function buildDefaultMenu(
+  selectedEditor?: ExternalEditor
+): Electron.Menu {
   const defaultEditorLabel = __DARWIN__ ? 'External editor' : 'External editor'
   const editorLabel = selectedEditor || defaultEditorLabel
   const template = new Array<Electron.MenuItemConstructorOptions>()
