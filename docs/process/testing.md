@@ -10,7 +10,7 @@
     - [ ] User is not automatically logged into Desktop post account creation
   - [ ] `Sign in to Github.com` link
     - [ ] `Sign in` successful if valid username/email and password
-      - [ ] If 2FA activated, user sent auth code to enter 
+      - [ ] If 2FA activated, user sent auth code to enter (test SMS and authenticator app)
 	- [ ] Sign in successful with active 2FA code, user goes to Configure Git
 	  - [ ] User sees Repository landing page if sign in successful
 	  - [ ] Error message if code is wrong or inactive 
