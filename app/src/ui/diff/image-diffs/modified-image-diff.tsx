@@ -18,14 +18,26 @@ interface IModifiedImageDiffProps {
 }
 
 export interface ICommonImageDiffProperties {
+  /** The biggest size to fit both the previous and current images. */
   readonly maxSize: IImageSize
 
+  /** The previous image. */
   readonly previous: Image
+
+  /** The current image. */
   readonly current: Image
 
+  /** A function to call when the previous image has loaded. */
   readonly onPreviousImageLoad: (img: HTMLImageElement) => void
+
+  /** A function to call when the current image has loaded. */
   readonly onCurrentImageLoad: (img: HTMLImageElement) => void
 
+  /**
+   * A function to call which provides the element that will contain the
+   * images. This container element is used to measure the available space for
+   * the images, which is then used to calculate the aspect fit size.
+   */
   readonly onContainerRef: (e: HTMLElement | null) => void
 }
 
