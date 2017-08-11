@@ -2192,7 +2192,7 @@ export class AppStore {
     const selectedEditor = state.selectedExternalEditor
     try {
       const match = await findEditorOrDefault(selectedEditor)
-      return launchExternalEditor(path, match)
+      await launchExternalEditor(path, match)
     } catch (error) {
       this.emitError(error)
     }
