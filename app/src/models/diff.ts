@@ -127,6 +127,10 @@ export class DiffLine {
   public isIncludeableLine() {
     return this.type === DiffLineType.Add || this.type === DiffLineType.Delete
   }
+
+  public get content(): string {
+    return this.text.substr(1)
+  }
 }
 
 /** details about the start and end of a diff hunk */

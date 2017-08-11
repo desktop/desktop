@@ -637,8 +637,8 @@ export class Diff extends React.Component<IDiffProps, {}> {
               continue
             }
 
-            const addContent = addLine.text.substr(1)
-            const deleteContent = deleteLine.text.substr(1)
+            const addContent = addLine.content
+            const deleteContent = deleteLine.content
 
             debugger
             const l1 = this.commonLength(deleteContent, 0, addContent, 0, false)
