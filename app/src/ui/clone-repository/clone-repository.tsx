@@ -144,6 +144,7 @@ export class CloneRepository extends React.Component<
         <CloneGithubRepository
           onPathChanged={this.updatePath}
           onChooseDirectory={this.onChooseDirectory}
+          onDismissed={this.props.onDismissed}
         />
       )
     }
