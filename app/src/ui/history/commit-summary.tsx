@@ -48,22 +48,20 @@ export class CommitSummary extends React.Component<
       .ResizeObserver
 
     if (ResizeObserverClass || false) {
-      this.resizeObserver = new ResizeObserverClass(
-        (entries: ReadonlyArray<IResizeObserverEntry>) => {
-          for (const entry of entries) {
-            if (entry.target === this.descriptionScrollViewRef) {
-              // We might end up causing a recursive update by updating the state
-              // when we're reacting to a resize so we'll defer it until after
-              // react is done with this frame.
-              if (this.updateOverflowTimeoutId !== null) {
-                clearImmediate(this.updateOverflowTimeoutId)
-              }
-
-              this.updateOverflowTimeoutId = setImmediate(this.onResized)
+      this.resizeObserver = new ResizeObserverClass(entries => {
+        for (const entry of entries) {
+          if (entry.target === this.descriptionScrollViewRef) {
+            // We might end up causing a recursive update by updating the state
+            // when we're reacting to a resize so we'll defer it until after
+            // react is done with this frame.
+            if (this.updateOverflowTimeoutId !== null) {
+              clearImmediate(this.updateOverflowTimeoutId)
             }
+
+            this.updateOverflowTimeoutId = setImmediate(this.onResized)
           }
         }
-      )
+      })
     }
   }
 
