@@ -1,5 +1,14 @@
 {
   "releases": {
+    "0.7.3-beta2": [
+      "[New] Can choose whether a branch should be deleted on the remote as well as locally - #2136",
+      "[Improved] Discard changes performance - #1889",
+      "[Fixed] Don't say \"Publish this branch to GitHub\" for non-GitHub repositories - #1498",
+      "[Fixed] macOS: Protocol schemes not getting registered - #2429",
+      "[Fixed] Patches which contain the \"no newline\" marker would fail to apply - #2123",
+      "[Fixed] Close the autocompletion popover when it loses focus - #2358",
+      "[Fixed] Clear the selected org when switching Publish Repository tabs - #2386"
+    ],
     "0.7.3-beta1": [
       "[New] Support authenticating with non-GitHub servers - #852",
       "[New] Added the ability to revert a commit - #752",
