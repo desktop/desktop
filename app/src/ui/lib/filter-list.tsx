@@ -187,9 +187,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     const row = this.state.rows[index]
     if (row.kind === 'item') {
       return this.props.renderItem(row.item)
-    } else {
+    }
+
+    if (this.props.renderGroupHeader) {
       return this.props.renderGroupHeader(row.identifier)
     }
+
+    return null
   }
 
   private onListRef = (instance: List | null) => {
@@ -328,18 +332,20 @@ function createStateUpdate<T extends IFilterListItem>(
   props: IFilterListProps<T>
 ) {
   const flattenedRows = new Array<IFilterListRow<T>>()
-  for (const group of props.groups) {
-    const items = group.items.filter(i => {
-      return i.text.toLowerCase().includes(filter.toLowerCase())
-    })
+  if (props.groups) {
+    for (const group of props.groups) {
+      const items = group.items.filter(i => {
+        return i.text.toLowerCase().includes(filter.toLowerCase())
+      })
 
-    if (!items.length) {
-      continue
-    }
+      if (!items.length) {
+        continue
+      }
 
-    flattenedRows.push({ kind: 'group', identifier: group.identifier })
-    for (const item of items) {
-      flattenedRows.push({ kind: 'item', item })
+      flattenedRows.push({ kind: 'group', identifier: group.identifier })
+      for (const item of items) {
+        flattenedRows.push({ kind: 'item', item })
+      }
     }
   }
 
