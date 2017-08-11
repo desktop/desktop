@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { renderImage } from './render-image'
-import { IImageSize, ICommonImageDiffProperties } from './modified-image-diff'
+import { ICommonImageDiffProperties } from './modified-image-diff'
+import { IImageSize } from './sizing'
 
 /**
  * The height of the Deleted/Added labels at the top and the image dimension
