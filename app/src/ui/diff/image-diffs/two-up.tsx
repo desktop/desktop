@@ -33,7 +33,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
     const currentImageSize = this.props.currentImageSize || zeroSize
 
     return (
-      <div className="image-diff_inner--two-up">
+      <div className="image-diff_inner--two-up" ref={this.props.onContainerRef}>
         <div className="image-diff__before">
           <div className="image-diff__header">Deleted</div>
           {renderImage(this.props.previous, {
