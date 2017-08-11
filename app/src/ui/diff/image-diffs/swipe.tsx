@@ -42,7 +42,7 @@ export class Swipe extends React.Component<
               />
             </div>
             <div
-              className="image-diff--swiper"
+              className="swiper"
               style={{
                 width: this.props.maxSize.width * (1 - this.state.percentage),
                 height: this.props.maxSize.height,
