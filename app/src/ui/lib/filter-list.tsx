@@ -49,7 +49,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly rowHeight: number
 
   /** The ordered groups to display in the list. */
-  readonly groups: ReadonlyArray<IFilterListGroup<T>>
+  readonly groups?: ReadonlyArray<IFilterListGroup<T>>
 
   /** The selected item. */
   readonly selectedItem: T | null
@@ -58,7 +58,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly renderItem: (item: T) => JSX.Element | null
 
   /** Called to render header for the group with the given identifier. */
-  readonly renderGroupHeader: (identifier: string) => JSX.Element | null
+  readonly renderGroupHeader?: (identifier: string) => JSX.Element | null
 
   /** Called to render content before/above the filter and list. */
   readonly renderPreList?: () => JSX.Element | null
