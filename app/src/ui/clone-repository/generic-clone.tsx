@@ -1,30 +1,21 @@
-import { remote } from 'electron'
-import * as Path from 'path'
 import * as React from 'react'
-import * as FS from 'fs'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { getDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
-import {
-  parseRepositoryIdentifier,
-  IRepositoryIdentifier,
-} from '../../lib/remote-parsing'
+import { IRepositoryIdentifier } from '../../lib/remote-parsing'
 import { DialogContent } from '../dialog'
 import { Monospaced } from '../lib/monospaced'
-
-/** The name for the error when the destination already exists. */
-const DestinationExistsErrorName = 'DestinationExistsError'
 
 interface ICloneGenericRepositoryProps {
   /** The initial URL or `owner/name` shortcut to use. */
   readonly initialURL: string | null
 
-  readonly onError: (error: Error | null) => void
-
   readonly onPathChanged: (path: string) => void
 
   readonly onUrlChanged: (url: string) => void
+
+  readonly onChooseDirectory: () => Promise<string | undefined>
 }
 
 interface ICloneGenericRepositoryState {
@@ -57,7 +48,7 @@ export class CloneGenericRepository extends React.Component<
 
   public componentDidMount() {
     if (this.props.initialURL) {
-      this.onURLChanged(this.props.initialURL)
+      this.props.onUrlChanged(this.props.initialURL)
     }
   }
 
@@ -66,7 +57,7 @@ export class CloneGenericRepository extends React.Component<
       nextProps.initialURL &&
       nextProps.initialURL !== this.props.initialURL
     ) {
-      this.onURLChanged(nextProps.initialURL)
+      this.props.onUrlChanged(nextProps.initialURL)
     }
   }
 
@@ -82,7 +73,7 @@ export class CloneGenericRepository extends React.Component<
           <TextBox
             placeholder="URL or username/repository"
             value={this.state.url}
-            onValueChanged={this.onURLChanged}
+            onValueChanged={this.onUrlChanged}
             autoFocus={true}
           />
         </Row>
@@ -92,108 +83,24 @@ export class CloneGenericRepository extends React.Component<
             value={this.state.path}
             label={__DARWIN__ ? 'Local Path' : 'Local path'}
             placeholder="repository path"
-            onValueChanged={this.onPathChanged}
+            onValueChanged={this.props.onPathChanged}
           />
-          <Button onClick={this.pickAndSetDirectory}>Choose…</Button>
+          <Button onClick={this.onChooseDirectory}>Choose…</Button>
         </Row>
       </DialogContent>
     )
   }
 
-  private pickAndSetDirectory = async () => {
-    const directories = remote.dialog.showOpenDialog({
-      properties: ['createDirectory', 'openDirectory'],
-    })
+  private onChooseDirectory = async () => {
+    const path = await this.props.onChooseDirectory()
 
-    if (!directories) {
-      return
+    if (path) {
+      this.setState({ path })
     }
-
-    const lastParsedIdentifier = this.state.lastParsedIdentifier
-    const directory = lastParsedIdentifier
-      ? Path.join(directories[0], lastParsedIdentifier.name)
-      : directories[0]
-
-    this.onPathChanged(directory)
-
-    const doesDirectoryExist = await this.doesPathExist(directory)
-
-    if (!doesDirectoryExist) {
-      return
-    }
-
-    this.dispatchPathExistsError()
   }
 
-  private dispatchPathExistsError() {
-    const error: Error = new Error('The destination already exists.')
-    error.name = DestinationExistsErrorName
-    this.props.onError(error)
-  }
-
-  private doesPathExist(path: string) {
-    return new Promise<boolean | undefined>((resolve, reject) => {
-      // If the path changed while we were checking, we don't care anymore.
-      if (this.state.path !== path) {
-        return resolve()
-      }
-
-      FS.stat(path, (err, stats) => {
-        if (err) {
-          if (err.code === 'ENOENT') {
-            return resolve(false)
-          }
-
-          return reject(err)
-        }
-
-        //File must already exist
-        if (stats) {
-          return resolve(true)
-        }
-
-        return resolve(false)
-      })
-    })
-  }
-
-  private onURLChanged = async (input: string) => {
-    const url = input
-    const parsed = parseRepositoryIdentifier(url)
-    const lastParsedIdentifier = this.state.lastParsedIdentifier
-
-    let newPath: string
-
-    if (lastParsedIdentifier) {
-      if (parsed) {
-        newPath = Path.join(Path.dirname(this.state.path), parsed.name)
-      } else {
-        newPath = Path.dirname(this.state.path)
-      }
-    } else if (parsed) {
-      newPath = Path.join(this.state.path, parsed.name)
-    } else {
-      newPath = this.state.path
-    }
-
-    const pathExist = await this.doesPathExist(newPath)
-
-    this.setState({
-      url,
-      path: newPath,
-      lastParsedIdentifier: parsed,
-    })
-
-    if (pathExist) {
-      this.dispatchPathExistsError()
-    }
-
+  private onUrlChanged = (url: string) => {
+    this.setState({ url })
     this.props.onUrlChanged(url)
-    this.props.onPathChanged(newPath)
-  }
-
-  private onPathChanged = (path: string) => {
-    this.setState({ path })
-    this.props.onPathChanged(path)
   }
 }

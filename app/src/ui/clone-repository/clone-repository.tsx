@@ -1,17 +1,23 @@
 import * as Path from 'path'
+import * as FS from 'fs'
 import * as React from 'react'
+import { remote } from 'electron'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Account } from '../../models/account'
-import { IRepositoryIdentifier } from '../../lib/remote-parsing'
+import {
+  IRepositoryIdentifier,
+  parseRepositoryIdentifier,
+} from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
 import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloneGenericRepository } from './generic-clone'
+import { CloneGithubRepository } from './github-clone'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -117,6 +123,10 @@ export class CloneRepository extends React.Component<
     )
   }
 
+  private onTabClicked = (index: number) => {
+    this.setState({ selectedIndex: index })
+  }
+
   private renderActiveTab() {
     const index = this.state.selectedIndex
 
@@ -124,26 +134,114 @@ export class CloneRepository extends React.Component<
       return (
         <CloneGenericRepository
           initialURL={this.props.initialURL}
-          onError={this.onError}
-          onPathChanged={this.onPathChanged}
-          onUrlChanged={this.onUrlChanged}
+          onPathChanged={this.updatePath}
+          onUrlChanged={this.updateUrl}
+          onChooseDirectory={this.onChooseDirectory}
         />
       )
     } else {
-      return null
+      return (
+        <CloneGithubRepository
+          onPathChanged={this.updatePath}
+          onChooseDirectory={this.onChooseDirectory}
+        />
+      )
     }
   }
 
-  private onError = (error: Error | null) => {
-    this.setState({ error: error })
-  }
-
-  private onPathChanged = (path: string) => {
+  private updatePath = (path: string) => {
     this.setState({ path: path })
   }
 
-  private onUrlChanged = (url: string) => {
-    this.setState({ url: url })
+  private onChooseDirectory = async () => {
+    const directories = remote.dialog.showOpenDialog({
+      properties: ['createDirectory', 'openDirectory'],
+    })
+
+    if (!directories) {
+      return
+    }
+
+    const lastParsedIdentifier = this.state.lastParsedIdentifier
+    const directory = lastParsedIdentifier
+      ? Path.join(directories[0], lastParsedIdentifier.name)
+      : directories[0]
+
+    this.updatePath(directory)
+
+    const doesDirectoryExist = await this.doesPathExist(directory)
+
+    if (doesDirectoryExist) {
+      const error: Error = new Error('The destination already exists.')
+      error.name = DestinationExistsErrorName
+
+      this.setState({ error })
+    }
+
+    return directory
+  }
+
+  private updateUrl = async (input: string) => {
+    const url = input
+    const parsed = parseRepositoryIdentifier(url)
+    const lastParsedIdentifier = this.state.lastParsedIdentifier
+
+    let newPath: string
+
+    if (lastParsedIdentifier) {
+      if (parsed) {
+        newPath = Path.join(Path.dirname(this.state.path), parsed.name)
+      } else {
+        newPath = Path.dirname(this.state.path)
+      }
+    } else if (parsed) {
+      newPath = Path.join(this.state.path, parsed.name)
+    } else {
+      newPath = this.state.path
+    }
+
+    const pathExist = await this.doesPathExist(newPath)
+
+    this.setState({
+      url,
+      path: newPath,
+      lastParsedIdentifier: parsed,
+    })
+
+    if (pathExist) {
+      const error: Error = new Error('The destination already exists.')
+      error.name = DestinationExistsErrorName
+
+      this.setState({ error })
+    }
+
+    this.updatePath(newPath)
+  }
+
+  private doesPathExist(path: string) {
+    return new Promise<boolean | undefined>((resolve, reject) => {
+      // If the path changed while we were checking, we don't care anymore.
+      if (this.state.path !== path) {
+        return resolve()
+      }
+
+      FS.stat(path, (err, stats) => {
+        if (err) {
+          if (err.code === 'ENOENT') {
+            return resolve(false)
+          }
+
+          return reject(err)
+        }
+
+        //File must already exist
+        if (stats) {
+          return resolve(true)
+        }
+
+        return resolve(false)
+      })
+    })
   }
 
   /**
@@ -192,9 +290,5 @@ export class CloneRepository extends React.Component<
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))
-  }
-
-  private onTabClicked = (index: number) => {
-    this.setState({ selectedIndex: index })
   }
 }
