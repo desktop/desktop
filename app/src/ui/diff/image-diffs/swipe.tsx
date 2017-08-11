@@ -5,9 +5,6 @@ import { renderImage } from './render-image'
 /** How much bigger the slider should be than the images. */
 const SliderOverflow = 14
 
-/** The padding between the slider and the image on the Y axis. */
-// const SliderYPadding = 10
-
 interface ISwipeState {
   readonly percentage: number
 }
