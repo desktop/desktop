@@ -160,7 +160,7 @@ export function buildDefaultMenu(
       {
         label: '&Reload',
         id: 'reload-window',
-        accelerator: 'CmdOrCtrl+R',
+        accelerator: 'CmdOrCtrl+Alt+R',
         click(item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
             focusedWindow.reload()
