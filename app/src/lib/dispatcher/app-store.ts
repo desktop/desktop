@@ -49,7 +49,10 @@ import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
-import { getAppMenu } from '../../ui/main-process-proxy'
+import {
+  getAppMenu,
+  updateExternalEditorMenuItem,
+} from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
@@ -861,7 +864,7 @@ export class AppStore {
     const externalEditorValue = localStorage.getItem(externalEditorKey)
     this.selectedExternalEditor = parseExternalEditor(externalEditorValue)
 
-    this.updateExternalEditorMenuItem(this.selectedExternalEditor)
+    updateExternalEditorMenuItem(this.selectedExternalEditor)
 
     this.emitUpdateNow()
 
@@ -2235,13 +2238,9 @@ export class AppStore {
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
 
-    this.updateExternalEditorMenuItem(this.selectedExternalEditor)
+    updateExternalEditorMenuItem(this.selectedExternalEditor)
 
     return Promise.resolve()
-  }
-
-  private updateExternalEditorMenuItem(selectedEditor: string) {
-    ipcRenderer.send('external-editor-changed', { selectedEditor })
   }
 
   public _setUpdateBannerVisibility(visibility: boolean) {
