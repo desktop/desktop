@@ -1,7 +1,8 @@
 import * as Path from 'path'
 import { spawn } from 'child_process'
+import { pathExists } from '../file-system'
 import { ExternalEditor } from '../../models/editors'
-import { LookupResult, FoundEditor, pathExists } from './shared'
+import { LookupResult, FoundEditor } from './shared'
 
 import { assertNever } from '../fatal-error'
 

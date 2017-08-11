@@ -1,6 +1,6 @@
 import { spawn } from 'child_process'
-
-import { pathExists, ExternalEditorError, FoundEditor } from './shared'
+import { pathExists } from '../file-system'
+import { ExternalEditorError, FoundEditor } from './shared'
 
 /**
  * Open a given folder in the desired external editor.

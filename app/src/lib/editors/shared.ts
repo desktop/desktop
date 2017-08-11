@@ -1,4 +1,3 @@
-import * as Fs from 'fs'
 import { ExternalEditor } from '../../models/editors'
 
 interface IProgramNotFound {
@@ -33,23 +32,6 @@ export type FoundEditor = {
    * The executable associated with the editor to launch
    */
   path: string
-}
-
-/**
- * Helper function to promisify fs.exists
- *
- * @param path Path to check for existence.
- */
-export function pathExists(path: string): Promise<boolean> {
-  return new Promise<boolean>((resolve, reject) => {
-    Fs.stat(path, (error, stats) => {
-      if (error) {
-        resolve(false)
-      } else {
-        resolve(true)
-      }
-    })
-  })
 }
 
 interface IErrorMetadata {

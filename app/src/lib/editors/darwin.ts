@@ -1,6 +1,7 @@
 import * as Path from 'path'
 import { ExternalEditor } from '../../models/editors'
-import { LookupResult, FoundEditor, pathExists } from './shared'
+import { pathExists } from '../file-system'
+import { LookupResult, FoundEditor } from './shared'
 import { assertNever } from '../fatal-error'
 
 /**
