@@ -6,15 +6,11 @@ interface IOnionSkinState {
   readonly crossfade: number
 }
 
-interface IOnionSkinProps extends ICommonImageDiffProperties {
-  readonly onContainerRef: (e: HTMLElement | null) => void
-}
-
 export class OnionSkin extends React.Component<
-  IOnionSkinProps,
+  ICommonImageDiffProperties,
   IOnionSkinState
 > {
-  public constructor(props: IOnionSkinProps) {
+  public constructor(props: ICommonImageDiffProperties) {
     super(props)
 
     this.state = { crossfade: 1 }

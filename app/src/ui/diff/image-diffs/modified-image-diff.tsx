@@ -25,6 +25,8 @@ export interface ICommonImageDiffProperties {
 
   readonly onPreviousImageLoad: (img: HTMLImageElement) => void
   readonly onCurrentImageLoad: (img: HTMLImageElement) => void
+
+  readonly onContainerRef: (e: HTMLElement | null) => void
 }
 
 interface IModifiedImageDiffState {
@@ -128,28 +130,13 @@ export class ModifiedImageDiff extends React.Component<
         )
 
       case ImageDiffType.Swipe:
-        return (
-          <Swipe
-            {...this.getCommonProps(width, height)}
-            onContainerRef={this.onContainerRef}
-          />
-        )
+        return <Swipe {...this.getCommonProps(width, height)} />
 
       case ImageDiffType.OnionSkin:
-        return (
-          <OnionSkin
-            {...this.getCommonProps(width, height)}
-            onContainerRef={this.onContainerRef}
-          />
-        )
+        return <OnionSkin {...this.getCommonProps(width, height)} />
 
       case ImageDiffType.Difference:
-        return (
-          <DifferenceBlend
-            {...this.getCommonProps(width, height)}
-            onContainerRef={this.onContainerRef}
-          />
-        )
+        return <DifferenceBlend {...this.getCommonProps(width, height)} />
 
       default:
         return assertNever(type, `Unknown diff type: ${type}`)
@@ -167,6 +154,7 @@ export class ModifiedImageDiff extends React.Component<
       current: this.props.current,
       onPreviousImageLoad: this.onPreviousImageLoad,
       onCurrentImageLoad: this.onCurrentImageLoad,
+      onContainerRef: this.onContainerRef,
     }
   }
 }

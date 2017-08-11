@@ -12,12 +12,11 @@ interface ISwipeState {
   readonly percentage: number
 }
 
-interface ISwipeProps extends ICommonImageDiffProperties {
-  readonly onContainerRef: (e: HTMLElement | null) => void
-}
-
-export class Swipe extends React.Component<ISwipeProps, ISwipeState> {
-  public constructor(props: ISwipeProps) {
+export class Swipe extends React.Component<
+  ICommonImageDiffProperties,
+  ISwipeState
+> {
+  public constructor(props: ICommonImageDiffProperties) {
     super(props)
 
     this.state = { percentage: 1 }

@@ -2,12 +2,8 @@ import * as React from 'react'
 import { renderImage } from './render-image'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 
-interface IDifferenceBlendProps extends ICommonImageDiffProperties {
-  readonly onContainerRef: (e: HTMLElement | null) => void
-}
-
 export class DifferenceBlend extends React.Component<
-  IDifferenceBlendProps,
+  ICommonImageDiffProperties,
   {}
 > {
   public render() {
