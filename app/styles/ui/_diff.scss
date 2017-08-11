@@ -286,6 +286,7 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  align-items: center;
 
   .image-diff__before,
   .image-diff__after {
@@ -315,6 +316,7 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  align-items: center;
 
   .image-container {
     position: relative;
@@ -338,6 +340,7 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  align-items: center;
 
   .image-container {
     position: relative;
@@ -377,6 +380,7 @@
     display: flex;
     flex: 1;
     justify-content: center;
+    align-items: center;
 
     .image-diff__before {
       margin-right: 7.5px;
