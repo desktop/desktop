@@ -128,7 +128,12 @@ export class ModifiedImageDiff extends React.Component<
         )
 
       case ImageDiffType.Swipe:
-        return <Swipe {...this.getCommonProps(width, height)} />
+        return (
+          <Swipe
+            {...this.getCommonProps(width, height)}
+            onContainerRef={this.onContainerRef}
+          />
+        )
 
       case ImageDiffType.OnionSkin:
         return (

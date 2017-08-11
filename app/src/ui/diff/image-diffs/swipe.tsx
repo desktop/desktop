@@ -2,72 +2,73 @@ import * as React from 'react'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 import { renderImage } from './render-image'
 
-/** The height of the controls. */
-const ControlHeight = 30
-
 /** How much bigger the slider should be than the images. */
 const SliderOverflow = 14
 
 /** The padding between the slider and the image on the Y axis. */
-const SliderYPadding = 10
+// const SliderYPadding = 10
 
 interface ISwipeState {
-  readonly swipePercentage: number
+  readonly percentage: number
 }
 
-export class Swipe extends React.Component<
-  ICommonImageDiffProperties,
-  ISwipeState
-> {
-  public constructor(props: ICommonImageDiffProperties) {
+interface ISwipeProps extends ICommonImageDiffProperties {
+  readonly onContainerRef: (e: HTMLElement | null) => void
+}
+
+export class Swipe extends React.Component<ISwipeProps, ISwipeState> {
+  public constructor(props: ISwipeProps) {
     super(props)
 
-    this.state = { swipePercentage: 1 }
+    this.state = { percentage: 1 }
   }
 
   public render() {
-    const height = this.props.maxSize.height - ControlHeight
-    const style = {
-      height,
+    const style: React.CSSProperties = {
+      height: this.props.maxSize.height,
       width: this.props.maxSize.width,
     }
     return (
-      <div className="image-diff_inner--swipe" style={style}>
-        <div className="image-diff__after" style={style}>
-          {renderImage(this.props.current, {
-            onLoad: this.onCurrentImageLoad,
-            style: {
-              maxHeight: height,
-              maxWidth: this.props.maxSize.width,
-            },
-          })}
-        </div>
-        <div
-          className="image-diff--swiper"
-          style={{
-            width: this.props.maxSize.width * (1 - this.state.swipePercentage),
-            height: height,
-          }}
-        >
-          <div className="image-diff__before" style={style}>
-            {renderImage(this.props.previous, {
-              onLoad: this.onPreviousImageLoad,
-              style: {
-                maxHeight: height,
-                maxWidth: this.props.maxSize.width,
-              },
-            })}
+      <div className="image-diff_inner--swipe">
+        <div className="swipe-sizing-container" ref={this.props.onContainerRef}>
+          <div className="image-container" style={style}>
+            <div className="image-diff__after" style={style}>
+              {renderImage(this.props.current, {
+                onLoad: this.onCurrentImageLoad,
+                style: {
+                  maxHeight: this.props.maxSize.height,
+                  maxWidth: this.props.maxSize.width,
+                },
+              })}
+            </div>
+            <div
+              className="image-diff--swiper"
+              style={{
+                width: this.props.maxSize.width * (1 - this.state.percentage),
+                height: this.props.maxSize.height,
+              }}
+            >
+              <div className="image-diff__before" style={style}>
+                {renderImage(this.props.previous, {
+                  onLoad: this.onPreviousImageLoad,
+                  style: {
+                    maxHeight: this.props.maxSize.height,
+                    maxWidth: this.props.maxSize.width,
+                  },
+                })}
+              </div>
+            </div>
           </div>
         </div>
         <input
           style={{
-            margin: `${height + SliderYPadding}px 0 0 -${SliderOverflow / 2}px`,
             width: this.props.maxSize.width + SliderOverflow,
           }}
+          className="slider"
           type="range"
           max={1}
           min={0}
-          value={this.state.swipePercentage}
+          value={this.state.percentage}
           step={0.001}
           onChange={this.onValueChange}
         />
@@ -84,6 +85,7 @@ export class Swipe extends React.Component<
   }
 
   private onValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ swipePercentage: e.currentTarget.valueAsNumber })
+    const percentage = e.currentTarget.valueAsNumber
+    this.setState({ percentage })
   }
 }
