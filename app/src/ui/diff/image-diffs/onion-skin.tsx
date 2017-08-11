@@ -29,10 +29,7 @@ export class OnionSkin extends React.Component<
 
     return (
       <div className="image-diff-onion-skin">
-        <div
-          className="onion-skin-sizing-container"
-          ref={this.props.onContainerRef}
-        >
+        <div className="sizing-container" ref={this.props.onContainerRef}>
           <div className="image-container" style={style}>
             <div className="image-diff-previous" style={style}>
               <DiffImage

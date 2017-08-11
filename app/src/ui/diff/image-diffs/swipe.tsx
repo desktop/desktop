@@ -32,7 +32,7 @@ export class Swipe extends React.Component<
 
     return (
       <div className="image-diff-swipe">
-        <div className="swipe-sizing-container" ref={this.props.onContainerRef}>
+        <div className="sizing-container" ref={this.props.onContainerRef}>
           <div className="image-container" style={style}>
             <div className="image-diff-current" style={style}>
               <DiffImage
