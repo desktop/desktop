@@ -250,15 +250,15 @@
     margin: 10px auto 0;
   }
 
-  .image-diff__before {
+  .image-diff-previous {
     color: var(--color-deleted);
   }
-  .image-diff__after {
+  .image-diff-current {
     color: var(--color-new);
   }
 
-  .image-diff__before,
-  .image-diff__after {
+  .image-diff-previous,
+  .image-diff-current {
     text-align: center;
 
     img {
@@ -267,12 +267,12 @@
     }
   }
 
-  .image-diff__header {
+  .image-diff-header {
     font-weight: var(--font-weight-semibold);
     padding-bottom: 10px;
   }
 
-  .image-diff__footer {
+  .image-diff-footer {
     color: var(--text-secondary-color);
     .strong {
       font-weight: var(--font-weight-semibold);
@@ -288,8 +288,8 @@
   justify-content: center;
   align-items: center;
 
-  .image-diff__before,
-  .image-diff__after {
+  .image-diff-previous,
+  .image-diff-current {
     position: absolute;
     margin: 0;
     overflow: hidden;
@@ -300,10 +300,10 @@
     }
   }
 
-  .image-diff__before {
+  .image-diff-previous {
     border: 1px solid var(--color-deleted);
   }
-  .image-diff__after {
+  .image-diff-current {
     border: 1px solid var(--color-new);
   }
 
@@ -322,8 +322,8 @@
   .image-container {
     position: relative;
 
-    .image-diff__before,
-    .image-diff__after {
+    .image-diff-previous,
+    .image-diff-current {
       position: absolute;
       top: 0;
       left: 0;
@@ -346,8 +346,8 @@
   .image-container {
     position: relative;
 
-    .image-diff__before,
-    .image-diff__after {
+    .image-diff-previous,
+    .image-diff-current {
       @include checkboard-background;
       position: absolute;
       margin: 0;
@@ -359,11 +359,11 @@
       }
     }
 
-    .image-diff__before {
+    .image-diff-previous {
       border: 1px solid var(--color-deleted);
       right: 0;
     }
-    .image-diff__after {
+    .image-diff-current {
       border: 1px solid var(--color-new);
     }
 
@@ -384,10 +384,10 @@
     justify-content: center;
     align-items: center;
 
-    .image-diff__before {
+    .image-diff-previous {
       margin-right: 7.5px;
     }
-    .image-diff__after {
+    .image-diff-current {
       margin-left: 7.5px;
     }
   }

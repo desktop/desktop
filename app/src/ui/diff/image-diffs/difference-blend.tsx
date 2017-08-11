@@ -27,7 +27,7 @@ export class DifferenceBlend extends React.Component<
           ref={this.props.onContainerRef}
         >
           <div className="image-container" style={style}>
-            <div className="image-diff__before">
+            <div className="image-diff-previous">
               <DiffImage
                 image={this.props.previous}
                 onElementLoad={this.props.onPreviousImageLoad}

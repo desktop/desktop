@@ -34,7 +34,7 @@ export class Swipe extends React.Component<
       <div className="image-diff_inner--swipe">
         <div className="swipe-sizing-container" ref={this.props.onContainerRef}>
           <div className="image-container" style={style}>
-            <div className="image-diff__after" style={style}>
+            <div className="image-diff-current" style={style}>
               <DiffImage
                 image={this.props.current}
                 onElementLoad={this.props.onCurrentImageLoad}
@@ -48,7 +48,7 @@ export class Swipe extends React.Component<
                 height: this.props.maxSize.height,
               }}
             >
-              <div className="image-diff__before" style={style}>
+              <div className="image-diff-previous" style={style}>
                 <DiffImage
                   image={this.props.previous}
                   onElementLoad={this.props.onPreviousImageLoad}

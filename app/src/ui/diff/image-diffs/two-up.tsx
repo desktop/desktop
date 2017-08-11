@@ -34,29 +34,29 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
 
     return (
       <div className="image-diff_inner--two-up" ref={this.props.onContainerRef}>
-        <div className="image-diff__before">
-          <div className="image-diff__header">Deleted</div>
+        <div className="image-diff-previous">
+          <div className="image-diff-header">Deleted</div>
           <DiffImage
             image={this.props.previous}
             onElementLoad={this.props.onPreviousImageLoad}
             style={style}
           />
 
-          <div className="image-diff__footer">
+          <div className="image-diff-footer">
             <span className="strong">W:</span> {previousImageSize.width}px |{' '}
             <span className="strong">H:</span> {previousImageSize.height}px
           </div>
         </div>
 
-        <div className="image-diff__after">
-          <div className="image-diff__header">Added</div>
+        <div className="image-diff-current">
+          <div className="image-diff-header">Added</div>
           <DiffImage
             image={this.props.current}
             onElementLoad={this.props.onCurrentImageLoad}
             style={style}
           />
 
-          <div className="image-diff__footer">
+          <div className="image-diff-footer">
             <span className="strong">W:</span> {currentImageSize.width}px |{' '}
             <span className="strong">H:</span> {currentImageSize.height}px
           </div>

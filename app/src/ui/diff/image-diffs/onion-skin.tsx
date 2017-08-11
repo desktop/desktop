@@ -34,7 +34,7 @@ export class OnionSkin extends React.Component<
           ref={this.props.onContainerRef}
         >
           <div className="image-container" style={style}>
-            <div className="image-diff__before" style={style}>
+            <div className="image-diff-previous" style={style}>
               <DiffImage
                 image={this.props.previous}
                 onElementLoad={this.props.onPreviousImageLoad}
@@ -43,7 +43,7 @@ export class OnionSkin extends React.Component<
             </div>
 
             <div
-              className="image-diff__after"
+              className="image-diff-current"
               style={{
                 ...style,
                 opacity: this.state.crossfade,
