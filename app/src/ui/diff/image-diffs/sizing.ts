@@ -1,4 +1,4 @@
-export interface IImageSize {
+export interface ISize {
   readonly width: number
   readonly height: number
 }
@@ -8,9 +8,9 @@ export interface IImageSize {
  * aspect ratio.
  */
 export function getAspectFitSize(
-  imageSize: IImageSize,
-  containerSize: IImageSize
-): IImageSize {
+  imageSize: ISize,
+  containerSize: ISize
+): ISize {
   const heightRatio =
     containerSize.height < imageSize.height
       ? imageSize.height / containerSize.height
@@ -36,10 +36,10 @@ export function getAspectFitSize(
  * aspect ratio.
  */
 export function getMaxFitSize(
-  previousImageSize: IImageSize,
-  currentImageSize: IImageSize,
-  containerSize: IImageSize
-): IImageSize {
+  previousImageSize: ISize,
+  currentImageSize: ISize,
+  containerSize: ISize
+): ISize {
   const previousSize = getAspectFitSize(previousImageSize, containerSize)
   const currentSize = getAspectFitSize(currentImageSize, containerSize)
 

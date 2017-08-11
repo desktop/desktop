@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { renderImage } from './render-image'
 import { ICommonImageDiffProperties } from './modified-image-diff'
-import { IImageSize } from './sizing'
+import { ISize } from './sizing'
 
 /**
  * The height of the Deleted/Added labels at the top and the image dimension
@@ -14,8 +14,8 @@ const XPadding = 20
 interface ITwoUpProps extends ICommonImageDiffProperties {
   readonly containerWidth: number
 
-  readonly previousImageSize: IImageSize | null
-  readonly currentImageSize: IImageSize | null
+  readonly previousImageSize: ISize | null
+  readonly currentImageSize: ISize | null
 }
 
 export class TwoUp extends React.Component<ITwoUpProps, {}> {

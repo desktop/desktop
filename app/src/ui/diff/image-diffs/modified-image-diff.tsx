@@ -8,7 +8,7 @@ import { DifferenceBlend } from './difference-blend'
 import { OnionSkin } from './onion-skin'
 import { Swipe } from './swipe'
 import { assertNever } from '../../../lib/fatal-error'
-import { IImageSize, getMaxFitSize } from './sizing'
+import { ISize, getMaxFitSize } from './sizing'
 
 interface IModifiedImageDiffProps {
   readonly previous: Image
@@ -19,7 +19,7 @@ interface IModifiedImageDiffProps {
 
 export interface ICommonImageDiffProperties {
   /** The biggest size to fit both the previous and current images. */
-  readonly maxSize: IImageSize
+  readonly maxSize: ISize
 
   /** The previous image. */
   readonly previous: Image
@@ -43,10 +43,10 @@ export interface ICommonImageDiffProperties {
 
 interface IModifiedImageDiffState {
   /** The size of the previous image. */
-  readonly previousImageSize: IImageSize | null
+  readonly previousImageSize: ISize | null
 
   /** The size of the current image. */
-  readonly currentImageSize: IImageSize | null
+  readonly currentImageSize: ISize | null
 }
 
 /** A component which renders the changes to an image in the repository */
