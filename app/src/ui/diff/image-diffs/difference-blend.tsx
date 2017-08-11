@@ -25,10 +25,7 @@ export class DifferenceBlend extends React.Component<
               <DiffImage
                 image={this.props.previous}
                 onElementLoad={this.props.onPreviousImageLoad}
-                style={{
-                  ...maxSize,
-                  mixBlendMode: 'difference',
-                }}
+                style={maxSize}
               />
             </div>
 
