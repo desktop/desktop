@@ -292,6 +292,7 @@
   .image-diff__after {
     position: absolute;
     margin: 0;
+    overflow: hidden;
 
     img {
       border: 0;
@@ -350,6 +351,7 @@
       @include checkboard-background;
       position: absolute;
       margin: 0;
+      overflow: hidden;
 
       img {
         border: 0;
