@@ -47,6 +47,9 @@ interface IModifiedImageDiffState {
 
   /** The size of the current image. */
   readonly currentImageSize: ISize | null
+
+  /** The size of the container element. */
+  readonly containerSize: ISize | null
 }
 
 /** A component which renders the changes to an image in the repository */
@@ -54,14 +57,37 @@ export class ModifiedImageDiff extends React.Component<
   IModifiedImageDiffProps,
   IModifiedImageDiffState
 > {
-  private container: HTMLDivElement | null
+  private container: HTMLElement | null
+
+  private readonly resizeObserver: ResizeObserver
+  private resizedTimeoutID: number | null = null
 
   public constructor(props: IModifiedImageDiffProps) {
     super(props)
 
+    this.resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        if (entry.target === this.container) {
+          // We might end up causing a recursive update by updating the state
+          // when we're reacting to a resize so we'll defer it until after
+          // react is done with this frame.
+          if (this.resizedTimeoutID !== null) {
+            clearImmediate(this.resizedTimeoutID)
+          }
+
+          this.resizedTimeoutID = setImmediate(
+            this.onResized,
+            entry.target,
+            entry.contentRect
+          )
+        }
+      }
+    })
+
     this.state = {
       previousImageSize: null,
       currentImageSize: null,
+      containerSize: null,
     }
   }
 
@@ -75,10 +101,20 @@ export class ModifiedImageDiff extends React.Component<
     this.setState({ currentImageSize: size })
   }
 
-  private getScaledDimensions() {
+  private onResized = (target: HTMLElement, contentRect: ClientRect) => {
+    this.resizedTimeoutID = null
+
+    const containerSize = {
+      width: contentRect.width,
+      height: contentRect.height,
+    }
+    this.setState({ containerSize })
+  }
+
+  private getMaxSize(): ISize {
     const zeroSize = { width: 0, height: 0, containerWidth: 0 }
-    const container = this.container
-    if (!container) {
+    const containerSize = this.state.containerSize
+    if (!containerSize) {
       return zeroSize
     }
 
@@ -87,25 +123,23 @@ export class ModifiedImageDiff extends React.Component<
       return zeroSize
     }
 
-    const boundingRect = container.getBoundingClientRect()
-    const containerWidth = boundingRect.width
-    const containerHeight = boundingRect.height
-    const containerSize = { width: containerWidth, height: containerHeight }
-
     const maxFitSize = getMaxFitSize(
       previousImageSize,
       currentImageSize,
       containerSize
     )
 
-    return {
-      ...maxFitSize,
-      containerWidth,
-    }
+    return maxFitSize
   }
 
-  private onContainerRef = (c: HTMLDivElement | null) => {
+  private onContainerRef = (c: HTMLElement | null) => {
     this.container = c
+
+    this.resizeObserver.disconnect()
+
+    if (c) {
+      this.resizeObserver.observe(c)
+    }
   }
 
   public render() {
@@ -128,38 +162,36 @@ export class ModifiedImageDiff extends React.Component<
   }
 
   private renderCurrentDiffType() {
-    const { height, width, containerWidth } = this.getScaledDimensions()
+    const maxSize = this.getMaxSize()
     const type = this.props.diffType
     switch (type) {
       case ImageDiffType.TwoUp:
         return (
           <TwoUp
-            {...this.getCommonProps(width, height)}
-            containerWidth={containerWidth}
+            {...this.getCommonProps(maxSize)}
+            containerWidth={
+              (this.state.containerSize && this.state.containerSize.width) || 0
+            }
             previousImageSize={this.state.previousImageSize}
             currentImageSize={this.state.currentImageSize}
           />
         )
 
       case ImageDiffType.Swipe:
-        return <Swipe {...this.getCommonProps(width, height)} />
+        return <Swipe {...this.getCommonProps(maxSize)} />
 
       case ImageDiffType.OnionSkin:
-        return <OnionSkin {...this.getCommonProps(width, height)} />
+        return <OnionSkin {...this.getCommonProps(maxSize)} />
 
       case ImageDiffType.Difference:
-        return <DifferenceBlend {...this.getCommonProps(width, height)} />
+        return <DifferenceBlend {...this.getCommonProps(maxSize)} />
 
       default:
         return assertNever(type, `Unknown diff type: ${type}`)
     }
   }
 
-  private getCommonProps(
-    width: number,
-    height: number
-  ): ICommonImageDiffProperties {
-    const maxSize = { width, height }
+  private getCommonProps(maxSize: ISize): ICommonImageDiffProperties {
     return {
       maxSize,
       previous: this.props.previous,
