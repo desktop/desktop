@@ -27,7 +27,6 @@ function readRegistryKey(key: string): Promise<ReadonlyArray<IRegistryEntry>> {
   return new Promise<ReadonlyArray<IRegistryEntry>>((resolve, reject) => {
     const proc = spawn(regPath, ['QUERY', key], {
       cwd: undefined,
-      env: process.env,
     })
 
     const buffers: Array<Buffer> = []
