@@ -16,6 +16,9 @@ import { Dispatcher, IssuesStore, GitHubUserStore } from '../lib/dispatcher'
 import { assertNever } from '../lib/fatal-error'
 import { Octicon, OcticonSymbol } from './octicons'
 
+/** The widest the sidebar can be with the minimum window size. */
+const MaxSidebarWidth = 495
+
 interface IRepositoryProps {
   readonly repository: Repo
   readonly state: IRepositoryModelState
@@ -133,6 +136,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         width={this.props.sidebarWidth}
         onReset={this.handleSidebarWidthReset}
         onResize={this.handleSidebarResize}
+        maximumWidth={MaxSidebarWidth}
       >
         {this.renderTabs()}
         {this.renderSidebarContents()}

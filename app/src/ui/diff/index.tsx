@@ -1,3 +1,4 @@
+import { clipboard } from 'electron'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Disposable } from 'event-kit'
@@ -617,7 +618,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
     }
 
     // If the text looks like it could have been formatted using Windows
-    // line endings (\r\n) we  need to massage it a bit before we hand it
+    // line endings (\r\n) we need to massage it a bit before we hand it
     // off to CodeMirror. That's because CodeMirror has two ways of splitting
     // lines, one is the built in which splits on \n, \r\n and \r. The last
     // one is important because that will match carriage return characters
@@ -644,8 +645,20 @@ export class Diff extends React.Component<IDiffProps, {}> {
         onChanges={this.onChanges}
         onRenderLine={this.renderLine}
         ref={this.getAndStoreCodeMirrorInstance}
+        onCopy={this.onCopy}
       />
     )
+  }
+
+  private onCopy = (selection: string, event: Event) => {
+    event.preventDefault()
+
+    // Remove all the diff markers.
+    const textWithoutMarkers = selection
+      .split('\n')
+      .map(l => l.substr(1))
+      .join('\n')
+    clipboard.writeText(textWithoutMarkers)
   }
 
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
