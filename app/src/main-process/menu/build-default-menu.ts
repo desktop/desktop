@@ -6,7 +6,8 @@ import { mkdirIfNeeded } from '../../lib/file-system'
 import { log } from '../log'
 
 export function buildDefaultMenu(selectedEditor?: string): Electron.Menu {
-  const editorLabel = selectedEditor || 'External Editor'
+  const defaultEditorLabel = __DARWIN__ ? 'External editor' : 'External editor'
+  const editorLabel = selectedEditor || defaultEditorLabel
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 

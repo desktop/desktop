@@ -15,8 +15,9 @@ export async function launchExternalEditor(
   const editorPath = editor.path
   const exists = await pathExists(editorPath)
   if (!exists) {
+    const label = __DARWIN__ ? 'Preferences' : 'Options'
     throw new ExternalEditorError(
-      `Could not find executable for '${editor.editor}' at path '${editor.path}'.  Please open Preferences and choose an available editor.`,
+      `Could not find executable for '${editor.editor}' at path '${editor.path}'.  Please open ${label} and select an available editor.`,
       { openPreferences: true }
     )
   }
