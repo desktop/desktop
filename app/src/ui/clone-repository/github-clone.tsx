@@ -6,9 +6,8 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 
 interface ICloneGithubRepositoryProps {
-  // readonly onError: (error: Error | null) => void
   readonly onPathChanged: (path: string) => void
-  // readonly onUrlChanged: (url: string) => void
+  readonly onChooseDirectory: () => Promise<string | undefined>
 }
 
 interface ICloneGithubRepositoryState {
@@ -50,23 +49,26 @@ export class CloneGithubRepository extends React.Component<
             placeholder="repository path"
             onValueChanged={this.onPathChanged}
           />
-          {/* <Button onClick={this.pickAndSetDirectory}>Choose…</Button> */}
+          <Button onClick={this.onChooseDirectory}>Choose…</Button>
         </Row>
       </DialogContent>
     )
   }
 
-  private onFilter = (s: string) => {
-    this.setState({ repositoryName: s })
-  }
+  private onChooseDirectory = async () => {
+    const path = await this.props.onChooseDirectory()
 
-  // private onSelection = (placeholder: string) => {
-  //   this.setState({ url: placeholder })
-  //   this.props.onUrlChanged(placeholder)
-  // }
+    if (path) {
+      this.setState({ path })
+    }
+  }
 
   private onPathChanged = (path: string) => {
     this.setState({ path })
     this.props.onPathChanged(path)
+  }
+
+  private onFilter = (s: string) => {
+    this.setState({ repositoryName: s })
   }
 }
