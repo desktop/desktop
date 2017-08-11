@@ -241,7 +241,7 @@
     },
     "dom-helpers": {
       "version": "3.2.1",
-      "from": "dom-helpers@>=3.2.0 <4.0.0",
+      "from": "dom-helpers@>=2.4.0 <3.0.0||>=3.0.0 <4.0.0",
       "resolved": "https://registry.npmjs.org/dom-helpers/-/dom-helpers-3.2.1.tgz"
     },
     "dom-matches": {
@@ -250,9 +250,9 @@
       "resolved": "https://registry.npmjs.org/dom-matches/-/dom-matches-2.0.0.tgz"
     },
     "dugite": {
-      "version": "1.37.0",
-      "from": "dugite@1.37.0",
-      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.37.0.tgz"
+      "version": "1.38.0",
+      "from": "dugite@1.38.0",
+      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.38.0.tgz"
     },
     "ecc-jsbn": {
       "version": "0.1.1",
@@ -693,7 +693,7 @@
     },
     "react-addons-perf": {
       "version": "15.4.2",
-      "from": "react-addons-perf@>=15.4.2 <16.0.0",
+      "from": "react-addons-perf@15.4.2",
       "resolved": "https://registry.npmjs.org/react-addons-perf/-/react-addons-perf-15.4.2.tgz",
       "dev": true
     },
@@ -803,7 +803,7 @@
     },
     "strip-ansi": {
       "version": "3.0.1",
-      "from": "strip-ansi@>=3.0.0 <4.0.0",
+      "from": "strip-ansi@>=3.0.1 <4.0.0",
       "resolved": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-3.0.1.tgz",
       "dev": true
     },
