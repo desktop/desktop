@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ICommonImageDiffProperties } from './modified-image-diff'
-import { renderImage } from './render-image'
+import { DiffImage } from './diff-image'
 
 /** How much bigger the slider should be than the images. */
 const SliderOverflow = 14
@@ -24,18 +24,22 @@ export class Swipe extends React.Component<
       height: this.props.maxSize.height,
       width: this.props.maxSize.width,
     }
+
+    const maxSize: React.CSSProperties = {
+      maxHeight: this.props.maxSize.height,
+      maxWidth: this.props.maxSize.width,
+    }
+
     return (
       <div className="image-diff_inner--swipe">
         <div className="swipe-sizing-container" ref={this.props.onContainerRef}>
           <div className="image-container" style={style}>
             <div className="image-diff__after" style={style}>
-              {renderImage(this.props.current, {
-                onLoad: this.onCurrentImageLoad,
-                style: {
-                  maxHeight: this.props.maxSize.height,
-                  maxWidth: this.props.maxSize.width,
-                },
-              })}
+              <DiffImage
+                image={this.props.current}
+                onElementLoad={this.props.onCurrentImageLoad}
+                style={maxSize}
+              />
             </div>
             <div
               className="image-diff--swiper"
@@ -45,13 +49,11 @@ export class Swipe extends React.Component<
               }}
             >
               <div className="image-diff__before" style={style}>
-                {renderImage(this.props.previous, {
-                  onLoad: this.onPreviousImageLoad,
-                  style: {
-                    maxHeight: this.props.maxSize.height,
-                    maxWidth: this.props.maxSize.width,
-                  },
-                })}
+                <DiffImage
+                  image={this.props.previous}
+                  onElementLoad={this.props.onPreviousImageLoad}
+                  style={maxSize}
+                />
               </div>
             </div>
           </div>
@@ -70,14 +72,6 @@ export class Swipe extends React.Component<
         />
       </div>
     )
-  }
-
-  private onPreviousImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    this.props.onPreviousImageLoad(e.currentTarget)
-  }
-
-  private onCurrentImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    this.props.onCurrentImageLoad(e.currentTarget)
   }
 
   private onValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {

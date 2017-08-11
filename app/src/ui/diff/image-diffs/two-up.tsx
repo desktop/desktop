@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { renderImage } from './render-image'
+import { DiffImage } from './diff-image'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 import { ISize } from './sizing'
 
@@ -36,10 +36,11 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
       <div className="image-diff_inner--two-up" ref={this.props.onContainerRef}>
         <div className="image-diff__before">
           <div className="image-diff__header">Deleted</div>
-          {renderImage(this.props.previous, {
-            onLoad: this.onPreviousImageLoad,
-            style,
-          })}
+          <DiffImage
+            image={this.props.previous}
+            onElementLoad={this.props.onPreviousImageLoad}
+            style={style}
+          />
 
           <div className="image-diff__footer">
             <span className="strong">W:</span> {previousImageSize.width}px |{' '}
@@ -49,10 +50,11 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
 
         <div className="image-diff__after">
           <div className="image-diff__header">Added</div>
-          {renderImage(this.props.current, {
-            onLoad: this.onCurrentImageLoad,
-            style,
-          })}
+          <DiffImage
+            image={this.props.current}
+            onElementLoad={this.props.onCurrentImageLoad}
+            style={style}
+          />
 
           <div className="image-diff__footer">
             <span className="strong">W:</span> {currentImageSize.width}px |{' '}
@@ -61,13 +63,5 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
         </div>
       </div>
     )
-  }
-
-  private onPreviousImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    this.props.onPreviousImageLoad(e.currentTarget)
-  }
-
-  private onCurrentImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    this.props.onCurrentImageLoad(e.currentTarget)
   }
 }
