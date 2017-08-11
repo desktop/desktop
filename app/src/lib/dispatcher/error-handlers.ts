@@ -156,3 +156,42 @@ export async function gitAuthenticationErrorHandler(
 
   return null
 }
+
+/** Handle errors where they need to pull before pushing. */
+export async function pushNeedsPullHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.PushNotFastForward) {
+    return error
+  }
+
+  const repository = e.metadata.repository
+  if (!repository) {
+    return error
+  }
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  // Since they need to pull, go ahead and do a fetch for them.
+  dispatcher.fetch(repository)
+
+  return error
+}
