@@ -23,6 +23,7 @@ import {
   IDiff,
   IImageDiff,
   ITextDiff,
+  DiffLineType,
 } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
@@ -624,6 +625,47 @@ export class Diff extends React.Component<IDiffProps, {}> {
             .replace(/\r(?=\n|$)/g, '')
         : diff.text
 
+    if (diff.kind === DiffType.Text) {
+      for (const hunk of diff.hunks) {
+        const additions = hunk.lines.filter(l => l.type === DiffLineType.Add)
+        const deletions = hunk.lines.filter(l => l.type === DiffLineType.Delete)
+        if (additions.length === deletions.length) {
+          for (let i = 0; i < additions.length; i++) {
+            const addLine = additions[i]
+            const deleteLine = deletions[i]
+            if (addLine.text.length > 4096 || deleteLine.text.length > 4096) {
+              continue
+            }
+
+            const addContent = addLine.text.substr(1)
+            const deleteContent = deleteLine.text.substr(1)
+
+            debugger
+            const l1 = this.commonLength(deleteContent, 0, addContent, 0, false)
+            const l2 = this.commonLength(
+              deleteContent,
+              l1,
+              addContent,
+              l1,
+              true
+            )
+            const insertRange = {
+              start: l1,
+              length: addContent.length - l1 - l2,
+            }
+            const deleteRange = {
+              start: l1,
+              length: deleteContent.length - l1 - l2,
+            }
+            console.log(`${addContent} - ${deleteContent} - ${l1} - ${l2}`)
+            console.log(insertRange)
+            console.log(deleteRange)
+            // this.codeMirror!.getDoc().markText
+          }
+        }
+      }
+    }
+
     return (
       <CodeMirrorHost
         className="diff-code-mirror"
@@ -647,6 +689,31 @@ export class Diff extends React.Component<IDiffProps, {}> {
       .map(l => l.substr(1))
       .join('\n')
     clipboard.writeText(textWithoutMarkers)
+  }
+
+  private commonLength(
+    strA: string,
+    startA: number,
+    strB: string,
+    startB: number,
+    reverse: boolean
+  ) {
+    const max = Math.min(strA.length, strB.length)
+    let length = 0
+
+    const stride = reverse ? -1 : 1
+    const offsetA = reverse ? strA.length - 1 : startA
+    const offsetB = reverse ? strB.length - 1 : startB
+
+    while (Math.abs(length) < max) {
+      if (strA[offsetA + length] !== strB[offsetB + length]) {
+        break
+      }
+
+      length += stride
+    }
+
+    return Math.abs(length)
   }
 
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
