@@ -179,12 +179,6 @@ interface IListState {
   readonly rowIdPrefix?: string
 }
 
-// https://wicg.github.io/ResizeObserver/#resizeobserverentry
-interface IResizeObserverEntry {
-  readonly target: HTMLElement
-  readonly contentRect: ClientRect
-}
-
 export class List extends React.Component<IListProps, IListState> {
   private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
@@ -211,7 +205,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   private list: HTMLDivElement | null = null
   private grid: React.Component<any, any> | null
-  private readonly resizeObserver: any | null = null
+  private readonly resizeObserver: ResizeObserver | null = null
   private updateSizeTimeoutId: number | null = null
 
   public constructor(props: IListProps) {
@@ -219,10 +213,11 @@ export class List extends React.Component<IListProps, IListState> {
 
     this.state = {}
 
-    const ResizeObserver = (window as any).ResizeObserver
+    const ResizeObserverClass: typeof ResizeObserver = (window as any)
+      .ResizeObserver
 
     if (ResizeObserver || false) {
-      this.resizeObserver = new ResizeObserver(
+      this.resizeObserver = new ResizeObserverClass(
         (entries: ReadonlyArray<IResizeObserverEntry>) => {
           for (const entry of entries) {
             if (entry.target === this.list) {
