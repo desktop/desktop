@@ -16,6 +16,7 @@ import {
   FoldoutType,
   SelectionType,
 } from '../lib/app-state'
+import { PreferencesTab } from '../models/preferences'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
@@ -1045,9 +1046,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         const openPreferences = popup.openPreferences
         const suggestAtom = popup.suggestAtom
         const showPreferencesDialog = () => {
-          // TODO: focus on the Advanced tab
           this.props.dispatcher.showPopup({
             type: PopupType.Preferences,
+            initialSelectedTab: PreferencesTab.Advanced,
           })
         }
 
