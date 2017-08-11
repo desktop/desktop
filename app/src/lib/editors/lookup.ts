@@ -72,17 +72,17 @@ export async function findEditorOrDefault(
     )
   }
 
-  if (name === null) {
-    return editors[0]
+  if (name) {
+    const match = editors.find(p => p.editor === name) || null
+    if (!match) {
+      const menuItemName = __DARWIN__ ? 'Preferences' : 'Options'
+      const message = `The editor '${name}' could not be found. Please open ${menuItemName} and choose an available editor.`
+
+      throw new ExternalEditorError(message, { openPreferences: true })
+    }
+
+    return match
   }
 
-  const match = editors.find(p => p.editor === name) || null
-  if (!match) {
-    const menuItemName = __DARWIN__ ? 'Preferences' : 'Options'
-    const message = `The editor '${name}' could not be found. Please open ${menuItemName} and choose an available editor.`
-
-    throw new ExternalEditorError(message, { openPreferences: true })
-  }
-
-  return match
+  return editors[0]
 }
