@@ -1,8 +1,12 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
 
+/** The tab bar type. */
 export enum TabBarType {
+  /** Standard tabs */
   Tabs,
+
+  /** Simpler switch appearance */
   Switch,
 }
 
