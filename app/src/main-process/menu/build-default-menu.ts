@@ -10,7 +10,7 @@ import { log } from '../log'
 export function buildDefaultMenu(
   selectedEditor?: ExternalEditor
 ): Electron.Menu {
-  const defaultEditorLabel = __DARWIN__ ? 'External editor' : 'External editor'
+  const defaultEditorLabel = __DARWIN__ ? 'External Editor' : 'External editor'
   const editorLabel = selectedEditor || defaultEditorLabel
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
