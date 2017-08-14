@@ -52,7 +52,6 @@ import { StatsStore, ILaunchStats } from '../stats'
 import { SignInStore } from './sign-in-store'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
-import { structuralEquals } from '../equality'
 import { fatalError } from '../fatal-error'
 import { updateMenuState } from '../menu-update'
 
@@ -105,7 +104,7 @@ export class AppStore {
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
 
-  private repositoryState = new Map<number, IRepositoryState>()
+  private repositoryState = new Map<string, IRepositoryState>()
   private showWelcomeFlow = false
 
   private currentPopup: Popup | null = null
@@ -128,8 +127,8 @@ export class AppStore {
     return this._issuesStore
   }
 
-  /** GitStores keyed by their associated Repository ID. */
-  private readonly gitStores = new Map<number, GitStore>()
+  /** GitStores keyed by their hash. */
+  private readonly gitStores = new Map<string, GitStore>()
 
   private readonly signInStore: SignInStore
 
@@ -240,7 +239,7 @@ export class AppStore {
     repositoriesStore.onDidUpdate(async () => {
       const repositories = await this.repositoriesStore.getAll()
       this.repositories = repositories
-      this.updateRepositorySelection()
+      this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
   }
@@ -351,7 +350,7 @@ export class AppStore {
 
   /** Get the state for the repository. */
   public getRepositoryState(repository: Repository): IRepositoryState {
-    let state = this.repositoryState.get(repository.id)
+    let state = this.repositoryState.get(repository.hash)
     if (state) {
       const gitHubUsers =
         this.gitHubUserStore.getUsersForRepository(repository) ||
@@ -360,7 +359,7 @@ export class AppStore {
     }
 
     state = this.getInitialRepositoryState()
-    this.repositoryState.set(repository.id, state)
+    this.repositoryState.set(repository.hash, state)
     return state
   }
 
@@ -370,7 +369,7 @@ export class AppStore {
   ) {
     const currentState = this.getRepositoryState(repository)
     const newValues = fn(currentState)
-    this.repositoryState.set(repository.id, merge(currentState, newValues))
+    this.repositoryState.set(repository.hash, merge(currentState, newValues))
   }
 
   private updateHistoryState<K extends keyof IHistoryState>(
@@ -510,13 +509,13 @@ export class AppStore {
   }
 
   private removeGitStore(repository: Repository) {
-    if (this.gitStores.has(repository.id)) {
-      this.gitStores.delete(repository.id)
+    if (this.gitStores.has(repository.hash)) {
+      this.gitStores.delete(repository.hash)
     }
   }
 
   private getGitStore(repository: Repository): GitStore {
-    let gitStore = this.gitStores.get(repository.id)
+    let gitStore = this.gitStores.get(repository.hash)
     if (!gitStore) {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
@@ -525,7 +524,7 @@ export class AppStore {
       )
       gitStore.onDidError(error => this.emitError(error))
 
-      this.gitStores.set(repository.id, gitStore)
+      this.gitStores.set(repository.hash, gitStore)
     }
 
     return gitStore
@@ -688,6 +687,7 @@ export class AppStore {
     repository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
     const previouslySelectedRepository = this.selectedRepository
+
     this.selectedRepository = repository
     this.emitUpdate()
 
@@ -830,7 +830,7 @@ export class AppStore {
       }
     }
 
-    this.updateRepositorySelection()
+    this.updateRepositorySelectionAfterRepositoriesChanged()
 
     this.sidebarWidth =
       parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) ||
@@ -851,7 +851,7 @@ export class AppStore {
     this.accountsStore.refresh()
   }
 
-  private updateRepositorySelection() {
+  private updateRepositorySelectionAfterRepositoriesChanged() {
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this
       .selectedRepository
@@ -884,7 +884,7 @@ export class AppStore {
     const repositoryChanged =
       (selectedRepository &&
         newSelectedRepository &&
-        !structuralEquals(selectedRepository, newSelectedRepository)) ||
+        selectedRepository.hash !== newSelectedRepository.hash) ||
       (selectedRepository && !newSelectedRepository) ||
       (!selectedRepository && newSelectedRepository)
     if (repositoryChanged) {
@@ -1439,7 +1439,7 @@ export class AppStore {
     const withUpdatedGitHubRepository = updatedRepository.withGitHubRepository(
       updatedGitHubRepository.withAPI(apiRepo)
     )
-    if (structuralEquals(withUpdatedGitHubRepository, repository)) {
+    if (withUpdatedGitHubRepository.hash === repository.hash) {
       return withUpdatedGitHubRepository
     }
 
@@ -1459,7 +1459,7 @@ export class AppStore {
     if (
       repository.gitHubRepository &&
       gitHubRepository &&
-      structuralEquals(repository.gitHubRepository, gitHubRepository)
+      repository.gitHubRepository.hash === gitHubRepository.hash
     ) {
       return repository
     }
@@ -2369,7 +2369,7 @@ export class AppStore {
       repository
     )
 
-    if (structuralEquals(refreshedRepository, repository)) {
+    if (refreshedRepository.hash === repository.hash) {
       return refreshedRepository
     }
 
