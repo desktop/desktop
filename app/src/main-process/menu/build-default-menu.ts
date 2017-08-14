@@ -3,15 +3,20 @@ import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogPath } from '../../lib/logging/get-log-path'
 import { mkdirIfNeeded } from '../../lib/file-system'
-import { ExternalEditor } from '../../models/editors'
 
 import { log } from '../log'
 
+const defaultEditorLabel = __DARWIN__
+  ? 'Open in External Editor'
+  : 'Open in external editor'
+const defaultShellLabel = __DARWIN__
+  ? 'Open in Terminal'
+  : 'Op&en command prompt'
+
 export function buildDefaultMenu(
-  selectedEditor?: ExternalEditor
+  editorLabel: string = defaultEditorLabel,
+  shellLabel: string = defaultShellLabel
 ): Electron.Menu {
-  const defaultEditorLabel = __DARWIN__ ? 'External Editor' : 'external editor'
-  const editorLabel = selectedEditor || defaultEditorLabel
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
@@ -214,7 +219,7 @@ export function buildDefaultMenu(
         click: emit('view-repository-on-github'),
       },
       {
-        label: __DARWIN__ ? 'Open in Terminal' : 'Op&en command prompt',
+        label: shellLabel,
         id: 'open-in-shell',
         accelerator: 'Ctrl+`',
         click: emit('open-in-shell'),
@@ -226,7 +231,7 @@ export function buildDefaultMenu(
         click: emit('open-working-directory'),
       },
       {
-        label: `Open in ${editorLabel}`,
+        label: editorLabel,
         id: 'open-external-editor',
         accelerator: 'CmdOrCtrl+Shift+A',
         click: emit('open-external-editor'),

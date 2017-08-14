@@ -51,7 +51,7 @@ import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import {
   getAppMenu,
-  updateExternalEditorMenuItem,
+  updatePreferredAppMenuItemLabels,
 } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
@@ -90,6 +90,7 @@ import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { RetryActionType, RetryAction } from '../retry-actions'
 import { findEditorOrDefault } from '../editors'
+import { Shell, parse as parseShell } from '../../models/shells'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -870,13 +871,23 @@ export class AppStore {
     const externalEditorValue = localStorage.getItem(externalEditorKey)
     this.selectedExternalEditor = parseExternalEditor(externalEditorValue)
 
-    updateExternalEditorMenuItem(this.selectedExternalEditor)
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = parseShell(shellValue)
+
+    this.updatePreferredAppMenuItemLabels()
 
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+  }
+
+  private updatePreferredAppMenuItemLabels() {
+    updatePreferredAppMenuItemLabels({
+      editor: `Open in ${this.selectedExternalEditor}`,
+      shell: __DARWIN__
+        ? `Open in ${this.selectedShell}`
+        : 'Open command prompt',
+    })
   }
 
   private updateRepositorySelectionAfterRepositoriesChanged() {
@@ -2246,7 +2257,7 @@ export class AppStore {
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
 
-    updateExternalEditorMenuItem(this.selectedExternalEditor)
+    this.updatePreferredAppMenuItemLabels()
 
     return Promise.resolve()
   }
