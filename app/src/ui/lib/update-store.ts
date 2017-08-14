@@ -90,9 +90,9 @@ class UpdateStore {
   private onAutoUpdaterError = (error: Error) => {
     this.status = UpdateStatus.UpdateNotAvailable
 
-    const parsedError = parseError(error)
-    if (parsedError) {
-      this.emitError(parsedError)
+    if (__WIN32__) {
+      const parsedError = parseError(error)
+      this.emitError(parsedError || error)
     } else {
       this.emitError(error)
     }
