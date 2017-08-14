@@ -16,8 +16,8 @@ import { API } from '../../lib/api'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
 import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
-import { CloneGenericRepository } from './generic-clone'
-import { CloneGithubRepository } from './github-clone'
+import { CloneGenericRepository } from './clone-generic-repository'
+import { CloneGithubRepository } from './clone-github-repository'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
