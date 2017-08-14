@@ -7,6 +7,13 @@ const squirrelDNSRegex = /System\.Net\.WebException: The remote name could not b
 // an error that occurs when the connection times out during updating
 const squirrelTimeoutRegex = /A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond/
 
+/**
+ * This method parses known error messages from Squirrel.Windows and returns a
+ * friendier message to the user.
+ *
+ * @param error The underlying error from Squirrel.
+ *
+ */
 export function parseError(error: Error): Error | null {
   if (squirrelMissingRegex.test(error.message)) {
     return new Error(
