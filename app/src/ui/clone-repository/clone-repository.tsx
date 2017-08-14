@@ -127,7 +127,7 @@ export class CloneRepository extends React.Component<
     this.setState({ selectedIndex: index })
   }
 
-  private renderActiveTab() {
+  private async renderActiveTab() {
     const index = this.state.selectedIndex
 
     if (index === CloneRepositoryTab.Generic) {
@@ -140,13 +140,27 @@ export class CloneRepository extends React.Component<
         />
       )
     } else {
-      return (
-        <CloneGithubRepository
-          onPathChanged={this.updatePath}
-          onChooseDirectory={this.onChooseDirectory}
-          onDismissed={this.props.onDismissed}
-        />
+      const account = await findAccountForRemoteURL(
+        this.state.url,
+        this.props.accounts
       )
+      let api: API
+
+      if (account) {
+        api = API.fromAccount(account)
+
+        return (
+          <CloneGithubRepository
+            //api={api}
+            //user=""
+            onPathChanged={this.updatePath}
+            onChooseDirectory={this.onChooseDirectory}
+            onDismissed={this.props.onDismissed}
+          />
+        )
+      }
+
+      return null
     }
   }
 

@@ -6,8 +6,9 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { FilterList } from '../lib/filter-list'
 import { IFilterListItem } from '../lib/filter-list'
+//import { API } from '../../lib/api'
 
-interface ICloneListItem extends IFilterListItem {
+interface IClonableRepositoryListItem extends IFilterListItem {
   readonly id: string
   readonly org: string
   readonly name: string
@@ -15,6 +16,8 @@ interface ICloneListItem extends IFilterListItem {
 }
 
 interface ICloneGithubRepositoryProps {
+  //readonly api: API
+  //readonly user: string
   readonly onPathChanged: (path: string) => void
   readonly onDismissed: () => void
   readonly onChooseDirectory: () => Promise<string | undefined>
@@ -24,10 +27,12 @@ interface ICloneGithubRepositoryState {
   readonly url: string
   readonly path: string
   readonly repositoryName: string
-  readonly repositories: ReadonlyArray<ICloneListItem>
+  readonly repositories: ReadonlyArray<IClonableRepositoryListItem>
 }
 
-const CloneFilterList: new () => FilterList<ICloneListItem> = FilterList as any
+const ClonableRepositoryFilterList: new () => FilterList<
+  IClonableRepositoryListItem
+> = FilterList as any
 const RowHeight = 29
 
 export class CloneGithubRepository extends React.Component<
@@ -46,12 +51,22 @@ export class CloneGithubRepository extends React.Component<
   }
 
   public render() {
-    const selectedItem: ICloneListItem | null = null
+    // this.getUserRepositories(this.props.user)
+    //   .then(repos => {
+    //     if (repos) {
+    //       for (const repo in repos) {
+    //         console.log(repo)
+    //       }
+    //     }
+    //   })
+    //   .catch(error => console.error(error))
+
+    const selectedItem: IClonableRepositoryListItem | null = null
 
     return (
       <DialogContent>
         <Row>
-          <CloneFilterList
+          <ClonableRepositoryFilterList
             rowHeight={RowHeight}
             selectedItem={selectedItem}
             renderItem={this.renderItem}
@@ -86,7 +101,9 @@ export class CloneGithubRepository extends React.Component<
     }
   }
 
-  private onItemClicked = (item: ICloneListItem) => {}
+  private onItemClicked = (item: IClonableRepositoryListItem) => {
+    console.log('onItemClicked')
+  }
 
   private onChooseDirectory = async () => {
     const path = await this.props.onChooseDirectory()
@@ -101,7 +118,13 @@ export class CloneGithubRepository extends React.Component<
     this.props.onPathChanged(path)
   }
 
-  private renderItem = (item: ICloneListItem) => {
+  private renderItem = (item: IClonableRepositoryListItem) => {
     return null
   }
+
+  //private async getUserRepositories(user: string) {
+  //const repos = await this.props.api.fetchRepositories(user)
+  //
+  // return repos
+  //}
 }
