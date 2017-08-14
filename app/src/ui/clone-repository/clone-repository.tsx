@@ -12,7 +12,7 @@ import {
   parseRepositoryIdentifier,
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
-import { API } from '../../lib/api'
+import { API, IAPIRepository } from '../../lib/api'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
 import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -59,6 +59,8 @@ interface ICloneRepositoryState {
    * The default tab to open on load
    */
   readonly selectedIndex: CloneRepositoryTab
+
+  readonly githubRepos: ReadonlyArray<IAPIRepository>
 }
 
 /** The component for cloning a repository. */
@@ -76,6 +78,17 @@ export class CloneRepository extends React.Component<
       error: null,
       lastParsedIdentifier: null,
       selectedIndex: this.props.initialSelectedTab || CloneRepositoryTab.GitHub,
+      githubRepos: [],
+    }
+  }
+
+  public async componentDidMount() {
+    const repos = await this.load()
+
+    if (repos) {
+      this.setState({
+        githubRepos: repos,
+      })
     }
   }
 
@@ -127,7 +140,7 @@ export class CloneRepository extends React.Component<
     this.setState({ selectedIndex: index })
   }
 
-  private async renderActiveTab() {
+  private renderActiveTab() {
     const index = this.state.selectedIndex
 
     if (index === CloneRepositoryTab.Generic) {
@@ -140,28 +153,24 @@ export class CloneRepository extends React.Component<
         />
       )
     } else {
-      const account = await findAccountForRemoteURL(
-        this.state.url,
-        this.props.accounts
+      return (
+        <CloneGithubRepository
+          repositories={this.state.githubRepos}
+          onPathChanged={this.updatePath}
+          onChooseDirectory={this.onChooseDirectory}
+          onDismissed={this.props.onDismissed}
+        />
       )
-      let api: API
-
-      if (account) {
-        api = API.fromAccount(account)
-
-        return (
-          <CloneGithubRepository
-            //api={api}
-            //user=""
-            onPathChanged={this.updatePath}
-            onChooseDirectory={this.onChooseDirectory}
-            onDismissed={this.props.onDismissed}
-          />
-        )
-      }
-
-      return null
     }
+  }
+
+  private async load() {
+    const account = this.props.accounts[0]
+    const api = API.fromAccount(account)
+
+    const stuff = await api.fetchRepositories()
+
+    return stuff
   }
 
   private updatePath = (path: string) => {
