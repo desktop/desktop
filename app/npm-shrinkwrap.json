@@ -31,6 +31,11 @@
       "resolved": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-2.1.1.tgz",
       "dev": true
     },
+    "app-path": {
+      "version": "2.2.0",
+      "from": "app-path@latest",
+      "resolved": "https://registry.npmjs.org/app-path/-/app-path-2.2.0.tgz"
+    },
     "argparse": {
       "version": "1.0.9",
       "from": "argparse@>=1.0.7 <2.0.0",
@@ -236,7 +241,7 @@
     },
     "dom-helpers": {
       "version": "3.2.1",
-      "from": "dom-helpers@>=2.4.0 <3.0.0||>=3.0.0 <4.0.0",
+      "from": "dom-helpers@>=3.2.0 <4.0.0",
       "resolved": "https://registry.npmjs.org/dom-helpers/-/dom-helpers-3.2.1.tgz"
     },
     "dom-matches": {
@@ -694,7 +699,7 @@
     },
     "react-addons-perf": {
       "version": "15.4.2",
-      "from": "react-addons-perf@15.4.2",
+      "from": "react-addons-perf@>=15.4.2 <16.0.0",
       "resolved": "https://registry.npmjs.org/react-addons-perf/-/react-addons-perf-15.4.2.tgz",
       "dev": true
     },
@@ -804,7 +809,7 @@
     },
     "strip-ansi": {
       "version": "3.0.1",
-      "from": "strip-ansi@>=3.0.1 <4.0.0",
+      "from": "strip-ansi@>=3.0.0 <4.0.0",
       "resolved": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-3.0.1.tgz",
       "dev": true
     },

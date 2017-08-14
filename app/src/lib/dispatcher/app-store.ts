@@ -32,6 +32,10 @@ import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import {
+  ExternalEditor,
+  parse as parseExternalEditor,
+} from '../../models/editors'
+import {
   CloningRepository,
   CloningRepositoriesStore,
 } from './cloning-repositories-store'
@@ -45,7 +49,10 @@ import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
-import { getAppMenu } from '../../ui/main-process-proxy'
+import {
+  getAppMenu,
+  updateExternalEditorMenuItem,
+} from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
@@ -75,12 +82,14 @@ import {
 } from '../git'
 
 import { openShell } from '../open-shell'
+import { launchExternalEditor } from '../editors'
 import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
 import { validatedRepositoryPath } from './validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { RetryActionType, RetryAction } from '../retry-actions'
+import { findEditorOrDefault } from '../editors'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -92,6 +101,9 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 
 const confirmRepoRemovalDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
+
+const externalEditorDefault = ExternalEditor.Atom
+const externalEditorKey: string = 'externalEditor'
 
 export class AppStore {
   private emitter = new Emitter()
@@ -160,6 +172,8 @@ export class AppStore {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
+
+  private selectedExternalEditor: ExternalEditor = externalEditorDefault
 
   private readonly statsStore: StatsStore
 
@@ -463,6 +477,7 @@ export class AppStore {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       confirmRepoRemoval: this.confirmRepoRemoval,
+      selectedExternalEditor: this.selectedExternalEditor,
     }
   }
 
@@ -845,6 +860,11 @@ export class AppStore {
       confirmRepoRemovalValue === null
         ? confirmRepoRemovalDefault
         : confirmRepoRemovalValue === '1'
+
+    const externalEditorValue = localStorage.getItem(externalEditorKey)
+    this.selectedExternalEditor = parseExternalEditor(externalEditorValue)
+
+    updateExternalEditorMenuItem(this.selectedExternalEditor)
 
     this.emitUpdateNow()
 
@@ -2166,6 +2186,18 @@ export class AppStore {
     return shell.openExternal(url)
   }
 
+  /** Takes a repository path and opens it using the user's configured editor */
+  public async _openInExternalEditor(path: string): Promise<void> {
+    const state = this.getState()
+    const selectedEditor = state.selectedExternalEditor
+    try {
+      const match = await findEditorOrDefault(selectedEditor)
+      await launchExternalEditor(path, match)
+    } catch (error) {
+      this.emitError(error)
+    }
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _saveGitIgnore(
     repository: Repository,
@@ -2197,6 +2229,16 @@ export class AppStore {
     this.confirmRepoRemoval = confirmRepoRemoval
     localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
     this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setExternalEditor(selectedEditor: ExternalEditor): Promise<void> {
+    this.selectedExternalEditor = selectedEditor
+    localStorage.setItem(externalEditorKey, selectedEditor)
+    this.emitUpdate()
+
+    updateExternalEditorMenuItem(this.selectedExternalEditor)
 
     return Promise.resolve()
   }
