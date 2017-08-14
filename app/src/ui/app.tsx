@@ -1153,6 +1153,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? this.state.selectedState.repository
       : null
     const externalEditorLabel = this.state.selectedExternalEditor
+    const shellLabel = this.state.selectedShell
     return (
       <RepositoriesList
         selectedRepository={selectedRepository}
@@ -1164,6 +1165,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onShowRepository={this.showRepository}
         onOpenInExternalEditor={this.openInExternalEditor}
         externalEditorLabel={externalEditorLabel}
+        shellLabel={shellLabel}
       />
     )
   }
