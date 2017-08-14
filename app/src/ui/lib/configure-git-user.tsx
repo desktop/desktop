@@ -134,21 +134,21 @@ export class ConfigureGitUser extends React.Component<
             commit={dummyCommit1}
             emoji={emoji}
             user={null}
-            repository={null}
+            gitHubRepository={null}
             isLocal={false}
           />
           <CommitListItem
             commit={dummyCommit2}
             emoji={emoji}
             user={this.getAvatarUser()}
-            repository={null}
+            gitHubRepository={null}
             isLocal={false}
           />
           <CommitListItem
             commit={dummyCommit3}
             emoji={emoji}
             user={null}
-            repository={null}
+            gitHubRepository={null}
             isLocal={false}
           />
         </div>

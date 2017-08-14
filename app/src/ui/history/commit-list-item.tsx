@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
-import { Repository } from '../../models/repository'
+import { GitHubRepository } from '../../models/github-repository'
 import { IAvatarUser } from '../../models/avatar'
 import { RichText } from '../lib/rich-text'
 import { Avatar } from '../lib/avatar'
@@ -10,7 +10,7 @@ import { clipboard } from 'electron'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 
 interface ICommitProps {
-  readonly repository: Repository | null
+  readonly gitHubRepository: GitHubRepository | null
   readonly commit: Commit
   readonly user: IAvatarUser | null
   readonly emoji: Map<string, string>
@@ -64,9 +64,7 @@ export class CommitListItem extends React.Component<ICommitProps, {}> {
     event.preventDefault()
 
     let label: string = ''
-    const gitHubRepository = this.props.repository
-      ? this.props.repository.gitHubRepository
-      : null
+    const gitHubRepository = this.props.gitHubRepository
 
     if (gitHubRepository) {
       const isDotCom = gitHubRepository.endpoint === getDotComAPIEndpoint()

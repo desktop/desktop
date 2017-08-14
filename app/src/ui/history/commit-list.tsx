@@ -48,7 +48,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return (
       <CommitListItem
         key={commit.sha}
-        repository={this.props.repository}
+        gitHubRepository={this.props.repository.gitHubRepository}
         isLocal={isLocal}
         commit={commit}
         user={avatarUser}
