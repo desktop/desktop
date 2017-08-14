@@ -87,9 +87,18 @@ class UpdateStore {
   }
 
   private onAutoUpdaterError = (error: Error) => {
-    // If we get an error during any stage of the update process we'll
     this.status = UpdateStatus.UpdateNotAvailable
-    this.emitError(error)
+
+    const squirrelNetworkError = /System\.Net\.WebException: The remote name could not be resolved: 'central\.github\.com'/
+
+    if (squirrelNetworkError.test(error.message)) {
+      const networkError = new Error(
+        'The application was not able to reach the update server. Ensure you have internet connectivity and try again.'
+      )
+      this.emitError(networkError)
+    } else {
+      this.emitError(error)
+    }
   }
 
   private onCheckingForUpdate = () => {
