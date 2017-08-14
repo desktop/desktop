@@ -34,6 +34,12 @@ interface IRepositoriesListProps {
   /** Called when the repository should be shown in the shell. */
   readonly onOpenInShell: (repository: Repositoryish) => void
 
+  /** Called when the repository should be opened in an external editor */
+  readonly onOpenInExternalEditor: (repository: Repositoryish) => void
+
+  /** The current external editor selected by the user */
+  readonly externalEditorLabel: string
+
   /** Called when the repositories list should be closed. */
   readonly onClose: () => void
 }
@@ -55,6 +61,8 @@ export class RepositoriesList extends React.Component<
         onRemoveRepository={this.props.onRemoveRepository}
         onShowRepository={this.props.onShowRepository}
         onOpenInShell={this.props.onOpenInShell}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        externalEditorLabel={this.props.externalEditorLabel}
       />
     )
   }

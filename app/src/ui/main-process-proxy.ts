@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { MenuIDs } from '../main-process/menu'
 import { IMenuItemState } from '../lib/menu-update'
+import { ExternalEditor } from '../models/editors'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(
@@ -103,6 +104,10 @@ export function registerContextualMenuActionDispatcher() {
 export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   currentContextualMenuItems = items
   ipcRenderer.send('show-contextual-menu', items)
+}
+
+export function updateExternalEditorMenuItem(selectedEditor: ExternalEditor) {
+  ipcRenderer.send('external-editor-changed', { selectedEditor })
 }
 
 function getIpcFriendlyError(error: Error) {

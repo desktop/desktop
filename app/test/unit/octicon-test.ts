@@ -19,6 +19,7 @@ function getTestRepository(
     owner: {
       endpoint: 'https://api.github.com',
       login: 'shiftkey',
+      hash: '',
     },
     endpoint: 'https://api.github.com',
     fullName: 'shiftkey/some-repo',
@@ -30,6 +31,7 @@ function getTestRepository(
     withAPI: (apiRepository: IAPIRepository) => {
       return gitHubRepository!
     },
+    hash: '',
   }
 
   return gitHubRepository!
