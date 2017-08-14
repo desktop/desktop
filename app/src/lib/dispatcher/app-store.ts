@@ -105,6 +105,9 @@ const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const externalEditorDefault = ExternalEditor.Atom
 const externalEditorKey: string = 'externalEditor'
 
+const shellDefault = Shell.Default
+const shellKey: string = 'shell'
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -174,6 +177,8 @@ export class AppStore {
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
 
   private selectedExternalEditor: ExternalEditor = externalEditorDefault
+
+  private selectedShell: Shell = shellDefault
 
   private readonly statsStore: StatsStore
 
@@ -478,6 +483,7 @@ export class AppStore {
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       confirmRepoRemoval: this.confirmRepoRemoval,
       selectedExternalEditor: this.selectedExternalEditor,
+      selectedShell: this.selectedShell,
     }
   }
 
@@ -865,6 +871,8 @@ export class AppStore {
     this.selectedExternalEditor = parseExternalEditor(externalEditorValue)
 
     updateExternalEditorMenuItem(this.selectedExternalEditor)
+    const shellValue = localStorage.getItem(shellKey)
+    this.selectedShell = parseShell(shellValue)
 
     this.emitUpdateNow()
 
@@ -2239,6 +2247,16 @@ export class AppStore {
     this.emitUpdate()
 
     updateExternalEditorMenuItem(this.selectedExternalEditor)
+
+    return Promise.resolve()
+  }
+
+  public _setShell(shell: Shell): Promise<void> {
+    this.selectedShell = shell
+    localStorage.setItem(shellKey, shell)
+    this.emitUpdate()
+
+    this.updatePreferredAppMenuItemLabels()
 
     return Promise.resolve()
   }

@@ -41,6 +41,7 @@ import {
 import { installCLI } from '../../ui/lib/install-cli'
 import * as GenericGitAuth from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
+import { Shell } from '../../models/shells'
 
 /**
  * An error handler function.
@@ -833,6 +834,13 @@ export class Dispatcher {
    */
   public setExternalEditor(editor: ExternalEditor): Promise<void> {
     return this.appStore._setExternalEditor(editor)
+  }
+
+  /**
+   * Sets the user's preferred shell.
+   */
+  public setShell(shell: Shell): Promise<void> {
+    return this.appStore._setExternalEditor(shell)
   }
 
   /**

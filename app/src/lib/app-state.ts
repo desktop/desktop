@@ -19,6 +19,7 @@ import { WindowState } from './window-state'
 import { RetryAction } from './retry-actions'
 import { ExternalEditor } from '../models/editors'
 import { PreferencesTab } from '../models/preferences'
+import { Shell } from '../models/shells'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -138,6 +139,9 @@ export interface IAppState {
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: ExternalEditor
+
+  /** The user's preferred shell. */
+  readonly selectedShell: Shell
 }
 
 export enum PopupType {
