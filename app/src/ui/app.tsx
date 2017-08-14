@@ -16,6 +16,7 @@ import {
   FoldoutType,
   SelectionType,
 } from '../lib/app-state'
+import { PreferencesTab } from '../models/preferences'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
@@ -55,6 +56,7 @@ import {
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { InstallGit } from './install-git'
+import { EditorError } from './editor'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
 import { shell } from '../lib/dispatcher/app-shell'
@@ -272,6 +274,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.openPullRequest()
       case 'install-cli':
         return this.props.dispatcher.installCLI()
+      case 'open-external-editor':
+        return this.openCurrentRepositoryInExternalEditor()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -695,6 +699,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.openInShell(repository)
   }
 
+  private openCurrentRepositoryInExternalEditor() {
+    const repository = this.getRepository()
+    if (!repository) {
+      return
+    }
+
+    this.openInExternalEditor(repository)
+  }
+
   /**
    * Conditionally renders a menu bar. The menu bar is currently only rendered
    * on Windows.
@@ -848,6 +861,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             dotComAccount={this.getDotComAccount()}
             confirmRepoRemoval={this.state.confirmRepoRemoval}
+            selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
             enterpriseAccount={this.getEnterpriseAccount()}
             onDismissed={this.onPopupDismissed}
@@ -1028,6 +1042,26 @@ export class App extends React.Component<IAppProps, IAppState> {
             retryAction={popup.retryAction}
           />
         )
+      case PopupType.ExternalEditorFailed:
+        const openPreferences = popup.openPreferences
+        const suggestAtom = popup.suggestAtom
+        const showPreferencesDialog = () => {
+          this.props.dispatcher.showPopup({
+            type: PopupType.Preferences,
+            initialSelectedTab: PreferencesTab.Advanced,
+          })
+        }
+
+        return (
+          <EditorError
+            key="editor-error"
+            message={popup.message}
+            onDismissed={this.onPopupDismissed}
+            showPreferencesDialog={showPreferencesDialog}
+            viewPreferences={openPreferences}
+            suggestAtom={suggestAtom}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -1117,6 +1151,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const selectedRepository = this.state.selectedState
       ? this.state.selectedState.repository
       : null
+    const externalEditorLabel = this.state.selectedExternalEditor
     return (
       <RepositoriesList
         selectedRepository={selectedRepository}
@@ -1126,6 +1161,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         onClose={this.onCloseRepositoryList}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
+        onOpenInExternalEditor={this.openInExternalEditor}
+        externalEditorLabel={externalEditorLabel}
       />
     )
   }
@@ -1136,6 +1173,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.openShell(repository.path)
+  }
+
+  private openInExternalEditor = (
+    repository: Repository | CloningRepository
+  ) => {
+    if (!(repository instanceof Repository)) {
+      return
+    }
+
+    this.props.dispatcher.openInExternalEditor(repository.path)
   }
 
   private showRepository = (repository: Repository | CloningRepository) => {

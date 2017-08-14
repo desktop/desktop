@@ -19,6 +19,7 @@ import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
+import { ExternalEditor } from '../../models/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
@@ -568,6 +569,11 @@ export class Dispatcher {
     }
   }
 
+  /** Opens a Git repository in the user provided program */
+  public async openInExternalEditor(path: string): Promise<void> {
+    return this.appStore._openInExternalEditor(path)
+  }
+
   /**
    * Persist the given content to the repository's root .gitignore.
    *
@@ -821,6 +827,13 @@ export class Dispatcher {
    */
   public setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
     return this.appStore._setConfirmRepoRemoval(value)
+  }
+
+  /**
+   * Sets the user's preference for an external program to open repositories in.
+   */
+  public setExternalEditor(editor: ExternalEditor): Promise<void> {
+    return this.appStore._setExternalEditor(editor)
   }
 
   /**

@@ -52,6 +52,7 @@ describe('Tokenizer', () => {
       owner: {
         endpoint,
         login,
+        hash: '',
       },
       cloneURL,
       endpoint: 'https://api.github.com',
@@ -63,6 +64,7 @@ describe('Tokenizer', () => {
       withAPI: apiRepository => {
         return gitHubRepository!
       },
+      hash: '',
     }
 
     const repository = new Repository(

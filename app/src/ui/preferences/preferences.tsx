@@ -1,6 +1,10 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
+import {
+  ExternalEditor,
+  parse as parseExternalEditor,
+} from '../../models/editors'
 import { Dispatcher } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
@@ -22,8 +26,9 @@ interface IPreferencesProps {
   readonly enterpriseAccount: Account | null
   readonly onDismissed: () => void
   readonly optOutOfUsageTracking: boolean
-  readonly confirmRepoRemoval: boolean
   readonly initialSelectedTab?: PreferencesTab
+  readonly confirmRepoRemoval: boolean
+  readonly selectedExternalEditor: ExternalEditor
 }
 
 interface IPreferencesState {
@@ -32,6 +37,7 @@ interface IPreferencesState {
   readonly committerEmail: string
   readonly isOptedOut: boolean
   readonly confirmRepoRemoval: boolean
+  readonly selectedExternalEditor: ExternalEditor
 }
 
 /** The app-level preferences component. */
@@ -48,12 +54,14 @@ export class Preferences extends React.Component<
       committerEmail: '',
       isOptedOut: false,
       confirmRepoRemoval: false,
+      selectedExternalEditor: ExternalEditor.Atom,
     }
   }
 
   public async componentWillMount() {
     const isOptedOut = this.props.optOutOfUsageTracking
     const confirmRepoRemoval = this.props.confirmRepoRemoval
+    const selectedExternalEditor = this.props.selectedExternalEditor
 
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
@@ -83,6 +91,7 @@ export class Preferences extends React.Component<
       committerEmail,
       isOptedOut,
       confirmRepoRemoval,
+      selectedExternalEditor,
     })
   }
 
@@ -151,8 +160,10 @@ export class Preferences extends React.Component<
           <Advanced
             isOptedOut={this.state.isOptedOut}
             confirmRepoRemoval={this.state.confirmRepoRemoval}
+            selectedExternalEditor={this.state.selectedExternalEditor}
             onOptOutSet={this.onOptOutSet}
             onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
+            onSelectedEditorChanged={this.onSelectedEditorChanged}
           />
         )
       }
@@ -175,6 +186,11 @@ export class Preferences extends React.Component<
 
   private onCommitterEmailChanged = (committerEmail: string) => {
     this.setState({ committerEmail })
+  }
+
+  private onSelectedEditorChanged = (value: string) => {
+    const selectedExternalEditor = parseExternalEditor(value)
+    this.setState({ selectedExternalEditor })
   }
 
   private renderFooter() {
@@ -204,6 +220,10 @@ export class Preferences extends React.Component<
     await this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepoRemoval
+    )
+
+    await this.props.dispatcher.setExternalEditor(
+      this.state.selectedExternalEditor
     )
 
     this.props.onDismissed()

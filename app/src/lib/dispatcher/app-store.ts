@@ -33,6 +33,10 @@ import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import {
+  ExternalEditor,
+  parse as parseExternalEditor,
+} from '../../models/editors'
+import {
   CloningRepository,
   CloningRepositoriesStore,
 } from './cloning-repositories-store'
@@ -46,14 +50,16 @@ import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
-import { getAppMenu } from '../../ui/main-process-proxy'
+import {
+  getAppMenu,
+  updateExternalEditorMenuItem,
+} from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
 import { SignInStore } from './sign-in-store'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
-import { structuralEquals } from '../equality'
 import { fatalError } from '../fatal-error'
 import { updateMenuState } from '../menu-update'
 
@@ -77,12 +83,14 @@ import {
 } from '../git'
 
 import { openShell } from '../open-shell'
+import { launchExternalEditor } from '../editors'
 import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
 import { validatedRepositoryPath } from './validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { RetryActionType, RetryAction } from '../retry-actions'
+import { findEditorOrDefault } from '../editors'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -95,7 +103,10 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 const confirmRepoRemovalDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 
-const imageDiffTypeDefault: ImageDiffType = ImageDiffType.TwoUp
+const externalEditorDefault = ExternalEditor.Atom
+const externalEditorKey: string = 'externalEditor'
+
+const imageDiffTypeDefault = ImageDiffType.TwoUp
 const imageDiffTypeKey: string = 'imageDiffType'
 
 export class AppStore {
@@ -109,7 +120,7 @@ export class AppStore {
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
 
-  private repositoryState = new Map<number, IRepositoryState>()
+  private repositoryState = new Map<string, IRepositoryState>()
   private showWelcomeFlow = false
 
   private currentPopup: Popup | null = null
@@ -132,8 +143,8 @@ export class AppStore {
     return this._issuesStore
   }
 
-  /** GitStores keyed by their associated Repository ID. */
-  private readonly gitStores = new Map<number, GitStore>()
+  /** GitStores keyed by their hash. */
+  private readonly gitStores = new Map<string, GitStore>()
 
   private readonly signInStore: SignInStore
 
@@ -166,6 +177,8 @@ export class AppStore {
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
+
+  private selectedExternalEditor: ExternalEditor = externalEditorDefault
 
   private readonly statsStore: StatsStore
 
@@ -245,7 +258,7 @@ export class AppStore {
     repositoriesStore.onDidUpdate(async () => {
       const repositories = await this.repositoriesStore.getAll()
       this.repositories = repositories
-      this.updateRepositorySelection()
+      this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
   }
@@ -356,7 +369,7 @@ export class AppStore {
 
   /** Get the state for the repository. */
   public getRepositoryState(repository: Repository): IRepositoryState {
-    let state = this.repositoryState.get(repository.id)
+    let state = this.repositoryState.get(repository.hash)
     if (state) {
       const gitHubUsers =
         this.gitHubUserStore.getUsersForRepository(repository) ||
@@ -365,7 +378,7 @@ export class AppStore {
     }
 
     state = this.getInitialRepositoryState()
-    this.repositoryState.set(repository.id, state)
+    this.repositoryState.set(repository.hash, state)
     return state
   }
 
@@ -375,7 +388,7 @@ export class AppStore {
   ) {
     const currentState = this.getRepositoryState(repository)
     const newValues = fn(currentState)
-    this.repositoryState.set(repository.id, merge(currentState, newValues))
+    this.repositoryState.set(repository.hash, merge(currentState, newValues))
   }
 
   private updateHistoryState<K extends keyof IHistoryState>(
@@ -469,6 +482,7 @@ export class AppStore {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       confirmRepoRemoval: this.confirmRepoRemoval,
+      selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
     }
   }
@@ -516,13 +530,13 @@ export class AppStore {
   }
 
   private removeGitStore(repository: Repository) {
-    if (this.gitStores.has(repository.id)) {
-      this.gitStores.delete(repository.id)
+    if (this.gitStores.has(repository.hash)) {
+      this.gitStores.delete(repository.hash)
     }
   }
 
   private getGitStore(repository: Repository): GitStore {
-    let gitStore = this.gitStores.get(repository.id)
+    let gitStore = this.gitStores.get(repository.hash)
     if (!gitStore) {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
@@ -531,7 +545,7 @@ export class AppStore {
       )
       gitStore.onDidError(error => this.emitError(error))
 
-      this.gitStores.set(repository.id, gitStore)
+      this.gitStores.set(repository.hash, gitStore)
     }
 
     return gitStore
@@ -694,6 +708,7 @@ export class AppStore {
     repository: Repository | CloningRepository | null
   ): Promise<Repository | null> {
     const previouslySelectedRepository = this.selectedRepository
+
     this.selectedRepository = repository
     this.emitUpdate()
 
@@ -836,7 +851,7 @@ export class AppStore {
       }
     }
 
-    this.updateRepositorySelection()
+    this.updateRepositorySelectionAfterRepositoriesChanged()
 
     this.sidebarWidth =
       parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) ||
@@ -852,6 +867,11 @@ export class AppStore {
         ? confirmRepoRemovalDefault
         : confirmRepoRemovalValue === '1'
 
+    const externalEditorValue = localStorage.getItem(externalEditorKey)
+    this.selectedExternalEditor = parseExternalEditor(externalEditorValue)
+
+    updateExternalEditorMenuItem(this.selectedExternalEditor)
+
     const imageDiffTypeValue = localStorage.getItem(imageDiffTypeKey)
     this.imageDiffType =
       imageDiffTypeValue === null
@@ -863,7 +883,7 @@ export class AppStore {
     this.accountsStore.refresh()
   }
 
-  private updateRepositorySelection() {
+  private updateRepositorySelectionAfterRepositoriesChanged() {
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this
       .selectedRepository
@@ -896,7 +916,7 @@ export class AppStore {
     const repositoryChanged =
       (selectedRepository &&
         newSelectedRepository &&
-        !structuralEquals(selectedRepository, newSelectedRepository)) ||
+        selectedRepository.hash !== newSelectedRepository.hash) ||
       (selectedRepository && !newSelectedRepository) ||
       (!selectedRepository && newSelectedRepository)
     if (repositoryChanged) {
@@ -1451,7 +1471,7 @@ export class AppStore {
     const withUpdatedGitHubRepository = updatedRepository.withGitHubRepository(
       updatedGitHubRepository.withAPI(apiRepo)
     )
-    if (structuralEquals(withUpdatedGitHubRepository, repository)) {
+    if (withUpdatedGitHubRepository.hash === repository.hash) {
       return withUpdatedGitHubRepository
     }
 
@@ -1471,7 +1491,7 @@ export class AppStore {
     if (
       repository.gitHubRepository &&
       gitHubRepository &&
-      structuralEquals(repository.gitHubRepository, gitHubRepository)
+      repository.gitHubRepository.hash === gitHubRepository.hash
     ) {
       return repository
     }
@@ -2178,6 +2198,18 @@ export class AppStore {
     return shell.openExternal(url)
   }
 
+  /** Takes a repository path and opens it using the user's configured editor */
+  public async _openInExternalEditor(path: string): Promise<void> {
+    const state = this.getState()
+    const selectedEditor = state.selectedExternalEditor
+    try {
+      const match = await findEditorOrDefault(selectedEditor)
+      await launchExternalEditor(path, match)
+    } catch (error) {
+      this.emitError(error)
+    }
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _saveGitIgnore(
     repository: Repository,
@@ -2209,6 +2241,16 @@ export class AppStore {
     this.confirmRepoRemoval = confirmRepoRemoval
     localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
     this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setExternalEditor(selectedEditor: ExternalEditor): Promise<void> {
+    this.selectedExternalEditor = selectedEditor
+    localStorage.setItem(externalEditorKey, selectedEditor)
+    this.emitUpdate()
+
+    updateExternalEditorMenuItem(this.selectedExternalEditor)
 
     return Promise.resolve()
   }
@@ -2389,7 +2431,7 @@ export class AppStore {
       repository
     )
 
-    if (structuralEquals(refreshedRepository, repository)) {
+    if (refreshedRepository.hash === repository.hash) {
       return refreshedRepository
     }
 
