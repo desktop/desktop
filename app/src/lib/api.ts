@@ -210,24 +210,15 @@ export class API {
   }
 
   /** Fetch all repos a user has access to. */
-  public async fetchRepositories(
-    name: string
-  ): Promise<ReadonlyArray<IAPIRepository> | null> {
-    let result: ReadonlyArray<IAPIRepository> | null = null
-
+  public async fetchRepositories(): Promise<ReadonlyArray<
+    IAPIRepository
+  > | null> {
     try {
-      const response = await this.request('GET', `${name}/repos`)
-
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchRepository: '${name}' returned a 404`)
-      } else {
-        result = await parsedResponse<ReadonlyArray<IAPIRepository>>(response)
-      }
+      return await this.fetchAll<IAPIRepository>('user/repos')
     } catch (error) {
-      log.warn(`fetchRepositories: an error occurred for '${name}'`, error)
+      log.warn(`fetchRepositories: ${error}`)
+      return null
     }
-
-    return result
   }
 
   /** Fetch the logged in account. */
