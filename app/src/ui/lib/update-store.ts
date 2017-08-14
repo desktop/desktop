@@ -9,6 +9,7 @@ import { Emitter, Disposable } from 'event-kit'
 
 import { sendWillQuitSync } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
+import { parseError } from '../../lib/squirrel-error-parser'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -89,13 +90,9 @@ class UpdateStore {
   private onAutoUpdaterError = (error: Error) => {
     this.status = UpdateStatus.UpdateNotAvailable
 
-    const squirrelNetworkError = /System\.Net\.WebException: The remote name could not be resolved: 'central\.github\.com'/
-
-    if (squirrelNetworkError.test(error.message)) {
-      const networkError = new Error(
-        'The application was not able to reach the update server. Ensure you have internet connectivity and try again.'
-      )
-      this.emitError(networkError)
+    const parsedError = parseError(error)
+    if (parsedError) {
+      this.emitError(parsedError)
     } else {
       this.emitError(error)
     }
