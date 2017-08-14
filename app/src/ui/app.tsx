@@ -865,6 +865,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
             enterpriseAccount={this.getEnterpriseAccount()}
             onDismissed={this.onPopupDismissed}
+            selectedShell={this.state.selectedShell}
           />
         )
       case PopupType.MergeBranch: {

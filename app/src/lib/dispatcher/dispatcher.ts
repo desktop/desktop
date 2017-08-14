@@ -840,7 +840,7 @@ export class Dispatcher {
    * Sets the user's preferred shell.
    */
   public setShell(shell: Shell): Promise<void> {
-    return this.appStore._setExternalEditor(shell)
+    return this.appStore._setShell(shell)
   }
 
   /**
