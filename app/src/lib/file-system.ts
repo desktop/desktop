@@ -71,3 +71,20 @@ export function tailByLine(
     tailer.stop()
   })
 }
+
+/*
+ * Helper function to promisify and simplify fs.stat.
+ *
+ * @param path Path to check for existence.
+ */
+export function pathExists(path: string): Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
+    Fs.stat(path, (error, stats) => {
+      if (error) {
+        resolve(false)
+      } else {
+        resolve(true)
+      }
+    })
+  })
+}

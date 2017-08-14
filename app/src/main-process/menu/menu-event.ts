@@ -24,3 +24,4 @@ export type MenuEvent =
   | 'boomtown'
   | 'create-pull-request'
   | 'install-cli'
+  | 'open-external-editor'

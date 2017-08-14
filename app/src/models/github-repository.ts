@@ -1,6 +1,5 @@
 import { Owner } from './owner'
 import { IAPIRepository } from '../lib/api'
-import { structuralEquals } from '../lib/equality'
 
 /** A GitHub repository. */
 export class GitHubRepository {
@@ -53,7 +52,7 @@ export class GitHubRepository {
       apiRepository.clone_url
     )
 
-    return structuralEquals(newRepository, this) ? this : newRepository
+    return newRepository.hash === this.hash ? this : newRepository
   }
 
   public get endpoint(): string {
@@ -63,5 +62,21 @@ export class GitHubRepository {
   /** Get the owner/name combo. */
   public get fullName(): string {
     return `${this.owner.login}/${this.name}`
+  }
+
+  /**
+   * A hash of the properties of the object.
+   *
+   * Objects with the same hash are guaranteed to be structurally equal.
+   */
+  public get hash(): string {
+    return `${this.dbID}+
+      ${this.defaultBranch}+
+      ${this.private}+
+      ${this.cloneURL}+
+      ${this.fork}+
+      ${this.name}+
+      ${this.htmlURL}+
+      ${this.owner.hash}`
   }
 }
