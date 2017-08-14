@@ -69,6 +69,8 @@ export class AddExistingRepository extends React.Component<
 
   public async componentDidMount() {
     const pathToCheck = this.state.path
+    // We'll only have a path at this point if the dialog was opened with a path
+    // to prefill.
     if (pathToCheck.length < 1) {
       return
     }
