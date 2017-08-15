@@ -19,7 +19,7 @@ export class DifferenceBlend extends React.Component<
 
     return (
       <div className="image-diff-difference" ref={this.props.onContainerRef}>
-        <div className="sizing-container" ref={this.props.onContainerRef}>
+        <div className="sizing-container">
           <div className="image-container" style={style}>
             <div className="image-diff-previous">
               <DiffImage
