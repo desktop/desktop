@@ -1,7 +1,6 @@
 import * as Darwin from './darwin'
 import * as Win32 from './win32'
-
-export type Shell = Darwin.Shell | Win32.Shell
+import { Shell } from './index'
 
 let shellCache: ReadonlyArray<Shell> | null = null
 

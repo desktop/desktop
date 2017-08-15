@@ -78,3 +78,5 @@ export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
 
   return shells
 }
+
+export async function launch(shell: Shell): Promise<void> {}
