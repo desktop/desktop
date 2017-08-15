@@ -13,7 +13,7 @@ import { assertNever } from '../fatal-error'
 // the keys found by `reg.exe`, and rather than trying to fix and potentially
 // regress other parts I've extracted just the bit that I need to use.
 
-const regPath = 'C:\\Windows\\System32\\reg.exe'
+const regPath = Path.join(process.env.windir, 'System32', 'reg.exe')
 
 const ITEM_PATTERN = /^(.*)\s(REG_SZ|REG_MULTI_SZ|REG_EXPAND_SZ|REG_DWORD|REG_QWORD|REG_BINARY|REG_NONE)\s+([^\s].*)$/
 
