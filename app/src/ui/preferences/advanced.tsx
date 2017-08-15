@@ -22,7 +22,7 @@ interface IAdvancedPreferencesProps {
 
 interface IAdvancedPreferencesState {
   readonly reportingOptOut: boolean
-  readonly availableEditors?: ReadonlyArray<string>
+  readonly availableEditors?: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor: ExternalEditor
   readonly selectedShell: Shell
   readonly confirmRepoRemoval: boolean
@@ -45,20 +45,20 @@ export class Advanced extends React.Component<
 
   public async componentDidMount() {
     const availableEditors = await getAvailableEditors()
-    const editorLabels = availableEditors.map(editor => editor.editor)
+    const editors = availableEditors.map(editor => editor.editor)
     let selectedExternalEditor = this.props.selectedExternalEditor
 
-    if (editorLabels.length) {
-      const indexOf = editorLabels.indexOf(selectedExternalEditor)
+    if (editors.length) {
+      const indexOf = editors.indexOf(selectedExternalEditor)
       if (indexOf === -1) {
         // if the editor cannot be found, select the first entry
         // so that the user can immediately save changes
-        selectedExternalEditor = parseEditor(editorLabels[0])
+        selectedExternalEditor = editors[0]
         this.props.onSelectedEditorChanged(selectedExternalEditor)
       }
     }
 
-    this.setState({ availableEditors: editorLabels, selectedExternalEditor })
+    this.setState({ availableEditors: editors, selectedExternalEditor })
   }
 
   private onReportingOptOutChanged = (
