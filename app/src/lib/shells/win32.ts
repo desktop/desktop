@@ -37,19 +37,6 @@ export async function launch(shell: Shell, path: string): Promise<void> {
       cwd: path,
     })
   } else if (shell === Shell.GitBash) {
-    // "C:\Program Files\Git\git-bash.exe" "--cd="C:\YOUR\FOLDER\"
-    // const cmd = `cd "${path}"`
-    // await spawn(
-    //   'START',
-    //   [
-    //     '%SYSTEMDRIVE%\\Program Files (x86)\\Git\\bin\\sh.exe',
-    //     '--login',
-    //     '-i',
-    //     '-c',
-    //     cmd,
-    //   ],
-    //   { shell: true, cwd: path }
-    // )
     await spawn('"%ProgramFiles%\\Git\\git-bash.exe"', [`--cd="${path}"`], {
       shell: true,
       cwd: path,
