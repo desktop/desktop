@@ -1,7 +1,7 @@
 import { spawn } from 'child_process'
 
 export enum Shell {
-  Gnome = 'cmd',
+  Gnome = 'Gnome',
 }
 
 export const Default = Shell.Gnome
