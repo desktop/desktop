@@ -406,8 +406,8 @@ export class Dispatcher {
   }
 
   /** Revert the commit with the given SHA */
-  public revertCommit(repositoy: Repository, commit: Commit): Promise<void> {
-    return this.appStore._revertCommit(repositoy, commit)
+  public revertCommit(repository: Repository, commit: Commit): Promise<void> {
+    return this.appStore._revertCommit(repository, commit)
   }
 
   /**

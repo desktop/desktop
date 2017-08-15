@@ -1,14 +1,22 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
+import { GitHubRepository } from '../../models/github-repository'
 import { IAvatarUser } from '../../models/avatar'
 import { RichText } from '../lib/rich-text'
 import { Avatar } from '../lib/avatar'
 import { RelativeTime } from '../relative-time'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import { clipboard } from 'electron'
+import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 
 interface ICommitProps {
+  readonly gitHubRepository: GitHubRepository | null
   readonly commit: Commit
   readonly user: IAvatarUser | null
   readonly emoji: Map<string, string>
+  readonly isLocal: boolean
+  readonly onRevertCommit?: (commit: Commit) => void
+  readonly onViewCommitOnGitHub?: (sha: string) => void
 }
 
 /** A component which displays a single commit in a commit list. */
@@ -18,7 +26,7 @@ export class CommitListItem extends React.Component<ICommitProps, {}> {
     const author = commit.author
 
     return (
-      <div className="commit">
+      <div className="commit" onContextMenu={this.onContextMenu}>
         <Avatar user={this.props.user || undefined} />
         <div className="info">
           <RichText
@@ -40,5 +48,50 @@ export class CommitListItem extends React.Component<ICommitProps, {}> {
       this.props.commit.sha !== nextProps.commit.sha ||
       this.props.user !== nextProps.user
     )
+  }
+
+  private onCopySHA = () => {
+    clipboard.writeText(this.props.commit.sha)
+  }
+
+  private onViewOnGitHub = () => {
+    if (this.props.onViewCommitOnGitHub) {
+      this.props.onViewCommitOnGitHub(this.props.commit.sha)
+    }
+  }
+
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    let label: string = ''
+    const gitHubRepository = this.props.gitHubRepository
+
+    if (gitHubRepository) {
+      const isDotCom = gitHubRepository.endpoint === getDotComAPIEndpoint()
+      label = isDotCom ? 'View on GitHub' : 'View on GitHub Enterprise'
+    }
+
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Revert This Commit' : 'Revert this commit',
+        action: () => {
+          if (this.props.onRevertCommit) {
+            this.props.onRevertCommit(this.props.commit)
+          }
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Copy SHA',
+        action: this.onCopySHA,
+      },
+      {
+        label: label,
+        action: this.onViewOnGitHub,
+        enabled: !this.props.isLocal && !!gitHubRepository,
+      },
+    ]
+
+    showContextualMenu(items)
   }
 }
