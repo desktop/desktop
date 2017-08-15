@@ -1,9 +1,6 @@
 import { spawn } from 'child_process'
 import { assertNever } from '../fatal-error'
 
-/**
- * appPath will raise an error if it cannot find the program.
- */
 const appPath: (bundleId: string) => Promise<string> = require('app-path')
 
 export enum Shell {
@@ -48,7 +45,9 @@ async function isShellInstalled(shell: Shell): Promise<boolean> {
   try {
     const path = await appPath(bundleId)
     return path.length > 0
-  } catch (e) {}
+  } catch (e) {
+    // `appPath` will raise an error if it cannot find the program.
+  }
 
   return false
 }
