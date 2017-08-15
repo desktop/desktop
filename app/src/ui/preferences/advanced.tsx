@@ -49,10 +49,13 @@ export class Advanced extends React.Component<
   }
 
   public async componentDidMount() {
-    const availableEditors = await getAvailableEditors()
+    const [availableEditors, availableShells] = await Promise.all([
+      getAvailableEditors(),
+      getAvailableShells(),
+    ])
+
     const editors = availableEditors.map(editor => editor.editor)
     let selectedExternalEditor = this.props.selectedExternalEditor
-
     if (editors.length) {
       const indexOf = editors.indexOf(selectedExternalEditor)
       if (indexOf === -1) {
@@ -63,24 +66,21 @@ export class Advanced extends React.Component<
       }
     }
 
-    this.setState({ availableEditors: editors, selectedExternalEditor })
-
-    // --
-
-    const availableShells = await getAvailableShells()
     let selectedShell = this.props.selectedShell
-
     if (availableShells.length) {
       const indexOf = availableShells.indexOf(selectedShell)
       if (indexOf === -1) {
-        // if the editor cannot be found, select the first entry
-        // so that the user can immediately save changes
         selectedShell = availableShells[0]
         this.props.onSelectedShellChanged(selectedShell)
       }
     }
 
-    this.setState({ availableShells, selectedShell })
+    this.setState({
+      availableEditors: editors,
+      selectedExternalEditor,
+      availableShells,
+      selectedShell,
+    })
   }
 
   private onReportingOptOutChanged = (
