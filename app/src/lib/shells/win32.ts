@@ -1,5 +1,6 @@
 import { spawn } from 'child_process'
 import { assertNever } from '../fatal-error'
+import { readRegistryKeySafe } from '../registry'
 
 export enum Shell {
   Cmd = 'cmd',
@@ -26,6 +27,15 @@ export function parse(label: string): Shell {
 }
 
 export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
+  const ps = await readRegistryKeySafe(
+    'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\PowerShell'
+  )
+  const gitBash = await readRegistryKeySafe(
+    'HKEY_LOCAL_MACHINE\\SOFTWARE\\GitForWindows'
+  )
+  console.log('ps', ps)
+  console.log('gitBash', gitBash)
+
   return [Shell.Cmd, Shell.PowerShell, Shell.GitBash]
 }
 
