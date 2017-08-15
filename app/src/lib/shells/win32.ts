@@ -28,7 +28,7 @@ export function parse(label: string): Shell {
 
 export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
   const ps = await readRegistryKeySafe(
-    'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\PowerShell'
+    'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\PowerShell\\3\\PowerShellEngine'
   )
   const gitBash = await readRegistryKeySafe(
     'HKEY_LOCAL_MACHINE\\SOFTWARE\\GitForWindows'
