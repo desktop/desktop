@@ -24,10 +24,8 @@ interface IHistoryProps {
   readonly history: IAppHistoryState
   readonly emoji: Map<string, string>
   readonly commits: Map<string, Commit>
-  readonly localCommitSHAs: ReadonlyArray<string>
   readonly commitSummaryWidth: number
   readonly gitHubUsers: Map<string, IGitHubUser>
-  readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
 }
 
@@ -96,22 +94,18 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
   }
 
   private renderCommitSummary(commit: Commit) {
-    const isLocal = this.props.localCommitSHAs.indexOf(commit.sha) > -1
     const gitHubUser =
       this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
 
     return (
       <CommitSummary
-        dispatcher={this.props.dispatcher}
         commit={commit}
         files={this.props.history.changedFiles}
         emoji={this.props.emoji}
         repository={this.props.repository}
-        isLocal={isLocal}
         gitHubUser={gitHubUser}
         onExpandChanged={this.onExpandChanged}
         isExpanded={this.state.isExpanded}
-        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
     )
   }

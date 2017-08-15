@@ -251,7 +251,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     if (!e) {
       if (this.dialogElement) {
         this.dialogElement.removeEventListener('cancel', this.onDialogCancel)
-        this.dialogElement.addEventListener('keydown', this.onKeyDown)
+        this.dialogElement.removeEventListener('keydown', this.onKeyDown)
       }
     } else {
       e.addEventListener('cancel', this.onDialogCancel)
