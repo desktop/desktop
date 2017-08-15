@@ -1,4 +1,5 @@
-import { assertNever } from '../lib/fatal-error'
+import { spawn } from 'child_process'
+import { assertNever } from '../fatal-error'
 
 /**
  * appPath will raise an error if it cannot find the program.
@@ -79,4 +80,8 @@ export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
   return shells
 }
 
-export async function launch(shell: Shell): Promise<void> {}
+export async function launch(shell: Shell, path: string): Promise<void> {
+  const bundleID = getBundleID(shell)
+  const commandArgs = ['-b', bundleID, path]
+  await spawn('open', commandArgs, { shell: true })
+}

@@ -23,14 +23,14 @@ export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
   )
 }
 
-export async function launchShell(shell: Shell) {
+export async function launchShell(shell: Shell, path: string) {
   // We have to manually cast the wider `Shell` type into the platform-specific
   // type. This is less than ideal, but maybe the best we can do without
   // platform-specific build targets.
   if (__DARWIN__) {
-    return Darwin.launch(shell as Darwin.Shell)
+    return Darwin.launch(shell as Darwin.Shell, path)
   } else if (__WIN32__) {
-    return Win32.launch(shell as Win32.Shell)
+    return Win32.launch(shell as Win32.Shell, path)
   }
 
   return Promise.reject(
