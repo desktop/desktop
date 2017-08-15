@@ -4,7 +4,15 @@ import * as Linux from './linux'
 
 export type Shell = Darwin.Shell | Win32.Shell | Linux.Shell
 
-export const Default = __DARWIN__ ? Darwin.Default : Win32.Default
+export const Default = (function() {
+  if (__DARWIN__) {
+    return Darwin.Default
+  } else if (__WIN32__) {
+    return Win32.Default
+  } else {
+    return Linux.Default
+  }
+})()
 
 let shellCache: ReadonlyArray<Shell> | null = null
 
