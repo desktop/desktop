@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Repository as Repo } from '../models/repository'
+import { Commit } from '../models/commit'
 import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
@@ -103,6 +104,9 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
         commits={this.props.state.commits}
+        localCommitSHAs={this.props.state.localCommitSHAs}
+        onRevertCommit={this.onRevertCommit}
+        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
     )
   }
@@ -176,10 +180,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
           history={this.props.state.historyState}
           emoji={this.props.emoji}
           commits={this.props.state.commits}
-          localCommitSHAs={this.props.state.localCommitSHAs}
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
-          onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         />
       )
     } else {
@@ -198,6 +200,10 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
 
   private openRepository = () => {
     this.props.dispatcher.revealInFileManager(this.props.repository, '')
+  }
+
+  private onRevertCommit = (commit: Commit) => {
+    this.props.dispatcher.revertCommit(this.props.repository, commit)
   }
 
   private onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {

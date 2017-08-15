@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List } from '../list'
@@ -9,11 +10,15 @@ const RowHeight = 48
 interface ICommitListProps {
   readonly onCommitChanged: (commit: Commit) => void
   readonly onScroll: (start: number, end: number) => void
+  readonly onRevertCommit: (commit: Commit) => void
+  readonly onViewCommitOnGitHub: (sha: string) => void
+  readonly repository: Repository
   readonly history: ReadonlyArray<string>
   readonly commits: Map<string, Commit>
   readonly selectedSHA: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
+  readonly localCommitSHAs: ReadonlyArray<string>
 }
 
 /** A component which displays the list of commits. */
@@ -38,12 +43,18 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       }
     }
 
+    const isLocal = this.props.localCommitSHAs.indexOf(commit.sha) > -1
+
     return (
       <CommitListItem
         key={commit.sha}
+        gitHubRepository={this.props.repository.gitHubRepository}
+        isLocal={isLocal}
         commit={commit}
         user={avatarUser}
         emoji={this.props.emoji}
+        onRevertCommit={this.props.onRevertCommit}
+        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
     )
   }
