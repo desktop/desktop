@@ -26,7 +26,7 @@ import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError, assertNever } from '../fatal-error'
-import { isGitOnPath } from '../open-shell'
+import { isGitOnPath } from '../is-git-on-path'
 import { shell } from './app-shell'
 import {
   URLActionType,
