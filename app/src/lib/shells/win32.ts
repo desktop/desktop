@@ -1,4 +1,5 @@
 import { spawn } from 'child_process'
+import { assertNever } from '../fatal-error'
 
 export enum Shell {
   Cmd = 'cmd',
@@ -29,5 +30,34 @@ export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
 }
 
 export async function launch(shell: Shell, path: string): Promise<void> {
-  await spawn('START', ['cmd'], { shell: true, cwd: path })
+  if (shell === Shell.PowerShell) {
+    const psCommand = `"Set-Location -LiteralPath '${path}'"`
+    await spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
+      shell: true,
+      cwd: path,
+    })
+  } else if (shell === Shell.GitBash) {
+    // "C:\Program Files\Git\git-bash.exe" "--cd="C:\YOUR\FOLDER\"
+    // const cmd = `cd "${path}"`
+    // await spawn(
+    //   'START',
+    //   [
+    //     '%SYSTEMDRIVE%\\Program Files (x86)\\Git\\bin\\sh.exe',
+    //     '--login',
+    //     '-i',
+    //     '-c',
+    //     cmd,
+    //   ],
+    //   { shell: true, cwd: path }
+    // )
+    await spawn(
+      'START',
+      ['C:\\Program Files\\Git\\git-bash.exe', `--cd="${path}"`],
+      { shell: true, cwd: path }
+    )
+  } else if (shell === Shell.Cmd) {
+    await spawn('START', ['cmd'], { shell: true, cwd: path })
+  } else {
+    assertNever(shell, `Unknown shell: ${shell}`)
+  }
 }
