@@ -27,16 +27,23 @@ export function parse(label: string): Shell {
 }
 
 export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
-  const ps = await readRegistryKeySafe(
+  const shells = [Shell.Cmd]
+
+  const powerShell = await readRegistryKeySafe(
     'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\PowerShell\\3\\PowerShellEngine'
   )
-  const gitBash = await readRegistryKeySafe(
-    'HKEY_LOCAL_MACHINE\\SOFTWARE\\GitForWindows'
-  )
-  console.log('ps', ps)
-  console.log('gitBash', gitBash)
+  if (powerShell.length > 0) {
+    shells.push(Shell.PowerShell)
+  }
 
-  return [Shell.Cmd, Shell.PowerShell, Shell.GitBash]
+  const gitBash = await readRegistryKeySafe(
+    'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1'
+  )
+  if (gitBash.length > 0) {
+    shells.push(Shell.GitBash)
+  }
+
+  return shells
 }
 
 export async function launch(shell: Shell, path: string): Promise<void> {
