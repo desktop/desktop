@@ -52,7 +52,7 @@ export async function launch(shell: Shell, path: string): Promise<void> {
     // )
     await spawn(
       'START',
-      ['C:\\Program Files\\Git\\git-bash.exe', `--cd="${path}"`],
+      ['"%ProgramFiles%\\Git\\git-bash.exe"', `--cd="${path}"`],
       { shell: true, cwd: path }
     )
   } else if (shell === Shell.Cmd) {
