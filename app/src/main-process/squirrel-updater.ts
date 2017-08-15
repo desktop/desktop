@@ -2,6 +2,7 @@ import * as ChildProcess from 'child_process'
 import * as Path from 'path'
 import * as Fs from 'fs-extra'
 import * as Os from 'os'
+import { pathExists } from '../lib/file-system'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
@@ -129,7 +130,7 @@ function removeShortcut(): Promise<void> {
   return spawnSquirrelUpdate(['--removeShortcut', exeName])
 }
 
-function updateShortcut(): Promise<void> {
+async function updateShortcut(): Promise<void> {
   const homeDirectory = Os.homedir()
   if (homeDirectory) {
     const desktopShortcutPath = Path.join(
@@ -137,14 +138,11 @@ function updateShortcut(): Promise<void> {
       'Desktop',
       'GitHub Desktop.lnk'
     )
-    return new Promise<void>((resolve, reject) => {
-      Fs.exists(desktopShortcutPath, exists => {
-        const locations: ShortcutLocations = exists
-          ? ['StartMenu', 'Desktop']
-          : ['StartMenu']
-        createShortcut(locations).then(resolve).catch(reject)
-      })
-    })
+    const exists = await pathExists(desktopShortcutPath)
+    const locations: ShortcutLocations = exists
+      ? ['StartMenu', 'Desktop']
+      : ['StartMenu']
+    return createShortcut(locations)
   } else {
     return createShortcut(['StartMenu', 'Desktop'])
   }
