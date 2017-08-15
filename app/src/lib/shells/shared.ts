@@ -3,7 +3,21 @@ import * as Win32 from './win32'
 
 export type Shell = Darwin.Shell | Win32.Shell
 
+export const Default = __DARWIN__ ? Darwin.Default : Win32.Default
+
 let shellCache: ReadonlyArray<Shell> | null = null
+
+export function parse(label: string): Shell {
+  if (__DARWIN__) {
+    return Darwin.parse(label)
+  } else if (__WIN32__) {
+    return Win32.parse(label)
+  }
+
+  throw new Error(
+    `Platform not currently supported for resolving shells: ${process.platform}`
+  )
+}
 
 export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
   if (shellCache) {

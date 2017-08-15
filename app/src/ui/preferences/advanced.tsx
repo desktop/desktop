@@ -7,7 +7,11 @@ import { SamplesURL } from '../../lib/stats'
 import { Select } from '../lib/select'
 import { getAvailableEditors } from '../../lib/editors/lookup'
 import { ExternalEditor, parse as parseEditor } from '../../models/editors'
-import { Shell, parse as parseShell } from '../../models/shells'
+import {
+  Shell,
+  parse as parseShell,
+  getAvailableShells,
+} from '../../lib/shells'
 
 interface IAdvancedPreferencesProps {
   readonly isOptedOut: boolean
@@ -23,6 +27,7 @@ interface IAdvancedPreferencesProps {
 interface IAdvancedPreferencesState {
   readonly reportingOptOut: boolean
   readonly availableEditors?: ReadonlyArray<ExternalEditor>
+  readonly availableShells?: ReadonlyArray<Shell>
   readonly selectedExternalEditor: ExternalEditor
   readonly selectedShell: Shell
   readonly confirmRepoRemoval: boolean
@@ -59,6 +64,23 @@ export class Advanced extends React.Component<
     }
 
     this.setState({ availableEditors: editors, selectedExternalEditor })
+
+    // --
+
+    const availableShells = await getAvailableShells()
+    let selectedShell = this.props.selectedShell
+
+    if (availableShells.length) {
+      const indexOf = availableShells.indexOf(selectedShell)
+      if (indexOf === -1) {
+        // if the editor cannot be found, select the first entry
+        // so that the user can immediately save changes
+        selectedShell = availableShells[0]
+        this.props.onSelectedShellChanged(selectedShell)
+      }
+    }
+
+    this.setState({ availableShells, selectedShell })
   }
 
   private onReportingOptOutChanged = (
@@ -143,7 +165,7 @@ export class Advanced extends React.Component<
   }
 
   private renderSelectedShell() {
-    const options = this.state.availableEditors || []
+    const options = this.state.availableShells || []
 
     return (
       <Select

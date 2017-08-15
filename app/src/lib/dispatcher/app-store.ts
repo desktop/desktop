@@ -90,7 +90,7 @@ import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { RetryActionType, RetryAction } from '../retry-actions'
 import { findEditorOrDefault } from '../editors'
-import { Shell, parse as parseShell } from '../../models/shells'
+import { Shell, parse as parseShell, Default as DefaultShell } from '../shells'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -106,7 +106,6 @@ const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const externalEditorDefault = ExternalEditor.Atom
 const externalEditorKey: string = 'externalEditor'
 
-const shellDefault = Shell.Default
 const shellKey: string = 'shell'
 
 export class AppStore {
@@ -179,7 +178,7 @@ export class AppStore {
 
   private selectedExternalEditor: ExternalEditor = externalEditorDefault
 
-  private selectedShell: Shell = shellDefault
+  private selectedShell = DefaultShell
 
   private readonly statsStore: StatsStore
 
@@ -872,7 +871,7 @@ export class AppStore {
     this.selectedExternalEditor = parseExternalEditor(externalEditorValue)
 
     const shellValue = localStorage.getItem(shellKey)
-    this.selectedShell = parseShell(shellValue)
+    this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
 
     this.updatePreferredAppMenuItemLabels()
 

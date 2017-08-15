@@ -41,7 +41,7 @@ import {
 import { installCLI } from '../../ui/lib/install-cli'
 import * as GenericGitAuth from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
-import { Shell } from '../../models/shells'
+import { Shell } from '../shells'
 
 /**
  * An error handler function.

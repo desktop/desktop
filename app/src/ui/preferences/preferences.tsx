@@ -16,7 +16,7 @@ import {
   setGlobalConfigValue,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
-import { Shell } from '../../models/shells'
+import { Shell } from '../../lib/shells'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher

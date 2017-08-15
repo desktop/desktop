@@ -14,7 +14,7 @@ export enum Shell {
 
 export const Default = Shell.Terminal
 
-export function parse(label: string | null): Shell {
+export function parse(label: string): Shell {
   if (label === Shell.Terminal) {
     return Shell.Terminal
   }
@@ -27,7 +27,7 @@ export function parse(label: string | null): Shell {
     return Shell.iTerm2
   }
 
-  return Shell.Terminal
+  return Default
 }
 
 function getBundleID(shell: Shell): string {

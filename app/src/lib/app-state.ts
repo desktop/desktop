@@ -19,7 +19,7 @@ import { WindowState } from './window-state'
 import { RetryAction } from './retry-actions'
 import { ExternalEditor } from '../models/editors'
 import { PreferencesTab } from '../models/preferences'
-import { Shell } from '../models/shells'
+import { Shell } from './shells'
 
 export { ICommitMessage }
 export { IAheadBehind }
