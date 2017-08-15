@@ -107,7 +107,7 @@ const externalEditorDefault = ExternalEditor.Atom
 const externalEditorKey: string = 'externalEditor'
 
 const imageDiffTypeDefault = ImageDiffType.TwoUp
-const imageDiffTypeKey: string = 'imageDiffType'
+const imageDiffTypeKey = 'image-diff-type'
 
 export class AppStore {
   private emitter = new Emitter()
