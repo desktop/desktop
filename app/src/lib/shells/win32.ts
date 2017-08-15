@@ -50,11 +50,10 @@ export async function launch(shell: Shell, path: string): Promise<void> {
     //   ],
     //   { shell: true, cwd: path }
     // )
-    await spawn(
-      'START',
-      ['"%ProgramFiles%\\Git\\git-bash.exe"', `--cd="${path}"`],
-      { shell: true, cwd: path }
-    )
+    await spawn('"%ProgramFiles%\\Git\\git-bash.exe"', [`--cd="${path}"`], {
+      shell: true,
+      cwd: path,
+    })
   } else if (shell === Shell.Cmd) {
     await spawn('START', ['cmd'], { shell: true, cwd: path })
   } else {
