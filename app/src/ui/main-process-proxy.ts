@@ -105,6 +105,7 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   ipcRenderer.send('show-contextual-menu', items)
 }
 
+/** Update the menu item labels with the user's preferred apps. */
 export function updatePreferredAppMenuItemLabels(labels: {
   editor: string
   shell: string

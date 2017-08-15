@@ -110,7 +110,7 @@ const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const externalEditorDefault = ExternalEditor.Atom
 const externalEditorKey: string = 'externalEditor'
 
-const shellKey: string = 'shell'
+const shellKey = 'shell'
 
 export class AppStore {
   private emitter = new Emitter()
@@ -182,6 +182,7 @@ export class AppStore {
 
   private selectedExternalEditor: ExternalEditor = externalEditorDefault
 
+  /** The user's preferred shell. */
   private selectedShell = DefaultShell
 
   private readonly statsStore: StatsStore
@@ -884,12 +885,13 @@ export class AppStore {
     this.accountsStore.refresh()
   }
 
+  /** Update the menu with the names of the user's preferred apps. */
   private updatePreferredAppMenuItemLabels() {
     updatePreferredAppMenuItemLabels({
       editor: `Open in ${this.selectedExternalEditor}`,
       shell: __DARWIN__
         ? `Open in ${this.selectedShell}`
-        : 'Open command prompt',
+        : 'Op&en command prompt',
     })
   }
 

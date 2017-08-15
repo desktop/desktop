@@ -18,6 +18,7 @@ interface IInstallGitProps {
    */
   readonly path: string
 
+  /** Called when the user chooses to open the shell. */
   readonly onOpenShell: (path: string) => void
 }
 

@@ -4,6 +4,7 @@ import * as Linux from './linux'
 
 export type Shell = Darwin.Shell | Win32.Shell | Linux.Shell
 
+/** The default shell. */
 export const Default = (function() {
   if (__DARWIN__) {
     return Darwin.Default
@@ -16,6 +17,7 @@ export const Default = (function() {
 
 let shellCache: ReadonlyArray<Shell> | null = null
 
+/** Parse the label into the specified shell type. */
 export function parse(label: string): Shell {
   if (__DARWIN__) {
     return Darwin.parse(label)
@@ -30,6 +32,7 @@ export function parse(label: string): Shell {
   )
 }
 
+/** Get the shells available for the user. */
 export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
   if (shellCache) {
     return shellCache
@@ -51,6 +54,7 @@ export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
   )
 }
 
+/** Launch the given shell at the path. */
 export async function launchShell(shell: Shell, path: string) {
   // We have to manually cast the wider `Shell` type into the platform-specific
   // type. This is less than ideal, but maybe the best we can do without

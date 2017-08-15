@@ -25,6 +25,7 @@ interface IRepositoryListItemProps {
   /** Does the repository need to be disambiguated in the list? */
   readonly needsDisambiguation: boolean
 
+  /** The label for the user's preferred shell. */
   readonly shellLabel: string
 }
 

@@ -43,6 +43,7 @@ interface IRepositoriesListProps {
   /** Called when the repositories list should be closed. */
   readonly onClose: () => void
 
+  /** The label for the user's preferred shell. */
   readonly shellLabel: string
 }
 
