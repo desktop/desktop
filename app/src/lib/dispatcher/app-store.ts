@@ -81,7 +81,6 @@ import {
   formatAsLocalRef,
 } from '../git'
 
-import { openShell } from '../open-shell'
 import { launchExternalEditor } from '../editors'
 import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
@@ -90,7 +89,12 @@ import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { RetryActionType, RetryAction } from '../retry-actions'
 import { findEditorOrDefault } from '../editors'
-import { Shell, parse as parseShell, Default as DefaultShell } from '../shells'
+import {
+  Shell,
+  parse as parseShell,
+  Default as DefaultShell,
+  launchShell,
+} from '../shells'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -2196,7 +2200,7 @@ export class AppStore {
   public _openShell(path: string) {
     this.statsStore.recordOpenShell()
 
-    return openShell(path)
+    return launchShell(this.selectedShell, path)
   }
 
   /** Takes a URL and opens it using the system default application */

@@ -2,7 +2,7 @@ import { spawn } from 'child_process'
 import { fatalError } from './fatal-error'
 
 /** Opens a shell setting the working directory to fullpath. If a shell is not specified, OS defaults are used. */
-export function openShell(fullPath: string, shell?: string) {
+export function openShell__(fullPath: string, shell?: string) {
   if (__DARWIN__) {
     // fullPath argument ensures a new terminal is always shown
     const commandArgs = ['-a', shell || 'Terminal', fullPath]

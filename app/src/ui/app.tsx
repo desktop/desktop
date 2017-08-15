@@ -976,6 +976,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <InstallGit
             key="install-git"
             onDismissed={this.onPopupDismissed}
+            onOpenShell={this.onOpenShell}
             path={popup.path}
           />
         )
@@ -1076,6 +1077,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onOpenShell = (path: string) => {
+    this.props.dispatcher.openShell(path)
+    this.onPopupDismissed()
   }
 
   private onSaveCredentials = async (
