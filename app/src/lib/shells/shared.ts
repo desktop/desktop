@@ -54,8 +54,21 @@ export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
   )
 }
 
+/**
+ * Launch the given shell or the default shell if the given shell is
+ * unavailable.
+ */
+export async function launchShellOrDefault(shell: Shell, path: string) {
+  const available = await getAvailableShells()
+  if (available.indexOf(shell) > -1) {
+    return launchShell(shell, path)
+  } else {
+    return launchShell(Default, path)
+  }
+}
+
 /** Launch the given shell at the path. */
-export async function launchShell(shell: Shell, path: string) {
+async function launchShell(shell: Shell, path: string) {
   // We have to manually cast the wider `Shell` type into the platform-specific
   // type. This is less than ideal, but maybe the best we can do without
   // platform-specific build targets.

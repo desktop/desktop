@@ -93,7 +93,7 @@ import {
   Shell,
   parse as parseShell,
   Default as DefaultShell,
-  launchShell,
+  launchShellOrDefault,
 } from '../shells'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -2199,10 +2199,14 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _openShell(path: string) {
+  public async _openShell(path: string) {
     this.statsStore.recordOpenShell()
 
-    return launchShell(this.selectedShell, path)
+    try {
+      await launchShellOrDefault(this.selectedShell, path)
+    } catch (error) {
+      this.emitError(error)
+    }
   }
 
   /** Takes a URL and opens it using the system default application */
