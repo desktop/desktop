@@ -15,7 +15,7 @@ const TokenNames: { [key: string]: string | null } = {
   '@': 'diff-hunk',
 }
 
-/** Get the mod for diffsssss. */
+/** Get the mode for diffs. */
 export function getDiffMode(): string {
   if (diffModeDefined) {
     return DiffModeName
