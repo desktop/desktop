@@ -33,7 +33,7 @@ export async function getAvailableShells(): Promise<
   const shells = [{ shell: Shell.Cmd, path: 'C:\\Windows\\System32\\cmd.exe' }]
 
   const powerShell = await readRegistryKeySafe(
-    'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\PowerShell\\3\\PowerShellEngine'
+    'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
   )
   if (powerShell.length > 0) {
     shells.push({
