@@ -35,6 +35,7 @@ export async function getAvailableShells(): Promise<
   const powerShell = await readRegistryKeySafe(
     'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
   )
+  console.log(powerShell)
   if (powerShell.length > 0) {
     shells.push({
       shell: Shell.PowerShell,
@@ -45,6 +46,7 @@ export async function getAvailableShells(): Promise<
   const gitBash = await readRegistryKeySafe(
     'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1'
   )
+  console.log(gitBash)
   if (gitBash.length > 0) {
     shells.push({
       shell: Shell.GitBash,
