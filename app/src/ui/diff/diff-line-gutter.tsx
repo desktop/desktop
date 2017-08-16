@@ -132,7 +132,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, {}> {
 
   private getLineClassName(): string {
     const type = this.props.line.type
-
     switch (type) {
       case DiffLineType.Add:
         return 'diff-add'
