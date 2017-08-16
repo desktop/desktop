@@ -37,9 +37,10 @@ export async function getAvailableShells(): Promise<
   )
   console.log(powerShell)
   if (powerShell.length > 0) {
+    const path = powerShell[0].value
     shells.push({
       shell: Shell.PowerShell,
-      path: 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+      path,
     })
   }
 
