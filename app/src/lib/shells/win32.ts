@@ -45,14 +45,17 @@ export async function getAvailableShells(): Promise<
   }
 
   const gitBash = await readRegistryKeySafe(
-    'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1'
+    'HKEY_LOCAL_MACHINE\\SOFTWARE\\GitForWindows'
   )
   console.log(gitBash)
   if (gitBash.length > 0) {
-    shells.push({
-      shell: Shell.GitBash,
-      path: 'C:\\Program Files\\Git\\git-bash.exe',
-    })
+    const installPathEntry = gitBash.find(e => e.name === 'InstallPath')
+    if (installPathEntry) {
+      shells.push({
+        shell: Shell.GitBash,
+        path: Path.join(installPathEntry.value, 'git-bash.exe'),
+      })
+    }
   }
 
   return shells
