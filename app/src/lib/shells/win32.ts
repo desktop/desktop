@@ -1,4 +1,5 @@
 import { spawn } from 'child_process'
+import * as Path from 'path'
 import { assertNever } from '../fatal-error'
 import { readRegistryKeySafe } from '../registry'
 import { IFoundShell } from './found-shell'
@@ -35,7 +36,6 @@ export async function getAvailableShells(): Promise<
   const powerShell = await readRegistryKeySafe(
     'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
   )
-  console.log(powerShell)
   if (powerShell.length > 0) {
     const path = powerShell[0].value
     shells.push({
@@ -47,7 +47,6 @@ export async function getAvailableShells(): Promise<
   const gitBash = await readRegistryKeySafe(
     'HKEY_LOCAL_MACHINE\\SOFTWARE\\GitForWindows'
   )
-  console.log(gitBash)
   if (gitBash.length > 0) {
     const installPathEntry = gitBash.find(e => e.name === 'InstallPath')
     if (installPathEntry) {
