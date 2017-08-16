@@ -42,7 +42,10 @@ export async function getAvailableShells(): Promise<
     'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
   )
   if (powerShell.length > 0) {
-    const path = powerShell[0].value
+    const path = powerShell[0].value.replace(
+      /^%SystemRoot%/i,
+      process.env.SystemRoot || 'C:\\Windows'
+    )
     shells.push({
       shell: Shell.PowerShell,
       path,
