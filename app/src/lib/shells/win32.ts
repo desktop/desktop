@@ -31,7 +31,12 @@ export function parse(label: string): Shell {
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const shells = [{ shell: Shell.Cmd, path: 'C:\\Windows\\System32\\cmd.exe' }]
+  const shells = [
+    {
+      shell: Shell.Cmd,
+      path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
+    },
+  ]
 
   const powerShell = await readRegistryKeySafe(
     'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
