@@ -128,6 +128,7 @@ export class DiffLine {
     return this.type === DiffLineType.Add || this.type === DiffLineType.Delete
   }
 
+  /** The content of the line, i.e., without the line type marker. */
   public get content(): string {
     return this.text.substr(1)
   }
