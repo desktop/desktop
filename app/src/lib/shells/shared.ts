@@ -75,7 +75,7 @@ export async function launchShell(shell: FoundShell, path: string) {
   // We have to manually cast the wider `Shell` type into the platform-specific
   // type. This is less than ideal, but maybe the best we can do without
   // platform-specific build targets.
-  const exists = pathExists(shell.path)
+  const exists = await pathExists(shell.path)
   if (!exists) {
     const label = __DARWIN__ ? 'Preferences' : 'Options'
     throw new ShellError(
