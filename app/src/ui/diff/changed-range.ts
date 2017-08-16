@@ -36,6 +36,7 @@ function commonLength(
   return Math.abs(length)
 }
 
+/** Get the changed ranges in the strings, relative to each other. */
 export function relativeChanges(
   stringA: string,
   stringB: string
