@@ -1,6 +1,7 @@
 import { spawn } from 'child_process'
 import { assertNever } from '../fatal-error'
 import { readRegistryKeySafe } from '../registry'
+import { IFoundShell } from './found-shell'
 
 export enum Shell {
   Cmd = 'cmd',
@@ -26,21 +27,29 @@ export function parse(label: string): Shell {
   return Default
 }
 
-export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
-  const shells = [Shell.Cmd]
+export async function getAvailableShells(): Promise<
+  ReadonlyArray<IFoundShell<Shell>>
+> {
+  const shells = [{ shell: Shell.Cmd, path: 'C:\\Windows\\System32\\cmd.exe' }]
 
   const powerShell = await readRegistryKeySafe(
     'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\PowerShell\\3\\PowerShellEngine'
   )
   if (powerShell.length > 0) {
-    shells.push(Shell.PowerShell)
+    shells.push({
+      shell: Shell.PowerShell,
+      path: 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+    })
   }
 
   const gitBash = await readRegistryKeySafe(
     'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1'
   )
   if (gitBash.length > 0) {
-    shells.push(Shell.GitBash)
+    shells.push({
+      shell: Shell.GitBash,
+      path: 'C:\\Program Files\\Git\\git-bash.exe',
+    })
   }
 
   return shells

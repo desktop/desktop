@@ -93,7 +93,8 @@ import {
   Shell,
   parse as parseShell,
   Default as DefaultShell,
-  launchShellOrDefault,
+  findShellOrDefault,
+  launchShell,
 } from '../shells'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -2203,7 +2204,8 @@ export class AppStore {
     this.statsStore.recordOpenShell()
 
     try {
-      await launchShellOrDefault(this.selectedShell, path)
+      const match = await findShellOrDefault(this.selectedShell)
+      await launchShell(match, path)
     } catch (error) {
       this.emitError(error)
     }
@@ -2216,10 +2218,8 @@ export class AppStore {
 
   /** Takes a repository path and opens it using the user's configured editor */
   public async _openInExternalEditor(path: string): Promise<void> {
-    const state = this.getState()
-    const selectedEditor = state.selectedExternalEditor
     try {
-      const match = await findEditorOrDefault(selectedEditor)
+      const match = await findEditorOrDefault(this.selectedExternalEditor)
       await launchExternalEditor(path, match)
     } catch (error) {
       this.emitError(error)

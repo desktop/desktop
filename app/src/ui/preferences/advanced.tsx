@@ -66,11 +66,12 @@ export class Advanced extends React.Component<
       }
     }
 
+    const shells = availableShells.map(s => s.shell)
     let selectedShell = this.props.selectedShell
     if (availableShells.length) {
-      const indexOf = availableShells.indexOf(selectedShell)
+      const indexOf = shells.indexOf(selectedShell)
       if (indexOf === -1) {
-        selectedShell = availableShells[0]
+        selectedShell = shells[0]
         this.props.onSelectedShellChanged(selectedShell)
       }
     }
@@ -78,7 +79,7 @@ export class Advanced extends React.Component<
     this.setState({
       availableEditors: editors,
       selectedExternalEditor,
-      availableShells,
+      availableShells: shells,
       selectedShell,
     })
   }

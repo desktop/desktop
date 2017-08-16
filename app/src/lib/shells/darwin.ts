@@ -1,5 +1,6 @@
 import { spawn } from 'child_process'
 import { assertNever } from '../fatal-error'
+import { IFoundShell } from './found-shell'
 
 const appPath: (bundleId: string) => Promise<string> = require('app-path')
 
@@ -40,40 +41,36 @@ function getBundleID(shell: Shell): string {
   }
 }
 
-async function isShellInstalled(shell: Shell): Promise<boolean> {
+async function getShellPath(shell: Shell): Promise<string | null> {
   const bundleId = getBundleID(shell)
   try {
-    const path = await appPath(bundleId)
-    return path.length > 0
+    return await appPath(bundleId)
   } catch (e) {
     // `appPath` will raise an error if it cannot find the program.
+    return null
   }
-
-  return false
 }
 
-export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
-  const [
-    terminalInstalled,
-    hyperInstalled,
-    iTermInstalled,
-  ] = await Promise.all([
-    isShellInstalled(Shell.Terminal),
-    isShellInstalled(Shell.Hyper),
-    isShellInstalled(Shell.iTerm2),
+export async function getAvailableShells(): Promise<
+  ReadonlyArray<IFoundShell<Shell>>
+> {
+  const [terminalPath, hyperPath, iTermPath] = await Promise.all([
+    getShellPath(Shell.Terminal),
+    getShellPath(Shell.Hyper),
+    getShellPath(Shell.iTerm2),
   ])
 
-  const shells: Array<Shell> = []
-  if (terminalInstalled) {
-    shells.push(Shell.Terminal)
+  const shells: Array<IFoundShell<Shell>> = []
+  if (terminalPath) {
+    shells.push({ shell: Shell.Terminal, path: terminalPath })
   }
 
-  if (hyperInstalled) {
-    shells.push(Shell.Hyper)
+  if (hyperPath) {
+    shells.push({ shell: Shell.Hyper, path: hyperPath })
   }
 
-  if (iTermInstalled) {
-    shells.push(Shell.iTerm2)
+  if (iTermPath) {
+    shells.push({ shell: Shell.iTerm2, path: iTermPath })
   }
 
   return shells

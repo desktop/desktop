@@ -1,8 +1,12 @@
 import * as Darwin from './darwin'
 import * as Win32 from './win32'
 import * as Linux from './linux'
+import { pathExists } from '../file-system'
+import { IFoundShell } from './found-shell'
 
 export type Shell = Darwin.Shell | Win32.Shell | Linux.Shell
+
+export type FoundShell = IFoundShell<Shell>
 
 /** The default shell. */
 export const Default = (function() {
@@ -15,7 +19,7 @@ export const Default = (function() {
   }
 })()
 
-let shellCache: ReadonlyArray<Shell> | null = null
+let shellCache: ReadonlyArray<FoundShell> | null = null
 
 /** Parse the label into the specified shell type. */
 export function parse(label: string): Shell {
@@ -33,7 +37,7 @@ export function parse(label: string): Shell {
 }
 
 /** Get the shells available for the user. */
-export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
+export async function getAvailableShells(): Promise<ReadonlyArray<FoundShell>> {
   if (shellCache) {
     return shellCache
   }
@@ -54,30 +58,33 @@ export async function getAvailableShells(): Promise<ReadonlyArray<Shell>> {
   )
 }
 
-/**
- * Launch the given shell or the default shell if the given shell is
- * unavailable.
- */
-export async function launchShellOrDefault(shell: Shell, path: string) {
+/** Find the given shell or the default if the given shell can't be found. */
+export async function findShellOrDefault(shell: Shell): Promise<FoundShell> {
   const available = await getAvailableShells()
-  if (available.indexOf(shell) > -1) {
-    return launchShell(shell, path)
+  const found = available.find(s => s.shell === shell)
+  if (found) {
+    return found
   } else {
-    return launchShell(Default, path)
+    return available.find(s => s.shell === Default)!
   }
 }
 
 /** Launch the given shell at the path. */
-async function launchShell(shell: Shell, path: string) {
+export async function launchShell(shell: FoundShell, path: string) {
   // We have to manually cast the wider `Shell` type into the platform-specific
   // type. This is less than ideal, but maybe the best we can do without
   // platform-specific build targets.
+  const exists = pathExists(shell.path)
+  if (!exists) {
+    return
+  }
+
   if (__DARWIN__) {
-    return Darwin.launch(shell as Darwin.Shell, path)
+    return Darwin.launch(shell.shell as Darwin.Shell, path)
   } else if (__WIN32__) {
-    return Win32.launch(shell as Win32.Shell, path)
+    return Win32.launch(shell.shell as Win32.Shell, path)
   } else if (__LINUX__) {
-    return Linux.launch(shell as Linux.Shell, path)
+    return Linux.launch(shell.shell as Linux.Shell, path)
   }
 
   return Promise.reject(
