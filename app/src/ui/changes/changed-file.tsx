@@ -9,7 +9,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 const GitIgnoreFileName = '.gitignore'
 
-const RestrictedFileExtensions = ['.cmd', '.exe', '.bat']
+const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
 
 interface IChangedFileProps {
   readonly path: string
