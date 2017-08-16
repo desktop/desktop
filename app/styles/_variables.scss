@@ -237,11 +237,13 @@
   --diff-add-background-color: $green-000;
   --diff-add-border-color: $green-200;
   --diff-add-gutter-color: $green-200;
+  --diff-add-inner-background-color: $green-300;
   --diff-add-text-color: var(--diff-text-color);
 
   --diff-delete-background-color: $red-000;
   --diff-delete-border-color: $red-100;
   --diff-delete-gutter-color: $red-200;
+  --diff-delete-inner-background-color: $red-300;
   --diff-delete-text-color: var(--diff-text-color);
 
   --diff-hunk-background-color: $blue-000;
