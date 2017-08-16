@@ -76,7 +76,7 @@ Desktop:
  - If you are on macOS, attach the most recent log file from:
    `~/Library/Application Support/GitHub Desktop/logs/*.desktop.production.log`
  - If you are on Windows, attach the most recent log file from:
-   `%APPDATA%\\GitHub Desktop\\logs\\*.desktop.production.log`
+   `%APPDATA%\GitHub Desktop\logs\*.desktop.production.log`
 
 The log files are organized by date, so see if anything was generated for
 today's date.

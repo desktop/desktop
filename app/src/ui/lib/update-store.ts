@@ -9,6 +9,7 @@ import { Emitter, Disposable } from 'event-kit'
 
 import { sendWillQuitSync } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
+import { parseError } from '../../lib/squirrel-error-parser'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -87,9 +88,14 @@ class UpdateStore {
   }
 
   private onAutoUpdaterError = (error: Error) => {
-    // If we get an error during any stage of the update process we'll
     this.status = UpdateStatus.UpdateNotAvailable
-    this.emitError(error)
+
+    if (__WIN32__) {
+      const parsedError = parseError(error)
+      this.emitError(parsedError || error)
+    } else {
+      this.emitError(error)
+    }
   }
 
   private onCheckingForUpdate = () => {

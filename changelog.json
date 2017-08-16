@@ -1,5 +1,21 @@
 {
   "releases": {
+    "0.7.3-beta4": [
+      "[New] Added commit context menu - #2434",
+      "[Fixed] Show 'Add Repository' dialog when repository is dragged onto the app - #2442",
+      "[Fixed] Dialog component did not remove event handler - #2469"
+    ],
+    "0.7.3-beta3": [
+      "[New] Added 'Open in External Editor' - #2009",
+      "[Improved] Copied diff text no longer includes the line changetype markers - #1499",
+      "[Improved] Fetch if a push fails because they need to pull first - #2431",
+      "[Fixed] Update to Git 2.14.1 to fix security vulnerability - #2432",
+      "[Fixed] Recent branches disappearing after renaming a branch - #2426",
+      "[Fixed] Changing the default branch on GitHub.com is now reflected in the app - #1489",
+      "[Fixed] Swap around some callouts for no repositories - #2447",
+      "[Fixed] Darker unfocused selection color - #1669",
+      "[Fixed] Increase the max sidebar width - #1588"
+    ],
     "0.7.3-beta2": [
       "[New] Can choose whether a branch should be deleted on the remote as well as locally - #2136",
       "[Improved] Discard changes performance - #1889",

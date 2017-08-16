@@ -18,6 +18,7 @@ import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
+import { ExternalEditor } from '../../models/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
@@ -405,8 +406,8 @@ export class Dispatcher {
   }
 
   /** Revert the commit with the given SHA */
-  public revertCommit(repositoy: Repository, commit: Commit): Promise<void> {
-    return this.appStore._revertCommit(repositoy, commit)
+  public revertCommit(repository: Repository, commit: Commit): Promise<void> {
+    return this.appStore._revertCommit(repository, commit)
   }
 
   /**
@@ -565,6 +566,11 @@ export class Dispatcher {
     } else {
       this.appStore._showPopup({ type: PopupType.InstallGit, path })
     }
+  }
+
+  /** Opens a Git repository in the user provided program */
+  public async openInExternalEditor(path: string): Promise<void> {
+    return this.appStore._openInExternalEditor(path)
   }
 
   /**
@@ -820,6 +826,13 @@ export class Dispatcher {
    */
   public setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
     return this.appStore._setConfirmRepoRemoval(value)
+  }
+
+  /**
+   * Sets the user's preference for an external program to open repositories in.
+   */
+  public setExternalEditor(editor: ExternalEditor): Promise<void> {
+    return this.appStore._setExternalEditor(editor)
   }
 
   /**
