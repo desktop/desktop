@@ -3,6 +3,7 @@ import * as Win32 from './win32'
 import * as Linux from './linux'
 import { pathExists } from '../file-system'
 import { IFoundShell } from './found-shell'
+import { ShellError } from './error'
 
 export type Shell = Darwin.Shell | Win32.Shell | Linux.Shell
 
@@ -76,7 +77,10 @@ export async function launchShell(shell: FoundShell, path: string) {
   // platform-specific build targets.
   const exists = pathExists(shell.path)
   if (!exists) {
-    return
+    const label = __DARWIN__ ? 'Preferences' : 'Options'
+    throw new ShellError(
+      `Could not find executable for '${shell.shell}' at path '${shell.path}'.  Please open ${label} and select an available shell.`
+    )
   }
 
   if (__DARWIN__) {

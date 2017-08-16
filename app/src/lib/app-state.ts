@@ -167,6 +167,7 @@ export enum PopupType {
   CLIInstalled,
   GenericGitAuthentication,
   ExternalEditorFailed,
+  OpenShellFailed,
 }
 
 export type Popup =
@@ -214,6 +215,7 @@ export type Popup =
       suggestAtom?: boolean
       openPreferences?: boolean
     }
+  | { type: PopupType.OpenShellFailed; message: string }
 
 export enum FoldoutType {
   Repository,
