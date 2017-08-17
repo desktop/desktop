@@ -1,43 +1,41 @@
 {
   "releases": {
-    "0.7.3-beta5": ["[Fixed] Open in External Editor context menu - #2475"],
-    "0.7.3-beta4": [
+    "0.8.0": [
       "[New] Added commit context menu - #2434",
-      "[Fixed] Show 'Add Repository' dialog when repository is dragged onto the app - #2442",
-      "[Fixed] Dialog component did not remove event handler - #2469"
-    ],
-    "0.7.3-beta3": [
       "[New] Added 'Open in External Editor' - #2009",
+      "[New] Can choose whether a branch should be deleted on the remote as well as locally - #2136",
+      "[New] Support authenticating with non-GitHub servers - #852",
+      "[New] Added the ability to revert a commit - #752",
+      "[New] Added a keyboard shortcut for opening the repository in the shell - #2138",
       "[Improved] Copied diff text no longer includes the line changetype markers - #1499",
       "[Improved] Fetch if a push fails because they need to pull first - #2431",
+      "[Improved] Discard changes performance - #1889",
+      "[Fixed] Show 'Add Repository' dialog when repository is dragged onto the app - #2442",
+      "[Fixed] Dialog component did not remove event handler - #2469",
+      "[Fixed] Open in External Editor context menu - #2475",
       "[Fixed] Update to Git 2.14.1 to fix security vulnerability - #2432",
       "[Fixed] Recent branches disappearing after renaming a branch - #2426",
       "[Fixed] Changing the default branch on GitHub.com is now reflected in the app - #1489",
       "[Fixed] Swap around some callouts for no repositories - #2447",
       "[Fixed] Darker unfocused selection color - #1669",
-      "[Fixed] Increase the max sidebar width - #1588"
-    ],
-    "0.7.3-beta2": [
-      "[New] Can choose whether a branch should be deleted on the remote as well as locally - #2136",
-      "[Improved] Discard changes performance - #1889",
+      "[Fixed] Increase the max sidebar width - #1588",
       "[Fixed] Don't say \"Publish this branch to GitHub\" for non-GitHub repositories - #1498",
       "[Fixed] macOS: Protocol schemes not getting registered - #2429",
       "[Fixed] Patches which contain the \"no newline\" marker would fail to apply - #2123",
       "[Fixed] Close the autocompletion popover when it loses focus - #2358",
-      "[Fixed] Clear the selected org when switching Publish Repository tabs - #2386"
-    ],
-    "0.7.3-beta1": [
-      "[New] Support authenticating with non-GitHub servers - #852",
-      "[New] Added the ability to revert a commit - #752",
-      "[New] Added a keyboard shortcut for opening the repository in the shell - #2138",
+      "[Fixed] Clear the selected org when switching Publish Repository tabs - #2386",
       "[Fixed] 'Create Without Pushing' button throwing an exception while opening a pull request - #2368",
       "[Fixed] Windows: Don't removing the running app out from under itself when there are updates pending - #2373",
       "[Fixed] Windows: Respect `core.autocrlf` and `core.safeclrf` when modifying the .gitignore - #1535",
-      "[Fixed] Windows: Fix opening the app from the command line - #2396"
-    ],
-    "0.7.3-beta0": [
+      "[Fixed] Windows: Fix opening the app from the command line - #2396",
       "[Fixed] 'Create Without Pushing' button throwing an exception while opening a pull request - #2368"
     ],
+    "0.7.3-beta5": [],
+    "0.7.3-beta4": [],
+    "0.7.3-beta3": [],
+    "0.7.3-beta2": [],
+    "0.7.3-beta1": [],
+    "0.7.3-beta0": [],
     "0.7.2": ["[Fixed] Issues with auto-updating to 0.7.1."],
     "0.7.2-beta0": [],
     "0.7.1": [
