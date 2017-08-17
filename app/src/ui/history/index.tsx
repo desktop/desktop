@@ -6,7 +6,10 @@ import { Repository } from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
 import { Dispatcher } from '../../lib/dispatcher'
-import { IHistoryState as IAppHistoryState } from '../../lib/app-state'
+import {
+  IHistoryState as IAppHistoryState,
+  ImageDiffType,
+} from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
@@ -23,6 +26,7 @@ interface IHistoryProps {
   readonly commits: Map<string, Commit>
   readonly commitSummaryWidth: number
   readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly imageDiffType: ImageDiffType
 }
 
 interface IHistoryState {
@@ -80,6 +84,7 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
     return (
       <Diff
         repository={this.props.repository}
+        imageDiffType={this.props.imageDiffType}
         file={file}
         diff={diff}
         readOnly={true}
