@@ -90,9 +90,7 @@ export class RepositoryListItem extends React.Component<
 
     const items: ReadonlyArray<IMenuItem> = [
       {
-        label: __DARWIN__
-          ? `Open in ${this.props.shellLabel}`
-          : 'Open command prompt',
+        label: `Open in ${this.props.shellLabel}`,
         action: this.openInShell,
         enabled: !missing,
       },

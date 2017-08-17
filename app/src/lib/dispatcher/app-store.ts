@@ -902,9 +902,7 @@ export class AppStore {
   private updatePreferredAppMenuItemLabels() {
     updatePreferredAppMenuItemLabels({
       editor: `Open in ${this.selectedExternalEditor}`,
-      shell: __DARWIN__
-        ? `Open in ${this.selectedShell}`
-        : 'Op&en command prompt',
+      shell: `Open in ${this.selectedShell}`,
     })
   }
 
