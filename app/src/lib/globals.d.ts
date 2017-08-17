@@ -212,3 +212,16 @@ declare namespace Electron {
     ): AppleActionOnDoubleClickPref
   }
 }
+
+// https://wicg.github.io/ResizeObserver/#resizeobserverentry
+interface IResizeObserverEntry {
+  readonly target: HTMLElement
+  readonly contentRect: ClientRect
+}
+
+declare class ResizeObserver {
+  public constructor(cb: (entries: ReadonlyArray<IResizeObserverEntry>) => void)
+
+  public disconnect(): void
+  public observe(e: HTMLElement): void
+}
