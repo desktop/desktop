@@ -11,8 +11,7 @@ import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 const dismissGracePeriodMs = 250
 
 /** The time (in milliseconds) that we should wait after focusing before we
- * re-enable click dismissal. Note that this is only used on Windows. See
- * https://github.com/desktop/desktop/issues/2486.
+ * re-enable click dismissal. Note that this is only used on Windows.
  */
 const DisableClickDismissalDelay = 500
 
@@ -201,13 +200,18 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   private onWindowFocus = () => {
-    this.clearClickDismissalTimer()
+    // On Windows, a click which focuses the window will also get passed down
+    // into the DOM. But we don't want to dismiss the dialog based on that
+    // click. See https://github.com/desktop/desktop/issues/2486.
+    if (__WIN32__) {
+      this.clearClickDismissalTimer()
 
-    this.disableClickDismissal = true
-    setTimeout(() => {
-      this.disableClickDismissal = false
-      this.disableClickDismissalTimeoutId = null
-    }, DisableClickDismissalDelay)
+      this.disableClickDismissal = true
+      setTimeout(() => {
+        this.disableClickDismissal = false
+        this.disableClickDismissalTimeoutId = null
+      }, DisableClickDismissalDelay)
+    }
   }
 
   private clearClickDismissalTimer() {
