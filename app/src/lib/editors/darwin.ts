@@ -42,6 +42,8 @@ function getExecutableShim(
       )
     case ExternalEditor.SublimeText:
       return Path.join(installPath, 'Contents', 'SharedSupport', 'bin', 'subl')
+    case ExternalEditor.TextMate:
+      return Path.join(installPath, 'Contents', 'Resources', 'mate')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
