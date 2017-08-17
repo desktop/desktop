@@ -10,6 +10,12 @@ import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
  */
 const dismissGracePeriodMs = 250
 
+/** The time (in milliseconds) that we should wait after focusing before we
+ * re-enable click dismissal. Note that this is only used on Windows. See
+ * https://github.com/desktop/desktop/issues/2486.
+ */
+const DisableClickDismissalDelay = 500
+
 /**
  * Title bar height in pixels. Values taken from 'app/styles/_variables.scss'.
  */
@@ -201,7 +207,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     setTimeout(() => {
       this.disableClickDismissal = false
       this.disableClickDismissalTimeoutId = null
-    }, 500)
+    }, DisableClickDismissalDelay)
   }
 
   private clearClickDismissalTimer() {
