@@ -258,6 +258,9 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
+    // Ignore the first click right after the window's been focused. It could
+    // be the click that focused the window, in which case we don't wanna
+    // dismiss the dialog.
     if (this.disableClickDismissal) {
       this.disableClickDismissal = false
       this.clearClickDismissalTimer()
