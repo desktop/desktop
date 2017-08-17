@@ -9,6 +9,8 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 const GitIgnoreFileName = '.gitignore'
 
+const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
+
 interface IChangedFileProps {
   readonly path: string
   readonly status: AppFileStatus
@@ -120,6 +122,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       })
     }
 
+    const isSafeExtension = __WIN32__
+      ? RestrictedFileExtensions.indexOf(extension.toLowerCase()) === -1
+      : true
+
     items.push(
       { type: 'separator' },
       {
@@ -129,10 +135,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       },
       {
         label: __DARWIN__
-          ? 'Open with External Editor'
-          : 'Open with external editor',
+          ? 'Open with Default Program'
+          : 'Open with default program',
         action: () => this.props.onOpenItem(this.props.path),
-        enabled: this.props.status !== AppFileStatus.Deleted,
+        enabled: isSafeExtension && this.props.status !== AppFileStatus.Deleted,
       }
     )
 
