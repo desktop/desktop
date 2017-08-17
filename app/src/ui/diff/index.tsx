@@ -3,15 +3,18 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Disposable } from 'event-kit'
 
-import { NewImageDiff } from './new-image-diff'
-import { ModifiedImageDiff } from './modified-image-diff'
-import { DeletedImageDiff } from './deleted-image-diff'
+import {
+  NewImageDiff,
+  ModifiedImageDiff,
+  DeletedImageDiff,
+} from './image-diffs'
 import { BinaryFile } from './binary-file'
 
 import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
+import { ImageDiffType } from '../../lib/app-state'
 import {
   FileChange,
   WorkingDirectoryFileChange,
@@ -73,6 +76,9 @@ interface IDiffProps {
 
   /** propagate errors up to the main application */
   readonly dispatcher: Dispatcher
+
+  /** The type of image diff to display. */
+  readonly imageDiffType: ImageDiffType
 }
 
 /** A component which renders a diff for a file. */
@@ -555,10 +561,16 @@ export class Diff extends React.Component<IDiffProps, {}> {
     this.restoreScrollPosition(cm)
   }
 
+  private onChangeImageDiffType = (type: ImageDiffType) => {
+    this.props.dispatcher.changeImageDiffType(type)
+  }
+
   private renderImage(imageDiff: IImageDiff) {
     if (imageDiff.current && imageDiff.previous) {
       return (
         <ModifiedImageDiff
+          onChangeDiffType={this.onChangeImageDiffType}
+          diffType={this.props.imageDiffType}
           current={imageDiff.current}
           previous={imageDiff.previous}
         />

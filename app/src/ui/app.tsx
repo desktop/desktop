@@ -1464,6 +1464,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           issuesStore={this.props.appStore.issuesStore}
           gitHubUserStore={this.props.appStore.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
+          imageDiffType={this.state.imageDiffType}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

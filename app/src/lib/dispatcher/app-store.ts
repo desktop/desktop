@@ -15,6 +15,7 @@ import {
   SelectionType,
   ICheckoutProgress,
   Progress,
+  ImageDiffType,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -111,6 +112,9 @@ const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const externalEditorDefault = ExternalEditor.Atom
 const externalEditorKey: string = 'externalEditor'
 
+const imageDiffTypeDefault = ImageDiffType.TwoUp
+const imageDiffTypeKey = 'image-diff-type'
+
 const shellKey = 'shell'
 
 export class AppStore {
@@ -180,6 +184,7 @@ export class AppStore {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
+  private imageDiffType: ImageDiffType = imageDiffTypeDefault
 
   private selectedExternalEditor: ExternalEditor = externalEditorDefault
 
@@ -489,6 +494,7 @@ export class AppStore {
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       confirmRepoRemoval: this.confirmRepoRemoval,
       selectedExternalEditor: this.selectedExternalEditor,
+      imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
     }
   }
@@ -880,6 +886,12 @@ export class AppStore {
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
 
     this.updatePreferredAppMenuItemLabels()
+
+    const imageDiffTypeValue = localStorage.getItem(imageDiffTypeKey)
+    this.imageDiffType =
+      imageDiffTypeValue === null
+        ? imageDiffTypeDefault
+        : parseInt(imageDiffTypeValue)
 
     this.emitUpdateNow()
 
@@ -2277,6 +2289,14 @@ export class AppStore {
     this.emitUpdate()
 
     this.updatePreferredAppMenuItemLabels()
+
+    return Promise.resolve()
+  }
+
+  public _changeImageDiffType(type: ImageDiffType): Promise<void> {
+    this.imageDiffType = type
+    localStorage.setItem(imageDiffTypeKey, JSON.stringify(this.imageDiffType))
+    this.emitUpdate()
 
     return Promise.resolve()
   }

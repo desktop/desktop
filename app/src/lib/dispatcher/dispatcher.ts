@@ -13,6 +13,7 @@ import {
   PopupType,
   Foldout,
   FoldoutType,
+  ImageDiffType,
 } from '../app-state'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -959,5 +960,10 @@ export class Dispatcher {
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
+  }
+
+  /** Change the selected image diff type. */
+  public changeImageDiffType(type: ImageDiffType): Promise<void> {
+    return this.appStore._changeImageDiffType(type)
   }
 }
