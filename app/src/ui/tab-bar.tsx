@@ -1,12 +1,24 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
 
+/** The tab bar type. */
+export enum TabBarType {
+  /** Standard tabs */
+  Tabs,
+
+  /** Simpler switch appearance */
+  Switch,
+}
+
 interface ITabBarProps {
   /** The currently selected tab. */
   readonly selectedIndex: number
 
   /** A function which is called when a tab is clicked on. */
   readonly onTabClicked: (index: number) => void
+
+  /** The type of TabBar controlling its style */
+  readonly type?: TabBarType
 }
 
 /**
@@ -19,7 +31,13 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
 
   public render() {
     return (
-      <div className="tab-bar" role="tablist">
+      <div
+        className={
+          'tab-bar ' +
+          (this.props.type === TabBarType.Switch ? 'switch' : 'tabs')
+        }
+        role="tablist"
+      >
         {this.renderItems()}
       </div>
     )

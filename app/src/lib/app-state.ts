@@ -29,6 +29,21 @@ export enum SelectionType {
   MissingRepository,
 }
 
+/** The image diff type. */
+export enum ImageDiffType {
+  /** Show the old and new images side by side. */
+  TwoUp,
+
+  /** Swipe between the old and new image. */
+  Swipe,
+
+  /** Onion skin. */
+  OnionSkin,
+
+  /** Highlight differences. */
+  Difference,
+}
+
 export type PossibleSelections =
   | {
       type: SelectionType.Repository
@@ -138,6 +153,9 @@ export interface IAppState {
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: ExternalEditor
+
+  /** What type of visual diff mode we should use to compare images */
+  readonly imageDiffType: ImageDiffType
 }
 
 export enum PopupType {
