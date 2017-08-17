@@ -1,5 +1,6 @@
 {
   "releases": {
+    "0.8.1-beta0": [],
     "0.8.0": [
       "[New] Added commit context menu - #2434",
       "[New] Added 'Open in External Editor' - #2009",
