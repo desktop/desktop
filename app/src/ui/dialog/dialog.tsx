@@ -134,6 +134,9 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   private dialogElement: HTMLElement | null = null
   private dismissGraceTimeoutId?: number
 
+  private disableClickDismissalTimeoutId: number | null = null
+  private disableClickDismissal = false
+
   public constructor(props: IDialogProps) {
     super(props)
     this.state = { isAppearing: true }
@@ -187,6 +190,25 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
     this.setState({ isAppearing: true })
     this.scheduleDismissGraceTimeout()
+
+    window.addEventListener('focus', this.onWindowFocus)
+  }
+
+  private onWindowFocus = () => {
+    this.clearClickDismissalTimer()
+
+    this.disableClickDismissal = true
+    setTimeout(() => {
+      this.disableClickDismissal = false
+      this.disableClickDismissalTimeoutId = null
+    }, 500)
+  }
+
+  private clearClickDismissalTimer() {
+    if (this.disableClickDismissalTimeoutId) {
+      clearTimeout(this.disableClickDismissalTimeoutId)
+      this.disableClickDismissalTimeoutId = null
+    }
   }
 
   public componentWillUnmount() {
@@ -195,6 +217,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     if (this.state.titleId) {
       releaseUniqueId(this.state.titleId)
     }
+
+    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   public componentDidUpdate() {
@@ -225,6 +249,12 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     const isInTitleBar = e.clientY <= titleBarHeight
 
     if (isInTitleBar) {
+      return
+    }
+
+    if (this.disableClickDismissal) {
+      this.disableClickDismissal = false
+      this.clearClickDismissalTimer()
       return
     }
 
