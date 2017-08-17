@@ -10,7 +10,8 @@ import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
  */
 const dismissGracePeriodMs = 250
 
-/** The time (in milliseconds) that we should wait after focusing before we
+/**
+ * The time (in milliseconds) that we should wait after focusing before we
  * re-enable click dismissal. Note that this is only used on Windows.
  */
 const DisableClickDismissalDelay = 500
@@ -207,6 +208,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       this.clearClickDismissalTimer()
 
       this.disableClickDismissal = true
+
       setTimeout(() => {
         this.disableClickDismissal = false
         this.disableClickDismissalTimeoutId = null
