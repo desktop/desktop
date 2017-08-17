@@ -1,5 +1,6 @@
 {
   "releases": {
+    "0.7.3-beta5": ["[Fixed] Open in External Editor context menu - #2475"],
     "0.7.3-beta4": [
       "[New] Added commit context menu - #2434",
       "[Fixed] Show 'Add Repository' dialog when repository is dragged onto the app - #2442",
