@@ -224,20 +224,6 @@ export class WorkingDirectoryStatus {
     return new WorkingDirectoryStatus(newFiles, includeAll)
   }
 
-  /** Update by replacing the file with the same ID with a new file. */
-  public byReplacingFile(
-    file: WorkingDirectoryFileChange
-  ): WorkingDirectoryStatus {
-    const newFiles = this.files.map(f => {
-      if (f.id === file.id) {
-        return file
-      } else {
-        return f
-      }
-    })
-    return new WorkingDirectoryStatus(newFiles, this.includeAll)
-  }
-
   /** Find the file with the given ID. */
   public findFileWithID(id: string): WorkingDirectoryFileChange | null {
     return this.files.find(f => f.id === id) || null
