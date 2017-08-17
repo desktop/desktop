@@ -1092,8 +1092,12 @@ export class AppStore {
       selectableLines
     )
     const selectedFile = currentlySelectedFile.withSelection(newSelection)
-    const workingDirectory = changesState.workingDirectory.byReplacingFile(
-      selectedFile
+    const updatedFiles = changesState.workingDirectory.files.map(
+      f => (f.id === selectedFile.id ? selectedFile : f)
+    )
+    const workingDirectory = new WorkingDirectoryStatus(
+      updatedFiles,
+      this.getIncludeAllState(updatedFiles)
     )
 
     this.updateChangesState(repository, state => ({ diff, workingDirectory }))
