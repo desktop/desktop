@@ -28,6 +28,7 @@ install:
   - npm install
   - ls -a node_modules/.bin
   - npm ls --depth 0
+  - npm bin
 
 build_script:
   - npm run lint
