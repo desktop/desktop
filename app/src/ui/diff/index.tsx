@@ -653,12 +653,30 @@ export class Diff extends React.Component<IDiffProps, {}> {
   private onCopy = (editor: CodeMirror.Editor, event: Event) => {
     event.preventDefault()
 
-    // Remove all the diff markers.
-    const textWithoutMarkers = selection
-      .split('\n')
-      .map(l => l.substr(1))
-      .join('\n')
-    clipboard.writeText(textWithoutMarkers)
+    // Remove the diff line markers from the copied text. The beginning of the
+    // selection might start within a line, in which case we don't have to trim
+    // the diff type marker. But for selections that span multiple lines, we'll
+    // trim it.
+    const doc = editor.getDoc()
+    const lines: ReadonlyArray<string> = (doc as any).getSelections()
+    const selectionRanges = doc.listSelections()
+    const lineContent: Array<string> = []
+
+    for (let i = 0; i < lines.length; i++) {
+      const range = selectionRanges[i]
+      const content = lines[i]
+      const contentLines = content.split('\n')
+      for (const [i, line] of contentLines.entries()) {
+        if (i === 0 && range.head.ch > 0) {
+          lineContent.push(line)
+        } else {
+          lineContent.push(line.substr(1))
+        }
+      }
+
+      const textWithoutMarkers = lineContent.join('\n')
+      clipboard.writeText(textWithoutMarkers)
+    }
   }
 
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
