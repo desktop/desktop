@@ -26,8 +26,8 @@ install:
   - npm prune
   - cd app && npm prune && cd ..
   - npm install
-  - ls node_modules
-  - npm ls
+  - ls -a node_modules/.bin
+  - npm ls --depth 0
 
 build_script:
   - npm run lint
