@@ -26,6 +26,7 @@ import {
   IDiff,
   IImageDiff,
   ITextDiff,
+  DiffLineType,
 } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
@@ -33,6 +34,7 @@ import {
   diffLineForIndex,
   diffHunkForIndex,
   findInteractiveDiffRange,
+  lineNumberForDiffLine,
 } from './diff-explorer'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
@@ -45,6 +47,10 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { fatalError } from '../../lib/fatal-error'
 
 import { RangeSelectionSizePixels } from './edge-detection'
+import { relativeChanges } from './changed-range'
+
+/** The longest line for which we'd try to calculate a line diff. */
+const MaxIntraLineDiffStringLength = 4096
 
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
@@ -557,8 +563,74 @@ export class Diff extends React.Component<IDiffProps, {}> {
     }
   }
 
+  private markIntraLineChanges(codeMirror: Editor, diff: ITextDiff) {
+    for (const hunk of diff.hunks) {
+      const additions = hunk.lines.filter(l => l.type === DiffLineType.Add)
+      const deletions = hunk.lines.filter(l => l.type === DiffLineType.Delete)
+      if (additions.length !== deletions.length) {
+        continue
+      }
+
+      for (let i = 0; i < additions.length; i++) {
+        const addLine = additions[i]
+        const deleteLine = deletions[i]
+        if (
+          addLine.text.length > MaxIntraLineDiffStringLength ||
+          deleteLine.text.length > MaxIntraLineDiffStringLength
+        ) {
+          continue
+        }
+
+        const changeRanges = relativeChanges(
+          addLine.content,
+          deleteLine.content
+        )
+        const addRange = changeRanges.stringARange
+        if (addRange.length > 0) {
+          const addLineNumber = lineNumberForDiffLine(addLine, diff)
+          if (addLineNumber > -1) {
+            const addFrom = {
+              line: addLineNumber,
+              ch: addRange.location + 1,
+            }
+            const addTo = {
+              line: addLineNumber,
+              ch: addRange.location + addRange.length + 1,
+            }
+            codeMirror
+              .getDoc()
+              .markText(addFrom, addTo, { className: 'cm-diff-add-inner' })
+          }
+        }
+
+        const deleteRange = changeRanges.stringBRange
+        if (deleteRange.length > 0) {
+          const deleteLineNumber = lineNumberForDiffLine(deleteLine, diff)
+          if (deleteLineNumber > -1) {
+            const deleteFrom = {
+              line: deleteLineNumber,
+              ch: deleteRange.location + 1,
+            }
+            const deleteTo = {
+              line: deleteLineNumber,
+              ch: deleteRange.location + deleteRange.length + 1,
+            }
+            codeMirror.getDoc().markText(deleteFrom, deleteTo, {
+              className: 'cm-diff-delete-inner',
+            })
+          }
+        }
+      }
+    }
+  }
+
   private onChanges = (cm: Editor) => {
     this.restoreScrollPosition(cm)
+
+    const diff = this.props.diff
+    if (diff.kind === DiffType.Text) {
+      this.markIntraLineChanges(cm, diff)
+    }
   }
 
   private onChangeImageDiffType = (type: ImageDiffType) => {
