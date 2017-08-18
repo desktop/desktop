@@ -311,6 +311,13 @@ export function buildDefaultMenu(
     },
   }
 
+  const contactSupportItem: Electron.MenuItemConstructorOptions = {
+    label: __DARWIN__ ? 'Contact GitHub Support…' : 'Contact GitHub &support…',
+    click() {
+      shell.openExternal('https://github.com/support')
+    },
+  }
+
   const showUserGuides: Electron.MenuItemConstructorOptions = {
     label: 'Show User Guides',
     click() {
@@ -332,7 +339,12 @@ export function buildDefaultMenu(
     },
   }
 
-  const helpItems = [submitIssueItem, showUserGuides, showLogsItem]
+  const helpItems = [
+    submitIssueItem,
+    contactSupportItem,
+    showUserGuides,
+    showLogsItem,
+  ]
 
   if (__DEV__) {
     helpItems.push(
