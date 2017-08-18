@@ -5,7 +5,7 @@ import { readRegistryKeySafe } from '../registry'
 import { IFoundShell } from './found-shell'
 
 export enum Shell {
-  Cmd = 'cmd',
+  Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
   GitBash = 'Git Bash',
 }

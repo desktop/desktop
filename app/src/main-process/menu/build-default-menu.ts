@@ -9,7 +9,9 @@ import { log } from '../log'
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
   : 'Open in external editor'
-const defaultShellLabel = __DARWIN__ ? 'Open in Terminal' : 'Open in cmd'
+const defaultShellLabel = __DARWIN__
+  ? 'Open in Terminal'
+  : 'Open in Command Prompt'
 
 export function buildDefaultMenu(
   editorLabel: string = defaultEditorLabel,
