@@ -138,8 +138,16 @@
   color: var(--diff-delete-text-color);
 }
 
+.cm-diff-delete-inner {
+  background: var(--diff-delete-inner-background-color);
+}
+
 .cm-diff-add {
   color: var(--diff-add-text-color);
+}
+
+.cm-diff-add-inner {
+  background: var(--diff-add-inner-background-color);
 }
 
 .cm-diff-context {
