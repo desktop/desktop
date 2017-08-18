@@ -337,9 +337,8 @@ export class AppStore {
         diff: null,
       },
       changesState: {
-        workingDirectory: new WorkingDirectoryStatus(
-          new Array<WorkingDirectoryFileChange>(),
-          true
+        workingDirectory: WorkingDirectoryStatus.fromFiles(
+          new Array<WorkingDirectoryFileChange>()
         ),
         selectedFileID: null,
         diff: null,
@@ -964,11 +963,7 @@ export class AppStore {
         })
         .sort((x, y) => caseInsensitiveCompare(x.path, y.path))
 
-      const includeAll = this.getIncludeAllState(mergedFiles)
-      const workingDirectory = new WorkingDirectoryStatus(
-        mergedFiles,
-        includeAll
-      )
+      const workingDirectory = WorkingDirectoryStatus.fromFiles(mergedFiles)
 
       let selectedFileID = state.selectedFileID
       const matchedFile = mergedFiles.find(x => x.id === selectedFileID)
@@ -1092,9 +1087,10 @@ export class AppStore {
       selectableLines
     )
     const selectedFile = currentlySelectedFile.withSelection(newSelection)
-    const workingDirectory = changesState.workingDirectory.byReplacingFile(
-      selectedFile
+    const updatedFiles = changesState.workingDirectory.files.map(
+      f => (f.id === selectedFile.id ? selectedFile : f)
     )
+    const workingDirectory = WorkingDirectoryStatus.fromFiles(updatedFiles)
 
     this.updateChangesState(repository, state => ({ diff, workingDirectory }))
     this.emitUpdate()
@@ -1140,26 +1136,6 @@ export class AppStore {
     return result || false
   }
 
-  private getIncludeAllState(
-    files: ReadonlyArray<WorkingDirectoryFileChange>
-  ): boolean | null {
-    const allSelected = files.every(
-      f => f.selection.getSelectionType() === DiffSelectionType.All
-    )
-    const noneSelected = files.every(
-      f => f.selection.getSelectionType() === DiffSelectionType.None
-    )
-
-    let includeAll: boolean | null = null
-    if (allSelected) {
-      includeAll = true
-    } else if (noneSelected) {
-      includeAll = false
-    }
-
-    return includeAll
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeFileIncluded(
     repository: Repository,
@@ -1197,8 +1173,7 @@ export class AppStore {
         f => (f.id === file.id ? f.withSelection(selection) : f)
       )
 
-      const includeAll = this.getIncludeAllState(newFiles)
-      const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
+      const workingDirectory = WorkingDirectoryStatus.fromFiles(newFiles)
       const diff = state.selectedFileID ? state.diff : null
       return { workingDirectory, diff }
     })
