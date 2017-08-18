@@ -1,4 +1,4 @@
-import { Menu, ipcMain, shell } from 'electron'
+import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogPath } from '../../lib/logging/get-log-path'
@@ -314,7 +314,9 @@ export function buildDefaultMenu(
   const contactSupportItem: Electron.MenuItemConstructorOptions = {
     label: __DARWIN__ ? 'Contact GitHub Support…' : 'Contact GitHub support…',
     click() {
-      shell.openExternal('https://github.com/support')
+      shell.openExternal(
+        `https://github.com/contact?from_desktop_app=1&app_version=${app.getVersion()}`
+      )
     },
   }
 
