@@ -650,7 +650,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
     )
   }
 
-  private onCopy = (selection: string, event: Event) => {
+  private onCopy = (editor: CodeMirror.Editor, event: Event) => {
     event.preventDefault()
 
     // Remove all the diff markers.
