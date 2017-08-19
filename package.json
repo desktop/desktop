@@ -60,7 +60,7 @@
     "extract-text-webpack-plugin": "^3.0.0",
     "fs-extra": "^2.1.2",
     "html-webpack-plugin": "^2.28.0",
-    "klaw-sync": "^1.1.2",
+    "klaw-sync": "^3.0.0",
     "legal-eagle": "0.15.0",
     "mocha": "^3.4.2",
     "node-native-loader": "^1.1.1",
