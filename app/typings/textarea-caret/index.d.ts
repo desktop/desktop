@@ -1,10 +1,10 @@
 declare module 'textarea-caret' {
-  interface Caret {
+  interface ICaret {
     top: number
     left: number
     height: number
   }
 
-  function getCaretCoordinates(element: HTMLElement, position: number): Caret
+  function getCaretCoordinates(element: HTMLElement, position: number): ICaret
   export = getCaretCoordinates
 }
