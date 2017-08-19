@@ -16,7 +16,7 @@ const config = {
       compact: true,
       minified: true,
       comments: false,
-      presets: ['babili'],
+      presets: ['minify'],
     }),
   ],
 }
