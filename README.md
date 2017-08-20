@@ -10,11 +10,17 @@ uses [React](https://facebook.github.io/react/).
 
 ## Where can I get it?
 
-Download the installer for your OS:
+Download the officially-supported installer for your operating system:
 
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
  - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
+
+There are several community-supported package managers that can be used to install Github Desktop.
+ - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
+      `c:\> choco install github-desktop`
+ - macOS users can install using [Homebrew](https://brew.sh/) package manager:
+      `$ brew cask install github-desktop`
 
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
