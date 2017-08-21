@@ -2,7 +2,7 @@
 //
 // This files contains CSS variables accessible to all selectors
 
-// Primer colors, see https://github.com/primer/primer-support/blob/master/lib/variables/color-system.scss
+// Primer colors, see https://github.com/primer/primer-css/blob/master/modules/primer-support/lib/variables/color-system.scss
 @import '~primer-support/lib/variables/color-system.scss';
 
 :root {
@@ -95,7 +95,7 @@
   /**
    * Background color for selected boxes without keyboard focus
    */
-  --box-selected-background-color: $gray-100;
+  --box-selected-background-color: #ebeef1;
 
   /**
    * Text color for when a user hovers over a boxe with a
@@ -237,11 +237,13 @@
   --diff-add-background-color: $green-000;
   --diff-add-border-color: $green-200;
   --diff-add-gutter-color: $green-200;
+  --diff-add-inner-background-color: #acf2bd;
   --diff-add-text-color: var(--diff-text-color);
 
   --diff-delete-background-color: $red-000;
   --diff-delete-border-color: $red-100;
   --diff-delete-gutter-color: $red-200;
+  --diff-delete-inner-background-color: #fdb8c0;
   --diff-delete-text-color: var(--diff-text-color);
 
   --diff-hunk-background-color: $blue-000;

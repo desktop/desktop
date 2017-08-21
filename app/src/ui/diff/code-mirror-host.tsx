@@ -37,6 +37,12 @@ interface ICodeMirrorHostProps {
     cm: CodeMirror.Editor,
     change: CodeMirror.EditorChangeLinkedList[]
   ) => void
+
+  /**
+   * Called when content has been copied. The default behavior may be prevented
+   * by calling `preventDefault` on the event.
+   */
+  readonly onCopy?: (editor: CodeMirror.Editor, event: Event) => void
 }
 
 /**
@@ -61,7 +67,17 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     this.codeMirror.on('changes', this.onChanges)
     this.codeMirror.on('beforeSelectionChange', this.beforeSelectionChanged)
 
+    // The type declaration for this is wrong.
+    // See https://github.com/DefinitelyTyped/DefinitelyTyped/pull/18824.
+    this.codeMirror.on('copy', this.onCopy as any)
+
     this.codeMirror.setValue(this.props.value)
+  }
+
+  private onCopy = (instance: CodeMirror.Editor, event: Event) => {
+    if (this.props.onCopy) {
+      this.props.onCopy(instance, event)
+    }
   }
 
   public componentWillUnmount() {
@@ -71,6 +87,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
       cm.off('changes', this.onChanges)
       cm.off('renderLine', this.onRenderLine)
       cm.off('beforeSelectionChange', this.beforeSelectionChanged)
+      cm.off('copy', this.onCopy as any)
 
       this.codeMirror = null
     }

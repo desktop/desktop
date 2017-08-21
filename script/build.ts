@@ -62,6 +62,18 @@ updateLicenseDump(err => {
   })
 })
 
+/**
+ * The additional packager options not included in the existing typing.
+ *
+ * See https://github.com/desktop/desktop/issues/2429 for some history on this.
+ */
+interface IPackageAdditionalOptions {
+  readonly protocols: ReadonlyArray<{
+    readonly name: string
+    readonly schemes: ReadonlyArray<string>
+  }>
+}
+
 function packageApp(
   callback: (error: Error | null, appPaths: string | string[]) => void
 ) {
@@ -76,7 +88,7 @@ function packageApp(
     )
   }
 
-  const options: packager.Options = {
+  const options: packager.Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: 'x64',
@@ -100,21 +112,17 @@ function packageApp(
     appBundleId: distInfo.getBundleID(),
     appCategoryType: 'public.app-category.developer-tools',
     osxSign: true,
-
-    // because `protocols` is an internal data structure to electron-packager
-    // we need to provide two arrays of entries that will get merged as part
-    // of the packaging proess
-    protocolName: [
-      distInfo.getBundleID(),
-      distInfo.getBundleID(),
-      distInfo.getBundleID(),
-    ],
-    protocol: [
-      isPublishableBuild
-        ? 'x-github-desktop-auth'
-        : 'x-github-desktop-dev-auth',
-      'x-github-client',
-      'github-mac',
+    protocols: [
+      {
+        name: distInfo.getBundleID(),
+        schemes: [
+          isPublishableBuild
+            ? 'x-github-desktop-auth'
+            : 'x-github-desktop-dev-auth',
+          'x-github-client',
+          'github-mac',
+        ],
+      },
     ],
 
     // Windows
@@ -238,6 +246,16 @@ function copyDependencies() {
   fs.removeSync(gitDir)
   fs.mkdirpSync(gitDir)
   fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
+
+  if (process.platform === 'darwin') {
+    console.log('  Copying app-path binary...')
+    const appPathMain = path.resolve(outRoot, 'main')
+    fs.removeSync(appPathMain)
+    fs.copySync(
+      path.resolve(projectRoot, 'app/node_modules/app-path/main'),
+      appPathMain
+    )
+  }
 }
 
 function updateLicenseDump(callback: (err: Error | null) => void) {

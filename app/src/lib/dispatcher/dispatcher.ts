@@ -13,11 +13,13 @@ import {
   PopupType,
   Foldout,
   FoldoutType,
+  ImageDiffType,
 } from '../app-state'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
+import { ExternalEditor } from '../../models/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
@@ -405,8 +407,8 @@ export class Dispatcher {
   }
 
   /** Revert the commit with the given SHA */
-  public revertCommit(repositoy: Repository, commit: Commit): Promise<void> {
-    return this.appStore._revertCommit(repositoy, commit)
+  public revertCommit(repository: Repository, commit: Commit): Promise<void> {
+    return this.appStore._revertCommit(repository, commit)
   }
 
   /**
@@ -565,6 +567,11 @@ export class Dispatcher {
     } else {
       this.appStore._showPopup({ type: PopupType.InstallGit, path })
     }
+  }
+
+  /** Opens a Git repository in the user provided program */
+  public async openInExternalEditor(path: string): Promise<void> {
+    return this.appStore._openInExternalEditor(path)
   }
 
   /**
@@ -823,6 +830,13 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference for an external program to open repositories in.
+   */
+  public setExternalEditor(editor: ExternalEditor): Promise<void> {
+    return this.appStore._setExternalEditor(editor)
+  }
+
+  /**
    * Reveals a file from a repository in the native file manager.
    * @param repository The currently active repository instance
    * @param path The path of the file relative to the root of the repository
@@ -938,5 +952,10 @@ export class Dispatcher {
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
+  }
+
+  /** Change the selected image diff type. */
+  public changeImageDiffType(type: ImageDiffType): Promise<void> {
+    return this.appStore._changeImageDiffType(type)
   }
 }

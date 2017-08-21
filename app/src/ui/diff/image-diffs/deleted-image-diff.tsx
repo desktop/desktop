@@ -1,7 +1,7 @@
 import * as React from 'react'
 
-import { Image } from '../../models/diff'
-import { renderImage } from './render-image'
+import { Image } from '../../../models/diff'
+import { DiffImage } from './diff-image'
 
 interface IDeletedImageDiffProps {
   readonly previous: Image
@@ -15,8 +15,10 @@ export class DeletedImageDiff extends React.Component<
   public render() {
     return (
       <div className="panel image" id="diff">
-        <div className="image-header">this image will be removed</div>
-        {renderImage(this.props.previous)}
+        <div className="image-diff-previous">
+          <div className="image-diff-header">Deleted</div>
+          <DiffImage image={this.props.previous} />
+        </div>
       </div>
     )
   }

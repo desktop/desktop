@@ -16,6 +16,7 @@ import {
   FoldoutType,
   SelectionType,
 } from '../lib/app-state'
+import { PreferencesTab } from '../models/preferences'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
@@ -55,6 +56,7 @@ import {
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { InstallGit } from './install-git'
+import { EditorError } from './editor'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
 import { shell } from '../lib/dispatcher/app-shell'
@@ -68,7 +70,7 @@ import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
 import { FullScreenInfo } from './window/full-screen-info'
-import { PushBranchCommits } from './branches/PushBranchCommits'
+import { PushBranchCommits } from './branches/push-branch-commits'
 import { Branch } from '../models/branch'
 import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
@@ -272,6 +274,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.openPullRequest()
       case 'install-cli':
         return this.props.dispatcher.installCLI()
+      case 'open-external-editor':
+        return this.openCurrentRepositoryInExternalEditor()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -601,11 +605,21 @@ export class App extends React.Component<IAppProps, IAppState> {
   private handleDragAndDrop(fileList: FileList) {
     const paths: string[] = []
     for (let i = 0; i < fileList.length; i++) {
-      const path = fileList[i]
-      paths.push(path.path)
+      const file = fileList[i]
+      paths.push(file.path)
     }
 
-    this.addRepositories(paths)
+    // If they're bulk adding repositories then just blindly try to add them.
+    // But if they just dragged one, use the dialog so that they can initialize
+    // it if needed.
+    if (paths.length > 1) {
+      this.addRepositories(paths)
+    } else {
+      this.props.dispatcher.showPopup({
+        type: PopupType.AddRepository,
+        path: paths[0],
+      })
+    }
   }
 
   private removeRepository = (
@@ -693,6 +707,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.openInShell(repository)
+  }
+
+  private openCurrentRepositoryInExternalEditor() {
+    const repository = this.getRepository()
+    if (!repository) {
+      return
+    }
+
+    this.openInExternalEditor(repository)
   }
 
   /**
@@ -848,6 +871,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             dotComAccount={this.getDotComAccount()}
             confirmRepoRemoval={this.state.confirmRepoRemoval}
+            selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
             enterpriseAccount={this.getEnterpriseAccount()}
             onDismissed={this.onPopupDismissed}
@@ -1028,6 +1052,26 @@ export class App extends React.Component<IAppProps, IAppState> {
             retryAction={popup.retryAction}
           />
         )
+      case PopupType.ExternalEditorFailed:
+        const openPreferences = popup.openPreferences
+        const suggestAtom = popup.suggestAtom
+        const showPreferencesDialog = () => {
+          this.props.dispatcher.showPopup({
+            type: PopupType.Preferences,
+            initialSelectedTab: PreferencesTab.Advanced,
+          })
+        }
+
+        return (
+          <EditorError
+            key="editor-error"
+            message={popup.message}
+            onDismissed={this.onPopupDismissed}
+            showPreferencesDialog={showPreferencesDialog}
+            viewPreferences={openPreferences}
+            suggestAtom={suggestAtom}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -1117,6 +1161,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const selectedRepository = this.state.selectedState
       ? this.state.selectedState.repository
       : null
+    const externalEditorLabel = this.state.selectedExternalEditor
     return (
       <RepositoriesList
         selectedRepository={selectedRepository}
@@ -1126,6 +1171,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         onClose={this.onCloseRepositoryList}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
+        onOpenInExternalEditor={this.openInExternalEditor}
+        externalEditorLabel={externalEditorLabel}
       />
     )
   }
@@ -1136,6 +1183,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.openShell(repository.path)
+  }
+
+  private openInExternalEditor = (
+    repository: Repository | CloningRepository
+  ) => {
+    if (!(repository instanceof Repository)) {
+      return
+    }
+
+    this.props.dispatcher.openInExternalEditor(repository.path)
   }
 
   private showRepository = (repository: Repository | CloningRepository) => {
@@ -1387,6 +1444,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           issuesStore={this.props.appStore.issuesStore}
           gitHubUserStore={this.props.appStore.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
+          imageDiffType={this.state.imageDiffType}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

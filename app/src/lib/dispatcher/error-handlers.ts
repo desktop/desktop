@@ -5,8 +5,10 @@ import {
   RepositoryDoesNotExistErrorCode,
 } from 'dugite'
 import { ErrorWithMetadata } from '../error-with-metadata'
+import { ExternalEditorError } from '../editors/shared'
 import { AuthenticationErrors } from '../git/authentication'
 import { Repository } from '../../models/repository'
+import { PopupType } from '../../lib/app-state'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -44,6 +46,13 @@ function asGitError(error: Error): GitError | null {
   } else {
     return null
   }
+}
+
+function asEditorError(error: Error): ExternalEditorError | null {
+  if (error instanceof ExternalEditorError) {
+    return error
+  }
+  return null
 }
 
 /** Handle errors by presenting them. */
@@ -155,4 +164,64 @@ export async function gitAuthenticationErrorHandler(
   await dispatcher.promptForGenericGitAuthentication(repository, retry)
 
   return null
+}
+
+export async function externalEditorErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asEditorError(error)
+  if (!e) {
+    return error
+  }
+
+  const { suggestAtom, openPreferences } = e.metadata
+
+  await dispatcher.showPopup({
+    type: PopupType.ExternalEditorFailed,
+    message: e.message,
+    suggestAtom,
+    openPreferences,
+  })
+
+  return null
+}
+
+/** Handle errors where they need to pull before pushing. */
+export async function pushNeedsPullHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.PushNotFastForward) {
+    return error
+  }
+
+  const repository = e.metadata.repository
+  if (!repository) {
+    return error
+  }
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  // Since they need to pull, go ahead and do a fetch for them.
+  dispatcher.fetch(repository)
+
+  return error
 }

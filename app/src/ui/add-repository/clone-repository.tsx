@@ -1,7 +1,6 @@
 import { remote } from 'electron'
 import * as Path from 'path'
 import * as React from 'react'
-import * as FS from 'fs'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
@@ -13,6 +12,7 @@ import {
   parseRepositoryIdentifier,
   IRepositoryIdentifier,
 } from '../../lib/remote-parsing'
+import { pathExists } from '../../lib/file-system'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
@@ -165,21 +165,21 @@ export class CloneRepository extends React.Component<
     this.checkPathValid(newPath)
   }
 
-  private checkPathValid(newPath: string) {
-    FS.exists(newPath, exists => {
-      // If the path changed while we were checking, we don't care anymore.
-      if (this.state.path !== newPath) {
-        return
-      }
+  private async checkPathValid(newPath: string): Promise<void> {
+    const exists = await pathExists(newPath)
 
-      let error: Error | null = null
-      if (exists) {
-        error = new Error('The destination already exists.')
-        error.name = DestinationExistsErrorName
-      }
+    // If the path changed while we were checking, we don't care anymore.
+    if (this.state.path !== newPath) {
+      return
+    }
 
-      this.setState({ error })
-    })
+    let error: Error | null = null
+    if (exists) {
+      error = new Error('The destination already exists.')
+      error.name = DestinationExistsErrorName
+    }
+
+    this.setState({ error })
   }
 
   private onURLChanged = (input: string) => {

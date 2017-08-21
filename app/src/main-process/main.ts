@@ -5,6 +5,7 @@ import { app, Menu, MenuItem, ipcMain, BrowserWindow, shell } from 'electron'
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
+import { ExternalEditor } from '../models/editors'
 import { parseAppURL } from '../lib/parse-app-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { fatalError } from '../lib/fatal-error'
@@ -146,8 +147,26 @@ app.on('ready', () => {
 
   createWindow()
 
-  const menu = buildDefaultMenu()
+  let menu = buildDefaultMenu()
   Menu.setApplicationMenu(menu)
+
+  ipcMain.on(
+    'external-editor-changed',
+    (
+      event: Electron.IpcMessageEvent,
+      {
+        selectedEditor,
+      }: {
+        selectedEditor: ExternalEditor
+      }
+    ) => {
+      menu = buildDefaultMenu(selectedEditor)
+      Menu.setApplicationMenu(menu)
+      if (mainWindow) {
+        mainWindow.sendAppMenu()
+      }
+    }
+  )
 
   ipcMain.on('menu-event', (event: Electron.IpcMessageEvent, args: any[]) => {
     const { name }: { name: MenuEvent } = event as any
