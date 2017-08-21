@@ -1,6 +1,6 @@
 import * as Path from 'path'
 
-import * as stripAnsi from 'strip-ansi'
+import stripAnsi = require('strip-ansi')
 
 export type TypeName =
   | 'string'
