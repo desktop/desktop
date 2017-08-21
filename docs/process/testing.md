@@ -34,7 +34,7 @@
   	- [ ] Valid login credentials from dotcom or Enterprise carried through
 	  - [ ] User sees Repository landing page if sign in successful
   - [ ] Usage Data
-    - [ ] Checked by default; user can uncheck
+    - [ ] Checked by default; user can uncheck. (Should not be checked if user on free plan only.)
       - [ ] Clicking `Finish`, and user is signed in successfully to Desktop
     - [ ] `Cancel` returns to initial Configure Git page
 
