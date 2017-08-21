@@ -16,6 +16,12 @@ interface IRepositoryListItemProps {
   /** Called when the repository should be shown in the shell. */
   readonly onOpenInShell: (repository: Repositoryish) => void
 
+  /** Called when the repository should be opened in an external editor */
+  readonly onOpenInExternalEditor: (repository: Repositoryish) => void
+
+  /** The current external editor selected by the user */
+  readonly externalEditorLabel: string
+
   /** Does the repository need to be disambiguated in the list? */
   readonly needsDisambiguation: boolean
 }
@@ -77,6 +83,7 @@ export class RepositoryListItem extends React.Component<
 
     const repository = this.props.repository
     const missing = repository instanceof Repository && repository.missing
+    const openInExternalEditor = `Open in ${this.props.externalEditorLabel}`
 
     const items: ReadonlyArray<IMenuItem> = [
       {
@@ -87,6 +94,11 @@ export class RepositoryListItem extends React.Component<
       {
         label: __DARWIN__ ? 'Show in Finder' : 'Show in Explorer',
         action: this.showRepository,
+        enabled: !missing,
+      },
+      {
+        label: openInExternalEditor,
+        action: this.openInExternalEditor,
         enabled: !missing,
       },
       { type: 'separator' },
@@ -108,5 +120,9 @@ export class RepositoryListItem extends React.Component<
 
   private openInShell = () => {
     this.props.onOpenInShell(this.props.repository)
+  }
+
+  private openInExternalEditor = () => {
+    this.props.onOpenInExternalEditor(this.props.repository)
   }
 }

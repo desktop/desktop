@@ -246,6 +246,16 @@ function copyDependencies() {
   fs.removeSync(gitDir)
   fs.mkdirpSync(gitDir)
   fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
+
+  if (process.platform === 'darwin') {
+    console.log('  Copying app-path binary...')
+    const appPathMain = path.resolve(outRoot, 'main')
+    fs.removeSync(appPathMain)
+    fs.copySync(
+      path.resolve(projectRoot, 'app/node_modules/app-path/main'),
+      appPathMain
+    )
+  }
 }
 
 function updateLicenseDump(callback: (err: Error | null) => void) {

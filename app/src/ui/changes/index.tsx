@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Diff } from '../diff'
 import { ChangedFileDetails } from './changed-file-details'
+import { ImageDiffType } from '../../lib/app-state'
 import { DiffSelection, IDiff } from '../../models/diff'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
@@ -15,6 +16,7 @@ interface IChangesProps {
   readonly file: WorkingDirectoryFileChange
   readonly diff: IDiff
   readonly dispatcher: Dispatcher
+  readonly imageDiffType: ImageDiffType
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
@@ -42,6 +44,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
         <div className="diff-wrapper">
           <Diff
             repository={this.props.repository}
+            imageDiffType={this.props.imageDiffType}
             file={file}
             readOnly={false}
             onIncludeChanged={this.onDiffLineIncludeChanged}

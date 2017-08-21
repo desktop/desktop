@@ -1,40 +1,26 @@
 import * as React from 'react'
-import { clipboard } from 'electron'
 import * as classNames from 'classnames'
 
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { RichText } from '../lib/rich-text'
-import { LinkButton } from '../lib/link-button'
 import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Avatar } from '../lib/avatar'
-import { showContextualMenu, IMenuItem } from '../main-process-proxy'
-import { Dispatcher } from '../../lib/dispatcher'
-import { getDotComAPIEndpoint } from '../../lib/api'
 import { Commit } from '../../models/commit'
 
 interface ICommitSummaryProps {
-  readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly commit: Commit
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
-  readonly isLocal: boolean
   readonly gitHubUser: IGitHubUser | null
   readonly isExpanded: boolean
   readonly onExpandChanged: (isExpanded: boolean) => void
-  readonly onViewCommitOnGitHub: (SHA: string) => void
 }
 
 interface ICommitSummaryState {
   readonly isOverflowed: boolean
-}
-
-// https://wicg.github.io/ResizeObserver/#resizeobserverentry
-interface IResizeObserverEntry {
-  readonly target: Element
-  readonly contentRect: ClientRect
 }
 
 export class CommitSummary extends React.Component<
@@ -42,7 +28,7 @@ export class CommitSummary extends React.Component<
   ICommitSummaryState
 > {
   private descriptionScrollViewRef: HTMLDivElement | null
-  private readonly resizeObserver: any | null = null
+  private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: number | null = null
 
   public constructor(props: ICommitSummaryProps) {
@@ -50,25 +36,24 @@ export class CommitSummary extends React.Component<
 
     this.state = { isOverflowed: false }
 
-    const ResizeObserver = (window as any).ResizeObserver
+    const ResizeObserverClass: typeof ResizeObserver = (window as any)
+      .ResizeObserver
 
-    if (ResizeObserver || false) {
-      this.resizeObserver = new ResizeObserver(
-        (entries: ReadonlyArray<IResizeObserverEntry>) => {
-          for (const entry of entries) {
-            if (entry.target === this.descriptionScrollViewRef) {
-              // We might end up causing a recursive update by updating the state
-              // when we're reacting to a resize so we'll defer it until after
-              // react is done with this frame.
-              if (this.updateOverflowTimeoutId !== null) {
-                clearImmediate(this.updateOverflowTimeoutId)
-              }
-
-              this.updateOverflowTimeoutId = setImmediate(this.onResized)
+    if (ResizeObserverClass || false) {
+      this.resizeObserver = new ResizeObserverClass(entries => {
+        for (const entry of entries) {
+          if (entry.target === this.descriptionScrollViewRef) {
+            // We might end up causing a recursive update by updating the state
+            // when we're reacting to a resize so we'll defer it until after
+            // react is done with this frame.
+            if (this.updateOverflowTimeoutId !== null) {
+              clearImmediate(this.updateOverflowTimeoutId)
             }
+
+            this.updateOverflowTimeoutId = setImmediate(this.onResized)
           }
         }
-      )
+      })
     }
   }
 
@@ -195,50 +180,6 @@ export class CommitSummary extends React.Component<
     )
   }
 
-  private onShowCommitOptions = () => {
-    let label: string = ''
-    const gitHubRepository = this.props.repository.gitHubRepository
-
-    if (gitHubRepository) {
-      const isDotCom = gitHubRepository.endpoint === getDotComAPIEndpoint()
-      label = isDotCom ? 'View on GitHub' : 'View on GitHub Enterprise'
-    }
-
-    const items: IMenuItem[] = [
-      {
-        label: __DARWIN__ ? 'Revert This Commit' : 'Revert this commit',
-        action: this.onRevertCommit,
-      },
-      { type: 'separator' },
-      {
-        label: 'Copy SHA',
-        action: this.onCopySHA,
-      },
-      {
-        label: label,
-        action: this.onViewOnGitHub,
-        enabled: !this.props.isLocal && !!gitHubRepository,
-      },
-    ]
-
-    showContextualMenu(items)
-  }
-
-  private onRevertCommit = async () => {
-    await this.props.dispatcher.revertCommit(
-      this.props.repository,
-      this.props.commit
-    )
-  }
-
-  private onCopySHA = () => {
-    clipboard.writeText(this.props.commit.sha)
-  }
-
-  private onViewOnGitHub = () => {
-    this.props.onViewCommitOnGitHub(this.props.commit.sha)
-  }
-
   public render() {
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
@@ -299,16 +240,6 @@ export class CommitSummary extends React.Component<
               </span>
 
               {filesDescription}
-            </li>
-
-            <li className="commit-summary-meta-item">
-              <LinkButton
-                className="more-dropdown"
-                onClick={this.onShowCommitOptions}
-              >
-                Actions
-                <Octicon symbol={OcticonSymbol.triangleDown} />
-              </LinkButton>
             </li>
           </ul>
         </div>

@@ -134,7 +134,7 @@ export async function getStatus(
     }
   }
 
-  const workingDirectory = new WorkingDirectoryStatus(files, true)
+  const workingDirectory = WorkingDirectoryStatus.fromFiles(files)
 
   return {
     currentBranch,

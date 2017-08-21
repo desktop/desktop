@@ -68,9 +68,21 @@ export class AddExistingRepository extends React.Component<
   }
 
   public async componentDidMount() {
-    const isRepository = await isGitRepository(this.state.path)
+    const pathToCheck = this.state.path
+    // We'll only have a path at this point if the dialog was opened with a path
+    // to prefill.
+    if (pathToCheck.length < 1) {
+      return
+    }
 
-    this.setState({ isRepository })
+    const isRepository = await isGitRepository(pathToCheck)
+    // The path might have changed while we were checking, in which case we
+    // don't care about the result anymore.
+    if (this.state.path !== pathToCheck) {
+      return
+    }
+
+    this.setState({ isRepository, showNonGitRepositoryWarning: !isRepository })
   }
 
   private renderWarning() {

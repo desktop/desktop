@@ -1,0 +1,7 @@
+/**
+ * Draw a checkboard in the background
+ * (useful to see the transparent part of an image)
+ */
+@mixin checkboard-background {
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUAQMAAAC3R49OAAAABlBMVEX5+fn///8pDrwNAAAAFElEQVQI12NgsP/AQAz+f4CBGAwAJIIdTTn0+w0AAAAASUVORK5CYII=);
+}
