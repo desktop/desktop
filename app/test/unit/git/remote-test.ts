@@ -30,8 +30,8 @@ describe('git/remote', () => {
 
       const result = await getRemotes(repository)
 
-      expect(result).to.contain({ name: 'origin', url })
-      expect(result).to.contain({ name: 'bassoon', url })
+      expect(result).to.deep.include({ name: 'origin', url })
+      expect(result).to.deep.include({ name: 'bassoon', url })
     })
   })
 

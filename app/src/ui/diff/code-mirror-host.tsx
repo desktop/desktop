@@ -42,7 +42,7 @@ interface ICodeMirrorHostProps {
    * Called when content has been copied. The default behavior may be prevented
    * by calling `preventDefault` on the event.
    */
-  readonly onCopy?: (selection: string, event: Event) => void
+  readonly onCopy?: (editor: CodeMirror.Editor, event: Event) => void
 }
 
 /**
@@ -76,9 +76,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
 
   private onCopy = (instance: CodeMirror.Editor, event: Event) => {
     if (this.props.onCopy) {
-      const doc = instance.getDoc()
-      const selection = doc.getSelection()
-      this.props.onCopy(selection, event)
+      this.props.onCopy(instance, event)
     }
   }
 
