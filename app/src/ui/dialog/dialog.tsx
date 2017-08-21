@@ -157,6 +157,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private scheduleDismissGraceTimeout() {
     this.clearDismissGraceTimeout()
+
     this.dismissGraceTimeoutId = window.setTimeout(
       this.onDismissGraceTimer,
       dismissGracePeriodMs
@@ -209,7 +210,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
       this.disableClickDismissal = true
 
-      setTimeout(() => {
+      this.disableClickDismissalTimeoutId = window.setTimeout(() => {
         this.disableClickDismissal = false
         this.disableClickDismissalTimeoutId = null
       }, DisableClickDismissalDelay)
