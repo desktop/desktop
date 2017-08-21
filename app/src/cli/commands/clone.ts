@@ -38,11 +38,9 @@ const command: ICommandModule = {
       // invalid URL, assume a GitHub repo
       cloneUrl = `https://github.com/${cloneUrl}`
     }
-    const url = `openRepo/${cloneUrl}?${QueryString.stringify(
-      {
-        branch,
-      }
-    )}`
+    const url = `openRepo/${cloneUrl}?${QueryString.stringify({
+      branch,
+    })}`
     openDesktop(url)
   },
 }
