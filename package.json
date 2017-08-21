@@ -24,6 +24,7 @@
     "lint": "npm run compile:tslint && npm run tslint && npm run eslint-check && npm run eslint",
     "tslint": "tslint ./tslint-rules/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
     "eslint": "ts-node script/eslint.ts",
+    "eslint:fix": "ts-node script/eslint.ts --fix",
     "eslint-check": "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
