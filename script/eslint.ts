@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-interface Client {
+interface IClient {
   // there’s other stuff; I’m not including it
   // because it’s not needed here.
   // If you want to add to it, here’s the source:
@@ -8,7 +8,7 @@ interface Client {
   lint(args: string[], text?: string): void
 }
 
-const client: Client = require('eslint_d/lib/client')
+const client: IClient = require('eslint_d/lib/client')
 
 const ESLINT_ARGS = [
   '--cache',
