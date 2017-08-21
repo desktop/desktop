@@ -38,7 +38,7 @@ const command: ICommandModule = {
       // invalid URL, assume a GitHub repo
       cloneUrl = `https://github.com/${cloneUrl}`
     }
-    const url = `x-github-client://openRepo/${cloneUrl}?${QueryString.stringify(
+    const url = `openRepo/${cloneUrl}?${QueryString.stringify(
       {
         branch,
       }
