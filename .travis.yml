@@ -20,6 +20,7 @@ cache:
   directories:
     - node_modules
     - $HOME/.electron
+    - .eslintcache
 
 install:
   - npm install -g npm@4.6.1
