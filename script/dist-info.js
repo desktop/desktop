@@ -159,6 +159,14 @@ function shouldMakeDelta() {
   return channelsWithDeltas.indexOf(getReleaseChannel()) > -1
 }
 
+function getCLICommands() {
+  return fs.readdirSync(
+    path.resolve(__dirname, 'src', 'cli', 'commands')
+  )
+    .filter(name => name.endsWith('.ts'))
+    .map(name => name.replace(/\.ts$/, ''))
+}
+
 module.exports = {
   getDistPath,
   getProductName,
@@ -183,4 +191,5 @@ module.exports = {
   shouldMakeDelta,
   getReleaseBranchName,
   getExecutableName,
+  getCLICommands,
 }
