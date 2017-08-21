@@ -20,3 +20,14 @@ const ESLINT_ARGS = [
 ]
 
 client.lint(ESLINT_ARGS)
+
+type ProcessOnExit = (cb: (code: number) => void) => void
+const onExit = process.on.bind(process, 'exit') as ProcessOnExit
+
+onExit(code => {
+  if (code && !ESLINT_ARGS.includes('--fix')) {
+    console.error(
+      '\x1b[1m\x1b[32m→ To fix some of these errors, run \x1b[4mnpm run eslint:fix\x1b[24\x1b[39m\x1b[22m\n'
+    )
+  }
+})
