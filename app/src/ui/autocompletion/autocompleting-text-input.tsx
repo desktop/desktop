@@ -124,6 +124,7 @@ export abstract class AutocompletingTextInput<
     const element = this.element!
     let coordinates = getCaretCoordinates(element, state.range.start)
     coordinates = {
+      ...coordinates,
       top: coordinates.top - element.scrollTop,
       left: coordinates.left - element.scrollLeft,
     }
