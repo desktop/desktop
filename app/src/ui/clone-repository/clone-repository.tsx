@@ -2,7 +2,6 @@ import * as Path from 'path'
 import * as FS from 'fs'
 import * as React from 'react'
 import { remote } from 'electron'
-import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../../lib/dispatcher'
@@ -12,7 +11,6 @@ import {
   IRepositoryIdentifier,
   parseRepositoryIdentifier,
 } from '../../lib/remote-parsing'
-import { pathExists } from '../../lib/file-system'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API, IAPIRepository } from '../../lib/api'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
