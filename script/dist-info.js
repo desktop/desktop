@@ -161,7 +161,7 @@ function shouldMakeDelta() {
 
 function getCLICommands() {
   return fs
-    .readdirSync(path.resolve(__dirname, 'src', 'cli', 'commands'))
+    .readdirSync(path.resolve(projectRoot, 'src', 'cli', 'commands'))
     .filter(name => name.endsWith('.ts'))
     .map(name => name.replace(/\.ts$/, ''))
 }
