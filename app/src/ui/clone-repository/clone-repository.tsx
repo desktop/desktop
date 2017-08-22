@@ -12,7 +12,7 @@ import {
   parseRepositoryIdentifier,
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
-import { API, IAPIRepository } from '../../lib/api'
+import { API } from '../../lib/api'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
 import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -59,8 +59,6 @@ interface ICloneRepositoryState {
    * The default tab to open on load
    */
   readonly selectedIndex: CloneRepositoryTab
-
-  readonly githubRepos: ReadonlyArray<IAPIRepository>
 }
 
 /** The component for cloning a repository. */
@@ -78,17 +76,6 @@ export class CloneRepository extends React.Component<
       error: null,
       lastParsedIdentifier: null,
       selectedIndex: this.props.initialSelectedTab || CloneRepositoryTab.GitHub,
-      githubRepos: [],
-    }
-  }
-
-  public async componentDidMount() {
-    const repos = await this.load()
-
-    if (repos) {
-      this.setState({
-        githubRepos: repos,
-      })
     }
   }
 
@@ -153,24 +140,19 @@ export class CloneRepository extends React.Component<
         />
       )
     } else {
+      const account = this.props.accounts[0]
+      const api = API.fromAccount(account)
+
       return (
         <CloneGithubRepository
-          repositories={this.state.githubRepos}
+          api={api}
           onPathChanged={this.updatePath}
+          onGitHubRepositorySelected={this.onGitHubRepositorySelected}
           onChooseDirectory={this.onChooseDirectory}
           onDismissed={this.props.onDismissed}
         />
       )
     }
-  }
-
-  private async load() {
-    const account = this.props.accounts[0]
-    const api = API.fromAccount(account)
-
-    const stuff = await api.fetchRepositories()
-
-    return stuff
   }
 
   private updatePath = (path: string) => {
@@ -268,6 +250,10 @@ export class CloneRepository extends React.Component<
     })
   }
 
+  private onGitHubRepositorySelected = async (url: string) => {
+    this.setState({ url })
+  }
+
   /**
    * Lookup the account associated with the clone (if applicable) and resolve
    * the repository alias to the clone URL.
@@ -291,8 +277,9 @@ export class CloneRepository extends React.Component<
   private clone = async () => {
     this.setState({ loading: true })
 
-    const path = this.state.path
     const url = await this.resolveCloneURL()
+    const path = this.state.path
+
     if (!url) {
       const error = new Error(
         `We couldn't find that repository. Check that you are logged in, and the URL or repository alias are spelled correctly.`

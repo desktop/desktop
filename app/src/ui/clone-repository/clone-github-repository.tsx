@@ -6,7 +6,7 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { FilterList } from '../lib/filter-list'
 import { IFilterListItem, IFilterListGroup } from '../lib/filter-list'
-import { IAPIRepository } from '../../lib/api'
+import { API } from '../../lib/api'
 //import { API } from '../../lib/api'
 
 interface IClonableRepositoryListItem extends IFilterListItem {
@@ -19,10 +19,11 @@ interface IClonableRepositoryListItem extends IFilterListItem {
 }
 
 interface ICloneGithubRepositoryProps {
-  readonly repositories: ReadonlyArray<IAPIRepository>
+  readonly api: API
   readonly onPathChanged: (path: string) => void
   readonly onDismissed: () => void
   readonly onChooseDirectory: () => Promise<string | undefined>
+  readonly onGitHubRepositorySelected: (url: string) => void
 }
 
 interface ICloneGithubRepositoryState {
@@ -32,6 +33,7 @@ interface ICloneGithubRepositoryState {
   readonly repositories: ReadonlyArray<
     IFilterListGroup<IClonableRepositoryListItem>
   >
+  readonly selectedItem: IClonableRepositoryListItem | null
 }
 
 const ClonableRepositoryFilterList: new () => FilterList<
@@ -51,49 +53,52 @@ export class CloneGithubRepository extends React.Component<
       path: getDefaultDir(),
       repositoryName: '',
       repositories: [],
+      selectedItem: null,
     }
   }
 
-  public componentDidMount() {
-    const repos: ReadonlyArray<
-      IClonableRepositoryListItem
-    > = this.props.repositories.map(repo => {
-      return {
-        id: repo.html_url,
-        text: `${repo.owner.login}/${repo.name}`,
-        url: repo.clone_url,
-        org: repo.owner.login,
-        name: repo.name,
-        isPrivate: repo.private,
-      }
-    })
+  public async componentDidMount() {
+    const repositories = await this.props.api.fetchRepositories()
 
-    const group = [
-      {
-        identifier: '',
-        items: repos,
-      },
-    ]
+    if (repositories) {
+      const repos: ReadonlyArray<
+        IClonableRepositoryListItem
+      > = repositories.map(repo => {
+        return {
+          id: repo.html_url,
+          text: `${repo.owner.login}/${repo.name}`,
+          url: repo.clone_url,
+          org: repo.owner.login,
+          name: repo.name,
+          isPrivate: repo.private,
+        }
+      })
 
-    this.setState({
-      repositories: group,
-    })
+      const group = [
+        {
+          identifier: 'Remote',
+          items: repos,
+        },
+      ]
+
+      this.setState({
+        repositories: group,
+      })
+    }
   }
 
   public render() {
-    const selectedItem: IClonableRepositoryListItem | null = null
-
     return (
       <DialogContent>
         <Row>
           <ClonableRepositoryFilterList
             className="clone-github-repo"
             rowHeight={RowHeight}
-            selectedItem={selectedItem}
+            selectedItem={this.state.selectedItem}
             renderItem={this.renderItem}
             onItemClick={this.onItemClicked}
             onFilterKeyDown={this.onFilterKeyDown}
-            invalidationProps={this.props.repositories}
+            invalidationProps={this.state.repositories}
             groups={this.state.repositories}
           />
         </Row>
@@ -124,7 +129,8 @@ export class CloneGithubRepository extends React.Component<
   }
 
   private onItemClicked = (item: IClonableRepositoryListItem) => {
-    console.log('onItemClicked')
+    this.setState({ selectedItem: item })
+    this.props.onGitHubRepositorySelected(item.url)
   }
 
   private onChooseDirectory = async () => {
