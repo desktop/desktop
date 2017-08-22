@@ -6,6 +6,7 @@ import { DialogContent } from '../dialog'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
+import { Loading } from '../lib/loading'
 import { FilterList } from '../lib/filter-list'
 import { API } from '../../lib/api'
 import { IFilterListGroup } from '../lib/filter-list'
@@ -24,6 +25,7 @@ interface ICloneGithubRepositoryProps {
 }
 
 interface ICloneGithubRepositoryState {
+  readonly loading: boolean
   readonly path: string
   readonly repositoryName: string
   readonly repositories: ReadonlyArray<
@@ -45,6 +47,7 @@ export class CloneGithubRepository extends React.Component<
     super(props)
 
     this.state = {
+      loading: false,
       path: getDefaultDir(),
       repositoryName: '',
       repositories: [],
@@ -53,32 +56,27 @@ export class CloneGithubRepository extends React.Component<
   }
 
   public async componentDidMount() {
+    this.setState({
+      loading: true,
+    })
+
     const result = await this.props.api.fetchRepositories()
 
-    if (result) {
-      const groups = groupRepositories(result, this.props.account.login)
+    const repositories = result
+      ? groupRepositories(result, this.props.account.login)
+      : []
 
-      this.setState({
-        repositories: groups,
-      })
-    }
+    this.setState({
+      repositories,
+      loading: false,
+    })
   }
 
   public render() {
     return (
       <DialogContent>
         <Row>
-          <ClonableRepositoryFilterList
-            className="clone-github-repo"
-            rowHeight={RowHeight}
-            selectedItem={this.state.selectedItem}
-            renderItem={this.renderItem}
-            renderGroupHeader={this.renderGroupHeader}
-            onItemClick={this.onItemClicked}
-            onFilterKeyDown={this.onFilterKeyDown}
-            invalidationProps={this.state.repositories}
-            groups={this.state.repositories}
-          />
+          {this.renderRepositoryList()}
         </Row>
 
         <Row>
@@ -91,6 +89,26 @@ export class CloneGithubRepository extends React.Component<
           <Button onClick={this.onChooseDirectory}>Choose…</Button>
         </Row>
       </DialogContent>
+    )
+  }
+
+  private renderRepositoryList() {
+    if (this.state.loading) {
+      return <Loading />
+    }
+
+    return (
+      <ClonableRepositoryFilterList
+        className="clone-github-repo"
+        rowHeight={RowHeight}
+        selectedItem={this.state.selectedItem}
+        renderItem={this.renderItem}
+        renderGroupHeader={this.renderGroupHeader}
+        onItemClick={this.onItemClicked}
+        onFilterKeyDown={this.onFilterKeyDown}
+        invalidationProps={this.state.repositories}
+        groups={this.state.repositories}
+      />
     )
   }
 
