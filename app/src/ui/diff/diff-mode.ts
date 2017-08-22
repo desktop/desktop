@@ -36,8 +36,7 @@ export function getDiffMode(): string {
 }
 
 function parseToken(stream: CodeMirror.StringStream): string {
-  const index = stream.peek()
-  const token = index ? TokenNames[index] : DefaultToken
+  const token = TokenNames[stream.peek()] || DefaultToken
   stream.skipToEnd()
 
   // Use the token to style both the line background and the line content.
