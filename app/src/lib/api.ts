@@ -65,6 +65,7 @@ export interface IAPIUser {
   readonly login: string
   readonly avatar_url: string
   readonly name: string
+  readonly type: 'User' | 'Organization'
 }
 
 /** The users we get from the mentionables endpoint. */
