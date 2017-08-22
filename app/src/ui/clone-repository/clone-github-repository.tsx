@@ -37,7 +37,7 @@ interface ICloneGithubRepositoryState {
 const ClonableRepositoryFilterList: new () => FilterList<
   IClonableRepositoryListItem
 > = FilterList as any
-const RowHeight = 29
+const RowHeight = 31
 
 export class CloneGithubRepository extends React.Component<
   ICloneGithubRepositoryProps,
