@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.7.3-beta1",
+  "version": "0.8.1-beta1",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
