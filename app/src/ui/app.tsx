@@ -72,6 +72,7 @@ import { Branch } from '../models/branch'
 import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
+import { ShellError } from './shell'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -872,6 +873,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
             enterpriseAccount={this.getEnterpriseAccount()}
             onDismissed={this.onPopupDismissed}
+            selectedShell={this.state.selectedShell}
           />
         )
       case PopupType.MergeBranch: {
@@ -972,6 +974,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <InstallGit
             key="install-git"
             onDismissed={this.onPopupDismissed}
+            onOpenShell={this.onOpenShell}
             path={popup.path}
           />
         )
@@ -1052,26 +1055,41 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.ExternalEditorFailed:
         const openPreferences = popup.openPreferences
         const suggestAtom = popup.suggestAtom
-        const showPreferencesDialog = () => {
-          this.props.dispatcher.showPopup({
-            type: PopupType.Preferences,
-            initialSelectedTab: PreferencesTab.Advanced,
-          })
-        }
 
         return (
           <EditorError
             key="editor-error"
             message={popup.message}
             onDismissed={this.onPopupDismissed}
-            showPreferencesDialog={showPreferencesDialog}
+            showPreferencesDialog={this.onShowAdvancedPreferences}
             viewPreferences={openPreferences}
             suggestAtom={suggestAtom}
+          />
+        )
+      case PopupType.OpenShellFailed:
+        return (
+          <ShellError
+            key="shell-error"
+            message={popup.message}
+            onDismissed={this.onPopupDismissed}
+            showPreferencesDialog={this.onShowAdvancedPreferences}
           />
         )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onShowAdvancedPreferences = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Advanced,
+    })
+  }
+
+  private onOpenShell = (path: string) => {
+    this.props.dispatcher.openShell(path)
+    this.onPopupDismissed()
   }
 
   private onSaveCredentials = async (
@@ -1159,6 +1177,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? this.state.selectedState.repository
       : null
     const externalEditorLabel = this.state.selectedExternalEditor
+    const shellLabel = this.state.selectedShell
     return (
       <RepositoriesList
         selectedRepository={selectedRepository}
@@ -1170,6 +1189,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onShowRepository={this.showRepository}
         onOpenInExternalEditor={this.openInExternalEditor}
         externalEditorLabel={externalEditorLabel}
+        shellLabel={shellLabel}
       />
     )
   }
