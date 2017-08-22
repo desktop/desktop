@@ -91,6 +91,7 @@ export class CloneGithubRepository extends React.Component<
             rowHeight={RowHeight}
             selectedItem={selectedItem}
             renderItem={this.renderItem}
+            renderGroupHeader={this.renderGroupHeader}
             onItemClick={this.onItemClicked}
             onFilterKeyDown={this.onFilterKeyDown}
             invalidationProps={this.props.repositories}
@@ -138,6 +139,14 @@ export class CloneGithubRepository extends React.Component<
   private onPathChanged = (path: string) => {
     this.setState({ path })
     this.props.onPathChanged(path)
+  }
+
+  private renderGroupHeader = (header: string) => {
+    return (
+      <strong>
+        {header}
+      </strong>
+    )
   }
 
   private renderItem = (item: IClonableRepositoryListItem) => {
