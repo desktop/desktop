@@ -214,7 +214,7 @@ export class API {
     IAPIRepository
   > | null> {
     try {
-      return await this.fetchAll<IAPIRepository>('user/repos')
+      return await this.fetchAll<IAPIRepository>('user/repos?per_page=100')
     } catch (error) {
       log.warn(`fetchRepositories: ${error}`)
       return null

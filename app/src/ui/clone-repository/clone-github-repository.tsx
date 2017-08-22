@@ -57,22 +57,35 @@ export class CloneGithubRepository extends React.Component<
     }
   }
 
-  public async componentDidMount() {
+  private convert(
+    repositories: ReadonlyArray<IAPIRepository>
+  ): ReadonlyArray<IClonableRepositoryListItem> {
+    const repos: ReadonlyArray<
+      IClonableRepositoryListItem
+    > = repositories.map(repo => {
+      return {
+        id: repo.html_url,
+        text: `${repo.owner.login}/${repo.name}`,
+        url: repo.clone_url,
+        org: repo.owner.login,
+        name: repo.name,
+        isPrivate: repo.private,
+      }
+    })
+
+    return repos
+  }
+
+    public async componentDidMount() {
     const repositories = await this.props.api.fetchRepositories()
 
-    if (repositories) {
-      const repos: ReadonlyArray<
-        IClonableRepositoryListItem
-      > = repositories.map(repo => {
-        return {
-          id: repo.html_url,
-          text: `${repo.owner.login}/${repo.name}`,
-          url: repo.clone_url,
-          org: repo.owner.login,
-          name: repo.name,
-          isPrivate: repo.private,
-        }
-      })
+
+    const group = [
+      {
+        identifier: 'all my repos',
+        items: repos,
+      },
+    ]
 
       const group = [
         {
@@ -87,6 +100,22 @@ export class CloneGithubRepository extends React.Component<
     }
   }
 
+  public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
+    // workaround until we can figure out the optimal way to store and filter this list
+    const repos = this.convert(this.props.repositories)
+
+    const group = [
+      {
+        identifier: 'all my repos',
+        items: repos,
+      },
+    ]
+
+    this.setState({
+      repositories: group,
+    })
+  }
+
   public render() {
     return (
       <DialogContent>
@@ -96,6 +125,7 @@ export class CloneGithubRepository extends React.Component<
             rowHeight={RowHeight}
             selectedItem={this.state.selectedItem}
             renderItem={this.renderItem}
+            renderGroupHeader={this.renderGroupHeader}
             onItemClick={this.onItemClicked}
             onFilterKeyDown={this.onFilterKeyDown}
             invalidationProps={this.state.repositories}
@@ -144,6 +174,14 @@ export class CloneGithubRepository extends React.Component<
   private onPathChanged = (path: string) => {
     this.setState({ path })
     this.props.onPathChanged(path)
+  }
+
+  private renderGroupHeader = (header: string) => {
+    return (
+      <strong>
+        {header}
+      </strong>
+    )
   }
 
   private renderItem = (item: IClonableRepositoryListItem) => {
