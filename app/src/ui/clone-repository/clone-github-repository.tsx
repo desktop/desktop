@@ -6,7 +6,7 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { FilterList } from '../lib/filter-list'
 import { IFilterListItem, IFilterListGroup } from '../lib/filter-list'
-import { API } from '../../lib/api'
+import { API, IAPIRepository } from '../../lib/api'
 //import { API } from '../../lib/api'
 
 interface IClonableRepositoryListItem extends IFilterListItem {
@@ -76,20 +76,15 @@ export class CloneGithubRepository extends React.Component<
     return repos
   }
 
-    public async componentDidMount() {
-    const repositories = await this.props.api.fetchRepositories()
+  public async componentDidMount() {
+    const result = await this.props.api.fetchRepositories()
 
-
-    const group = [
-      {
-        identifier: 'all my repos',
-        items: repos,
-      },
-    ]
+    if (result) {
+      const repos = this.convert(result)
 
       const group = [
         {
-          identifier: 'Remote',
+          identifier: 'all my repos',
           items: repos,
         },
       ]
@@ -100,21 +95,21 @@ export class CloneGithubRepository extends React.Component<
     }
   }
 
-  public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
-    // workaround until we can figure out the optimal way to store and filter this list
-    const repos = this.convert(this.props.repositories)
+  // public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
+  //   // workaround until we can figure out the optimal way to store and filter this list
+  //   const repos = this.convert(this.state.repositories)
 
-    const group = [
-      {
-        identifier: 'all my repos',
-        items: repos,
-      },
-    ]
+  //   const group = [
+  //     {
+  //       identifier: 'all my repos',
+  //       items: repos,
+  //     },
+  //   ]
 
-    this.setState({
-      repositories: group,
-    })
-  }
+  //   this.setState({
+  //     repositories: group,
+  //   })
+  // }
 
   public render() {
     return (
