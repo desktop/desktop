@@ -9,6 +9,7 @@ import { ExternalEditorError } from '../editors/shared'
 import { AuthenticationErrors } from '../git/authentication'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../lib/app-state'
+import { ShellError } from '../shells'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -182,6 +183,22 @@ export async function externalEditorErrorHandler(
     message: e.message,
     suggestAtom,
     openPreferences,
+  })
+
+  return null
+}
+
+export async function openShellErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  if (!(error instanceof ShellError)) {
+    return error
+  }
+
+  await dispatcher.showPopup({
+    type: PopupType.OpenShellFailed,
+    message: error.message,
   })
 
   return null
