@@ -1,25 +1,22 @@
 import * as React from 'react'
+
+import { Account } from '../../models/account'
 import { getDefaultDir } from '../lib/default-dir'
 import { DialogContent } from '../dialog'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { FilterList } from '../lib/filter-list'
-import { IFilterListItem, IFilterListGroup } from '../lib/filter-list'
-import { API, IAPIRepository } from '../../lib/api'
-//import { API } from '../../lib/api'
-
-interface IClonableRepositoryListItem extends IFilterListItem {
-  readonly id: string
-  readonly text: string
-  readonly isPrivate: boolean
-  readonly org: string
-  readonly name: string
-  readonly url: string
-}
+import { API } from '../../lib/api'
+import { IFilterListGroup } from '../lib/filter-list'
+import {
+  IClonableRepositoryListItem,
+  groupRepositories,
+} from './group-repositories'
 
 interface ICloneGithubRepositoryProps {
   readonly api: API
+  readonly account: Account
   readonly onPathChanged: (path: string) => void
   readonly onDismissed: () => void
   readonly onChooseDirectory: () => Promise<string | undefined>
@@ -27,7 +24,6 @@ interface ICloneGithubRepositoryProps {
 }
 
 interface ICloneGithubRepositoryState {
-  readonly url: string
   readonly path: string
   readonly repositoryName: string
   readonly repositories: ReadonlyArray<
@@ -49,7 +45,6 @@ export class CloneGithubRepository extends React.Component<
     super(props)
 
     this.state = {
-      url: '',
       path: getDefaultDir(),
       repositoryName: '',
       repositories: [],
@@ -57,59 +52,17 @@ export class CloneGithubRepository extends React.Component<
     }
   }
 
-  private convert(
-    repositories: ReadonlyArray<IAPIRepository>
-  ): ReadonlyArray<IClonableRepositoryListItem> {
-    const repos: ReadonlyArray<
-      IClonableRepositoryListItem
-    > = repositories.map(repo => {
-      return {
-        id: repo.html_url,
-        text: `${repo.owner.login}/${repo.name}`,
-        url: repo.clone_url,
-        org: repo.owner.login,
-        name: repo.name,
-        isPrivate: repo.private,
-      }
-    })
-
-    return repos
-  }
-
   public async componentDidMount() {
     const result = await this.props.api.fetchRepositories()
 
     if (result) {
-      const repos = this.convert(result)
-
-      const group = [
-        {
-          identifier: 'all my repos',
-          items: repos,
-        },
-      ]
+      const groups = groupRepositories(result, this.props.account.login)
 
       this.setState({
-        repositories: group,
+        repositories: groups,
       })
     }
   }
-
-  // public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
-  //   // workaround until we can figure out the optimal way to store and filter this list
-  //   const repos = this.convert(this.state.repositories)
-
-  //   const group = [
-  //     {
-  //       identifier: 'all my repos',
-  //       items: repos,
-  //     },
-  //   ]
-
-  //   this.setState({
-  //     repositories: group,
-  //   })
-  // }
 
   public render() {
     return (

@@ -146,6 +146,7 @@ export class CloneRepository extends React.Component<
       return (
         <CloneGithubRepository
           api={api}
+          account={account}
           onPathChanged={this.updatePath}
           onGitHubRepositorySelected={this.onGitHubRepositorySelected}
           onChooseDirectory={this.onChooseDirectory}
