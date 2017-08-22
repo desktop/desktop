@@ -54,10 +54,12 @@ export class CloneGithubRepository extends React.Component<
     }
   }
 
-  public componentDidMount() {
+  private convert(
+    repositories: ReadonlyArray<IAPIRepository>
+  ): ReadonlyArray<IClonableRepositoryListItem> {
     const repos: ReadonlyArray<
       IClonableRepositoryListItem
-    > = this.props.repositories.map(repo => {
+    > = repositories.map(repo => {
       return {
         id: repo.html_url,
         text: `${repo.owner.login}/${repo.name}`,
@@ -68,9 +70,31 @@ export class CloneGithubRepository extends React.Component<
       }
     })
 
+    return repos
+  }
+
+  public componentDidMount() {
+    const repos = this.convert(this.props.repositories)
+
     const group = [
       {
-        identifier: '',
+        identifier: 'all my repos',
+        items: repos,
+      },
+    ]
+
+    this.setState({
+      repositories: group,
+    })
+  }
+
+  public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
+    // workaround until we can figure out the optimal way to store and filter this list
+    const repos = this.convert(this.props.repositories)
+
+    const group = [
+      {
+        identifier: 'all my repos',
         items: repos,
       },
     ]
