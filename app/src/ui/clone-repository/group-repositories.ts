@@ -1,5 +1,6 @@
 import { IAPIRepository } from '../../lib/api'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
+import { caseInsensitiveCompare } from '../../lib/compare'
 
 export interface IClonableRepositoryListItem extends IFilterListItem {
   readonly id: string
@@ -33,12 +34,29 @@ export function groupRepositories(
   repositories: ReadonlyArray<IAPIRepository>,
   login: string
 ): ReadonlyArray<IFilterListGroup<IClonableRepositoryListItem>> {
-  const group = [
+  const userRepos = repositories.filter(repo => repo.owner.type === 'User')
+  const orgRepos = repositories.filter(
+    repo => repo.owner.type === 'Organization'
+  )
+
+  const groups = [
     {
-      identifier: 'all my repos',
-      items: convert(repositories),
+      identifier: 'user repos',
+      items: convert(userRepos),
     },
   ]
 
-  return group
+  const orgs = orgRepos.map(repo => repo.owner.login)
+  const distinctOrgs = Array.from(new Set(orgs))
+
+  for (const org of distinctOrgs.sort(caseInsensitiveCompare)) {
+    const orgRepositories = orgRepos.filter(repo => repo.owner.login === org)
+
+    groups.push({
+      identifier: org,
+      items: convert(orgRepositories),
+    })
+  }
+
+  return groups
 }
