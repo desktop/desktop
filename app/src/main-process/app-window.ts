@@ -6,6 +6,7 @@ import { URLActionType } from '../lib/parse-app-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
+import { log as writeLog } from './log'
 
 let windowStateKeeper: any | null = null
 
@@ -118,6 +119,10 @@ export class AppWindow {
       this.window.show()
     })
 
+    this.window.webContents.on('crashed', (event, killed) => {
+      writeLog('error', `The renderer process has crashed. killed: '${killed}'`)
+    })
+
     // TODO: This should be scoped by the window.
     ipcMain.once(
       'renderer-ready',
@@ -130,6 +135,10 @@ export class AppWindow {
 
     this.window.on('focus', () => this.window.webContents.send('focus'))
     this.window.on('blur', () => this.window.webContents.send('blur'))
+
+    this.window.on('unresponsive', () => {
+      writeLog('error', `The browser window is currently unresponsive.`)
+    })
 
     registerWindowStateChangedEvents(this.window)
 
