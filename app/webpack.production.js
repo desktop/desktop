@@ -18,7 +18,6 @@ const config = {
       comments: false,
       presets: ['minify'],
     }),
-    new webpack.optimize.ModuleConcatenationPlugin(),
   ],
 }
 
