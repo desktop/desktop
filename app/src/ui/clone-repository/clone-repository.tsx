@@ -34,8 +34,7 @@ interface ICloneRepositoryProps {
   /** The initial URL or `owner/name` shortcut to use. */
   readonly initialURL: string | null
 
-  /** The initial tab to open on load
-   */
+  /** The initial tab to open on load */
   readonly initialSelectedTab?: CloneRepositoryTab
 }
 
@@ -72,7 +71,7 @@ export class CloneRepository extends React.Component<
     super(props)
 
     this.state = {
-      url: '',
+      url: this.props.initialURL || '',
       path: getDefaultDir(),
       loading: false,
       error: null,
@@ -156,7 +155,8 @@ export class CloneRepository extends React.Component<
           : null}
 
         <CloneGenericRepository
-          initialURL={this.props.initialURL}
+          url={this.state.url}
+          path={this.state.path}
           onPathChanged={this.updatePath}
           onUrlChanged={this.updateUrl}
           onChooseDirectory={this.onChooseDirectory}
@@ -184,7 +184,8 @@ export class CloneRepository extends React.Component<
     if (index === CloneRepositoryTab.Generic) {
       return (
         <CloneGenericRepository
-          initialURL={this.props.initialURL}
+          path={this.state.path}
+          url={this.state.url}
           onPathChanged={this.updatePath}
           onUrlChanged={this.updateUrl}
           onChooseDirectory={this.onChooseDirectory}
@@ -271,6 +272,8 @@ export class CloneRepository extends React.Component<
       error.name = DestinationExistsErrorName
 
       this.setState({ error })
+    } else {
+      this.setState({ error: null })
     }
 
     this.updatePath(newPath)
