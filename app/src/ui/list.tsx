@@ -349,7 +349,7 @@ export class List extends React.Component<IListProps, IListState> {
   ) {
     const newRow = this.nextSelectableRow(direction, this.props.selectedRow)
 
-    if (this.props.onSelectionChanged) {
+    if (this.props.onSelectionChanged && newRow !== this.props.selectedRow) {
       this.props.onSelectionChanged(newRow, { kind: 'keyboard', event })
     }
 
