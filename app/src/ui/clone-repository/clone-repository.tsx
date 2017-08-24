@@ -201,7 +201,7 @@ export class CloneRepository extends React.Component<
           api={api}
           account={account}
           onPathChanged={this.updatePath}
-          onGitHubRepositorySelected={this.onGitHubRepositorySelected}
+          onGitHubRepositorySelected={this.updateUrl}
           onChooseDirectory={this.onChooseDirectory}
           onDismissed={this.props.onDismissed}
         />
@@ -236,20 +236,14 @@ export class CloneRepository extends React.Component<
       error.name = DestinationExistsErrorName
 
       this.setState({ error })
+    } else {
+      this.setState({ error: null })
     }
 
     return directory
   }
 
-  private updateUrl = async (input: string) => {
-    this.updateState(input)
-  }
-
-  private onGitHubRepositorySelected = async (url: string) => {
-    this.updateState(url)
-  }
-
-  private updateState = async (url: string) => {
+  private updateUrl = async (url: string) => {
     const parsed = parseRepositoryIdentifier(url)
     const lastParsedIdentifier = this.state.lastParsedIdentifier
 
