@@ -19,6 +19,7 @@
     - [ ] `Cancel` returns to initial Welcome Flow
     - [ ] `Sign in using your browser` opens default browser
       - [ ] Browser login, "authorize" GitHub Desktop, “accept” link
+        - [ ] If successful, Desktop shown in `/settings/applications` in user profile
   - [ ] `Sign in to Enterprise` link (works with v2.8 and up)
     - [ ] `Continue` successful if server address is valid, else error message
       - [ ] `Sign in using your browser` opens default browser
@@ -176,7 +177,7 @@
     - [ ] Windows: `%LOCALAPPDATA%\\Desktop\\*.desktop.production.log`
   - [ ] About GitHub Desktop (Windows only)
 
-### Repositories List
+### Repositories list
   - [ ] Current repo is always shown in top slot with respective icon; if repo exists
   - [ ] Opening list shows all repos in categorized format with a working filter
     - [ ] `ESC` clears the filter
@@ -191,7 +192,7 @@
     - [ ] Remove a repo which can not be found (deleted locally & trash emptied)
   - [ ] Repos which are cloning display a progress bar
 
-### Changes
+### Changes tab
   - [ ] Any changed files appear in the list, with respective +/•/- sign; with arrow keys enabled
     - [ ] User can check none, or check one or more files to commit; list is scrollable
       - [ ] User can select one or more lines to commit; diff is scrollable
@@ -201,10 +202,10 @@
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers sizes
 
-### History
+### History tab
   - [ ] All commits listed in chronological order, with avatar, date and name; list is scrollable with arrow keys enabled
 
-### Diffs		
+### Diffs tab		
   - [ ] All commits have avatar, short SHA, # of files changed, actions dropdown, commit message, commit description (optional)
     - [ ] `Actions` dropdown: Revert commit, Copy SHA, View on GitHub
       - [ ] Reverting commit repopulates commit area
@@ -215,7 +216,7 @@
       - [ ] Different file types are rendered properly
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
 
-### Commit
+### Commit section
   - [ ] Commit created if user clicks `Commit to X` button with commit message and at least one checked file
     - [ ] `Fetch origin` changes to `Push` with number of commits badge
   - [ ] Avatar of user is shown
@@ -225,7 +226,7 @@
     - [ ] `Push` with number of commits badge is decremented or reverts to `Fetch origin`
   - [ ] `Undo` button disabled if user is pushing commit
 
-### Branches
+### Branches list
   - [ ] Current branch always shows if repository present
   - [ ] Opening list shows all branches in categorized format with a working filter
     - [ ] `ESC` clears the filter
@@ -246,3 +247,7 @@
   - [ ] User cannot Push/Pull without being signed in; error message surfaced
     - [ ] Push/Pull works with public/private/Enterprise repos
   - [ ] When a branch is local-only make sure that the `Fetch` button changes to `Publish` and it publishes
+  
+ ### Dotcom
+  - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
+    - [ ] Clicking icon opens the branch from the Pull Request in Desktop
