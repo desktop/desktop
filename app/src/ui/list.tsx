@@ -322,7 +322,7 @@ export class List extends React.Component<IListProps, IListState> {
     if (direction === 'up') {
       newRow = row - 1
       if (newRow < 0) {
-        newRow = this.props.rowCount - 1
+        newRow = 0
       }
     } else {
       newRow = row + 1
