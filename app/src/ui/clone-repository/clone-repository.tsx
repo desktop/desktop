@@ -197,6 +197,7 @@ export class CloneRepository extends React.Component<
 
       return (
         <CloneGithubRepository
+          path={this.state.path}
           api={api}
           account={account}
           onPathChanged={this.updatePath}
@@ -241,7 +242,14 @@ export class CloneRepository extends React.Component<
   }
 
   private updateUrl = async (input: string) => {
-    const url = input
+    this.updateState(input)
+  }
+
+  private onGitHubRepositorySelected = async (url: string) => {
+    this.updateState(url)
+  }
+
+  private updateState = async (url: string) => {
     const parsed = parseRepositoryIdentifier(url)
     const lastParsedIdentifier = this.state.lastParsedIdentifier
 
@@ -261,22 +269,19 @@ export class CloneRepository extends React.Component<
 
     const pathExist = await this.doesPathExist(newPath)
 
+    let error = null
+
+    if (pathExist) {
+      error = new Error('The destination already exists.')
+      error.name = DestinationExistsErrorName
+    }
+
     this.setState({
       url,
       path: newPath,
       lastParsedIdentifier: parsed,
+      error,
     })
-
-    if (pathExist) {
-      const error: Error = new Error('The destination already exists.')
-      error.name = DestinationExistsErrorName
-
-      this.setState({ error })
-    } else {
-      this.setState({ error: null })
-    }
-
-    this.updatePath(newPath)
   }
 
   private doesPathExist(path: string) {
@@ -303,10 +308,6 @@ export class CloneRepository extends React.Component<
         return resolve(false)
       })
     })
-  }
-
-  private onGitHubRepositorySelected = async (url: string) => {
-    this.setState({ url })
   }
 
   /**
