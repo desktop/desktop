@@ -19,6 +19,8 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloneGenericRepository } from './clone-generic-repository'
 import { CloneGithubRepository } from './clone-github-repository'
 
+import { enablePreviewFeatures } from '../../lib/feature-flag'
+
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
 
@@ -80,6 +82,14 @@ export class CloneRepository extends React.Component<
   }
 
   public render() {
+    if (enablePreviewFeatures()) {
+      return this.renderPreviewInterface()
+    } else {
+      return this.renderClassicInterface()
+    }
+  }
+
+  private renderPreviewInterface() {
     const error = this.state.error
     const disabled =
       this.state.url.length === 0 ||
@@ -110,6 +120,47 @@ export class CloneRepository extends React.Component<
           : null}
 
         {this.renderActiveTab()}
+
+        <DialogFooter>
+          <ButtonGroup>
+            <Button disabled={disabled} type="submit">
+              Clone
+            </Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
+    )
+  }
+
+  private renderClassicInterface() {
+    const error = this.state.error
+    const disabled =
+      this.state.url.length === 0 ||
+      this.state.path.length === 0 ||
+      this.state.loading ||
+      (!!error && error.name === DestinationExistsErrorName)
+
+    return (
+      <Dialog
+        className="clone-repository"
+        title="Clone a repository"
+        onSubmit={this.clone}
+        onDismissed={this.props.onDismissed}
+        loading={this.state.loading}
+      >
+        {error
+          ? <DialogError>
+              {error.message}
+            </DialogError>
+          : null}
+
+        <CloneGenericRepository
+          initialURL={this.props.initialURL}
+          onPathChanged={this.updatePath}
+          onUrlChanged={this.updateUrl}
+          onChooseDirectory={this.onChooseDirectory}
+        />
 
         <DialogFooter>
           <ButtonGroup>
