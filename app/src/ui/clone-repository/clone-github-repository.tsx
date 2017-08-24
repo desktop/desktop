@@ -6,6 +6,7 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
+import { Octicon } from '../octicons'
 import { FilterList } from '../lib/filter-list'
 import { API } from '../../lib/api'
 import { IFilterListGroup } from '../lib/filter-list'
@@ -145,17 +146,20 @@ export class CloneGithubRepository extends React.Component<
 
   private renderGroupHeader = (header: string) => {
     return (
-      <strong>
+      <div className="clone-repository-list-content clone-repository-list-group-header">
         {header}
-      </strong>
+      </div>
     )
   }
 
   private renderItem = (item: IClonableRepositoryListItem) => {
     return (
-      <p>
-        {item.text}
-      </p>
+      <div className="clone-repository-list-item">
+        <Octicon className="icon" symbol={item.icon} />
+        <div className="name" title={name}>
+          {item.text}
+        </div>
+      </div>
     )
   }
 }
