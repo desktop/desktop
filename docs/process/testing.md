@@ -248,6 +248,6 @@
     - [ ] Push/Pull works with public/private/Enterprise repos
   - [ ] When a branch is local-only make sure that the `Fetch` button changes to `Publish` and it publishes
   
- ### Dotcom
+### Dotcom
   - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
     - [ ] Clicking icon opens the branch from the Pull Request in Desktop
