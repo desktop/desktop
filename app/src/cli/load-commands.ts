@@ -1,4 +1,4 @@
-import { IArgv as mriArgv } from 'mri'
+import { Argv as mriArgv } from 'mri'
 
 import { TypeName } from './util'
 

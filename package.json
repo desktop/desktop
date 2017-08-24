@@ -22,14 +22,14 @@
     "package": "node script/package",
     "clean:tslint": "rimraf tslint-rules/*.js",
     "compile:tslint": "tsc -p tslint-rules",
-    "lint": "npm run compile:tslint && tslint \"./app/{src,typings,test}/**/*.{ts,tsx}\"",
+    "lint": "npm run compile:tslint && tslint \"./app/{src,test}/**/*.{ts,tsx}\"",
     "check-prettiness": "node script/is-it-pretty",
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && npm install",
     "rebuild-hard:dev": "npm run clean-slate && npm run build:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm run build:prod",
     "prettier:base": "prettier --single-quote --trailing-comma es5 --no-semi --write",
-    "prettify": "npm run prettier:base \"{app/{src,typings,test}/**/*.{ts,tsx,js},app/webpack.*.js,script/!(*.ps1|*.bat|setup-macos-keychain)}\""
+    "prettify": "npm run prettier:base \"{app/{src,test}/**/*.{ts,tsx,js},app/webpack.*.js,script/!(*.ps1|*.bat|setup-macos-keychain)}\""
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -98,6 +98,7 @@
     "@types/fs-extra": "2.1.0",
     "@types/keytar": "^4.0.0",
     "@types/mocha": "^2.2.29",
+    "@types/mri": "^1.1.0",
     "@types/node": "^7.0.18",
     "@types/react": "15.0.31",
     "@types/react-addons-test-utils": "0.14.19",

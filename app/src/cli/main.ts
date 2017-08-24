@@ -45,7 +45,7 @@ function logError(err: CommandError) {
 
 console.log() // nice blank line before the command prompt
 
-interface IMRIOpts extends mri.IOptions {
+interface IMRIOpts extends mri.Options {
   alias: mri.DictionaryObject<mri.ArrayOrString>
   boolean: Array<string>
   default: mri.DictionaryObject
