@@ -319,16 +319,15 @@ export class List extends React.Component<IListProps, IListState> {
    */
   public nextSelectableRow(direction: 'up' | 'down', row: number): number {
     let newRow = row
+
     if (direction === 'up') {
       newRow = row - 1
-      if (newRow < 0) {
-        newRow = 0
-      }
     } else {
       newRow = row + 1
-      if (newRow > this.props.rowCount - 1) {
-        newRow = 0
-      }
+    }
+
+    if (newRow < 0 || newRow >= this.props.rowCount) {
+      newRow = this.props.selectedRow
     }
 
     if (this.canSelectRow(newRow)) {
