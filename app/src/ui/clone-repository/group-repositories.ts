@@ -1,6 +1,7 @@
 import { IAPIRepository } from '../../lib/api'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { caseInsensitiveCompare } from '../../lib/compare'
+import { OcticonSymbol } from '../octicons'
 
 export interface IClonableRepositoryListItem extends IFilterListItem {
   readonly id: string
@@ -8,7 +9,19 @@ export interface IClonableRepositoryListItem extends IFilterListItem {
   readonly isPrivate: boolean
   readonly org: string
   readonly name: string
+  readonly icon: OcticonSymbol
   readonly url: string
+}
+
+function getIcon(gitHubRepo: IAPIRepository): OcticonSymbol {
+  if (gitHubRepo.private) {
+    return OcticonSymbol.lock
+  }
+  if (gitHubRepo.fork) {
+    return OcticonSymbol.repoForked
+  }
+
+  return OcticonSymbol.repo
 }
 
 function convert(
@@ -17,12 +30,15 @@ function convert(
   const repos: ReadonlyArray<
     IClonableRepositoryListItem
   > = repositories.map(repo => {
+    const icon = getIcon(repo)
+
     return {
       id: repo.html_url,
       text: `${repo.owner.login}/${repo.name}`,
       url: repo.clone_url,
       org: repo.owner.login,
       name: repo.name,
+      icon,
       isPrivate: repo.private,
     }
   })

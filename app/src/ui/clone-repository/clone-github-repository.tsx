@@ -1,12 +1,12 @@
 import * as React from 'react'
 
 import { Account } from '../../models/account'
-import { getDefaultDir } from '../lib/default-dir'
 import { DialogContent } from '../dialog'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
+import { Octicon } from '../octicons'
 import { FilterList } from '../lib/filter-list'
 import { API } from '../../lib/api'
 import { IFilterListGroup } from '../lib/filter-list'
@@ -18,6 +18,7 @@ import {
 interface ICloneGithubRepositoryProps {
   readonly api: API
   readonly account: Account
+  readonly path: string
   readonly onPathChanged: (path: string) => void
   readonly onDismissed: () => void
   readonly onChooseDirectory: () => Promise<string | undefined>
@@ -26,7 +27,6 @@ interface ICloneGithubRepositoryProps {
 
 interface ICloneGithubRepositoryState {
   readonly loading: boolean
-  readonly path: string
   readonly repositoryName: string
   readonly repositories: ReadonlyArray<
     IFilterListGroup<IClonableRepositoryListItem>
@@ -48,7 +48,6 @@ export class CloneGithubRepository extends React.Component<
 
     this.state = {
       loading: false,
-      path: getDefaultDir(),
       repositoryName: '',
       repositories: [],
       selectedItem: null,
@@ -81,7 +80,7 @@ export class CloneGithubRepository extends React.Component<
 
         <Row>
           <TextBox
-            value={this.state.path}
+            value={this.props.path}
             label={__DARWIN__ ? 'Local Path' : 'Local path'}
             placeholder="repository path"
             onValueChanged={this.onPathChanged}
@@ -94,7 +93,11 @@ export class CloneGithubRepository extends React.Component<
 
   private renderRepositoryList() {
     if (this.state.loading) {
-      return <Loading />
+      return (
+        <div className="clone-github-repo">
+          <Loading />
+        </div>
+      )
     }
 
     return (
@@ -133,28 +136,30 @@ export class CloneGithubRepository extends React.Component<
     const path = await this.props.onChooseDirectory()
 
     if (path) {
-      this.setState({ path })
+      this.props.onPathChanged(path)
     }
   }
 
   private onPathChanged = (path: string) => {
-    this.setState({ path })
     this.props.onPathChanged(path)
   }
 
   private renderGroupHeader = (header: string) => {
     return (
-      <strong>
+      <div className="clone-repository-list-content clone-repository-list-group-header">
         {header}
-      </strong>
+      </div>
     )
   }
 
   private renderItem = (item: IClonableRepositoryListItem) => {
     return (
-      <p>
-        {item.text}
-      </p>
+      <div className="clone-repository-list-item">
+        <Octicon className="icon" symbol={item.icon} />
+        <div className="name" title={name}>
+          {item.text}
+        </div>
+      </div>
     )
   }
 }

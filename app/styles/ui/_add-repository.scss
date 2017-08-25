@@ -9,4 +9,24 @@
 .clone-github-repo {
   height: 150px;
   width: 450px;
+
+  .clone-repository-list {
+    &-item {
+      padding: 0 var(--spacing);
+    }
+
+    &-item {
+      display: flex;
+      flex-direction: row;
+      min-width: 0;
+      flex-grow: 1;
+      align-items: center;
+
+      .icon {
+        margin-right: var(--spacing-half);
+        width: 16px; // Force a consistent width
+        flex-shrink: 0;
+      }
+    }
+  }
 }
