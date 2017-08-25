@@ -65,6 +65,14 @@ async function deserialize<T>(response: Response): Promise<T> {
   }
 }
 
+/**
+ * Convert the endpoint and resource path into an absolute URL. As the app bakes
+ * the `/api/v3/` path into the endpoint, we need to prevent duplicating this when
+ * the API returns pagination headers that also include the `/api/v3/` fragment.
+ *
+ * @param endpoint The API endpoint
+ * @param path The resource path (should be relative to the root of the server)
+ */
 export function getAbsoluteUrl(endpoint: string, path: string): string {
   let relativePath = path[0] === '/' ? path.substr(1) : path
   if (relativePath.startsWith('api/v3/')) {
