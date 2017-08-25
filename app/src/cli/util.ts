@@ -1,5 +1,3 @@
-import * as Path from 'path'
-
 import stripAnsi = require('strip-ansi')
 
 export type TypeName =
