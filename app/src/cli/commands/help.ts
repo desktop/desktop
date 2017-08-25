@@ -6,7 +6,7 @@ import { $0, dasherizeOption, printTable } from '../util'
 
 const command: ICommandModule = {
   command: 'help [command]',
-  description: 'HALP!!1',
+  description: 'Show the help page for a command',
   handler({ _: [command] }) {
     if (command) {
       printCommandHelp(command, commands[command])

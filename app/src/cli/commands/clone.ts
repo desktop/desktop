@@ -16,7 +16,7 @@ const command: ICommandModule = {
     {
       name: 'url|slug',
       required: true,
-      description: 'The URL to clone, or the GitHub repo slug to clone',
+      description: 'The URL to clone, or the GitHub owner/name alias to clone',
       type: 'string',
     },
   ],
@@ -24,7 +24,7 @@ const command: ICommandModule = {
     branch: {
       type: 'string',
       aliases: ['b'],
-      description: 'The branch to switch to after cloning',
+      description: 'The branch to checkout after cloning',
     },
   },
   handler({ _: [cloneUrl], branch }: ICloneArgs) {
