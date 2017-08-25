@@ -2,7 +2,7 @@ import * as chalk from 'chalk'
 
 import { commands, ICommandModule, IOption } from '../load-commands'
 
-import { $0, dasherizeOption, printTable } from '../util'
+import { dasherizeOption, printTable } from '../util'
 
 const command: ICommandModule = {
   command: 'help [command]',
@@ -27,7 +27,7 @@ function printHelp() {
   printTable(table)
   console.log(
     `\nRun ${chalk.bold(
-      `${$0} help ${chalk.gray('<command>')}`
+      `github help ${chalk.gray('<command>')}`
     )} for details about each command`
   )
 }
@@ -38,10 +38,10 @@ function printCommandHelp(name: string, command: ICommandModule) {
     printHelp()
     return
   }
-  console.log(`${chalk.gray($0)} ${command.command}`)
+  console.log(`${chalk.gray('github')} ${command.command}`)
   if (command.aliases) {
     for (const alias of command.aliases) {
-      console.log(chalk.gray(`${$0} ${alias}`))
+      console.log(chalk.gray(`github ${alias}`))
     }
   }
   console.log()
