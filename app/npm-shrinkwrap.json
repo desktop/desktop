@@ -310,18 +310,9 @@
       "integrity": "sha1-0nKLQWqHUzmA6wibhI0lPPI6dYw="
     },
     "dugite": {
-      "version": "1.38.0",
-      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.38.0.tgz",
-      "integrity": "sha1-1zB4C6qmDv9qe/wBG8spLbi1Jus=",
-      "requires": {
-        "checksum": "0.1.1",
-        "mkdirp": "0.5.1",
-        "os-tmpdir": "1.0.2",
-        "progress": "2.0.0",
-        "request": "2.81.0",
-        "rimraf": "2.6.1",
-        "tar": "2.2.1"
-      }
+      "version": "1.39.0",
+      "from": "dugite@1.39.0",
+      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.39.0.tgz"
     },
     "ecc-jsbn": {
       "version": "0.1.1",

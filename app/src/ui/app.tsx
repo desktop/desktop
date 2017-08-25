@@ -244,10 +244,17 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.deleteBranch()
       case 'show-preferences':
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
-      case 'choose-repository':
+      case 'choose-repository': {
+        if (
+          this.state.currentFoldout &&
+          this.state.currentFoldout.type === FoldoutType.Repository
+        ) {
+          return this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+        }
         return this.props.dispatcher.showFoldout({
           type: FoldoutType.Repository,
         })
+      }
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
       case 'update-branch':

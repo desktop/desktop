@@ -1,5 +1,9 @@
 {
   "releases": {
+    "0.8.1-beta2": [
+      "[Fixed] Branch list not rendered in app - #2531",
+      "[Fixed] Git operations checking certificate store - #2520"
+    ],
     "0.8.1-beta1": [
       "[New] 'Open in Shell' now supports multiple shells - #2473",
       "[Improved] Enhanced image diffs - #2383",
