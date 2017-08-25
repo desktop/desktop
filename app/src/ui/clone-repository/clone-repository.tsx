@@ -19,6 +19,8 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloneGenericRepository } from './clone-generic-repository'
 import { CloneGithubRepository } from './clone-github-repository'
 
+import { enablePreviewFeatures } from '../../lib/feature-flag'
+
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
 
@@ -32,8 +34,7 @@ interface ICloneRepositoryProps {
   /** The initial URL or `owner/name` shortcut to use. */
   readonly initialURL: string | null
 
-  /** The initial tab to open on load
-   */
+  /** The initial tab to open on load */
   readonly initialSelectedTab?: CloneRepositoryTab
 }
 
@@ -70,7 +71,7 @@ export class CloneRepository extends React.Component<
     super(props)
 
     this.state = {
-      url: '',
+      url: this.props.initialURL || '',
       path: getDefaultDir(),
       loading: false,
       error: null,
@@ -80,6 +81,14 @@ export class CloneRepository extends React.Component<
   }
 
   public render() {
+    if (enablePreviewFeatures()) {
+      return this.renderPreviewInterface()
+    } else {
+      return this.renderClassicInterface()
+    }
+  }
+
+  private renderPreviewInterface() {
     const error = this.state.error
     const disabled =
       this.state.url.length === 0 ||
@@ -123,6 +132,48 @@ export class CloneRepository extends React.Component<
     )
   }
 
+  private renderClassicInterface() {
+    const error = this.state.error
+    const disabled =
+      this.state.url.length === 0 ||
+      this.state.path.length === 0 ||
+      this.state.loading ||
+      (!!error && error.name === DestinationExistsErrorName)
+
+    return (
+      <Dialog
+        className="clone-repository"
+        title="Clone a repository"
+        onSubmit={this.clone}
+        onDismissed={this.props.onDismissed}
+        loading={this.state.loading}
+      >
+        {error
+          ? <DialogError>
+              {error.message}
+            </DialogError>
+          : null}
+
+        <CloneGenericRepository
+          url={this.state.url}
+          path={this.state.path}
+          onPathChanged={this.updatePath}
+          onUrlChanged={this.updateUrl}
+          onChooseDirectory={this.onChooseDirectory}
+        />
+
+        <DialogFooter>
+          <ButtonGroup>
+            <Button disabled={disabled} type="submit">
+              Clone
+            </Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
+    )
+  }
+
   private onTabClicked = (index: number) => {
     this.setState({ selectedIndex: index })
   }
@@ -133,7 +184,8 @@ export class CloneRepository extends React.Component<
     if (index === CloneRepositoryTab.Generic) {
       return (
         <CloneGenericRepository
-          initialURL={this.props.initialURL}
+          path={this.state.path}
+          url={this.state.url}
           onPathChanged={this.updatePath}
           onUrlChanged={this.updateUrl}
           onChooseDirectory={this.onChooseDirectory}
@@ -145,10 +197,11 @@ export class CloneRepository extends React.Component<
 
       return (
         <CloneGithubRepository
+          path={this.state.path}
           api={api}
           account={account}
           onPathChanged={this.updatePath}
-          onGitHubRepositorySelected={this.onGitHubRepositorySelected}
+          onGitHubRepositorySelected={this.updateUrl}
           onChooseDirectory={this.onChooseDirectory}
           onDismissed={this.props.onDismissed}
         />
@@ -183,13 +236,14 @@ export class CloneRepository extends React.Component<
       error.name = DestinationExistsErrorName
 
       this.setState({ error })
+    } else {
+      this.setState({ error: null })
     }
 
     return directory
   }
 
-  private updateUrl = async (input: string) => {
-    const url = input
+  private updateUrl = async (url: string) => {
     const parsed = parseRepositoryIdentifier(url)
     const lastParsedIdentifier = this.state.lastParsedIdentifier
 
@@ -209,20 +263,19 @@ export class CloneRepository extends React.Component<
 
     const pathExist = await this.doesPathExist(newPath)
 
+    let error = null
+
+    if (pathExist) {
+      error = new Error('The destination already exists.')
+      error.name = DestinationExistsErrorName
+    }
+
     this.setState({
       url,
       path: newPath,
       lastParsedIdentifier: parsed,
+      error,
     })
-
-    if (pathExist) {
-      const error: Error = new Error('The destination already exists.')
-      error.name = DestinationExistsErrorName
-
-      this.setState({ error })
-    }
-
-    this.updatePath(newPath)
   }
 
   private doesPathExist(path: string) {
@@ -249,10 +302,6 @@ export class CloneRepository extends React.Component<
         return resolve(false)
       })
     })
-  }
-
-  private onGitHubRepositorySelected = async (url: string) => {
-    this.setState({ url })
   }
 
   /**
