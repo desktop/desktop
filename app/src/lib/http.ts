@@ -66,7 +66,10 @@ async function deserialize<T>(response: Response): Promise<T> {
 }
 
 export function getAbsoluteUrl(endpoint: string, path: string): string {
-  const relativePath = path[0] === '/' ? path.substr(1) : path
+  let relativePath = path[0] === '/' ? path.substr(1) : path
+  if (relativePath.startsWith('api/v3/')) {
+    relativePath = relativePath.substr(7)
+  }
   return encodeURI(`${endpoint}/${relativePath}`)
 }
 
