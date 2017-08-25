@@ -65,6 +65,11 @@ async function deserialize<T>(response: Response): Promise<T> {
   }
 }
 
+export function getAbsoluteUrl(endpoint: string, path: string): string {
+  const relativePath = path[0] === '/' ? path.substr(1) : path
+  return encodeURI(`${endpoint}/${relativePath}`)
+}
+
 /**
  * Make an API request.
  *
@@ -83,8 +88,7 @@ export function request(
   jsonBody?: Object,
   customHeaders?: Object
 ): Promise<Response> {
-  const relativePath = path[0] === '/' ? path.substr(1) : path
-  const url = encodeURI(`${endpoint}/${relativePath}`)
+  const url = getAbsoluteUrl(endpoint, path)
 
   let headers: any = {
     Accept: 'application/vnd.github.v3+json, application/json',
