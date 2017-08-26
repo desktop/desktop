@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.8.1-beta0",
+  "version": "0.8.1-beta1",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -255,21 +255,9 @@
       "resolved": "https://registry.npmjs.org/dom-matches/-/dom-matches-2.0.0.tgz"
     },
     "dugite": {
-      "version": "1.38.0",
-      "from": "dugite@>=1.38.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.38.0.tgz",
-      "dependencies": {
-        "http-signature": {
-          "version": "1.1.1",
-          "from": "http-signature@https://registry.npmjs.org/http-signature/-/http-signature-1.1.1.tgz",
-          "resolved": "https://registry.npmjs.org/http-signature/-/http-signature-1.1.1.tgz"
-        },
-        "request": {
-          "version": "2.81.0",
-          "from": "request@https://registry.npmjs.org/request/-/request-2.81.0.tgz",
-          "resolved": "https://registry.npmjs.org/request/-/request-2.81.0.tgz"
-        }
-      }
+      "version": "1.39.0",
+      "from": "dugite@1.39.0",
+      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.39.0.tgz"
     },
     "ecc-jsbn": {
       "version": "0.1.1",

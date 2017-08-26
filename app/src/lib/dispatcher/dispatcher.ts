@@ -27,7 +27,7 @@ import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError, assertNever } from '../fatal-error'
-import { isGitOnPath } from '../open-shell'
+import { isGitOnPath } from '../is-git-on-path'
 import { shell } from './app-shell'
 import {
   URLActionType,
@@ -42,6 +42,7 @@ import {
 import { installCLI } from '../../ui/lib/install-cli'
 import * as GenericGitAuth from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
+import { Shell } from '../shells'
 
 /**
  * An error handler function.
@@ -834,6 +835,13 @@ export class Dispatcher {
    */
   public setExternalEditor(editor: ExternalEditor): Promise<void> {
     return this.appStore._setExternalEditor(editor)
+  }
+
+  /**
+   * Sets the user's preferred shell.
+   */
+  public setShell(shell: Shell): Promise<void> {
+    return this.appStore._setShell(shell)
   }
 
   /**

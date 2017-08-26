@@ -2,7 +2,6 @@ import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { MenuIDs } from '../main-process/menu'
 import { IMenuItemState } from '../lib/menu-update'
-import { ExternalEditor } from '../models/editors'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(
@@ -106,8 +105,12 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   ipcRenderer.send('show-contextual-menu', items)
 }
 
-export function updateExternalEditorMenuItem(selectedEditor: ExternalEditor) {
-  ipcRenderer.send('external-editor-changed', { selectedEditor })
+/** Update the menu item labels with the user's preferred apps. */
+export function updatePreferredAppMenuItemLabels(labels: {
+  editor: string
+  shell: string
+}) {
+  ipcRenderer.send('update-preferred-app-menu-item-labels', labels)
 }
 
 function getIpcFriendlyError(error: Error) {

@@ -42,6 +42,9 @@ interface IRepositoriesListProps {
 
   /** Called when the repositories list should be closed. */
   readonly onClose: () => void
+
+  /** The label for the user's preferred shell. */
+  readonly shellLabel: string
 }
 
 const RowHeight = 29
@@ -63,6 +66,7 @@ export class RepositoriesList extends React.Component<
         onOpenInShell={this.props.onOpenInShell}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         externalEditorLabel={this.props.externalEditorLabel}
+        shellLabel={this.props.shellLabel}
       />
     )
   }
