@@ -866,9 +866,12 @@ export class Dispatcher {
   ): Promise<void> {
     const { filepath, pr, branch } = action
 
-    // we need to refetch for a forked PR and check that out
     if (pr && branch) {
+      // we need to refetch for a forked PR and check that out
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
+    }
+
+    if (branch) {
       await this.checkoutBranch(repository, branch)
     }
 
