@@ -784,6 +784,12 @@ export class Dispatcher {
         const repository = await this.openRepository(url, branchToClone)
         if (repository) {
           this.handleCloneInDesktopOptions(repository, action)
+        } else {
+          log.warn(
+            `Open Repository from URL failed, did not find repository: ${url} - payload: ${JSON.stringify(
+              action
+            )}`
+          )
         }
         break
 
