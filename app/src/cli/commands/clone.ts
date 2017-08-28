@@ -16,7 +16,7 @@ const command: ICommandModule = {
     {
       name: 'url|slug',
       required: true,
-      description: 'The URL to clone, or the GitHub owner/name alias to clone',
+      description: 'The URL or the GitHub owner/name alias to clone',
       type: 'string',
     },
   ],
