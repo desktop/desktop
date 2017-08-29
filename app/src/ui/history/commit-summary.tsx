@@ -27,14 +27,22 @@ interface ICommitSummaryState {
 
 const maxSummaryLength = 72
 
+function trimTrailingWhitespace(value: string) {
+  return value.replace(/\s+$/, '')
+}
+
 function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
-  let { summary, body } = props.commit
+  let summary = trimTrailingWhitespace(props.commit.summary)
+  let body = trimTrailingWhitespace(props.commit.body)
 
   if (summary.length > maxSummaryLength) {
     // Truncate at least 3 characters off the end to avoid just an ellipsis
     // followed by 1-2 characters in the body. This matches dotcom behavior.
     const truncateLength = maxSummaryLength - 3
-    body = `…${summary.substr(truncateLength)}\n\n${body}`
+    const remainder = summary.substr(truncateLength)
+
+    // Don't join the the body with newlines if it's empty
+    body = body.length > 0 ? `…${remainder}\n\n${body}` : `…${remainder}`
     summary = `${summary.substr(0, truncateLength)}…`
   }
 
