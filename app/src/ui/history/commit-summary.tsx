@@ -26,11 +26,14 @@ interface ICommitSummaryState {
 }
 
 function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
-  return {
-    isOverflowed,
-    summary: props.commit.summary,
-    body: props.commit.body,
+  let { summary, body } = props.commit
+
+  if (summary.length > 80) {
+    body = '…' + summary.substr(80) + '\n\n' + body
+    summary = summary.substr(0, 80) + '…'
   }
+
+  return { isOverflowed, summary, body }
 }
 
 function messageEquals(x: Commit, y: Commit) {
