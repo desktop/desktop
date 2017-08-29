@@ -15,7 +15,16 @@ interface ICommitSummaryProps {
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
   readonly gitHubUser: IGitHubUser | null
+
+  /**
+   * Whether or not the commit body container should
+   * be rendered expanded or not. In expanded mode the
+   * commit body container takes over the diff view
+   * allowing for full height, scrollable reading of
+   * the commit message body.
+   */
   readonly isExpanded: boolean
+
   readonly onExpandChanged: (isExpanded: boolean) => void
 }
 
