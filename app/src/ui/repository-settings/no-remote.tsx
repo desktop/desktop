@@ -7,8 +7,9 @@ import { ButtonGroup } from '../lib/button-group'
 const HelpURL = 'https://help.github.com/articles/about-remote-repositories/'
 
 interface INoRemoteProps {
-  /** The function to call when the users chooses to publish. */
+  /** The function to call when the users chooses to publish to github. */
   readonly onPublish: () => void
+  readonly onUseCustomRemote: () => void
 }
 
 /** The component for when a repository has no remote. */
@@ -26,7 +27,9 @@ export class NoRemote extends React.Component<INoRemoteProps, {}> {
             <Button type="submit" onClick={this.props.onPublish}>
               Publish to GitHub
             </Button>
-            <Button>Setup Custom Remote</Button>
+            <Button onClick={this.props.onUseCustomRemote}>
+              {__DARWIN__ ? 'Setup Custom Remote' : 'Setup custom remote'}
+            </Button>
           </ButtonGroup>
         </DialogFooter>
       </div>
