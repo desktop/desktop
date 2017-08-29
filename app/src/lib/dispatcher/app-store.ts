@@ -191,6 +191,9 @@ export class AppStore {
   /** The user's preferred shell. */
   private selectedShell = DefaultShell
 
+  /** The current repository filter text */
+  private repositoryFilterText: string = ''
+
   private readonly statsStore: StatsStore
 
   /** The function to resolve the current Open in Desktop flow. */
@@ -495,6 +498,7 @@ export class AppStore {
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
+      repositoryFilterText: this.repositoryFilterText,
     }
   }
 
@@ -660,6 +664,11 @@ export class AppStore {
 
       return { selection, changedFiles, diff }
     })
+    this.emitUpdate()
+  }
+
+  public async _setRepositoryFilterText(text: string): Promise<void> {
+    this.repositoryFilterText = text
     this.emitUpdate()
   }
 

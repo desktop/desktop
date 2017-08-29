@@ -45,6 +45,12 @@ interface IRepositoriesListProps {
 
   /** The label for the user's preferred shell. */
   readonly shellLabel: string
+
+  /** The callback to fire when the filter text has changed */
+  readonly onFilterTextChanged: (text: string) => void
+
+  /** The text entered by the user to filter their repository list */
+  readonly filterText: string
 }
 
 const RowHeight = 29
@@ -136,12 +142,17 @@ export class RepositoriesList extends React.Component<
         <RepositoryFilterList
           rowHeight={RowHeight}
           selectedItem={selectedItem}
+          filterText={this.props.filterText}
+          onFilterTextChanged={this.props.onFilterTextChanged}
           renderItem={this.renderItem}
           renderGroupHeader={this.renderGroupHeader}
           onItemClick={this.onItemClick}
           onFilterKeyDown={this.onFilterKeyDown}
           groups={groups}
-          invalidationProps={this.props.repositories}
+          invalidationProps={{
+            repositories: this.props.repositories,
+            filterText: this.props.filterText,
+          }}
         />
       </div>
     )

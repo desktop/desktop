@@ -79,6 +79,7 @@ interface IBranchListProps {
 }
 
 interface IBranchListState {
+  readonly filterText: string
   readonly groups: ReadonlyArray<IFilterListGroup<IBranchListItem>>
   readonly selectedItem: IBranchListItem | null
 }
@@ -107,7 +108,7 @@ function createState(props: IBranchListProps): IBranchListState {
     }
   }
 
-  return { groups, selectedItem }
+  return { filterText: '', groups, selectedItem }
 }
 
 /** The Branches list component. */
@@ -173,6 +174,10 @@ export class BranchList extends React.Component<
     }
   }
 
+  private onFilterTextChanged = (filterText: string) => {
+    this.setState({ filterText })
+  }
+
   public componentWillReceiveProps(nextProps: IBranchListProps) {
     this.setState(createState(nextProps))
   }
@@ -182,6 +187,8 @@ export class BranchList extends React.Component<
       <BranchesFilterList
         className="branches-list"
         rowHeight={RowHeight}
+        filterText={this.state.filterText}
+        onFilterTextChanged={this.onFilterTextChanged}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
