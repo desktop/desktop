@@ -360,3 +360,22 @@ dialog {
     margin-right: var(--spacing-half);
   }
 }
+
+.clone-repository {
+  .dialog-content {
+    padding: 0;
+
+    .row-component:not(:last-child) {
+      margin: 0;
+    }
+  }
+
+  .local-path-field {
+    border-top: var(--base-border);
+    padding: var(--spacing);
+  }
+
+  .clone-repository-list-group-header {
+    padding: var(--spacing);
+  }
+}

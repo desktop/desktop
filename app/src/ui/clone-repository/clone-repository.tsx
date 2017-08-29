@@ -70,8 +70,7 @@ export class CloneRepository extends React.Component<
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
-    this.state = {
-      url: this.props.initialURL || '',
+    this.state = { url: this.props.initialURL || '',
       path: getDefaultDir(),
       loading: false,
       error: null,
@@ -98,7 +97,7 @@ export class CloneRepository extends React.Component<
 
     return (
       <Dialog
-        className="clone-repository"
+        className="clone-repository dialog-no-content-padding"
         title="Clone a repository"
         onSubmit={this.clone}
         onDismissed={this.props.onDismissed}

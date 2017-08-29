@@ -78,7 +78,7 @@ export class CloneGithubRepository extends React.Component<
           {this.renderRepositoryList()}
         </Row>
 
-        <Row>
+        <Row className='local-path-field'>
           <TextBox
             value={this.props.path}
             label={__DARWIN__ ? 'Local Path' : 'Local path'}
