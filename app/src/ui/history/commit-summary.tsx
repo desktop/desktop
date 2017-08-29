@@ -36,6 +36,10 @@ interface ICommitSummaryState {
 
 const maxSummaryLength = 72
 
+/**
+ * Removes whitespace characters from the end of the
+ * string
+ */
 function trimTrailingWhitespace(value: string) {
   return value.replace(/\s+$/, '')
 }
@@ -71,6 +75,10 @@ function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
   return { isOverflowed, summary, body }
 }
 
+/**
+ * Helper function which determines if two commit objects
+ * have the same commit summary and body.
+ */
 function messageEquals(x: Commit, y: Commit) {
   return x.summary === y.summary && x.body === y.body
 }
