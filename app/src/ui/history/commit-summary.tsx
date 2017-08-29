@@ -25,14 +25,17 @@ interface ICommitSummaryState {
   readonly isOverflowed: boolean
 }
 
-const maxSummaryLength = 80
+const maxSummaryLength = 72
 
 function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
   let { summary, body } = props.commit
 
   if (summary.length > maxSummaryLength) {
-    body = `…${summary.substr(maxSummaryLength)}\n\n${body}`
-    summary = `${summary.substr(0, maxSummaryLength)}…`
+    // Truncate at least 3 characters off the end to avoid just an ellipsis
+    // followed by 1-2 characters in the body. This matches dotcom behavior.
+    const truncateLength = maxSummaryLength - 3
+    body = `…${summary.substr(truncateLength)}\n\n${body}`
+    summary = `${summary.substr(0, truncateLength)}…`
   }
 
   return { isOverflowed, summary, body }
