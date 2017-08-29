@@ -12,8 +12,9 @@ Currently Desktop supports these external editors:
  - [Atom](https://atom.io/)
  - [Visual Studio Code](https://code.visualstudio.com/)
  - [Sublime Text](https://www.sublimetext.com/)
+ - [TextMate](https://macromates.com/)
 
-These editors have been chosen because they are cross-platform and provide a
+These editors have been chosen because they are cross-platform and/or provide a
 command line interface that other applications can interact with.
 
 ## Resolving External Editors

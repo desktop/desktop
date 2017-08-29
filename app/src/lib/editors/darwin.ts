@@ -17,6 +17,8 @@ function getBundleIdentifier(editor: ExternalEditor): string {
       return 'com.microsoft.VSCode'
     case ExternalEditor.SublimeText:
       return 'com.sublimetext.3'
+    case ExternalEditor.TextMate:
+      return 'com.macromates.TextMate'
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -40,6 +42,8 @@ function getExecutableShim(
       )
     case ExternalEditor.SublimeText:
       return Path.join(installPath, 'Contents', 'SharedSupport', 'bin', 'subl')
+    case ExternalEditor.TextMate:
+      return Path.join(installPath, 'Contents', 'Resources', 'mate')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -80,10 +84,11 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<FoundEditor> = []
 
-  const [atom, code, sublime] = await Promise.all([
+  const [atom, code, sublime, textmate] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.SublimeText),
+    findApplication(ExternalEditor.TextMate),
   ])
 
   if (atom.installed && atom.pathExists) {
@@ -96,6 +101,10 @@ export async function getAvailableEditors(): Promise<
 
   if (sublime.installed && sublime.pathExists) {
     results.push({ editor: sublime.editor, path: sublime.path })
+  }
+
+  if (textmate.installed && textmate.pathExists) {
+    results.push({ editor: textmate.editor, path: textmate.path })
   }
 
   return results
@@ -119,6 +128,11 @@ export async function getFirstEditorOrDefault(): Promise<FoundEditor | null> {
   const sublime = await findApplication(ExternalEditor.SublimeText)
   if (sublime.installed && sublime.pathExists) {
     return { editor: sublime.editor, path: sublime.path }
+  }
+
+  const textmate = await findApplication(ExternalEditor.TextMate)
+  if (textmate.installed && textmate.pathExists) {
+    return { editor: textmate.editor, path: textmate.path }
   }
 
   return null
