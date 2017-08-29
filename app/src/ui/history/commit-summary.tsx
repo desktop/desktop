@@ -29,8 +29,29 @@ interface ICommitSummaryProps {
 }
 
 interface ICommitSummaryState {
+  /**
+   * The commit message summary, i.e. the first line
+   * in the commit message. Note that this
+   * may differ from the body property in the commit object
+   * passed through props, see the createState method for more
+   * details.
+   */
   readonly summary: string
+
+  /**
+   * The commit message body, i.e. anything after the
+   * first line of text in the commit message. Note that this
+   * may differ from the body property in the commit object
+   * passed through props, see the createState method for more
+   * details.
+   */
   readonly body: string
+
+  /**
+   * Whether or not the commit body text overflows
+   * its container. Used in conjunction with the isExpanded
+   * prop
+   */
   readonly isOverflowed: boolean
 }
 
