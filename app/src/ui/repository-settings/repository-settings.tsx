@@ -74,11 +74,7 @@ export class RepositorySettings extends React.Component<
 
     return errors.map((err, ix) => {
       const key = `err-${ix}`
-      return (
-        <DialogError key={key}>
-          {err}
-        </DialogError>
-      )
+      return <DialogError key={key}>{err}</DialogError>
     })
   }
 
@@ -98,9 +94,7 @@ export class RepositorySettings extends React.Component<
           selectedIndex={this.state.selectedTab}
         >
           <span>Remote</span>
-          <span>
-            {__DARWIN__ ? 'Ignored Files' : 'Ignored files'}
-          </span>
+          <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
         </TabBar>
 
         {this.renderActiveTab()}
@@ -139,7 +133,12 @@ export class RepositorySettings extends React.Component<
             />
           )
         } else {
-          return <NoRemote onPublish={this.onPublish} />
+          return (
+            <NoRemote
+              onUseCustomRemote={this.onUseCustomRemote}
+              onPublish={this.onPublish}
+            />
+          )
         }
       }
       case RepositorySettingsTab.IgnoredFiles: {
@@ -159,6 +158,13 @@ export class RepositorySettings extends React.Component<
   private onPublish = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.PublishRepository,
+      repository: this.props.repository,
+    })
+  }
+
+  private onUseCustomRemote = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.CustomRemote,
       repository: this.props.repository,
     })
   }
