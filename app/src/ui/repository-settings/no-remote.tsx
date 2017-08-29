@@ -1,7 +1,8 @@
 import * as React from 'react'
-import { DialogContent } from '../dialog'
+import { DialogContent, DialogFooter } from '../dialog'
+import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
-import { CallToAction } from '../lib/call-to-action'
+import { ButtonGroup } from '../lib/button-group'
 
 const HelpURL = 'https://help.github.com/articles/about-remote-repositories/'
 
@@ -14,15 +15,21 @@ interface INoRemoteProps {
 export class NoRemote extends React.Component<INoRemoteProps, {}> {
   public render() {
     return (
-      <DialogContent>
-        <CallToAction actionTitle="Publish" onAction={this.props.onPublish}>
-          <div>
-            Publish your repository to GitHub. Need help?{' '}
-            <LinkButton uri={HelpURL}>Learn more</LinkButton> about remote
-            repositories.
-          </div>
-        </CallToAction>
-      </DialogContent>
+      <div>
+        <DialogContent>
+          Publish your repository to GitHub. Need help?{' '}
+          <LinkButton uri={HelpURL}>Learn more</LinkButton> about remote
+          repositories.
+        </DialogContent>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type="submit" onClick={this.props.onPublish}>
+              Publish to GitHub
+            </Button>
+            <Button>Setup Custom Remote</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </div>
     )
   }
 }
