@@ -855,14 +855,8 @@ export class AppStore {
     }
 
     const watcher = new IndexWatcher(repository)
-    watcher.on('create', () => {
-      this.updateRepositoryState(repository, state => ({ isIndexLocked: true }))
-      this.emitUpdate()
-    })
-    watcher.on('delete', () => {
-      this.updateRepositoryState(repository, state => ({
-        isIndexLocked: false,
-      }))
+    watcher.on('index-changed', isIndexLocked => {
+      this.updateRepositoryState(repository, state => ({ isIndexLocked }))
       this.emitUpdate()
     })
     watcher.start()

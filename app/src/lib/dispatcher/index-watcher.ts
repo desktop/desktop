@@ -24,6 +24,17 @@ export class IndexWatcher extends EventEmitter {
     this.gitDir = Path.join(repository.path, '.git')
   }
 
+  public on(
+    event: 'index-changed',
+    listener: (isIndexLocked: boolean) => void
+  ): this {
+    return this.on(event, listener)
+  }
+
+  private onChanged = (isIndexLocked: boolean) => {
+    this.emit('index-changed', isIndexLocked)
+  }
+
   private onChange = (event: string, filename: string) => {
     const isValidPath = filename === 'index.lock'
     if (!isValidPath) {
@@ -33,7 +44,7 @@ export class IndexWatcher extends EventEmitter {
     Fs.stat(Path.join(this.gitDir, filename), (err, stats) => {
       if (err) {
         if (err.code === 'ENOENT') {
-          this.emit('delete')
+          this.onChanged(false)
         } else {
           log.warn('IndexWatcher encounted an unexpected error', err)
         }
@@ -41,7 +52,7 @@ export class IndexWatcher extends EventEmitter {
       }
 
       if (event === 'rename') {
-        this.emit('create')
+        this.onChanged(true)
         return
       }
 
