@@ -40,6 +40,19 @@ function trimTrailingWhitespace(value: string) {
   return value.replace(/\s+$/, '')
 }
 
+/**
+ * Creates the state object for the CommitSummary component.
+ *
+ * Ensures that the commit summary never exceeds 72 characters
+ * and wraps it into the commit body if it does.
+ *
+ * @param isOverflowed Whether or not the component should render
+ *                     the commit body in expanded mode, see the
+ *                     documentation for the isOverflowed state
+ *                     property
+ *
+ * @param props        The current commit summary prop object.
+ */
 function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
   let summary = trimTrailingWhitespace(props.commit.summary)
   let body = trimTrailingWhitespace(props.commit.body)
