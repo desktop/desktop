@@ -376,6 +376,12 @@ dialog {
   }
 
   .clone-repository-list-group-header {
-    padding: var(--spacing);
+    border-bottom: var(--base-border);
+    border-top: var(--base-border);
+    background: var(--box-alt-background-color);
+    color: var(--text-secondary-color);
+    padding: var(--spacing-third) var(--spacing);
+
+    flex-grow: 1;
   }
 }
