@@ -20,7 +20,17 @@ interface ICommitSummaryProps {
 }
 
 interface ICommitSummaryState {
+  readonly summary: string
+  readonly body: string
   readonly isOverflowed: boolean
+}
+
+function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
+  return {
+    isOverflowed,
+    summary: props.commit.summary,
+    body: props.commit.body,
+  }
 }
 
 export class CommitSummary extends React.Component<
@@ -34,7 +44,7 @@ export class CommitSummary extends React.Component<
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
-    this.state = { isOverflowed: false }
+    this.state = createState(false, props)
 
     const ResizeObserverClass: typeof ResizeObserver = (window as any)
       .ResizeObserver
@@ -81,7 +91,7 @@ export class CommitSummary extends React.Component<
 
   private renderExpander() {
     if (
-      !this.props.commit.body.length ||
+      !this.state.body.length ||
       (!this.props.isExpanded && !this.state.isOverflowed)
     ) {
       return null
@@ -133,19 +143,19 @@ export class CommitSummary extends React.Component<
 
   public componentWillUpdate(nextProps: ICommitSummaryProps) {
     if (nextProps.commit.body !== this.props.commit.body) {
-      this.setState({ isOverflowed: false })
+      this.setState(createState(false, nextProps))
     }
   }
 
-  public componentDidUpdate(prevProps: ICommitSummaryProps) {
+  public componentDidUpdate(
+    prevProps: ICommitSummaryProps,
+    prevState: ICommitSummaryState
+  ) {
     // No need to check if it overflows if we're expanded
     if (!this.props.isExpanded) {
       // If the body has changed or we've just toggled the expanded
       // state we'll recalculate whether we overflow or not.
-      if (
-        prevProps.commit.body !== this.props.commit.body ||
-        prevProps.isExpanded
-      ) {
+      if (prevState.body !== this.state.body || prevProps.isExpanded) {
         this.updateOverflow()
       }
     } else {
@@ -157,7 +167,7 @@ export class CommitSummary extends React.Component<
   }
 
   private renderDescription() {
-    if (!this.props.commit.body) {
+    if (!this.state.body) {
       return null
     }
 
@@ -171,7 +181,7 @@ export class CommitSummary extends React.Component<
             className="commit-summary-description"
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={this.props.commit.body}
+            text={this.state.body}
           />
         </div>
 
@@ -209,7 +219,7 @@ export class CommitSummary extends React.Component<
             className="commit-summary-title"
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={this.props.commit.summary}
+            text={this.state.summary}
           />
 
           <ul className="commit-summary-meta">
