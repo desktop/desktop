@@ -14,8 +14,6 @@ import { Branch, BranchType } from '../../../src/models/branch'
 import { Commit } from '../../../src/models/commit'
 import { CommitIdentity } from '../../../src/models/commit-identity'
 
-const temp = require('temp').track()
-
 async function createAndCheckout(
   repository: Repository,
   name: string
@@ -30,10 +28,6 @@ describe('git/reflog', () => {
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
-  })
-
-  after(() => {
-    temp.cleanupSync()
   })
 
   describe('getRecentBranches', () => {

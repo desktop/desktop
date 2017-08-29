@@ -8,18 +8,12 @@ import { setupFixtureRepository } from '../../fixture-helper'
 import { AppFileStatus } from '../../../src/models/status'
 import { GitProcess } from 'dugite'
 
-const temp = require('temp').track()
-
 describe('git/log', () => {
   let repository: Repository | null = null
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
-  })
-
-  after(() => {
-    temp.cleanupSync()
   })
 
   describe('getCommits', () => {
