@@ -25,12 +25,14 @@ interface ICommitSummaryState {
   readonly isOverflowed: boolean
 }
 
+const maxSummaryLength = 80
+
 function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
   let { summary, body } = props.commit
 
-  if (summary.length > 80) {
-    body = '…' + summary.substr(80) + '\n\n' + body
-    summary = summary.substr(0, 80) + '…'
+  if (summary.length > maxSummaryLength) {
+    body = '…' + summary.substr(maxSummaryLength) + '\n\n' + body
+    summary = summary.substr(0, maxSummaryLength) + '…'
   }
 
   return { isOverflowed, summary, body }
