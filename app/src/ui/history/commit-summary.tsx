@@ -33,6 +33,10 @@ function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
   }
 }
 
+function messageEquals(x: Commit, y: Commit) {
+  return x.summary === y.summary && x.body === y.body
+}
+
 export class CommitSummary extends React.Component<
   ICommitSummaryProps,
   ICommitSummaryState
@@ -142,7 +146,7 @@ export class CommitSummary extends React.Component<
   }
 
   public componentWillUpdate(nextProps: ICommitSummaryProps) {
-    if (nextProps.commit.body !== this.props.commit.body) {
+    if (!messageEquals(nextProps.commit, this.props.commit)) {
       this.setState(createState(false, nextProps))
     }
   }
