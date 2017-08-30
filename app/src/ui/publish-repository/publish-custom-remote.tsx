@@ -63,7 +63,7 @@ export class PublishCustomRemote extends React.Component<
             <Button type="submit" onClick={this.onSubmit}>
               {'Save & Publish'}
             </Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
+            <Button onClick={this.onCancel}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
@@ -71,6 +71,12 @@ export class PublishCustomRemote extends React.Component<
   }
 
   private onSubmit = () => {}
+  private onCancel = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.RepositorySettings,
+      repository: this.props.repository,
+    })
+  }
 
   private onURLChanged = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({ remoteURL: event.currentTarget.value })
