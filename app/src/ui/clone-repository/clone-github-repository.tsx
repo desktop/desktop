@@ -96,8 +96,6 @@ export class CloneGithubRepository extends React.Component<
       return (
         <div className="clone-github-repo clone-loading">
           <Loading /> Loading repositories...
-          <Loading />
-          <p>Loading repositories...</p>
         </div>
       )
     }
