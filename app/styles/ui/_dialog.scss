@@ -370,6 +370,10 @@ dialog {
     }
   }
 
+  .dialog-footer {
+    padding: var(--spacing);  
+  }
+
   .local-path-field {
     border-top: var(--base-border);
     padding: var(--spacing);
