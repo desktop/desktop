@@ -1086,7 +1086,13 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.CustomRemote:
-        return <PublishCustomRemote onDismissed={this.onPopupDismissed} />
+        return (
+          <PublishCustomRemote
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
