@@ -28,13 +28,13 @@ export class CloneGenericRepository extends React.Component<
 
   public render() {
     return (
-      <DialogContent>
-        <p>
-          Enter a repository URL or GitHub username and repository (e.g.,{' '}
-          <Monospaced>hubot/cool-repo</Monospaced>)
-        </p>
+      <DialogContent className="clone-generic-repository">
+        <Row className="url-field-group">
+          <label>
+            Enter a repository URL or GitHub username and repository (e.g.,{' '}
+            <Monospaced>hubot/cool-repo</Monospaced>)
+          </label>
 
-        <Row>
           <TextBox
             placeholder="URL or username/repository"
             value={this.props.url}
@@ -43,7 +43,7 @@ export class CloneGenericRepository extends React.Component<
           />
         </Row>
 
-        <Row>
+        <Row className="clone-url-local-path">
           <TextBox
             value={this.props.path}
             label={__DARWIN__ ? 'Local Path' : 'Local path'}

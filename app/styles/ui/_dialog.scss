@@ -384,4 +384,13 @@ dialog {
 
     flex-grow: 1;
   }
+
+  .url-field-group {
+    flex-direction: column;
+    padding: var(--spacing);
+  }
+
+  .clone-url-local-path {
+    padding: 0 var(--spacing) var(--spacing);
+  }
 }
