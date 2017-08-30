@@ -64,6 +64,10 @@
   .url-field-group {
     flex-direction: column;
     padding: var(--spacing);
+
+    label {
+      margin-bottom: var(--spacing-third);
+    }
   }
 
   .clone-url-local-path {
