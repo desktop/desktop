@@ -24,12 +24,10 @@ export class NoRemote extends React.Component<INoRemoteProps, {}> {
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type="submit" onClick={this.props.onPublish}>
-              Publish to GitHub
-            </Button>
             <Button onClick={this.props.onUseCustomRemote}>
               {__DARWIN__ ? 'Setup Custom Remote' : 'Setup custom remote'}
             </Button>
+            <Button onClick={this.props.onPublish}>Publish to GitHub</Button>
           </ButtonGroup>
         </DialogFooter>
       </div>
