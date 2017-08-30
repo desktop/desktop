@@ -32,6 +32,7 @@
       align-items: center;
 
       .icon {
+        fill: var(--text-secondary-color);
         margin-right: var(--spacing-half);
         width: 16px; // Force a consistent width
         flex-shrink: 0;
