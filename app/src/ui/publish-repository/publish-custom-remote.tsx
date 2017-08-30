@@ -19,6 +19,7 @@ interface IPublishCustomRemoteProps {
 interface IPublishCustomRemoteState {
   readonly disabled: boolean
   readonly remoteURL: string
+  readonly errors?: ReadonlyArray<JSX.Element | string>
 }
 
 export class PublishCustomRemote extends React.Component<
@@ -45,6 +46,7 @@ export class PublishCustomRemote extends React.Component<
         onSubmit={this.onSubmit}
         disabled={this.state.disabled}
       >
+        {this.renderErrors()}
         <DialogContent>
           <Row>
             <TextBox
@@ -72,5 +74,22 @@ export class PublishCustomRemote extends React.Component<
 
   private onURLChanged = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({ remoteURL: event.currentTarget.value })
+  }
+
+  private renderErrors(): JSX.Element[] | null {
+    const errors = this.state.errors
+
+    if (!errors || !errors.length) {
+      return null
+    }
+
+    return errors.map((err, ix) => {
+      const key = `err-${ix}`
+      return (
+        <DialogError key={key}>
+          {err}
+        </DialogError>
+      )
+    })
   }
 }
