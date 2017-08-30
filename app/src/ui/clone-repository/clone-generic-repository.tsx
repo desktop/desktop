@@ -31,7 +31,9 @@ export class CloneGenericRepository extends React.Component<
       <DialogContent className="clone-generic-repository">
         <Row className="url-field-group">
           <label>
-            Enter a repository URL or GitHub username and repository (e.g.,{' '}
+            Enter a repository URL or GitHub username and repository
+            <br />
+            (e.g.,{' '}
             <Monospaced>hubot/cool-repo</Monospaced>)
           </label>
 
