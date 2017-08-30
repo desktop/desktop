@@ -68,4 +68,16 @@
   .clone-url-local-path {
     padding: 0 var(--spacing) var(--spacing);
   }
+
+  .clone-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+
+    .octicon {
+      margin-right: var(--spacing-half);
+    }
+  }
 }
