@@ -10,7 +10,8 @@
   height: 250px;
 
   .filter-list-filter-field {
-    padding: var(--spacing-double) var(--spacing-double) var(--spacing);
+    padding: var(--spacing-double);
+    padding-bottom: var(--spacing);
   }
 
   .clone-repository-list {
