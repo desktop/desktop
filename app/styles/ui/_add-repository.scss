@@ -9,16 +9,20 @@
 .clone-github-repo {
   height: 250px;
 
+  .filter-list-filter-field {
+    padding: var(--spacing-double) var(--spacing-double) var(--spacing);
+  }
+
   .clone-repository-list {
     &-group-header {
       font-weight: var(--font-weight-semibold);
-      padding: var(--spacing);
+      padding: var(--spacing-double);
 
       flex-grow: 1;
     }
 
     &-item {
-      padding: 0 var(--spacing);
+      padding: 0 var(--spacing-double);
     }
 
     &-item {
@@ -50,17 +54,17 @@
   }
 
   .dialog-footer {
-    padding: var(--spacing);
+    padding: var(--spacing-double);
   }
 
   .local-path-field {
     border-top: var(--base-border);
-    padding: var(--spacing);
+    padding: var(--spacing-double);
   }
 
   .url-field-group {
     flex-direction: column;
-    padding: var(--spacing);
+    padding: var(--spacing-double);
 
     label {
       margin-bottom: var(--spacing-third);
@@ -68,7 +72,7 @@
   }
 
   .clone-url-local-path {
-    padding: 0 var(--spacing) var(--spacing);
+    padding: 0 var(--spacing-double) var(--spacing-double);
   }
 
   .clone-loading {
