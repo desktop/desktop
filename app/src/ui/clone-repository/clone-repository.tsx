@@ -97,7 +97,7 @@ export class CloneRepository extends React.Component<
 
     return (
       <Dialog
-        className="clone-repository dialog-no-content-padding"
+        className="clone-repository"
         title="Clone a repository"
         onSubmit={this.clone}
         onDismissed={this.props.onDismissed}
