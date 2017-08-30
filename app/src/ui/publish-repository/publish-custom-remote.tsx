@@ -72,7 +72,33 @@ export class PublishCustomRemote extends React.Component<
     )
   }
 
-  private onSubmit = () => {}
+  private onSubmit = async () => {
+    this.setState({ disabled: true, errors: undefined })
+    const errors = new Array<JSX.Element | string>()
+
+    try {
+      this.props.dispatcher.setRemoteURL(
+        this.props.repository,
+        'origin',
+        this.state.remoteURL
+      )
+    } catch (err) {
+      log.error(
+        `PublishCustomRemote: unable to set remote URL at ${this.state
+          .remoteURL}`,
+        err
+      )
+
+      errors.push(err)
+    }
+
+    if (!errors.length) {
+      this.props.onDismissed()
+    } else {
+      this.setState({ disabled: false, errors })
+    }
+  }
+
   private onCancel = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.RepositorySettings,
