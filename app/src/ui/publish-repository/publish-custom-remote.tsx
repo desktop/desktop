@@ -5,16 +5,15 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
-// import { Repository } from '../../models/repository'
+import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 interface IPublishCustomRemoteProps {
   /** The user to use for publishing. */
   //readonly account: Account
 
-  /** The function called when user clicks cancel button */
+  readonly dispatcher: Dispatcher
+  readonly repository: Repository
   readonly onDismissed: () => void
-
-  // readonly repository: Repository
 }
 
 interface IPublishCustomRemoteState {
