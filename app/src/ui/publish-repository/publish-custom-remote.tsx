@@ -1,11 +1,13 @@
 import * as React from 'react'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
 // import { Account } from '../../models/account'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
+import { PopupType } from '../../lib/app-state'
+import { Repository } from '../../models/repository'
 
 interface IPublishCustomRemoteProps {
   /** The user to use for publishing. */
