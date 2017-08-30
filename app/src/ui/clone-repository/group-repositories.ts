@@ -57,7 +57,7 @@ export function groupRepositories(
 
   const groups = [
     {
-      identifier: 'user repos',
+      identifier: 'Your repositories',
       items: convert(userRepos),
     },
   ]

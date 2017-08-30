@@ -11,11 +11,8 @@
 
   .clone-repository-list {
     &-group-header {
-      border-bottom: var(--base-border);
-      border-top: var(--base-border);
-      background: var(--box-alt-background-color);
-      color: var(--text-secondary-color);
-      padding: var(--spacing-third) var(--spacing);
+      font-weight: var(--font-weight-semibold);
+      padding: var(--spacing);
 
       flex-grow: 1;
     }
