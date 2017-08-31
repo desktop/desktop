@@ -43,33 +43,30 @@
   }
 }
 
+.dialog-content {
+  &.clone-github-repository-content {
+    padding: 0;
+  }
+
+  &.clone-generic-repository-content {
+    padding: var(--spacing-double);
+  }
+}
+
 .clone-repository {
   width: 450px;
-
-  .dialog-content {
-    padding: 0;
-
-    .row-component:not(:last-child) {
-      margin: 0;
-    }
-  }
 
   .local-path-field {
     border-top: var(--base-border);
     padding: var(--spacing-double);
   }
 
-  .url-field-group {
+  .clone-url-row {
     flex-direction: column;
-    padding: var(--spacing-double);
 
     label {
       margin-bottom: var(--spacing-third);
     }
-  }
-
-  .clone-url-local-path {
-    padding: 0 var(--spacing-double) var(--spacing-double);
   }
 
   .clone-loading {

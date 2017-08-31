@@ -73,7 +73,7 @@ export class CloneGithubRepository extends React.Component<
 
   public render() {
     return (
-      <DialogContent>
+      <DialogContent className="clone-github-repository-content">
         <Row>
           {this.renderRepositoryList()}
         </Row>
