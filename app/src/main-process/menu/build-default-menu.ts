@@ -317,7 +317,7 @@ export function buildDefaultMenu(
   }
 
   const contactSupportItem: Electron.MenuItemConstructorOptions = {
-    label: __DARWIN__ ? 'Contact GitHub Support…' : 'Contact GitHub support…',
+    label: __DARWIN__ ? 'Contact GitHub Support…' : '&Contact GitHub support…',
     click() {
       shell.openExternal(
         `https://github.com/contact?from_desktop_app=1&app_version=${app.getVersion()}`
