@@ -17,9 +17,7 @@
   .clone-repository-list {
     &-group-header {
       font-weight: var(--font-weight-semibold);
-      padding: var(--spacing-double);
-
-      flex-grow: 1;
+      padding: var(--spacing) var(--spacing-double);
     }
 
     &-item {
@@ -46,6 +44,10 @@
 .dialog-content {
   &.clone-github-repository-content {
     padding: 0;
+
+    .row-component:not(:last-child) {
+       margin: 0;
+     }
   }
 
   &.clone-generic-repository-content {
