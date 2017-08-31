@@ -84,7 +84,10 @@ interface IBranchListState {
   readonly selectedItem: IBranchListItem | null
 }
 
-function createState(props: IBranchListProps): IBranchListState {
+function createState(
+  props: IBranchListProps,
+  filterText: string
+): IBranchListState {
   const groups = groupBranches(
     props.defaultBranch,
     props.currentBranch,
@@ -108,7 +111,7 @@ function createState(props: IBranchListProps): IBranchListState {
     }
   }
 
-  return { filterText: '', groups, selectedItem }
+  return { filterText, groups, selectedItem }
 }
 
 /** The Branches list component. */
@@ -118,7 +121,7 @@ export class BranchList extends React.Component<
 > {
   public constructor(props: IBranchListProps) {
     super(props)
-    this.state = createState(props)
+    this.state = createState(props, '')
   }
 
   private renderItem = (item: IBranchListItem) => {
@@ -179,7 +182,7 @@ export class BranchList extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: IBranchListProps) {
-    this.setState(createState(nextProps))
+    this.setState(createState(nextProps, this.state.filterText))
   }
 
   public render() {
