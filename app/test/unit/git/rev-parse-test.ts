@@ -11,9 +11,7 @@ import {
   getTopLevelWorkingDirectory,
 } from '../../../src/lib/git/rev-parse'
 import { git } from '../../../src/lib/git/core'
-import { setupFixtureRepository } from '../../fixture-helper'
-
-const temp = require('temp').track()
+import { setupFixtureRepository, mkdirSync } from '../../fixture-helper'
 
 describe('git/rev-parse', () => {
   let repository: Repository | null = null
@@ -21,10 +19,6 @@ describe('git/rev-parse', () => {
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
-  })
-
-  after(() => {
-    temp.cleanupSync()
   })
 
   describe('isGitRepository', () => {
@@ -66,9 +60,7 @@ describe('git/rev-parse', () => {
     })
 
     it('should return correct path for submodules', async () => {
-      const fixturePath = temp.mkdirSync(
-        'get-top-level-working-directory-test-'
-      )
+      const fixturePath = mkdirSync('get-top-level-working-directory-test-')
 
       const firstRepoPath = path.join(fixturePath, 'repo1')
       const secondRepoPath = path.join(fixturePath, 'repo2')
