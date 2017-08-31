@@ -27,7 +27,7 @@ import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError, assertNever } from '../fatal-error'
-import { isGitOnPath } from '../open-shell'
+import { isGitOnPath } from '../is-git-on-path'
 import { shell } from './app-shell'
 import {
   URLActionType,
@@ -42,6 +42,7 @@ import {
 import { installCLI } from '../../ui/lib/install-cli'
 import * as GenericGitAuth from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
+import { Shell } from '../shells'
 
 /**
  * An error handler function.
@@ -783,6 +784,12 @@ export class Dispatcher {
         const repository = await this.openRepository(url, branchToClone)
         if (repository) {
           this.handleCloneInDesktopOptions(repository, action)
+        } else {
+          log.warn(
+            `Open Repository from URL failed, did not find repository: ${url} - payload: ${JSON.stringify(
+              action
+            )}`
+          )
         }
         break
 
@@ -837,6 +844,13 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preferred shell.
+   */
+  public setShell(shell: Shell): Promise<void> {
+    return this.appStore._setShell(shell)
+  }
+
+  /**
    * Reveals a file from a repository in the native file manager.
    * @param repository The currently active repository instance
    * @param path The path of the file relative to the root of the repository
@@ -852,9 +866,12 @@ export class Dispatcher {
   ): Promise<void> {
     const { filepath, pr, branch } = action
 
-    // we need to refetch for a forked PR and check that out
     if (pr && branch) {
+      // we need to refetch for a forked PR and check that out
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
+    }
+
+    if (branch) {
       await this.checkoutBranch(repository, branch)
     }
 

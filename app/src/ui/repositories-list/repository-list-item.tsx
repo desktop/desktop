@@ -24,6 +24,9 @@ interface IRepositoryListItemProps {
 
   /** Does the repository need to be disambiguated in the list? */
   readonly needsDisambiguation: boolean
+
+  /** The label for the user's preferred shell. */
+  readonly shellLabel: string
 }
 
 /** A repository item. */
@@ -87,7 +90,7 @@ export class RepositoryListItem extends React.Component<
 
     const items: ReadonlyArray<IMenuItem> = [
       {
-        label: __DARWIN__ ? 'Open in Terminal' : 'Open command prompt',
+        label: `Open in ${this.props.shellLabel}`,
         action: this.openInShell,
         enabled: !missing,
       },

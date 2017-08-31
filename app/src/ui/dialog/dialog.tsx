@@ -11,6 +11,12 @@ import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 const dismissGracePeriodMs = 250
 
 /**
+ * The time (in milliseconds) that we should wait after focusing before we
+ * re-enable click dismissal. Note that this is only used on Windows.
+ */
+const DisableClickDismissalDelay = 500
+
+/**
  * Title bar height in pixels. Values taken from 'app/styles/_variables.scss'.
  */
 const titleBarHeight = __DARWIN__ ? 22 : 28
@@ -134,6 +140,9 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   private dialogElement: HTMLElement | null = null
   private dismissGraceTimeoutId?: number
 
+  private disableClickDismissalTimeoutId: number | null = null
+  private disableClickDismissal = false
+
   public constructor(props: IDialogProps) {
     super(props)
     this.state = { isAppearing: true }
@@ -148,6 +157,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private scheduleDismissGraceTimeout() {
     this.clearDismissGraceTimeout()
+
     this.dismissGraceTimeoutId = window.setTimeout(
       this.onDismissGraceTimer,
       dismissGracePeriodMs
@@ -187,6 +197,31 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
     this.setState({ isAppearing: true })
     this.scheduleDismissGraceTimeout()
+
+    window.addEventListener('focus', this.onWindowFocus)
+  }
+
+  private onWindowFocus = () => {
+    // On Windows, a click which focuses the window will also get passed down
+    // into the DOM. But we don't want to dismiss the dialog based on that
+    // click. See https://github.com/desktop/desktop/issues/2486.
+    if (__WIN32__) {
+      this.clearClickDismissalTimer()
+
+      this.disableClickDismissal = true
+
+      this.disableClickDismissalTimeoutId = window.setTimeout(() => {
+        this.disableClickDismissal = false
+        this.disableClickDismissalTimeoutId = null
+      }, DisableClickDismissalDelay)
+    }
+  }
+
+  private clearClickDismissalTimer() {
+    if (this.disableClickDismissalTimeoutId) {
+      clearTimeout(this.disableClickDismissalTimeoutId)
+      this.disableClickDismissalTimeoutId = null
+    }
   }
 
   public componentWillUnmount() {
@@ -195,6 +230,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     if (this.state.titleId) {
       releaseUniqueId(this.state.titleId)
     }
+
+    window.removeEventListener('focus', this.onWindowFocus)
   }
 
   public componentDidUpdate() {
@@ -225,6 +262,15 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     const isInTitleBar = e.clientY <= titleBarHeight
 
     if (isInTitleBar) {
+      return
+    }
+
+    // Ignore the first click right after the window's been focused. It could
+    // be the click that focused the window, in which case we don't wanna
+    // dismiss the dialog.
+    if (this.disableClickDismissal) {
+      this.disableClickDismissal = false
+      this.clearClickDismissalTimer()
       return
     }
 

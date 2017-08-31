@@ -19,6 +19,7 @@ import { WindowState } from './window-state'
 import { RetryAction } from './retry-actions'
 import { ExternalEditor } from '../models/editors'
 import { PreferencesTab } from '../models/preferences'
+import { Shell } from './shells'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -156,6 +157,9 @@ export interface IAppState {
 
   /** What type of visual diff mode we should use to compare images */
   readonly imageDiffType: ImageDiffType
+
+  /** The user's preferred shell. */
+  readonly selectedShell: Shell
 }
 
 export enum PopupType {
@@ -181,6 +185,7 @@ export enum PopupType {
   CLIInstalled,
   GenericGitAuthentication,
   ExternalEditorFailed,
+  OpenShellFailed,
 }
 
 export type Popup =
@@ -228,6 +233,7 @@ export type Popup =
       suggestAtom?: boolean
       openPreferences?: boolean
     }
+  | { type: PopupType.OpenShellFailed; message: string }
 
 export enum FoldoutType {
   Repository,
