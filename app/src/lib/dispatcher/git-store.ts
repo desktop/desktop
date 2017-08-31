@@ -16,6 +16,7 @@ import { compare } from '../../lib/compare'
 import { queueWorkHigh } from '../../lib/queue-work'
 
 import {
+  addRemote,
   reset,
   GitResetMode,
   getDefaultRemote,
@@ -715,6 +716,15 @@ export class GitStore {
   public async setRemoteURL(name: string, url: string): Promise<void> {
     await this.performFailableOperation(() =>
       setRemoteURL(this.repository, name, url)
+    )
+    await this.loadCurrentRemote()
+
+    this.emitUpdate()
+  }
+
+  public async addRemote(name: string, url: string): Promise<void> {
+    await this.performFailableOperation(() =>
+      addRemote(this.repository, name, url)
     )
     await this.loadCurrentRemote()
 
