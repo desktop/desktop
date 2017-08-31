@@ -45,11 +45,11 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
     }
 
     if (this.infoDisappearTimeoutId !== null) {
-      clearTimeout(this.infoDisappearTimeoutId)
+      window.clearTimeout(this.infoDisappearTimeoutId)
     }
 
     if (this.transitionGroupDisappearTimeoutId !== null) {
-      clearTimeout(this.transitionGroupDisappearTimeoutId)
+      window.clearTimeout(this.transitionGroupDisappearTimeoutId)
     }
 
     this.infoDisappearTimeoutId = window.setTimeout(
