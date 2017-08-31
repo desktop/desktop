@@ -2184,14 +2184,13 @@ export class AppStore {
     return gitStore.setRemoteURL(name, url)
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _addRemote(
     repository: Repository,
     name: string,
     url: string
   ): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-
-    return gitStore.addRemote(name, url)
+    return addRemote(repository, name, url)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
