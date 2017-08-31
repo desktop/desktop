@@ -77,7 +77,7 @@ export class PublishCustomRemote extends React.Component<
     const errors = new Array<JSX.Element | string>()
 
     try {
-      this.props.dispatcher.setRemoteURL(
+      this.props.dispatcher.addRemote(
         this.props.repository,
         'origin',
         this.state.remoteURL

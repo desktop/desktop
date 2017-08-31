@@ -2184,6 +2184,16 @@ export class AppStore {
     return gitStore.setRemoteURL(name, url)
   }
 
+  public _addRemote(
+    repository: Repository,
+    name: string,
+    url: string
+  ): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+
+    return gitStore.addRemote(name, url)
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _openShell(path: string) {
     this.statsStore.recordOpenShell()

@@ -550,6 +550,10 @@ export class Dispatcher {
     return this.appStore._setRemoteURL(repository, name, url)
   }
 
+  public addRemote(repository: Repository, name: string, url: string) {
+    return this.appStore._addRemote(repository, name, url)
+  }
+
   /** Open the URL in a browser */
   public openInBrowser(url: string): Promise<boolean> {
     return this.appStore._openInBrowser(url)
