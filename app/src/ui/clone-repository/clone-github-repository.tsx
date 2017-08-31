@@ -73,12 +73,12 @@ export class CloneGithubRepository extends React.Component<
 
   public render() {
     return (
-      <DialogContent>
+      <DialogContent className="clone-github-repository-content">
         <Row>
           {this.renderRepositoryList()}
         </Row>
 
-        <Row>
+        <Row className='local-path-field'>
           <TextBox
             value={this.props.path}
             label={__DARWIN__ ? 'Local Path' : 'Local path'}
@@ -94,8 +94,8 @@ export class CloneGithubRepository extends React.Component<
   private renderRepositoryList() {
     if (this.state.loading) {
       return (
-        <div className="clone-github-repo">
-          <Loading />
+        <div className="clone-github-repo clone-loading">
+          <Loading /> Loading repositories...
         </div>
       )
     }

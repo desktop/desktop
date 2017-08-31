@@ -70,8 +70,7 @@ export class CloneRepository extends React.Component<
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
-    this.state = {
-      url: this.props.initialURL || '',
+    this.state = { url: this.props.initialURL || '',
       path: getDefaultDir(),
       loading: false,
       error: null,

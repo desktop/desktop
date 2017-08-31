@@ -28,13 +28,15 @@ export class CloneGenericRepository extends React.Component<
 
   public render() {
     return (
-      <DialogContent>
-        <p>
-          Enter a repository URL or GitHub username and repository (e.g.,{' '}
-          <Monospaced>hubot/cool-repo</Monospaced>)
-        </p>
+      <DialogContent className="clone-generic-repository-content">
+        <Row className="clone-url-row">
+          <label>
+            Enter a repository URL or GitHub username and repository
+            <br />
+            (e.g.,{' '}
+            <Monospaced>hubot/cool-repo</Monospaced>)
+          </label>
 
-        <Row>
           <TextBox
             placeholder="URL or username/repository"
             value={this.props.url}
