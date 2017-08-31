@@ -135,7 +135,7 @@ export class PushBranchCommits extends React.Component<
   private renderButtonGroup() {
     if (renderPublishView(this.props.unPushedCommits)) {
       return (
-        <ButtonGroup destructive={true}>
+        <ButtonGroup>
           <Button type="submit">Cancel</Button>
           <Button onClick={this.onPushOrPublishButtonClick}>
             {__DARWIN__ ? 'Publish Branch' : 'Publish branch'}
@@ -145,7 +145,7 @@ export class PushBranchCommits extends React.Component<
     }
 
     return (
-      <ButtonGroup destructive={true}>
+      <ButtonGroup>
         <Button type="submit" onClick={this.onCreateWithoutPushButtonClick}>
           {__DARWIN__ ? 'Create Without Pushing' : 'Create without pushing'}
         </Button>
