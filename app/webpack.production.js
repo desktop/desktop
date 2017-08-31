@@ -18,6 +18,7 @@ const config = {
       comments: false,
       presets: ['babili'],
     }),
+    new webpack.optimize.ModuleConcatenationPlugin(),
   ],
 }
 

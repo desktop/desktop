@@ -1,5 +1,18 @@
 {
   "releases": {
+    "0.8.1-beta2": [
+      "[Fixed] Branch list not rendered in app - #2531",
+      "[Fixed] Git operations checking certificate store - #2520"
+    ],
+    "0.8.1-beta1": [
+      "[New] 'Open in Shell' now supports multiple shells - #2473",
+      "[Improved] Enhanced image diffs - #2383",
+      "[Improved] Line diffs - #2461",
+      "[Improved] Octicons updated - #2495",
+      "[Fixed] 'Include All' checkbox not in sync with partial selection - #2493",
+      "[Fixed] Copied text from diff removed valid characters - #2499",
+      "[Fixed] Click-focus on Windows would dismiss dialog - #2488"
+    ],
     "0.8.1-beta0": [],
     "0.8.0": [
       "[New] Added commit context menu - #2434",

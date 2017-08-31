@@ -6,20 +6,30 @@ import { Row } from '../../ui/lib/row'
 import { SamplesURL } from '../../lib/stats'
 import { Select } from '../lib/select'
 import { getAvailableEditors } from '../../lib/editors/lookup'
+import { ExternalEditor, parse as parseEditor } from '../../models/editors'
+import {
+  Shell,
+  parse as parseShell,
+  getAvailableShells,
+} from '../../lib/shells'
 
 interface IAdvancedPreferencesProps {
   readonly isOptedOut: boolean
   readonly confirmRepoRemoval: boolean
-  readonly selectedExternalEditor: string
+  readonly selectedExternalEditor: ExternalEditor
+  readonly selectedShell: Shell
   readonly onOptOutSet: (checked: boolean) => void
   readonly onConfirmRepoRemovalSet: (checked: boolean) => void
-  readonly onSelectedEditorChanged: (editor: string) => void
+  readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
+  readonly onSelectedShellChanged: (shell: Shell) => void
 }
 
 interface IAdvancedPreferencesState {
   readonly reportingOptOut: boolean
-  readonly availableEditors?: ReadonlyArray<string>
-  readonly selectedExternalEditor?: string
+  readonly availableEditors?: ReadonlyArray<ExternalEditor>
+  readonly availableShells?: ReadonlyArray<Shell>
+  readonly selectedExternalEditor: ExternalEditor
+  readonly selectedShell: Shell
   readonly confirmRepoRemoval: boolean
 }
 
@@ -34,25 +44,44 @@ export class Advanced extends React.Component<
       reportingOptOut: this.props.isOptedOut,
       confirmRepoRemoval: this.props.confirmRepoRemoval,
       selectedExternalEditor: this.props.selectedExternalEditor,
+      selectedShell: this.props.selectedShell,
     }
   }
 
   public async componentDidMount() {
-    const availableEditors = await getAvailableEditors()
-    const editorLabels = availableEditors.map(editor => editor.editor)
-    let selectedExternalEditor = this.props.selectedExternalEditor
+    const [availableEditors, availableShells] = await Promise.all([
+      getAvailableEditors(),
+      getAvailableShells(),
+    ])
 
-    if (editorLabels.length) {
-      const indexOf = editorLabels.indexOf(selectedExternalEditor)
+    const editors = availableEditors.map(editor => editor.editor)
+    let selectedExternalEditor = this.props.selectedExternalEditor
+    if (editors.length) {
+      const indexOf = editors.indexOf(selectedExternalEditor)
       if (indexOf === -1) {
         // if the editor cannot be found, select the first entry
         // so that the user can immediately save changes
-        selectedExternalEditor = editorLabels[0]
+        selectedExternalEditor = editors[0]
         this.props.onSelectedEditorChanged(selectedExternalEditor)
       }
     }
 
-    this.setState({ availableEditors: editorLabels, selectedExternalEditor })
+    const shells = availableShells.map(s => s.shell)
+    let selectedShell = this.props.selectedShell
+    if (availableShells.length) {
+      const indexOf = shells.indexOf(selectedShell)
+      if (indexOf === -1) {
+        selectedShell = shells[0]
+        this.props.onSelectedShellChanged(selectedShell)
+      }
+    }
+
+    this.setState({
+      availableEditors: editors,
+      selectedExternalEditor,
+      availableShells: shells,
+      selectedShell,
+    })
   }
 
   private onReportingOptOutChanged = (
@@ -76,9 +105,17 @@ export class Advanced extends React.Component<
   private onSelectedEditorChanged = (
     event: React.FormEvent<HTMLSelectElement>
   ) => {
-    const value = event.currentTarget.value
+    const value = parseEditor(event.currentTarget.value)
     this.setState({ selectedExternalEditor: value })
     this.props.onSelectedEditorChanged(value)
+  }
+
+  private onSelectedShellChanged = (
+    event: React.FormEvent<HTMLSelectElement>
+  ) => {
+    const value = parseShell(event.currentTarget.value)
+    this.setState({ selectedShell: value })
+    this.props.onSelectedShellChanged(value)
   }
 
   public reportDesktopUsageLabel() {
@@ -128,11 +165,32 @@ export class Advanced extends React.Component<
     )
   }
 
+  private renderSelectedShell() {
+    const options = this.state.availableShells || []
+
+    return (
+      <Select
+        label="Shell"
+        value={this.state.selectedShell}
+        onChange={this.onSelectedShellChanged}
+      >
+        {options.map(n =>
+          <option key={n} value={n}>
+            {n}
+          </option>
+        )}
+      </Select>
+    )
+  }
+
   public render() {
     return (
       <DialogContent>
         <Row>
           {this.renderExternalEditor()}
+        </Row>
+        <Row>
+          {this.renderSelectedShell()}
         </Row>
         <Row>
           <Checkbox
