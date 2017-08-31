@@ -27,7 +27,7 @@ export type FoundEditor = {
   /**
    * The friendly name of the editor, to be used in labels
    */
-  editor: string
+  editor: ExternalEditor
   /**
    * The executable associated with the editor to launch
    */

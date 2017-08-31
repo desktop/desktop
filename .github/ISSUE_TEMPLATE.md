@@ -38,7 +38,7 @@ issue:
  - If you are on macOS, launch `About This Mac` and write down the OS version
    listed.
  - If you are on Windows, open `Command Prompt` and attach the output of this
-   command*: `cmd /c ver`
+   command: `cmd /c ver`
 
 -->
 
