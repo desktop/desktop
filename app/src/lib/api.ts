@@ -82,18 +82,20 @@ export interface IAPIMentionableUser {
 }
 
 /**
+ * `null` can be returned by the API for legacy reasons. A non-null value is
+ * set for the primary email address currently, but in the future visibility
+ * may be defined for each email address.
+ */
+export type EmailVisibility = 'public' | 'private' | null
+
+/**
  * Information about a user's email as returned by the GitHub API.
  */
 export interface IAPIEmail {
   readonly email: string
   readonly verified: boolean
   readonly primary: boolean
-  /**
-   * `null` can be returned by the API for legacy reasons. A non-null value is
-   * set for the primary email address currently, but in the future visibility
-   * may be defined for each email address.
-   */
-  readonly visibility: 'public' | 'private' | null
+  readonly visibility: EmailVisibility
 }
 
 /** Information about an issue as returned by the GitHub API. */
