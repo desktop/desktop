@@ -25,11 +25,6 @@ export function lookupPreferredEmail(
     return primary
   }
 
-  const firstPublic = emails.find(e => e.visibility === 'public')
-  if (firstPublic) {
-    return firstPublic
-  }
-
   const noReply = emails.find(e =>
     e.email.toLowerCase().endsWith('@users.noreply.github.com')
   )

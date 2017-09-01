@@ -62,33 +62,6 @@ describe('emails', () => {
     expect(result!.email).to.equal('my-primary-email@example.com')
   })
 
-  it('returns the first public email', () => {
-    const emails: IAPIEmail[] = [
-      {
-        email: 'shiftkey@example.com',
-        primary: false,
-        verified: true,
-        visibility: 'public',
-      },
-      {
-        email: 'shiftkey@users.noreply.github.com',
-        primary: false,
-        verified: true,
-        visibility: null,
-      },
-      {
-        email: 'my-primary-email@example.com',
-        primary: true,
-        verified: true,
-        visibility: 'private',
-      },
-    ]
-
-    const result = lookupPreferredEmail(emails)
-    expect(result).to.not.equal(null)
-    expect(result!.email).to.equal('shiftkey@example.com')
-  })
-
   it('returns the noreply if there is no public address', () => {
     const emails: IAPIEmail[] = [
       {
