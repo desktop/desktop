@@ -288,7 +288,7 @@ export class Dispatcher {
   }
 
   /** Publish the repository to GitHub with the given properties. */
-  public publishRepository(
+  public publishGitHubRepository(
     repository: Repository,
     name: string,
     description: string,
@@ -296,7 +296,7 @@ export class Dispatcher {
     account: Account,
     org: IAPIUser | null
   ): Promise<Repository> {
-    return this.appStore._publishRepository(
+    return this.appStore._publishGitHubRepository(
       repository,
       name,
       description,
@@ -304,6 +304,11 @@ export class Dispatcher {
       account,
       org
     )
+  }
+
+  /** Publish the repository to a generic server */
+  public publishRepository(repository: Repository, url: string) {
+    return this.appStore._publishRepository(repository, url)
   }
 
   /**
@@ -548,10 +553,6 @@ export class Dispatcher {
     url: string
   ): Promise<void> {
     return this.appStore._setRemoteURL(repository, name, url)
-  }
-
-  public addRemote(repository: Repository, name: string, url: string) {
-    return this.appStore._addRemote(repository, name, url)
   }
 
   /** Open the URL in a browser */

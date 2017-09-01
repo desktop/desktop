@@ -208,7 +208,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     const settings = this.state.publishSettings
 
     try {
-      await this.props.dispatcher.publishRepository(
+      await this.props.dispatcher.publishGitHubRepository(
         this.props.repository,
         settings.name,
         settings.description,
