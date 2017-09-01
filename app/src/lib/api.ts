@@ -223,16 +223,9 @@ export class API {
   }
 
   /** Fetch the current user's emails. */
-    const isDotCom = this.endpoint === getDotComAPIEndpoint()
-
-    // workaround for /user/public_emails throwing a 500
-    // while we investigate the API issue
-    // see https://github.com/desktop/desktop/issues/1508 for context
   public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
     try {
-      // GitHub Enterprise does not have the concept of private emails
-      const apiPath = isDotCom ? 'user/public_emails' : 'user/emails'
-      const response = await this.request('GET', apiPath)
+      const response = await this.request('GET', 'user/emails')
       const result = await parsedResponse<ReadonlyArray<IAPIEmail>>(response)
 
       return Array.isArray(result) ? result : []
