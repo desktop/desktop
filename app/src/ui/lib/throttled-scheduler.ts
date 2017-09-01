@@ -19,12 +19,12 @@ export class ThrottledScheduler {
    * as no other functions are queued.
    */
   public queue(func: Function) {
-    clearTimeout(this.timeoutId)
+    window.clearTimeout(this.timeoutId)
     this.timeoutId = window.setTimeout(func, this.delay)
   }
 
   /** Resets the scheduler and unschedules queued callback (if any) */
   public clear() {
-    clearTimeout(this.timeoutId)
+    window.clearTimeout(this.timeoutId)
   }
 }

@@ -48,7 +48,7 @@ export class RelativeTime extends React.Component<
 
   private clearTimer() {
     if (this.timer) {
-      clearTimeout(this.timer)
+      window.clearTimeout(this.timer)
       this.timer = null
     }
   }

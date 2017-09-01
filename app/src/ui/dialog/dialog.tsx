@@ -150,7 +150,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private clearDismissGraceTimeout() {
     if (this.dismissGraceTimeoutId !== undefined) {
-      clearTimeout(this.dismissGraceTimeoutId)
+      window.clearTimeout(this.dismissGraceTimeoutId)
       this.dismissGraceTimeoutId = undefined
     }
   }
@@ -219,7 +219,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private clearClickDismissalTimer() {
     if (this.disableClickDismissalTimeoutId) {
-      clearTimeout(this.disableClickDismissalTimeoutId)
+      window.clearTimeout(this.disableClickDismissalTimeoutId)
       this.disableClickDismissalTimeoutId = null
     }
   }
