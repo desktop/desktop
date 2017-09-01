@@ -1,4 +1,4 @@
-import { IEmail } from '../models/email'
+import { IAPIEmail } from './api'
 
 /**
  * Lookup a suitable email address to display in the application, based on the
@@ -13,8 +13,9 @@ import { IEmail } from '../models/email'
  * @param emails array of email addresses associated with an account
  */
 export function lookupPreferredEmail(
-  emails: ReadonlyArray<IEmail>
-): IEmail | null {
+  emails: ReadonlyArray<IAPIEmail>
+): IAPIEmail | null {
+  debugger
   if (emails.length === 0) {
     return null
   }
