@@ -58,4 +58,12 @@ describe('URL remote parsing', () => {
     expect(remote!.owner).to.equal('hubot')
     expect(remote!.name).to.equal('repo')
   })
+
+  it('parses SSH URLs with the ssh prefix', () => {
+    const remote = parseRemote('ssh://git@github.com/hubot/repo')
+    expect(remote).not.to.equal(null)
+    expect(remote!.hostname).to.equal('github.com')
+    expect(remote!.owner).to.equal('hubot')
+    expect(remote!.name).to.equal('repo')
+  })
 })
