@@ -28,7 +28,7 @@ export class IndexWatcher extends EventEmitter {
     event: 'index-changed',
     listener: (isIndexLocked: boolean) => void
   ): this {
-    return this.on(event, listener)
+    return super.on(event, listener)
   }
 
   private onChanged = (isIndexLocked: boolean) => {
