@@ -26,7 +26,6 @@ interface ICloneGithubRepositoryProps {
 
 interface ICloneGithubRepositoryState {
   readonly loading: boolean
-  readonly repositoryName: string
   readonly repositories: ReadonlyArray<
     IFilterListGroup<IClonableRepositoryListItem>
   >
@@ -47,7 +46,6 @@ export class CloneGithubRepository extends React.Component<
 
     this.state = {
       loading: false,
-      repositoryName: '',
       repositories: [],
       selectedItem: null,
     }
