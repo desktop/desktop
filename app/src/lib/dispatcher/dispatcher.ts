@@ -980,4 +980,11 @@ export class Dispatcher {
   public installGlobalLFSFilters(): Promise<void> {
     return this.appStore._installGlobalLFSFilters()
   }
+
+  /** Install the LFS filters */
+  public installLFSHooks(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    return this.appStore._installLFSHooks(repositories)
+  }
 }
