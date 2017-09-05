@@ -1,5 +1,4 @@
 import * as Path from 'path'
-import * as FS from 'fs'
 import * as React from 'react'
 import { remote } from 'electron'
 import { Button } from '../lib/button'
