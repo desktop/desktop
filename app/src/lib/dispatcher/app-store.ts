@@ -100,7 +100,7 @@ import {
 import {
   installGlobalLFSFilters,
   isUsingLFS,
-  installLFSFilters,
+  installLFSHooks,
 } from '../git/lfs'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -2580,7 +2580,7 @@ export class AppStore {
   ): Promise<void> {
     for (const repo of repositories) {
       try {
-        await installLFSFilters(repo)
+        await installLFSHooks(repo)
       } catch (error) {
         this.emitError(error)
       }
