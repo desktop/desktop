@@ -153,7 +153,7 @@ app.on('ready', () => {
     'update-preferred-app-menu-item-labels',
     (
       event: Electron.IpcMessageEvent,
-      labels: { editor: string; shell: string }
+      labels: { editor?: string; shell: string }
     ) => {
       menu = buildDefaultMenu(labels.editor, labels.shell)
       Menu.setApplicationMenu(menu)

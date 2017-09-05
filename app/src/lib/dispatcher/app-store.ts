@@ -912,8 +912,12 @@ export class AppStore {
 
   /** Update the menu with the names of the user's preferred apps. */
   private updatePreferredAppMenuItemLabels() {
+    const editorLabel = this.selectedExternalEditor
+      ? `Open in ${this.selectedExternalEditor}`
+      : undefined
+
     updatePreferredAppMenuItemLabels({
-      editor: `Open in ${this.selectedExternalEditor}`,
+      editor: editorLabel,
       shell: `Open in ${this.selectedShell}`,
     })
   }
