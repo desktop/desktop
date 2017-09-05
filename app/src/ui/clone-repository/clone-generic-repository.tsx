@@ -6,14 +6,21 @@ import { DialogContent } from '../dialog'
 import { Monospaced } from '../lib/monospaced'
 
 interface ICloneGenericRepositoryProps {
+  /** The URL to clone. */
   readonly url: string
 
+  /** The path to which the repository should be cloned. */
   readonly path: string
 
+  /** Called when the destination path changes. */
   readonly onPathChanged: (path: string) => void
 
+  /** Called when the URL to clone changes. */
   readonly onUrlChanged: (url: string) => void
 
+  /**
+   * Called when the user should be prompted to choose a directory to clone to.
+   */
   readonly onChooseDirectory: () => Promise<string | undefined>
 }
 
