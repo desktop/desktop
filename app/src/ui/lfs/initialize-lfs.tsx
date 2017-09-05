@@ -35,6 +35,7 @@ export class InitializeLFS extends React.Component<IInitializeLFSProps, {}> {
   public render() {
     return (
       <Dialog
+        id="initialize-lfs"
         title="Initialize Git LFS"
         onDismissed={this.props.onDismissed}
         onSubmit={this.onInitialize}
