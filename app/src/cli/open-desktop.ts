@@ -6,13 +6,13 @@ export function openDesktop(url: string = '') {
   // `ELECTRON_RUN_AS_NODE`. This seems to only happen on Windows.
   delete env['ELECTRON_RUN_AS_NODE']
 
-  let command
-  switch (process.platform) {
-    case 'win32':
-      command = 'start'
-      break
-    default:
-      command = 'open'
+  if (__DARWIN__) {
+    return ChildProcess.spawn('open', [url], { env })
+  } else if (__WIN32__) {
+    return ChildProcess.spawn('cmd', ['/c', 'start', url], { env })
+  } else {
+    throw new Error(
+      `Desktop command line interface not currently supported on platform ${process.platform}`
+    )
   }
-  return ChildProcess.spawn(command, ['x-github-client://' + url], { env })
 }

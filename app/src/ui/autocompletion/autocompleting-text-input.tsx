@@ -221,7 +221,7 @@ export abstract class AutocompletingTextInput<
 
     // This is pretty gross. Clicking on the list moves focus off the text area.
     // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
-    setTimeout(() => {
+    window.setTimeout(() => {
       const element = this.element
       if (element) {
         element.focus()

@@ -45,8 +45,8 @@
     "awesome-typescript-loader": "^3.1.2",
     "aws-sdk": "^2.23.0",
     "babel-core": "^6.24.1",
+    "babel-minify": "^0.2.0",
     "babel-webpack-plugin": "^0.1.1",
-    "babili": "0.0.12",
     "chai": "^4.1.1",
     "chai-as-promised": "^7.1.1",
     "chai-datetime": "^1.4.1",
@@ -106,10 +106,11 @@
     "@types/react-transition-group": "1.1.1",
     "@types/react-virtualized": "9.7.2",
     "@types/strip-ansi": "^3.0.0",
+    "@types/temp": "^0.8.29",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^3.4.0",
     "@types/winston": "^2.2.0",
-    "prettier": "^1.5.0",
+    "prettier": "^1.6.1",
     "tslint-config-prettier": "^1.1.0",
     "tslint-react": "^3.0.0"
   }
