@@ -230,6 +230,7 @@
 ### Branches list
   - [ ] Current branch always shows if repository present
   - [ ] Opening list shows all branches in categorized format with a working filter
+    - [ ] Active branch is highlighted and marked with a check
     - [ ] `ESC` clears the filter
   - [ ] Default branch labeled and listed first, with timestamp
   - [ ] Selecting a branch switches branches
