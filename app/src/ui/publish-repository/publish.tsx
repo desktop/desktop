@@ -91,11 +91,9 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
           <span>Enterprise</span>
         </TabBar>
 
-        {this.state.error
-          ? <DialogError>
-              {this.state.error.message}
-            </DialogError>
-          : null}
+        {this.state.error ? (
+          <DialogError>{this.state.error.message}</DialogError>
+        ) : null}
 
         {this.renderContent()}
         {this.renderFooter()}
@@ -115,11 +113,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         />
       )
     } else {
-      return (
-        <DialogContent>
-          {this.renderSignInTab(tab)}
-        </DialogContent>
-      )
+      return <DialogContent>{this.renderSignInTab(tab)}</DialogContent>
     }
   }
 

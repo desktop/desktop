@@ -19,9 +19,7 @@ export class DialogError extends React.Component<IDialogErrorProps, {}> {
     return (
       <div className="dialog-error">
         <Octicon symbol={OcticonSymbol.stop} />
-        <div>
-          {this.props.children}
-        </div>
+        <div>{this.props.children}</div>
       </div>
     )
   }

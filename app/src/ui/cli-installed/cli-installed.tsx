@@ -15,9 +15,11 @@ export class CLIInstalled extends React.Component<ICLIInstalledProps, {}> {
     return (
       <Dialog
         title={
-          __DARWIN__
-            ? 'Command Line Tool Installed'
-            : 'Command line tool installed'
+          __DARWIN__ ? (
+            'Command Line Tool Installed'
+          ) : (
+            'Command line tool installed'
+          )
         }
         onDismissed={this.props.onDismissed}
         onSubmit={this.props.onDismissed}

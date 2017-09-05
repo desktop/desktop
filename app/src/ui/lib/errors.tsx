@@ -14,10 +14,6 @@ interface IErrorsProps {
 export class Errors extends React.Component<IErrorsProps, {}> {
   public render() {
     const className = classNames('errors-component', this.props.className)
-    return (
-      <div className={className}>
-        {this.props.children}
-      </div>
-    )
+    return <div className={className}>{this.props.children}</div>
   }
 }
