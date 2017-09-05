@@ -43,11 +43,11 @@ export class SegmentedItem extends React.Component<ISegmentedItemProps, {}> {
   }
 
   public render() {
-    const description = this.props.description
-      ? <p>
-          {this.props.description}
-        </p>
-      : undefined
+    const description = this.props.description ? (
+      <p>{this.props.description}</p>
+    ) : (
+      undefined
+    )
 
     const isSelected = this.props.isSelected
     const className = isSelected ? 'selected' : undefined
@@ -60,9 +60,7 @@ export class SegmentedItem extends React.Component<ISegmentedItemProps, {}> {
         id={this.props.id}
         aria-checked={isSelected ? 'true' : 'false'}
       >
-        <div className="title">
-          {this.props.title}
-        </div>
+        <div className="title">{this.props.title}</div>
         {description}
       </li>
     )

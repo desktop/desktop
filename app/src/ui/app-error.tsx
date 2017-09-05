@@ -128,11 +128,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     const className = monospace ? 'monospace' : undefined
 
-    return (
-      <p className={className}>
-        {error.message}
-      </p>
-    )
+    return <p className={className}>{error.message}</p>
   }
 
   private renderDialog() {
@@ -152,12 +148,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         onDismissed={this.onDismissed}
         disabled={this.state.disabled}
       >
-        <DialogContent>
-          {this.renderErrorMessage(error)}
-        </DialogContent>
-        <DialogFooter>
-          {this.renderFooter(error)}
-        </DialogFooter>
+        <DialogContent>{this.renderErrorMessage(error)}</DialogContent>
+        <DialogFooter>{this.renderFooter(error)}</DialogFooter>
       </Dialog>
     )
   }

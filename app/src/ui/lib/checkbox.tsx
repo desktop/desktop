@@ -81,11 +81,7 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
     const label = this.props.label
     const inputId = this.state.inputId
 
-    return !!label
-      ? <label htmlFor={inputId}>
-          {label}
-        </label>
-      : null
+    return !!label ? <label htmlFor={inputId}>{label}</label> : null
   }
 
   public render() {
