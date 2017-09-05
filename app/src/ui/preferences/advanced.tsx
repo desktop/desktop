@@ -56,8 +56,10 @@ export class Advanced extends React.Component<
 
     const editors = availableEditors.map(editor => editor.editor)
     let selectedExternalEditor = this.props.selectedExternalEditor
-    if (selectedExternalEditor && editors.length) {
-      const indexOf = editors.indexOf(selectedExternalEditor)
+    if (editors.length) {
+      const indexOf = selectedExternalEditor
+        ? editors.indexOf(selectedExternalEditor)
+        : -1
       if (indexOf === -1) {
         // if the editor cannot be found, select the first entry
         // so that the user can immediately save changes
