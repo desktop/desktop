@@ -38,10 +38,15 @@ interface ICloneGithubRepositoryProps {
 }
 
 interface ICloneGithubRepositoryState {
+  /** Are we currently loading the repositories list? */
   readonly loading: boolean
+
+  /** The list of clonable repositories. */
   readonly repositories: ReadonlyArray<
     IFilterListGroup<IClonableRepositoryListItem>
   >
+
+  /** The currently selected item. */
   readonly selectedItem: IClonableRepositoryListItem | null
 }
 
