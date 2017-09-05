@@ -51,6 +51,14 @@ describe('URL remote parsing', () => {
     expect(remote!.name).to.equal('repo')
   })
 
+  it('parses SSH URLs with a trailing slash', () => {
+    const remote = parseRemote('git@github.com:hubot/repo/')
+    expect(remote).not.to.equal(null)
+    expect(remote!.hostname).to.equal('github.com')
+    expect(remote!.owner).to.equal('hubot')
+    expect(remote!.name).to.equal('repo')
+  })
+
   it('parses git URLs', () => {
     const remote = parseRemote('git:github.com/hubot/repo.git')
     expect(remote).not.to.equal(null)
@@ -67,8 +75,24 @@ describe('URL remote parsing', () => {
     expect(remote!.name).to.equal('repo')
   })
 
+  it('parses git URLs with a trailing slash', () => {
+    const remote = parseRemote('git:github.com/hubot/repo/')
+    expect(remote).not.to.equal(null)
+    expect(remote!.hostname).to.equal('github.com')
+    expect(remote!.owner).to.equal('hubot')
+    expect(remote!.name).to.equal('repo')
+  })
+
   it('parses SSH URLs with the ssh prefix', () => {
     const remote = parseRemote('ssh://git@github.com/hubot/repo')
+    expect(remote).not.to.equal(null)
+    expect(remote!.hostname).to.equal('github.com')
+    expect(remote!.owner).to.equal('hubot')
+    expect(remote!.name).to.equal('repo')
+  })
+
+  it('parses SSH URLs with the ssh prefix and trailing slash', () => {
+    const remote = parseRemote('ssh://git@github.com/hubot/repo/')
     expect(remote).not.to.equal(null)
     expect(remote!.hostname).to.equal('github.com')
     expect(remote!.owner).to.equal('hubot')

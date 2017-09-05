@@ -24,9 +24,9 @@ export function parseRemote(url: string): IGitRemoteURL | null {
   // git:github.com/octocat/Hello-World.git
   const regexes = [
     new RegExp('^https?://(?:.+@)?(.+)/(.+)/(.+?)(?:/|.git/?)?$'),
-    new RegExp('^git@(.+):(.+)/(.+?)(?:.git)?$'),
-    new RegExp('^git:(.+)/(.+)/(.+?)(?:.git)?$'),
-    new RegExp('^ssh://git@(.+)/(.+)/(.+?)(?:.git)?$'),
+    new RegExp('^git@(.+):(.+)/(.+?)(?:/|.git)?$'),
+    new RegExp('^git:(.+)/(.+)/(.+?)(?:/|.git)?$'),
+    new RegExp('^ssh://git@(.+)/(.+)/(.+?)(?:/|.git)?$'),
   ]
 
   for (const regex of regexes) {
