@@ -253,3 +253,4 @@
 ### Dotcom
   - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
     - [ ] Clicking icon opens the branch from the Pull Request in Desktop
+  - [ ] If private email is enabled (http://github.com/settings/emails), block pushes to all associated repos on Desktop
