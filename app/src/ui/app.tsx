@@ -76,6 +76,7 @@ import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
+import { installGlobalLFSFilters } from '../lib/git/lfs'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -212,6 +213,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.props.dispatcher.reportStats()
     setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+
+    installGlobalLFSFilters()
   }
 
   private onMenuEvent(name: MenuEvent): any {
