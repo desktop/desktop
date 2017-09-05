@@ -20,6 +20,7 @@ import { CloneGenericRepository } from './clone-generic-repository'
 import { CloneGithubRepository } from './clone-github-repository'
 
 import { enablePreviewFeatures } from '../../lib/feature-flag'
+import { pathExists } from '../../lib/file-system'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -270,30 +271,14 @@ export class CloneRepository extends React.Component<
     })
   }
 
-  private doesPathExist(path: string) {
-    return new Promise<boolean | undefined>((resolve, reject) => {
-      // If the path changed while we were checking, we don't care anymore.
-      if (this.state.path !== path) {
-        return resolve()
-      }
+  private async doesPathExist(path: string) {
+    const exists = await pathExists(path)
+    // If the path changed while we were checking, we don't care anymore.
+    if (this.state.path !== path) {
+      return
+    }
 
-      FS.stat(path, (err, stats) => {
-        if (err) {
-          if (err.code === 'ENOENT') {
-            return resolve(false)
-          }
-
-          return reject(err)
-        }
-
-        //File must already exist
-        if (stats) {
-          return resolve(true)
-        }
-
-        return resolve(false)
-      })
-    })
+    return exists
   }
 
   /**
