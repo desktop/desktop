@@ -66,7 +66,7 @@ describe('clone repository grouping', () => {
     const grouped = groupRepositories(repositories, 'shiftkey')
     expect(grouped.length).to.equal(3)
 
-    expect(grouped[0].identifier).to.equal('user repos')
+    expect(grouped[0].identifier).to.equal('Your repositories')
     expect(grouped[0].items.length).to.equal(1)
 
     let item = grouped[0].items[0]
