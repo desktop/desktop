@@ -70,7 +70,8 @@ export class CloneRepository extends React.Component<
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
-    this.state = { url: this.props.initialURL || '',
+    this.state = {
+      url: this.props.initialURL || '',
       path: getDefaultDir(),
       loading: false,
       error: null,
@@ -111,11 +112,7 @@ export class CloneRepository extends React.Component<
           <span>URL</span>
         </TabBar>
 
-        {error
-          ? <DialogError>
-              {error.message}
-            </DialogError>
-          : null}
+        {error ? <DialogError>{error.message}</DialogError> : null}
 
         {this.renderActiveTab()}
 

@@ -33,8 +33,7 @@ export class CloneGenericRepository extends React.Component<
           <label>
             Enter a repository URL or GitHub username and repository
             <br />
-            (e.g.,{' '}
-            <Monospaced>hubot/cool-repo</Monospaced>)
+            (e.g., <Monospaced>hubot/cool-repo</Monospaced>)
           </label>
 
           <TextBox

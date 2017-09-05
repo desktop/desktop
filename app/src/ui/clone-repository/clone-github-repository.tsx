@@ -74,11 +74,9 @@ export class CloneGithubRepository extends React.Component<
   public render() {
     return (
       <DialogContent className="clone-github-repository-content">
-        <Row>
-          {this.renderRepositoryList()}
-        </Row>
+        <Row>{this.renderRepositoryList()}</Row>
 
-        <Row className='local-path-field'>
+        <Row className="local-path-field">
           <TextBox
             value={this.props.path}
             label={__DARWIN__ ? 'Local Path' : 'Local path'}
