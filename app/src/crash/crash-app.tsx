@@ -122,9 +122,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     return (
       <header>
         <Octicon symbol={OcticonSymbol.stop} className="error-icon" />
-        <h1>
-          {message}
-        </h1>
+        <h1>{message}</h1>
       </header>
     )
   }
@@ -158,19 +156,11 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
       return
     }
 
-    return (
-      <pre className="error">
-        {prepareErrorMessage(error)}
-      </pre>
-    )
+    return <pre className="error">{prepareErrorMessage(error)}</pre>
   }
 
   private renderFooter() {
-    return (
-      <div className="footer">
-        {this.renderQuitButton()}
-      </div>
-    )
+    return <div className="footer">{this.renderQuitButton()}</div>
   }
 
   private renderQuitButton() {

@@ -61,11 +61,7 @@ export class EnterpriseServerEntry extends React.Component<
           placeholder="https://github.example.com"
         />
 
-        {this.props.error
-          ? <Errors>
-              {this.props.error.message}
-            </Errors>
-          : null}
+        {this.props.error ? <Errors>{this.props.error.message}</Errors> : null}
 
         <div className="actions">
           <Button type="submit" disabled={disableSubmission}>

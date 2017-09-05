@@ -92,9 +92,7 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
 
     return (
       <div>
-        <span>
-          {zoomPercent}
-        </span>
+        <span>{zoomPercent}</span>
       </div>
     )
   }

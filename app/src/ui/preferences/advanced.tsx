@@ -129,9 +129,7 @@ export class Advanced extends React.Component<
       // which we display when the select list is empty
       return (
         <div className="select-component no-options-found">
-          <label>
-            {label}
-          </label>
+          <label>{label}</label>
           <span>
             No editors found.{' '}
             <LinkButton uri="https://atom.io/">Install Atom?</LinkButton>
@@ -146,11 +144,11 @@ export class Advanced extends React.Component<
         value={this.state.selectedExternalEditor}
         onChange={this.onSelectedEditorChanged}
       >
-        {options.map(n =>
+        {options.map(n => (
           <option key={n} value={n}>
             {n}
           </option>
-        )}
+        ))}
       </Select>
     )
   }
@@ -164,11 +162,11 @@ export class Advanced extends React.Component<
         value={this.state.selectedShell}
         onChange={this.onSelectedShellChanged}
       >
-        {options.map(n =>
+        {options.map(n => (
           <option key={n} value={n}>
             {n}
           </option>
-        )}
+        ))}
       </Select>
     )
   }
@@ -176,12 +174,8 @@ export class Advanced extends React.Component<
   public render() {
     return (
       <DialogContent>
-        <Row>
-          {this.renderExternalEditor()}
-        </Row>
-        <Row>
-          {this.renderSelectedShell()}
-        </Row>
+        <Row>{this.renderExternalEditor()}</Row>
+        <Row>{this.renderSelectedShell()}</Row>
         <Row>
           <Checkbox
             label={this.reportDesktopUsageLabel()}
@@ -195,9 +189,11 @@ export class Advanced extends React.Component<
           <Checkbox
             label="Show confirmation dialog before removing repositories"
             value={
-              this.state.confirmRepoRemoval
-                ? CheckboxValue.On
-                : CheckboxValue.Off
+              this.state.confirmRepoRemoval ? (
+                CheckboxValue.On
+              ) : (
+                CheckboxValue.Off
+              )
             }
             onChange={this.onConfirmRepoRemovalChanged}
           />
