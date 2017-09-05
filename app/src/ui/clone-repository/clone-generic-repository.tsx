@@ -22,10 +22,6 @@ export class CloneGenericRepository extends React.Component<
   ICloneGenericRepositoryProps,
   {}
 > {
-  public constructor(props: ICloneGenericRepositoryProps) {
-    super(props)
-  }
-
   public render() {
     return (
       <DialogContent className="clone-generic-repository-content">
