@@ -2548,9 +2548,9 @@ export class AppStore {
     }
   }
 
-  public async _isLFSRepository(repository: Repository): Promise<boolean> {
+  private async isUsingLFS(repository: Repository): Promise<boolean> {
     try {
-      return await isLFSRepository(repository)
+      return await isUsingLFS(repository)
     } catch (error) {
       return false
     }

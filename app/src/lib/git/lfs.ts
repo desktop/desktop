@@ -11,9 +11,7 @@ export async function installGlobalLFSFilters(): Promise<void> {
 }
 
 /** Is the repository configured to track any paths with LFS? */
-export async function isLFSRepository(
-  repository: Repository
-): Promise<boolean> {
-  const result = await git(['lfs', 'track'], repository.path, 'isLFSRepository')
+export async function isUsingLFS(repository: Repository): Promise<boolean> {
+  const result = await git(['lfs', 'track'], repository.path, 'isUsingLFS')
   return result.stdout.length > 0
 }

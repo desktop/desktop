@@ -980,9 +980,4 @@ export class Dispatcher {
   public installGlobalLFSFilters(): Promise<void> {
     return this.appStore._installGlobalLFSFilters()
   }
-
-  /** Is the repository configured to track any paths with LFS? */
-  public isLFSRepository(repository: Repository): Promise<boolean> {
-    return this.appStore._isLFSRepository(repository)
-  }
 }
