@@ -59,11 +59,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
       return null
     }
 
-    return (
-      <title>
-        {title}
-      </title>
-    )
+    return <title>{title}</title>
   }
 
   public render() {
@@ -78,9 +74,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
         version="1.1"
         viewBox={viewBox}
       >
-        <path d={symbol.d}>
-          {this.renderTitle()}
-        </path>
+        <path d={symbol.d}>{this.renderTitle()}</path>
       </svg>
     )
   }

@@ -186,9 +186,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
     return (
       <div className="label-container">
-        <label htmlFor={this.state.inputId}>
-          {this.props.label}
-        </label>
+        <label htmlFor={this.state.inputId}>{this.props.label}</label>
         {this.renderLabelLink()}
       </div>
     )

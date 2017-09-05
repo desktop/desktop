@@ -14,13 +14,7 @@ import {
   setupEmptyRepository,
 } from '../../fixture-helper'
 
-const temp = require('temp').track()
-
 describe('git/remote', () => {
-  after(() => {
-    temp.cleanupSync()
-  })
-
   describe('getRemotes', () => {
     it('should return both remotes', async () => {
       const testRepoPath = setupFixtureRepository('repo-with-multiple-remotes')
