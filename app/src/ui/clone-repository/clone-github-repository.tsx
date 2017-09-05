@@ -16,7 +16,6 @@ import {
 } from './group-repositories'
 
 interface ICloneGithubRepositoryProps {
-  readonly api: API
   readonly account: Account
   readonly path: string
   readonly onPathChanged: (path: string) => void
@@ -59,7 +58,8 @@ export class CloneGithubRepository extends React.Component<
       loading: true,
     })
 
-    const result = await this.props.api.fetchRepositories()
+    const api = API.fromAccount(this.props.account)
+    const result = await api.fetchRepositories()
 
     const repositories = result
       ? groupRepositories(result, this.props.account.login)

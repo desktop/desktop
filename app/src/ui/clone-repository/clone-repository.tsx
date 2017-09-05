@@ -185,12 +185,10 @@ export class CloneRepository extends React.Component<
       )
     } else {
       const account = this.props.accounts[0]
-      const api = API.fromAccount(account)
 
       return (
         <CloneGithubRepository
           path={this.state.path}
-          api={api}
           account={account}
           onPathChanged={this.updatePath}
           onGitHubRepositorySelected={this.updateUrl}
