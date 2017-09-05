@@ -2402,18 +2402,33 @@ export class AppStore {
     paths: ReadonlyArray<string>
   ): Promise<ReadonlyArray<Repository>> {
     const addedRepositories = new Array<Repository>()
+    const lfsRepositories = new Array<Repository>()
     for (const path of paths) {
       const validatedPath = await validatedRepositoryPath(path)
       if (validatedPath) {
         const addedRepo = await this.repositoriesStore.addRepository(
           validatedPath
         )
-        const refreshedRepo = await this.refreshGitHubRepositoryInfo(addedRepo)
+        const [refreshedRepo, usingLFS] = await Promise.all([
+          this.refreshGitHubRepositoryInfo(addedRepo),
+          this.isUsingLFS(addedRepo),
+        ])
         addedRepositories.push(refreshedRepo)
+
+        if (usingLFS) {
+          lfsRepositories.push(refreshedRepo)
+        }
       } else {
         const error = new Error(`${path} isn't a git repository.`)
         this.emitError(error)
       }
+    }
+
+    if (lfsRepositories.length > 0) {
+      this._showPopup({
+        type: PopupType.InitializeLFS,
+        repositories: lfsRepositories,
+      })
     }
 
     return addedRepositories

@@ -186,6 +186,7 @@ export enum PopupType {
   GenericGitAuthentication,
   ExternalEditorFailed,
   OpenShellFailed,
+  InitializeLFS,
 }
 
 export type Popup =
@@ -234,6 +235,7 @@ export type Popup =
       openPreferences?: boolean
     }
   | { type: PopupType.OpenShellFailed; message: string }
+  | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
 
 export enum FoldoutType {
   Repository,
