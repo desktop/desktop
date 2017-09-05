@@ -36,6 +36,7 @@ import {
   ExternalEditor,
   parse as parseExternalEditor,
 } from '../../models/editors'
+import { getAvailableEditors } from '../editors'
 import {
   CloningRepository,
   CloningRepositoriesStore,
@@ -879,7 +880,17 @@ export class AppStore {
         : confirmRepoRemovalValue === '1'
 
     const externalEditorValue = localStorage.getItem(externalEditorKey)
-    this.selectedExternalEditor = parseExternalEditor(externalEditorValue)
+    if (externalEditorValue) {
+      const value = parseExternalEditor(externalEditorValue)
+      if (value) {
+        this.selectedExternalEditor = value
+      }
+    } else {
+      const editors = await getAvailableEditors()
+      if (editors.length) {
+        this.selectedExternalEditor = editors[0].editor
+      }
+    }
 
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
