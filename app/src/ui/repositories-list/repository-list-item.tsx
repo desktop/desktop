@@ -61,8 +61,14 @@ export class RepositoryListItem extends React.Component<
         <Octicon symbol={iconForRepository(repository)} />
 
         <div className="name">
-          {prefix ? <span className="prefix">{prefix}</span> : null}
-          <span>{repository.name}</span>
+          {prefix
+            ? <span className="prefix">
+                {prefix}
+              </span>
+            : null}
+          <span>
+            {repository.name}
+          </span>
         </div>
       </div>
     )
