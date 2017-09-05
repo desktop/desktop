@@ -5,18 +5,15 @@ import { LinkButton } from '../lib/link-button'
 import { Row } from '../../ui/lib/row'
 import { SamplesURL } from '../../lib/stats'
 import { Select } from '../lib/select'
-import { getAvailableEditors } from '../../lib/editors/lookup'
 import { ExternalEditor, parse as parseEditor } from '../../models/editors'
-import {
-  Shell,
-  parse as parseShell,
-  getAvailableShells,
-} from '../../lib/shells'
+import { Shell, parse as parseShell } from '../../lib/shells'
 
 interface IAdvancedPreferencesProps {
   readonly isOptedOut: boolean
   readonly confirmRepoRemoval: boolean
+  readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
+  readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   readonly onOptOutSet: (checked: boolean) => void
   readonly onConfirmRepoRemovalSet: (checked: boolean) => void
@@ -26,8 +23,6 @@ interface IAdvancedPreferencesProps {
 
 interface IAdvancedPreferencesState {
   readonly reportingOptOut: boolean
-  readonly availableEditors?: ReadonlyArray<ExternalEditor>
-  readonly availableShells?: ReadonlyArray<Shell>
   readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
   readonly confirmRepoRemoval: boolean
@@ -48,40 +43,31 @@ export class Advanced extends React.Component<
     }
   }
 
-  public async componentDidMount() {
-    const [availableEditors, availableShells] = await Promise.all([
-      getAvailableEditors(),
-      getAvailableShells(),
-    ])
-
-    const editors = availableEditors.map(editor => editor.editor)
-    let selectedExternalEditor = this.props.selectedExternalEditor
+  public async componentWillReceiveProps(nextProps: IAdvancedPreferencesProps) {
+    const editors = nextProps.availableEditors
+    let selectedExternalEditor = nextProps.selectedExternalEditor
     if (editors.length) {
       const indexOf = selectedExternalEditor
         ? editors.indexOf(selectedExternalEditor)
         : -1
       if (indexOf === -1) {
-        // if the editor cannot be found, select the first entry
-        // so that the user can immediately save changes
         selectedExternalEditor = editors[0]
-        this.props.onSelectedEditorChanged(selectedExternalEditor)
+        nextProps.onSelectedEditorChanged(selectedExternalEditor)
       }
     }
 
-    const shells = availableShells.map(s => s.shell)
-    let selectedShell = this.props.selectedShell
-    if (availableShells.length) {
+    const shells = nextProps.availableShells
+    let selectedShell = nextProps.selectedShell
+    if (shells.length) {
       const indexOf = shells.indexOf(selectedShell)
       if (indexOf === -1) {
         selectedShell = shells[0]
-        this.props.onSelectedShellChanged(selectedShell)
+        nextProps.onSelectedShellChanged(selectedShell)
       }
     }
 
     this.setState({
-      availableEditors: editors,
       selectedExternalEditor,
-      availableShells: shells,
       selectedShell,
     })
   }
@@ -132,7 +118,7 @@ export class Advanced extends React.Component<
   }
 
   private renderExternalEditor() {
-    const options = this.state.availableEditors || []
+    const options = this.props.availableEditors
     const label = __DARWIN__ ? 'External Editor' : 'External editor'
 
     if (options.length === 0) {
@@ -170,7 +156,7 @@ export class Advanced extends React.Component<
   }
 
   private renderSelectedShell() {
-    const options = this.state.availableShells || []
+    const options = this.props.availableShells
 
     return (
       <Select
