@@ -70,13 +70,13 @@ export class InitializeLFS extends React.Component<IInitializeLFSProps, {}> {
     } else {
       const plural = this.props.repositories.length === 1
       const pluralizedRepositories = plural
-        ? 'repository uses'
-        : 'repositories use'
+        ? 'This repository uses'
+        : 'The repositories use'
       const pluralizedUse = plural ? 'it' : 'them'
       return (
         <div>
           <p>
-            The {pluralizedRepositories}{' '}
+            {pluralizedRepositories}{' '}
             <LinkButton uri={LFSURL}>Git LFS</LinkButton>. To contribute to{' '}
             {pluralizedUse}, Git LFS must first be initialized. Would you like
             to do so now?
