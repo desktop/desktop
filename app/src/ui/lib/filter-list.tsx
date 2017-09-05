@@ -187,9 +187,9 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     const row = this.state.rows[index]
     if (row.kind === 'item') {
       return this.props.renderItem(row.item)
+    } else {
+      return this.props.renderGroupHeader(row.identifier)
     }
-
-    return this.props.renderGroupHeader(row.identifier)
   }
 
   private onListRef = (instance: List | null) => {
