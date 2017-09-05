@@ -110,7 +110,6 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 const confirmRepoRemovalDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 
-const externalEditorDefault = ExternalEditor.Atom
 const externalEditorKey: string = 'externalEditor'
 
 const imageDiffTypeDefault = ImageDiffType.TwoUp
@@ -187,7 +186,7 @@ export class AppStore {
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
 
-  private selectedExternalEditor: ExternalEditor = externalEditorDefault
+  private selectedExternalEditor?: ExternalEditor
 
   /** The user's preferred shell. */
   private selectedShell = DefaultShell
@@ -2214,8 +2213,11 @@ export class AppStore {
 
   /** Takes a repository path and opens it using the user's configured editor */
   public async _openInExternalEditor(path: string): Promise<void> {
+    const selectedExternalEditor =
+      this.getState().selectedExternalEditor || null
+
     try {
-      const match = await findEditorOrDefault(this.selectedExternalEditor)
+      const match = await findEditorOrDefault(selectedExternalEditor)
       await launchExternalEditor(path, match)
     } catch (error) {
       this.emitError(error)
