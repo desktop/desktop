@@ -16,11 +16,24 @@ import {
 } from './group-repositories'
 
 interface ICloneGithubRepositoryProps {
+  /** The account to clone from. */
   readonly account: Account
+
+  /** The path to clone to. */
   readonly path: string
+
+  /** Called when the destination path changes. */
   readonly onPathChanged: (path: string) => void
+
+  /** Called when the dialog should be dismissed. */
   readonly onDismissed: () => void
+
+  /**
+   * Called when the user should be prompted to choose a destination directory.
+   */
   readonly onChooseDirectory: () => Promise<string | undefined>
+
+  /** Called when a repository is selected. */
   readonly onGitHubRepositorySelected: (url: string) => void
 }
 
