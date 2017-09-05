@@ -231,9 +231,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   ) {
     return (
       <DialogContent>
-        <p>
-          {getWelcomeMessage(state.type)}
-        </p>
+        <p>{getWelcomeMessage(state.type)}</p>
         <Row>
           <TextBox
             label="Authentication code"
@@ -279,11 +277,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
     const disabled = state.loading
 
-    const errors = state.error
-      ? <DialogError>
-          {state.error.message}
-        </DialogError>
-      : null
+    const errors = state.error ? (
+      <DialogError>{state.error.message}</DialogError>
+    ) : null
 
     return (
       <Dialog

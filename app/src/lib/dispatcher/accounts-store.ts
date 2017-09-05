@@ -2,7 +2,7 @@ import { Emitter, Disposable } from 'event-kit'
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
-import { API } from '../api'
+import { API, EmailVisibility } from '../api'
 import { fatalError } from '../fatal-error'
 
 /** The data-only interface for storage. */
@@ -19,6 +19,9 @@ interface IEmail {
    * are provided for associating commit authors with the one GitHub account.
    */
   readonly primary: boolean
+
+  /** The way in which the email is visible. */
+  readonly visibility: EmailVisibility
 }
 
 /** The data-only interface for storage. */

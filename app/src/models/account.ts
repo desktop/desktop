@@ -1,5 +1,4 @@
-import { IEmail } from './email'
-import { getDotComAPIEndpoint } from '../lib/api'
+import { getDotComAPIEndpoint, IAPIEmail } from '../lib/api'
 
 /**
  * A GitHub account, representing the user found on GitHub The Website or GitHub Enterprise.
@@ -14,7 +13,7 @@ export class Account {
   /** The server for this account - GitHub or a GitHub Enterprise instance */
   public readonly endpoint: string
   /** The current list of email addresses associated with the account */
-  public readonly emails: ReadonlyArray<IEmail>
+  public readonly emails: ReadonlyArray<IAPIEmail>
   /** The profile URL to render for this account */
   public readonly avatarURL: string
   /** The database id for this account */
@@ -31,7 +30,7 @@ export class Account {
     login: string,
     endpoint: string,
     token: string,
-    emails: ReadonlyArray<IEmail>,
+    emails: ReadonlyArray<IAPIEmail>,
     avatarURL: string,
     id: number,
     name: string

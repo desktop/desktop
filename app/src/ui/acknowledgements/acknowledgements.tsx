@@ -65,7 +65,9 @@ export class Acknowledgements extends React.Component<
 
   private renderLicenses(licenses: Licenses) {
     const elements = []
-    for (const [index, key] of Object.keys(licenses).sort().entries()) {
+    for (const [index, key] of Object.keys(licenses)
+      .sort()
+      .entries()) {
       // The first entry is Desktop itself. We don't need to thank us.
       if (index === 0) {
         continue
@@ -77,11 +79,7 @@ export class Acknowledgements extends React.Component<
 
       if (repository) {
         const uri = normalizedGitHubURL(repository)
-        nameElement = (
-          <LinkButton uri={uri}>
-            {key}
-          </LinkButton>
-        )
+        nameElement = <LinkButton uri={uri}>{key}</LinkButton>
       } else {
         nameElement = key
       }
@@ -96,11 +94,7 @@ export class Acknowledgements extends React.Component<
         licenseText = 'Unknown license'
       }
 
-      const nameHeader = (
-        <h2 key={`${key}-header`}>
-          {nameElement}
-        </h2>
-      )
+      const nameHeader = <h2 key={`${key}-header`}>{nameElement}</h2>
       const licenseParagraph = (
         <p key={`${key}-text`} className="license-text">
           {licenseText}
@@ -120,11 +114,7 @@ export class Acknowledgements extends React.Component<
     if (licenses) {
       const key = `desktop@${this.props.applicationVersion}`
       const entry = licenses[key]
-      desktopLicense = (
-        <p className="license-text">
-          {entry.sourceText}
-        </p>
-      )
+      desktopLicense = <p className="license-text">{entry.sourceText}</p>
     }
 
     return (

@@ -1,7 +1,6 @@
 import * as OS from 'os'
 import * as URL from 'url'
 import { Account } from '../models/account'
-import { IEmail } from '../models/email'
 
 import {
   request,
@@ -84,18 +83,20 @@ export interface IAPIMentionableUser {
 }
 
 /**
+ * `null` can be returned by the API for legacy reasons. A non-null value is
+ * set for the primary email address currently, but in the future visibility
+ * may be defined for each email address.
+ */
+export type EmailVisibility = 'public' | 'private' | null
+
+/**
  * Information about a user's email as returned by the GitHub API.
  */
 export interface IAPIEmail {
   readonly email: string
   readonly verified: boolean
   readonly primary: boolean
-  /**
-   * `null` can be returned by the API for legacy reasons. A non-null value is
-   * set for the primary email address currently, but in the future visibility
-   * may be defined for each email address.
-   */
-  readonly visibility: 'public' | 'private' | null
+  readonly visibility: EmailVisibility
 }
 
 /** Information about an issue as returned by the GitHub API. */
@@ -235,16 +236,9 @@ export class API {
   }
 
   /** Fetch the current user's emails. */
-  public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
-    const isDotCom = this.endpoint === getDotComAPIEndpoint()
-
-    // workaround for /user/public_emails throwing a 500
-    // while we investigate the API issue
-    // see https://github.com/desktop/desktop/issues/1508 for context
+  public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
     try {
-      // GitHub Enterprise does not have the concept of private emails
-      const apiPath = isDotCom ? 'user/public_emails' : 'user/emails'
-      const response = await this.request('GET', apiPath)
+      const response = await this.request('GET', 'user/emails')
       const result = await parsedResponse<ReadonlyArray<IAPIEmail>>(response)
 
       return Array.isArray(result) ? result : []

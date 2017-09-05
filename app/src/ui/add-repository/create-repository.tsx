@@ -306,11 +306,11 @@ export class CreateRepository extends React.Component<
           value={this.state.gitIgnore}
           onChange={this.onGitIgnoreChange}
         >
-          {options.map(n =>
+          {options.map(n => (
             <option key={n} value={n}>
               {n}
             </option>
-          )}
+          ))}
         </Select>
       </Row>
     )
@@ -331,17 +331,17 @@ export class CreateRepository extends React.Component<
           value={this.state.license}
           onChange={this.onLicenseChange}
         >
-          {featuredLicenses.map(l =>
+          {featuredLicenses.map(l => (
             <option key={l.name} value={l.name}>
               {l.name}
             </option>
-          )}
+          ))}
           <option disabled={true}>────────────────────</option>
-          {nonFeaturedLicenses.map(l =>
+          {nonFeaturedLicenses.map(l => (
             <option key={l.name} value={l.name}>
               {l.name}
             </option>
-          )}
+          ))}
         </Select>
       </Row>
     )
@@ -439,9 +439,11 @@ export class CreateRepository extends React.Component<
             <Checkbox
               label="Initialize this repository with a README"
               value={
-                this.state.createWithReadme
-                  ? CheckboxValue.On
-                  : CheckboxValue.Off
+                this.state.createWithReadme ? (
+                  CheckboxValue.On
+                ) : (
+                  CheckboxValue.Off
+                )
               }
               onChange={this.onCreateWithReadmeChange}
             />

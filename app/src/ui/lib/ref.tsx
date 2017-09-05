@@ -11,10 +11,6 @@ import * as React from 'react'
  */
 export class Ref extends React.Component<{}, {}> {
   public render() {
-    return (
-      <em className="ref-component">
-        {this.props.children}
-      </em>
-    )
+    return <em className="ref-component">{this.props.children}</em>
   }
 }
