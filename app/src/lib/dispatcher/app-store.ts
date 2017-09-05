@@ -878,20 +878,9 @@ export class AppStore {
         ? confirmRepoRemovalDefault
         : confirmRepoRemovalValue === '1'
 
-    const externalEditorValue = localStorage.getItem(externalEditorKey)
+    const externalEditorValue = await this.getSelectedExternalEditor()
     if (externalEditorValue) {
-      const value = parseExternalEditor(externalEditorValue)
-      if (value) {
-        this.selectedExternalEditor = value
-      }
-    } else {
-      const editors = await getAvailableEditors()
-      if (editors.length) {
-        const value = editors[0].editor
-        this.selectedExternalEditor = value
-        // store this value to avoid the lookup next time
-        localStorage.setItem(externalEditorKey, value)
-      }
+      this.selectedExternalEditor = externalEditorValue
     }
 
     const shellValue = localStorage.getItem(shellKey)
@@ -908,6 +897,25 @@ export class AppStore {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+  }
+
+  private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
+    const externalEditorValue = localStorage.getItem(externalEditorKey)
+    if (externalEditorValue) {
+      const value = parseExternalEditor(externalEditorValue)
+      if (value) {
+        return value
+      }
+    } else {
+      const editors = await getAvailableEditors()
+      if (editors.length) {
+        const value = editors[0].editor
+        // store this value to avoid the lookup next time
+        localStorage.setItem(externalEditorKey, value)
+        return value
+      }
+    }
+    return null
   }
 
   /** Update the menu with the names of the user's preferred apps. */
