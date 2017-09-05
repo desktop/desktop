@@ -101,11 +101,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       )
     }
 
-    return (
-      <div className="ahead-behind">
-        {content}
-      </div>
-    )
+    return <div className="ahead-behind">{content}</div>
   }
 
   private getTitle(): string {

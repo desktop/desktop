@@ -7,18 +7,12 @@ import { Repository } from '../../../src/models/repository'
 import { git } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../fixture-helper'
 
-const temp = require('temp').track()
-
 describe('git/core', () => {
   let repository: Repository | null = null
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
-  })
-
-  after(() => {
-    temp.cleanupSync()
   })
 
   describe('error handling', () => {

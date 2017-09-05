@@ -99,11 +99,7 @@ export class CloneRepository extends React.Component<
         onDismissed={this.props.onDismissed}
         loading={this.state.loading}
       >
-        {error
-          ? <DialogError>
-              {error.message}
-            </DialogError>
-          : null}
+        {error ? <DialogError>{error.message}</DialogError> : null}
 
         <DialogContent>
           <p>

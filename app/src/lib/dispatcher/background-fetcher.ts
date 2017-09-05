@@ -75,7 +75,7 @@ export class BackgroundFetcher {
 
     const handle = this.timeoutHandle
     if (handle) {
-      clearTimeout(handle)
+      window.clearTimeout(handle)
       this.timeoutHandle = null
     }
   }
@@ -103,8 +103,6 @@ export class BackgroundFetcher {
       return
     }
 
-    // NB: We need to use `window.` here to make sure TypeScript looks at the
-    // right type declaration :\
     this.timeoutHandle = window.setTimeout(
       () => this.performAndScheduleFetch(repository),
       interval

@@ -5,14 +5,18 @@ import * as FSE from 'fs-extra'
 
 const klawSync = require('klaw-sync')
 
-const temp = require('temp').track()
-
 import { Repository } from '../src/models/repository'
 import { GitProcess } from 'dugite'
 
 type KlawEntry = {
   path: string
 }
+
+import * as temp from 'temp'
+const _temp = temp.track()
+
+export const mkdirSync = _temp.mkdirSync
+export const openSync = _temp.openSync
 
 /**
  * Set up the named fixture repository to be used in a test.
@@ -21,7 +25,7 @@ type KlawEntry = {
  */
 export function setupFixtureRepository(repositoryName: string): string {
   const testRepoFixturePath = Path.join(__dirname, 'fixtures', repositoryName)
-  const testRepoPath = temp.mkdirSync('desktop-git-test-')
+  const testRepoPath = _temp.mkdirSync('desktop-git-test-')
   FSE.copySync(testRepoFixturePath, testRepoPath)
 
   FSE.renameSync(
@@ -51,9 +55,11 @@ export function setupFixtureRepository(repositoryName: string): string {
 
 /**
  * Initializes a new, empty, git repository at in a temporary location.
+ *
+ * @returns the new local repository
  */
 export async function setupEmptyRepository(): Promise<Repository> {
-  const repoPath = temp.mkdirSync('desktop-empty-repo-')
+  const repoPath = _temp.mkdirSync('desktop-empty-repo-')
   await GitProcess.exec(['init'], repoPath)
 
   return new Repository(repoPath, -1, null, false)
@@ -61,6 +67,8 @@ export async function setupEmptyRepository(): Promise<Repository> {
 
 /**
  * Setup a repository and create a merge conflict
+ *
+ * @returns the new local repository
  *
  * The current branch will be 'other-branch' and the merged branch will be
  * 'master' in your test harness.

@@ -32,7 +32,6 @@ import {
 } from '../../../src/models/diff'
 
 import * as fs from 'fs-extra'
-const temp = require('temp').track()
 
 async function getTextDiff(
   repo: Repository,
@@ -49,10 +48,6 @@ describe('git/commit', () => {
   beforeEach(async () => {
     const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
-  })
-
-  after(() => {
-    temp.cleanupSync()
   })
 
   describe('createCommit normal', () => {

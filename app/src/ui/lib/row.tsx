@@ -14,10 +14,6 @@ interface IRowProps {
 export class Row extends React.Component<IRowProps, {}> {
   public render() {
     const className = classNames('row-component', this.props.className)
-    return (
-      <div className={className}>
-        {this.props.children}
-      </div>
-    )
+    return <div className={className}>{this.props.children}</div>
   }
 }

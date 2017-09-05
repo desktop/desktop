@@ -95,19 +95,13 @@ export class EmojiAutocompletionProvider
     const emoji = hit.emoji
 
     if (!hit.matchLength) {
-      return (
-        <div className="title">
-          {emoji}
-        </div>
-      )
+      return <div className="title">{emoji}</div>
     }
 
     return (
       <div className="title">
         {emoji.substr(0, hit.matchStart)}
-        <mark>
-          {emoji.substr(hit.matchStart, hit.matchLength)}
-        </mark>
+        <mark>{emoji.substr(hit.matchStart, hit.matchLength)}</mark>
         {emoji.substr(hit.matchStart + hit.matchLength)}
       </div>
     )
