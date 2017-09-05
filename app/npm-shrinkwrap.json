@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.8.1-beta2",
+  "version": "0.8.1-beta1",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -246,7 +246,7 @@
     },
     "dom-helpers": {
       "version": "3.2.1",
-      "from": "dom-helpers@>=2.4.0 <3.0.0||>=3.0.0 <4.0.0",
+      "from": "dom-helpers@>=3.2.0 <4.0.0",
       "resolved": "https://registry.npmjs.org/dom-helpers/-/dom-helpers-3.2.1.tgz"
     },
     "dom-matches": {
@@ -808,7 +808,7 @@
     },
     "strip-ansi": {
       "version": "3.0.1",
-      "from": "strip-ansi@>=3.0.1 <4.0.0",
+      "from": "strip-ansi@>=3.0.0 <4.0.0",
       "resolved": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-3.0.1.tgz",
       "dev": true
     },
