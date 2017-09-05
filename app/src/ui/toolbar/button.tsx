@@ -136,12 +136,12 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
   }
 
   public render() {
-    const icon = this.props.icon
-      ? <Octicon
-          symbol={this.props.icon}
-          className={classNames('icon', this.props.iconClassName)}
-        />
-      : null
+    const icon = this.props.icon ? (
+      <Octicon
+        symbol={this.props.icon}
+        className={classNames('icon', this.props.iconClassName)}
+      />
+    ) : null
 
     const className = classNames(
       'toolbar-button',
@@ -155,12 +155,14 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
         : undefined
 
     const progress =
-      progressValue !== undefined
-        ? <div
-            className="progress"
-            style={{ transform: `scaleX(${progressValue})` }}
-          />
-        : undefined
+      progressValue !== undefined ? (
+        <div
+          className="progress"
+          style={{ transform: `scaleX(${progressValue})` }}
+        />
+      ) : (
+        undefined
+      )
 
     return (
       <div
@@ -195,18 +197,14 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
     }
 
     const title =
-      this.props.title !== undefined
-        ? <div className="title">
-            {this.props.title}
-          </div>
-        : null
+      this.props.title !== undefined ? (
+        <div className="title">{this.props.title}</div>
+      ) : null
 
     const description =
-      this.props.description !== undefined
-        ? <div className="description">
-            {this.props.description}
-          </div>
-        : null
+      this.props.description !== undefined ? (
+        <div className="description">{this.props.description}</div>
+      ) : null
 
     const style = this.props.style || ToolbarButtonStyle.Standard
     switch (style) {
@@ -221,9 +219,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
       case ToolbarButtonStyle.Subtitle:
         return (
           <div className="text">
-            <div className="title">
-              {this.props.title}
-            </div>
+            <div className="title">{this.props.title}</div>
             {description}
           </div>
         )
