@@ -43,9 +43,7 @@ export class ShellError extends React.Component<IShellErrorProps, {}> {
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          <p>
-            {this.props.message}
-          </p>
+          <p>{this.props.message}</p>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>

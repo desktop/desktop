@@ -115,11 +115,13 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     const countPlural = commitCount === 1 ? 'commit' : 'commits'
     const countText =
-      commitCount === undefined
-        ? 'commits'
-        : <strong>
-            {commitCount} {countPlural}
-          </strong>
+      commitCount === undefined ? (
+        'commits'
+      ) : (
+        <strong>
+          {commitCount} {countPlural}
+        </strong>
+      )
 
     return (
       <p className="merge-info">

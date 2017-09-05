@@ -85,13 +85,9 @@ export class EditorError extends React.Component<IEditorErrorProps, {}> {
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          <p>
-            {this.props.message}
-          </p>
+          <p>{this.props.message}</p>
         </DialogContent>
-        <DialogFooter>
-          {buttonGroup}
-        </DialogFooter>
+        <DialogFooter>{buttonGroup}</DialogFooter>
       </Dialog>
     )
   }

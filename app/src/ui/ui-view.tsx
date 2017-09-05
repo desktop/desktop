@@ -21,10 +21,6 @@ export class UiView extends React.Component<IUiViewProps, {}> {
     const className = classNames(this.props.className, 'ui-view')
     const props = { ...this.props, className }
 
-    return (
-      <div {...props}>
-        {this.props.children}
-      </div>
-    )
+    return <div {...props}>{this.props.children}</div>
   }
 }
