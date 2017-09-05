@@ -97,6 +97,7 @@ import {
   findShellOrDefault,
   launchShell,
 } from '../shells'
+import { installGlobalLFSFilters } from '../git/lfs'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -2537,5 +2538,13 @@ export class AppStore {
       hostname,
       retryAction,
     })
+  }
+
+  public async _installGlobalLFSFilters(): Promise<void> {
+    try {
+      await installGlobalLFSFilters()
+    } catch (error) {
+      this.emitError(error)
+    }
   }
 }

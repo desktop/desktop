@@ -975,4 +975,9 @@ export class Dispatcher {
   public changeImageDiffType(type: ImageDiffType): Promise<void> {
     return this.appStore._changeImageDiffType(type)
   }
+
+  /** Install the global Git LFS filters. */
+  public installGlobalLFSFilters(): Promise<void> {
+    return this.appStore._installGlobalLFSFilters()
+  }
 }
