@@ -49,7 +49,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly rowHeight: number
 
   /** The ordered groups to display in the list. */
-  readonly groups?: ReadonlyArray<IFilterListGroup<T>>
+  readonly groups: ReadonlyArray<IFilterListGroup<T>>
 
   /** The selected item. */
   readonly selectedItem: T | null
@@ -58,7 +58,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly renderItem: (item: T) => JSX.Element | null
 
   /** Called to render header for the group with the given identifier. */
-  readonly renderGroupHeader?: (identifier: string) => JSX.Element | null
+  readonly renderGroupHeader: (identifier: string) => JSX.Element | null
 
   /** Called to render content before/above the filter and list. */
   readonly renderPreList?: () => JSX.Element | null
@@ -189,11 +189,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return this.props.renderItem(row.item)
     }
 
-    if (this.props.renderGroupHeader) {
-      return this.props.renderGroupHeader(row.identifier)
-    }
-
-    return null
+    return this.props.renderGroupHeader(row.identifier)
   }
 
   private onListRef = (instance: List | null) => {
@@ -332,20 +328,18 @@ function createStateUpdate<T extends IFilterListItem>(
   props: IFilterListProps<T>
 ) {
   const flattenedRows = new Array<IFilterListRow<T>>()
-  if (props.groups) {
-    for (const group of props.groups) {
-      const items = group.items.filter(i => {
-        return i.text.toLowerCase().includes(filter.toLowerCase())
-      })
+  for (const group of props.groups) {
+    const items = group.items.filter(i => {
+      return i.text.toLowerCase().includes(filter.toLowerCase())
+    })
 
-      if (!items.length) {
-        continue
-      }
+    if (!items.length) {
+      continue
+    }
 
-      flattenedRows.push({ kind: 'group', identifier: group.identifier })
-      for (const item of items) {
-        flattenedRows.push({ kind: 'item', item })
-      }
+    flattenedRows.push({ kind: 'group', identifier: group.identifier })
+    for (const item of items) {
+      flattenedRows.push({ kind: 'item', item })
     }
   }
 
