@@ -122,9 +122,7 @@ export class ConfigureGitUser extends React.Component<
           />
 
           <Row>
-            <Button type="submit">
-              {this.props.saveLabel || 'Save'}
-            </Button>
+            <Button type="submit">{this.props.saveLabel || 'Save'}</Button>
             {this.props.children}
           </Row>
         </Form>

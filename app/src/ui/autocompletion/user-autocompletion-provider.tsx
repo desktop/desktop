@@ -46,12 +46,8 @@ export class UserAutocompletionProvider
   public renderItem(item: IUserHit): JSX.Element {
     return (
       <div className="user" key={item.username}>
-        <span className="username">
-          {item.username}
-        </span>
-        <span className="name">
-          {item.name}
-        </span>
+        <span className="username">{item.username}</span>
+        <span className="name">{item.name}</span>
       </div>
     )
   }
