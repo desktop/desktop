@@ -887,7 +887,10 @@ export class AppStore {
     } else {
       const editors = await getAvailableEditors()
       if (editors.length) {
-        this.selectedExternalEditor = editors[0].editor
+        const value = editors[0].editor
+        this.selectedExternalEditor = value
+        // store this value to avoid the lookup next time
+        localStorage.setItem(externalEditorKey, value)
       }
     }
 
