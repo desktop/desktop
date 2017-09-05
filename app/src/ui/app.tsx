@@ -130,17 +130,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           const now = performance.now()
           sendReady(now - props.startTime)
 
-          // Loading emoji is super important but maybe less important that
-          // loading the app. So defer it until we have some breathing space.
           requestIdleCallback(() => {
-            props.appStore.loadEmoji()
-
-            this.props.dispatcher.reportStats()
-
-            setInterval(
-              () => this.props.dispatcher.reportStats(),
-              SendStatsInterval
-            )
+            this.performDeferredLaunchActions()
           })
         },
         { timeout: ReadyDelay }
@@ -214,6 +205,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     )
+  }
+
+  private performDeferredLaunchActions() {
+    this.props.appStore.loadEmoji()
+
+    this.props.dispatcher.reportStats()
+    setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
   }
 
   private onMenuEvent(name: MenuEvent): any {
