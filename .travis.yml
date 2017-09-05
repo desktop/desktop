@@ -26,7 +26,7 @@ install:
   - npm prune
   - cd app && npm prune && cd ..
   - npm install
-  - npm ls
+  - npm ls --prod
   - npm ls --dev
 
 script:
