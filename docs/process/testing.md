@@ -42,6 +42,7 @@
 ### Repositories landing page; default no repositories 
   - [ ] Create New Repository (Mac: ⌘N; Windows: Ctrl+N)
     - [ ] Modal opens with name, path (choose option), readme (unchecked), git ignore, license. Name and path mandatory.
+      - [ ] If `Add this repository` warning message appears, clicking it adds to Repo list
     - [ ] `Create Repository` button adds new repo, which is added to Repo list
     - [ ] `Cancel` button does not save any changes made; modal closed
   - [ ] Clone a Repository (Mac: ⇧⌘O; Windows: Ctrl+Shift+O)
