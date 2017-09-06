@@ -5,21 +5,18 @@ import { getActiveCodePage } from '../../src/lib/shell'
 
 describe('shell', () => {
   describe('getActiveCodePage', () => {
-    it('can resolve the current code page on Windows', async () => {
-      if (process.platform !== 'win32') {
-        return
-      }
+    if (process.platform === 'win32') {
+      it('can resolve the current code page on Windows', async () => {
+        const codePage = await getActiveCodePage()
+        expect(codePage).to.be.greaterThan(0)
+      })
+    }
 
-      const codePage = await getActiveCodePage()
-      expect(codePage).to.be.greaterThan(0)
-    })
-
-    it('returns null for non-Windows platforms', async () => {
-      if (process.platform === 'win32') {
-        return
-      }
-      const codePage = await getActiveCodePage()
-      expect(codePage).to.be.null
-    })
+    if (process.platform !== 'win32') {
+      it('returns null for non-Windows platforms', async () => {
+        const codePage = await getActiveCodePage()
+        expect(codePage).to.be.null
+      })
+    }
   })
 })
