@@ -176,7 +176,7 @@ const chcpOutputRegex = /^Active code page: (\d{1,}).*/
  * Code Page 65001 represents UTF-8 character set.
  */
 export function getActiveCodePage(): Promise<number | null> {
-  if (process.platform !== 'win32') {
+  if (!__WIN32__) {
     return Promise.resolve(null)
   }
 
