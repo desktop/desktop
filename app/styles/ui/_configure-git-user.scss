@@ -9,10 +9,8 @@
 
     background: white;
 
-    border-color: var(--box-border-color);
-    border-width: 1px;
-    border-style: solid;
-    border-radius: 3px;
+    border: var(--base-border);
+    border-radius: var(--border-radius);
 
     .header {
       background: rgb(242, 248, 254);
