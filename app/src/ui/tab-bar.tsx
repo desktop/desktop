@@ -12,12 +12,17 @@ export enum TabBarType {
 
 interface ITabBarProps {
   /**
-   * The currently selected tab's key. If a key was not provided, this will be
-   * the selected tab's index.
+   * The currently selected tab's key.
+   *
+   * If a key was not provided, this should be the selected tab's index.
    */
   readonly selectedKey: React.Key
 
-  /** A function which is called when a tab is clicked on. */
+  /**
+   * A function which is called when a tab is clicked on.
+   *
+   * If the tab item wasn't given a key, its index will be used instead.
+   */
   readonly onTabClicked: (key: React.Key) => void
 
   /** The type of TabBar controlling its style */
@@ -28,6 +33,8 @@ interface ITabBarProps {
  * The tab bar component.
  *
  * Set `children` to an array of JSX.Elements to represent the tab bar items.
+ * The childrens' keys will be used to uniquely identify the tab items. If a
+ * child isn't given a key, its index will be used instead.
  */
 export class TabBar extends React.Component<ITabBarProps, {}> {
   private readonly tabRefsByKey = new Map<React.Key, HTMLButtonElement>()
