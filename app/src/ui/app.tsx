@@ -953,6 +953,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             initialURL={popup.initialURL}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
+            initialSelectedTab={popup.initialSelectedTab}
           />
         )
       case PopupType.CreateBranch: {

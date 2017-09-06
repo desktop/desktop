@@ -20,6 +20,7 @@ import { RetryAction } from './retry-actions'
 import { ExternalEditor } from '../models/editors'
 import { PreferencesTab } from '../models/preferences'
 import { Shell } from './shells'
+import { CloneRepositoryTab } from '../models/clone-repository-tab'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -201,7 +202,11 @@ export type Popup =
   | { type: PopupType.RepositorySettings; repository: Repository }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }
-  | { type: PopupType.CloneRepository; initialURL: string | null }
+  | {
+      type: PopupType.CloneRepository
+      initialURL: string | null
+      initialSelectedTab?: CloneRepositoryTab
+    }
   | { type: PopupType.CreateBranch; repository: Repository }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }
