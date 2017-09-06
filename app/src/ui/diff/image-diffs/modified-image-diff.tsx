@@ -148,7 +148,7 @@ export class ModifiedImageDiff extends React.Component<
         {this.renderCurrentDiffType()}
 
         <TabBar
-          selectedKey={this.props.diffType}
+          selectedIndex={this.props.diffType}
           onTabClicked={this.props.onChangeDiffType}
           type={TabBarType.Switch}
         >

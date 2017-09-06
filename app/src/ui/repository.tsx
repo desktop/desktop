@@ -48,7 +48,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         : Tab.History
 
     return (
-      <TabBar selectedKey={selectedTab} onTabClicked={this.onTabClicked}>
+      <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span className="with-indicator">
           <span>Changes</span>
           {hasChanges ? (
