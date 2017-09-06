@@ -4,12 +4,19 @@ import { caseInsensitiveCompare } from '../../lib/compare'
 import { OcticonSymbol } from '../octicons'
 
 export interface IClonableRepositoryListItem extends IFilterListItem {
+  /** The identifier for the item. */
   readonly id: string
+
+  /** The search text. */
   readonly text: string
-  readonly isPrivate: boolean
-  readonly org: string
+
+  /** The name of the repository. */
   readonly name: string
+
+  /** The icon for the repo. */
   readonly icon: OcticonSymbol
+
+  /** The clone URL. */
   readonly url: string
 }
 
@@ -36,10 +43,8 @@ function convert(
       id: repo.html_url,
       text: `${repo.owner.login}/${repo.name}`,
       url: repo.clone_url,
-      org: repo.owner.login,
       name: repo.name,
       icon,
-      isPrivate: repo.private,
     }
   })
 
