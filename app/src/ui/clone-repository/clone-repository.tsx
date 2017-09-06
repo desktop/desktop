@@ -21,6 +21,7 @@ import { CloneGithubRepository } from './clone-github-repository'
 import { enablePreviewFeatures } from '../../lib/feature-flag'
 import { pathExists } from '../../lib/file-system'
 import { assertNever } from '../../lib/fatal-error'
+import { CallToAction } from '../lib/call-to-action'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -190,37 +191,76 @@ export class CloneRepository extends React.Component<
           />
         )
 
-      case CloneRepositoryTab.GitHub: {
-        const account = this.props.dotComAccount
+      case CloneRepositoryTab.GitHub:
+      case CloneRepositoryTab.Enterprise: {
+        const account = this.getAccountForTab(tab)
         if (!account) {
-          return null
+          return this.renderSignIn(tab)
+        } else {
+          return (
+            <CloneGithubRepository
+              path={this.state.path}
+              account={account}
+              onPathChanged={this.updatePath}
+              onGitHubRepositorySelected={this.updateUrl}
+              onChooseDirectory={this.onChooseDirectory}
+              onDismissed={this.props.onDismissed}
+            />
+          )
         }
-
-        return (
-          <CloneGithubRepository
-            path={this.state.path}
-            account={account}
-            onPathChanged={this.updatePath}
-            onGitHubRepositorySelected={this.updateUrl}
-            onChooseDirectory={this.onChooseDirectory}
-            onDismissed={this.props.onDismissed}
-          />
-        )
       }
-      case CloneRepositoryTab.Enterprise:
-        return (
-          <CloneGithubRepository
-            path={this.state.path}
-            account={this.props.enterpriseAccount!}
-            onPathChanged={this.updatePath}
-            onGitHubRepositorySelected={this.updateUrl}
-            onChooseDirectory={this.onChooseDirectory}
-            onDismissed={this.props.onDismissed}
-          />
-        )
     }
 
     return assertNever(tab, `Unknown tab: ${tab}`)
+  }
+
+  private getAccountForTab(tab: CloneRepositoryTab): Account | null {
+    switch (tab) {
+      case CloneRepositoryTab.GitHub:
+        return this.props.dotComAccount
+      case CloneRepositoryTab.Enterprise:
+        return this.props.enterpriseAccount
+      default:
+        return null
+    }
+  }
+
+  private renderSignIn(tab: CloneRepositoryTab) {
+    const signInTitle = __DARWIN__ ? 'Sign In' : 'Sign in'
+    switch (tab) {
+      case CloneRepositoryTab.GitHub:
+        return (
+          <CallToAction actionTitle={signInTitle} onAction={this.signInDotCom}>
+            <div>
+              Sign in to your GitHub.com account to access your repositories.
+            </div>
+          </CallToAction>
+        )
+      case CloneRepositoryTab.Enterprise:
+        return (
+          <CallToAction
+            actionTitle={signInTitle}
+            onAction={this.signInEnterprise}
+          >
+            <div>
+              If you have a GitHub Enterprise account at work, sign in to it to
+              get access to your repositories.
+            </div>
+          </CallToAction>
+        )
+      case CloneRepositoryTab.Generic:
+        return null
+      default:
+        return assertNever(tab, `Unknown sign in tab: ${tab}`)
+    }
+  }
+
+  private signInDotCom = () => {
+    this.props.dispatcher.showDotComSignInDialog()
+  }
+
+  private signInEnterprise = () => {
+    this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
   private updatePath = (path: string) => {
