@@ -65,12 +65,12 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
 
     const delta = direction === 'next' ? 1 : -1
 
-    const index = children.findIndex((c, i) => this.getChildKey(c, i) === key)
+    const index = children.findIndex((c, i) => (c.key || i) === key)
 
     // http://javascript.about.com/od/problemsolving/a/modulobug.htm
     const nextTabIndex = (index + delta + children.length) % children.length
     const nextChild = children[nextTabIndex]
-    const nextKey = this.getChildKey(nextChild, nextTabIndex)
+    const nextKey = nextChild.key || nextTabIndex
     const button = this.tabRefsByKey.get(nextKey)
 
     if (button) {
@@ -92,10 +92,6 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
     }
   }
 
-  private getChildKey(child: JSX.Element, index: number): React.Key {
-    return child.key == null ? index : child.key
-  }
-
   private renderItems() {
     const children = this.props.children as ReadonlyArray<JSX.Element> | null
     if (!children) {
@@ -103,7 +99,7 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
     }
 
     return children.map((child, index) => {
-      const key = this.getChildKey(child, index)
+      const key = child.key || index
       const selected = key === this.props.selectedKey
       return (
         <TabBarWrapperItem
