@@ -112,8 +112,8 @@ export class CloneRepository extends React.Component<
           onTabClicked={this.onTabClicked}
           selectedIndex={this.state.selectedTab}
         >
-          <span>GitHub</span>
-          {this.props.enterpriseAccount ? <span>GitHub Enterprise</span> : null}
+          <span>GitHub.com</span>
+          <span>Enterprise</span>
           <span>URL</span>
         </TabBar>
 
