@@ -12,7 +12,7 @@ import {
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
-import { Dialog, DialogError, DialogFooter } from '../dialog'
+import { Dialog, DialogError, DialogFooter, DialogContent } from '../dialog'
 import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloneGenericRepository } from './clone-generic-repository'
@@ -195,7 +195,7 @@ export class CloneRepository extends React.Component<
       case CloneRepositoryTab.Enterprise: {
         const account = this.getAccountForTab(tab)
         if (!account) {
-          return this.renderSignIn(tab)
+          return <DialogContent>{this.renderSignIn(tab)}</DialogContent>
         } else {
           return (
             <CloneGithubRepository
