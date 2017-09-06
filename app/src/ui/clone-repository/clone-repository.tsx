@@ -30,7 +30,10 @@ interface ICloneRepositoryProps {
   readonly onDismissed: () => void
 
   /** The logged in accounts. */
-  readonly accounts: ReadonlyArray<Account>
+  readonly dotComAccount: Account | null
+
+  /** The logged in Enterprise account. */
+  readonly enterpriseAccount: Account | null
 
   /** The initial URL or `owner/name` shortcut to use. */
   readonly initialURL: string | null
@@ -187,7 +190,11 @@ export class CloneRepository extends React.Component<
         )
 
       case CloneRepositoryTab.GitHub: {
-        const account = this.props.accounts[0]
+        const account = this.props.dotComAccount
+        if (!account) {
+          return null
+        }
+
         return (
           <CloneGithubRepository
             path={this.state.path}
@@ -199,19 +206,17 @@ export class CloneRepository extends React.Component<
           />
         )
       }
-      case CloneRepositoryTab.Enterprise: {
-        const account = this.props.accounts[0]
+      case CloneRepositoryTab.Enterprise:
         return (
           <CloneGithubRepository
             path={this.state.path}
-            account={account}
+            account={this.props.enterpriseAccount!}
             onPathChanged={this.updatePath}
             onGitHubRepositorySelected={this.updateUrl}
             onChooseDirectory={this.onChooseDirectory}
             onDismissed={this.props.onDismissed}
           />
         )
-      }
     }
 
     return assertNever(tab, `Unknown tab: ${tab}`)
@@ -303,8 +308,16 @@ export class CloneRepository extends React.Component<
   private async resolveCloneURL(): Promise<string | null> {
     const identifier = this.state.lastParsedIdentifier
     let url = this.state.url
+    const accounts: Array<Account> = []
+    if (this.props.dotComAccount) {
+      accounts.push(this.props.dotComAccount)
+    }
 
-    const account = await findAccountForRemoteURL(url, this.props.accounts)
+    if (this.props.enterpriseAccount) {
+      accounts.push(this.props.enterpriseAccount)
+    }
+
+    const account = await findAccountForRemoteURL(url, accounts)
     if (identifier && account) {
       const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
