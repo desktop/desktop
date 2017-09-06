@@ -14,13 +14,13 @@
 
     .header {
       background: rgb(242, 248, 254);
-      padding: var(--spacing-half);
+      padding: var(--spacing-half) var(--spacing);
       font-size: var(--font-size-sm);
     }
 
     .commit {
       font-size: var(--font-size);
-      padding: var(--spacing-half);
+      padding: var(--spacing-half) var(--spacing);
       width: 280px;
       border-bottom: none;
     }
