@@ -97,7 +97,9 @@ export class CloneGithubRepository extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
-    this.loadRepositories(nextProps.account)
+    if (nextProps.account.id !== this.props.account.id) {
+      this.loadRepositories(nextProps.account)
+    }
   }
 
   public render() {
