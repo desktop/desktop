@@ -69,12 +69,13 @@
 ### GitHub Desktop menu top-level
   - [ ] About GitHub Desktop
     - [ ] Current version shown
-    - [ ]  Links to release notes, terms, licenses
+    - [ ] Links to release notes, terms, licenses
     - [ ] Clicking the version number copies to clipboard
     - [ ] Clicking `Check for updates` button timestamps last attempt
       - [ ] If update available, `Install Update` button will quit app and install update
       - [ ] If update available, download banner is present in main window with `restart` and `what’s new` links
       - [ ] If checking for update or download latest update, the `Check for updates` button is disabled
+      - [ ] Restarting the app automatically checks for updates
     - [ ] `Close` button closes modal 
   - [ ] Preferences/Options (Mac/Windows: ⌘,)
     - [ ] Accounts
