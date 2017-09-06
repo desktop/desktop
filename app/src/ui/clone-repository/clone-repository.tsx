@@ -20,6 +20,7 @@ import { CloneGithubRepository } from './clone-github-repository'
 
 import { enablePreviewFeatures } from '../../lib/feature-flag'
 import { pathExists } from '../../lib/file-system'
+import { assertNever } from '../../lib/fatal-error'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -167,36 +168,40 @@ export class CloneRepository extends React.Component<
   }
 
   private onTabClicked = (index: number) => {
-    this.setState({ selectedIndex: index })
+    this.setState({ selectedTab: index })
   }
 
   private renderActiveTab() {
-    const index = this.state.selectedIndex
+    const tab = this.state.selectedTab
 
-    if (index === CloneRepositoryTab.Generic) {
-      return (
-        <CloneGenericRepository
-          path={this.state.path}
-          url={this.state.url}
-          onPathChanged={this.updatePath}
-          onUrlChanged={this.updateUrl}
-          onChooseDirectory={this.onChooseDirectory}
-        />
-      )
-    } else {
-      const account = this.props.accounts[0]
+    switch (tab) {
+      case CloneRepositoryTab.Generic:
+        return (
+          <CloneGenericRepository
+            path={this.state.path}
+            url={this.state.url}
+            onPathChanged={this.updatePath}
+            onUrlChanged={this.updateUrl}
+            onChooseDirectory={this.onChooseDirectory}
+          />
+        )
 
-      return (
-        <CloneGithubRepository
-          path={this.state.path}
-          account={account}
-          onPathChanged={this.updatePath}
-          onGitHubRepositorySelected={this.updateUrl}
-          onChooseDirectory={this.onChooseDirectory}
-          onDismissed={this.props.onDismissed}
-        />
-      )
+      case CloneRepositoryTab.GitHub: {
+        const account = this.props.accounts[0]
+        return (
+          <CloneGithubRepository
+            path={this.state.path}
+            account={account}
+            onPathChanged={this.updatePath}
+            onGitHubRepositorySelected={this.updateUrl}
+            onChooseDirectory={this.onChooseDirectory}
+            onDismissed={this.props.onDismissed}
+          />
+        )
+      }
     }
+
+    return assertNever(tab, `Unknown tab: ${tab}`)
   }
 
   private updatePath = (path: string) => {
