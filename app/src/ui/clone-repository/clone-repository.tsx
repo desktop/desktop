@@ -59,7 +59,7 @@ interface ICloneRepositoryState {
   /**
    * The default tab to open on load
    */
-  readonly selectedIndex: CloneRepositoryTab
+  readonly selectedTab: CloneRepositoryTab
 }
 
 /** The component for cloning a repository. */
@@ -76,7 +76,7 @@ export class CloneRepository extends React.Component<
       loading: false,
       error: null,
       lastParsedIdentifier: null,
-      selectedIndex: this.props.initialSelectedTab || CloneRepositoryTab.GitHub,
+      selectedTab: this.props.initialSelectedTab || CloneRepositoryTab.GitHub,
     }
   }
 
@@ -106,7 +106,7 @@ export class CloneRepository extends React.Component<
       >
         <TabBar
           onTabClicked={this.onTabClicked}
-          selectedIndex={this.state.selectedIndex}
+          selectedIndex={this.state.selectedTab}
         >
           <span>GitHub</span>
           <span>URL</span>
