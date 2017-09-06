@@ -81,7 +81,7 @@ export class CloneRepository extends React.Component<
       loading: false,
       error: null,
       lastParsedIdentifier: null,
-      selectedTab: this.props.initialSelectedTab || CloneRepositoryTab.GitHub,
+      selectedTab: this.props.initialSelectedTab || CloneRepositoryTab.DotCom,
     }
   }
 
@@ -191,7 +191,7 @@ export class CloneRepository extends React.Component<
           />
         )
 
-      case CloneRepositoryTab.GitHub:
+      case CloneRepositoryTab.DotCom:
       case CloneRepositoryTab.Enterprise: {
         const account = this.getAccountForTab(tab)
         if (!account) {
@@ -216,7 +216,7 @@ export class CloneRepository extends React.Component<
 
   private getAccountForTab(tab: CloneRepositoryTab): Account | null {
     switch (tab) {
-      case CloneRepositoryTab.GitHub:
+      case CloneRepositoryTab.DotCom:
         return this.props.dotComAccount
       case CloneRepositoryTab.Enterprise:
         return this.props.enterpriseAccount
@@ -228,7 +228,7 @@ export class CloneRepository extends React.Component<
   private renderSignIn(tab: CloneRepositoryTab) {
     const signInTitle = __DARWIN__ ? 'Sign In' : 'Sign in'
     switch (tab) {
-      case CloneRepositoryTab.GitHub:
+      case CloneRepositoryTab.DotCom:
         return (
           <CallToAction actionTitle={signInTitle} onAction={this.signInDotCom}>
             <div>

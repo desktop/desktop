@@ -1,5 +1,5 @@
 export enum CloneRepositoryTab {
-  GitHub = 0,
+  DotCom = 0,
   Enterprise,
   Generic,
 }
