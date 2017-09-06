@@ -171,6 +171,9 @@
   - [ ] Create Pull request (Mac: ⌘R; Windows: Ctrl+R) opens Pull Request on `github.com` 
     - [ ] If branch unpublished, dialogue asks to publish the branch
 
+### Window top-level menu (Mac only)
+  - [ ] Minimize, Zoom (maximize app size), Close, Bring All to Front, GitHub Desktop
+
 ### Help top-level menu
   - [ ] `Report Issue` opens issue template in Desktop repo on `github.com`
   - [ ] `User Guides` opens Desktop help page on `github.com`
