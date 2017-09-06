@@ -40,6 +40,7 @@ export class UntrustedCertificate extends React.Component<
     ) : (
       <ButtonGroup>
         <Button type="submit">Close</Button>
+        <Button onClick={this.onContinue}>Add certificate</Button>
       </ButtonGroup>
     )
     return (
