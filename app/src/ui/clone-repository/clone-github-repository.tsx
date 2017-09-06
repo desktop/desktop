@@ -69,13 +69,22 @@ export class CloneGithubRepository extends React.Component<
     }
   }
 
-  public async componentDidMount() {
+  public componentDidMount() {
+    this.loadRepositories(this.props.account)
+  }
+
+  private async loadRepositories(account: Account) {
     this.setState({
       loading: true,
     })
 
-    const api = API.fromAccount(this.props.account)
+    const api = API.fromAccount(account)
     const result = await api.fetchRepositories()
+
+    // The account could have changed while we were working. Bail if it did.
+    if (account.id !== this.props.account.id) {
+      return
+    }
 
     const repositories = result
       ? groupRepositories(result, this.props.account.login)
@@ -85,6 +94,10 @@ export class CloneGithubRepository extends React.Component<
       repositories,
       loading: false,
     })
+  }
+
+  public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
+    this.loadRepositories(nextProps.account)
   }
 
   public render() {
