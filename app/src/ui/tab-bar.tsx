@@ -11,11 +11,14 @@ export enum TabBarType {
 }
 
 interface ITabBarProps {
-  /** The currently selected tab. */
-  readonly selectedIndex: number
+  /**
+   * The currently selected tab's key. If a key was not provided, this will be
+   * the selected tab's index.
+   */
+  readonly selectedKey: React.Key
 
   /** A function which is called when a tab is clicked on. */
-  readonly onTabClicked: (index: number) => void
+  readonly onTabClicked: (key: React.Key) => void
 
   /** The type of TabBar controlling its style */
   readonly type?: TabBarType
@@ -27,7 +30,7 @@ interface ITabBarProps {
  * Set `children` to an array of JSX.Elements to represent the tab bar items.
  */
 export class TabBar extends React.Component<ITabBarProps, {}> {
-  private readonly tabRefsByIndex = new Map<number, HTMLButtonElement>()
+  private readonly tabRefsByKey = new Map<React.Key, HTMLButtonElement>()
 
   public render() {
     return (
@@ -45,7 +48,7 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
 
   private onSelectAdjacentTab = (
     direction: 'next' | 'previous',
-    index: number
+    key: React.Key
   ) => {
     const children = this.props.children as ReadonlyArray<JSX.Element> | null
 
@@ -55,27 +58,30 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
 
     const delta = direction === 'next' ? 1 : -1
 
+    const index = children.findIndex((c, i) => (c.key || i) === key)
+
     // http://javascript.about.com/od/problemsolving/a/modulobug.htm
     const nextTabIndex = (index + delta + children.length) % children.length
-
-    const button = this.tabRefsByIndex.get(nextTabIndex)
+    const nextChild = children[nextTabIndex]
+    const nextKey = nextChild.key || nextTabIndex
+    const button = this.tabRefsByKey.get(nextKey)
 
     if (button) {
       button.focus()
     }
 
-    this.props.onTabClicked(nextTabIndex)
+    this.props.onTabClicked(nextKey)
   }
 
-  private onTabClicked = (index: number) => {
-    this.props.onTabClicked(index)
+  private onTabClicked = (key: React.Key) => {
+    this.props.onTabClicked(key)
   }
 
-  private onTabRef = (index: number, ref: HTMLButtonElement | null) => {
+  private onTabRef = (key: React.Key, ref: HTMLButtonElement | null) => {
     if (!ref) {
-      this.tabRefsByIndex.delete(index)
+      this.tabRefsByKey.delete(key)
     } else {
-      this.tabRefsByIndex.set(index, ref)
+      this.tabRefsByKey.set(key, ref)
     }
   }
 
@@ -86,12 +92,13 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
     }
 
     return children.map((child, index) => {
-      const selected = index === this.props.selectedIndex
+      const key = child.key || index
+      const selected = key === this.props.selectedKey
       return (
         <TabBarWrapperItem
-          key={index}
+          key={key}
+          childKey={key}
           selected={selected}
-          index={index}
           onClick={this.onTabClicked}
           onSelectAdjacent={this.onSelectAdjacentTab}
           onButtonRef={this.onTabRef}
@@ -104,36 +111,36 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
 }
 
 interface ITabBarWrapperItemProps {
-  readonly index: number
   readonly selected: boolean
-  readonly onClick: (index: number) => void
+  readonly onClick: (key: React.Key) => void
   readonly onSelectAdjacent: (
     direction: 'next' | 'previous',
-    index: number
+    key: React.Key
   ) => void
   readonly onButtonRef: (
-    index: number,
+    key: React.Key,
     button: HTMLButtonElement | null
   ) => void
+  readonly childKey: React.Key
 }
 
 class TabBarWrapperItem extends React.Component<ITabBarWrapperItemProps, {}> {
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    this.props.onClick(this.props.index)
+    this.props.onClick(this.props.childKey)
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     if (event.key === 'ArrowLeft') {
-      this.props.onSelectAdjacent('previous', this.props.index)
+      this.props.onSelectAdjacent('previous', this.props.childKey)
       event.preventDefault()
     } else if (event.key === 'ArrowRight') {
-      this.props.onSelectAdjacent('next', this.props.index)
+      this.props.onSelectAdjacent('next', this.props.childKey)
       event.preventDefault()
     }
   }
 
   private onButtonRef = (buttonRef: HTMLButtonElement | null) => {
-    this.props.onButtonRef(this.props.index, buttonRef)
+    this.props.onButtonRef(this.props.childKey, buttonRef)
   }
 
   public render() {
