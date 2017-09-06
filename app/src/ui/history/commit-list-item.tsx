@@ -66,11 +66,11 @@ export class CommitListItem extends React.Component<ICommitProps, {}> {
     let viewOnGitHubLabel = 'View on GitHub'
     const gitHubRepository = this.props.gitHubRepository
 
-    if (gitHubRepository) {
-      const isDotCom = gitHubRepository.endpoint === getDotComAPIEndpoint()
-      viewOnGitHubLabel = isDotCom
-        ? 'View on GitHub'
-        : 'View on GitHub Enterprise'
+    if (
+      gitHubRepository &&
+      gitHubRepository.endpoint !== getDotComAPIEndpoint()
+    ) {
+      viewOnGitHubLabel = 'View on GitHub Enterprise'
     }
 
     const items: IMenuItem[] = [
