@@ -17,8 +17,6 @@ import { TabBar } from '../tab-bar'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloneGenericRepository } from './clone-generic-repository'
 import { CloneGithubRepository } from './clone-github-repository'
-
-import { enablePreviewFeatures } from '../../lib/feature-flag'
 import { pathExists } from '../../lib/file-system'
 import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
@@ -95,14 +93,6 @@ export class CloneRepository extends React.Component<
   }
 
   public render() {
-    if (enablePreviewFeatures()) {
-      return this.renderPreviewInterface()
-    } else {
-      return this.renderClassicInterface()
-    }
-  }
-
-  private renderPreviewInterface() {
     const error = this.state.error
     return (
       <Dialog
@@ -154,44 +144,6 @@ export class CloneRepository extends React.Component<
           <Button onClick={this.props.onDismissed}>Cancel</Button>
         </ButtonGroup>
       </DialogFooter>
-    )
-  }
-
-  private renderClassicInterface() {
-    const error = this.state.error
-    const disabled =
-      this.state.url.length === 0 ||
-      this.state.path.length === 0 ||
-      this.state.loading ||
-      (!!error && error.name === DestinationExistsErrorName)
-
-    return (
-      <Dialog
-        className="clone-repository"
-        title="Clone a repository"
-        onSubmit={this.clone}
-        onDismissed={this.props.onDismissed}
-        loading={this.state.loading}
-      >
-        {error ? <DialogError>{error.message}</DialogError> : null}
-
-        <CloneGenericRepository
-          url={this.state.url}
-          path={this.state.path}
-          onPathChanged={this.updatePath}
-          onUrlChanged={this.updateUrl}
-          onChooseDirectory={this.onChooseDirectory}
-        />
-
-        <DialogFooter>
-          <ButtonGroup>
-            <Button disabled={disabled} type="submit">
-              Clone
-            </Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
-        </DialogFooter>
-      </Dialog>
     )
   }
 
