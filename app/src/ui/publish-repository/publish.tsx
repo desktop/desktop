@@ -85,7 +85,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       >
         <TabBar
           onTabClicked={this.onTabClicked}
-          selectedIndex={this.state.currentTab}
+          selectedKey={this.state.currentTab}
         >
           <span>GitHub.com</span>
           <span>Enterprise</span>

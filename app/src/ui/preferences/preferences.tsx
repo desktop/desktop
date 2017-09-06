@@ -106,7 +106,7 @@ export class Preferences extends React.Component<
       >
         <TabBar
           onTabClicked={this.onTabClicked}
-          selectedIndex={this.state.selectedIndex}
+          selectedKey={this.state.selectedIndex}
         >
           <span>Accounts</span>
           <span>Git</span>
