@@ -264,8 +264,8 @@ app.on('ready', () => {
         message,
       }: { certificate: Electron.Certificate; message: string }
     ) => {
-      // This API's only implemented on macOS right now.
-      if (__DARWIN__) {
+      // This API is only implemented for macOS and Windows right now.
+      if (__DARWIN__ || __WIN32__) {
         onDidLoad(window => {
           window.showCertificateTrustDialog(certificate, message)
         })
