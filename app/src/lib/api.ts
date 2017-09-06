@@ -216,7 +216,7 @@ export class API {
     IAPIRepository
   > | null> {
     try {
-      return await this.fetchAll<IAPIRepository>('user/repos?per_page=100')
+      return await this.fetchAll<IAPIRepository>('user/repos')
     } catch (error) {
       log.warn(`fetchRepositories: ${error}`)
       return null
@@ -365,7 +365,11 @@ export class API {
    */
   private async fetchAll<T>(path: string): Promise<ReadonlyArray<T>> {
     const buf = new Array<T>()
-    let nextPath: string | null = path
+
+    const params = {
+      per_page: '100',
+    }
+    let nextPath: string | null = urlWithQueryString(path, params)
 
     do {
       const response = await this.request('GET', nextPath)
