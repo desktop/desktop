@@ -199,6 +199,19 @@ export class CloneRepository extends React.Component<
           />
         )
       }
+      case CloneRepositoryTab.Enterprise: {
+        const account = this.props.accounts[0]
+        return (
+          <CloneGithubRepository
+            path={this.state.path}
+            account={account}
+            onPathChanged={this.updatePath}
+            onGitHubRepositorySelected={this.updateUrl}
+            onChooseDirectory={this.onChooseDirectory}
+            onDismissed={this.props.onDismissed}
+          />
+        )
+      }
     }
 
     return assertNever(tab, `Unknown tab: ${tab}`)
