@@ -88,7 +88,7 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
     return children.map((child, index) => {
       const selected = index === this.props.selectedIndex
       return (
-        <TabBarWrapperItem
+        <TabBarItem
           key={index}
           selected={selected}
           index={index}
@@ -97,13 +97,13 @@ export class TabBar extends React.Component<ITabBarProps, {}> {
           onButtonRef={this.onTabRef}
         >
           {child}
-        </TabBarWrapperItem>
+        </TabBarItem>
       )
     })
   }
 }
 
-interface ITabBarWrapperItemProps {
+interface ITabBarItemProps {
   readonly index: number
   readonly selected: boolean
   readonly onClick: (index: number) => void
@@ -117,7 +117,7 @@ interface ITabBarWrapperItemProps {
   ) => void
 }
 
-class TabBarWrapperItem extends React.Component<ITabBarWrapperItemProps, {}> {
+class TabBarItem extends React.Component<ITabBarItemProps, {}> {
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     this.props.onClick(this.props.index)
   }
