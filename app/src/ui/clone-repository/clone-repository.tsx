@@ -104,12 +104,6 @@ export class CloneRepository extends React.Component<
 
   private renderPreviewInterface() {
     const error = this.state.error
-    const disabled =
-      this.state.url.length === 0 ||
-      this.state.path.length === 0 ||
-      this.state.loading ||
-      (!!error && error.name === DestinationExistsErrorName)
-
     return (
       <Dialog
         className="clone-repository"
@@ -131,15 +125,35 @@ export class CloneRepository extends React.Component<
 
         {this.renderActiveTab()}
 
-        <DialogFooter>
-          <ButtonGroup>
-            <Button disabled={disabled} type="submit">
-              Clone
-            </Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
-        </DialogFooter>
+        {this.renderFooter()}
       </Dialog>
+    )
+  }
+
+  private renderFooter() {
+    if (
+      this.state.selectedTab !== CloneRepositoryTab.Generic &&
+      !this.getAccountForTab(this.state.selectedTab)
+    ) {
+      return null
+    }
+
+    const error = this.state.error
+    const disabled =
+      this.state.url.length === 0 ||
+      this.state.path.length === 0 ||
+      this.state.loading ||
+      (!!error && error.name === DestinationExistsErrorName)
+
+    return (
+      <DialogFooter>
+        <ButtonGroup>
+          <Button disabled={disabled} type="submit">
+            Clone
+          </Button>
+          <Button onClick={this.props.onDismissed}>Cancel</Button>
+        </ButtonGroup>
+      </DialogFooter>
     )
   }
 
