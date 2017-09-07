@@ -440,6 +440,11 @@ export interface ICloneProgress extends IProgress {
   kind: 'clone'
 }
 
+/** An object describing the progression of a revert operation. */
+export interface IRevertProgress extends IProgress {
+  kind: 'revert'
+}
+
 export interface IBranchesState {
   /**
    * The current tip of HEAD, either a branch, a commit (if HEAD is
