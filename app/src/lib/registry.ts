@@ -1,4 +1,6 @@
 import * as Path from 'path'
+import { pathExists } from './file-system'
+
 import { spawn } from 'child_process'
 import { getActiveCodePage } from './shell'
 
@@ -95,16 +97,23 @@ function readRegistryInner(
  *
  * @param key The registry key to lookup
  */
-export function readRegistryKeySafe(
+export async function readRegistryKeySafe(
   key: string
 ): Promise<ReadonlyArray<IRegistryEntry>> {
-  return getActiveCodePage().then(
-    codePage => {
-      return codePage ? readRegistryInner(key, codePage) : []
-    },
-    err => {
-      log.debug('Unable to resolve active code page', err)
-      return []
-    }
-  )
+  const exists = await pathExists(batchFilePath)
+  if (!exists) {
+    log.error(
+      `Unable to find batch script at expected location: '${batchFilePath}'`
+    )
+    return []
+  }
+
+  const codePage = await getActiveCodePage()
+  if (codePage) {
+  } else {
+    log.debug('Unable to resolve active code page')
+    return []
+  }
+
+  return await readRegistryInner(key, codePage)
 }
