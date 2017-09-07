@@ -36,6 +36,7 @@ import {
   ExternalEditor,
   parse as parseExternalEditor,
 } from '../../models/editors'
+import { getAvailableEditors } from '../editors'
 import {
   CloningRepository,
   CloningRepositoriesStore,
@@ -109,7 +110,6 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 const confirmRepoRemovalDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 
-const externalEditorDefault = ExternalEditor.Atom
 const externalEditorKey: string = 'externalEditor'
 
 const imageDiffTypeDefault = ImageDiffType.TwoUp
@@ -186,7 +186,7 @@ export class AppStore {
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
 
-  private selectedExternalEditor: ExternalEditor = externalEditorDefault
+  private selectedExternalEditor?: ExternalEditor
 
   /** The user's preferred shell. */
   private selectedShell = DefaultShell
@@ -878,8 +878,10 @@ export class AppStore {
         ? confirmRepoRemovalDefault
         : confirmRepoRemovalValue === '1'
 
-    const externalEditorValue = localStorage.getItem(externalEditorKey)
-    this.selectedExternalEditor = parseExternalEditor(externalEditorValue)
+    const externalEditorValue = await this.getSelectedExternalEditor()
+    if (externalEditorValue) {
+      this.selectedExternalEditor = externalEditorValue
+    }
 
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
@@ -897,10 +899,34 @@ export class AppStore {
     this.accountsStore.refresh()
   }
 
+  private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
+    const externalEditorValue = localStorage.getItem(externalEditorKey)
+    if (externalEditorValue) {
+      const value = parseExternalEditor(externalEditorValue)
+      if (value) {
+        return value
+      }
+    }
+
+    const editors = await getAvailableEditors()
+    if (editors.length) {
+      const value = editors[0].editor
+      // store this value to avoid the lookup next time
+      localStorage.setItem(externalEditorKey, value)
+      return value
+    }
+
+    return null
+  }
+
   /** Update the menu with the names of the user's preferred apps. */
   private updatePreferredAppMenuItemLabels() {
+    const editorLabel = this.selectedExternalEditor
+      ? `Open in ${this.selectedExternalEditor}`
+      : undefined
+
     updatePreferredAppMenuItemLabels({
-      editor: `Open in ${this.selectedExternalEditor}`,
+      editor: editorLabel,
       shell: `Open in ${this.selectedShell}`,
     })
   }
@@ -2203,8 +2229,11 @@ export class AppStore {
 
   /** Takes a repository path and opens it using the user's configured editor */
   public async _openInExternalEditor(path: string): Promise<void> {
+    const selectedExternalEditor =
+      this.getState().selectedExternalEditor || null
+
     try {
-      const match = await findEditorOrDefault(this.selectedExternalEditor)
+      const match = await findEditorOrDefault(selectedExternalEditor)
       await launchExternalEditor(path, match)
     } catch (error) {
       this.emitError(error)
