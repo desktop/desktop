@@ -335,6 +335,14 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly pushPullFetchProgress: Progress | null
+
+  /**
+   * If we're currently reverting a commit and it involves LFS progress, this
+   * will contain the LFS progress.
+   *
+   * null if no such operation is in flight.
+   */
+  readonly revertProgress: IRevertProgress | null
 }
 
 export type Progress =

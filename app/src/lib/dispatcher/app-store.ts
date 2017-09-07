@@ -16,6 +16,7 @@ import {
   ICheckoutProgress,
   Progress,
   ImageDiffType,
+  IRevertProgress,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -374,6 +375,7 @@ export class AppStore {
       lastFetched: null,
       checkoutProgress: null,
       pushPullFetchProgress: null,
+      revertProgress: null,
     }
   }
 
@@ -2531,15 +2533,30 @@ export class AppStore {
     return fn(updatedRepository, account)
   }
 
+  private updateRevertProgress(
+    repository: Repository,
+    progress: IRevertProgress | null
+  ) {
+    this.updateRepositoryState(repository, state => ({
+      revertProgress: progress,
+    }))
+
+    if (this.selectedRepository === repository) {
+      this.emitUpdate()
+    }
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _revertCommit(
     repository: Repository,
     commit: Commit
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (repo, account) => {
-      const gitStore = this.getGitStore(repository)
+      const gitStore = this.getGitStore(repo)
 
-      await gitStore.revertCommit(repository, commit, account, progress => {})
+      await gitStore.revertCommit(repo, commit, account, progress =>
+        this.updateRevertProgress(repo, progress)
+      )
 
       return gitStore.loadHistory()
     })
