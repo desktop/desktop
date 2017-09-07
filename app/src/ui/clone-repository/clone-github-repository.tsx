@@ -59,6 +59,8 @@ export class CloneGithubRepository extends React.Component<
   ICloneGithubRepositoryProps,
   ICloneGithubRepositoryState
 > {
+  private mounted = false
+
   public constructor(props: ICloneGithubRepositoryProps) {
     super(props)
 
@@ -70,7 +72,13 @@ export class CloneGithubRepository extends React.Component<
   }
 
   public componentDidMount() {
+    this.mounted = true
+
     this.loadRepositories(this.props.account)
+  }
+
+  public componentWillUnmount() {
+    this.mounted = false
   }
 
   private async loadRepositories(account: Account) {
@@ -83,6 +91,10 @@ export class CloneGithubRepository extends React.Component<
 
     // The account could have changed while we were working. Bail if it did.
     if (account.id !== this.props.account.id) {
+      return
+    }
+
+    if (!this.mounted) {
       return
     }
 
