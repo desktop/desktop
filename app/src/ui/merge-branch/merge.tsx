@@ -50,6 +50,7 @@ interface IMergeState {
    */
   readonly commitCount?: number
 
+  /** The filter text to use in the branch selector */
   readonly filterText: string
 }
 
