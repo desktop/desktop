@@ -42,18 +42,14 @@ export class MissingRepository extends React.Component<
     return (
       <UiView id="missing-repository-view">
         <div className="title-container">
-          <div className="title">
-            Can't find "{this.props.repository.name}"
-          </div>
+          <div className="title">Can't find "{this.props.repository.name}"</div>
           <div className="details">
             It was last seen at{' '}
             <span className="path">{this.props.repository.path}</span>
           </div>
         </div>
 
-        <Row>
-          {buttons}
-        </Row>
+        <Row>{buttons}</Row>
       </UiView>
     )
   }

@@ -38,7 +38,7 @@ interface IRepositoriesListProps {
   readonly onOpenInExternalEditor: (repository: Repositoryish) => void
 
   /** The current external editor selected by the user */
-  readonly externalEditorLabel: string
+  readonly externalEditorLabel?: string
 
   /** Called when the repositories list should be closed. */
   readonly onClose: () => void
