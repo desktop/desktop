@@ -102,12 +102,9 @@ export class RepositoriesList extends React.Component<
     this.props.onSelectionChanged(item.repository)
   }
 
-  private onFilterKeyDown = (
-    filter: string,
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
+  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      if (filter.length === 0) {
+      if (this.props.filterText.length === 0) {
         this.props.onClose()
         event.preventDefault()
       }

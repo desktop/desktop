@@ -54,7 +54,6 @@ interface IBranchListProps {
    * respond or cancel the default behavior by calling `preventDefault`.
    */
   readonly onFilterKeyDown?: (
-    filter: string,
     event: React.KeyboardEvent<HTMLInputElement>
   ) => void
 
@@ -76,18 +75,18 @@ interface IBranchListProps {
     selectedItem: Branch | null,
     source: SelectionSource
   ) => void
+
+  readonly filterText: string
+
+  readonly onFilterTextChanged: (filterText: string) => void
 }
 
 interface IBranchListState {
-  readonly filterText: string
   readonly groups: ReadonlyArray<IFilterListGroup<IBranchListItem>>
   readonly selectedItem: IBranchListItem | null
 }
 
-function createState(
-  props: IBranchListProps,
-  filterText: string
-): IBranchListState {
+function createState(props: IBranchListProps): IBranchListState {
   const groups = groupBranches(
     props.defaultBranch,
     props.currentBranch,
@@ -111,7 +110,7 @@ function createState(
     }
   }
 
-  return { filterText, groups, selectedItem }
+  return { groups, selectedItem }
 }
 
 /** The Branches list component. */
@@ -121,7 +120,7 @@ export class BranchList extends React.Component<
 > {
   public constructor(props: IBranchListProps) {
     super(props)
-    this.state = createState(props, '')
+    this.state = createState(props)
   }
 
   private renderItem = (item: IBranchListItem) => {
@@ -177,12 +176,8 @@ export class BranchList extends React.Component<
     }
   }
 
-  private onFilterTextChanged = (filterText: string) => {
-    this.setState({ filterText })
-  }
-
   public componentWillReceiveProps(nextProps: IBranchListProps) {
-    this.setState(createState(nextProps, this.state.filterText))
+    this.setState(createState(nextProps))
   }
 
   public render() {
@@ -190,8 +185,8 @@ export class BranchList extends React.Component<
       <BranchesFilterList
         className="branches-list"
         rowHeight={RowHeight}
-        filterText={this.state.filterText}
-        onFilterTextChanged={this.onFilterTextChanged}
+        filterText={this.props.filterText}
+        onFilterTextChanged={this.props.onFilterTextChanged}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}

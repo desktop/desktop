@@ -87,7 +87,6 @@ interface IFilterListProps<T extends IFilterListItem> {
    * respond or cancel the default behavior by calling `preventDefault`.
    */
   readonly onFilterKeyDown?: (
-    filter: string,
     event: React.KeyboardEvent<HTMLInputElement>
   ) => void
 
@@ -286,6 +285,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     const list = this.list
     if (!list) {
       return
+    }
+
+    if (this.props.onFilterKeyDown) {
+      this.props.onFilterKeyDown(event)
     }
 
     if (event.defaultPrevented) {

@@ -49,6 +49,8 @@ interface IMergeState {
    * number of commits.
    */
   readonly commitCount?: number
+
+  readonly filterText: string
 }
 
 /** A component for merging a branch into the current branch. */
@@ -63,6 +65,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       // Select the default branch unless that's currently checked out
       selectedBranch: currentBranch === defaultBranch ? null : defaultBranch,
       commitCount: undefined,
+      filterText: '',
     }
   }
 
@@ -75,12 +78,13 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     this.updateCommitCount(branch)
   }
 
-  private onFilterKeyDown = (
-    filter: string,
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
+  private onFilterTextChanged = (filterText: string) => {
+    this.setState({ filterText })
+  }
+
+  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      if (filter.length === 0) {
+      if (this.state.filterText.length === 0) {
         this.props.onDismissed()
         event.preventDefault()
       }
@@ -115,11 +119,13 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
     const countPlural = commitCount === 1 ? 'commit' : 'commits'
     const countText =
-      commitCount === undefined
-        ? 'commits'
-        : <strong>
-            {commitCount} {countPlural}
-          </strong>
+      commitCount === undefined ? (
+        'commits'
+      ) : (
+        <strong>
+          {commitCount} {countPlural}
+        </strong>
+      )
 
     return (
       <p className="merge-info">
@@ -153,7 +159,9 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             currentBranch={currentBranch}
             defaultBranch={this.props.defaultBranch}
             recentBranches={this.props.recentBranches}
+            filterText={this.state.filterText}
             onFilterKeyDown={this.onFilterKeyDown}
+            onFilterTextChanged={this.onFilterTextChanged}
             selectedBranch={selectedBranch}
             onSelectionChanged={this.onSelectionChanged}
           />
