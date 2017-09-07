@@ -160,6 +160,9 @@ export interface IAppState {
 
   /** The user's preferred shell. */
   readonly selectedShell: Shell
+
+  /** The current repository filter text. */
+  readonly repositoryFilterText: string
 }
 
 export enum PopupType {
