@@ -11,12 +11,42 @@ import { getActiveCodePage } from './shell'
 // the keys found by `reg.exe`, and rather than trying to fix and potentially
 // regress other parts I've extracted just the bit that I need to use.
 
-const ITEM_PATTERN = /^(.*)\s(REG_SZ|REG_MULTI_SZ|REG_EXPAND_SZ|REG_DWORD|REG_QWORD|REG_BINARY|REG_NONE)\s+([^\s].*)$/
-
 export interface IRegistryEntry {
   readonly name: string
   readonly type: string
   readonly value: string
+}
+
+const ITEM_PATTERN = /^(.*)\s(REG_SZ|REG_MULTI_SZ|REG_EXPAND_SZ|REG_DWORD|REG_QWORD|REG_BINARY|REG_NONE)\s+([^\s].*)$/
+
+function parse(output: string): ReadonlyArray<IRegistryEntry> {
+  const lines = output.split('\n')
+
+  const items = []
+  const results = new Array<IRegistryEntry>()
+  let lineNumber = 0
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (line.length > 0) {
+      if (lineNumber !== 0) {
+        items.push(line)
+      }
+      ++lineNumber
+    }
+  }
+
+  for (let i = 0; i < items.length; i++) {
+    const match = ITEM_PATTERN.exec(items[i])
+    if (match) {
+      const name = match[1].trim()
+      const type = match[2].trim()
+      const value = match[3]
+      results.push({ name, type, value })
+    }
+  }
+
+  return results
 }
 
 function getPathToBatchFile(): string {
@@ -48,32 +78,7 @@ function readRegistryInner(
         resolve([])
       } else {
         const output = Buffer.concat(buffers).toString('utf8')
-        const lines = output.split('\n')
-
-        const items = []
-        const results = new Array<IRegistryEntry>()
-        let lineNumber = 0
-
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i].trim()
-          if (line.length > 0) {
-            if (lineNumber !== 0) {
-              items.push(line)
-            }
-            ++lineNumber
-          }
-        }
-
-        for (let i = 0; i < items.length; i++) {
-          const match = ITEM_PATTERN.exec(items[i])
-          if (match) {
-            const name = match[1].trim()
-            const type = match[2].trim()
-            const value = match[3]
-            results.push({ name, type, value })
-          }
-        }
-
+        const results = parse(output)
         resolve(results)
       }
     })
