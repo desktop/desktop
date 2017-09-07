@@ -74,11 +74,7 @@ export class RepositorySettings extends React.Component<
 
     return errors.map((err, ix) => {
       const key = `err-${ix}`
-      return (
-        <DialogError key={key}>
-          {err}
-        </DialogError>
-      )
+      return <DialogError key={key}>{err}</DialogError>
     })
   }
 
@@ -98,9 +94,7 @@ export class RepositorySettings extends React.Component<
           selectedIndex={this.state.selectedTab}
         >
           <span>Remote</span>
-          <span>
-            {__DARWIN__ ? 'Ignored Files' : 'Ignored files'}
-          </span>
+          <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
         </TabBar>
 
         {this.renderActiveTab()}

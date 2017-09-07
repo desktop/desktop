@@ -5,18 +5,15 @@ import { LinkButton } from '../lib/link-button'
 import { Row } from '../../ui/lib/row'
 import { SamplesURL } from '../../lib/stats'
 import { Select } from '../lib/select'
-import { getAvailableEditors } from '../../lib/editors/lookup'
 import { ExternalEditor, parse as parseEditor } from '../../models/editors'
-import {
-  Shell,
-  parse as parseShell,
-  getAvailableShells,
-} from '../../lib/shells'
+import { Shell, parse as parseShell } from '../../lib/shells'
 
 interface IAdvancedPreferencesProps {
   readonly isOptedOut: boolean
   readonly confirmRepoRemoval: boolean
-  readonly selectedExternalEditor: ExternalEditor
+  readonly availableEditors: ReadonlyArray<ExternalEditor>
+  readonly selectedExternalEditor?: ExternalEditor
+  readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   readonly onOptOutSet: (checked: boolean) => void
   readonly onConfirmRepoRemovalSet: (checked: boolean) => void
@@ -26,9 +23,7 @@ interface IAdvancedPreferencesProps {
 
 interface IAdvancedPreferencesState {
   readonly reportingOptOut: boolean
-  readonly availableEditors?: ReadonlyArray<ExternalEditor>
-  readonly availableShells?: ReadonlyArray<Shell>
-  readonly selectedExternalEditor: ExternalEditor
+  readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
   readonly confirmRepoRemoval: boolean
 }
@@ -48,38 +43,31 @@ export class Advanced extends React.Component<
     }
   }
 
-  public async componentDidMount() {
-    const [availableEditors, availableShells] = await Promise.all([
-      getAvailableEditors(),
-      getAvailableShells(),
-    ])
-
-    const editors = availableEditors.map(editor => editor.editor)
-    let selectedExternalEditor = this.props.selectedExternalEditor
+  public async componentWillReceiveProps(nextProps: IAdvancedPreferencesProps) {
+    const editors = nextProps.availableEditors
+    let selectedExternalEditor = nextProps.selectedExternalEditor
     if (editors.length) {
-      const indexOf = editors.indexOf(selectedExternalEditor)
+      const indexOf = selectedExternalEditor
+        ? editors.indexOf(selectedExternalEditor)
+        : -1
       if (indexOf === -1) {
-        // if the editor cannot be found, select the first entry
-        // so that the user can immediately save changes
         selectedExternalEditor = editors[0]
-        this.props.onSelectedEditorChanged(selectedExternalEditor)
+        nextProps.onSelectedEditorChanged(selectedExternalEditor)
       }
     }
 
-    const shells = availableShells.map(s => s.shell)
-    let selectedShell = this.props.selectedShell
-    if (availableShells.length) {
+    const shells = nextProps.availableShells
+    let selectedShell = nextProps.selectedShell
+    if (shells.length) {
       const indexOf = shells.indexOf(selectedShell)
       if (indexOf === -1) {
         selectedShell = shells[0]
-        this.props.onSelectedShellChanged(selectedShell)
+        nextProps.onSelectedShellChanged(selectedShell)
       }
     }
 
     this.setState({
-      availableEditors: editors,
       selectedExternalEditor,
-      availableShells: shells,
       selectedShell,
     })
   }
@@ -106,8 +94,10 @@ export class Advanced extends React.Component<
     event: React.FormEvent<HTMLSelectElement>
   ) => {
     const value = parseEditor(event.currentTarget.value)
-    this.setState({ selectedExternalEditor: value })
-    this.props.onSelectedEditorChanged(value)
+    if (value) {
+      this.setState({ selectedExternalEditor: value })
+      this.props.onSelectedEditorChanged(value)
+    }
   }
 
   private onSelectedShellChanged = (
@@ -128,7 +118,7 @@ export class Advanced extends React.Component<
   }
 
   private renderExternalEditor() {
-    const options = this.state.availableEditors || []
+    const options = this.props.availableEditors
     const label = __DARWIN__ ? 'External Editor' : 'External editor'
 
     if (options.length === 0) {
@@ -139,9 +129,7 @@ export class Advanced extends React.Component<
       // which we display when the select list is empty
       return (
         <div className="select-component no-options-found">
-          <label>
-            {label}
-          </label>
+          <label>{label}</label>
           <span>
             No editors found.{' '}
             <LinkButton uri="https://atom.io/">Install Atom?</LinkButton>
@@ -156,17 +144,17 @@ export class Advanced extends React.Component<
         value={this.state.selectedExternalEditor}
         onChange={this.onSelectedEditorChanged}
       >
-        {options.map(n =>
+        {options.map(n => (
           <option key={n} value={n}>
             {n}
           </option>
-        )}
+        ))}
       </Select>
     )
   }
 
   private renderSelectedShell() {
-    const options = this.state.availableShells || []
+    const options = this.props.availableShells
 
     return (
       <Select
@@ -174,11 +162,11 @@ export class Advanced extends React.Component<
         value={this.state.selectedShell}
         onChange={this.onSelectedShellChanged}
       >
-        {options.map(n =>
+        {options.map(n => (
           <option key={n} value={n}>
             {n}
           </option>
-        )}
+        ))}
       </Select>
     )
   }
@@ -186,12 +174,8 @@ export class Advanced extends React.Component<
   public render() {
     return (
       <DialogContent>
-        <Row>
-          {this.renderExternalEditor()}
-        </Row>
-        <Row>
-          {this.renderSelectedShell()}
-        </Row>
+        <Row>{this.renderExternalEditor()}</Row>
+        <Row>{this.renderSelectedShell()}</Row>
         <Row>
           <Checkbox
             label={this.reportDesktopUsageLabel()}
@@ -205,9 +189,11 @@ export class Advanced extends React.Component<
           <Checkbox
             label="Show confirmation dialog before removing repositories"
             value={
-              this.state.confirmRepoRemoval
-                ? CheckboxValue.On
-                : CheckboxValue.Off
+              this.state.confirmRepoRemoval ? (
+                CheckboxValue.On
+              ) : (
+                CheckboxValue.Off
+              )
             }
             onChange={this.onConfirmRepoRemovalChanged}
           />
