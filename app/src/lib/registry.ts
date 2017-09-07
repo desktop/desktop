@@ -61,10 +61,10 @@ const batchFilePath = getPathToBatchFile()
 
 function readRegistry(
   key: string,
-  currentCodePage: number
+  activeCodePage: number
 ): Promise<ReadonlyArray<IRegistryEntry>> {
   return new Promise<ReadonlyArray<IRegistryEntry>>((resolve, reject) => {
-    const proc = spawn(batchFilePath, [key, currentCodePage.toString()], {
+    const proc = spawn(batchFilePath, [key, activeCodePage.toString()], {
       cwd: undefined,
     })
 
@@ -113,12 +113,12 @@ export async function readRegistryKeySafe(
     return []
   }
 
-  const currentCodePage = await getActiveCodePage()
-  if (currentCodePage) {
+  const activeCodePage = await getActiveCodePage()
+  if (activeCodePage) {
   } else {
     log.debug('Unable to resolve active code page')
     return []
   }
 
-  return await readRegistry(key, currentCodePage)
+  return await readRegistry(key, activeCodePage)
 }
