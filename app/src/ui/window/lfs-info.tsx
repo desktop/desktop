@@ -8,9 +8,9 @@ export class LfsInfo extends React.Component {
           <p className='lfs-info-title'>Reverting commit...</p>
           <p className='lfs-info-detail'>
             Downloading big_picture.psd
-            <span className='lfs-info-tertiary'>
-              50/300MB
-            </span>
+          </p>
+          <p className='lfs-info-detail lfs-info-tertiary'>
+            50/300MB
           </p>
         </div>
       </div>
