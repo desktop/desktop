@@ -48,6 +48,9 @@ interface ICloneGithubRepositoryState {
 
   /** The currently selected item. */
   readonly selectedItem: IClonableRepositoryListItem | null
+
+  /** The currently entered filter text. */
+  readonly filterText: string
 }
 
 const ClonableRepositoryFilterList: new () => FilterList<
@@ -68,6 +71,7 @@ export class CloneGithubRepository extends React.Component<
       loading: false,
       repositories: [],
       selectedItem: null,
+      filterText: '',
     }
   }
 
@@ -152,16 +156,19 @@ export class CloneGithubRepository extends React.Component<
         onFilterKeyDown={this.onFilterKeyDown}
         invalidationProps={this.state.repositories}
         groups={this.state.repositories}
+        filterText={this.state.filterText}
+        onFilterTextChanged={this.onFilterTextChanged}
       />
     )
   }
 
-  private onFilterKeyDown = (
-    filter: string,
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
+  private onFilterTextChanged = (str: string) => {
+    this.setState({ filterText: str })
+  }
+
+  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      if (filter.length === 0) {
+      if (this.state.filterText.length === 0) {
         this.props.onDismissed()
         event.preventDefault()
       }
