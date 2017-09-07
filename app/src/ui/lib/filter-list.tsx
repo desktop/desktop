@@ -83,8 +83,9 @@ interface IFilterListProps<T extends IFilterListItem> {
   ) => void
 
   /**
-   * Called when a key down happens in the filter field. Users have a chance to
-   * respond or cancel the default behavior by calling `preventDefault`.
+   * Called when a key down happens in the filter text input. Users have a
+   * chance to respond or cancel the default behavior by calling
+   * `preventDefault()`.
    */
   readonly onFilterKeyDown?: (
     event: React.KeyboardEvent<HTMLInputElement>

@@ -76,13 +76,23 @@ interface IBranchListProps {
     source: SelectionSource
   ) => void
 
+  /** The current filter text to render */
   readonly filterText: string
 
+  /** Callback to fire when the filter text is changed */
   readonly onFilterTextChanged: (filterText: string) => void
 }
 
 interface IBranchListState {
+  /**
+   * The grouped list of branches.
+   *
+   * Groups are currently defined as 'default branch', 'current branch',
+   * 'recent branches' and all branches.
+   */
   readonly groups: ReadonlyArray<IFilterListGroup<IBranchListItem>>
+
+  /** The selected item in the filtered list */
   readonly selectedItem: IBranchListItem | null
 }
 
