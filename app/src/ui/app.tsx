@@ -1187,8 +1187,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       : null
     const externalEditorLabel = this.state.selectedExternalEditor
     const shellLabel = this.state.selectedShell
+    const filterText = this.state.repositoryFilterText
     return (
       <RepositoriesList
+        filterText={filterText}
+        onFilterTextChanged={this.onRepositoryFilterTextChanged}
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
@@ -1521,6 +1524,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderFullScreenInfo()}
       </div>
     )
+  }
+
+  private onRepositoryFilterTextChanged = (text: string) => {
+    this.props.dispatcher.setRepositoryFilterText(text)
   }
 
   private onSelectionChanged = (repository: Repository | CloningRepository) => {

@@ -147,6 +147,11 @@ export class Dispatcher {
     return this.appStore._changeHistoryFileSelection(repository, file)
   }
 
+  /** Set the repository filter text. */
+  public setRepositoryFilterText(text: string): Promise<void> {
+    return this.appStore._setRepositoryFilterText(text)
+  }
+
   /** Select the repository. */
   public selectRepository(
     repository: Repository | CloningRepository
