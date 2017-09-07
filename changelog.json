@@ -1,5 +1,13 @@
 {
   "releases": {
+    "0.8.1-beta4": [
+      "[Improved] Persist repository filter text after closing repository list - #2571",
+      "[Improved] Redesigned example commit in the Welcome flow - #2141",
+      "[Improved] Tidy up initial \"external editor\" experience - #2551",
+      "[Fixed] Missing \"View on GitHub\" menu item for non-Gitub repositories - #2615",
+      "[Fixed] New tab opened when pressing \"]\" for certain keyboard layouts - #2607",
+      "[Fixed] Windows: Crash when exiting full screen - #1502"
+    ],
     "0.8.1-beta3": [
       "[New] Windows: Enable adding self-signed certificates - #2581",
       "[Improved] Adds ability to close repository list using shortcut - #2532",
