@@ -70,6 +70,7 @@ import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
 import { FullScreenInfo } from './window/full-screen-info'
+import { LfsInfo } from './window/lfs-info'
 import { PushBranchCommits } from './branches/push-branch-commits'
 import { Branch } from '../models/branch'
 import { CLIInstalled } from './cli-installed'
@@ -1152,6 +1153,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <FullScreenInfo windowState={this.state.windowState} />
   }
 
+  private renderLfsInfo() {
+    return <LfsInfo />
+  }
+
   private clearError = (error: Error) => {
     this.props.dispatcher.clearError(error)
   }
@@ -1518,6 +1523,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         ) : (
           this.renderApp()
         )}
+        {this.renderLfsInfo()}
         {this.renderZoomInfo()}
         {this.renderFullScreenInfo()}
       </div>
