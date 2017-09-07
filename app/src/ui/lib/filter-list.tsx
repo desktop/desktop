@@ -203,6 +203,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
   private onInputRef = (instance: HTMLInputElement | null) => {
     this.filterInput = instance
+
+    if (this.filterInput && this.props.filterText.length > 0) {
+      this.filterInput.select()
+    }
   }
 
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
