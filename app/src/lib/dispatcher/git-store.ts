@@ -7,7 +7,7 @@ import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
-import { IFetchProgress } from '../app-state'
+import { IFetchProgress, IRevertProgress } from '../app-state'
 
 import { IAppShell } from '../../lib/dispatcher/app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
@@ -876,9 +876,13 @@ export class GitStore {
   /** Reverts the commit with the given SHA */
   public async revertCommit(
     repository: Repository,
-    commit: Commit
+    commit: Commit,
+    account: IGitAccount | null,
+    progressCallback?: (fetchProgress: IRevertProgress) => void
   ): Promise<void> {
-    await this.performFailableOperation(() => revertCommit(repository, commit))
+    await this.performFailableOperation(() =>
+      revertCommit(repository, commit, account, progressCallback)
+    )
 
     this.emitUpdate()
   }

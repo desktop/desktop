@@ -2536,11 +2536,13 @@ export class AppStore {
     repository: Repository,
     commit: Commit
   ): Promise<void> {
-    const gitStore = this.getGitStore(repository)
+    return this.withAuthenticatingUser(repository, async (repo, account) => {
+      const gitStore = this.getGitStore(repository)
 
-    await gitStore.revertCommit(repository, commit)
+      await gitStore.revertCommit(repository, commit, account, progress => {})
 
-    return gitStore.loadHistory()
+      return gitStore.loadHistory()
+    })
   }
 
   public async promptForGenericGitAuthentication(
