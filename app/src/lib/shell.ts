@@ -180,7 +180,7 @@ export function getActiveCodePage(): Promise<number | null> {
     return Promise.resolve(null)
   }
 
-  return new Promise<number>((resolve, reject) => {
+  return new Promise<number | null>((resolve, reject) => {
     const child = ChildProcess.spawn('chcp')
 
     const buffers: Array<Buffer> = []
@@ -196,7 +196,8 @@ export function getActiveCodePage(): Promise<number | null> {
         const value = result[1]
         resolve(parseInt(value, 10))
       } else {
-        reject(`regex did not match output: '${output}'`)
+        log.debug(`regex did not match output: '${output}'`)
+        resolve(null)
       }
     })
   })
