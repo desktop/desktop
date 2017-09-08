@@ -137,7 +137,7 @@ export class PushBranchCommits extends React.Component<
           <Button type="submit" onClick={this.onPushOrPublishButtonClick}>
             {__DARWIN__ ? 'Publish Branch' : 'Publish branch'}
           </Button>
-          <Button>Cancel</Button>
+          <Button onClick={this.cancel}>Cancel</Button>
         </ButtonGroup>
       )
     }

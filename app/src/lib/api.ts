@@ -64,6 +64,7 @@ export interface IAPIUser {
   readonly login: string
   readonly avatar_url: string
   readonly name: string
+  readonly type: 'User' | 'Organization'
 }
 
 /** The users we get from the mentionables endpoint. */
@@ -210,6 +211,18 @@ export class API {
     }
   }
 
+  /** Fetch all repos a user has access to. */
+  public async fetchRepositories(): Promise<ReadonlyArray<
+    IAPIRepository
+  > | null> {
+    try {
+      return await this.fetchAll<IAPIRepository>('user/repos')
+    } catch (error) {
+      log.warn(`fetchRepositories: ${error}`)
+      return null
+    }
+  }
+
   /** Fetch the logged in account. */
   public async fetchAccount(): Promise<IAPIUser> {
     try {
@@ -352,7 +365,11 @@ export class API {
    */
   private async fetchAll<T>(path: string): Promise<ReadonlyArray<T>> {
     const buf = new Array<T>()
-    let nextPath: string | null = path
+
+    const params = {
+      per_page: '100',
+    }
+    let nextPath: string | null = urlWithQueryString(path, params)
 
     do {
       const response = await this.request('GET', nextPath)
