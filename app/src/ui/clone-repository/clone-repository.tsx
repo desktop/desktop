@@ -97,7 +97,7 @@ export class CloneRepository extends React.Component<
     return (
       <Dialog
         className="clone-repository"
-        title="Clone a repository"
+        title={__DARWIN__ ? 'Clone a Repository' : 'Clone a repository'}
         onSubmit={this.clone}
         onDismissed={this.props.onDismissed}
         loading={this.state.loading}
