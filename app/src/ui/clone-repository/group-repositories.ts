@@ -3,6 +3,7 @@ import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { OcticonSymbol } from '../octicons'
 
+/** The identifier for the "Your Repositories" grouping. */
 export const YourRepositoriesIdentifier = 'your-repositories'
 
 export interface IClonableRepositoryListItem extends IFilterListItem {
