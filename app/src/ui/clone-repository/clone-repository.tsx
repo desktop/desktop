@@ -37,8 +37,11 @@ interface ICloneRepositoryProps {
   /** The initial URL or `owner/name` shortcut to use. */
   readonly initialURL: string | null
 
-  /** The initial tab to open on load */
-  readonly initialSelectedTab?: CloneRepositoryTab
+  /** The currently select tab. */
+  readonly selectedTab: CloneRepositoryTab
+
+  /** Called when the user selects a tab. */
+  readonly onTabSelected: (tab: CloneRepositoryTab) => void
 }
 
 interface ICloneRepositoryState {
@@ -58,11 +61,6 @@ interface ICloneRepositoryState {
    * The repository identifier that was last parsed from the user-entered URL.
    */
   readonly lastParsedIdentifier: IRepositoryIdentifier | null
-
-  /**
-   * The default tab to open on load
-   */
-  readonly selectedTab: CloneRepositoryTab
 }
 
 /** The component for cloning a repository. */
@@ -79,16 +77,6 @@ export class CloneRepository extends React.Component<
       loading: false,
       error: null,
       lastParsedIdentifier: null,
-      selectedTab: this.props.initialSelectedTab || CloneRepositoryTab.DotCom,
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: ICloneRepositoryProps) {
-    if (
-      this.props.initialSelectedTab !== nextProps.initialSelectedTab &&
-      nextProps.initialSelectedTab
-    ) {
-      this.setState({ selectedTab: nextProps.initialSelectedTab })
     }
   }
 
@@ -104,7 +92,7 @@ export class CloneRepository extends React.Component<
       >
         <TabBar
           onTabClicked={this.onTabClicked}
-          selectedIndex={this.state.selectedTab}
+          selectedIndex={this.props.selectedTab}
         >
           <span>GitHub.com</span>
           <span>Enterprise</span>
@@ -121,9 +109,10 @@ export class CloneRepository extends React.Component<
   }
 
   private renderFooter() {
+    const selectedTab = this.props.selectedTab
     if (
-      this.state.selectedTab !== CloneRepositoryTab.Generic &&
-      !this.getAccountForTab(this.state.selectedTab)
+      selectedTab !== CloneRepositoryTab.Generic &&
+      !this.getAccountForTab(selectedTab)
     ) {
       return null
     }
@@ -147,12 +136,12 @@ export class CloneRepository extends React.Component<
     )
   }
 
-  private onTabClicked = (index: number) => {
-    this.setState({ selectedTab: index })
+  private onTabClicked = (tab: CloneRepositoryTab) => {
+    this.props.onTabSelected(tab)
   }
 
   private renderActiveTab() {
-    const tab = this.state.selectedTab
+    const tab = this.props.selectedTab
 
     switch (tab) {
       case CloneRepositoryTab.Generic:
