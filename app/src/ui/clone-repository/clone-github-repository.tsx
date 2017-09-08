@@ -13,6 +13,7 @@ import { IFilterListGroup } from '../lib/filter-list'
 import {
   IClonableRepositoryListItem,
   groupRepositories,
+  YourRepositoriesIdentifier,
 } from './group-repositories'
 
 interface ICloneGithubRepositoryProps {
@@ -192,7 +193,11 @@ export class CloneGithubRepository extends React.Component<
     this.props.onPathChanged(path)
   }
 
-  private renderGroupHeader = (header: string) => {
+  private renderGroupHeader = (identifier: string) => {
+    let header = identifier
+    if (identifier === YourRepositoriesIdentifier) {
+      header = __DARWIN__ ? 'Your Repositories' : 'Your repositories'
+    }
     return (
       <div className="clone-repository-list-content clone-repository-list-group-header">
         {header}
