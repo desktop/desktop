@@ -9,9 +9,7 @@ describe('shell/getActiveCodePage', () => {
       const codePage = await getActiveCodePage()
       expect(codePage).to.be.greaterThan(0)
     })
-  }
-
-  if (process.platform !== 'win32') {
+  } else {
     it('returns null for non-Windows platforms', async () => {
       const codePage = await getActiveCodePage()
       expect(codePage).to.be.null

@@ -114,8 +114,7 @@ export async function readRegistryKeySafe(
   }
 
   const activeCodePage = await getActiveCodePage()
-  if (activeCodePage) {
-  } else {
+  if (!activeCodePage) {
     log.debug('Unable to resolve active code page')
     return []
   }

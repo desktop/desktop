@@ -194,7 +194,12 @@ export function getActiveCodePage(): Promise<number | null> {
       const result = chcpOutputRegex.exec(output)
       if (result) {
         const value = result[1]
-        resolve(parseInt(value, 10))
+        const parsedInt = parseInt(value, 10)
+        if (isNaN(parsedInt)) {
+          resolve(null)
+        } else {
+          resolve(parsedInt)
+        }
       } else {
         log.debug(`regex did not match output: '${output}'`)
         resolve(null)
