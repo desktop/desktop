@@ -63,14 +63,6 @@
     padding: var(--spacing-double);
   }
 
-  .clone-url-row {
-    flex-direction: column;
-
-    label {
-      margin-bottom: var(--spacing-third);
-    }
-  }
-
   .clone-loading {
     display: flex;
     color: var(--text-secondary-color);
