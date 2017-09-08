@@ -2,26 +2,49 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 
 interface IListRowProps {
+  /** the total number of row in this list */
   readonly rowCount: number
+
+  /** the index of the row in the list */
   readonly rowIndex: number
+
+  /** the accessibility mode to assign to the row */
   readonly ariaMode?: 'list' | 'menu'
-  readonly style: React.CSSProperties
+
+  /** custom styles to provide to the row */
+  readonly style?: React.CSSProperties
+
+  /** set a tab index for this row (if selectable) */
   readonly tabIndex?: number
+
+  /** an optional id to provide to the element */
   readonly id?: string
+
+  /** whether the row should be rendered as selected */
   readonly selected?: boolean
+
+  /** callback to fire when the DOM element is created */
   readonly onRef?: (element: HTMLDivElement | null) => void
+
+  /** callback to fire when the row receives a mouseover event */
   readonly onRowMouseOver: (
     index: number,
     e: React.MouseEvent<HTMLDivElement>
   ) => void
+
+  /** callback to fire when the row receieves a mousedown event */
   readonly onRowMouseDown: (
     index: number,
     e: React.MouseEvent<HTMLDivElement>
   ) => void
+
+  /** callback to fire when the row is clicked */
   readonly onRowClick: (
     index: number,
     e: React.MouseEvent<HTMLDivElement>
   ) => void
+
+  /** callback to fire when the row receives a keyboard event */
   readonly onRowKeyDown: (
     index: number,
     e: React.KeyboardEvent<HTMLDivElement>
@@ -50,6 +73,15 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     const className = classNames('list-item', { selected })
     const role = this.props.ariaMode === 'menu' ? 'menuitem' : 'option'
 
+    // react-virtualized gives us an explicit pixel width for rows, but that
+    // width doesn't take into account whether or not the scroll bar needs
+    // width too, e.g., on macOS when "Show scroll bars" is set to "Always."
+    //
+    // *But* the parent Grid uses `autoContainerWidth` which means its width
+    // *does* reflect any width needed by the scroll bar. So we should just use
+    // that width.
+    const style = { ...this.props.style, width: '100%' }
+
     return (
       <div
         id={this.props.id}
@@ -64,7 +96,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         onMouseDown={this.onRowMouseDown}
         onClick={this.onRowClick}
         onKeyDown={this.onRowKeyDown}
-        style={this.props.style}
+        style={style}
       >
         {this.props.children}
       </div>

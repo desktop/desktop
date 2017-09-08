@@ -446,15 +446,6 @@ export class List extends React.Component<IListProps, IListState> {
 
     const element = this.props.rowRenderer(params.rowIndex)
 
-    // react-virtualized gives us an explicit pixel width for rows, but that
-    // width doesn't take into account whether or not the scroll bar needs
-    // width too, e.g., on macOS when "Show scroll bars" is set to "Always."
-    //
-    // *But* the parent Grid uses `autoContainerWidth` which means its width
-    // *does* reflect any width needed by the scroll bar. So we should just use
-    // that width.
-    const style = { ...params.style, width: '100%' }
-
     const id = this.state.rowIdPrefix
       ? `${this.state.rowIdPrefix}-${rowIndex}`
       : undefined
@@ -472,7 +463,7 @@ export class List extends React.Component<IListProps, IListState> {
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
         onRowMouseOver={this.onRowMouseOver}
-        style={style}
+        style={params.style}
         tabIndex={tabIndex}
         children={element}
       />
