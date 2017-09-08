@@ -5,7 +5,7 @@ import { LinkButton } from './link-button'
 
 interface ITextBoxProps {
   /** The label for the input field. */
-  readonly label?: string
+  readonly label?: string | JSX.Element
 
   /**
    * An optional className to be applied to the rendered

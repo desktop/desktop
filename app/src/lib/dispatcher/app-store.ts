@@ -98,6 +98,7 @@ import {
   findShellOrDefault,
   launchShell,
 } from '../shells'
+import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -200,6 +201,8 @@ export class AppStore {
   private resolveOpenInDesktop:
     | ((repository: Repository | null) => void)
     | null = null
+
+  private selectedCloneRepositoryTab: CloneRepositoryTab = CloneRepositoryTab.DotCom
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -499,6 +502,7 @@ export class AppStore {
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
+      selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
     }
   }
 
@@ -2576,5 +2580,13 @@ export class AppStore {
       hostname,
       retryAction,
     })
+  }
+
+  public _changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
+    this.selectedCloneRepositoryTab = tab
+
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }

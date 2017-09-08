@@ -48,11 +48,8 @@ import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
-import {
-  AddExistingRepository,
-  CreateRepository,
-  CloneRepository,
-} from './add-repository'
+import { AddExistingRepository, CreateRepository } from './add-repository'
+import { CloneRepository } from './clone-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { InstallGit } from './install-git'
@@ -76,6 +73,7 @@ import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
+import { CloneRepositoryTab } from '../models/clone-repository-tab'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -951,10 +949,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <CloneRepository
             key="clone-repository"
-            accounts={this.state.accounts}
+            dotComAccount={this.getDotComAccount()}
+            enterpriseAccount={this.getEnterpriseAccount()}
             initialURL={popup.initialURL}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
+            selectedTab={this.state.selectedCloneRepositoryTab}
+            onTabSelected={this.onCloneRepositoriesTabSelected}
           />
         )
       case PopupType.CreateBranch: {
@@ -1088,6 +1089,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onCloneRepositoriesTabSelected = (tab: CloneRepositoryTab) => {
+    this.props.dispatcher.changeCloneRepositoriesTab(tab)
   }
 
   private onShowAdvancedPreferences = () => {
