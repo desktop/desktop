@@ -3,7 +3,7 @@ import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
-import { Monospaced } from '../lib/monospaced'
+import { Ref } from '../lib/ref'
 
 interface ICloneGenericRepositoryProps {
   /** The URL to clone. */
@@ -36,7 +36,7 @@ export class CloneGenericRepository extends React.Component<
           <label>
             Repository URL or GitHub username and repository
             <br />
-            (e.g., <Monospaced>hubot/cool-repo</Monospaced>)
+            (<Ref>hubot/cool-repo</Ref>)
           </label>
 
           <TextBox
