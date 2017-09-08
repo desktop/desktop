@@ -162,8 +162,8 @@ export class CloneGithubRepository extends React.Component<
     )
   }
 
-  private onFilterTextChanged = (str: string) => {
-    this.setState({ filterText: str })
+  private onFilterTextChanged = (filterText: string) => {
+    this.setState({ filterText })
   }
 
   private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
