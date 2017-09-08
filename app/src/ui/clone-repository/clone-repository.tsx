@@ -85,7 +85,7 @@ export class CloneRepository extends React.Component<
 
   public componentWillReceiveProps(nextProps: ICloneRepositoryProps) {
     if (
-      this.state.selectedTab !== nextProps.initialSelectedTab &&
+      this.props.initialSelectedTab !== nextProps.initialSelectedTab &&
       nextProps.initialSelectedTab
     ) {
       this.setState({ selectedTab: nextProps.initialSelectedTab })
