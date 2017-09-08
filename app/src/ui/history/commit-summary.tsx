@@ -30,27 +30,23 @@ interface ICommitSummaryProps {
 
 interface ICommitSummaryState {
   /**
-   * The commit message summary, i.e. the first line
-   * in the commit message. Note that this
-   * may differ from the body property in the commit object
-   * passed through props, see the createState method for more
-   * details.
+   * The commit message summary, i.e. the first line in the commit message.
+   * Note that this may differ from the body property in the commit object
+   * passed through props, see the createState method for more details.
    */
   readonly summary: string
 
   /**
-   * The commit message body, i.e. anything after the
-   * first line of text in the commit message. Note that this
-   * may differ from the body property in the commit object
-   * passed through props, see the createState method for more
+   * The commit message body, i.e. anything after the first line of text in the
+   * commit message. Note that this may differ from the body property in the
+   * commit object passed through props, see the createState method for more
    * details.
    */
   readonly body: string
 
   /**
-   * Whether or not the commit body text overflows
-   * its container. Used in conjunction with the isExpanded
-   * prop
+   * Whether or not the commit body text overflows its container. Used in
+   * conjunction with the isExpanded prop.
    */
   readonly isOverflowed: boolean
 }
@@ -58,8 +54,7 @@ interface ICommitSummaryState {
 const maxSummaryLength = 72
 
 /**
- * Removes whitespace characters from the end of the
- * string
+ * Removes whitespace characters from the end of the string
  */
 function trimTrailingWhitespace(value: string) {
   return value.replace(/\s+$/, '')
@@ -68,13 +63,12 @@ function trimTrailingWhitespace(value: string) {
 /**
  * Creates the state object for the CommitSummary component.
  *
- * Ensures that the commit summary never exceeds 72 characters
- * and wraps it into the commit body if it does.
+ * Ensures that the commit summary never exceeds 72 characters and wraps it
+ * into the commit body if it does.
  *
- * @param isOverflowed Whether or not the component should render
- *                     the commit body in expanded mode, see the
- *                     documentation for the isOverflowed state
- *                     property
+ * @param isOverflowed Whether or not the component should render the commit
+ *                     body in expanded mode, see the documentation for the
+ *                     isOverflowed state property.
  *
  * @param props        The current commit summary prop object.
  */
@@ -310,7 +304,9 @@ export class CommitSummary extends React.Component<
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
-              <span>{shortSHA}</span>
+              <span>
+                {shortSHA}
+              </span>
             </li>
 
             <li className="commit-summary-meta-item" title={filesDescription}>
