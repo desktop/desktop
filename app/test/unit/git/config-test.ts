@@ -6,18 +6,12 @@ import { Repository } from '../../../src/models/repository'
 import { getConfigValue } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../fixture-helper'
 
-const temp = require('temp').track()
-
 describe('git/config', () => {
   let repository: Repository | null = null
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
-  })
-
-  after(() => {
-    temp.cleanupSync()
   })
 
   describe('config', () => {

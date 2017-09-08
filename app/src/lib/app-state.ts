@@ -153,13 +153,16 @@ export interface IAppState {
   readonly confirmRepoRemoval: boolean
 
   /** The external editor to use when opening repositories */
-  readonly selectedExternalEditor: ExternalEditor
+  readonly selectedExternalEditor?: ExternalEditor
 
   /** What type of visual diff mode we should use to compare images */
   readonly imageDiffType: ImageDiffType
 
   /** The user's preferred shell. */
   readonly selectedShell: Shell
+
+  /** The current repository filter text. */
+  readonly repositoryFilterText: string
 }
 
 export enum PopupType {

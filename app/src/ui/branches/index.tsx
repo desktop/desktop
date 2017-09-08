@@ -16,6 +16,7 @@ interface IBranchesProps {
 
 interface IBranchesState {
   readonly selectedBranch: Branch | null
+  readonly filterText: string
 }
 
 /** The Branches list component. */
@@ -23,7 +24,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   public constructor(props: IBranchesProps) {
     super(props)
 
-    this.state = { selectedBranch: props.currentBranch }
+    this.state = { selectedBranch: props.currentBranch, filterText: '' }
   }
 
   private onItemClick = (item: Branch) => {
@@ -39,16 +40,17 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     }
   }
 
-  private onFilterKeyDown = (
-    filter: string,
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
+  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      if (filter.length === 0) {
+      if (this.state.filterText.length === 0) {
         this.props.dispatcher.closeFoldout(FoldoutType.Branch)
         event.preventDefault()
       }
     }
+  }
+
+  private onFilterTextChanged = (filterText: string) => {
+    this.setState({ filterText })
   }
 
   private onSelectionChanged = (selectedBranch: Branch) => {
@@ -64,7 +66,9 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
           allBranches={this.props.allBranches}
           recentBranches={this.props.recentBranches}
           onItemClick={this.onItemClick}
+          filterText={this.state.filterText}
           onFilterKeyDown={this.onFilterKeyDown}
+          onFilterTextChanged={this.onFilterTextChanged}
           selectedBranch={this.state.selectedBranch}
           onSelectionChanged={this.onSelectionChanged}
         />

@@ -63,12 +63,14 @@ export class CommitListItem extends React.Component<ICommitProps, {}> {
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
-    let label: string = ''
+    let viewOnGitHubLabel = 'View on GitHub'
     const gitHubRepository = this.props.gitHubRepository
 
-    if (gitHubRepository) {
-      const isDotCom = gitHubRepository.endpoint === getDotComAPIEndpoint()
-      label = isDotCom ? 'View on GitHub' : 'View on GitHub Enterprise'
+    if (
+      gitHubRepository &&
+      gitHubRepository.endpoint !== getDotComAPIEndpoint()
+    ) {
+      viewOnGitHubLabel = 'View on GitHub Enterprise'
     }
 
     const items: IMenuItem[] = [
@@ -86,7 +88,7 @@ export class CommitListItem extends React.Component<ICommitProps, {}> {
         action: this.onCopySHA,
       },
       {
-        label: label,
+        label: viewOnGitHubLabel,
         action: this.onViewOnGitHub,
         enabled: !this.props.isLocal && !!gitHubRepository,
       },
