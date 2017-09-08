@@ -3,6 +3,8 @@ import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { OcticonSymbol } from '../octicons'
 
+export const YourRepositoriesIdentifier = 'your-repositories'
+
 export interface IClonableRepositoryListItem extends IFilterListItem {
   /** The identifier for the item. */
   readonly id: string
@@ -62,7 +64,7 @@ export function groupRepositories(
 
   const groups = [
     {
-      identifier: 'Your repositories',
+      identifier: YourRepositoriesIdentifier,
       items: convert(userRepos),
     },
   ]

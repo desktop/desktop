@@ -1,7 +1,10 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { groupRepositories } from '../../src/ui/clone-repository/group-repositories'
+import {
+  groupRepositories,
+  YourRepositoriesIdentifier,
+} from '../../src/ui/clone-repository/group-repositories'
 import { IAPIRepository, IAPIUser } from '../../src/lib/api'
 
 const users = {
@@ -66,7 +69,7 @@ describe('clone repository grouping', () => {
     const grouped = groupRepositories(repositories, 'shiftkey')
     expect(grouped.length).to.equal(3)
 
-    expect(grouped[0].identifier).to.equal('Your repositories')
+    expect(grouped[0].identifier).to.equal(YourRepositoriesIdentifier)
     expect(grouped[0].items.length).to.equal(1)
 
     let item = grouped[0].items[0]
