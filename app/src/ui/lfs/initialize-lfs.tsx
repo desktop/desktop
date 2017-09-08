@@ -68,11 +68,11 @@ export class InitializeLFS extends React.Component<IInitializeLFSProps, {}> {
         </p>
       )
     } else {
-      const plural = this.props.repositories.length === 1
+      const plural = this.props.repositories.length !== 1
       const pluralizedRepositories = plural
-        ? 'This repository uses'
-        : 'The repositories use'
-      const pluralizedUse = plural ? 'it' : 'them'
+        ? 'The repositories use'
+        : 'This repository uses'
+      const pluralizedUse = plural ? 'them' : 'it'
       return (
         <div>
           <p>
