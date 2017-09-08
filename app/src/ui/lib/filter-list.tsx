@@ -83,21 +83,25 @@ interface IFilterListProps<T extends IFilterListItem> {
   ) => void
 
   /**
-   * Called when a key down happens in the filter field. Users have a chance to
-   * respond or cancel the default behavior by calling `preventDefault`.
+   * Called when a key down happens in the filter text input. Users have a
+   * chance to respond or cancel the default behavior by calling
+   * `preventDefault()`.
    */
   readonly onFilterKeyDown?: (
-    filter: string,
     event: React.KeyboardEvent<HTMLInputElement>
   ) => void
+
+  /** The current filter text to use in the form */
+  readonly filterText: string
+
+  /** Called when the filter text is changed by the user */
+  readonly onFilterTextChanged: (text: string) => void
 
   /** Any props which should cause a re-render if they change. */
   readonly invalidationProps: any
 }
 
 interface IFilterListState<T extends IFilterListItem> {
-  readonly filter: string
-
   readonly rows: ReadonlyArray<IFilterListRow<T>>
 
   readonly selectedRow: number
@@ -127,7 +131,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
-    this.state = createStateUpdate('', props)
+    this.state = createStateUpdate(props)
   }
 
   public render() {
@@ -144,6 +148,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
             onChange={this.onFilterChanged}
             onKeyDown={this.onKeyDown}
             onInputRef={this.onInputRef}
+            value={this.props.filterText}
           />
         </Row>
 
@@ -169,7 +174,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
-    this.setState(createStateUpdate(this.state.filter, nextProps))
+    this.setState(createStateUpdate(nextProps))
   }
 
   private onSelectionChanged = (index: number, source: SelectionSource) => {
@@ -198,11 +203,15 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
   private onInputRef = (instance: HTMLInputElement | null) => {
     this.filterInput = instance
+
+    if (this.filterInput && this.props.filterText.length > 0) {
+      this.filterInput.select()
+    }
   }
 
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const text = event.currentTarget.value
-    this.setState(createStateUpdate(text, this.props))
+    this.props.onFilterTextChanged(text)
   }
 
   public componentDidUpdate(
@@ -231,7 +240,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           )
           this.props.onSelectionChanged(newSelectedItem, {
             kind: 'filter',
-            filterText: this.state.filter,
+            filterText: this.props.filterText,
           })
         }
       }
@@ -284,7 +293,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
 
     if (this.props.onFilterKeyDown) {
-      this.props.onFilterKeyDown(this.state.filter, event)
+      this.props.onFilterKeyDown(event)
     }
 
     if (event.defaultPrevented) {
@@ -324,13 +333,14 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 }
 
 function createStateUpdate<T extends IFilterListItem>(
-  filter: string,
   props: IFilterListProps<T>
 ) {
   const flattenedRows = new Array<IFilterListRow<T>>()
+  const filter = props.filterText.toLowerCase()
+
   for (const group of props.groups) {
     const items = group.items.filter(i => {
-      return i.text.toLowerCase().includes(filter.toLowerCase())
+      return i.text.toLowerCase().includes(filter)
     })
 
     if (!items.length) {
@@ -357,7 +367,7 @@ function createStateUpdate<T extends IFilterListItem>(
     selectedRow = flattenedRows.findIndex(i => i.kind === 'item')
   }
 
-  return { filter, rows: flattenedRows, selectedRow }
+  return { rows: flattenedRows, selectedRow }
 }
 
 function getItemFromRowIndex<T extends IFilterListItem>(

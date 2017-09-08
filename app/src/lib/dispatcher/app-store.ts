@@ -99,6 +99,7 @@ import {
   findShellOrDefault,
   launchShell,
 } from '../shells'
+import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -192,12 +193,17 @@ export class AppStore {
   /** The user's preferred shell. */
   private selectedShell = DefaultShell
 
+  /** The current repository filter text */
+  private repositoryFilterText: string = ''
+
   private readonly statsStore: StatsStore
 
   /** The function to resolve the current Open in Desktop flow. */
   private resolveOpenInDesktop:
     | ((repository: Repository | null) => void)
     | null = null
+
+  private selectedCloneRepositoryTab: CloneRepositoryTab = CloneRepositoryTab.DotCom
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -497,6 +503,8 @@ export class AppStore {
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
+      repositoryFilterText: this.repositoryFilterText,
+      selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
     }
   }
 
@@ -662,6 +670,12 @@ export class AppStore {
 
       return { selection, changedFiles, diff }
     })
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setRepositoryFilterText(text: string): Promise<void> {
+    this.repositoryFilterText = text
     this.emitUpdate()
   }
 
@@ -2585,5 +2599,13 @@ export class AppStore {
       hostname,
       retryAction,
     })
+  }
+
+  public _changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
+    this.selectedCloneRepositoryTab = tab
+
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }

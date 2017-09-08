@@ -54,7 +54,6 @@ interface IBranchListProps {
    * respond or cancel the default behavior by calling `preventDefault`.
    */
   readonly onFilterKeyDown?: (
-    filter: string,
     event: React.KeyboardEvent<HTMLInputElement>
   ) => void
 
@@ -76,10 +75,24 @@ interface IBranchListProps {
     selectedItem: Branch | null,
     source: SelectionSource
   ) => void
+
+  /** The current filter text to render */
+  readonly filterText: string
+
+  /** Callback to fire when the filter text is changed */
+  readonly onFilterTextChanged: (filterText: string) => void
 }
 
 interface IBranchListState {
+  /**
+   * The grouped list of branches.
+   *
+   * Groups are currently defined as 'default branch', 'current branch',
+   * 'recent branches' and all branches.
+   */
   readonly groups: ReadonlyArray<IFilterListGroup<IBranchListItem>>
+
+  /** The selected item in the filtered list */
   readonly selectedItem: IBranchListItem | null
 }
 
@@ -182,6 +195,8 @@ export class BranchList extends React.Component<
       <BranchesFilterList
         className="branches-list"
         rowHeight={RowHeight}
+        filterText={this.props.filterText}
+        onFilterTextChanged={this.props.onFilterTextChanged}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
