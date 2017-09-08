@@ -21,7 +21,7 @@ import {
   UserAutocompletionProvider,
 } from '../autocompletion'
 import { ICommitMessage } from '../../lib/app-state'
-import { ClickSource } from '../list'
+import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'

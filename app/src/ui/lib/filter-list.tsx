@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as classnames from 'classnames'
 
-import { List, SelectionSource as ListSelectionSource } from '../list'
+import { List, SelectionSource as ListSelectionSource } from '../lib/list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 

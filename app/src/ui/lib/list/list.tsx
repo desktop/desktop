@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as classNames from 'classnames'
 import { Grid, AutoSizer } from 'react-virtualized'
-import { shallowEquals } from '../lib/equality'
-import { createUniqueId, releaseUniqueId } from './lib/id-pool'
+import { shallowEquals } from '../../../lib/equality'
+import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 
 /**
  * Describe the first argument given to the cellRenderer,
