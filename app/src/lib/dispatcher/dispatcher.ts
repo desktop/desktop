@@ -916,10 +916,10 @@ export class Dispatcher {
       return this.checkoutBranch(repo, branch)
     } else {
       return this.appStore._startOpenInDesktop(() => {
+        this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
         this.showPopup({
           type: PopupType.CloneRepository,
           initialURL: url,
-          initialSelectedTab: CloneRepositoryTab.Generic,
         })
       })
     }
@@ -984,5 +984,10 @@ export class Dispatcher {
   /** Change the selected image diff type. */
   public changeImageDiffType(type: ImageDiffType): Promise<void> {
     return this.appStore._changeImageDiffType(type)
+  }
+
+  /** Change the selected Clone Repository tab. */
+  public changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
+    return this.appStore._changeCloneRepositoriesTab(tab)
   }
 }

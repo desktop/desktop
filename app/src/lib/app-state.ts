@@ -164,6 +164,9 @@ export interface IAppState {
 
   /** The current repository filter text. */
   readonly repositoryFilterText: string
+
+  /** The currently selected tab for Clone Repository. */
+  readonly selectedCloneRepositoryTab: CloneRepositoryTab
 }
 
 export enum PopupType {
@@ -208,7 +211,6 @@ export type Popup =
   | {
       type: PopupType.CloneRepository
       initialURL: string | null
-      initialSelectedTab?: CloneRepositoryTab
     }
   | { type: PopupType.CreateBranch; repository: Repository }
   | { type: PopupType.SignIn }

@@ -73,6 +73,7 @@ import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
+import { CloneRepositoryTab } from '../models/clone-repository-tab'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -953,7 +954,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             initialURL={popup.initialURL}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
-            initialSelectedTab={popup.initialSelectedTab}
+            selectedTab={this.state.selectedCloneRepositoryTab}
+            onTabSelected={this.onCloneRepositoriesTabSelected}
           />
         )
       case PopupType.CreateBranch: {
@@ -1087,6 +1089,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onCloneRepositoriesTabSelected = (tab: CloneRepositoryTab) => {
+    this.props.dispatcher.changeCloneRepositoriesTab(tab)
   }
 
   private onShowAdvancedPreferences = () => {
