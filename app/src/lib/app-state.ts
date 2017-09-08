@@ -193,6 +193,7 @@ export enum PopupType {
   GenericGitAuthentication,
   ExternalEditorFailed,
   OpenShellFailed,
+  CustomRemote,
 }
 
 export type Popup =
@@ -244,6 +245,7 @@ export type Popup =
       openPreferences?: boolean
     }
   | { type: PopupType.OpenShellFailed; message: string }
+  | { type: PopupType.CustomRemote; repository: Repository }
 
 export enum FoldoutType {
   Repository,

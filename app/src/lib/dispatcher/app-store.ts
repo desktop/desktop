@@ -1931,7 +1931,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _publishRepository(
+  public async _publishGitHubRepository(
     repository: Repository,
     name: string,
     description: string,
@@ -1960,6 +1960,21 @@ export class AppStore {
     }
 
     return this.refreshGitHubRepositoryInfo(repository)
+  }
+
+  public async _publishRepository(repository: Repository, url: string) {
+    const gitStore = this.getGitStore(repository)
+
+    await gitStore.performFailableOperation(() =>
+      addRemote(repository, 'origin', url)
+    )
+    await gitStore.loadCurrentRemote()
+
+    // skip pushing if the current branch is a detached HEAD or the repository
+    // is unborn
+    // if (gitStore.tip.kind === TipState.Valid) {
+    //   await this.performPush(repository, account)
+    // }
   }
 
   private getAccountForRemoteURL(remote: string): IGitAccount | null {

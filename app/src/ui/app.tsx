@@ -57,7 +57,7 @@ import { EditorError } from './editor'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
 import { shell } from '../lib/dispatcher/app-shell'
-import { Publish } from './publish-repository'
+import { Publish, PublishCustomRemote } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { CSSTransitionGroup } from 'react-transition-group'
@@ -1084,6 +1084,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             message={popup.message}
             onDismissed={this.onPopupDismissed}
             showPreferencesDialog={this.onShowAdvancedPreferences}
+          />
+        )
+      case PopupType.CustomRemote:
+        return (
+          <PublishCustomRemote
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={this.onPopupDismissed}
           />
         )
       default:

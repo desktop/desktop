@@ -294,7 +294,7 @@ export class Dispatcher {
   }
 
   /** Publish the repository to GitHub with the given properties. */
-  public publishRepository(
+  public publishGitHubRepository(
     repository: Repository,
     name: string,
     description: string,
@@ -302,7 +302,7 @@ export class Dispatcher {
     account: Account,
     org: IAPIUser | null
   ): Promise<Repository> {
-    return this.appStore._publishRepository(
+    return this.appStore._publishGitHubRepository(
       repository,
       name,
       description,
@@ -310,6 +310,11 @@ export class Dispatcher {
       account,
       org
     )
+  }
+
+  /** Publish the repository to a generic server */
+  public publishRepository(repository: Repository, url: string) {
+    return this.appStore._publishRepository(repository, url)
   }
 
   /**
