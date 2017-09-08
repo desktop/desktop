@@ -8,7 +8,7 @@ import { Owner } from '../../src/models/owner'
 import { getDotComAPIEndpoint } from '../../src/lib/api'
 import { CloningRepository } from '../../src/lib/dispatcher'
 
-describe('Repository grouping', () => {
+describe('repository list grouping', () => {
   const repositories: Array<Repository | CloningRepository> = [
     new Repository('repo1', 1, null, false),
     new Repository(
