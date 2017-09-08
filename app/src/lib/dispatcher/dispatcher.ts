@@ -43,6 +43,7 @@ import { installCLI } from '../../ui/lib/install-cli'
 import * as GenericGitAuth from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
 import { Shell } from '../shells'
+import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 
 /**
  * An error handler function.
@@ -915,7 +916,11 @@ export class Dispatcher {
       return this.checkoutBranch(repo, branch)
     } else {
       return this.appStore._startOpenInDesktop(() => {
-        this.showPopup({ type: PopupType.CloneRepository, initialURL: url })
+        this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
+        this.showPopup({
+          type: PopupType.CloneRepository,
+          initialURL: url,
+        })
       })
     }
   }
@@ -979,5 +984,10 @@ export class Dispatcher {
   /** Change the selected image diff type. */
   public changeImageDiffType(type: ImageDiffType): Promise<void> {
     return this.appStore._changeImageDiffType(type)
+  }
+
+  /** Change the selected Clone Repository tab. */
+  public changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
+    return this.appStore._changeCloneRepositoriesTab(tab)
   }
 }
