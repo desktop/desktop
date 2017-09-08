@@ -32,18 +32,19 @@ export class CloneGenericRepository extends React.Component<
   public render() {
     return (
       <DialogContent className="clone-generic-repository-content">
-        <Row className="clone-url-row">
-          <label>
-            Repository URL or GitHub username and repository
-            <br />
-            (<Ref>hubot/cool-repo</Ref>)
-          </label>
-
+        <Row>
           <TextBox
             placeholder="URL or username/repository"
             value={this.props.url}
             onValueChanged={this.onUrlChanged}
             autoFocus={true}
+            label={
+              <span>
+                Repository URL or GitHub username and repository
+                <br />
+                (<Ref>hubot/cool-repo</Ref>)
+              </span>
+            }
           />
         </Row>
 
