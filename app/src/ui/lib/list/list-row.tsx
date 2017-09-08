@@ -1,14 +1,14 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
 interface IListRowProps {
-  readonly className: string
-  readonly tabIndex?: number
-  readonly id?: string
   readonly rowCount: number
   readonly rowIndex: number
-  readonly selected?: boolean
-  readonly role: string
+  readonly ariaMode?: 'list' | 'menu'
   readonly style: React.CSSProperties
+  readonly tabIndex?: number
+  readonly id?: string
+  readonly selected?: boolean
   readonly onRef?: (element: HTMLDivElement | null) => void
   readonly onRowMouseOver: (
     index: number,
@@ -46,14 +46,18 @@ export class ListRow extends React.Component<IListRowProps, {}> {
   }
 
   public render() {
+    const selected = this.props.selected
+    const className = classNames('list-item', { selected })
+    const role = this.props.ariaMode === 'menu' ? 'menuitem' : 'option'
+
     return (
       <div
         id={this.props.id}
         aria-setsize={this.props.rowCount}
         aria-posinset={this.props.rowIndex + 1}
         aria-selected={this.props.selected}
-        role={this.props.role}
-        className={this.props.className}
+        role={role}
+        className={className}
         tabIndex={this.props.tabIndex}
         ref={this.props.onRef}
         onMouseOver={this.onRowMouseOver}

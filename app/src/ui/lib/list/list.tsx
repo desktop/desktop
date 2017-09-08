@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as classNames from 'classnames'
 import { Grid, AutoSizer } from 'react-virtualized'
 import { shallowEquals } from '../../../lib/equality'
 import { ListRow } from './list-row'
@@ -435,7 +434,6 @@ export class List extends React.Component<IListProps, IListState> {
     const selectable = this.canSelectRow(rowIndex)
     const selected = rowIndex === this.props.selectedRow
     const focused = rowIndex === this.focusRow
-    const className = classNames('list-item', { selected })
 
     // An unselectable row shouldn't be focusable
     let tabIndex: number | undefined = undefined
@@ -461,17 +459,15 @@ export class List extends React.Component<IListProps, IListState> {
       ? `${this.state.rowIdPrefix}-${rowIndex}`
       : undefined
 
-    const role = this.props.ariaMode === 'menu' ? 'menuitem' : 'option'
     return (
       <ListRow
         key={params.key}
         id={id}
-        className={className}
         onRef={ref}
         rowCount={this.props.rowCount}
         rowIndex={rowIndex}
         selected={selected}
-        role={role}
+        ariaMode={this.props.ariaMode}
         onRowClick={this.onRowClick}
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
