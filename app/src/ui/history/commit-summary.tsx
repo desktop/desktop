@@ -79,8 +79,8 @@ function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
   if (summary.length > maxSummaryLength) {
     // Truncate at least 3 characters off the end to avoid just an ellipsis
     // followed by 1-2 characters in the body. This matches dotcom behavior.
-    const wrapMargin = 3
-    const truncateLength = maxSummaryLength - wrapMargin
+    const truncationMargin = 3
+    const truncateLength = maxSummaryLength - truncationMargin
     const remainder = summary.substr(truncateLength)
 
     // Don't join the the body with newlines if it's empty
