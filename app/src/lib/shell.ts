@@ -165,3 +165,45 @@ function mergeEnvironmentVariables(env: IndexLookup) {
 export function updateEnvironmentForProcess(): Promise<void> {
   return getEnvironmentFromShell(mergeEnvironmentVariables)
 }
+
+const chcpOutputRegex = /^Active code page: (\d{1,}).*/
+
+/**
+ * Resolve the active code page from the Windows console. It doesn't support
+ * Unicode natively, which is why we have to ask it.
+ *
+ * Code Page 437 is the character set associated with the original IBM PC, and
+ * Code Page 65001 represents UTF-8 character set.
+ */
+export function getActiveCodePage(): Promise<number | null> {
+  if (!__WIN32__) {
+    return Promise.resolve(null)
+  }
+
+  return new Promise<number | null>((resolve, reject) => {
+    const child = ChildProcess.spawn('chcp')
+
+    const buffers: Array<Buffer> = []
+
+    child.stdout.on('data', (data: Buffer) => {
+      buffers.push(data)
+    })
+
+    child.on('close', (code: number, signal) => {
+      const output = Buffer.concat(buffers).toString('utf8')
+      const result = chcpOutputRegex.exec(output)
+      if (result) {
+        const value = result[1]
+        const parsedInt = parseInt(value, 10)
+        if (isNaN(parsedInt)) {
+          resolve(null)
+        } else {
+          resolve(parsedInt)
+        }
+      } else {
+        log.debug(`regex did not match output: '${output}'`)
+        resolve(null)
+      }
+    })
+  })
+}
