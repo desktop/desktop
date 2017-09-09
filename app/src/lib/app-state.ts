@@ -20,6 +20,7 @@ import { RetryAction } from './retry-actions'
 import { ExternalEditor } from '../models/editors'
 import { PreferencesTab } from '../models/preferences'
 import { Shell } from './shells'
+import { CloneRepositoryTab } from '../models/clone-repository-tab'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -163,6 +164,9 @@ export interface IAppState {
 
   /** The current repository filter text. */
   readonly repositoryFilterText: string
+
+  /** The currently selected tab for Clone Repository. */
+  readonly selectedCloneRepositoryTab: CloneRepositoryTab
 }
 
 export enum PopupType {
@@ -189,6 +193,7 @@ export enum PopupType {
   GenericGitAuthentication,
   ExternalEditorFailed,
   OpenShellFailed,
+  InitializeLFS,
 }
 
 export type Popup =
@@ -204,7 +209,10 @@ export type Popup =
   | { type: PopupType.RepositorySettings; repository: Repository }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }
-  | { type: PopupType.CloneRepository; initialURL: string | null }
+  | {
+      type: PopupType.CloneRepository
+      initialURL: string | null
+    }
   | { type: PopupType.CreateBranch; repository: Repository }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }
@@ -237,6 +245,7 @@ export type Popup =
       openPreferences?: boolean
     }
   | { type: PopupType.OpenShellFailed; message: string }
+  | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
 
 export enum FoldoutType {
   Repository,
