@@ -23,9 +23,7 @@ import {
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
 
-if (__DEV__) {
-  electronDebug({ showDevTools: true })
-}
+electronDebug({ showDevTools: true })
 
 enableSourceMaps()
 
