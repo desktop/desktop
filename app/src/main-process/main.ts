@@ -1,4 +1,5 @@
 import '../lib/logging/main/install'
+import '../lib/devtools-installer'
 
 import { app, Menu, MenuItem, ipcMain, BrowserWindow, shell } from 'electron'
 
@@ -346,18 +347,6 @@ app.on(
 
 function createWindow() {
   const window = new AppWindow()
-
-  if (__DEV__) {
-    const installer = require('electron-devtools-installer')
-
-    const extensions = ['REACT_DEVELOPER_TOOLS', 'REACT_PERF']
-
-    for (const name of extensions) {
-      try {
-        installer.default(installer[name])
-      } catch (e) {}
-    }
-  }
 
   window.onClose(() => {
     mainWindow = null
