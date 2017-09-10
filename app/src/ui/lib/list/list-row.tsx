@@ -27,28 +27,16 @@ interface IListRowProps {
   readonly onRef?: (element: HTMLDivElement | null) => void
 
   /** callback to fire when the row receives a mouseover event */
-  readonly onRowMouseOver: (
-    index: number,
-    e: React.MouseEvent<HTMLDivElement>
-  ) => void
+  readonly onRowMouseOver: (index: number, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row receieves a mousedown event */
-  readonly onRowMouseDown: (
-    index: number,
-    e: React.MouseEvent<HTMLDivElement>
-  ) => void
+  readonly onRowMouseDown: (index: number, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row is clicked */
-  readonly onRowClick: (
-    index: number,
-    e: React.MouseEvent<HTMLDivElement>
-  ) => void
+  readonly onRowClick: (index: number, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row receives a keyboard event */
-  readonly onRowKeyDown: (
-    index: number,
-    e: React.KeyboardEvent<HTMLDivElement>
-  ) => void
+  readonly onRowKeyDown: (index: number, e: React.KeyboardEvent<any>) => void
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
