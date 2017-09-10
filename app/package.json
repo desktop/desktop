@@ -51,7 +51,7 @@
   "devDependencies": {
     "devtron": "^1.4.0",
     "electron-debug": "^1.1.0",
-    "electron-devtools-installer": "^2.1.0",
+    "electron-devtools-installer": "^2.2.0",
     "react-addons-perf": "15.4.2",
     "react-addons-test-utils": "^15.4.2",
     "style-loader": "^0.13.2",
