@@ -14,7 +14,8 @@ if (__DEV__) {
     )
     .catch(err =>
       console.error(
-        `[devtools-installer] Failed to install devtools extension:\n${err.stack}`
+        '[devtools-installer] Failed to install devtools extension:',
+        err.stack
       )
     )
 }
