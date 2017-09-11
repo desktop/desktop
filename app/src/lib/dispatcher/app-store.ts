@@ -884,6 +884,15 @@ export class AppStore {
         ? confirmRepoRemovalDefault
         : confirmRepositoryRemovalValue === '1'
 
+    const confirmDiscardChangesValue = localStorage.getItem(
+      confirmDiscardChangesKey
+    )
+
+    this.confirmDiscardChanges =
+      confirmDiscardChangesValue === null
+        ? confirmDiscardChangesDefault
+        : confirmDiscardChangesValue === '1'
+
     const externalEditorValue = localStorage.getItem(externalEditorKey)
     this.selectedExternalEditor = parseExternalEditor(externalEditorValue)
 
