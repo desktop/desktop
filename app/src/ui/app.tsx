@@ -73,7 +73,6 @@ import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
-import { WorkingDirectoryFileChange } from '../models/status'
 import { InitializeLFS } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 
@@ -654,29 +653,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private discardChanges = (
-    repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
-  ) => {
-    if (this.state.askForConfirmationOnDiscardChanges) {
-      return (
-        <DiscardChanges
-          key="discard-changes"
-          repository={repository}
-          dispatcher={this.props.dispatcher}
-          files={files}
-          confirmDiscardChanges={this.state.askForConfirmationOnDiscardChanges}
-          onDismissed={this.onPopupDismissed}
-          onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
-        />
-      )
-    }
-
-    this.props.dispatcher.discardChanges(repository, files)
-
-    return null
-  }
-
   private onConfirmRepoRemoval = (repository: Repository) => {
     this.props.dispatcher.removeRepositories([repository])
   }
@@ -887,7 +863,19 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.ConfirmDiscardChanges:
-        return this.discardChanges(popup.repository, popup.files)
+        return (
+          <DiscardChanges
+            key="discard-changes"
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            files={popup.files}
+            confirmDiscardChanges={
+              this.state.askForConfirmationOnDiscardChanges
+            }
+            onDismissed={this.onPopupDismissed}
+            onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
+          />
+        )
       case PopupType.Preferences:
         return (
           <Preferences
@@ -1519,6 +1507,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           gitHubUserStore={this.props.appStore.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={this.state.imageDiffType}
+          askForConfirmationOnDiscardChanges={
+            this.state.askForConfirmationOnDiscardChanges
+          }
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
