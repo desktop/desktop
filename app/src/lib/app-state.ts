@@ -151,6 +151,8 @@ export interface IAppState {
 
   /** Whether we should show a confirmation dialog */
   readonly confirmRepoRemoval: boolean
+  /** Whether we should show a confirmation dialog */
+  readonly askForConfirmationOnDiscardChanges: boolean
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: ExternalEditor
