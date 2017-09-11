@@ -2253,7 +2253,9 @@ export class AppStore {
     this.emitUpdate()
   }
 
-  public _setConfirmRepoRemoval(confirmRepoRemoval: boolean): Promise<void> {
+  public _setConfirmRepositoryRemovalSetting(
+    confirmRepoRemoval: boolean
+  ): Promise<void> {
     this.confirmRepoRemoval = confirmRepoRemoval
     localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
     this.emitUpdate()

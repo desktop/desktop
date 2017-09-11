@@ -833,7 +833,7 @@ export class Dispatcher {
    * Sets the user's preference so that confirmation to remove repo is not asked
    */
   public setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
-    return this.appStore._setConfirmRepoRemoval(value)
+    return this.appStore._setConfirmRepositoryRemovalSetting(value)
   }
 
   /**
