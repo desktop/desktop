@@ -73,6 +73,7 @@ import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
+import { InitializeLFS } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 
 /** The interval at which we should check for updates. */
@@ -128,17 +129,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           const now = performance.now()
           sendReady(now - props.startTime)
 
-          // Loading emoji is super important but maybe less important that
-          // loading the app. So defer it until we have some breathing space.
           requestIdleCallback(() => {
-            props.appStore.loadEmoji()
-
-            this.props.dispatcher.reportStats()
-
-            setInterval(
-              () => this.props.dispatcher.reportStats(),
-              SendStatsInterval
-            )
+            this.performDeferredLaunchActions()
           })
         },
         { timeout: ReadyDelay }
@@ -212,6 +204,17 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     )
+  }
+
+  private performDeferredLaunchActions() {
+    // Loading emoji is super important but maybe less important that loading
+    // the app. So defer it until we have some breathing space.
+    this.props.appStore.loadEmoji()
+
+    this.props.dispatcher.reportStats()
+    setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+
+    this.props.dispatcher.installGlobalLFSFilters()
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -1086,9 +1089,22 @@ export class App extends React.Component<IAppProps, IAppState> {
             showPreferencesDialog={this.onShowAdvancedPreferences}
           />
         )
+      case PopupType.InitializeLFS:
+        return (
+          <InitializeLFS
+            repositories={popup.repositories}
+            onDismissed={this.onPopupDismissed}
+            onInitialize={this.initializeLFS}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private initializeLFS = (repositories: ReadonlyArray<Repository>) => {
+    this.props.dispatcher.installLFSHooks(repositories)
+    this.onPopupDismissed()
   }
 
   private onCloneRepositoriesTabSelected = (tab: CloneRepositoryTab) => {

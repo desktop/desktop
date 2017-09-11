@@ -99,6 +99,11 @@ import {
   findShellOrDefault,
   launchShell,
 } from '../shells'
+import {
+  installGlobalLFSFilters,
+  isUsingLFS,
+  installLFSHooks,
+} from '../git/lfs'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -2442,18 +2447,33 @@ export class AppStore {
     paths: ReadonlyArray<string>
   ): Promise<ReadonlyArray<Repository>> {
     const addedRepositories = new Array<Repository>()
+    const lfsRepositories = new Array<Repository>()
     for (const path of paths) {
       const validatedPath = await validatedRepositoryPath(path)
       if (validatedPath) {
         const addedRepo = await this.repositoriesStore.addRepository(
           validatedPath
         )
-        const refreshedRepo = await this.refreshGitHubRepositoryInfo(addedRepo)
+        const [refreshedRepo, usingLFS] = await Promise.all([
+          this.refreshGitHubRepositoryInfo(addedRepo),
+          this.isUsingLFS(addedRepo),
+        ])
         addedRepositories.push(refreshedRepo)
+
+        if (usingLFS) {
+          lfsRepositories.push(refreshedRepo)
+        }
       } else {
         const error = new Error(`${path} isn't a git repository.`)
         this.emitError(error)
       }
+    }
+
+    if (lfsRepositories.length > 0) {
+      this._showPopup({
+        type: PopupType.InitializeLFS,
+        repositories: lfsRepositories,
+      })
     }
 
     return addedRepositories
@@ -2599,6 +2619,34 @@ export class AppStore {
       hostname,
       retryAction,
     })
+  }
+
+  public async _installGlobalLFSFilters(): Promise<void> {
+    try {
+      await installGlobalLFSFilters()
+    } catch (error) {
+      this.emitError(error)
+    }
+  }
+
+  private async isUsingLFS(repository: Repository): Promise<boolean> {
+    try {
+      return await isUsingLFS(repository)
+    } catch (error) {
+      return false
+    }
+  }
+
+  public async _installLFSHooks(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    for (const repo of repositories) {
+      try {
+        await installLFSHooks(repo)
+      } catch (error) {
+        this.emitError(error)
+      }
+    }
   }
 
   public _changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {

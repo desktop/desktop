@@ -986,6 +986,18 @@ export class Dispatcher {
     return this.appStore._changeImageDiffType(type)
   }
 
+  /** Install the global Git LFS filters. */
+  public installGlobalLFSFilters(): Promise<void> {
+    return this.appStore._installGlobalLFSFilters()
+  }
+
+  /** Install the LFS filters */
+  public installLFSHooks(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    return this.appStore._installLFSHooks(repositories)
+  }
+
   /** Change the selected Clone Repository tab. */
   public changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
     return this.appStore._changeCloneRepositoriesTab(tab)
