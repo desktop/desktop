@@ -63,10 +63,6 @@ export class Preferences extends React.Component<
   }
 
   public async componentWillMount() {
-    const isOptedOut = this.props.optOutOfUsageTracking
-    const confirmRepoRemoval = this.props.confirmRepoRemoval
-    const selectedExternalEditor = this.props.selectedExternalEditor
-
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
 
@@ -93,9 +89,9 @@ export class Preferences extends React.Component<
     this.setState({
       committerName,
       committerEmail,
-      selectedExternalEditor,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
+      selectedExternalEditor: this.props.selectedExternalEditor,
     })
   }
 
