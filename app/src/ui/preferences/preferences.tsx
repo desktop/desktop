@@ -161,11 +161,13 @@ export class Preferences extends React.Component<
           <Advanced
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
+            confirmDiscardChanges={this.state.confirmDiscardChanges}
             selectedExternalEditor={this.state.selectedExternalEditor}
             onOptOutofReportingchanged={this.onOptOutofReportingchanged}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
+            onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesCahnged}
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             selectedShell={this.state.selectedShell}
             onSelectedShellChanged={this.onSelectedShellChanged}
@@ -183,6 +185,10 @@ export class Preferences extends React.Component<
 
   private onConfirmRepositoryRemovalChanged = (value: boolean) => {
     this.setState({ confirmRepositoryRemoval: value })
+  }
+
+  private onConfirmDiscardChangesCahnged = (value: boolean) => {
+    this.setState({ confirmDiscardChanges: value })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
