@@ -8,7 +8,7 @@ dependencies:
     - "~/.electron"
 
   pre:
-    - brew upgrade node
+    - brew install node
     - npm install -g npm
     - npm prune
     - node -v
