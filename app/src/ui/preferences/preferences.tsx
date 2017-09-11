@@ -178,11 +178,11 @@ export class Preferences extends React.Component<
             confirmDiscardChanges={this.state.confirmDiscardChanges}
             availableEditors={this.state.availableEditors}
             selectedExternalEditor={this.state.selectedExternalEditor}
-            onOptOutofReportingchanged={this.onOptOutofReportingchanged}
+            onOptOutofReportingchanged={this.onOptOutofReportingChanged}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
-            onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesCahnged}
+            onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
@@ -195,7 +195,7 @@ export class Preferences extends React.Component<
     }
   }
 
-  private onOptOutofReportingchanged = (value: boolean) => {
+  private onOptOutofReportingChanged = (value: boolean) => {
     this.setState({ optOutOfUsageTracking: value })
   }
 
@@ -203,7 +203,7 @@ export class Preferences extends React.Component<
     this.setState({ confirmRepositoryRemoval: value })
   }
 
-  private onConfirmDiscardChangesCahnged = (value: boolean) => {
+  private onConfirmDiscardChangesChanged = (value: boolean) => {
     this.setState({ confirmDiscardChanges: value })
   }
 

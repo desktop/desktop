@@ -658,10 +658,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     repository: Repository,
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) => {
-    if (!repository) {
-      return null
-    }
-
     if (this.state.askForConfirmationOnDiscardChanges) {
       return (
         <DiscardChanges
@@ -1201,7 +1197,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onConfirmDiscardChangesChanged = (value: boolean) => {
-    this.setState({ askForConfirmationOnDiscardChanges: value })
     this.props.dispatcher.setConfirmDiscardChangesSetting(value)
   }
 
@@ -1565,11 +1560,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <div id="desktop-app-chrome" className={className}>
         {this.renderTitlebar()}
-        {this.state.showWelcomeFlow ? (
-          this.renderWelcomeFlow()
-        ) : (
-          this.renderApp()
-        )}
+        {this.state.showWelcomeFlow
+          ? this.renderWelcomeFlow()
+          : this.renderApp()}
         {this.renderZoomInfo()}
         {this.renderFullScreenInfo()}
       </div>
