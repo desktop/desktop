@@ -25,7 +25,7 @@ interface IPreferencesProps {
   readonly onDismissed: () => void
   readonly optOutOfUsageTracking: boolean
   readonly initialSelectedTab?: PreferencesTab
-  readonly confirmRepoRemoval: boolean
+  readonly confirmRepositoryRemoval: boolean
   readonly selectedExternalEditor: ExternalEditor
   readonly selectedShell: Shell
 }
@@ -34,8 +34,8 @@ interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
   readonly committerName: string
   readonly committerEmail: string
-  readonly isOptedOut: boolean
-  readonly confirmRepoRemoval: boolean
+  readonly optOutOfUsageTracking: boolean
+  readonly confirmRepositoryRemoval: boolean
   readonly selectedExternalEditor: ExternalEditor
   readonly selectedShell: Shell
 }
@@ -52,8 +52,8 @@ export class Preferences extends React.Component<
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
-      isOptedOut: false,
-      confirmRepoRemoval: false,
+      optOutOfUsageTracking: false,
+      confirmRepositoryRemoval: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
     }
@@ -90,9 +90,9 @@ export class Preferences extends React.Component<
     this.setState({
       committerName,
       committerEmail,
-      isOptedOut,
-      confirmRepoRemoval,
       selectedExternalEditor,
+      optOutOfUsageTracking: this.props.optOutOfUsageTracking,
+      confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
     })
   }
 
@@ -159,11 +159,13 @@ export class Preferences extends React.Component<
       case PreferencesTab.Advanced: {
         return (
           <Advanced
-            isOptedOut={this.state.isOptedOut}
-            confirmRepoRemoval={this.state.confirmRepoRemoval}
+            optOutOfUsageTracking={this.state.optOutOfUsageTracking}
+            confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             selectedExternalEditor={this.state.selectedExternalEditor}
-            onOptOutSet={this.onOptOutSet}
-            onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
+            onOptOutofReportingchanged={this.onOptOutofReportingchanged}
+            onConfirmRepositoryRemovalChanged={
+              this.onConfirmRepositoryRemovalChanged
+            }
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             selectedShell={this.state.selectedShell}
             onSelectedShellChanged={this.onSelectedShellChanged}
@@ -175,12 +177,12 @@ export class Preferences extends React.Component<
     }
   }
 
-  private onOptOutSet = (isOptedOut: boolean) => {
-    this.setState({ isOptedOut })
+  private onOptOutofReportingchanged = (value: boolean) => {
+    this.setState({ optOutOfUsageTracking: value })
   }
 
-  private onConfirmRepoRemovalSet = (confirmRepoRemoval: boolean) => {
-    this.setState({ confirmRepoRemoval })
+  private onConfirmRepositoryRemovalChanged = (value: boolean) => {
+    this.setState({ confirmRepositoryRemoval: value })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
@@ -223,9 +225,9 @@ export class Preferences extends React.Component<
   private onSave = async () => {
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
-    await this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
+    await this.props.dispatcher.setStatsOptOut(this.state.optOutOfUsageTracking)
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
-      this.state.confirmRepoRemoval
+      this.state.confirmRepositoryRemoval
     )
 
     await this.props.dispatcher.setExternalEditor(
