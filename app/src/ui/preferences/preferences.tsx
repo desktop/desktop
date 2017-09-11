@@ -91,6 +91,7 @@ export class Preferences extends React.Component<
       committerEmail,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
+      confirmDiscardChanges: this.props.confirmDiscardChanges,
       selectedExternalEditor: this.props.selectedExternalEditor,
     })
   }
