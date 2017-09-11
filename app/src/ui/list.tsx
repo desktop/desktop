@@ -136,8 +136,8 @@ interface IListProps {
 
   /**
    * A handler called whenever a mouse down event is received on the
-   * row container element. Unlike onSelectionChanged, this event is raised
-   * for every mouse down, whether the row is selected or not.
+   * row container element. Unlike onSelectionChanged, this is raised
+   * for every mouse down event, whether the row is selected or not.
    */
   readonly onRowMouseDown?: (row: number, event: React.MouseEvent<any>) => void
 
