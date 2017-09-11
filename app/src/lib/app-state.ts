@@ -150,7 +150,8 @@ export interface IAppState {
   readonly isUpdateAvailableBannerVisible: boolean
 
   /** Whether we should show a confirmation dialog */
-  readonly confirmRepoRemoval: boolean
+  readonly askForConfirmationOnRepositoryRemoval: boolean
+
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChanges: boolean
 
