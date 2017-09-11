@@ -48,11 +48,8 @@ import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
-import {
-  AddExistingRepository,
-  CreateRepository,
-  CloneRepository,
-} from './add-repository'
+import { AddExistingRepository, CreateRepository } from './add-repository'
+import { CloneRepository } from './clone-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { InstallGit } from './install-git'
@@ -77,6 +74,8 @@ import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
 import { WorkingDirectoryFileChange } from '../models/status'
+import { InitializeLFS } from './lfs'
+import { CloneRepositoryTab } from '../models/clone-repository-tab'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -131,17 +130,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           const now = performance.now()
           sendReady(now - props.startTime)
 
-          // Loading emoji is super important but maybe less important that
-          // loading the app. So defer it until we have some breathing space.
           requestIdleCallback(() => {
-            props.appStore.loadEmoji()
-
-            this.props.dispatcher.reportStats()
-
-            setInterval(
-              () => this.props.dispatcher.reportStats(),
-              SendStatsInterval
-            )
+            this.performDeferredLaunchActions()
           })
         },
         { timeout: ReadyDelay }
@@ -215,6 +205,17 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     )
+  }
+
+  private performDeferredLaunchActions() {
+    // Loading emoji is super important but maybe less important that loading
+    // the app. So defer it until we have some breathing space.
+    this.props.appStore.loadEmoji()
+
+    this.props.dispatcher.reportStats()
+    setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+
+    this.props.dispatcher.installGlobalLFSFilters()
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -976,10 +977,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <CloneRepository
             key="clone-repository"
-            accounts={this.state.accounts}
+            dotComAccount={this.getDotComAccount()}
+            enterpriseAccount={this.getEnterpriseAccount()}
             initialURL={popup.initialURL}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
+            selectedTab={this.state.selectedCloneRepositoryTab}
+            onTabSelected={this.onCloneRepositoriesTabSelected}
           />
         )
       case PopupType.CreateBranch: {
@@ -1108,9 +1112,26 @@ export class App extends React.Component<IAppProps, IAppState> {
             showPreferencesDialog={this.onShowAdvancedPreferences}
           />
         )
+      case PopupType.InitializeLFS:
+        return (
+          <InitializeLFS
+            repositories={popup.repositories}
+            onDismissed={this.onPopupDismissed}
+            onInitialize={this.initializeLFS}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private initializeLFS = (repositories: ReadonlyArray<Repository>) => {
+    this.props.dispatcher.installLFSHooks(repositories)
+    this.onPopupDismissed()
+  }
+
+  private onCloneRepositoriesTabSelected = (tab: CloneRepositoryTab) => {
+    this.props.dispatcher.changeCloneRepositoriesTab(tab)
   }
 
   private onShowAdvancedPreferences = () => {
@@ -1216,8 +1237,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       : null
     const externalEditorLabel = this.state.selectedExternalEditor
     const shellLabel = this.state.selectedShell
+    const filterText = this.state.repositoryFilterText
     return (
       <RepositoriesList
+        filterText={filterText}
+        onFilterTextChanged={this.onRepositoryFilterTextChanged}
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
@@ -1541,13 +1565,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <div id="desktop-app-chrome" className={className}>
         {this.renderTitlebar()}
-        {this.state.showWelcomeFlow
-          ? this.renderWelcomeFlow()
-          : this.renderApp()}
+        {this.state.showWelcomeFlow ? (
+          this.renderWelcomeFlow()
+        ) : (
+          this.renderApp()
+        )}
         {this.renderZoomInfo()}
         {this.renderFullScreenInfo()}
       </div>
     )
+  }
+
+  private onRepositoryFilterTextChanged = (text: string) => {
+    this.props.dispatcher.setRepositoryFilterText(text)
   }
 
   private onSelectionChanged = (repository: Repository | CloningRepository) => {

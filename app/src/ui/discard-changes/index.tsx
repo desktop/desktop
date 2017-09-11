@@ -101,13 +101,13 @@ export class DiscardChanges extends React.Component<
         <div>
           <p>Are you sure you want to discard all changes to:</p>
           <ul>
-            {this.props.files.map(p =>
+            {this.props.files.map(p => (
               <li key={p.id}>
                 <Monospaced>
                   <PathText path={p.path} />
                 </Monospaced>
               </li>
-            )}
+            ))}
           </ul>
         </div>
       )

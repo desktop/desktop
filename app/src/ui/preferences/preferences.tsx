@@ -16,7 +16,8 @@ import {
   setGlobalConfigValue,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
-import { Shell } from '../../lib/shells'
+import { Shell, getAvailableShells } from '../../lib/shells'
+import { getAvailableEditors } from '../../lib/editors/lookup'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -27,7 +28,7 @@ interface IPreferencesProps {
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
-  readonly selectedExternalEditor: ExternalEditor
+  readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
 }
 
@@ -38,7 +39,9 @@ interface IPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
-  readonly selectedExternalEditor: ExternalEditor
+  readonly availableEditors: ReadonlyArray<ExternalEditor>
+  readonly selectedExternalEditor?: ExternalEditor
+  readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
 }
 
@@ -54,10 +57,12 @@ export class Preferences extends React.Component<
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
+      availableEditors: [],
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
+      availableShells: [],
       selectedShell: this.props.selectedShell,
     }
   }
@@ -86,13 +91,22 @@ export class Preferences extends React.Component<
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
+    const [editors, shells] = await Promise.all([
+      getAvailableEditors(),
+      getAvailableShells(),
+    ])
+
+    const availableEditors = editors.map(e => e.editor)
+    const availableShells = shells.map(e => e.shell)
+
     this.setState({
       committerName,
       committerEmail,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
-      selectedExternalEditor: this.props.selectedExternalEditor,
+      availableShells,
+      availableEditors,
     })
   }
 
@@ -162,6 +176,7 @@ export class Preferences extends React.Component<
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
             confirmDiscardChanges={this.state.confirmDiscardChanges}
+            availableEditors={this.state.availableEditors}
             selectedExternalEditor={this.state.selectedExternalEditor}
             onOptOutofReportingchanged={this.onOptOutofReportingchanged}
             onConfirmRepositoryRemovalChanged={
@@ -169,6 +184,7 @@ export class Preferences extends React.Component<
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesCahnged}
             onSelectedEditorChanged={this.onSelectedEditorChanged}
+            availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
             onSelectedShellChanged={this.onSelectedShellChanged}
           />
@@ -235,9 +251,12 @@ export class Preferences extends React.Component<
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval
     )
-    await this.props.dispatcher.setExternalEditor(
-      this.state.selectedExternalEditor
-    )
+
+    if (this.state.selectedExternalEditor) {
+      await this.props.dispatcher.setExternalEditor(
+        this.state.selectedExternalEditor
+      )
+    }
     await this.props.dispatcher.setShell(this.state.selectedShell)
     await this.props.dispatcher.setConfirmDiscardChangesSetting(
       this.state.confirmDiscardChanges

@@ -1,5 +1,60 @@
 {
   "releases": {
+    "1.0.0-beta0": [
+      "[New] Ask to install LFS filters when an LFS repository is added - #2227",
+      "[New] Clone GitHub repositories tab - #57",
+      "[Fixed] Long commit summary truncation - #1742",
+      "[Fixed] Ensure the repository list is always enabled - #2648",
+      "[Fixed] Windows: Detecting the available shells and editors when using a non-ASCII user encoding - #2624",
+      "[Fixed] Clicking the \"Cancel\" button on the Publish Branch dialog - #2646"
+    ],
+    "0.8.1": [
+      "[New] 'Open in Shell' now supports multiple shells - #2473",
+      "[New] Windows: Enable adding self-signed certificates - #2581",
+      "[Improved] Enhanced image diffs - #2383",
+      "[Improved] Line diffs - #2461",
+      "[Improved] Octicons updated - #2495",
+      "[Improved] Adds ability to close repository list using shortcut - #2532",
+      "[Improved] Switch default buttons in the Publish Branch dialog - #2515",
+      "[Improved] Bring back \"Contact Support\" - #1472",
+      "[Improved] Persist repository filter text after closing repository list - #2571",
+      "[Improved] Redesigned example commit in the Welcome flow - #2141",
+      "[Improved] Tidy up initial \"external editor\" experience - #2551",
+      "[Fixed] 'Include All' checkbox not in sync with partial selection - #2493",
+      "[Fixed] Copied text from diff removed valid characters - #2499",
+      "[Fixed] Click-focus on Windows would dismiss dialog - #2488",
+      "[Fixed] Branch list not rendered in app - #2531",
+      "[Fixed] Git operations checking certificate store - #2520",
+      "[Fixed] Properly identify repositories whose remotes have a trailing slash - #2584",
+      "[Fixed] Windows: Fix launching the `github` command line tool - #2563",
+      "[Fixed] Use the primary email address if it's public - #2244",
+      "[Fixed] Local branch not checked out after clone - #2561",
+      "[Fixed] Only the most recent 30 issues would autocomplete for GitHub Enterprise repositories - #2541",
+      "[Fixed] Missing \"View on GitHub\" menu item for non-Gitub repositories - #2615",
+      "[Fixed] New tab opened when pressing \"]\" for certain keyboard layouts - #2607",
+      "[Fixed] Windows: Crash when exiting full screen - #1502",
+      "[Fixed] Windows: Detecting the available shells and editors when using a non-ASCII user encoding - #2624",
+      "[Fixed] Ensure the repository list is always accessible - #2648"
+    ],
+    "0.8.1-beta4": [
+      "[Improved] Persist repository filter text after closing repository list - #2571",
+      "[Improved] Redesigned example commit in the Welcome flow - #2141",
+      "[Improved] Tidy up initial \"external editor\" experience - #2551",
+      "[Fixed] Missing \"View on GitHub\" menu item for non-Gitub repositories - #2615",
+      "[Fixed] New tab opened when pressing \"]\" for certain keyboard layouts - #2607",
+      "[Fixed] Windows: Crash when exiting full screen - #1502"
+    ],
+    "0.8.1-beta3": [
+      "[New] Windows: Enable adding self-signed certificates - #2581",
+      "[Improved] Adds ability to close repository list using shortcut - #2532",
+      "[Improved] Switch default buttons in the Publish Branch dialog - #2515",
+      "[Improved] Bring back \"Contact Support\" - #1472",
+      "[Fixed] Properly identify repositories whose remotes have a trailing slash - #2584",
+      "[Fixed] Windows: Fix launching the `github` command line tool - #2563",
+      "[Fixed] Use the primary email address if it's public - #2244",
+      "[Fixed] Local branch not checked out after clone - #2561",
+      "[Fixed] Only the most recent 30 issues would autocomplete for GitHub Enterprise repositories - #2541"
+    ],
     "0.8.1-beta2": [
       "[Fixed] Branch list not rendered in app - #2531",
       "[Fixed] Git operations checking certificate store - #2520"
