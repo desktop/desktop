@@ -235,12 +235,13 @@ export class Preferences extends React.Component<
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval
     )
-
     await this.props.dispatcher.setExternalEditor(
       this.state.selectedExternalEditor
     )
-
     await this.props.dispatcher.setShell(this.state.selectedShell)
+    await this.props.dispatcher.setConfirmDiscardChangesSetting(
+      this.state.confirmDiscardChanges
+    )
 
     this.props.onDismissed()
   }
