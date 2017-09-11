@@ -135,6 +135,13 @@ interface IListProps {
   readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 
   /**
+   * A handler called whenever a mouse down event is received on the
+   * row container element. Unlike onSelectionChanged, this event is raised
+   * for every mouse down, whether the row is selected or not.
+   */
+  readonly onRowMouseDown?: (row: number, event: React.MouseEvent<any>) => void
+
+  /**
    * An optional handler called to determine whether a given row is
    * selectable or not. Reasons for why a row might not be selectable
    * includes it being a group header or the item being disabled.
@@ -655,6 +662,10 @@ export class List extends React.Component<IListProps, IListState> {
 
   private handleMouseDown = (row: number, event: React.MouseEvent<any>) => {
     if (this.canSelectRow(row)) {
+      if (this.props.onRowMouseDown) {
+        this.props.onRowMouseDown(row, event)
+      }
+
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row, { kind: 'mouseclick', event })
       }
