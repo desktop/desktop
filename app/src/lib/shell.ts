@@ -184,12 +184,23 @@ export function getActiveCodePage(): Promise<number | null> {
     const child = ChildProcess.spawn('chcp')
 
     const buffers: Array<Buffer> = []
+    let errorThrown = false
+
+    child.on('error', error => {
+      log.error('unable to resolve active code page', error)
+      errorThrown = true
+    })
 
     child.stdout.on('data', (data: Buffer) => {
       buffers.push(data)
     })
 
     child.on('close', (code: number, signal) => {
+      if (errorThrown) {
+        resolve(null)
+        return
+      }
+
       const output = Buffer.concat(buffers).toString('utf8')
       const result = chcpOutputRegex.exec(output)
       if (result) {
