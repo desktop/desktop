@@ -227,6 +227,17 @@ export class Advanced extends React.Component<
             onChange={this.onConfirmRepositoryRemovalChanged}
           />
         </Row>
+        <Row>
+          <Checkbox
+            label="Show confirmation dialog before discarding changes"
+            value={
+              this.state.confirmDiscardChanges
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onConfirmDiscardChangesChanged}
+          />
+        </Row>
       </DialogContent>
     )
   }
