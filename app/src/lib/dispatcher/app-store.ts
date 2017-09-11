@@ -875,12 +875,14 @@ export class AppStore {
       parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) ||
       defaultCommitSummaryWidth
 
-    const confirmRepoRemovalValue = localStorage.getItem(confirmRepoRemovalKey)
+    const confirmRepositoryRemovalValue = localStorage.getItem(
+      confirmRepoRemovalKey
+    )
 
     this.confirmRepoRemoval =
-      confirmRepoRemovalValue === null
+      confirmRepositoryRemovalValue === null
         ? confirmRepoRemovalDefault
-        : confirmRepoRemovalValue === '1'
+        : confirmRepositoryRemovalValue === '1'
 
     const externalEditorValue = localStorage.getItem(externalEditorKey)
     this.selectedExternalEditor = parseExternalEditor(externalEditorValue)
