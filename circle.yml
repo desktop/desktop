@@ -1,3 +1,9 @@
+general:
+  branches:
+    only:
+      - master
+      - /^__release-.*/
+
 machine:
   xcode:
     version: 8.3
