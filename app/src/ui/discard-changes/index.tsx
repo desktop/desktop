@@ -15,7 +15,7 @@ interface IDiscardChangesProps {
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   readonly onDismissed: () => void
-  readonly onDiscardChangesOptOut: (optOut: boolean) => void
+  readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
 }
 
 interface IDiscardChangesState {
