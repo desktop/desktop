@@ -836,9 +836,17 @@ export class Dispatcher {
     return this.appStore._setConfirmRepositoryRemovalSetting(value)
   }
 
+  /**
+   * Sets the user's preference so that confirmation to discard changes is not asked
+   *
+   * @param {boolean} value
+   * @returns {Promise<void>}
+   * @memberof Dispatcher
+   */
   public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
     return this.appStore._setConfirmDiscardChangesSetting(value)
   }
+
   /**
    * Sets the user's preference for an external program to open repositories in.
    */
