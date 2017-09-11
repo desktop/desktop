@@ -495,6 +495,7 @@ export class AppStore {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       confirmRepoRemoval: this.confirmRepoRemoval,
+      askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
