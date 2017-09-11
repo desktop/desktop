@@ -1179,6 +1179,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.clearError(error)
   }
 
+  private onConfirmDiscardChangesChanged = (value: boolean) => {
+    this.setState({ askForConfirmationOnDiscardChanges: value })
+    this.props.dispatcher.setConfirmDiscardChangesSetting(value)
+  }
+
   private renderAppError() {
     return (
       <AppError
