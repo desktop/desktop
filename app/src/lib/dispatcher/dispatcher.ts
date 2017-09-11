@@ -836,6 +836,9 @@ export class Dispatcher {
     return this.appStore._setConfirmRepositoryRemovalSetting(value)
   }
 
+  public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
+    return this.appStore._setConfirmDiscardChangesSetting(value)
+  }
   /**
    * Sets the user's preference for an external program to open repositories in.
    */
