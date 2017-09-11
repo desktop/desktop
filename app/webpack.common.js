@@ -38,6 +38,17 @@ function revParse(gitDir, ref) {
   return refMatch[1] || revParse(gitDir, refMatch[2])
 }
 
+function getSHA() {
+  // CircleCI does some funny stuff where HEAD points to an packed ref, but
+  // luckily it gives us the SHA we want in the environment.
+  const circleSHA = process.env.CIRCLE_SHA1
+  if (circleSHA) {
+    return circleSHA
+  }
+
+  return revParse(path.resolve(__dirname, '../.git'), 'HEAD')
+}
+
 const replacements = {
   __OAUTH_CLIENT_ID__: JSON.stringify(
     process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId
@@ -51,7 +62,7 @@ const replacements = {
   __DEV__: channel === 'development',
   __RELEASE_CHANNEL__: JSON.stringify(channel),
   __UPDATES_URL__: JSON.stringify(distInfo.getUpdatesURL()),
-  __SHA__: JSON.stringify(revParse(path.resolve(__dirname, '../.git'), 'HEAD')),
+  __SHA__: JSON.stringify(getSHA()),
   'process.platform': JSON.stringify(process.platform),
   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   'process.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV),
