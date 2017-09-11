@@ -2,6 +2,7 @@
 
 import * as ChildProcess from 'child_process'
 import * as os from 'os'
+import * as Path from 'path'
 
 type IndexLookup = {
   [propName: string]: string
@@ -181,7 +182,9 @@ export function getActiveCodePage(): Promise<number | null> {
   }
 
   return new Promise<number | null>((resolve, reject) => {
-    const child = ChildProcess.spawn('chcp')
+    const path = Path.join(process.env.windir, 'System32', 'chcp')
+
+    const child = ChildProcess.spawn(path)
 
     const buffers: Array<Buffer> = []
     let errorThrown = false
