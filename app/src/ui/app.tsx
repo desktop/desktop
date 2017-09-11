@@ -901,6 +901,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmRepositoryRemoval={
               this.state.askForConfirmationOnRepositoryRemoval
             }
+            confirmDiscardChanges={
+              this.state.askForConfirmationOnDiscardChanges
+            }
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
             enterpriseAccount={this.getEnterpriseAccount()}
