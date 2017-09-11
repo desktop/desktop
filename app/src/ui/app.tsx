@@ -652,6 +652,33 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private discardChanges = (
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) => {
+    if (!repository) {
+      return null
+    }
+
+    if (this.state.askForConfirmationOnDiscardChanges) {
+      return (
+        <DiscardChanges
+          key="discard-changes"
+          repository={repository}
+          dispatcher={this.props.dispatcher}
+          files={files}
+          confirmDiscardChanges={this.state.askForConfirmationOnDiscardChanges}
+          onDismissed={this.onPopupDismissed}
+          onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
+        />
+      )
+    }
+
+    this.props.dispatcher.discardChanges(repository, files)
+
+    return null
+  }
+
   private onConfirmRepoRemoval = (repository: Repository) => {
     this.props.dispatcher.removeRepositories([repository])
   }
@@ -862,15 +889,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.ConfirmDiscardChanges:
-        return (
-          <DiscardChanges
-            key="discard-changes"
-            repository={popup.repository}
-            dispatcher={this.props.dispatcher}
-            files={popup.files}
-            onDismissed={this.onPopupDismissed}
-          />
-        )
+        return this.discardChanges(popup.repository, popup.files)
       case PopupType.Preferences:
         return (
           <Preferences
