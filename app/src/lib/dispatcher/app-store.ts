@@ -108,6 +108,7 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 
 const confirmRepoRemovalDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
+const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 
 const externalEditorDefault = ExternalEditor.Atom
 const externalEditorKey: string = 'externalEditor'
