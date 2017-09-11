@@ -3,15 +3,13 @@ import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { OcticonSymbol } from '../octicons'
 import { Progress } from '../../lib/app-state'
 
-interface IRevertProgressButtonProps {
+interface IRevertProgressProps {
   /** Progress information associated with the current operation */
   readonly progress: Progress
 }
 
-export class RevertProgressButton extends React.Component<
-  IRevertProgressButtonProps,
-  {}
-> {
+/** Display revert progress in the toolbar. */
+export class RevertProgress extends React.Component<IRevertProgressProps, {}> {
   public render() {
     const progress = this.props.progress
     const description = progress.description || 'Hang on…'
