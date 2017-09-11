@@ -217,7 +217,7 @@ export class RepositoriesStore {
 
     this.emitUpdate()
 
-    return updatedRepository
+    return foundRepository
   }
 
   /** Update or add the repository's GitHub repository. */
