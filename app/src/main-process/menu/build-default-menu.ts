@@ -165,6 +165,11 @@ export function buildDefaultMenu(
       {
         label: '&Reload',
         id: 'reload-window',
+        // Ctrl+Alt is interpreted as AltGr on international keyboards and this
+        // can clash with other shortcuts. We should always use Ctrl+Shift for
+        // chorded shortcuts, but this menu item is not a user-facing feature
+        // so we are going to keep this one around and save Ctrl+Shift+R for
+        // a different shortcut in the future...
         accelerator: 'CmdOrCtrl+Alt+R',
         click(item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
