@@ -79,5 +79,5 @@ export async function getAvailableShells(): Promise<
 export async function launch(shell: Shell, path: string): Promise<void> {
   const bundleID = getBundleID(shell)
   const commandArgs = ['-b', bundleID, path]
-  await spawn('open', commandArgs, { shell: true })
+  await spawn('open', commandArgs)
 }
