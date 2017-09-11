@@ -642,7 +642,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    if (this.state.confirmRepoRemoval) {
+    if (this.state.askForConfirmationOnRepositoryRemoval) {
       this.props.dispatcher.showPopup({
         type: PopupType.RemoveRepository,
         repository,
@@ -878,7 +878,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             initialSelectedTab={popup.initialSelectedTab}
             dispatcher={this.props.dispatcher}
             dotComAccount={this.getDotComAccount()}
-            confirmRepoRemoval={this.state.confirmRepoRemoval}
+            confirmRepositoryRemoval={
+              this.state.askForConfirmationOnRepositoryRemoval
+            }
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
             enterpriseAccount={this.getEnterpriseAccount()}
