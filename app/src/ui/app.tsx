@@ -1051,11 +1051,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.RemoveRepository:
-        const repo = popup.repository
-
         return (
           <ConfirmRemoveRepository
-            repository={repo}
+            repository={popup.repository}
             onConfirmation={this.onConfirmRepoRemoval}
             onDismissed={this.onPopupDismissed}
           />
