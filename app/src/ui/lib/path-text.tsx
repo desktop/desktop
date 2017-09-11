@@ -274,11 +274,9 @@ export class PathText extends React.PureComponent<
 
   public render() {
     const directoryElement =
-      this.state.directoryText && this.state.directoryText.length
-        ? <span className="dirname">
-            {this.state.directoryText}
-          </span>
-        : null
+      this.state.directoryText && this.state.directoryText.length ? (
+        <span className="dirname">{this.state.directoryText}</span>
+      ) : null
 
     const truncated = this.state.length < this.state.normalizedPath.length
     const title = truncated ? this.state.normalizedPath : undefined
@@ -291,9 +289,7 @@ export class PathText extends React.PureComponent<
       >
         <span ref={this.onPathInnerElementRef}>
           {directoryElement}
-          <span className="filename">
-            {this.state.fileText}
-          </span>
+          <span className="filename">{this.state.fileText}</span>
         </span>
       </div>
     )

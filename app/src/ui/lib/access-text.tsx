@@ -41,11 +41,7 @@ export class AccessText extends React.Component<IAccessTextProps, {}> {
     const m = this.props.text.match(/^(.*?)?(?:&([^&]))(.*)?$/)
 
     if (!m) {
-      return (
-        <span>
-          {this.props.text}
-        </span>
-      )
+      return <span>{this.props.text}</span>
     }
 
     const elements = new Array<JSX.Element>()
@@ -82,10 +78,6 @@ export class AccessText extends React.Component<IAccessTextProps, {}> {
 
     const plainText = `${preText}${accessKeyText}${postText}`
 
-    return (
-      <span aria-label={plainText}>
-        {elements}
-      </span>
-    )
+    return <span aria-label={plainText}>{elements}</span>
   }
 }

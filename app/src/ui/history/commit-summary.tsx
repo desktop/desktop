@@ -15,12 +15,88 @@ interface ICommitSummaryProps {
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
   readonly gitHubUser: IGitHubUser | null
+
+  /**
+   * Whether or not the commit body container should
+   * be rendered expanded or not. In expanded mode the
+   * commit body container takes over the diff view
+   * allowing for full height, scrollable reading of
+   * the commit message body.
+   */
   readonly isExpanded: boolean
+
   readonly onExpandChanged: (isExpanded: boolean) => void
 }
 
 interface ICommitSummaryState {
+  /**
+   * The commit message summary, i.e. the first line in the commit message.
+   * Note that this may differ from the body property in the commit object
+   * passed through props, see the createState method for more details.
+   */
+  readonly summary: string
+
+  /**
+   * The commit message body, i.e. anything after the first line of text in the
+   * commit message. Note that this may differ from the body property in the
+   * commit object passed through props, see the createState method for more
+   * details.
+   */
+  readonly body: string
+
+  /**
+   * Whether or not the commit body text overflows its container. Used in
+   * conjunction with the isExpanded prop.
+   */
   readonly isOverflowed: boolean
+}
+
+const maxSummaryLength = 72
+
+/**
+ * Removes whitespace characters from the end of the string
+ */
+function trimTrailingWhitespace(value: string) {
+  return value.replace(/\s+$/, '')
+}
+
+/**
+ * Creates the state object for the CommitSummary component.
+ *
+ * Ensures that the commit summary never exceeds 72 characters and wraps it
+ * into the commit body if it does.
+ *
+ * @param isOverflowed Whether or not the component should render the commit
+ *                     body in expanded mode, see the documentation for the
+ *                     isOverflowed state property.
+ *
+ * @param props        The current commit summary prop object.
+ */
+function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
+  let summary = trimTrailingWhitespace(props.commit.summary)
+  let body = trimTrailingWhitespace(props.commit.body)
+
+  if (summary.length > maxSummaryLength) {
+    // Truncate at least 3 characters off the end to avoid just an ellipsis
+    // followed by 1-2 characters in the body. This matches dotcom behavior.
+    const truncationMargin = 3
+    const truncateLength = maxSummaryLength - truncationMargin
+    const remainder = summary.substr(truncateLength)
+
+    // Don't join the the body with newlines if it's empty
+    body = body.length > 0 ? `…${remainder}\n\n${body}` : `…${remainder}`
+    summary = `${summary.substr(0, truncateLength)}…`
+  }
+
+  return { isOverflowed, summary, body }
+}
+
+/**
+ * Helper function which determines if two commit objects
+ * have the same commit summary and body.
+ */
+function messageEquals(x: Commit, y: Commit) {
+  return x.summary === y.summary && x.body === y.body
 }
 
 export class CommitSummary extends React.Component<
@@ -34,7 +110,7 @@ export class CommitSummary extends React.Component<
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
-    this.state = { isOverflowed: false }
+    this.state = createState(false, props)
 
     const ResizeObserverClass: typeof ResizeObserver = (window as any)
       .ResizeObserver
@@ -81,7 +157,7 @@ export class CommitSummary extends React.Component<
 
   private renderExpander() {
     if (
-      !this.props.commit.body.length ||
+      !this.state.body.length ||
       (!this.props.isExpanded && !this.state.isOverflowed)
     ) {
       return null
@@ -132,20 +208,20 @@ export class CommitSummary extends React.Component<
   }
 
   public componentWillUpdate(nextProps: ICommitSummaryProps) {
-    if (nextProps.commit.body !== this.props.commit.body) {
-      this.setState({ isOverflowed: false })
+    if (!messageEquals(nextProps.commit, this.props.commit)) {
+      this.setState(createState(false, nextProps))
     }
   }
 
-  public componentDidUpdate(prevProps: ICommitSummaryProps) {
+  public componentDidUpdate(
+    prevProps: ICommitSummaryProps,
+    prevState: ICommitSummaryState
+  ) {
     // No need to check if it overflows if we're expanded
     if (!this.props.isExpanded) {
       // If the body has changed or we've just toggled the expanded
       // state we'll recalculate whether we overflow or not.
-      if (
-        prevProps.commit.body !== this.props.commit.body ||
-        prevProps.isExpanded
-      ) {
+      if (prevState.body !== this.state.body || prevProps.isExpanded) {
         this.updateOverflow()
       }
     } else {
@@ -157,7 +233,7 @@ export class CommitSummary extends React.Component<
   }
 
   private renderDescription() {
-    if (!this.props.commit.body) {
+    if (!this.state.body) {
       return null
     }
 
@@ -171,7 +247,7 @@ export class CommitSummary extends React.Component<
             className="commit-summary-description"
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={this.props.commit.body}
+            text={this.state.body}
           />
         </div>
 
@@ -209,7 +285,7 @@ export class CommitSummary extends React.Component<
             className="commit-summary-title"
             emoji={this.props.emoji}
             repository={this.props.repository}
-            text={this.props.commit.summary}
+            text={this.state.summary}
           />
 
           <ul className="commit-summary-meta">
@@ -229,9 +305,7 @@ export class CommitSummary extends React.Component<
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
-              <span>
-                {shortSHA}
-              </span>
+              <span>{shortSHA}</span>
             </li>
 
             <li className="commit-summary-meta-item" title={filesDescription}>

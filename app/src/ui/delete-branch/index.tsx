@@ -72,9 +72,11 @@ export class DeleteBranch extends React.Component<
           <Checkbox
             label="Yes, delete this branch on the remote"
             value={
-              this.state.includeRemoteBranch
-                ? CheckboxValue.On
-                : CheckboxValue.Off
+              this.state.includeRemoteBranch ? (
+                CheckboxValue.On
+              ) : (
+                CheckboxValue.Off
+              )
             }
             onChange={this.onIncludeRemoteChanged}
           />
