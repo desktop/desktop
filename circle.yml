@@ -1,6 +1,6 @@
 machine:
   xcode:
-    version: 7.3
+    version: 8.3
 
 dependencies:
   cache_directories:
