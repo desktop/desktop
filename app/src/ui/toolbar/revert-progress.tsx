@@ -18,7 +18,7 @@ export class RevertProgress extends React.Component<IRevertProgressProps, {}> {
         title="Reverting…"
         description={description}
         progressValue={progress.value}
-        className="revert-progress-button"
+        className="revert-progress"
         icon={OcticonSymbol.sync}
         iconClassName="spin"
         style={ToolbarButtonStyle.Subtitle}
