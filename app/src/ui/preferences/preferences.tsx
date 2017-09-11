@@ -26,6 +26,7 @@ interface IPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
+  readonly confirmDiscardChanges: boolean
   readonly selectedExternalEditor: ExternalEditor
   readonly selectedShell: Shell
 }
@@ -36,6 +37,7 @@ interface IPreferencesState {
   readonly committerEmail: string
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
+  readonly confirmDiscardChanges: boolean
   readonly selectedExternalEditor: ExternalEditor
   readonly selectedShell: Shell
 }
@@ -54,6 +56,7 @@ export class Preferences extends React.Component<
       committerEmail: '',
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
+      confirmDiscardChanges: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
     }
