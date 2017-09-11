@@ -8,12 +8,14 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
 import { Monospaced } from '../lib/monospaced'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   readonly onDismissed: () => void
+  readonly onDiscardChangesOptOut: (optOut: boolean) => void
 }
 
 interface IDiscardChangesState {
@@ -22,6 +24,8 @@ interface IDiscardChangesState {
    * changes. This is used to display a loading state
    */
   readonly isDiscardingChanges: boolean
+
+  readonly confirmChanges: boolean
 }
 
 /**
@@ -38,8 +42,13 @@ export class DiscardChanges extends React.Component<
   public constructor(props: IDiscardChangesProps) {
     super(props)
 
-    this.state = { isDiscardingChanges: false }
+    this.state = {
+      isDiscardingChanges: false,
+      confirmChanges: false,
+    }
   }
+
+  public componentWillMount() {}
 
   public render() {
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
@@ -57,6 +66,13 @@ export class DiscardChanges extends React.Component<
           <p>
             Changes can be restored by retrieving them from the {trashName}.
           </p>
+          <Checkbox
+            label="Do not show this message again"
+            value={
+              this.state.confirmChanges ? CheckboxValue.Off : CheckboxValue.On
+            }
+            onChange={this.onConfirmChanges}
+          />
         </DialogContent>
 
         <DialogFooter>
@@ -106,4 +122,6 @@ export class DiscardChanges extends React.Component<
     )
     this.props.onDismissed()
   }
+
+  private onConfirmChanges = () => {}
 }
