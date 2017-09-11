@@ -68,11 +68,9 @@ export class DiscardChanges extends React.Component<
           <Checkbox
             label="Do not show this message again"
             value={
-              this.state.confirmDiscardChanges ? (
-                CheckboxValue.Off
-              ) : (
-                CheckboxValue.On
-              )
+              this.state.confirmDiscardChanges
+                ? CheckboxValue.Off
+                : CheckboxValue.On
             }
             onChange={this.onCheckboxChanged}
           />
@@ -103,13 +101,13 @@ export class DiscardChanges extends React.Component<
         <div>
           <p>Are you sure you want to discard all changes to:</p>
           <ul>
-            {this.props.files.map(p => (
+            {this.props.files.map(p =>
               <li key={p.id}>
                 <Monospaced>
                   <PathText path={p.path} />
                 </Monospaced>
               </li>
-            ))}
+            )}
           </ul>
         </div>
       )
@@ -123,6 +121,8 @@ export class DiscardChanges extends React.Component<
       this.props.repository,
       this.props.files
     )
+
+    this.props.onConfirmDiscardChangesChanged(this.state.confirmDiscardChanges)
     this.props.onDismissed()
   }
 
@@ -130,6 +130,5 @@ export class DiscardChanges extends React.Component<
     const value = !event.currentTarget.checked
 
     this.setState({ confirmDiscardChanges: value })
-    this.props.onConfirmDiscardChangesChanged(value)
   }
 }
