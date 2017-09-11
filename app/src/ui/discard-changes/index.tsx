@@ -14,6 +14,7 @@ interface IDiscardChangesProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
+  readonly confirmDiscardChanges: boolean
   readonly onDismissed: () => void
   readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
 }
@@ -25,7 +26,7 @@ interface IDiscardChangesState {
    */
   readonly isDiscardingChanges: boolean
 
-  readonly confirmChanges: boolean
+  readonly confirmDiscardChanges: boolean
 }
 
 /**
@@ -44,11 +45,9 @@ export class DiscardChanges extends React.Component<
 
     this.state = {
       isDiscardingChanges: false,
-      confirmChanges: false,
+      confirmDiscardChanges: this.props.confirmDiscardChanges,
     }
   }
-
-  public componentWillMount() {}
 
   public render() {
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
@@ -69,9 +68,11 @@ export class DiscardChanges extends React.Component<
           <Checkbox
             label="Do not show this message again"
             value={
-              this.state.confirmChanges ? CheckboxValue.Off : CheckboxValue.On
+              this.state.confirmDiscardChanges
+                ? CheckboxValue.Off
+                : CheckboxValue.On
             }
-            onChange={this.onConfirmChanges}
+            onChange={this.onCheckboxChanged}
           />
         </DialogContent>
 
@@ -123,5 +124,10 @@ export class DiscardChanges extends React.Component<
     this.props.onDismissed()
   }
 
-  private onConfirmChanges = () => {}
+  private onCheckboxChanged = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = !event.currentTarget.checked
+
+    this.setState({ confirmDiscardChanges: value })
+    this.props.onConfirmDiscardChangesChanged(value)
+  }
 }
