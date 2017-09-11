@@ -16,6 +16,7 @@ import {
 interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
+  readonly confirmDiscardChanges: boolean
   readonly selectedExternalEditor: ExternalEditor
   readonly selectedShell: Shell
   readonly onOptOutofReportingchanged: (checked: boolean) => void
@@ -32,6 +33,7 @@ interface IAdvancedPreferencesState {
   readonly selectedExternalEditor: ExternalEditor
   readonly selectedShell: Shell
   readonly confirmRepositoryRemoval: boolean
+  readonly confirmDiscardChanges: boolean
 }
 
 export class Advanced extends React.Component<
@@ -44,6 +46,7 @@ export class Advanced extends React.Component<
     this.state = {
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
+      confirmDiscardChanges: this.props.confirmDiscardChanges,
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
     }
