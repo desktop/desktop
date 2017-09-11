@@ -214,7 +214,7 @@
 
 ### Diffs tab		
   - [ ] All commits have avatar, # of files changed, actions dropdown, commit message, commit description (optional)
-    - [ ] `Actions` dropdown: Revert commit, Copy SHA, View on GitHub
+    - [ ] Long commit descriptions can be toggled with expand/collapse icon
       - [ ] Reverting commit repopulates commit area
         - [ ] Error message if no changes to commit
   - [ ] All files within a commit listed, with respective +/•/- sign; list is scrollable
