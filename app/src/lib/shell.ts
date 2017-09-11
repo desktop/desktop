@@ -182,7 +182,8 @@ export function getActiveCodePage(): Promise<number | null> {
   }
 
   return new Promise<number | null>((resolve, reject) => {
-    const path = Path.join(process.env.windir, 'System32', 'chcp')
+    const windir = process.env.windir || 'C:\\Windows'
+    const path = Path.join(windir, 'System32', 'chcp')
 
     const child = ChildProcess.spawn(path)
 
