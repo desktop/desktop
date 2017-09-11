@@ -24,6 +24,8 @@ dependencies:
   override:
     - npm install
     - npm rebuild
+    - npm ls --prod
+    - npm ls --dev
 
 compile:
   override:
