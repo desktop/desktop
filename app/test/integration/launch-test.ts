@@ -53,7 +53,6 @@ describe('App', function(this: any) {
       .browserWindow.isMinimized()
       .should.eventually.be.false.browserWindow.isDevToolsOpened()
       .should.eventually.be.false.browserWindow.isVisible()
-      .should.eventually.be.true.browserWindow.isFocused()
       .should.eventually.be.true.browserWindow.getBounds()
       .should.eventually.have.property('width')
       .and.be.above(0)
