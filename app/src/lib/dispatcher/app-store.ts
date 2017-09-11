@@ -2263,6 +2263,15 @@ export class AppStore {
     return Promise.resolve()
   }
 
+  public _setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
+    this.confirmDiscardChanges = value
+
+    localStorage.setItem(confirmDiscardChangesKey, value ? '1' : '0')
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
   public _setExternalEditor(selectedEditor: ExternalEditor): Promise<void> {
     this.selectedExternalEditor = selectedEditor
     localStorage.setItem(externalEditorKey, selectedEditor)
