@@ -363,6 +363,7 @@ export type Progress =
   | IFetchProgress
   | IPullProgress
   | IPushProgress
+  | IRevertProgress
 
 /**
  * Base interface containing all the properties that progress events

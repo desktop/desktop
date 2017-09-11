@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { OcticonSymbol } from '../octicons'
-import { Progress } from '../../lib/app-state'
+import { IRevertProgress } from '../../lib/app-state'
 
 interface IRevertProgressProps {
   /** Progress information associated with the current operation */
-  readonly progress: Progress
+  readonly progress: IRevertProgress
 }
 
 /** Display revert progress in the toolbar. */
