@@ -18,8 +18,8 @@ dependencies:
   override:
     - npm install
     - npm rebuild
-    - npm ls --prod
-    - npm ls --dev
+    - npm ls --prod || true
+    - npm ls --dev || true
 
 compile:
   override:
