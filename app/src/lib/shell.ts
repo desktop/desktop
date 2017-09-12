@@ -2,6 +2,7 @@
 
 import * as ChildProcess from 'child_process'
 import * as os from 'os'
+import * as Path from 'path'
 
 type IndexLookup = {
   [propName: string]: string
@@ -181,15 +182,29 @@ export function getActiveCodePage(): Promise<number | null> {
   }
 
   return new Promise<number | null>((resolve, reject) => {
-    const child = ChildProcess.spawn('chcp')
+    const windir = process.env.windir || 'C:\\Windows'
+    const path = Path.join(windir, 'System32', 'chcp.com')
+
+    const child = ChildProcess.spawn(path)
 
     const buffers: Array<Buffer> = []
+    let errorThrown = false
+
+    child.on('error', error => {
+      log.error('unable to resolve active code page', error)
+      errorThrown = true
+    })
 
     child.stdout.on('data', (data: Buffer) => {
       buffers.push(data)
     })
 
     child.on('close', (code: number, signal) => {
+      if (errorThrown) {
+        resolve(null)
+        return
+      }
+
       const output = Buffer.concat(buffers).toString('utf8')
       const result = chcpOutputRegex.exec(output)
       if (result) {

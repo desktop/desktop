@@ -68,9 +68,8 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /**
    * This function will be called when the selection changes as a result of a
-   * user keyboard or mouse action (i.e. not when props change). Note that this
-   * differs from `onRowSelected`. For example, it won't be called if an already
-   * selected row is clicked on.
+   * user keyboard or mouse action (i.e. not when props change). This function
+   * will not be invoked when an already selected row is clicked on.
    *
    * @param selectedItem - The item that was just selected
    * @param source       - The kind of user action that provoked the change,

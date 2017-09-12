@@ -7,7 +7,7 @@ experimental:
 
 machine:
   xcode:
-    version: 8.3
+    version: 7.3
 
 dependencies:
   cache_directories:
@@ -15,7 +15,7 @@ dependencies:
     - "~/.electron"
 
   pre:
-    - brew install node
+    - brew install node || brew upgrade node
     - npm install -g npm@4.6.1
     - npm prune
     - node -v
@@ -38,3 +38,9 @@ test:
   override:
     - npm run test:setup
     - npm test
+
+deployment:
+  production:
+    branch: /^__release-.*/
+    commands:
+      - npm run publish
