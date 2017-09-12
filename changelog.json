@@ -1,5 +1,6 @@
 {
   "releases": {
+    "1.0.0-test0": [],
     "1.0.0-beta0": [
       "[New] Ask to install LFS filters when an LFS repository is added - #2227",
       "[New] Clone GitHub repositories tab - #57",
