@@ -48,6 +48,7 @@ interface IChangesSidebarProps {
   readonly isCommitting: boolean
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
+  readonly askForConfirmationOnDiscardChanges: boolean
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -134,21 +135,29 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   }
 
   private onDiscardChanges = (file: WorkingDirectoryFileChange) => {
-    this.props.dispatcher.showPopup({
-      type: PopupType.ConfirmDiscardChanges,
-      repository: this.props.repository,
-      files: [file],
-    })
+    if (!this.props.askForConfirmationOnDiscardChanges) {
+      this.props.dispatcher.discardChanges(this.props.repository, [file])
+    } else {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ConfirmDiscardChanges,
+        repository: this.props.repository,
+        files: [file],
+      })
+    }
   }
 
   private onDiscardAllChanges = (
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) => {
-    this.props.dispatcher.showPopup({
-      type: PopupType.ConfirmDiscardChanges,
-      repository: this.props.repository,
-      files,
-    })
+    if (!this.props.askForConfirmationOnDiscardChanges) {
+      this.props.dispatcher.discardChanges(this.props.repository, files)
+    } else {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ConfirmDiscardChanges,
+        repository: this.props.repository,
+        files,
+      })
+    }
   }
 
   private onIgnore = (pattern: string) => {
