@@ -194,9 +194,7 @@ describe('GitStore', () => {
         ],
         repo!.path
       )
-
-      const files = result.stdout.split('\0')
-      expect(files.length).to.equal(0)
+      expect(result.stdout.length).to.equal(0)
     })
   })
 
