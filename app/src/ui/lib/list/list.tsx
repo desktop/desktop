@@ -289,7 +289,10 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowKeyDown(rowIndex: number, event: React.KeyboardEvent<any>) {
+  private onRowKeyDown = (
+    rowIndex: number,
+    event: React.KeyboardEvent<any>
+  ) => {
     if (this.props.onRowKeyDown) {
       this.props.onRowKeyDown(rowIndex, event)
     }
