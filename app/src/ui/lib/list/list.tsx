@@ -112,9 +112,8 @@ interface IListProps {
 
   /**
    * This function will be called when the selection changes as a result of a
-   * user keyboard or mouse action (i.e. not when props change). Note that this
-   * differs from `onRowSelected`. For example, it won't be called if an already
-   * selected row is clicked on.
+   * user keyboard or mouse action (i.e. not when props change). This function
+   * will not be invoked when an already selected row is clicked on.
    *
    * @param row    - The index of the row that was just selected
    * @param source - The kind of user action that provoked the change, either
@@ -134,6 +133,13 @@ interface IListProps {
    * for calling event.preventDefault() when acting on a key press.
    */
   readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
+
+  /**
+   * A handler called whenever a mouse down event is received on the
+   * row container element. Unlike onSelectionChanged, this is raised
+   * for every mouse down event, whether the row is selected or not.
+   */
+  readonly onRowMouseDown?: (row: number, event: React.MouseEvent<any>) => void
 
   /**
    * An optional handler called to determine whether a given row is
@@ -639,6 +645,10 @@ export class List extends React.Component<IListProps, IListState> {
 
   private onRowMouseDown = (row: number, event: React.MouseEvent<any>) => {
     if (this.canSelectRow(row)) {
+      if (this.props.onRowMouseDown) {
+        this.props.onRowMouseDown(row, event)
+      }
+
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row, { kind: 'mouseclick', event })
       }
