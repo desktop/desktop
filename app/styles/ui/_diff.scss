@@ -36,7 +36,7 @@
       // Add a little bit of space to the left of code diff
       // `padding-left` here means mouse move events are not raised
       padding-left: var(--spacing-half);
-      align-self: center;      
+      align-self: center;
     }
 
     svg.no-newline {
@@ -53,8 +53,9 @@
     border-bottom: var(--base-border);
   }
 
-  &-focused &-selected, &-selected {
-    background: var(--diff-selected-background-color)
+  &-focused &-selected,
+  &-selected {
+    background: var(--diff-selected-background-color);
   }
 
   &-selectedtext {
@@ -70,7 +71,7 @@
   height: 100%;
 
   .before {
-     border-right: 1px solid var(--diff-border-color);
+    border-right: 1px solid var(--diff-border-color);
   }
 
   .after {
@@ -137,8 +138,16 @@
   color: var(--diff-delete-text-color);
 }
 
+.cm-diff-delete-inner {
+  background: var(--diff-delete-inner-background-color);
+}
+
 .cm-diff-add {
   color: var(--diff-add-text-color);
+}
+
+.cm-diff-add-inner {
+  background: var(--diff-add-inner-background-color);
 }
 
 .cm-diff-context {
@@ -159,7 +168,6 @@
   }
 }
 
-
 .diff-line-selected {
   .diff-line-number {
     background: var(--diff-selected-background-color);
@@ -172,7 +180,6 @@
   }
 }
 
-
 .diff-line-hover {
   .diff-line-number {
     background: var(--diff-hover-background-color);
@@ -180,11 +187,10 @@
     color: var(--diff-hover-text-color);
 
     &:last-child {
-      border-color: var(--diff-hover-gutter-color);      
+      border-color: var(--diff-hover-gutter-color);
     }
   }
 }
-
 
 // Windows has custom scroll bars, see _scroll.scss
 @include win32-context {
@@ -207,7 +213,9 @@
 
     // This is a div that sits in the corner between the horizontal
     // and vertical scroll bar and has an opaque background by default.
-    &-scrollbar-filler { background: transparent; }
+    &-scrollbar-filler {
+      background: transparent;
+    }
   }
 }
 
@@ -228,7 +236,7 @@
   min-width: 0;
   min-height: 0;
   object-fit: contain;
-  padding: 0 var(--spacing);
+  padding: 0;
 }
 // ***************************************************************************************************************************
 #diff a {
@@ -236,7 +244,183 @@
   margin-left: var(--spacing-half);
 }
 
-
 #diff a:link {
   color: (orange);
+}
+
+.panel.image {
+  display: flex;
+  flex: 1;
+  padding-top: 10px;
+
+  .tab-bar {
+    width: 350px;
+    margin: 10px auto 0;
+  }
+
+  .image-diff-previous {
+    color: var(--color-deleted);
+  }
+  .image-diff-current {
+    color: var(--color-new);
+  }
+
+  .image-diff-previous,
+  .image-diff-current {
+    text-align: center;
+
+    img {
+      @include checkboard-background;
+      border: 1px solid currentColor;
+    }
+  }
+
+  .image-diff-header {
+    font-weight: var(--font-weight-semibold);
+    padding-bottom: 10px;
+  }
+
+  .image-diff-footer {
+    color: var(--text-secondary-color);
+    .strong {
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+}
+
+.image-diff-two-up {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+
+  .image-diff-previous {
+    margin-right: 7.5px;
+  }
+  .image-diff-current {
+    margin-left: 7.5px;
+  }
+}
+
+.image-diff-difference {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .sizing-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .image-container {
+      position: relative;
+
+      .image-diff-previous,
+      .image-diff-current {
+        position: absolute;
+        top: 0;
+        left: 0;
+        img : {
+          border: 0;
+          background: transparent;
+        }
+      }
+    }
+  }
+}
+
+.image-diff-onion-skin {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .slider {
+    align-self: center;
+  }
+
+  .sizing-container {
+    margin: 0;
+    margin-bottom: var(--spacing-half);
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .image-diff-previous,
+    .image-diff-current {
+      position: absolute;
+      margin: 0;
+      overflow: hidden;
+
+      img {
+        border: 0;
+        background: transparent;
+      }
+    }
+
+    .image-diff-previous {
+      border: 1px solid var(--color-deleted);
+    }
+    .image-diff-current {
+      border: 1px solid var(--color-new);
+    }
+
+    .image-container {
+      @include checkboard-background;
+      position: relative;
+    }
+  }
+}
+
+.image-diff-swipe {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .slider {
+    align-self: center;
+  }
+
+  .sizing-container {
+    margin: 0;
+    margin-bottom: var(--spacing-half);
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .image-container {
+      position: relative;
+
+      .image-diff-previous,
+      .image-diff-current {
+        @include checkboard-background;
+        position: absolute;
+        margin: 0;
+        overflow: hidden;
+
+        img {
+          border: 0;
+          background: transparent;
+        }
+      }
+
+      .image-diff-previous {
+        border: 1px solid var(--color-deleted);
+        right: 0;
+      }
+      .image-diff-current {
+        border: 1px solid var(--color-new);
+      }
+
+      .swiper {
+        border-left: 1px solid var(--text-secondary-color);
+        margin: 0;
+        overflow: hidden;
+        position: absolute;
+        right: 0;
+      }
+    }
+  }
 }

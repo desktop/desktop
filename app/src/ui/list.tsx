@@ -112,9 +112,8 @@ interface IListProps {
 
   /**
    * This function will be called when the selection changes as a result of a
-   * user keyboard or mouse action (i.e. not when props change). Note that this
-   * differs from `onRowSelected`. For example, it won't be called if an already
-   * selected row is clicked on.
+   * user keyboard or mouse action (i.e. not when props change). This function
+   * will not be invoked when an already selected row is clicked on.
    *
    * @param row    - The index of the row that was just selected
    * @param source - The kind of user action that provoked the change, either
@@ -134,6 +133,13 @@ interface IListProps {
    * for calling event.preventDefault() when acting on a key press.
    */
   readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
+
+  /**
+   * A handler called whenever a mouse down event is received on the
+   * row container element. Unlike onSelectionChanged, this is raised
+   * for every mouse down event, whether the row is selected or not.
+   */
+  readonly onRowMouseDown?: (row: number, event: React.MouseEvent<any>) => void
 
   /**
    * An optional handler called to determine whether a given row is
@@ -179,12 +185,6 @@ interface IListState {
   readonly rowIdPrefix?: string
 }
 
-// https://wicg.github.io/ResizeObserver/#resizeobserverentry
-interface IResizeObserverEntry {
-  readonly target: HTMLElement
-  readonly contentRect: ClientRect
-}
-
 export class List extends React.Component<IListProps, IListState> {
   private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
@@ -211,7 +211,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   private list: HTMLDivElement | null = null
   private grid: React.Component<any, any> | null
-  private readonly resizeObserver: any | null = null
+  private readonly resizeObserver: ResizeObserver | null = null
   private updateSizeTimeoutId: number | null = null
 
   public constructor(props: IListProps) {
@@ -219,29 +219,28 @@ export class List extends React.Component<IListProps, IListState> {
 
     this.state = {}
 
-    const ResizeObserver = (window as any).ResizeObserver
+    const ResizeObserverClass: typeof ResizeObserver = (window as any)
+      .ResizeObserver
 
     if (ResizeObserver || false) {
-      this.resizeObserver = new ResizeObserver(
-        (entries: ReadonlyArray<IResizeObserverEntry>) => {
-          for (const entry of entries) {
-            if (entry.target === this.list) {
-              // We might end up causing a recursive update by updating the state
-              // when we're reacting to a resize so we'll defer it until after
-              // react is done with this frame.
-              if (this.updateSizeTimeoutId !== null) {
-                clearImmediate(this.updateSizeTimeoutId)
-              }
-
-              this.updateSizeTimeoutId = setImmediate(
-                this.onResized,
-                entry.target,
-                entry.contentRect
-              )
+      this.resizeObserver = new ResizeObserverClass(entries => {
+        for (const entry of entries) {
+          if (entry.target === this.list) {
+            // We might end up causing a recursive update by updating the state
+            // when we're reacting to a resize so we'll defer it until after
+            // react is done with this frame.
+            if (this.updateSizeTimeoutId !== null) {
+              clearImmediate(this.updateSizeTimeoutId)
             }
+
+            this.updateSizeTimeoutId = setImmediate(
+              this.onResized,
+              entry.target,
+              entry.contentRect
+            )
           }
         }
-      )
+      })
     }
   }
 
@@ -663,6 +662,10 @@ export class List extends React.Component<IListProps, IListState> {
 
   private handleMouseDown = (row: number, event: React.MouseEvent<any>) => {
     if (this.canSelectRow(row)) {
+      if (this.props.onRowMouseDown) {
+        this.props.onRowMouseDown(row, event)
+      }
+
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row, { kind: 'mouseclick', event })
       }

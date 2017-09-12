@@ -179,12 +179,27 @@ export abstract class AutocompletingTextInput<
           scrollToRow={selectedRow}
           selectOnHover={true}
           focusOnHover={false}
+          onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}
           onSelectionChanged={this.onSelectionChanged}
           invalidationProps={searchText}
         />
       </div>
     )
+  }
+
+  private onRowMouseDown = (row: number, event: React.MouseEvent<any>) => {
+    const currentAutoCompletionState = this.state.autocompletionState
+
+    if (!currentAutoCompletionState) {
+      return
+    }
+
+    const item = currentAutoCompletionState.items[row]
+
+    if (item) {
+      this.insertCompletion(item)
+    }
   }
 
   private onSelectionChanged = (row: number, source: SelectionSource) => {
@@ -221,7 +236,7 @@ export abstract class AutocompletingTextInput<
 
     // This is pretty gross. Clicking on the list moves focus off the text area.
     // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
-    setTimeout(() => {
+    window.setTimeout(() => {
       const element = this.element
       if (element) {
         element.focus()
@@ -236,14 +251,26 @@ export abstract class AutocompletingTextInput<
   protected abstract getElementTagName(): 'textarea' | 'input'
 
   private renderTextInput() {
-    return React.createElement<any, any>(this.getElementTagName(), {
-      ref: (ref: ElementType) => (this.element = ref),
+    return React.createElement<
+      React.HTMLAttributes<ElementType>,
+      ElementType
+    >(this.getElementTagName(), {
       type: 'text',
       placeholder: this.props.placeholder,
       value: this.props.value,
+      ref: this.onRef,
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
+      onBlur: this.onBlur,
     })
+  }
+
+  private onBlur = (e: React.FocusEvent<ElementType>) => {
+    this.close()
+  }
+
+  private onRef = (ref: ElementType | null) => {
+    this.element = ref
   }
 
   public render() {
@@ -284,7 +311,7 @@ export abstract class AutocompletingTextInput<
       this.props.onValueChanged(newText)
     }
 
-    this.setState({ autocompletionState: null })
+    this.close()
   }
 
   private getMovementDirection(
@@ -348,8 +375,12 @@ export abstract class AutocompletingTextInput<
         this.insertCompletion(item)
       }
     } else if (event.key === 'Escape') {
-      this.setState({ autocompletionState: null })
+      this.close()
     }
+  }
+
+  private close() {
+    this.setState({ autocompletionState: null })
   }
 
   private async attemptAutocompletion(

@@ -322,6 +322,9 @@ dialog {
   &#create-branch { width: 400px; }
   &#push-branch-commits { width: 450px; }
   &#publish-branch { width: 450px; }
+  &#generic-git-auth {
+    width: 450px;
+  }
 
   &#confirm-remove-repository {
     width: 450px;
@@ -347,6 +350,10 @@ dialog {
   }
 
   &#add-existing-repository { width: 400px; }
+
+  &#initialize-lfs {
+    width: 400px;
+  }
 }
 
 .warning-helper-text {

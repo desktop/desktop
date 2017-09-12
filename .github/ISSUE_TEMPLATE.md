@@ -38,7 +38,7 @@ issue:
  - If you are on macOS, launch `About This Mac` and write down the OS version
    listed.
  - If you are on Windows, open `Command Prompt` and attach the output of this
-   command*: `cmd /c ver`
+   command: `cmd /c ver`
 
 -->
 
@@ -76,7 +76,7 @@ Desktop:
  - If you are on macOS, attach the most recent log file from:
    `~/Library/Application Support/GitHub Desktop/logs/*.desktop.production.log`
  - If you are on Windows, attach the most recent log file from:
-   `%APPDATA%\\GitHub Desktop\\logs\\*.desktop.production.log`
+   `%APPDATA%\GitHub Desktop\logs\*.desktop.production.log`
 
 The log files are organized by date, so see if anything was generated for
 today's date.

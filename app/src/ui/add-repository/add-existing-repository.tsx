@@ -68,9 +68,21 @@ export class AddExistingRepository extends React.Component<
   }
 
   public async componentDidMount() {
-    const isRepository = await isGitRepository(this.state.path)
+    const pathToCheck = this.state.path
+    // We'll only have a path at this point if the dialog was opened with a path
+    // to prefill.
+    if (pathToCheck.length < 1) {
+      return
+    }
 
-    this.setState({ isRepository })
+    const isRepository = await isGitRepository(pathToCheck)
+    // The path might have changed while we were checking, in which case we
+    // don't care about the result anymore.
+    if (this.state.path !== pathToCheck) {
+      return
+    }
+
+    this.setState({ isRepository, showNonGitRepositoryWarning: !isRepository })
   }
 
   private renderWarning() {
@@ -110,7 +122,7 @@ export class AddExistingRepository extends React.Component<
               value={this.state.path}
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
               placeholder="repository path"
-              onChange={this.onPathChanged}
+              onValueChanged={this.onPathChanged}
               autoFocus={true}
             />
             <Button onClick={this.showFilePicker}>Choose…</Button>
@@ -130,8 +142,7 @@ export class AddExistingRepository extends React.Component<
     )
   }
 
-  private onPathChanged = async (event: React.FormEvent<HTMLInputElement>) => {
-    const path = event.currentTarget.value
+  private onPathChanged = async (path: string) => {
     const isRepository = await isGitRepository(path)
 
     this.setState({ path, isRepository })
@@ -160,6 +171,8 @@ export class AddExistingRepository extends React.Component<
   }
 
   private addRepository = async () => {
+    this.props.onDismissed()
+
     const resolvedPath = this.resolvedPath(this.state.path)
     const repositories = await this.props.dispatcher.addRepositories([
       resolvedPath,
@@ -169,8 +182,6 @@ export class AddExistingRepository extends React.Component<
       const repository = repositories[0]
       this.props.dispatcher.selectRepository(repository)
     }
-
-    this.props.onDismissed()
   }
 
   private onCreateRepositoryClicked = () => {

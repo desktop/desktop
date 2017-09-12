@@ -1,11 +1,22 @@
-import { Menu, ipcMain, shell } from 'electron'
+import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogPath } from '../../lib/logging/get-log-path'
 import { mkdirIfNeeded } from '../../lib/file-system'
+
 import { log } from '../log'
 
-export function buildDefaultMenu(): Electron.Menu {
+const defaultEditorLabel = __DARWIN__
+  ? 'Open in External Editor'
+  : 'Open in external editor'
+const defaultShellLabel = __DARWIN__
+  ? 'Open in Terminal'
+  : 'Open in Command Prompt'
+
+export function buildDefaultMenu(
+  editorLabel: string = defaultEditorLabel,
+  shellLabel: string = defaultShellLabel
+): Electron.Menu {
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
 
@@ -154,13 +165,18 @@ export function buildDefaultMenu(): Electron.Menu {
       {
         label: '&Reload',
         id: 'reload-window',
-        accelerator: 'CmdOrCtrl+R',
+        // Ctrl+Alt is interpreted as AltGr on international keyboards and this
+        // can clash with other shortcuts. We should always use Ctrl+Shift for
+        // chorded shortcuts, but this menu item is not a user-facing feature
+        // so we are going to keep this one around and save Ctrl+Shift+R for
+        // a different shortcut in the future...
+        accelerator: 'CmdOrCtrl+Alt+R',
         click(item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
             focusedWindow.reload()
           }
         },
-        visible: __RELEASE_CHANNEL__ !== 'production',
+        visible: __RELEASE_CHANNEL__ === 'development',
       },
       {
         id: 'show-devtools',
@@ -204,12 +220,13 @@ export function buildDefaultMenu(): Electron.Menu {
       {
         id: 'view-repository-on-github',
         label: __DARWIN__ ? 'View on GitHub' : '&View on GitHub',
-        accelerator: 'CmdOrCtrl+Alt+G',
+        accelerator: 'CmdOrCtrl+Shift+G',
         click: emit('view-repository-on-github'),
       },
       {
-        label: __DARWIN__ ? 'Open in Terminal' : 'Op&en command prompt',
+        label: shellLabel,
         id: 'open-in-shell',
+        accelerator: 'Ctrl+`',
         click: emit('open-in-shell'),
       },
       {
@@ -217,6 +234,12 @@ export function buildDefaultMenu(): Electron.Menu {
         id: 'open-working-directory',
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
+      },
+      {
+        label: editorLabel,
+        id: 'open-external-editor',
+        accelerator: 'CmdOrCtrl+Shift+A',
+        click: emit('open-external-editor'),
       },
       separator,
       {
@@ -298,6 +321,15 @@ export function buildDefaultMenu(): Electron.Menu {
     },
   }
 
+  const contactSupportItem: Electron.MenuItemConstructorOptions = {
+    label: __DARWIN__ ? 'Contact GitHub Support…' : '&Contact GitHub support…',
+    click() {
+      shell.openExternal(
+        `https://github.com/contact?from_desktop_app=1&app_version=${app.getVersion()}`
+      )
+    },
+  }
+
   const showUserGuides: Electron.MenuItemConstructorOptions = {
     label: 'Show User Guides',
     click() {
@@ -319,7 +351,12 @@ export function buildDefaultMenu(): Electron.Menu {
     },
   }
 
-  const helpItems = [submitIssueItem, showUserGuides, showLogsItem]
+  const helpItems = [
+    submitIssueItem,
+    contactSupportItem,
+    showUserGuides,
+    showLogsItem,
+  ]
 
   if (__DEV__) {
     helpItems.push(

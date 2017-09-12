@@ -40,7 +40,6 @@
 @import "ui/text-area";
 @import "ui/checkbox";
 @import "ui/errors";
-@import "ui/clone-repository";
 @import "ui/dialog";
 @import "ui/add-repository";
 @import "ui/discard-changes";
@@ -55,3 +54,6 @@
 @import "ui/vertical-segmented-control";
 @import "ui/blank-slate";
 @import "ui/terms-and-conditions";
+@import "ui/ref";
+@import "ui/monospaced";
+@import 'ui/initialize-lfs';

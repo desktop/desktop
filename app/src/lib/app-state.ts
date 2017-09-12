@@ -16,6 +16,11 @@ import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
+import { RetryAction } from './retry-actions'
+import { ExternalEditor } from '../models/editors'
+import { PreferencesTab } from '../models/preferences'
+import { Shell } from './shells'
+import { CloneRepositoryTab } from '../models/clone-repository-tab'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -24,6 +29,21 @@ export enum SelectionType {
   Repository,
   CloningRepository,
   MissingRepository,
+}
+
+/** The image diff type. */
+export enum ImageDiffType {
+  /** Show the old and new images side by side. */
+  TwoUp,
+
+  /** Swipe between the old and new image. */
+  Swipe,
+
+  /** Onion skin. */
+  OnionSkin,
+
+  /** Highlight differences. */
+  Difference,
 }
 
 export type PossibleSelections =
@@ -132,6 +152,21 @@ export interface IAppState {
 
   /** Whether we should show a confirmation dialog */
   readonly confirmRepoRemoval: boolean
+
+  /** The external editor to use when opening repositories */
+  readonly selectedExternalEditor?: ExternalEditor
+
+  /** What type of visual diff mode we should use to compare images */
+  readonly imageDiffType: ImageDiffType
+
+  /** The user's preferred shell. */
+  readonly selectedShell: Shell
+
+  /** The current repository filter text. */
+  readonly repositoryFilterText: string
+
+  /** The currently selected tab for Clone Repository. */
+  readonly selectedCloneRepositoryTab: CloneRepositoryTab
 }
 
 export enum PopupType {
@@ -155,6 +190,10 @@ export enum PopupType {
   TermsAndConditions,
   PushBranchCommits,
   CLIInstalled,
+  GenericGitAuthentication,
+  ExternalEditorFailed,
+  OpenShellFailed,
+  InitializeLFS,
 }
 
 export type Popup =
@@ -165,12 +204,15 @@ export type Popup =
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
     }
-  | { type: PopupType.Preferences }
+  | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | { type: PopupType.MergeBranch; repository: Repository }
   | { type: PopupType.RepositorySettings; repository: Repository }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }
-  | { type: PopupType.CloneRepository; initialURL: string | null }
+  | {
+      type: PopupType.CloneRepository
+      initialURL: string | null
+    }
   | { type: PopupType.CreateBranch; repository: Repository }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }
@@ -191,6 +233,19 @@ export type Popup =
       unPushedCommits?: number
     }
   | { type: PopupType.CLIInstalled }
+  | {
+      type: PopupType.GenericGitAuthentication
+      hostname: string
+      retryAction: RetryAction
+    }
+  | {
+      type: PopupType.ExternalEditorFailed
+      message: string
+      suggestAtom?: boolean
+      openPreferences?: boolean
+    }
+  | { type: PopupType.OpenShellFailed; message: string }
+  | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
 
 export enum FoldoutType {
   Repository,

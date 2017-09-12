@@ -4,6 +4,8 @@ import { Emitter, Disposable } from 'event-kit'
 
 import { clone as cloneRepo, CloneOptions } from '../git'
 import { ICloneProgress } from '../app-state'
+import { RetryAction, RetryActionType } from '../retry-actions'
+import { ErrorWithMetadata } from '../error-with-metadata'
 
 let CloningRepositoryID = 1
 
@@ -20,6 +22,15 @@ export class CloningRepository {
 
   public get name(): string {
     return Path.basename(this.path)
+  }
+
+  /**
+   * A hash of the properties of the object.
+   *
+   * Objects with the same hash are guaranteed to be structurally equal.
+   */
+  public get hash(): string {
+    return `${this.id}+${this.path}+${this.url}`
   }
 }
 
@@ -74,6 +85,15 @@ export class CloningRepositoriesStore {
       })
     } catch (e) {
       success = false
+
+      const retryAction: RetryAction = {
+        type: RetryActionType.Clone,
+        url,
+        path,
+        options,
+      }
+      e = new ErrorWithMetadata(e, { retryAction, repository })
+
       this.emitError(e)
     }
 

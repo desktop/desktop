@@ -6,7 +6,10 @@ import { Repository } from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
 import { Dispatcher } from '../../lib/dispatcher'
-import { IHistoryState as IAppHistoryState } from '../../lib/app-state'
+import {
+  IHistoryState as IAppHistoryState,
+  ImageDiffType,
+} from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
@@ -21,9 +24,9 @@ interface IHistoryProps {
   readonly history: IAppHistoryState
   readonly emoji: Map<string, string>
   readonly commits: Map<string, Commit>
-  readonly localCommitSHAs: ReadonlyArray<string>
   readonly commitSummaryWidth: number
   readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly imageDiffType: ImageDiffType
 }
 
 interface IHistoryState {
@@ -81,6 +84,7 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
     return (
       <Diff
         repository={this.props.repository}
+        imageDiffType={this.props.imageDiffType}
         file={file}
         diff={diff}
         readOnly={true}
@@ -90,20 +94,15 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
   }
 
   private renderCommitSummary(commit: Commit) {
-    const isLocal = this.props.localCommitSHAs.indexOf(commit.sha) > -1
     const gitHubUser =
       this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
 
     return (
       <CommitSummary
-        summary={commit.summary}
-        body={commit.body}
-        sha={commit.sha}
-        author={commit.author}
+        commit={commit}
         files={this.props.history.changedFiles}
         emoji={this.props.emoji}
         repository={this.props.repository}
-        isLocal={isLocal}
         gitHubUser={gitHubUser}
         onExpandChanged={this.onExpandChanged}
         isExpanded={this.state.isExpanded}

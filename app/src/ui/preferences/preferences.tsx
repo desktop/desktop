@@ -1,5 +1,7 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
+import { PreferencesTab } from '../../models/preferences'
+import { ExternalEditor } from '../../models/editors'
 import { Dispatcher } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
@@ -14,6 +16,8 @@ import {
   setGlobalConfigValue,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
+import { Shell, getAvailableShells } from '../../lib/shells'
+import { getAvailableEditors } from '../../lib/editors/lookup'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -21,13 +25,10 @@ interface IPreferencesProps {
   readonly enterpriseAccount: Account | null
   readonly onDismissed: () => void
   readonly optOutOfUsageTracking: boolean
+  readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepoRemoval: boolean
-}
-
-enum PreferencesTab {
-  Accounts = 0,
-  Git,
-  Advanced,
+  readonly selectedExternalEditor?: ExternalEditor
+  readonly selectedShell: Shell
 }
 
 interface IPreferencesState {
@@ -36,6 +37,10 @@ interface IPreferencesState {
   readonly committerEmail: string
   readonly isOptedOut: boolean
   readonly confirmRepoRemoval: boolean
+  readonly availableEditors: ReadonlyArray<ExternalEditor>
+  readonly selectedExternalEditor?: ExternalEditor
+  readonly availableShells: ReadonlyArray<Shell>
+  readonly selectedShell: Shell
 }
 
 /** The app-level preferences component. */
@@ -47,17 +52,22 @@ export class Preferences extends React.Component<
     super(props)
 
     this.state = {
-      selectedIndex: PreferencesTab.Accounts,
+      selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
       isOptedOut: false,
       confirmRepoRemoval: false,
+      availableEditors: [],
+      selectedExternalEditor: this.props.selectedExternalEditor,
+      availableShells: [],
+      selectedShell: this.props.selectedShell,
     }
   }
 
   public async componentWillMount() {
     const isOptedOut = this.props.optOutOfUsageTracking
     const confirmRepoRemoval = this.props.confirmRepoRemoval
+    const selectedExternalEditor = this.props.selectedExternalEditor
 
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
@@ -82,11 +92,22 @@ export class Preferences extends React.Component<
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
+    const [editors, shells] = await Promise.all([
+      getAvailableEditors(),
+      getAvailableShells(),
+    ])
+
+    const availableEditors = editors.map(e => e.editor)
+    const availableShells = shells.map(e => e.shell)
+
     this.setState({
       committerName,
       committerEmail,
       isOptedOut,
       confirmRepoRemoval,
+      availableEditors,
+      selectedExternalEditor,
+      availableShells,
     })
   }
 
@@ -155,8 +176,14 @@ export class Preferences extends React.Component<
           <Advanced
             isOptedOut={this.state.isOptedOut}
             confirmRepoRemoval={this.state.confirmRepoRemoval}
+            availableEditors={this.state.availableEditors}
+            selectedExternalEditor={this.state.selectedExternalEditor}
             onOptOutSet={this.onOptOutSet}
             onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
+            onSelectedEditorChanged={this.onSelectedEditorChanged}
+            availableShells={this.state.availableShells}
+            selectedShell={this.state.selectedShell}
+            onSelectedShellChanged={this.onSelectedShellChanged}
           />
         )
       }
@@ -179,6 +206,14 @@ export class Preferences extends React.Component<
 
   private onCommitterEmailChanged = (committerEmail: string) => {
     this.setState({ committerEmail })
+  }
+
+  private onSelectedEditorChanged = (editor: ExternalEditor) => {
+    this.setState({ selectedExternalEditor: editor })
+  }
+
+  private onSelectedShellChanged = (shell: Shell) => {
+    this.setState({ selectedShell: shell })
   }
 
   private renderFooter() {
@@ -209,6 +244,14 @@ export class Preferences extends React.Component<
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepoRemoval
     )
+
+    if (this.state.selectedExternalEditor) {
+      await this.props.dispatcher.setExternalEditor(
+        this.state.selectedExternalEditor
+      )
+    }
+
+    await this.props.dispatcher.setShell(this.state.selectedShell)
 
     this.props.onDismissed()
   }

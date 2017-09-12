@@ -1,4 +1,4 @@
-import { remote, ipcRenderer } from 'electron'
+import { remote } from 'electron'
 
 // Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
 // use with `remote`.
@@ -9,6 +9,7 @@ import { Emitter, Disposable } from 'event-kit'
 
 import { sendWillQuitSync } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
+import { parseError } from '../../lib/squirrel-error-parser'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -52,16 +53,7 @@ class UpdateStore {
       }
     }
 
-    // We're using our own error event instead of `autoUpdater`s so that we can
-    // properly serialize the `Error` object for transport over IPC. See
-    // https://github.com/desktop/desktop/issues/1266.
-    ipcRenderer.on(
-      'auto-updater-error',
-      (event: Electron.IpcMessageEvent, error: Error) => {
-        this.onAutoUpdaterError(error)
-      }
-    )
-
+    autoUpdater.on('error', this.onAutoUpdaterError)
     autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
     autoUpdater.on('update-available', this.onUpdateAvailable)
     autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
@@ -72,6 +64,7 @@ class UpdateStore {
     // let's just avoid it.
     if (!process.env.TEST_ENV) {
       window.addEventListener('beforeunload', () => {
+        autoUpdater.removeListener('error', this.onAutoUpdaterError)
         autoUpdater.removeListener(
           'checking-for-update',
           this.onCheckingForUpdate
@@ -95,9 +88,14 @@ class UpdateStore {
   }
 
   private onAutoUpdaterError = (error: Error) => {
-    // If we get an error during any stage of the update process we'll
     this.status = UpdateStatus.UpdateNotAvailable
-    this.emitError(error)
+
+    if (__WIN32__) {
+      const parsedError = parseError(error)
+      this.emitError(parsedError || error)
+    } else {
+      this.emitError(error)
+    }
   }
 
   private onCheckingForUpdate = () => {
@@ -158,6 +156,13 @@ class UpdateStore {
    *                       this check user-initiated?
    */
   public checkForUpdates(inBackground: boolean) {
+    // An update has been downloaded and the app is waiting to be restarted.
+    // Checking for updates again may result in the running app being nuked
+    // when it finds a subsequent update.
+    if (__WIN32__ && this.status === UpdateStatus.UpdateReady) {
+      return
+    }
+
     this.userInitiatedUpdate = !inBackground
 
     try {

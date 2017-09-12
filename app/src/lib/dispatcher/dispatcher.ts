@@ -13,19 +13,21 @@ import {
   PopupType,
   Foldout,
   FoldoutType,
+  ImageDiffType,
 } from '../app-state'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
+import { ExternalEditor } from '../../models/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
-import { fatalError } from '../fatal-error'
-import { isGitOnPath } from '../open-shell'
+import { fatalError, assertNever } from '../fatal-error'
+import { isGitOnPath } from '../is-git-on-path'
 import { shell } from './app-shell'
 import {
   URLActionType,
@@ -38,6 +40,10 @@ import {
   rejectOAuthRequest,
 } from '../../lib/oauth'
 import { installCLI } from '../../ui/lib/install-cli'
+import * as GenericGitAuth from '../generic-git-auth'
+import { RetryAction, RetryActionType } from '../retry-actions'
+import { Shell } from '../shells'
+import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 
 /**
  * An error handler function.
@@ -139,6 +145,11 @@ export class Dispatcher {
     file: FileChange
   ): Promise<void> {
     return this.appStore._changeHistoryFileSelection(repository, file)
+  }
+
+  /** Set the repository filter text. */
+  public setRepositoryFilterText(text: string): Promise<void> {
+    return this.appStore._setRepositoryFilterText(text)
   }
 
   /** Select the repository. */
@@ -341,19 +352,15 @@ export class Dispatcher {
    * Clone a missing repository to the previous path, and update it's
    * state in the repository list if the clone completes without error.
    */
-  public cloneAgain(
-    url: string,
-    path: string,
-    account: Account | null
-  ): Promise<void> {
-    return this.appStore._cloneAgain(url, path, account)
+  public cloneAgain(url: string, path: string): Promise<void> {
+    return this.appStore._cloneAgain(url, path)
   }
 
   /** Clone the repository to the path. */
   public async clone(
     url: string,
     path: string,
-    options: { account: Account | null; branch?: string }
+    options?: { branch?: string }
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
       const { promise, repository } = this.appStore._clone(url, path, options)
@@ -385,8 +392,12 @@ export class Dispatcher {
    * Delete the branch. This will delete both the local branch and the remote
    * branch, and then check out the default branch.
    */
-  public deleteBranch(repository: Repository, branch: Branch): Promise<void> {
-    return this.appStore._deleteBranch(repository, branch)
+  public deleteBranch(
+    repository: Repository,
+    branch: Branch,
+    includeRemote: boolean
+  ): Promise<void> {
+    return this.appStore._deleteBranch(repository, branch, includeRemote)
   }
 
   /** Discard the changes to the given files. */
@@ -400,6 +411,11 @@ export class Dispatcher {
   /** Undo the given commit. */
   public undoCommit(repository: Repository, commit: Commit): Promise<void> {
     return this.appStore._undoCommit(repository, commit)
+  }
+
+  /** Revert the commit with the given SHA */
+  public revertCommit(repository: Repository, commit: Commit): Promise<void> {
+    return this.appStore._revertCommit(repository, commit)
   }
 
   /**
@@ -558,6 +574,11 @@ export class Dispatcher {
     } else {
       this.appStore._showPopup({ type: PopupType.InstallGit, path })
     }
+  }
+
+  /** Opens a Git repository in the user provided program */
+  public async openInExternalEditor(path: string): Promise<void> {
+    return this.appStore._openInExternalEditor(path)
   }
 
   /**
@@ -769,6 +790,12 @@ export class Dispatcher {
         const repository = await this.openRepository(url, branchToClone)
         if (repository) {
           this.handleCloneInDesktopOptions(repository, action)
+        } else {
+          log.warn(
+            `Open Repository from URL failed, did not find repository: ${url} - payload: ${JSON.stringify(
+              action
+            )}`
+          )
         }
         break
 
@@ -816,6 +843,20 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference for an external program to open repositories in.
+   */
+  public setExternalEditor(editor: ExternalEditor): Promise<void> {
+    return this.appStore._setExternalEditor(editor)
+  }
+
+  /**
+   * Sets the user's preferred shell.
+   */
+  public setShell(shell: Shell): Promise<void> {
+    return this.appStore._setShell(shell)
+  }
+
+  /**
    * Reveals a file from a repository in the native file manager.
    * @param repository The currently active repository instance
    * @param path The path of the file relative to the root of the repository
@@ -831,9 +872,12 @@ export class Dispatcher {
   ): Promise<void> {
     const { filepath, pr, branch } = action
 
-    // we need to refetch for a forked PR and check that out
     if (pr && branch) {
+      // we need to refetch for a forked PR and check that out
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
+    }
+
+    if (branch) {
       await this.checkoutBranch(repository, branch)
     }
 
@@ -872,7 +916,11 @@ export class Dispatcher {
       return this.checkoutBranch(repo, branch)
     } else {
       return this.appStore._startOpenInDesktop(() => {
-        this.showPopup({ type: PopupType.CloneRepository, initialURL: url })
+        this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
+        this.showPopup({
+          type: PopupType.CloneRepository,
+          initialURL: url,
+        })
       })
     }
   }
@@ -892,5 +940,66 @@ export class Dispatcher {
 
       this.postError(e)
     }
+  }
+
+  /** Prompt the user to authenticate for a generic git server. */
+  public promptForGenericGitAuthentication(
+    repository: Repository | CloningRepository,
+    retry: RetryAction
+  ): Promise<void> {
+    return this.appStore.promptForGenericGitAuthentication(repository, retry)
+  }
+
+  /** Save the generic git credentials. */
+  public async saveGenericGitCredentials(
+    hostname: string,
+    username: string,
+    password: string
+  ): Promise<void> {
+    GenericGitAuth.setGenericUsername(hostname, username)
+    await GenericGitAuth.setGenericPassword(hostname, username, password)
+  }
+
+  /** Perform the given retry action. */
+  public async performRetry(retryAction: RetryAction): Promise<void> {
+    switch (retryAction.type) {
+      case RetryActionType.Push:
+        return this.push(retryAction.repository)
+
+      case RetryActionType.Pull:
+        return this.pull(retryAction.repository)
+
+      case RetryActionType.Fetch:
+        return this.fetch(retryAction.repository)
+
+      case RetryActionType.Clone:
+        await this.clone(retryAction.url, retryAction.path, retryAction.options)
+        break
+
+      default:
+        return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
+    }
+  }
+
+  /** Change the selected image diff type. */
+  public changeImageDiffType(type: ImageDiffType): Promise<void> {
+    return this.appStore._changeImageDiffType(type)
+  }
+
+  /** Install the global Git LFS filters. */
+  public installGlobalLFSFilters(): Promise<void> {
+    return this.appStore._installGlobalLFSFilters()
+  }
+
+  /** Install the LFS filters */
+  public installLFSHooks(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    return this.appStore._installLFSHooks(repositories)
+  }
+
+  /** Change the selected Clone Repository tab. */
+  public changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
+    return this.appStore._changeCloneRepositoriesTab(tab)
   }
 }

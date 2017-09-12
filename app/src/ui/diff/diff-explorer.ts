@@ -28,6 +28,24 @@ export function diffLineForIndex(
   return hunk.lines[index - hunk.unifiedDiffStart] || null
 }
 
+/** Get the line number as represented in the diff text itself. */
+export function lineNumberForDiffLine(
+  diffLine: DiffLine,
+  diff: ITextDiff
+): number {
+  let lineOffset = 0
+  for (const hunk of diff.hunks) {
+    const index = hunk.lines.indexOf(diffLine)
+    if (index > -1) {
+      return index + lineOffset
+    } else {
+      lineOffset += hunk.lines.length
+    }
+  }
+
+  return -1
+}
+
 /**
  * For the given row in the diff, determine the range of elements that
  * should be displayed as interactive, as a hunk is not granular enough
