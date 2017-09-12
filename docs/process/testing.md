@@ -72,6 +72,7 @@
     - [ ] Current version shown
     - [ ] Links to release notes, terms, licenses
     - [ ] Clicking the version number copies to clipboard
+    - [ ] If build is "old", error message displays warning user to "... manually check for updates".
     - [ ] Clicking `Check for updates` button timestamps last attempt
       - [ ] If update available, `Install Update` button will quit app and install update
       - [ ] If update available, download banner is present in main window with `restart` and `what’s new` links
