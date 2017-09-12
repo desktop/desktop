@@ -714,7 +714,9 @@ export class GitStore {
 
   /** Remove the given remote from the given repository  */
   public async removeRemote(name: string): Promise<void> {
-    await this.performFailableOperation(() => removeRemote(this.repository, name))
+    await this.performFailableOperation(() =>
+      removeRemote(this.repository, name)
+    )
 
     this._remote = null
     await this.loadCurrentRemote()

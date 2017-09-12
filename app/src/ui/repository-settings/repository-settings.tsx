@@ -182,10 +182,14 @@ export class RepositorySettings extends React.Component<
         try {
           await this.props.dispatcher.removeRemote(
             this.props.repository,
-            this.props.remote.name,
+            this.props.remote.name
           )
         } catch (e) {
-          log.error(`RepositorySettings: unable to remove remote at ${this.props.repository.path}`, e)
+          log.error(
+            `RepositorySettings: unable to remove remote at ${this.props
+              .repository.path}`,
+            e
+          )
           errors.push(`Failed removing the remote: ${e}`)
         }
       } else {
