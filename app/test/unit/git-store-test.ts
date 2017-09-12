@@ -169,6 +169,35 @@ describe('GitStore', () => {
 
       expect(gitStore.localCommitSHAs).to.be.empty
     })
+
+    it('has no staged files', async () => {
+      const gitStore = new GitStore(repo!, shell)
+
+      await gitStore.loadStatus()
+
+      const tip = gitStore.tip as IValidBranch
+      await gitStore.loadLocalCommits(tip.branch)
+
+      expect(gitStore.localCommitSHAs.length).to.equal(1)
+
+      await gitStore.undoCommit(firstCommit!)
+
+      // compare the index state to some other tree-ish
+      // 4b825dc642cb6eb9a060e54bf8d69288fbee4904 is the magic empty tree
+      // if nothing is staged, this should return no entries
+      const result = await GitProcess.exec(
+        [
+          'diff-index',
+          '--name-status',
+          '-z',
+          '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
+        ],
+        repo!.path
+      )
+
+      const files = result.stdout.split('\0')
+      expect(files.length).to.equal(0)
+    })
   })
 
   it('hides commented out lines from MERGE_MSG', async () => {
