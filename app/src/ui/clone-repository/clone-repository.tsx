@@ -80,6 +80,13 @@ export class CloneRepository extends React.Component<
     }
   }
 
+  public componentDidMount() {
+    const initialURL = this.props.initialURL
+    if (initialURL) {
+      this.updateUrl(initialURL)
+    }
+  }
+
   public render() {
     const error = this.state.error
     return (
