@@ -88,13 +88,6 @@ function packageApp(
     )
   }
 
-  const signingOptions: any = process.env.CIRCLECI
-    ? {
-        identity: null,
-        keychain: 'mac-build.keychain',
-      }
-    : true
-
   const options: packager.Options & IPackageAdditionalOptions = {
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
@@ -118,7 +111,7 @@ function packageApp(
     // macOS
     appBundleId: distInfo.getBundleID(),
     appCategoryType: 'public.app-category.developer-tools',
-    osxSign: signingOptions,
+    osxSign: true,
     protocols: [
       {
         name: distInfo.getBundleID(),
