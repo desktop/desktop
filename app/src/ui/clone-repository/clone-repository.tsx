@@ -228,7 +228,7 @@ export class CloneRepository extends React.Component<
   }
 
   private updatePath = (path: string) => {
-    this.setState({ path: path })
+    this.setState({ path })
   }
 
   private onChooseDirectory = async () => {
