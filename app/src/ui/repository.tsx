@@ -52,12 +52,12 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span className="with-indicator">
           <span>Changes</span>
-          {hasChanges
-            ? <Octicon
-                className="indicator"
-                symbol={OcticonSymbol.primitiveDot}
-              />
-            : null}
+          {hasChanges ? (
+            <Octicon
+              className="indicator"
+              symbol={OcticonSymbol.primitiveDot}
+            />
+          ) : null}
         </span>
         <span>History</span>
       </TabBar>
