@@ -8,8 +8,6 @@ experimental:
 machine:
   xcode:
     version: 7.3
-  environment:
-    DEBUG: electron-packager,electron-osx-sign
 
 dependencies:
   cache_directories:
