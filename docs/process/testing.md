@@ -91,10 +91,11 @@
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
     - [ ] Advanced
-      - [ ] External Editor options shown in dropdown
-      - [ ] Usage data selection carried through from Welcome flow; user can change
+      - [ ] External Editor options shown in dropdown; else show "Install Atom?" link
+      - [ ] Usage data selection carried through from Welcome flow; user can opt-in/out
         - [ ] Check `stats-opt-out` value in Dev Tools > Application > Local storage
-      - [ ] Repository close option is checked by default; user can change
+      - [ ] Confirmation dialogue for removing repositories is checked by default; user can toggle
+      - [ ] Confirmation dialogue for disgarding files is checked by default; user can toggle
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
   - [ ] Install command line tool installs tool at `/usr/local/bin/github` (ok to install more than once; Mac only as Windows done automagically)
