@@ -73,34 +73,21 @@ export class ConfigureGitUser extends React.Component<
 
   public render() {
     const now = new Date()
-    const dummyAuthor1 = new CommitIdentity(
-      'Hubot',
-      this.state.email,
-      this.dateWithMinuteOffset(now, -2)
-    )
-    const dummyCommit1 = new Commit('', 'Do more things', '', dummyAuthor1, [])
-
-    const dummyAuthor3 = new CommitIdentity(
-      'Hubot',
-      this.state.email,
-      this.dateWithMinuteOffset(now, -60)
-    )
-    const dummyCommit3 = new Commit('', 'Add some things', '', dummyAuthor3, [])
 
     // NB: We're using the name as the commit SHA:
     //  1. `Commit` is referentially transparent wrt the SHA. So in order to get
     //     it to update when we name changes, we need to change the SHA.
     //  2. We don't display the SHA so the user won't ever know our secret.
-    const dummyAuthor2 = new CommitIdentity(
+    const author = new CommitIdentity(
       this.state.name,
       this.state.email,
       this.dateWithMinuteOffset(now, -30)
     )
-    const dummyCommit2 = new Commit(
+    const dummyCommit = new Commit(
       this.state.name,
       'Fix all the things',
       '',
-      dummyAuthor2,
+      author,
       []
     )
     const emoji = new Map()
@@ -122,32 +109,18 @@ export class ConfigureGitUser extends React.Component<
           />
 
           <Row>
-            <Button type="submit">
-              {this.props.saveLabel || 'Save'}
-            </Button>
+            <Button type="submit">{this.props.saveLabel || 'Save'}</Button>
             {this.props.children}
           </Row>
         </Form>
 
         <div id="commit-list" className="commit-list-example">
+          <div className="header">Example commit</div>
+
           <CommitListItem
-            commit={dummyCommit1}
-            emoji={emoji}
-            user={null}
-            gitHubRepository={null}
-            isLocal={false}
-          />
-          <CommitListItem
-            commit={dummyCommit2}
+            commit={dummyCommit}
             emoji={emoji}
             user={this.getAvatarUser()}
-            gitHubRepository={null}
-            isLocal={false}
-          />
-          <CommitListItem
-            commit={dummyCommit3}
-            emoji={emoji}
-            user={null}
             gitHubRepository={null}
             isLocal={false}
           />

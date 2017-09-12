@@ -38,13 +38,19 @@ interface IRepositoriesListProps {
   readonly onOpenInExternalEditor: (repository: Repositoryish) => void
 
   /** The current external editor selected by the user */
-  readonly externalEditorLabel: string
+  readonly externalEditorLabel?: string
 
   /** Called when the repositories list should be closed. */
   readonly onClose: () => void
 
   /** The label for the user's preferred shell. */
   readonly shellLabel: string
+
+  /** The callback to fire when the filter text has changed */
+  readonly onFilterTextChanged: (text: string) => void
+
+  /** The text entered by the user to filter their repository list */
+  readonly filterText: string
 }
 
 const RowHeight = 29
@@ -96,12 +102,9 @@ export class RepositoriesList extends React.Component<
     this.props.onSelectionChanged(item.repository)
   }
 
-  private onFilterKeyDown = (
-    filter: string,
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
+  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      if (filter.length === 0) {
+      if (this.props.filterText.length === 0) {
         this.props.onClose()
         event.preventDefault()
       }
@@ -136,12 +139,17 @@ export class RepositoriesList extends React.Component<
         <RepositoryFilterList
           rowHeight={RowHeight}
           selectedItem={selectedItem}
+          filterText={this.props.filterText}
+          onFilterTextChanged={this.props.onFilterTextChanged}
           renderItem={this.renderItem}
           renderGroupHeader={this.renderGroupHeader}
           onItemClick={this.onItemClick}
           onFilterKeyDown={this.onFilterKeyDown}
           groups={groups}
-          invalidationProps={this.props.repositories}
+          invalidationProps={{
+            repositories: this.props.repositories,
+            filterText: this.props.filterText,
+          }}
         />
       </div>
     )

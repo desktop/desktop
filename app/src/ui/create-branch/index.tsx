@@ -235,11 +235,7 @@ export class CreateBranch extends React.Component<
         loading={this.state.isCreatingBranch}
         disabled={this.state.isCreatingBranch}
       >
-        {error
-          ? <DialogError>
-              {error.message}
-            </DialogError>
-          : null}
+        {error ? <DialogError>{error.message}</DialogError> : null}
 
         <DialogContent>
           <Row>

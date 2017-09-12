@@ -54,7 +54,6 @@ interface IBranchListProps {
    * respond or cancel the default behavior by calling `preventDefault`.
    */
   readonly onFilterKeyDown?: (
-    filter: string,
     event: React.KeyboardEvent<HTMLInputElement>
   ) => void
 
@@ -63,9 +62,8 @@ interface IBranchListProps {
 
   /**
    * This function will be called when the selection changes as a result of a
-   * user keyboard or mouse action (i.e. not when props change). Note that this
-   * differs from `onRowSelected`. For example, it won't be called if an already
-   * selected row is clicked on.
+   * user keyboard or mouse action (i.e. not when props change). This function
+   * will not be invoked when an already selected row is clicked on.
    *
    * @param selectedItem - The Branch that was just selected
    * @param source       - The kind of user action that provoked the change,
@@ -76,10 +74,24 @@ interface IBranchListProps {
     selectedItem: Branch | null,
     source: SelectionSource
   ) => void
+
+  /** The current filter text to render */
+  readonly filterText: string
+
+  /** Callback to fire when the filter text is changed */
+  readonly onFilterTextChanged: (filterText: string) => void
 }
 
 interface IBranchListState {
+  /**
+   * The grouped list of branches.
+   *
+   * Groups are currently defined as 'default branch', 'current branch',
+   * 'recent branches' and all branches.
+   */
   readonly groups: ReadonlyArray<IFilterListGroup<IBranchListItem>>
+
+  /** The selected item in the filtered list */
   readonly selectedItem: IBranchListItem | null
 }
 
@@ -182,6 +194,8 @@ export class BranchList extends React.Component<
       <BranchesFilterList
         className="branches-list"
         rowHeight={RowHeight}
+        filterText={this.props.filterText}
+        onFilterTextChanged={this.props.onFilterTextChanged}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}

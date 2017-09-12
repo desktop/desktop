@@ -141,7 +141,6 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'create-branch',
     'show-changes',
     'show-history',
-    'show-repository-list',
     'show-branches-list',
     'open-external-editor',
   ]

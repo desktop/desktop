@@ -66,17 +66,13 @@ export class TwoFactorAuthentication extends React.Component<
     // ensure user has entered non-whitespace characters
     const codeProvided = /\S+/.test(this.state.otp)
     const signInDisabled = !codeProvided || this.props.loading
-    const errors = this.props.error
-      ? <Errors>
-          {this.props.error.message}
-        </Errors>
-      : null
+    const errors = this.props.error ? (
+      <Errors>{this.props.error.message}</Errors>
+    ) : null
 
     return (
       <div>
-        <p className="welcome-text">
-          {getWelcomeMessage(this.props.type)}
-        </p>
+        <p className="welcome-text">{getWelcomeMessage(this.props.type)}</p>
 
         <Form onSubmit={this.signIn}>
           <TextBox
