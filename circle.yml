@@ -7,7 +7,7 @@ experimental:
 
 machine:
   xcode:
-    version: 8.3
+    version: 7.3
   environment:
     DEBUG: electron-packager,electron-osx-sign
 
