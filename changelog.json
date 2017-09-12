@@ -1,5 +1,27 @@
 {
   "releases": {
+    "0.8.2": [
+      "[New] Ask to install LFS filters when an LFS repository is added - #2227",
+      "[New] Clone GitHub repositories tab - #57",
+      "[New] Option to to opt-out of confirming discarding changes - #2681",
+      "[Fixed] Long commit summary truncation - #1742",
+      "[Fixed] Ensure the repository list is always enabled - #2648",
+      "[Fixed] Windows: Detecting the available shells and editors when using a non-ASCII user encoding - #2624",
+      "[Fixed] Clicking the \"Cancel\" button on the Publish Branch dialog - #2646",
+      "[Fixed] Windows: Don't rely on PATH for knowing where to find chcp - #2678",
+      "[Fixed] Relocating a repository now actually does that - #2685",
+      "[Fixed] Clicking autocompletes inserts them - #2674",
+      "[Fixed] Use shift for shortcut chord instead of alt - #2607",
+      "[Fixed] macOS: \"Open in Terminal\" works with repositories with spaces in their path - #2682"
+    ],
+    "1.0.0-beta1": [
+      "[New] Option to to opt-out of confirming discarding changes - #2681",
+      "[Fixed] Windows: Don't rely on PATH for knowing where to find chcp - #2678",
+      "[Fixed] Relocating a repository now actually does that - #2685",
+      "[Fixed] Clicking autocompletes inserts them - #2674",
+      "[Fixed] Use shift for shortcut chord instead of alt - #2607",
+      "[Fixed] macOS: \"Open in Terminal\" works with repositories with spaces in their path - #2682"
+    ],
     "1.0.0-beta0": [
       "[New] Ask to install LFS filters when an LFS repository is added - #2227",
       "[New] Clone GitHub repositories tab - #57",
