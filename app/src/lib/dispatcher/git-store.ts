@@ -39,7 +39,7 @@ import {
   resetPaths,
   getConfigValue,
   revertCommit,
-  removeCachedItems,
+  removeAllFromIndex,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -403,7 +403,7 @@ export class GitStore {
     repository: Repository
   ): Promise<true | undefined> {
     await deleteRef(repository, 'HEAD', 'Reverting first commit')
-    await removeCachedItems(repository)
+    await removeAllFromIndex(repository)
     return true
   }
 
