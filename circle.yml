@@ -38,3 +38,9 @@ test:
   override:
     - npm run test:setup
     - npm test
+
+deployment:
+  production:
+    branch: /^__release-.*/
+    commands:
+      - npm run publish
