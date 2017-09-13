@@ -102,7 +102,39 @@ async function writeBatchScriptCLITrampoline(): Promise<void> {
 }
 
 async function writeShellScriptCLITrampoline(): Promise<void> {
-  return Promise.resolve()
+  const binPath = getBinPath()
+  const appFolder = Path.resolve(process.execPath, '..')
+  const versionedPath = Path.relative(
+    binPath,
+    Path.join(appFolder, 'resources/app/static/github.sh')
+  )
+  const trampline = `#!/usr/bin/env bash
+  DIR="$( cd "$( dirname "\$\{BASH_SOURCE[0]\}" )" && pwd )"
+  sh "$DIR/${versionedPath}"`
+  const trampolinePath = Path.join(binPath, 'github')
+  return new Promise<void>((resolve, reject) => {
+    Fs.ensureDir(binPath, err => {
+      if (err) {
+        reject(err)
+        return
+      }
+
+      Fs.writeFile(trampolinePath, trampline, err => {
+        if (err) {
+          reject(err)
+        } else {
+          // TODO: what's 'chmod a+x' in numbers?
+          Fs.chmod(trampolinePath, 999, err => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve()
+            }
+          })
+        }
+      })
+    })
+  })
 }
 
 /** Spawn the Squirrel.Windows `Update.exe` with a command. */
