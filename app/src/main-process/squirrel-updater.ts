@@ -63,13 +63,9 @@ function getBinPath(): string {
   return Path.resolve(process.execPath, '../../bin')
 }
 
-function resolveVersionedPath(relativePath: string): string {
+function resolveVersionedPath(binPath: string, relativePath: string): string {
   const appFolder = Path.resolve(process.execPath, '..')
-  const versionedPath = Path.relative(
-    getBinPath(),
-    Path.join(appFolder, relativePath)
-  )
-  return versionedPath
+  return Path.relative(binPath, Path.join(appFolder, relativePath))
 }
 
 /**
@@ -84,7 +80,10 @@ function resolveVersionedPath(relativePath: string): string {
  * bango Bob's your uncle.
  */
 async function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
-  const versionedPath = resolveVersionedPath('resources/app/static/github.bat')
+  const versionedPath = resolveVersionedPath(
+    binPath,
+    'resources/app/static/github.bat'
+  )
   const trampoline = `@echo off\n"%~dp0\\${versionedPath}" %*`
   const trampolinePath = Path.join(binPath, 'github.bat')
   return new Promise<void>((resolve, reject) => {
@@ -106,7 +105,10 @@ async function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
 }
 
 async function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
-  const versionedPath = resolveVersionedPath('resources/app/static/github.sh')
+  const versionedPath = resolveVersionedPath(
+    binPath,
+    'resources/app/static/github.sh'
+  )
   const trampoline = `#!/usr/bin/env bash
   DIR="$( cd "$( dirname "\$\{BASH_SOURCE[0]\}" )" && pwd )"
   sh "$DIR/${versionedPath}"`
