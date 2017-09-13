@@ -1,15 +1,15 @@
-import { git } from './core'
 import { Repository } from '../../models/repository'
+import { getStatus } from './status'
+import { unstageFiles } from './update-index'
 
 /**
  * Remove all files from the index
  *
  * @param repository the repository to update
  */
-export async function removeAllFromIndex(
-  repository: Repository
-): Promise<void> {
-  // --cached - the file is only removed from the index
-  // -r - recursively remove files
-  await git(['rm', '--cached', '-r', '.'], repository.path, 'removeCachedItems')
+export async function unstageAllFiles(repository: Repository): Promise<void> {
+  const result = await getStatus(repository)
+  if (result) {
+    await unstageFiles(repository, result.workingDirectory.files)
+  }
 }

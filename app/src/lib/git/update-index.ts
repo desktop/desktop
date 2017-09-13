@@ -157,3 +157,21 @@ export async function stageFiles(
     }
   }
 }
+
+/**
+ * Unstage all the given files by removing them from the index.
+ */
+export async function unstageFiles(
+  repository: Repository,
+  files: ReadonlyArray<WorkingDirectoryFileChange>
+): Promise<void> {
+  for (const file of files) {
+    const paths = []
+    paths.push(file.path)
+    if (file.oldPath) {
+      paths.push(file.oldPath)
+    }
+
+    await updateIndex(repository, paths, { forceRemove: true })
+  }
+}
