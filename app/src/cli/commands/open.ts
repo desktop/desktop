@@ -26,7 +26,9 @@ const command: ICommandModule = {
       return
     }
     const repositoryPath = Path.resolve(process.cwd(), pathArg)
-    const url = `openLocalRepo/${encodeURIComponent(repositoryPath)}`
+    const url = `x-github-client://openLocalRepo/${encodeURIComponent(
+      repositoryPath
+    )}`
     openDesktop(url)
   },
 }
