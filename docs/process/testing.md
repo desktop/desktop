@@ -207,6 +207,7 @@
       - [ ] User can select one or more lines to commit; diff is scrollable
       - [ ] Right-clicking any file show menu with options
         - [ ] User can discard the file; pending confirmation dialogue
+	  - [ ] `Do not show this message again`overrides the preference setting if true
         - [ ] User to ignore single or all files, show in Finder/Explorer, or reveal in external editor
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers sizes
