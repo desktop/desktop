@@ -130,7 +130,7 @@ function getBundleSizes() {
 function getReleaseBranchName() {
   let branchName
   if (process.platform === 'darwin') {
-    branchName = process.env.TRAVIS_BRANCH
+    branchName = process.env.CIRCLE_BRANCH
   } else if (process.platform === 'win32') {
     branchName = process.env.APPVEYOR_REPO_BRANCH
   }

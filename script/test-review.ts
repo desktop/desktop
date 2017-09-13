@@ -12,9 +12,7 @@ function reviewLogs() {
 }
 
 if (process.platform === 'darwin') {
-  if (process.env.TRAVIS_TEST_RESULT === '1') {
-    reviewLogs()
-  }
+  reviewLogs()
 }
 
 if (process.platform === 'win32') {

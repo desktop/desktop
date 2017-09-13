@@ -31,6 +31,7 @@ interface IRepositoryProps {
   readonly gitHubUserStore: GitHubUserStore
   readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
+  readonly askForConfirmationOnDiscardChanges: boolean
 }
 
 const enum Tab {
@@ -93,6 +94,9 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         gitHubUserStore={this.props.gitHubUserStore}
         isCommitting={this.props.state.isCommitting}
         isPushPullFetchInProgress={this.props.state.isPushPullFetchInProgress}
+        askForConfirmationOnDiscardChanges={
+          this.props.askForConfirmationOnDiscardChanges
+        }
       />
     )
   }
