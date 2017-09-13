@@ -46,7 +46,9 @@ async function handleUpdated(): Promise<void> {
 }
 
 async function installCLI(): Promise<void> {
-  const binPath = await writeCLITrampoline()
+  const binPath = getBinPath()
+  await writeBatchScriptCLITrampoline()
+  await writeShellScriptCLITrampoline()
   const paths = await getPathSegments()
   if (paths.indexOf(binPath) < 0) {
     await setPathSegments([...paths, binPath])
@@ -72,7 +74,7 @@ function getBinPath(): string {
  * rewrite the trampoline to point to the new, version-specific path. Bingo
  * bango Bob's your uncle.
  */
-async function writeCLITrampoline(): Promise<string> {
+async function writeBatchScriptCLITrampoline(): Promise<void> {
   const binPath = getBinPath()
   const appFolder = Path.resolve(process.execPath, '..')
   const versionedPath = Path.relative(
@@ -81,7 +83,7 @@ async function writeCLITrampoline(): Promise<string> {
   )
   const trampline = `@echo off\n"%~dp0\\${versionedPath}" %*`
   const trampolinePath = Path.join(binPath, 'github.bat')
-  return new Promise<string>((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     Fs.ensureDir(binPath, err => {
       if (err) {
         reject(err)
@@ -92,11 +94,15 @@ async function writeCLITrampoline(): Promise<string> {
         if (err) {
           reject(err)
         } else {
-          resolve(binPath)
+          resolve()
         }
       })
     })
   })
+}
+
+async function writeShellScriptCLITrampoline(): Promise<void> {
+  return Promise.resolve()
 }
 
 /** Spawn the Squirrel.Windows `Update.exe` with a command. */
