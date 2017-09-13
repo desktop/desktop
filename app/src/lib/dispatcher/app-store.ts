@@ -2628,9 +2628,9 @@ export class AppStore {
     })
   }
 
-  public async _installGlobalLFSFilters(): Promise<void> {
+  public async _installGlobalLFSFilters(force: boolean): Promise<void> {
     try {
-      await installGlobalLFSFilters(false)
+      await installGlobalLFSFilters(force)
     } catch (error) {
       this.emitError(error)
     }
