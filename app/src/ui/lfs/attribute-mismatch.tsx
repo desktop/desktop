@@ -31,8 +31,12 @@ export class AttributeMismatch extends React.Component<
   }
 
   public async componentDidMount() {
-    const path = await getGlobalConfigPath()
-    this.setState({ globalGitConfigPath: path })
+    try {
+      const path = await getGlobalConfigPath()
+      this.setState({ globalGitConfigPath: path })
+    } catch (error) {
+      log.warn(`Couldn't get the global git config path`, error)
+    }
   }
 
   private renderGlobalGitConfigLink() {
