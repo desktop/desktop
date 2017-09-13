@@ -90,7 +90,7 @@
     "@types/chai": "^4.0.3",
     "@types/chai-datetime": "0.0.30",
     "@types/classnames": "^2.2.2",
-    "@types/codemirror": "0.0.45",
+    "@types/codemirror": "0.0.46",
     "@types/electron-packager": "^8.7.1",
     "@types/event-kit": "^1.2.28",
     "@types/fs-extra": "2.1.0",

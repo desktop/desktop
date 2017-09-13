@@ -20,7 +20,7 @@
     "app-path": "^2.2.0",
     "byline": "^4.2.2",
     "classnames": "^2.2.5",
-    "codemirror": "^5.24.2",
+    "codemirror": "^5.29.0",
     "deep-equal": "^1.0.1",
     "dexie": "^1.4.1",
     "dugite": "^1.39.0",
