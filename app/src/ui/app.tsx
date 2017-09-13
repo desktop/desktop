@@ -73,7 +73,7 @@ import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
-import { InitializeLFS } from './lfs'
+import { InitializeLFS, AttributeMismatch } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 
 /** The interval at which we should check for updates. */
@@ -1104,6 +1104,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             onInitialize={this.initializeLFS}
           />
         )
+      case PopupType.LFSAttributeMismatch:
+        return <AttributeMismatch />
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }

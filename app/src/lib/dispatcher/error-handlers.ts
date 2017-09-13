@@ -265,5 +265,7 @@ export async function lfsAttributeMismatchHandler(
     return error
   }
 
+  dispatcher.showPopup({ type: PopupType.LFSAttributeMismatch })
+
   return null
 }
