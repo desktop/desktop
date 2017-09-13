@@ -2,6 +2,9 @@ import * as React from 'react'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { LinkButton } from '../lib/link-button'
+import { getGlobalConfigPath } from '../../lib/git'
+import { shell } from '../../lib/dispatcher/app-shell'
 
 interface IAttributeMismatchProps {
   /** Called when the dialog should be dismissed. */
@@ -11,10 +14,44 @@ interface IAttributeMismatchProps {
   readonly onUpdateExistingFilters: () => void
 }
 
+interface IAttributeMismatchState {
+  readonly globalGitConfigPath: string | null
+}
+
 export class AttributeMismatch extends React.Component<
   IAttributeMismatchProps,
-  {}
+  IAttributeMismatchState
 > {
+  public constructor(props: IAttributeMismatchProps) {
+    super(props)
+
+    this.state = {
+      globalGitConfigPath: null,
+    }
+  }
+
+  public async componentDidMount() {
+    const path = await getGlobalConfigPath()
+    this.setState({ globalGitConfigPath: path })
+  }
+
+  private renderGlobalGitConfigLink() {
+    const path = this.state.globalGitConfigPath
+    const msg = 'your global git config'
+    if (path) {
+      return <LinkButton onClick={this.showGlobalGitConfig}>{msg}</LinkButton>
+    } else {
+      return msg
+    }
+  }
+
+  private showGlobalGitConfig = () => {
+    const path = this.state.globalGitConfigPath
+    if (path) {
+      shell.showItemInFolder(path)
+    }
+  }
+
   public render() {
     return (
       <Dialog
@@ -31,8 +68,9 @@ export class AttributeMismatch extends React.Component<
       >
         <DialogContent>
           <p>
-            Git LFS filters are already configured in your global git config but
-            are not the values it expects. Would you like to update them now?
+            Git LFS filters are already configured in{' '}
+            {this.renderGlobalGitConfigLink()} but are not the values it
+            expects. Would you like to update them now?
           </p>
         </DialogContent>
 
