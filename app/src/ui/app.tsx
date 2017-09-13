@@ -173,9 +173,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.postError(error)
     })
 
-    setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
-    this.checkForUpdates(true)
-
     ipcRenderer.on(
       'launch-timing-stats',
       (event: Electron.IpcMessageEvent, { stats }: { stats: ILaunchStats }) => {
@@ -215,6 +212,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
 
     this.props.dispatcher.installGlobalLFSFilters()
+
+    setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
+    this.checkForUpdates(true)
   }
 
   private onMenuEvent(name: MenuEvent): any {
