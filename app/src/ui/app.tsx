@@ -73,7 +73,7 @@ import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
-import { InitializeLFS } from './lfs'
+import { InitializeLFS, AttributeMismatch } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 
 /** The interval at which we should check for updates. */
@@ -214,7 +214,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.reportStats()
     setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
 
-    this.props.dispatcher.installGlobalLFSFilters()
+    this.props.dispatcher.installGlobalLFSFilters(false)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -1104,9 +1104,21 @@ export class App extends React.Component<IAppProps, IAppState> {
             onInitialize={this.initializeLFS}
           />
         )
+      case PopupType.LFSAttributeMismatch:
+        return (
+          <AttributeMismatch
+            onDismissed={this.onPopupDismissed}
+            onUpdateExistingFilters={this.updateExistingLFSFilters}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private updateExistingLFSFilters = () => {
+    this.props.dispatcher.installGlobalLFSFilters(true)
+    this.onPopupDismissed()
   }
 
   private initializeLFS = (repositories: ReadonlyArray<Repository>) => {
