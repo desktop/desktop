@@ -47,8 +47,8 @@ async function handleUpdated(): Promise<void> {
 
 async function installCLI(): Promise<void> {
   const binPath = getBinPath()
-  await writeBatchScriptCLITrampoline()
-  await writeShellScriptCLITrampoline()
+  await writeBatchScriptCLITrampoline(binPath)
+  await writeShellScriptCLITrampoline(binPath)
   const paths = await getPathSegments()
   if (paths.indexOf(binPath) < 0) {
     await setPathSegments([...paths, binPath])
@@ -74,8 +74,7 @@ function getBinPath(): string {
  * rewrite the trampoline to point to the new, version-specific path. Bingo
  * bango Bob's your uncle.
  */
-async function writeBatchScriptCLITrampoline(): Promise<void> {
-  const binPath = getBinPath()
+async function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
   const appFolder = Path.resolve(process.execPath, '..')
   const versionedPath = Path.relative(
     binPath,
@@ -101,8 +100,7 @@ async function writeBatchScriptCLITrampoline(): Promise<void> {
   })
 }
 
-async function writeShellScriptCLITrampoline(): Promise<void> {
-  const binPath = getBinPath()
+async function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
   const appFolder = Path.resolve(process.execPath, '..')
   const versionedPath = Path.relative(
     binPath,
