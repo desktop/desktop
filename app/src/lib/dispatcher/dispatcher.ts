@@ -998,8 +998,8 @@ export class Dispatcher {
   }
 
   /** Install the global Git LFS filters. */
-  public installGlobalLFSFilters(): Promise<void> {
-    return this.appStore._installGlobalLFSFilters()
+  public installGlobalLFSFilters(force: boolean): Promise<void> {
+    return this.appStore._installGlobalLFSFilters(force)
   }
 
   /** Install the LFS filters */
