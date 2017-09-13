@@ -81,7 +81,7 @@ async function writeBatchScriptCLITrampoline(): Promise<void> {
     binPath,
     Path.join(appFolder, 'resources/app/static/github.bat')
   )
-  const trampline = `@echo off\n"%~dp0\\${versionedPath}" %*`
+  const trampoline = `@echo off\n"%~dp0\\${versionedPath}" %*`
   const trampolinePath = Path.join(binPath, 'github.bat')
   return new Promise<void>((resolve, reject) => {
     Fs.ensureDir(binPath, err => {
@@ -90,7 +90,7 @@ async function writeBatchScriptCLITrampoline(): Promise<void> {
         return
       }
 
-      Fs.writeFile(trampolinePath, trampline, err => {
+      Fs.writeFile(trampolinePath, trampoline, err => {
         if (err) {
           reject(err)
         } else {
@@ -108,7 +108,7 @@ async function writeShellScriptCLITrampoline(): Promise<void> {
     binPath,
     Path.join(appFolder, 'resources/app/static/github.sh')
   )
-  const trampline = `#!/usr/bin/env bash
+  const trampoline = `#!/usr/bin/env bash
   DIR="$( cd "$( dirname "\$\{BASH_SOURCE[0]\}" )" && pwd )"
   sh "$DIR/${versionedPath}"`
   const trampolinePath = Path.join(binPath, 'github')
@@ -119,21 +119,20 @@ async function writeShellScriptCLITrampoline(): Promise<void> {
         return
       }
 
-      Fs.writeFile(trampolinePath, trampline, err => {
-        if (err) {
-          reject(err)
-        } else {
-          // mark this trampoline as -rwxr-xr-x
-          // owner can do everything, others can read and execute
-          Fs.chmod(trampolinePath, 755, err => {
-            if (err) {
-              reject(err)
-            } else {
-              resolve()
-            }
-          })
+      // mark this trampoline as -rwxr-xr-x
+      // owner can do everything, others can read and execute
+      Fs.writeFile(
+        trampolinePath,
+        trampoline,
+        { encoding: 'utf8', mode: 755 },
+        err => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve()
+          }
         }
-      })
+      )
     })
   })
 }
