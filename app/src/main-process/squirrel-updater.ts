@@ -123,8 +123,9 @@ async function writeShellScriptCLITrampoline(): Promise<void> {
         if (err) {
           reject(err)
         } else {
-          // TODO: what's 'chmod a+x' in numbers?
-          Fs.chmod(trampolinePath, 999, err => {
+          // mark this trampoline as -rwxr-xr-x
+          // owner can do everything, others can read and execute
+          Fs.chmod(trampolinePath, 755, err => {
             if (err) {
               reject(err)
             } else {
