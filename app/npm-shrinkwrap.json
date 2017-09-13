@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.8.1-beta1",
+  "version": "0.8.2",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -151,9 +151,9 @@
       "resolved": "https://registry.npmjs.org/co/-/co-4.6.0.tgz"
     },
     "codemirror": {
-      "version": "5.25.2",
-      "from": "codemirror@latest",
-      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.25.2.tgz"
+      "version": "5.29.0",
+      "from": "codemirror@5.29.0",
+      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.29.0.tgz"
     },
     "colors": {
       "version": "1.0.3",
