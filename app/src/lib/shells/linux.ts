@@ -19,5 +19,5 @@ export async function getAvailableShells(): Promise<
 
 export async function launch(shell: Shell, path: string): Promise<void> {
   const commandArgs = ['--working-directory', path]
-  await spawn('gnome-terminal', commandArgs, { shell: true })
+  await spawn('gnome-terminal', commandArgs)
 }

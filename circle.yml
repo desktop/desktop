@@ -1,0 +1,46 @@
+experimental:
+  notify:
+    branches:
+      only:
+        - master
+        - /^__release-.*/
+
+machine:
+  xcode:
+    version: 7.3
+
+dependencies:
+  cache_directories:
+    - "node_modules"
+    - "~/.electron"
+
+  pre:
+    - brew install node || brew upgrade node
+    - npm install -g npm@4.6.1
+    - npm prune
+    - node -v
+    - npm -v
+    - cd app && npm prune && cd ..
+
+  override:
+    - npm install
+    - npm rebuild
+    - npm ls --prod || true
+    - npm ls --dev || true
+
+compile:
+  override:
+    - npm run check-prettiness
+    - npm run lint
+    - npm run build:prod
+
+test:
+  override:
+    - npm run test:setup
+    - npm test
+
+deployment:
+  production:
+    branch: /^__release-.*/
+    commands:
+      - npm run publish
