@@ -108,6 +108,6 @@
     "@types/winston": "^2.2.0",
     "prettier": "^1.6.1",
     "tslint-config-prettier": "^1.1.0",
-    "tslint-react": "^3.0.0"
+    "tslint-react": "~3.0.0"
   }
 }
