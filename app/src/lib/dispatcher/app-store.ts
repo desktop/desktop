@@ -2647,9 +2647,9 @@ export class AppStore {
     })
   }
 
-  public async _installGlobalLFSFilters(): Promise<void> {
+  public async _installGlobalLFSFilters(force: boolean): Promise<void> {
     try {
-      await installGlobalLFSFilters()
+      await installGlobalLFSFilters(force)
     } catch (error) {
       this.emitError(error)
     }
@@ -2668,7 +2668,9 @@ export class AppStore {
   ): Promise<void> {
     for (const repo of repositories) {
       try {
-        await installLFSHooks(repo)
+        // At this point we've asked the user if we should install them, so
+        // force installation.
+        await installLFSHooks(repo, true)
       } catch (error) {
         this.emitError(error)
       }

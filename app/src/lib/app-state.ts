@@ -197,6 +197,7 @@ export enum PopupType {
   ExternalEditorFailed,
   OpenShellFailed,
   InitializeLFS,
+  LFSAttributeMismatch,
 }
 
 export type Popup =
@@ -249,6 +250,7 @@ export type Popup =
     }
   | { type: PopupType.OpenShellFailed; message: string }
   | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
+  | { type: PopupType.LFSAttributeMismatch }
 
 export enum FoldoutType {
   Repository,
