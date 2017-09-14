@@ -3,7 +3,8 @@ import * as Fs from 'fs'
 
 const GitDescriptionPath = '.git/description'
 
-const DefaultGitDescription = "Unnamed repository; edit this file 'description' to name the repository.\n"
+const DefaultGitDescription =
+  "Unnamed repository; edit this file 'description' to name the repository.\n"
 
 /** Get the repository's description from the .git/description file. */
 export function getGitDescription(repositoryPath: string): string {
@@ -17,7 +18,7 @@ export function getGitDescription(repositoryPath: string): string {
     } else {
       return ''
     }
-  } catch(e) {
+  } catch (e) {
     /** The .git/description file probably didn't exist. */
     return ''
   }
