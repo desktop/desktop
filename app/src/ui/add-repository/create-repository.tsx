@@ -124,8 +124,7 @@ export class CreateRepository extends React.Component<
     this.setState({ ...this.state, name })
   }
 
-  private onDescriptionChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const description = event.currentTarget.value
+  private onDescriptionChanged = (description: string) => {
     this.setState({ ...this.state, description })
   }
 
@@ -446,7 +445,7 @@ export class CreateRepository extends React.Component<
             <TextBox
               value={this.state.description}
               label="Description"
-              onChange={this.onDescriptionChanged}
+              onValueChanged={this.onDescriptionChanged}
             />
           </Row>
 
