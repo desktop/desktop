@@ -17,13 +17,15 @@ export async function getGitDescription(
       if (err) {
         /** No .git/description file existed, just return an empty one. */
         resolve('')
-      } else {
-        if (data === DefaultGitDescription) {
-          resolve('')
-        } else {
-          resolve(data)
-        }
+        return
       }
+
+      if (data === DefaultGitDescription) {
+        resolve('')
+        return
+      }
+
+      resolve(data)
     })
   })
 }
