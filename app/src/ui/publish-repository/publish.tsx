@@ -13,6 +13,7 @@ import { TabBar } from '../tab-bar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
+import { getGitDescription } from '../../lib/repository-description'
 
 enum PublishTab {
   DotCom = 0,
@@ -63,7 +64,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
     const publishSettings = {
       name: props.repository.name,
-      description: '',
+      description: getGitDescription(props.repository.path),
       private: true,
       org: null,
     }
