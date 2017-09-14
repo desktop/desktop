@@ -107,7 +107,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       const description = await getGitDescription(this.props.repository.path)
       const settings = {
         ...this.state.publishSettings,
-        description: description,
+        description,
       }
 
       this.setState({ publishSettings: settings })

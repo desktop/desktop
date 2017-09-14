@@ -125,7 +125,7 @@ export class CreateRepository extends React.Component<
   }
 
   private onDescriptionChanged = (description: string) => {
-    this.setState({ ...this.state, description })
+    this.setState({ description })
   }
 
   private showFilePicker = async () => {
