@@ -64,7 +64,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
     const publishSettings = {
       name: props.repository.name,
-      description: getGitDescription(props.repository.path),
+      description: '',
       private: true,
       org: null,
     }
@@ -100,6 +100,20 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         {this.renderFooter()}
       </Dialog>
     )
+  }
+
+  public async componentDidMount() {
+    try {
+      const description = await getGitDescription(this.props.repository.path)
+      const settings = {
+        ...this.state.publishSettings,
+        description: description,
+      }
+
+      this.setState({ publishSettings: settings })
+    } catch (error) {
+      log.warn(`Couldn't get the repository's description`, error)
+    }
   }
 
   private renderContent() {

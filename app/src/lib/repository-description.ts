@@ -7,21 +7,25 @@ const DefaultGitDescription =
   "Unnamed repository; edit this file 'description' to name the repository.\n"
 
 /** Get the repository's description from the .git/description file. */
-export function getGitDescription(repositoryPath: string): string {
+export async function getGitDescription(
+  repositoryPath: string
+): Promise<string> {
   const path = Path.join(repositoryPath, GitDescriptionPath)
 
-  try {
-    const description = Fs.readFileSync(path, 'utf8')
-
-    if (description && description !== DefaultGitDescription) {
-      return description
-    } else {
-      return ''
-    }
-  } catch (e) {
-    /** The .git/description file probably didn't exist. */
-    return ''
-  }
+  return new Promise<string>((resolve, reject) => {
+    Fs.readFile(path, 'utf8', (err, data) => {
+      if (err) {
+        /** No .git/description file existed, just return an empty one. */
+        resolve('')
+      } else {
+        if (data === DefaultGitDescription) {
+          resolve('')
+        } else {
+          resolve(data)
+        }
+      }
+    })
+  })
 }
 
 /** Write a .git/description file to the repository. */
