@@ -30,7 +30,6 @@ dependencies:
 
 compile:
   override:
-    - npm run check-prettiness
     - npm run lint
     - npm run build:prod
 
