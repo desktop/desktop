@@ -210,11 +210,14 @@ export class RepositoriesStore {
       gitHubRepositoryID,
     })
 
-    await this.updateRepositoryMissing(repository, false)
+    const foundRepository = await this.updateRepositoryMissing(
+      updatedRepository,
+      false
+    )
 
     this.emitUpdate()
 
-    return updatedRepository
+    return foundRepository
   }
 
   /** Update or add the repository's GitHub repository. */

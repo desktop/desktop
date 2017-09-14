@@ -4,8 +4,10 @@ curl -H "Authorization: token ${DESKTOPBOT_TOKEN}" -H 'Accept: application/vnd.g
 
 KEY_CHAIN=mac-build.keychain
 security create-keychain -p travis $KEY_CHAIN
-security default-keychain -s $KEY_CHAIN
+security import developer-id-cert.p12 -k $KEY_CHAIN -P $KEY_PASSWORD -T /usr/bin/codesign
+
+security list-keychain -s $KEY_CHAIN
 security unlock-keychain -p travis $KEY_CHAIN
 security set-keychain-settings -t 3600 -u $KEY_CHAIN
 
-security import developer-id-cert.p12 -k $KEY_CHAIN -P $KEY_PASSWORD -T /usr/bin/codesign
+security default-keychain -s $KEY_CHAIN

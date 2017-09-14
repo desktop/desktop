@@ -171,6 +171,8 @@ export class AddExistingRepository extends React.Component<
   }
 
   private addRepository = async () => {
+    this.props.onDismissed()
+
     const resolvedPath = this.resolvedPath(this.state.path)
     const repositories = await this.props.dispatcher.addRepositories([
       resolvedPath,
@@ -180,8 +182,6 @@ export class AddExistingRepository extends React.Component<
       const repository = repositories[0]
       this.props.dispatcher.selectRepository(repository)
     }
-
-    this.props.onDismissed()
   }
 
   private onCreateRepositoryClicked = () => {

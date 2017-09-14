@@ -48,11 +48,8 @@ import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
-import {
-  AddExistingRepository,
-  CreateRepository,
-  CloneRepository,
-} from './add-repository'
+import { AddExistingRepository, CreateRepository } from './add-repository'
+import { CloneRepository } from './clone-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { InstallGit } from './install-git'
@@ -76,6 +73,8 @@ import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
+import { InitializeLFS, AttributeMismatch } from './lfs'
+import { CloneRepositoryTab } from '../models/clone-repository-tab'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -130,17 +129,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           const now = performance.now()
           sendReady(now - props.startTime)
 
-          // Loading emoji is super important but maybe less important that
-          // loading the app. So defer it until we have some breathing space.
           requestIdleCallback(() => {
-            props.appStore.loadEmoji()
-
-            this.props.dispatcher.reportStats()
-
-            setInterval(
-              () => this.props.dispatcher.reportStats(),
-              SendStatsInterval
-            )
+            this.performDeferredLaunchActions()
           })
         },
         { timeout: ReadyDelay }
@@ -183,9 +173,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.postError(error)
     })
 
-    setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
-    this.checkForUpdates(true)
-
     ipcRenderer.on(
       'launch-timing-stats',
       (event: Electron.IpcMessageEvent, { stats }: { stats: ILaunchStats }) => {
@@ -214,6 +201,20 @@ export class App extends React.Component<IAppProps, IAppState> {
         })
       }
     )
+  }
+
+  private performDeferredLaunchActions() {
+    // Loading emoji is super important but maybe less important that loading
+    // the app. So defer it until we have some breathing space.
+    this.props.appStore.loadEmoji()
+
+    this.props.dispatcher.reportStats()
+    setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+
+    this.props.dispatcher.installGlobalLFSFilters(false)
+
+    setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
+    this.checkForUpdates(true)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -642,7 +643,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    if (this.state.confirmRepoRemoval) {
+    if (this.state.askForConfirmationOnRepositoryRemoval) {
       this.props.dispatcher.showPopup({
         type: PopupType.RemoveRepository,
         repository,
@@ -868,7 +869,11 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             dispatcher={this.props.dispatcher}
             files={popup.files}
+            confirmDiscardChanges={
+              this.state.askForConfirmationOnDiscardChanges
+            }
             onDismissed={this.onPopupDismissed}
+            onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
         )
       case PopupType.Preferences:
@@ -878,7 +883,12 @@ export class App extends React.Component<IAppProps, IAppState> {
             initialSelectedTab={popup.initialSelectedTab}
             dispatcher={this.props.dispatcher}
             dotComAccount={this.getDotComAccount()}
-            confirmRepoRemoval={this.state.confirmRepoRemoval}
+            confirmRepositoryRemoval={
+              this.state.askForConfirmationOnRepositoryRemoval
+            }
+            confirmDiscardChanges={
+              this.state.askForConfirmationOnDiscardChanges
+            }
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
             enterpriseAccount={this.getEnterpriseAccount()}
@@ -951,10 +961,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <CloneRepository
             key="clone-repository"
-            accounts={this.state.accounts}
+            dotComAccount={this.getDotComAccount()}
+            enterpriseAccount={this.getEnterpriseAccount()}
             initialURL={popup.initialURL}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
+            selectedTab={this.state.selectedCloneRepositoryTab}
+            onTabSelected={this.onCloneRepositoriesTabSelected}
           />
         )
       case PopupType.CreateBranch: {
@@ -1029,11 +1042,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.RemoveRepository:
-        const repo = popup.repository
-
         return (
           <ConfirmRemoveRepository
-            repository={repo}
+            repository={popup.repository}
             onConfirmation={this.onConfirmRepoRemoval}
             onDismissed={this.onPopupDismissed}
           />
@@ -1085,9 +1096,38 @@ export class App extends React.Component<IAppProps, IAppState> {
             showPreferencesDialog={this.onShowAdvancedPreferences}
           />
         )
+      case PopupType.InitializeLFS:
+        return (
+          <InitializeLFS
+            repositories={popup.repositories}
+            onDismissed={this.onPopupDismissed}
+            onInitialize={this.initializeLFS}
+          />
+        )
+      case PopupType.LFSAttributeMismatch:
+        return (
+          <AttributeMismatch
+            onDismissed={this.onPopupDismissed}
+            onUpdateExistingFilters={this.updateExistingLFSFilters}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private updateExistingLFSFilters = () => {
+    this.props.dispatcher.installGlobalLFSFilters(true)
+    this.onPopupDismissed()
+  }
+
+  private initializeLFS = (repositories: ReadonlyArray<Repository>) => {
+    this.props.dispatcher.installLFSHooks(repositories)
+    this.onPopupDismissed()
+  }
+
+  private onCloneRepositoriesTabSelected = (tab: CloneRepositoryTab) => {
+    this.props.dispatcher.changeCloneRepositoriesTab(tab)
   }
 
   private onShowAdvancedPreferences = () => {
@@ -1156,6 +1196,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.clearError(error)
   }
 
+  private onConfirmDiscardChangesChanged = (value: boolean) => {
+    this.props.dispatcher.setConfirmDiscardChangesSetting(value)
+  }
+
   private renderAppError() {
     return (
       <AppError
@@ -1188,8 +1232,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       : null
     const externalEditorLabel = this.state.selectedExternalEditor
     const shellLabel = this.state.selectedShell
+    const filterText = this.state.repositoryFilterText
     return (
       <RepositoriesList
+        filterText={filterText}
+        onFilterTextChanged={this.onRepositoryFilterTextChanged}
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
@@ -1476,6 +1523,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           gitHubUserStore={this.props.appStore.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={this.state.imageDiffType}
+          askForConfirmationOnDiscardChanges={
+            this.state.askForConfirmationOnDiscardChanges
+          }
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
@@ -1526,6 +1576,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderFullScreenInfo()}
       </div>
     )
+  }
+
+  private onRepositoryFilterTextChanged = (text: string) => {
+    this.props.dispatcher.setRepositoryFilterText(text)
   }
 
   private onSelectionChanged = (repository: Repository | CloningRepository) => {

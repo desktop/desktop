@@ -43,6 +43,7 @@ import { installCLI } from '../../ui/lib/install-cli'
 import * as GenericGitAuth from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
 import { Shell } from '../shells'
+import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 
 /**
  * An error handler function.
@@ -144,6 +145,11 @@ export class Dispatcher {
     file: FileChange
   ): Promise<void> {
     return this.appStore._changeHistoryFileSelection(repository, file)
+  }
+
+  /** Set the repository filter text. */
+  public setRepositoryFilterText(text: string): Promise<void> {
+    return this.appStore._setRepositoryFilterText(text)
   }
 
   /** Select the repository. */
@@ -833,7 +839,18 @@ export class Dispatcher {
    * Sets the user's preference so that confirmation to remove repo is not asked
    */
   public setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
-    return this.appStore._setConfirmRepoRemoval(value)
+    return this.appStore._setConfirmRepositoryRemovalSetting(value)
+  }
+
+  /**
+   * Sets the user's preference so that confirmation to discard changes is not asked
+   *
+   * @param {boolean} value
+   * @returns {Promise<void>}
+   * @memberof Dispatcher
+   */
+  public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
+    return this.appStore._setConfirmDiscardChangesSetting(value)
   }
 
   /**
@@ -910,7 +927,11 @@ export class Dispatcher {
       return this.checkoutBranch(repo, branch)
     } else {
       return this.appStore._startOpenInDesktop(() => {
-        this.showPopup({ type: PopupType.CloneRepository, initialURL: url })
+        this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
+        this.showPopup({
+          type: PopupType.CloneRepository,
+          initialURL: url,
+        })
       })
     }
   }
@@ -974,5 +995,22 @@ export class Dispatcher {
   /** Change the selected image diff type. */
   public changeImageDiffType(type: ImageDiffType): Promise<void> {
     return this.appStore._changeImageDiffType(type)
+  }
+
+  /** Install the global Git LFS filters. */
+  public installGlobalLFSFilters(force: boolean): Promise<void> {
+    return this.appStore._installGlobalLFSFilters(force)
+  }
+
+  /** Install the LFS filters */
+  public installLFSHooks(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    return this.appStore._installLFSHooks(repositories)
+  }
+
+  /** Change the selected Clone Repository tab. */
+  public changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
+    return this.appStore._changeCloneRepositoriesTab(tab)
   }
 }

@@ -16,7 +16,8 @@ import {
   setGlobalConfigValue,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
-import { Shell } from '../../lib/shells'
+import { Shell, getAvailableShells } from '../../lib/shells'
+import { getAvailableEditors } from '../../lib/editors/lookup'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -25,8 +26,9 @@ interface IPreferencesProps {
   readonly onDismissed: () => void
   readonly optOutOfUsageTracking: boolean
   readonly initialSelectedTab?: PreferencesTab
-  readonly confirmRepoRemoval: boolean
-  readonly selectedExternalEditor: ExternalEditor
+  readonly confirmRepositoryRemoval: boolean
+  readonly confirmDiscardChanges: boolean
+  readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
 }
 
@@ -34,9 +36,12 @@ interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
   readonly committerName: string
   readonly committerEmail: string
-  readonly isOptedOut: boolean
-  readonly confirmRepoRemoval: boolean
-  readonly selectedExternalEditor: ExternalEditor
+  readonly optOutOfUsageTracking: boolean
+  readonly confirmRepositoryRemoval: boolean
+  readonly confirmDiscardChanges: boolean
+  readonly availableEditors: ReadonlyArray<ExternalEditor>
+  readonly selectedExternalEditor?: ExternalEditor
+  readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
 }
 
@@ -52,18 +57,17 @@ export class Preferences extends React.Component<
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
-      isOptedOut: false,
-      confirmRepoRemoval: false,
+      availableEditors: [],
+      optOutOfUsageTracking: false,
+      confirmRepositoryRemoval: false,
+      confirmDiscardChanges: false,
       selectedExternalEditor: this.props.selectedExternalEditor,
+      availableShells: [],
       selectedShell: this.props.selectedShell,
     }
   }
 
   public async componentWillMount() {
-    const isOptedOut = this.props.optOutOfUsageTracking
-    const confirmRepoRemoval = this.props.confirmRepoRemoval
-    const selectedExternalEditor = this.props.selectedExternalEditor
-
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
 
@@ -87,12 +91,22 @@ export class Preferences extends React.Component<
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
+    const [editors, shells] = await Promise.all([
+      getAvailableEditors(),
+      getAvailableShells(),
+    ])
+
+    const availableEditors = editors.map(e => e.editor)
+    const availableShells = shells.map(e => e.shell)
+
     this.setState({
       committerName,
       committerEmail,
-      isOptedOut,
-      confirmRepoRemoval,
-      selectedExternalEditor,
+      optOutOfUsageTracking: this.props.optOutOfUsageTracking,
+      confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
+      confirmDiscardChanges: this.props.confirmDiscardChanges,
+      availableShells,
+      availableEditors,
     })
   }
 
@@ -159,12 +173,18 @@ export class Preferences extends React.Component<
       case PreferencesTab.Advanced: {
         return (
           <Advanced
-            isOptedOut={this.state.isOptedOut}
-            confirmRepoRemoval={this.state.confirmRepoRemoval}
+            optOutOfUsageTracking={this.state.optOutOfUsageTracking}
+            confirmRepositoryRemoval={this.state.confirmRepositoryRemoval}
+            confirmDiscardChanges={this.state.confirmDiscardChanges}
+            availableEditors={this.state.availableEditors}
             selectedExternalEditor={this.state.selectedExternalEditor}
-            onOptOutSet={this.onOptOutSet}
-            onConfirmRepoRemovalSet={this.onConfirmRepoRemovalSet}
+            onOptOutofReportingchanged={this.onOptOutofReportingChanged}
+            onConfirmRepositoryRemovalChanged={
+              this.onConfirmRepositoryRemovalChanged
+            }
+            onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onSelectedEditorChanged={this.onSelectedEditorChanged}
+            availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
             onSelectedShellChanged={this.onSelectedShellChanged}
           />
@@ -175,12 +195,16 @@ export class Preferences extends React.Component<
     }
   }
 
-  private onOptOutSet = (isOptedOut: boolean) => {
-    this.setState({ isOptedOut })
+  private onOptOutofReportingChanged = (value: boolean) => {
+    this.setState({ optOutOfUsageTracking: value })
   }
 
-  private onConfirmRepoRemovalSet = (confirmRepoRemoval: boolean) => {
-    this.setState({ confirmRepoRemoval })
+  private onConfirmRepositoryRemovalChanged = (value: boolean) => {
+    this.setState({ confirmRepositoryRemoval: value })
+  }
+
+  private onConfirmDiscardChangesChanged = (value: boolean) => {
+    this.setState({ confirmDiscardChanges: value })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
@@ -223,16 +247,20 @@ export class Preferences extends React.Component<
   private onSave = async () => {
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
-    await this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
+    await this.props.dispatcher.setStatsOptOut(this.state.optOutOfUsageTracking)
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
-      this.state.confirmRepoRemoval
+      this.state.confirmRepositoryRemoval
     )
 
-    await this.props.dispatcher.setExternalEditor(
-      this.state.selectedExternalEditor
-    )
-
+    if (this.state.selectedExternalEditor) {
+      await this.props.dispatcher.setExternalEditor(
+        this.state.selectedExternalEditor
+      )
+    }
     await this.props.dispatcher.setShell(this.state.selectedShell)
+    await this.props.dispatcher.setConfirmDiscardChangesSetting(
+      this.state.confirmDiscardChanges
+    )
 
     this.props.onDismissed()
   }
