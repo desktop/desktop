@@ -48,6 +48,8 @@
   - [ ] Clone a Repository (Mac: ⇧⌘O; Windows: Ctrl+Shift+O)
     - [ ] Enter valid URL or username/repo, else error message
     - [ ] Valid path can be entered or selected, else error message
+    - [ ] All repos from both GitHub.com and Enterprise are populated -- your repos are listed first, followed by org
+      - [ ] Results are filterable, and can be selected for cloning
     - [ ] `Clone` creates repo at selected path
       - [ ] Repo added to Repo list
     - [ ] `Cancel` closes modal, no repo cloned
