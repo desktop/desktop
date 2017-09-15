@@ -148,7 +148,8 @@
     - [ ] If git not installed, modal asks to Open with Git or Install Git
   - [ ] Show in Finder/Explorer (Mac: ⇧⌘F; Windows: Ctrl+Shift+F)
     - [ ] Local repo is opened
-  - [ ] Open in "Atom" (Mac: ⇧⌘A; Windows: Ctrl+Shift+A); see External Editor option in prefs   
+  - [ ] Open in External Editor (Mac: ⇧⌘A; Windows: Ctrl+Shift+A); see External Editor option in prefs
+    - [ ] Secondary modal appears if no Editors set; option to Download Atom 
   - [ ] Repository settings
     - [ ] Remote path can be edited; origin already set
       - [ ] `Saved` button saves last entry
