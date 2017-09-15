@@ -115,7 +115,7 @@
     "@types/uuid": "^3.4.0",
     "@types/winston": "^2.2.0",
     "eslint_d": "^5.1.0",
-    "prettier": "^1.6.1",
+    "prettier": "~1.7.0",
     "tslint-config-prettier": "^1.1.0",
     "tslint-react": "~3.0.0"
   }
