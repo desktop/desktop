@@ -68,11 +68,9 @@ export class DiscardChanges extends React.Component<
           <Checkbox
             label="Do not show this message again"
             value={
-              this.state.confirmDiscardChanges ? (
-                CheckboxValue.Off
-              ) : (
-                CheckboxValue.On
-              )
+              this.state.confirmDiscardChanges
+                ? CheckboxValue.Off
+                : CheckboxValue.On
             }
             onChange={this.onCheckboxChanged}
           />
