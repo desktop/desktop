@@ -255,9 +255,9 @@
       "resolved": "https://registry.npmjs.org/dom-matches/-/dom-matches-2.0.0.tgz"
     },
     "dugite": {
-      "version": "1.42.0",
-      "from": "dugite@1.42.0",
-      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.42.0.tgz"
+      "version": "1.43.0",
+      "from": "dugite@latest",
+      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.43.0.tgz"
     },
     "ecc-jsbn": {
       "version": "0.1.1",

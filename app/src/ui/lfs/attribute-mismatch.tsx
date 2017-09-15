@@ -61,11 +61,9 @@ export class AttributeMismatch extends React.Component<
       <Dialog
         id="lfs-attribute-mismatch"
         title={
-          __DARWIN__ ? (
-            'Update Existing Git LFS Filters?'
-          ) : (
-            'Update existing Git LFS filters?'
-          )
+          __DARWIN__
+            ? 'Update Existing Git LFS Filters?'
+            : 'Update existing Git LFS filters?'
         }
         onDismissed={this.props.onDismissed}
         onSubmit={this.props.onUpdateExistingFilters}
@@ -81,11 +79,9 @@ export class AttributeMismatch extends React.Component<
         <DialogFooter>
           <ButtonGroup>
             <Button type="submit">
-              {__DARWIN__ ? (
-                'Update Existing Filters'
-              ) : (
-                'Update existing filters'
-              )}
+              {__DARWIN__
+                ? 'Update Existing Filters'
+                : 'Update existing filters'}
             </Button>
             <Button onClick={this.props.onDismissed}>
               {__DARWIN__ ? 'Not Now' : 'Not now'}
