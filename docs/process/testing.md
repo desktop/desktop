@@ -202,7 +202,7 @@
   - [ ] Repositories cloned from non-github servers should always be in the Other group, and have the 'computer' icon.
   - [ ] Selecting a repo updates Changes/History/Diff areas
     - [ ] If no Changes, Diff area shows `Open this repository` link to Finder/Explorer on local
-  - [ ] `Right-click` on any repo shows `Open in Terminal`, `Open in Finder/Explorer` and `Remove` options
+  - [ ] `Right-click` on any repo shows `Open in Terminal`, `Open in Finder/Explorer`, `Open in External Editor`, and `Remove` options
   - [ ] Repos which have been removed locally (and trash emptied) have 'cannot find repository' warning
     - [ ] Relaunching the app when it displays a missing repository preserves the repo's name and last seen path
     - [ ] Remove a repo which can not be found (deleted locally & trash emptied)
