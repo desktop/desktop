@@ -193,11 +193,9 @@ export class Advanced extends React.Component<
           <Checkbox
             label={this.reportDesktopUsageLabel()}
             value={
-              this.state.optOutOfUsageTracking ? (
-                CheckboxValue.Off
-              ) : (
-                CheckboxValue.On
-              )
+              this.state.optOutOfUsageTracking
+                ? CheckboxValue.Off
+                : CheckboxValue.On
             }
             onChange={this.onReportingOptOutChanged}
           />
@@ -206,11 +204,9 @@ export class Advanced extends React.Component<
           <Checkbox
             label="Show confirmation dialog before removing repositories"
             value={
-              this.state.confirmRepositoryRemoval ? (
-                CheckboxValue.On
-              ) : (
-                CheckboxValue.Off
-              )
+              this.state.confirmRepositoryRemoval
+                ? CheckboxValue.On
+                : CheckboxValue.Off
             }
             onChange={this.onConfirmRepositoryRemovalChanged}
           />
@@ -219,11 +215,9 @@ export class Advanced extends React.Component<
           <Checkbox
             label="Show confirmation dialog before discarding changes"
             value={
-              this.state.confirmDiscardChanges ? (
-                CheckboxValue.On
-              ) : (
-                CheckboxValue.Off
-              )
+              this.state.confirmDiscardChanges
+                ? CheckboxValue.On
+                : CheckboxValue.Off
             }
             onChange={this.onConfirmDiscardChangesChanged}
           />
