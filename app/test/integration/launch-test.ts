@@ -34,7 +34,7 @@ describe('App', function(this: any) {
     })
     return app.start()
   })
-  
+
   beforeEach(function() {
     chaiAsPromised.transferPromiseness = app.transferPromiseness
   })
