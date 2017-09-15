@@ -32,9 +32,11 @@ describe('App', function(this: any) {
       path: appPath,
       args: [path.join(__dirname, '..', '..', '..', 'out')],
     })
-    return app.start().then(() => {
-      chaiAsPromised.transferPromiseness = app.transferPromiseness
-    })
+    return app.start()
+  })
+  
+  beforeEach(function() {
+    chaiAsPromised.transferPromiseness = app.transferPromiseness
   })
 
   afterEach(function() {
