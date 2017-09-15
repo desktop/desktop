@@ -57,6 +57,7 @@
     - [ ] Valid path can be entered or selected
     - [ ] `Add repository` activated if repo path exists
       - [ ] Repo added to Repo list
+      - [ ] If directory path not valid, 'Create a new repo' error message is present
     - [ ] `Cancel` closes modal, no repo added
   - [ ] Drag and drop repository
     - [ ] User can drag existing local repository into Desktop
