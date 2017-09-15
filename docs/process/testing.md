@@ -185,8 +185,9 @@
 
 ### Help top-level menu
   - [ ] `Report Issue` opens issue template in Desktop repo on `github.com`
-  - [ ] `User Guides` opens Desktop help page on `github.com`
-  - [ ] `Show Logs` opens Finder/Explorer logs on local
+  - [ ] `Contact GitHub Support` opens `https://github.com/contact` page with user and build prepopulated
+  - [ ] `Show User Guides` opens Desktop help page on `github.com`
+  - [ ] `Show Logs in Finder/Explorer` opens Finder/Explorer logs in local directory
     - [ ] Mac: `ls ~/Library/Application\ Support/GitHub\ Desktop/Logs/*.log`
     - [ ] Windows: `%LOCALAPPDATA%\\Desktop\\*.desktop.production.log`
   - [ ] About GitHub Desktop (Windows only)
@@ -269,7 +270,7 @@
 ### Dotcom
   - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
     - [ ] Clicking the "computer icon" opens from a Pull Request page opens the branch on Desktop
-  - [ ] If private email is enabled (http://github.com/settings/emails), block pushes to all associated repos on Desktop
+  - [ ] If private email is enabled (http://github.com/settings/emails), user is blocked from pushing to all associated repositories on Desktop?
 
 ### 1.1+ placeholder
 - Pull request CI status
