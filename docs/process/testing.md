@@ -73,9 +73,9 @@
 ### GitHub Desktop menu top-level
   - [ ] About GitHub Desktop
     - [ ] Current version shown
-    - [ ] Links to release notes, terms, licenses
+    - [ ] Links to release notes (dotcom), terms (modal), licenses (modal)
     - [ ] Clicking the version number copies to clipboard
-    - [ ] If build is "old", error message displays warning user to "... manually check for updates".
+    - [ ] Edge case: If build is "old", error message displays warning user to "... manually check for updates".
       - [ ] Clicking `Check for updates` button produces "read-only volume" error message, with link for help
     - [ ] Clicking `Check for updates` button timestamps last attempt
       - [ ] If update available, `Install Update` button will quit app and install update
@@ -101,7 +101,7 @@
       - [ ] Confirmation dialogue for disgarding files is checked by default; user can toggle
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
-  - [ ] Install command line tool installs tool at `/usr/local/bin/github` (ok to install more than once; Mac only as Windows done automagically)
+  - [ ] Install command line tool installs tool at `/usr/local/bin/github` (ok to install more than once; Mac only as Windows done automagically, Helper may require password)
     - [ ] Clicking `OK` closes modal
   - [ ] Quit/Exit Desktop (Mac: ⌘Q)
     - [ ] Quitting/Exiting and reopening Desktop returns you to last visited repo
