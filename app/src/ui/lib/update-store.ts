@@ -1,8 +1,5 @@
 import { remote } from 'electron'
 
-// Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
-// use with `remote`.
-const autoUpdater = remote.autoUpdater
 const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
@@ -53,28 +50,34 @@ class UpdateStore {
       }
     }
 
-    autoUpdater.on('error', this.onAutoUpdaterError)
-    autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
-    autoUpdater.on('update-available', this.onUpdateAvailable)
-    autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
-    autoUpdater.on('update-downloaded', this.onUpdateDownloaded)
+    getAutoUpdater().on('error', this.onAutoUpdaterError)
+    getAutoUpdater().on('checking-for-update', this.onCheckingForUpdate)
+    getAutoUpdater().on('update-available', this.onUpdateAvailable)
+    getAutoUpdater().on('update-not-available', this.onUpdateNotAvailable)
+    getAutoUpdater().on('update-downloaded', this.onUpdateDownloaded)
 
     // This seems to prevent tests from cleanly exiting on Appveyor (see
     // https://ci.appveyor.com/project/github-windows/desktop/build/1466). So
     // let's just avoid it.
     if (!process.env.TEST_ENV) {
       window.addEventListener('beforeunload', () => {
-        autoUpdater.removeListener('error', this.onAutoUpdaterError)
-        autoUpdater.removeListener(
+        getAutoUpdater().removeListener('error', this.onAutoUpdaterError)
+        getAutoUpdater().removeListener(
           'checking-for-update',
           this.onCheckingForUpdate
         )
-        autoUpdater.removeListener('update-available', this.onUpdateAvailable)
-        autoUpdater.removeListener(
+        getAutoUpdater().removeListener(
+          'update-available',
+          this.onUpdateAvailable
+        )
+        getAutoUpdater().removeListener(
           'update-not-available',
           this.onUpdateNotAvailable
         )
-        autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
+        getAutoUpdater().removeListener(
+          'update-downloaded',
+          this.onUpdateDownloaded
+        )
       })
     }
   }
@@ -166,8 +169,8 @@ class UpdateStore {
     this.userInitiatedUpdate = !inBackground
 
     try {
-      autoUpdater.setFeedURL(__UPDATES_URL__)
-      autoUpdater.checkForUpdates()
+      getAutoUpdater().setFeedURL(__UPDATES_URL__)
+      getAutoUpdater().checkForUpdates()
     } catch (e) {
       this.emitError(e)
     }
@@ -179,8 +182,18 @@ class UpdateStore {
     // before we call the function to quit.
     // tslint:disable-next-line:no-sync-functions
     sendWillQuitSync()
-    autoUpdater.quitAndInstall()
+    getAutoUpdater().quitAndInstall()
   }
+}
+
+let autoUpdater_: Electron.AutoUpdater | null = null
+
+function getAutoUpdater(): Electron.AutoUpdater {
+  if (!autoUpdater_) {
+    autoUpdater_ = remote.autoUpdater
+  }
+
+  return autoUpdater_!
 }
 
 /** The store which contains the current state of the auto updater. */

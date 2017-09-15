@@ -204,9 +204,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private performDeferredLaunchActions() {
-    // Loading emoji is super important but maybe less important that loading
-    // the app. So defer it until we have some breathing space.
-    this.props.appStore.loadEmoji()
+    this.props.appStore.loadDeferredState()
 
     this.props.dispatcher.reportStats()
     setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)

@@ -289,7 +289,7 @@ export class AppStore {
   }
 
   /** Load the emoji from disk. */
-  public loadEmoji() {
+  private loadEmoji() {
     const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
   }
@@ -864,29 +864,6 @@ export class AppStore {
     this.accounts = accounts
     this.repositories = repositories
 
-    // doing this that the current user can be found by any of their email addresses
-    for (const account of accounts) {
-      const userAssociations: ReadonlyArray<
-        IGitHubUser
-      > = account.emails.map(email =>
-        // NB: We're not using object spread here because `account` has more
-        // keys than we want.
-        ({
-          endpoint: account.endpoint,
-          email: email.email,
-          login: account.login,
-          avatarURL: account.avatarURL,
-          name: account.name,
-        })
-      )
-
-      for (const user of userAssociations) {
-        this.gitHubUserStore.cacheUser(user)
-      }
-    }
-
-    this.updateRepositorySelectionAfterRepositoriesChanged()
-
     this.sidebarWidth =
       parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) ||
       defaultSidebarWidth
@@ -920,8 +897,6 @@ export class AppStore {
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
 
-    this.updatePreferredAppMenuItemLabels()
-
     const imageDiffTypeValue = localStorage.getItem(imageDiffTypeKey)
     this.imageDiffType =
       imageDiffTypeValue === null
@@ -929,8 +904,39 @@ export class AppStore {
         : parseInt(imageDiffTypeValue)
 
     this.emitUpdateNow()
+  }
+
+  public async loadDeferredState(): Promise<void> {
+    // doing this that the current user can be found by any of their email addresses
+    for (const account of this.accounts) {
+      const userAssociations: ReadonlyArray<
+        IGitHubUser
+      > = account.emails.map(email =>
+        // NB: We're not using object spread here because `account` has more
+        // keys than we want.
+        ({
+          endpoint: account.endpoint,
+          email: email.email,
+          login: account.login,
+          avatarURL: account.avatarURL,
+          name: account.name,
+        })
+      )
+
+      for (const user of userAssociations) {
+        this.gitHubUserStore.cacheUser(user)
+      }
+    }
+
+    this.updateRepositorySelectionAfterRepositoriesChanged()
+
+    this.updatePreferredAppMenuItemLabels()
 
     this.accountsStore.refresh()
+
+    this.loadEmoji()
+
+    this.emitUpdate()
   }
 
   private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {

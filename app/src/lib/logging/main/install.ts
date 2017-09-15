@@ -14,6 +14,10 @@ g.log = <IDesktopLogger>{
     log('info', '[main] ' + formatLogMessage(message, error))
   },
   debug(message: string, error?: Error) {
+    if (__RELEASE_CHANNEL__ !== 'development') {
+      return
+    }
+
     log('debug', '[main] ' + formatLogMessage(message, error))
   },
 }

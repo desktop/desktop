@@ -31,6 +31,10 @@ g.log = <IDesktopLogger>{
     console.info(formatLogMessage(message, error))
   },
   debug(message: string, error?: Error) {
+    if (__RELEASE_CHANNEL__ !== 'development') {
+      return
+    }
+
     log('debug', message, error)
     console.debug(formatLogMessage(message, error))
   },
