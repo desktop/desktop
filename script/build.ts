@@ -31,8 +31,8 @@ copyEmoji()
 console.log('Copying static resources…')
 copyStaticResources()
 
-const isFork = process.env.TRAVIS_SECURE_ENV_VARS !== 'true'
-if (process.platform === 'darwin' && process.env.TRAVIS && !isFork) {
+const isFork = process.env.CIRCLE_PR_USERNAME
+if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }

@@ -242,3 +242,30 @@ export async function pushNeedsPullHandler(
 
   return error
 }
+
+/**
+ * Handler for when we attempt to install the global LFS filters and LFS throws
+ * an error.
+ */
+export async function lfsAttributeMismatchHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const gitError = asGitError(error)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.LFSAttributeDoesNotMatch) {
+    return error
+  }
+
+  dispatcher.showPopup({ type: PopupType.LFSAttributeMismatch })
+
+  return null
+}

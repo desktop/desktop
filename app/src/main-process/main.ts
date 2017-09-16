@@ -158,7 +158,7 @@ app.on('ready', () => {
     'update-preferred-app-menu-item-labels',
     (
       event: Electron.IpcMessageEvent,
-      labels: { editor: string; shell: string }
+      labels: { editor?: string; shell: string }
     ) => {
       menu = buildDefaultMenu(labels.editor, labels.shell)
       Menu.setApplicationMenu(menu)
@@ -243,10 +243,7 @@ app.on('ready', () => {
       }
 
       const window = BrowserWindow.fromWebContents(event.sender)
-      // TODO: read https://github.com/desktop/desktop/issues/1003
-      // to clean up this sin against T Y P E S
-      const anyMenu: any = menu
-      anyMenu.popup(window, { async: true })
+      menu.popup(window, { async: true })
     }
   )
 
@@ -269,8 +266,8 @@ app.on('ready', () => {
         message,
       }: { certificate: Electron.Certificate; message: string }
     ) => {
-      // This API's only implemented on macOS right now.
-      if (__DARWIN__) {
+      // This API is only implemented for macOS and Windows right now.
+      if (__DARWIN__ || __WIN32__) {
         onDidLoad(window => {
           window.showCertificateTrustDialog(certificate, message)
         })

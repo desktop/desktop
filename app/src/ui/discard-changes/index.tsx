@@ -8,12 +8,15 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PathText } from '../lib/path-text'
 import { Monospaced } from '../lib/monospaced'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
+  readonly confirmDiscardChanges: boolean
   readonly onDismissed: () => void
+  readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
 }
 
 interface IDiscardChangesState {
@@ -22,6 +25,8 @@ interface IDiscardChangesState {
    * changes. This is used to display a loading state
    */
   readonly isDiscardingChanges: boolean
+
+  readonly confirmDiscardChanges: boolean
 }
 
 /**
@@ -38,7 +43,10 @@ export class DiscardChanges extends React.Component<
   public constructor(props: IDiscardChangesProps) {
     super(props)
 
-    this.state = { isDiscardingChanges: false }
+    this.state = {
+      isDiscardingChanges: false,
+      confirmDiscardChanges: this.props.confirmDiscardChanges,
+    }
   }
 
   public render() {
@@ -57,6 +65,15 @@ export class DiscardChanges extends React.Component<
           <p>
             Changes can be restored by retrieving them from the {trashName}.
           </p>
+          <Checkbox
+            label="Do not show this message again"
+            value={
+              this.state.confirmDiscardChanges
+                ? CheckboxValue.Off
+                : CheckboxValue.On
+            }
+            onChange={this.onCheckboxChanged}
+          />
         </DialogContent>
 
         <DialogFooter>
@@ -84,13 +101,13 @@ export class DiscardChanges extends React.Component<
         <div>
           <p>Are you sure you want to discard all changes to:</p>
           <ul>
-            {this.props.files.map(p =>
+            {this.props.files.map(p => (
               <li key={p.id}>
                 <Monospaced>
                   <PathText path={p.path} />
                 </Monospaced>
               </li>
-            )}
+            ))}
           </ul>
         </div>
       )
@@ -104,6 +121,14 @@ export class DiscardChanges extends React.Component<
       this.props.repository,
       this.props.files
     )
+
+    this.props.onConfirmDiscardChangesChanged(this.state.confirmDiscardChanges)
     this.props.onDismissed()
+  }
+
+  private onCheckboxChanged = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = !event.currentTarget.checked
+
+    this.setState({ confirmDiscardChanges: value })
   }
 }

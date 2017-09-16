@@ -55,10 +55,6 @@ export class ButtonGroup extends React.Component<IButtonGroupProps, {}> {
       }
     }
 
-    return (
-      <div className="button-group">
-        {buttons}
-      </div>
-    )
+    return <div className="button-group">{buttons}</div>
   }
 }

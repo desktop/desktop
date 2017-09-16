@@ -68,7 +68,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       // Give some time for the dialog to nicely transition
       // out before we clear the error and, potentially, deal
       // with the next error in the queue.
-      setTimeout(() => {
+      window.setTimeout(() => {
         this.props.onClearError(currentError)
       }, dialogTransitionLeaveTimeout)
     }
@@ -79,7 +79,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     //This is a hacky solution to resolve multiple dialog windows
     //being open at the same time.
-    setTimeout(() => {
+    window.setTimeout(() => {
       this.props.onShowPopup({ type: PopupType.Preferences })
     }, dialogTransitionLeaveTimeout)
   }
@@ -128,11 +128,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     const className = monospace ? 'monospace' : undefined
 
-    return (
-      <p className={className}>
-        {error.message}
-      </p>
-    )
+    return <p className={className}>{error.message}</p>
   }
 
   private renderDialog() {
@@ -152,12 +148,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         onDismissed={this.onDismissed}
         disabled={this.state.disabled}
       >
-        <DialogContent>
-          {this.renderErrorMessage(error)}
-        </DialogContent>
-        <DialogFooter>
-          {this.renderFooter(error)}
-        </DialogFooter>
+        <DialogContent>{this.renderErrorMessage(error)}</DialogContent>
+        <DialogFooter>{this.renderFooter(error)}</DialogFooter>
       </Dialog>
     )
   }

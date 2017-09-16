@@ -89,9 +89,7 @@ export class PushBranchCommits extends React.Component<
       >
         {this.renderDialogContent()}
 
-        <DialogFooter>
-          {this.renderButtonGroup()}
-        </DialogFooter>
+        <DialogFooter>{this.renderButtonGroup()}</DialogFooter>
       </Dialog>
     )
   }
@@ -135,22 +133,22 @@ export class PushBranchCommits extends React.Component<
   private renderButtonGroup() {
     if (renderPublishView(this.props.unPushedCommits)) {
       return (
-        <ButtonGroup destructive={true}>
-          <Button type="submit">Cancel</Button>
-          <Button onClick={this.onPushOrPublishButtonClick}>
+        <ButtonGroup>
+          <Button type="submit" onClick={this.onPushOrPublishButtonClick}>
             {__DARWIN__ ? 'Publish Branch' : 'Publish branch'}
           </Button>
+          <Button onClick={this.cancel}>Cancel</Button>
         </ButtonGroup>
       )
     }
 
     return (
-      <ButtonGroup destructive={true}>
-        <Button type="submit" onClick={this.onCreateWithoutPushButtonClick}>
-          {__DARWIN__ ? 'Create Without Pushing' : 'Create without pushing'}
-        </Button>
-        <Button onClick={this.onPushOrPublishButtonClick}>
+      <ButtonGroup>
+        <Button type="submit" onClick={this.onPushOrPublishButtonClick}>
           {__DARWIN__ ? 'Push Commits' : 'Push commits'}
+        </Button>
+        <Button onClick={this.onCreateWithoutPushButtonClick}>
+          {__DARWIN__ ? 'Create Without Pushing' : 'Create without pushing'}
         </Button>
       </ButtonGroup>
     )

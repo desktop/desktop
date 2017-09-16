@@ -179,12 +179,27 @@ export abstract class AutocompletingTextInput<
           scrollToRow={selectedRow}
           selectOnHover={true}
           focusOnHover={false}
+          onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}
           onSelectionChanged={this.onSelectionChanged}
           invalidationProps={searchText}
         />
       </div>
     )
+  }
+
+  private onRowMouseDown = (row: number, event: React.MouseEvent<any>) => {
+    const currentAutoCompletionState = this.state.autocompletionState
+
+    if (!currentAutoCompletionState) {
+      return
+    }
+
+    const item = currentAutoCompletionState.items[row]
+
+    if (item) {
+      this.insertCompletion(item)
+    }
   }
 
   private onSelectionChanged = (row: number, source: SelectionSource) => {
@@ -221,7 +236,7 @@ export abstract class AutocompletingTextInput<
 
     // This is pretty gross. Clicking on the list moves focus off the text area.
     // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
-    setTimeout(() => {
+    window.setTimeout(() => {
       const element = this.element
       if (element) {
         element.focus()

@@ -1,4 +1,4 @@
-import { Menu, ipcMain, shell } from 'electron'
+import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { getLogPath } from '../../lib/logging/get-log-path'
@@ -165,6 +165,11 @@ export function buildDefaultMenu(
       {
         label: '&Reload',
         id: 'reload-window',
+        // Ctrl+Alt is interpreted as AltGr on international keyboards and this
+        // can clash with other shortcuts. We should always use Ctrl+Shift for
+        // chorded shortcuts, but this menu item is not a user-facing feature
+        // so we are going to keep this one around and save Ctrl+Shift+R for
+        // a different shortcut in the future...
         accelerator: 'CmdOrCtrl+Alt+R',
         click(item: any, focusedWindow: Electron.BrowserWindow) {
           if (focusedWindow) {
@@ -215,7 +220,7 @@ export function buildDefaultMenu(
       {
         id: 'view-repository-on-github',
         label: __DARWIN__ ? 'View on GitHub' : '&View on GitHub',
-        accelerator: 'CmdOrCtrl+Alt+G',
+        accelerator: 'CmdOrCtrl+Shift+G',
         click: emit('view-repository-on-github'),
       },
       {
@@ -316,6 +321,15 @@ export function buildDefaultMenu(
     },
   }
 
+  const contactSupportItem: Electron.MenuItemConstructorOptions = {
+    label: __DARWIN__ ? 'Contact GitHub Support…' : '&Contact GitHub support…',
+    click() {
+      shell.openExternal(
+        `https://github.com/contact?from_desktop_app=1&app_version=${app.getVersion()}`
+      )
+    },
+  }
+
   const showUserGuides: Electron.MenuItemConstructorOptions = {
     label: 'Show User Guides',
     click() {
@@ -337,7 +351,12 @@ export function buildDefaultMenu(
     },
   }
 
-  const helpItems = [submitIssueItem, showUserGuides, showLogsItem]
+  const helpItems = [
+    submitIssueItem,
+    contactSupportItem,
+    showUserGuides,
+    showLogsItem,
+  ]
 
   if (__DEV__) {
     helpItems.push(
