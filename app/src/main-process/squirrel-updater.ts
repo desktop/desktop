@@ -111,7 +111,7 @@ async function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
   )
   const trampoline = `#!/usr/bin/env bash
   DIR="$( cd "$( dirname "\$\{BASH_SOURCE[0]\}" )" && pwd )"
-  sh "$DIR/${versionedPath}"`
+  sh "$DIR/${versionedPath}" "$@"`
   const trampolinePath = Path.join(binPath, 'github')
   return new Promise<void>((resolve, reject) => {
     Fs.ensureDir(binPath, err => {
