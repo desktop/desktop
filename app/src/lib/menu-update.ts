@@ -158,8 +158,9 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
       menuStateBuilder.enable(id)
     }
 
-    menuStateBuilder.setEnabled('rename-branch', onNonDefaultBranch)
-    menuStateBuilder.setEnabled('delete-branch', onNonDefaultBranch)
+    menuStateBuilder.setEnabled('create-branch', onBranch)
+    menuStateBuilder.setEnabled('rename-branch', onNonDefaultBranch && onBranch)
+    menuStateBuilder.setEnabled('delete-branch', onNonDefaultBranch && onBranch)
     menuStateBuilder.setEnabled(
       'update-branch',
       onNonDefaultBranch && hasDefaultBranch
