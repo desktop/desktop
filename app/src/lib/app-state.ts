@@ -151,7 +151,10 @@ export interface IAppState {
   readonly isUpdateAvailableBannerVisible: boolean
 
   /** Whether we should show a confirmation dialog */
-  readonly confirmRepoRemoval: boolean
+  readonly askForConfirmationOnRepositoryRemoval: boolean
+
+  /** Whether we should show a confirmation dialog */
+  readonly askForConfirmationOnDiscardChanges: boolean
 
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor
@@ -194,6 +197,7 @@ export enum PopupType {
   ExternalEditorFailed,
   OpenShellFailed,
   InitializeLFS,
+  LFSAttributeMismatch,
 }
 
 export type Popup =
@@ -246,6 +250,7 @@ export type Popup =
     }
   | { type: PopupType.OpenShellFailed; message: string }
   | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
+  | { type: PopupType.LFSAttributeMismatch }
 
 export enum FoldoutType {
   Repository,

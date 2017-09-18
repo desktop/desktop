@@ -115,7 +115,9 @@ const defaultCommitSummaryWidth: number = 250
 const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 
 const confirmRepoRemovalDefault: boolean = true
+const confirmDiscardChangesDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
+const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 
 const externalEditorKey: string = 'externalEditor'
 
@@ -194,6 +196,7 @@ export class AppStore {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
+  private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
 
   private selectedExternalEditor?: ExternalEditor
@@ -507,7 +510,8 @@ export class AppStore {
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
-      confirmRepoRemoval: this.confirmRepoRemoval,
+      askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
+      askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
@@ -922,12 +926,23 @@ export class AppStore {
       parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) ||
       defaultCommitSummaryWidth
 
-    const confirmRepoRemovalValue = localStorage.getItem(confirmRepoRemovalKey)
+    const confirmRepositoryRemovalValue = localStorage.getItem(
+      confirmRepoRemovalKey
+    )
 
     this.confirmRepoRemoval =
-      confirmRepoRemovalValue === null
+      confirmRepositoryRemovalValue === null
         ? confirmRepoRemovalDefault
-        : confirmRepoRemovalValue === '1'
+        : confirmRepositoryRemovalValue === '1'
+
+    const confirmDiscardChangesValue = localStorage.getItem(
+      confirmDiscardChangesKey
+    )
+
+    this.confirmDiscardChanges =
+      confirmDiscardChangesValue === null
+        ? confirmDiscardChangesDefault
+        : confirmDiscardChangesValue === '1'
 
     const externalEditorValue = await this.getSelectedExternalEditor()
     if (externalEditorValue) {
@@ -2318,9 +2333,20 @@ export class AppStore {
     this.emitUpdate()
   }
 
-  public _setConfirmRepoRemoval(confirmRepoRemoval: boolean): Promise<void> {
+  public _setConfirmRepositoryRemovalSetting(
+    confirmRepoRemoval: boolean
+  ): Promise<void> {
     this.confirmRepoRemoval = confirmRepoRemoval
     localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
+    this.confirmDiscardChanges = value
+
+    localStorage.setItem(confirmDiscardChangesKey, value ? '1' : '0')
     this.emitUpdate()
 
     return Promise.resolve()
@@ -2634,9 +2660,9 @@ export class AppStore {
     })
   }
 
-  public async _installGlobalLFSFilters(): Promise<void> {
+  public async _installGlobalLFSFilters(force: boolean): Promise<void> {
     try {
-      await installGlobalLFSFilters()
+      await installGlobalLFSFilters(force)
     } catch (error) {
       this.emitError(error)
     }
@@ -2655,7 +2681,9 @@ export class AppStore {
   ): Promise<void> {
     for (const repo of repositories) {
       try {
-        await installLFSHooks(repo)
+        // At this point we've asked the user if we should install them, so
+        // force installation.
+        await installLFSHooks(repo, true)
       } catch (error) {
         this.emitError(error)
       }

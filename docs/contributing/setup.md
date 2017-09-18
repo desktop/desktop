@@ -102,7 +102,7 @@ require('devtron').install()
 
 You're almost there! Here's a couple of things we recommend you read next:
 
- - [Accepting PRs](../../CONTRIBUTING.md#accepting-prs) - we've marked some tasks in
+ - [Help Wanted](../../CONTRIBUTING.md#help-wanted) - we've marked some tasks in
    the backlog that are ideal for external contributors
  - [Code Reviews](../process/reviews.md) - some notes on how the team does
    code reviews
