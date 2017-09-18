@@ -209,6 +209,8 @@
   - [ ] Repos which are cloning display a progress bar
 
 ### Changes tab
+  - [ ] Changes tab shows `•` icon if files are waiting to be committed
+    - [ ] Number of changed files is always present; it can be 0
   - [ ] Any changed files appear in the list, with respective +/•/- sign; with arrow keys enabled
     - [ ] User can check none, or check one or more files to commit; list is scrollable
       - [ ] User can select one or more lines to commit; diff is scrollable
