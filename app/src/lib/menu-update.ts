@@ -93,6 +93,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   let hasPublishedBranch = false
   let networkActionInProgress = false
   let tipStateIsUnknown = false
+  let branchIsUnborn = false
 
   let hasRemote = false
 
@@ -107,6 +108,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
     onBranch = tip.kind === TipState.Valid
     tipStateIsUnknown = tip.kind === TipState.Unknown
+    branchIsUnborn = tip.kind === TipState.Unborn
 
     // If we are:
     //  1. on the default branch, or
@@ -170,7 +172,10 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
     menuStateBuilder.setEnabled('create-pull-request', isHostedOnGitHub)
-    menuStateBuilder.setEnabled('push', hasRemote && !networkActionInProgress)
+    menuStateBuilder.setEnabled(
+      'push',
+      hasRemote && !branchIsUnborn && !networkActionInProgress
+    )
     menuStateBuilder.setEnabled(
       'pull',
       hasPublishedBranch && !networkActionInProgress
