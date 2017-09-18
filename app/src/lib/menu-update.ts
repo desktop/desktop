@@ -158,9 +158,15 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
       menuStateBuilder.enable(id)
     }
 
-    menuStateBuilder.setEnabled('create-branch', onBranch)
-    menuStateBuilder.setEnabled('rename-branch', onNonDefaultBranch && onBranch)
-    menuStateBuilder.setEnabled('delete-branch', onNonDefaultBranch && onBranch)
+    menuStateBuilder.setEnabled('create-branch', !branchIsUnborn)
+    menuStateBuilder.setEnabled(
+      'rename-branch',
+      onNonDefaultBranch && !branchIsUnborn
+    )
+    menuStateBuilder.setEnabled(
+      'delete-branch',
+      onNonDefaultBranch && !branchIsUnborn
+    )
     menuStateBuilder.setEnabled(
       'update-branch',
       onNonDefaultBranch && hasDefaultBranch
@@ -172,7 +178,10 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     )
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
-    menuStateBuilder.setEnabled('create-pull-request', isHostedOnGitHub)
+    menuStateBuilder.setEnabled(
+      'create-pull-request',
+      isHostedOnGitHub && !branchIsUnborn
+    )
     menuStateBuilder.setEnabled(
       'push',
       hasRemote && !branchIsUnborn && !networkActionInProgress
