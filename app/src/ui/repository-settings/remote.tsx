@@ -33,7 +33,7 @@ export class Remote extends React.Component<IRemoteProps, {}> {
             <p>
               Removing the <strong>{remote.name}</strong> remote will affect
               publishing the repository to your remote server. Press{' '}
-              <em>Save</em> to confirm this change.
+              <strong>Save</strong> to confirm this change.
             </p>
           </Row>
         </DialogContent>
