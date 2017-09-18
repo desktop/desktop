@@ -19,6 +19,7 @@ import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { writeDefaultReadme } from './write-default-readme'
 import { Select } from '../lib/select'
+import { writeGitDescription } from '../../lib/git/description'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
 import { writeGitAttributes } from './git-attributes'
@@ -50,6 +51,7 @@ interface ICreateRepositoryProps {
 interface ICreateRepositoryState {
   readonly path: string
   readonly name: string
+  readonly description: string
 
   /** Is the given path able to be written to? */
   readonly isValidPath: boolean | null
@@ -87,6 +89,7 @@ export class CreateRepository extends React.Component<
     this.state = {
       path: this.props.path ? this.props.path : getDefaultDir(),
       name: '',
+      description: '',
       createWithReadme: false,
       creating: false,
       gitIgnoreNames: null,
@@ -119,6 +122,10 @@ export class CreateRepository extends React.Component<
   private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const name = event.currentTarget.value
     this.setState({ ...this.state, name })
+  }
+
+  private onDescriptionChanged = (description: string) => {
+    this.setState({ description })
   }
 
   private showFilePicker = async () => {
@@ -210,10 +217,24 @@ export class CreateRepository extends React.Component<
       }
     }
 
+    const description = this.state.description
+    if (description) {
+      try {
+        await writeGitDescription(fullPath, description)
+      } catch (e) {
+        log.error(
+          `createRepository: unable to write .git/description file at ${fullPath}`,
+          e
+        )
+        this.props.dispatcher.postError(e)
+      }
+    }
+
     const licenseName =
       this.state.license === NoLicenseValue.name ? null : this.state.license
-    const license = (this.state.licenses || [])
-      .find(l => l.name === licenseName)
+    const license = (this.state.licenses || []).find(
+      l => l.name === licenseName
+    )
 
     if (license) {
       try {
@@ -423,6 +444,14 @@ export class CreateRepository extends React.Component<
 
           <Row>
             <TextBox
+              value={this.state.description}
+              label="Description"
+              onValueChanged={this.onDescriptionChanged}
+            />
+          </Row>
+
+          <Row>
+            <TextBox
               value={this.state.path}
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
               placeholder="repository path"
@@ -439,11 +468,9 @@ export class CreateRepository extends React.Component<
             <Checkbox
               label="Initialize this repository with a README"
               value={
-                this.state.createWithReadme ? (
-                  CheckboxValue.On
-                ) : (
-                  CheckboxValue.Off
-                )
+                this.state.createWithReadme
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
               }
               onChange={this.onCreateWithReadmeChange}
             />
