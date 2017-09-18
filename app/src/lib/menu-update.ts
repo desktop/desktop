@@ -158,7 +158,6 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
       menuStateBuilder.enable(id)
     }
 
-    menuStateBuilder.setEnabled('create-branch', !branchIsUnborn)
     menuStateBuilder.setEnabled(
       'rename-branch',
       onNonDefaultBranch && !branchIsUnborn
@@ -190,7 +189,10 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
       'pull',
       hasPublishedBranch && !networkActionInProgress
     )
-    menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
+    menuStateBuilder.setEnabled(
+      'create-branch',
+      !tipStateIsUnknown && !branchIsUnborn
+    )
 
     if (
       selectedState &&
