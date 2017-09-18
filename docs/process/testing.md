@@ -2,6 +2,7 @@
   - [ ] User can download latest (Mac & Windows) Desktop from https://desktop.github.com/    
     - [ ] Mac: https://central.github.com/deployments/desktop/desktop/latest/darwin
     - [ ] Windows: https://central.github.com/deployments/desktop/desktop/latest/win32
+    - [ ] Data is retained if you download and open a fresh copy
   - [ ] Release notes page is up-to-date
   - [ ] Help page is accessible
 
