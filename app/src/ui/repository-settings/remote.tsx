@@ -4,7 +4,7 @@ import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 import { LinkButton } from '../lib/link-button'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { DialogContent, DialogError } from '../dialog'
+import { DialogContent } from '../dialog'
 
 interface IRemoteProps {
   /** The remote being shown. */
@@ -69,7 +69,12 @@ export class Remote extends React.Component<IRemoteProps, {}> {
       return null
     }
 
-    return <DialogError>You cannot create an empty remote URL.</DialogError>
+    return (
+      <Row className="error-helper-text">
+        <Octicon symbol={OcticonSymbol.x} />
+        <p>You cannot create an empty remote URL.</p>
+      </Row>
+    )
   }
 
   private removeRemote = () => {

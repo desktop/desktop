@@ -368,3 +368,12 @@ dialog {
     margin-right: var(--spacing-half);
   }
 }
+
+.error-helper-text {
+  font-size: var(--font-size-sm);
+
+  .octicon {
+    fill: var(--dialog-error-color);
+    margin-right: var(--spacing-half);
+  }
+}
