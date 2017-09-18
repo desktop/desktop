@@ -80,6 +80,13 @@ export class CloneRepository extends React.Component<
     }
   }
 
+  public componentDidMount() {
+    const initialURL = this.props.initialURL
+    if (initialURL) {
+      this.updateUrl(initialURL)
+    }
+  }
+
   public render() {
     const error = this.state.error
     return (
@@ -228,7 +235,7 @@ export class CloneRepository extends React.Component<
   }
 
   private updatePath = (path: string) => {
-    this.setState({ path: path })
+    this.setState({ path })
   }
 
   private onChooseDirectory = async () => {

@@ -22,7 +22,7 @@ cp.execSync('npm run package')
 
 let sha = ''
 if (process.platform === 'darwin') {
-  sha = process.env.TRAVIS_COMMIT
+  sha = process.env.CIRCLE_SHA1
 } else if (process.platform === 'win32') {
   sha = process.env.APPVEYOR_REPO_COMMIT
 }

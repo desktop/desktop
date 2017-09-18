@@ -8,9 +8,9 @@ const distInfo = require('./dist-info')
 const getDistPath: () => string = distInfo.getDistPath
 const getProductName: () => string = distInfo.getProductName
 
-const isFork = process.env.TRAVIS_SECURE_ENV_VARS !== 'true'
+const isFork = process.env.CIRCLE_PR_USERNAME
 
-if (process.platform === 'darwin' && process.env.TRAVIS && !isFork) {
+if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
   const archive = `${getDistPath()}/${getProductName()}.app`
   try {
     console.log('validating signature of Desktop app')

@@ -13,6 +13,7 @@ import { TabBar } from '../tab-bar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
+import { getGitDescription } from '../../lib/git/description'
 
 enum PublishTab {
   DotCom = 0,
@@ -99,6 +100,20 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         {this.renderFooter()}
       </Dialog>
     )
+  }
+
+  public async componentDidMount() {
+    try {
+      const description = await getGitDescription(this.props.repository.path)
+      const settings = {
+        ...this.state.publishSettings,
+        description,
+      }
+
+      this.setState({ publishSettings: settings })
+    } catch (error) {
+      log.warn(`Couldn't get the repository's description`, error)
+    }
   }
 
   private renderContent() {

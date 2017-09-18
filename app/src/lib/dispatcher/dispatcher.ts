@@ -839,7 +839,18 @@ export class Dispatcher {
    * Sets the user's preference so that confirmation to remove repo is not asked
    */
   public setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
-    return this.appStore._setConfirmRepoRemoval(value)
+    return this.appStore._setConfirmRepositoryRemovalSetting(value)
+  }
+
+  /**
+   * Sets the user's preference so that confirmation to discard changes is not asked
+   *
+   * @param {boolean} value
+   * @returns {Promise<void>}
+   * @memberof Dispatcher
+   */
+  public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
+    return this.appStore._setConfirmDiscardChangesSetting(value)
   }
 
   /**
@@ -987,8 +998,8 @@ export class Dispatcher {
   }
 
   /** Install the global Git LFS filters. */
-  public installGlobalLFSFilters(): Promise<void> {
-    return this.appStore._installGlobalLFSFilters()
+  public installGlobalLFSFilters(force: boolean): Promise<void> {
+    return this.appStore._installGlobalLFSFilters(force)
   }
 
   /** Install the LFS filters */

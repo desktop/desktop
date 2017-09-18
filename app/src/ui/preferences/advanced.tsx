@@ -9,23 +9,26 @@ import { ExternalEditor, parse as parseEditor } from '../../models/editors'
 import { Shell, parse as parseShell } from '../../lib/shells'
 
 interface IAdvancedPreferencesProps {
-  readonly isOptedOut: boolean
-  readonly confirmRepoRemoval: boolean
+  readonly optOutOfUsageTracking: boolean
+  readonly confirmRepositoryRemoval: boolean
+  readonly confirmDiscardChanges: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
-  readonly onOptOutSet: (checked: boolean) => void
-  readonly onConfirmRepoRemovalSet: (checked: boolean) => void
+  readonly onOptOutofReportingchanged: (checked: boolean) => void
+  readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
+  readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
 }
 
 interface IAdvancedPreferencesState {
-  readonly reportingOptOut: boolean
+  readonly optOutOfUsageTracking: boolean
   readonly selectedExternalEditor?: ExternalEditor
   readonly selectedShell: Shell
-  readonly confirmRepoRemoval: boolean
+  readonly confirmRepositoryRemoval: boolean
+  readonly confirmDiscardChanges: boolean
 }
 
 export class Advanced extends React.Component<
@@ -36,8 +39,9 @@ export class Advanced extends React.Component<
     super(props)
 
     this.state = {
-      reportingOptOut: this.props.isOptedOut,
-      confirmRepoRemoval: this.props.confirmRepoRemoval,
+      optOutOfUsageTracking: this.props.optOutOfUsageTracking,
+      confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
+      confirmDiscardChanges: this.props.confirmDiscardChanges,
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
     }
@@ -77,17 +81,26 @@ export class Advanced extends React.Component<
   ) => {
     const value = !event.currentTarget.checked
 
-    this.setState({ reportingOptOut: value })
-    this.props.onOptOutSet(value)
+    this.setState({ optOutOfUsageTracking: value })
+    this.props.onOptOutofReportingchanged(value)
   }
 
-  private onConfirmRepoRemovalChanged = (
+  private onConfirmDiscardChangesChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.checked
 
-    this.setState({ confirmRepoRemoval: value })
-    this.props.onConfirmRepoRemovalSet(value)
+    this.setState({ confirmDiscardChanges: value })
+    this.props.onConfirmDiscardChangesChanged(value)
+  }
+
+  private onConfirmRepositoryRemovalChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmRepositoryRemoval: value })
+    this.props.onConfirmRepositoryRemovalChanged(value)
   }
 
   private onSelectedEditorChanged = (
@@ -180,7 +193,9 @@ export class Advanced extends React.Component<
           <Checkbox
             label={this.reportDesktopUsageLabel()}
             value={
-              this.state.reportingOptOut ? CheckboxValue.Off : CheckboxValue.On
+              this.state.optOutOfUsageTracking
+                ? CheckboxValue.Off
+                : CheckboxValue.On
             }
             onChange={this.onReportingOptOutChanged}
           />
@@ -189,13 +204,22 @@ export class Advanced extends React.Component<
           <Checkbox
             label="Show confirmation dialog before removing repositories"
             value={
-              this.state.confirmRepoRemoval ? (
-                CheckboxValue.On
-              ) : (
-                CheckboxValue.Off
-              )
+              this.state.confirmRepositoryRemoval
+                ? CheckboxValue.On
+                : CheckboxValue.Off
             }
-            onChange={this.onConfirmRepoRemovalChanged}
+            onChange={this.onConfirmRepositoryRemovalChanged}
+          />
+        </Row>
+        <Row>
+          <Checkbox
+            label="Show confirmation dialog before discarding changes"
+            value={
+              this.state.confirmDiscardChanges
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onConfirmDiscardChangesChanged}
           />
         </Row>
       </DialogContent>
