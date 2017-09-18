@@ -167,7 +167,7 @@ export function updateEnvironmentForProcess(): Promise<void> {
   return getEnvironmentFromShell(mergeEnvironmentVariables)
 }
 
-const chcpOutputRegex = /^Active code page: (\d{1,}).*/
+const chcpOutputRegex = /: (\d{1,}).*/
 
 /**
  * Resolve the active code page from the Windows console. It doesn't support
