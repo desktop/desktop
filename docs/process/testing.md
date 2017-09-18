@@ -237,11 +237,11 @@
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
 
 ### Commit section
-  - [ ] Commit created if user clicks `Commit to X` button with commit message and at least one checked file
+  - [ ] Commit created if user clicks `Commit to [branch]` button with commit message and at least one checked file
     - [ ] `Fetch origin` changes to `Push` with number of commits badge
   - [ ] Avatar of user is shown
-  - [ ] User can at-mention those associated with the respective repo; either subject or description field is ok
-  - [ ] User can pound-mention an issue in the either subject or description field; issue number should populate
+  - [ ] User can at-mention those associated with the respective repo; either subject or description field is ok (published repositories only)
+  - [ ] User can pound-mention an issue in the either subject or description field; issue number should populate (published repositories only)
   - [ ] Description field is optional
   - [ ] User can undo last commit
     - [ ] `Push` with number of commits badge is decremented or reverts to `Fetch origin`
