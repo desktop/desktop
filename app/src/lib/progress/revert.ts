@@ -1,6 +1,6 @@
 import { GitProgressParser, IProgressStep } from './git'
 
-const steps: ReadonlyArray<IProgressStep> = []
+const steps: ReadonlyArray<IProgressStep> = [{ title: '', weight: 0 }]
 
 /**
  * A class that parses output from `git revert` and provides structured progress
