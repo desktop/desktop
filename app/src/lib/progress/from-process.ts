@@ -51,7 +51,6 @@ function createProgressProcessCallback(
     if (lfsProgressPath) {
       const lfsParser = new GitLFSProgressParser()
       const disposable = tailByLine(lfsProgressPath, line => {
-        console.log(`lfs: ${line}`)
         progressCallback(lfsParser.parse(line))
       })
 
@@ -59,14 +58,11 @@ function createProgressProcessCallback(
         disposable.dispose()
         // NB: We don't really care about errors deleting the file, but Node
         // gets kinda bothered if we don't provide a callback.
-        console.log(lfsProgressPath)
-        console.log(Fs)
-        // Fs.unlink(lfsProgressPath, () => {})
+        Fs.unlink(lfsProgressPath, () => {})
       })
     }
 
     byline(process.stderr).on('data', (line: string) => {
-      console.log(`stderr: ${line}`)
       progressCallback(parser.parse(line))
     })
   }
