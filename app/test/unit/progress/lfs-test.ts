@@ -10,7 +10,7 @@ describe('GitLFSProgressParser', () => {
     })
 
     it('understands valid lines', () => {
-      let result = parser.parse('download 1/2 5/300 my cool image.jpg')
+      const result = parser.parse('download 1/2 5/300 my cool image.jpg')
       expect(result.kind).to.equal('progress')
     })
 
