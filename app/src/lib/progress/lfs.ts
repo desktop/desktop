@@ -77,7 +77,11 @@ export class GitLFSProgressParser {
     }
     log.info(`LFS progress: ${info}`)
 
-    return cannotParseResult
+    return {
+      kind: 'context',
+      text: line,
+      percent: 0,
+    }
   }
 
   private directionToHumanFacingVerb(direction: string): string {
