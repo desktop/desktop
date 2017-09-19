@@ -23,9 +23,7 @@ export class RevertProgress extends React.Component<IRevertProgressProps, {}> {
         iconClassName="spin"
         style={ToolbarButtonStyle.Subtitle}
         disabled={true}
-      >
-        Hey
-      </ToolbarButton>
+      />
     )
   }
 }
