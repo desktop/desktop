@@ -36,9 +36,10 @@ export async function revertCommit(
       progress => {
         const description =
           progress.kind === 'progress' ? progress.details.text : progress.text
+        const title = progress.kind === 'progress' ? progress.details.title : ''
         const value = progress.percent
 
-        progressCallback({ kind: 'revert', description, value, title: '' })
+        progressCallback({ kind: 'revert', description, value, title })
       }
     )
   }
