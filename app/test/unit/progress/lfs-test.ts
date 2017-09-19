@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { GitLFSProgressParser } from '../../../src/lib/progress/lfs'
 
-describe.only('GitLFSProgressParser', () => {
+describe('GitLFSProgressParser', () => {
   describe('#parse', () => {
     let parser: GitLFSProgressParser
 
