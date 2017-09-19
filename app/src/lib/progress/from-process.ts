@@ -51,7 +51,18 @@ function createProgressProcessCallback(
     if (lfsProgressPath) {
       const lfsParser = new GitLFSProgressParser()
       const disposable = tailByLine(lfsProgressPath, line => {
-        progressCallback(lfsParser.parse(line))
+        const progress = lfsParser.parse(line)
+        log.info(`LFS progress: ${progress.kind}`)
+
+        // For now, we're just passing the raw output through. See
+        // https://github.com/desktop/desktop/pull/2355#issuecomment-330556198
+        // for more context.
+        const context: IGitOutput = {
+          kind: 'context',
+          text: line,
+          percent: 0,
+        }
+        progressCallback(context)
       })
 
       process.on('close', () => {
