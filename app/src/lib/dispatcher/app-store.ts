@@ -2614,9 +2614,11 @@ export class AppStore {
     return this.withAuthenticatingUser(repository, async (repo, account) => {
       const gitStore = this.getGitStore(repo)
 
-      await gitStore.revertCommit(repo, commit, account, progress =>
+      await gitStore.revertCommit(repo, commit, account, progress => {
         this.updateRevertProgress(repo, progress)
-      )
+      })
+
+      this.updateRevertProgress(repo, null)
 
       return gitStore.loadHistory()
     })
