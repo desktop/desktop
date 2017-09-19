@@ -75,7 +75,7 @@ export class GitLFSProgressParser {
       done: false,
       text: line,
     }
-    log.info(`LFS progress: ${info}`)
+    log.info(`LFS progress: ${info.title}`)
 
     return {
       kind: 'context',
