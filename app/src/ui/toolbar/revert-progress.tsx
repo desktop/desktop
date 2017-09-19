@@ -12,11 +12,11 @@ interface IRevertProgressProps {
 export class RevertProgress extends React.Component<IRevertProgressProps, {}> {
   public render() {
     const progress = this.props.progress
-    const description = progress.description || 'Hang on…'
+    const title = progress.title || 'Hang on…'
     return (
       <ToolbarButton
         title="Reverting…"
-        description={description}
+        description={title}
         progressValue={progress.value}
         className="revert-progress"
         icon={OcticonSymbol.sync}
