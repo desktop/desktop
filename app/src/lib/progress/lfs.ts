@@ -29,7 +29,7 @@ export class GitLFSProgressParser {
   public parse(line: string): IGitProgress | IGitOutput {
     const cannotParseResult: IGitOutput = {
       kind: 'context',
-      text: line,
+      text: 'Downloading Git LFS file…',
       percent: 0,
     }
 
