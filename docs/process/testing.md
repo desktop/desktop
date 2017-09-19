@@ -213,6 +213,7 @@
   - [ ] Changes tab shows `•` icon if files are waiting to be committed
     - [ ] Number of changed files is always present; it can be 0
   - [ ] Any changed files appear in the list, with respective +/•/- sign; with arrow keys enabled
+    - [ ] Merge-conflicted files showin with hazard icon; cannot be committed until fixed
     - [ ] User can check none, or check one or more files to commit; list is scrollable
       - [ ] User can select one or more lines to commit; diff is scrollable
       - [ ] Right-clicking any file show menu with options
@@ -241,8 +242,8 @@
   - [ ] Commit created if user clicks `Commit to [branch]` button with commit message and at least one checked file
     - [ ] `Fetch origin` changes to `Push` with number of commits badge
   - [ ] Avatar of user is shown
-  - [ ] User can at-mention those associated with the respective repo; either subject or description field is ok (published repositories only)
-  - [ ] User can pound-mention an issue in the either subject or description field; issue number should populate (published repositories only)
+  - [ ] User can 'at-mention' those associated with the respective repo; either subject or description field is ok (published repositories only)
+  - [ ] User can 'pound-mention' an issue in the either subject or description field; issue number should populate (published repositories only)
   - [ ] Description field is optional
   - [ ] User can undo last commit
     - [ ] `Push` with number of commits badge is decremented or reverts to `Fetch origin`
