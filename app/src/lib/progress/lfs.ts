@@ -68,7 +68,7 @@ export class GitLFSProgressParser {
     const percent = downloadedBytes / totalBytes
     const verb = this.directionToHumanFacingVerb(direction)
     const info: IGitProgressInfo = {
-      title: `${verb} "${name}" (${current} of ${totalFiles})…`,
+      title: `${verb} "${name}" (${downloadedBytes} of ${totalBytes})…`,
       value: downloadedBytes,
       total: totalBytes,
       percent,
