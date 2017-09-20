@@ -48,13 +48,13 @@ function retrieveSourceMap(source: string) {
   //  https://github.com/v8/v8/wiki/Stack-Trace-API#customizing-stack-traces
   // This happens on-demand when someone accesses the stack
   // property on an error object and has to be synchronous :/
-  // eslint-disable-next-line no-sync
+  // tslint:disable-next-line:no-sync-functions
   if (!Fs.existsSync(path)) {
     return
   }
 
   try {
-    // eslint-disable-next-line no-sync
+    // tslint:disable-next-line:no-sync-functions
     const map = Fs.readFileSync(path, 'utf8')
     return { url: Path.basename(path), map }
   } catch (error) {
@@ -125,6 +125,7 @@ function sourceMappedStackTrace(error: Error): string | undefined {
     // in our weak map. In order to get around that we'll eagerly access the
     // stack, forcing our handler to run which should ensure that the native
     // frames are stored in our weak map.
+    // tslint:disable-next-line:whitespace
     ;(error.stack || '').toString()
     frames = stackFrameMap.get(error)
   }

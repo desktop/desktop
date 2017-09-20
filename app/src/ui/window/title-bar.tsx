@@ -54,11 +54,9 @@ export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
 
     switch (actionOnDoubleClick) {
       case 'Maximize':
-        if (mainWindow.isMaximized()) {
-          mainWindow.unmaximize()
-        } else {
-          mainWindow.maximize()
-        }
+        mainWindow.isMaximized()
+          ? mainWindow.unmaximize()
+          : mainWindow.maximize()
         break
       case 'Minimize':
         mainWindow.minimize()

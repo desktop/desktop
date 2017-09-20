@@ -1,4 +1,4 @@
-/* eslint-disable no-sync */
+/* tslint:disable:no-sync-functions */
 
 import * as chai from 'chai'
 const expect = chai.expect

@@ -1,4 +1,4 @@
-/* eslint-disable no-sync */
+/* tslint:disable:no-sync-functions */
 
 import { IAppShell } from '../src/lib/dispatcher/app-shell'
 
