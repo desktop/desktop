@@ -305,7 +305,7 @@ export class CommitSummary extends React.Component<
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
-              <span>{shortSHA}</span>
+              <span className="sha">{shortSHA}</span>
             </li>
 
             <li className="commit-summary-meta-item" title={filesDescription}>
