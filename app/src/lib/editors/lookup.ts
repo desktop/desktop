@@ -31,9 +31,11 @@ export async function getAvailableEditors(): Promise<
     return editorCache
   }
 
-  return Promise.reject(
+  log.warn(
     `Platform not currently supported for resolving editors: ${process.platform}`
   )
+
+  return []
 }
 
 /**
@@ -49,9 +51,10 @@ export function getFirstEditorOrDefault(): Promise<FoundEditor | null> {
     return getFirstEditorOrDefaultWindows()
   }
 
-  return Promise.reject(
+  log.warn(
     `Platform not currently supported for resolving editors: ${process.platform}`
   )
+  return Promise.resolve(null)
 }
 
 /**
