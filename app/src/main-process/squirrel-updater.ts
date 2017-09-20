@@ -2,7 +2,7 @@ import * as ChildProcess from 'child_process'
 import * as Path from 'path'
 import * as Fs from 'fs-extra'
 import * as Os from 'os'
-import { pathExists, mkdirIfNeeded } from '../lib/file-system'
+import { pathExists, mkdirIfNeeded, writeFile } from '../lib/file-system'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
@@ -89,15 +89,7 @@ async function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
   const trampoline = `@echo off\n"%~dp0\\${versionedPath}" %*`
   const trampolinePath = Path.join(binPath, 'github.bat')
 
-  return new Promise<void>((resolve, reject) => {
-    Fs.writeFile(trampolinePath, trampoline, err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
+  return writeFile(trampolinePath, trampoline)
 }
 
 async function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
@@ -111,22 +103,7 @@ async function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
   sh "$DIR/${versionedPath}" "$@"`
   const trampolinePath = Path.join(binPath, 'github')
 
-  return new Promise<void>((resolve, reject) => {
-    // mark this trampoline as -rwxr-xr-x
-    // owner can do everything, others can read and execute
-    Fs.writeFile(
-      trampolinePath,
-      trampoline,
-      { encoding: 'utf8', mode: 755 },
-      err => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve()
-        }
-      }
-    )
-  })
+  return writeFile(trampolinePath, trampoline, { encoding: 'utf8', mode: 755 })
 }
 
 /** Spawn the Squirrel.Windows `Update.exe` with a command. */
