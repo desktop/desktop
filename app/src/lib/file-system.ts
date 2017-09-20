@@ -28,7 +28,7 @@ export function mkdirIfNeeded(directoryPath: string): Promise<void> {
 export function writeFile(
   path: string,
   data: any,
-  options: { encoding?: string; mode?: number; flag?: string }
+  options: { encoding?: string; mode?: number; flag?: string } = {}
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     Fs.writeFile(path, data, options, err => {
