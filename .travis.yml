@@ -20,6 +20,7 @@ cache:
   directories:
     - node_modules
     - $HOME/.electron
+    - .eslintcache
 
 install:
   - npm install -g npm@4.6.1
@@ -30,7 +31,6 @@ install:
   - npm ls --dev
 
 script:
-  - npm run check-prettiness
   - npm run lint
   - npm run build:prod
   - npm run test:setup

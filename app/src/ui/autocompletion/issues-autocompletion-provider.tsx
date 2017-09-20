@@ -1,8 +1,7 @@
 import * as React from 'react'
 import { IAutocompletionProvider } from './index'
-import { IssuesStore } from '../../lib/dispatcher'
+import { Dispatcher, IssuesStore } from '../../lib/dispatcher'
 import { GitHubRepository } from '../../models/github-repository'
-import { Dispatcher } from '../../lib/dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
 /** The interval we should use to throttle the issues update. */
@@ -45,7 +44,7 @@ export class IssuesAutocompletionProvider
   }
 
   public getRegExp(): RegExp {
-    return /(?:^|\n| )(?:#)([a-z0-9\\+\\-][a-z0-9_]*)?/g
+    return /(?:^|\n| )(?:#)([a-z\d\\+-][a-z\d_]*)?/g
   }
 
   public getAutocompletionItems(

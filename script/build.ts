@@ -8,6 +8,7 @@ import * as packager from 'electron-packager'
 const legalEagle: LegalEagle = require('legal-eagle')
 
 const distInfo = require('./dist-info')
+
 const getReleaseChannel: () => string = distInfo.getReleaseChannel
 const getVersion: () => string = distInfo.getVersion
 const getExecutableName: () => string = distInfo.getExecutableName
@@ -47,7 +48,6 @@ updateLicenseDump(err => {
 
     if (isPublishableBuild) {
       process.exit(1)
-      return
     }
   }
 
@@ -172,12 +172,14 @@ function copyStaticResources() {
 }
 
 function copyDependencies() {
+  // eslint-disable-next-line import/no-dynamic-require
   const originalPackage: Package = require(path.join(
     projectRoot,
     'app',
     'package.json'
   ))
 
+  // eslint-disable-next-line import/no-dynamic-require
   const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
   const externals = commonConfig.externals
   const oldDependencies = originalPackage.dependencies
