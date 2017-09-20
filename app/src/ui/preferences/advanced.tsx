@@ -9,6 +9,7 @@ import { ExternalEditor, parse as parseEditor } from '../../models/editors'
 import { Shell, parse as parseShell } from '../../lib/shells'
 import { getGlobalConfigValue } from '../../lib/git'
 import { TextBox } from '../lib/text-box'
+import { enablePreviewFeatures } from '../../lib/feature-flag'
 
 interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
@@ -201,6 +202,10 @@ export class Advanced extends React.Component<
   }
 
   private renderMergeTool() {
+    if (!enablePreviewFeatures()) {
+      return null
+    }
+
     return (
       <div className="brutalism">
         <strong>{__DARWIN__ ? 'Merge Tool' : 'Merge tool'}</strong>
