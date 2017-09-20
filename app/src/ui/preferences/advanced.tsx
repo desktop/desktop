@@ -7,9 +7,9 @@ import { SamplesURL } from '../../lib/stats'
 import { Select } from '../lib/select'
 import { ExternalEditor, parse as parseEditor } from '../../models/editors'
 import { Shell, parse as parseShell } from '../../lib/shells'
-import { getGlobalConfigValue } from '../../lib/git'
 import { TextBox } from '../lib/text-box'
 import { enablePreviewFeatures } from '../../lib/feature-flag'
+import { IMergeTool } from '../../lib/git/config'
 
 interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
@@ -24,6 +24,10 @@ interface IAdvancedPreferencesProps {
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
+
+  readonly mergeTool: IMergeTool | null
+  readonly onMergeToolNameChanged: (name: string) => void
+  readonly onMergeToolCommandChanged: (command: string) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -32,8 +36,6 @@ interface IAdvancedPreferencesState {
   readonly selectedShell: Shell
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
-  readonly mergeToolName: string | null
-  readonly mergeToolCommand: string | null
 }
 
 export class Advanced extends React.Component<
@@ -49,18 +51,6 @@ export class Advanced extends React.Component<
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
-      mergeToolName: null,
-      mergeToolCommand: null,
-    }
-  }
-
-  public async componentDidMount() {
-    const mergeToolName = await getGlobalConfigValue('merge.tool')
-    if (mergeToolName) {
-      const mergeToolCommand = await getGlobalConfigValue(
-        `mergetool.${mergeToolName}.cmd`
-      )
-      this.setState({ mergeToolName, mergeToolCommand })
     }
   }
 
@@ -206,6 +196,8 @@ export class Advanced extends React.Component<
       return null
     }
 
+    const mergeTool = this.props.mergeTool
+
     return (
       <div className="brutalism">
         <strong>{__DARWIN__ ? 'Merge Tool' : 'Merge tool'}</strong>
@@ -213,16 +205,16 @@ export class Advanced extends React.Component<
         <Row>
           <TextBox
             placeholder="Name"
-            value={this.state.mergeToolName || ''}
-            onValueChanged={this.onMergeToolNameChanged}
+            value={mergeTool ? mergeTool.name : ''}
+            onValueChanged={this.props.onMergeToolNameChanged}
           />
         </Row>
 
         <Row>
           <TextBox
             placeholder="Command"
-            value={this.state.mergeToolCommand || ''}
-            onValueChanged={this.onMergeToolCommandChanged}
+            value={mergeTool && mergeTool.command ? mergeTool.command : ''}
+            onValueChanged={this.props.onMergeToolCommandChanged}
           />
         </Row>
       </div>
@@ -271,19 +263,4 @@ export class Advanced extends React.Component<
       </DialogContent>
     )
   }
-
-  private onMergeToolNameChanged = (mergeToolName: string) => {
-    this.setState({ mergeToolName })
-  }
-
-  private onMergeToolCommandChanged = (mergeToolCommand: string) => {
-    this.setState({ mergeToolCommand })
-  }
-
-  // private saveMergeTool = async () => {
-  //   const mergeTool = this.state.mergeTool
-  //   if (mergeTool) {
-  //     await setGlobalConfigValue(MergeToolKeyName, mergeTool)
-  //   }
-  // }
 }

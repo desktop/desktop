@@ -14,6 +14,8 @@ import { Dialog, DialogFooter } from '../dialog'
 import {
   getGlobalConfigValue,
   setGlobalConfigValue,
+  getMergeTool,
+  IMergeTool,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
@@ -43,6 +45,7 @@ interface IPreferencesState {
   readonly selectedExternalEditor?: ExternalEditor
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+  readonly mergeTool: IMergeTool | null
 }
 
 /** The app-level preferences component. */
@@ -64,6 +67,7 @@ export class Preferences extends React.Component<
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
+      mergeTool: null,
     }
   }
 
@@ -91,9 +95,10 @@ export class Preferences extends React.Component<
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
-    const [editors, shells] = await Promise.all([
+    const [editors, shells, mergeTool] = await Promise.all([
       getAvailableEditors(),
       getAvailableShells(),
+      getMergeTool(),
     ])
 
     const availableEditors = editors.map(e => e.editor)
@@ -107,6 +112,7 @@ export class Preferences extends React.Component<
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       availableShells,
       availableEditors,
+      mergeTool,
     })
   }
 
