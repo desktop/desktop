@@ -74,3 +74,22 @@ export async function getGlobalConfigPath(): Promise<string | null> {
 
   return path[1]
 }
+
+export interface IMergeTool {
+  /** The name of the configured merge tool. */
+  readonly name: string
+
+  /** The command to run for the merge tool. */
+  readonly command: string | null
+}
+
+/** Get the configured merge tool. */
+export async function getMergeTool(): Promise<IMergeTool | null> {
+  const name = await getGlobalConfigValue('merge.tool')
+  if (name) {
+    const command = await getGlobalConfigValue(`mergetool.${name}.cmd`)
+    return { name, command }
+  } else {
+    return null
+  }
+}
