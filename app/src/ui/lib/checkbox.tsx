@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { createUniqueId, releaseUniqueId } from './id-pool'
 
 /** The possible values for a Checkbox component. */
 export enum CheckboxValue {
@@ -8,6 +9,9 @@ export enum CheckboxValue {
 }
 
 interface ICheckboxProps {
+  /** Is the component disabled. */
+  readonly disabled?: boolean
+
   /** The current value of the component. */
   readonly value: CheckboxValue
 
@@ -18,12 +22,20 @@ interface ICheckboxProps {
   readonly tabIndex?: number
 
   /** The label for the checkbox. */
-  readonly label?: string
+  readonly label?: string | JSX.Element
+}
+
+interface ICheckboxState {
+  /**
+   * An automatically generated id for the input element used to reference
+   * it from the label element. This is generated once via the id pool when the
+   * component is mounted and then released once the component unmounts.
+   */
+  readonly inputId?: string
 }
 
 /** A checkbox component which supports the mixed value. */
-export class Checkbox extends React.Component<ICheckboxProps, void> {
-
+export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
   private input: HTMLInputElement | null
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -34,6 +46,19 @@ export class Checkbox extends React.Component<ICheckboxProps, void> {
 
   public componentDidUpdate() {
     this.updateInputState()
+  }
+
+  public componentWillMount() {
+    const friendlyName = this.props.label || 'unknown'
+    const inputId = createUniqueId(`Checkbox_${friendlyName}`)
+
+    this.setState({ inputId })
+  }
+
+  public componentWillUnmount() {
+    if (this.state.inputId) {
+      releaseUniqueId(this.state.inputId)
+    }
   }
 
   private updateInputState() {
@@ -52,18 +77,26 @@ export class Checkbox extends React.Component<ICheckboxProps, void> {
     this.updateInputState()
   }
 
+  private renderLabel() {
+    const label = this.props.label
+    const inputId = this.state.inputId
+
+    return label ? <label htmlFor={inputId}>{label}</label> : null
+  }
+
   public render() {
     return (
-      <label className='checkbox-component'>
+      <div className="checkbox-component">
         <input
+          id={this.state.inputId}
           tabIndex={this.props.tabIndex}
-          type='checkbox'
+          type="checkbox"
           onChange={this.onChange}
           ref={this.onInputRef}
+          disabled={this.props.disabled}
         />
-
-        {this.props.label}
-      </label>
+        {this.renderLabel()}
+      </div>
     )
   }
 }

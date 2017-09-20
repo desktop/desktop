@@ -1,9 +1,43 @@
 #preferences {
-  min-width: 320px;
-  min-height: 325px;
+  .accounts-tab {
 
-  .avatar {
-    width: 32px;
-    height: 32px;
+    .account-info {
+      .avatar {
+        // 32px for the image + 2 on each side for the base border.
+        width: 34px;
+        height: 34px;
+
+        border: var(--base-border);
+
+        align-self: center;
+      }
+
+      .user-info {
+        flex-grow: 1;
+        align-self: flex-start;
+
+        .name {
+          font-weight: var(--font-weight-semibold);
+          // Tighten it up a little so that the real name and
+          // username lines up with the avatar.
+          margin-top: -2px;
+          margin-bottom: -2px;
+        }
+      }
+    }
   }
+
+  .no-options-found {
+    label {
+      margin-bottom: 0;
+    }
+
+    span {
+      color: var(--text-secondary-color);
+    }
+  }
+}
+
+#external-editor-error {
+  width: 450px;
 }

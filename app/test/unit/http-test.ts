@@ -1,110 +1,42 @@
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
-import { getEncoding, getContentType, IHTTPResponse } from '../../src/lib/http'
+import { getAbsoluteUrl } from '../../src/lib/http'
+import { getDotComAPIEndpoint } from '../../src/lib/api'
 
-describe('HTTP', () => {
-  describe('getContentType', () => {
-    it('returns null when not found', () => {
-      const sampleResponse: IHTTPResponse = {
-        headers: { },
-      }
+describe('getAbsoluteUrl', () => {
+  describe('dotcom endpoint', () => {
+    const dotcomEndpoint = getDotComAPIEndpoint()
 
-      const result = getContentType(sampleResponse)
-      expect(result).to.be.null
+    it('handles leading slashes', () => {
+      const result = getAbsoluteUrl(dotcomEndpoint, '/user/repos')
+      expect(result).to.equal('https://api.github.com/user/repos')
     })
 
-    it('performs case-insensitive match', () => {
-      const sentenceCasing: IHTTPResponse = {
-        headers: {
-          'Content-Type': [ 'text/html' ],
-        },
-      }
-      const lowerCasing: IHTTPResponse = {
-        headers: {
-          'content-type': [ 'text/html' ],
-        },
-      }
-
-      const first = getContentType(sentenceCasing)
-      expect(first).to.equal('text/html')
-
-      const second = getContentType(lowerCasing)
-      expect(second).to.equal('text/html')
-    })
-
-    it('ignores parameters provided after', () => {
-      const sampleResponse: IHTTPResponse = {
-        headers: {
-          'content-type': [ 'application/json; charset=utf-8' ],
-        },
-      }
-
-      const result = getContentType(sampleResponse)
-      expect(result).to.equal('application/json')
+    it('handles missing leading slash', () => {
+      const result = getAbsoluteUrl(dotcomEndpoint, 'user/repos')
+      expect(result).to.equal('https://api.github.com/user/repos')
     })
   })
 
- describe('getEncoding', () => {
-    it('returns null when not found', () => {
-      const sampleResponse: IHTTPResponse = {
-        headers: { },
-      }
+  describe('enterprise endpoint', () => {
+    const enterpriseEndpoint = 'https://my-cool-company.com/api/v3'
 
-      const result = getEncoding(sampleResponse)
-      expect(result).to.be.null
+    it('handles leading slash', () => {
+      const result = getAbsoluteUrl(enterpriseEndpoint, '/user/repos')
+      expect(result).to.equal(`${enterpriseEndpoint}/user/repos`)
     })
 
-    it('performs case-insensitive match', () => {
-      const sentenceCasing: IHTTPResponse = {
-        headers: {
-          'Content-Type': [ 'text/html; charset=utf-16' ],
-        },
-      }
-      const lowerCasing: IHTTPResponse = {
-        headers: {
-          'content-type': [ 'text/html; charset=utf-16' ],
-        },
-      }
-
-      const first = getEncoding(sentenceCasing)
-      expect(first).to.equal('utf-16')
-
-      const second = getEncoding(lowerCasing)
-      expect(second).to.equal('utf-16')
+    it('handles missing leading slash', () => {
+      const result = getAbsoluteUrl(enterpriseEndpoint, 'user/repos')
+      expect(result).to.equal(`${enterpriseEndpoint}/user/repos`)
     })
 
-    it('returns ISO-8859-1 when omitted for text/html', () => {
-      const sampleResponse: IHTTPResponse = {
-        headers: {
-          'content-type': [ 'text/html' ],
-        },
-      }
-
-      const result = getEncoding(sampleResponse)
-      expect(result).to.equal('iso-8859-1')
-    })
-
-    it('returns UTF-8 when omitted for application/json', () => {
-      const sampleResponse: IHTTPResponse = {
-        headers: {
-          'content-type': [ 'application/json' ],
-        },
-      }
-
-      const result = getEncoding(sampleResponse)
-      expect(result).to.equal('utf-8')
-    })
-
-    it('returns null when omitted for image/png', () => {
-      const sampleResponse: IHTTPResponse = {
-        headers: {
-          'content-type': [ 'image/png' ],
-        },
-      }
-
-      const result = getEncoding(sampleResponse)
-      expect(result).to.be.null
+    it('handles next page resource which already contains prefix', () => {
+      const result = getAbsoluteUrl(
+        enterpriseEndpoint,
+        '/api/v3/user/repos?page=2'
+      )
+      expect(result).to.equal(`${enterpriseEndpoint}/user/repos?page=2`)
     })
   })
 })

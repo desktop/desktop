@@ -1,5 +1,5 @@
 import { Repository } from '../../models/repository'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
 import { API } from '../api'
 import { fatalError } from '../fatal-error'
@@ -25,7 +25,7 @@ const SkewUpperBound = 30 * 1000
 /** The class which handles doing background fetches of the repository. */
 export class BackgroundFetcher {
   private readonly repository: Repository
-  private readonly user: User
+  private readonly account: Account
   private readonly fetch: (repository: Repository) => Promise<void>
 
   /** The handle for our setTimeout invocation. */
@@ -34,23 +34,36 @@ export class BackgroundFetcher {
   /** Flag to indicate whether `stop` has been called. */
   private stopped = false
 
-  public constructor(repository: Repository, user: User, fetch: (repository: Repository) => Promise<void>) {
+  public constructor(
+    repository: Repository,
+    account: Account,
+    fetch: (repository: Repository) => Promise<void>
+  ) {
     this.repository = repository
-    this.user = user
+    this.account = account
     this.fetch = fetch
   }
 
   /** Start background fetching. */
-  public start() {
+  public start(withInitialSkew: boolean) {
     if (this.stopped) {
       fatalError('Cannot start a background fetcher that has been stopped.')
       return
     }
 
     const gitHubRepository = this.repository.gitHubRepository
-    if (!gitHubRepository) { return }
+    if (!gitHubRepository) {
+      return
+    }
 
-    this.performAndScheduleFetch(gitHubRepository)
+    if (withInitialSkew) {
+      this.timeoutHandle = window.setTimeout(
+        () => this.performAndScheduleFetch(gitHubRepository),
+        skewInterval()
+      )
+    } else {
+      this.performAndScheduleFetch(gitHubRepository)
+    }
   }
 
   /**
@@ -62,41 +75,59 @@ export class BackgroundFetcher {
 
     const handle = this.timeoutHandle
     if (handle) {
-      clearTimeout(handle)
+      window.clearTimeout(handle)
       this.timeoutHandle = null
     }
   }
 
   /** Perform a fetch and schedule the next one. */
-  private async performAndScheduleFetch(repository: GitHubRepository): Promise<void> {
+  private async performAndScheduleFetch(
+    repository: GitHubRepository
+  ): Promise<void> {
+    if (this.stopped) {
+      return
+    }
+
     try {
       await this.fetch(this.repository)
     } catch (e) {
-      console.error('Error performing periodic fetch:')
-      console.error(e)
+      log.error('Error performing periodic fetch', e)
     }
 
-    if (this.stopped) { return }
+    if (this.stopped) {
+      return
+    }
 
     const interval = await this.getFetchInterval(repository)
-    if (this.stopped) { return }
+    if (this.stopped) {
+      return
+    }
 
-    // NB: We need to use `window.` here to make sure TypeScript looks at the
-    // right type declaration :\
-    this.timeoutHandle = window.setTimeout(() => this.performAndScheduleFetch(repository), interval)
+    this.timeoutHandle = window.setTimeout(
+      () => this.performAndScheduleFetch(repository),
+      interval
+    )
   }
 
   /** Get the allowed fetch interval from the server. */
-  private async getFetchInterval(repository: GitHubRepository): Promise<number> {
-    const api = new API(this.user)
+  private async getFetchInterval(
+    repository: GitHubRepository
+  ): Promise<number> {
+    const api = API.fromAccount(this.account)
 
     let interval = DefaultFetchInterval
     try {
-      const pollInterval = await api.getFetchPollInterval(repository.owner.login, repository.name)
-      interval = Math.max(pollInterval, MinimumInterval)
+      const pollInterval = await api.getFetchPollInterval(
+        repository.owner.login,
+        repository.name
+      )
+      if (pollInterval) {
+        interval = Math.max(pollInterval, MinimumInterval)
+      } else {
+        interval = DefaultFetchInterval
+      }
     } catch (e) {
-      console.error('Error fetching poll interval:')
-      console.error(e)
+      log.error('Error fetching poll interval', e)
     }
 
     return interval + skewInterval()
@@ -116,7 +147,7 @@ function skewInterval(): number {
 
   // We don't need cryptographically secure random numbers for
   // the skew. Pseudo-random should be just fine.
-  // tslint:disable-next-line:insecure-random
+  // eslint-disable-next-line insecure-random
   const skew = Math.ceil(Math.random() * SkewUpperBound)
   _skewInterval = skew
   return skew

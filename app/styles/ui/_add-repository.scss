@@ -1,0 +1,80 @@
+#add-repository {
+  width: 350px;
+
+  .content {
+    margin: var(--spacing-double);
+  }
+}
+
+.clone-github-repo {
+  height: 250px;
+
+  .filter-list-filter-field {
+    padding: var(--spacing-double);
+    padding-bottom: var(--spacing);
+  }
+
+  .clone-repository-list {
+    &-group-header {
+      font-weight: var(--font-weight-semibold);
+      padding: var(--spacing) var(--spacing-double);
+    }
+
+    &-item {
+      padding: 0 var(--spacing-double);
+    }
+
+    &-item {
+      display: flex;
+      flex-direction: row;
+      min-width: 0;
+      flex-grow: 1;
+      align-items: center;
+
+      .icon {
+        fill: var(--text-secondary-color);
+        margin-right: var(--spacing-half);
+        width: 16px; // Force a consistent width
+        flex-shrink: 0;
+      }
+    }
+  }
+}
+
+.dialog-content {
+  &.clone-github-repository-content {
+    padding: 0;
+
+    .row-component:not(:last-child) {
+       margin: 0;
+     }
+  }
+
+  &.clone-generic-repository-content {
+    padding: var(--spacing-double);
+  }
+}
+
+.clone-repository {
+  width: 450px;
+
+  .local-path-field {
+    border-top: var(--base-border);
+    padding: var(--spacing-double);
+  }
+
+  .clone-loading {
+    display: flex;
+    color: var(--text-secondary-color);
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+
+    .octicon {
+      fill: var(--text-secondary-color);
+      margin-right: var(--spacing-half);
+    }
+  }
+}

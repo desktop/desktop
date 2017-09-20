@@ -1,14 +1,24 @@
 import * as React from 'react'
 import { Repository as Repo } from '../models/repository'
+import { Commit } from '../models/commit'
 import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
+import { NoChanges } from './changes/no-changes'
 import { History, HistorySidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
-import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
-import { Dispatcher, IssuesStore } from '../lib/dispatcher'
+import {
+  IRepositoryState as IRepositoryModelState,
+  RepositorySection,
+  ImageDiffType,
+} from '../lib/app-state'
+import { Dispatcher, IssuesStore, GitHubUserStore } from '../lib/dispatcher'
 import { assertNever } from '../lib/fatal-error'
+import { Octicon, OcticonSymbol } from './octicons'
+
+/** The widest the sidebar can be with the minimum window size. */
+const MaxSidebarWidth = 495
 
 interface IRepositoryProps {
   readonly repository: Repo
@@ -18,6 +28,10 @@ interface IRepositoryProps {
   readonly sidebarWidth: number
   readonly commitSummaryWidth: number
   readonly issuesStore: IssuesStore
+  readonly gitHubUserStore: GitHubUserStore
+  readonly onViewCommitOnGitHub: (SHA: string) => void
+  readonly imageDiffType: ImageDiffType
+  readonly askForConfirmationOnDiscardChanges: boolean
 }
 
 const enum Tab {
@@ -25,19 +39,25 @@ const enum Tab {
   History = 1,
 }
 
-export class RepositoryView extends React.Component<IRepositoryProps, void> {
-
+export class RepositoryView extends React.Component<IRepositoryProps, {}> {
   private renderTabs(): JSX.Element {
-    const hasChanges = this.props.state.changesState.workingDirectory.files.length > 0
-    const selectedTab = this.props.state.selectedSection === RepositorySection.Changes
-      ? Tab.Changes
-      : Tab.History
+    const hasChanges =
+      this.props.state.changesState.workingDirectory.files.length > 0
+    const selectedTab =
+      this.props.state.selectedSection === RepositorySection.Changes
+        ? Tab.Changes
+        : Tab.History
 
     return (
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
-        <span>
+        <span className="with-indicator">
           <span>Changes</span>
-          {hasChanges ? <span className='indicator'/> : null}
+          {hasChanges ? (
+            <Octicon
+              className="indicator"
+              symbol={OcticonSymbol.primitiveDot}
+            />
+          ) : null}
         </span>
         <span>History</span>
       </TabBar>
@@ -46,13 +66,15 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
 
   private renderChangesSidebar(): JSX.Element {
     const tip = this.props.state.branchesState.tip
-    const branch = tip.kind === TipState.Valid
-      ? tip.branch
-      : null
+    const branch = tip.kind === TipState.Valid ? tip.branch : null
 
     const localCommitSHAs = this.props.state.localCommitSHAs
-    const mostRecentLocalCommitSHA = localCommitSHAs.length > 0 ? localCommitSHAs[0] : null
-    const mostRecentLocalCommit = (mostRecentLocalCommitSHA ? this.props.state.commits.get(mostRecentLocalCommitSHA) : null) || null
+    const mostRecentLocalCommitSHA =
+      localCommitSHAs.length > 0 ? localCommitSHAs[0] : null
+    const mostRecentLocalCommit =
+      (mostRecentLocalCommitSHA
+        ? this.props.state.commits.get(mostRecentLocalCommitSHA)
+        : null) || null
 
     // -1 Because of right hand side border
     const availableWidth = this.props.sidebarWidth - 1
@@ -68,7 +90,14 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         emoji={this.props.emoji}
         mostRecentLocalCommit={mostRecentLocalCommit}
         issuesStore={this.props.issuesStore}
-        availableWidth={availableWidth} />
+        availableWidth={availableWidth}
+        gitHubUserStore={this.props.gitHubUserStore}
+        isCommitting={this.props.state.isCommitting}
+        isPushPullFetchInProgress={this.props.state.isPushPullFetchInProgress}
+        askForConfirmationOnDiscardChanges={
+          this.props.askForConfirmationOnDiscardChanges
+        }
+      />
     )
   }
 
@@ -80,7 +109,11 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         history={this.props.state.historyState}
         gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
-        commits={this.props.state.commits}/>
+        commits={this.props.state.commits}
+        localCommitSHAs={this.props.state.localCommitSHAs}
+        onRevertCommit={this.onRevertCommit}
+        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+      />
     )
   }
 
@@ -107,10 +140,12 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
   private renderSidebar(): JSX.Element {
     return (
       <Resizable
-        id='repository-sidebar'
+        id="repository-sidebar"
         width={this.props.sidebarWidth}
         onReset={this.handleSidebarWidthReset}
-        onResize={this.handleSidebarResize}>
+        onResize={this.handleSidebarResize}
+        maximumWidth={MaxSidebarWidth}
+      >
         {this.renderTabs()}
         {this.renderSidebarContents()}
       </Resizable>
@@ -121,19 +156,42 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {
-      return <Changes repository={this.props.repository}
-                      dispatcher={this.props.dispatcher}
-                      changes={this.props.state.changesState} />
+      const changesState = this.props.state.changesState
+      const selectedFileID = changesState.selectedFileID
+      const selectedFile = selectedFileID
+        ? changesState.workingDirectory.findFileWithID(selectedFileID)
+        : null
+      const diff = changesState.diff
+      if (
+        !changesState.workingDirectory.files.length ||
+        !selectedFile ||
+        !diff
+      ) {
+        return <NoChanges onOpenRepository={this.openRepository} />
+      } else {
+        return (
+          <Changes
+            repository={this.props.repository}
+            dispatcher={this.props.dispatcher}
+            file={selectedFile}
+            diff={diff}
+            imageDiffType={this.props.imageDiffType}
+          />
+        )
+      }
     } else if (selectedSection === RepositorySection.History) {
-      return <History repository={this.props.repository}
-        dispatcher={this.props.dispatcher}
-        history={this.props.state.historyState}
-        emoji={this.props.emoji}
-        commits={this.props.state.commits}
-        localCommitSHAs={this.props.state.localCommitSHAs}
-        commitSummaryWidth={this.props.commitSummaryWidth}
-        gitHubUsers={this.props.state.gitHubUsers}
-      />
+      return (
+        <History
+          repository={this.props.repository}
+          dispatcher={this.props.dispatcher}
+          history={this.props.state.historyState}
+          emoji={this.props.emoji}
+          commits={this.props.state.commits}
+          commitSummaryWidth={this.props.commitSummaryWidth}
+          gitHubUsers={this.props.state.gitHubUsers}
+          imageDiffType={this.props.imageDiffType}
+        />
+      )
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
@@ -141,11 +199,19 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
 
   public render() {
     return (
-      <UiView id='repository' onKeyDown={this.onKeyDown}>
+      <UiView id="repository" onKeyDown={this.onKeyDown}>
         {this.renderSidebar()}
         {this.renderContent()}
       </UiView>
     )
+  }
+
+  private openRepository = () => {
+    this.props.dispatcher.revealInFileManager(this.props.repository, '')
+  }
+
+  private onRevertCommit = (commit: Commit) => {
+    this.props.dispatcher.revertCommit(this.props.repository, commit)
   }
 
   private onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -153,18 +219,27 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     // about the shift key here, we can get away with that as long
     // as there's only two tabs.
     if (e.ctrlKey && e.key === 'Tab') {
+      const section =
+        this.props.state.selectedSection === RepositorySection.History
+          ? RepositorySection.Changes
+          : RepositorySection.History
 
-      const section = this.props.state.selectedSection === RepositorySection.History
-        ? RepositorySection.Changes
-        : RepositorySection.History
-
-      this.props.dispatcher.changeRepositorySection(this.props.repository, section)
+      this.props.dispatcher.changeRepositorySection(
+        this.props.repository,
+        section
+      )
       e.preventDefault()
     }
   }
 
   private onTabClicked = (tab: Tab) => {
-    const section = tab === Tab.History ? RepositorySection.History : RepositorySection.Changes
-    this.props.dispatcher.changeRepositorySection(this.props.repository, section)
+    const section =
+      tab === Tab.History
+        ? RepositorySection.History
+        : RepositorySection.Changes
+    this.props.dispatcher.changeRepositorySection(
+      this.props.repository,
+      section
+    )
   }
 }

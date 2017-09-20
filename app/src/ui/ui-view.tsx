@@ -1,8 +1,7 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
-const uiViewClassName = 'ui-view'
-
-interface IUiViewProps extends React.HTMLProps<HTMLDivElement> { }
+interface IUiViewProps extends React.HTMLProps<HTMLDivElement> {}
 
 /**
  * High order component for housing a View.
@@ -17,22 +16,11 @@ interface IUiViewProps extends React.HTMLProps<HTMLDivElement> { }
  * Examples of what's not a View include the Changes and History tabs
  * as these are contained within the <Repository /> view
  */
-export class UiView extends React.Component<IUiViewProps, void> {
-
-  public static defaultProps: IUiViewProps = {
-    className: uiViewClassName,
-  }
-
+export class UiView extends React.Component<IUiViewProps, {}> {
   public render() {
+    const className = classNames(this.props.className, 'ui-view')
+    const props = { ...this.props, className }
 
-    // TODO: If this gets more complex, consider using something like
-    // https://github.com/JedWatson/classnames
-    if (this.props.className !== 'ui-view') {
-      this.props.className += ` ${uiViewClassName}`
-    }
-
-    return <div {...this.props}>
-      {this.props.children}
-    </div>
+    return <div {...props}>{this.props.children}</div>
   }
 }

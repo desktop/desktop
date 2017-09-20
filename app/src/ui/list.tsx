@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as classNames from 'classnames'
 import { Grid, AutoSizer } from 'react-virtualized'
+import { shallowEquals } from '../lib/equality'
+import { createUniqueId, releaseUniqueId } from './lib/id-pool'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -31,7 +33,7 @@ export interface IRowRendererParams {
  * originating from a pointer device clicking or pressing on an item.
  */
 export interface IMouseClickSource {
-  readonly kind: 'mouseclick',
+  readonly kind: 'mouseclick'
   readonly event: React.MouseEvent<any>
 }
 
@@ -41,7 +43,7 @@ export interface IMouseClickSource {
  * Only applicable when selectedOnHover is set.
  */
 export interface IHoverSource {
-  readonly kind: 'hover',
+  readonly kind: 'hover'
   readonly event: React.MouseEvent<any>
 }
 
@@ -50,20 +52,14 @@ export interface IHoverSource {
  * originating from a keyboard
  */
 export interface IKeyboardSource {
-  readonly kind: 'keyboard',
+  readonly kind: 'keyboard'
   readonly event: React.KeyboardEvent<any>
 }
 
 /** A type union of possible sources of a selection changed event */
-export type SelectionSource =
-  IMouseClickSource |
-  IHoverSource |
-  IKeyboardSource
+export type SelectionSource = IMouseClickSource | IHoverSource | IKeyboardSource
 
-
-export type ClickSource =
-  IMouseClickSource |
-  IKeyboardSource
+export type ClickSource = IMouseClickSource | IKeyboardSource
 
 interface IListProps {
   /**
@@ -116,12 +112,11 @@ interface IListProps {
 
   /**
    * This function will be called when the selection changes as a result of a
-   * user keyboard or mouse action (i.e. not when props change). Note that this
-   * differs from `onRowSelected`. For example, it won't be called if an already
-   * selected row is clicked on.
+   * user keyboard or mouse action (i.e. not when props change). This function
+   * will not be invoked when an already selected row is clicked on.
    *
    * @param row    - The index of the row that was just selected
-   * @param source - The kind of user action that provoced the change, either
+   * @param source - The kind of user action that provoked the change, either
    *                 a pointer device press, hover (if selectOnHover is set) or
    *                 a keyboard event (arrow up/down)
    */
@@ -138,6 +133,13 @@ interface IListProps {
    * for calling event.preventDefault() when acting on a key press.
    */
   readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
+
+  /**
+   * A handler called whenever a mouse down event is received on the
+   * row container element. Unlike onSelectionChanged, this is raised
+   * for every mouse down event, whether the row is selected or not.
+   */
+  readonly onRowMouseDown?: (row: number, event: React.MouseEvent<any>) => void
 
   /**
    * An optional handler called to determine whether a given row is
@@ -162,14 +164,40 @@ interface IListProps {
 
   /** Whether or not selection should follow pointer device */
   readonly selectOnHover?: boolean
+
+  /**
+   * Whether or not to explicitly move focus to a row if it was selected
+   * by hovering (has no effect if selectOnHover is not set). Defaults to
+   * true if not defined.
+   */
+  readonly focusOnHover?: boolean
+
+  readonly ariaMode?: 'list' | 'menu'
 }
 
-export class List extends React.Component<IListProps, void> {
+interface IListState {
+  /** The available height for the list as determined by ResizeObserver */
+  readonly height?: number
+
+  /** The available width for the list as determined by ResizeObserver */
+  readonly width?: number
+
+  readonly rowIdPrefix?: string
+}
+
+export class List extends React.Component<IListProps, IListState> {
   private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
 
   private scrollToRow = -1
   private focusRow = -1
+
+  /**
+   * The style prop for our child Grid. We keep this here in order
+   * to not create a new object on each render and thus forcing
+   * the Grid to re-render even though nothing has changed.
+   */
+  private gridStyle: React.CSSProperties = { overflowX: 'hidden' }
 
   /**
    * On Win32 we use a fake scroll bar. This variable keeps track of
@@ -181,7 +209,64 @@ export class List extends React.Component<IListProps, void> {
    */
   private lastScroll: 'grid' | 'fake' | null = null
 
+  private list: HTMLDivElement | null = null
   private grid: React.Component<any, any> | null
+  private readonly resizeObserver: ResizeObserver | null = null
+  private updateSizeTimeoutId: number | null = null
+
+  public constructor(props: IListProps) {
+    super(props)
+
+    this.state = {}
+
+    const ResizeObserverClass: typeof ResizeObserver = (window as any)
+      .ResizeObserver
+
+    if (ResizeObserver || false) {
+      this.resizeObserver = new ResizeObserverClass(entries => {
+        for (const entry of entries) {
+          if (entry.target === this.list) {
+            // We might end up causing a recursive update by updating the state
+            // when we're reacting to a resize so we'll defer it until after
+            // react is done with this frame.
+            if (this.updateSizeTimeoutId !== null) {
+              clearImmediate(this.updateSizeTimeoutId)
+            }
+
+            this.updateSizeTimeoutId = setImmediate(
+              this.onResized,
+              entry.target,
+              entry.contentRect
+            )
+          }
+        }
+      })
+    }
+  }
+
+  private onResized = (target: HTMLElement, contentRect: ClientRect) => {
+    this.updateSizeTimeoutId = null
+
+    const [width, height] = [target.offsetWidth, target.offsetHeight]
+
+    if (this.state.width !== width || this.state.height !== height) {
+      this.setState({ width, height })
+    }
+  }
+
+  private onRef = (element: HTMLDivElement | null) => {
+    this.list = element
+
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+
+      if (element) {
+        this.resizeObserver.observe(element)
+      } else {
+        this.setState({ width: undefined, height: undefined })
+      }
+    }
+  }
 
   private handleKeyDown = (event: React.KeyboardEvent<any>) => {
     const row = this.props.selectedRow
@@ -191,7 +276,9 @@ export class List extends React.Component<IListProps, void> {
 
     // The consumer is given a change to prevent the default behavior for
     // keyboard navigation so that they can customize its behavior as needed.
-    if (event.defaultPrevented) { return }
+    if (event.defaultPrevented) {
+      return
+    }
 
     if (event.key === 'ArrowDown') {
       this.moveSelection('down', event)
@@ -259,12 +346,13 @@ export class List extends React.Component<IListProps, void> {
 
   /** Convenience method for invoking canSelectRow callback when it exists */
   private canSelectRow(rowIndex: number) {
-    return this.props.canSelectRow
-      ? this.props.canSelectRow(rowIndex)
-      : true
+    return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
   }
 
-  private moveSelection(direction: 'up' | 'down', event: React.KeyboardEvent<any>) {
+  private moveSelection(
+    direction: 'up' | 'down',
+    event: React.KeyboardEvent<any>
+  ) {
     const newRow = this.nextSelectableRow(direction, this.props.selectedRow)
 
     if (this.props.onSelectionChanged) {
@@ -276,13 +364,17 @@ export class List extends React.Component<IListProps, void> {
 
   private scrollRowToVisible(row: number) {
     this.scrollToRow = row
-    this.focusRow = row
+
+    if (this.props.focusOnHover !== false) {
+      this.focusRow = row
+    }
+
     this.forceUpdate()
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate(prevProps: IListProps, prevState: IListState) {
     // If this state is set it means that someone just used arrow keys (or pgup/down)
-    // to change the selected row. When this happens we need to explcitly shift
+    // to change the selected row. When this happens we need to explicitly shift
     // keyboard focus to the newly selected item. If focusItem is null then
     // we're probably just loading more items and we'll catch it on the next
     // render pass.
@@ -290,7 +382,57 @@ export class List extends React.Component<IListProps, void> {
       this.focusItem.focus()
       this.focusRow = -1
       this.forceUpdate()
+    } else if (this.grid) {
+      // A non-exhaustive set of checks to see if our current update has already
+      // triggered a re-render of the Grid. In order to do this perfectly we'd
+      // have to do a shallow compare on all the props we pass to Grid but
+      // this should cover the majority of cases.
+      const gridHasUpdatedAlready =
+        this.props.rowCount !== prevProps.rowCount ||
+        this.state.width !== prevState.width ||
+        this.state.height !== prevState.height
+
+      if (!gridHasUpdatedAlready) {
+        const selectedRowChanged =
+          prevProps.selectedRow !== this.props.selectedRow
+        const invalidationPropsChanged = !shallowEquals(
+          prevProps.invalidationProps,
+          this.props.invalidationProps
+        )
+
+        // Now we need to figure out whether anything changed in such a way that
+        // the Grid has to update regardless of its props. Previously we passed
+        // our selectedRow and invalidationProps down to Grid and figured that
+        // it, being a pure component, would do the right thing but that's not
+        // quite the case since invalidationProps is a complex object.
+        if (selectedRowChanged || invalidationPropsChanged) {
+          this.grid.forceUpdate()
+        }
+      }
     }
+  }
+
+  public componentWillMount() {
+    this.setState({ rowIdPrefix: createUniqueId('ListRow') })
+  }
+
+  public componentWillUnmount() {
+    if (this.updateSizeTimeoutId !== null) {
+      clearImmediate(this.updateSizeTimeoutId)
+      this.updateSizeTimeoutId = null
+    }
+
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+    }
+
+    if (this.state.rowIdPrefix) {
+      releaseUniqueId(this.state.rowIdPrefix)
+    }
+  }
+
+  private onFocusedItemRef = (element: HTMLDivElement | null) => {
+    this.focusItem = element
   }
 
   private renderRow = (params: IRowRendererParams) => {
@@ -300,45 +442,90 @@ export class List extends React.Component<IListProps, void> {
     const focused = rowIndex === this.focusRow
     const className = classNames('list-item', { selected })
 
-    // An unselectable row shouldn't have any tabIndex (as -1 means
-    // it's given focus by clicking).
+    // An unselectable row shouldn't be focusable
     let tabIndex: number | undefined = undefined
     if (selectable) {
       tabIndex = selected ? 0 : -1
     }
 
     // We only need to keep a reference to the focused element
-    const ref = focused
-      ? (c: HTMLDivElement) => { this.focusItem = c }
-      : undefined
+    const ref = focused ? this.onFocusedItemRef : undefined
 
     const element = this.props.rowRenderer(params.rowIndex)
-    const role = selectable ? 'button' : undefined
 
+    // react-virtualized gives us an explicit pixel width for rows, but that
+    // width doesn't take into account whether or not the scroll bar needs
+    // width too, e.g., on macOS when "Show scroll bars" is set to "Always."
+    //
+    // *But* the parent Grid uses `autoContainerWidth` which means its width
+    // *does* reflect any width needed by the scroll bar. So we should just use
+    // that width.
+    const style = { ...params.style, width: '100%' }
+
+    const id = this.state.rowIdPrefix
+      ? `${this.state.rowIdPrefix}-${rowIndex}`
+      : undefined
+
+    const role = this.props.ariaMode === 'menu' ? 'menuitem' : 'option'
     return (
-      <div key={params.key}
-           role={role}
-           className={className}
-           tabIndex={tabIndex}
-           ref={ref}
-           onMouseOver={(e) => this.onRowMouseOver(rowIndex, e)}
-           onMouseDown={(e) => this.handleMouseDown(rowIndex, e)}
-           onClick={(e) => this.onRowClick(rowIndex, e)}
-           onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}
-           style={params.style}>
+      <div
+        key={params.key}
+        id={id}
+        aria-setsize={this.props.rowCount}
+        aria-posinset={rowIndex + 1}
+        aria-selected={selected || undefined}
+        role={role}
+        className={className}
+        tabIndex={tabIndex}
+        ref={ref}
+        /* eslint-disable react/jsx-no-bind */
+        onMouseOver={e => this.onRowMouseOver(rowIndex, e)}
+        onMouseDown={e => this.handleMouseDown(rowIndex, e)}
+        onClick={e => this.onRowClick(rowIndex, e)}
+        onKeyDown={e => this.handleRowKeyDown(rowIndex, e)}
+        /* eslint-enable react/jsx-no-bind */
+        style={style}
+      >
         {element}
       </div>
     )
   }
 
   public render() {
-    return (
-      <div id={this.props.id}
-           className='list'
-           onKeyDown={this.handleKeyDown}>
-        <AutoSizer disableWidth disableHeight>
-          {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
+    let content: JSX.Element[] | JSX.Element | null
+
+    if (this.resizeObserver) {
+      content =
+        this.state.width && this.state.height
+          ? this.renderContents(this.state.width, this.state.height)
+          : null
+    } else {
+      // Legacy in the event that we don't have ResizeObserver
+      content = (
+        <AutoSizer disableWidth={true} disableHeight={true}>
+          {({ width, height }: { width: number; height: number }) =>
+            this.renderContents(width, height)}
         </AutoSizer>
+      )
+    }
+
+    const activeDescendant =
+      this.props.selectedRow !== -1 && this.state.rowIdPrefix
+        ? `${this.state.rowIdPrefix}-${this.props.selectedRow}`
+        : undefined
+
+    const role = this.props.ariaMode === 'menu' ? 'menu' : 'listbox'
+
+    return (
+      <div
+        ref={this.onRef}
+        id={this.props.id}
+        className="list"
+        onKeyDown={this.handleKeyDown}
+        role={role}
+        aria-activedescendant={activeDescendant}
+      >
+        {content}
       </div>
     )
   }
@@ -353,18 +540,13 @@ export class List extends React.Component<IListProps, void> {
    */
   private renderContents(width: number, height: number) {
     if (__WIN32__) {
-      return (
-        <div>
-          {this.renderGrid(width, height)}
-          {this.renderFakeScroll(height)}
-        </div>
-      )
+      return [this.renderGrid(width, height), this.renderFakeScroll(height)]
     }
 
     return this.renderGrid(width, height)
   }
 
-  private onGridRef = (ref: React.Component<any, any>) => {
+  private onGridRef = (ref: React.Component<any, any> | null) => {
     this.grid = ref
   }
 
@@ -389,12 +571,16 @@ export class List extends React.Component<IListProps, void> {
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
     // it with keyboard navigation and select an item.
-    const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : null
+    const tabIndex =
+      this.props.selectedRow < 0 && this.props.rowCount > 0 ? 0 : -1
 
     return (
       <Grid
+        aria-label={null!}
+        key="grid"
+        role={null!}
         ref={this.onGridRef}
-        autoContainerWidth
+        autoContainerWidth={true}
         width={width}
         height={height}
         columnWidth={width}
@@ -405,13 +591,9 @@ export class List extends React.Component<IListProps, void> {
         onScroll={this.onScroll}
         scrollToRow={scrollToRow}
         overscanRowCount={4}
-        // Grid doesn't actually _do_ anything with
-        // `selectedRow`. We're just passing it through so that
-        // Grid will re-render when it changes.
-        selectedRow={this.props.selectedRow}
-        style={{ overflowX: 'hidden' }}
+        style={this.gridStyle}
         tabIndex={tabIndex}
-        invalidationProps={this.props.invalidationProps}/>
+      />
     )
   }
 
@@ -420,7 +602,7 @@ export class List extends React.Component<IListProps, void> {
    * react-virtualized Grid component in order for us to be
    * able to have nice looking scrollbars on Windows.
    *
-   * The fake scroll bar syncronizes its position
+   * The fake scroll bar synchronizes its position
    *
    * NB: Should only be used on win32 platforms and needs to
    * be coupled with styling that hides scroll bars on Grid
@@ -430,7 +612,6 @@ export class List extends React.Component<IListProps, void> {
    *
    */
   private renderFakeScroll(height: number) {
-
     let totalHeight: number = 0
 
     if (typeof this.props.rowHeight === 'number') {
@@ -443,11 +624,13 @@ export class List extends React.Component<IListProps, void> {
 
     return (
       <div
-        className='fake-scroll'
+        key="fake-scroll"
+        className="fake-scroll"
         ref={this.onFakeScrollRef}
         style={{ height }}
-        onScroll={this.onFakeScroll}>
-        <div style={{ height: totalHeight, pointerEvents: 'none' }}></div>
+        onScroll={this.onFakeScroll}
+      >
+        <div style={{ height: totalHeight, pointerEvents: 'none' }} />
       </div>
     )
   }
@@ -457,7 +640,6 @@ export class List extends React.Component<IListProps, void> {
   // scrolling on top of the fake Grid or actual dragging of
   // the scroll thumb.
   private onFakeScroll = (e: React.UIEvent<HTMLDivElement>) => {
-
     // We're getting this event in reaction to the Grid
     // having been scrolled and subsequently updating the
     // fake scrollTop, ignore it
@@ -469,7 +651,6 @@ export class List extends React.Component<IListProps, void> {
     this.lastScroll = 'fake'
 
     if (this.grid) {
-
       const element = ReactDOM.findDOMNode(this.grid)
       if (element) {
         element.scrollTop = e.currentTarget.scrollTop
@@ -479,6 +660,10 @@ export class List extends React.Component<IListProps, void> {
 
   private handleMouseDown = (row: number, event: React.MouseEvent<any>) => {
     if (this.canSelectRow(row)) {
+      if (this.props.onRowMouseDown) {
+        this.props.onRowMouseDown(row, event)
+      }
+
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row, { kind: 'mouseclick', event })
       }
@@ -491,7 +676,13 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
-  private onScroll = ({ scrollTop, clientHeight }: { scrollTop: number, clientHeight: number }) => {
+  private onScroll = ({
+    scrollTop,
+    clientHeight,
+  }: {
+    scrollTop: number
+    clientHeight: number
+  }) => {
     if (this.props.onScroll) {
       this.props.onScroll(scrollTop, clientHeight)
     }
@@ -500,7 +691,6 @@ export class List extends React.Component<IListProps, void> {
     // of the actual Grid. This is for mousewheel/touchpad scrolling
     // on top of the Grid.
     if (__WIN32__ && this.fakeScroll) {
-
       // We're getting this event in reaction to the fake scroll
       // having been scrolled and subsequently updating the
       // Grid scrollTop, ignore it.
@@ -526,7 +716,10 @@ export class List extends React.Component<IListProps, void> {
    * This method is a noop if the list has not yet been mounted.
    */
   public focus() {
-    if (this.props.selectedRow >= 0 && this.props.selectedRow < this.props.rowCount) {
+    if (
+      this.props.selectedRow >= 0 &&
+      this.props.selectedRow < this.props.rowCount
+    ) {
       this.scrollRowToVisible(this.props.selectedRow)
     } else {
       if (this.grid) {

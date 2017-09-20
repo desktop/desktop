@@ -1,0 +1,23 @@
+@import '../mixins';
+
+.filter-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  min-width: inherit;
+
+  &-filter-field {
+    padding: var(--spacing);
+  }
+
+  &-container {
+    display: flex;
+    flex: 1;
+  }
+}
+
+.filter-list-group-header {
+  padding: 0 var(--spacing);
+  font-weight: var(--font-weight-semibold);
+}

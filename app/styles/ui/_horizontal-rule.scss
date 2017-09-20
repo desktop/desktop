@@ -1,0 +1,30 @@
+.horizontal-rule {
+  text-align: center;
+  position: relative;
+  margin-bottom: var(--spacing-half);
+  width: 100%;
+
+  &:after {
+    border-bottom: var(--base-border);
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.6em;
+  }
+
+  .horizontal-rule-content {
+    display: inline-block;
+    background: var(--background-color);
+    padding: 0 0.5em;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+hr.short-rule {
+  border: none;
+  border-top: var(--base-border);
+  margin: var(--spacing-double) 0;
+  width: 5em;
+}

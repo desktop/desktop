@@ -1,16 +1,29 @@
+import * as Path from 'path'
 import * as React from 'react'
-import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { IChangesState, PopupType } from '../../lib/app-state'
+import { ICommitMessage, IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
-import { Dispatcher, IGitHubUser, IssuesStore } from '../../lib/dispatcher'
+import {
+  Dispatcher,
+  IGitHubUser,
+  IssuesStore,
+  GitHubUserStore,
+} from '../../lib/dispatcher'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../models/commit'
 import { UndoCommit } from './undo-commit'
-import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider } from '../autocompletion'
-import { ICommitMessage } from '../../lib/app-state'
+import {
+  IAutocompletionProvider,
+  EmojiAutocompletionProvider,
+  IssuesAutocompletionProvider,
+  UserAutocompletionProvider,
+} from '../autocompletion'
 import { ClickSource } from '../list'
+import { WorkingDirectoryFileChange } from '../../models/status'
+import { CSSTransitionGroup } from 'react-transition-group'
+import { openFile } from '../../lib/open-file'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -31,11 +44,16 @@ interface IChangesSidebarProps {
   readonly mostRecentLocalCommit: Commit | null
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
+  readonly isCommitting: boolean
+  readonly isPushPullFetchInProgress: boolean
+  readonly gitHubUserStore: GitHubUserStore
+  readonly askForConfirmationOnDiscardChanges: boolean
 }
 
-export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> {
-
-  private autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>> | null
+export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
+  private autocompletionProviders: ReadonlyArray<
+    IAutocompletionProvider<any>
+  > | null
 
   public constructor(props: IChangesSidebarProps) {
     super(props)
@@ -48,7 +66,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
   }
 
   private receiveProps(props: IChangesSidebarProps) {
-    if (props.repository.id !== this.props.repository.id || !this.autocompletionProviders) {
+    if (
+      props.repository.id !== this.props.repository.id ||
+      !this.autocompletionProviders
+    ) {
       const autocompletionProviders: IAutocompletionProvider<any>[] = [
         new EmojiAutocompletionProvider(this.props.emoji),
       ]
@@ -56,7 +77,19 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
       // Issues autocompletion is only available for GitHub repositories.
       const gitHubRepository = props.repository.gitHubRepository
       if (gitHubRepository) {
-        autocompletionProviders.push(new IssuesAutocompletionProvider(props.issuesStore, gitHubRepository, props.dispatcher))
+        autocompletionProviders.push(
+          new IssuesAutocompletionProvider(
+            props.issuesStore,
+            gitHubRepository,
+            props.dispatcher
+          )
+        )
+        autocompletionProviders.push(
+          new UserAutocompletionProvider(
+            props.gitHubUserStore,
+            gitHubRepository
+          )
+        )
       }
 
       this.autocompletionProviders = autocompletionProviders
@@ -64,7 +97,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
   }
 
   private onCreateCommit = (message: ICommitMessage): Promise<boolean> => {
-    return this.props.dispatcher.commitIncludedChanges(this.props.repository, message)
+    return this.props.dispatcher.commitIncludedChanges(
+      this.props.repository,
+      message
+    )
   }
 
   private onFileSelectionChanged = (row: number) => {
@@ -76,31 +112,72 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     const workingDirectory = this.props.changes.workingDirectory
     const file = workingDirectory.files.find(f => f.path === path)
     if (!file) {
-      console.error('unable to find working directory file to apply included change: ' + path)
+      console.error(
+        'unable to find working directory file to apply included change: ' +
+          path
+      )
       return
     }
 
-    this.props.dispatcher.changeFileIncluded(this.props.repository, file, include)
+    this.props.dispatcher.changeFileIncluded(
+      this.props.repository,
+      file,
+      include
+    )
   }
 
   private onSelectAll = (selectAll: boolean) => {
-    this.props.dispatcher.changeIncludeAllFiles(this.props.repository, selectAll)
+    this.props.dispatcher.changeIncludeAllFiles(
+      this.props.repository,
+      selectAll
+    )
   }
 
-  private onDiscardChanges = (path: string) => {
-    const workingDirectory = this.props.changes.workingDirectory
-    const file = workingDirectory.files.find(f => f.path === path)
-
-    if (!file) {
-      console.error('unable to find working directory file to discard ' + path)
-      return
+  private onDiscardChanges = (file: WorkingDirectoryFileChange) => {
+    if (!this.props.askForConfirmationOnDiscardChanges) {
+      this.props.dispatcher.discardChanges(this.props.repository, [file])
+    } else {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ConfirmDiscardChanges,
+        repository: this.props.repository,
+        files: [file],
+      })
     }
+  }
 
-    this.props.dispatcher.showPopup({
-      type: PopupType.ConfirmDiscardChanges,
-      repository: this.props.repository,
-      files: [ file ],
-    })
+  private onDiscardAllChanges = (
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) => {
+    if (!this.props.askForConfirmationOnDiscardChanges) {
+      this.props.dispatcher.discardChanges(this.props.repository, files)
+    } else {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ConfirmDiscardChanges,
+        repository: this.props.repository,
+        files,
+      })
+    }
+  }
+
+  private onIgnore = (pattern: string) => {
+    this.props.dispatcher.ignore(this.props.repository, pattern)
+  }
+
+  /**
+   * Reveals a file from a repository in the native file manager.
+   * @param path The path of the file relative to the root of the repository
+   */
+  private onRevealInFileManager = (path: string) => {
+    this.props.dispatcher.revealInFileManager(this.props.repository, path)
+  }
+
+  /**
+   * Open file with default application.
+   * @param path The path of the file relative to the root of the repository
+   */
+  private onOpenItem = (path: string) => {
+    const fullPath = Path.join(this.props.repository.path, path)
+    openFile(fullPath, this.props.dispatcher)
   }
 
   /**
@@ -120,7 +197,11 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
 
     const currentSelection = file.selection.getSelectionType()
 
-    this.props.dispatcher.changeFileIncluded(this.props.repository, file, currentSelection === DiffSelectionType.None)
+    this.props.dispatcher.changeFileIncluded(
+      this.props.repository,
+      file,
+      currentSelection === DiffSelectionType.None
+    )
   }
 
   /**
@@ -147,28 +228,32 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     const commit = this.props.mostRecentLocalCommit
     let child: JSX.Element | null = null
     if (commit) {
-      child = <UndoCommit
-        commit={commit}
-        onUndo={this.onUndo}
-        emoji={this.props.emoji}/>
+      child = (
+        <UndoCommit
+          isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
+          commit={commit}
+          onUndo={this.onUndo}
+          emoji={this.props.emoji}
+        />
+      )
     }
 
     return (
-      <ReactCSSTransitionGroup
-        transitionName='undo'
+      <CSSTransitionGroup
+        transitionName="undo"
         transitionAppear={true}
         transitionAppearTimeout={UndoCommitAnimationTimeout}
         transitionEnterTimeout={UndoCommitAnimationTimeout}
-        transitionLeaveTimeout={UndoCommitAnimationTimeout}>
+        transitionLeaveTimeout={UndoCommitAnimationTimeout}
+      >
         {child}
-      </ReactCSSTransitionGroup>
+      </CSSTransitionGroup>
     )
   }
 
   public render() {
     const changesState = this.props.changes
-    const selectedFile = changesState.selectedFile
-    const selectedPath = selectedFile ? selectedFile.path : null
+    const selectedFileID = changesState.selectedFileID
 
     // TODO: I think user will expect the avatar to match that which
     // they have configured in GitHub.com as well as GHE so when we add
@@ -181,17 +266,20 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     }
 
     return (
-      <div id='changes-sidebar-contents'>
+      <div id="changes-sidebar-contents">
         <ChangesList
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           workingDirectory={changesState.workingDirectory}
-          selectedPath={selectedPath}
+          selectedFileID={selectedFileID}
           onFileSelectionChanged={this.onFileSelectionChanged}
           onCreateCommit={this.onCreateCommit}
           onIncludeChanged={this.onIncludeChanged}
           onSelectAll={this.onSelectAll}
           onDiscardChanges={this.onDiscardChanges}
+          onDiscardAllChanges={this.onDiscardAllChanges}
+          onRevealInFileManager={this.onRevealInFileManager}
+          onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
@@ -200,8 +288,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           contextualCommitMessage={this.props.changes.contextualCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
+          onIgnore={this.onIgnore}
+          isCommitting={this.props.isCommitting}
         />
-          {this.renderMostRecentLocalCommit()}
+        {this.renderMostRecentLocalCommit()}
       </div>
     )
   }

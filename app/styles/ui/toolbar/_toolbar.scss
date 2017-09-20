@@ -21,21 +21,21 @@
   background-color: var(--toolbar-background-color);
 
   .sidebar-section {
-
-    background-color: var(--toolbar-sidebar-background-color);
-
     display: flex;
     flex-direction: row;
     flex-shrink: 0;
 
-    .toolbar-button:last-child {
+    &>:last-child {
       flex-grow: 1;
     }
   }
 
   .toolbar-button {
-    &.branch-button { width: 220px; }
-    &.push-pull-button { min-width: 200px; }
+    &.push-pull-button { width: 230px; }
+  }
+
+  .toolbar-dropdown {
+    &.branch-button { width: 230px; }
   }
 }
 
@@ -48,16 +48,23 @@
 .ahead-behind {
   display: flex;
 
-  margin-left: var(--spacing);
   background: var(--ahead-behind-background-color);
 
   // Perfectly round semi circle ends with real tight
-  // padding on either side
-  height: 16px;
+  // padding on either side. Now in two flavors!
+  @include darwin {
+    height: 13px;
+  }
+
+  @include win32 {
+    height: 14px;
+  }
+
   border-radius: 8px;
   padding: 0 6px;
 
   font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
 
   span {
     display: flex;
@@ -65,7 +72,7 @@
 
     // Only add left margin if both ahead and behind are
     // showing at the same time.
-    &:nth-child(2) { margin-left: var(--spacing-third); }
+    &:nth-child(2) { margin-left: var(--spacing-half); }
 
     // We're using arrowSmallUp and arrowSmallDown which are
     // both exactly 6px wide. Let's use that so that spacing

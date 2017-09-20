@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { sanitizedBranchName } from '../../src/ui/create-branch/sanitized-branch-name'
+import { sanitizedBranchName } from '../../src/lib/sanitize-branch'
 
 describe('sanitizedBranchName', () => {
   it('leaves a good branch name alone', () => {

@@ -1,77 +1,18 @@
 @import '../mixins';
 
-#branch-popover {
+.branches-list-container {
   height: 100%;
   display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
-}
 
-.create-branch {
-  // .button-component overrides this rule to make it smaller,
-  // not sure how to be more specific without using an id
-  // (which isn't exposed on Button currently)
-  height: 40px !important;
-  width: 100%;
-  margin-bottom: var(--spacing);
-
-  .label {
-    display: flex;
-    float: left;
-
-    .plus {
-      margin-right: var(--spacing-half);
-    }
-  }
-
-  .arrow {
-    float: right;
-  }
-}
-
-.create-branch.checked {
-  background-color: var(--button-background);
-  color: var(--button-text-color);
-
-  &:not(:disabled):hover {
-    background-color: var(--button-hover-background);
-  }
-}
-
-
-#branches {
-  height: 100%;
-  width: 350px;
-  display: flex;
-  flex-direction: column;
-
-  .row-component {
-    padding: var(--spacing);
+  .branches-list {
+    width: 300px;
   }
 }
 
 .branches-list {
-  &-container {
-    display: flex;
-    flex: 1;
-  }
-
-  &-content {
-    display: flex;
-    flex: 1;
-  }
-
-  &-label,
   &-item {
     padding: 0 var(--spacing);
-  }
-
-  &-label {
-    flex-grow: 1;
-    padding-top: 5px;
-    margin-top: var(--spacing);
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary-color);
   }
 
   &-item {
@@ -83,12 +24,15 @@
 
     .icon {
       margin-right: var(--spacing-half);
+      width: 16px; // Force a consistent width
+      flex-shrink: 0;
     }
 
     .name {
       flex-grow: 2;
       @include ellipsis;
       max-width: 65%;
+      margin-right: var(--spacing-half);
     }
 
     .description {
@@ -97,17 +41,7 @@
       font-size: var(--font-size-sm);
       flex-grow: 1;
       text-align: right;
+      white-space: nowrap;
     }
-  }
-}
-
-#new-branch {
-  width: 350px;
-  padding: var(--spacing);
-  background: var(--box-alt-background-color);
-
-  button[type=submit] {
-    width: 100%;
-    margin-top: var(--spacing-double);
   }
 }

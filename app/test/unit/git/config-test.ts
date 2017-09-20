@@ -1,22 +1,17 @@
+/* eslint-disable no-sync */
+
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
-import { getConfigValue } from '../../../src/lib/git'
+import { getConfigValue, getGlobalConfigPath } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../fixture-helper'
 
-const temp = require('temp').track()
-
 describe('git/config', () => {
-
   let repository: Repository | null = null
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
-    repository = new Repository(testRepoPath, -1, null)
-  })
-
-  after(() => {
-    temp.cleanupSync()
+    repository = new Repository(testRepoPath, -1, null, false)
   })
 
   describe('config', () => {
@@ -26,8 +21,19 @@ describe('git/config', () => {
     })
 
     it('returns null for undefined values', async () => {
-      const value = await getConfigValue(repository!, 'core.the-meaning-of-life')
+      const value = await getConfigValue(
+        repository!,
+        'core.the-meaning-of-life'
+      )
       expect(value).to.equal(null)
+    })
+  })
+
+  describe('getGlobalConfigPath', () => {
+    it('gets the config path', async () => {
+      const path = await getGlobalConfigPath()
+      expect(path).not.to.equal(null)
+      expect(path!.length).to.be.greaterThan(0)
     })
   })
 })

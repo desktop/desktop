@@ -1,47 +1,12 @@
 import * as React from 'react'
 
-export interface IResizableProps extends React.Props<Resizable> {
-
-  readonly width: number
-
-  /** The maximum width the panel can be resized to.
-   *
-   * @default 350
-   */
-  readonly maximumWidth?: number
-
-  /**
-   * The minimum width the panel can be resized to.
-   *
-   * @default 150
-   */
-  readonly minimumWidth?: number
-
-  /** The optional ID for the root element. */
-  readonly id?: string
-
-  /**
-   * Handler called when the width of the component has changed
-   * through an explicit resize event (dragging the handle).
-   */
-  readonly onResize?: (newWidth: number) => void
-
-  /**
-   * Handler called when the resizable component has been
-   * reset (ie restored to its original width by double clicking
-   * on the resize handle).
-   */
-  readonly onReset?: () => void
-}
-
 /**
  * Component abstracting a resizable panel.
  *
  * Note: this component is pure, consumers must subscribe to the
  * onResize and onReset event and update the width prop accordingly.
  */
-export class Resizable extends React.Component<IResizableProps, void> {
-
+export class Resizable extends React.Component<IResizableProps, {}> {
   public static defaultProps: IResizableProps = {
     width: 250,
     minimumWidth: 150,
@@ -66,7 +31,10 @@ export class Resizable extends React.Component<IResizableProps, void> {
    * maximum widths as determined by props
    */
   private clampWidth(width: number) {
-    return Math.max(this.props.minimumWidth!, Math.min(this.props.maximumWidth!, width))
+    return Math.max(
+      this.props.minimumWidth!,
+      Math.min(this.props.maximumWidth!, width)
+    )
   }
 
   /**
@@ -85,8 +53,11 @@ export class Resizable extends React.Component<IResizableProps, void> {
    * Handler for when the user moves the mouse while dragging
    */
   private handleDragMove = (e: MouseEvent) => {
-    const deltaX = e.clientX - this.startX
+    if (!this.startWidth) {
+      return
+    }
 
+    const deltaX = e.clientX - this.startX
     const newWidth = this.startWidth + deltaX
     const newWidthClamped = this.clampWidth(newWidth)
 
@@ -117,7 +88,6 @@ export class Resizable extends React.Component<IResizableProps, void> {
   }
 
   public render() {
-
     const style: React.CSSProperties = {
       width: this.getCurrentWidth(),
       maximumWidth: this.props.maximumWidth,
@@ -125,10 +95,47 @@ export class Resizable extends React.Component<IResizableProps, void> {
     }
 
     return (
-      <div id={this.props.id} className='resizable-component' style={style}>
+      <div id={this.props.id} className="resizable-component" style={style}>
         {this.props.children}
-        <div onMouseDown={this.handleDragStart} onDoubleClick={this.handleDoubleClick} className='resize-handle'></div>
+        <div
+          onMouseDown={this.handleDragStart}
+          onDoubleClick={this.handleDoubleClick}
+          className="resize-handle"
+        />
       </div>
     )
   }
+}
+
+export interface IResizableProps extends React.Props<Resizable> {
+  readonly width: number
+
+  /** The maximum width the panel can be resized to.
+   *
+   * @default 350
+   */
+  readonly maximumWidth?: number
+
+  /**
+   * The minimum width the panel can be resized to.
+   *
+   * @default 150
+   */
+  readonly minimumWidth?: number
+
+  /** The optional ID for the root element. */
+  readonly id?: string
+
+  /**
+   * Handler called when the width of the component has changed
+   * through an explicit resize event (dragging the handle).
+   */
+  readonly onResize?: (newWidth: number) => void
+
+  /**
+   * Handler called when the resizable component has been
+   * reset (ie restored to its original width by double clicking
+   * on the resize handle).
+   */
+  readonly onReset?: () => void
 }

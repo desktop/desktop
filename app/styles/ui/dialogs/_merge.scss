@@ -1,0 +1,60 @@
+@import '../../mixins';
+
+dialog#merge {
+  width: 450px;
+
+  .branches-list {
+    height: 300px;
+  }
+
+  // We're faking it so that the filter text box appears to reside
+  // withing the header even though our current component structure
+  // make it extremely hard to do so.
+  .dialog-header {
+    border-bottom: none;
+  }
+
+  .dialog-content {
+
+    padding: 0;
+
+    .filter-field-row {
+      padding: 0 var(--spacing-double);
+      border-bottom: var(--base-border);
+
+      .filter-list-filter-field {
+        padding: 0;
+        padding-bottom: var(--spacing);
+      }
+    }
+
+    .list-item {
+      padding: 0 var(--spacing-double);
+
+      .filter-list-group-header, .branches-list-item {
+        padding: 0;
+      }
+    }
+  }
+
+  .dialog-footer {
+    button[type=submit] {
+      height: auto;
+      width: 100%;
+      padding: var(--spacing-half);
+    }
+
+    p.merge-info {
+      margin-bottom: 0;
+      margin-top: var(--spacing-half);
+      text-align: center;
+      color: var(--text-secondary-color);
+      @include ellipsis;
+
+      strong {
+        font-weight: normal;
+        color: var(--text-color);
+      }
+    }
+  }
+}

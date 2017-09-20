@@ -1,7 +1,12 @@
 import { assertNever } from '../lib/fatal-error'
 
 /** A type union of all possible types of menu items */
-export type MenuItem = IMenuItem | ISubmenuItem | ISeparatorMenuItem | ICheckboxMenuItem | IRadioMenuItem
+export type MenuItem =
+  | IMenuItem
+  | ISubmenuItem
+  | ISeparatorMenuItem
+  | ICheckboxMenuItem
+  | IRadioMenuItem
 
 /** A type union of all types of menu items which can be executed */
 export type ExecutableMenuItem = IMenuItem | ICheckboxMenuItem | IRadioMenuItem
@@ -122,7 +127,7 @@ export interface IMenu {
  */
 function getAccelerator(menuItem: Electron.MenuItem): string | null {
   if (menuItem.accelerator) {
-    return menuItem.accelerator
+    return menuItem.accelerator as string
   }
 
   if (menuItem.role) {
@@ -148,9 +153,9 @@ function getAccelerator(menuItem: Electron.MenuItem): string | null {
 /**
  * Return the access key (applicable on Windows) from a menu item label.
  *
- * An access key is a letter or symbol preceeded by an ampersand, i.e. in
+ * An access key is a letter or symbol preceded by an ampersand, i.e. in
  * the string "Check for &updates" the access key is 'u'. Access keys are
- * case insenitive and are unique per menu.
+ * case insensitive and are unique per menu.
  */
 function getAccessKey(text: string): string | null {
   const m = text.match(/&([^&])/)
@@ -163,7 +168,6 @@ function getAccessKey(text: string): string | null {
  * convert each item.
  */
 function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
-
   // Our menu items always have ids and Electron.MenuItem takes on whatever
   // properties was defined on the MenuItemOptions template used to create it
   // but doesn't surface those in the type declaration.
@@ -181,18 +185,55 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
   // normal, separator, submenu, checkbox or radio.
   switch (menuItem.type) {
     case 'normal':
-      return { id, type: 'menuItem', label, enabled, visible, accelerator, accessKey }
+      return {
+        id,
+        type: 'menuItem',
+        label,
+        enabled,
+        visible,
+        accelerator,
+        accessKey,
+      }
     case 'separator':
       return { id, type: 'separator', visible }
     case 'submenu':
       const menu = menuFromElectronMenu(menuItem.submenu as Electron.Menu, id)
-      return { id, type: 'submenuItem', label, enabled, visible, menu, accessKey }
+      return {
+        id,
+        type: 'submenuItem',
+        label,
+        enabled,
+        visible,
+        menu,
+        accessKey,
+      }
     case 'checkbox':
-      return { id, type: 'checkbox', label, enabled, visible, accelerator, checked, accessKey }
+      return {
+        id,
+        type: 'checkbox',
+        label,
+        enabled,
+        visible,
+        accelerator,
+        checked,
+        accessKey,
+      }
     case 'radio':
-      return { id, type: 'radio', label, enabled, visible, accelerator, checked, accessKey }
+      return {
+        id,
+        type: 'radio',
+        label,
+        enabled,
+        visible,
+        accelerator,
+        checked,
+        accessKey,
+      }
     default:
-      return assertNever(menuItem.type, `Unknown menu item type ${menuItem.type}`)
+      return assertNever(
+        menuItem.type,
+        `Unknown menu item type ${menuItem.type}`
+      )
   }
 }
 /**
@@ -208,6 +249,25 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
  */
 export function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
   const items = menu.items.map(menuItemFromElectronMenuItem)
+
+  if (__DEV__) {
+    const seenAccessKeys = new Set<string>()
+
+    for (const item of items) {
+      if (item.visible) {
+        if (itemMayHaveAccessKey(item) && item.accessKey) {
+          if (seenAccessKeys.has(item.accessKey.toLowerCase())) {
+            throw new Error(
+              `Duplicate access key '${item.accessKey}' for item ${item.label}`
+            )
+          } else {
+            seenAccessKeys.add(item.accessKey.toLowerCase())
+          }
+        }
+      }
+    }
+  }
+
   return { id, type: 'menu', items }
 }
 
@@ -215,7 +275,10 @@ export function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
  * Creates a map between MenuItem ids and MenuItems by recursing
  * through all items and all submenus.
  */
-function buildIdMap(menu: IMenu, map = new Map<string, MenuItem>()): Map<string, MenuItem> {
+function buildIdMap(
+  menu: IMenu,
+  map = new Map<string, MenuItem>()
+): Map<string, MenuItem> {
   for (const item of menu.items) {
     map.set(item.id, item)
     if (item.type === 'submenuItem') {
@@ -227,11 +290,15 @@ function buildIdMap(menu: IMenu, map = new Map<string, MenuItem>()): Map<string,
 }
 
 /** Type guard which narrows a MenuItem to one which supports access keys */
-export function itemMayHaveAccessKey(item: MenuItem): item is IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem {
-  return item.type === 'menuItem' ||
+export function itemMayHaveAccessKey(
+  item: MenuItem
+): item is IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem {
+  return (
+    item.type === 'menuItem' ||
     item.type === 'submenuItem' ||
     item.type === 'checkbox' ||
     item.type === 'radio'
+  )
 }
 
 /**
@@ -246,17 +313,23 @@ export function itemIsSelectable(item: MenuItem) {
 /**
  * Attempts to locate a menu item matching the provided access key in a
  * given list of items. The access key comparison is case-insensitive.
- * 
+ *
  * Note that this function does not take into account whether or not the
  * item is selectable, consumers of this function need to perform that
  * check themselves when applicable.
  */
-export function findItemByAccessKey(accessKey: string, items: ReadonlyArray<MenuItem>): IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem | null {
+export function findItemByAccessKey(
+  accessKey: string,
+  items: ReadonlyArray<MenuItem>
+): IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem | null {
   const lowerCaseAccessKey = accessKey.toLowerCase()
 
   for (const item of items) {
     if (itemMayHaveAccessKey(item)) {
-      if (item.accessKey && item.accessKey.toLowerCase() === lowerCaseAccessKey) {
+      if (
+        item.accessKey &&
+        item.accessKey.toLowerCase() === lowerCaseAccessKey
+      ) {
         return item
       }
     }
@@ -281,12 +354,11 @@ export function findItemByAccessKey(accessKey: string, items: ReadonlyArray<Menu
  * the interactions are defined by the component using it.
  */
 export class AppMenu {
-
   /**
    * A list of currently open menus with their selected items
    * in the application menu.
    *
-   * The semantics around what constitues an open menu and how
+   * The semantics around what constitutes an open menu and how
    * selection works is defined within this class class as well as
    * in the individual components transforming that state.
    */
@@ -310,16 +382,27 @@ export class AppMenu {
    */
   public static fromMenu(menu: IMenu): AppMenu {
     const map = buildIdMap(menu)
-    const openMenus = [ menu ]
+    const openMenus = [menu]
 
     return new AppMenu(menu, openMenus, map)
   }
 
   // Used by static constructors and transformers.
-  private constructor(menu: IMenu, openMenus: ReadonlyArray<IMenu>, menuItemById: Map<string, MenuItem>) {
+  private constructor(
+    menu: IMenu,
+    openMenus: ReadonlyArray<IMenu>,
+    menuItemById: Map<string, MenuItem>
+  ) {
     this.menu = menu
     this.openMenus = openMenus
     this.menuItemById = menuItemById
+  }
+
+  /**
+   * Retrieves a menu item by its id.
+   */
+  public getItemById(id: string): MenuItem | undefined {
+    return this.menuItemById.get(id)
   }
 
   /**
@@ -382,7 +465,10 @@ export class AppMenu {
    *
    *                          Defaults to false.
    */
-  public withOpenedMenu(submenuItem: ISubmenuItem, selectFirstItem = false): AppMenu {
+  public withOpenedMenu(
+    submenuItem: ISubmenuItem,
+    selectFirstItem = false
+  ): AppMenu {
     const ourMenuItem = this.menuItemById.get(submenuItem.id)
 
     if (!ourMenuItem) {
@@ -390,10 +476,14 @@ export class AppMenu {
     }
 
     if (ourMenuItem.type !== 'submenuItem') {
-      throw new Error(`Attempt to open a submenu from an item of wrong type: ${ourMenuItem.type}`)
+      throw new Error(
+        `Attempt to open a submenu from an item of wrong type: ${ourMenuItem.type}`
+      )
     }
 
-    const parentMenuIndex = this.openMenus.findIndex(m => m.items.indexOf(ourMenuItem) !== -1)
+    const parentMenuIndex = this.openMenus.findIndex(
+      m => m.items.indexOf(ourMenuItem) !== -1
+    )
 
     // The parent menu has apparently been closed in between, we could go and
     // recreate it but it's probably not worth it.
@@ -429,7 +519,9 @@ export class AppMenu {
 
     const ourMenuIndex = this.openMenus.findIndex(m => m.id === menu.id)
 
-    if (ourMenuIndex === -1) { return this }
+    if (ourMenuIndex === -1) {
+      return this
+    }
 
     const newOpenMenus = this.openMenus.slice(0, ourMenuIndex)
 
@@ -447,7 +539,9 @@ export class AppMenu {
   public withLastMenu(menu: IMenu) {
     const ourMenuIndex = this.openMenus.findIndex(m => m.id === menu.id)
 
-    if (ourMenuIndex === -1) { return this }
+    if (ourMenuIndex === -1) {
+      return this
+    }
 
     const newOpenMenus = this.openMenus.slice(0, ourMenuIndex + 1)
 
@@ -478,11 +572,15 @@ export class AppMenu {
       return this
     }
 
-    const parentMenuIndex = this.openMenus.findIndex(m => m.items.indexOf(ourMenuItem) !== -1)
+    const parentMenuIndex = this.openMenus.findIndex(
+      m => m.items.indexOf(ourMenuItem) !== -1
+    )
 
     // The menu which the selected item belongs to is no longer open,
     // not much we can do about that.
-    if (parentMenuIndex === -1) { return this }
+    if (parentMenuIndex === -1) {
+      return this
+    }
 
     const newOpenMenus = this.openMenus.slice()
 
@@ -502,10 +600,11 @@ export class AppMenu {
       const menu = newOpenMenus[i]
       const childMenu = newOpenMenus[i + 1]
 
-      const selectedItem = menu.items.find(item =>
-        item.type === 'submenuItem' && item.id === childMenu.id)
+      const selectedItem = menu.items.find(
+        item => item.type === 'submenuItem' && item.id === childMenu.id
+      )
 
-      newOpenMenus[i] =  { ...menu, selectedItem }
+      newOpenMenus[i] = { ...menu, selectedItem }
     }
 
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
@@ -545,10 +644,11 @@ export class AppMenu {
       const menu = newOpenMenus[i]
       const childMenu = newOpenMenus[i + 1]
 
-      const selectedItem = menu.items.find(item =>
-        item.type === 'submenuItem' && item.id === childMenu.id)
+      const selectedItem = menu.items.find(
+        item => item.type === 'submenuItem' && item.id === childMenu.id
+      )
 
-      newOpenMenus[i] =  { ...menu, selectedItem }
+      newOpenMenus[i] = { ...menu, selectedItem }
     }
 
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
@@ -560,6 +660,6 @@ export class AppMenu {
    * all selection state is cleared.
    */
   public withReset() {
-    return new AppMenu(this.menu, [ this.menu ], this.menuItemById)
+    return new AppMenu(this.menu, [this.menu], this.menuItemById)
   }
 }

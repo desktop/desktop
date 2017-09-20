@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { Diff } from '../diff'
 import { ChangedFileDetails } from './changed-file-details'
-import { DiffSelection } from '../../models/diff'
-import { IChangesState } from '../../lib/app-state'
+import { ImageDiffType } from '../../lib/app-state'
+import { DiffSelection, IDiff } from '../../models/diff'
+import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 
@@ -12,47 +13,45 @@ export { ChangesSidebar } from './sidebar'
 
 interface IChangesProps {
   readonly repository: Repository
-  readonly changes: IChangesState
+  readonly file: WorkingDirectoryFileChange
+  readonly diff: IDiff
   readonly dispatcher: Dispatcher
+  readonly imageDiffType: ImageDiffType
 }
 
-/** TODO: handle "repository not found" scenario */
-
-export class Changes extends React.Component<IChangesProps, void> {
-
+export class Changes extends React.Component<IChangesProps, {}> {
   private onDiffLineIncludeChanged = (diffSelection: DiffSelection) => {
-    const file = this.props.changes.selectedFile
-    if (!file) {
-      console.error('diff line selection changed despite no file error - what?')
-      return
-    }
-
-    this.props.dispatcher.changeFileLineSelection(this.props.repository, file, diffSelection)
+    const file = this.props.file
+    this.props.dispatcher.changeFileLineSelection(
+      this.props.repository,
+      file,
+      diffSelection
+    )
   }
 
   public render() {
-    const diff = this.props.changes.diff
-    const file = this.props.changes.selectedFile
-
-    if (!diff || !file) {
-      return (
-        <div className='panel blankslate' id='diff'>
-          No file selected
-        </div>
-      )
-    }
-
-    const filePath = file.path
-
+    const diff = this.props.diff
+    const file = this.props.file
     return (
-      <div className='changed-file'>
-        <ChangedFileDetails filePath={filePath} />
-        <Diff repository={this.props.repository}
-          file={file}
-          readOnly={false}
-          onIncludeChanged={this.onDiffLineIncludeChanged}
+      <div className="changed-file">
+        <ChangedFileDetails
+          path={file.path}
+          oldPath={file.oldPath}
+          status={file.status}
           diff={diff}
-          dispatcher={this.props.dispatcher} />
+        />
+
+        <div className="diff-wrapper">
+          <Diff
+            repository={this.props.repository}
+            imageDiffType={this.props.imageDiffType}
+            file={file}
+            readOnly={false}
+            onIncludeChanged={this.onDiffLineIncludeChanged}
+            diff={diff}
+            dispatcher={this.props.dispatcher}
+          />
+        </div>
       </div>
     )
   }

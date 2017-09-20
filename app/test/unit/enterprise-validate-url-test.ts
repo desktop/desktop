@@ -18,4 +18,13 @@ describe('validateURL', () => {
   it('throws if given an invalid protocol', () => {
     expect(() => validateURL('ftp://ghe.io')).to.throw()
   })
+
+  it('throws if given whitespace', () => {
+    expect(() => validateURL('    ')).to.throw()
+  })
+
+  it('handles whitespace alongside valid text', () => {
+    const url = validateURL('ghe.io   ')
+    expect(url).to.equal('https://ghe.io')
+  })
 })

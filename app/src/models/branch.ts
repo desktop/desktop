@@ -1,8 +1,11 @@
 import { Commit } from './commit'
+import { removeRemotePrefix } from '../lib/remove-remote-prefix'
 
+// NOTE: The values here matter as they are used to sort
+// local and remote branches, Local should come before Remote
 export enum BranchType {
-  Local,
-  Remote,
+  Local = 0,
+  Remote = 1,
 }
 
 /** A branch as loaded from Git. */
@@ -19,7 +22,12 @@ export class Branch {
   /** The commit associated with this branch */
   public readonly tip: Commit
 
-  public constructor(name: string, upstream: string | null, tip: Commit, type: BranchType) {
+  public constructor(
+    name: string,
+    upstream: string | null,
+    tip: Commit,
+    type: BranchType
+  ) {
     this.name = name
     this.upstream = upstream
     this.tip = tip
@@ -29,12 +37,27 @@ export class Branch {
   /** The name of the upstream's remote. */
   public get remote(): string | null {
     const upstream = this.upstream
-    if (!upstream) { return null }
+    if (!upstream) {
+      return null
+    }
 
     const pieces = upstream.match(/(.*?)\/.*/)
-    if (!pieces || pieces.length < 2) { return null }
+    if (!pieces || pieces.length < 2) {
+      return null
+    }
 
     return pieces[1]
+  }
+
+  /**
+   * The name of the branch's upstream without the remote prefix.
+   */
+  public get upstreamWithoutRemote(): string | null {
+    if (!this.upstream) {
+      return null
+    }
+
+    return removeRemotePrefix(this.upstream)
   }
 
   /**
@@ -45,12 +68,8 @@ export class Branch {
     if (this.type === BranchType.Local) {
       return this.name
     } else {
-      const pieces = this.name.match(/.*?\/(.*)/)
-      if (!pieces || pieces.length < 2) {
-         return this.name
-      }
-
-      return pieces[1]
+      const withoutRemote = removeRemotePrefix(this.name)
+      return withoutRemote || this.name
     }
   }
 }

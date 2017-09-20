@@ -1,17 +1,13 @@
 import { ipcRenderer } from 'electron'
-import { MenuIDs } from '../main-process/menu'
-import { v4 as guid } from 'uuid'
-import { IHTTPRequest, IHTTPResponse } from '../lib/http'
 import { ExecutableMenuItem } from '../models/app-menu'
+import { MenuIDs } from '../main-process/menu'
+import { IMenuItemState } from '../lib/menu-update'
 
 /** Set the menu item's enabledness. */
-export function setMenuEnabled(id: MenuIDs, enabled: boolean) {
-  ipcRenderer.send('set-menu-enabled', { id, enabled })
-}
-
-/** Set the menu item's visibility. */
-export function setMenuVisible(id: MenuIDs, visible: boolean) {
-  ipcRenderer.send('set-menu-visible', { id, visible })
+export function updateMenuState(
+  state: Array<{ id: MenuIDs; state: IMenuItemState }>
+) {
+  ipcRenderer.send('update-menu-state', state)
 }
 
 /** Tell the main process that the renderer is ready. */
@@ -25,6 +21,29 @@ export function executeMenuItem(item: ExecutableMenuItem) {
 }
 
 /**
+ * Show the OS-provided certificate trust dialog for the certificate, using the
+ * given message.
+ */
+export function showCertificateTrustDialog(
+  certificate: Electron.Certificate,
+  message: string
+) {
+  ipcRenderer.send('show-certificate-trust-dialog', { certificate, message })
+}
+
+/**
+ * Tell the main process that we're going to quit. This means it should allow
+ * the window to close.
+ *
+ * This event is sent synchronously to avoid any races with subsequent calls
+ * that would tell the app to quit.
+ */
+export function sendWillQuitSync() {
+  // eslint-disable-next-line no-sync
+  ipcRenderer.sendSync('will-quit')
+}
+
+/**
  * Ask the main-process to send over a copy of the application menu.
  * The response will be send as a separate event with the name 'app-menu' and
  * will be received by the dispatcher.
@@ -34,49 +53,84 @@ export function getAppMenu() {
 }
 
 export interface IMenuItem {
-  readonly label: string
-  readonly action: () => void
+  /** The user-facing label. */
+  readonly label?: string
+
+  /** The action to invoke when the user selects the item. */
+  readonly action?: () => void
+
+  /** The type of item. */
+  readonly type?: 'separator'
+
+  /** Is the menu item enabled? Defaults to true. */
+  readonly enabled?: boolean
+}
+
+/**
+ * There's currently no way for us to know when a contextual menu is closed (see
+ * https://github.com/electron/electron/issues/9441). So we'll store the latest
+ * contextual menu items we presented and assume any actions we receive are
+ * coming from it.
+ */
+let currentContextualMenuItems: ReadonlyArray<IMenuItem> | null = null
+
+/**
+ * Register a global handler for dispatching contextual menu actions. This
+ * should be called only once, around app load time.
+ */
+export function registerContextualMenuActionDispatcher() {
+  ipcRenderer.on(
+    'contextual-menu-action',
+    (event: Electron.IpcMessageEvent, index: number) => {
+      if (!currentContextualMenuItems) {
+        return
+      }
+      if (index >= currentContextualMenuItems.length) {
+        return
+      }
+
+      const item = currentContextualMenuItems[index]
+      const action = item.action
+      if (action) {
+        action()
+        currentContextualMenuItems = null
+      }
+    }
+  )
 }
 
 /** Show the given menu items in a contextual menu. */
 export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
-  ipcRenderer.once('contextual-menu-action', (event: Electron.IpcRendererEvent, index: number) => {
-    const item = items[index]
-    item.action()
-  })
-
+  currentContextualMenuItems = items
   ipcRenderer.send('show-contextual-menu', items)
 }
 
-export function proxyRequest(options: IHTTPRequest): Promise<IHTTPResponse> {
-  return new Promise<IHTTPResponse>((resolve, reject) => {
-    const id = guid()
+/** Update the menu item labels with the user's preferred apps. */
+export function updatePreferredAppMenuItemLabels(labels: {
+  editor?: string
+  shell: string
+}) {
+  ipcRenderer.send('update-preferred-app-menu-item-labels', labels)
+}
 
-    const startTime = (performance && performance.now) ? performance.now() : null
+function getIpcFriendlyError(error: Error) {
+  return {
+    message: error.message || `${error}`,
+    name: error.name || `${error.name}`,
+    stack: error.stack || undefined,
+  }
+}
 
-    ipcRenderer.once(`proxy/response/${id}`, (event: any, { error, response }: { error?: Error, response?: IHTTPResponse }) => {
+export function reportUncaughtException(error: Error) {
+  ipcRenderer.send('uncaught-exception', getIpcFriendlyError(error))
+}
 
-      if (console.debug && startTime) {
-        const rawTime = performance.now() - startTime
-        if (rawTime > 500) {
-          const timeInSeconds = (rawTime / 1000).toFixed(3)
-          console.debug(`executing: ${options.url} (took ${timeInSeconds}s)`)
-        }
-      }
-
-      if (error) {
-        reject(error)
-        return
-      }
-
-      if (response === undefined) {
-        reject('no response received, and no error reported. should probably look into this')
-        return
-      }
-
-      resolve(response)
-    })
-
-    ipcRenderer.send('proxy/request', { id, options })
+export function sendErrorReport(
+  error: Error,
+  extra: { [key: string]: string } = {}
+) {
+  ipcRenderer.send('send-error-report', {
+    error: getIpcFriendlyError(error),
+    extra,
   })
 }

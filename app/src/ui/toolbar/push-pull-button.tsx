@@ -1,13 +1,10 @@
 import * as React from 'react'
-import { ToolbarDropdown } from './dropdown'
-import { ToolbarButtonStyle } from './button'
-import { IAheadBehind } from '../../lib/app-state'
+import { ToolbarButton, ToolbarButtonStyle } from './button'
+import { IAheadBehind, Progress } from '../../lib/app-state'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
-import { Publish } from '../publish-repository'
-import { User } from '../../models/user'
 
 interface IPushPullButtonProps {
   /**
@@ -25,13 +22,16 @@ interface IPushPullButtonProps {
   /** The date of the last fetch. */
   readonly lastFetched: Date | null
 
-  /** Is the user currently publishing? */
-  readonly isPublishing: boolean
+  /** Progress information associated with the current operation */
+  readonly progress: Progress | null
 
-  /** The logged in users. */
-  readonly users: ReadonlyArray<User>
+  /** True if the current repository has a valid local branch. False if unborn. */
+  readonly branchExists: boolean
 
+  /** The global dispatcher, to invoke repository operations. */
   readonly dispatcher: Dispatcher
+
+  /** The current repository */
   readonly repository: Repository
 }
 
@@ -39,103 +39,142 @@ interface IPushPullButtonProps {
  * A button which pushes, pulls, or updates depending on the state of the
  * repository.
  */
-export class PushPullButton extends React.Component<IPushPullButtonProps, void> {
+export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
   public render() {
+    const progress = this.props.progress
+
+    const title = progress ? progress.title : this.getTitle()
+
+    const description = progress
+      ? progress.description || 'Hang on…'
+      : this.getDescription()
+
+    const progressValue = progress ? progress.value : undefined
+
+    const disabled = this.props.branchExists
+      ? this.props.networkActionInProgress || !!this.props.progress
+      : true
+
     return (
-      <ToolbarDropdown
-        title={this.getTitle()}
-        description={this.getDescription()}
-        className='push-pull-button'
+      <ToolbarButton
+        title={title}
+        description={description}
+        progressValue={progressValue}
+        className="push-pull-button"
         icon={this.getIcon()}
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
         style={ToolbarButtonStyle.Subtitle}
-        dropdownState={this.props.isPublishing ? 'open' : 'closed'}
-        dropdownContentRenderer={this.renderFoldout}
-        onDropdownStateChanged={this.performAction}
-        showDisclosureArrow={false}>
+        onClick={this.performAction}
+        disabled={disabled}
+      >
         {this.renderAheadBehind()}
-      </ToolbarDropdown>
+      </ToolbarButton>
     )
   }
 
-  private renderFoldout = () => {
-    return <Publish
-      repository={this.props.repository}
-      dispatcher={this.props.dispatcher}
-      users={this.props.users}/>
-  }
-
   private renderAheadBehind() {
-    if (!this.props.aheadBehind) { return null }
+    if (!this.props.aheadBehind || this.props.progress) {
+      return null
+    }
 
     const { ahead, behind } = this.props.aheadBehind
-    if (ahead === 0 && behind === 0) { return null }
+    if (ahead === 0 && behind === 0) {
+      return null
+    }
 
     const content: JSX.Element[] = []
     if (ahead > 0) {
       content.push(
-        <span key='ahead'>
+        <span key="ahead">
           {ahead}
-          <Octicon symbol={OcticonSymbol.arrowSmallUp}/>
+          <Octicon symbol={OcticonSymbol.arrowSmallUp} />
         </span>
       )
     }
 
     if (behind > 0) {
       content.push(
-        <span key='behind'>
+        <span key="behind">
           {behind}
-          <Octicon symbol={OcticonSymbol.arrowSmallDown}/>
+          <Octicon symbol={OcticonSymbol.arrowSmallDown} />
         </span>
       )
     }
 
-    return <div className='ahead-behind'>{content}</div>
+    return <div className="ahead-behind">{content}</div>
   }
 
   private getTitle(): string {
-    if (!this.props.remoteName) { return 'Publish repository' }
-    if (!this.props.aheadBehind) { return 'Publish branch' }
+    if (!this.props.remoteName) {
+      return 'Publish repository'
+    }
+    if (!this.props.aheadBehind) {
+      return 'Publish branch'
+    }
 
     const { ahead, behind } = this.props.aheadBehind
-    const actionName = (function () {
-      if (behind > 0) { return 'Pull' }
-      if (ahead > 0) { return 'Push' }
-      return 'Update'
+    const actionName = (function() {
+      if (behind > 0) {
+        return 'Pull'
+      }
+      if (ahead > 0) {
+        return 'Push'
+      }
+      return 'Fetch'
     })()
 
     return `${actionName} ${this.props.remoteName}`
   }
 
   private getIcon(): OcticonSymbol {
-    if (!this.props.remoteName) { return OcticonSymbol.cloudUpload }
-    if (!this.props.aheadBehind) { return OcticonSymbol.cloudUpload }
+    if (this.props.networkActionInProgress) {
+      return OcticonSymbol.sync
+    }
+
+    if (!this.props.remoteName) {
+      return OcticonSymbol.cloudUpload
+    }
+    if (!this.props.aheadBehind) {
+      return OcticonSymbol.cloudUpload
+    }
 
     const { ahead, behind } = this.props.aheadBehind
-    if (this.props.networkActionInProgress) { return OcticonSymbol.sync }
-    if (behind > 0) { return OcticonSymbol.arrowDown }
-    if (ahead > 0) { return OcticonSymbol.arrowUp }
+    if (this.props.networkActionInProgress) {
+      return OcticonSymbol.sync
+    }
+    if (behind > 0) {
+      return OcticonSymbol.arrowDown
+    }
+    if (ahead > 0) {
+      return OcticonSymbol.arrowUp
+    }
     return OcticonSymbol.sync
   }
 
   private getDescription(): JSX.Element | string {
-    if (!this.props.remoteName) { return 'Publish this repository to GitHub' }
-    if (!this.props.aheadBehind) { return 'Publish this branch to GitHub' }
+    if (!this.props.remoteName) {
+      return 'Publish this repository to GitHub'
+    }
+    if (!this.props.aheadBehind) {
+      const isGitHub = !!this.props.repository.gitHubRepository
+      return isGitHub
+        ? 'Publish this branch to GitHub'
+        : 'Publish this branch to the remote'
+    }
 
     const lastFetched = this.props.lastFetched
     if (lastFetched) {
-      return <span>Last fetched <RelativeTime date={lastFetched} /></span>
+      return (
+        <span>
+          Last fetched <RelativeTime date={lastFetched} />
+        </span>
+      )
     } else {
       return 'Never fetched'
     }
   }
 
   private performAction = () => {
-    if (this.props.isPublishing) {
-      this.props.dispatcher.closeFoldout()
-      return
-    }
-
     if (!this.props.aheadBehind) {
       this.props.dispatcher.push(this.props.repository)
       return

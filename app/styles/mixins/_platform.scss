@@ -41,11 +41,3 @@
     @content;
   }
 }
-
-// An exact copy of the darwin mixin except that it allows for
-// writing platform specific styles when in fullscreen
-@mixin darwin-fullscreen {
-  body.platform-darwin.fullscreen & {
-    @content;
-  }
-}

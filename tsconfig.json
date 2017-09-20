@@ -2,15 +2,13 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "es6",
-    "noImplicitAny": true,
+    "target": "es2017",
     "noImplicitReturns": true,
-    "noImplicitThis": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
-    "strictNullChecks": true,
     "sourceMap": true,
     "jsx": "react",
+    "strict": true,
     "outDir": "./out"
   },
   "exclude": [

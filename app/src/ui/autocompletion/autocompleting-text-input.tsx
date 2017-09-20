@@ -1,27 +1,41 @@
 import * as React from 'react'
-import { List } from '../list'
+import { List, SelectionSource } from '../list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
-import  * as classNames from 'classnames'
-
-interface IPosition {
-  readonly top: number
-  readonly left: number
-}
+import * as classNames from 'classnames'
 
 interface IRange {
   readonly start: number
   readonly length: number
 }
 
-const getCaretCoordinates: (element: HTMLElement, position: number) => IPosition = require('textarea-caret')
+import getCaretCoordinates = require('textarea-caret')
 
 interface IAutocompletingTextInputProps<ElementType> {
+  /**
+   * An optional className to be applied to the rendered
+   * top level element of the component.
+   */
   readonly className?: string
+
+  /** The placeholder for the input field. */
   readonly placeholder?: string
+
+  /** The current value of the input field. */
   readonly value?: string
-  readonly onChange?: (event: React.FormEvent<ElementType>) => void
+
+  /**
+   * Called when the user changes the value in the input field.
+   */
+  readonly onValueChanged?: (value: string) => void
+
+  /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<ElementType>) => void
+
+  /**
+   * A list of autocompletion providers that should be enabled for this
+   * input.
+   */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 }
 
@@ -35,12 +49,8 @@ interface IAutocompletionState<T> {
 
 /**
  * The height of the autocompletion result rows.
- *
- * We're rendering emojis at 20x20px and each row
- * has a 1px border at the bottom, making 31 the
- * ideal height for fitting the emoji images.
  */
-const RowHeight = 31
+const RowHeight = 29
 
 /**
  * The amount to offset on the Y axis so that the popup is displayed below the
@@ -63,12 +73,14 @@ interface IAutocompletingTextInputState<T> {
 }
 
 /** A text area which provides autocompletions as the user types. */
-export abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HTMLTextAreaElement> extends React.Component<IAutocompletingTextInputProps<ElementType>, IAutocompletingTextInputState<any>> {
+export abstract class AutocompletingTextInput<
+  ElementType extends HTMLInputElement | HTMLTextAreaElement
+> extends React.Component<
+  IAutocompletingTextInputProps<ElementType>,
+  IAutocompletingTextInputState<Object>
+> {
   private element: ElementType | null = null
   private autocompletionList: List | null = null
-
-  /** The row to scroll to. -1 means the list shouldn't scroll. */
-  private scrollToRow = -1
 
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
@@ -81,7 +93,9 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
   private renderItem = (row: number): JSX.Element | null => {
     const state = this.state.autocompletionState
-    if (!state) { return null }
+    if (!state) {
+      return null
+    }
 
     const item = state.items[row]
     const selected = item === state.selectedItem ? 'selected' : ''
@@ -98,21 +112,28 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
   private renderAutocompletions() {
     const state = this.state.autocompletionState
-    if (!state) { return null }
+    if (!state) {
+      return null
+    }
 
     const items = state.items
-    if (!items.length) { return null }
-
-    const scrollToRow = this.scrollToRow
-    this.scrollToRow = -1
+    if (!items.length) {
+      return null
+    }
 
     const element = this.element!
     let coordinates = getCaretCoordinates(element, state.range.start)
-    coordinates = { top: coordinates.top - element.scrollTop, left: coordinates.left - element.scrollLeft }
+    coordinates = {
+      ...coordinates,
+      top: coordinates.top - element.scrollTop,
+      left: coordinates.left - element.scrollLeft,
+    }
 
     const left = coordinates.left
     const top = coordinates.top + YOffset
-    const selectedRow = items.indexOf(state.selectedItem)
+    const selectedRow = state.selectedItem
+      ? items.indexOf(state.selectedItem)
+      : -1
     const rect = element.getBoundingClientRect()
     const popupAbsoluteTop = rect.top + coordinates.top
     const windowHeight = element.ownerDocument.defaultView.innerHeight
@@ -127,7 +148,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     // Magic number warning! The autocompletion-popup container adds a border
     // which we have to account for in case we want to show N number of items
     // without overflowing and triggering the scrollbar.
-    const noOverflowItemHeight = (RowHeight * items.length) + 2
+    const noOverflowItemHeight = RowHeight * items.length
 
     const height = Math.min(noOverflowItemHeight, maxHeight)
 
@@ -136,30 +157,71 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     // remains the same. Additionally we need to be aware that different
     // providers can use different sorting behaviors which also might affect
     // rendering.
-    const searchText = this.state.autocompletionState
-      ? this.state.autocompletionState.rangeText
-      : undefined
+    const searchText = state.rangeText
+
+    const className = classNames('autocompletion-popup', state.provider.kind)
 
     return (
-      <div className='autocompletion-popup' style={{ top, left, height }}>
-        <List ref={this.storeAutocompletionListRef}
-              rowCount={items.length}
-              rowHeight={RowHeight}
-              selectedRow={selectedRow}
-              rowRenderer={this.renderItem}
-              scrollToRow={scrollToRow}
-              onRowClick={this.insertCompletionOnClick}
-              invalidationProps={searchText}/>
+      <div className={className} style={{ top, left, height }}>
+        <List
+          ref={this.storeAutocompletionListRef}
+          rowCount={items.length}
+          rowHeight={RowHeight}
+          selectedRow={selectedRow}
+          rowRenderer={this.renderItem}
+          scrollToRow={selectedRow}
+          selectOnHover={true}
+          focusOnHover={false}
+          onRowMouseDown={this.onRowMouseDown}
+          onRowClick={this.insertCompletionOnClick}
+          onSelectionChanged={this.onSelectionChanged}
+          invalidationProps={searchText}
+        />
       </div>
     )
   }
 
+  private onRowMouseDown = (row: number, event: React.MouseEvent<any>) => {
+    const currentAutoCompletionState = this.state.autocompletionState
+
+    if (!currentAutoCompletionState) {
+      return
+    }
+
+    const item = currentAutoCompletionState.items[row]
+
+    if (item) {
+      this.insertCompletion(item)
+    }
+  }
+
+  private onSelectionChanged = (row: number, source: SelectionSource) => {
+    const currentAutoCompletionState = this.state.autocompletionState
+
+    if (!currentAutoCompletionState) {
+      return
+    }
+
+    const newSelectedItem = currentAutoCompletionState.items[row]
+
+    const newAutoCompletionState = {
+      ...currentAutoCompletionState,
+      selectedItem: newSelectedItem,
+    }
+
+    this.setState({ autocompletionState: newAutoCompletionState })
+  }
+
   private insertCompletionOnClick = (row: number): void => {
     const state = this.state.autocompletionState
-    if (!state) { return }
+    if (!state) {
+      return
+    }
 
     const items = state.items
-    if (!items.length) { return }
+    if (!items.length) {
+      return
+    }
 
     const item = items[row]
 
@@ -167,7 +229,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
     // This is pretty gross. Clicking on the list moves focus off the text area.
     // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
-    setTimeout(() => {
+    window.setTimeout(() => {
       const element = this.element
       if (element) {
         element.focus()
@@ -182,22 +244,38 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
   protected abstract getElementTagName(): 'textarea' | 'input'
 
   private renderTextInput() {
-    return React.createElement<any, any>(this.getElementTagName(), {
-      ref: (ref: ElementType) => this.element = ref,
+    return React.createElement<
+      React.HTMLAttributes<ElementType>,
+      ElementType
+    >(this.getElementTagName(), {
       type: 'text',
       placeholder: this.props.placeholder,
       value: this.props.value,
-      onChange: (event: React.FormEvent<ElementType>) => this.onChange(event),
-      onKeyDown: (event: React.KeyboardEvent<ElementType>) => this.onKeyDown(event),
+      ref: this.onRef,
+      onChange: this.onChange,
+      onKeyDown: this.onKeyDown,
+      onBlur: this.onBlur,
     })
+  }
+
+  private onBlur = (e: React.FocusEvent<ElementType>) => {
+    this.close()
+  }
+
+  private onRef = (ref: ElementType | null) => {
+    this.element = ref
   }
 
   public render() {
     const tagName = this.getElementTagName()
-    const className = classNames('autocompletion-container', this.props.className, {
-      'text-box-component': tagName === 'input',
-      'text-area-component': tagName === 'textarea',
-    })
+    const className = classNames(
+      'autocompletion-container',
+      this.props.className,
+      {
+        'text-box-component': tagName === 'input',
+        'text-area-component': tagName === 'textarea',
+      }
+    )
     return (
       <div className={className}>
         {this.renderAutocompletions()}
@@ -207,91 +285,114 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     )
   }
 
-  private insertCompletion(item: any) {
+  private insertCompletion(item: Object) {
     const element = this.element!
     const autocompletionState = this.state.autocompletionState!
     const originalText = element.value
     const range = autocompletionState.range
-    const autoCompleteText = autocompletionState.provider.getCompletionText(item)
-    const newText = originalText.substr(0, range.start - 1) + autoCompleteText + originalText.substr(range.start + range.length) + ' '
+    const autoCompleteText = autocompletionState.provider.getCompletionText(
+      item
+    )
+    const newText =
+      originalText.substr(0, range.start - 1) +
+      autoCompleteText +
+      originalText.substr(range.start + range.length) +
+      ' '
     element.value = newText
 
-    if (this.props.onChange) {
-      // This is gross, I feel gross, etc.
-      this.props.onChange({
-          bubbles: false,
-          currentTarget: element,
-          cancelable: false,
-          defaultPrevented: true,
-          eventPhase: 1,
-          isTrusted: true,
-          nativeEvent: new KeyboardEvent('keydown'),
-          preventDefault: () => {},
-          isDefaultPrevented: () => true,
-          stopPropagation: () => {},
-          isPropagationStopped: () => true,
-          persist: () => {},
-          target: element,
-          timeStamp: new Date(),
-          type: 'keydown',
-      })
+    if (this.props.onValueChanged) {
+      this.props.onValueChanged(newText)
     }
 
-    this.setState({ autocompletionState: null })
+    this.close()
   }
 
-  private getMovementDirection(event: React.KeyboardEvent<any>): 'up' | 'down' | null {
+  private getMovementDirection(
+    event: React.KeyboardEvent<any>
+  ): 'up' | 'down' | null {
     switch (event.key) {
-      case 'ArrowUp': return 'up'
-      case 'ArrowDown': return 'down'
+      case 'ArrowUp':
+        return 'up'
+      case 'ArrowDown':
+        return 'down'
     }
 
     return null
   }
 
-  private onKeyDown(event: React.KeyboardEvent<ElementType>) {
+  private onKeyDown = (event: React.KeyboardEvent<ElementType>) => {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(event)
     }
 
-    const state = this.state.autocompletionState
-    if (!state) { return }
+    if (event.defaultPrevented) {
+      return
+    }
 
-    const selectedRow = state.items.indexOf(state.selectedItem)
+    const currentAutoCompletionState = this.state.autocompletionState
+
+    if (
+      !currentAutoCompletionState ||
+      !currentAutoCompletionState.items.length
+    ) {
+      return
+    }
+
+    const selectedRow = currentAutoCompletionState.selectedItem
+      ? currentAutoCompletionState.items.indexOf(
+          currentAutoCompletionState.selectedItem
+        )
+      : -1
+
     const direction = this.getMovementDirection(event)
     if (direction) {
       event.preventDefault()
 
-      const nextRow = this.autocompletionList!.nextSelectableRow(direction, selectedRow)
-      this.scrollToRow = nextRow
-      this.setState({ autocompletionState: {
-        provider: state.provider,
-        items: state.items,
-        range: state.range,
-        selectedItem: state.items[nextRow],
-        rangeText: state.rangeText,
-      } })
-    } else if (event.key === 'Enter' || event.key === 'Tab') {
-      event.preventDefault()
+      const nextRow = this.autocompletionList!.nextSelectableRow(
+        direction,
+        selectedRow
+      )
+      const newSelectedItem = currentAutoCompletionState.items[nextRow]
 
-      this.insertCompletion(state.selectedItem)
+      const newAutoCompletionState = {
+        ...currentAutoCompletionState,
+        selectedItem: newSelectedItem,
+      }
+
+      this.setState({ autocompletionState: newAutoCompletionState })
+    } else if (event.key === 'Enter' || event.key === 'Tab') {
+      const item = currentAutoCompletionState.selectedItem
+      if (item) {
+        event.preventDefault()
+
+        this.insertCompletion(item)
+      }
     } else if (event.key === 'Escape') {
-      this.setState({ autocompletionState: null })
+      this.close()
     }
   }
 
-  private async attemptAutocompletion(str: string, caretPosition: number): Promise<IAutocompletionState<any> | null> {
+  private close() {
+    this.setState({ autocompletionState: null })
+  }
+
+  private async attemptAutocompletion(
+    str: string,
+    caretPosition: number
+  ): Promise<IAutocompletionState<any> | null> {
     for (const provider of this.props.autocompletionProviders) {
       // NB: RegExps are stateful (AAAAAAAAAAAAAAAAAA) so defensively copy the
       // regex we're given.
       const regex = new RegExp(provider.getRegExp())
       if (!regex.global) {
-        fatalError(`The regex (${regex}) returned from ${provider} isn't global, but it should be!`)
+        fatalError(
+          `The regex (${regex}) returned from ${provider} isn't global, but it should be!`
+        )
         continue
       }
 
       let result: RegExpExecArray | null = null
-      while (result = regex.exec(str)) {
+      while ((result = regex.exec(str))) {
         const index = regex.lastIndex
         const text = result[1] || ''
         if (index === caretPosition) {
@@ -307,19 +408,25 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     return null
   }
 
-  private async onChange(event: React.FormEvent<ElementType>) {
-    if (this.props.onChange) {
-      this.props.onChange(event)
+  private onChange = async (event: React.FormEvent<ElementType>) => {
+    const str = event.currentTarget.value
+
+    if (this.props.onValueChanged) {
+      this.props.onValueChanged(str)
     }
 
-    const str = event.currentTarget.value
     const caretPosition = this.element!.selectionStart
     const requestID = ++this.autocompletionRequestID
-    const autocompletionState = await this.attemptAutocompletion(str, caretPosition)
+    const autocompletionState = await this.attemptAutocompletion(
+      str,
+      caretPosition
+    )
 
     // If another autocompletion request is in flight, then ignore these
     // results.
-    if (requestID !== this.autocompletionRequestID) { return }
+    if (requestID !== this.autocompletionRequestID) {
+      return
+    }
 
     this.setState({ autocompletionState })
   }

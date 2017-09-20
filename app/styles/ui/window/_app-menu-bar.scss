@@ -1,0 +1,45 @@
+#app-menu-bar {
+  display: flex;
+
+  .toolbar-button > button {
+    padding: 0  var(--spacing);
+    border: 0;
+
+    .access-key.highlight {
+      text-decoration: underline;
+    }
+  }
+
+  .toolbar-dropdown:not(.open) > .toolbar-button > button {
+    color: var(--toolbar-button-secondary-color);
+
+    &:hover,&:focus {
+      color: var(--toolbar-button-color);
+    }
+  }
+
+  #foldout-container .foldout {
+    // Normaly the foldouts have an opaque background but we're
+    // doing a little hack here to make it appear as if the menus
+    // only extend as far as is required to show all menu items.
+    // So we'll have the background of the foldout be transparent
+    // but have an opaque background on the menu pane.
+    background: transparent;
+
+    // This is yet another hack, since the foldout has to extend
+    // to 100% of the available width (or else we can't constrain
+    // the height of the menu panes) we won't be able to close
+    // the pane by clicking directly underneath it. So in order
+    // to solve that we disable pointer events on the foldout
+    // so that clicks on any part of the foldout where there's
+    // no menu pane actually end up registering on the foldout
+    // overload. We then re-enable them on the menu pane itself
+    // so that mouse events work as expected.
+    pointer-events: none;
+
+    .menu-pane {
+      background: var(--background-color);
+      pointer-events: all;
+    }
+  }
+}

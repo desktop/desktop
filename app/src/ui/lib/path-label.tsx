@@ -1,19 +1,22 @@
 import * as React from 'react'
 
-import { FileStatus } from '../../models/status'
+import { AppFileStatus } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PathText } from './path-text'
 
 interface IPathLabelProps {
   /** the current path of the file */
-  readonly path: string,
+  readonly path: string
   /** the previous path of the file, if applicable */
-  readonly oldPath?: string,
+  readonly oldPath?: string
   /** the type of change applied to the file */
-  readonly status: FileStatus
+  readonly status: AppFileStatus
 
-  readonly availableWidth: number
+  readonly availableWidth?: number
 }
+
+/** The pixel width reserved to give the resize arrow padding on either side. */
+const ResizeArrowPadding = 10
 
 /**
  * Render the path details for a given file.
@@ -22,21 +25,34 @@ interface IPathLabelProps {
  * For other scenarios, only the current path is rendered.
  *
  */
-export class PathLabel extends React.Component<IPathLabelProps, void> {
+export class PathLabel extends React.Component<IPathLabelProps, {}> {
   public render() {
-
     const props: React.HTMLProps<HTMLLabelElement> = {
       className: 'path',
     }
 
-    if (this.props.status === FileStatus.Renamed && this.props.oldPath) {
+    const status = this.props.status
+    const renderBothPaths =
+      status === AppFileStatus.Renamed || status === AppFileStatus.Copied
+
+    const availableWidth = this.props.availableWidth
+    if (renderBothPaths && this.props.oldPath) {
+      const segmentWidth = availableWidth
+        ? availableWidth / 2 - ResizeArrowPadding
+        : undefined
       return (
         <label {...props}>
-          {this.props.oldPath} <Octicon symbol={OcticonSymbol.arrowRight} /> {this.props.path}
+          <PathText path={this.props.oldPath} availableWidth={segmentWidth} />
+          <Octicon className="rename-arrow" symbol={OcticonSymbol.arrowRight} />
+          <PathText path={this.props.path} availableWidth={segmentWidth} />
         </label>
       )
     } else {
-      return <label {...props}><PathText path={this.props.path} availableWidth={this.props.availableWidth} /></label>
+      return (
+        <label {...props}>
+          <PathText path={this.props.path} availableWidth={availableWidth} />
+        </label>
+      )
     }
   }
 }

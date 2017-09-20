@@ -1,67 +1,142 @@
-import { app, Menu, MenuItem, ipcMain, BrowserWindow } from 'electron'
-import * as http from 'http'
+import '../lib/logging/main/install'
 
-import { decode } from 'iconv-lite'
+import { app, Menu, MenuItem, ipcMain, BrowserWindow, shell } from 'electron'
+
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
-import { parseURL } from '../lib/parse-url'
-import { handleSquirrelEvent } from './updates'
-import { SharedProcess } from '../shared-process/shared-process'
+import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
+import { parseAppURL } from '../lib/parse-app-url'
+import { handleSquirrelEvent } from './squirrel-updater'
 import { fatalError } from '../lib/fatal-error'
-import { reportError } from '../lib/exception-reporting'
-import { IHTTPRequest, IHTTPResponse, getEncoding } from '../lib/http'
+
+import { IMenuItemState } from '../lib/menu-update'
+import { LogLevel } from '../lib/logging/log-level'
+import { log as writeLog } from './log'
+import { reportError } from './exception-reporting'
+import {
+  enableSourceMaps,
+  withSourceMappedStack,
+} from '../lib/source-map-support'
+import { now } from './now'
+import { showUncaughtException } from './show-uncaught-exception'
+
+enableSourceMaps()
 
 let mainWindow: AppWindow | null = null
-let sharedProcess: SharedProcess | null = null
 
-let network: Electron.Net | null = null
+const launchTime = now()
 
-const launchTime = Date.now()
-
+let preventQuit = false
 let readyTime: number | null = null
 
-process.on('uncaughtException', (error: Error) => {
-  if (sharedProcess) {
-    sharedProcess.console.error('Uncaught exception:')
-    sharedProcess.console.error(error.name)
-    sharedProcess.console.error(error.message)
+type OnDidLoadFn = (window: AppWindow) => void
+/** See the `onDidLoad` function. */
+let onDidLoadFns: Array<OnDidLoadFn> | null = []
+
+function handleUncaughtException(error: Error) {
+  preventQuit = true
+
+  if (mainWindow) {
+    mainWindow.destroy()
+    mainWindow = null
   }
 
-  reportError(error, app.getVersion())
+  const isLaunchError = !mainWindow
+  showUncaughtException(isLaunchError, error)
+}
+
+process.on('uncaughtException', (error: Error) => {
+  error = withSourceMappedStack(error)
+
+  reportError(error)
+  handleUncaughtException(error)
 })
 
+let handlingSquirrelEvent = false
 if (__WIN32__ && process.argv.length > 1) {
-  if (handleSquirrelEvent(process.argv[1])) {
+  const arg = process.argv[1]
+
+  const promise = handleSquirrelEvent(arg)
+  if (promise) {
+    handlingSquirrelEvent = true
+    promise
+      .catch(e => {
+        log.error(`Failed handling Squirrel event: ${arg}`, e)
+      })
+      .then(() => {
+        app.quit()
+      })
+  } else {
+    handleAppURL(arg)
+  }
+}
+
+function handleAppURL(url: string) {
+  const action = parseAppURL(url)
+  onDidLoad(window => {
+    // This manual focus call _shouldn't_ be necessary, but is for Chrome on
+    // macOS. See https://github.com/desktop/desktop/issues/973.
+    window.focus()
+    window.sendURLAction(action)
+  })
+}
+
+let isDuplicateInstance = false
+// If we're handling a Squirrel event we don't want to enforce single instance.
+// We want to let the updated instance launch and do its work. It will then quit
+// once it's done.
+if (!handlingSquirrelEvent) {
+  isDuplicateInstance = app.makeSingleInstance((args, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore()
+      }
+
+      if (!mainWindow.isVisible()) {
+        mainWindow.show()
+      }
+
+      mainWindow.focus()
+    }
+
+    if (args.length > 1) {
+      handleAppURL(args[1])
+    }
+  })
+
+  if (isDuplicateInstance) {
     app.quit()
   }
 }
 
-const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
-  // Someone tried to run a second instance, we should focus our window.
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) {
-      mainWindow.restore()
-    }
-    mainWindow.focus()
-  }
-
-  // look at the second argument received, it should have the OAuth
-  // callback contents and code for us to complete the signin flow
-  if (commandLine.length > 1) {
-    const action = parseURL(commandLine[1])
-    getMainWindow().sendURLAction(action)
-  }
-})
-
-if (shouldQuit) {
-  app.quit()
+if (shellNeedsPatching(process)) {
+  updateEnvironmentForProcess()
 }
 
+app.on('will-finish-launching', () => {
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+
+    handleAppURL(url)
+  })
+})
+
 app.on('ready', () => {
-  const now = Date.now()
-  readyTime = now - launchTime
+  if (isDuplicateInstance || handlingSquirrelEvent) {
+    return
+  }
+
+  readyTime = now() - launchTime
 
   app.setAsDefaultProtocolClient('x-github-client')
+
+  if (__DEV__) {
+    app.setAsDefaultProtocolClient('x-github-desktop-dev-auth')
+  } else {
+    app.setAsDefaultProtocolClient('x-github-desktop-auth')
+  }
+
   // Also support Desktop Classic's protocols.
   if (__DARWIN__) {
     app.setAsDefaultProtocolClient('github-mac')
@@ -69,22 +144,26 @@ app.on('ready', () => {
     app.setAsDefaultProtocolClient('github-windows')
   }
 
-  sharedProcess = new SharedProcess()
-  sharedProcess.register()
-
   createWindow()
 
-  app.on('open-url', (event, url) => {
-    event.preventDefault()
-
-    const action = parseURL(url)
-    getMainWindow().sendURLAction(action)
-  })
-
-  const menu = buildDefaultMenu(sharedProcess)
+  let menu = buildDefaultMenu()
   Menu.setApplicationMenu(menu)
 
-  ipcMain.on('menu-event', (event, args) => {
+  ipcMain.on(
+    'update-preferred-app-menu-item-labels',
+    (
+      event: Electron.IpcMessageEvent,
+      labels: { editor?: string; shell: string }
+    ) => {
+      menu = buildDefaultMenu(labels.editor, labels.shell)
+      Menu.setApplicationMenu(menu)
+      if (mainWindow) {
+        mainWindow.sendAppMenu()
+      }
+    }
+  )
+
+  ipcMain.on('menu-event', (event: Electron.IpcMessageEvent, args: any[]) => {
     const { name }: { name: MenuEvent } = event as any
     if (mainWindow) {
       mainWindow.sendMenuEvent(name)
@@ -95,152 +174,73 @@ app.on('ready', () => {
    * An event sent by the renderer asking that the menu item with the given id
    * is executed (ie clicked).
    */
-  ipcMain.on('execute-menu-item', (event: Electron.IpcMainEvent, { id }: { id: string }) => {
-    const menuItem = findMenuItemByID(menu, id)
-    if (menuItem) {
-      const window = BrowserWindow.fromWebContents(event.sender)
-      const fakeEvent = { preventDefault: () => {}, sender: event.sender }
-      menuItem.click(menuItem, window, fakeEvent)
-    }
-  })
-
-  ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, { id, enabled }: { id: string, enabled: boolean }) => {
-    const menuItem = findMenuItemByID(menu, id)
-    if (menuItem) {
-      // Only send the updated app menu when the state actually changes
-      // or we might end up introducing a never ending loop between
-      // the renderer and the main process
-      if (menuItem.enabled !== enabled) {
-        menuItem.enabled = enabled
-        if (mainWindow) {
-          mainWindow.sendAppMenu()
-        }
-      }
-    } else {
-      fatalError(`Unknown menu id: ${id}`)
-    }
-  })
-
-  ipcMain.on('set-menu-visible', (event: Electron.IpcMainEvent, { id, visible }: { id: string, visible: boolean }) => {
-    const menuItem = findMenuItemByID(menu, id)
-    if (menuItem) {
-      // Only send the updated app menu when the state actually changes
-      // or we might end up introducing a never ending loop between
-      // the renderer and the main process
-      if (menuItem.visible !== visible) {
-        menuItem.visible = visible
-        if (mainWindow) {
-          mainWindow.sendAppMenu()
-        }
-      }
-    } else {
-      fatalError(`Unknown menu id: ${id}`)
-    }
-  })
-
-  ipcMain.on('show-contextual-menu', (event: Electron.IpcMainEvent, items: ReadonlyArray<any>) => {
-    const menu = new Menu()
-    const menuItems = items.map((item, i) => {
-      return new MenuItem({
-        label: item.label,
-        click: () => event.sender.send('contextual-menu-action', i),
-      })
-    })
-
-    for (const item of menuItems) {
-      menu.append(item)
-    }
-
-    const window = BrowserWindow.fromWebContents(event.sender)
-    menu.popup(window)
-  })
-
-  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options }: { id: string, options: IHTTPRequest }) => {
-
-    if (network === null) {
-      // the network module can only be resolved after the app is ready
-      network = require('electron').net
-
-      if (network === null) {
-        sharedProcess!.console.error('Electron net module not resolved, should never be in this state')
-        return
+  ipcMain.on(
+    'execute-menu-item',
+    (event: Electron.IpcMessageEvent, { id }: { id: string }) => {
+      const menuItem = findMenuItemByID(menu, id)
+      if (menuItem) {
+        const window = BrowserWindow.fromWebContents(event.sender)
+        const fakeEvent = { preventDefault: () => {}, sender: event.sender }
+        menuItem.click(fakeEvent, window, event.sender)
       }
     }
+  )
 
-    const channel = `proxy/response/${id}`
+  ipcMain.on(
+    'update-menu-state',
+    (
+      event: Electron.IpcMessageEvent,
+      items: Array<{ id: string; state: IMenuItemState }>
+    ) => {
+      let sendMenuChangedEvent = false
 
-    const requestOptions = {
-      url: options.url,
-      headers: options.headers,
-      method: options.method,
-    }
+      for (const item of items) {
+        const { id, state } = item
+        const menuItem = findMenuItemByID(menu, id)
 
-    const request = network.request(requestOptions)
-    request.on('response', (response: Electron.IncomingMessage) => {
-
-      const responseChunks: Array<Buffer> = [ ]
-
-      response.on('abort', () => {
-        event.sender.send(channel, { error: new Error('request aborted by the client') })
-      })
-
-      response.on('data', (chunk: Buffer) => {
-        // rather than decode the bytes immediately, push them onto an array
-        // and defer this until the entire response has been received
-        responseChunks.push(chunk)
-      })
-
-      response.on('end', () => {
-        const statusCode = response.statusCode
-        const headers = response.headers
-        const encoding = getEncoding(response) || 'binary'
-
-        let body: string | undefined
-
-        if (responseChunks.length > 0) {
-          const buffer = Buffer.concat(responseChunks)
-          try {
-            // we're using `iconv-lite` to decode these buffers into an encoding specified
-            // with user input - this will throw if it doesn't recognise the encoding
-            body = decode(buffer, encoding)
-          } catch (e) {
-            sharedProcess!.console.log(`Unable to convert buffer to encoding: '${encoding}'`)
+        if (menuItem) {
+          // Only send the updated app menu when the state actually changes
+          // or we might end up introducing a never ending loop between
+          // the renderer and the main process
+          if (
+            state.enabled !== undefined &&
+            menuItem.enabled !== state.enabled
+          ) {
+            menuItem.enabled = state.enabled
+            sendMenuChangedEvent = true
           }
+        } else {
+          fatalError(`Unknown menu id: ${id}`)
         }
+      }
 
-        // emulating the rules from got for propagating errors
-        // source: https://github.com/sindresorhus/got/blob/88a8ac8ac3d8ee2387983048368205c0bbe4abdf/index.js#L352-L357
-        let error: Error | undefined
-        if (statusCode >= 400) {
-          const statusMessage = http.STATUS_CODES[statusCode]
-          error = new Error(`Response code ${statusCode} (${statusMessage})`)
-        }
+      if (sendMenuChangedEvent && mainWindow) {
+        mainWindow.sendAppMenu()
+      }
+    }
+  )
 
-        const payload: IHTTPResponse = {
-          statusCode,
-          headers,
-          body,
-          error,
-        }
-
-        event.sender.send(channel, { response: payload })
+  ipcMain.on(
+    'show-contextual-menu',
+    (event: Electron.IpcMessageEvent, items: ReadonlyArray<any>) => {
+      const menu = new Menu()
+      const menuItems = items.map((item, i) => {
+        return new MenuItem({
+          label: item.label,
+          click: () => event.sender.send('contextual-menu-action', i),
+          type: item.type,
+          enabled: item.enabled,
+        })
       })
-    })
 
-    request.on('abort', () => {
-      event.sender.send(channel, { error: new Error('request aborted by the client') })
-    })
+      for (const item of menuItems) {
+        menu.append(item)
+      }
 
-    request.on('aborted', () => {
-      event.sender.send(channel, { error: new Error('request aborted by the server') })
-    })
-
-    const body = options.body
-      ? JSON.stringify(options.body)
-      : undefined
-
-    request.end(body)
-  })
+      const window = BrowserWindow.fromWebContents(event.sender)
+      menu.popup(window, { async: true })
+    }
+  )
 
   /**
    * An event sent by the renderer asking for a copy of the current
@@ -251,20 +251,109 @@ app.on('ready', () => {
       mainWindow.sendAppMenu()
     }
   })
+
+  ipcMain.on(
+    'show-certificate-trust-dialog',
+    (
+      event: Electron.IpcMessageEvent,
+      {
+        certificate,
+        message,
+      }: { certificate: Electron.Certificate; message: string }
+    ) => {
+      // This API is only implemented for macOS and Windows right now.
+      if (__DARWIN__ || __WIN32__) {
+        onDidLoad(window => {
+          window.showCertificateTrustDialog(certificate, message)
+        })
+      }
+    }
+  )
+
+  ipcMain.on(
+    'log',
+    (event: Electron.IpcMessageEvent, level: LogLevel, message: string) => {
+      writeLog(level, message)
+    }
+  )
+
+  ipcMain.on(
+    'uncaught-exception',
+    (event: Electron.IpcMessageEvent, error: Error) => {
+      handleUncaughtException(error)
+    }
+  )
+
+  ipcMain.on(
+    'send-error-report',
+    (
+      event: Electron.IpcMessageEvent,
+      { error, extra }: { error: Error; extra: { [key: string]: string } }
+    ) => {
+      reportError(error, extra)
+    }
+  )
+
+  ipcMain.on(
+    'open-external',
+    (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
+      const result = shell.openExternal(path)
+      event.sender.send('open-external-result', { result })
+    }
+  )
+
+  ipcMain.on(
+    'show-item-in-folder',
+    (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
+      shell.showItemInFolder(path)
+    }
+  )
 })
 
 app.on('activate', () => {
-  if (!mainWindow) {
-    createWindow()
-  }
+  onDidLoad(window => {
+    window.show()
+  })
 })
 
+app.on('web-contents-created', (event, contents) => {
+  contents.on('new-window', (event, url) => {
+    // Prevent links or window.open from opening new windows
+    event.preventDefault()
+    log.warn(`Prevented new window to: ${url}`)
+  })
+})
+
+app.on(
+  'certificate-error',
+  (event, webContents, url, error, certificate, callback) => {
+    callback(false)
+
+    onDidLoad(window => {
+      window.sendCertificateError(certificate, error, url)
+    })
+  }
+)
+
 function createWindow() {
-  const window = new AppWindow(sharedProcess!)
+  const window = new AppWindow()
+
+  if (__DEV__) {
+    const installer = require('electron-devtools-installer')
+    require('electron-debug')({ showDevTools: true })
+
+    const extensions = ['REACT_DEVELOPER_TOOLS', 'REACT_PERF']
+
+    for (const name of extensions) {
+      try {
+        installer.default(installer[name])
+      } catch (e) {}
+    }
+  }
+
   window.onClose(() => {
     mainWindow = null
-
-    if (!__DARWIN__) {
+    if (!__DARWIN__ && !preventQuit) {
       app.quit()
     }
   })
@@ -276,6 +365,12 @@ function createWindow() {
       loadTime: window.loadTime!,
       rendererReadyTime: window.rendererReadyTime!,
     })
+
+    const fns = onDidLoadFns!
+    onDidLoadFns = null
+    for (const fn of fns) {
+      fn(window)
+    }
   })
 
   window.load()
@@ -283,11 +378,16 @@ function createWindow() {
   mainWindow = window
 }
 
-/** Get the main window, creating it if necessary. */
-function getMainWindow(): AppWindow {
-  if (!mainWindow) {
-    createWindow()
+/**
+ * Register a function to be called once the window has been loaded. If the
+ * window has already been loaded, the function will be called immediately.
+ */
+function onDidLoad(fn: OnDidLoadFn) {
+  if (onDidLoadFns) {
+    onDidLoadFns.push(fn)
+  } else {
+    if (mainWindow) {
+      fn(mainWindow)
+    }
   }
-
-  return mainWindow!
 }

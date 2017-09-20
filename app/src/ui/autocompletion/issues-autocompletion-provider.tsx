@@ -1,8 +1,7 @@
 import * as React from 'react'
 import { IAutocompletionProvider } from './index'
-import { IssuesStore } from '../../lib/dispatcher'
+import { Dispatcher, IssuesStore } from '../../lib/dispatcher'
 import { GitHubRepository } from '../../models/github-repository'
-import { Dispatcher } from '../../lib/dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
 /** The interval we should use to throttle the issues update. */
@@ -18,7 +17,10 @@ export interface IIssueHit {
 }
 
 /** The autocompletion provider for issues in a GitHub repository. */
-export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIssueHit> {
+export class IssuesAutocompletionProvider
+  implements IAutocompletionProvider<IIssueHit> {
+  public readonly kind = 'issue'
+
   private readonly issuesStore: IssuesStore
   private readonly repository: GitHubRepository
   private readonly dispatcher: Dispatcher
@@ -27,19 +29,27 @@ export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIs
    * The scheduler used to throttle calls to update the issues for
    * autocompletion.
    */
-  private readonly updateIssuesScheduler = new ThrottledScheduler(UpdateIssuesThrottleInterval)
+  private readonly updateIssuesScheduler = new ThrottledScheduler(
+    UpdateIssuesThrottleInterval
+  )
 
-  public constructor(issuesStore: IssuesStore, repository: GitHubRepository, dispatcher: Dispatcher) {
+  public constructor(
+    issuesStore: IssuesStore,
+    repository: GitHubRepository,
+    dispatcher: Dispatcher
+  ) {
     this.issuesStore = issuesStore
     this.repository = repository
     this.dispatcher = dispatcher
   }
 
   public getRegExp(): RegExp {
-    return /(?:^|\n| )(?:#)([a-z0-9\\+\\-][a-z0-9_]*)?/g
+    return /(?:^|\n| )(?:#)([a-z\d\\+-][a-z\d_]*)?/g
   }
 
-  public getAutocompletionItems(text: string): Promise<ReadonlyArray<IIssueHit>> {
+  public getAutocompletionItems(
+    text: string
+  ): Promise<ReadonlyArray<IIssueHit>> {
     this.updateIssuesScheduler.queue(() => {
       this.dispatcher.updateIssues(this.repository)
     })
@@ -49,9 +59,9 @@ export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIs
 
   public renderItem(item: IIssueHit): JSX.Element {
     return (
-      <div className='issue' key={item.number}>
-        <span className='number'>#{item.number}</span>
-        <span className='title'>{item.title}</span>
+      <div className="issue" key={item.number}>
+        <span className="number">#{item.number}</span>
+        <span className="title">{item.title}</span>
       </div>
     )
   }

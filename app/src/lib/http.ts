@@ -1,180 +1,177 @@
 import * as appProxy from '../ui/lib/app-proxy'
 
-import { proxyRequest } from '../ui/main-process-proxy'
-
-/** The HTTP payload returned by Electron's net module */
-export interface IHTTPResponse {
-  /** The HTTP status code */
-  readonly statusCode?: number,
-  /** The key-value collection of headers associated with the response */
-  readonly headers?: { [key: string]: any; },
-  /** The response body */
-  readonly body?: string
-  /** An error if one occurred. */
-  readonly error?: Error
-}
-
-/** The HTTP request to map to Electron's net module */
-export interface IHTTPRequest {
-  /** The resource to access */
-  readonly url: string,
-  /** The verb associated with the request */
-  readonly method: HTTPMethod,
-  /** The key-value collection of headers associated with the request */
-  readonly headers?: { [key: string]: any; },
-  /** The request object to serialize */
-  readonly body?: Object
-}
-
 /** The HTTP methods available. */
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
-/** Resolve a given header on the HTTP response */
-export function getHeader(response: IHTTPResponse, key: string): string | null {
-  if (!response.headers) {
-    return null
-  }
+/**
+ * The structure of error messages returned from the GitHub API.
+ *
+ * Details: https://developer.github.com/v3/#client-errors
+ */
+export interface IError {
+  readonly message: string
+  readonly resource: string
+  readonly field: string
+}
 
-  const keyUpper = key.toUpperCase()
+/**
+ * The partial server response when an error has been returned.
+ *
+ * Details: https://developer.github.com/v3/#client-errors
+ */
+export interface IAPIError {
+  readonly errors?: IError[]
+  readonly message?: string
+}
 
-  for (const k in response.headers) {
-    const key = k.toUpperCase()
+/** An error from getting an unexpected response to an API call. */
+export class APIError extends Error {
+  /** The error as sent from the API, if one could be parsed. */
+  public readonly apiError: IAPIError | null
 
-    if (key === keyUpper) {
-      const header = response.headers[k]
-      if (header) {
-        // `net` module returns an array for each header, so to keep things
-        // simple we are currently just returning the first value.
-        // Discussion about changing this behaviour to match the Node HTTP API:
-        // https://github.com/electron/electron/issues/8117
-        const value: string = header[0]
-        return value
+  public constructor(response: Response, apiError: IAPIError | null) {
+    let message
+    if (apiError && apiError.message) {
+      message = apiError.message
+
+      const errors = apiError.errors
+      const additionalMessages = errors && errors.map(e => e.message).join(', ')
+      if (additionalMessages) {
+        message = `${message} (${additionalMessages})`
       }
-      return null
+    } else {
+      message = `API error ${response.url}: ${response.statusText} (${response.status})`
     }
-  }
 
-  return null
+    super(message)
+
+    this.apiError = apiError
+  }
 }
 
 /**
  * Deserialize the HTTP response body into an expected object shape
  *
- * Note: this doesn't validate the expected shape, and will only fail
- * if it encounters invalid JSON
+ * Note: this doesn't validate the expected shape, and will only fail if it
+ * encounters invalid JSON.
  */
-export function deserialize<T>(body: string | undefined): T | null {
-  if (!body) {
-    return null
-  }
-
+async function deserialize<T>(response: Response): Promise<T> {
   try {
-    return JSON.parse(body) as T
+    const json = await response.json()
+    return json as T
   } catch (e) {
-    console.error('Unable to deserialize JSON string to object', e)
-    return null
+    log.warn(`Unable to deserialize JSON string to object ${response}`, e)
+    throw e
   }
 }
 
 /**
- * Detect the encoding associated with the HTTP response.
+ * Convert the endpoint and resource path into an absolute URL. As the app bakes
+ * the `/api/v3/` path into the endpoint, we need to prevent duplicating this when
+ * the API returns pagination headers that also include the `/api/v3/` fragment.
  *
- * If not specified in the response headers, null is returned.
+ * @param endpoint The API endpoint
+ * @param path The resource path (should be relative to the root of the server)
  */
-export function getContentType(response: IHTTPResponse): string | null {
-  const contentType = getHeader(response, 'Content-Type')
-  if (!contentType) {
-    return null
+export function getAbsoluteUrl(endpoint: string, path: string): string {
+  let relativePath = path[0] === '/' ? path.substr(1) : path
+  if (relativePath.startsWith('api/v3/')) {
+    relativePath = relativePath.substr(7)
   }
-
-  // example `Content-Type: text/html; charset=utf-8`
-  const tokens = contentType.split(';')
-  if (tokens.length > 0) {
-    return tokens[0]
-  }
-
-  return null
-}
-
-/**
- * Detect the character encoding associated with the HTTP response.
- *
- * If not found, for `text/*` or `application/json` assumes `'ISO-8859-1'`.
- * Otherwise returns `null`
- */
-export function getEncoding(response: IHTTPResponse): string | null {
-  const contentType = getContentType(response)
-  if (!contentType) {
-    return null
-  }
-
-  // example `Content-Type: text/html; charset=utf-8`
-  const contentTypeRaw = getHeader(response, 'Content-Type')
-
-  // we've checked above for the existence of this header, but we
-  // can't reuse that value here because it strips the optional
-  // key-value parameters that we need here to find `charset`
-  const tokens = contentTypeRaw!.split(';')
-
-  // in theory there could be multiple `;` values here, but
-  // we're really expecting one `;` here to separate the
-  // value of `Content-Type` from the optional list of key-value
-  // parameters that may be provided afterwards
-  if (tokens.length >= 2) {
-    for (let i = 1; i < tokens.length; i++) {
-      const values = tokens[i].split('=')
-      if (values.length === 2 && values[0].trim() === 'charset') {
-        return values[1]
-      }
-    }
-  }
-
-
-  // while we expect JSON endpoints to return a charset, we might
-  // have some scenarios where this is not the case
-  // see http://www.iana.org/assignments/media-types/application/json
-  // for more information
-  if (contentType === 'application/json') {
-    return 'utf-8'
-  }
-
-  // RFC2616 states that text-based media subtypes without an
-  // explicit charset should be considered ISO-8859-1
-  if (contentType.startsWith('text/')) {
-    return 'iso-8859-1'
-  }
-
-  return null
+  return encodeURI(`${endpoint}/${relativePath}`)
 }
 
 /**
  * Make an API request.
  *
  * @param endpoint      - The API endpoint.
- * @param authorization - The value to pass in the `Authorization` header.
+ * @param token         - The token to use for authentication.
  * @param method        - The HTTP method.
- * @param path          - The path without a leading /.
- * @param body          - The body to send.
+ * @param path          - The path, including any query string parameters.
+ * @param jsonBody      - The JSON body to send.
  * @param customHeaders - Any optional additional headers to send.
  */
-export function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<IHTTPResponse> {
-  const url = `${endpoint}/${path}`
-  const headers: any = Object.assign({}, {
-    'Accept': 'application/vnd.github.v3+json, application/json',
-    'Content-Type': 'application/json',
-    'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
-  }, customHeaders)
+export function request(
+  endpoint: string,
+  token: string | null,
+  method: HTTPMethod,
+  path: string,
+  jsonBody?: Object,
+  customHeaders?: Object
+): Promise<Response> {
+  const url = getAbsoluteUrl(endpoint, path)
 
-  if (authorization) {
-    headers['Authorization'] = authorization
+  let headers: any = {
+    Accept: 'application/vnd.github.v3+json, application/json',
+    'Content-Type': 'application/json',
+    'User-Agent': getUserAgent(),
+  }
+
+  if (token) {
+    headers['Authorization'] = `token ${token}`
+  }
+
+  headers = {
+    ...headers,
+    ...customHeaders,
   }
 
   const options = {
-    url,
     headers,
     method,
-    body,
+    body: JSON.stringify(jsonBody),
   }
 
-  return proxyRequest(options)
+  return fetch(url, options)
+}
+
+/** Get the user agent to use for all requests. */
+function getUserAgent() {
+  const platform = __DARWIN__ ? 'Macintosh' : 'Windows'
+  return `GitHubDesktop/${appProxy.getVersion()} (${platform})`
+}
+
+/**
+ * If the response was OK, parse it as JSON and return the result. If not, parse
+ * the API error and throw it.
+ */
+export async function parsedResponse<T>(response: Response): Promise<T> {
+  if (response.ok) {
+    return deserialize<T>(response)
+  } else {
+    let apiError: IAPIError | null
+    // Deserializing the API error could throw. If it does, we'll throw a more
+    // general API error.
+    try {
+      apiError = await deserialize<IAPIError>(response)
+    } catch (e) {
+      throw new APIError(response, null)
+    }
+
+    throw new APIError(response, apiError)
+  }
+}
+
+/**
+ * Appends the parameters provided to the url as query string parameters.
+ *
+ * If the url already has a query the new parameters will be appended.
+ */
+export function urlWithQueryString(
+  url: string,
+  params: { [key: string]: string }
+): string {
+  const qs = Object.keys(params)
+    .map(key => `${key}=${encodeURIComponent(params[key])}`)
+    .join('&')
+
+  if (!qs.length) {
+    return url
+  }
+
+  if (url.indexOf('?') === -1) {
+    return `${url}?${qs}`
+  } else {
+    return `${url}&${qs}`
+  }
 }

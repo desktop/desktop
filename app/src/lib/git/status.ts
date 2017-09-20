@@ -1,79 +1,147 @@
 import { git } from './core'
-import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { parsePorcelainStatus } from '../status-parser'
+import {
+  WorkingDirectoryStatus,
+  WorkingDirectoryFileChange,
+  AppFileStatus,
+  FileEntry,
+  GitStatusEntry,
+} from '../../models/status'
+import { parsePorcelainStatus, mapStatus } from '../status-parser'
 import { DiffSelectionType, DiffSelection } from '../../models/diff'
 import { Repository } from '../../models/repository'
+import { IAheadBehind } from './rev-list'
+import { fatalError } from '../../lib/fatal-error'
 
 /** The encapsulation of the result from 'git status' */
-export class StatusResult {
+export interface IStatusResult {
+  readonly currentBranch?: string
+  readonly currentUpstreamBranch?: string
+  readonly currentTip?: string
+  readonly branchAheadBehind?: IAheadBehind
+
   /** true if the repository exists at the given location */
-  public readonly exists: boolean
+  readonly exists: boolean
 
   /** the absolute path to the repository's working directory */
-  public readonly workingDirectory: WorkingDirectoryStatus
-
-  /** factory method when 'git status' is unsuccessful */
-  public static NotFound(): StatusResult {
-    return new StatusResult(false, new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true))
-  }
-
-  /** factory method for a successful 'git status' result  */
-  public static FromStatus(status: WorkingDirectoryStatus): StatusResult {
-    return new StatusResult(true, status)
-  }
-
-  public constructor(exists: boolean, workingDirectory: WorkingDirectoryStatus) {
-    this.exists = exists
-    this.workingDirectory = workingDirectory
-  }
+  readonly workingDirectory: WorkingDirectoryStatus
 }
 
-/**
- * map the raw status text from Git to an app-friendly value
- * shamelessly borrowed from GitHub Desktop (Windows)
- */
-export function mapStatus(rawStatus: string): FileStatus {
+function convertToAppStatus(status: FileEntry): AppFileStatus {
+  if (status.kind === 'ordinary') {
+    switch (status.type) {
+      case 'added':
+        return AppFileStatus.New
+      case 'modified':
+        return AppFileStatus.Modified
+      case 'deleted':
+        return AppFileStatus.Deleted
+    }
+  } else if (status.kind === 'copied') {
+    return AppFileStatus.Copied
+  } else if (status.kind === 'renamed') {
+    return AppFileStatus.Renamed
+  } else if (status.kind === 'conflicted') {
+    return AppFileStatus.Conflicted
+  } else if (status.kind === 'untracked') {
+    return AppFileStatus.New
+  }
 
-  const status = rawStatus.trim()
-
-  if (status === 'M') { return FileStatus.Modified }      // modified
-  if (status === 'A') { return FileStatus.New }           // added
-  if (status === 'D') { return FileStatus.Deleted }       // deleted
-  if (status === 'R') { return FileStatus.Renamed }       // renamed
-  if (status === 'RM') { return FileStatus.Renamed }      // renamed in index, modified in working directory
-  if (status === 'RD') { return FileStatus.Conflicted }   // renamed in index, deleted in working directory
-  if (status === 'DD') { return FileStatus.Conflicted }   // Unmerged, both deleted
-  if (status === 'AU') { return FileStatus.Conflicted }   // Unmerged, added by us
-  if (status === 'UD') { return FileStatus.Conflicted }   // Unmerged, deleted by them
-  if (status === 'UA') { return FileStatus.Conflicted }   // Unmerged, added by them
-  if (status === 'DU') { return FileStatus.Conflicted }   // Unmerged, deleted by us
-  if (status === 'AA') { return FileStatus.Conflicted }   // Unmerged, added by both
-  if (status === 'UU') { return FileStatus.Conflicted }   // Unmerged, both modified
-  if (status === '??') { return FileStatus.New }          // untracked
-
-  // git log -M --name-status will return a RXXX - where XXX is a percentage
-  if (status.match(/R[0-9]{3}/)) { return FileStatus.Renamed }
-
-  // git log -C --name-status will return a CXXX - where XXX is a percentage
-  if (status.match(/C[0-9]{3}/)) { return FileStatus.Copied }
-
-  return FileStatus.Modified
+  return fatalError(`Unknown file status ${status}`)
 }
 
 /**
  *  Retrieve the status for a given repository,
  *  and fail gracefully if the location is not a Git repository
  */
-export async function getStatus(repository: Repository): Promise<StatusResult> {
-  const result = await git([ 'status', '--untracked-files=all', '--porcelain', '-z' ], repository.path, 'getStatus')
-  const entries = parsePorcelainStatus(result.stdout)
+export async function getStatus(
+  repository: Repository
+): Promise<IStatusResult> {
+  const result = await git(
+    ['status', '--untracked-files=all', '--branch', '--porcelain=2', '-z'],
+    repository.path,
+    'getStatus'
+  )
 
-  const files = entries.map(({ path, statusCode, oldPath }) => {
-    const status = mapStatus(statusCode)
-    const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
+  const files = new Array<WorkingDirectoryFileChange>()
 
-    return new WorkingDirectoryFileChange(path, status, selection, oldPath)
-  })
+  let currentBranch: string | undefined = undefined
+  let currentUpstreamBranch: string | undefined = undefined
+  let currentTip: string | undefined = undefined
+  let branchAheadBehind: IAheadBehind | undefined = undefined
 
-  return StatusResult.FromStatus(new WorkingDirectoryStatus(files, true))
+  for (const entry of parsePorcelainStatus(result.stdout)) {
+    if (entry.kind === 'entry') {
+      const status = mapStatus(entry.statusCode)
+
+      if (status.kind === 'ordinary') {
+        // when a file is added in the index but then removed in the working
+        // directory, the file won't be part of the commit, so we can skip
+        // displaying this entry in the changes list
+        if (
+          status.index === GitStatusEntry.Added &&
+          status.workingTree === GitStatusEntry.Deleted
+        ) {
+          continue
+        }
+      }
+
+      if (status.kind === 'untracked') {
+        // when a delete has been staged, but an untracked file exists with the
+        // same path, we should ensure that we only draw one entry in the
+        // changes list - see if an entry already exists for this path and
+        // remove it if found
+        const existingEntry = files.findIndex(p => p.path === entry.path)
+        if (existingEntry > -1) {
+          files.splice(existingEntry, 1)
+        }
+      }
+
+      // for now we just poke at the existing summary
+      const summary = convertToAppStatus(status)
+      const selection = DiffSelection.fromInitialSelection(
+        DiffSelectionType.All
+      )
+
+      files.push(
+        new WorkingDirectoryFileChange(
+          entry.path,
+          summary,
+          selection,
+          entry.oldPath
+        )
+      )
+    } else if (entry.kind === 'header') {
+      let m: RegExpMatchArray | null
+      const value = entry.value
+
+      // This intentionally does not match branch.oid initial
+      if ((m = value.match(/^branch\.oid ([a-f0-9]+)$/))) {
+        currentTip = m[1]
+      } else if ((m = value.match(/^branch.head (.*)/))) {
+        if (m[1] !== '(detached)') {
+          currentBranch = m[1]
+        }
+      } else if ((m = value.match(/^branch.upstream (.*)/))) {
+        currentUpstreamBranch = m[1]
+      } else if ((m = value.match(/^branch.ab \+(\d+) -(\d+)$/))) {
+        const ahead = parseInt(m[1], 10)
+        const behind = parseInt(m[2], 10)
+
+        if (!isNaN(ahead) && !isNaN(behind)) {
+          branchAheadBehind = { ahead, behind }
+        }
+      }
+    }
+  }
+
+  const workingDirectory = WorkingDirectoryStatus.fromFiles(files)
+
+  return {
+    currentBranch,
+    currentTip,
+    currentUpstreamBranch,
+    branchAheadBehind,
+    exists: true,
+    workingDirectory,
+  }
 }

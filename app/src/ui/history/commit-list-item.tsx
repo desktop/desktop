@@ -1,28 +1,42 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
-import { EmojiText } from '../lib/emoji-text'
-import { IGitHubUser } from '../../lib/dispatcher'
+import { GitHubRepository } from '../../models/github-repository'
+import { IAvatarUser } from '../../models/avatar'
+import { RichText } from '../lib/rich-text'
 import { Avatar } from '../lib/avatar'
 import { RelativeTime } from '../relative-time'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import { clipboard } from 'electron'
+import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 
 interface ICommitProps {
+  readonly gitHubRepository: GitHubRepository | null
   readonly commit: Commit
-  readonly gitHubUser: IGitHubUser | null
+  readonly user: IAvatarUser | null
   readonly emoji: Map<string, string>
+  readonly isLocal: boolean
+  readonly onRevertCommit?: (commit: Commit) => void
+  readonly onViewCommitOnGitHub?: (sha: string) => void
 }
 
 /** A component which displays a single commit in a commit list. */
-export class CommitListItem extends React.Component<ICommitProps, void> {
+export class CommitListItem extends React.Component<ICommitProps, {}> {
   public render() {
-    const authorDate = this.props.commit.author.date
+    const commit = this.props.commit
+    const author = commit.author
 
     return (
-      <div className='commit'>
-        <Avatar gitHubUser={this.props.gitHubUser} title={null}/>
-        <div className='info'>
-          <EmojiText className='summary' emoji={this.props.emoji}>{this.props.commit.summary}</EmojiText>
-          <div className='byline'>
-            <RelativeTime date={authorDate} /> by {this.props.commit.author.name}
+      <div className="commit" onContextMenu={this.onContextMenu}>
+        <Avatar user={this.props.user || undefined} />
+        <div className="info">
+          <RichText
+            className="summary"
+            emoji={this.props.emoji}
+            text={commit.summary}
+            renderUrlsAsLinks={false}
+          />
+          <div className="byline">
+            <RelativeTime date={author.date} /> by {author.name}
           </div>
         </div>
       </div>
@@ -32,7 +46,54 @@ export class CommitListItem extends React.Component<ICommitProps, void> {
   public shouldComponentUpdate(nextProps: ICommitProps): boolean {
     return (
       this.props.commit.sha !== nextProps.commit.sha ||
-      this.props.gitHubUser !== nextProps.gitHubUser
+      this.props.user !== nextProps.user
     )
+  }
+
+  private onCopySHA = () => {
+    clipboard.writeText(this.props.commit.sha)
+  }
+
+  private onViewOnGitHub = () => {
+    if (this.props.onViewCommitOnGitHub) {
+      this.props.onViewCommitOnGitHub(this.props.commit.sha)
+    }
+  }
+
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    let viewOnGitHubLabel = 'View on GitHub'
+    const gitHubRepository = this.props.gitHubRepository
+
+    if (
+      gitHubRepository &&
+      gitHubRepository.endpoint !== getDotComAPIEndpoint()
+    ) {
+      viewOnGitHubLabel = 'View on GitHub Enterprise'
+    }
+
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Revert This Commit' : 'Revert this commit',
+        action: () => {
+          if (this.props.onRevertCommit) {
+            this.props.onRevertCommit(this.props.commit)
+          }
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Copy SHA',
+        action: this.onCopySHA,
+      },
+      {
+        label: viewOnGitHubLabel,
+        action: this.onViewOnGitHub,
+        enabled: !this.props.isLocal && !!gitHubRepository,
+      },
+    ]
+
+    showContextualMenu(items)
   }
 }
