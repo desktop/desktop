@@ -9,7 +9,7 @@ import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 import { IFetchProgress } from '../app-state'
 
-import { IAppShell } from '../../lib/dispatcher/app-shell'
+import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
 import { structuralEquals } from '../../lib/equality'
 import { compare } from '../../lib/compare'

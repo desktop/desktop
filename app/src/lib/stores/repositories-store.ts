@@ -3,7 +3,7 @@ import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
   IDatabaseRepository,
-} from './repositories-database'
+} from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
 import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
