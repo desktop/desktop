@@ -1,10 +1,12 @@
 import * as React from 'react'
-import { ToolbarButton, ToolbarButtonStyle } from './button'
-import { IAheadBehind, Progress } from '../../lib/app-state'
+import { ToolbarButton } from './button'
+import { ToolbarButtonStyle } from './button'
+import { IAheadBehind } from '../../lib/app-state'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
+import { Progress } from '../../lib/app-state'
 
 interface IPushPullButtonProps {
   /**

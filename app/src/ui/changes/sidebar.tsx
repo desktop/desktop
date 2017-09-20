@@ -3,7 +3,7 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { ICommitMessage, IChangesState, PopupType } from '../../lib/app-state'
+import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import {
   Dispatcher,
@@ -20,6 +20,7 @@ import {
   IssuesAutocompletionProvider,
   UserAutocompletionProvider,
 } from '../autocompletion'
+import { ICommitMessage } from '../../lib/app-state'
 import { ClickSource } from '../list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'

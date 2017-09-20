@@ -62,7 +62,7 @@ declare type DOMHighResTimeStamp = number
  *
  * https://developer.mozilla.org/en-US/docs/Web/API/IdleDeadline
  */
-interface IIdleDeadline {
+interface IdleDeadline {
   readonly didTimeout: boolean
   readonly timeRemaining: () => DOMHighResTimeStamp
 }
@@ -73,7 +73,7 @@ interface IIdleDeadline {
  *
  * See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
  */
-interface IIdleCallbackOptions {
+interface IdleCallbackOptions {
   /**
    * If timeout is specified and has a positive value, and the callback has not
    * already been called by the time timeout milliseconds have passed, the
@@ -99,8 +99,8 @@ interface IIdleCallbackOptions {
  *                  timeout:
  */
 declare function requestIdleCallback(
-  fn: (deadline: IIdleDeadline) => void,
-  options?: IIdleCallbackOptions
+  fn: (deadline: IdleDeadline) => void,
+  options?: IdleCallbackOptions
 ): number
 
 interface IDesktopLogger {
@@ -177,7 +177,7 @@ declare const log: IDesktopLogger
 // these changes should be pushed into the Electron declarations
 
 declare namespace NodeJS {
-  // eslint-disable-next-line typescript/interface-name-prefix
+  // tslint:disable-next-line:interface-name
   interface Process extends EventEmitter {
     once(event: 'uncaughtException', listener: (error: Error) => void): this
     on(event: 'uncaughtException', listener: (error: Error) => void): this
@@ -187,7 +187,7 @@ declare namespace NodeJS {
 }
 
 declare namespace Electron {
-  // eslint-disable-next-line typescript/interface-name-prefix
+  // tslint:disable-next-line:interface-name
   interface MenuItem {
     readonly accelerator?: Electron.Accelerator
     readonly submenu?: Electron.Menu
@@ -195,7 +195,7 @@ declare namespace Electron {
     readonly type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
   }
 
-  // eslint-disable-next-line typescript/interface-name-prefix
+  // tslint:disable-next-line:interface-name
   interface RequestOptions {
     readonly method: string
     readonly url: string
@@ -204,7 +204,7 @@ declare namespace Electron {
 
   type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
-  // eslint-disable-next-line typescript/interface-name-prefix
+  // tslint:disable-next-line:interface-name
   interface SystemPreferences {
     getUserDefault(
       key: 'AppleActionOnDoubleClick',

@@ -2,9 +2,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-
 const distInfo = require('./dist-info')
-
 const getUserDataPath: () => string = distInfo.getUserDataPath
 
 export function getLogFiles(): ReadonlyArray<string> {
