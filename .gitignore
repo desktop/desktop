@@ -6,4 +6,3 @@ app/node_modules/
 .DS_Store
 .awcache
 .idea/
-.eslintcache

@@ -39,7 +39,7 @@ export function showCertificateTrustDialog(
  * that would tell the app to quit.
  */
 export function sendWillQuitSync() {
-  // eslint-disable-next-line no-sync
+  // tslint:disable-next-line:no-sync-functions
   ipcRenderer.sendSync('will-quit')
 }
 

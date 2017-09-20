@@ -7,7 +7,6 @@ environment:
   nodejs_version: "7"
 
 cache:
-  - .eslintcache
   - node_modules
   - '%USERPROFILE%\.electron'
 
@@ -31,6 +30,7 @@ install:
   - npm ls --dev
 
 build_script:
+  - npm run check-prettiness
   - npm run lint
   - npm run build:prod
 
