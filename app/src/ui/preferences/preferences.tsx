@@ -193,6 +193,9 @@ export class Preferences extends React.Component<
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
             onSelectedShellChanged={this.onSelectedShellChanged}
+            mergeTool={this.state.mergeTool}
+            onMergeToolCommandChanged={this.onMergeToolCommandChanged}
+            onMergeToolNameChanged={this.onMergeToolNameChanged}
           />
         )
       }
@@ -268,10 +271,38 @@ export class Preferences extends React.Component<
       this.state.confirmDiscardChanges
     )
 
+    const mergeTool = this.state.mergeTool
+    if (mergeTool && mergeTool.name) {
+      await setGlobalConfigValue('merge.tool', mergeTool.name)
+
+      if (mergeTool.command) {
+        await setGlobalConfigValue(
+          `mergetool.${mergeTool.name}.cmd`,
+          mergeTool.command
+        )
+      }
+    }
+
     this.props.onDismissed()
   }
 
   private onTabClicked = (index: number) => {
     this.setState({ selectedIndex: index })
+  }
+
+  private onMergeToolNameChanged = (name: string) => {
+    const mergeTool = {
+      name,
+      command: this.state.mergeTool && this.state.mergeTool.command,
+    }
+    this.setState({ mergeTool })
+  }
+
+  private onMergeToolCommandChanged = (command: string) => {
+    const mergeTool = {
+      name: this.state.mergeTool ? this.state.mergeTool.name : '',
+      command,
+    }
+    this.setState({ mergeTool })
   }
 }
