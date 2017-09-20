@@ -47,7 +47,7 @@ export class ChangedFileDetails extends React.Component<
     const diff = this.props.diff
     if (status === AppFileStatus.Conflicted && enablePreviewFeatures()) {
       return (
-        <Button onClick={this.onOpenMergeTool}>
+        <Button className="open-merge-tool" onClick={this.onOpenMergeTool}>
           {__DARWIN__ ? 'Open Merge Tool' : 'Open merge tool'}
         </Button>
       )
