@@ -75,6 +75,7 @@ import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
 import { InitializeLFS, AttributeMismatch } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
+import { getOS } from '../lib/get-os'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -215,6 +216,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
     this.checkForUpdates(true)
+
+    log.info(`launching: ${getVersion()} (${getOS()})`)
   }
 
   private onMenuEvent(name: MenuEvent): any {
