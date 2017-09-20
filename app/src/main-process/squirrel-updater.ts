@@ -1,6 +1,5 @@
 import * as ChildProcess from 'child_process'
 import * as Path from 'path'
-import * as Fs from 'fs-extra'
 import * as Os from 'os'
 import { pathExists, mkdirIfNeeded, writeFile } from '../lib/file-system'
 
