@@ -46,6 +46,9 @@ interface IPublishState {
    * related to the current step.
    */
   readonly error: Error | null
+
+  /** Is the repository currently being published? */
+  readonly publishing: boolean
 }
 
 /**
@@ -73,6 +76,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       currentTab: startingTab,
       publishSettings,
       error: null,
+      publishing: false,
     }
   }
 
@@ -83,6 +87,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         title={__DARWIN__ ? 'Publish Repository' : 'Publish repository'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.publishRepository}
+        disabled={this.state.publishing}
+        loading={this.state.publishing}
       >
         <TabBar
           onTabClicked={this.onTabClicked}
@@ -205,7 +211,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private publishRepository = async () => {
-    this.setState({ error: null })
+    this.setState({ error: null, publishing: true })
 
     const tab = this.state.currentTab
     const account = this.getAccountForTab(tab)
@@ -228,7 +234,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
       this.props.onDismissed()
     } catch (e) {
-      this.setState({ error: e })
+      this.setState({ error: e, publishing: false })
     }
   }
 
