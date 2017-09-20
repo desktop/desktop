@@ -5,7 +5,9 @@
   min-width: 0;
 
   .header {
-    span { user-select: text; }
+    span {
+      user-select: text;
+    }
 
     background: var(--box-alt-background-color);
     border-bottom: 1px solid var(--diff-border-color);
@@ -19,6 +21,7 @@
 
     .path {
       flex-grow: 1;
+      align-self: center;
       display: flex;
       min-width: 0;
     }
@@ -26,10 +29,11 @@
     @include octicon-status;
 
     .octicon {
-      flex-shrink:0;
+      flex-shrink: 0;
       vertical-align: text-bottom;
       position: relative;
       top: 1px;
+      align-self: center;
     }
 
     .line-endings {
@@ -41,7 +45,9 @@
     display: flex;
     flex: 1;
 
-    &.empty, &.renamed, &.binary {
+    &.empty,
+    &.renamed,
+    &.binary {
       justify-content: center;
       align-items: center;
     }
