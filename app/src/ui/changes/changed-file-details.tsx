@@ -11,6 +11,8 @@ interface IChangedFileDetailsProps {
   readonly oldPath?: string
   readonly status: AppFileStatus
   readonly diff: IDiff
+
+  readonly onOpenMergeTool: (path: string) => void
 }
 
 /** Displays information about a file */
@@ -45,7 +47,9 @@ export class ChangedFileDetails extends React.Component<
     const diff = this.props.diff
     if (status === AppFileStatus.Conflicted && enablePreviewFeatures()) {
       return (
-        <Button>{__DARWIN__ ? 'Open Merge Tool' : 'Open merge tool'}</Button>
+        <Button onClick={this.onOpenMergeTool}>
+          {__DARWIN__ ? 'Open Merge Tool' : 'Open merge tool'}
+        </Button>
       )
     } else if (diff.kind === DiffType.Text && diff.lineEndingsChange) {
       const message = `Warning: line endings have changed from '${diff
@@ -60,5 +64,9 @@ export class ChangedFileDetails extends React.Component<
     } else {
       return null
     }
+  }
+
+  private onOpenMergeTool = () => {
+    this.props.onOpenMergeTool(this.props.path)
   }
 }
