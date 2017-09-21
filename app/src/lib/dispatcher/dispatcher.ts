@@ -1013,4 +1013,9 @@ export class Dispatcher {
   public changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
     return this.appStore._changeCloneRepositoriesTab(tab)
   }
+
+  /** Open the merge tool for the given file. */
+  public openMergeTool(repository: Repository, path: string): Promise<void> {
+    return this.appStore._openMergeTool(repository, path)
+  }
 }
