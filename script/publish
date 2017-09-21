@@ -18,7 +18,10 @@ if (!releaseSHA) {
 }
 
 const currentTipSHA = distInfo.getSHA()
-if (!currentTipSHA || !currentTipSHA.startsWith(releaseSHA)) {
+if (
+  !currentTipSHA ||
+  !currentTipSHA.toUpperCase().startsWith(releaseSHA.toUpperCase())
+) {
   console.log(
     `Current tip '${currentTipSHA}' does not match release SHA '${releaseSHA}'. Skipping publish.`
   )
