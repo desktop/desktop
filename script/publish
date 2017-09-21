@@ -11,6 +11,16 @@ if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
   process.exit(0)
 }
 
+const releaseSHA = distInfo.getReleaseSHA()
+const currentTipSHA = distInfo.getSHA()
+
+if (!releaseSHA || !currentTipSHA.startsWith(releaseSHA)) {
+  console.log(
+    `Current tip ${currentTipSHA} does not match release SHA ${releaseSHA}. Skipping publish.`
+  )
+  process.exit(0)
+}
+
 const fs = require('fs')
 const cp = require('child_process')
 const AWS = require('aws-sdk')

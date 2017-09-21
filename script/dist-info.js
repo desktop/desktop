@@ -148,6 +148,16 @@ function getReleaseChannel() {
   return pieces[1]
 }
 
+function getReleaseSHA() {
+  // Branch name format: __release-CHANNEL-DEPLOY_ID
+  const pieces = getReleaseBranchName().split('-')
+  if (pieces.length < 3 || pieces[0] !== '__release') {
+    return null
+  }
+
+  return pieces[2]
+}
+
 function getUpdatesURL() {
   return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${getVersion()}&env=${getReleaseChannel()}`
 }
