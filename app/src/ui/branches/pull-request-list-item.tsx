@@ -4,6 +4,7 @@ import { IFilterListItem } from '../lib/filter-list'
 import { IPullRequest } from '../../models/pull-request'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { APIRefState } from '../../lib/api'
+import { assertNever } from '../../lib/fatal-error'
 
 export interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -36,8 +37,24 @@ export class PullRequestListItem extends React.Component<
           </div>
         </div>
 
-        <div className="status">{this.props.status}</div>
+        <Octicon
+          className="status"
+          symbol={getSymbolForStatus(this.props.status)}
+        />
       </div>
     )
   }
+}
+
+function getSymbolForStatus(status: APIRefState): OcticonSymbol {
+  switch (status) {
+    case 'pending':
+      return OcticonSymbol.primitiveDot
+    case 'failure':
+      return OcticonSymbol.x
+    case 'success':
+      return OcticonSymbol.check
+  }
+
+  return assertNever(status, `Unknown status: ${status}`)
 }

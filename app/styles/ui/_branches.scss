@@ -48,8 +48,7 @@
 
     .status {
       width: 16px;
-      height: 16px;
-      background: red;
+      flex-shrink: 0;
     }
   }
 }
