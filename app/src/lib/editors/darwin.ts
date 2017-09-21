@@ -100,26 +100,3 @@ export async function getAvailableEditors(): Promise<
 
   return results
 }
-
-/**
- * Find the first editor that exists on the user's machine, or return null if
- * no matches are found.
- */
-export async function getFirstEditorOrDefault(): Promise<FoundEditor | null> {
-  const atom = await findApplication(ExternalEditor.Atom)
-  if (atom.installed && atom.pathExists) {
-    return { editor: atom.editor, path: atom.path }
-  }
-
-  const code = await findApplication(ExternalEditor.VisualStudioCode)
-  if (code.installed && code.pathExists) {
-    return { editor: code.editor, path: code.path }
-  }
-
-  const sublime = await findApplication(ExternalEditor.SublimeText)
-  if (sublime.installed && sublime.pathExists) {
-    return { editor: sublime.editor, path: sublime.path }
-  }
-
-  return null
-}
