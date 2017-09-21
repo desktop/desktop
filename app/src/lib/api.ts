@@ -107,6 +107,30 @@ export interface IAPIIssue {
   readonly updated_at: string
 }
 
+/** The combined state of a ref. */
+export type APIRefState = 'failure' | 'pending' | 'success'
+
+/** The API response to a ref status request. */
+interface IAPIRefStatus {
+  readonly state: APIRefState
+}
+
+interface IAPIPullRequestRef {
+  readonly ref: string
+  readonly sha: string
+  readonly repo: IAPIRepository
+}
+
+/** Information about a pull request as returned by the GitHub API. */
+export interface IAPIPullRequest {
+  readonly number: number
+  readonly title: string
+  readonly created_at: string
+  readonly user: IAPIUser
+  readonly head: IAPIPullRequestRef
+  readonly base: IAPIPullRequestRef
+}
+
 /** The metadata about a GitHub server. */
 export interface IServerMetadata {
   /**
@@ -352,6 +376,42 @@ export class API {
       return issues.filter((i: any) => !i.pullRequest)
     } catch (e) {
       log.warn(`fetchIssues: failed for repository ${owner}/${name}`, e)
+      throw e
+    }
+  }
+
+  /** Fetch the pull requests in the given repository. */
+  public async fetchPullRequests(
+    owner: string,
+    name: string,
+    state: 'open' | 'closed' | 'all'
+  ): Promise<ReadonlyArray<IAPIPullRequest>> {
+    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, { state })
+    try {
+      const prs = await this.fetchAll<IAPIPullRequest>(url)
+      return prs
+    } catch (e) {
+      log.warn(`fetchPullRequests: failed for repository ${owner}/${name}`, e)
+      throw e
+    }
+  }
+
+  /** Get the combined status for the given ref. */
+  public async fetchCombinedRefStatus(
+    owner: string,
+    name: string,
+    ref: string
+  ): Promise<APIRefState> {
+    const path = `repos/${owner}/${name}/commits/${ref}/status`
+    try {
+      const response = await this.request('GET', path)
+      const status = await parsedResponse<IAPIRefStatus>(response)
+      return status.state
+    } catch (e) {
+      log.warn(
+        `fetchCombinedRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
+        e
+      )
       throw e
     }
   }

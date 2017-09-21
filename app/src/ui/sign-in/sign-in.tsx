@@ -1,12 +1,12 @@
 import * as React from 'react'
+import { Dispatcher } from '../../lib/dispatcher'
 import {
-  Dispatcher,
   SignInState,
   SignInStep,
   IEndpointEntryState,
   IAuthenticationState,
   ITwoFactorAuthenticationState,
-} from '../../lib/dispatcher'
+} from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
