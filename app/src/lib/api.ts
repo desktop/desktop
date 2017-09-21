@@ -107,12 +107,12 @@ export interface IAPIIssue {
   readonly updated_at: string
 }
 
-/** The status of a ref. */
-export type APIRefStatus = 'failure' | 'pending' | 'success'
+/** The combined state of a ref. */
+export type APIRefState = 'failure' | 'pending' | 'success'
 
 /** The API response to a ref status request. */
 interface IAPIRefStatus {
-  readonly status: APIRefStatus
+  readonly state: APIRefState
 }
 
 interface IAPIPullRequestRef {
@@ -401,12 +401,12 @@ export class API {
     owner: string,
     name: string,
     ref: string
-  ): Promise<APIRefStatus> {
+  ): Promise<APIRefState> {
     const path = `repos/${owner}/${name}/commits/${ref}/status`
     try {
       const response = await this.request('GET', path)
       const status = await parsedResponse<IAPIRefStatus>(response)
-      return status.status
+      return status.state
     } catch (e) {
       log.warn(
         `fetchRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
