@@ -5,7 +5,6 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchList } from './branch-list'
 import { Account } from '../../models/account'
-import { API } from '../../lib/api'
 import { TabBar } from '../tab-bar'
 import { BranchesTab } from '../../models/branches-tab'
 import { assertNever } from '../../lib/fatal-error'
@@ -22,13 +21,12 @@ interface IBranchesProps {
   readonly repository: Repository
   readonly account: Account | null
   readonly selectedTab: BranchesTab
+  readonly pullRequests: ReadonlyArray<IPullRequest> | null
 }
 
 interface IBranchesState {
   readonly selectedBranch: Branch | null
   readonly filterText: string
-
-  readonly pullRequests: ReadonlyArray<IPullRequest> | null
 }
 
 /** The Branches list component. */
@@ -39,58 +37,6 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.state = {
       selectedBranch: props.currentBranch,
       filterText: '',
-      pullRequests: null,
-    }
-  }
-
-  public componentDidMount() {
-    if (enablePreviewFeatures()) {
-      this.fetchPullRequests()
-    }
-  }
-
-  private async fetchPullRequests() {
-    const account = this.props.account
-    if (!account) {
-      return
-    }
-
-    const gitHubRepository = this.props.repository.gitHubRepository
-    if (!gitHubRepository) {
-      return
-    }
-
-    const api = API.fromAccount(account)
-    try {
-      const pullRequests = await api.fetchPullRequests(
-        gitHubRepository.owner.login,
-        gitHubRepository.name,
-        'open'
-      )
-
-      const pullRequestsWithStatus: Array<IPullRequest> = []
-      for (const pr of pullRequests) {
-        try {
-          const state = await api.fetchCombinedRefStatus(
-            pr.head.repo.owner.login,
-            pr.head.repo.name,
-            pr.head.sha
-          )
-          pullRequestsWithStatus.push({
-            ...pr,
-            state,
-          })
-        } catch (e) {
-          pullRequestsWithStatus.push({
-            ...pr,
-            state: 'pending',
-          })
-        }
-      }
-
-      this.setState({ pullRequests: pullRequestsWithStatus })
-    } catch (e) {
-      this.setState({ pullRequests: null })
     }
   }
 
@@ -164,7 +110,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
         )
 
       case BranchesTab.PullRequests: {
-        const pullRequests = this.state.pullRequests
+        const pullRequests = this.props.pullRequests
         if (pullRequests) {
           return <PullRequestList pullRequests={pullRequests} />
         } else {

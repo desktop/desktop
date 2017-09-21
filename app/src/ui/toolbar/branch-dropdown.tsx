@@ -9,6 +9,11 @@ import { Branches } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { Account } from '../../models/account'
 import { BranchesTab } from '../../models/branches-tab'
+import { enablePreviewFeatures } from '../../lib/feature-flag'
+import { API } from '../../lib/api'
+import { IPullRequest } from '../../models/pull-request'
+
+const RefreshPullRequestInterval = 1000 * 60 * 10
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -37,10 +42,19 @@ interface IBranchDropdownProps {
   readonly selectedTab: BranchesTab
 }
 
+interface IBranchDropdownState {
+  readonly pullRequests: ReadonlyArray<IPullRequest> | null
+}
+
 /**
  * A drop down for selecting the currently checked out branch.
  */
-export class BranchDropdown extends React.Component<IBranchDropdownProps, {}> {
+export class BranchDropdown extends React.Component<
+  IBranchDropdownProps,
+  IBranchDropdownState
+> {
+  private refeshPullRequestTimerId: number | null = null
+
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
@@ -58,8 +72,71 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, {}> {
         repository={this.props.repository}
         account={this.props.account}
         selectedTab={this.props.selectedTab}
+        pullRequests={this.state.pullRequests}
       />
     )
+  }
+
+  public componentDidMount() {
+    if (enablePreviewFeatures()) {
+      this.fetchPullRequests()
+      this.refeshPullRequestTimerId = window.setInterval(
+        () => this.fetchPullRequests(),
+        RefreshPullRequestInterval
+      )
+    }
+  }
+
+  public componentWillUnmount() {
+    const timerId = this.refeshPullRequestTimerId
+    if (timerId) {
+      window.clearInterval(timerId)
+    }
+  }
+
+  private async fetchPullRequests() {
+    const account = this.props.account
+    if (!account) {
+      return
+    }
+
+    const gitHubRepository = this.props.repository.gitHubRepository
+    if (!gitHubRepository) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+    try {
+      const pullRequests = await api.fetchPullRequests(
+        gitHubRepository.owner.login,
+        gitHubRepository.name,
+        'open'
+      )
+
+      const pullRequestsWithStatus: Array<IPullRequest> = []
+      for (const pr of pullRequests) {
+        try {
+          const state = await api.fetchCombinedRefStatus(
+            pr.head.repo.owner.login,
+            pr.head.repo.name,
+            pr.head.sha
+          )
+          pullRequestsWithStatus.push({
+            ...pr,
+            state,
+          })
+        } catch (e) {
+          pullRequestsWithStatus.push({
+            ...pr,
+            state: 'pending',
+          })
+        }
+      }
+
+      this.setState({ pullRequests: pullRequestsWithStatus })
+    } catch (e) {
+      this.setState({ pullRequests: null })
+    }
   }
 
   private onDropDownStateChanged = (state: DropdownState) => {
