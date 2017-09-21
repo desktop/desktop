@@ -105,6 +105,7 @@ import {
 } from '../git/lfs'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { getAccountForRepository } from '../get-account-for-repository'
+import { BranchesTab } from '../../models/branches-tab'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -212,6 +213,8 @@ export class AppStore {
     | null = null
 
   private selectedCloneRepositoryTab: CloneRepositoryTab = CloneRepositoryTab.DotCom
+
+  private selectedBranchesTab = BranchesTab.Branches
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -513,6 +516,7 @@ export class AppStore {
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
+      selectedBranchesTab: this.selectedBranchesTab,
     }
   }
 
@@ -2652,6 +2656,14 @@ export class AppStore {
 
   public _changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
     this.selectedCloneRepositoryTab = tab
+
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _changeBranchesTab(tab: BranchesTab): Promise<void> {
+    this.selectedBranchesTab = tab
 
     this.emitUpdate()
 

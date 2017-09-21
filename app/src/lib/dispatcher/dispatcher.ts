@@ -44,6 +44,7 @@ import * as GenericGitAuth from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
 import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
+import { BranchesTab } from '../../models/branches-tab'
 
 /**
  * An error handler function.
@@ -1012,5 +1013,10 @@ export class Dispatcher {
   /** Change the selected Clone Repository tab. */
   public changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
     return this.appStore._changeCloneRepositoriesTab(tab)
+  }
+
+  /** Change the selected Branches foldout tab. */
+  public changeBranchesTab(tab: BranchesTab): Promise<void> {
+    return this.appStore._changeBranchesTab(tab)
   }
 }
