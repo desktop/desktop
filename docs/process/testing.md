@@ -5,6 +5,7 @@
     - [ ] Data is retained if you download and open a fresh copy
   - [ ] Release notes page is up-to-date
   - [ ] Help page is accessible
+  - [ ] 'Please update' notifcation shown in Classic apps
 
 ### Welcome Flow
   - [ ] Create your account (/join?source=github-desktop)
