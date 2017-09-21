@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { shell } from '../../lib/dispatcher/app-shell'
+import { shell } from '../../lib/app-shell'
 
 interface IEditorErrorProps {
   /**

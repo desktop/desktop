@@ -1,5 +1,15 @@
 {
   "releases": {
+    "1.0.1-beta0": [
+      "[Fixed] Use the loading/disabled state while publishing - #1995",
+      "[Fixed] Lock down menu item states for unborn repositories - #2744 #2573",
+      "[Fixed] Windows: Detecting the available shells and editors when using a language other than English - #2735"
+    ],
+    "1.0.0": [
+      "[Fixed] Use the loading/disabled state while publishing - #1995",
+      "[Fixed] Lock down menu item states for unborn repositories - #2744 #2573",
+      "[Fixed] Windows: Detecting the available shells and editors when using a language other than English - #2735"
+    ],
     "1.0.0-beta3": [
       "[New] Allow users to create repositories with descriptions - #2719. Thanks @davidcelis!",
       "[New] Use `lfs clone` for faster cloning of LFS repositories - #2679",

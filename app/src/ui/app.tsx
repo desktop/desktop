@@ -4,7 +4,8 @@ import { ipcRenderer } from 'electron'
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { TitleBar } from './window/title-bar'
-import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
+import { Dispatcher } from '../lib/dispatcher'
+import { AppStore, CloningRepository } from '../lib/stores'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
@@ -56,7 +57,7 @@ import { InstallGit } from './install-git'
 import { EditorError } from './editor'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
-import { shell } from '../lib/dispatcher/app-shell'
+import { shell } from '../lib/app-shell'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
@@ -75,6 +76,7 @@ import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
 import { InitializeLFS, AttributeMismatch } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
+import { getOS } from '../lib/get-os'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -215,6 +217,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
     this.checkForUpdates(true)
+
+    log.info(`launching: ${getVersion()} (${getOS()})`)
   }
 
   private onMenuEvent(name: MenuEvent): any {

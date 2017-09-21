@@ -3,14 +3,14 @@ import { AuthenticationForm } from './authentication-form'
 import { assertNever } from '../../lib/fatal-error'
 import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
 import { EnterpriseServerEntry } from '../lib/enterprise-server-entry'
+import { Dispatcher } from '../../lib/dispatcher'
 import {
-  Dispatcher,
   SignInState,
   SignInStep,
   IEndpointEntryState,
   IAuthenticationState,
   ITwoFactorAuthenticationState,
-} from '../../lib/dispatcher'
+} from '../../lib/stores'
 
 interface ISignInProps {
   readonly signInState: SignInState
