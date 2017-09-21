@@ -117,6 +117,7 @@ interface IAPIRefStatus {
 
 interface IAPIPullRequestRef {
   readonly ref: string
+  readonly sha: string
   readonly repo: IAPIRepository
 }
 
