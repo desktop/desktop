@@ -16,7 +16,7 @@ export class PullRequestDatabase extends Dexie {
 
     this.version(1).stores({
       pullRequests:
-        'id++, repo_id, number, &[repo_id+number], [repo_id+updated_at',
+        'id++, repo_id, number, &[repo_id+number], [repo_id+updated_at]',
     })
   }
 }

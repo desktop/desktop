@@ -11,7 +11,7 @@ import {
   ImageDiffType,
 } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
-import { IGitHubUser } from '../../lib/dispatcher'
+import { IGitHubUser } from '../../lib/databases'
 import { Resizable } from '../resizable'
 
 // At some point we'll make index.tsx only be exports

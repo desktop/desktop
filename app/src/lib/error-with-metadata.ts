@@ -1,6 +1,6 @@
 import { Repository } from '../models/repository'
 import { RetryAction } from './retry-actions'
-import { CloningRepository } from './dispatcher/cloning-repositories-store'
+import { CloningRepository } from './stores/cloning-repositories-store'
 
 export interface IErrorMetadata {
   /** Was the action which caused this error part of a background task? */

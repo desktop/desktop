@@ -4,7 +4,8 @@ import { ipcRenderer } from 'electron'
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { TitleBar } from './window/title-bar'
-import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
+import { Dispatcher } from '../lib/dispatcher'
+import { AppStore, CloningRepository } from '../lib/stores'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
@@ -56,7 +57,7 @@ import { InstallGit } from './install-git'
 import { EditorError } from './editor'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
-import { shell } from '../lib/dispatcher/app-shell'
+import { shell } from '../lib/app-shell'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
@@ -1563,9 +1564,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <div id="desktop-app-chrome" className={className}>
         {this.renderTitlebar()}
-        {this.state.showWelcomeFlow
-          ? this.renderWelcomeFlow()
-          : this.renderApp()}
+        {this.state.showWelcomeFlow ? (
+          this.renderWelcomeFlow()
+        ) : (
+          this.renderApp()
+        )}
         {this.renderZoomInfo()}
         {this.renderFullScreenInfo()}
       </div>
