@@ -131,11 +131,13 @@ export class BranchDropdown extends React.Component<
           pullRequestsWithStatus.push({
             ...pr,
             state,
+            created: new Date(pr.created_at),
           })
         } catch (e) {
           pullRequestsWithStatus.push({
             ...pr,
             state: 'pending',
+            created: new Date(pr.created_at),
           })
         }
       }

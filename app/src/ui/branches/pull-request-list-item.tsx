@@ -1,6 +1,9 @@
 import * as React from 'react'
+import * as moment from 'moment'
 import { IFilterListItem } from '../lib/filter-list'
 import { IPullRequest } from '../../models/pull-request'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { APIRefState } from '../../lib/api'
 
 export interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -9,7 +12,11 @@ export interface IPullRequestListItem extends IFilterListItem {
 }
 
 interface IPullRequestListItemProps {
-  readonly pullRequestItem: IPullRequestListItem
+  readonly title: string
+  readonly number: number
+  readonly created: Date
+  readonly author: string
+  readonly status: APIRefState
 }
 
 export class PullRequestListItem extends React.Component<
@@ -17,7 +24,20 @@ export class PullRequestListItem extends React.Component<
   {}
 > {
   public render() {
-    const pullRequest = this.props.pullRequestItem.pullRequest
-    return <div>{pullRequest.title}</div>
+    const timeAgo = moment(this.props.created).fromNow()
+    return (
+      <div>
+        <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
+
+        <div>
+          <div>{this.props.title}</div>
+          <div>
+            #{this.props.number} opened {timeAgo} by {this.props.author}
+          </div>
+        </div>
+
+        <div>{this.props.status}</div>
+      </div>
+    )
   }
 }

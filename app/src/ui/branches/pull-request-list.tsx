@@ -61,8 +61,17 @@ export class PullRequestList extends React.Component<
     )
   }
 
-  private renderPullRequest = (pullRequestItem: IPullRequestListItem) => {
-    return <PullRequestListItem pullRequestItem={pullRequestItem} />
+  private renderPullRequest = (item: IPullRequestListItem) => {
+    const pr = item.pullRequest
+    return (
+      <PullRequestListItem
+        title={pr.title}
+        number={pr.number}
+        created={pr.created}
+        author={pr.user.login}
+        status={pr.state}
+      />
+    )
   }
 
   private onFilterTextChanged = (filterText: string) => {
