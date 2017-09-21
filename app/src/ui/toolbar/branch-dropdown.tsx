@@ -7,6 +7,7 @@ import { ToolbarDropdown, DropdownState } from './dropdown'
 import { IRepositoryState } from '../../lib/app-state'
 import { Branches } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
+import { Account } from '../../models/account'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -27,6 +28,9 @@ interface IBranchDropdownProps {
    * @param state    - The new state of the drop down
    */
   readonly onDropDownStateChanged: (state: DropdownState) => void
+
+  /** The account for the associated GitHub repository, if one exists. */
+  readonly account: Account | null
 }
 
 /**
@@ -48,6 +52,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, {}> {
         defaultBranch={branchesState.defaultBranch}
         dispatcher={this.props.dispatcher}
         repository={this.props.repository}
+        account={this.props.account}
       />
     )
   }

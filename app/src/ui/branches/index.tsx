@@ -4,6 +4,7 @@ import { FoldoutType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchList } from './branch-list'
+import { Account } from '../../models/account'
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -12,6 +13,7 @@ interface IBranchesProps {
   readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
+  readonly account: Account | null
 }
 
 interface IBranchesState {
