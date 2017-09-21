@@ -107,6 +107,14 @@ export interface IAPIIssue {
   readonly updated_at: string
 }
 
+/** Information about a pull request as returned by the GitHub API. */
+export interface IAPIPullRequest {
+  readonly number: number
+  readonly title: string
+  readonly created_at: string
+  readonly user: IAPIUser
+}
+
 /** The metadata about a GitHub server. */
 export interface IServerMetadata {
   /**
@@ -352,6 +360,22 @@ export class API {
       return issues.filter((i: any) => !i.pullRequest)
     } catch (e) {
       log.warn(`fetchIssues: failed for repository ${owner}/${name}`, e)
+      throw e
+    }
+  }
+
+  /** Fetch the pull requests in the given repository. */
+  public async fetchPullRequests(
+    owner: string,
+    name: string,
+    state: 'open' | 'closed' | 'all'
+  ): Promise<ReadonlyArray<IAPIPullRequest>> {
+    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, { state })
+    try {
+      const prs = await this.fetchAll<IAPIPullRequest>(url)
+      return prs
+    } catch (e) {
+      log.warn(`fetchPullRequests: failed for repository ${owner}/${name}`, e)
       throw e
     }
   }
