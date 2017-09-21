@@ -124,10 +124,11 @@ export class BranchDropdown extends React.Component<
       for (const pr of pullRequests) {
         try {
           const state = await api.fetchCombinedRefStatus(
-            pr.head.repo.owner.login,
-            pr.head.repo.name,
+            gitHubRepository.owner.login,
+            gitHubRepository.name,
             pr.head.sha
           )
+
           pullRequestsWithStatus.push({
             ...pr,
             state,
