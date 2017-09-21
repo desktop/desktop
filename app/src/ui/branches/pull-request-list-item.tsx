@@ -38,7 +38,7 @@ export class PullRequestListItem extends React.Component<
         </div>
 
         <Octicon
-          className="status"
+          className={`status status-${this.props.status}`}
           symbol={getSymbolForStatus(this.props.status)}
         />
       </div>

@@ -56,6 +56,18 @@
       width: 16px;
       flex-shrink: 0;
     }
+
+    .status-pending {
+      color: $orange-700;
+    }
+
+    .status-failure {
+      color: $red-600;
+    }
+
+    .status-success {
+      color: $green-500;
+    }
   }
 }
 
