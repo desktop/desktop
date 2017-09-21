@@ -11,6 +11,7 @@ import { BranchesTab } from '../../models/branches-tab'
 import { assertNever } from '../../lib/fatal-error'
 import { enablePreviewFeatures } from '../../lib/feature-flag'
 import { IPullRequest } from '../../models/pull-request'
+import { PullRequestList } from './pull-request-list'
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -162,8 +163,14 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
           />
         )
 
-      case BranchesTab.PullRequests:
-        return <div />
+      case BranchesTab.PullRequests: {
+        const pullRequests = this.state.pullRequests
+        if (pullRequests) {
+          return <PullRequestList pullRequests={pullRequests} />
+        } else {
+          return <div>Loading and we should have a facade here…</div>
+        }
+      }
     }
 
     return assertNever(tab, `Unknown Branches tab: ${tab}`)
