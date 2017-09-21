@@ -1,16 +1,10 @@
 import * as React from 'react'
 import { IPullRequest } from '../../models/pull-request'
+import { FilterList, IFilterListGroup } from '../lib/filter-list'
 import {
-  FilterList,
-  IFilterListItem,
-  IFilterListGroup,
-} from '../lib/filter-list'
-
-interface IPullRequestListItem extends IFilterListItem {
-  readonly id: string
-  readonly text: string
-  readonly pullRequest: IPullRequest
-}
+  IPullRequestListItem,
+  PullRequestListItem,
+} from './pull-request-list-item'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
@@ -68,7 +62,7 @@ export class PullRequestList extends React.Component<
   }
 
   private renderPullRequest = (pullRequestItem: IPullRequestListItem) => {
-    return <div>{pullRequestItem.pullRequest.title}</div>
+    return <PullRequestListItem pullRequestItem={pullRequestItem} />
   }
 
   private onFilterTextChanged = (filterText: string) => {
