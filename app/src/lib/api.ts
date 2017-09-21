@@ -107,6 +107,14 @@ export interface IAPIIssue {
   readonly updated_at: string
 }
 
+/** The status of a ref. */
+export type APIRefStatus = 'failure' | 'pending' | 'success'
+
+/** The API response to a ref status request. */
+interface IAPIRefStatus {
+  readonly status: APIRefStatus
+}
+
 /** Information about a pull request as returned by the GitHub API. */
 export interface IAPIPullRequest {
   readonly number: number
@@ -376,6 +384,26 @@ export class API {
       return prs
     } catch (e) {
       log.warn(`fetchPullRequests: failed for repository ${owner}/${name}`, e)
+      throw e
+    }
+  }
+
+  /** Get the combined status for the given ref. */
+  public async fetchCombinedRefStatus(
+    owner: string,
+    name: string,
+    ref: string
+  ): Promise<APIRefStatus> {
+    const path = `repos/${owner}/${name}/commits/${ref}/status`
+    try {
+      const response = await this.request('GET', path)
+      const status = await parsedResponse<IAPIRefStatus>(response)
+      return status.status
+    } catch (e) {
+      log.warn(
+        `fetchRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
+        e
+      )
       throw e
     }
   }
