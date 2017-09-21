@@ -1,8 +1,8 @@
-import { Repository } from '../../models/repository'
-import { Account } from '../../models/account'
-import { GitHubRepository } from '../../models/github-repository'
-import { API } from '../api'
-import { fatalError } from '../fatal-error'
+import { Repository } from '../../../models/repository'
+import { Account } from '../../../models/account'
+import { GitHubRepository } from '../../../models/github-repository'
+import { API } from '../../api'
+import { fatalError } from '../../fatal-error'
 
 /**
  * A default interval at which to automatically fetch repositories, if the

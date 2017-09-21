@@ -1,4 +1,4 @@
-import { shell } from './dispatcher/app-shell'
+import { shell } from './app-shell'
 import { Account } from '../models/account'
 import { fatalError } from './fatal-error'
 import { getOAuthAuthorizationURL, requestOAuthToken, fetchUser } from './api'

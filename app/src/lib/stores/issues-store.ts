@@ -1,4 +1,4 @@
-import { IssuesDatabase, IIssue } from './issues-database'
+import { IssuesDatabase, IIssue } from '../databases/issues-database'
 import { API, IAPIIssue } from '../api'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
