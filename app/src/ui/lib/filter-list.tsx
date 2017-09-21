@@ -270,7 +270,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
 
     let focusInput = false
-    const firstSelectableRow = list.nextSelectableRow('down', 0)
+    const firstSelectableRow = list.nextSelectableRow('down', -1)
     const lastSelectableRow = list.nextSelectableRow('up', 0)
     if (event.key === 'ArrowUp' && row === firstSelectableRow) {
       focusInput = true
@@ -304,7 +304,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     if (event.key === 'ArrowDown') {
       if (this.state.rows.length > 0) {
         this.setState(
-          { selectedRow: list.nextSelectableRow('down', 0) },
+          { selectedRow: list.nextSelectableRow('down', -1) },
           () => {
             list.focus()
           }
@@ -327,7 +327,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         return
       }
 
-      const row = list.nextSelectableRow('down', 0)
+      const row = list.nextSelectableRow('down', -1)
       this.onRowClick(row)
     }
   }
