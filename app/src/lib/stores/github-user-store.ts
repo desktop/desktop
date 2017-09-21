@@ -7,7 +7,7 @@ import {
   GitHubUserDatabase,
   IGitHubUser,
   IMentionableAssociation,
-} from './github-user-database'
+} from '../databases/github-user-database'
 import { fatalError } from '../fatal-error'
 
 /**
