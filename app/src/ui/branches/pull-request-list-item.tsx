@@ -26,20 +26,27 @@ export class PullRequestListItem extends React.Component<
 > {
   public render() {
     const timeAgo = moment(this.props.created).fromNow()
+    const title = this.props.title
+    const subtitle = `#${this.props.number} opened ${timeAgo} by ${this.props
+      .author}`
+    const ciTitle = `Commit status: ${this.props.status}`
     return (
       <div className="pull-request-item">
         <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
 
         <div className="info">
-          <div className="title">{this.props.title}</div>
-          <div className="subtitle">
-            #{this.props.number} opened {timeAgo} by {this.props.author}
+          <div className="title" title={title}>
+            {title}
+          </div>
+          <div className="subtitle" title={subtitle}>
+            {subtitle}
           </div>
         </div>
 
         <Octicon
           className={`status status-${this.props.status}`}
           symbol={getSymbolForStatus(this.props.status)}
+          title={ciTitle}
         />
       </div>
     )
