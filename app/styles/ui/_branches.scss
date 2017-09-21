@@ -12,6 +12,46 @@
 
 .pull-request-list {
   width: 300px;
+
+  .pull-request-item {
+    padding: 0 var(--spacing);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    flex-grow: 1;
+
+    .icon {
+      margin-right: var(--spacing-half);
+      width: 16px; // Force a consistent width
+      flex-shrink: 0;
+    }
+
+    .info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex-grow: 1;
+
+      .title {
+        @include ellipsis;
+        min-width: 0;
+        margin-right: var(--spacing-half);
+      }
+
+      .subtitle {
+        @include ellipsis;
+        min-width: 0;
+        margin-right: var(--spacing-half);
+      }
+    }
+
+    .status {
+      width: 16px;
+      height: 16px;
+      background: red;
+    }
+  }
 }
 
 .branches-list {

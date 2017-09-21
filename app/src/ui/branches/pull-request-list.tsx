@@ -14,7 +14,7 @@ const PullRequestFilterList: new () => FilterList<
   IPullRequestListItem
 > = FilterList as any
 
-const RowHeight = 30
+const RowHeight = 45
 
 interface IPullRequestListProps {
   readonly pullRequests: ReadonlyArray<IPullRequest>

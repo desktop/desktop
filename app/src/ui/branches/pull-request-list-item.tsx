@@ -26,17 +26,17 @@ export class PullRequestListItem extends React.Component<
   public render() {
     const timeAgo = moment(this.props.created).fromNow()
     return (
-      <div>
+      <div className="pull-request-item">
         <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
 
-        <div>
-          <div>{this.props.title}</div>
-          <div>
+        <div className="info">
+          <div className="title">{this.props.title}</div>
+          <div className="subtitle">
             #{this.props.number} opened {timeAgo} by {this.props.author}
           </div>
         </div>
 
-        <div>{this.props.status}</div>
+        <div className="status">{this.props.status}</div>
       </div>
     )
   }
