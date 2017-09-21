@@ -5,12 +5,9 @@ import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
-import {
-  Dispatcher,
-  IGitHubUser,
-  IssuesStore,
-  GitHubUserStore,
-} from '../../lib/dispatcher'
+import { Dispatcher } from '../../lib/dispatcher'
+import { IGitHubUser } from '../../lib/databases'
+import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../models/commit'
 import { UndoCommit } from './undo-commit'

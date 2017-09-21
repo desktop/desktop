@@ -16,7 +16,7 @@ import {
   SignInStore,
   RepositoriesStore,
   AccountsStore,
-} from '../../src/lib/dispatcher'
+} from '../../src/lib/stores'
 import { TestGitHubUserDatabase } from '../test-github-user-database'
 import { TestStatsDatabase } from '../test-stats-database'
 import { TestIssuesDatabase } from '../test-issues-database'

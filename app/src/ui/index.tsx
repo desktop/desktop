@@ -9,32 +9,31 @@ import { ipcRenderer, remote } from 'electron'
 import { App } from './app'
 import {
   Dispatcher,
-  AppStore,
-  GitHubUserStore,
-  GitHubUserDatabase,
-  CloningRepositoriesStore,
-  EmojiStore,
-} from '../lib/dispatcher'
-import { URLActionType } from '../lib/parse-app-url'
-import { SelectionType } from '../lib/app-state'
-import { StatsDatabase, StatsStore } from '../lib/stats'
-import {
-  IssuesDatabase,
-  IssuesStore,
-  SignInStore,
-  defaultErrorHandler,
-  missingRepositoryHandler,
-  backgroundTaskHandler,
-  pushNeedsPullHandler,
-  AccountsStore,
-  RepositoriesDatabase,
-  RepositoriesStore,
-  TokenStore,
   gitAuthenticationErrorHandler,
   externalEditorErrorHandler,
   openShellErrorHandler,
   lfsAttributeMismatchHandler,
+  defaultErrorHandler,
+  missingRepositoryHandler,
+  backgroundTaskHandler,
+  pushNeedsPullHandler,
 } from '../lib/dispatcher'
+import {
+  AppStore,
+  GitHubUserStore,
+  CloningRepositoriesStore,
+  EmojiStore,
+  IssuesStore,
+  SignInStore,
+  RepositoriesStore,
+  TokenStore,
+  AccountsStore,
+} from '../lib/stores'
+import { GitHubUserDatabase } from '../lib/databases'
+import { URLActionType } from '../lib/parse-app-url'
+import { SelectionType } from '../lib/app-state'
+import { StatsDatabase, StatsStore } from '../lib/stats'
+import { IssuesDatabase, RepositoriesDatabase } from '../lib/databases'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
