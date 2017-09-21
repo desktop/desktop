@@ -49,6 +49,7 @@ interface IChangesListProps {
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly isIndexLocked: boolean
 
   /**
    * Click event handler passed directly to the onRowClick prop of List, see
@@ -182,6 +183,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
           contextualCommitMessage={this.props.contextualCommitMessage}
           autocompletionProviders={this.props.autocompletionProviders}
           isCommitting={this.props.isCommitting}
+          isIndexLocked={this.props.isIndexLocked}
         />
       </div>
     )

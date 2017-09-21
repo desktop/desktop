@@ -48,6 +48,7 @@ interface IChangesSidebarProps {
   readonly isCommitting: boolean
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
+  readonly isIndexLocked: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
 }
 
@@ -291,6 +292,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}
           isCommitting={this.props.isCommitting}
+          isIndexLocked={this.props.isIndexLocked}
         />
         {this.renderMostRecentLocalCommit()}
       </div>

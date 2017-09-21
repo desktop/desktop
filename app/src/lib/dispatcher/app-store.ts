@@ -49,6 +49,7 @@ import { GitStore, ICommitMessage } from './git-store'
 import { assertNever } from '../fatal-error'
 import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
+import { IndexWatcher } from './index-watcher'
 import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import {
@@ -135,6 +136,9 @@ export class AppStore {
 
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
+
+  /** The index watcher for the currently selected repository */
+  private currentIndexWatcher: IndexWatcher | null = null
 
   private repositoryState = new Map<string, IRepositoryState>()
   private showWelcomeFlow = false
@@ -388,6 +392,7 @@ export class AppStore {
       lastFetched: null,
       checkoutProgress: null,
       pushPullFetchProgress: null,
+      isIndexLocked: false,
     }
   }
 
@@ -747,6 +752,7 @@ export class AppStore {
     this.emitUpdate()
 
     this.stopBackgroundFetching()
+    this.stopWatchingIndex()
 
     if (!repository) {
       return Promise.resolve(null)
@@ -783,6 +789,7 @@ export class AppStore {
     this.stopBackgroundFetching()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
+    this.startWatchingIndex(repository)
     this.refreshMentionables(repository)
 
     if (repository instanceof Repository) {
@@ -813,6 +820,14 @@ export class AppStore {
     }
   }
 
+  private stopWatchingIndex() {
+    const indexWatcher = this.currentIndexWatcher
+    if (indexWatcher) {
+      indexWatcher.stop()
+      this.currentIndexWatcher = null
+    }
+  }
+
   private refreshMentionables(repository: Repository) {
     const account = this.getAccountForRepository(repository)
     if (!account) {
@@ -833,7 +848,7 @@ export class AppStore {
   ) {
     if (this.currentBackgroundFetcher) {
       fatalError(
-        `We should only have on background fetcher active at once, but we're trying to start background fetching on ${repository.name} while another background fetcher is still active!`
+        `We should only have one background fetcher active, but we're trying to start background fetching on ${repository.name} while another background fetcher is still active!`
       )
       return
     }
@@ -852,6 +867,23 @@ export class AppStore {
     )
     fetcher.start(withInitialSkew)
     this.currentBackgroundFetcher = fetcher
+  }
+
+  private startWatchingIndex(repository: Repository) {
+    if (this.currentIndexWatcher) {
+      fatalError(
+        `We should only have one index watcher active, but we're trying to watch the index of ${repository.name} while another index watcher is still active!`
+      )
+      return
+    }
+
+    const watcher = new IndexWatcher(repository)
+    watcher.on('index-changed', isIndexLocked => {
+      this.updateRepositoryState(repository, state => ({ isIndexLocked }))
+      this.emitUpdate()
+    })
+    watcher.start()
+    this.currentIndexWatcher = watcher
   }
 
   /** Load the initial state for the app. */

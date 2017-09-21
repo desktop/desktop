@@ -333,6 +333,9 @@ export interface IRepositoryState {
   /** Is a commit in progress? */
   readonly isCommitting: boolean
 
+  /** Is the index lockfile currently present in the repository? */
+  readonly isIndexLocked: boolean
+
   /** The date the repository was last fetched. */
   readonly lastFetched: Date | null
 

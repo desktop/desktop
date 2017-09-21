@@ -26,6 +26,7 @@ interface ICommitMessageProps {
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
+  readonly isIndexLocked: boolean
 }
 
 interface ICommitMessageState {
@@ -205,7 +206,8 @@ export class CommitMessage extends React.Component<
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
-    const buttonEnabled = this.canCommit() && !this.props.isCommitting
+    const buttonEnabled =
+      this.canCommit() && !this.props.isCommitting && !this.props.isIndexLocked
 
     const loading = this.props.isCommitting ? <Loading /> : undefined
 
