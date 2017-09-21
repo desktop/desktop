@@ -91,6 +91,7 @@ export class BranchDropdown extends React.Component<
     const timerId = this.refeshPullRequestTimerId
     if (timerId) {
       window.clearInterval(timerId)
+      this.refeshPullRequestTimerId = null
     }
   }
 
