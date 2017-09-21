@@ -232,9 +232,8 @@ export class CreateRepository extends React.Component<
 
     const licenseName =
       this.state.license === NoLicenseValue.name ? null : this.state.license
-    const license = (this.state.licenses || []).find(
-      l => l.name === licenseName
-    )
+    const license = (this.state.licenses || [])
+      .find(l => l.name === licenseName)
 
     if (license) {
       try {
@@ -468,9 +467,11 @@ export class CreateRepository extends React.Component<
             <Checkbox
               label="Initialize this repository with a README"
               value={
-                this.state.createWithReadme
-                  ? CheckboxValue.On
-                  : CheckboxValue.Off
+                this.state.createWithReadme ? (
+                  CheckboxValue.On
+                ) : (
+                  CheckboxValue.Off
+                )
               }
               onChange={this.onCreateWithReadmeChange}
             />

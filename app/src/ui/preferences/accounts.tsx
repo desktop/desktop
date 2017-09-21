@@ -28,14 +28,18 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
     return (
       <DialogContent className="accounts-tab">
         <h2>GitHub.com</h2>
-        {this.props.dotComAccount
-          ? this.renderAccount(this.props.dotComAccount)
-          : this.renderSignIn(SignInType.DotCom)}
+        {this.props.dotComAccount ? (
+          this.renderAccount(this.props.dotComAccount)
+        ) : (
+          this.renderSignIn(SignInType.DotCom)
+        )}
 
         <h2>Enterprise</h2>
-        {this.props.enterpriseAccount
-          ? this.renderAccount(this.props.enterpriseAccount)
-          : this.renderSignIn(SignInType.Enterprise)}
+        {this.props.enterpriseAccount ? (
+          this.renderAccount(this.props.enterpriseAccount)
+        ) : (
+          this.renderSignIn(SignInType.Enterprise)
+        )}
       </DialogContent>
     )
   }
