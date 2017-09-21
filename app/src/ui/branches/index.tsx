@@ -46,7 +46,9 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   public componentDidMount() {
-    this.fetchPullRequests()
+    if (enablePreviewFeatures()) {
+      this.fetchPullRequests()
+    }
   }
 
   private async fetchPullRequests() {
