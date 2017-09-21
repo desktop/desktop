@@ -37,12 +37,18 @@
         @include ellipsis;
         min-width: 0;
         margin-right: var(--spacing-half);
+
+        font-weight: var(--font-weight-semibold);
       }
 
       .subtitle {
         @include ellipsis;
         min-width: 0;
         margin-right: var(--spacing-half);
+
+        font-weight: var(--font-weight-light);
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary-color);
       }
     }
 
