@@ -60,6 +60,7 @@ export class PullRequestList extends React.Component<
         onFilterTextChanged={this.onFilterTextChanged}
         invalidationProps={this.props.pullRequests}
         onItemClick={this.onItemClick}
+        onSelectionChanged={this.onSelectionChanged}
       />
     )
   }
@@ -83,6 +84,10 @@ export class PullRequestList extends React.Component<
 
   private onItemClick = (selectedItem: IPullRequestListItem) => {
     console.log(selectedItem)
+  }
+
+  private onSelectionChanged = (selectedItem: IPullRequestListItem) => {
+    this.setState({ selectedItem })
   }
 }
 
