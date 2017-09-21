@@ -284,3 +284,5 @@
 - Merge tool for conflicted files
 - Conflicted files vs changed files
 - Relationship between branches
+- Show Git LFS (Cloning, Committing, Checking out, Reverting, Switching branches)
+- Report Git LFS (Cloning, Pushing, Pulling, Switching branches, Reverting)
