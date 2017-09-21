@@ -12,11 +12,15 @@ if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
 }
 
 const releaseSHA = distInfo.getReleaseSHA()
-const currentTipSHA = distInfo.getSHA()
+if (!releaseSHA) {
+  console.log(`No release SHA found for build. Skipping publish.`)
+  process.exit(0)
+}
 
-if (!releaseSHA || !currentTipSHA.startsWith(releaseSHA)) {
+const currentTipSHA = distInfo.getSHA()
+if (!currentTipSHA || !currentTipSHA.startsWith(releaseSHA)) {
   console.log(
-    `Current tip ${currentTipSHA} does not match release SHA ${releaseSHA}. Skipping publish.`
+    `Current tip '${currentTipSHA}' does not match release SHA '${releaseSHA}'. Skipping publish.`
   )
   process.exit(0)
 }
