@@ -23,6 +23,7 @@ interface IPullRequestListProps {
 interface IPullRequestListState {
   readonly groupedItems: ReadonlyArray<IFilterListGroup<IPullRequestListItem>>
   readonly filterText: string
+  readonly selectedItem: IPullRequestListItem | null
 }
 
 export class PullRequestList extends React.Component<
@@ -35,6 +36,7 @@ export class PullRequestList extends React.Component<
     this.state = {
       groupedItems: [createListItems(props.pullRequests)],
       filterText: '',
+      selectedItem: null,
     }
   }
 
@@ -52,11 +54,12 @@ export class PullRequestList extends React.Component<
         className="pull-request-list"
         rowHeight={RowHeight}
         groups={this.state.groupedItems}
-        selectedItem={null}
+        selectedItem={this.state.selectedItem}
         renderItem={this.renderPullRequest}
         filterText={this.state.filterText}
         onFilterTextChanged={this.onFilterTextChanged}
         invalidationProps={this.props.pullRequests}
+        onItemClick={this.onItemClick}
       />
     )
   }
@@ -76,6 +79,10 @@ export class PullRequestList extends React.Component<
 
   private onFilterTextChanged = (filterText: string) => {
     this.setState({ filterText })
+  }
+
+  private onItemClick = (selectedItem: IPullRequestListItem) => {
+    console.log(selectedItem)
   }
 }
 
