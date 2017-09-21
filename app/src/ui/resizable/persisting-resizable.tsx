@@ -94,7 +94,7 @@ export class PersistingResizable extends React.Component<
     return this.state && this.state.width
       ? this.state.width
       : this.props.defaultWidth ||
-        PersistingResizable.defaultProps.defaultWidth!
+          PersistingResizable.defaultProps.defaultWidth!
   }
 
   private handleResize = (newWidth: number) => {
