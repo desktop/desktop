@@ -1,7 +1,7 @@
 import * as URL from 'url'
 import { parseRemote } from './remote-parsing'
 import { getKeyForEndpoint } from './auth'
-import { TokenStore } from './dispatcher/token-store'
+import { TokenStore } from './stores/token-store'
 
 /** Get the hostname to use for the given remote. */
 export function getGenericHostname(remoteURL: string): string {

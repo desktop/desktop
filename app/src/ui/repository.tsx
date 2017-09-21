@@ -13,7 +13,8 @@ import {
   RepositorySection,
   ImageDiffType,
 } from '../lib/app-state'
-import { Dispatcher, IssuesStore, GitHubUserStore } from '../lib/dispatcher'
+import { Dispatcher } from '../lib/dispatcher'
+import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Octicon, OcticonSymbol } from './octicons'
 

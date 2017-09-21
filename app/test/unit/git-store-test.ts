@@ -8,7 +8,7 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import { GitProcess } from 'dugite'
 
-import { GitStore } from '../../src/lib/dispatcher/git-store'
+import { GitStore } from '../../src/lib/stores/git-store'
 import { AppFileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
