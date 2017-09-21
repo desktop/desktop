@@ -1015,6 +1015,11 @@ export class Dispatcher {
     return this.appStore._changeCloneRepositoriesTab(tab)
   }
 
+  /** Open the merge tool for the given file. */
+  public openMergeTool(repository: Repository, path: string): Promise<void> {
+    return this.appStore._openMergeTool(repository, path)
+  }
+
   /** Change the selected Branches foldout tab. */
   public changeBranchesTab(tab: BranchesTab): Promise<void> {
     return this.appStore._changeBranchesTab(tab)

@@ -2662,6 +2662,11 @@ export class AppStore {
     return Promise.resolve()
   }
 
+  public _openMergeTool(repository: Repository, path: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.openMergeTool(path)
+  }
+
   public _changeBranchesTab(tab: BranchesTab): Promise<void> {
     this.selectedBranchesTab = tab
 
