@@ -234,7 +234,7 @@ export class SignInStore {
       }
     } else {
       throw new Error(
-        `Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct, that your GitHub Enterprise instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
+        `Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct and that your GitHub Enterprise instance is running version ${minimumSupportedEnterpriseVersion} or later.`
       )
     }
   }
