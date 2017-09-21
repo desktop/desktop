@@ -153,7 +153,7 @@
   - [ ] Open in External Editor (Mac: ⇧⌘A; Windows: Ctrl+Shift+A); see External Editor option in prefs
     - [ ] Secondary modal appears if no Editors set; option to Download Atom 
   - [ ] Repository settings
-    - [ ] Remote path can be edited; origin already set
+    - [ ] Remote path can be edited; origin already set. Cannot be empty string, else error message.
       - [ ] `Saved` button saves last entry
       - [ ] `Cancel` button closes modal
     - [ ] Ignored Files
