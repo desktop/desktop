@@ -58,7 +58,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly renderItem: (item: T) => JSX.Element | null
 
   /** Called to render header for the group with the given identifier. */
-  readonly renderGroupHeader: (identifier: string) => JSX.Element | null
+  readonly renderGroupHeader?: (identifier: string) => JSX.Element | null
 
   /** Called to render content before/above the filter and list. */
   readonly renderPreList?: () => JSX.Element | null
@@ -191,8 +191,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     const row = this.state.rows[index]
     if (row.kind === 'item') {
       return this.props.renderItem(row.item)
-    } else {
+    } else if (this.props.renderGroupHeader) {
       return this.props.renderGroupHeader(row.identifier)
+    } else {
+      return null
     }
   }
 
@@ -346,7 +348,10 @@ function createStateUpdate<T extends IFilterListItem>(
       continue
     }
 
-    flattenedRows.push({ kind: 'group', identifier: group.identifier })
+    if (props.renderGroupHeader) {
+      flattenedRows.push({ kind: 'group', identifier: group.identifier })
+    }
+
     for (const item of items) {
       flattenedRows.push({ kind: 'item', item })
     }
