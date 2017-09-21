@@ -115,12 +115,19 @@ interface IAPIRefStatus {
   readonly status: APIRefStatus
 }
 
+interface IAPIPullRequestRef {
+  readonly ref: string
+  readonly repo: IAPIRepository
+}
+
 /** Information about a pull request as returned by the GitHub API. */
 export interface IAPIPullRequest {
   readonly number: number
   readonly title: string
   readonly created_at: string
   readonly user: IAPIUser
+  readonly head: IAPIPullRequestRef
+  readonly base: IAPIPullRequestRef
 }
 
 /** The metadata about a GitHub server. */
