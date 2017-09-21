@@ -5,11 +5,12 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchList } from './branch-list'
 import { Account } from '../../models/account'
-import { IAPIPullRequest, API, APIRefState } from '../../lib/api'
+import { API } from '../../lib/api'
 import { TabBar } from '../tab-bar'
 import { BranchesTab } from '../../models/branches-tab'
 import { assertNever } from '../../lib/fatal-error'
 import { enablePreviewFeatures } from '../../lib/feature-flag'
+import { IPullRequest } from '../../models/pull-request'
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -20,10 +21,6 @@ interface IBranchesProps {
   readonly repository: Repository
   readonly account: Account | null
   readonly selectedTab: BranchesTab
-}
-
-interface IPullRequest extends IAPIPullRequest {
-  readonly state: APIRefState
 }
 
 interface IBranchesState {
