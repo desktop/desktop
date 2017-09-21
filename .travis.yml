@@ -3,8 +3,24 @@ notifications:
     on_success: never
     on_failure: change
 
-os:
-  - osx
+dist: trusty
+
+matrix:
+  include:
+    - os: linux
+      env: CC=clang CXX=clang++ npm_config_clang=1
+      compiler: clang
+
+addons:
+  apt:
+    packages:
+      # by default the container VMs have Git 1.9.1, ermagherd...
+      - git-all
+      # this is required to compile keytar
+      - libsecret-1-dev
+      # this package is essential for testing Electron in a headless fashion
+      # https://github.com/electron/electron/blob/master/docs/tutorial/testing-on-headless-ci.md
+      - xvfb
 
 branches:
   only:
@@ -35,9 +51,6 @@ script:
   - npm run build:prod
   - npm run test:setup
   - npm test
-
-after_success:
-  - npm run publish
 
 after_failure:
   - npm run test:review
