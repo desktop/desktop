@@ -40,6 +40,7 @@ import {
   getConfigValue,
   revertCommit,
   unstageAllFiles,
+  openMergeTool,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -927,6 +928,12 @@ export class GitStore {
         }
       })
     })
+  }
+
+  public async openMergeTool(path: string): Promise<void> {
+    await this.performFailableOperation(() =>
+      openMergeTool(this.repository, path)
+    )
   }
 }
 
