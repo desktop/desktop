@@ -228,7 +228,7 @@
     - [ ] Right clicking any commit shows options: Revert, Copy SHA, View on GitHub
 
 ### Diffs tab		
-  - [ ] All commits have avatar, # of files changed, actions dropdown, commit message, commit description (optional)
+  - [ ] All commits have avatar, selectable SHA, # of files changed, commit message, commit description (optional)
     - [ ] Long commit descriptions can be toggled with expand/collapse icon
       - [ ] Reverting commit repopulates commit area
         - [ ] Error message if no changes to commit
