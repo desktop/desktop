@@ -409,7 +409,7 @@ export class API {
       return status.state
     } catch (e) {
       log.warn(
-        `fetchRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
+        `fetchCombinedRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
         e
       )
       throw e
