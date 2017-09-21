@@ -164,7 +164,7 @@
 ### Branch top-level menu
   - [ ] New Branch (Mac: ⇧⌘N; Windows: Ctrl+Shift+N)
     - [ ] Clicking `Create Branch` makes new branch based on the entered name, if not a duplicate
-    - [ ] Master branch is mentioned in the list
+    - [ ] Master branch is mentioned in the list; current branch shown first
     - [ ] `Cancel` button closes modal
   - [ ] Rename (cannot be master)
     - [ ] `Rename` button changes branch name if field updated
