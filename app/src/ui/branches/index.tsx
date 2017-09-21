@@ -9,6 +9,7 @@ import { IAPIPullRequest, API, APIRefState } from '../../lib/api'
 import { TabBar } from '../tab-bar'
 import { BranchesTab } from '../../models/branches-tab'
 import { assertNever } from '../../lib/fatal-error'
+import { enablePreviewFeatures } from '../../lib/feature-flag'
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -125,6 +126,10 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   private renderTabBar() {
     if (!this.props.account) {
+      return null
+    }
+
+    if (!enablePreviewFeatures()) {
       return null
     }
 
