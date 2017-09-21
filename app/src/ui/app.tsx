@@ -1466,6 +1466,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         repository={repository}
         repositoryState={selection.state}
         account={account}
+        selectedTab={this.state.selectedBranchesTab}
       />
     )
   }

@@ -1,9 +1,9 @@
 @import '../mixins';
 
-.branches-list-container {
+.branches-container {
   height: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 
   .branches-list {
     width: 300px;

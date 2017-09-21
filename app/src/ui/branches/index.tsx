@@ -6,6 +6,9 @@ import { Branch } from '../../models/branch'
 import { BranchList } from './branch-list'
 import { Account } from '../../models/account'
 import { IAPIPullRequest, API, APIRefState } from '../../lib/api'
+import { TabBar } from '../tab-bar'
+import { BranchesTab } from '../../models/branches-tab'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -15,6 +18,7 @@ interface IBranchesProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly account: Account | null
+  readonly selectedTab: BranchesTab
 }
 
 interface IPullRequest extends IAPIPullRequest {
@@ -119,22 +123,58 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.setState({ selectedBranch })
   }
 
+  private renderTabBar() {
+    if (!this.props.account) {
+      return null
+    }
+
+    return (
+      <TabBar
+        onTabClicked={this.onTabClicked}
+        selectedIndex={this.props.selectedTab}
+      >
+        <span>Branches</span>
+        <span>{__DARWIN__ ? 'Pull Requests' : 'Pull requests'}</span>
+      </TabBar>
+    )
+  }
+
+  private renderSelectedTab() {
+    const tab = this.props.selectedTab
+    switch (tab) {
+      case BranchesTab.Branches:
+        return (
+          <BranchList
+            defaultBranch={this.props.defaultBranch}
+            currentBranch={this.props.currentBranch}
+            allBranches={this.props.allBranches}
+            recentBranches={this.props.recentBranches}
+            onItemClick={this.onItemClick}
+            filterText={this.state.filterText}
+            onFilterKeyDown={this.onFilterKeyDown}
+            onFilterTextChanged={this.onFilterTextChanged}
+            selectedBranch={this.state.selectedBranch}
+            onSelectionChanged={this.onSelectionChanged}
+          />
+        )
+
+      case BranchesTab.PullRequests:
+        return <div />
+    }
+
+    return assertNever(tab, `Unknown Branches tab: ${tab}`)
+  }
+
   public render() {
     return (
-      <div className="branches-list-container">
-        <BranchList
-          defaultBranch={this.props.defaultBranch}
-          currentBranch={this.props.currentBranch}
-          allBranches={this.props.allBranches}
-          recentBranches={this.props.recentBranches}
-          onItemClick={this.onItemClick}
-          filterText={this.state.filterText}
-          onFilterKeyDown={this.onFilterKeyDown}
-          onFilterTextChanged={this.onFilterTextChanged}
-          selectedBranch={this.state.selectedBranch}
-          onSelectionChanged={this.onSelectionChanged}
-        />
+      <div className="branches-container">
+        {this.renderTabBar()}
+        {this.renderSelectedTab()}
       </div>
     )
+  }
+
+  private onTabClicked = (tab: BranchesTab) => {
+    this.props.dispatcher.changeBranchesTab(tab)
   }
 }

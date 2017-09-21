@@ -8,6 +8,7 @@ import { IRepositoryState } from '../../lib/app-state'
 import { Branches } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { Account } from '../../models/account'
+import { BranchesTab } from '../../models/branches-tab'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -31,6 +32,9 @@ interface IBranchDropdownProps {
 
   /** The account for the associated GitHub repository, if one exists. */
   readonly account: Account | null
+
+  /** The currently selected tab. */
+  readonly selectedTab: BranchesTab
 }
 
 /**
@@ -53,6 +57,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, {}> {
         dispatcher={this.props.dispatcher}
         repository={this.props.repository}
         account={this.props.account}
+        selectedTab={this.props.selectedTab}
       />
     )
   }
