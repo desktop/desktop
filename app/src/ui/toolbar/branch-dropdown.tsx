@@ -55,6 +55,12 @@ export class BranchDropdown extends React.Component<
 > {
   private refeshPullRequestTimerId: number | null = null
 
+  public constructor(props: IBranchDropdownProps) {
+    super(props)
+
+    this.state = { pullRequests: null }
+  }
+
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
