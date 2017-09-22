@@ -91,10 +91,10 @@ interface IFilterListProps<T extends IFilterListItem> {
   ) => void
 
   /** The current filter text to use in the form */
-  readonly filterText: string
+  readonly filterText?: string
 
   /** Called when the filter text is changed by the user */
-  readonly onFilterTextChanged: (text: string) => void
+  readonly onFilterTextChanged?: (text: string) => void
 
   /** Any props which should cause a re-render if they change. */
   readonly invalidationProps: any
@@ -205,14 +205,20 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   private onInputRef = (instance: HTMLInputElement | null) => {
     this.filterInput = instance
 
-    if (this.filterInput && this.props.filterText.length > 0) {
+    if (
+      this.filterInput &&
+      this.props.filterText &&
+      this.props.filterText.length > 0
+    ) {
       this.filterInput.select()
     }
   }
 
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const text = event.currentTarget.value
-    this.props.onFilterTextChanged(text)
+    if (this.props.onFilterTextChanged) {
+      this.props.onFilterTextChanged(text)
+    }
   }
 
   public componentDidUpdate(
@@ -241,7 +247,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           )
           this.props.onSelectionChanged(newSelectedItem, {
             kind: 'filter',
-            filterText: this.props.filterText,
+            filterText: this.props.filterText || '',
           })
         }
       }
@@ -337,7 +343,7 @@ function createStateUpdate<T extends IFilterListItem>(
   props: IFilterListProps<T>
 ) {
   const flattenedRows = new Array<IFilterListRow<T>>()
-  const filter = props.filterText.toLowerCase()
+  const filter = (props.filterText || '').toLowerCase()
 
   for (const group of props.groups) {
     const items = group.items.filter(i => {
