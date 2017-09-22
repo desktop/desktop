@@ -79,13 +79,18 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       return null
     }
 
+    const count = this.props.pullRequests ? this.props.pullRequests.length : 0
     return (
       <TabBar
         onTabClicked={this.onTabClicked}
         selectedIndex={this.props.selectedTab}
       >
         <span>Branches</span>
-        <span>{__DARWIN__ ? 'Pull Requests' : 'Pull requests'}</span>
+        <span className="pull-request-tab">
+          {__DARWIN__ ? 'Pull Requests' : 'Pull requests'}
+
+          <span className="count">{count}</span>
+        </span>
       </TabBar>
     )
   }

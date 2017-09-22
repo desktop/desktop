@@ -10,6 +10,38 @@
   }
 }
 
+.pull-request-tab {
+  display: flex;
+  flex-direction: row;
+
+  align-items: center;
+
+  .count {
+    display: flex;
+
+    background: $gray-300;
+    color: var(--text-color);
+
+    margin-left: var(--spacing-half);
+
+    // Perfectly round semi circle ends with real tight
+    // padding on either side. Now in two flavors!
+    @include darwin {
+      height: 13px;
+    }
+
+    @include win32 {
+      height: 14px;
+    }
+
+    border-radius: 8px;
+    padding: 0 6px;
+
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
 .pull-request-list {
   width: 300px;
 
