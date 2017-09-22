@@ -18,6 +18,7 @@ const RowHeight = 45
 
 interface IPullRequestListProps {
   readonly pullRequests: ReadonlyArray<IPullRequest>
+  readonly onPullRequestClicked: (pullRequest: IPullRequest) => void
 }
 
 interface IPullRequestListState {
@@ -83,7 +84,8 @@ export class PullRequestList extends React.Component<
   }
 
   private onItemClick = (selectedItem: IPullRequestListItem) => {
-    console.log(selectedItem)
+    const pr = selectedItem.pullRequest
+    this.props.onPullRequestClicked(pr)
   }
 
   private onSelectionChanged = (selectedItem: IPullRequestListItem) => {

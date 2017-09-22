@@ -123,7 +123,12 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       case BranchesTab.PullRequests: {
         const pullRequests = this.props.pullRequests
         if (pullRequests) {
-          return <PullRequestList pullRequests={pullRequests} />
+          return (
+            <PullRequestList
+              pullRequests={pullRequests}
+              onPullRequestClicked={this.onPullRequestClicked}
+            />
+          )
         } else {
           return <div>Loading and we should have a facade here…</div>
         }
@@ -144,5 +149,23 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   private onTabClicked = (tab: BranchesTab) => {
     this.props.dispatcher.changeBranchesTab(tab)
+  }
+
+  private onPullRequestClicked = (pullRequest: IPullRequest) => {
+    const gitHubRepository = this.props.repository.gitHubRepository
+    if (!gitHubRepository) {
+      return log.warn(
+        `We shouldn't be checking out a PR on a repository that doesn't have a GitHub repository.`
+      )
+    }
+
+    const head = pullRequest.head
+    const isRefInThisRepo = head.repo.clone_url === gitHubRepository.cloneURL
+    if (isRefInThisRepo) {
+      this.props.dispatcher.checkoutBranch(this.props.repository, head.ref)
+      this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    } else {
+      // TODO: It's in a fork so we'll need to do ... something.
+    }
   }
 }
