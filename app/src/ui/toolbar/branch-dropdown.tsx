@@ -85,11 +85,17 @@ export class BranchDropdown extends React.Component<
 
   public componentDidMount() {
     if (enablePreviewFeatures()) {
-      this.fetchPullRequests()
+      this.fetchPullRequests(this.props)
       this.refeshPullRequestTimerId = window.setInterval(
-        () => this.fetchPullRequests(),
+        () => this.fetchPullRequests(this.props),
         RefreshPullRequestInterval
       )
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: IBranchDropdownProps) {
+    if (enablePreviewFeatures()) {
+      this.fetchPullRequests(nextProps)
     }
   }
 
@@ -101,13 +107,13 @@ export class BranchDropdown extends React.Component<
     }
   }
 
-  private async fetchPullRequests() {
-    const account = this.props.account
+  private async fetchPullRequests(props: IBranchDropdownProps) {
+    const account = props.account
     if (!account) {
       return
     }
 
-    const gitHubRepository = this.props.repository.gitHubRepository
+    const gitHubRepository = props.repository.gitHubRepository
     if (!gitHubRepository) {
       return
     }
