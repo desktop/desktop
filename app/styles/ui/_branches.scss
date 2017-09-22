@@ -181,3 +181,29 @@
     }
   }
 }
+
+.no-pull-requests {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing);
+
+  .blankslate-image {
+    min-width: 300px;
+  }
+
+  .title {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .no-prs {
+    padding-bottom: var(--spacing);
+  }
+
+  .call-to-action {
+    font-size: var(--font-size-sm);
+  }
+}

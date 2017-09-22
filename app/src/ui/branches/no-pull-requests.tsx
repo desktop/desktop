@@ -2,6 +2,8 @@ import * as React from 'react'
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
 
+const BlankSlateImage = `file:///${__dirname}/static/empty-no-file-selected.svg`
+
 interface INoPullRequestsProps {
   readonly repositoryName: string
   readonly isOnDefaultBranch: boolean
@@ -13,9 +15,11 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
   public render() {
     return (
       <div className="no-pull-requests">
+        <img src={BlankSlateImage} className="blankslate-image" />
+
         <div className="title">You're all set!</div>
 
-        <div>
+        <div className="no-prs">
           No open pull requests in <Ref>{this.props.repositoryName}</Ref>
         </div>
 
@@ -27,7 +31,7 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
   private renderCallToAction() {
     if (this.props.isOnDefaultBranch) {
       return (
-        <div>
+        <div className="call-to-action">
           Would you like to{' '}
           <LinkButton onClick={this.props.onCreateBranch}>
             create a new branch
@@ -37,7 +41,7 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
       )
     } else {
       return (
-        <div>
+        <div className="call-to-action">
           Would you like to{' '}
           <LinkButton onClick={this.props.onCreatePullRequest}>
             create a pull request
