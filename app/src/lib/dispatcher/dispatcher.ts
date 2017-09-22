@@ -1024,4 +1024,8 @@ export class Dispatcher {
   public changeBranchesTab(tab: BranchesTab): Promise<void> {
     return this.appStore._changeBranchesTab(tab)
   }
+
+  public openCreatePullRequest(repository: Repository): Promise<void> {
+    return this.appStore._openCreatePullRequest(repository)
+  }
 }

@@ -284,8 +284,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
-      case 'create-pull-request':
-        return this.openPullRequest()
+      case 'create-pull-request': {
+        const state = this.state.selectedState
+        if (!state || state.type !== SelectionType.Repository) {
+          return
+        }
+        return this.props.dispatcher.openCreatePullRequest(state.repository)
+      }
       case 'install-cli':
         return this.props.dispatcher.installCLI()
       case 'open-external-editor':
@@ -1063,7 +1068,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             unPushedCommits={popup.unPushedCommits}
-            onConfirm={this.openPullRequestOnGithub}
+            onConfirm={this.openPullRequestOnGitHub}
             onDismissed={this.onPopupDismissed}
           />
         )
@@ -1385,55 +1390,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private openPullRequest() {
-    const selection = this.state.selectedState
-
-    if (!selection || selection.type !== SelectionType.Repository) {
-      return
-    }
-
-    const tip = selection.state.branchesState.tip
-
-    if (tip.kind !== TipState.Valid) {
-      return
-    }
-
-    const dispatcher = this.props.dispatcher
-    const repository = selection.repository
-    const branch = tip.branch
-    const aheadBehind = selection.state.aheadBehind
-
-    if (!aheadBehind) {
-      dispatcher.showPopup({
-        type: PopupType.PushBranchCommits,
-        repository,
-        branch,
-      })
-    } else if (aheadBehind.ahead > 0) {
-      dispatcher.showPopup({
-        type: PopupType.PushBranchCommits,
-        repository,
-        branch,
-        unPushedCommits: aheadBehind.ahead,
-      })
-    } else {
-      this.openPullRequestOnGithub(repository, branch)
-    }
-  }
-
-  private openPullRequestOnGithub = (
+  private openPullRequestOnGitHub = (
     repository: Repository,
     branch: Branch
   ) => {
-    const gitHubRepository = repository.gitHubRepository
-
-    if (!gitHubRepository || !gitHubRepository.htmlURL) {
-      return
-    }
-
-    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
-
-    this.props.dispatcher.openInBrowser(baseURL)
+    this.props.dispatcher.openCreatePullRequest(repository)
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
