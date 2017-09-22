@@ -11,6 +11,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { enablePreviewFeatures } from '../../lib/feature-flag'
 import { IPullRequest } from '../../models/pull-request'
 import { PullRequestList } from './pull-request-list'
+import { PullRequestsLoading } from './pull-requests-loading'
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -132,7 +133,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
             />
           )
         } else {
-          return <div>Loading and we should have a facade here…</div>
+          return <PullRequestsLoading />
         }
       }
     }
