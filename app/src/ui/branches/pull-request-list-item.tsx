@@ -27,8 +27,8 @@ export class PullRequestListItem extends React.Component<
   public render() {
     const timeAgo = moment(this.props.created).fromNow()
     const title = this.props.title
-    const subtitle = `#${this.props.number} opened ${timeAgo} by ${this.props
-      .author}`
+    const author = this.props.author
+    const subtitle = `#${this.props.number} opened ${timeAgo} by ${author}`
     const ciTitle = `Commit status: ${this.props.status}`
     return (
       <div className="pull-request-item">
