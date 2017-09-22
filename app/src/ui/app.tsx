@@ -77,6 +77,7 @@ import { ShellError } from './shell'
 import { InitializeLFS, AttributeMismatch } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { getOS } from '../lib/get-os'
+import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -615,7 +616,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private handleDragAndDrop(fileList: FileList) {
+  private async handleDragAndDrop(fileList: FileList) {
     const paths: string[] = []
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i]
@@ -628,9 +629,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (paths.length > 1) {
       this.addRepositories(paths)
     } else {
+      // user may accidentally provide a folder within the repository
+      // this ensures we use the repository root, if it is actually a repository
+      // otherwise we consider it an untracked repository
+      const first = paths[0]
+      const path = (await validatedRepositoryPath(first)) || first
+
       this.props.dispatcher.showPopup({
         type: PopupType.AddRepository,
-        path: paths[0],
+        path: path,
       })
     }
   }
