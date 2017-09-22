@@ -3,6 +3,8 @@ import { FilterList, IFilterListItem } from '../lib/filter-list'
 
 const RowHeight = 45
 
+const FacadeCount = 6
+
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
  * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
@@ -14,7 +16,7 @@ const PullRequestsLoadingList: new () => FilterList<
 export class PullRequestsLoading extends React.Component<{}, {}> {
   public render() {
     const items: Array<IFilterListItem> = []
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < FacadeCount; i++) {
       items.push({
         text: '',
         id: i.toString(),
