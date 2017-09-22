@@ -44,6 +44,7 @@ import * as GenericGitAuth from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
 import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
+import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 
 /**
  * An error handler function.
@@ -800,6 +801,11 @@ export class Dispatcher {
         break
 
       case 'open-repository-from-path':
+        // user may accidentally provide a folder within the repository
+        // this ensures we use the repository root, if it is actually a repository
+        // otherwise we consider it an untracked repository
+        const path = (await validatedRepositoryPath(action.path)) || action.path
+
         const state = this.appStore.getState()
         const repositories = state.repositories
         const existingRepository = repositories.find(r => {
@@ -808,10 +814,10 @@ export class Dispatcher {
             // bit more accepting.
             return (
               Path.normalize(r.path).toLowerCase() ===
-              Path.normalize(action.path).toLowerCase()
+              Path.normalize(path).toLowerCase()
             )
           } else {
-            return Path.normalize(r.path) === Path.normalize(action.path)
+            return Path.normalize(r.path) === Path.normalize(path)
           }
         })
 
@@ -820,7 +826,7 @@ export class Dispatcher {
         } else {
           return this.showPopup({
             type: PopupType.AddRepository,
-            path: action.path,
+            path,
           })
         }
         break
