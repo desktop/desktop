@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { List, SelectionSource } from '../list'
+import { List, SelectionSource } from '../lib/list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
