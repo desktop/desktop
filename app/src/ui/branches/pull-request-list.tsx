@@ -19,6 +19,7 @@ const RowHeight = 45
 interface IPullRequestListProps {
   readonly pullRequests: ReadonlyArray<IPullRequest>
   readonly onPullRequestClicked: (pullRequest: IPullRequest) => void
+  readonly onDismiss: () => void
 }
 
 interface IPullRequestListState {
@@ -62,6 +63,7 @@ export class PullRequestList extends React.Component<
         invalidationProps={this.props.pullRequests}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
+        onFilterKeyDown={this.onFilterKeyDown}
       />
     )
   }
@@ -90,6 +92,15 @@ export class PullRequestList extends React.Component<
 
   private onSelectionChanged = (selectedItem: IPullRequestListItem) => {
     this.setState({ selectedItem })
+  }
+
+  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      if (this.state.filterText.length === 0) {
+        this.props.onDismiss()
+        event.preventDefault()
+      }
+    }
   }
 }
 

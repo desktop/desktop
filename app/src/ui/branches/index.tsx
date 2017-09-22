@@ -128,6 +128,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
             <PullRequestList
               pullRequests={pullRequests}
               onPullRequestClicked={this.onPullRequestClicked}
+              onDismiss={this.onDismiss}
             />
           )
         } else {
@@ -167,5 +168,9 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     } else {
       // TODO: It's in a fork so we'll need to do ... something.
     }
+  }
+
+  private onDismiss = () => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
   }
 }
