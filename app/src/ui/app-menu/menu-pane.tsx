@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { List, ClickSource, SelectionSource } from '../list'
+import { List, ClickSource, SelectionSource } from '../lib/list'
 import {
   MenuItem,
   itemIsSelectable,
@@ -75,7 +75,7 @@ interface IMenuPaneProps {
    * show all menu items. This does not affect maximum height, i.e. if the
    * visible menu items takes up more space than what is available the menu
    * will still overflow and be scrollable.
-   * 
+   *
    * @default false
    */
   readonly autoHeight?: boolean
