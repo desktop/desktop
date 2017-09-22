@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
-import { FoldoutType } from '../../lib/app-state'
+import { FoldoutType, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchList } from './branch-list'
@@ -12,6 +12,7 @@ import { enablePreviewFeatures } from '../../lib/feature-flag'
 import { IPullRequest } from '../../models/pull-request'
 import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
+import { NoPullRequests } from './no-pull-requests'
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -125,13 +126,32 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       case BranchesTab.PullRequests: {
         const pullRequests = this.props.pullRequests
         if (pullRequests) {
-          return (
-            <PullRequestList
-              pullRequests={pullRequests}
-              onPullRequestClicked={this.onPullRequestClicked}
-              onDismiss={this.onDismiss}
-            />
-          )
+          if (pullRequests.length > 0) {
+            return (
+              <PullRequestList
+                pullRequests={pullRequests}
+                onPullRequestClicked={this.onPullRequestClicked}
+                onDismiss={this.onDismiss}
+              />
+            )
+          } else {
+            const repo = this.props.repository
+            const name = repo.gitHubRepository
+              ? repo.gitHubRepository.fullName
+              : repo.name
+            const isOnDefaultBranch =
+              this.props.defaultBranch &&
+              this.props.currentBranch &&
+              this.props.defaultBranch.name === this.props.currentBranch.name
+            return (
+              <NoPullRequests
+                repositoryName={name}
+                isOnDefaultBranch={!!isOnDefaultBranch}
+                onCreateBranch={this.onCreateBranch}
+                onCreatePullRequest={this.onCreatePullRequest}
+              />
+            )
+          }
         } else {
           return <PullRequestsLoading />
         }
@@ -148,6 +168,19 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
         {this.renderSelectedTab()}
       </div>
     )
+  }
+
+  private onCreateBranch = () => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.showPopup({
+      type: PopupType.CreateBranch,
+      repository: this.props.repository,
+    })
+  }
+
+  private onCreatePullRequest = () => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.openCreatePullRequest(this.props.repository)
   }
 
   private onTabClicked = (tab: BranchesTab) => {
