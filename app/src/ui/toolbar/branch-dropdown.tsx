@@ -12,6 +12,7 @@ import { BranchesTab } from '../../models/branches-tab'
 import { enablePreviewFeatures } from '../../lib/feature-flag'
 import { API } from '../../lib/api'
 import { IPullRequest } from '../../models/pull-request'
+import { GitHubRepository } from '../../models/github-repository'
 
 const RefreshPullRequestInterval = 1000 * 60 * 10
 
@@ -85,17 +86,23 @@ export class BranchDropdown extends React.Component<
 
   public componentDidMount() {
     if (enablePreviewFeatures()) {
-      this.fetchPullRequests(this.props)
+      this.updatePullRequests(this.props)
+
       this.refeshPullRequestTimerId = window.setInterval(
-        () => this.fetchPullRequests(this.props),
+        () => this.updatePullRequests(this.props),
         RefreshPullRequestInterval
       )
     }
   }
 
   public componentWillReceiveProps(nextProps: IBranchDropdownProps) {
-    if (enablePreviewFeatures()) {
-      this.fetchPullRequests(nextProps)
+    if (
+      enablePreviewFeatures() &&
+      (this.props.account !== nextProps.account ||
+        this.props.repository !== nextProps.repository)
+    ) {
+      this.setState({ pullRequests: null })
+      this.updatePullRequests(nextProps)
     }
   }
 
@@ -107,22 +114,15 @@ export class BranchDropdown extends React.Component<
     }
   }
 
-  private async fetchPullRequests(props: IBranchDropdownProps) {
-    const account = props.account
-    if (!account) {
-      return
-    }
-
-    const gitHubRepository = props.repository.gitHubRepository
-    if (!gitHubRepository) {
-      return
-    }
-
+  private async fetchPullRequests(
+    account: Account,
+    repository: GitHubRepository
+  ): Promise<ReadonlyArray<IPullRequest> | null> {
     const api = API.fromAccount(account)
     try {
       const pullRequests = await api.fetchPullRequests(
-        gitHubRepository.owner.login,
-        gitHubRepository.name,
+        repository.owner.login,
+        repository.name,
         'open'
       )
 
@@ -130,8 +130,8 @@ export class BranchDropdown extends React.Component<
       for (const pr of pullRequests) {
         try {
           const state = await api.fetchCombinedRefStatus(
-            gitHubRepository.owner.login,
-            gitHubRepository.name,
+            repository.owner.login,
+            repository.name,
             pr.head.sha
           )
 
@@ -149,10 +149,25 @@ export class BranchDropdown extends React.Component<
         }
       }
 
-      this.setState({ pullRequests: pullRequestsWithStatus })
+      return pullRequestsWithStatus
     } catch (e) {
-      this.setState({ pullRequests: null })
+      return null
     }
+  }
+
+  private async updatePullRequests(props: IBranchDropdownProps) {
+    const account = props.account
+    if (!account) {
+      return
+    }
+
+    const gitHubRepository = props.repository.gitHubRepository
+    if (!gitHubRepository) {
+      return
+    }
+
+    const pullRequests = await this.fetchPullRequests(account, gitHubRepository)
+    this.setState({ pullRequests })
   }
 
   private onDropDownStateChanged = (state: DropdownState) => {
