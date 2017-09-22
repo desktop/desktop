@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { FilterList, IFilterListItem } from '../lib/filter-list'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 const RowHeight = 45
 
@@ -44,6 +45,17 @@ export class PullRequestsLoading extends React.Component<{}, {}> {
   }
 
   private renderItem = (item: IFilterListItem) => {
-    return <div>hi</div>
+    return (
+      <div className="pull-request-loading-item">
+        <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
+
+        <div className="info">
+          <div className="title" />
+          <div className="subtitle" />
+        </div>
+
+        <Octicon className="status" symbol={OcticonSymbol.primitiveDot} />
+      </div>
+    )
   }
 }
