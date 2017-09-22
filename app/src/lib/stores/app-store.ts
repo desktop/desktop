@@ -41,14 +41,14 @@ import {
   CloningRepository,
   CloningRepositoriesStore,
 } from './cloning-repositories-store'
-import { IGitHubUser } from './github-user-database'
+import { IGitHubUser } from '../databases/github-user-database'
 import { GitHubUserStore } from './github-user-store'
-import { shell } from './app-shell'
+import { shell } from '../app-shell'
 import { EmojiStore } from './emoji-store'
 import { GitStore, ICommitMessage } from './git-store'
 import { assertNever } from '../fatal-error'
 import { IssuesStore } from './issues-store'
-import { BackgroundFetcher } from './background-fetcher'
+import { BackgroundFetcher } from './helpers/background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import {
@@ -86,7 +86,7 @@ import {
 import { launchExternalEditor } from '../editors'
 import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
-import { validatedRepositoryPath } from './validated-repository-path'
+import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { RetryActionType, RetryAction } from '../retry-actions'
@@ -2628,9 +2628,9 @@ export class AppStore {
     })
   }
 
-  public async _installGlobalLFSFilters(): Promise<void> {
+  public async _installGlobalLFSFilters(force: boolean): Promise<void> {
     try {
-      await installGlobalLFSFilters()
+      await installGlobalLFSFilters(force)
     } catch (error) {
       this.emitError(error)
     }
@@ -2649,7 +2649,9 @@ export class AppStore {
   ): Promise<void> {
     for (const repo of repositories) {
       try {
-        await installLFSHooks(repo)
+        // At this point we've asked the user if we should install them, so
+        // force installation.
+        await installLFSHooks(repo, true)
       } catch (error) {
         this.emitError(error)
       }
@@ -2662,5 +2664,10 @@ export class AppStore {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  public _openMergeTool(repository: Repository, path: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.openMergeTool(path)
   }
 }

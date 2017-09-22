@@ -49,3 +49,28 @@ async function getConfigValueInPath(
   const pieces = output.split('\0')
   return pieces[0]
 }
+
+/** Get the path to the global git config. */
+export async function getGlobalConfigPath(): Promise<string | null> {
+  const result = await git(
+    ['config', '--global', '--list', '--show-origin', '--name-only', '-z'],
+    __dirname,
+    'getGlobalConfigPath'
+  )
+  const segments = result.stdout.split('\0')
+  if (segments.length < 1) {
+    return null
+  }
+
+  const pathSegment = segments[0]
+  if (!pathSegment.length) {
+    return null
+  }
+
+  const path = pathSegment.match(/file:(.+)/i)
+  if (!path || path.length < 2) {
+    return null
+  }
+
+  return path[1]
+}

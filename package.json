@@ -71,7 +71,7 @@
     "request": "^2.72.0",
     "rimraf": "^2.5.2",
     "sass-loader": "^6.0.6",
-    "spectron": "^3.6.0",
+    "spectron": "^3.7.2",
     "style-loader": "^0.18.2",
     "to-camel-case": "^1.0.0",
     "ts-loader": "^2.0.3",
@@ -92,7 +92,7 @@
     "@types/chai-datetime": "0.0.30",
     "@types/chalk": "^0.4.31",
     "@types/classnames": "^2.2.2",
-    "@types/codemirror": "0.0.45",
+    "@types/codemirror": "0.0.46",
     "@types/electron-packager": "^8.7.1",
     "@types/event-kit": "^1.2.28",
     "@types/fs-extra": "2.1.0",
@@ -110,8 +110,8 @@
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^3.4.0",
     "@types/winston": "^2.2.0",
-    "prettier": "^1.6.1",
+    "prettier": "~1.7.0",
     "tslint-config-prettier": "^1.1.0",
-    "tslint-react": "^3.0.0"
+    "tslint-react": "~3.0.0"
   }
 }

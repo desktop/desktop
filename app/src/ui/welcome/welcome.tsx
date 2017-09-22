@@ -1,10 +1,6 @@
 import * as React from 'react'
-import {
-  Dispatcher,
-  AppStore,
-  SignInState,
-  SignInStep,
-} from '../../lib/dispatcher'
+import { Dispatcher } from '../../lib/dispatcher'
+import { AppStore, SignInState, SignInStep } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { Start } from './start'
 import { SignInDotCom } from './sign-in-dot-com'

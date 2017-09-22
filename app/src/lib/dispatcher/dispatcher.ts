@@ -15,20 +15,20 @@ import {
   FoldoutType,
   ImageDiffType,
 } from '../app-state'
-import { AppStore } from './app-store'
-import { CloningRepository } from './cloning-repositories-store'
+import { AppStore } from '../stores/app-store'
+import { CloningRepository } from '../stores/cloning-repositories-store'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
 import { ExternalEditor } from '../../models/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
-import { ICommitMessage } from './git-store'
+import { ICommitMessage } from '../stores/git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError, assertNever } from '../fatal-error'
 import { isGitOnPath } from '../is-git-on-path'
-import { shell } from './app-shell'
+import { shell } from '../app-shell'
 import {
   URLActionType,
   IOpenRepositoryFromURLAction,
@@ -998,8 +998,8 @@ export class Dispatcher {
   }
 
   /** Install the global Git LFS filters. */
-  public installGlobalLFSFilters(): Promise<void> {
-    return this.appStore._installGlobalLFSFilters()
+  public installGlobalLFSFilters(force: boolean): Promise<void> {
+    return this.appStore._installGlobalLFSFilters(force)
   }
 
   /** Install the LFS filters */
@@ -1012,5 +1012,10 @@ export class Dispatcher {
   /** Change the selected Clone Repository tab. */
   public changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
     return this.appStore._changeCloneRepositoriesTab(tab)
+  }
+
+  /** Open the merge tool for the given file. */
+  public openMergeTool(repository: Repository, path: string): Promise<void> {
+    return this.appStore._openMergeTool(repository, path)
   }
 }

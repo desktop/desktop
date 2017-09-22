@@ -11,8 +11,10 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../models/status'
-import { CloningRepository, IGitHubUser, SignInState } from './dispatcher'
-import { ICommitMessage } from './dispatcher/git-store'
+import { CloningRepository } from './stores/cloning-repositories-store'
+import { IGitHubUser } from './databases/github-user-database'
+import { SignInState } from './stores/sign-in-store'
+import { ICommitMessage } from './stores/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
@@ -197,6 +199,7 @@ export enum PopupType {
   ExternalEditorFailed,
   OpenShellFailed,
   InitializeLFS,
+  LFSAttributeMismatch,
 }
 
 export type Popup =
@@ -249,6 +252,7 @@ export type Popup =
     }
   | { type: PopupType.OpenShellFailed; message: string }
   | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
+  | { type: PopupType.LFSAttributeMismatch }
 
 export enum FoldoutType {
   Repository,

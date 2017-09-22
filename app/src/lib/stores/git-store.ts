@@ -9,7 +9,7 @@ import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 import { IFetchProgress } from '../app-state'
 
-import { IAppShell } from '../../lib/dispatcher/app-shell'
+import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
 import { structuralEquals } from '../../lib/equality'
 import { compare } from '../../lib/compare'
@@ -39,6 +39,8 @@ import {
   resetPaths,
   getConfigValue,
   revertCommit,
+  unstageAllFiles,
+  openMergeTool,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -398,6 +400,14 @@ export class GitStore {
     }
   }
 
+  private async undoFirstCommit(
+    repository: Repository
+  ): Promise<true | undefined> {
+    await deleteRef(repository, 'HEAD', 'Reverting first commit')
+    await unstageAllFiles(repository)
+    return true
+  }
+
   /**
    * Undo a specific commit for the current repository.
    *
@@ -409,7 +419,7 @@ export class GitStore {
     let success: true | undefined = undefined
     if (commit.parentSHAs.length === 0) {
       success = await this.performFailableOperation(() =>
-        deleteRef(this.repository, 'HEAD', 'Reverting first commit')
+        this.undoFirstCommit(this.repository)
       )
     } else {
       success = await this.performFailableOperation(() =>
@@ -918,6 +928,12 @@ export class GitStore {
         }
       })
     })
+  }
+
+  public async openMergeTool(path: string): Promise<void> {
+    await this.performFailableOperation(() =>
+      openMergeTool(this.repository, path)
+    )
   }
 }
 

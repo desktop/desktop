@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { IAutocompletionProvider } from './index'
-import { GitHubUserStore } from '../../lib/dispatcher'
+import { GitHubUserStore } from '../../lib/stores'
 import { GitHubRepository } from '../../models/github-repository'
 
 /** An autocompletion hit for a user. */
