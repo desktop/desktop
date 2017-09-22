@@ -41,15 +41,16 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private onItemClick = (item: Branch) => {
+    this.checkoutBranch(item.nameWithoutRemote)
+  }
+
+  private checkoutBranch(branch: string) {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
     const currentBranch = this.props.currentBranch
 
-    if (!currentBranch || currentBranch.name !== item.name) {
-      this.props.dispatcher.checkoutBranch(
-        this.props.repository,
-        item.nameWithoutRemote
-      )
+    if (!currentBranch || currentBranch.name !== branch) {
+      this.props.dispatcher.checkoutBranch(this.props.repository, branch)
     }
   }
 
@@ -162,8 +163,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     const head = pullRequest.head
     const isRefInThisRepo = head.repo.clone_url === gitHubRepository.cloneURL
     if (isRefInThisRepo) {
-      this.props.dispatcher.checkoutBranch(this.props.repository, head.ref)
-      this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+      this.checkoutBranch(head.ref)
     } else {
       // TODO: It's in a fork so we'll need to do ... something.
     }
