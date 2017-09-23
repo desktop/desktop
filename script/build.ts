@@ -17,7 +17,7 @@ const isPublishableBuild = distInfo.getReleaseChannel() !== 'development'
 console.log(`Building for ${distInfo.getReleaseChannel()}…`)
 
 console.log('Removing old distribution…')
-fs.removeSync(path.join(projectRoot, 'dist'))
+fs.removeSync(distInfo.getDistRoot())
 
 console.log('Copying dependencies…')
 copyDependencies()
@@ -90,7 +90,7 @@ function packageApp(
     platform: toPackagePlatform(process.platform),
     arch: 'x64',
     asar: false, // TODO: Probably wanna enable this down the road.
-    out: path.join(projectRoot, 'dist'),
+    out: distInfo.getDistRoot(),
     icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
     dir: outRoot,
     overwrite: true,
