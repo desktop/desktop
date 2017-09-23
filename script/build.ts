@@ -248,7 +248,7 @@ function copyDependencies() {
   fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 
   if (process.platform === 'darwin') {
-    console.log('  Copying app-path binary...')
+    console.log('  Copying app-path binary…')
     const appPathMain = path.resolve(outRoot, 'main')
     fs.removeSync(appPathMain)
     fs.copySync(
