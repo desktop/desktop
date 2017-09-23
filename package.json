@@ -19,6 +19,7 @@
     "build:dev": "npm run compile:dev && cross-env NODE_ENV=development ts-node script/build.ts",
     "build:prod": "npm run compile:prod && cross-env NODE_ENV=production ts-node script/build.ts",
     "package": "node script/package",
+    "generate-octicons": "ts-node script/generate-octicons.ts",
     "clean:tslint": "rimraf tslint-rules/*.js",
     "compile:tslint": "tsc -p tslint-rules",
     "lint": "npm run compile:tslint && tslint \"./app/{src,test}/**/*.{ts,tsx}\"",
