@@ -30,6 +30,7 @@ type LegalEagle = (
 ) => void
 
 type DistInfo = {
+  getDistRoot: () => string
   getDistPath: () => string
   getProductName: () => string
   getCompanyName: () => string

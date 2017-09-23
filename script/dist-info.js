@@ -7,10 +7,13 @@ const fs = require('fs')
 const projectRoot = path.join(__dirname, '..')
 const appPackage = require(path.join(projectRoot, 'app', 'package.json'))
 
+function getDistRoot() {
+  return path.join(projectRoot, 'dist')
+}
+
 function getDistPath() {
   return path.join(
-    projectRoot,
-    'dist',
+    getDistRoot(),
     `${getExecutableName()}-${process.platform}-x64`
   )
 }
@@ -205,6 +208,7 @@ function getSHA() {
 }
 
 module.exports = {
+  getDistRoot,
   getDistPath,
   getProductName,
   getCompanyName,
