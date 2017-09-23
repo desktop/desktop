@@ -2,11 +2,10 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-const distInfo = require('./dist-info')
-const getUserDataPath: () => string = distInfo.getUserDataPath
+const distInfo: DistInfo = require('./dist-info')
 
 export function getLogFiles(): ReadonlyArray<string> {
-  const directory = path.join(getUserDataPath(), 'logs')
+  const directory = path.join(distInfo.getUserDataPath(), 'logs')
   if (!fs.existsSync(directory)) {
     return []
   }

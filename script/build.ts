@@ -7,17 +7,14 @@ import * as packager from 'electron-packager'
 
 const legalEagle: LegalEagle = require('legal-eagle')
 
-const distInfo = require('./dist-info')
-const getReleaseChannel: () => string = distInfo.getReleaseChannel
-const getVersion: () => string = distInfo.getVersion
-const getExecutableName: () => string = distInfo.getExecutableName
+const distInfo: DistInfo = require('./dist-info')
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
 
-const isPublishableBuild = getReleaseChannel() !== 'development'
+const isPublishableBuild = distInfo.getReleaseChannel() !== 'development'
 
-console.log(`Building for ${getReleaseChannel()}…`)
+console.log(`Building for ${distInfo.getReleaseChannel()}…`)
 
 console.log('Removing old distribution…')
 fs.removeSync(path.join(projectRoot, 'dist'))
@@ -89,7 +86,7 @@ function packageApp(
   }
 
   const options: packager.Options & IPackageAdditionalOptions = {
-    name: getExecutableName(),
+    name: distInfo.getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: 'x64',
     asar: false, // TODO: Probably wanna enable this down the road.
@@ -297,7 +294,7 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
             const licenseText = fs.readFileSync(licenseSource, {
               encoding: 'utf-8',
             })
-            const appVersion = getVersion()
+            const appVersion = distInfo.getVersion()
 
             summary[`desktop@${appVersion}`] = {
               repository: 'https://github.com/desktop/desktop',
