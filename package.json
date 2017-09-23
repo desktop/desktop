@@ -107,6 +107,7 @@
     "@types/uuid": "^3.4.0",
     "@types/winston": "^2.2.0",
     "prettier": "~1.7.0",
+    "@types/xml2js": "^0.4.0",
     "tslint-config-prettier": "^1.1.0",
     "tslint-react": "~3.0.0"
   }

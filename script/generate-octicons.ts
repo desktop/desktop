@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /* generate-octicons
  *
  * Utility script for generating a strongly typed representation of all
@@ -9,11 +7,11 @@
 
 'use strict'
 
-const fs = require('fs')
-const process = require('process')
-const xml2js = require('xml2js')
-const path = require('path')
-const toCamelCase = require('to-camel-case')
+import fs = require('fs')
+import process = require('process')
+import xml2js = require('xml2js')
+import path = require('path')
+import toCamelCase = require('to-camel-case')
 
 const filePath = path.resolve(
   __dirname,
@@ -26,7 +24,16 @@ const filePath = path.resolve(
 
 const file = fs.readFileSync(filePath)
 
-xml2js.parseString(file, function(err, result) {
+interface XML2JSResult {
+  svg: { symbol: ReadonlyArray<XML2JSNode> }
+}
+interface XML2JSNode {
+  $: { [key: string]: string }
+  path: ReadonlyArray<XML2JSNode>
+
+}
+
+xml2js.parseString(file, function(err, result: XML2JSResult) {
   const viewBoxRe = /0 0 (\d+) (\d+)/
   const out = fs.createWriteStream(
     path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts')
