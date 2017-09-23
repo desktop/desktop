@@ -108,10 +108,9 @@ function getUserDataPath() {
     const home = os.homedir()
     return path.join(home, '.config', getProductName())
   } else {
-    console.error(
+    throw new Error(
       `I dunno how to resolve the user data path for ${process.platform} ${process.arch} :(`
     )
-    process.exit(1)
   }
 }
 
