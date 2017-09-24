@@ -3,12 +3,12 @@
 import * as fs from 'fs'
 import * as cp from 'child_process'
 import { getLogFiles } from './review-logs'
-const distInfo: DistInfo = require('./dist-info')
+import { getProductName, getDistPath } from './dist-info'
 
 const isFork = process.env.CIRCLE_PR_USERNAME
 
 if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
-  const archive = `${distInfo.getDistPath()}/${distInfo.getProductName()}.app`
+  const archive = `${getDistPath()}/${getProductName()}.app`
   try {
     console.log('validating signature of Desktop app')
     cp.execSync(`codesign -dv --verbose=4 '${archive}'`)

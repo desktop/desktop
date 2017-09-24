@@ -7,17 +7,25 @@ import * as packager from 'electron-packager'
 
 const legalEagle: LegalEagle = require('legal-eagle')
 
-const distInfo: DistInfo = require('./dist-info')
+import {
+  getReleaseChannel,
+  getDistRoot,
+  getExecutableName,
+  getBundleID,
+  getCompanyName,
+  getProductName,
+  getVersion,
+} from './dist-info'
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
 
-const isPublishableBuild = distInfo.getReleaseChannel() !== 'development'
+const isPublishableBuild = getReleaseChannel() !== 'development'
 
-console.log(`Building for ${distInfo.getReleaseChannel()}…`)
+console.log(`Building for ${getReleaseChannel()}…`)
 
 console.log('Removing old distribution…')
-fs.removeSync(distInfo.getDistRoot())
+fs.removeSync(getDistRoot())
 
 console.log('Copying dependencies…')
 copyDependencies()
@@ -86,11 +94,11 @@ function packageApp(
   }
 
   const options: packager.Options & IPackageAdditionalOptions = {
-    name: distInfo.getExecutableName(),
+    name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: 'x64',
     asar: false, // TODO: Probably wanna enable this down the road.
-    out: distInfo.getDistRoot(),
+    out: getDistRoot(),
     icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
     dir: outRoot,
     overwrite: true,
@@ -106,12 +114,12 @@ function packageApp(
     appCopyright: 'Copyright © 2017 GitHub, Inc.',
 
     // macOS
-    appBundleId: distInfo.getBundleID(),
+    appBundleId: getBundleID(),
     appCategoryType: 'public.app-category.developer-tools',
     osxSign: true,
     protocols: [
       {
-        name: distInfo.getBundleID(),
+        name: getBundleID(),
         schemes: [
           isPublishableBuild
             ? 'x-github-desktop-auth'
@@ -124,11 +132,11 @@ function packageApp(
 
     // Windows
     win32metadata: {
-      CompanyName: distInfo.getCompanyName(),
+      CompanyName: getCompanyName(),
       FileDescription: '',
       OriginalFilename: '',
-      ProductName: distInfo.getProductName(),
-      InternalName: distInfo.getProductName(),
+      ProductName: getProductName(),
+      InternalName: getProductName(),
     },
   }
 
@@ -202,7 +210,7 @@ function copyDependencies() {
   // The product name changes depending on whether it's a prod build or dev
   // build, so that we can have them running side by side.
   const updatedPackage = Object.assign({}, originalPackage, {
-    productName: distInfo.getProductName(),
+    productName: getProductName(),
     dependencies: newDependencies,
     devDependencies: newDevDependencies,
   })
@@ -294,7 +302,7 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
             const licenseText = fs.readFileSync(licenseSource, {
               encoding: 'utf-8',
             })
-            const appVersion = distInfo.getVersion()
+            const appVersion = getVersion()
 
             summary[`desktop@${appVersion}`] = {
               repository: 'https://github.com/desktop/desktop',
