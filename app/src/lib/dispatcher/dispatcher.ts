@@ -1023,6 +1023,7 @@ export class Dispatcher {
     return this.appStore._changeBranchesTab(tab)
   }
 
+  /** Open the Create Pull Request page on GitHub. */
   public openCreatePullRequest(repository: Repository): Promise<void> {
     return this.appStore._openCreatePullRequest(repository)
   }

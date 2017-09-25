@@ -2,7 +2,7 @@ import { Repository } from '../models/repository'
 import { Account } from '../models/account'
 import { getAccountForEndpoint } from './api'
 
-/** Get the authenticated user for the repository. */
+/** Get the authenticated account for the repository. */
 export function getAccountForRepository(
   accounts: ReadonlyArray<Account>,
   repository: Repository
