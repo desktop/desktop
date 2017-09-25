@@ -5,12 +5,20 @@ import { LinkButton } from '../lib/link-button'
 const BlankSlateImage = `file:///${__dirname}/static/empty-no-file-selected.svg`
 
 interface INoPullRequestsProps {
+  /** The name of the repository. */
   readonly repositoryName: string
+
+  /** Is the default branch currently checked out? */
   readonly isOnDefaultBranch: boolean
+
+  /* Called when the user wants to create a new branch. */
   readonly onCreateBranch: () => void
+
+  /** Called when the user wants to create a pull request. */
   readonly onCreatePullRequest: () => void
 }
 
+/** The placeholder for when there are no open pull requests. */
 export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
   public render() {
     return (

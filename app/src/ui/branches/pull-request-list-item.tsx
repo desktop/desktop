@@ -20,6 +20,7 @@ interface IPullRequestListItemProps {
   readonly status: APIRefState
 }
 
+/** Pull requests as rendered in the Pull Requests list. */
 export class PullRequestListItem extends React.Component<
   IPullRequestListItemProps,
   {}
