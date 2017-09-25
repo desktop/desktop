@@ -5,10 +5,19 @@ import { APIRefState } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 
 interface IPullRequestListItemProps {
+  /** The title. */
   readonly title: string
+
+  /** The number as received from the API. */
   readonly number: number
+
+  /** The date on which the PR was opened. */
   readonly created: Date
+
+  /** The author login. */
   readonly author: string
+
+  /** The CI status. */
   readonly status: APIRefState
 }
 
