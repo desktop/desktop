@@ -1,5 +1,19 @@
 {
   "releases": {
+    "1.0.2-beta0": [
+      "[Improved] Message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712"
+    ],
+    "1.0.1": [
+      "[Improved] Message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712"
+    ],
     "1.0.1-beta0": [
       "[Fixed] Use the loading/disabled state while publishing - #1995",
       "[Fixed] Lock down menu item states for unborn repositories - #2744 #2573",

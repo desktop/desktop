@@ -238,6 +238,21 @@ export class CloneRepository extends React.Component<
     this.setState({ path })
   }
 
+  private updateAndValidatePath = async (path: string) => {
+    this.updatePath(path)
+
+    const doesDirectoryExist = await this.doesPathExist(path)
+
+    if (doesDirectoryExist) {
+      const error: Error = new Error('The destination already exists.')
+      error.name = DestinationExistsErrorName
+
+      this.setState({ error })
+    } else {
+      this.setState({ error: null })
+    }
+  }
+
   private onChooseDirectory = async () => {
     const directories = remote.dialog.showOpenDialog({
       properties: ['createDirectory', 'openDirectory'],
@@ -252,18 +267,7 @@ export class CloneRepository extends React.Component<
       ? Path.join(directories[0], lastParsedIdentifier.name)
       : directories[0]
 
-    this.updatePath(directory)
-
-    const doesDirectoryExist = await this.doesPathExist(directory)
-
-    if (doesDirectoryExist) {
-      const error: Error = new Error('The destination already exists.')
-      error.name = DestinationExistsErrorName
-
-      this.setState({ error })
-    } else {
-      this.setState({ error: null })
-    }
+    this.updateAndValidatePath(directory)
 
     return directory
   }
@@ -286,21 +290,12 @@ export class CloneRepository extends React.Component<
       newPath = this.state.path
     }
 
-    const pathExist = await this.doesPathExist(newPath)
-
-    let error = null
-
-    if (pathExist) {
-      error = new Error('The destination already exists.')
-      error.name = DestinationExistsErrorName
-    }
-
     this.setState({
       url,
-      path: newPath,
       lastParsedIdentifier: parsed,
-      error,
     })
+
+    this.updateAndValidatePath(newPath)
   }
 
   private async doesPathExist(path: string) {
