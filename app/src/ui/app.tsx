@@ -643,9 +643,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
 
       if (existingRepository) {
-        this.props.dispatcher.selectRepository(existingRepository)
+        await this.props.dispatcher.selectRepository(existingRepository)
       } else {
-        return this.showPopup({
+        await this.showPopup({
           type: PopupType.AddRepository,
           path,
         })

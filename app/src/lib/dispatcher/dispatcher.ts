@@ -814,9 +814,9 @@ export class Dispatcher {
         )
 
         if (existingRepository) {
-          this.selectRepository(existingRepository)
+          await this.selectRepository(existingRepository)
         } else {
-          return this.showPopup({
+          await this.showPopup({
             type: PopupType.AddRepository,
             path,
           })
