@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { CloningRepository } from '../lib/stores'
+import { CloningRepository } from '../models/cloning-repository'
 import { ICloneProgress } from '../lib/app-state'
 import { Octicon, OcticonSymbol } from './octicons'
 import { UiView } from './ui-view'

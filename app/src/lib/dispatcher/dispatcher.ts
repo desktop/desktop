@@ -16,7 +16,7 @@ import {
   ImageDiffType,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
-import { CloningRepository } from '../stores/cloning-repositories-store'
+import { CloningRepository } from '../../models/cloning-repository'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
 import { ExternalEditor } from '../../models/editors'
