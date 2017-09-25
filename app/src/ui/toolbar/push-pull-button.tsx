@@ -53,9 +53,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
 
     const progressValue = progress ? progress.value : undefined
 
+    // an unborn repository can be published, otherwise check
+    // for any sort of network activity
     const disabled = this.props.branchExists
       ? this.props.networkActionInProgress || !!this.props.progress
-      : true
+      : false
 
     return (
       <ToolbarButton
