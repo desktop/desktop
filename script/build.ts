@@ -266,7 +266,6 @@ function copyDependencies() {
     for (const file of files) {
       const filePath = path.join(gitCoreDir, file)
       try {
-        fs.statSync(filePath)
         fs.unlinkSync(filePath)
       } catch (err) {
         // probably already cleaned up
