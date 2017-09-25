@@ -234,8 +234,19 @@ export class CloneRepository extends React.Component<
     this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
-  private updatePath = (path: string) => {
+  private updatePath = async (path: string) => {
     this.setState({ path })
+
+    const doesDirectoryExist = await this.doesPathExist(path)
+
+    if (doesDirectoryExist) {
+      const error: Error = new Error('The destination already exists.')
+      error.name = DestinationExistsErrorName
+
+      this.setState({ error })
+    } else {
+      this.setState({ error: null })
+    }
   }
 
   private onChooseDirectory = async () => {
@@ -285,6 +296,8 @@ export class CloneRepository extends React.Component<
     } else {
       newPath = this.state.path
     }
+
+    this.updatePath(newPath)
 
     const pathExist = await this.doesPathExist(newPath)
 
