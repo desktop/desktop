@@ -41,42 +41,13 @@ export class PullRequestStore {
       return
     }
 
-    const prTable = this.db.pullRequests
-    const dbPRs = await prTable.toArray()
+    const table = this.db.pullRequests
     const apiPRs = pullRequests as Array<IAPIPullRequest>
-    const sorterdDbPRs = dbPRs.sort()
-    const sortedApiPRs = apiPRs.sort()
-    const itemsToDelete: Array<number> = []
-
-    //Take the relative complement of A and B where B is the db and A is pullRequests argument
-    for (let i = 0; i < sorterdDbPRs.length; i++) {
-      if (sortedApiPRs[i].number !== sorterdDbPRs[i].number) {
-        itemsToDelete.push(sorterdDbPRs[i].number)
-      }
-    }
-
-    function findPullRequestByNumber(
-      repositoryId: number,
-      pullRequestNumber: number
-    ) {
-      return prTable
-        .where('[repo_id+number]')
-        .equals([repositoryId, pullRequestNumber])
-        .limit(1)
-        .first()
-    }
-
-    await this.db.transaction('rw', prTable, function*() {
-      for (const pullRequestNumber of itemsToDelete) {
-        const prToDelete = yield findPullRequestByNumber(
-          repoId,
-          pullRequestNumber
-        )
-
-        if (prToDelete) {
-          yield prTable.delete(prToDelete.id)
-        }
-      }
+    const insertablePRs = apiPRs.map(x => {
+      return { repoId, ...x }
     })
+
+    table.clear()
+    table.bulkAdd(insertablePRs)
   }
 }
