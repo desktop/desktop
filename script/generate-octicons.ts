@@ -30,7 +30,6 @@ interface XML2JSResult {
 interface XML2JSNode {
   $: { [key: string]: string }
   path: ReadonlyArray<XML2JSNode>
-
 }
 
 xml2js.parseString(file, function(err, result: XML2JSResult) {
@@ -38,7 +37,7 @@ xml2js.parseString(file, function(err, result: XML2JSResult) {
   const out = fs.createWriteStream(
     path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts'),
     {
-      encoding: 'utf-8'
+      encoding: 'utf-8',
     }
   )
 
