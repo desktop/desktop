@@ -181,7 +181,6 @@ export class BranchDropdown extends React.Component<
         pullRequests,
         gitHubRepository
       )
-      console.log(pr)
 
       currentPullRequest = pr
     }
