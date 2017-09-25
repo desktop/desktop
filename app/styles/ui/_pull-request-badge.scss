@@ -1,3 +1,11 @@
+.toolbar-dropdown.open .pr-badge {
+  background: $gray-200;
+}
+
+.toolbar-dropdown:not(.open) .pr-badge {
+  background: $gray-800;
+}
+
 .pr-badge {
   display: flex;
   flex-direction: row;
@@ -5,7 +13,6 @@
 
   align-items: center;
 
-  background: $gray-800;
   border: var(--base-border);
   border-radius: var(--border-radius);
   border-width: 0;
