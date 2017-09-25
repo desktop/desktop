@@ -46,6 +46,7 @@ interface IBranchDropdownProps {
 
 interface IBranchDropdownState {
   readonly pullRequests: ReadonlyArray<IPullRequest> | null
+  readonly currentPullRequest: IPullRequest | null
 }
 
 /**
@@ -60,7 +61,7 @@ export class BranchDropdown extends React.Component<
   public constructor(props: IBranchDropdownProps) {
     super(props)
 
-    this.state = { pullRequests: null }
+    this.state = { pullRequests: null, currentPullRequest: null }
   }
 
   private renderBranchFoldout = (): JSX.Element | null => {
@@ -102,7 +103,7 @@ export class BranchDropdown extends React.Component<
       (this.props.account !== nextProps.account ||
         this.props.repository !== nextProps.repository)
     ) {
-      this.setState({ pullRequests: null })
+      this.setState({ pullRequests: null, currentPullRequest: null })
       this.updatePullRequests(nextProps)
     }
   }
@@ -168,7 +169,24 @@ export class BranchDropdown extends React.Component<
     }
 
     const pullRequests = await this.fetchPullRequests(account, gitHubRepository)
-    this.setState({ pullRequests })
+
+    const repositoryState = this.props.repositoryState
+    const branchesState = repositoryState.branchesState
+
+    const tip = branchesState.tip
+    let currentPullRequest = null
+    if (tip.kind === TipState.Valid && pullRequests && gitHubRepository) {
+      const pr = findCurrentPullRequest(
+        tip.branch,
+        pullRequests,
+        gitHubRepository
+      )
+      console.log(pr)
+
+      currentPullRequest = pr
+    }
+
+    this.setState({ pullRequests, currentPullRequest })
   }
 
   private onDropDownStateChanged = (state: DropdownState) => {
@@ -194,19 +212,8 @@ export class BranchDropdown extends React.Component<
     let canOpen = true
     let tooltip: string
 
-    const pullRequests = this.state.pullRequests
-    const gitHubRepository = this.props.repository.gitHubRepository
-    if (tip.kind === TipState.Valid && pullRequests && gitHubRepository) {
-      const pr = findCurrentPullRequest(
-        tip.branch,
-        pullRequests,
-        gitHubRepository
-      )
-      console.log(pr)
-
-      if (pr) {
-        icon = OcticonSymbol.gitPullRequest
-      }
+    if (this.state.currentPullRequest) {
+      icon = OcticonSymbol.gitPullRequest
     }
 
     if (tip.kind === TipState.Unknown) {
