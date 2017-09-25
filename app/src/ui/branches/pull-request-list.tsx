@@ -24,8 +24,13 @@ const PullRequestFilterList: new () => FilterList<
 const RowHeight = 45
 
 interface IPullRequestListProps {
+  /** The pull requests to display. */
   readonly pullRequests: ReadonlyArray<IPullRequest>
+
+  /** Called when the user clicks on a pull request. */
   readonly onPullRequestClicked: (pullRequest: IPullRequest) => void
+
+  /** Called when the user wants to dismiss the foldout. */
   readonly onDismiss: () => void
 }
 
@@ -35,6 +40,7 @@ interface IPullRequestListState {
   readonly selectedItem: IPullRequestListItem | null
 }
 
+/** The list of open pull requests. */
 export class PullRequestList extends React.Component<
   IPullRequestListProps,
   IPullRequestListState

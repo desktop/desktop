@@ -14,6 +14,7 @@ const PullRequestsLoadingList: new () => FilterList<
   IFilterListItem
 > = FilterList as any
 
+/** The placeholder for when pull requests are still loading. */
 export class PullRequestsLoading extends React.Component<{}, {}> {
   public render() {
     const items: Array<IFilterListItem> = []
