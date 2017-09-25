@@ -637,10 +637,19 @@ export class App extends React.Component<IAppProps, IAppState> {
       const first = paths[0]
       const path = (await validatedRepositoryPath(first)) || first
 
-      this.props.dispatcher.showPopup({
-        type: PopupType.AddRepository,
-        path: path,
-      })
+      const existingRepository = matchExistingRepository(
+        this.state.repositories,
+        path
+      )
+
+      if (existingRepository) {
+        this.props.dispatcher.selectRepository(existingRepository)
+      } else {
+        return this.showPopup({
+          type: PopupType.AddRepository,
+          path,
+        })
+      }
     }
   }
 

@@ -25,6 +25,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from '../stores/git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
+import { matchExistingRepository } from '../../lib/repository-matching'
 import { ILaunchStats } from '../stats'
 import { fatalError, assertNever } from '../fatal-error'
 import { isGitOnPath } from '../is-git-on-path'
@@ -807,19 +808,10 @@ export class Dispatcher {
         const path = (await validatedRepositoryPath(action.path)) || action.path
 
         const state = this.appStore.getState()
-        const repositories = state.repositories
-        const existingRepository = repositories.find(r => {
-          if (__WIN32__) {
-            // Windows is guaranteed to be case-insensitive so we can be a
-            // bit more accepting.
-            return (
-              Path.normalize(r.path).toLowerCase() ===
-              Path.normalize(path).toLowerCase()
-            )
-          } else {
-            return Path.normalize(r.path) === Path.normalize(path)
-          }
-        })
+        const existingRepository = matchExistingRepository(
+          state.repositories,
+          path
+        )
 
         if (existingRepository) {
           this.selectRepository(existingRepository)

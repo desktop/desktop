@@ -1,6 +1,9 @@
 import * as URL from 'url'
+import * as Path from 'path'
 
 import { GitHubRepository } from '../models/github-repository'
+import { CloningRepository } from '../models/cloning-repository'
+import { Repository } from '../models/repository'
 import { Account } from '../models/account'
 import { Owner } from '../models/owner'
 import { getHTMLURL } from './api'
@@ -47,4 +50,24 @@ function matchRemoteWithAccount(
   }
 
   return null
+}
+
+export function matchExistingRepository(
+  repositories: ReadonlyArray<Repository | CloningRepository>,
+  path: string
+): Repository | CloningRepository | null {
+  return (
+    repositories.find(r => {
+      if (__WIN32__) {
+        // Windows is guaranteed to be case-insensitive so we can be a
+        // bit more accepting.
+        return (
+          Path.normalize(r.path).toLowerCase() ===
+          Path.normalize(path).toLowerCase()
+        )
+      } else {
+        return Path.normalize(r.path) === Path.normalize(path)
+      }
+    }) || null
+  )
 }
