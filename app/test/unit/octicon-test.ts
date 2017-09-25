@@ -2,7 +2,7 @@ import * as chai from 'chai'
 const expect = chai.expect
 
 import { OcticonSymbol, iconForRepository } from '../../src/ui/octicons'
-import { CloningRepository } from '../../src/lib/stores'
+import { CloningRepository } from '../../src/models/cloning-repository'
 import { Repository } from '../../src/models/repository'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { IAPIRepository } from '../../src/lib/api'
