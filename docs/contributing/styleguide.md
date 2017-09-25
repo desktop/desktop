@@ -1,6 +1,6 @@
 # Typescript Style Guide
 
-Most of our preferred style when writing typescript is configured in our [tslint.json](../tslint.json) file.
+Most of our preferred style when writing typescript is configured in our [tslint.json](../../tslint.json) file.
 
 ## Do
  - Use camelCase for methods
