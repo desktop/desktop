@@ -3,10 +3,7 @@
 import * as fs from 'fs'
 import * as cp from 'child_process'
 import { getLogFiles } from './review-logs'
-const distInfo = require('./dist-info')
-
-const getDistPath: () => string = distInfo.getDistPath
-const getProductName: () => string = distInfo.getProductName
+import { getProductName, getDistPath } from './dist-info'
 
 const isFork = process.env.CIRCLE_PR_USERNAME
 
