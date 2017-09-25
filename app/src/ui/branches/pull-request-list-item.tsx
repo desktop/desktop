@@ -1,16 +1,8 @@
 import * as React from 'react'
 import * as moment from 'moment'
-import { IFilterListItem } from '../lib/filter-list'
-import { IPullRequest } from '../../models/pull-request'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { APIRefState } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
-
-export interface IPullRequestListItem extends IFilterListItem {
-  readonly id: string
-  readonly text: string
-  readonly pullRequest: IPullRequest
-}
 
 interface IPullRequestListItemProps {
   readonly title: string

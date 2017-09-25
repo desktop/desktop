@@ -1,10 +1,17 @@
 import * as React from 'react'
 import { IPullRequest } from '../../models/pull-request'
-import { FilterList, IFilterListGroup } from '../lib/filter-list'
 import {
-  IPullRequestListItem,
-  PullRequestListItem,
-} from './pull-request-list-item'
+  FilterList,
+  IFilterListGroup,
+  IFilterListItem,
+} from '../lib/filter-list'
+import { PullRequestListItem } from './pull-request-list-item'
+
+interface IPullRequestListItem extends IFilterListItem {
+  readonly id: string
+  readonly text: string
+  readonly pullRequest: IPullRequest
+}
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
