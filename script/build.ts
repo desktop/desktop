@@ -252,8 +252,34 @@ function copyDependencies() {
   fs.mkdirpSync(gitDir)
   fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 
+  if (process.platform === 'win32') {
+    console.log('  Cleaning unneeded Git components…')
+    const files = [
+      'Bitbucket.Authentication.dll',
+      'GitHub.Authentication.exe',
+      'Microsoft.Alm.Authentication.dll',
+      'Microsoft.Alm.Git.dll',
+      'Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll',
+      'Microsoft.IdentityModel.Clients.ActiveDirectory.dll',
+      'Microsoft.Vsts.Authentication.dll',
+      'git-askpass.exe',
+      'git-credential-manager.exe',
+    ]
+
+    const gitCoreDir = path.join(gitDir, 'mingw64', 'libexec', 'git-core')
+
+    for (const file of files) {
+      const filePath = path.join(gitCoreDir, file)
+      try {
+        fs.unlinkSync(filePath)
+      } catch (err) {
+        // probably already cleaned up
+      }
+    }
+  }
+
   if (process.platform === 'darwin') {
-    console.log('  Copying app-path binary...')
+    console.log('  Copying app-path binary…')
     const appPathMain = path.resolve(outRoot, 'main')
     fs.removeSync(appPathMain)
     fs.copySync(
