@@ -52,6 +52,12 @@ function matchRemoteWithAccount(
   return null
 }
 
+/**
+ * Find an existing repository associated with this path
+ *
+ * @param repositories The list of repositories tracked in the app
+ * @param path The path on disk which might be a repository
+ */
 export function matchExistingRepository(
   repositories: ReadonlyArray<Repository | CloningRepository>,
   path: string
