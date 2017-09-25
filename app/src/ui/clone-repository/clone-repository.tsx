@@ -344,7 +344,7 @@ export class CloneRepository extends React.Component<
 
     if (!url) {
       const error = new Error(
-        `We couldn't find that repository. Check that you are logged in, and the URL or repository alias are spelled correctly.`
+        `We couldn't find that repository. Check that you are logged in, the network is accessible and the URL or repository alias are spelled correctly.`
       )
       this.setState({ loading: false, error })
       return
