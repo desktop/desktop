@@ -64,8 +64,9 @@ xml2js.parseString(file, function(err, result: XML2JSResult) {
     const viewBoxMatch = viewBoxRe.exec(viewBox)
 
     if (!viewBoxMatch) {
-      console.error(`Unexpected viewBox format for ${id}`)
-      process.exit(1)
+      console.error(`*** ERROR! Unexpected viewBox format for ${id}`)
+      process.exitCode = 1
+      return
     }
 
     const [, w, h] = viewBoxMatch
