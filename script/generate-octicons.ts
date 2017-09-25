@@ -22,7 +22,7 @@ const filePath = path.resolve(
   'sprite.octicons.svg'
 )
 
-const file = fs.readFileSync(filePath)
+const file = fs.readFileSync(filePath, 'utf-8')
 
 interface XML2JSResult {
   svg: { symbol: ReadonlyArray<XML2JSNode> }
@@ -36,7 +36,10 @@ interface XML2JSNode {
 xml2js.parseString(file, function(err, result: XML2JSResult) {
   const viewBoxRe = /0 0 (\d+) (\d+)/
   const out = fs.createWriteStream(
-    path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts')
+    path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts'),
+    {
+      encoding: 'utf-8'
+    }
   )
 
   out.write('/*\n')
