@@ -190,7 +190,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   private onPullRequestClicked = (pullRequest: IPullRequest) => {
     const gitHubRepository = this.props.repository.gitHubRepository
     if (!gitHubRepository) {
-      return log.warn(
+      return log.error(
         `We shouldn't be checking out a PR on a repository that doesn't have a GitHub repository.`
       )
     }
