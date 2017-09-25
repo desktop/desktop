@@ -281,6 +281,10 @@ export class BranchDropdown extends React.Component<
       return null
     }
 
+    if (!enablePreviewFeatures()) {
+      return null
+    }
+
     return <PullRequestBadge number={pr.number} status={pr.state} />
   }
 }
