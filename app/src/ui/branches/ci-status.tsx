@@ -5,11 +5,14 @@ import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
 
 interface ICIStatusProps {
+  /** The classname for the underlying element. */
   readonly className?: string
 
+  /** The status to display. */
   readonly status: APIRefState
 }
 
+/** The little CI status indicator. */
 export class CIStatus extends React.Component<ICIStatusProps, {}> {
   public render() {
     const status = this.props.status
