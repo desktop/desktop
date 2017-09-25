@@ -14,6 +14,7 @@ import { API } from '../../lib/api'
 import { IPullRequest } from '../../models/pull-request'
 import { GitHubRepository } from '../../models/github-repository'
 import { Branch } from '../../models/branch'
+import { CIStatus } from '../branches/ci-status'
 
 const RefreshPullRequestInterval = 1000 * 60 * 10
 
@@ -268,7 +269,24 @@ export class BranchDropdown extends React.Component<
         dropdownState={currentState}
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
-      />
+      >
+        {this.renderPullRequestInfo()}
+      </ToolbarDropdown>
+    )
+  }
+
+  private renderPullRequestInfo() {
+    const pr = this.state.currentPullRequest
+    if (!pr) {
+      return null
+    }
+
+    return (
+      <div className="pr-badge">
+        <span className="number">#{pr.number}</span>
+
+        <CIStatus status={pr.state} />
+      </div>
     )
   }
 }
