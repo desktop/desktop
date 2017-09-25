@@ -11,7 +11,7 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../models/status'
-import { CloningRepository } from './stores/cloning-repositories-store'
+import { CloningRepository } from '../models/cloning-repository'
 import { IGitHubUser } from './databases/github-user-database'
 import { SignInState } from './stores/sign-in-store'
 import { ICommitMessage } from './stores/git-store'

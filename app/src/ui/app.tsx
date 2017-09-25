@@ -5,7 +5,7 @@ import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { TitleBar } from './window/title-bar'
 import { Dispatcher } from '../lib/dispatcher'
-import { AppStore, CloningRepository } from '../lib/stores'
+import { AppStore } from '../lib/stores'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
@@ -44,9 +44,11 @@ import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
 import { Account } from '../models/account'
 import { TipState } from '../models/tip'
+import { CloningRepository } from '../models/cloning-repository'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
+import { matchExistingRepository } from '../lib/repository-matching'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository } from './add-repository'
@@ -77,6 +79,7 @@ import { ShellError } from './shell'
 import { InitializeLFS, AttributeMismatch } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { getOS } from '../lib/get-os'
+import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
 import { getAccountForRepository } from '../lib/get-account-for-repository'
 
 /** The interval at which we should check for updates. */
@@ -621,7 +624,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private handleDragAndDrop(fileList: FileList) {
+  private async handleDragAndDrop(fileList: FileList) {
     const paths: string[] = []
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i]
@@ -634,10 +637,25 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (paths.length > 1) {
       this.addRepositories(paths)
     } else {
-      this.props.dispatcher.showPopup({
-        type: PopupType.AddRepository,
-        path: paths[0],
-      })
+      // user may accidentally provide a folder within the repository
+      // this ensures we use the repository root, if it is actually a repository
+      // otherwise we consider it an untracked repository
+      const first = paths[0]
+      const path = (await validatedRepositoryPath(first)) || first
+
+      const existingRepository = matchExistingRepository(
+        this.state.repositories,
+        path
+      )
+
+      if (existingRepository) {
+        await this.props.dispatcher.selectRepository(existingRepository)
+      } else {
+        await this.showPopup({
+          type: PopupType.AddRepository,
+          path,
+        })
+      }
     }
   }
 

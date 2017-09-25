@@ -7,10 +7,15 @@ import * as packager from 'electron-packager'
 
 const legalEagle: LegalEagle = require('legal-eagle')
 
-const distInfo = require('./dist-info')
-const getReleaseChannel: () => string = distInfo.getReleaseChannel
-const getVersion: () => string = distInfo.getVersion
-const getExecutableName: () => string = distInfo.getExecutableName
+import {
+  getReleaseChannel,
+  getDistRoot,
+  getExecutableName,
+  getBundleID,
+  getCompanyName,
+  getProductName,
+  getVersion,
+} from './dist-info'
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
@@ -20,7 +25,7 @@ const isPublishableBuild = getReleaseChannel() !== 'development'
 console.log(`Building for ${getReleaseChannel()}…`)
 
 console.log('Removing old distribution…')
-fs.removeSync(path.join(projectRoot, 'dist'))
+fs.removeSync(getDistRoot())
 
 console.log('Copying dependencies…')
 copyDependencies()
@@ -93,7 +98,7 @@ function packageApp(
     platform: toPackagePlatform(process.platform),
     arch: 'x64',
     asar: false, // TODO: Probably wanna enable this down the road.
-    out: path.join(projectRoot, 'dist'),
+    out: getDistRoot(),
     icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
     dir: outRoot,
     overwrite: true,
@@ -109,12 +114,12 @@ function packageApp(
     appCopyright: 'Copyright © 2017 GitHub, Inc.',
 
     // macOS
-    appBundleId: distInfo.getBundleID(),
+    appBundleId: getBundleID(),
     appCategoryType: 'public.app-category.developer-tools',
     osxSign: true,
     protocols: [
       {
-        name: distInfo.getBundleID(),
+        name: getBundleID(),
         schemes: [
           isPublishableBuild
             ? 'x-github-desktop-auth'
@@ -127,11 +132,11 @@ function packageApp(
 
     // Windows
     win32metadata: {
-      CompanyName: distInfo.getCompanyName(),
+      CompanyName: getCompanyName(),
       FileDescription: '',
       OriginalFilename: '',
-      ProductName: distInfo.getProductName(),
-      InternalName: distInfo.getProductName(),
+      ProductName: getProductName(),
+      InternalName: getProductName(),
     },
   }
 
@@ -205,7 +210,7 @@ function copyDependencies() {
   // The product name changes depending on whether it's a prod build or dev
   // build, so that we can have them running side by side.
   const updatedPackage = Object.assign({}, originalPackage, {
-    productName: distInfo.getProductName(),
+    productName: getProductName(),
     dependencies: newDependencies,
     devDependencies: newDevDependencies,
   })
@@ -247,8 +252,34 @@ function copyDependencies() {
   fs.mkdirpSync(gitDir)
   fs.copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 
+  if (process.platform === 'win32') {
+    console.log('  Cleaning unneeded Git components…')
+    const files = [
+      'Bitbucket.Authentication.dll',
+      'GitHub.Authentication.exe',
+      'Microsoft.Alm.Authentication.dll',
+      'Microsoft.Alm.Git.dll',
+      'Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll',
+      'Microsoft.IdentityModel.Clients.ActiveDirectory.dll',
+      'Microsoft.Vsts.Authentication.dll',
+      'git-askpass.exe',
+      'git-credential-manager.exe',
+    ]
+
+    const gitCoreDir = path.join(gitDir, 'mingw64', 'libexec', 'git-core')
+
+    for (const file of files) {
+      const filePath = path.join(gitCoreDir, file)
+      try {
+        fs.unlinkSync(filePath)
+      } catch (err) {
+        // probably already cleaned up
+      }
+    }
+  }
+
   if (process.platform === 'darwin') {
-    console.log('  Copying app-path binary...')
+    console.log('  Copying app-path binary…')
     const appPathMain = path.resolve(outRoot, 'main')
     fs.removeSync(appPathMain)
     fs.copySync(
