@@ -71,7 +71,6 @@ import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
 import { FullScreenInfo } from './window/full-screen-info'
 import { PushBranchCommits } from './branches/push-branch-commits'
-import { Branch } from '../models/branch'
 import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
@@ -288,11 +287,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'boomtown':
         return this.boomtown()
       case 'create-pull-request': {
-        const state = this.state.selectedState
-        if (!state || state.type !== SelectionType.Repository) {
-          return
-        }
-        return this.props.dispatcher.openCreatePullRequest(state.repository)
+        return this.openPullRequest()
       }
       case 'install-cli':
         return this.props.dispatcher.installCLI()
@@ -1408,10 +1403,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private openPullRequestOnGitHub = (
-    repository: Repository,
-    branch: Branch
-  ) => {
+  private openPullRequest = () => {
+    const state = this.state.selectedState
+    if (!state || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    return this.openPullRequestOnGitHub(state.repository)
+  }
+
+  private openPullRequestOnGitHub = (repository: Repository) => {
     this.props.dispatcher.openCreatePullRequest(repository)
   }
 
