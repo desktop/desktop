@@ -1,0 +1,21 @@
+.pr-badge {
+  display: flex;
+  flex-direction: row;
+  height: 18px;
+
+  align-items: center;
+
+  background: $gray-800;
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+  border-width: 0;
+
+  margin-right: var(--spacing);
+  margin-left: var(--spacing);
+  padding: var(--spacing-half);
+
+  .number {
+    font-size: var(--font-size-sm);
+    margin-right: var(--spacing-half);
+  }
+}

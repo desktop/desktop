@@ -14,7 +14,7 @@ import { API } from '../../lib/api'
 import { IPullRequest } from '../../models/pull-request'
 import { GitHubRepository } from '../../models/github-repository'
 import { Branch } from '../../models/branch'
-import { CIStatus } from '../branches/ci-status'
+import { PullRequestBadge } from '../branches/pull-request-badge'
 
 const RefreshPullRequestInterval = 1000 * 60 * 10
 
@@ -281,13 +281,7 @@ export class BranchDropdown extends React.Component<
       return null
     }
 
-    return (
-      <div className="pr-badge">
-        <span className="number">#{pr.number}</span>
-
-        <CIStatus status={pr.state} />
-      </div>
-    )
+    return <PullRequestBadge number={pr.number} status={pr.state} />
   }
 }
 
