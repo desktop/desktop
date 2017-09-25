@@ -13,6 +13,7 @@ import { enablePreviewFeatures } from '../../lib/feature-flag'
 import { API } from '../../lib/api'
 import { IPullRequest } from '../../models/pull-request'
 import { GitHubRepository } from '../../models/github-repository'
+import { Branch } from '../../models/branch'
 
 const RefreshPullRequestInterval = 1000 * 60 * 10
 
@@ -193,6 +194,21 @@ export class BranchDropdown extends React.Component<
     let canOpen = true
     let tooltip: string
 
+    const pullRequests = this.state.pullRequests
+    const gitHubRepository = this.props.repository.gitHubRepository
+    if (tip.kind === TipState.Valid && pullRequests && gitHubRepository) {
+      const pr = findCurrentPullRequest(
+        tip.branch,
+        pullRequests,
+        gitHubRepository
+      )
+      console.log(pr)
+
+      if (pr) {
+        icon = OcticonSymbol.gitPullRequest
+      }
+    }
+
     if (tip.kind === TipState.Unknown) {
       // TODO: this is bad and I feel bad
       return null
@@ -249,4 +265,22 @@ export class BranchDropdown extends React.Component<
       />
     )
   }
+}
+
+function findCurrentPullRequest(
+  currentBranch: Branch,
+  pullRequests: ReadonlyArray<IPullRequest>,
+  gitHubRepository: GitHubRepository
+): IPullRequest | null {
+  const name = currentBranch.name
+  for (const pr of pullRequests) {
+    if (
+      pr.head.ref === name &&
+      pr.head.repo.clone_url === gitHubRepository.cloneURL
+    ) {
+      return pr
+    }
+  }
+
+  return null
 }
