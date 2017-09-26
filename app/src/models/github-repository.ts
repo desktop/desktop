@@ -18,6 +18,7 @@ export class GitHubRepository {
   public readonly htmlURL: string | null
   public readonly defaultBranch: string | null
   public readonly cloneURL: string | null
+  public readonly parent: GitHubRepository | null
 
   public constructor(
     name: string,
@@ -27,7 +28,8 @@ export class GitHubRepository {
     fork: boolean | null = null,
     htmlURL: string | null = null,
     defaultBranch: string | null = 'master',
-    cloneURL: string | null = null
+    cloneURL: string | null = null,
+    parent: GitHubRepository | null = null
   ) {
     this.name = name
     this.owner = owner
@@ -37,6 +39,7 @@ export class GitHubRepository {
     this.htmlURL = htmlURL
     this.defaultBranch = defaultBranch
     this.cloneURL = cloneURL
+    this.parent = parent
   }
 
   /** Create a new copy of the repository with the API information copied over. */
@@ -49,7 +52,10 @@ export class GitHubRepository {
       apiRepository.fork,
       apiRepository.html_url,
       apiRepository.default_branch,
-      apiRepository.clone_url
+      apiRepository.clone_url,
+      this.parent && apiRepository.parent
+        ? this.parent.withAPI(apiRepository.parent)
+        : null
     )
 
     return newRepository.hash === this.hash ? this : newRepository
@@ -77,6 +83,7 @@ export class GitHubRepository {
       ${this.fork}+
       ${this.name}+
       ${this.htmlURL}+
-      ${this.owner.hash}`
+      ${this.owner.hash}+
+      ${this.parent && this.parent.hash}`
   }
 }
