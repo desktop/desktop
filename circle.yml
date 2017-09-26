@@ -16,7 +16,7 @@ dependencies:
 
   pre:
     - brew install node || brew upgrade node
-    - npm install -g npm@4.6.1
+    - npm install -g yarn
     - npm prune
     - node -v
     - npm -v
