@@ -291,10 +291,14 @@ function findCurrentPullRequest(
   pullRequests: ReadonlyArray<IPullRequest>,
   gitHubRepository: GitHubRepository
 ): IPullRequest | null {
-  const name = currentBranch.name
+  const upstream = currentBranch.upstreamWithoutRemote
+  if (!upstream) {
+    return null
+  }
+
   for (const pr of pullRequests) {
     if (
-      pr.head.ref === name &&
+      pr.head.ref === upstream &&
       pr.head.repo.clone_url === gitHubRepository.cloneURL
     ) {
       return pr
