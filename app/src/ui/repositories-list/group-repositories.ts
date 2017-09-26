@@ -1,6 +1,6 @@
 import { Repository } from '../../models/repository'
+import { CloningRepository } from '../../models/cloning-repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
-import { CloningRepository } from '../../lib/stores'
 import { caseInsensitiveCompare } from '../../lib/compare'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 

@@ -32,16 +32,14 @@ import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
+import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
 import {
   ExternalEditor,
   parse as parseExternalEditor,
 } from '../../models/editors'
 import { getAvailableEditors } from '../editors'
-import {
-  CloningRepository,
-  CloningRepositoriesStore,
-} from './cloning-repositories-store'
+import { CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from '../databases/github-user-database'
 import { GitHubUserStore } from './github-user-store'
 import { shell } from '../app-shell'
