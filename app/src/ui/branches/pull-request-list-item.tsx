@@ -43,7 +43,7 @@ export class PullRequestListItem extends React.Component<
           </div>
         </div>
 
-        <CIStatus status={status} />
+        {status.total_count > 0 ? <CIStatus status={status} /> : null}
       </div>
     )
   }
