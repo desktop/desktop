@@ -42,8 +42,6 @@ install:
   - npm prune
   - cd app && npm prune && cd ..
   - npm install
-  - npm ls --prod
-  - npm ls --dev
 
 script:
   - npm run check-prettiness

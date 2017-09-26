@@ -26,8 +26,6 @@ install:
   - npm prune
   - cd app && npm prune && cd ..
   - npm install
-  - npm ls
-  - npm ls --dev
 
 build_script:
   - npm run check-prettiness
