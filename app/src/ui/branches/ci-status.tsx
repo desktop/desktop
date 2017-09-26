@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { APIRefState } from '../../lib/api'
+import { IAPIRefStatus, APIRefState } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
 
@@ -9,30 +9,31 @@ interface ICIStatusProps {
   readonly className?: string
 
   /** The status to display. */
-  readonly status: APIRefState
+  readonly status: IAPIRefStatus
 }
 
 /** The little CI status indicator. */
 export class CIStatus extends React.Component<ICIStatusProps, {}> {
   public render() {
     const status = this.props.status
-    const ciTitle = `Commit status: ${status}`
+    const state = status.state
+    const ciTitle = `Commit status: ${state}`
     return (
       <Octicon
         className={classNames(
           'ci-status',
-          `ci-status-${status}`,
+          `ci-status-${state}`,
           this.props.className
         )}
-        symbol={getSymbolForStatus(status)}
+        symbol={getSymbolForState(state)}
         title={ciTitle}
       />
     )
   }
 }
 
-function getSymbolForStatus(status: APIRefState): OcticonSymbol {
-  switch (status) {
+function getSymbolForState(state: APIRefState): OcticonSymbol {
+  switch (state) {
     case 'pending':
       return OcticonSymbol.primitiveDot
     case 'failure':
@@ -41,5 +42,5 @@ function getSymbolForStatus(status: APIRefState): OcticonSymbol {
       return OcticonSymbol.check
   }
 
-  return assertNever(status, `Unknown status: ${status}`)
+  return assertNever(state, `Unknown state: ${state}`)
 }

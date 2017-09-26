@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { CIStatus } from './ci-status'
-import { APIRefState } from '../../lib/api'
+import { IAPIRefStatus } from '../../lib/api'
 
 interface IPullRequestBadgeProps {
   /** The CI status of the pull request. */
-  readonly status: APIRefState
+  readonly status: IAPIRefStatus
 
   /** The pull request's number. */
   readonly number: number

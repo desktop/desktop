@@ -130,8 +130,9 @@ export class BranchDropdown extends React.Component<
 
       const pullRequestsWithStatus: Array<IPullRequest> = []
       for (const pr of pullRequests) {
+        const created = new Date(pr.created_at)
         try {
-          const state = await api.fetchCombinedRefStatus(
+          const status = await api.fetchCombinedRefStatus(
             repository.owner.login,
             repository.name,
             pr.head.sha
@@ -139,14 +140,14 @@ export class BranchDropdown extends React.Component<
 
           pullRequestsWithStatus.push({
             ...pr,
-            state,
-            created: new Date(pr.created_at),
+            status,
+            created,
           })
         } catch (e) {
           pullRequestsWithStatus.push({
             ...pr,
-            state: 'pending',
-            created: new Date(pr.created_at),
+            status: { state: 'pending', total_count: 0 },
+            created,
           })
         }
       }
@@ -282,7 +283,7 @@ export class BranchDropdown extends React.Component<
       return null
     }
 
-    return <PullRequestBadge number={pr.number} status={pr.state} />
+    return <PullRequestBadge number={pr.number} status={pr.status} />
   }
 }
 

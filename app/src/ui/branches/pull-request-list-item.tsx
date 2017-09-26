@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as moment from 'moment'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { APIRefState } from '../../lib/api'
+import { IAPIRefStatus } from '../../lib/api'
 import { CIStatus } from './ci-status'
 
 interface IPullRequestListItemProps {
@@ -18,7 +18,7 @@ interface IPullRequestListItemProps {
   readonly author: string
 
   /** The CI status. */
-  readonly status: APIRefState
+  readonly status: IAPIRefStatus
 }
 
 /** Pull requests as rendered in the Pull Requests list. */

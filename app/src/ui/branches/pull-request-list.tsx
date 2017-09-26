@@ -89,7 +89,7 @@ export class PullRequestList extends React.Component<
         number={pr.number}
         created={pr.created}
         author={pr.user.login}
-        status={pr.state}
+        status={pr.status}
       />
     )
   }
