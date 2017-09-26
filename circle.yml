@@ -17,10 +17,6 @@ dependencies:
   pre:
     - brew install node || brew upgrade node
     - npm install -g yarn
-    - npm prune
-    - node -v
-    - npm -v
-    - cd app && npm prune && cd ..
 
   override:
     - yarn

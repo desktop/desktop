@@ -23,8 +23,6 @@ install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   - npm install -g yarn
   - git submodule update --init --recursive
-  - npm prune
-  - cd app && npm prune && cd ..
   - yarn
 
 build_script:

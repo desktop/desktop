@@ -39,8 +39,6 @@ cache:
 
 install:
   - npm install -g yarn
-  - npm prune
-  - cd app && npm prune && cd ..
   - yarn
 
 script:
