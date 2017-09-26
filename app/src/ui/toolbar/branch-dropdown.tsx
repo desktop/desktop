@@ -299,6 +299,7 @@ function findCurrentPullRequest(
   for (const pr of pullRequests) {
     if (
       pr.head.ref === upstream &&
+      // TODO: This doesn't work for when I've checked out a PR from a fork.
       pr.head.repo.clone_url === gitHubRepository.cloneURL
     ) {
       return pr
