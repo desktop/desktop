@@ -4,7 +4,7 @@ import * as path from 'path'
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
-import { resetPaths, GitResetMode } from '../../../src/lib/git/reset'
+import { reset, resetPaths, GitResetMode } from '../../../src/lib/git/reset'
 import { getStatus } from '../../../src/lib/git/status'
 import { setupFixtureRepository } from '../../fixture-helper'
 import { GitProcess } from 'dugite'
@@ -17,6 +17,21 @@ describe('git/reset', () => {
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
+  })
+
+  describe('reset', () => {
+    it('can hard reset a repository', async () => {
+      const repoPath = repository!.path
+      const fileName = 'README.md'
+      const filePath = path.join(repoPath, fileName)
+
+      fs.writeFileSync(filePath, 'Hi world\n')
+
+      await reset(repository!, GitResetMode.Hard, 'HEAD')
+
+      const status = await getStatus(repository!)
+      expect(status.workingDirectory.files.length).to.equal(0)
+    })
   })
 
   describe('resetPaths', () => {
