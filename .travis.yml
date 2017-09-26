@@ -38,7 +38,7 @@ cache:
     - $HOME/.electron
 
 install:
-  - npm install -g yarn
+  - npm install -g yarn@1.1.0
   - yarn
 
 script:
