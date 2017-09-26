@@ -75,7 +75,7 @@ export async function resetPaths(
 
   const baseArgs = resetModeToArgs(mode, ref)
 
-  if (__WIN32__) {
+  if (__WIN32__ && mode === GitResetMode.Mixed) {
     // Git for Windows has experimental support for reading paths to reset
     // from standard input. This is helpful in situations where your file
     // paths are greater than 32KB in length, because of shell limitations.
