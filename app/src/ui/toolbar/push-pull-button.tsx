@@ -27,9 +27,6 @@ interface IPushPullButtonProps {
   /** Progress information associated with the current operation */
   readonly progress: Progress | null
 
-  /** True if the current repository has a valid local branch. False if unborn. */
-  readonly branchExists: boolean
-
   /** The global dispatcher, to invoke repository operations. */
   readonly dispatcher: Dispatcher
 
@@ -53,9 +50,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
 
     const progressValue = progress ? progress.value : undefined
 
-    const disabled = this.props.branchExists
-      ? this.props.networkActionInProgress || !!this.props.progress
-      : true
+    const disabled = this.props.networkActionInProgress || !!this.props.progress
 
     return (
       <ToolbarButton
