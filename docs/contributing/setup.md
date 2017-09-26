@@ -26,15 +26,24 @@ You will need to install these tools on your machine:
 
 ## Verification
 
-With these things installed, open a shell and validate you have these commands
-available and that the versions look similar:
+With these things installed, open a shell and install `yarn` (you might need
+to `sudo` here depending on how Node was installed):
+
+```
+> npm install -g yarn
+```
+
+This is important because yarn uses lock files to pin dependenies. If you find
+yourself changing packages, this will prevent mismatches in versions between machines.
+
+Then validate you have these commands available and that the versions look similar:
 
 ```
 > node -v
 v7.8.0
 
-> npm -v
-4.2.0
+> yarn -v
+1.1.0
 
 > python --version
 Python 2.7.13
@@ -49,7 +58,7 @@ repository.
 After cloning the repository, the typical workflow to get up running
 is as follows:
 
-* Run `npm install` to get all required dependencies on your machine.
+* Run `yarn` to get all required dependencies on your machine.
 * Run `npm run build:dev` to create a development build of the app.
 * Run `npm start` to launch the application. Changes will be compiled in the
   background. The app can then be reloaded to see the changes (Ctrl/Command+R).
