@@ -12,19 +12,14 @@ export class PullRequestStore {
     this.db = db
   }
 
-  public async fetchPullRequests(
-    repository: GitHubRepository,
-    account: Account
-  ) {
+  public async fetchPullRequests(repository: GitHubRepository, account: Account) {
     const api = API.fromAccount(account)
 
-    const prs = await api.fetchPullRequests(
-      repository.owner.login,
-      repository.name,
-      'open'
-    )
+    const prs = await api.fetchPullRequests(repository.owner.login, repository.name, 'open')
 
     this.writePullRequests(prs, repository)
+
+    return prs
   }
 
   private async writePullRequests(
