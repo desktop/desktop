@@ -27,11 +27,11 @@ export const enum GitResetMode {
 function resetModeToArgs(mode: GitResetMode, ref: string): string[] {
   switch (mode) {
     case GitResetMode.Hard:
-      return ['reset', '--hard', ref, '--']
+      return ['reset', '--hard', ref]
     case GitResetMode.Mixed:
-      return ['reset', ref, '--']
+      return ['reset', ref]
     case GitResetMode.Soft:
-      return ['reset', '--soft', ref, '--']
+      return ['reset', '--soft', ref]
     default:
       return assertNever(mode, `Unknown reset mode: ${mode}`)
   }
@@ -81,7 +81,7 @@ export async function resetPaths(
       stdin: paths.join('\0'),
     })
   } else {
-    const args = [...baseArgs, ...paths]
+    const args = [...baseArgs, '--', ...paths]
     await git(args, repository.path, 'resetPaths')
   }
 }
