@@ -7,6 +7,14 @@ import { ToolbarDropdown, DropdownState } from './dropdown'
 import { IRepositoryState } from '../../lib/app-state'
 import { Branches } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
+import { Account } from '../../models/account'
+import { BranchesTab } from '../../models/branches-tab'
+import { enablePreviewFeatures } from '../../lib/feature-flag'
+import { API } from '../../lib/api'
+import { IPullRequest } from '../../models/pull-request'
+import { GitHubRepository } from '../../models/github-repository'
+
+const RefreshPullRequestInterval = 1000 * 60 * 10
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -27,12 +35,33 @@ interface IBranchDropdownProps {
    * @param state    - The new state of the drop down
    */
   readonly onDropDownStateChanged: (state: DropdownState) => void
+
+  /** The account for the associated GitHub repository, if one exists. */
+  readonly account: Account | null
+
+  /** The currently selected tab. */
+  readonly selectedTab: BranchesTab
+}
+
+interface IBranchDropdownState {
+  readonly pullRequests: ReadonlyArray<IPullRequest> | null
 }
 
 /**
  * A drop down for selecting the currently checked out branch.
  */
-export class BranchDropdown extends React.Component<IBranchDropdownProps, {}> {
+export class BranchDropdown extends React.Component<
+  IBranchDropdownProps,
+  IBranchDropdownState
+> {
+  private refeshPullRequestTimerId: number | null = null
+
+  public constructor(props: IBranchDropdownProps) {
+    super(props)
+
+    this.state = { pullRequests: null }
+  }
+
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
@@ -48,8 +77,97 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, {}> {
         defaultBranch={branchesState.defaultBranch}
         dispatcher={this.props.dispatcher}
         repository={this.props.repository}
+        account={this.props.account}
+        selectedTab={this.props.selectedTab}
+        pullRequests={this.state.pullRequests}
       />
     )
+  }
+
+  public componentDidMount() {
+    if (enablePreviewFeatures()) {
+      this.updatePullRequests(this.props)
+
+      this.refeshPullRequestTimerId = window.setInterval(
+        () => this.updatePullRequests(this.props),
+        RefreshPullRequestInterval
+      )
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: IBranchDropdownProps) {
+    if (
+      enablePreviewFeatures() &&
+      (this.props.account !== nextProps.account ||
+        this.props.repository !== nextProps.repository)
+    ) {
+      this.setState({ pullRequests: null })
+      this.updatePullRequests(nextProps)
+    }
+  }
+
+  public componentWillUnmount() {
+    const timerId = this.refeshPullRequestTimerId
+    if (timerId) {
+      window.clearInterval(timerId)
+      this.refeshPullRequestTimerId = null
+    }
+  }
+
+  private async fetchPullRequests(
+    account: Account,
+    repository: GitHubRepository
+  ): Promise<ReadonlyArray<IPullRequest> | null> {
+    const api = API.fromAccount(account)
+    try {
+      const pullRequests = await api.fetchPullRequests(
+        repository.owner.login,
+        repository.name,
+        'open'
+      )
+
+      const pullRequestsWithStatus: Array<IPullRequest> = []
+      for (const pr of pullRequests) {
+        try {
+          const state = await api.fetchCombinedRefStatus(
+            repository.owner.login,
+            repository.name,
+            pr.head.sha
+          )
+
+          pullRequestsWithStatus.push({
+            ...pr,
+            state,
+            created: new Date(pr.created_at),
+          })
+        } catch (e) {
+          pullRequestsWithStatus.push({
+            ...pr,
+            state: 'pending',
+            created: new Date(pr.created_at),
+          })
+        }
+      }
+
+      return pullRequestsWithStatus
+    } catch (e) {
+      return null
+    }
+  }
+
+  private async updatePullRequests(props: IBranchDropdownProps) {
+    const account = props.account
+    if (!account) {
+      return
+    }
+
+    const gitHubRepository = props.repository.gitHubRepository
+    if (!gitHubRepository) {
+      return
+    }
+
+    const pullRequests = await this.fetchPullRequests(account, gitHubRepository)
+    this.setState({ pullRequests })
   }
 
   private onDropDownStateChanged = (state: DropdownState) => {
