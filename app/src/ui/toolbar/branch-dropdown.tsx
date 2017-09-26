@@ -47,7 +47,6 @@ interface IBranchDropdownProps {
 
 interface IBranchDropdownState {
   readonly pullRequests: ReadonlyArray<IPullRequest> | null
-  readonly currentPullRequest: IPullRequest | null
 }
 
 /**
@@ -62,7 +61,7 @@ export class BranchDropdown extends React.Component<
   public constructor(props: IBranchDropdownProps) {
     super(props)
 
-    this.state = { pullRequests: null, currentPullRequest: null }
+    this.state = { pullRequests: null }
   }
 
   private renderBranchFoldout = (): JSX.Element | null => {
@@ -104,7 +103,7 @@ export class BranchDropdown extends React.Component<
       (this.props.account !== nextProps.account ||
         this.props.repository !== nextProps.repository)
     ) {
-      this.setState({ pullRequests: null, currentPullRequest: null })
+      this.setState({ pullRequests: null })
       this.updatePullRequests(nextProps)
     }
   }
@@ -170,23 +169,21 @@ export class BranchDropdown extends React.Component<
     }
 
     const pullRequests = await this.fetchPullRequests(account, gitHubRepository)
+    this.setState({ pullRequests })
+  }
 
+  private get currentPullRequest(): IPullRequest | null {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
+    const pullRequests = this.state.pullRequests
+    const gitHubRepository = this.props.repository.gitHubRepository
 
     const tip = branchesState.tip
-    let currentPullRequest = null
     if (tip.kind === TipState.Valid && pullRequests && gitHubRepository) {
-      const pr = findCurrentPullRequest(
-        tip.branch,
-        pullRequests,
-        gitHubRepository
-      )
-
-      currentPullRequest = pr
+      return findCurrentPullRequest(tip.branch, pullRequests, gitHubRepository)
+    } else {
+      return null
     }
-
-    this.setState({ pullRequests, currentPullRequest })
   }
 
   private onDropDownStateChanged = (state: DropdownState) => {
@@ -212,7 +209,7 @@ export class BranchDropdown extends React.Component<
     let canOpen = true
     let tooltip: string
 
-    if (this.state.currentPullRequest) {
+    if (this.currentPullRequest) {
       icon = OcticonSymbol.gitPullRequest
     }
 
@@ -276,7 +273,7 @@ export class BranchDropdown extends React.Component<
   }
 
   private renderPullRequestInfo() {
-    const pr = this.state.currentPullRequest
+    const pr = this.currentPullRequest
     if (!pr) {
       return null
     }
