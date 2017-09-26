@@ -76,6 +76,14 @@ export async function resetPaths(
   const baseArgs = resetModeToArgs(mode, ref)
 
   if (__WIN32__) {
+    // Git for Windows has experimental support for reading paths to reset
+    // from standard input. This is helpful in situations where your file
+    // paths are greater than 32KB in length, because of shell limitations.
+    //
+    // This hasn't made it to Git core, so we fallback to the default behaviour
+    // as macOS and Linux don't have this same shell limitation. See
+    // https://github.com/desktop/desktop/issues/2833#issuecomment-331352952
+    // for more context.
     const args = [...baseArgs, '--stdin', '-z']
     await git(args, repository.path, 'resetPaths', {
       stdin: paths.join('\0'),
