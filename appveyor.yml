@@ -25,7 +25,7 @@ install:
   - git submodule update --init --recursive
   - npm prune
   - cd app && npm prune && cd ..
-  - npm install
+  - yarn
 
 build_script:
   - npm run check-prettiness

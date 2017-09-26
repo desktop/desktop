@@ -41,7 +41,7 @@ install:
   - npm install -g yarn
   - npm prune
   - cd app && npm prune && cd ..
-  - npm install
+  - yarn
 
 script:
   - npm run check-prettiness

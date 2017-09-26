@@ -23,7 +23,7 @@ dependencies:
     - cd app && npm prune && cd ..
 
   override:
-    - npm install
+    - yarn
     - npm rebuild
 
 compile:
