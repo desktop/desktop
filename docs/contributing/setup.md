@@ -33,7 +33,7 @@ to `sudo` here depending on how Node was installed):
 > npm install -g yarn
 ```
 
-This is important because yarn uses lock files to pin dependenies. If you find
+This is important because yarn uses lock files to pin dependencies. If you find
 yourself changing packages, this will prevent mismatches in versions between machines.
 
 Then validate you have these commands available and that the versions look similar:
