@@ -1343,9 +1343,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     const remoteName = state.remote ? state.remote.name : null
     const progress = state.pushPullFetchProgress
 
-    const tip = selection.state.branchesState.tip
-    const branchExists = tip.kind === TipState.Valid
-
     return (
       <PushPullButton
         dispatcher={this.props.dispatcher}
@@ -1354,7 +1351,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         remoteName={remoteName}
         lastFetched={state.lastFetched}
         networkActionInProgress={state.isPushPullFetchInProgress}
-        branchExists={branchExists}
         progress={progress}
       />
     )
