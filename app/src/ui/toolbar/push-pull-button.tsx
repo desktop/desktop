@@ -62,6 +62,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
         style={ToolbarButtonStyle.Subtitle}
         onClick={this.performAction}
+        tooltip={progress ? progress.description : undefined}
         disabled={disabled}
       >
         {this.renderAheadBehind()}
