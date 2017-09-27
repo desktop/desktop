@@ -101,7 +101,7 @@
     "@types/react-addons-test-utils": "^0.14.20",
     "@types/react-dom": "^15.5.5",
     "@types/react-transition-group": "1.1.1",
-    "@types/react-virtualized": "9.7.2",
+    "@types/react-virtualized": "^9.7.4",
     "@types/temp": "^0.8.29",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^3.4.0",
