@@ -1,5 +1,4 @@
 import { Owner } from './owner'
-import { IAPIRepository } from '../lib/api'
 
 /** A GitHub repository. */
 export class GitHubRepository {
@@ -40,25 +39,6 @@ export class GitHubRepository {
     this.defaultBranch = defaultBranch
     this.cloneURL = cloneURL
     this.parent = parent
-  }
-
-  /** Create a new copy of the repository with the API information copied over. */
-  public withAPI(apiRepository: IAPIRepository): GitHubRepository {
-    const newRepository = new GitHubRepository(
-      this.name,
-      this.owner,
-      this.dbID,
-      apiRepository.private,
-      apiRepository.fork,
-      apiRepository.html_url,
-      apiRepository.default_branch,
-      apiRepository.clone_url,
-      this.parent && apiRepository.parent
-        ? this.parent.withAPI(apiRepository.parent)
-        : null
-    )
-
-    return newRepository.hash === this.hash ? this : newRepository
   }
 
   public get endpoint(): string {
