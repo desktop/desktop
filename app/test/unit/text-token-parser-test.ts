@@ -61,9 +61,6 @@ describe('Tokenizer', () => {
       fork: false,
       htmlURL: htmlURL,
       defaultBranch: 'master',
-      withAPI: apiRepository => {
-        return gitHubRepository!
-      },
       hash: '',
       parent: null,
     }
