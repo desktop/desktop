@@ -60,8 +60,7 @@ export class PullRequestStore {
     }
 
     const table = this.db.pullRequests
-    const apiPRs = pullRequests as Array<IAPIPullRequest>
-    const insertablePRs = apiPRs.map(x => {
+    const insertablePRs = pullRequests.map(x => {
       return { repoId, ...x }
     })
 
