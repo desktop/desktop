@@ -36,6 +36,7 @@ import {
   IndexStatus,
   getIndexChanges,
   checkoutIndex,
+  checkoutPaths,
   resetPaths,
   getConfigValue,
   revertCommit,
@@ -403,7 +404,27 @@ export class GitStore {
   private async undoFirstCommit(
     repository: Repository
   ): Promise<true | undefined> {
+    // What are we doing here?
+    // The state of the working directory here is rather important, because we
+    // want to ensure that any deleted files are restored to your working
+    // directory for the next stage. Doing doing a `git checkout -- .` here
+    // isn't suitable because we should preserve the other working directory
+    // changes.
+    const status = await getStatus(repository)
+    const paths = status.workingDirectory.files
+
+    const deletedFiles = paths.filter(p => p.status === AppFileStatus.Deleted)
+    const deletedFilePaths = deletedFiles.map(d => d.path)
+
+    await checkoutPaths(repository, deletedFilePaths)
+
+    // Now that we have the working directory changes, as well the restored
+    // deleted files, we can remove the HEAD ref to make the current branch
+    // disappear
     await deleteRef(repository, 'HEAD', 'Reverting first commit')
+
+    // Finally, ensure any changes in the index are unstaged. This ensures all
+    // files in the repository will be untracked.
     await unstageAllFiles(repository)
     return true
   }

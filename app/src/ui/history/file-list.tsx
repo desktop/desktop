@@ -2,7 +2,7 @@ import * as React from 'react'
 import { FileChange, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
-import { List } from '../list'
+import { List } from '../lib/list'
 
 interface IFileListProps {
   readonly files: ReadonlyArray<FileChange>

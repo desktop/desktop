@@ -11,7 +11,7 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../models/status'
-import { CloningRepository } from './stores/cloning-repositories-store'
+import { CloningRepository } from '../models/cloning-repository'
 import { IGitHubUser } from './databases/github-user-database'
 import { SignInState } from './stores/sign-in-store'
 import { ICommitMessage } from './stores/git-store'
@@ -23,6 +23,7 @@ import { ExternalEditor } from '../models/editors'
 import { PreferencesTab } from '../models/preferences'
 import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
+import { BranchesTab } from '../models/branches-tab'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -172,6 +173,9 @@ export interface IAppState {
 
   /** The currently selected tab for Clone Repository. */
   readonly selectedCloneRepositoryTab: CloneRepositoryTab
+
+  /** The currently selected tab for the Branches foldout. */
+  readonly selectedBranchesTab: BranchesTab
 }
 
 export enum PopupType {
