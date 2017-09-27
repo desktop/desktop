@@ -5,10 +5,7 @@
  * downloads the latest version of the `sprite.octicons.svg` file.
  */
 
-'use strict'
-
 import fs = require('fs')
-import process = require('process')
 import xml2js = require('xml2js')
 import path = require('path')
 import toCamelCase = require('to-camel-case')
@@ -22,17 +19,18 @@ const filePath = path.resolve(
   'sprite.octicons.svg'
 )
 
+/* tslint:disable:no-sync-functions */
 const file = fs.readFileSync(filePath, 'utf-8')
 
-interface XML2JSResult {
-  svg: { symbol: ReadonlyArray<XML2JSNode> }
+interface IXML2JSResult {
+  svg: { symbol: ReadonlyArray<IXML2JSNode> }
 }
-interface XML2JSNode {
+interface IXML2JSNode {
   $: { [key: string]: string }
-  path: ReadonlyArray<XML2JSNode>
+  path: ReadonlyArray<IXML2JSNode>
 }
 
-xml2js.parseString(file, function(err, result: XML2JSResult) {
+xml2js.parseString(file, function(err, result: IXML2JSResult) {
   const viewBoxRe = /0 0 (\d+) (\d+)/
   const out = fs.createWriteStream(
     path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts'),
