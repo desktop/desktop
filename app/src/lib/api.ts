@@ -45,7 +45,7 @@ export interface IAPIRepository {
   readonly private: boolean
   readonly fork: boolean
   readonly default_branch: string
-  readonly parent: IAPIRepository
+  readonly parent: IAPIRepository | null
 }
 
 /**
