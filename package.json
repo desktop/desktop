@@ -98,7 +98,7 @@
     "@types/mocha": "^2.2.29",
     "@types/node": "^7.0.18",
     "@types/react": "^15.6.4",
-    "@types/react-addons-test-utils": "0.14.19",
+    "@types/react-addons-test-utils": "^0.14.20",
     "@types/react-dom": "^15.5.5",
     "@types/react-transition-group": "1.1.1",
     "@types/react-virtualized": "9.7.2",
