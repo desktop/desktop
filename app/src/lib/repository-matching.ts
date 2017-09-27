@@ -1,23 +1,19 @@
 import * as URL from 'url'
 import * as Path from 'path'
 
+import { GitHubRepository } from '../models/github-repository'
 import { CloningRepository } from '../models/cloning-repository'
 import { Repository } from '../models/repository'
 import { Account } from '../models/account'
+import { Owner } from '../models/owner'
 import { getHTMLURL } from './api'
 import { parseRemote } from './remote-parsing'
-
-export interface IMatchedGitHubRepository {
-  readonly name: string
-  readonly owner: string
-  readonly endpoint: string
-}
 
 /** Try to use the list of users and a remote URL to guess a GitHub repository. */
 export function matchGitHubRepository(
   accounts: ReadonlyArray<Account>,
   remote: string
-): IMatchedGitHubRepository | null {
+): GitHubRepository | null {
   for (const account of accounts) {
     const match = matchRemoteWithAccount(account, remote)
     if (match) {
@@ -31,7 +27,7 @@ export function matchGitHubRepository(
 function matchRemoteWithAccount(
   account: Account,
   remote: string
-): IMatchedGitHubRepository | null {
+): GitHubRepository | null {
   const htmlURL = getHTMLURL(account.endpoint)
   const parsed = URL.parse(htmlURL)
   const host = parsed.hostname
@@ -50,11 +46,7 @@ function matchRemoteWithAccount(
     owner &&
     name
   ) {
-    return {
-      name,
-      owner,
-      endpoint: account.endpoint,
-    }
+    return new GitHubRepository(name, new Owner(owner, account.endpoint), null)
   }
 
   return null
