@@ -86,9 +86,17 @@ export class CreateRepository extends React.Component<
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 
+    const path = this.props.initialPath
+      ? this.props.initialPath
+      : getDefaultDir()
+
+    const name = this.props.initialPath
+      ? sanitizedRepositoryName(Path.basename(this.props.initialPath))
+      : ''
+
     this.state = {
-      path: this.props.initialPath ? this.props.initialPath : getDefaultDir(),
-      name: '',
+      path,
+      name,
       description: '',
       createWithReadme: false,
       creating: false,
