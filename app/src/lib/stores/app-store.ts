@@ -104,6 +104,7 @@ import {
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { getAccountForRepository } from '../get-account-for-repository'
 import { BranchesTab } from '../../models/branches-tab'
+import { Owner } from '../../models/owner'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1478,30 +1479,37 @@ export class AppStore {
   ): Promise<Repository> {
     const oldGitHubRepository = repository.gitHubRepository
 
-    const updatedRepository = await this.updateGitHubRepositoryAssociation(
-      repository
-    )
-
-    const updatedGitHubRepository = updatedRepository.gitHubRepository
-
-    if (!updatedGitHubRepository) {
-      return updatedRepository
+    const matchedGitHubRepository = await this.matchGitHubRepository(repository)
+    if (!matchedGitHubRepository) {
+      // TODO: We currently never clear GitHub repository associations (see
+      // https://github.com/desktop/desktop/issues/1144). So we can bail early
+      // at this point.
+      return repository
     }
 
-    const account = getAccountForRepository(this.accounts, updatedRepository)
+    // This is the repository with the GitHub repository as matched. It's not
+    // ideal because the GitHub repository hasn't been fetched from the API yet
+    // and so it is incomplete. But if we _can't_ fetch it from the API, it's
+    // better than nothing.
+    const skeletonRepository = repository.withGitHubRepository(
+      matchedGitHubRepository
+    )
+
+    const account = getAccountForEndpoint(
+      this.accounts,
+      matchedGitHubRepository.endpoint
+    )
     if (!account) {
       // If the repository given to us had a GitHubRepository instance we want
       // to try to preserve that if possible since the updated GitHubRepository
       // instance won't have any API information while the previous one might.
       // We'll only swap it out if the endpoint has changed in which case the
       // old API information will be invalid anyway.
-      if (!oldGitHubRepository) {
-        return updatedRepository
-      }
-
-      // The endpoints have changed, all bets are off
-      if (updatedGitHubRepository.endpoint !== oldGitHubRepository.endpoint) {
-        return updatedRepository
+      if (
+        !oldGitHubRepository ||
+        matchedGitHubRepository.endpoint !== oldGitHubRepository.endpoint
+      ) {
+        return skeletonRepository
       }
 
       return repository
@@ -1509,58 +1517,47 @@ export class AppStore {
 
     const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(
-      updatedGitHubRepository.owner.login,
-      updatedGitHubRepository.name
+      matchedGitHubRepository.owner.login,
+      matchedGitHubRepository.name
     )
 
     if (!apiRepo) {
-      // If we've failed to retrieve the repository information from the API
-      // we generally want to keep whatever information we used to have from
-      // a previously successful API request rather than return the
-      // updatedRepository which only contains a subset of the fields we'd get
-      // from the API. The only circumstance where we would want to return the
-      // updated repository is if we previously didn't have an association and
-      // have now been able to infer one based on the remote.
-      //
-      // Note that the updateGitHubRepositoryAssociation method will either
-      // return exact repository given if no association could be found or
-      // a copy of the given repository with only the gitHubRepository property
-      // changed.
-      return oldGitHubRepository ? repository : updatedRepository
-    }
+      // This is the same as above. If the request fails, we wanna preserve the
+      // existing GitHub repository info. But if we didn't have a GitHub
+      // repository already or the endpoint changed, the skeleton repository is
+      // better than nothing.
+      if (
+        !oldGitHubRepository ||
+        matchedGitHubRepository.endpoint !== oldGitHubRepository.endpoint
+      ) {
+        return skeletonRepository
+      }
 
-    const withUpdatedGitHubRepository = updatedRepository.withGitHubRepository(
-      updatedGitHubRepository.withAPI(apiRepo)
-    )
-    if (withUpdatedGitHubRepository.hash === repository.hash) {
-      return withUpdatedGitHubRepository
-    }
-
-    return this.repositoriesStore.updateGitHubRepository(
-      withUpdatedGitHubRepository
-    )
-  }
-
-  private async updateGitHubRepositoryAssociation(
-    repository: Repository
-  ): Promise<Repository> {
-    const gitHubRepository = await this.guessGitHubRepository(repository)
-    if (gitHubRepository === repository.gitHubRepository || !gitHubRepository) {
       return repository
     }
 
-    if (
-      repository.gitHubRepository &&
-      gitHubRepository &&
-      repository.gitHubRepository.hash === gitHubRepository.hash
-    ) {
-      return repository
-    }
+    const gitHubRepository = new GitHubRepository(
+      apiRepo.name,
+      oldGitHubRepository
+        ? oldGitHubRepository.owner
+        : new Owner(
+            apiRepo.owner.login,
+            matchedGitHubRepository.owner.endpoint
+          ),
+      oldGitHubRepository ? oldGitHubRepository.dbID : null,
+      apiRepo.private,
+      apiRepo.fork,
+      apiRepo.html_url,
+      apiRepo.default_branch,
+      apiRepo.clone_url,
+      null
+    )
+    const updatedRepository = repository.withGitHubRepository(gitHubRepository)
 
-    return repository.withGitHubRepository(gitHubRepository)
+    return this.repositoriesStore.updateGitHubRepository(updatedRepository)
   }
 
-  private async guessGitHubRepository(
+  private async matchGitHubRepository(
     repository: Repository
   ): Promise<GitHubRepository | null> {
     const remote = await getDefaultRemote(repository)
