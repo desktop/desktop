@@ -790,7 +790,7 @@ export class AppStore {
     this.refreshMentionables(repository)
 
     if (repository instanceof Repository) {
-      return this.refreshGitHubRepositoryInfo(repository)
+      return this._repositoryWithRefreshedGitHubRepository(repository)
     } else {
       return repository
     }
@@ -1969,7 +1969,7 @@ export class AppStore {
       await this.performPush(repository, account)
     }
 
-    return this.refreshGitHubRepositoryInfo(repository)
+    return this._repositoryWithRefreshedGitHubRepository(repository)
   }
 
   private getAccountForRemoteURL(remote: string): IGitAccount | null {
@@ -2469,7 +2469,7 @@ export class AppStore {
           validatedPath
         )
         const [refreshedRepo, usingLFS] = await Promise.all([
-          this.refreshGitHubRepositoryInfo(addedRepo),
+          this._repositoryWithRefreshedGitHubRepository(addedRepo),
           this.isUsingLFS(addedRepo),
         ])
         addedRepositories.push(refreshedRepo)
@@ -2514,20 +2514,6 @@ export class AppStore {
     this._showFoldout({ type: FoldoutType.Repository })
   }
 
-  private async refreshGitHubRepositoryInfo(
-    repository: Repository
-  ): Promise<Repository> {
-    const refreshedRepository = await this._repositoryWithRefreshedGitHubRepository(
-      repository
-    )
-
-    if (refreshedRepository.hash === repository.hash) {
-      return refreshedRepository
-    }
-
-    return this.repositoriesStore.updateGitHubRepository(refreshedRepository)
-  }
-
   public async _cloneAgain(url: string, path: string): Promise<void> {
     const { promise, repository } = this._clone(url, path)
     await this._selectRepository(repository)
@@ -2563,7 +2549,9 @@ export class AppStore {
     // association is out of date. So try again before we bail on providing an
     // authenticating user.
     if (!account) {
-      updatedRepository = await this.refreshGitHubRepositoryInfo(repository)
+      updatedRepository = await this._repositoryWithRefreshedGitHubRepository(
+        repository
+      )
       account = getAccountForRepository(this.accounts, updatedRepository)
     }
 
