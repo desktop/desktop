@@ -65,7 +65,9 @@ export class PullRequestStore {
       return { repoId, ...x }
     })
 
-    table.clear()
-    table.bulkAdd(insertablePRs)
+    await this.db.transaction('rw', table, () => {
+      table.clear()
+      table.bulkAdd(insertablePRs)
+    })
   }
 }
