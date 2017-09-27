@@ -46,6 +46,7 @@ import { RetryAction, RetryActionType } from '../retry-actions'
 import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
+import { BranchesTab } from '../../models/branches-tab'
 
 /**
  * An error handler function.
@@ -1015,5 +1016,15 @@ export class Dispatcher {
   /** Open the merge tool for the given file. */
   public openMergeTool(repository: Repository, path: string): Promise<void> {
     return this.appStore._openMergeTool(repository, path)
+  }
+
+  /** Change the selected Branches foldout tab. */
+  public changeBranchesTab(tab: BranchesTab): Promise<void> {
+    return this.appStore._changeBranchesTab(tab)
+  }
+
+  /** Open the Create Pull Request page on GitHub. */
+  public openCreatePullRequest(repository: Repository): Promise<void> {
+    return this.appStore._openCreatePullRequest(repository)
   }
 }

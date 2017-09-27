@@ -102,6 +102,8 @@ import {
   installLFSHooks,
 } from '../git/lfs'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
+import { getAccountForRepository } from '../get-account-for-repository'
+import { BranchesTab } from '../../models/branches-tab'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -209,6 +211,8 @@ export class AppStore {
     | null = null
 
   private selectedCloneRepositoryTab: CloneRepositoryTab = CloneRepositoryTab.DotCom
+
+  private selectedBranchesTab = BranchesTab.Branches
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -510,6 +514,7 @@ export class AppStore {
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
+      selectedBranchesTab: this.selectedBranchesTab,
     }
   }
 
@@ -812,7 +817,7 @@ export class AppStore {
   }
 
   private refreshMentionables(repository: Repository) {
-    const account = this.getAccountForRepository(repository)
+    const account = getAccountForRepository(this.accounts, repository)
     if (!account) {
       return
     }
@@ -836,7 +841,7 @@ export class AppStore {
       return
     }
 
-    const account = this.getAccountForRepository(repository)
+    const account = getAccountForRepository(this.accounts, repository)
     if (!account) {
       return
     }
@@ -1483,7 +1488,7 @@ export class AppStore {
       return updatedRepository
     }
 
-    const account = this.getAccountForRepository(updatedRepository)
+    const account = getAccountForRepository(this.accounts, updatedRepository)
     if (!account) {
       // If the repository given to us had a GitHubRepository instance we want
       // to try to preserve that if possible since the updated GitHubRepository
@@ -1936,16 +1941,6 @@ export class AppStore {
         )
       }
     }
-  }
-
-  /** Get the authenticated user for the repository. */
-  private getAccountForRepository(repository: Repository): Account | null {
-    const gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) {
-      return null
-    }
-
-    return getAccountForEndpoint(this.accounts, gitHubRepository.endpoint)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -2561,7 +2556,8 @@ export class AppStore {
     fn: (repository: Repository, account: IGitAccount | null) => Promise<T>
   ): Promise<T> {
     let updatedRepository = repository
-    let account: IGitAccount | null = this.getAccountForRepository(
+    let account: IGitAccount | null = getAccountForRepository(
+      this.accounts,
       updatedRepository
     )
 
@@ -2571,7 +2567,7 @@ export class AppStore {
     // authenticating user.
     if (!account) {
       updatedRepository = await this.refreshGitHubRepositoryInfo(repository)
-      account = this.getAccountForRepository(updatedRepository)
+      account = getAccountForRepository(this.accounts, updatedRepository)
     }
 
     if (!account) {
@@ -2667,5 +2663,48 @@ export class AppStore {
   public _openMergeTool(repository: Repository, path: string): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.openMergeTool(path)
+  }
+
+  public _changeBranchesTab(tab: BranchesTab): Promise<void> {
+    this.selectedBranchesTab = tab
+
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public async _openCreatePullRequest(repository: Repository): Promise<void> {
+    const gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) {
+      return
+    }
+
+    const state = this.getRepositoryState(repository)
+    const tip = state.branchesState.tip
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const branch = tip.branch
+    const aheadBehind = state.aheadBehind
+
+    if (!aheadBehind) {
+      this._showPopup({
+        type: PopupType.PushBranchCommits,
+        repository,
+        branch,
+      })
+    } else if (aheadBehind.ahead > 0) {
+      this._showPopup({
+        type: PopupType.PushBranchCommits,
+        repository,
+        branch,
+        unPushedCommits: aheadBehind.ahead,
+      })
+    } else {
+      const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
+      await this._openInBrowser(baseURL)
+    }
   }
 }

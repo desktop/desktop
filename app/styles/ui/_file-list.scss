@@ -43,6 +43,12 @@
       margin-right: var(--spacing-half);
     }
 
+    .path-text-component {
+      span {
+        user-select: text;
+      }
+    }
+
     .rename-arrow {
       flex: 1;
       flex-shrink: 0;
