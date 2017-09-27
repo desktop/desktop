@@ -12,14 +12,37 @@ export class PullRequestStore {
     this.db = db
   }
 
-  public async fetchPullRequests(repository: GitHubRepository, account: Account) {
+  public async cachePullRequests(
+    repository: GitHubRepository,
+    account: Account
+  ) {
     const api = API.fromAccount(account)
 
-    const prs = await api.fetchPullRequests(repository.owner.login, repository.name, 'open')
+    const prs = await api.fetchPullRequests(
+      repository.owner.login,
+      repository.name,
+      'open'
+    )
 
     this.writePullRequests(prs, repository)
+  }
 
-    return prs
+  public async getPullRequests(repository: GitHubRepository) {
+    const gitHubRepositoryID = repository.dbID
+    if (!gitHubRepositoryID) {
+      fatalError(
+        "Cannot get pull requests for a repository that hasn't been inserted into the database!"
+      )
+
+      return []
+    }
+
+    const pullRequests = await this.db.pullRequests
+      .where('repo_id')
+      .equals(gitHubRepositoryID)
+      .sortBy('number')
+
+    return pullRequests
   }
 
   private async writePullRequests(
