@@ -112,15 +112,13 @@ export class CreateRepository extends React.Component<
     this.setState({ isRepository })
   }
 
-  private onPathChanged = async (event: React.FormEvent<HTMLInputElement>) => {
-    const path = event.currentTarget.value
+  private onPathChanged = async (path: string) => {
     const isRepository = await isGitRepository(path)
 
     this.setState({ isRepository, path, isValidPath: null })
   }
 
-  private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const name = event.currentTarget.value
+  private onNameChanged = (name: string) => {
     this.setState({ name })
   }
 
@@ -434,7 +432,7 @@ export class CreateRepository extends React.Component<
               value={this.state.name}
               label="Name"
               placeholder="repository name"
-              onChange={this.onNameChanged}
+              onValueChanged={this.onNameChanged}
               autoFocus={true}
             />
           </Row>
@@ -454,7 +452,7 @@ export class CreateRepository extends React.Component<
               value={this.state.path}
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
               placeholder="repository path"
-              onChange={this.onPathChanged}
+              onValueChanged={this.onPathChanged}
             />
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
