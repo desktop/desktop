@@ -1,6 +1,6 @@
 import { OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
-import { CloningRepository } from '../../lib/stores'
+import { CloningRepository } from '../../models/cloning-repository'
 
 /**
  * Determine the octicon to display for a given repository.
