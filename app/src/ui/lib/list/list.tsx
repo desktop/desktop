@@ -564,9 +564,9 @@ export class List extends React.Component<IListProps, IListState> {
 
     return (
       <Grid
-        aria-label={null!}
+        aria-label={''}
         key="grid"
-        role={null!}
+        role={''}
         ref={this.onGridRef}
         autoContainerWidth={true}
         width={width}
