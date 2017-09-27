@@ -65,6 +65,7 @@ describe('Tokenizer', () => {
         return gitHubRepository!
       },
       hash: '',
+      parent: null,
     }
 
     const repository = new Repository(

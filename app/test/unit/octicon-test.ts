@@ -32,6 +32,7 @@ function getTestRepository(
       return gitHubRepository!
     },
     hash: '',
+    parent: null,
   }
 
   return gitHubRepository!
