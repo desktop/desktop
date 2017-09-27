@@ -161,11 +161,23 @@ export class CreateRepository extends React.Component<
     })
   }
 
+  private resolveRepositoryRoot = async (): Promise<string> => {
+    const currentPath = this.state.path
+    if (this.props.initialPath && this.props.initialPath === currentPath) {
+      // if the user provided an initial path and didn't change it, we should
+      // validate it is an existing path and use that for the repository
+      try {
+        await this.ensureDirectory(currentPath)
+        return currentPath
+      } catch {}
+    }
+
+    return Path.join(currentPath, sanitizedRepositoryName(this.state.name))
+  }
+
   private createRepository = async () => {
-    const fullPath = Path.join(
-      this.state.path,
-      sanitizedRepositoryName(this.state.name)
-    )
+    const fullPath = await this.resolveRepositoryRoot()
+
     try {
       await this.ensureDirectory(fullPath)
       this.setState({ isValidPath: true })
