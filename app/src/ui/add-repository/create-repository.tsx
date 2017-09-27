@@ -45,7 +45,7 @@ interface ICreateRepositoryProps {
   readonly onDismissed: () => void
 
   /** Prefills path input so user doesn't have to. */
-  readonly path?: string
+  readonly initialPath?: string
 }
 
 interface ICreateRepositoryState {
@@ -87,7 +87,7 @@ export class CreateRepository extends React.Component<
     super(props)
 
     this.state = {
-      path: this.props.path ? this.props.path : getDefaultDir(),
+      path: this.props.initialPath ? this.props.initialPath : getDefaultDir(),
       name: '',
       description: '',
       createWithReadme: false,
