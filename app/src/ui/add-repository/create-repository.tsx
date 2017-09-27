@@ -103,10 +103,10 @@ export class CreateRepository extends React.Component<
 
   public async componentDidMount() {
     const gitIgnoreNames = await getGitIgnoreNames()
-    this.setState({ ...this.state, gitIgnoreNames })
+    this.setState({ gitIgnoreNames })
 
     const licenses = await getLicenses()
-    this.setState({ ...this.state, licenses })
+    this.setState({ licenses })
 
     const isRepository = await isGitRepository(this.state.path)
     this.setState({ isRepository })
@@ -121,7 +121,7 @@ export class CreateRepository extends React.Component<
 
   private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const name = event.currentTarget.value
-    this.setState({ ...this.state, name })
+    this.setState({ name })
   }
 
   private onDescriptionChanged = (description: string) => {
@@ -162,10 +162,10 @@ export class CreateRepository extends React.Component<
     )
     try {
       await this.ensureDirectory(fullPath)
-      this.setState({ ...this.state, isValidPath: true })
+      this.setState({ isValidPath: true })
     } catch (e) {
       if (e.code === 'EACCES' && e.errno === -13) {
-        return this.setState({ ...this.state, isValidPath: false })
+        return this.setState({ isValidPath: false })
       }
 
       log.error(
@@ -175,12 +175,12 @@ export class CreateRepository extends React.Component<
       return this.props.dispatcher.postError(e)
     }
 
-    this.setState({ ...this.state, creating: true })
+    this.setState({ creating: true })
 
     try {
       await initGitRepository(fullPath)
     } catch (e) {
-      this.setState({ ...this.state, creating: false })
+      this.setState({ creating: false })
       log.error(
         `createRepository: unable to initialize a Git repository at ${fullPath}`,
         e
@@ -275,7 +275,7 @@ export class CreateRepository extends React.Component<
       this.props.dispatcher.postError(e)
     }
 
-    this.setState({ ...this.state, creating: false })
+    this.setState({ creating: false })
 
     setDefaultDir(this.state.path)
 
@@ -287,7 +287,6 @@ export class CreateRepository extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.setState({
-      ...this.state,
       createWithReadme: event.currentTarget.checked,
     })
   }
@@ -308,12 +307,12 @@ export class CreateRepository extends React.Component<
 
   private onGitIgnoreChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const gitIgnore = event.currentTarget.value
-    this.setState({ ...this.state, gitIgnore })
+    this.setState({ gitIgnore })
   }
 
   private onLicenseChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const license = event.currentTarget.value
-    this.setState({ ...this.state, license })
+    this.setState({ license })
   }
 
   private renderGitIgnores() {
