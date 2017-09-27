@@ -251,10 +251,7 @@ export abstract class AutocompletingTextInput<
   protected abstract getElementTagName(): 'textarea' | 'input'
 
   private renderTextInput() {
-    return React.createElement<
-      React.HTMLAttributes<ElementType>,
-      ElementType
-    >(this.getElementTagName(), {
+    const props = {
       type: 'text',
       placeholder: this.props.placeholder,
       value: this.props.value,
@@ -262,7 +259,12 @@ export abstract class AutocompletingTextInput<
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
       onBlur: this.onBlur,
-    })
+    }
+
+    return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(
+      this.getElementTagName(),
+      props
+    )
   }
 
   private onBlur = (e: React.FocusEvent<ElementType>) => {
