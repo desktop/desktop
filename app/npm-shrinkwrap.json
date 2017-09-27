@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.8.2",
+  "version": "1.0.2-beta0",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -181,9 +181,9 @@
       "resolved": "https://registry.npmjs.org/core-util-is/-/core-util-is-1.0.2.tgz"
     },
     "create-react-class": {
-      "version": "15.6.0",
+      "version": "15.6.2",
       "from": "create-react-class@>=15.6.0 <16.0.0",
-      "resolved": "https://registry.npmjs.org/create-react-class/-/create-react-class-15.6.0.tgz"
+      "resolved": "https://registry.npmjs.org/create-react-class/-/create-react-class-15.6.2.tgz"
     },
     "cross-spawn-async": {
       "version": "2.2.5",
@@ -692,9 +692,9 @@
       "dev": true
     },
     "react": {
-      "version": "15.6.1",
-      "from": "react@15.6.1",
-      "resolved": "https://registry.npmjs.org/react/-/react-15.6.1.tgz"
+      "version": "15.6.2",
+      "from": "react@15.6.2",
+      "resolved": "https://registry.npmjs.org/react/-/react-15.6.2.tgz"
     },
     "react-addons-perf": {
       "version": "15.4.2",
@@ -714,9 +714,9 @@
       "dev": true
     },
     "react-dom": {
-      "version": "15.6.1",
-      "from": "react-dom@15.6.1",
-      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.6.1.tgz"
+      "version": "15.6.2",
+      "from": "react-dom@15.6.2",
+      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.6.2.tgz"
     },
     "react-transition-group": {
       "version": "1.2.0",
