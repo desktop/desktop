@@ -6,30 +6,28 @@ export class GitHubRepository {
   /**
    * The ID of the repository in the app's local database. This is no relation
    * to the API ID.
-   *
-   * May be `null` if it hasn't been inserted or retrieved from the database.
    */
-  public readonly dbID: number | null
+  public readonly dbID: number
 
   public readonly name: string
   public readonly owner: Owner
-  public readonly private: boolean | null
-  public readonly fork: boolean | null
-  public readonly htmlURL: string | null
-  public readonly defaultBranch: string | null
-  public readonly cloneURL: string | null
+  public readonly private: boolean
+  public readonly fork: boolean
+  public readonly htmlURL: string
+  public readonly defaultBranch: string
+  public readonly cloneURL: string
   public readonly parent: GitHubRepository | null
 
   public constructor(
     name: string,
     owner: Owner,
-    dbID: number | null,
-    private_: boolean | null = null,
-    fork: boolean | null = null,
-    htmlURL: string | null = null,
-    defaultBranch: string | null = 'master',
-    cloneURL: string | null = null,
-    parent: GitHubRepository | null = null
+    dbID: number,
+    private_: boolean,
+    fork: boolean,
+    htmlURL: string,
+    defaultBranch: string,
+    cloneURL: string,
+    parent: GitHubRepository | null
   ) {
     this.name = name
     this.owner = owner
@@ -44,8 +42,17 @@ export class GitHubRepository {
 
   /** Create a new copy of the repository with the API information copied over. */
   public withAPI(apiRepository: IAPIRepository): GitHubRepository {
+    let parent = null
+    if (apiRepository.parent) {
+      if (this.parent) {
+        parent = this.parent.withAPI(apiRepository.parent)
+      } else {
+        parent = new GitHubRepository(apiRepository)
+      }
+    }
+
     const newRepository = new GitHubRepository(
-      this.name,
+      apiRepository.name,
       this.owner,
       this.dbID,
       apiRepository.private,
@@ -53,9 +60,7 @@ export class GitHubRepository {
       apiRepository.html_url,
       apiRepository.default_branch,
       apiRepository.clone_url,
-      this.parent && apiRepository.parent
-        ? this.parent.withAPI(apiRepository.parent)
-        : null
+      parent
     )
 
     return newRepository.hash === this.hash ? this : newRepository

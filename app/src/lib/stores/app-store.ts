@@ -26,8 +26,16 @@ import {
   WorkingDirectoryFileChange,
 } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
-import { matchGitHubRepository } from '../../lib/repository-matching'
-import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
+import {
+  matchGitHubRepository,
+  IMatchedGitHubRepository,
+} from '../../lib/repository-matching'
+import {
+  API,
+  getAccountForEndpoint,
+  IAPIUser,
+  IAPIRepository,
+} from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
@@ -1478,17 +1486,15 @@ export class AppStore {
   ): Promise<Repository> {
     const oldGitHubRepository = repository.gitHubRepository
 
-    const updatedRepository = await this.updateGitHubRepositoryAssociation(
-      repository
-    )
-
-    const updatedGitHubRepository = updatedRepository.gitHubRepository
-
-    if (!updatedGitHubRepository) {
-      return updatedRepository
+    const matchedGitHubRepository = await this.matchGitHubRepository(repository)
+    if (!matchedGitHubRepository) {
+      return repository
     }
 
-    const account = getAccountForRepository(this.accounts, updatedRepository)
+    const account = getAccountForEndpoint(
+      this.accounts,
+      matchedGitHubRepository.endpoint
+    )
     if (!account) {
       // If the repository given to us had a GitHubRepository instance we want
       // to try to preserve that if possible since the updated GitHubRepository
@@ -1496,7 +1502,7 @@ export class AppStore {
       // We'll only swap it out if the endpoint has changed in which case the
       // old API information will be invalid anyway.
       if (!oldGitHubRepository) {
-        return updatedRepository
+        return repository
       }
 
       // The endpoints have changed, all bets are off
@@ -1529,6 +1535,20 @@ export class AppStore {
       return oldGitHubRepository ? repository : updatedRepository
     }
 
+    const updatedGitHubRepositoryFromAPI = new GitHubRepository(
+      updatedGitHubRepository.name,
+      updatedGitHubRepository.owner,
+      updatedGitHubRepository.dbID,
+      apiRepo.private,
+      apiRepo.fork,
+      apiRepo.html_url,
+      apiRepo.default_branch,
+      apiRepo.clone_url,
+      this.parent && apiRepository.parent
+        ? this.parent.withAPI(apiRepository.parent)
+        : null
+    )
+
     const withUpdatedGitHubRepository = updatedRepository.withGitHubRepository(
       updatedGitHubRepository.withAPI(apiRepo)
     )
@@ -1541,28 +1561,9 @@ export class AppStore {
     )
   }
 
-  private async updateGitHubRepositoryAssociation(
+  private async matchGitHubRepository(
     repository: Repository
-  ): Promise<Repository> {
-    const gitHubRepository = await this.guessGitHubRepository(repository)
-    if (gitHubRepository === repository.gitHubRepository || !gitHubRepository) {
-      return repository
-    }
-
-    if (
-      repository.gitHubRepository &&
-      gitHubRepository &&
-      repository.gitHubRepository.hash === gitHubRepository.hash
-    ) {
-      return repository
-    }
-
-    return repository.withGitHubRepository(gitHubRepository)
-  }
-
-  private async guessGitHubRepository(
-    repository: Repository
-  ): Promise<GitHubRepository | null> {
+  ): Promise<IMatchedGitHubRepository | null> {
     const remote = await getDefaultRemote(repository)
     return remote ? matchGitHubRepository(this.accounts, remote.url) : null
   }
