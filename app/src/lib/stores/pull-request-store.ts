@@ -24,7 +24,7 @@ export class PullRequestStore {
       'open'
     )
 
-    this.writePullRequests(prs, repository)
+    await this.writePullRequests(prs, repository)
   }
 
   public async getPullRequests(repository: GitHubRepository) {
