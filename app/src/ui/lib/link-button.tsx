@@ -39,7 +39,6 @@ export class LinkButton extends React.Component<ILinkButtonProps, {}> {
         onClick={this.onClick}
         title={this.props.title}
         tabIndex={this.props.tabIndex}
-        disabled={this.props.disabled}
       >
         {this.props.children}
       </a>
