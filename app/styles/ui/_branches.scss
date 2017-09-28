@@ -51,6 +51,12 @@
 .pull-request-list {
   width: 300px;
 
+  .filter-list-filter-field {
+    // The rows have built-in margin to their content so
+    // we only need half a spacer here
+    padding-bottom: var(--spacing-half);
+  }
+
   .pull-request-item {
     padding: 0 var(--spacing);
     display: flex;
