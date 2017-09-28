@@ -69,6 +69,10 @@
       margin-right: var(--spacing-half);
       width: 16px; // Force a consistent width
       flex-shrink: 0;
+
+      // Align the icon baseline with the title text
+      align-self: flex-start;
+      margin-top: 2px;
     }
 
     .info {
