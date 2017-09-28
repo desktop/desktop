@@ -26,3 +26,15 @@
     margin-right: var(--spacing-half);
   }
 }
+
+.toolbar-dropdown.open .ci-status-pending {
+  color: $orange-800;
+}
+
+.toolbar-dropdown.open .ci-status-failure {
+  color: $red-500;
+}
+
+.toolbar-dropdown.open .ci-status-success {
+  color: $green-700;
+}
