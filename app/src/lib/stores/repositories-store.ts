@@ -31,7 +31,7 @@ export class RepositoriesStore {
 
   private findGitHubRepository(id: number): Promise<GitHubRepository | null> {
     return this.db.transaction(
-      'r',
+      'r?',
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
@@ -67,7 +67,7 @@ export class RepositoriesStore {
 
   /** Get all the local repositories. */
   public getAll(): Promise<ReadonlyArray<Repository>> {
-    return this.db.transaction('r', this.db.repositories, async () => {
+    return this.db.transaction('r?', this.db.repositories, async () => {
       const inflatedRepos = new Array<Repository>()
       const repos = await this.db.repositories.toArray()
       for (const repo of repos) {
@@ -99,7 +99,7 @@ export class RepositoriesStore {
    */
   public async addRepository(path: string): Promise<Repository> {
     const repository = await this.db.transaction(
-      'rw',
+      'rw?',
       this.db.repositories,
       async () => {
         const repos = await this.db.repositories.toArray()
@@ -203,7 +203,7 @@ export class RepositoriesStore {
   }
 
   private putOwner(endpoint: string, login: string): Promise<Owner> {
-    return this.db.transaction('rw', this.db.owners, async () => {
+    return this.db.transaction('rw?', this.db.owners, async () => {
       login = login.toLowerCase()
 
       const existingOwner = await this.db.owners
@@ -229,7 +229,7 @@ export class RepositoriesStore {
     gitHubRepository: IAPIRepository
   ): Promise<GitHubRepository> {
     return this.db.transaction(
-      'rw',
+      'rw?',
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
@@ -292,7 +292,7 @@ export class RepositoriesStore {
     }
 
     const updatedGitHubRepo = await this.db.transaction(
-      'rw',
+      'rw?',
       this.db.repositories,
       async () => {
         const localRepo = (await this.db.repositories.get(repoID))!
