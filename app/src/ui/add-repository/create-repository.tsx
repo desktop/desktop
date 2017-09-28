@@ -295,10 +295,19 @@ export class CreateRepository extends React.Component<
 
     this.setState({ creating: false })
 
-    setDefaultDir(this.state.path)
+    this.updateDefaultDirectory()
 
     this.props.dispatcher.selectRepository(repository)
     this.props.onDismissed()
+  }
+
+  private updateDefaultDirectory = () => {
+    // don't update the default directory as a result of creating the
+    // repository from an empty folder, because this value will be the
+    // repository path itself
+    if (!this.props.initialPath) {
+      setDefaultDir(this.state.path)
+    }
   }
 
   private onCreateWithReadmeChange = (
