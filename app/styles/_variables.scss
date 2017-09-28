@@ -6,10 +6,9 @@
 @import '~primer-support/lib/variables/color-system.scss';
 
 :root {
-
   --color-new: $green;
   --color-deleted: $red;
-  --color-modified: $yellow;
+  --color-modified: $yellow-600;
   --color-renamed: $blue;
   --color-conflicted: $orange;
 
@@ -160,7 +159,7 @@
   --border-radius: 3px;
   --base-border: 1px solid var(--box-border-color);
 
-  --shadow-color: rgba(71,83,95,0.19);
+  --shadow-color: rgba(71, 83, 95, 0.19);
   --base-box-shadow: 0 2px 7px var(--shadow-color);
 
   --toolbar-height: 50px;
@@ -210,7 +209,6 @@
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: $blue;
-
 
   /**
    * Variables for form elements
