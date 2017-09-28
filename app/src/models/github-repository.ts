@@ -13,7 +13,6 @@ export class GitHubRepository {
   public readonly name: string
   public readonly owner: Owner
   public readonly private: boolean | null
-  public readonly fork: boolean | null
   public readonly htmlURL: string | null
   public readonly defaultBranch: string | null
   public readonly cloneURL: string | null
@@ -24,7 +23,6 @@ export class GitHubRepository {
     owner: Owner,
     dbID: number | null,
     private_: boolean | null = null,
-    fork: boolean | null = null,
     htmlURL: string | null = null,
     defaultBranch: string | null = 'master',
     cloneURL: string | null = null,
@@ -34,7 +32,6 @@ export class GitHubRepository {
     this.owner = owner
     this.dbID = dbID
     this.private = private_
-    this.fork = fork
     this.htmlURL = htmlURL
     this.defaultBranch = defaultBranch
     this.cloneURL = cloneURL
@@ -50,6 +47,10 @@ export class GitHubRepository {
     return `${this.owner.login}/${this.name}`
   }
 
+  public get fork(): boolean {
+    return !!this.parent
+  }
+
   /**
    * A hash of the properties of the object.
    *
@@ -60,7 +61,6 @@ export class GitHubRepository {
       ${this.defaultBranch}+
       ${this.private}+
       ${this.cloneURL}+
-      ${this.fork}+
       ${this.name}+
       ${this.htmlURL}+
       ${this.owner.hash}+

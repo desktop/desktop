@@ -1,13 +1,16 @@
+import Dexie from 'dexie'
 import { Emitter, Disposable } from 'event-kit'
 import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
   IDatabaseRepository,
+  IDatabaseOwner,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
 import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
+import { IAPIRepository } from '../api'
 
 // NB: We can't use async/await within Dexie transactions. This is because Dexie
 // uses its own Promise implementation and TypeScript doesn't know about it. See
@@ -36,10 +39,41 @@ export class RepositoriesStore {
     return this.emitter.on('did-update', fn)
   }
 
+  private *getGitHubRepository(
+    id: number
+  ): IterableIterator<
+    | Dexie.Promise<IDatabaseGitHubRepository>
+    | Dexie.Promise<IDatabaseOwner>
+    | GitHubRepository
+  > {
+    const gitHubRepository: IDatabaseGitHubRepository = yield this.db.gitHubRepositories.get(
+      id
+    )
+    const owner: IDatabaseOwner = yield this.db.owners.get(
+      gitHubRepository.ownerID
+    )
+
+    let parent: GitHubRepository | null = null
+    if (gitHubRepository.parentID) {
+      // parent = yield this.getGitHubRepository(gitHubRepository.parentID)
+    }
+
+    return new GitHubRepository(
+      gitHubRepository.name,
+      new Owner(owner.login, owner.endpoint),
+      gitHubRepository.id!,
+      gitHubRepository.private,
+      gitHubRepository.htmlURL,
+      gitHubRepository.defaultBranch,
+      gitHubRepository.cloneURL,
+      parent
+    )
+  }
+
   /** Get all the local repositories. */
   public async getAll(): Promise<ReadonlyArray<Repository>> {
     const inflatedRepos: Repository[] = []
-    const db = this.db
+    const self = this
     const transaction = this.db.transaction(
       'r',
       this.db.repositories,
@@ -48,28 +82,17 @@ export class RepositoriesStore {
       function*() {
         const repos: ReadonlyArray<
           IDatabaseRepository
-        > = yield db.repositories.toArray()
+        > = yield self.db.repositories.toArray()
         for (const repo of repos) {
           let inflatedRepo: Repository | null = null
           if (repo.gitHubRepositoryID) {
-            const gitHubRepository: IDatabaseGitHubRepository = yield db.gitHubRepositories.get(
+            const gitHubRepository = yield self.getGitHubRepository(
               repo.gitHubRepositoryID
-            )
-            const owner = yield db.owners.get(gitHubRepository.ownerID)
-            const gitHubRepo = new GitHubRepository(
-              gitHubRepository.name,
-              new Owner(owner.login, owner.endpoint),
-              gitHubRepository.id!,
-              gitHubRepository.private,
-              gitHubRepository.fork,
-              gitHubRepository.htmlURL,
-              gitHubRepository.defaultBranch,
-              gitHubRepository.cloneURL
             )
             inflatedRepo = new Repository(
               repo.path,
               repo.id!,
-              gitHubRepo,
+              gitHubRepository,
               repo.missing
             )
           } else {
@@ -222,19 +245,13 @@ export class RepositoriesStore {
 
   /** Update or add the repository's GitHub repository. */
   public async updateGitHubRepository(
-    repository: Repository
+    repository: Repository,
+    gitHubRepository: IAPIRepository
   ): Promise<Repository> {
     const repoID = repository.id
     if (!repoID) {
       return fatalError(
         '`updateGitHubRepository` can only update a GitHub repository for a repository which has been added to the database.'
-      )
-    }
-
-    const newGitHubRepo = repository.gitHubRepository
-    if (!newGitHubRepo) {
-      return fatalError(
-        '`updateGitHubRepository` can only update a GitHub repository. It cannot remove one.'
       )
     }
 
@@ -263,7 +280,7 @@ export class RepositoriesStore {
           const owner = yield db.owners.get(existingGitHubRepo.ownerID)
           ownerID = owner.id
         } else {
-          const owner = newGitHubRepo.owner
+          const owner = gitHubRepository.owner
           const existingOwner = yield db.owners
             .where('[endpoint+login]')
             .equals([owner.endpoint, owner.login.toLowerCase()])
@@ -280,13 +297,13 @@ export class RepositoriesStore {
         }
 
         let updatedInfo: IDatabaseGitHubRepository = {
-          private: newGitHubRepo.private,
-          fork: newGitHubRepo.fork,
-          htmlURL: newGitHubRepo.htmlURL,
-          name: newGitHubRepo.name,
+          private: gitHubRepository.private,
+          fork: gitHubRepository.fork,
+          htmlURL: gitHubRepository.htmlURL,
+          name: gitHubRepository.name,
           ownerID: ownerID!,
-          cloneURL: newGitHubRepo.cloneURL,
-          defaultBranch: newGitHubRepo.defaultBranch,
+          cloneURL: gitHubRepository.cloneURL,
+          defaultBranch: gitHubRepository.defaultBranch,
         }
 
         if (existingGitHubRepo) {
@@ -304,14 +321,14 @@ export class RepositoriesStore {
 
     return repository.withGitHubRepository(
       new GitHubRepository(
-        newGitHubRepo.name,
-        newGitHubRepo.owner,
+        gitHubRepository.name,
+        gitHubRepository.owner,
         gitHubRepositoryID!,
-        newGitHubRepo.private,
-        newGitHubRepo.fork,
-        newGitHubRepo.htmlURL,
-        newGitHubRepo.defaultBranch,
-        newGitHubRepo.cloneURL
+        gitHubRepository.private,
+        gitHubRepository.fork,
+        gitHubRepository.htmlURL,
+        gitHubRepository.defaultBranch,
+        gitHubRepository.cloneURL
       )
     )
   }

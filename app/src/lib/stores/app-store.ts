@@ -1552,9 +1552,11 @@ export class AppStore {
       apiRepo.clone_url,
       null
     )
-    const updatedRepository = repository.withGitHubRepository(gitHubRepository)
 
-    return this.repositoriesStore.updateGitHubRepository(updatedRepository)
+    return this.repositoriesStore.updateGitHubRepository(
+      repository,
+      gitHubRepository
+    )
   }
 
   private async matchGitHubRepository(
