@@ -436,6 +436,8 @@ export class CreateRepository extends React.Component<
       this.state.creating ||
       this.state.isRepository
 
+    const readOnlyPath = !!this.props.initialPath
+
     return (
       <Dialog
         id="create-repository"
@@ -473,8 +475,11 @@ export class CreateRepository extends React.Component<
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
               placeholder="repository path"
               onValueChanged={this.onPathChanged}
+              disabled={readOnlyPath}
             />
-            <Button onClick={this.showFilePicker}>Choose…</Button>
+            <Button onClick={this.showFilePicker} disabled={readOnlyPath}>
+              Choose…
+            </Button>
           </Row>
 
           {this.renderInvalidPathWarning()}
