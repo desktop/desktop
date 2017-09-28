@@ -26,7 +26,10 @@ import {
   WorkingDirectoryFileChange,
 } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
-import { matchGitHubRepository } from '../../lib/repository-matching'
+import {
+  matchGitHubRepository,
+  IMatchedGitHubRepository,
+} from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
@@ -1561,7 +1564,7 @@ export class AppStore {
 
   private async matchGitHubRepository(
     repository: Repository
-  ): Promise<GitHubRepository | null> {
+  ): Promise<IMatchedGitHubRepository | null> {
     const remote = await getDefaultRemote(repository)
     return remote ? matchGitHubRepository(this.accounts, remote.url) : null
   }
