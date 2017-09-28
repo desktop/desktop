@@ -45,7 +45,7 @@ interface ICreateRepositoryProps {
   readonly onDismissed: () => void
 
   /** Prefills path input so user doesn't have to. */
-  readonly path?: string
+  readonly initialPath?: string
 }
 
 interface ICreateRepositoryState {
@@ -86,9 +86,17 @@ export class CreateRepository extends React.Component<
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 
+    const path = this.props.initialPath
+      ? this.props.initialPath
+      : getDefaultDir()
+
+    const name = this.props.initialPath
+      ? sanitizedRepositoryName(Path.basename(this.props.initialPath))
+      : ''
+
     this.state = {
-      path: this.props.path ? this.props.path : getDefaultDir(),
-      name: '',
+      path,
+      name,
       description: '',
       createWithReadme: false,
       creating: false,
@@ -103,25 +111,23 @@ export class CreateRepository extends React.Component<
 
   public async componentDidMount() {
     const gitIgnoreNames = await getGitIgnoreNames()
-    this.setState({ ...this.state, gitIgnoreNames })
+    this.setState({ gitIgnoreNames })
 
     const licenses = await getLicenses()
-    this.setState({ ...this.state, licenses })
+    this.setState({ licenses })
 
     const isRepository = await isGitRepository(this.state.path)
     this.setState({ isRepository })
   }
 
-  private onPathChanged = async (event: React.FormEvent<HTMLInputElement>) => {
-    const path = event.currentTarget.value
+  private onPathChanged = async (path: string) => {
     const isRepository = await isGitRepository(path)
 
     this.setState({ isRepository, path, isValidPath: null })
   }
 
-  private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const name = event.currentTarget.value
-    this.setState({ ...this.state, name })
+  private onNameChanged = (name: string) => {
+    this.setState({ name })
   }
 
   private onDescriptionChanged = (description: string) => {
@@ -155,17 +161,29 @@ export class CreateRepository extends React.Component<
     })
   }
 
+  private resolveRepositoryRoot = async (): Promise<string> => {
+    const currentPath = this.state.path
+    if (this.props.initialPath && this.props.initialPath === currentPath) {
+      // if the user provided an initial path and didn't change it, we should
+      // validate it is an existing path and use that for the repository
+      try {
+        await this.ensureDirectory(currentPath)
+        return currentPath
+      } catch {}
+    }
+
+    return Path.join(currentPath, sanitizedRepositoryName(this.state.name))
+  }
+
   private createRepository = async () => {
-    const fullPath = Path.join(
-      this.state.path,
-      sanitizedRepositoryName(this.state.name)
-    )
+    const fullPath = await this.resolveRepositoryRoot()
+
     try {
       await this.ensureDirectory(fullPath)
-      this.setState({ ...this.state, isValidPath: true })
+      this.setState({ isValidPath: true })
     } catch (e) {
       if (e.code === 'EACCES' && e.errno === -13) {
-        return this.setState({ ...this.state, isValidPath: false })
+        return this.setState({ isValidPath: false })
       }
 
       log.error(
@@ -175,12 +193,12 @@ export class CreateRepository extends React.Component<
       return this.props.dispatcher.postError(e)
     }
 
-    this.setState({ ...this.state, creating: true })
+    this.setState({ creating: true })
 
     try {
       await initGitRepository(fullPath)
     } catch (e) {
-      this.setState({ ...this.state, creating: false })
+      this.setState({ creating: false })
       log.error(
         `createRepository: unable to initialize a Git repository at ${fullPath}`,
         e
@@ -275,19 +293,27 @@ export class CreateRepository extends React.Component<
       this.props.dispatcher.postError(e)
     }
 
-    this.setState({ ...this.state, creating: false })
+    this.setState({ creating: false })
 
-    setDefaultDir(this.state.path)
+    this.updateDefaultDirectory()
 
     this.props.dispatcher.selectRepository(repository)
     this.props.onDismissed()
+  }
+
+  private updateDefaultDirectory = () => {
+    // don't update the default directory as a result of creating the
+    // repository from an empty folder, because this value will be the
+    // repository path itself
+    if (!this.props.initialPath) {
+      setDefaultDir(this.state.path)
+    }
   }
 
   private onCreateWithReadmeChange = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.setState({
-      ...this.state,
       createWithReadme: event.currentTarget.checked,
     })
   }
@@ -308,12 +334,12 @@ export class CreateRepository extends React.Component<
 
   private onGitIgnoreChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const gitIgnore = event.currentTarget.value
-    this.setState({ ...this.state, gitIgnore })
+    this.setState({ gitIgnore })
   }
 
   private onLicenseChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const license = event.currentTarget.value
-    this.setState({ ...this.state, license })
+    this.setState({ license })
   }
 
   private renderGitIgnores() {
@@ -419,6 +445,8 @@ export class CreateRepository extends React.Component<
       this.state.creating ||
       this.state.isRepository
 
+    const readOnlyPath = !!this.props.initialPath
+
     return (
       <Dialog
         id="create-repository"
@@ -435,7 +463,7 @@ export class CreateRepository extends React.Component<
               value={this.state.name}
               label="Name"
               placeholder="repository name"
-              onChange={this.onNameChanged}
+              onValueChanged={this.onNameChanged}
               autoFocus={true}
             />
           </Row>
@@ -455,9 +483,12 @@ export class CreateRepository extends React.Component<
               value={this.state.path}
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
               placeholder="repository path"
-              onChange={this.onPathChanged}
+              onValueChanged={this.onPathChanged}
+              disabled={readOnlyPath}
             />
-            <Button onClick={this.showFilePicker}>Choose…</Button>
+            <Button onClick={this.showFilePicker} disabled={readOnlyPath}>
+              Choose…
+            </Button>
           </Row>
 
           {this.renderInvalidPathWarning()}
