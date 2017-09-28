@@ -156,11 +156,12 @@ export class GitHubUserStore {
     // string. So searching with an empty email is gonna give us results, but
     // not results that are meaningful.
     if (email.length > 0) {
-      gitUser = await this.database.users
-        .where('[endpoint+email]')
-        .equals([account.endpoint, email.toLowerCase()])
-        .limit(1)
-        .first()
+      gitUser =
+        (await this.database.users
+          .where('[endpoint+email]')
+          .equals([account.endpoint, email.toLowerCase()])
+          .limit(1)
+          .first()) || null
     }
 
     // TODO: Invalidate the stored user in the db after ... some reasonable time
