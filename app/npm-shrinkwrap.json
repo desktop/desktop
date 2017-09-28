@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "1.0.2-beta0",
+  "version": "1.0.2-beta1",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -235,9 +235,9 @@
       "dev": true
     },
     "dexie": {
-      "version": "1.5.1",
-      "from": "dexie@>=1.4.1 <2.0.0",
-      "resolved": "https://registry.npmjs.org/dexie/-/dexie-1.5.1.tgz"
+      "version": "2.0.0",
+      "from": "dexie@latest",
+      "resolved": "https://registry.npmjs.org/dexie/-/dexie-2.0.0.tgz"
     },
     "dom-classlist": {
       "version": "1.0.1",
