@@ -198,7 +198,8 @@
   padding: var(--spacing);
 
   .blankslate-image {
-    min-width: 300px;
+    width: 257px;
+    min-width: 0;
   }
 
   .title {
