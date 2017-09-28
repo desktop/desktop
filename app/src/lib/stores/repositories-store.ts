@@ -2,7 +2,6 @@ import { Emitter, Disposable } from 'event-kit'
 import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
-  IDatabaseRepository,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
 import { GitHubRepository } from '../../models/github-repository'
