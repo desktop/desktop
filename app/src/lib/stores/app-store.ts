@@ -1497,7 +1497,15 @@ export class AppStore {
     const skeletonRepository = new Repository(
       repository.path,
       repository.id,
-      matchGitHubRepository,
+      new GitHubRepository(
+        matchedGitHubRepository.name,
+        new Owner(
+          matchedGitHubRepository.owner,
+          matchedGitHubRepository.endpoint,
+          null
+        ),
+        null
+      ),
       repository.missing
     )
 

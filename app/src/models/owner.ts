@@ -1,10 +1,10 @@
 /** The owner of a GitHubRepository. */
 export class Owner {
-  public readonly id: number
+  public readonly id: number | null
   public readonly login: string
   public readonly endpoint: string
 
-  public constructor(login: string, endpoint: string, id: number) {
+  public constructor(login: string, endpoint: string, id: number | null) {
     this.login = login
     this.endpoint = endpoint
     this.id = id
