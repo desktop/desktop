@@ -1494,8 +1494,11 @@ export class AppStore {
     // ideal because the GitHub repository hasn't been fetched from the API yet
     // and so it is incomplete. But if we _can't_ fetch it from the API, it's
     // better than nothing.
-    const skeletonRepository = repository.withGitHubRepository(
-      matchedGitHubRepository
+    const skeletonRepository = new Repository(
+      repository.path,
+      repository.id,
+      matchGitHubRepository,
+      repository.missing
     )
 
     const account = getAccountForEndpoint(
@@ -1520,7 +1523,7 @@ export class AppStore {
 
     const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(
-      matchedGitHubRepository.owner.login,
+      matchedGitHubRepository.owner,
       matchedGitHubRepository.name
     )
 
@@ -1539,26 +1542,11 @@ export class AppStore {
       return repository
     }
 
-    const gitHubRepository = new GitHubRepository(
-      apiRepo.name,
-      oldGitHubRepository
-        ? oldGitHubRepository.owner
-        : new Owner(
-            apiRepo.owner.login,
-            matchedGitHubRepository.owner.endpoint
-          ),
-      oldGitHubRepository ? oldGitHubRepository.dbID : null,
-      apiRepo.private,
-      apiRepo.fork,
-      apiRepo.html_url,
-      apiRepo.default_branch,
-      apiRepo.clone_url,
-      null
-    )
-
+    const endpoint = matchedGitHubRepository.endpoint
     return this.repositoriesStore.updateGitHubRepository(
       repository,
-      gitHubRepository
+      endpoint,
+      apiRepo
     )
   }
 

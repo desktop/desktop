@@ -281,8 +281,8 @@ export class RepositoriesStore {
   /** Add or update the repository's GitHub repository. */
   public async updateGitHubRepository(
     repository: Repository,
-    gitHubRepository: IAPIRepository,
-    endpoint: string
+    endpoint: string,
+    gitHubRepository: IAPIRepository
   ): Promise<Repository> {
     const repoID = repository.id
     if (!repoID) {
