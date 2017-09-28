@@ -12,17 +12,10 @@ export class PullRequestStore {
     this.db = db
   }
 
-  public async cachePullRequests(
-    repository: GitHubRepository,
-    account: Account
-  ) {
+  public async cachePullRequests(repository: GitHubRepository, account: Account) {
     const api = API.fromAccount(account)
 
-    const prs = await api.fetchPullRequests(
-      repository.owner.login,
-      repository.name,
-      'open'
-    )
+    const prs = await api.fetchPullRequests(repository.owner.login, repository.name, 'open')
 
     await this.writePullRequests(prs, repository)
   }
@@ -65,10 +58,8 @@ export class PullRequestStore {
     })
 
     await this.db.transaction('rw', table, function*() {
-      yield table
-        .clear()
-        .then(() => table.bulkAdd(insertablePRs))
-        .catch(e => console.log('Failed to reload database', e))
+      yield table.clear()
+      yield table.bulkAdd(insertablePRs)
     })
   }
 }
