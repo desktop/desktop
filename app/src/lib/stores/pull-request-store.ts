@@ -64,9 +64,9 @@ export class PullRequestStore {
       return { repoId, ...x }
     })
 
-    await this.db.transaction('rw', table, function*() {
-      yield table.clear()
-      yield table.bulkAdd(insertablePRs)
+    await this.db.transaction('rw', table, async () => {
+      await table.clear()
+      await table.bulkAdd(insertablePRs)
     })
   }
 }

@@ -6,7 +6,6 @@ import { API, getAccountForEndpoint, getDotComAPIEndpoint } from '../api'
 import {
   GitHubUserDatabase,
   IGitHubUser,
-  IMentionableAssociation,
 } from '../databases/github-user-database'
 import { fatalError } from '../fatal-error'
 
@@ -156,11 +155,12 @@ export class GitHubUserStore {
     // string. So searching with an empty email is gonna give us results, but
     // not results that are meaningful.
     if (email.length > 0) {
-      gitUser = await this.database.users
-        .where('[endpoint+email]')
-        .equals([account.endpoint, email.toLowerCase()])
-        .limit(1)
-        .first()
+      gitUser =
+        (await this.database.users
+          .where('[endpoint+email]')
+          .equals([account.endpoint, email.toLowerCase()])
+          .limit(1)
+          .first()) || null
     }
 
     // TODO: Invalidate the stored user in the db after ... some reasonable time
@@ -237,27 +237,29 @@ export class GitHubUserStore {
 
     userMap.set(user.email, user)
 
-    const db = this.database
-    let addedUser: IGitHubUser | null = null
-    await this.database.transaction('rw', this.database.users, function*() {
-      const existing: ReadonlyArray<IGitHubUser> = yield db.users
-        .where('[endpoint+login]')
-        .equals([user.endpoint, user.login])
-        .toArray()
-      const match = existing.find(e => e.email === user.email)
-      if (match) {
-        if (overwriteEmail) {
-          user = { ...user, id: match.id }
-        } else {
-          user = { ...user, id: match.id, email: match.email }
+    const addedUser = await this.database.transaction(
+      'rw',
+      this.database.users,
+      async () => {
+        const existing = await this.database.users
+          .where('[endpoint+login]')
+          .equals([user.endpoint, user.login])
+          .toArray()
+        const match = existing.find(e => e.email === user.email)
+        if (match) {
+          if (overwriteEmail) {
+            user = { ...user, id: match.id }
+          } else {
+            user = { ...user, id: match.id, email: match.email }
+          }
         }
+
+        const id = await this.database.users.put(user)
+        return this.database.users.get(id)
       }
+    )
 
-      const id = yield db.users.put(user)
-      addedUser = yield db.users.get(id)
-    })
-
-    return addedUser
+    return addedUser || null
   }
 
   /**
@@ -284,12 +286,11 @@ export class GitHubUserStore {
       )
     }
 
-    const db = this.database
     await this.database.transaction(
       'rw',
       this.database.mentionables,
-      function*() {
-        const existing = yield db.mentionables
+      async () => {
+        const existing = await this.database.mentionables
           .where('[userID+repositoryID]')
           .equals([userID, repositoryID])
           .limit(1)
@@ -298,7 +299,7 @@ export class GitHubUserStore {
           return
         }
 
-        yield db.mentionables.put({ userID, repositoryID })
+        await this.database.mentionables.put({ userID, repositoryID })
       }
     )
   }
@@ -330,21 +331,18 @@ export class GitHubUserStore {
       userIDs.add(userID)
     }
 
-    const db = this.database
     await this.database.transaction(
       'rw',
       this.database.mentionables,
-      function*() {
-        const associations: ReadonlyArray<
-          IMentionableAssociation
-        > = yield db.mentionables
+      async () => {
+        const associations = await this.database.mentionables
           .where('repositoryID')
           .equals(repositoryID)
           .toArray()
 
         for (const association of associations) {
           if (!userIDs.has(association.userID)) {
-            yield db.mentionables.delete(association.id!)
+            await this.database.mentionables.delete(association.id!)
           }
         }
       }
@@ -363,21 +361,18 @@ export class GitHubUserStore {
     }
 
     const users = new Array<IGitHubUser>()
-    const db = this.database
     await this.database.transaction(
       'r',
       this.database.mentionables,
       this.database.users,
-      function*() {
-        const associations: ReadonlyArray<
-          IMentionableAssociation
-        > = yield db.mentionables
+      async () => {
+        const associations = await this.database.mentionables
           .where('repositoryID')
           .equals(repositoryID)
           .toArray()
 
         for (const association of associations) {
-          const user = yield db.users.get(association.userID)
+          const user = await this.database.users.get(association.userID)
           if (user) {
             users.push(user)
           }
