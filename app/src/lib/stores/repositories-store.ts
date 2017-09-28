@@ -9,14 +9,6 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 
-// NB: We can't use async/await within Dexie transactions. This is because Dexie
-// uses its own Promise implementation and TypeScript doesn't know about it. See
-// https://github.com/dfahlander/Dexie.js/wiki/Typescript#async-and-await, but
-// note that their proposed work around doesn't seem to, you know, work, as of
-// TS 1.8.
-//
-// Instead of using async/await, use generator functions and `yield`.
-
 /** The store for local repositories. */
 export class RepositoriesStore {
   private db: RepositoriesDatabase
@@ -39,23 +31,20 @@ export class RepositoriesStore {
   /** Get all the local repositories. */
   public async getAll(): Promise<ReadonlyArray<Repository>> {
     const inflatedRepos: Repository[] = []
-    const db = this.db
-    const transaction = this.db.transaction(
+    await this.db.transaction(
       'r',
       this.db.repositories,
       this.db.gitHubRepositories,
       this.db.owners,
-      function*() {
-        const repos: ReadonlyArray<
-          IDatabaseRepository
-        > = yield db.repositories.toArray()
+      async () => {
+        const repos = await this.db.repositories.toArray()
         for (const repo of repos) {
           let inflatedRepo: Repository | null = null
           if (repo.gitHubRepositoryID) {
-            const gitHubRepository: IDatabaseGitHubRepository = yield db.gitHubRepositories.get(
+            const gitHubRepository = (await this.db.gitHubRepositories.get(
               repo.gitHubRepositoryID
-            )
-            const owner = yield db.owners.get(gitHubRepository.ownerID)
+            ))!
+            const owner = (await this.db.owners.get(gitHubRepository.ownerID))!
             const gitHubRepo = new GitHubRepository(
               gitHubRepository.name,
               new Owner(owner.login, owner.endpoint),
@@ -85,8 +74,6 @@ export class RepositoriesStore {
       }
     )
 
-    await transaction
-
     return inflatedRepos
   }
 
@@ -94,16 +81,13 @@ export class RepositoriesStore {
   public async addRepository(path: string): Promise<Repository> {
     let repository: Repository | null = null
 
-    const db = this.db
-    const transaction = this.db.transaction(
+    await this.db.transaction(
       'r',
       this.db.repositories,
       this.db.gitHubRepositories,
       this.db.owners,
-      function*() {
-        const repos: Array<
-          IDatabaseRepository
-        > = yield db.repositories.toArray()
+      async () => {
+        const repos = await this.db.repositories.toArray()
         const existing = repos.find(r => r.path === path)
         if (existing === undefined) {
           return
@@ -116,10 +100,10 @@ export class RepositoriesStore {
           return
         }
 
-        const dbRepo: IDatabaseGitHubRepository = yield db.gitHubRepositories.get(
+        const dbRepo = (await this.db.gitHubRepositories.get(
           existing.gitHubRepositoryID
-        )
-        const dbOwner = yield db.owners.get(dbRepo.ownerID)
+        ))!
+        const dbOwner = (await this.db.owners.get(dbRepo.ownerID))!
 
         const owner = new Owner(dbOwner.login, dbOwner.endpoint)
         const gitHubRepo = new GitHubRepository(
@@ -135,8 +119,6 @@ export class RepositoriesStore {
         repository = new Repository(path, id, gitHubRepo, false)
       }
     )
-
-    await transaction
 
     if (repository !== null) {
       return repository
@@ -239,40 +221,40 @@ export class RepositoriesStore {
     }
 
     let gitHubRepositoryID: number | null = null
-    const db = this.db
-    const transaction = this.db.transaction(
+    await this.db.transaction(
       'rw',
       this.db.repositories,
       this.db.gitHubRepositories,
       this.db.owners,
-      function*() {
-        const localRepo = yield db.repositories.get(repoID)
+      async () => {
+        const localRepo = (await this.db.repositories.get(repoID))!
 
         let existingGitHubRepo: IDatabaseGitHubRepository | null = null
         let ownerID: number | null = null
         if (localRepo.gitHubRepositoryID) {
           gitHubRepositoryID = localRepo.gitHubRepositoryID
 
-          existingGitHubRepo = yield db.gitHubRepositories.get(
-            localRepo.gitHubRepositoryID
-          )
+          existingGitHubRepo =
+            (await this.db.gitHubRepositories.get(
+              localRepo.gitHubRepositoryID
+            )) || null
           if (!existingGitHubRepo) {
             return fatalError(`Couldn't look up an existing GitHub repository.`)
           }
 
-          const owner = yield db.owners.get(existingGitHubRepo.ownerID)
-          ownerID = owner.id
+          const owner = (await this.db.owners.get(existingGitHubRepo.ownerID))!
+          ownerID = owner.id || null
         } else {
           const owner = newGitHubRepo.owner
-          const existingOwner = yield db.owners
+          const existingOwner = await this.db.owners
             .where('[endpoint+login]')
             .equals([owner.endpoint, owner.login.toLowerCase()])
             .limit(1)
             .first()
           if (existingOwner) {
-            ownerID = existingOwner.id
+            ownerID = existingOwner.id || null
           } else {
-            ownerID = yield db.owners.add({
+            ownerID = await this.db.owners.add({
               login: owner.login.toLowerCase(),
               endpoint: owner.endpoint,
             })
@@ -293,12 +275,10 @@ export class RepositoriesStore {
           updatedInfo = { ...updatedInfo, id: existingGitHubRepo.id }
         }
 
-        gitHubRepositoryID = yield db.gitHubRepositories.put(updatedInfo)
-        yield db.repositories.update(localRepo.id, { gitHubRepositoryID })
+        gitHubRepositoryID = await this.db.gitHubRepositories.put(updatedInfo)
+        await this.db.repositories.update(localRepo.id!, { gitHubRepositoryID })
       }
     )
-
-    await transaction
 
     this.emitUpdate()
 
