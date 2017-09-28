@@ -32,10 +32,12 @@
     // padding on either side. Now in two flavors!
     @include darwin {
       height: 13px;
+      line-height: 13px;
     }
 
     @include win32 {
       height: 14px;
+      line-height: 14px;
     }
 
     border-radius: 8px;
