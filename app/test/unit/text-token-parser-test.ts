@@ -53,6 +53,7 @@ describe('Tokenizer', () => {
         endpoint,
         login,
         hash: '',
+        id: null,
       },
       cloneURL,
       endpoint: 'https://api.github.com',

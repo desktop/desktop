@@ -1,5 +1,9 @@
 /** The owner of a GitHubRepository. */
 export class Owner {
+  /**
+   * The databse ID. This may be null if the object wasn't retrieved from the
+   * database.
+   */
   public readonly id: number | null
   public readonly login: string
   public readonly endpoint: string

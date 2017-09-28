@@ -19,6 +19,7 @@ function getTestRepository(
       endpoint: 'https://api.github.com',
       login: 'shiftkey',
       hash: '',
+      id: null,
     },
     endpoint: 'https://api.github.com',
     fullName: 'shiftkey/some-repo',
