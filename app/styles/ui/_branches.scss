@@ -5,6 +5,10 @@
   display: flex;
   flex-direction: column;
 
+  & > .tab-bar {
+    border-top: var(--base-border);
+  }
+
   .branches-list {
     width: 300px;
   }
