@@ -64,9 +64,11 @@ export class PullRequestStore {
       return { repoId, ...x }
     })
 
-    await this.db.transaction('rw', table, () => {
-      table.clear()
-      table.bulkAdd(insertablePRs)
+    await this.db.transaction('rw', table, function*() {
+      yield table
+        .clear()
+        .then(() => table.bulkAdd(insertablePRs))
+        .catch(e => console.log('Failed to reload database', e))
     })
   }
 }
