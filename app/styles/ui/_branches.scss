@@ -80,6 +80,7 @@
       flex-direction: column;
       min-width: 0;
       flex-grow: 1;
+      margin-right: var(--spacing-half);
 
       .title {
         @include ellipsis;
