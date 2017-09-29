@@ -238,8 +238,8 @@ export class RepositoriesStore {
     const owner = await this.putOwner(endpoint, login)
 
     const existingRepo = await this.db.gitHubRepositories
-      .where('[endpoint+ownerID+name]')
-      .equals([endpoint, owner.id!, gitHubRepository.name])
+      .where('[ownerID+name]')
+      .equals([owner.id!, gitHubRepository.name])
       .limit(1)
       .first()
 
