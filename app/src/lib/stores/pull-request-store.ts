@@ -4,6 +4,7 @@ import { Account } from '../../models/account'
 import { API, IAPIPullRequest } from '../api'
 import { fatalError } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
+import { PullRequest } from '../../models/pull-request'
 
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore {
@@ -18,10 +19,10 @@ export class PullRequestStore {
     this.repositoriesStore = repositoriesStore
   }
 
-  public async cachePullRequests(
+  public async updatePullRequests(
     repository: GitHubRepository,
     account: Account
-  ) {
+  ): Promise<ReadonlyArray<PullRequest>> {
     const api = API.fromAccount(account)
 
     const prs = await api.fetchPullRequests(
@@ -31,9 +32,13 @@ export class PullRequestStore {
     )
 
     await this.writePullRequests(prs, repository)
+
+    return this.getPullRequests(repository)
   }
 
-  public async getPullRequests(repository: GitHubRepository) {
+  public async getPullRequests(
+    repository: GitHubRepository
+  ): Promise<ReadonlyArray<PullRequest>> {
     const gitHubRepositoryID = repository.dbID
     if (!gitHubRepositoryID) {
       fatalError(
@@ -48,7 +53,17 @@ export class PullRequestStore {
       .equals(gitHubRepositoryID)
       .sortBy('number')
 
-    return pullRequests
+    return pullRequests.map(
+      x =>
+        new PullRequest(
+          new Date(x.createdAt),
+          null,
+          x.title,
+          x.number,
+          x.head,
+          x.base
+        )
+    )
   }
 
   private async writePullRequests(
