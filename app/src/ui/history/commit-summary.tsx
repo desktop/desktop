@@ -4,7 +4,7 @@ import * as classNames from 'classnames'
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { RichText } from '../lib/rich-text'
-import { IGitHubUser } from '../../lib/dispatcher'
+import { IGitHubUser } from '../../lib/databases'
 import { Repository } from '../../models/repository'
 import { Avatar } from '../lib/avatar'
 import { Commit } from '../../models/commit'
@@ -305,7 +305,7 @@ export class CommitSummary extends React.Component<
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
-              <span>{shortSHA}</span>
+              <span className="sha">{shortSHA}</span>
             </li>
 
             <li className="commit-summary-meta-item" title={filesDescription}>

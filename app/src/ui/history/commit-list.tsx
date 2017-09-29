@@ -2,8 +2,8 @@ import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
-import { List } from '../list'
-import { IGitHubUser } from '../../lib/dispatcher'
+import { List } from '../lib/list'
+import { IGitHubUser } from '../../lib/databases'
 
 const RowHeight = 48
 

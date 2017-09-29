@@ -1,5 +1,48 @@
 {
   "releases": {
+    "1.0.2": [
+      "[Improved] Better message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Improved] Clone error message now suggests networking might be involved - #2872. Thanks @agisilaos!",
+      "[Improved] Include push/pull progress information in the push/pull button tooltip - #2879",
+      "[Improved] Allow publishing a brand new, empty repository - #2773",
+      "[Improved] Make file paths in lists selectable - #2801. Thanks @artivilla!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712",
+      "[Fixed] Use the initial path provided when creating a new repository - #2883",
+      "[Fixed] Windows: Avoid long path limits when discarding changes - #2833",
+      "[Fixed] Files would get deleted when undoing the first commit - #2764",
+      "[Fixed] Find the repository root before adding it - #2832",
+      "[Fixed] Display warning about an existing folder before cloning - #2777 #2830",
+      "[Fixed] Show contents of directory when showing a repository from Show in Explorer/Finder instead of showing the parent - #2798"
+    ],
+    "1.0.2-beta1": [
+      "[Improved] Clone error message now suggests networking might be involved - #2872. Thanks @agisilaos!",
+      "[Improved] Include push/pull progress information in the push/pull button tooltip - #2879",
+      "[Improved] Allow publishing a brand new, empty repository - #2773",
+      "[Improved] Make file paths in lists selectable - #2801. Thanks @artivilla!",
+      "[Fixed] Use the initial path provided when creating a new repository - #2883",
+      "[Fixed] Windows: Avoid long path limits when discarding changes - #2833",
+      "[Fixed] Files would get deleted when undoing the first commit - #2764",
+      "[Fixed] Find the repository root before adding it - #2832",
+      "[Fixed] Display warning about an existing folder before cloning - #2777 #2830",
+      "[Fixed] Show contents of directory when showing a repository from Show in Explorer/Finder instead of showing the parent - #2798"
+    ],
+    "1.0.2-beta0": [
+      "[Improved] Message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712"
+    ],
+    "1.0.1": [
+      "[Improved] Message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712"
+    ],
     "1.0.1-beta0": [
       "[Fixed] Use the loading/disabled state while publishing - #1995",
       "[Fixed] Lock down menu item states for unborn repositories - #2744 #2573",

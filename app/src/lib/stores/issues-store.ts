@@ -1,4 +1,4 @@
-import { IssuesDatabase, IIssue } from './issues-database'
+import { IssuesDatabase, IIssue } from '../databases/issues-database'
 import { API, IAPIIssue } from '../api'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
@@ -112,26 +112,26 @@ export class IssuesStore {
         .first()
     }
 
-    await this.db.transaction('rw', this.db.issues, function*() {
+    await this.db.transaction('rw', this.db.issues, async () => {
       for (const issue of issuesToDelete) {
-        const existing = yield findIssueInRepositoryByNumber(
+        const existing = await findIssueInRepositoryByNumber(
           gitHubRepositoryID,
           issue.number
         )
         if (existing) {
-          yield db.issues.delete(existing.id)
+          await this.db.issues.delete(existing.id!)
         }
       }
 
       for (const issue of issuesToUpsert) {
-        const existing = yield findIssueInRepositoryByNumber(
+        const existing = await findIssueInRepositoryByNumber(
           gitHubRepositoryID,
           issue.number
         )
         if (existing) {
-          yield db.issues.update(existing.id, issue)
+          await db.issues.update(existing.id!, issue)
         } else {
-          yield db.issues.add(issue)
+          await db.issues.add(issue)
         }
       }
     })

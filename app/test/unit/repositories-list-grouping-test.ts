@@ -6,7 +6,7 @@ import { Repository } from '../../src/models/repository'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
 import { getDotComAPIEndpoint } from '../../src/lib/api'
-import { CloningRepository } from '../../src/lib/dispatcher'
+import { CloningRepository } from '../../src/models/cloning-repository'
 
 describe('repository list grouping', () => {
   const repositories: Array<Repository | CloningRepository> = [

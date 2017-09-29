@@ -6,7 +6,7 @@ import {
 import { Repository } from '../../../src/models/repository'
 import { checkoutBranch } from '../../../src/lib/git'
 import { TipState, IValidBranch } from '../../../src/models/tip'
-import { GitStore } from '../../../src/lib/dispatcher/git-store'
+import { GitStore } from '../../../src/lib/stores'
 import { shell } from '../../test-app-shell'
 
 chaiUse(require('chai-datetime'))
