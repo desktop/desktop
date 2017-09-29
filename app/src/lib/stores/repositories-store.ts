@@ -78,7 +78,7 @@ export class RepositoriesStore {
     )
   }
 
-  private async findGitHubRepositoryByID(
+  public async findGitHubRepositoryByID(
     id: number
   ): Promise<GitHubRepository | null> {
     const gitHubRepository = await this.db.gitHubRepositories.get(id)

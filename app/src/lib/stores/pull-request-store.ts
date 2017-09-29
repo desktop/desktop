@@ -4,7 +4,7 @@ import { Account } from '../../models/account'
 import { API, IAPIPullRequest } from '../api'
 import { fatalError } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
-import { PullRequest } from '../../models/pull-request'
+import { PullRequest, PullRequestRef } from '../../models/pull-request'
 
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore {
@@ -53,17 +53,26 @@ export class PullRequestStore {
       .equals(gitHubRepositoryID)
       .sortBy('number')
 
-    return pullRequests.map(
-      x =>
-        new PullRequest(
-          new Date(x.createdAt),
-          null,
-          x.title,
-          x.number,
-          x.head,
-          x.base
-        )
-    )
+    const builtPullRequests = new Array<PullRequest>()
+    for (const pr of pullRequests) {
+      const head = (await this.repositoriesStore.findGitHubRepositoryByID(
+        pr.head.repoId
+      ))!
+      const base = (await this.repositoriesStore.findGitHubRepositoryByID(
+        pr.base.repoId
+      ))!
+      const builtPR = new PullRequest(
+        new Date(pr.createdAt),
+        null,
+        pr.title,
+        pr.number,
+        new PullRequestRef(pr.head.ref, pr.head.sha, head),
+        new PullRequestRef(pr.base.ref, pr.base.sha, base)
+      )
+      builtPullRequests.push(builtPR)
+    }
+
+    return builtPullRequests
   }
 
   private async writePullRequests(
