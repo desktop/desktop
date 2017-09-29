@@ -1,11 +1,5 @@
-import { IAPIPullRequest, IAPIRefStatus } from '../lib/api'
+import { IAPIRefStatus } from '../lib/api'
 import { GitHubRepository } from './github-repository'
-
-/** A pull request as used in the UI. */
-export interface IPullRequest extends IAPIPullRequest {
-  readonly status: IAPIRefStatus
-  readonly created: Date
-}
 
 export class PullRequestRef {
   public readonly ref: string

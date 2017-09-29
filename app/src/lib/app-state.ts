@@ -24,7 +24,7 @@ import { PreferencesTab } from '../models/preferences'
 import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
-import { IPullRequest, PullRequest } from '../models/pull-request'
+import { PullRequest } from '../models/pull-request'
 
 export { ICommitMessage }
 export { IAheadBehind }

@@ -4,15 +4,14 @@ import { FoldoutType, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchList } from './branch-list'
-import { Account } from '../../models/account'
 import { TabBar } from '../tab-bar'
 import { BranchesTab } from '../../models/branches-tab'
 import { assertNever } from '../../lib/fatal-error'
 import { enablePreviewFeatures } from '../../lib/feature-flag'
-import { IPullRequest } from '../../models/pull-request'
 import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
 import { NoPullRequests } from './no-pull-requests'
+import { PullRequest } from '../../models/pull-request'
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -21,9 +20,8 @@ interface IBranchesProps {
   readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly account: Account | null
   readonly selectedTab: BranchesTab
-  readonly pullRequests: ReadonlyArray<IPullRequest> | null
+  readonly pullRequests: ReadonlyArray<PullRequest> | null
 }
 
 interface IBranchesState {
@@ -74,7 +72,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private renderTabBar() {
-    if (!this.props.account) {
+    if (!this.props.repository.gitHubRepository) {
       return null
     }
 
@@ -187,7 +185,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.props.dispatcher.changeBranchesTab(tab)
   }
 
-  private onPullRequestClicked = (pullRequest: IPullRequest) => {
+  private onPullRequestClicked = (pullRequest: PullRequest) => {
     const gitHubRepository = this.props.repository.gitHubRepository
     if (!gitHubRepository) {
       return log.error(
@@ -196,7 +194,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     }
 
     const head = pullRequest.head
-    const isRefInThisRepo = head.repo.clone_url === gitHubRepository.cloneURL
+    const isRefInThisRepo =
+      head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
     if (isRefInThisRepo) {
       this.checkoutBranch(head.ref)
     } else {
