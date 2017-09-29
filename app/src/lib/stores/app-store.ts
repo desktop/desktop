@@ -784,10 +784,13 @@ export class AppStore {
     const gitHubRepository = repository.gitHubRepository
     if (gitHubRepository) {
       this._updateIssues(gitHubRepository)
+      this.pullRequestStore
+        .getPullRequests(gitHubRepository)
+        .then(p => this.updatePullRequests(p, repository, gitHubRepository))
+        .catch(e => log.error('Something failed.', e))
     }
 
     this._updatePullRequests(repository)
-
     await this._refreshRepository(repository)
 
     // The selected repository could have changed while we were refreshing.
@@ -2725,13 +2728,22 @@ export class AppStore {
       gitHubRepository,
       account
     )
+
+    this.updatePullRequests(pullRequests, repository, gitHubRepository)
+  }
+
+  private updatePullRequests(
+    pullRequests: ReadonlyArray<PullRequest>,
+    repository: Repository,
+    githubRepository: GitHubRepository
+  ) {
     this.updateBranchesState(repository, state => {
       let currentPullRequest = null
       if (state.tip.kind === TipState.Valid) {
         currentPullRequest = this.findAssociatedPullRequest(
           state.tip.branch,
           pullRequests,
-          gitHubRepository
+          githubRepository
         )
       }
 
