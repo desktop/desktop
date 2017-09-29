@@ -24,10 +24,14 @@
 
   .number {
     font-size: var(--font-size-sm);
+
     // We're explicitly providing line-height here so that the text gets
     // properly vertically centered.
     line-height: var(--height);
-    margin-right: var(--spacing-half);
+  }
+
+  .ci-status {
+    margin-left: var(--spacing-half);
   }
 }
 
