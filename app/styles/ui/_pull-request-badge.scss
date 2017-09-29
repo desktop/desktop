@@ -7,9 +7,11 @@
 }
 
 .pr-badge {
+  --height: 18px;
+
   display: flex;
   flex-direction: row;
-  height: 18px;
+  height: var(--height);
 
   align-items: center;
 
@@ -22,7 +24,7 @@
 
   .number {
     font-size: var(--font-size-sm);
-    line-height: 12px;
+    line-height: var(--height);
     margin-right: var(--spacing-half);
   }
 }
