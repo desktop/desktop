@@ -66,23 +66,35 @@ export class PullRequestStore {
     }
 
     const table = this.db.pullRequests
-    const insertablePRs: Array<IPullRequest> = pullRequests.map(x => {
-      return {
-        number: x.number,
-        title: x.title,
-        createdAt: x.created_at,
+
+    const insertablePRs = new Array<IPullRequest>()
+    for (const pr of pullRequests) {
+      const headRepo = await this.repositoriesStore.findOrPutGitHubRepository(
+        repository.endpoint,
+        pr.head.repo
+      )
+
+      const baseRepo = await this.repositoriesStore.findOrPutGitHubRepository(
+        repository.endpoint,
+        pr.base.repo
+      )
+
+      insertablePRs.push({
+        number: pr.number,
+        title: pr.title,
+        createdAt: pr.created_at,
         head: {
-          ref: x.head.ref,
-          sha: x.head.sha,
-          repoId: -1,
+          ref: pr.head.ref,
+          sha: pr.head.sha,
+          repoId: headRepo.dbID!,
         },
         base: {
-          ref: x.base.ref,
-          sha: x.base.sha,
-          repoId: -1,
+          ref: pr.base.ref,
+          sha: pr.base.sha,
+          repoId: baseRepo.dbID!,
         },
-      }
-    })
+      })
+    }
 
     await this.db.transaction('rw', table, async () => {
       await table.clear()
