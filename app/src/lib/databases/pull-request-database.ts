@@ -16,14 +16,27 @@ export interface IPullRequest {
   readonly author: string
 }
 
+export interface IPullRequestStatus {
+  readonly id?: number
+  readonly state: string
+  readonly totalCount: number
+  readonly pullRequestId: number
+  readonly sha: string
+}
+
 export class PullRequestDatabase extends Dexie {
   public pullRequests: Dexie.Table<IPullRequest, number>
+  public pullRequestStatus: Dexie.Table<IPullRequestStatus, number>
 
   public constructor(name: string) {
     super(name)
 
     this.version(1).stores({
       pullRequests: 'id++, base.repoId',
+    })
+
+    this.version(2).stores({
+      pullRequestStatus: 'id++, &[sha+pullRequestId]',
     })
   }
 }
