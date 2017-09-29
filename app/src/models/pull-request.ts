@@ -9,7 +9,7 @@ export interface IPullRequest extends IAPIPullRequest {
 
 export class PullRequest {
   public readonly created: Date
-  public readonly status: IAPIRefStatus
+  public readonly status: IAPIRefStatus | null
   public readonly title: string
   public readonly number: number
   public readonly head: IPullRequestRef
@@ -17,7 +17,7 @@ export class PullRequest {
 
   public constructor(
     created: Date,
-    status: IAPIRefStatus,
+    status: IAPIRefStatus | null,
     title: string,
     number_: number,
     head: IPullRequestRef,
