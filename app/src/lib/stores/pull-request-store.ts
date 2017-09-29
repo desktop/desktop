@@ -1,4 +1,4 @@
-import { PullRequestDatabase } from '../databases'
+import { PullRequestDatabase, IPullRequest } from '../databases'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { API, IAPIPullRequest } from '../api'
@@ -60,8 +60,22 @@ export class PullRequestStore {
     }
 
     const table = this.db.pullRequests
-    const insertablePRs = pullRequests.map(x => {
-      return { repoId, ...x }
+    const insertablePRs: Array<IPullRequest> = pullRequests.map(x => {
+      return {
+        number: x.number,
+        title: x.title,
+        createdAt: x.created_at,
+        head: {
+          ref: x.head.ref,
+          sha: x.head.sha,
+          repoId: -1,
+        },
+        base: {
+          ref: x.base.ref,
+          sha: x.base.sha,
+          repoId: -1,
+        },
+      }
     })
 
     await this.db.transaction('rw', table, async () => {

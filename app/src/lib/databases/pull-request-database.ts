@@ -1,11 +1,18 @@
 import Dexie from 'dexie'
 
+interface IPullRequestRef {
+  readonly repoId: number
+  readonly ref: string
+  readonly sha: string
+}
+
 export interface IPullRequest {
   readonly id?: number
-  readonly repoId: number
   readonly number: number
   readonly title: string
-  readonly lastUpdate?: string
+  readonly createdAt: string
+  readonly head: IPullRequestRef
+  readonly base: IPullRequestRef
 }
 
 export class PullRequestDatabase extends Dexie {
@@ -15,7 +22,7 @@ export class PullRequestDatabase extends Dexie {
     super(name)
 
     this.version(1).stores({
-      pullRequests: 'id++, repo_id',
+      pullRequests: 'id++, base.repoId',
     })
   }
 }
