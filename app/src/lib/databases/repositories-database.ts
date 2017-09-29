@@ -51,5 +51,9 @@ export class RepositoriesDatabase extends Dexie {
     this.version(3).stores({
       gitHubRepositories: '++id, name, &[endpoint+ownerID+name]',
     })
+
+    this.version(4).stores({
+      gitHubRepositories: '++id, name, &[endpoint+ownerID+name], cloneURL',
+    })
   }
 }
