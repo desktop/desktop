@@ -29,36 +29,36 @@ export class RepositoriesStore {
     return this.emitter.on('did-update', fn)
   }
 
-  public async findGitHubRepositoryByCloneURL(
-    cloneURL: string
-  ): Promise<GitHubRepository | null> {
+  public async findOrPutGitHubRepository(
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ): Promise<GitHubRepository> {
     return this.db.transaction(
-      'r',
+      'rw',
       this.db.repositories,
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
         const gitHubRepository = await this.db.gitHubRepositories
           .where('cloneURL')
-          .equals(cloneURL)
+          .equals(apiRepository.clone_url)
           .limit(1)
           .first()
         if (!gitHubRepository) {
-          return null
+          return this.putGitHubRepository(endpoint, apiRepository)
+        } else {
+          return this.buildGitHubRepository(gitHubRepository)
         }
-
-        return this.buildGitHubRepository(gitHubRepository)
       }
     )
   }
 
   private async buildGitHubRepository(
     dbRepo: IDatabaseGitHubRepository
-  ): Promise<GitHubRepository | null> {
+  ): Promise<GitHubRepository> {
     const owner = await this.db.owners.get(dbRepo.ownerID)
     if (!owner) {
-      log.error(`Couldn't find the owner for ${dbRepo.name}`)
-      return null
+      throw new Error(`Couldn't find the owner for ${dbRepo.name}`)
     }
 
     let parent: GitHubRepository | null = null
