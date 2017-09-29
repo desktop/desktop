@@ -1,5 +1,5 @@
 import { IAPIPullRequest, IAPIRefStatus } from '../lib/api'
-import { IPullRequestRef } from '../lib/databases'
+import { GitHubRepository } from './github-repository'
 
 /** A pull request as used in the UI. */
 export interface IPullRequest extends IAPIPullRequest {
@@ -7,21 +7,37 @@ export interface IPullRequest extends IAPIPullRequest {
   readonly created: Date
 }
 
+export class PullRequestRef {
+  public readonly ref: string
+  public readonly sha: string
+  public readonly gitHubRepository: GitHubRepository
+
+  public constructor(
+    ref: string,
+    sha: string,
+    gitHubRepository: GitHubRepository
+  ) {
+    this.ref = ref
+    this.sha = sha
+    this.gitHubRepository = gitHubRepository
+  }
+}
+
 export class PullRequest {
   public readonly created: Date
   public readonly status: IAPIRefStatus | null
   public readonly title: string
   public readonly number: number
-  public readonly head: IPullRequestRef
-  public readonly base: IPullRequestRef
+  public readonly head: PullRequestRef
+  public readonly base: PullRequestRef
 
   public constructor(
     created: Date,
     status: IAPIRefStatus | null,
     title: string,
     number_: number,
-    head: IPullRequestRef,
-    base: IPullRequestRef
+    head: PullRequestRef,
+    base: PullRequestRef
   ) {
     this.created = created
     this.status = status
