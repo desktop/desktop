@@ -3,13 +3,19 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { API, IAPIPullRequest } from '../api'
 import { fatalError } from '../fatal-error'
+import { RepositoriesStore } from './repositories-store'
 
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore {
-  private db: PullRequestDatabase
+  private readonly db: PullRequestDatabase
+  private readonly repositoriesStore: RepositoriesStore
 
-  public constructor(db: PullRequestDatabase) {
+  public constructor(
+    db: PullRequestDatabase,
+    repositoriesStore: RepositoriesStore
+  ) {
     this.db = db
+    this.repositoriesStore = repositoriesStore
   }
 
   public async cachePullRequests(

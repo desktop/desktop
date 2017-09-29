@@ -115,7 +115,8 @@ const repositoriesStore = new RepositoriesStore(
 )
 
 const pullRequestStore = new PullRequestStore(
-  new PullRequestDatabase('PullRequestDatabase')
+  new PullRequestDatabase('PullRequestDatabase'),
+  repositoriesStore
 )
 
 const appStore = new AppStore(
