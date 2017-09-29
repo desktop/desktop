@@ -1,4 +1,4 @@
-import { IAPIRefStatus } from '../lib/api'
+import { APIRefState } from '../lib/api'
 import { GitHubRepository } from './github-repository'
 
 export class PullRequestRef {
@@ -17,20 +17,32 @@ export class PullRequestRef {
   }
 }
 
+export class PullRequestStatus {
+  public readonly state: APIRefState
+  public readonly totalCount: number
+  public readonly sha: string
+
+  public constructor(state: APIRefState, totalCount: number, sha: string) {
+    this.state = state
+    this.totalCount = totalCount
+    this.sha = sha
+  }
+}
+
 export class PullRequest {
   public readonly id: number
   public readonly created: Date
-  public readonly status: IAPIRefStatus
   public readonly title: string
   public readonly number: number
   public readonly head: PullRequestRef
   public readonly base: PullRequestRef
   public readonly author: string
+  public readonly status: PullRequestStatus | null
 
   public constructor(
     id: number,
     created: Date,
-    status: IAPIRefStatus,
+    status: PullRequestStatus | null,
     title: string,
     number_: number,
     head: PullRequestRef,
