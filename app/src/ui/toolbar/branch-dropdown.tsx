@@ -10,8 +10,6 @@ import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { enablePreviewFeatures } from '../../lib/feature-flag'
 import { PullRequest } from '../../models/pull-request'
-import { GitHubRepository } from '../../models/github-repository'
-import { Branch } from '../../models/branch'
 import { PullRequestBadge } from '../branches/pull-request-badge'
 
 interface IBranchDropdownProps {
@@ -37,7 +35,11 @@ interface IBranchDropdownProps {
   /** The currently selected tab. */
   readonly selectedTab: BranchesTab
 
+  /** The open pull requests in the repository. */
   readonly pullRequests: ReadonlyArray<PullRequest> | null
+
+  /** The pull request associated with the current branch. */
+  readonly currentPullRequest: PullRequest | null
 }
 
 /**
@@ -65,20 +67,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     )
   }
 
-  private get currentPullRequest(): PullRequest | null {
-    const repositoryState = this.props.repositoryState
-    const branchesState = repositoryState.branchesState
-    const pullRequests = this.props.pullRequests
-    const gitHubRepository = this.props.repository.gitHubRepository
-
-    const tip = branchesState.tip
-    if (tip.kind === TipState.Valid && pullRequests && gitHubRepository) {
-      return findCurrentPullRequest(tip.branch, pullRequests, gitHubRepository)
-    } else {
-      return null
-    }
-  }
-
   private onDropDownStateChanged = (state: DropdownState) => {
     // Don't allow opening the drop down when checkout is in progress
     if (state === 'open' && this.props.repositoryState.checkoutProgress) {
@@ -102,7 +90,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     let canOpen = true
     let tooltip: string
 
-    if (this.currentPullRequest) {
+    if (this.props.currentPullRequest) {
       icon = OcticonSymbol.gitPullRequest
     }
 
@@ -166,7 +154,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   }
 
   private renderPullRequestInfo() {
-    const pr = this.currentPullRequest
+    const pr = this.props.currentPullRequest
     if (!pr) {
       return null
     }
@@ -177,27 +165,4 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
     return <PullRequestBadge number={pr.number} status={pr.status} />
   }
-}
-
-function findCurrentPullRequest(
-  currentBranch: Branch,
-  pullRequests: ReadonlyArray<PullRequest>,
-  gitHubRepository: GitHubRepository
-): PullRequest | null {
-  const upstream = currentBranch.upstreamWithoutRemote
-  if (!upstream) {
-    return null
-  }
-
-  for (const pr of pullRequests) {
-    if (
-      pr.head.ref === upstream &&
-      // TODO: This doesn't work for when I've checked out a PR from a fork.
-      pr.head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
-    ) {
-      return pr
-    }
-  }
-
-  return null
 }

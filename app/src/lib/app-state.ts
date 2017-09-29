@@ -494,6 +494,9 @@ export interface IBranchesState {
 
   /** The open pull requests in the repository. */
   readonly pullRequests: ReadonlyArray<PullRequest> | null
+
+  /** The pull request associated with the current branch. */
+  readonly currentPullRequest: PullRequest | null
 }
 
 export interface IHistorySelection {

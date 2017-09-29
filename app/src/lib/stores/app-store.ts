@@ -109,6 +109,7 @@ import { getAccountForRepository } from '../get-account-for-repository'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequestStore } from './pull-request-store'
 import { Owner } from '../../models/owner'
+import { PullRequest } from '../../models/pull-request'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -388,6 +389,7 @@ export class AppStore {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
         pullRequests: null,
+        currentPullRequest: null,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -2721,11 +2723,46 @@ export class AppStore {
       gitHubRepository,
       account
     )
-    this.updateBranchesState(repository, state => ({
-      ...state,
-      pullRequests,
-    }))
+    this.updateBranchesState(repository, state => {
+      let currentPullRequest = null
+      if (state.tip.kind === TipState.Valid) {
+        currentPullRequest = this.findAssociatedPullRequest(
+          state.tip.branch,
+          pullRequests,
+          gitHubRepository
+        )
+      }
+
+      return {
+        ...state,
+        pullRequests,
+        currentPullRequest,
+      }
+    })
 
     this.emitUpdate()
+  }
+
+  private findAssociatedPullRequest(
+    branch: Branch,
+    pullRequests: ReadonlyArray<PullRequest>,
+    gitHubRepository: GitHubRepository
+  ): PullRequest | null {
+    const upstream = branch.upstreamWithoutRemote
+    if (!upstream) {
+      return null
+    }
+
+    for (const pr of pullRequests) {
+      if (
+        pr.head.ref === upstream &&
+        // TODO: This doesn't work for when I've checked out a PR from a fork.
+        pr.head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
+      ) {
+        return pr
+      }
+    }
+
+    return null
   }
 }

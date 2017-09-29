@@ -1429,6 +1429,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       !!currentFoldout && currentFoldout.type === FoldoutType.Branch
 
     const repository = selection.repository
+    const branchesState = selection.state.branchesState
 
     return (
       <BranchDropdown
@@ -1438,7 +1439,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         repository={repository}
         repositoryState={selection.state}
         selectedTab={this.state.selectedBranchesTab}
-        pullRequests={selection.state.branchesState.pullRequests}
+        pullRequests={branchesState.pullRequests}
+        currentPullRequest={branchesState.currentPullRequest}
       />
     )
   }
