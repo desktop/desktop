@@ -21,7 +21,7 @@ const PullRequestFilterList: new () => FilterList<
   IPullRequestListItem
 > = FilterList as any
 
-const RowHeight = 45
+const RowHeight = 47
 
 interface IPullRequestListProps {
   /** The pull requests to display. */
