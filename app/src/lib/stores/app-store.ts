@@ -387,6 +387,7 @@ export class AppStore {
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
+        pullRequests: null,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -533,6 +534,7 @@ export class AppStore {
     }))
 
     this.updateBranchesState(repository, state => ({
+      ...state,
       tip: gitStore.tip,
       defaultBranch: gitStore.defaultBranch,
       allBranches: gitStore.allBranches,
