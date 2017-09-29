@@ -8,7 +8,11 @@ import { Account } from '../../models/account'
 import { API, IAPIPullRequest } from '../api'
 import { fatalError } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
-import { PullRequest, PullRequestRef } from '../../models/pull-request'
+import {
+  PullRequest,
+  PullRequestRef,
+  PullRequestStatus,
+} from '../../models/pull-request'
 
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore {
@@ -37,7 +41,7 @@ export class PullRequestStore {
 
     await this.writePullRequests(prsFrmoAPI, repository)
 
-    const prs = await this.getPullRequests(repository)
+    let prs = await this.getPullRequests(repository)
     const pullRequestsStatuses: Array<IPullRequestStatus> = []
 
     for (const pr of prs) {
@@ -56,6 +60,8 @@ export class PullRequestStore {
     }
 
     await this.writePullRequestStatus(pullRequestsStatuses)
+
+    prs = await this.getPullRequests(repository)
 
     return prs
   }
@@ -86,10 +92,13 @@ export class PullRequestStore {
       const base = (await this.repositoriesStore.findGitHubRepositoryByID(
         pr.base.repoId
       ))!
+
+      const prStatus = await this.getPullRequestStatusById(pr.head.sha, pr.id!)
+
       const builtPR = new PullRequest(
         pr.id!,
         new Date(pr.createdAt),
-        { total_count: 0, state: 'pending' },
+        prStatus,
         pr.title,
         pr.number,
         new PullRequestRef(pr.head.ref, pr.head.sha, head),
@@ -153,6 +162,23 @@ export class PullRequestStore {
       await table.clear()
       await table.bulkAdd(insertablePRs)
     })
+  }
+
+  private async getPullRequestStatusById(
+    sha: string,
+    pullRequestId: number
+  ): Promise<PullRequestStatus | null> {
+    const result = await this.db.pullRequestStatus
+      .where('[sha+pullRequestId]')
+      .equals([sha, pullRequestId])
+      .limit(1)
+      .first()
+
+    if (!result) {
+      return null
+    }
+
+    return new PullRequestStatus(result.state, result.totalCount, result.sha)
   }
 
   private async writePullRequestStatus(
