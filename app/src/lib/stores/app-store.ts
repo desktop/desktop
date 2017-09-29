@@ -2702,7 +2702,12 @@ export class AppStore {
     }
   }
 
-  public updatePullRequests(gitHubRepository: GitHubRepository): Promise<void> {
+  public async updatePullRequests(repository: Repository): Promise<void> {
+    const gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) {
+      return
+    }
+
     const account = getAccountForEndpoint(
       this.accounts,
       gitHubRepository.endpoint
@@ -2711,6 +2716,13 @@ export class AppStore {
       return Promise.resolve()
     }
 
-    return this.pullRequestStore.cachePullRequests(gitHubRepository, account)
+    const pullRequests = await this.pullRequestStore.updatePullRequests(
+      gitHubRepository,
+      account
+    )
+    this.updateBranchesState(repository, state => ({
+      ...state,
+      pullRequests,
+    }))
   }
 }
