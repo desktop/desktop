@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import * as winston from 'winston'
 
-import { getLogPath } from '../lib/logging/get-log-path'
+import { getLogDirectoryPath } from '../lib/logging/get-log-path'
 import { LogLevel } from '../lib/logging/log-level'
 import { mkdirIfNeeded } from '../lib/file-system'
 
@@ -71,11 +71,11 @@ function getLogger(): Promise<winston.LogMethod> {
   }
 
   loggerPromise = new Promise<winston.LogMethod>((resolve, reject) => {
-    const logPath = getLogPath()
+    const logDirectory = getLogDirectoryPath()
 
-    mkdirIfNeeded(logPath)
+    mkdirIfNeeded(logDirectory)
       .then(() => {
-        resolve(initializeWinston(getLogFilePath(logPath)))
+        resolve(initializeWinston(getLogFilePath(logDirectory)))
       })
       .catch(error => {
         reject(error)
