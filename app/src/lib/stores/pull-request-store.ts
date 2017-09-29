@@ -67,7 +67,8 @@ export class PullRequestStore {
         pr.title,
         pr.number,
         new PullRequestRef(pr.head.ref, pr.head.sha, head),
-        new PullRequestRef(pr.base.ref, pr.base.sha, base)
+        new PullRequestRef(pr.base.ref, pr.base.sha, base),
+        pr.author
       )
       builtPullRequests.push(builtPR)
     }
@@ -117,6 +118,7 @@ export class PullRequestStore {
           sha: pr.base.sha,
           repoId: baseRepo.dbID!,
         },
+        author: pr.user.login,
       })
     }
 

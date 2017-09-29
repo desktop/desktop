@@ -30,6 +30,7 @@ export class PullRequest {
   public readonly number: number
   public readonly head: PullRequestRef
   public readonly base: PullRequestRef
+  public readonly author: string
 
   public constructor(
     created: Date,
@@ -37,7 +38,8 @@ export class PullRequest {
     title: string,
     number_: number,
     head: PullRequestRef,
-    base: PullRequestRef
+    base: PullRequestRef,
+    author: string
   ) {
     this.created = created
     this.status = status
@@ -45,5 +47,6 @@ export class PullRequest {
     this.number = number_
     this.head = head
     this.base = base
+    this.author = author
   }
 }

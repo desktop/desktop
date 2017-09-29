@@ -13,6 +13,7 @@ export interface IPullRequest {
   readonly createdAt: string
   readonly head: IPullRequestRef
   readonly base: IPullRequestRef
+  readonly author: string
 }
 
 export class PullRequestDatabase extends Dexie {
