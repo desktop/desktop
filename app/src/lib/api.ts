@@ -112,8 +112,9 @@ export interface IAPIIssue {
 export type APIRefState = 'failure' | 'pending' | 'success'
 
 /** The API response to a ref status request. */
-interface IAPIRefStatus {
+export interface IAPIRefStatus {
   readonly state: APIRefState
+  readonly total_count: number
 }
 
 interface IAPIPullRequestRef {
@@ -402,12 +403,12 @@ export class API {
     owner: string,
     name: string,
     ref: string
-  ): Promise<APIRefState> {
+  ): Promise<IAPIRefStatus> {
     const path = `repos/${owner}/${name}/commits/${ref}/status`
     try {
       const response = await this.request('GET', path)
       const status = await parsedResponse<IAPIRefStatus>(response)
-      return status.state
+      return status
     } catch (e) {
       log.warn(
         `fetchCombinedRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
