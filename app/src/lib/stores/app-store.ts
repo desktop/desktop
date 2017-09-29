@@ -782,8 +782,9 @@ export class AppStore {
     const gitHubRepository = repository.gitHubRepository
     if (gitHubRepository) {
       this._updateIssues(gitHubRepository)
-      this.updatePullRequests(gitHubRepository)
     }
+
+    this._updatePullRequests(repository)
 
     await this._refreshRepository(repository)
 
@@ -2702,7 +2703,7 @@ export class AppStore {
     }
   }
 
-  public async updatePullRequests(repository: Repository): Promise<void> {
+  public async _updatePullRequests(repository: Repository): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return

@@ -1028,9 +1028,7 @@ export class Dispatcher {
     return this.appStore._openCreatePullRequest(repository)
   }
 
-  public refreshPullRequests(
-    gitHubRepository: GitHubRepository
-  ): Promise<void> {
-    return this.appStore.refreshPullRequests(gitHubRepository)
+  public updatePullRequests(repository: Repository): Promise<void> {
+    return this.appStore._updatePullRequests(repository)
   }
 }
