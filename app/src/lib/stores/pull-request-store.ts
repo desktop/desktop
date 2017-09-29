@@ -1,4 +1,8 @@
-import { PullRequestDatabase, IPullRequest } from '../databases'
+import {
+  PullRequestDatabase,
+  IPullRequest,
+  IPullRequestStatus,
+} from '../databases'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { API, IAPIPullRequest } from '../api'
@@ -25,15 +29,35 @@ export class PullRequestStore {
   ): Promise<ReadonlyArray<PullRequest>> {
     const api = API.fromAccount(account)
 
-    const prs = await api.fetchPullRequests(
+    const prsFrmoAPI = await api.fetchPullRequests(
       repository.owner.login,
       repository.name,
       'open'
     )
 
-    await this.writePullRequests(prs, repository)
+    await this.writePullRequests(prsFrmoAPI, repository)
 
-    return this.getPullRequests(repository)
+    const prs = await this.getPullRequests(repository)
+    const pullRequestsStatuses: Array<IPullRequestStatus> = []
+
+    for (const pr of prs) {
+      const status = await api.fetchCombinedRefStatus(
+        repository.owner.login,
+        repository.name,
+        pr.head.sha
+      )
+
+      pullRequestsStatuses.push({
+        state: status.state,
+        totalCount: status.total_count,
+        pullRequestId: pr.id,
+        sha: pr.head.sha,
+      })
+    }
+
+    await this.writePullRequestStatus(pullRequestsStatuses)
+
+    return prs
   }
 
   public async getPullRequests(
@@ -72,6 +96,7 @@ export class PullRequestStore {
         new PullRequestRef(pr.base.ref, pr.base.sha, base),
         pr.author
       )
+
       builtPullRequests.push(builtPR)
     }
 
@@ -129,6 +154,7 @@ export class PullRequestStore {
       await table.bulkAdd(insertablePRs)
     })
   }
+
   private async writePullRequestStatus(
     statuses: Array<IPullRequestStatus>
   ): Promise<void> {
