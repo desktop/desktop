@@ -75,7 +75,12 @@ function getLogger(): Promise<winston.LogMethod> {
 
     mkdirIfNeeded(logDirectory)
       .then(() => {
-        resolve(initializeWinston(getLogFilePath(logDirectory)))
+        try {
+          const logger = initializeWinston(getLogFilePath(logDirectory))
+          resolve(logger)
+        } catch (err) {
+          reject(err)
+        }
       })
       .catch(error => {
         reject(error)
