@@ -16,6 +16,7 @@ import {
   SignInStore,
   RepositoriesStore,
   AccountsStore,
+  PullRequestStore,
 } from '../../src/lib/stores'
 import { TestGitHubUserDatabase } from '../test-github-user-database'
 import { TestStatsDatabase } from '../test-stats-database'
@@ -35,6 +36,7 @@ import { setupEmptyRepository } from '../fixture-helper'
 import { TestRepositoriesDatabase } from '../test-repositories-database'
 import { InMemoryStore } from '../in-memory-store'
 import { AsyncInMemoryStore } from '../async-in-memory-store'
+import { TestPullRequestDatabase } from '../test-pull-request-database'
 
 describe('AppStore', () => {
   async function createAppStore(): Promise<AppStore> {
@@ -56,6 +58,11 @@ describe('AppStore', () => {
       new AsyncInMemoryStore()
     )
 
+    const pullRequestStore = new PullRequestStore(
+      new TestPullRequestDatabase(),
+      repositoriesStore
+    )
+
     return new AppStore(
       new GitHubUserStore(db),
       new CloningRepositoriesStore(),
@@ -64,7 +71,8 @@ describe('AppStore', () => {
       new StatsStore(statsDb),
       new SignInStore(),
       accountsStore,
-      repositoriesStore
+      repositoriesStore,
+      pullRequestStore
     )
   }
 
