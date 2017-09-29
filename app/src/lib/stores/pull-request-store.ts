@@ -51,6 +51,7 @@ export class PullRequestStore {
     const pullRequests = await this.db.pullRequests
       .where('base.repoId')
       .equals(gitHubRepositoryID)
+      .reverse()
       .sortBy('number')
 
     const builtPullRequests = new Array<PullRequest>()
