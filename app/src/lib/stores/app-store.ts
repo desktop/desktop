@@ -1505,18 +1505,20 @@ export class AppStore {
     // ideal because the GitHub repository hasn't been fetched from the API yet
     // and so it is incomplete. But if we _can't_ fetch it from the API, it's
     // better than nothing.
+    const skeletonOwner = new Owner(
+      matchedGitHubRepository.owner,
+      matchedGitHubRepository.endpoint,
+      null
+    )
+    const skeletonGitHubRepository = new GitHubRepository(
+      matchedGitHubRepository.name,
+      skeletonOwner,
+      null
+    )
     const skeletonRepository = new Repository(
       repository.path,
       repository.id,
-      new GitHubRepository(
-        matchedGitHubRepository.name,
-        new Owner(
-          matchedGitHubRepository.owner,
-          matchedGitHubRepository.endpoint,
-          null
-        ),
-        null
-      ),
+      skeletonGitHubRepository,
       repository.missing
     )
 
