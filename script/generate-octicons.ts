@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /* generate-octicons
  *
  * Utility script for generating a strongly typed representation of all
@@ -7,13 +5,10 @@
  * downloads the latest version of the `sprite.octicons.svg` file.
  */
 
-'use strict'
-
-const fs = require('fs')
-const process = require('process')
-const xml2js = require('xml2js')
-const path = require('path')
-const toCamelCase = require('to-camel-case')
+import fs = require('fs')
+import xml2js = require('xml2js')
+import path = require('path')
+import toCamelCase = require('to-camel-case')
 
 const filePath = path.resolve(
   __dirname,
@@ -24,12 +19,24 @@ const filePath = path.resolve(
   'sprite.octicons.svg'
 )
 
-const file = fs.readFileSync(filePath)
+/* tslint:disable:no-sync-functions */
+const file = fs.readFileSync(filePath, 'utf-8')
 
-xml2js.parseString(file, function(err, result) {
+interface IXML2JSResult {
+  svg: { symbol: ReadonlyArray<IXML2JSNode> }
+}
+interface IXML2JSNode {
+  $: { [key: string]: string }
+  path: ReadonlyArray<IXML2JSNode>
+}
+
+xml2js.parseString(file, function(err, result: IXML2JSResult) {
   const viewBoxRe = /0 0 (\d+) (\d+)/
   const out = fs.createWriteStream(
-    path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts')
+    path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts'),
+    {
+      encoding: 'utf-8',
+    }
   )
 
   out.write('/*\n')
@@ -55,8 +62,9 @@ xml2js.parseString(file, function(err, result) {
     const viewBoxMatch = viewBoxRe.exec(viewBox)
 
     if (!viewBoxMatch) {
-      console.error(`Unexpected viewBox format for ${id}`)
-      process.exit(1)
+      console.error(`*** ERROR! Unexpected viewBox format for ${id}`)
+      process.exitCode = 1
+      return
     }
 
     const [, w, h] = viewBoxMatch
