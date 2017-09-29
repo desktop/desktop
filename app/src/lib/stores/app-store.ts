@@ -2725,5 +2725,7 @@ export class AppStore {
       ...state,
       pullRequests,
     }))
+
+    this.emitUpdate()
   }
 }
