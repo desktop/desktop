@@ -104,6 +104,7 @@ import {
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { getAccountForRepository } from '../get-account-for-repository'
 import { BranchesTab } from '../../models/branches-tab'
+import { PullRequestStore } from './pull-request-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -214,6 +215,8 @@ export class AppStore {
 
   private selectedBranchesTab = BranchesTab.Branches
 
+  private pullRequestStore: PullRequestStore
+
   public constructor(
     gitHubUserStore: GitHubUserStore,
     cloningRepositoriesStore: CloningRepositoriesStore,
@@ -222,7 +225,8 @@ export class AppStore {
     statsStore: StatsStore,
     signInStore: SignInStore,
     accountsStore: AccountsStore,
-    repositoriesStore: RepositoriesStore
+    repositoriesStore: RepositoriesStore,
+    pullRequestStore: PullRequestStore
   ) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
@@ -232,6 +236,7 @@ export class AppStore {
     this.signInStore = signInStore
     this.accountsStore = accountsStore
     this.repositoriesStore = repositoriesStore
+    this.pullRequestStore = pullRequestStore
     this.showWelcomeFlow = !hasShownWelcomeFlow()
 
     const window = remote.getCurrentWindow()
