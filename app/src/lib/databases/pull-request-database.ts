@@ -1,4 +1,5 @@
 import Dexie from 'dexie'
+import { APIRefState } from '../api'
 
 export interface IPullRequestRef {
   readonly repoId: number
@@ -18,7 +19,7 @@ export interface IPullRequest {
 
 export interface IPullRequestStatus {
   readonly id?: number
-  readonly state: string
+  readonly state: APIRefState
   readonly totalCount: number
   readonly pullRequestId: number
   readonly sha: string
