@@ -25,7 +25,7 @@ export class PullRequestRef {
 
 export class PullRequest {
   public readonly created: Date
-  public readonly status: IAPIRefStatus | null
+  public readonly status: IAPIRefStatus
   public readonly title: string
   public readonly number: number
   public readonly head: PullRequestRef
@@ -33,7 +33,7 @@ export class PullRequest {
 
   public constructor(
     created: Date,
-    status: IAPIRefStatus | null,
+    status: IAPIRefStatus,
     title: string,
     number_: number,
     head: PullRequestRef,
