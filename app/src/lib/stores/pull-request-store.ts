@@ -49,7 +49,7 @@ export class PullRequestStore {
     }
 
     const pullRequests = await this.db.pullRequests
-      .where('repo_id')
+      .where('base.repoId')
       .equals(gitHubRepositoryID)
       .sortBy('number')
 
