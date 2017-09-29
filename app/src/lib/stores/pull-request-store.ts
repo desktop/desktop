@@ -128,4 +128,9 @@ export class PullRequestStore {
       await table.bulkAdd(insertablePRs)
     })
   }
+  private async writePullRequestStatus(
+    statuses: Array<IPullRequestStatus>
+  ): Promise<void> {
+    await this.db.pullRequestStatus.bulkAdd(statuses)
+  }
 }
