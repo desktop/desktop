@@ -63,6 +63,7 @@ export class PullRequestStore {
         pr.base.repoId
       ))!
       const builtPR = new PullRequest(
+        pr.id!,
         new Date(pr.createdAt),
         { total_count: 0, state: 'pending' },
         pr.title,
