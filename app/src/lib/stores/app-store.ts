@@ -782,6 +782,7 @@ export class AppStore {
     const gitHubRepository = repository.gitHubRepository
     if (gitHubRepository) {
       this._updateIssues(gitHubRepository)
+      this.updatePullRequests(gitHubRepository)
     }
 
     await this._refreshRepository(repository)
@@ -2699,5 +2700,17 @@ export class AppStore {
       const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
       await this._openInBrowser(baseURL)
     }
+  }
+
+  public updatePullRequests(gitHubRepository: GitHubRepository): Promise<void> {
+    const account = getAccountForEndpoint(
+      this.accounts,
+      gitHubRepository.endpoint
+    )
+    if (!account) {
+      return Promise.resolve()
+    }
+
+    return this.pullRequestStore.cachePullRequests(gitHubRepository, account)
   }
 }
