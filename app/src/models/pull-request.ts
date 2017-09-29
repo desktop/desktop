@@ -1,4 +1,5 @@
 import { IAPIPullRequest, IAPIRefStatus } from '../lib/api'
+import { IPullRequestRef } from '../lib/databases'
 
 /** A pull request as used in the UI. */
 export interface IPullRequest extends IAPIPullRequest {
@@ -11,16 +12,22 @@ export class PullRequest {
   public readonly status: IAPIRefStatus
   public readonly title: string
   public readonly number: number
+  public readonly head: IPullRequestRef
+  public readonly base: IPullRequestRef
 
   public constructor(
     created: Date,
     status: IAPIRefStatus,
     title: string,
-    number_: number
+    number_: number,
+    head: IPullRequestRef,
+    base: IPullRequestRef
   ) {
     this.created = created
     this.status = status
     this.title = title
     this.number = number_
+    this.head = head
+    this.base = base
   }
 }

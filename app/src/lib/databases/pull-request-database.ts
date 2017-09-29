@@ -1,6 +1,6 @@
 import Dexie from 'dexie'
 
-interface IPullRequestRef {
+export interface IPullRequestRef {
   readonly repoId: number
   readonly ref: string
   readonly sha: string
