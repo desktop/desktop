@@ -18,6 +18,7 @@ export class PullRequestRef {
 }
 
 export class PullRequest {
+  public readonly id: number
   public readonly created: Date
   public readonly status: IAPIRefStatus
   public readonly title: string
@@ -27,6 +28,7 @@ export class PullRequest {
   public readonly author: string
 
   public constructor(
+    id: number,
     created: Date,
     status: IAPIRefStatus,
     title: string,
@@ -35,6 +37,7 @@ export class PullRequest {
     base: PullRequestRef,
     author: string
   ) {
+    this.id = id
     this.created = created
     this.status = status
     this.title = title
