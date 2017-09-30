@@ -48,8 +48,26 @@ export class RepositoriesDatabase extends Dexie {
       owners: '++id, &[endpoint+login]',
     })
 
-    this.version(3).stores({
-      gitHubRepositories: '++id, name, &[ownerID+name]',
-    })
+    this.version(3)
+      .stores({
+        gitHubRepositories: '++id, name, &[ownerID+name]',
+      })
+      .upgrade(t => {
+        // We're adding a new index with a uniqueness constraint which some old
+        // data might not satisfy. So we need to remove any duplicates.
+        const table = t.table<IDatabaseGitHubRepository, number>(
+          'gitHubRepositories'
+        )
+
+        const seenKeys = new Set<string>()
+        return table.toCollection().each(repo => {
+          const key = `${repo.ownerID}+${repo.name}`
+          if (seenKeys.has(key)) {
+            table.delete(repo.id!)
+          } else {
+            seenKeys.add(key)
+          }
+        })
+      })
   }
 }
