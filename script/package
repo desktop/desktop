@@ -155,8 +155,37 @@ function packageDebian() {
   })
 }
 
+function packageAppImage() {
+  // xorriso will spit out a vague error that looks like this:
+  //
+  // libburn : SORRY : Neither stdio-path nor its directory exist
+  //
+  // looks like it's due to the "make" directory not existing
+  // but maybe we can get it to use outputDir and make this redundant
+  const makeDir = path.join(distInfo.getDistRoot(), 'make')
+  fs.removeSync(makeDir)
+  fs.mkdirSync(makeDir)
+
+  const installer = require('electron-installer-appimage')
+
+  var options = {
+    dir: distPath,
+    src: distPath,
+    dest: outputDir,
+    targetArch: 'x64',
+    // these are some silly things to set because of electron-builder
+    artifactName: productName,
+  }
+
+  console.log('Creating AppImage package...')
+  return installer.default(options).then(() => {
+    // TODO: this is a hack too, it's not respecting my `dest` directory
+    cp.execSync(`cp ${makeDir}/*.AppImage ${outputDir}`)
+  })
+}
+
 function packageLinux() {
-  Promise.all([packageRedhat()])
+  Promise.all([packageRedhat(), packageDebian(), packageAppImage()])
     .catch(err => {
       console.error(err, err.stack)
       process.exit(1)

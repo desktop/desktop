@@ -26,6 +26,9 @@ addons:
       - dpkg
       # packages required for electron-installer-redhat
       - rpm
+      # packages required for electron-installer-appimage
+      - xz-utils
+      - xorriso
 
 branches:
   only:
