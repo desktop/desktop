@@ -35,25 +35,61 @@ export class RepositoriesDatabase extends Dexie {
   /** The GitHub repository owners table. */
   public owners: Dexie.Table<IDatabaseOwner, number>
 
-  public constructor(name: string) {
+  public constructor(name: string, requestedVersion?: number) {
     super(name)
 
-    this.version(1).stores({
+    this.conditionalVersion(requestedVersion, 1, {
       repositories: '++id, &path',
       gitHubRepositories: '++id, name',
       owners: '++id, login',
     })
 
-    this.version(2).stores({
+    this.conditionalVersion(requestedVersion, 2, {
       owners: '++id, &[endpoint+login]',
     })
 
-    this.version(3).stores({
+    this.conditionalVersion(requestedVersion, 3, {}, t => {
+      // We're adding a new index with a uniqueness constraint in the next
+      // version and its upgrade callback only happens *after* the schema's been
+      // changed. So we need to prepare for it by removing any old data now
+      // which will violate it.
+      const table = t.table<IDatabaseGitHubRepository, number>(
+        'gitHubRepositories'
+      )
+
+      const seenKeys = new Set<string>()
+      return table.toCollection().each(repo => {
+        const key = `${repo.ownerID}+${repo.name}`
+        if (seenKeys.has(key)) {
+          table.delete(repo.id!)
+        } else {
+          seenKeys.add(key)
+        }
+      })
+    })
+
+    this.conditionalVersion(requestedVersion, 4, {
       gitHubRepositories: '++id, name, &[ownerID+name]',
     })
 
     this.version(4).stores({
       gitHubRepositories: '++id, name, &[ownerID+name], cloneURL',
     })
+  }
+
+  private conditionalVersion(
+    requestedVersion: number | undefined,
+    version: number,
+    schema: { [key: string]: string | null },
+    upgrade?: (t: Dexie.Transaction) => void
+  ) {
+    if (requestedVersion && requestedVersion < version) {
+      return
+    }
+
+    const dexieVersion = this.version(version).stores(schema)
+    if (upgrade) {
+      dexieVersion.upgrade(upgrade)
+    }
   }
 }
