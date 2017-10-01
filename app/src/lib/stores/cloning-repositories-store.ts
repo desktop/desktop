@@ -1,38 +1,10 @@
-import * as Path from 'path'
-
 import { Emitter, Disposable } from 'event-kit'
 
+import { CloningRepository } from '../../models/cloning-repository'
 import { clone as cloneRepo, CloneOptions } from '../git'
 import { ICloneProgress } from '../app-state'
 import { RetryAction, RetryActionType } from '../retry-actions'
 import { ErrorWithMetadata } from '../error-with-metadata'
-
-let CloningRepositoryID = 1
-
-/** A repository which is currently being cloned. */
-export class CloningRepository {
-  public readonly id = CloningRepositoryID++
-  public readonly path: string
-  public readonly url: string
-
-  public constructor(path: string, url: string) {
-    this.path = path
-    this.url = url
-  }
-
-  public get name(): string {
-    return Path.basename(this.path)
-  }
-
-  /**
-   * A hash of the properties of the object.
-   *
-   * Objects with the same hash are guaranteed to be structurally equal.
-   */
-  public get hash(): string {
-    return `${this.id}+${this.path}+${this.url}`
-  }
-}
 
 /** The store in charge of repository currently being cloned. */
 export class CloningRepositoriesStore {

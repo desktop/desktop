@@ -1,7 +1,7 @@
 import { Menu, ipcMain, shell, app } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
-import { getLogPath } from '../../lib/logging/get-log-path'
+import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { mkdirIfNeeded } from '../../lib/file-system'
 
 import { log } from '../log'
@@ -333,14 +333,14 @@ export function buildDefaultMenu(
   const showUserGuides: Electron.MenuItemConstructorOptions = {
     label: 'Show User Guides',
     click() {
-      shell.openExternal('https://help.github.com/desktop-beta/guides/')
+      shell.openExternal('https://help.github.com/desktop/guides/')
     },
   }
 
   const showLogsItem: Electron.MenuItemConstructorOptions = {
     label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
     click() {
-      const logPath = getLogPath()
+      const logPath = getLogDirectoryPath()
       mkdirIfNeeded(logPath)
         .then(() => {
           shell.showItemInFolder(logPath)

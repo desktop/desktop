@@ -80,6 +80,13 @@ export class CloneRepository extends React.Component<
     }
   }
 
+  public componentDidMount() {
+    const initialURL = this.props.initialURL
+    if (initialURL) {
+      this.updateUrl(initialURL)
+    }
+  }
+
   public render() {
     const error = this.state.error
     return (
@@ -228,7 +235,22 @@ export class CloneRepository extends React.Component<
   }
 
   private updatePath = (path: string) => {
-    this.setState({ path: path })
+    this.setState({ path })
+  }
+
+  private updateAndValidatePath = async (path: string) => {
+    this.updatePath(path)
+
+    const doesDirectoryExist = await this.doesPathExist(path)
+
+    if (doesDirectoryExist) {
+      const error: Error = new Error('The destination already exists.')
+      error.name = DestinationExistsErrorName
+
+      this.setState({ error })
+    } else {
+      this.setState({ error: null })
+    }
   }
 
   private onChooseDirectory = async () => {
@@ -245,18 +267,7 @@ export class CloneRepository extends React.Component<
       ? Path.join(directories[0], lastParsedIdentifier.name)
       : directories[0]
 
-    this.updatePath(directory)
-
-    const doesDirectoryExist = await this.doesPathExist(directory)
-
-    if (doesDirectoryExist) {
-      const error: Error = new Error('The destination already exists.')
-      error.name = DestinationExistsErrorName
-
-      this.setState({ error })
-    } else {
-      this.setState({ error: null })
-    }
+    this.updateAndValidatePath(directory)
 
     return directory
   }
@@ -279,21 +290,12 @@ export class CloneRepository extends React.Component<
       newPath = this.state.path
     }
 
-    const pathExist = await this.doesPathExist(newPath)
-
-    let error = null
-
-    if (pathExist) {
-      error = new Error('The destination already exists.')
-      error.name = DestinationExistsErrorName
-    }
-
     this.setState({
       url,
-      path: newPath,
       lastParsedIdentifier: parsed,
-      error,
     })
+
+    this.updateAndValidatePath(newPath)
   }
 
   private async doesPathExist(path: string) {
@@ -342,7 +344,7 @@ export class CloneRepository extends React.Component<
 
     if (!url) {
       const error = new Error(
-        `We couldn't find that repository. Check that you are logged in, and the URL or repository alias are spelled correctly.`
+        `We couldn't find that repository. Check that you are logged in, the network is accessible, and the URL or repository alias are spelled correctly.`
       )
       this.setState({ loading: false, error })
       return

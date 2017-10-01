@@ -26,29 +26,30 @@ import {
   WorkingDirectoryFileChange,
 } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
-import { matchGitHubRepository } from '../../lib/repository-matching'
+import {
+  matchGitHubRepository,
+  IMatchedGitHubRepository,
+} from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
+import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
 import {
   ExternalEditor,
   parse as parseExternalEditor,
 } from '../../models/editors'
 import { getAvailableEditors } from '../editors'
-import {
-  CloningRepository,
-  CloningRepositoriesStore,
-} from './cloning-repositories-store'
-import { IGitHubUser } from './github-user-database'
+import { CloningRepositoriesStore } from './cloning-repositories-store'
+import { IGitHubUser } from '../databases/github-user-database'
 import { GitHubUserStore } from './github-user-store'
-import { shell } from './app-shell'
+import { shell } from '../app-shell'
 import { EmojiStore } from './emoji-store'
 import { GitStore, ICommitMessage } from './git-store'
 import { assertNever } from '../fatal-error'
 import { IssuesStore } from './issues-store'
-import { BackgroundFetcher } from './background-fetcher'
+import { BackgroundFetcher } from './helpers/background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import {
@@ -86,7 +87,7 @@ import {
 import { launchExternalEditor } from '../editors'
 import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
-import { validatedRepositoryPath } from './validated-repository-path'
+import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
 import { RetryActionType, RetryAction } from '../retry-actions'
@@ -104,6 +105,9 @@ import {
   installLFSHooks,
 } from '../git/lfs'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
+import { getAccountForRepository } from '../get-account-for-repository'
+import { BranchesTab } from '../../models/branches-tab'
+import { Owner } from '../../models/owner'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -114,7 +118,9 @@ const defaultCommitSummaryWidth: number = 250
 const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 
 const confirmRepoRemovalDefault: boolean = true
+const confirmDiscardChangesDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
+const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 
 const externalEditorKey: string = 'externalEditor'
 
@@ -190,6 +196,7 @@ export class AppStore {
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
+  private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
 
   private selectedExternalEditor?: ExternalEditor
@@ -208,6 +215,8 @@ export class AppStore {
     | null = null
 
   private selectedCloneRepositoryTab: CloneRepositoryTab = CloneRepositoryTab.DotCom
+
+  private selectedBranchesTab = BranchesTab.Branches
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -502,12 +511,14 @@ export class AppStore {
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
-      confirmRepoRemoval: this.confirmRepoRemoval,
+      askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
+      askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
+      selectedBranchesTab: this.selectedBranchesTab,
     }
   }
 
@@ -782,7 +793,7 @@ export class AppStore {
     this.refreshMentionables(repository)
 
     if (repository instanceof Repository) {
-      return this.refreshGitHubRepositoryInfo(repository)
+      return this._repositoryWithRefreshedGitHubRepository(repository)
     } else {
       return repository
     }
@@ -810,7 +821,7 @@ export class AppStore {
   }
 
   private refreshMentionables(repository: Repository) {
-    const account = this.getAccountForRepository(repository)
+    const account = getAccountForRepository(this.accounts, repository)
     if (!account) {
       return
     }
@@ -834,7 +845,7 @@ export class AppStore {
       return
     }
 
-    const account = this.getAccountForRepository(repository)
+    const account = getAccountForRepository(this.accounts, repository)
     if (!account) {
       return
     }
@@ -890,12 +901,23 @@ export class AppStore {
       parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) ||
       defaultCommitSummaryWidth
 
-    const confirmRepoRemovalValue = localStorage.getItem(confirmRepoRemovalKey)
+    const confirmRepositoryRemovalValue = localStorage.getItem(
+      confirmRepoRemovalKey
+    )
 
     this.confirmRepoRemoval =
-      confirmRepoRemovalValue === null
+      confirmRepositoryRemovalValue === null
         ? confirmRepoRemovalDefault
-        : confirmRepoRemovalValue === '1'
+        : confirmRepositoryRemovalValue === '1'
+
+    const confirmDiscardChangesValue = localStorage.getItem(
+      confirmDiscardChangesKey
+    )
+
+    this.confirmDiscardChanges =
+      confirmDiscardChangesValue === null
+        ? confirmDiscardChangesDefault
+        : confirmDiscardChangesValue === '1'
 
     const externalEditorValue = await this.getSelectedExternalEditor()
     if (externalEditorValue) {
@@ -1460,30 +1482,50 @@ export class AppStore {
   ): Promise<Repository> {
     const oldGitHubRepository = repository.gitHubRepository
 
-    const updatedRepository = await this.updateGitHubRepositoryAssociation(
-      repository
-    )
-
-    const updatedGitHubRepository = updatedRepository.gitHubRepository
-
-    if (!updatedGitHubRepository) {
-      return updatedRepository
+    const matchedGitHubRepository = await this.matchGitHubRepository(repository)
+    if (!matchedGitHubRepository) {
+      // TODO: We currently never clear GitHub repository associations (see
+      // https://github.com/desktop/desktop/issues/1144). So we can bail early
+      // at this point.
+      return repository
     }
 
-    const account = this.getAccountForRepository(updatedRepository)
+    // This is the repository with the GitHub repository as matched. It's not
+    // ideal because the GitHub repository hasn't been fetched from the API yet
+    // and so it is incomplete. But if we _can't_ fetch it from the API, it's
+    // better than nothing.
+    const skeletonOwner = new Owner(
+      matchedGitHubRepository.owner,
+      matchedGitHubRepository.endpoint,
+      null
+    )
+    const skeletonGitHubRepository = new GitHubRepository(
+      matchedGitHubRepository.name,
+      skeletonOwner,
+      null
+    )
+    const skeletonRepository = new Repository(
+      repository.path,
+      repository.id,
+      skeletonGitHubRepository,
+      repository.missing
+    )
+
+    const account = getAccountForEndpoint(
+      this.accounts,
+      matchedGitHubRepository.endpoint
+    )
     if (!account) {
       // If the repository given to us had a GitHubRepository instance we want
       // to try to preserve that if possible since the updated GitHubRepository
       // instance won't have any API information while the previous one might.
       // We'll only swap it out if the endpoint has changed in which case the
       // old API information will be invalid anyway.
-      if (!oldGitHubRepository) {
-        return updatedRepository
-      }
-
-      // The endpoints have changed, all bets are off
-      if (updatedGitHubRepository.endpoint !== oldGitHubRepository.endpoint) {
-        return updatedRepository
+      if (
+        !oldGitHubRepository ||
+        matchedGitHubRepository.endpoint !== oldGitHubRepository.endpoint
+      ) {
+        return skeletonRepository
       }
 
       return repository
@@ -1491,60 +1533,36 @@ export class AppStore {
 
     const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(
-      updatedGitHubRepository.owner.login,
-      updatedGitHubRepository.name
+      matchedGitHubRepository.owner,
+      matchedGitHubRepository.name
     )
 
     if (!apiRepo) {
-      // If we've failed to retrieve the repository information from the API
-      // we generally want to keep whatever information we used to have from
-      // a previously successful API request rather than return the
-      // updatedRepository which only contains a subset of the fields we'd get
-      // from the API. The only circumstance where we would want to return the
-      // updated repository is if we previously didn't have an association and
-      // have now been able to infer one based on the remote.
-      //
-      // Note that the updateGitHubRepositoryAssociation method will either
-      // return exact repository given if no association could be found or
-      // a copy of the given repository with only the gitHubRepository property
-      // changed.
-      return oldGitHubRepository ? repository : updatedRepository
+      // This is the same as above. If the request fails, we wanna preserve the
+      // existing GitHub repository info. But if we didn't have a GitHub
+      // repository already or the endpoint changed, the skeleton repository is
+      // better than nothing.
+      if (
+        !oldGitHubRepository ||
+        matchedGitHubRepository.endpoint !== oldGitHubRepository.endpoint
+      ) {
+        return skeletonRepository
+      }
+
+      return repository
     }
 
-    const withUpdatedGitHubRepository = updatedRepository.withGitHubRepository(
-      updatedGitHubRepository.withAPI(apiRepo)
-    )
-    if (withUpdatedGitHubRepository.hash === repository.hash) {
-      return withUpdatedGitHubRepository
-    }
-
+    const endpoint = matchedGitHubRepository.endpoint
     return this.repositoriesStore.updateGitHubRepository(
-      withUpdatedGitHubRepository
+      repository,
+      endpoint,
+      apiRepo
     )
   }
 
-  private async updateGitHubRepositoryAssociation(
+  private async matchGitHubRepository(
     repository: Repository
-  ): Promise<Repository> {
-    const gitHubRepository = await this.guessGitHubRepository(repository)
-    if (gitHubRepository === repository.gitHubRepository || !gitHubRepository) {
-      return repository
-    }
-
-    if (
-      repository.gitHubRepository &&
-      gitHubRepository &&
-      repository.gitHubRepository.hash === gitHubRepository.hash
-    ) {
-      return repository
-    }
-
-    return repository.withGitHubRepository(gitHubRepository)
-  }
-
-  private async guessGitHubRepository(
-    repository: Repository
-  ): Promise<GitHubRepository | null> {
+  ): Promise<IMatchedGitHubRepository | null> {
     const remote = await getDefaultRemote(repository)
     return remote ? matchGitHubRepository(this.accounts, remote.url) : null
   }
@@ -1925,16 +1943,6 @@ export class AppStore {
     }
   }
 
-  /** Get the authenticated user for the repository. */
-  private getAccountForRepository(repository: Repository): Account | null {
-    const gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) {
-      return null
-    }
-
-    return getAccountForEndpoint(this.accounts, gitHubRepository.endpoint)
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _publishRepository(
     repository: Repository,
@@ -1964,7 +1972,7 @@ export class AppStore {
       await this.performPush(repository, account)
     }
 
-    return this.refreshGitHubRepositoryInfo(repository)
+    return this._repositoryWithRefreshedGitHubRepository(repository)
   }
 
   private getAccountForRemoteURL(remote: string): IGitAccount | null {
@@ -2286,9 +2294,20 @@ export class AppStore {
     this.emitUpdate()
   }
 
-  public _setConfirmRepoRemoval(confirmRepoRemoval: boolean): Promise<void> {
+  public _setConfirmRepositoryRemovalSetting(
+    confirmRepoRemoval: boolean
+  ): Promise<void> {
     this.confirmRepoRemoval = confirmRepoRemoval
     localStorage.setItem(confirmRepoRemovalKey, confirmRepoRemoval ? '1' : '0')
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
+    this.confirmDiscardChanges = value
+
+    localStorage.setItem(confirmDiscardChangesKey, value ? '1' : '0')
     this.emitUpdate()
 
     return Promise.resolve()
@@ -2453,7 +2472,7 @@ export class AppStore {
           validatedPath
         )
         const [refreshedRepo, usingLFS] = await Promise.all([
-          this.refreshGitHubRepositoryInfo(addedRepo),
+          this._repositoryWithRefreshedGitHubRepository(addedRepo),
           this.isUsingLFS(addedRepo),
         ])
         addedRepositories.push(refreshedRepo)
@@ -2498,20 +2517,6 @@ export class AppStore {
     this._showFoldout({ type: FoldoutType.Repository })
   }
 
-  private async refreshGitHubRepositoryInfo(
-    repository: Repository
-  ): Promise<Repository> {
-    const refreshedRepository = await this._repositoryWithRefreshedGitHubRepository(
-      repository
-    )
-
-    if (refreshedRepository.hash === repository.hash) {
-      return refreshedRepository
-    }
-
-    return this.repositoriesStore.updateGitHubRepository(refreshedRepository)
-  }
-
   public async _cloneAgain(url: string, path: string): Promise<void> {
     const { promise, repository } = this._clone(url, path)
     await this._selectRepository(repository)
@@ -2537,7 +2542,8 @@ export class AppStore {
     fn: (repository: Repository, account: IGitAccount | null) => Promise<T>
   ): Promise<T> {
     let updatedRepository = repository
-    let account: IGitAccount | null = this.getAccountForRepository(
+    let account: IGitAccount | null = getAccountForRepository(
+      this.accounts,
       updatedRepository
     )
 
@@ -2546,8 +2552,10 @@ export class AppStore {
     // association is out of date. So try again before we bail on providing an
     // authenticating user.
     if (!account) {
-      updatedRepository = await this.refreshGitHubRepositoryInfo(repository)
-      account = this.getAccountForRepository(updatedRepository)
+      updatedRepository = await this._repositoryWithRefreshedGitHubRepository(
+        repository
+      )
+      account = getAccountForRepository(this.accounts, updatedRepository)
     }
 
     if (!account) {
@@ -2602,9 +2610,9 @@ export class AppStore {
     })
   }
 
-  public async _installGlobalLFSFilters(): Promise<void> {
+  public async _installGlobalLFSFilters(force: boolean): Promise<void> {
     try {
-      await installGlobalLFSFilters()
+      await installGlobalLFSFilters(force)
     } catch (error) {
       this.emitError(error)
     }
@@ -2623,7 +2631,9 @@ export class AppStore {
   ): Promise<void> {
     for (const repo of repositories) {
       try {
-        await installLFSHooks(repo)
+        // At this point we've asked the user if we should install them, so
+        // force installation.
+        await installLFSHooks(repo, true)
       } catch (error) {
         this.emitError(error)
       }
@@ -2636,5 +2646,53 @@ export class AppStore {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  public _openMergeTool(repository: Repository, path: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.openMergeTool(path)
+  }
+
+  public _changeBranchesTab(tab: BranchesTab): Promise<void> {
+    this.selectedBranchesTab = tab
+
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public async _openCreatePullRequest(repository: Repository): Promise<void> {
+    const gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) {
+      return
+    }
+
+    const state = this.getRepositoryState(repository)
+    const tip = state.branchesState.tip
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const branch = tip.branch
+    const aheadBehind = state.aheadBehind
+
+    if (!aheadBehind) {
+      this._showPopup({
+        type: PopupType.PushBranchCommits,
+        repository,
+        branch,
+      })
+    } else if (aheadBehind.ahead > 0) {
+      this._showPopup({
+        type: PopupType.PushBranchCommits,
+        repository,
+        branch,
+        unPushedCommits: aheadBehind.ahead,
+      })
+    } else {
+      const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
+      await this._openInBrowser(baseURL)
+    }
   }
 }

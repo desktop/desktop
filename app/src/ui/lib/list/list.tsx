@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as classNames from 'classnames'
 import { Grid, AutoSizer } from 'react-virtualized'
-import { shallowEquals } from '../lib/equality'
-import { createUniqueId, releaseUniqueId } from './lib/id-pool'
+import { shallowEquals } from '../../../lib/equality'
+import { ListRow } from './list-row'
+import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -112,9 +112,8 @@ interface IListProps {
 
   /**
    * This function will be called when the selection changes as a result of a
-   * user keyboard or mouse action (i.e. not when props change). Note that this
-   * differs from `onRowSelected`. For example, it won't be called if an already
-   * selected row is clicked on.
+   * user keyboard or mouse action (i.e. not when props change). This function
+   * will not be invoked when an already selected row is clicked on.
    *
    * @param row    - The index of the row that was just selected
    * @param source - The kind of user action that provoked the change, either
@@ -134,6 +133,13 @@ interface IListProps {
    * for calling event.preventDefault() when acting on a key press.
    */
   readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
+
+  /**
+   * A handler called whenever a mouse down event is received on the
+   * row container element. Unlike onSelectionChanged, this is raised
+   * for every mouse down event, whether the row is selected or not.
+   */
+  readonly onRowMouseDown?: (row: number, event: React.MouseEvent<any>) => void
 
   /**
    * An optional handler called to determine whether a given row is
@@ -283,7 +289,10 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private handleRowKeyDown(rowIndex: number, event: React.KeyboardEvent<any>) {
+  private onRowKeyDown = (
+    rowIndex: number,
+    event: React.KeyboardEvent<any>
+  ) => {
     if (this.props.onRowKeyDown) {
       this.props.onRowKeyDown(rowIndex, event)
     }
@@ -434,7 +443,6 @@ export class List extends React.Component<IListProps, IListState> {
     const selectable = this.canSelectRow(rowIndex)
     const selected = rowIndex === this.props.selectedRow
     const focused = rowIndex === this.focusRow
-    const className = classNames('list-item', { selected })
 
     // An unselectable row shouldn't be focusable
     let tabIndex: number | undefined = undefined
@@ -447,43 +455,27 @@ export class List extends React.Component<IListProps, IListState> {
 
     const element = this.props.rowRenderer(params.rowIndex)
 
-    // react-virtualized gives us an explicit pixel width for rows, but that
-    // width doesn't take into account whether or not the scroll bar needs
-    // width too, e.g., on macOS when "Show scroll bars" is set to "Always."
-    //
-    // *But* the parent Grid uses `autoContainerWidth` which means its width
-    // *does* reflect any width needed by the scroll bar. So we should just use
-    // that width.
-    const style = { ...params.style, width: '100%' }
-
     const id = this.state.rowIdPrefix
       ? `${this.state.rowIdPrefix}-${rowIndex}`
       : undefined
 
-    const role = this.props.ariaMode === 'menu' ? 'menuitem' : 'option'
     return (
-      <div
+      <ListRow
         key={params.key}
         id={id}
-        aria-setsize={this.props.rowCount}
-        aria-posinset={rowIndex + 1}
-        aria-selected={selected || undefined}
-        role={role}
-        className={className}
+        onRef={ref}
+        rowCount={this.props.rowCount}
+        rowIndex={rowIndex}
+        selected={selected}
+        ariaMode={this.props.ariaMode}
+        onRowClick={this.onRowClick}
+        onRowKeyDown={this.onRowKeyDown}
+        onRowMouseDown={this.onRowMouseDown}
+        onRowMouseOver={this.onRowMouseOver}
+        style={params.style}
         tabIndex={tabIndex}
-        ref={ref}
-        // tslint:disable-next-line jsx-no-lambda
-        onMouseOver={e => this.onRowMouseOver(rowIndex, e)}
-        // tslint:disable-next-line jsx-no-lambda
-        onMouseDown={e => this.handleMouseDown(rowIndex, e)}
-        // tslint:disable-next-line jsx-no-lambda
-        onClick={e => this.onRowClick(rowIndex, e)}
-        // tslint:disable-next-line jsx-no-lambda
-        onKeyDown={e => this.handleRowKeyDown(rowIndex, e)}
-        style={style}
-      >
-        {element}
-      </div>
+        children={element}
+      />
     )
   }
 
@@ -572,9 +564,9 @@ export class List extends React.Component<IListProps, IListState> {
 
     return (
       <Grid
-        aria-label={null!}
+        aria-label={''}
         key="grid"
-        role={null!}
+        role={''}
         ref={this.onGridRef}
         autoContainerWidth={true}
         width={width}
@@ -654,8 +646,12 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private handleMouseDown = (row: number, event: React.MouseEvent<any>) => {
+  private onRowMouseDown = (row: number, event: React.MouseEvent<any>) => {
     if (this.canSelectRow(row)) {
+      if (this.props.onRowMouseDown) {
+        this.props.onRowMouseDown(row, event)
+      }
+
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row, { kind: 'mouseclick', event })
       }

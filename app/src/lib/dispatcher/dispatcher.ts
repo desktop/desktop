@@ -15,20 +15,21 @@ import {
   FoldoutType,
   ImageDiffType,
 } from '../app-state'
-import { AppStore } from './app-store'
-import { CloningRepository } from './cloning-repositories-store'
+import { AppStore } from '../stores/app-store'
+import { CloningRepository } from '../../models/cloning-repository'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
 import { ExternalEditor } from '../../models/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
-import { ICommitMessage } from './git-store'
+import { ICommitMessage } from '../stores/git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
+import { matchExistingRepository } from '../../lib/repository-matching'
 import { ILaunchStats } from '../stats'
 import { fatalError, assertNever } from '../fatal-error'
 import { isGitOnPath } from '../is-git-on-path'
-import { shell } from './app-shell'
+import { shell } from '../app-shell'
 import {
   URLActionType,
   IOpenRepositoryFromURLAction,
@@ -44,6 +45,8 @@ import * as GenericGitAuth from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
 import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
+import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
+import { BranchesTab } from '../../models/branches-tab'
 
 /**
  * An error handler function.
@@ -800,27 +803,23 @@ export class Dispatcher {
         break
 
       case 'open-repository-from-path':
+        // user may accidentally provide a folder within the repository
+        // this ensures we use the repository root, if it is actually a repository
+        // otherwise we consider it an untracked repository
+        const path = (await validatedRepositoryPath(action.path)) || action.path
+
         const state = this.appStore.getState()
-        const repositories = state.repositories
-        const existingRepository = repositories.find(r => {
-          if (__WIN32__) {
-            // Windows is guaranteed to be case-insensitive so we can be a
-            // bit more accepting.
-            return (
-              Path.normalize(r.path).toLowerCase() ===
-              Path.normalize(action.path).toLowerCase()
-            )
-          } else {
-            return Path.normalize(r.path) === Path.normalize(action.path)
-          }
-        })
+        const existingRepository = matchExistingRepository(
+          state.repositories,
+          path
+        )
 
         if (existingRepository) {
-          this.selectRepository(existingRepository)
+          await this.selectRepository(existingRepository)
         } else {
-          return this.showPopup({
+          await this.showPopup({
             type: PopupType.AddRepository,
-            path: action.path,
+            path,
           })
         }
         break
@@ -839,7 +838,18 @@ export class Dispatcher {
    * Sets the user's preference so that confirmation to remove repo is not asked
    */
   public setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
-    return this.appStore._setConfirmRepoRemoval(value)
+    return this.appStore._setConfirmRepositoryRemovalSetting(value)
+  }
+
+  /**
+   * Sets the user's preference so that confirmation to discard changes is not asked
+   *
+   * @param {boolean} value
+   * @returns {Promise<void>}
+   * @memberof Dispatcher
+   */
+  public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
+    return this.appStore._setConfirmDiscardChangesSetting(value)
   }
 
   /**
@@ -987,8 +997,8 @@ export class Dispatcher {
   }
 
   /** Install the global Git LFS filters. */
-  public installGlobalLFSFilters(): Promise<void> {
-    return this.appStore._installGlobalLFSFilters()
+  public installGlobalLFSFilters(force: boolean): Promise<void> {
+    return this.appStore._installGlobalLFSFilters(force)
   }
 
   /** Install the LFS filters */
@@ -1001,5 +1011,20 @@ export class Dispatcher {
   /** Change the selected Clone Repository tab. */
   public changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
     return this.appStore._changeCloneRepositoriesTab(tab)
+  }
+
+  /** Open the merge tool for the given file. */
+  public openMergeTool(repository: Repository, path: string): Promise<void> {
+    return this.appStore._openMergeTool(repository, path)
+  }
+
+  /** Change the selected Branches foldout tab. */
+  public changeBranchesTab(tab: BranchesTab): Promise<void> {
+    return this.appStore._changeBranchesTab(tab)
+  }
+
+  /** Open the Create Pull Request page on GitHub. */
+  public openCreatePullRequest(repository: Repository): Promise<void> {
+    return this.appStore._openCreatePullRequest(repository)
   }
 }

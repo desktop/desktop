@@ -1,4 +1,4 @@
-import { shell } from './dispatcher/app-shell'
+import { shell } from './app-shell'
 import { Dispatcher } from './dispatcher/dispatcher'
 
 export async function openFile(

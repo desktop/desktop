@@ -4,7 +4,7 @@ import * as chai from 'chai'
 const expect = chai.expect
 
 import { setupFixtureRepository, openSync } from '../fixture-helper'
-import { validatedRepositoryPath } from '../../src/lib/dispatcher/validated-repository-path'
+import { validatedRepositoryPath } from '../../src/lib/stores/helpers/validated-repository-path'
 
 describe('validatedRepositoryPath', () => {
   it('returns the path to the repository', async () => {

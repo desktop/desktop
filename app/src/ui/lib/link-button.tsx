@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { shell } from '../../lib/dispatcher/app-shell'
+import { shell } from '../../lib/app-shell'
 import * as classNames from 'classnames'
 
 interface ILinkButtonProps {
@@ -39,7 +39,6 @@ export class LinkButton extends React.Component<ILinkButtonProps, {}> {
         onClick={this.onClick}
         title={this.props.title}
         tabIndex={this.props.tabIndex}
-        disabled={this.props.disabled}
       >
         {this.props.children}
       </a>

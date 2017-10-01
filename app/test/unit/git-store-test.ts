@@ -8,7 +8,7 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import { GitProcess } from 'dugite'
 
-import { GitStore } from '../../src/lib/dispatcher/git-store'
+import { GitStore } from '../../src/lib/stores/git-store'
 import { AppFileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
@@ -168,6 +168,33 @@ describe('GitStore', () => {
       await gitStore.loadLocalCommits(null)
 
       expect(gitStore.localCommitSHAs).to.be.empty
+    })
+
+    it('has no staged files', async () => {
+      const gitStore = new GitStore(repo!, shell)
+
+      await gitStore.loadStatus()
+
+      const tip = gitStore.tip as IValidBranch
+      await gitStore.loadLocalCommits(tip.branch)
+
+      expect(gitStore.localCommitSHAs.length).to.equal(1)
+
+      await gitStore.undoCommit(firstCommit!)
+
+      // compare the index state to some other tree-ish
+      // 4b825dc642cb6eb9a060e54bf8d69288fbee4904 is the magic empty tree
+      // if nothing is staged, this should return no entries
+      const result = await GitProcess.exec(
+        [
+          'diff-index',
+          '--name-status',
+          '-z',
+          '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
+        ],
+        repo!.path
+      )
+      expect(result.stdout.length).to.equal(0)
     })
   })
 
