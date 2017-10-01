@@ -21,7 +21,7 @@ const PullRequestFilterList: new () => FilterList<
   IPullRequestListItem
 > = FilterList as any
 
-const RowHeight = 45
+const RowHeight = 47
 
 interface IPullRequestListProps {
   /** The pull requests to display. */
@@ -89,7 +89,7 @@ export class PullRequestList extends React.Component<
         number={pr.number}
         created={pr.created}
         author={pr.user.login}
-        status={pr.state}
+        status={pr.status}
       />
     )
   }

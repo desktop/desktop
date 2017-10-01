@@ -48,15 +48,15 @@
   version "7.0.43"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-7.0.43.tgz#a187e08495a075f200ca946079c914e1a5fe962c"
 
-"@types/react-addons-test-utils@0.14.19":
-  version "0.14.19"
-  resolved "https://registry.yarnpkg.com/@types/react-addons-test-utils/-/react-addons-test-utils-0.14.19.tgz#260f60adb2015cc11938c01a9c4015323a3610e2"
+"@types/react-addons-test-utils@^0.14.20":
+  version "0.14.20"
+  resolved "https://registry.yarnpkg.com/@types/react-addons-test-utils/-/react-addons-test-utils-0.14.20.tgz#66a5787b8f15cce01c195fe2b95b89046054810d"
   dependencies:
     "@types/react" "*"
 
-"@types/react-dom@15.5.1":
-  version "15.5.1"
-  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-15.5.1.tgz#f3c3e14c682785923c7d64583537df319442dec1"
+"@types/react-dom@^15.5.5":
+  version "15.5.5"
+  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-15.5.5.tgz#6b117c7697b61fe74132bfe5c72bceb3319433b8"
   dependencies:
     "@types/react" "*"
 
@@ -66,21 +66,25 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-virtualized@9.7.2":
-  version "9.7.2"
-  resolved "https://registry.yarnpkg.com/@types/react-virtualized/-/react-virtualized-9.7.2.tgz#0ddc40f0c82cf859a0bec329e99b7b157e6d400d"
+"@types/react-virtualized@^9.7.4":
+  version "9.7.4"
+  resolved "https://registry.yarnpkg.com/@types/react-virtualized/-/react-virtualized-9.7.4.tgz#c8f8ab729abca03fa76deb0eef820a5daee22129"
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@15.0.31":
-  version "15.0.31"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-15.0.31.tgz#21dfc5d41ee1600ff7d7b738ad21a9502aa3ecf2"
+"@types/react@15.6.4", "@types/react@^15.6.4":
+  version "15.6.4"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-15.6.4.tgz#3bb57bd43183a05919ceb025a264287348f47e9d"
 
 "@types/temp@^0.8.29":
   version "0.8.29"
   resolved "https://registry.yarnpkg.com/@types/temp/-/temp-0.8.29.tgz#c3cdc113e3c138f90e5e970d51e41b0b7f62678d"
   dependencies:
     "@types/node" "*"
+
+"@types/to-camel-case@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@types/to-camel-case/-/to-camel-case-1.0.0.tgz#927ef0a7294d90b1835466c29b64b8ad2a32d8b5"
 
 "@types/ua-parser-js@^0.7.30":
   version "0.7.32"
@@ -95,6 +99,12 @@
 "@types/winston@^2.2.0":
   version "2.3.6"
   resolved "https://registry.yarnpkg.com/@types/winston/-/winston-2.3.6.tgz#0f0954b9e16abd40598dc6e9cc2ea43044237997"
+  dependencies:
+    "@types/node" "*"
+
+"@types/xml2js@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@types/xml2js/-/xml2js-0.4.0.tgz#e54a89a0055d5ed69305b2610f970909bf363e45"
   dependencies:
     "@types/node" "*"
 

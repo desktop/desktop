@@ -5,6 +5,10 @@
   display: flex;
   flex-direction: column;
 
+  & > .tab-bar {
+    border-top: var(--base-border);
+  }
+
   .branches-list {
     width: 300px;
   }
@@ -28,10 +32,12 @@
     // padding on either side. Now in two flavors!
     @include darwin {
       height: 13px;
+      line-height: 13px;
     }
 
     @include win32 {
       height: 14px;
+      line-height: 14px;
     }
 
     border-radius: 8px;
@@ -45,6 +51,12 @@
 .pull-request-list {
   width: 300px;
 
+  .filter-list-filter-field {
+    // The rows have built-in margin to their content so
+    // we only need half a spacer here
+    padding-bottom: var(--spacing-half);
+  }
+
   .pull-request-item {
     padding: 0 var(--spacing);
     display: flex;
@@ -57,6 +69,10 @@
       margin-right: var(--spacing-half);
       width: 16px; // Force a consistent width
       flex-shrink: 0;
+
+      // Align the icon baseline with the title text
+      align-self: flex-start;
+      margin-top: 2px;
     }
 
     .info {
@@ -64,6 +80,7 @@
       flex-direction: column;
       min-width: 0;
       flex-grow: 1;
+      margin-right: var(--spacing-half);
 
       .title {
         @include ellipsis;
@@ -82,23 +99,6 @@
         font-size: var(--font-size-sm);
         color: var(--text-secondary-color);
       }
-    }
-
-    .status {
-      width: 16px;
-      flex-shrink: 0;
-    }
-
-    .status-pending {
-      color: $orange-700;
-    }
-
-    .status-failure {
-      color: $red-600;
-    }
-
-    .status-success {
-      color: $green-500;
     }
   }
 
@@ -192,7 +192,8 @@
   padding: var(--spacing);
 
   .blankslate-image {
-    min-width: 300px;
+    width: 257px;
+    min-width: 0;
   }
 
   .title {
