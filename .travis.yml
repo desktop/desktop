@@ -62,6 +62,7 @@ script:
 
 after_success:
   - npm run package
+  - ls dist/installer
 
 after_failure:
   - npm run test:review
