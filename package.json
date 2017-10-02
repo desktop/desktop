@@ -116,5 +116,11 @@
     "electron-mocha": "^4.0.0",
     "electron-packager": "^8.7.2",
     "electron-winstaller": "2.5.2"
+  },
+  "build": {
+    "linux": {
+      "category": "public.app-category.developer-tools",
+      "icon": "app/static/logos"
+    }
   }
 }
