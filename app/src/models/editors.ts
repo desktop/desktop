@@ -17,5 +17,9 @@ export function parse(label: string): ExternalEditor | null {
     return ExternalEditor.SublimeText
   }
 
+  if (label === ExternalEditor.BBEdit) {
+    return ExternalEditor.BBEdit
+  }
+
   return null
 }
