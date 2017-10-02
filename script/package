@@ -183,13 +183,13 @@ function packageAppImage() {
   })
 }
 
-function packageLinux() {
-  Promise.all([packageRedhat(), packageDebian(), packageAppImage()])
-    .catch(err => {
-      console.error(err, err.stack)
-      process.exit(1)
-    })
-    .then(() => {
-      console.log(`Successfully created packages at ${outputDir}`)
-    })
+async function packageLinux() {
+  try {
+    await packageRedhat()
+    await packageDebian()
+    await packageAppImage()
+    console.log(`Successfully created packages at ${outputDir}`)
+  } catch (e) {
+    console.log(`error during packaging: ${e}`)
+  }
 }
