@@ -22,11 +22,13 @@ export function parseRemote(url: string): IGitRemoteURL | null {
   // https://github.com/octocat/Hello-World.git/
   // git@github.com:octocat/Hello-World.git
   // git:github.com/octocat/Hello-World.git
+  // https://gist.github.com/8675309
   const regexes = [
     new RegExp('^https?://(?:.+@)?(.+)/(.+)/(.+?)(?:/|.git/?)?$'),
     new RegExp('^git@(.+):(.+)/(.+?)(?:/|.git)?$'),
     new RegExp('^git:(.+)/(.+)/(.+?)(?:/|.git)?$'),
     new RegExp('^ssh://git@(.+)/(.+)/(.+?)(?:/|.git)?$'),
+    new RegExp('^https?://(?:.+@)?(.+)/([0-9]+)'),
   ]
 
   for (const regex of regexes) {
@@ -35,11 +37,21 @@ export function parseRemote(url: string): IGitRemoteURL | null {
       continue
     }
 
-    const hostname = result[1]
-    const owner = result[2]
-    const name = result[3]
-    if (hostname) {
-      return { hostname, owner, name }
+    if (result.length === 4) {
+      const hostname = result[1]
+      const owner = result[2]
+      const name = result[3]
+      if (hostname) {
+        return { hostname, owner, name }
+      }
+    }
+
+    if (result.length === 3) {
+      const hostname = result[1]
+      const name = result[2]
+      if (hostname) {
+        return { hostname, owner: null, name }
+      }
     }
   }
 
