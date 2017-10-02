@@ -272,6 +272,7 @@
     - [ ] Pull Requests and Commits can co-exist; error surfaces if merge commit
   - [ ] User cannot Push/Pull without being signed in; error message surfaced
     - [ ] Push/Pull works with public/private/Enterprise repos
+    - [ ] Tooltip shows status upon hover, if progress to display
   - [ ] When a branch is local-only make sure that the `Fetch` button changes to `Publish` and it publishes
   
 ### Dotcom
