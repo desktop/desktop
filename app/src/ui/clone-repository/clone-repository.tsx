@@ -8,6 +8,7 @@ import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Account } from '../../models/account'
 import {
   IRepositoryIdentifier,
+  IGistIdentifier,
   parseRepositoryIdentifier,
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
@@ -60,7 +61,7 @@ interface ICloneRepositoryState {
   /**
    * The repository identifier that was last parsed from the user-entered URL.
    */
-  readonly lastParsedIdentifier: IRepositoryIdentifier | null
+  readonly lastParsedIdentifier: IRepositoryIdentifier | IGistIdentifier | null
 }
 
 /** The component for cloning a repository. */
@@ -325,7 +326,7 @@ export class CloneRepository extends React.Component<
     }
 
     const account = await findAccountForRemoteURL(url, accounts)
-    if (identifier && account) {
+    if (identifier && identifier.kind === 'repository' && account) {
       const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
