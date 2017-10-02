@@ -250,6 +250,7 @@
   - [ ] User can undo last commit
     - [ ] `Push` with number of commits badge is decremented or reverts to `Fetch origin`
   - [ ] `Undo` button disabled if user is pushing commit
+  - [ ] User can publish a new repo with no commits (aka unborn repo/branch)
 
 ### Branches list
   - [ ] Current branch always shows if repository present
