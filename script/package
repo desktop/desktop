@@ -156,12 +156,15 @@ function packageDebian() {
 }
 
 function packageAppImage() {
-  // xorriso will spit out a vague error that looks like this:
+  // Because electron-builder's CLI has some limits, we need to
+  // implement a couple of workarounds.
+  //
+  // First, it'll use `dist/make` for it's output directory, which
+  // results in this vague error when the directory doesn't exist:
   //
   // libburn : SORRY : Neither stdio-path nor its directory exist
   //
-  // looks like it's due to the "make" directory not existing
-  // but maybe we can get it to use outputDir and make this redundant
+  // so let's just trash it (if already existing) and create the directory
   const makeDir = path.join(distInfo.getDistRoot(), 'make')
   fs.removeSync(makeDir)
   fs.mkdirSync(makeDir)
@@ -170,16 +173,12 @@ function packageAppImage() {
 
   var options = {
     dir: distPath,
-    src: distPath,
-    dest: outputDir,
     targetArch: 'x64',
-    // these are some silly things to set because of electron-builder
-    artifactName: productName,
   }
 
-  console.log('Creating AppImage package...')
   return installer.default(options).then(() => {
-    // TODO: this is a hack too, it's not respecting my `dest` directory
+    // Second, we need to move the relevant files from dist/make up to
+    // the installers directory so it's alongside the other packages
     cp.execSync(`cp ${makeDir}/*.AppImage ${outputDir}`)
   })
 }
