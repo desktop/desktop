@@ -156,7 +156,7 @@ export class CloneRepository extends React.Component<
           <CloneGenericRepository
             path={this.state.path}
             url={this.state.url}
-            onPathChanged={this.updatePath}
+            onPathChanged={this.updateAndValidatePath}
             onUrlChanged={this.updateUrl}
             onChooseDirectory={this.onChooseDirectory}
           />
@@ -172,7 +172,7 @@ export class CloneRepository extends React.Component<
             <CloneGithubRepository
               path={this.state.path}
               account={account}
-              onPathChanged={this.updatePath}
+              onPathChanged={this.updateAndValidatePath}
               onGitHubRepositorySelected={this.updateUrl}
               onChooseDirectory={this.onChooseDirectory}
               onDismissed={this.props.onDismissed}
@@ -234,12 +234,8 @@ export class CloneRepository extends React.Component<
     this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
-  private updatePath = (path: string) => {
-    this.setState({ path })
-  }
-
   private updateAndValidatePath = async (path: string) => {
-    this.updatePath(path)
+    this.setState({ path })
 
     const doesDirectoryExist = await this.doesPathExist(path)
 
