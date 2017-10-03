@@ -3,13 +3,12 @@ import { ICloneProgress } from '../app-state'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication, IGitAccount } from './authentication'
 
-import * as Fs from 'fs-extra'
-import * as Path from 'path'
-import * as Os from 'os'
-import { uuid } from '../uuid'
-
-import { pathExists } from '../file-system'
-import { getUserDataPath } from '../../ui/lib/app-proxy'
+import {
+  getLogFilePath,
+  moveTracingToLogDirectory,
+  moveLFSTraceFilesToLogDirectory,
+  cleanupTracing,
+} from './tracing'
 
 /** Additional arguments to provide when cloning a repository */
 export type CloneOptions = {
@@ -17,54 +16,6 @@ export type CloneOptions = {
   readonly account: IGitAccount | null
   /** The branch to checkout after the clone has completed. */
   readonly branch?: string
-}
-
-function getLogFilePath(action: string): string {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth() + 1
-  const day = now.getDate()
-  const fileName = `${year}-${month}-${day}-desktop.${action}.${uuid()}.log`
-  // TODO: probably a better pattern for generating this file path
-  return Path.join(Os.tmpdir(), fileName)
-}
-
-async function moveTracingToLogDirectory(logFile: string): Promise<void> {
-  const exists = await pathExists(logFile)
-  if (exists) {
-    return new Promise<void>((resolve, reject) => {
-      const userData = getUserDataPath()
-      const logsDir = Path.join(userData, 'logs')
-      Fs.move(logFile, logsDir, err => {
-        if (err) {
-          log.debug('Unable to move tracing file to logs directory', err)
-        }
-        resolve()
-      })
-    })
-  }
-}
-
-async function moveLFSTraceFilesToLogDirectory(
-  directory: string
-): Promise<void> {
-  // TODO: scan directory for LFS log files
-  // TODO: copy any files to log directory
-  await Promise.resolve()
-}
-
-async function cleanupTracing(logFile: string): Promise<void> {
-  const exists = await pathExists(logFile)
-  if (exists) {
-    return new Promise<void>((resolve, reject) => {
-      Fs.unlink(logFile, err => {
-        if (err) {
-          log.debug('Unable to move tracing file to log directory', err)
-        }
-      })
-      resolve()
-    })
-  }
 }
 
 /**
