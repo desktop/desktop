@@ -50,8 +50,9 @@
     - [ ] `Cancel` button does not save any changes made; modal closed
   - [ ] Clone a Repository (Mac: ⇧⌘O; Windows: Ctrl+Shift+O)
     - [ ] Enter valid URL or username/repo/gist, else error message
-    - [ ] Valid path can be entered or selected, else error message
-    - [ ] All repos from both GitHub.com and Enterprise are populated -- your repos are listed first, followed by org
+    - [ ] Valid path can be entered or selected
+      - [ ] Local path is prepopulated; if not unique then error surfaced
+    - [ ] All repos from both GitHub.com and Enterprise are populated -- your repos are listed first, followed by org(s)
       - [ ] Results are filterable, and can be selected for cloning
     - [ ] `Clone` creates repo at selected path
       - [ ] Repo added to Repo list
