@@ -1,14 +1,14 @@
 import { ChildProcess } from 'child_process'
+import * as byline from 'byline'
+
 import { GitProgressParser, IGitProgress, IGitOutput } from './git'
 import { IGitExecutionOptions } from '../git/core'
 import { merge } from '../merge'
 
-const byline = require('byline')
-
 /**
  * Merges an instance of IGitExecutionOptions with a process callback provided
  * by progressProcessCallback.
- * 
+ *
  * If the given options object already has a processCallback specified it will
  * be overwritten.
  */

@@ -313,7 +313,7 @@ app.on('ready', () => {
           return
         }
 
-        if (stats.isDirectory) {
+        if (stats.isDirectory()) {
           const fileURL = Url.format({
             pathname: path,
             protocol: 'file:',
