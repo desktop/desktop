@@ -3,6 +3,8 @@ import { ICloneProgress } from '../app-state'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication, IGitAccount } from './authentication'
 
+import { getLogFilePath, addTracing, withTracingCleanup } from './tracing'
+
 /** Additional arguments to provide when cloning a repository */
 export type CloneOptions = {
   /** The optional identity to provide when cloning. */
@@ -37,7 +39,8 @@ export async function clone(
   options: CloneOptions,
   progressCallback?: (progress: ICloneProgress) => void
 ): Promise<void> {
-  const env = envForAuthentication(options.account)
+  const logFile = getLogFilePath('clone')
+  const env = addTracing(envForAuthentication(options.account), logFile)
 
   const args = [
     ...gitNetworkArguments,
@@ -81,5 +84,9 @@ export async function clone(
 
   args.push('--', url, path)
 
-  await git(args, __dirname, 'clone', opts)
+  await withTracingCleanup(
+    () => git(args, __dirname, 'clone', opts),
+    logFile,
+    path
+  )
 }
