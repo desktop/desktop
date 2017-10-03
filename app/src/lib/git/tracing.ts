@@ -5,7 +5,6 @@ import { uuid } from '../uuid'
 
 import { pathExists } from '../file-system'
 import { getUserDataPath } from '../../ui/lib/app-proxy'
-import { IGitResult } from './core'
 
 function padNumber(n: number): string {
   return n.toString().padStart(2, '0')
@@ -128,7 +127,7 @@ async function cleanupTracing(logFile: string): Promise<void> {
  * @param repositoryPath The folder associated with the repository, for additional investigating.
  */
 export async function withTracingCleanup(
-  action: () => Promise<IGitResult>,
+  action: () => Promise<any>,
   logFile: string,
   repositoryPath: string
 ): Promise<void> {
