@@ -25,29 +25,68 @@ export function getLogFilePath(action: string): string {
   return Path.join(Os.tmpdir(), fileName)
 }
 
+function getLogsDir(): string {
+  const userData = getUserDataPath()
+  return Path.join(userData, 'logs')
+}
+
 async function moveTracingToLogDirectory(logFile: string): Promise<void> {
   const exists = await pathExists(logFile)
-  if (exists) {
-    return new Promise<void>((resolve, reject) => {
-      const fileName = Path.basename(logFile)
-      const userData = getUserDataPath()
-      const logsDir = Path.join(userData, 'logs', fileName)
-      Fs.move(logFile, logsDir, err => {
-        if (err) {
-          log.debug('Unable to move tracing file to logs directory', err)
-        }
-        resolve()
-      })
-    })
+  if (!exists) {
+    return
   }
+
+  return new Promise<void>((resolve, reject) => {
+    const fileName = Path.basename(logFile)
+    const logsDir = getLogsDir()
+    const destination = Path.join(logsDir, fileName)
+    Fs.move(logFile, destination, { clobber: true }, err => {
+      if (err) {
+        log.debug('Unable to move tracing file to logs directory', err)
+      }
+      resolve()
+    })
+  })
 }
 
 async function copyLFSTraceFilesToLogDirectory(
   directory: string
 ): Promise<void> {
-  // TODO: scan directory for LFS log files
-  // TODO: copy any files to log directory
-  await Promise.resolve()
+  const lfsLogsDir = Path.join(directory, '.git', 'lfs', 'objects', 'logs')
+
+  const exists = await pathExists(lfsLogsDir)
+  if (!exists) {
+    return
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    Fs.readdir(lfsLogsDir, (err, files) => {
+      if (err) {
+        log.debug('unable to read files under LFS logs directory', err)
+        resolve()
+      }
+      const logsDir = getLogsDir()
+
+      for (const file of files) {
+        const fullPath = Path.join(lfsLogsDir, file)
+        const destination = Path.join(logsDir, file)
+
+        Fs.copy(
+          fullPath,
+          destination,
+          { clobber: true, overwrite: true },
+          err => {
+            if (err) {
+              log.debug(
+                `unable to copy file under LFS logs directory: ${fullPath}`,
+                err
+              )
+            }
+          }
+        )
+      }
+    })
+  })
 }
 
 async function cleanupTracing(logFile: string): Promise<void> {
