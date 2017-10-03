@@ -34,7 +34,6 @@ export function addTracing(env: Object, logFile: string): Object {
   return {
     ...env,
     GIT_TRACE: logFile,
-    GIT_TRACE_CURL: logFile,
   }
 }
 
