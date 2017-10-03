@@ -25,6 +25,14 @@ export function getLogFilePath(action: string): string {
   return Path.join(Os.tmpdir(), fileName)
 }
 
+export function addTracing(env: Object, logFile: string): Object {
+  return {
+    ...env,
+    GIT_TRACE: logFile,
+    GIT_TRACE_CURL: logFile,
+  }
+}
+
 function getLogsDir(): string {
   const userData = getUserDataPath()
   return Path.join(userData, 'logs')

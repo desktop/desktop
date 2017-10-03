@@ -4,7 +4,7 @@ import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { IFetchProgress } from '../app-state'
 import { IGitAccount, envForAuthentication } from './authentication'
 
-import { getLogFilePath, withTracingCleanup } from './tracing'
+import { getLogFilePath, addTracing, withTracingCleanup } from './tracing'
 
 /**
  * Fetch from the given remote.
@@ -31,7 +31,7 @@ export async function fetch(
 
   let opts: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
-    env: envForAuthentication(account, { logFile }),
+    env: addTracing(envForAuthentication(account), logFile),
   }
 
   if (progressCallback) {
@@ -86,7 +86,7 @@ export async function fetchRefspec(
 
   const options = {
     successExitCodes: new Set([0, 128]),
-    env: envForAuthentication(account, { logFile }),
+    env: addTracing(envForAuthentication(account), logFile),
   }
 
   const args = [...gitNetworkArguments, 'fetch', remote, refspec]
