@@ -85,7 +85,9 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     let countElement = null
     if (this.props.pullRequests) {
       countElement = (
-        <span className="count">{this.props.pullRequests.length}</span>
+        <span className="count">
+          {this.props.pullRequests.length}
+        </span>
       )
     }
 
@@ -180,7 +182,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   private onCreatePullRequest = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.openCreatePullRequest(this.props.repository)
+    this.props.dispatcher.createPullRequest(this.props.repository)
   }
 
   private onTabClicked = (tab: BranchesTab) => {
