@@ -90,9 +90,7 @@ export class PushBranchCommits extends React.Component<
       >
         {this.renderDialogContent()}
 
-        <DialogFooter>
-          {this.renderButtonGroup()}
-        </DialogFooter>
+        <DialogFooter>{this.renderButtonGroup()}</DialogFooter>
       </Dialog>
     )
   }

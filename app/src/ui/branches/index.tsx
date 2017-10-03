@@ -85,9 +85,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     let countElement = null
     if (this.props.pullRequests) {
       countElement = (
-        <span className="count">
-          {this.props.pullRequests.length}
-        </span>
+        <span className="count">{this.props.pullRequests.length}</span>
       )
     }
 

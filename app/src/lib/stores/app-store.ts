@@ -2707,7 +2707,9 @@ export class AppStore {
     }
   }
 
-  public async _openCreatePullRequestInBrowser(repository: Repository): Promise<void> {
+  public async _openCreatePullRequestInBrowser(
+    repository: Repository
+  ): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
