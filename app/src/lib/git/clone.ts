@@ -9,7 +9,7 @@ import * as Os from 'os'
 import { uuid } from '../uuid'
 
 import { pathExists } from '../file-system'
-import { getLogDirectoryPath } from '../logging/get-log-path'
+import { getUserDataPath } from '../../ui/lib/app-proxy'
 
 /** Additional arguments to provide when cloning a repository */
 export type CloneOptions = {
@@ -33,10 +33,11 @@ async function moveTracingToLogDirectory(logFile: string): Promise<void> {
   const exists = await pathExists(logFile)
   if (exists) {
     return new Promise<void>((resolve, reject) => {
-      const destination = getLogDirectoryPath()
-      Fs.move(logFile, destination, err => {
+      const userData = getUserDataPath()
+      const logsDir = Path.join(userData, 'logs')
+      Fs.move(logFile, logsDir, err => {
         if (err) {
-          log.debug('Unable to move tracing file to log directory', err)
+          log.debug('Unable to move tracing file to logs directory', err)
         }
         resolve()
       })
