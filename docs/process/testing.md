@@ -184,6 +184,7 @@
   - [ ] Compare on GitHub (Mac: ⇧⌘C; Windows: Ctrl+Shift+C) (if repo already published on `github.com`)
   - [ ] Create Pull request (Mac: ⌘R; Windows: Ctrl+R) opens Pull Request on `github.com` 
     - [ ] If branch unpublished, dialogue asks to publish the branch
+    - [ ] `Push Local Changes` modal surfaces with option to `Create Without Pushing` and `Push Commits`;(trigger: `Create Pull Request` after commit on branch before pushing)
 
 ### Window top-level menu (Mac only)
   - [ ] Minimize, Zoom (maximize app size), Close, Bring All to Front, GitHub Desktop
