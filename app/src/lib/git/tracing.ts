@@ -25,6 +25,12 @@ export function getLogFilePath(action: string): string {
   return Path.join(Os.tmpdir(), fileName)
 }
 
+/**
+ * Append trace environment variables to an existing set of environment variables
+ *
+ * @param env The environment variables object to extend
+ * @param logFile The log file to use for tracing
+ */
 export function addTracing(env: Object, logFile: string): Object {
   return {
     ...env,
