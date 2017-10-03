@@ -3,12 +3,67 @@ import { ICloneProgress } from '../app-state'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication, IGitAccount } from './authentication'
 
+import * as Fs from 'fs-extra'
+import * as Path from 'path'
+import * as Os from 'os'
+import { uuid } from '../uuid'
+
+import { pathExists } from '../file-system'
+import { getLogDirectoryPath } from '../logging/get-log-path'
+
 /** Additional arguments to provide when cloning a repository */
 export type CloneOptions = {
   /** The optional identity to provide when cloning. */
   readonly account: IGitAccount | null
   /** The branch to checkout after the clone has completed. */
   readonly branch?: string
+}
+
+function getLogFilePath(action: string): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  const day = now.getDate()
+  const fileName = `${year}-${month}-${day}-desktop.${action}.${uuid()}.log`
+  // TODO: probably a better pattern for generating this file path
+  return Path.join(Os.tmpdir(), fileName)
+}
+
+async function moveTracingToLogDirectory(logFile: string): Promise<void> {
+  const exists = await pathExists(logFile)
+  if (exists) {
+    return new Promise<void>((resolve, reject) => {
+      const destination = getLogDirectoryPath()
+      Fs.move(logFile, destination, err => {
+        if (err) {
+          log.debug('Unable to move tracing file to log directory', err)
+        }
+        resolve()
+      })
+    })
+  }
+}
+
+async function moveLFSTraceFilesToLogDirectory(
+  directory: string
+): Promise<void> {
+  // TODO: scan directory for LFS log files
+  // TODO: copy any files to log directory
+  await Promise.resolve()
+}
+
+async function cleanupTracing(logFile: string): Promise<void> {
+  const exists = await pathExists(logFile)
+  if (exists) {
+    return new Promise<void>((resolve, reject) => {
+      Fs.unlink(logFile, err => {
+        if (err) {
+          log.debug('Unable to move tracing file to log directory', err)
+        }
+      })
+      resolve()
+    })
+  }
 }
 
 /**
@@ -37,7 +92,8 @@ export async function clone(
   options: CloneOptions,
   progressCallback?: (progress: ICloneProgress) => void
 ): Promise<void> {
-  const env = envForAuthentication(options.account)
+  const logFile = getLogFilePath('clone')
+  const env = envForAuthentication(options.account, { logFile })
 
   const args = [
     ...gitNetworkArguments,
@@ -81,5 +137,13 @@ export async function clone(
 
   args.push('--', url, path)
 
-  await git(args, __dirname, 'clone', opts)
+  try {
+    await git(args, __dirname, 'clone', opts)
+  } catch (e) {
+    await moveTracingToLogDirectory(logFile)
+    await moveLFSTraceFilesToLogDirectory(path)
+    throw e
+  }
+
+  await cleanupTracing(logFile)
 }
