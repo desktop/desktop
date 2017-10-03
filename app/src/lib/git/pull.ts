@@ -13,6 +13,8 @@ import {
   AuthenticationErrors,
 } from './authentication'
 
+import { getLogFilePath, addTracing, withTracingCleanup } from './tracing'
+
 /**
  * Pull from the specified remote.
  *
@@ -32,8 +34,10 @@ export async function pull(
   remote: string,
   progressCallback?: (progress: IPullProgress) => void
 ): Promise<void> {
+  const logFile = getLogFilePath('fetch')
+
   let opts: IGitExecutionOptions = {
-    env: envForAuthentication(account),
+    env: addTracing(envForAuthentication(account), logFile),
     expectedErrors: AuthenticationErrors,
   }
 
@@ -72,9 +76,15 @@ export async function pull(
     ? [...gitNetworkArguments, 'pull', '--no-rebase', '--progress', remote]
     : [...gitNetworkArguments, 'pull', '--no-rebase', remote]
 
-  const result = await git(args, repository.path, 'pull', opts)
+  await withTracingCleanup(
+    async () => {
+      const result = await git(args, repository.path, 'pull', opts)
 
-  if (result.gitErrorDescription) {
-    throw new GitError(result, args)
-  }
+      if (result.gitErrorDescription) {
+        throw new GitError(result, args)
+      }
+    },
+    logFile,
+    repository.path
+  )
 }
