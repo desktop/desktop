@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "1.0.2",
+  "version": "1.0.4-beta0",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "app-path": "^2.2.0",
-    "byline": "^4.2.2",
+    "byline": "^5.0.0",
     "chalk": "^2.0.1",
     "classnames": "^2.2.5",
     "codemirror": "^5.29.0",

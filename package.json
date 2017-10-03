@@ -89,6 +89,7 @@
     "xvfb-maybe": "^0.2.1"
   },
   "devDependencies": {
+    "@types/byline": "^4.2.31",
     "@types/chai": "^4.0.3",
     "@types/chai-datetime": "0.0.30",
     "@types/chalk": "^0.4.31",

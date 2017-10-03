@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "1.0.2",
+  "version": "1.0.4-beta0",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -125,9 +125,9 @@
       "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.7.tgz"
     },
     "byline": {
-      "version": "4.2.2",
-      "from": "byline@>=4.2.2 <5.0.0",
-      "resolved": "https://registry.npmjs.org/byline/-/byline-4.2.2.tgz"
+      "version": "5.0.0",
+      "from": "byline@5.0.0",
+      "resolved": "https://registry.npmjs.org/byline/-/byline-5.0.0.tgz"
     },
     "caseless": {
       "version": "0.12.0",
