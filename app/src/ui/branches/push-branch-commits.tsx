@@ -89,7 +89,9 @@ export class PushBranchCommits extends React.Component<
       >
         {this.renderDialogContent()}
 
-        <DialogFooter>{this.renderButtonGroup()}</DialogFooter>
+        <DialogFooter>
+          {this.renderButtonGroup()}
+        </DialogFooter>
       </Dialog>
     )
   }
@@ -167,7 +169,11 @@ export class PushBranchCommits extends React.Component<
     this.props.onDismissed()
   }
 
-  private onPushOrPublishButtonClick = async () => {
+  private onPushOrPublishButtonClick = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e.preventDefault()
+
     const { repository, branch } = this.props
 
     this.setState({ loading: true })
