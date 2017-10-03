@@ -86,6 +86,7 @@ export class PushBranchCommits extends React.Component<
         onDismissed={this.cancel}
         onSubmit={this.cancel}
         loading={this.state.loading}
+        disabled={this.state.loading}
       >
         {this.renderDialogContent()}
 
