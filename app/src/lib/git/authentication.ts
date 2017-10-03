@@ -13,15 +13,30 @@ export interface IGitAccount {
   readonly endpoint: string
 }
 
+interface ITracingOptions {
+  logFile: string
+}
+
 /** Get the environment for authenticating remote operations. */
-export function envForAuthentication(auth: IGitAccount | null): Object {
-  const env = {
+export function envForAuthentication(
+  auth: IGitAccount | null,
+  options: ITracingOptions | null = null
+): Object {
+  let env: Object = {
     DESKTOP_PATH: process.execPath,
     DESKTOP_ASKPASS_SCRIPT: getAskPassScriptPath(),
     GIT_ASKPASS: getAskPassTrampolinePath(),
     // supported since Git 2.3, this is used to ensure we never interactively prompt
     // for credentials - even as a fallback
     GIT_TERMINAL_PROMPT: '0',
+  }
+
+  if (options) {
+    env = {
+      ...env,
+      GIT_TRACE: options.logFile,
+      GIT_TRACE_CURL: options.logFile,
+    }
   }
 
   if (!auth) {
