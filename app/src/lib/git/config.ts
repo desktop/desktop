@@ -20,7 +20,7 @@ export async function setGlobalConfigValue(
   value: string
 ): Promise<void> {
   await git(
-    ['config', '--global', name, value],
+    ['config', '--global', '--replace-all', name, value],
     __dirname,
     'setGlobalConfigValue'
   )
