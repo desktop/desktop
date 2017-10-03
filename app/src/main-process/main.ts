@@ -1,8 +1,11 @@
 import '../lib/logging/main/install'
+import '../lib/devtools-installer'
 
 import { app, Menu, MenuItem, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
 import * as Url from 'url'
+
+import electronDebug = require('electron-debug')
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
@@ -21,6 +24,8 @@ import {
 } from '../lib/source-map-support'
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
+
+electronDebug({ showDevTools: true })
 
 enableSourceMaps()
 
@@ -355,19 +360,6 @@ app.on(
 
 function createWindow() {
   const window = new AppWindow()
-
-  if (__DEV__) {
-    const installer = require('electron-devtools-installer')
-    require('electron-debug')({ showDevTools: true })
-
-    const extensions = ['REACT_DEVELOPER_TOOLS', 'REACT_PERF']
-
-    for (const name of extensions) {
-      try {
-        installer.default(installer[name])
-      } catch (e) {}
-    }
-  }
 
   window.onClose(() => {
     mainWindow = null
