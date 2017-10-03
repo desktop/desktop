@@ -12,6 +12,7 @@ function padNumber(n: number): string {
 }
 
 /**
+ * Get the path to a unique log file in the temporary directory for the machine.
  *
  * @param action the Git action to use in the file name
  */
@@ -63,6 +64,16 @@ async function cleanupTracing(logFile: string): Promise<void> {
   }
 }
 
+/**
+ * Execute a Git operation with error handling to move log files into the app's
+ * log directory, to make bug reports easier to understand.
+ *
+ * Will not move files over if the operation doesn't raise an error.
+ *
+ * @param action The Git action to perform
+ * @param logFile A log file that might be generated as part of the
+ * @param repositoryPath The folder associated with the repository, for additional investigating.
+ */
 export async function withTracingCleanup(
   action: () => Promise<IGitResult>,
   logFile: string,
