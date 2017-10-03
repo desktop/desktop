@@ -3,12 +3,7 @@ import { ICloneProgress } from '../app-state'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 import { envForAuthentication, IGitAccount } from './authentication'
 
-import {
-  getLogFilePath,
-  moveTracingToLogDirectory,
-  moveLFSTraceFilesToLogDirectory,
-  cleanupTracing,
-} from './tracing'
+import { getLogFilePath, withTracingCleanup } from './tracing'
 
 /** Additional arguments to provide when cloning a repository */
 export type CloneOptions = {
@@ -89,13 +84,9 @@ export async function clone(
 
   args.push('--', url, path)
 
-  try {
-    await git(args, __dirname, 'clone', opts)
-  } catch (e) {
-    await moveTracingToLogDirectory(logFile)
-    await moveLFSTraceFilesToLogDirectory(path)
-    throw e
-  }
-
-  await cleanupTracing(logFile)
+  await withTracingCleanup(
+    () => git(args, __dirname, 'clone', opts),
+    logFile,
+    path
+  )
 }

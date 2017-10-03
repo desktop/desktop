@@ -5,6 +5,7 @@ import { uuid } from '../uuid'
 
 import { pathExists } from '../file-system'
 import { getUserDataPath } from '../../ui/lib/app-proxy'
+import { IGitResult } from './core'
 
 function padNumber(n: number): string {
   return n.toString().padStart(2, '0')
@@ -23,9 +24,7 @@ export function getLogFilePath(action: string): string {
   return Path.join(Os.tmpdir(), fileName)
 }
 
-export async function moveTracingToLogDirectory(
-  logFile: string
-): Promise<void> {
+async function moveTracingToLogDirectory(logFile: string): Promise<void> {
   const exists = await pathExists(logFile)
   if (exists) {
     return new Promise<void>((resolve, reject) => {
@@ -42,7 +41,7 @@ export async function moveTracingToLogDirectory(
   }
 }
 
-export async function moveLFSTraceFilesToLogDirectory(
+async function copyLFSTraceFilesToLogDirectory(
   directory: string
 ): Promise<void> {
   // TODO: scan directory for LFS log files
@@ -50,7 +49,7 @@ export async function moveLFSTraceFilesToLogDirectory(
   await Promise.resolve()
 }
 
-export async function cleanupTracing(logFile: string): Promise<void> {
+async function cleanupTracing(logFile: string): Promise<void> {
   const exists = await pathExists(logFile)
   if (exists) {
     return new Promise<void>((resolve, reject) => {
@@ -62,4 +61,20 @@ export async function cleanupTracing(logFile: string): Promise<void> {
       resolve()
     })
   }
+}
+
+export async function withTracingCleanup(
+  action: () => Promise<IGitResult>,
+  logFile: string,
+  repositoryPath: string
+): Promise<void> {
+  try {
+    await action()
+  } catch (e) {
+    await moveTracingToLogDirectory(logFile)
+    await copyLFSTraceFilesToLogDirectory(repositoryPath)
+    throw e
+  }
+
+  await cleanupTracing(logFile)
 }
