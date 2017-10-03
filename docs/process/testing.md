@@ -258,6 +258,7 @@
 ### Branches list
   - [ ] Current branch always shows if repository present
   - [ ] Opening list shows all branches in categorized format with a working filter
+    - [ ] `New` button opens 'New Branch' modal; if text in filter field, then prefill branch name in modal
     - [ ] Active branch is highlighted and marked with a check
     - [ ] `ESC` clears the filter
   - [ ] Default branch labeled and listed first, with timestamp
