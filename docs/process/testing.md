@@ -220,10 +220,10 @@
     - [ ] Merge-conflicted files showin with hazard icon; cannot be committed until fixed
     - [ ] User can check none, or check one or more files to commit; list is scrollable
       - [ ] User can select one or more lines to commit; diff is scrollable
-      - [ ] Right-clicking any file show menu with options
+      - [ ] Right-clicking any file shows menu with options
         - [ ] User can discard the file; pending confirmation dialogue
-	  - [ ] `Do not show this message again`overrides the preference setting if true
-        - [ ] User to ignore single or all files, show in Finder/Explorer, or reveal in external editor
+	  - [ ] `Do not show this message again`overrides the preference setting if true  
+        - [ ] User to ignore single/all files, show in Finder/Explorer, reveal in external editor, or open in default program
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers sizes
 
