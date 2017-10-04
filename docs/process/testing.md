@@ -286,8 +286,12 @@
   - [ ] If private email is enabled (http://github.com/settings/emails), user is blocked from pushing to all associated repositories on Desktop?
 
 ### 1.1+ placeholder
-- Pull request CI status
-- Pull request list
+- Pull request list shown as subsection of Branch list
+ - [ ] If no pull requests, then no badge shown, and Pull Request tab show 0
+   - [ ] User shown branch in text, and given option to create a new branch
+ - [ ] Pull request for the current branch selected by default, with pull-request-number badge in header
+ - [ ] Pull request list can be filtered; `esc` key clears filter
+ - [ ] Results in chronological order, with name, id number, date, username, and CI status
 - Merge tool for conflicted files
 - Conflicted files vs changed files
 - Relationship between branches
