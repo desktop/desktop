@@ -108,7 +108,7 @@
           - [ ] Check `ConfirmRepoRemoval` value in Dev Tools > Application > Local storage > file://
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
-  - [ ] Install command line tool installs tool at `/usr/local/bin/github` (ok to install more than once; Mac only as Windows done automagically, Helper may require password)
+  - [ ] Install command line tool installs tool at `/usr/local/bin/github` (ok to install more than once; Mac only as Windows done automagically, Helper may require password, else error message)
     - [ ] Clicking `OK` closes modal
   - [ ] Quit/Exit Desktop (Mac: ⌘Q)
     - [ ] Quitting/Exiting and reopening Desktop returns you to last visited repo
