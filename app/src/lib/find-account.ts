@@ -93,7 +93,7 @@ export async function findAccountForRemoteURL(
   }
 
   const repositoryIdentifier = parseRepositoryIdentifier(urlOrRepositoryAlias)
-  if (repositoryIdentifier) {
+  if (repositoryIdentifier && repositoryIdentifier.kind === 'repository') {
     const { owner, name } = repositoryIdentifier
     const account = await findRepositoryAccount(allAccounts, owner, name)
     if (account) {

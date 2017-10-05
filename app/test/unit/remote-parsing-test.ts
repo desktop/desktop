@@ -98,4 +98,11 @@ describe('URL remote parsing', () => {
     expect(remote!.owner).to.equal('hubot')
     expect(remote!.name).to.equal('repo')
   })
+
+  it('parses Gist URLs', () => {
+    const remote = parseRemote('https://gist.github.com/8128922')
+    expect(remote).not.to.equal(null)
+    expect(remote!.hostname).to.equal('gist.github.com')
+    expect(remote!.name).to.equal('8128922')
+  })
 })

@@ -22,11 +22,13 @@ export function parseRemote(url: string): IGitRemoteURL | null {
   // https://github.com/octocat/Hello-World.git/
   // git@github.com:octocat/Hello-World.git
   // git:github.com/octocat/Hello-World.git
+  // https://gist.github.com/8675309
   const regexes = [
     new RegExp('^https?://(?:.+@)?(.+)/(.+)/(.+?)(?:/|.git/?)?$'),
     new RegExp('^git@(.+):(.+)/(.+?)(?:/|.git)?$'),
     new RegExp('^git:(.+)/(.+)/(.+?)(?:/|.git)?$'),
     new RegExp('^ssh://git@(.+)/(.+)/(.+?)(?:/|.git)?$'),
+    new RegExp('^https?://(?:.+@)?(.+)/([0-9]+)'),
   ]
 
   for (const regex of regexes) {
@@ -35,11 +37,21 @@ export function parseRemote(url: string): IGitRemoteURL | null {
       continue
     }
 
-    const hostname = result[1]
-    const owner = result[2]
-    const name = result[3]
-    if (hostname) {
-      return { hostname, owner, name }
+    if (result.length === 4) {
+      const hostname = result[1]
+      const owner = result[2]
+      const name = result[3]
+      if (hostname) {
+        return { hostname, owner, name }
+      }
+    }
+
+    if (result.length === 3) {
+      const hostname = result[1]
+      const name = result[2]
+      if (hostname) {
+        return { hostname, owner: null, name }
+      }
     }
   }
 
@@ -47,14 +59,20 @@ export function parseRemote(url: string): IGitRemoteURL | null {
 }
 
 export interface IRepositoryIdentifier {
+  readonly kind: 'repository'
   readonly owner: string
+  readonly name: string
+}
+
+export interface IGistIdentifier {
+  readonly kind: 'gist'
   readonly name: string
 }
 
 /** Try to parse an owner and name from a URL or owner/name shortcut. */
 export function parseRepositoryIdentifier(
   url: string
-): IRepositoryIdentifier | null {
+): IRepositoryIdentifier | IGistIdentifier | null {
   const parsed = parseRemote(url)
   // If we can parse it as a remote URL, we'll assume they gave us a proper
   // URL. If not, we'll try treating it as a GitHub repository owner/name
@@ -63,7 +81,11 @@ export function parseRepositoryIdentifier(
     const owner = parsed.owner
     const name = parsed.name
     if (owner && name) {
-      return { owner, name }
+      return { kind: 'repository', owner, name }
+    }
+
+    if (name) {
+      return { kind: 'gist', name }
     }
   }
 
@@ -71,7 +93,7 @@ export function parseRepositoryIdentifier(
   if (pieces.length === 2 && pieces[0].length > 0 && pieces[1].length > 0) {
     const owner = pieces[0]
     const name = pieces[1]
-    return { owner, name }
+    return { kind: 'repository', owner, name }
   }
 
   return null
