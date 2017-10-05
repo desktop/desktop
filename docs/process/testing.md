@@ -285,13 +285,15 @@
     - [ ] Clicking the "computer icon" opens from a Pull Request page opens the branch on Desktop
   - [ ] If private email is enabled (http://github.com/settings/emails), user is blocked from pushing to all associated repositories on Desktop?
 
-### 1.1+ placeholder
+### Pull Request list (v1.1)
 - Pull request list shown as subsection of Branch list
  - [ ] If no pull requests, then no badge shown, and Pull Request tab shows `0` 
    - [ ] User shown current branch in text block, and given option to create a new branch or create new pull request
  - [ ] Pull request for the current branch selected by default, with pull-request-number badge in header
  - [ ] Pull request list can be filtered; `esc` key clears filter; arrow keys can scroll list
  - [ ] Results in chronological order, with name, id number, date, username, and CI status
+
+### TBD placeholder
 - Merge tool for conflicted files
 - Conflicted files vs changed files
 - Relationship between branches
