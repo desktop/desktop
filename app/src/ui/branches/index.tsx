@@ -82,16 +82,11 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
     let countElement = null
     if (this.props.pullRequests) {
-      countElement = (
-        <span className="count">{this.props.pullRequests.length}</span>
-      )
+      countElement = <span className="count">{this.props.pullRequests.length}</span>
     }
 
     return (
-      <TabBar
-        onTabClicked={this.onTabClicked}
-        selectedIndex={this.props.selectedTab}
-      >
+      <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.props.selectedTab}>
         <span>Branches</span>
         <span className="pull-request-tab">
           {__DARWIN__ ? 'Pull Requests' : 'Pull requests'}
@@ -134,9 +129,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
             )
           } else {
             const repo = this.props.repository
-            const name = repo.gitHubRepository
-              ? repo.gitHubRepository.fullName
-              : repo.name
+            const name = repo.gitHubRepository ? repo.gitHubRepository.fullName : repo.name
             const isOnDefaultBranch =
               this.props.defaultBranch &&
               this.props.currentBranch &&
@@ -160,10 +153,29 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   public render() {
+    if (this.props.repository.gitHubRepository) {
+      return (
+        <div className="branches-container">
+          {this.renderTabBar()}
+          {this.renderSelectedTab()}
+        </div>
+      )
+    }
+
     return (
-      <div className="branches-container">
-        {this.renderTabBar()}
-        {this.renderSelectedTab()}
+      <div className="branches-list-container">
+        <BranchList
+          defaultBranch={this.props.defaultBranch}
+          currentBranch={this.props.currentBranch}
+          allBranches={this.props.allBranches}
+          recentBranches={this.props.recentBranches}
+          onItemClick={this.onItemClick}
+          filterText={this.state.filterText}
+          onFilterKeyDown={this.onFilterKeyDown}
+          onFilterTextChanged={this.onFilterTextChanged}
+          selectedBranch={this.state.selectedBranch}
+          onSelectionChanged={this.onSelectionChanged}
+        />
       </div>
     )
   }
@@ -194,8 +206,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     }
 
     const head = pullRequest.head
-    const isRefInThisRepo =
-      head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
+    const isRefInThisRepo = head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
     if (isRefInThisRepo) {
       this.checkoutBranch(head.ref)
     } else {
