@@ -280,13 +280,20 @@
     - [ ] Tooltip shows status upon hover, if progress to display
   - [ ] When a branch is local-only make sure that the `Fetch` button changes to `Publish` and it publishes
   
+### Publishing only
+  - [ ] unpublished repository, unborn HEAD - `Publish button` enabled (user can publish repository)
+  - [ ] unpublished repository, valid branch - `Publish button` enabled (user can publish repository and branch)
+  - [ ] published repository, unborn HEAD - `Publish button` disabled (no branch to push)
+  - [ ] published repository, branch without tracking - `Publish button` enabled (user can publish branch)
+  - [ ] published repository, network action - `Publish button` disabled (don't interfere with existing action)
+  
 ### Dotcom
   - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
     - [ ] Clicking the "computer icon" opens from a Pull Request page opens the branch on Desktop
   - [ ] If private email is enabled (http://github.com/settings/emails), user is blocked from pushing to all associated repositories on Desktop?
 
 ### Pull Request list (v1.1)
-- Pull request list shown as subsection of Branch list
+ - [ ] Pull request list shown as subsection of Branch list
  - [ ] If no pull requests, then no badge shown, and Pull Request tab shows `0` 
    - [ ] User shown current branch in text block, and given option to create a new branch or create new pull request
  - [ ] Pull request for the current branch selected by default, with pull-request-number badge in header
