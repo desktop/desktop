@@ -206,6 +206,32 @@
       border-color: var(--diff-hover-gutter-color);
     }
   }
+
+  &:not(.diff-line-selected) {
+    &.diff-add {
+      .diff-line-number {
+        background: var(--diff-add-hover-background-color);
+        border-color: var(--diff-add-hover-border-color);
+        color: var(--diff-add-hover-text-color);
+
+        &:last-child {
+          border-color: var(--diff-add-hover-gutter-color);
+        }
+      }
+    }
+
+    &.diff-delete {
+      .diff-line-number {
+        background: var(--diff-delete-hover-background-color);
+        border-color: var(--diff-delete-hover-border-color);
+        color: var(--diff-delete-hover-text-color);
+
+        &:last-child {
+          border-color: var(--diff-delete-hover-gutter-color);
+        }
+      }
+    }
+  }
 }
 
 // Windows has custom scroll bars, see _scroll.scss

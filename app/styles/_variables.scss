@@ -257,6 +257,16 @@
   --diff-hover-gutter-color: $blue-400;
   --diff-hover-text-color: var(--background-color);
 
+  --diff-add-hover-background-color: $green-300;
+  --diff-add-hover-border-color: $green-400;
+  --diff-add-hover-gutter-color: $green-400;
+  --diff-add-hover-text-color: var(--text-color);
+
+  --diff-delete-hover-background-color: $red-200;
+  --diff-delete-hover-border-color: $red-300;
+  --diff-delete-hover-gutter-color: $red-300;
+  --diff-delete-hover-text-color: var(--text-color);
+
   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
   // specified in `changes/index.tsx`.
   --undo-animation-duration: 500ms;
