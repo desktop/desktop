@@ -174,7 +174,7 @@
     - [ ] `Cancel` button closes modal
   - [ ] Delete (cannot be master)
     - [ ] Option to delete branch on the remote; default is unchecked
-    - [ ] `Delete` button deletes branch name
+    - [ ] `Delete` button deletes branch name (and remote too if option checked)
     - [ ] `Cancel` button closes modal
   - [ ] Update from Default Branch (cannot be master)
   - [ ] Merge into Current Branch
