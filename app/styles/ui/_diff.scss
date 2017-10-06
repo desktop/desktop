@@ -85,6 +85,10 @@
   .after {
     border-right: 4px solid var(--diff-border-color);
   }
+
+  &.read-only .after {
+    border-right-width: 1px;
+  }
 }
 
 .diff-line-number {

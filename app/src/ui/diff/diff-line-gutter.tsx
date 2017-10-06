@@ -150,7 +150,9 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, {}> {
     const lineClass = this.getLineClassName()
     const selectedClass = this.isIncluded() ? selectedLineClass : null
 
-    return classNames('diff-line-gutter', lineClass, selectedClass)
+    return classNames('diff-line-gutter', lineClass, selectedClass, {
+      'read-only': this.props.readOnly,
+    })
   }
 
   private updateHoverState(isRangeSelection: boolean, isActive: boolean) {
