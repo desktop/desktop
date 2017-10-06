@@ -70,6 +70,14 @@
   display: flex;
   height: 100%;
 
+  &.diff-add {
+    background: var(--diff-add-gutter-background-color);
+  }
+
+  &.diff-delete {
+    background: var(--diff-delete-gutter-background-color);
+  }
+
   .before {
     border-right: 1px solid var(--diff-border-color);
   }
