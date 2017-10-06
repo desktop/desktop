@@ -232,9 +232,9 @@
   --diff-selected-gutter-color: $blue-600;
   --diff-selected-text-color: var(--background-color);
 
-  --diff-add-background-color: $green-000;
   --diff-add-border-color: $green-200;
   --diff-add-gutter-color: $green-200;
+  --diff-add-background-color: darken($green-000, 2%);
   --diff-add-inner-background-color: #acf2bd;
   --diff-add-text-color: var(--diff-text-color);
 
