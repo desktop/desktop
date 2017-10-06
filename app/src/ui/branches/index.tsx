@@ -190,7 +190,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   private onCreatePullRequest = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.openCreatePullRequest(this.props.repository)
+    this.props.dispatcher.createPullRequest(this.props.repository)
   }
 
   private onTabClicked = (tab: BranchesTab) => {

@@ -2675,7 +2675,7 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public async _openCreatePullRequest(repository: Repository): Promise<void> {
+  public async _createPullRequest(repository: Repository): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
@@ -2705,8 +2705,7 @@ export class AppStore {
         unPushedCommits: aheadBehind.ahead,
       })
     } else {
-      const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
-      await this._openInBrowser(baseURL)
+      await this._openCreatePullRequestInBrowser(repository)
     }
   }
 
@@ -2778,5 +2777,26 @@ export class AppStore {
     }
 
     return null
+  }
+
+  public async _openCreatePullRequestInBrowser(
+    repository: Repository
+  ): Promise<void> {
+    const gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) {
+      return
+    }
+
+    const state = this.getRepositoryState(repository)
+    const tip = state.branchesState.tip
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const branch = tip.branch
+
+    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
+    await this._openInBrowser(baseURL)
   }
 }
