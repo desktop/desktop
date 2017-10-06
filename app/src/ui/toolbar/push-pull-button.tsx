@@ -34,7 +34,7 @@ interface IPushPullButtonProps {
   /** The current repository */
   readonly repository: Repository
 
-  /** The current state of the tip of the repository */
+  /** Indicate whether the current branch is valid, unborn or detached HEAD */
   readonly tipState: TipState
 }
 
@@ -50,7 +50,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
 
     const description = progress
       ? progress.description || 'Hang on…'
-      : this.getDescription()
+      : this.getDescription(this.props.tipState)
 
     const progressValue = progress ? progress.value : undefined
 
@@ -166,10 +166,19 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     return OcticonSymbol.sync
   }
 
-  private getDescription(): JSX.Element | string {
+  private getDescription(tipState: TipState): JSX.Element | string {
     if (!this.props.remoteName) {
       return 'Publish this repository to GitHub'
     }
+
+    if (tipState === TipState.Detached) {
+      return 'Unable to publish detached HEAD'
+    }
+
+    if (tipState === TipState.Unborn) {
+      return 'Unable to publish unborn repository'
+    }
+
     if (!this.props.aheadBehind) {
       const isGitHub = !!this.props.repository.gitHubRepository
       return isGitHub
