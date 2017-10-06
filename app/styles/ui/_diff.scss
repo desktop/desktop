@@ -36,7 +36,9 @@
       // Add a little bit of space to the left of code diff
       // `padding-left` here means mouse move events are not raised
       padding-left: var(--spacing-half);
-      align-self: center;
+      padding-top: var(--diff-line-padding-y);
+      padding-bottom: var(--diff-line-padding-y);
+      display: inline-block;
     }
 
     svg.no-newline {
@@ -66,7 +68,6 @@
 // The container element which holds the before and after
 // diff-line-number spans.
 .diff-line-gutter {
-  line-height: normal;
   display: flex;
   height: 100%;
 
@@ -99,7 +100,7 @@
   display: inline-block;
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
-  padding: var(--spacing-third) var(--spacing-half);
+  padding: var(--diff-line-padding-y) var(--spacing-half);
   text-align: right;
 }
 
