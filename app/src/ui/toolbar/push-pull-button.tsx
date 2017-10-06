@@ -34,7 +34,11 @@ interface IPushPullButtonProps {
   /** The current repository */
   readonly repository: Repository
 
-  /** Indicate whether the current branch is valid, unborn or detached HEAD */
+  /**
+   * Indicate whether the current branch is valid, unborn or detached HEAD
+   *
+   * Used for setting the enabled/disabled and the description text.
+   */
   readonly tipState: TipState
 }
 
