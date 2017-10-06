@@ -78,6 +78,10 @@
     background: var(--diff-delete-gutter-background-color);
   }
 
+  &.diff-hunk {
+    background: var(--diff-hunk-gutter-background-color);
+  }
+
   .before {
     border-right: 1px solid var(--diff-border-color);
   }
