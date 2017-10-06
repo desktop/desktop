@@ -248,7 +248,7 @@
 
   --diff-hunk-background-color: $blue-000;
   --diff-hunk-border-color: $blue-200;
-  --diff-hunk-gutter-color: $blue-200;
+  --diff-hunk-gutter-color: darken($blue-200, 5%);
   --diff-hunk-gutter-background-color: $blue-100;
   --diff-hunk-text-color: $gray;
 
