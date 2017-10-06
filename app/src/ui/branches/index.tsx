@@ -82,11 +82,16 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
     let countElement = null
     if (this.props.pullRequests) {
-      countElement = <span className="count">{this.props.pullRequests.length}</span>
+      countElement = (
+        <span className="count">{this.props.pullRequests.length}</span>
+      )
     }
 
     return (
-      <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.props.selectedTab}>
+      <TabBar
+        onTabClicked={this.onTabClicked}
+        selectedIndex={this.props.selectedTab}
+      >
         <span>Branches</span>
         <span className="pull-request-tab">
           {__DARWIN__ ? 'Pull Requests' : 'Pull requests'}
@@ -129,7 +134,9 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
             )
           } else {
             const repo = this.props.repository
-            const name = repo.gitHubRepository ? repo.gitHubRepository.fullName : repo.name
+            const name = repo.gitHubRepository
+              ? repo.gitHubRepository.fullName
+              : repo.name
             const isOnDefaultBranch =
               this.props.defaultBranch &&
               this.props.currentBranch &&
@@ -206,7 +213,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     }
 
     const head = pullRequest.head
-    const isRefInThisRepo = head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
+    const isRefInThisRepo =
+      head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
     if (isRefInThisRepo) {
       this.checkoutBranch(head.ref)
     } else {
