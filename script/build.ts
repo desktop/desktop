@@ -5,11 +5,7 @@ import * as fs from 'fs-extra'
 
 const legalEagle: LegalEagle = require('legal-eagle')
 
-import {
-  getReleaseChannel,
-  getDistRoot,
-  getVersion,
-} from './dist-info'
+import { getReleaseChannel, getDistRoot, getVersion } from './dist-info'
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'app', 'dist')
