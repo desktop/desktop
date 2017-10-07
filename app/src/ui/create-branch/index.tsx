@@ -6,6 +6,7 @@ import { sanitizedBranchName } from '../../lib/sanitize-branch'
 import { Branch } from '../../models/branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
+import { Ref } from '../lib/ref'
 import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
 import { ButtonGroup } from '../lib/button-group'
@@ -171,8 +172,9 @@ export class CreateBranch extends React.Component<
         )
         return (
           <p>
-            Your new branch will be based on your currently checked out branch ({currentBranch.name}).{' '}
-            {currentBranch.name} is the {defaultBranchLink} for your repository.
+            Your new branch will be based on your currently checked out branch (<Ref>{currentBranch.name}</Ref>).{' '}
+            <Ref>{currentBranch.name}</Ref> is the {defaultBranchLink} for your
+            repository.
           </p>
         )
       } else {
