@@ -40,8 +40,9 @@ export class RepositoriesDatabase extends Dexie {
   /**
    * Initialize a new repository database.
    *
-   * name    - The name of the database.
-   * version - The version of the schema to use.
+   * name          - The name of the database.
+   * schemaVersion - The version of the schema to use. If not provided, the
+   *                 database will be created with the latest version.
    */
   public constructor(name: string, schemaVersion?: number) {
     super(name)
@@ -69,7 +70,10 @@ export class RepositoriesDatabase extends Dexie {
       return table.toCollection().each(repo => {
         const key = `${repo.ownerID}+${repo.name}`
         if (seenKeys.has(key)) {
-          table.delete(repo.id!)
+          // We can be sure `id` isn't null since we just got it from the
+          // database.
+          const id = repo.id!
+          table.delete(id)
         } else {
           seenKeys.add(key)
         }
@@ -81,13 +85,24 @@ export class RepositoriesDatabase extends Dexie {
     })
   }
 
+  /**
+   * Register the version of the schema only if `targetVersion` is less than
+   * `version` or is `undefined`.
+   *
+   * targetVersion - The version of the schema that is being targetted. If not
+   *                 provided, the given version will be registered.
+   * version       - The version being registered.
+   * schema        - The schema to register.
+   * upgrade       - An upgrade function to call after upgrading to the given
+   *                 version.
+   */
   private conditionalVersion(
-    requestedVersion: number | undefined,
+    targetVersion: number | undefined,
     version: number,
     schema: { [key: string]: string | null },
     upgrade?: (t: Dexie.Transaction) => void
   ) {
-    if (requestedVersion && requestedVersion < version) {
+    if (targetVersion && targetVersion < version) {
       return
     }
 

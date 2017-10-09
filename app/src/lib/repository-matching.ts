@@ -8,8 +8,19 @@ import { getHTMLURL } from './api'
 import { parseRemote } from './remote-parsing'
 
 export interface IMatchedGitHubRepository {
+  /**
+   * The name of the repository, e.g., for https://github.com/user/repo, the
+   * name is `repo`.
+   */
   readonly name: string
+
+  /**
+   * The login of the owner of the repository, e.g., for
+   * https://github.com/user/repo, the owner is `user`.
+   */
   readonly owner: string
+
+  /** The API endpoint. */
   readonly endpoint: string
 }
 
