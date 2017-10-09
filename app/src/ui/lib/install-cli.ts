@@ -43,9 +43,7 @@ async function getResolvedInstallPath(): Promise<string | null> {
 function symlinkCLI(asAdmin: boolean) {
   let exitCode = runas('/bin/rm', ['-f', InstalledCLIPath], { admin: asAdmin })
   if (exitCode !== 0) {
-    throw new Error(
-      `Failed to remove file at ${InstalledCLIPath}. Authorization of GitHub Desktop Helper is required.`
-    )
+    throw new Error(`Failed to remove file at ${InstalledCLIPath}`)
   }
 
   exitCode = runas('/bin/mkdir', ['-p', Path.dirname(InstalledCLIPath)], {
