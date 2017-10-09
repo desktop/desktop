@@ -1,12 +1,12 @@
 import { ChildProcess } from 'child_process'
 import * as Fs from 'fs'
+import * as byline from 'byline'
+
 import { GitProgressParser, IGitProgress, IGitOutput } from './git'
 import { IGitExecutionOptions } from '../git/core'
 import { merge } from '../merge'
 import { GitLFSProgressParser, createLFSProgressFile } from './lfs'
 import { tailByLine } from '../file-system'
-
-const byline = require('byline')
 
 /**
  * Merges an instance of IGitExecutionOptions with a process callback provided

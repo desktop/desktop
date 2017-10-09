@@ -1,5 +1,19 @@
 {
   "releases": {
+    "1.0.4-beta0": [
+      "[Improved] Increase the contrast of the modified file status octicons - #2914",
+      "[Fixed] Showing changed files in Finder/Explorer would open the file - #2909",
+      "[Fixed] macOS: Fix app icon on High Sierra - #2915",
+      "[Fixed] Cloning an empty repository would fail - #2897 #2906",
+      "[Fixed] Catch logging exceptions - #2910"
+    ],
+    "1.0.3": [
+      "[Improved] Increase the contrast of the modified file status octicons - #2914",
+      "[Fixed] Showing changed files in Finder/Explorer would open the file - #2909",
+      "[Fixed] macOS: Fix app icon on High Sierra - #2915",
+      "[Fixed] Cloning an empty repository would fail - #2897 #2906",
+      "[Fixed] Catch logging exceptions - #2910"
+    ],
     "1.0.2": [
       "[Improved] Better message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
       "[Improved] Clone error message now suggests networking might be involved - #2872. Thanks @agisilaos!",

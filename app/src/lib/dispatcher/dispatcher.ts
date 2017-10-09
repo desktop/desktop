@@ -1023,8 +1023,26 @@ export class Dispatcher {
     return this.appStore._changeBranchesTab(tab)
   }
 
-  /** Open the Create Pull Request page on GitHub. */
-  public openCreatePullRequest(repository: Repository): Promise<void> {
-    return this.appStore._openCreatePullRequest(repository)
+  /**
+   * Open the Create Pull Request page on GitHub after verifying ahead/behind.
+   *
+   * Note that this method will present the user with a dialog in case the
+   * current branch in the repository is ahead or behind the remote.
+   * The dialog lets the user choose whether get in sync with the remote
+   * or open the PR anyway. This is distinct from the
+   * openCreatePullRequestInBrowser method which immediately opens the
+   * create pull request page without showing a dialog.
+   */
+  public createPullRequest(repository: Repository): Promise<void> {
+    return this.appStore._createPullRequest(repository)
+  }
+
+  /**
+   * Immediately open the Create Pull Request page on GitHub.
+   *
+   * See the createPullRequest method for more details.
+   */
+  public openCreatePullRequestInBrowser(repository: Repository): Promise<void> {
+    return this.appStore._openCreatePullRequestInBrowser(repository)
   }
 }

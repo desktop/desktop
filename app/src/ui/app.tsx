@@ -1082,7 +1082,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             unPushedCommits={popup.unPushedCommits}
-            onConfirm={this.openPullRequestOnGitHub}
+            onConfirm={this.openCreatePullRequestInBrowser}
             onDismissed={this.onPopupDismissed}
           />
         )
@@ -1411,11 +1411,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    return this.openPullRequestOnGitHub(state.repository)
+    return this.props.dispatcher.createPullRequest(state.repository)
   }
 
-  private openPullRequestOnGitHub = (repository: Repository) => {
-    this.props.dispatcher.openCreatePullRequest(repository)
+  private openCreatePullRequestInBrowser = (repository: Repository) => {
+    this.props.dispatcher.openCreatePullRequestInBrowser(repository)
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
