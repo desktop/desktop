@@ -72,7 +72,7 @@ export class RepositoriesDatabase extends Dexie {
       gitHubRepositories: '++id, name, &[ownerID+name]',
     })
 
-    this.conditionalVersion(requestedVersion, 5, {
+    this.conditionalVersion(schemaVersion, 5, {
       gitHubRepositories: '++id, name, &[ownerID+name], cloneURL',
     })
   }
