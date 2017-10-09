@@ -49,7 +49,7 @@ export class Advanced extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
-      : this.props.selectedExternalEditoselectedExternalEditorr,
+      selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
     }
   }

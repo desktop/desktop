@@ -24,26 +24,6 @@ You will need to install these tools on your machine:
     - *Visual Studio 2017 support has not been tested yet - see [#1766](https://github.com/desktop/desktop/issues/1766) for details*
  - *Run `npm config set msvs_version 2015` to tell node the right toolchain to use for compiling native modules.*
 
-### Fedora 26
-
-First, add the NodeJS package repository. As this version of Fedora doesn't support v7, you'll need to use v8:
-
-```
-$ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
-```
-
-After that, install the dependencies to build and test the app:
-
-```
-$ sudo yum install -y nodejs gcc-c++ make libsecret-devel libxscrnsaver
-```
-
-Because we haven't yet upgraded to NPM 5, we need to downgrade to the latest `npm@4` release:
-
-```
-$ sudo npm install -g npm@4.6.1
-```
-
 ## Verification
 
 With these things installed, open a shell and validate you have these commands
