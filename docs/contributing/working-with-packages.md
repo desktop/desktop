@@ -1,6 +1,7 @@
-# Updating Packages
+# Working with Packages
 
-As we are using `yarn` for managing packages, here are some helpful tips to ensure things stay in sync.
+As we are using `yarn` for managing packages, here are some helpful tips for
+whenever you need to work with them.
 
 ### Install packages
 
@@ -21,9 +22,9 @@ dependencies via the `yarn` command line:
 
 ```sh
 # adds the package to the dependencies list
-> yarn add [package]
+> yarn add [package-name]
 # adds the package to the devDependencies list
-> yarn add [package] --dev
+> yarn add [package-name] --dev
 ```
 
 ### Updating packages
@@ -34,7 +35,7 @@ To see which packages have newer versions available:
 > yarn outdated
 ```
 
-To then upgrade a package:
+To upgrade a package:
 
 ```sh
 > yarn upgrade [package-name]@[version]
@@ -42,3 +43,11 @@ To then upgrade a package:
 
 You don't _need_ to specify the version here, but this ensures the change is
 reflected in the `package.json` file.
+
+### Removing packages
+
+To remove any packages that are no longer needed:
+
+```sh
+> yarn remove [package-name]
+```
