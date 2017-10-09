@@ -39,9 +39,7 @@ export class RangeSelection implements ISelectionStrategy {
         return
       }
 
-      const selected = this._desiredSelection
-
-      element.setSelected(selected)
+      element.setSelected(this._desiredSelection)
     })
   }
 
