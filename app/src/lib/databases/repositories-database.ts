@@ -14,6 +14,8 @@ export interface IDatabaseGitHubRepository {
   readonly htmlURL: string | null
   readonly defaultBranch: string | null
   readonly cloneURL: string | null
+
+  /** The database ID of the parent repository if the repository is a fork. */
   readonly parentID: number | null
 }
 
@@ -35,20 +37,26 @@ export class RepositoriesDatabase extends Dexie {
   /** The GitHub repository owners table. */
   public owners: Dexie.Table<IDatabaseOwner, number>
 
-  public constructor(name: string, requestedVersion?: number) {
+  /**
+   * Initialize a new repository database.
+   *
+   * name    - The name of the database.
+   * version - The version of the schema to use.
+   */
+  public constructor(name: string, schemaVersion?: number) {
     super(name)
 
-    this.conditionalVersion(requestedVersion, 1, {
+    this.conditionalVersion(schemaVersion, 1, {
       repositories: '++id, &path',
       gitHubRepositories: '++id, name',
       owners: '++id, login',
     })
 
-    this.conditionalVersion(requestedVersion, 2, {
+    this.conditionalVersion(schemaVersion, 2, {
       owners: '++id, &[endpoint+login]',
     })
 
-    this.conditionalVersion(requestedVersion, 3, {}, t => {
+    this.conditionalVersion(schemaVersion, 3, {}, t => {
       // We're adding a new index with a uniqueness constraint in the next
       // version and its upgrade callback only happens *after* the schema's been
       // changed. So we need to prepare for it by removing any old data now
@@ -68,7 +76,7 @@ export class RepositoriesDatabase extends Dexie {
       })
     })
 
-    this.conditionalVersion(requestedVersion, 4, {
+    this.conditionalVersion(schemaVersion, 4, {
       gitHubRepositories: '++id, name, &[ownerID+name]',
     })
   }
