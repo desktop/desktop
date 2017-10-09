@@ -110,6 +110,7 @@
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
     "electron": "1.7.8",
+    "electron-builder": "19.33.0",
     "electron-installer-appimage": "^1.0.1",
     "electron-installer-debian": "^0.6.0",
     "electron-installer-redhat": "^0.5.0",
