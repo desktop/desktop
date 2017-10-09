@@ -30,7 +30,7 @@ describe('App', function(this: any) {
     }
     app = new Application({
       path: appPath,
-      args: [path.join(__dirname, '..', '..', '..', 'out')],
+      args: [path.join(__dirname, '..', '..', 'dist')],
     })
     return app.start()
   })

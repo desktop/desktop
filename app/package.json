@@ -4,11 +4,7 @@
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
   "version": "1.0.4-beta0",
-  "main": "./main.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/desktop/desktop.git"
-  },
+  "main": "./dist/main.js",
   "description": "Simple collaboration from your desktop",
   "author": {
     "name": "GitHub, Inc.",

@@ -1,6 +1,7 @@
 /* tslint:disable:no-sync-functions */
 
 import * as fs from 'fs'
+import * as path from 'path'
 import * as cp from 'child_process'
 import { getLogFiles } from './review-logs'
 import { getProductName, getDistPath } from './dist-info'
@@ -26,3 +27,17 @@ getLogFiles().forEach(file => {
   console.log(`deleting ${file}`)
   fs.unlinkSync(file)
 })
+
+const originPackageFile = path.join(__dirname, '..', 'app', 'package.json')
+const destPackageFile = path.join(
+  __dirname,
+  '..',
+  'app',
+  'dist',
+  'package.json'
+)
+const packJson = fs
+  .readFileSync(originPackageFile)
+  .toString()
+  .replace('dist/', '')
+fs.writeFileSync(destPackageFile, packJson)
