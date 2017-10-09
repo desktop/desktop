@@ -10,7 +10,7 @@ import { shell } from 'electron'
  *
  * @param path directory to open
  */
-export function openPathSafe(path: string) {
+export function openDirectorySafe(path: string) {
   if (__DARWIN__) {
     const directoryURL = Url.format({
       pathname: path,

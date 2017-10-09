@@ -13,7 +13,7 @@ import { fatalError } from '../lib/fatal-error'
 import { IMenuItemState } from '../lib/menu-update'
 import { LogLevel } from '../lib/logging/log-level'
 import { log as writeLog } from './log'
-import { openPathSafe } from './shell'
+import { openDirectorySafe } from './shell'
 import { reportError } from './exception-reporting'
 import {
   enableSourceMaps,
@@ -314,7 +314,7 @@ app.on('ready', () => {
         }
 
         if (stats.isDirectory()) {
-          openPathSafe(path)
+          openDirectorySafe(path)
         } else {
           shell.showItemInFolder(path)
         }
