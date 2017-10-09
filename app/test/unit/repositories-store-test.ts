@@ -36,28 +36,28 @@ describe('RepositoriesStore', () => {
   })
 
   describe('updating a GitHub repository', () => {
+    const gitHubRepo: IAPIRepository = {
+      clone_url: 'https://github.com/my-user/my-repo',
+      html_url: 'https://github.com/my-user/my-repo',
+      name: 'my-repo',
+      owner: {
+        id: 42,
+        url: 'https://github.com/my-user',
+        login: 'my-user',
+        avatar_url: 'https://github.com/my-user.png',
+        name: 'My User',
+        type: 'User',
+      },
+      private: true,
+      fork: false,
+      default_branch: 'master',
+      parent: null,
+    }
+
     it('adds a new GitHub repository', async () => {
       const addedRepo = await repositoriesStore!.addRepository(
         '/some/cool/path'
       )
-
-      const gitHubRepo: IAPIRepository = {
-        clone_url: 'https://github.com/my-user/my-repo',
-        html_url: 'https://github.com/my-user/my-repo',
-        name: 'my-repo',
-        owner: {
-          id: 42,
-          url: 'https://github.com/my-user',
-          login: 'my-user',
-          avatar_url: 'https://github.com/my-user.png',
-          name: 'My User',
-          type: 'User',
-        },
-        private: true,
-        fork: false,
-        default_branch: 'master',
-        parent: null,
-      }
 
       await repositoriesStore!.updateGitHubRepository(
         addedRepo,
@@ -71,6 +71,30 @@ describe('RepositoriesStore', () => {
       expect(repo.gitHubRepository!.fork).to.equal(false)
       expect(repo.gitHubRepository!.htmlURL).to.equal(
         'https://github.com/my-user/my-repo'
+      )
+    })
+
+    it('reuses an existing GitHub repository', async () => {
+      const firstRepo = await repositoriesStore!.addRepository(
+        '/some/cool/path'
+      )
+      const updatedFirstRepo = await repositoriesStore!.updateGitHubRepository(
+        firstRepo,
+        'https://api.github.com',
+        gitHubRepo
+      )
+
+      const secondRepo = await repositoriesStore!.addRepository(
+        '/some/other/path'
+      )
+      const updatedSecondRepo = await repositoriesStore!.updateGitHubRepository(
+        secondRepo,
+        'https://api.github.com',
+        gitHubRepo
+      )
+
+      expect(updatedFirstRepo.gitHubRepository!.dbID).to.equal(
+        updatedSecondRepo.gitHubRepository!.dbID
       )
     })
   })

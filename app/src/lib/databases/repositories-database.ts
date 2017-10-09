@@ -14,6 +14,8 @@ export interface IDatabaseGitHubRepository {
   readonly htmlURL: string | null
   readonly defaultBranch: string | null
   readonly cloneURL: string | null
+
+  /** The database ID of the parent repository if the repository is a fork. */
   readonly parentID: number | null
 }
 
@@ -35,40 +37,38 @@ export class RepositoriesDatabase extends Dexie {
   /** The GitHub repository owners table. */
   public owners: Dexie.Table<IDatabaseOwner, number>
 
-  public constructor(name: string, requestedVersion?: number) {
+  /**
+   * Initialize a new repository database.
+   *
+   * name          - The name of the database.
+   * schemaVersion - The version of the schema to use. If not provided, the
+   *                 database will be created with the latest version.
+   */
+  public constructor(name: string, schemaVersion?: number) {
     super(name)
 
-    this.conditionalVersion(requestedVersion, 1, {
+    this.conditionalVersion(schemaVersion, 1, {
       repositories: '++id, &path',
       gitHubRepositories: '++id, name',
       owners: '++id, login',
     })
 
-    this.conditionalVersion(requestedVersion, 2, {
+    this.conditionalVersion(schemaVersion, 2, {
       owners: '++id, &[endpoint+login]',
     })
 
-    this.conditionalVersion(requestedVersion, 3, {}, t => {
-      // We're adding a new index with a uniqueness constraint in the next
-      // version and its upgrade callback only happens *after* the schema's been
-      // changed. So we need to prepare for it by removing any old data now
-      // which will violate it.
-      const table = t.table<IDatabaseGitHubRepository, number>(
-        'gitHubRepositories'
-      )
+    // We're adding a new index with a uniqueness constraint in the *next*
+    // version and its upgrade callback only happens *after* the schema's been
+    // changed. So we need to prepare for it by removing any old data now
+    // which will violate it.
+    this.conditionalVersion(
+      schemaVersion,
+      3,
+      {},
+      removeDuplicateGitHubRepositories
+    )
 
-      const seenKeys = new Set<string>()
-      return table.toCollection().each(repo => {
-        const key = `${repo.ownerID}+${repo.name}`
-        if (seenKeys.has(key)) {
-          table.delete(repo.id!)
-        } else {
-          seenKeys.add(key)
-        }
-      })
-    })
-
-    this.conditionalVersion(requestedVersion, 4, {
+    this.conditionalVersion(schemaVersion, 4, {
       gitHubRepositories: '++id, name, &[ownerID+name]',
     })
 
@@ -77,13 +77,24 @@ export class RepositoriesDatabase extends Dexie {
     })
   }
 
+  /**
+   * Register the version of the schema only if `targetVersion` is less than
+   * `version` or is `undefined`.
+   *
+   * targetVersion - The version of the schema that is being targetted. If not
+   *                 provided, the given version will be registered.
+   * version       - The version being registered.
+   * schema        - The schema to register.
+   * upgrade       - An upgrade function to call after upgrading to the given
+   *                 version.
+   */
   private conditionalVersion(
-    requestedVersion: number | undefined,
+    targetVersion: number | undefined,
     version: number,
     schema: { [key: string]: string | null },
     upgrade?: (t: Dexie.Transaction) => void
   ) {
-    if (requestedVersion && requestedVersion < version) {
+    if (targetVersion && targetVersion < version) {
       return
     }
 
@@ -92,4 +103,26 @@ export class RepositoriesDatabase extends Dexie {
       dexieVersion.upgrade(upgrade)
     }
   }
+}
+
+/**
+ * Remove any duplicate GitHub repositories that have the same owner and name.
+ */
+function removeDuplicateGitHubRepositories(transaction: Dexie.Transaction) {
+  const table = transaction.table<IDatabaseGitHubRepository, number>(
+    'gitHubRepositories'
+  )
+
+  const seenKeys = new Set<string>()
+  return table.toCollection().each(repo => {
+    const key = `${repo.ownerID}+${repo.name}`
+    if (seenKeys.has(key)) {
+      // We can be sure `id` isn't null since we just got it from the
+      // database.
+      const id = repo.id!
+      table.delete(id)
+    } else {
+      seenKeys.add(key)
+    }
+  })
 }

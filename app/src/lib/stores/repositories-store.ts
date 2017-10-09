@@ -240,7 +240,6 @@ export class RepositoriesStore {
     const existingOwner = await this.db.owners
       .where('[endpoint+login]')
       .equals([endpoint, login])
-      .limit(1)
       .first()
     if (existingOwner) {
       return new Owner(login, endpoint, existingOwner.id!)
@@ -269,7 +268,6 @@ export class RepositoriesStore {
     const existingRepo = await this.db.gitHubRepositories
       .where('[ownerID+name]')
       .equals([owner.id!, gitHubRepository.name])
-      .limit(1)
       .first()
 
     let updatedGitHubRepo: IDatabaseGitHubRepository = {
