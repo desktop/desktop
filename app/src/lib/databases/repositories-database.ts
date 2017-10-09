@@ -57,28 +57,16 @@ export class RepositoriesDatabase extends Dexie {
       owners: '++id, &[endpoint+login]',
     })
 
-    this.conditionalVersion(schemaVersion, 3, {}, t => {
-      // We're adding a new index with a uniqueness constraint in the next
-      // version and its upgrade callback only happens *after* the schema's been
-      // changed. So we need to prepare for it by removing any old data now
-      // which will violate it.
-      const table = t.table<IDatabaseGitHubRepository, number>(
-        'gitHubRepositories'
-      )
-
-      const seenKeys = new Set<string>()
-      return table.toCollection().each(repo => {
-        const key = `${repo.ownerID}+${repo.name}`
-        if (seenKeys.has(key)) {
-          // We can be sure `id` isn't null since we just got it from the
-          // database.
-          const id = repo.id!
-          table.delete(id)
-        } else {
-          seenKeys.add(key)
-        }
-      })
-    })
+    // We're adding a new index with a uniqueness constraint in the *next*
+    // version and its upgrade callback only happens *after* the schema's been
+    // changed. So we need to prepare for it by removing any old data now
+    // which will violate it.
+    this.conditionalVersion(
+      schemaVersion,
+      3,
+      {},
+      removeDuplicateGitHubRepositories
+    )
 
     this.conditionalVersion(schemaVersion, 4, {
       gitHubRepositories: '++id, name, &[ownerID+name]',
@@ -111,4 +99,23 @@ export class RepositoriesDatabase extends Dexie {
       dexieVersion.upgrade(upgrade)
     }
   }
+}
+
+function removeDuplicateGitHubRepositories(transaction: Dexie.Transaction) {
+  const table = transaction.table<IDatabaseGitHubRepository, number>(
+    'gitHubRepositories'
+  )
+
+  const seenKeys = new Set<string>()
+  return table.toCollection().each(repo => {
+    const key = `${repo.ownerID}+${repo.name}`
+    if (seenKeys.has(key)) {
+      // We can be sure `id` isn't null since we just got it from the
+      // database.
+      const id = repo.id!
+      table.delete(id)
+    } else {
+      seenKeys.add(key)
+    }
+  })
 }
