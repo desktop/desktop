@@ -2,10 +2,10 @@
 
 As we are using `yarn` for managing packages, here are some helpful tips to ensure things stay in sync.
 
-### Installing packages
+### Install packages
 
-To ensure you have the right version of dependencies, just run this command
-after cloning or switching branches.
+To ensure you have the right version of dependencies, run this command after
+cloning or switching branches.
 
 ```sh
 > yarn
@@ -13,6 +13,18 @@ after cloning or switching branches.
 
 This will restore the versions stored in the lock file to the `node_modules`
 folder.
+
+### Add new packages
+
+Rather than updating the `package.json` explicitly, you can install new
+dependencies via the `yarn` command line:
+
+```sh
+# adds the package to the dependencies list
+> yarn add [package]
+# adds the package to the devDependencies list
+> yarn add [package] --dev
+```
 
 ### Updating packages
 
