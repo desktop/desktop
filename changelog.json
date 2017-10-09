@@ -1,5 +1,6 @@
 {
   "releases": {
+    "1.0.5-test0": [],
     "1.0.4-beta0": [
       "[Improved] Increase the contrast of the modified file status octicons - #2914",
       "[Fixed] Showing changed files in Finder/Explorer would open the file - #2909",
