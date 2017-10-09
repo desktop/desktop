@@ -47,6 +47,7 @@ export class GitHubRepository {
     return `${this.owner.login}/${this.name}`
   }
 
+  /** Is the repository a fork? */
   public get fork(): boolean {
     return !!this.parent
   }
