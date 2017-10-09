@@ -44,7 +44,6 @@ export async function clone(
     'lfs',
     'clone',
     '--recursive',
-    '--progress',
     // git-lfs will create the hooks it requires by default
     // and we don't know if the repository is LFS enabled
     // at this stage so let's not do this

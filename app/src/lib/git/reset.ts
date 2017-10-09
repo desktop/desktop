@@ -84,7 +84,7 @@ export async function resetPaths(
     // as macOS and Linux don't have this same shell limitation. See
     // https://github.com/desktop/desktop/issues/2833#issuecomment-331352952
     // for more context.
-    const args = [...baseArgs, '--stdin', '-z']
+    const args = [...baseArgs, '--stdin', '-z', '--']
     await git(args, repository.path, 'resetPaths', {
       stdin: paths.join('\0'),
     })
