@@ -211,7 +211,6 @@ export class RepositoriesStore {
     const existingOwner = await this.db.owners
       .where('[endpoint+login]')
       .equals([endpoint, login])
-      .limit(1)
       .first()
     if (existingOwner) {
       return new Owner(login, endpoint, existingOwner.id!)
