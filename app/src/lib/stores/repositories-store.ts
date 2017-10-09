@@ -239,7 +239,6 @@ export class RepositoriesStore {
     const existingRepo = await this.db.gitHubRepositories
       .where('[ownerID+name]')
       .equals([owner.id!, gitHubRepository.name])
-      .limit(1)
       .first()
 
     let updatedGitHubRepo: IDatabaseGitHubRepository = {
