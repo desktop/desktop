@@ -23,7 +23,7 @@ install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   - npm install -g yarn@1.1.0
   - git submodule update --init --recursive
-  - yarn
+  - yarn install --force
 
 build_script:
   - yarn check-prettiness

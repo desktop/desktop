@@ -19,8 +19,7 @@ dependencies:
     - npm install -g yarn@1.1.0
 
   override:
-    - yarn
-    - yarn rebuild
+    - yarn install --force
 
 compile:
   override:

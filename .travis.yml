@@ -39,7 +39,7 @@ cache:
 
 install:
   - npm install -g yarn@1.1.0
-  - yarn
+  - yarn install --force
 
 script:
   - yarn check-prettiness
