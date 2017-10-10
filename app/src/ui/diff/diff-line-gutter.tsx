@@ -256,19 +256,17 @@ export class DiffLineGutter extends React.Component<
       return
     }
 
-    if (elem) {
+    // no point handling mouse events on context lines
+    if (elem && this.props.line.isIncludeableLine()) {
       elem.addEventListener('mouseenter', this.mouseEnterHandler)
       elem.addEventListener('mouseleave', this.mouseLeaveHandler)
       elem.addEventListener('mousemove', this.mouseMoveHandler)
-
-      // no point handling mousedown events on context lines
-      if (this.props.line.isIncludeableLine()) {
-        elem.addEventListener('mousedown', this.mouseDownHandler)
-      }
+      elem.addEventListener('mousedown', this.mouseDownHandler)
     } else {
       // this callback fires a second time when the DOM element
-      // is unmounted, so we can use this as a chance to cleanup
-
+      // is unmounted, so we can use this as a chance to cleanup.
+      // We unsubscribe without checking for isIncludeableLine since
+      // that might have changed underneath us
       if (this.elem_) {
         this.elem_.removeEventListener('mouseenter', this.mouseEnterHandler)
         this.elem_.removeEventListener('mouseleave', this.mouseLeaveHandler)
