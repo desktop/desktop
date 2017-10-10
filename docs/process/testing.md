@@ -50,6 +50,8 @@
     - [ ] `Cancel` button does not save any changes made; modal closed
   - [ ] Clone a Repository (Mac: ⇧⌘O; Windows: Ctrl+Shift+O)
     - [ ] Enter valid URL or username/repo/gist, else error message
+      - [ ] If authentication error, modal with username/password surfaced; `cancel` or `Save and Retry` buttons
+        - [ ] If successful, repo is cloned
     - [ ] Valid path can be entered or selected
       - [ ] Local path is prepopulated; if not unique then error surfaced
     - [ ] All repos from both GitHub.com and Enterprise are populated -- your repos are listed first, followed by org(s)
