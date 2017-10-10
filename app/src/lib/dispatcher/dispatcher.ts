@@ -966,6 +966,7 @@ export class Dispatcher {
     username: string,
     password: string
   ): Promise<void> {
+    log.info(`storing generic credentials for '${hostname}' and ${username}`)
     GenericGitAuth.setGenericUsername(hostname, username)
     await GenericGitAuth.setGenericPassword(hostname, username, password)
   }
