@@ -37,4 +37,4 @@ deployment:
   production:
     branch: /^__release-.*/
     commands:
-      - yarn publish
+      - yarn run publish
