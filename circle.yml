@@ -20,21 +20,21 @@ dependencies:
 
   override:
     - yarn
-    - npm rebuild
+    - yarn rebuild
 
 compile:
   override:
-    - npm run check-prettiness
-    - npm run lint
-    - npm run build:prod
+    - yarn check-prettiness
+    - yarn lint
+    - yarn build:prod
 
 test:
   override:
-    - npm run test:setup
-    - npm test
+    - yarn test:setup
+    - yarn test
 
 deployment:
   production:
     branch: /^__release-.*/
     commands:
-      - npm run publish
+      - yarn publish

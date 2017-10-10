@@ -42,11 +42,11 @@ install:
   - yarn
 
 script:
-  - npm run check-prettiness
-  - npm run lint
-  - npm run build:prod
-  - npm run test:setup
-  - npm test
+  - yarn check-prettiness
+  - yarn lint
+  - yarn build:prod
+  - yarn test:setup
+  - yarn test
 
 after_failure:
-  - npm run test:review
+  - yarn test:review
