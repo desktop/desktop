@@ -1,7 +1,9 @@
 ### Download Desktop
   - [ ] User can download latest (Mac & Windows) Desktop from https://desktop.github.com/    
     - [ ] Mac: https://central.github.com/deployments/desktop/desktop/latest/darwin
+      - [ ] Homebrew package manager: $ brew cask install github-desktop
     - [ ] Windows: https://central.github.com/deployments/desktop/desktop/latest/win32
+      - [ ] Chocolatey package manager: c:\> choco install github-desktop
     - [ ] Data is retained if you download and open a fresh copy
   - [ ] Release notes page is up-to-date
   - [ ] Help page is accessible
