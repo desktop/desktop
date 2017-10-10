@@ -176,11 +176,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     }
 
     if (tipState === TipState.Detached) {
-      return 'Unable to publish detached HEAD'
+      return 'Cannot publish detached HEAD'
     }
 
     if (tipState === TipState.Unborn) {
-      return 'Unable to publish unborn repository'
+      return 'Cannot publish unborn repository'
     }
 
     if (!this.props.aheadBehind) {
