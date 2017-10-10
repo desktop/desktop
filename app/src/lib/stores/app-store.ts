@@ -2453,10 +2453,12 @@ export class AppStore {
   }
 
   public _removeAccount(account: Account): Promise<void> {
+    log.info(`removing account ${account.login} (${account.name}) from store`)
     return this.accountsStore.removeAccount(account)
   }
 
   public _addAccount(account: Account): Promise<void> {
+    log.info(`adding account ${account.login} (${account.name}) to store`)
     return this.accountsStore.addAccount(account)
   }
 
