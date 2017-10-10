@@ -38,19 +38,13 @@ After that, install the dependencies to build and test the app:
 $ sudo yum install -y nodejs gcc-c++ make libsecret-devel libxscrnsaver
 ```
 
-Because we haven't yet upgraded to NPM 5, we need to downgrade to the latest `npm@4` release:
-
-```
-$ sudo npm install -g npm@4.6.1
-```
-
 ## Verification
 
 With these things installed, open a shell and install `yarn` (you might need
 to `sudo` here depending on how Node was installed):
 
 ```
-> npm install -g yarn
+> npm install -g yarn@1.2.0
 ```
 
 This is important because yarn uses lock files to pin dependencies. If you find
@@ -63,7 +57,7 @@ Then validate you have these commands available and that the versions look simil
 v7.8.0
 
 > yarn -v
-1.1.0
+1.2.0
 
 > python --version
 Python 2.7.13
