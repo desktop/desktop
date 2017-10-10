@@ -6,8 +6,8 @@ import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-addons-test-utils'
 
 import { App } from '../../src/ui/app'
+import { Dispatcher } from '../../src/lib/dispatcher'
 import {
-  Dispatcher,
   AppStore,
   GitHubUserStore,
   CloningRepositoriesStore,
@@ -16,7 +16,7 @@ import {
   SignInStore,
   RepositoriesStore,
   AccountsStore,
-} from '../../src/lib/dispatcher'
+} from '../../src/lib/stores'
 import { InMemoryDispatcher } from '../in-memory-dispatcher'
 import { TestGitHubUserDatabase } from '../test-github-user-database'
 import { TestStatsDatabase } from '../test-stats-database'

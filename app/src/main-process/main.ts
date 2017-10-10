@@ -1,6 +1,8 @@
 import '../lib/logging/main/install'
 
 import { app, Menu, MenuItem, ipcMain, BrowserWindow, shell } from 'electron'
+import * as Fs from 'fs'
+import * as Url from 'url'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
@@ -305,7 +307,23 @@ app.on('ready', () => {
   ipcMain.on(
     'show-item-in-folder',
     (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
-      shell.showItemInFolder(path)
+      Fs.stat(path, (err, stats) => {
+        if (err) {
+          log.error(`Unable to find file at '${path}'`, err)
+          return
+        }
+
+        if (stats.isDirectory()) {
+          const fileURL = Url.format({
+            pathname: path,
+            protocol: 'file:',
+            slashes: true,
+          })
+          shell.openExternal(fileURL)
+        } else {
+          shell.showItemInFolder(path)
+        }
+      })
     }
   )
 })

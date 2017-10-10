@@ -1,4 +1,4 @@
-import { ICommitMessage } from './dispatcher/git-store'
+import { ICommitMessage } from './stores/git-store'
 
 /**
  * Formats a summary and a description into a git-friendly

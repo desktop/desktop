@@ -24,14 +24,14 @@ export const enum GitResetMode {
   Mixed,
 }
 
-function resetModeToFlag(mode: GitResetMode): string {
+function resetModeToArgs(mode: GitResetMode, ref: string): string[] {
   switch (mode) {
     case GitResetMode.Hard:
-      return '--hard'
+      return ['reset', '--hard', ref]
     case GitResetMode.Mixed:
-      return '--mixed'
+      return ['reset', ref]
     case GitResetMode.Soft:
-      return '--soft'
+      return ['reset', '--soft', ref]
     default:
       return assertNever(mode, `Unknown reset mode: ${mode}`)
   }
@@ -43,8 +43,8 @@ export async function reset(
   mode: GitResetMode,
   ref: string
 ): Promise<true> {
-  const modeFlag = resetModeToFlag(mode)
-  await git(['reset', modeFlag, ref, '--'], repository.path, 'reset')
+  const args = resetModeToArgs(mode, ref)
+  await git(args, repository.path, 'reset')
   return true
 }
 
@@ -73,8 +73,25 @@ export async function resetPaths(
     return
   }
 
-  const modeFlag = resetModeToFlag(mode)
-  await git(['reset', modeFlag, ref, '--', ...paths], repository.path, 'reset')
+  const baseArgs = resetModeToArgs(mode, ref)
+
+  if (__WIN32__ && mode === GitResetMode.Mixed) {
+    // Git for Windows has experimental support for reading paths to reset
+    // from standard input. This is helpful in situations where your file
+    // paths are greater than 32KB in length, because of shell limitations.
+    //
+    // This hasn't made it to Git core, so we fallback to the default behaviour
+    // as macOS and Linux don't have this same shell limitation. See
+    // https://github.com/desktop/desktop/issues/2833#issuecomment-331352952
+    // for more context.
+    const args = [...baseArgs, '--stdin', '-z', '--']
+    await git(args, repository.path, 'resetPaths', {
+      stdin: paths.join('\0'),
+    })
+  } else {
+    const args = [...baseArgs, '--', ...paths]
+    await git(args, repository.path, 'resetPaths')
+  }
 }
 
 /** Unstage all paths. */
