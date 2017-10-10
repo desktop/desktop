@@ -59,12 +59,12 @@ After cloning the repository, the typical workflow to get up running
 is as follows:
 
 * Run `yarn` to get all required dependencies on your machine.
-* Run `npm run build:dev` to create a development build of the app.
-* Run `npm start` to launch the application. Changes will be compiled in the
+* Run `yarn build:dev` to create a development build of the app.
+* Run `yarn start` to launch the application. Changes will be compiled in the
   background. The app can then be reloaded to see the changes (Ctrl/Command+R).
 
-If you've made changes in the `main-process` folder you need to run `npm run
-build:dev` to rebuild the package, and then `npm start` for these changes to be
+If you've made changes in the `main-process` folder you need to run `yarn
+build:dev` to rebuild the package, and then `yarn start` for these changes to be
 reflected in the running app.
 
 If you're still encountering issues with building, refer to our
@@ -73,16 +73,16 @@ problems.
 
 ## Running tests
 
-- `npm test` - Runs all unit and integration tests
-- `npm run test:unit` - Runs all unit tests
-- `npm run test:integration` - Runs all integration tests
+- `yarn test` - Runs all unit and integration tests
+- `yarn test:unit` - Runs all unit tests
+- `yarn test:integration` - Runs all integration tests
 
 **Pro Tip:** If you're only interested in the results of a single test and don't
 wish to run the entire test suite to see it you can pass along a search string
 in order to only run the tests that match that string.
 
 ```
-npm run test:unit -- --grep CloneProgressParser
+yarn test:unit -- --grep CloneProgressParser
 ```
 
 This example will run all test names containing `CloneProgressParser`.
