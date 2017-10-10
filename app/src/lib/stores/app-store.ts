@@ -1997,8 +1997,11 @@ export class AppStore {
     const hostname = getGenericHostname(remote)
     const username = getGenericUsername(hostname)
     if (username != null) {
+      log.info(`found generic credentials for '${hostname}' and '${username}'`)
       return { login: username, endpoint: hostname }
     }
+
+    log.info(`no generic credentials found for ${remote}`)
 
     return null
   }
