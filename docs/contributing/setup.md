@@ -38,6 +38,18 @@ After that, install the dependencies to build and test the app:
 $ sudo yum install -y nodejs gcc-c++ make libsecret-devel libxscrnsaver
 ```
 
+If you want to package Desktop for distribution, you will need these additional dependencies:
+
+```sh
+$ sudo yum install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
+#
+# workarounds for linker issues when packaging for AppImage
+# source: https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7
+$ sudo ln -s `find /usr/lib64/ -type f -name "libbz2.so.1*"` /usr/lib64/libbz2.so.1.0
+# source: https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974
+$ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/libreadline.so.6
+```
+
 ## Verification
 
 With these things installed, open a shell and install `yarn` (you might need
