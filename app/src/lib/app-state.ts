@@ -358,6 +358,14 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly pushPullFetchProgress: Progress | null
+
+  /**
+   * If we're currently reverting a commit and it involves LFS progress, this
+   * will contain the LFS progress.
+   *
+   * null if no such operation is in flight.
+   */
+  readonly revertProgress: IRevertProgress | null
 }
 
 export type Progress =
@@ -366,6 +374,7 @@ export type Progress =
   | IFetchProgress
   | IPullProgress
   | IPushProgress
+  | IRevertProgress
 
 /**
  * Base interface containing all the properties that progress events
@@ -461,6 +470,11 @@ export interface IPushProgress extends IProgress {
  */
 export interface ICloneProgress extends IProgress {
   kind: 'clone'
+}
+
+/** An object describing the progression of a revert operation. */
+export interface IRevertProgress extends IProgress {
+  kind: 'revert'
 }
 
 export interface IBranchesState {
