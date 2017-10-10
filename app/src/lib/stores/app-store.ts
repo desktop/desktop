@@ -866,6 +866,11 @@ export class AppStore {
       this.repositoriesStore.getAll(),
     ])
 
+    log.info(`loading ${repositories.length} repositories from store`)
+    accounts.forEach(a => {
+      log.info(`found account: ${a.login} (${a.name})`)
+    })
+
     this.accounts = accounts
     this.repositories = repositories
 
@@ -2470,6 +2475,8 @@ export class AppStore {
     for (const path of paths) {
       const validatedPath = await validatedRepositoryPath(path)
       if (validatedPath) {
+        log.info(`adding repository at ${validatedPath} to store`)
+
         const addedRepo = await this.repositoriesStore.addRepository(
           validatedPath
         )
