@@ -1990,6 +1990,11 @@ export class AppStore {
         gitHubRepository.endpoint
       )
       if (account) {
+        const hasValidToken =
+          account.token.length > 0 ? 'has token' : 'empty token'
+        log.info(
+          `account found for remote: ${remote} - ${account.login} (${hasValidToken})`
+        )
         return account
       }
     }
