@@ -58,6 +58,7 @@
     - [ ] Valid path can be entered or selected
       - [ ] Local path is prepopulated; if not unique then error surfaced
     - [ ] All repos from both GitHub.com and Enterprise are populated -- your repos are listed first, followed by org(s)
+      - [ ] User must be logged in to view list; else `Sign In` button present
       - [ ] Results are filterable, and can be selected for cloning
     - [ ] `Clone` creates repo at selected path
       - [ ] Repo added to Repo list
