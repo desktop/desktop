@@ -37,6 +37,12 @@
   .toolbar-dropdown {
     &.branch-button { width: 230px; }
   }
+
+  .toolbar-button {
+    &.revert-progress {
+      width: 230px;
+    }
+  }
 }
 
 @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }

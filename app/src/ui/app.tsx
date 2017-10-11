@@ -27,6 +27,7 @@ import {
   DropdownState,
   PushPullButton,
   BranchDropdown,
+  RevertProgress,
 } from './toolbar'
 import { OcticonSymbol, iconForRepository } from './octicons'
 import {
@@ -1358,8 +1359,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const state = selection.state
+    const revertProgress = state.revertProgress
+    if (revertProgress) {
+      return <RevertProgress progress={revertProgress} />
+    }
+
     const remoteName = state.remote ? state.remote.name : null
     const progress = state.pushPullFetchProgress
+
+    const tipState = state.branchesState.tip.kind
 
     return (
       <PushPullButton
@@ -1370,6 +1378,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         lastFetched={state.lastFetched}
         networkActionInProgress={state.isPushPullFetchInProgress}
         progress={progress}
+        tipState={tipState}
       />
     )
   }
