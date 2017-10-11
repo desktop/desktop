@@ -2455,7 +2455,7 @@ export class AppStore {
     return this.accountsStore.removeAccount(account)
   }
 
-  public _addAccount(account: Account): Promise<void> {
+  public async _addAccount(account: Account): Promise<void> {
     log.info(`adding account ${account.login} (${account.name}) to store`)
     await this.accountsStore.addAccount(account)
     const selectedState = this.getState().selectedState
