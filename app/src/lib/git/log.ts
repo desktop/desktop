@@ -72,7 +72,6 @@ export async function getCommits(
       '-z',
       '--no-color',
       ...additionalArgs,
-      '--',
     ],
     repository.path,
     'getCommits',
@@ -129,7 +128,6 @@ export async function getChangedFiles(
     '--name-status',
     '--format=format:',
     '-z',
-    '--',
   ]
   const result = await git(args, repository.path, 'getChangedFiles')
 

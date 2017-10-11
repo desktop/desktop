@@ -3,7 +3,8 @@ const expect = chai.expect
 
 import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
 import { TestRepositoriesDatabase } from '../test-repositories-database'
-import { IAPIRepository } from '../../src/lib/api'
+import { GitHubRepository } from '../../src/models/github-repository'
+import { Owner } from '../../src/models/owner'
 
 describe('RepositoriesStore', () => {
   let repositoriesStore: RepositoriesStore | null = null
@@ -36,34 +37,21 @@ describe('RepositoriesStore', () => {
   })
 
   describe('updating a GitHub repository', () => {
-    const gitHubRepo: IAPIRepository = {
-      clone_url: 'https://github.com/my-user/my-repo',
-      html_url: 'https://github.com/my-user/my-repo',
-      name: 'my-repo',
-      owner: {
-        id: 42,
-        url: 'https://github.com/my-user',
-        login: 'my-user',
-        avatar_url: 'https://github.com/my-user.png',
-        name: 'My User',
-        type: 'User',
-      },
-      private: true,
-      fork: false,
-      default_branch: 'master',
-      parent: null,
-    }
-
     it('adds a new GitHub repository', async () => {
       const addedRepo = await repositoriesStore!.addRepository(
         '/some/cool/path'
       )
 
-      await repositoriesStore!.updateGitHubRepository(
-        addedRepo,
-        'https://api.github.com',
-        gitHubRepo
+      const gitHubRepo = new GitHubRepository(
+        'my-repo',
+        new Owner('my-user', 'https://api.github.com'),
+        1,
+        true,
+        false,
+        'https://github.com/my-user/my-repo'
       )
+      const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
+      await repositoriesStore!.updateGitHubRepository(repoWithGitHub)
 
       const repositories = await repositoriesStore!.getAll()
       const repo = repositories[0]
@@ -74,27 +62,30 @@ describe('RepositoriesStore', () => {
       )
     })
 
-    it('reuses an existing GitHub repository', async () => {
-      const firstRepo = await repositoriesStore!.addRepository(
+    it('updates an existing GitHub repository', async () => {
+      const addedRepo = await repositoriesStore!.addRepository(
         '/some/cool/path'
       )
-      const updatedFirstRepo = await repositoriesStore!.updateGitHubRepository(
-        firstRepo,
-        'https://api.github.com',
-        gitHubRepo
-      )
 
-      const secondRepo = await repositoriesStore!.addRepository(
-        '/some/other/path'
+      const gitHubRepo = new GitHubRepository(
+        'my-repo',
+        new Owner('my-user', 'https://api.github.com'),
+        1,
+        true,
+        false,
+        'https://github.com/my-user/my-repo',
+        'dev'
       )
-      const updatedSecondRepo = await repositoriesStore!.updateGitHubRepository(
-        secondRepo,
-        'https://api.github.com',
-        gitHubRepo
-      )
+      const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
+      await repositoriesStore!.updateGitHubRepository(repoWithGitHub)
 
-      expect(updatedFirstRepo.gitHubRepository!.dbID).to.equal(
-        updatedSecondRepo.gitHubRepository!.dbID
+      const repositories = await repositoriesStore!.getAll()
+      const repo = repositories[0]
+      expect(repo.gitHubRepository!.private).to.equal(true)
+      expect(repo.gitHubRepository!.fork).to.equal(false)
+      expect(repo.gitHubRepository!.defaultBranch).to.equal('dev')
+      expect(repo.gitHubRepository!.htmlURL).to.equal(
+        'https://github.com/my-user/my-repo'
       )
     })
   })

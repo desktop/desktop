@@ -1,4 +1,5 @@
 import { Owner } from './owner'
+import { IAPIRepository } from '../lib/api'
 
 /** A GitHub repository. */
 export class GitHubRepository {
@@ -13,29 +14,45 @@ export class GitHubRepository {
   public readonly name: string
   public readonly owner: Owner
   public readonly private: boolean | null
+  public readonly fork: boolean | null
   public readonly htmlURL: string | null
   public readonly defaultBranch: string | null
   public readonly cloneURL: string | null
-  public readonly parent: GitHubRepository | null
 
   public constructor(
     name: string,
     owner: Owner,
     dbID: number | null,
     private_: boolean | null = null,
+    fork: boolean | null = null,
     htmlURL: string | null = null,
     defaultBranch: string | null = 'master',
-    cloneURL: string | null = null,
-    parent: GitHubRepository | null = null
+    cloneURL: string | null = null
   ) {
     this.name = name
     this.owner = owner
     this.dbID = dbID
     this.private = private_
+    this.fork = fork
     this.htmlURL = htmlURL
     this.defaultBranch = defaultBranch
     this.cloneURL = cloneURL
-    this.parent = parent
+  }
+
+  /** Create a new copy of the repository with the API information copied over. */
+  public withAPI(apiRepository: IAPIRepository): GitHubRepository {
+    const newRepository = new GitHubRepository(
+      this.name,
+      this.owner,
+      this.dbID,
+      apiRepository.private,
+      apiRepository.fork,
+      apiRepository.html_url,
+      apiRepository.default_branch,
+      apiRepository.clone_url
+    )
+
+    return newRepository.hash === this.hash ? this : newRepository
   }
 
   public get endpoint(): string {
@@ -45,11 +62,6 @@ export class GitHubRepository {
   /** Get the owner/name combo. */
   public get fullName(): string {
     return `${this.owner.login}/${this.name}`
-  }
-
-  /** Is the repository a fork? */
-  public get fork(): boolean {
-    return !!this.parent
   }
 
   /**
@@ -62,9 +74,9 @@ export class GitHubRepository {
       ${this.defaultBranch}+
       ${this.private}+
       ${this.cloneURL}+
+      ${this.fork}+
       ${this.name}+
       ${this.htmlURL}+
-      ${this.owner.hash}+
-      ${this.parent && this.parent.hash}`
+      ${this.owner.hash}`
   }
 }

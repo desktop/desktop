@@ -36,9 +36,7 @@
       // Add a little bit of space to the left of code diff
       // `padding-left` here means mouse move events are not raised
       padding-left: var(--spacing-half);
-      padding-top: var(--diff-line-padding-y);
-      padding-bottom: var(--diff-line-padding-y);
-      display: inline-block;
+      align-self: center;
     }
 
     svg.no-newline {
@@ -68,20 +66,9 @@
 // The container element which holds the before and after
 // diff-line-number spans.
 .diff-line-gutter {
+  line-height: normal;
   display: flex;
   height: 100%;
-
-  &.diff-add {
-    background: var(--diff-add-gutter-background-color);
-  }
-
-  &.diff-delete {
-    background: var(--diff-delete-gutter-background-color);
-  }
-
-  &.diff-hunk {
-    background: var(--diff-hunk-gutter-background-color);
-  }
 
   .before {
     border-right: 1px solid var(--diff-border-color);
@@ -90,17 +77,13 @@
   .after {
     border-right: 4px solid var(--diff-border-color);
   }
-
-  &.read-only .after {
-    border-right-width: 1px;
-  }
 }
 
 .diff-line-number {
   display: inline-block;
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
-  padding: var(--diff-line-padding-y) var(--spacing-half);
+  padding: var(--spacing-third) var(--spacing-half);
   text-align: right;
 }
 
@@ -205,32 +188,6 @@
 
     &:last-child {
       border-color: var(--diff-hover-gutter-color);
-    }
-  }
-
-  &:not(.diff-line-selected) {
-    &.diff-add {
-      .diff-line-number {
-        background: var(--diff-add-hover-background-color);
-        border-color: var(--diff-add-hover-border-color);
-        color: var(--diff-add-hover-text-color);
-
-        &:last-child {
-          border-color: var(--diff-add-hover-gutter-color);
-        }
-      }
-    }
-
-    &.diff-delete {
-      .diff-line-number {
-        background: var(--diff-delete-hover-background-color);
-        border-color: var(--diff-delete-hover-border-color);
-        color: var(--diff-delete-hover-text-color);
-
-        &:last-child {
-          border-color: var(--diff-delete-hover-gutter-color);
-        }
-      }
     }
   }
 }

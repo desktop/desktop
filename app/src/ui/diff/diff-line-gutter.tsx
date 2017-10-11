@@ -65,21 +65,6 @@ interface IDiffGutterProps {
   readonly onMouseMove: (index: number) => void
 }
 
-interface IDiffGutterState {
-  /**
-   * Whether or not the diff line gutter should render as hovered,
-   * i.e. highlighted. This is used when moused over directly or
-   * when the hunk that this line is part of is hovered.
-   */
-  readonly hover: boolean
-
-  /**
-   * Whether or not the diff line gutter should render that it's
-   * selected, i.e. included for commit.
-   */
-  readonly selected: boolean
-}
-
 /**
  * Detect if mouse cursor is within the range
  */
@@ -98,20 +83,8 @@ function isMouseCursorNearEdge(ev: MouseEvent): boolean {
 }
 
 /** The gutter for a diff's line. */
-export class DiffLineGutter extends React.Component<
-  IDiffGutterProps,
-  IDiffGutterState
-> {
+export class DiffLineGutter extends React.Component<IDiffGutterProps, {}> {
   private elem_?: HTMLSpanElement
-
-  public constructor(props: IDiffGutterProps) {
-    super(props)
-
-    this.state = {
-      hover: false,
-      selected: this.props.isIncluded,
-    }
-  }
 
   /**
    * Compute the width for the current element
@@ -127,26 +100,34 @@ export class DiffLineGutter extends React.Component<
    * Indicate whether the current gutter element is selected
    */
   public isIncluded(): boolean {
-    return this.props.line.isIncludeableLine() && this.state.selected
+    return this.props.line.isIncludeableLine() && this.props.isIncluded
   }
 
   /**
    * Set (or unset) the hover styling of the diff gutter
    */
-  public setHover(hover: boolean) {
+  public setHover(visible: boolean) {
     // only show the hover effect if the line isn't context
     if (!this.props.line.isIncludeableLine()) {
       return
     }
 
-    this.setState({ hover })
+    if (visible) {
+      this.setClass(hoverCssClass)
+    } else {
+      this.unsetClass(hoverCssClass)
+    }
   }
 
   /**
    * Set (or unset) the selected styling of the diff gutter
    */
-  public setSelected(selected: boolean) {
-    this.setState({ selected })
+  public setSelected(visible: boolean) {
+    if (visible) {
+      this.setClass(selectedLineClass)
+    } else {
+      this.unsetClass(selectedLineClass)
+    }
   }
 
   private getLineClassName(): string {
@@ -168,17 +149,8 @@ export class DiffLineGutter extends React.Component<
   private getLineClass(): string {
     const lineClass = this.getLineClassName()
     const selectedClass = this.isIncluded() ? selectedLineClass : null
-    const hoverClass = this.state.hover ? hoverCssClass : null
 
-    return classNames(
-      'diff-line-gutter',
-      lineClass,
-      selectedClass,
-      hoverClass,
-      {
-        'read-only': this.props.readOnly,
-      }
-    )
+    return classNames('diff-line-gutter', lineClass, selectedClass)
   }
 
   private updateHoverState(isRangeSelection: boolean, isActive: boolean) {
@@ -191,6 +163,18 @@ export class DiffLineGutter extends React.Component<
       this.props.updateRangeHoverState(range.start, range.end, isActive)
     } else {
       this.setHover(isActive)
+    }
+  }
+
+  private setClass(cssClass: string) {
+    if (this.elem_) {
+      this.elem_.classList.add(cssClass)
+    }
+  }
+
+  private unsetClass(cssClass: string) {
+    if (this.elem_) {
+      this.elem_.classList.remove(cssClass)
     }
   }
 
@@ -256,17 +240,19 @@ export class DiffLineGutter extends React.Component<
       return
     }
 
-    // no point handling mouse events on context lines
-    if (elem && this.props.line.isIncludeableLine()) {
+    if (elem) {
       elem.addEventListener('mouseenter', this.mouseEnterHandler)
       elem.addEventListener('mouseleave', this.mouseLeaveHandler)
       elem.addEventListener('mousemove', this.mouseMoveHandler)
-      elem.addEventListener('mousedown', this.mouseDownHandler)
+
+      // no point handling mousedown events on context lines
+      if (this.props.line.isIncludeableLine()) {
+        elem.addEventListener('mousedown', this.mouseDownHandler)
+      }
     } else {
       // this callback fires a second time when the DOM element
-      // is unmounted, so we can use this as a chance to cleanup.
-      // We unsubscribe without checking for isIncludeableLine since
-      // that might have changed underneath us
+      // is unmounted, so we can use this as a chance to cleanup
+
       if (this.elem_) {
         this.elem_.removeEventListener('mouseenter', this.mouseEnterHandler)
         this.elem_.removeEventListener('mouseleave', this.mouseLeaveHandler)

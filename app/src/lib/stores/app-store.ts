@@ -27,10 +27,7 @@ import {
   WorkingDirectoryFileChange,
 } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
-import {
-  matchGitHubRepository,
-  IMatchedGitHubRepository,
-} from '../../lib/repository-matching'
+import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
@@ -108,7 +105,6 @@ import {
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { getAccountForRepository } from '../get-account-for-repository'
 import { BranchesTab } from '../../models/branches-tab'
-import { Owner } from '../../models/owner'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -552,6 +548,20 @@ export class AppStore {
     this.emitUpdate()
   }
 
+  private onGitStoreLoadedCommits(
+    repository: Repository,
+    commits: ReadonlyArray<Commit>
+  ) {
+    for (const commit of commits) {
+      this.gitHubUserStore._loadAndCacheUser(
+        this.accounts,
+        repository,
+        commit.sha,
+        commit.author.email
+      )
+    }
+  }
+
   private removeGitStore(repository: Repository) {
     if (this.gitStores.has(repository.hash)) {
       this.gitStores.delete(repository.hash)
@@ -564,7 +574,7 @@ export class AppStore {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits =>
-        this.loadAndCacheUsers(repository, this.accounts, commits)
+        this.onGitStoreLoadedCommits(repository, commits)
       )
       gitStore.onDidError(error => this.emitError(error))
 
@@ -781,7 +791,7 @@ export class AppStore {
     this.refreshMentionables(repository)
 
     if (repository instanceof Repository) {
-      return this._repositoryWithRefreshedGitHubRepository(repository)
+      return this.refreshGitHubRepositoryInfo(repository)
     } else {
       return repository
     }
@@ -1470,50 +1480,30 @@ export class AppStore {
   ): Promise<Repository> {
     const oldGitHubRepository = repository.gitHubRepository
 
-    const matchedGitHubRepository = await this.matchGitHubRepository(repository)
-    if (!matchedGitHubRepository) {
-      // TODO: We currently never clear GitHub repository associations (see
-      // https://github.com/desktop/desktop/issues/1144). So we can bail early
-      // at this point.
-      return repository
+    const updatedRepository = await this.updateGitHubRepositoryAssociation(
+      repository
+    )
+
+    const updatedGitHubRepository = updatedRepository.gitHubRepository
+
+    if (!updatedGitHubRepository) {
+      return updatedRepository
     }
 
-    // This is the repository with the GitHub repository as matched. It's not
-    // ideal because the GitHub repository hasn't been fetched from the API yet
-    // and so it is incomplete. But if we _can't_ fetch it from the API, it's
-    // better than nothing.
-    const skeletonOwner = new Owner(
-      matchedGitHubRepository.owner,
-      matchedGitHubRepository.endpoint,
-      null
-    )
-    const skeletonGitHubRepository = new GitHubRepository(
-      matchedGitHubRepository.name,
-      skeletonOwner,
-      null
-    )
-    const skeletonRepository = new Repository(
-      repository.path,
-      repository.id,
-      skeletonGitHubRepository,
-      repository.missing
-    )
-
-    const account = getAccountForEndpoint(
-      this.accounts,
-      matchedGitHubRepository.endpoint
-    )
+    const account = getAccountForRepository(this.accounts, updatedRepository)
     if (!account) {
       // If the repository given to us had a GitHubRepository instance we want
       // to try to preserve that if possible since the updated GitHubRepository
       // instance won't have any API information while the previous one might.
       // We'll only swap it out if the endpoint has changed in which case the
       // old API information will be invalid anyway.
-      if (
-        !oldGitHubRepository ||
-        matchedGitHubRepository.endpoint !== oldGitHubRepository.endpoint
-      ) {
-        return skeletonRepository
+      if (!oldGitHubRepository) {
+        return updatedRepository
+      }
+
+      // The endpoints have changed, all bets are off
+      if (updatedGitHubRepository.endpoint !== oldGitHubRepository.endpoint) {
+        return updatedRepository
       }
 
       return repository
@@ -1521,36 +1511,60 @@ export class AppStore {
 
     const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(
-      matchedGitHubRepository.owner,
-      matchedGitHubRepository.name
+      updatedGitHubRepository.owner.login,
+      updatedGitHubRepository.name
     )
 
     if (!apiRepo) {
-      // This is the same as above. If the request fails, we wanna preserve the
-      // existing GitHub repository info. But if we didn't have a GitHub
-      // repository already or the endpoint changed, the skeleton repository is
-      // better than nothing.
-      if (
-        !oldGitHubRepository ||
-        matchedGitHubRepository.endpoint !== oldGitHubRepository.endpoint
-      ) {
-        return skeletonRepository
-      }
-
-      return repository
+      // If we've failed to retrieve the repository information from the API
+      // we generally want to keep whatever information we used to have from
+      // a previously successful API request rather than return the
+      // updatedRepository which only contains a subset of the fields we'd get
+      // from the API. The only circumstance where we would want to return the
+      // updated repository is if we previously didn't have an association and
+      // have now been able to infer one based on the remote.
+      //
+      // Note that the updateGitHubRepositoryAssociation method will either
+      // return exact repository given if no association could be found or
+      // a copy of the given repository with only the gitHubRepository property
+      // changed.
+      return oldGitHubRepository ? repository : updatedRepository
     }
 
-    const endpoint = matchedGitHubRepository.endpoint
+    const withUpdatedGitHubRepository = updatedRepository.withGitHubRepository(
+      updatedGitHubRepository.withAPI(apiRepo)
+    )
+    if (withUpdatedGitHubRepository.hash === repository.hash) {
+      return withUpdatedGitHubRepository
+    }
+
     return this.repositoriesStore.updateGitHubRepository(
-      repository,
-      endpoint,
-      apiRepo
+      withUpdatedGitHubRepository
     )
   }
 
-  private async matchGitHubRepository(
+  private async updateGitHubRepositoryAssociation(
     repository: Repository
-  ): Promise<IMatchedGitHubRepository | null> {
+  ): Promise<Repository> {
+    const gitHubRepository = await this.guessGitHubRepository(repository)
+    if (gitHubRepository === repository.gitHubRepository || !gitHubRepository) {
+      return repository
+    }
+
+    if (
+      repository.gitHubRepository &&
+      gitHubRepository &&
+      repository.gitHubRepository.hash === gitHubRepository.hash
+    ) {
+      return repository
+    }
+
+    return repository.withGitHubRepository(gitHubRepository)
+  }
+
+  private async guessGitHubRepository(
+    repository: Repository
+  ): Promise<GitHubRepository | null> {
     const remote = await getDefaultRemote(repository)
     return remote ? matchGitHubRepository(this.accounts, remote.url) : null
   }
@@ -1960,7 +1974,7 @@ export class AppStore {
       await this.performPush(repository, account)
     }
 
-    return this._repositoryWithRefreshedGitHubRepository(repository)
+    return this.refreshGitHubRepositoryInfo(repository)
   }
 
   private getAccountForRemoteURL(remote: string): IGitAccount | null {
@@ -2437,34 +2451,8 @@ export class AppStore {
     return this.accountsStore.removeAccount(account)
   }
 
-  public async _addAccount(account: Account): Promise<void> {
-    await this.accountsStore.addAccount(account)
-    const selectedState = this.getState().selectedState
-
-    if (selectedState && selectedState.type === SelectionType.Repository) {
-      // ensuring we have the latest set of accounts here, rather than waiting
-      // and doing stuff when the account store emits an update and we refresh
-      // the accounts field
-      const accounts = await this.accountsStore.getAll()
-      const repoState = selectedState.state
-      const commits = repoState.commits.values()
-      this.loadAndCacheUsers(selectedState.repository, accounts, commits)
-    }
-  }
-
-  private loadAndCacheUsers(
-    repository: Repository,
-    accounts: ReadonlyArray<Account>,
-    commits: Iterable<Commit>
-  ) {
-    for (const commit of commits) {
-      this.gitHubUserStore._loadAndCacheUser(
-        accounts,
-        repository,
-        commit.sha,
-        commit.author.email
-      )
-    }
+  public _addAccount(account: Account): Promise<void> {
+    return this.accountsStore.addAccount(account)
   }
 
   public _updateRepositoryMissing(
@@ -2486,7 +2474,7 @@ export class AppStore {
           validatedPath
         )
         const [refreshedRepo, usingLFS] = await Promise.all([
-          this._repositoryWithRefreshedGitHubRepository(addedRepo),
+          this.refreshGitHubRepositoryInfo(addedRepo),
           this.isUsingLFS(addedRepo),
         ])
         addedRepositories.push(refreshedRepo)
@@ -2531,6 +2519,20 @@ export class AppStore {
     this._showFoldout({ type: FoldoutType.Repository })
   }
 
+  private async refreshGitHubRepositoryInfo(
+    repository: Repository
+  ): Promise<Repository> {
+    const refreshedRepository = await this._repositoryWithRefreshedGitHubRepository(
+      repository
+    )
+
+    if (refreshedRepository.hash === repository.hash) {
+      return refreshedRepository
+    }
+
+    return this.repositoriesStore.updateGitHubRepository(refreshedRepository)
+  }
+
   public async _cloneAgain(url: string, path: string): Promise<void> {
     const { promise, repository } = this._clone(url, path)
     await this._selectRepository(repository)
@@ -2566,9 +2568,7 @@ export class AppStore {
     // association is out of date. So try again before we bail on providing an
     // authenticating user.
     if (!account) {
-      updatedRepository = await this._repositoryWithRefreshedGitHubRepository(
-        repository
-      )
+      updatedRepository = await this.refreshGitHubRepositoryInfo(repository)
       account = getAccountForRepository(this.accounts, updatedRepository)
     }
 
@@ -2611,9 +2611,6 @@ export class AppStore {
       await gitStore.revertCommit(repo, commit, account, progress => {
         this.updateRevertProgress(repo, progress)
       })
-
-      this.updateRevertProgress(repo, null)
-
 
       this.updateRevertProgress(repo, null)
 

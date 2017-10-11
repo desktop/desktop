@@ -2,6 +2,7 @@ import '../lib/logging/main/install'
 
 import { app, Menu, MenuItem, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
+import * as Url from 'url'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
@@ -13,7 +14,6 @@ import { fatalError } from '../lib/fatal-error'
 import { IMenuItemState } from '../lib/menu-update'
 import { LogLevel } from '../lib/logging/log-level'
 import { log as writeLog } from './log'
-import { openDirectorySafe } from './shell'
 import { reportError } from './exception-reporting'
 import {
   enableSourceMaps,
@@ -314,7 +314,12 @@ app.on('ready', () => {
         }
 
         if (stats.isDirectory()) {
-          openDirectorySafe(path)
+          const fileURL = Url.format({
+            pathname: path,
+            protocol: 'file:',
+            slashes: true,
+          })
+          shell.openExternal(fileURL)
         } else {
           shell.showItemInFolder(path)
         }

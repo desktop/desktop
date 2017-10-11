@@ -53,7 +53,6 @@ describe('Tokenizer', () => {
         endpoint,
         login,
         hash: '',
-        id: null,
       },
       cloneURL,
       endpoint: 'https://api.github.com',
@@ -62,8 +61,10 @@ describe('Tokenizer', () => {
       fork: false,
       htmlURL: htmlURL,
       defaultBranch: 'master',
+      withAPI: apiRepository => {
+        return gitHubRepository!
+      },
       hash: '',
-      parent: null,
     }
 
     const repository = new Repository(
