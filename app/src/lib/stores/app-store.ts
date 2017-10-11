@@ -772,9 +772,12 @@ export class AppStore {
     const gitHubRepository = repository.gitHubRepository
     if (gitHubRepository) {
       this._updateIssues(gitHubRepository)
+
       this.pullRequestStore
         .getPullRequests(gitHubRepository)
-        .then(p => this.updatePullRequests(p, repository, gitHubRepository))
+        .then(p =>
+          this.updateStateWithPullRequests(p, repository, gitHubRepository)
+        )
         .catch(e => this.emitError(e))
     }
 
@@ -2761,10 +2764,10 @@ export class AppStore {
       account
     )
 
-    this.updatePullRequests(pullRequests, repository, gitHubRepository)
+    this.updateStateWithPullRequests(pullRequests, repository, gitHubRepository)
   }
 
-  private updatePullRequests(
+  private updateStateWithPullRequests(
     pullRequests: ReadonlyArray<PullRequest>,
     repository: Repository,
     githubRepository: GitHubRepository
