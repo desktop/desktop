@@ -44,6 +44,18 @@ Because we haven't yet upgraded to NPM 5, we need to downgrade to the latest `np
 $ sudo npm install -g npm@4.6.1
 ```
 
+If you want to package Desktop for distribution, you will need these additional dependencies:
+
+```sh
+$ sudo yum install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
+#
+# workarounds for linker issues when packaging for AppImage
+# source: https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7
+$ sudo ln -s `find /usr/lib64/ -type f -name "libbz2.so.1*"` /usr/lib64/libbz2.so.1.0
+# source: https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974
+$ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/libreadline.so.6
+```
+
 ## Verification
 
 With these things installed, open a shell and validate you have these commands

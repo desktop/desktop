@@ -5,7 +5,6 @@ import { OcticonSymbol, iconForRepository } from '../../src/ui/octicons'
 import { CloningRepository } from '../../src/models/cloning-repository'
 import { Repository } from '../../src/models/repository'
 import { GitHubRepository } from '../../src/models/github-repository'
-import { IAPIRepository } from '../../src/lib/api'
 
 function getTestRepository(
   isPrivate: boolean,
@@ -20,6 +19,7 @@ function getTestRepository(
       endpoint: 'https://api.github.com',
       login: 'shiftkey',
       hash: '',
+      id: null,
     },
     endpoint: 'https://api.github.com',
     fullName: 'shiftkey/some-repo',
@@ -28,10 +28,8 @@ function getTestRepository(
     cloneURL: 'https://github.com/shiftkey/some-repo.git',
     htmlURL: 'https://github.com/shiftkey/some-repo',
     defaultBranch: 'master',
-    withAPI: (apiRepository: IAPIRepository) => {
-      return gitHubRepository!
-    },
     hash: '',
+    parent: null,
   }
 
   return gitHubRepository!
