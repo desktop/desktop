@@ -775,7 +775,7 @@ export class AppStore {
       this.pullRequestStore
         .getPullRequests(gitHubRepository)
         .then(p => this.updatePullRequests(p, repository, gitHubRepository))
-        .catch(e => log.error('Something failed.', e))
+        .catch(e => this.emitError(e))
     }
 
     this._refreshPullRequests(repository)
