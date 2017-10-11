@@ -2451,8 +2451,25 @@ export class AppStore {
     return this.accountsStore.removeAccount(account)
   }
 
-  public _addAccount(account: Account): Promise<void> {
-    return this.accountsStore.addAccount(account)
+  public async _addAccount(account: Account): Promise<void> {
+    await this.accountsStore.addAccount(account)
+    const state = this.getState().selectedState
+
+    if (state && state.type === SelectionType.Repository) {
+      const accounts = await this.accountsStore.getAll()
+
+      const repoState = state.state
+      const commits = repoState.commits.values()
+
+      for (const commit of commits) {
+        this.gitHubUserStore._loadAndCacheUser(
+          accounts,
+          state.repository,
+          commit.sha,
+          commit.author.email
+        )
+      }
+    }
   }
 
   public _updateRepositoryMissing(
