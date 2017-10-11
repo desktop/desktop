@@ -76,7 +76,8 @@ function isExpectedInstallation(
       return displayName === 'Atom' && publisher === 'GitHub Inc.'
     case ExternalEditor.VisualStudioCode:
       return (
-        (displayName === 'Visual Studio Code' || displayName === "Microsoft Visual Studio Code Insiders") &&
+        (displayName === 'Visual Studio Code' ||
+          displayName === 'Microsoft Visual Studio Code Insiders') &&
         publisher === 'Microsoft Corporation'
       )
     case ExternalEditor.SublimeText:
