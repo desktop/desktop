@@ -2,26 +2,59 @@ import Dexie from 'dexie'
 import { APIRefState } from '../api'
 
 export interface IPullRequestRef {
+  /** The ID of the GitHub repository in the database. */
   readonly repoId: number
+
+  /** The name of the ref. */
   readonly ref: string
+
+  /** The SHA of the ref. */
   readonly sha: string
 }
 
 export interface IPullRequest {
+  /**
+   * The database ID. This will be undefined if the pull request hasn't been
+   * inserted into the DB.
+   */
   readonly id?: number
+
+  /** The GitHub PR number. */
   readonly number: number
+
+  /** The title. */
   readonly title: string
+
+  /** The string formatted date on which the PR was created. */
   readonly createdAt: string
+
+  /** The ref from which the pull request's changes are coming. */
   readonly head: IPullRequestRef
+
+  /** The ref which the pull request is targetting. */
   readonly base: IPullRequestRef
+
+  /** The login of the author. */
   readonly author: string
 }
 
 export interface IPullRequestStatus {
+  /**
+   * The database ID. This will be undefined if the status hasn't been inserted
+   * into the DB.
+   */
   readonly id?: number
-  readonly state: APIRefState
-  readonly totalCount: number
+
+  /** The ID of the pull request in the database. */
   readonly pullRequestId: number
+
+  /** The status' state. */
+  readonly state: APIRefState
+
+  /** The number of statuses. */
+  readonly totalCount: number
+
+  /** The SHA for which this status applies. */
   readonly sha: string
 }
 
