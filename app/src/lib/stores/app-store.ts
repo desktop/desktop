@@ -1993,7 +1993,7 @@ export class AppStore {
         const hasValidToken =
           account.token.length > 0 ? 'has token' : 'empty token'
         log.info(
-          `account found for remote: ${remote} - ${account.login} (${hasValidToken})`
+          `[getAccountForRemoteURL] account found for remote: ${remote} - ${account.login} (${hasValidToken})`
         )
         return account
       }
@@ -2002,11 +2002,15 @@ export class AppStore {
     const hostname = getGenericHostname(remote)
     const username = getGenericUsername(hostname)
     if (username != null) {
-      log.info(`found generic credentials for '${hostname}' and '${username}'`)
+      log.info(
+        `[getAccountForRemoteURL] found generic credentials for '${hostname}' and '${username}'`
+      )
       return { login: username, endpoint: hostname }
     }
 
-    log.info(`no generic credentials found for ${remote}`)
+    log.info(
+      `[getAccountForRemoteURL] no generic credentials found for '${remote}'`
+    )
 
     return null
   }
