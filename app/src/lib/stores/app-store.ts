@@ -2439,14 +2439,16 @@ export class AppStore {
 
   public async _addAccount(account: Account): Promise<void> {
     await this.accountsStore.addAccount(account)
-    const state = this.getState().selectedState
+    const selectedState = this.getState().selectedState
 
-    if (state && state.type === SelectionType.Repository) {
+    if (selectedState && selectedState.type === SelectionType.Repository) {
+      // ensuring we have the latest set of accounts here, rather than waiting
+      // and doing stuff when the account store emits an update and we refresh
+      // the accounts field
       const accounts = await this.accountsStore.getAll()
-      const repoState = state.state
+      const repoState = selectedState.state
       const commits = repoState.commits.values()
-
-      this.loadAndCacheUsers(state.repository, accounts, commits)
+      this.loadAndCacheUsers(selectedState.repository, accounts, commits)
     }
   }
 
