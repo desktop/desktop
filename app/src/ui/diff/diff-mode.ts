@@ -13,6 +13,7 @@ const TokenNames: { [key: string]: string | null } = {
   '+': 'diff-add',
   '-': 'diff-delete',
   '@': 'diff-hunk',
+  ' ': 'diff-context',
 }
 
 /** Get the mode for diffs. */
