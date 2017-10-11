@@ -548,20 +548,6 @@ export class AppStore {
     this.emitUpdate()
   }
 
-  private onGitStoreLoadedCommits(
-    repository: Repository,
-    commits: ReadonlyArray<Commit>
-  ) {
-    for (const commit of commits) {
-      this.gitHubUserStore._loadAndCacheUser(
-        this.accounts,
-        repository,
-        commit.sha,
-        commit.author.email
-      )
-    }
-  }
-
   private removeGitStore(repository: Repository) {
     if (this.gitStores.has(repository.hash)) {
       this.gitStores.delete(repository.hash)
@@ -574,7 +560,7 @@ export class AppStore {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits =>
-        this.onGitStoreLoadedCommits(repository, commits)
+        this.loadAndCacheUsers(repository, this.accounts, commits)
       )
       gitStore.onDidError(error => this.emitError(error))
 
@@ -2453,10 +2439,6 @@ export class AppStore {
 
   public async _addAccount(account: Account): Promise<void> {
     await this.accountsStore.addAccount(account)
-    await this.cacheExistingCommits()
-  }
-
-  private async cacheExistingCommits(): Promise<void> {
     const state = this.getState().selectedState
 
     if (state && state.type === SelectionType.Repository) {
@@ -2464,14 +2446,22 @@ export class AppStore {
       const repoState = state.state
       const commits = repoState.commits.values()
 
-      for (const commit of commits) {
-        this.gitHubUserStore._loadAndCacheUser(
-          accounts,
-          state.repository,
-          commit.sha,
-          commit.author.email
-        )
-      }
+      this.loadAndCacheUsers(state.repository, accounts, commits)
+    }
+  }
+
+  private loadAndCacheUsers(
+    repository: Repository,
+    accounts: ReadonlyArray<Account>,
+    commits: Iterable<Commit>
+  ) {
+    for (const commit of commits) {
+      this.gitHubUserStore._loadAndCacheUser(
+        accounts,
+        repository,
+        commit.sha,
+        commit.author.email
+      )
     }
   }
 
