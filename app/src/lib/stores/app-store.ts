@@ -2453,11 +2453,14 @@ export class AppStore {
 
   public async _addAccount(account: Account): Promise<void> {
     await this.accountsStore.addAccount(account)
+    await this.cacheExistingCommits()
+  }
+
+  private async cacheExistingCommits(): Promise<void> {
     const state = this.getState().selectedState
 
     if (state && state.type === SelectionType.Repository) {
       const accounts = await this.accountsStore.getAll()
-
       const repoState = state.state
       const commits = repoState.commits.values()
 
