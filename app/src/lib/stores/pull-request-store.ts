@@ -27,6 +27,7 @@ export class PullRequestStore {
     this.repositoriesStore = repositoriesStore
   }
 
+  /** Update the list of open pull requests for the repository. */
   public async refreshPullRequests(
     repository: GitHubRepository,
     account: Account
@@ -66,6 +67,7 @@ export class PullRequestStore {
     return prs
   }
 
+  /** Get the pull requests from the database. */
   public async getPullRequests(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<PullRequest>> {

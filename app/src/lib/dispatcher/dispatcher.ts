@@ -1046,6 +1046,7 @@ export class Dispatcher {
     return this.appStore._openCreatePullRequestInBrowser(repository)
   }
 
+  /** Refresh the list of open pull requests for the repository. */
   public refreshPullRequests(repository: Repository): Promise<void> {
     return this.appStore._refreshPullRequests(repository)
   }
