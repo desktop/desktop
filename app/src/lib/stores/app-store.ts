@@ -2609,7 +2609,7 @@ export class AppStore {
       const hasValidToken =
         account.token.length > 0 ? 'has token' : 'empty token'
       log.info(
-        `[withAuthenticatingUser] account found for remote: ${remote} - ${account.login} (${hasValidToken})`
+        `[withAuthenticatingUser] account found for repository: ${repository.name} - ${account.login} (${hasValidToken})`
       )
     }
 
