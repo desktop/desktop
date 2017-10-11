@@ -68,6 +68,10 @@
       - [ ] Repo added to Repo list
       - [ ] If directory path not valid, 'Create a new repo' error message is present
     - [ ] `Cancel` closes modal, no repo added
+    - [ ] Large repos (> 100MB) trigger Initialize Git LFS modal
+      - [ ] Link takes user to (https://git-lfs.github.com/)
+      - [ ] Local path to repo is displayed
+      - [ ] User can click `Cancel` or `Initialize Git LFS`
   - [ ] Drag and drop repository
     - [ ] User can drag existing local repository into Desktop
       - [ ] Successful attempt adds repo to Repo list; else error message
