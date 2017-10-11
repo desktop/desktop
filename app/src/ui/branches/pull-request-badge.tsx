@@ -25,7 +25,7 @@ export class PullRequestBadge extends React.Component<
     )
   }
 
-  public renderPullRequestStatus() {
+  private renderPullRequestStatus() {
     const status = this.props.status
 
     if (!status || status.totalCount === 0) {
