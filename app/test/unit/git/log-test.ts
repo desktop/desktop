@@ -27,6 +27,13 @@ describe('git/log', () => {
         '7cd6640e5b6ca8dbfd0b33d0281ebe702127079c'
       )
     })
+
+    it('handles repository with HEAD file on disk', async () => {
+      const path = await setupFixtureRepository('repository-with-HEAD-file')
+      const repo = new Repository(path, 1, null, false)
+      const commits = await getCommits(repo, 'HEAD', 100)
+      expect(commits.length).to.equal(2)
+    })
   })
 
   describe('getChangedFiles', () => {
@@ -77,6 +84,13 @@ describe('git/log', () => {
       expect(files[1].status).to.equal(AppFileStatus.Copied)
       expect(files[1].oldPath).to.equal('initial.md')
       expect(files[1].path).to.equal('duplicate.md')
+    })
+
+    it('handles commit when HEAD exists on disk', async () => {
+      const files = await getChangedFiles(repository!, 'HEAD')
+      expect(files.length).to.equal(1)
+      expect(files[0].path).to.equal('README.md')
+      expect(files[0].status).to.equal(AppFileStatus.Modified)
     })
   })
 })
