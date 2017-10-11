@@ -5,6 +5,7 @@ import { IAheadBehind } from '../../lib/app-state'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
+import { TipState } from '../../models/tip'
 import { RelativeTime } from '../relative-time'
 import { Progress } from '../../lib/app-state'
 
@@ -32,6 +33,13 @@ interface IPushPullButtonProps {
 
   /** The current repository */
   readonly repository: Repository
+
+  /**
+   * Indicate whether the current branch is valid, unborn or detached HEAD
+   *
+   * Used for setting the enabled/disabled and the description text.
+   */
+  readonly tipState: TipState
 }
 
 /**
@@ -46,11 +54,24 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
 
     const description = progress
       ? progress.description || 'Hang on…'
-      : this.getDescription()
+      : this.getDescription(this.props.tipState)
 
     const progressValue = progress ? progress.value : undefined
 
-    const disabled = this.props.networkActionInProgress || !!this.props.progress
+    const networkActive =
+      this.props.networkActionInProgress || !!this.props.progress
+
+    // if we have a remote associated with this repository, we should enable this branch
+    // when the tip is valid (no detached HEAD, no unborn repository)
+    //
+    // otherwise we consider the repository unpublished, and they should be able to
+    // open the publish dialog - we'll handle publishing the current branch afterwards
+    // if it exists
+    const validState = this.props.remoteName
+      ? this.props.tipState === TipState.Valid
+      : true
+
+    const disabled = !validState || networkActive
 
     return (
       <ToolbarButton
@@ -149,10 +170,19 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     return OcticonSymbol.sync
   }
 
-  private getDescription(): JSX.Element | string {
+  private getDescription(tipState: TipState): JSX.Element | string {
     if (!this.props.remoteName) {
       return 'Publish this repository to GitHub'
     }
+
+    if (tipState === TipState.Detached) {
+      return 'Cannot publish detached HEAD'
+    }
+
+    if (tipState === TipState.Unborn) {
+      return 'Cannot publish unborn repository'
+    }
+
     if (!this.props.aheadBehind) {
       const isGitHub = !!this.props.repository.gitHubRepository
       return isGitHub

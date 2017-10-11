@@ -2,11 +2,13 @@ import { Emitter, Disposable } from 'event-kit'
 import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
+  IDatabaseOwner,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
 import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
+import { IAPIRepository } from '../api'
 
 /** The store for local repositories. */
 export class RepositoriesStore {
@@ -27,113 +29,112 @@ export class RepositoriesStore {
     return this.emitter.on('did-update', fn)
   }
 
+  private async findGitHubRepository(
+    id: number
+  ): Promise<GitHubRepository | null> {
+    const gitHubRepository = await this.db.gitHubRepositories.get(id)
+    if (!gitHubRepository) {
+      return null
+    }
+
+    const owner = await this.db.owners.get(gitHubRepository.ownerID)
+    if (!owner) {
+      log.error(`Couldn't find the owner for ${gitHubRepository.name}`)
+      return null
+    }
+
+    let parent: GitHubRepository | null = null
+    if (gitHubRepository.parentID) {
+      parent = await this.findGitHubRepository(gitHubRepository.parentID)
+    }
+
+    return new GitHubRepository(
+      gitHubRepository.name,
+      new Owner(owner.login, owner.endpoint, owner.id!),
+      gitHubRepository.id!,
+      gitHubRepository.private,
+      gitHubRepository.htmlURL,
+      gitHubRepository.defaultBranch,
+      gitHubRepository.cloneURL,
+      parent
+    )
+  }
+
   /** Get all the local repositories. */
-  public async getAll(): Promise<ReadonlyArray<Repository>> {
-    const inflatedRepos: Repository[] = []
-    await this.db.transaction(
+  public getAll(): Promise<ReadonlyArray<Repository>> {
+    return this.db.transaction(
       'r',
       this.db.repositories,
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
+        const inflatedRepos = new Array<Repository>()
         const repos = await this.db.repositories.toArray()
         for (const repo of repos) {
           let inflatedRepo: Repository | null = null
+          let gitHubRepository: GitHubRepository | null = null
           if (repo.gitHubRepositoryID) {
-            const gitHubRepository = (await this.db.gitHubRepositories.get(
+            gitHubRepository = await this.findGitHubRepository(
               repo.gitHubRepositoryID
-            ))!
-            const owner = (await this.db.owners.get(gitHubRepository.ownerID))!
-            const gitHubRepo = new GitHubRepository(
-              gitHubRepository.name,
-              new Owner(owner.login, owner.endpoint),
-              gitHubRepository.id!,
-              gitHubRepository.private,
-              gitHubRepository.fork,
-              gitHubRepository.htmlURL,
-              gitHubRepository.defaultBranch,
-              gitHubRepository.cloneURL
-            )
-            inflatedRepo = new Repository(
-              repo.path,
-              repo.id!,
-              gitHubRepo,
-              repo.missing
-            )
-          } else {
-            inflatedRepo = new Repository(
-              repo.path,
-              repo.id!,
-              null,
-              repo.missing
             )
           }
+
+          inflatedRepo = new Repository(
+            repo.path,
+            repo.id!,
+            gitHubRepository,
+            repo.missing
+          )
           inflatedRepos.push(inflatedRepo)
         }
+
+        return inflatedRepos
       }
     )
-
-    return inflatedRepos
   }
 
-  /** Add a new local repository. */
+  /**
+   * Add a new local repository.
+   *
+   * If a repository already exists with that path, it will be returned instead.
+   */
   public async addRepository(path: string): Promise<Repository> {
-    let repository: Repository | null = null
-
-    await this.db.transaction(
-      'r',
+    const repository = await this.db.transaction(
+      'rw',
       this.db.repositories,
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
         const repos = await this.db.repositories.toArray()
         const existing = repos.find(r => r.path === path)
-        if (existing === undefined) {
-          return
+        let id: number
+        let gitHubRepo: GitHubRepository | null = null
+        if (existing) {
+          id = existing.id!
+
+          if (existing.gitHubRepositoryID) {
+            gitHubRepo = await this.findGitHubRepository(
+              existing.gitHubRepositoryID
+            )
+          }
+        } else {
+          id = await this.db.repositories.add({
+            path,
+            gitHubRepositoryID: null,
+            missing: false,
+          })
         }
 
-        const id = existing.id!
-
-        if (!existing.gitHubRepositoryID) {
-          repository = new Repository(path, id, null, false)
-          return
-        }
-
-        const dbRepo = (await this.db.gitHubRepositories.get(
-          existing.gitHubRepositoryID
-        ))!
-        const dbOwner = (await this.db.owners.get(dbRepo.ownerID))!
-
-        const owner = new Owner(dbOwner.login, dbOwner.endpoint)
-        const gitHubRepo = new GitHubRepository(
-          dbRepo.name,
-          owner,
-          existing.gitHubRepositoryID,
-          dbRepo.private,
-          dbRepo.fork,
-          dbRepo.htmlURL,
-          dbRepo.defaultBranch,
-          dbRepo.cloneURL
-        )
-        repository = new Repository(path, id, gitHubRepo, false)
+        return new Repository(path, id, gitHubRepo, false)
       }
     )
 
-    if (repository !== null) {
-      return repository
-    }
-
-    const id = await this.db.repositories.add({
-      path,
-      gitHubRepositoryID: null,
-      missing: false,
-    })
-
     this.emitUpdate()
 
-    return new Repository(path, id, null, false)
+    return repository
   }
 
+  /** Remove the repository with the given ID. */
   public async removeRepository(repoID: number): Promise<void> {
     await this.db.repositories.delete(repoID)
 
@@ -152,20 +153,24 @@ export class RepositoriesStore {
       )
     }
 
-    const updatedRepository = repository.withMissing(missing)
-    const gitHubRepositoryID = updatedRepository.gitHubRepository
-      ? updatedRepository.gitHubRepository.dbID
+    const gitHubRepositoryID = repository.gitHubRepository
+      ? repository.gitHubRepository.dbID
       : null
     await this.db.repositories.put({
-      id: updatedRepository.id,
-      path: updatedRepository.path,
-      missing: updatedRepository.missing,
+      id: repository.id,
+      path: repository.path,
+      missing,
       gitHubRepositoryID,
     })
 
     this.emitUpdate()
 
-    return updatedRepository
+    return new Repository(
+      repository.path,
+      repository.id,
+      repository.gitHubRepository,
+      missing
+    )
   }
 
   /** Update the repository's path. */
@@ -180,30 +185,93 @@ export class RepositoriesStore {
       )
     }
 
-    const updatedRepository = repository.withPath(path)
-    const gitHubRepositoryID = updatedRepository.gitHubRepository
-      ? updatedRepository.gitHubRepository.dbID
+    const gitHubRepositoryID = repository.gitHubRepository
+      ? repository.gitHubRepository.dbID
       : null
     await this.db.repositories.put({
-      id: updatedRepository.id,
-      missing: updatedRepository.missing,
-      path: updatedRepository.path,
+      id: repository.id,
+      missing: false,
+      path: path,
       gitHubRepositoryID,
     })
 
-    const foundRepository = await this.updateRepositoryMissing(
-      updatedRepository,
-      false
-    )
-
     this.emitUpdate()
 
-    return foundRepository
+    return new Repository(
+      path,
+      repository.id,
+      repository.gitHubRepository,
+      false
+    )
   }
 
-  /** Update or add the repository's GitHub repository. */
+  private async putOwner(endpoint: string, login: string): Promise<Owner> {
+    login = login.toLowerCase()
+
+    const existingOwner = await this.db.owners
+      .where('[endpoint+login]')
+      .equals([endpoint, login])
+      .first()
+    if (existingOwner) {
+      return new Owner(login, endpoint, existingOwner.id!)
+    }
+
+    const dbOwner: IDatabaseOwner = {
+      login,
+      endpoint,
+    }
+    const id = await this.db.owners.add(dbOwner)
+    return new Owner(login, endpoint, id)
+  }
+
+  private async putGitHubRepository(
+    endpoint: string,
+    gitHubRepository: IAPIRepository
+  ): Promise<GitHubRepository> {
+    let parent: GitHubRepository | null = null
+    if (gitHubRepository.parent) {
+      parent = await this.putGitHubRepository(endpoint, gitHubRepository.parent)
+    }
+
+    const login = gitHubRepository.owner.login.toLowerCase()
+    const owner = await this.putOwner(endpoint, login)
+
+    const existingRepo = await this.db.gitHubRepositories
+      .where('[ownerID+name]')
+      .equals([owner.id!, gitHubRepository.name])
+      .first()
+
+    let updatedGitHubRepo: IDatabaseGitHubRepository = {
+      ownerID: owner.id!,
+      name: gitHubRepository.name,
+      private: gitHubRepository.private,
+      htmlURL: gitHubRepository.html_url,
+      defaultBranch: gitHubRepository.default_branch,
+      cloneURL: gitHubRepository.clone_url,
+      parentID: parent ? parent.dbID : null,
+    }
+    if (existingRepo) {
+      updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
+    }
+
+    const id = await this.db.gitHubRepositories.put(updatedGitHubRepo)
+    return new GitHubRepository(
+      updatedGitHubRepo.name,
+      owner,
+      id,
+      updatedGitHubRepo.private,
+      updatedGitHubRepo.htmlURL,
+      updatedGitHubRepo.defaultBranch,
+      updatedGitHubRepo.cloneURL,
+      parent
+    )
+  }
+
+  /** Add or update the repository's GitHub repository. */
   public async updateGitHubRepository(
-    repository: Repository
+    repository: Repository,
+    endpoint: string,
+    gitHubRepository: IAPIRepository
   ): Promise<Repository> {
     const repoID = repository.id
     if (!repoID) {
@@ -212,86 +280,33 @@ export class RepositoriesStore {
       )
     }
 
-    const newGitHubRepo = repository.gitHubRepository
-    if (!newGitHubRepo) {
-      return fatalError(
-        '`updateGitHubRepository` can only update a GitHub repository. It cannot remove one.'
-      )
-    }
-
-    let gitHubRepositoryID: number | null = null
-    await this.db.transaction(
+    const updatedGitHubRepo = await this.db.transaction(
       'rw',
       this.db.repositories,
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
         const localRepo = (await this.db.repositories.get(repoID))!
+        const updatedGitHubRepo = await this.putGitHubRepository(
+          endpoint,
+          gitHubRepository
+        )
 
-        let existingGitHubRepo: IDatabaseGitHubRepository | null = null
-        let ownerID: number | null = null
-        if (localRepo.gitHubRepositoryID) {
-          gitHubRepositoryID = localRepo.gitHubRepositoryID
+        await this.db.repositories.update(localRepo.id!, {
+          gitHubRepositoryID: updatedGitHubRepo.dbID,
+        })
 
-          existingGitHubRepo =
-            (await this.db.gitHubRepositories.get(
-              localRepo.gitHubRepositoryID
-            )) || null
-          if (!existingGitHubRepo) {
-            return fatalError(`Couldn't look up an existing GitHub repository.`)
-          }
-
-          const owner = (await this.db.owners.get(existingGitHubRepo.ownerID))!
-          ownerID = owner.id || null
-        } else {
-          const owner = newGitHubRepo.owner
-          const existingOwner = await this.db.owners
-            .where('[endpoint+login]')
-            .equals([owner.endpoint, owner.login.toLowerCase()])
-            .limit(1)
-            .first()
-          if (existingOwner) {
-            ownerID = existingOwner.id || null
-          } else {
-            ownerID = await this.db.owners.add({
-              login: owner.login.toLowerCase(),
-              endpoint: owner.endpoint,
-            })
-          }
-        }
-
-        let updatedInfo: IDatabaseGitHubRepository = {
-          private: newGitHubRepo.private,
-          fork: newGitHubRepo.fork,
-          htmlURL: newGitHubRepo.htmlURL,
-          name: newGitHubRepo.name,
-          ownerID: ownerID!,
-          cloneURL: newGitHubRepo.cloneURL,
-          defaultBranch: newGitHubRepo.defaultBranch,
-        }
-
-        if (existingGitHubRepo) {
-          updatedInfo = { ...updatedInfo, id: existingGitHubRepo.id }
-        }
-
-        gitHubRepositoryID = await this.db.gitHubRepositories.put(updatedInfo)
-        await this.db.repositories.update(localRepo.id!, { gitHubRepositoryID })
+        return updatedGitHubRepo
       }
     )
 
     this.emitUpdate()
 
-    return repository.withGitHubRepository(
-      new GitHubRepository(
-        newGitHubRepo.name,
-        newGitHubRepo.owner,
-        gitHubRepositoryID!,
-        newGitHubRepo.private,
-        newGitHubRepo.fork,
-        newGitHubRepo.htmlURL,
-        newGitHubRepo.defaultBranch,
-        newGitHubRepo.cloneURL
-      )
+    return new Repository(
+      repository.path,
+      repository.id,
+      updatedGitHubRepo,
+      repository.missing
     )
   }
 }
