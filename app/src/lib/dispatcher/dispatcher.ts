@@ -1046,7 +1046,7 @@ export class Dispatcher {
     return this.appStore._openCreatePullRequestInBrowser(repository)
   }
 
-  public updatePullRequests(repository: Repository): Promise<void> {
-    return this.appStore._updatePullRequests(repository)
+  public refreshPullRequests(repository: Repository): Promise<void> {
+    return this.appStore._refreshPullRequests(repository)
   }
 }

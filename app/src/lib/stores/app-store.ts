@@ -778,7 +778,7 @@ export class AppStore {
         .catch(e => log.error('Something failed.', e))
     }
 
-    this._updatePullRequests(repository)
+    this._refreshPullRequests(repository)
     await this._refreshRepository(repository)
 
     // The selected repository could have changed while we were refreshing.
@@ -2742,7 +2742,7 @@ export class AppStore {
     }
   }
 
-  public async _updatePullRequests(repository: Repository): Promise<void> {
+  public async _refreshPullRequests(repository: Repository): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
@@ -2756,7 +2756,7 @@ export class AppStore {
       return Promise.resolve()
     }
 
-    const pullRequests = await this.pullRequestStore.updatePullRequests(
+    const pullRequests = await this.pullRequestStore.refreshPullRequests(
       gitHubRepository,
       account
     )

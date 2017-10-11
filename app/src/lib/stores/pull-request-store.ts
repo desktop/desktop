@@ -27,7 +27,7 @@ export class PullRequestStore {
     this.repositoriesStore = repositoriesStore
   }
 
-  public async updatePullRequests(
+  public async refreshPullRequests(
     repository: GitHubRepository,
     account: Account
   ): Promise<ReadonlyArray<PullRequest>> {
