@@ -4,10 +4,27 @@
 
 const fs = require('fs')
 const path = require('path')
-const { getUserDataPath } = require('./dist-info')
+const cp = require('child_process')
+const { getUserDataPath, getDistPath, getProductName } = require('./dist-info')
 
-// clear out existing log files
-const directory = getUserDataPath()
+const isFork = process.env.TRAVIS_SECURE_ENV_VARS !== 'true'
+
+if (process.platform === 'darwin' && process.env.TRAVIS && !isFork) {
+  const archive = `${getDistPath()}/${getProductName()}.app`
+  try {
+    console.log('validating signature of Desktop app')
+    cp.execSync(`codesign -dv --verbose=4 '${archive}'`)
+  } catch (err) {
+    process.exit(1)
+  }
+  console.log('\n\n')
+}
+
+const output = cp.execSync('git config -l --show-origin', { encoding: 'utf-8' })
+console.log(`Git config:\n${output}\n\n`)
+
+// clear existing log files
+const directory = path.join(getUserDataPath(), 'logs')
 if (!fs.existsSync(directory)) {
   return
 }

@@ -41,9 +41,8 @@ interface IPushPullButtonProps {
  * A button which pushes, pulls, or updates depending on the state of the
  * repository.
  */
-export class PushPullButton extends React.Component<IPushPullButtonProps, void> {
+export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
   public render() {
-
     const progress = this.props.progress
 
     const title = progress ? progress.title : this.getTitle()
@@ -52,25 +51,24 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
       ? progress.description || 'Hang on…'
       : this.getDescription()
 
-    const progressValue = progress
-      ? progress.value
-      : undefined
+    const progressValue = progress ? progress.value : undefined
 
     const disabled = this.props.branchExists
-     ? this.props.networkActionInProgress || !!this.props.progress
-     : true
+      ? this.props.networkActionInProgress || !!this.props.progress
+      : true
 
     return (
       <ToolbarButton
         title={title}
         description={description}
         progressValue={progressValue}
-        className='push-pull-button'
+        className="push-pull-button"
         icon={this.getIcon()}
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
         style={ToolbarButtonStyle.Subtitle}
         onClick={this.performAction}
-        disabled={disabled}>
+        disabled={disabled}
+      >
         {this.renderAheadBehind()}
       </ToolbarButton>
     )
@@ -82,36 +80,52 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
     }
 
     const { ahead, behind } = this.props.aheadBehind
-    if (ahead === 0 && behind === 0) { return null }
+    if (ahead === 0 && behind === 0) {
+      return null
+    }
 
     const content: JSX.Element[] = []
     if (ahead > 0) {
       content.push(
-        <span key='ahead'>
+        <span key="ahead">
           {ahead}
-          <Octicon symbol={OcticonSymbol.arrowSmallUp}/>
-        </span>)
+          <Octicon symbol={OcticonSymbol.arrowSmallUp} />
+        </span>
+      )
     }
 
     if (behind > 0) {
       content.push(
-        <span key='behind'>
+        <span key="behind">
           {behind}
-          <Octicon symbol={OcticonSymbol.arrowSmallDown}/>
-        </span>)
+          <Octicon symbol={OcticonSymbol.arrowSmallDown} />
+        </span>
+      )
     }
 
-    return <div className='ahead-behind'>{content}</div>
+    return (
+      <div className="ahead-behind">
+        {content}
+      </div>
+    )
   }
 
   private getTitle(): string {
-    if (!this.props.remoteName) { return 'Publish repository' }
-    if (!this.props.aheadBehind) { return 'Publish branch' }
+    if (!this.props.remoteName) {
+      return 'Publish repository'
+    }
+    if (!this.props.aheadBehind) {
+      return 'Publish branch'
+    }
 
     const { ahead, behind } = this.props.aheadBehind
-    const actionName = (function () {
-      if (behind > 0) { return 'Pull' }
-      if (ahead > 0) { return 'Push' }
+    const actionName = (function() {
+      if (behind > 0) {
+        return 'Pull'
+      }
+      if (ahead > 0) {
+        return 'Push'
+      }
       return 'Fetch'
     })()
 
@@ -119,28 +133,45 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private getIcon(): OcticonSymbol {
-
     if (this.props.networkActionInProgress) {
       return OcticonSymbol.sync
     }
 
-    if (!this.props.remoteName) { return OcticonSymbol.cloudUpload }
-    if (!this.props.aheadBehind) { return OcticonSymbol.cloudUpload }
+    if (!this.props.remoteName) {
+      return OcticonSymbol.cloudUpload
+    }
+    if (!this.props.aheadBehind) {
+      return OcticonSymbol.cloudUpload
+    }
 
     const { ahead, behind } = this.props.aheadBehind
-    if (this.props.networkActionInProgress) { return OcticonSymbol.sync }
-    if (behind > 0) { return OcticonSymbol.arrowDown }
-    if (ahead > 0) { return OcticonSymbol.arrowUp }
+    if (this.props.networkActionInProgress) {
+      return OcticonSymbol.sync
+    }
+    if (behind > 0) {
+      return OcticonSymbol.arrowDown
+    }
+    if (ahead > 0) {
+      return OcticonSymbol.arrowUp
+    }
     return OcticonSymbol.sync
   }
 
   private getDescription(): JSX.Element | string {
-    if (!this.props.remoteName) { return 'Publish this repository to GitHub' }
-    if (!this.props.aheadBehind) { return 'Publish this branch to GitHub' }
+    if (!this.props.remoteName) {
+      return 'Publish this repository to GitHub'
+    }
+    if (!this.props.aheadBehind) {
+      return 'Publish this branch to GitHub'
+    }
 
     const lastFetched = this.props.lastFetched
     if (lastFetched) {
-      return <span>Last fetched <RelativeTime date={lastFetched} /></span>
+      return (
+        <span>
+          Last fetched <RelativeTime date={lastFetched} />
+        </span>
+      )
     } else {
       return 'Never fetched'
     }

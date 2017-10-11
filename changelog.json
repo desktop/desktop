@@ -1,7 +1,58 @@
 {
   "releases": {
-    "0.6.0": [
+    "0.6.3": [
 
+    ],
+    "0.6.2": [
+      "[New] Link to User Guides from the Help menu - #1963",
+      "[New] Added the 'Open in External Editor' contextual menu item to changed files - #2023",
+      "[New] Added the 'Show' and 'Open Command Prompt' contextual menu items to repositories - #1554",
+      "[New] Windows: Support self-signed or untrusted certificates - #671",
+      "[New] Copy the SHA to the clipboard when clicked - #1501",
+      "[Improved] Provide the option of initializing a new repository when adding a directory that isn't already one - #969",
+      "[Improved] Link to the working directory when there are no changes - #1871",
+      "[Improved] Hitting Enter when selecting a base branch creates the new branch - #1780",
+      "[Improved] Prefix repository names with their owner if they are ambiguous - #1848",
+      "[Fixed] Sort and filter licenses like GitHub.com - #1987",
+      "[Fixed] Long branch names not getting truncated in the Rename Branch dialog - #1891",
+      "[Fixed] Prune old log files - #1540",
+      "[Fixed] Ensure the local path is valid before trying to create a new repository - #1487",
+      "[Fixed] Support cloning repository wikis - #1624",
+      "[Fixed] Disable the Select All checkbox when there are no changes - #1389",
+      "[Fixed] Changed docx files wouldn't show anything in the diff panel - #1990",
+      "[Fixed] Disable the Merge button when there are no commits to merge - #1359",
+      "[Fixed] Username/password authentication not working for GitHub Enterprise - #2064",
+      "[Fixed] Better error messages when an API call fails - #2017",
+      "[Fixed] Create the 'logs' directory if it doesn't exist - #1550",
+      "[Fixed] Enable the 'Remove' menu item for missing repositories - #1776"
+    ],
+    "0.6.1": [
+      "[Fixed] Properly log stats opt in/out - #1949",
+      "[Fixed] Source maps for exceptions in the main process - #1957",
+      "[Fixed] Styling of the exception dialog - #1956",
+      "[Fixed] Handle ambiguous references - #1947",
+      "[Fixed] Handle non-ASCII text in diffs - #1970",
+      "[Fixed] Uncaught exception when hitting the arrow keys after showing autocompletions - #1971",
+      "[Fixed] Clear the organizations list when publishing a new repository and switching between tabs - #1969",
+      "[Fixed] Push properly when a tracking branch has a different name from the local branch - #1967",
+      "[Improved] Warn when line endings will change - #1906"
+    ],
+    "0.6.0": [
+      "[Fixed] Issue autocompletion not working for older issues - #1814",
+      "[Fixed] GitHub repository association not working for repositories with some remote URL formats - #1826 #1679",
+      "[Fixed] Don't try to delete a remote branch that no longer exists - #1829",
+      "[Fixed] Tokens created by development builds would be used in production builds but wouldn't work - #1727",
+      "[Fixed] Submodules can now be added - #708",
+      "[Fixed] Properly handle the case where a file is added to the index but removed from the working tree - #1310",
+      "[Fixed] Use a local image for the default avatar - #1621",
+      "[Fixed] Make the file path in diffs selectable - #1768",
+      "[Improved] More logging! - #1823",
+      "[Improved] Better error message when trying to add something that's not a repository - #1747",
+      "[Improved] Copy the shell environment into the app's environment - #1796",
+      "[Improved] Updated to Git 2.13.0 - #1897",
+      "[Improved] Add 'Reveal' to the contextual menu for changed files - #1566",
+      "[Improved] Better handling of large diffs - #1818 #1524",
+      "[Improved] App launch time - #1900"
     ],
     "0.5.9": [
       "[New] Added Zoom In and Zoom Out - #1217",

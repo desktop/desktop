@@ -11,8 +11,22 @@ import { CloningRepository } from '../../src/lib/dispatcher'
 describe('Repository grouping', () => {
   const repositories: Array<Repository | CloningRepository> = [
     new Repository('repo1', 1, null, false),
-    new Repository('repo2', 2, new GitHubRepository('my-repo2', new Owner('', getDotComAPIEndpoint()), 1), false),
-    new Repository('repo3', 3, new GitHubRepository('my-repo3', new Owner('', ''), 1), false),
+    new Repository(
+      'repo2',
+      2,
+      new GitHubRepository(
+        'my-repo2',
+        new Owner('', getDotComAPIEndpoint()),
+        1
+      ),
+      false
+    ),
+    new Repository(
+      'repo3',
+      3,
+      new GitHubRepository('my-repo3', new Owner('', ''), 1),
+      false
+    ),
   ]
 
   it('groups repositories by GitHub/Enterprise/Other', () => {
@@ -40,12 +54,22 @@ describe('Repository grouping', () => {
 
   it('sorts repositories alphabetically within each group', () => {
     const repoA = new Repository('a', 1, null, false)
-    const repoB = new Repository('b', 2, new GitHubRepository('b', new Owner('', getDotComAPIEndpoint()), 1), false)
+    const repoB = new Repository(
+      'b',
+      2,
+      new GitHubRepository('b', new Owner('', getDotComAPIEndpoint()), 1),
+      false
+    )
     const repoC = new Repository('c', 2, null, false)
-    const repoD = new Repository('d', 2, new GitHubRepository('d', new Owner('', getDotComAPIEndpoint()), 1), false)
+    const repoD = new Repository(
+      'd',
+      2,
+      new GitHubRepository('d', new Owner('', getDotComAPIEndpoint()), 1),
+      false
+    )
     const repoZ = new Repository('z', 3, null, false)
 
-    const grouped = groupRepositories([ repoC, repoB, repoZ, repoD, repoA ])
+    const grouped = groupRepositories([repoC, repoB, repoZ, repoD, repoA])
     expect(grouped.length).to.equal(2)
 
     expect(grouped[0].identifier).to.equal('github')
@@ -62,5 +86,54 @@ describe('Repository grouping', () => {
     expect(items[0].repository.path).to.equal('a')
     expect(items[1].repository.path).to.equal('c')
     expect(items[2].repository.path).to.equal('z')
+  })
+
+  it('marks repositories for disambiguation if they have the same name', () => {
+    const repoA = new Repository(
+      'repo',
+      1,
+      new GitHubRepository(
+        'repo',
+        new Owner('user1', getDotComAPIEndpoint()),
+        1
+      ),
+      false
+    )
+    const repoB = new Repository(
+      'cool-repo',
+      2,
+      new GitHubRepository(
+        'cool-repo',
+        new Owner('user2', getDotComAPIEndpoint()),
+        2
+      ),
+      false
+    )
+    const repoC = new Repository(
+      'repo',
+      2,
+      new GitHubRepository(
+        'repo',
+        new Owner('user2', getDotComAPIEndpoint()),
+        2
+      ),
+      false
+    )
+
+    const grouped = groupRepositories([repoA, repoB, repoC])
+    expect(grouped.length).to.equal(1)
+
+    expect(grouped[0].identifier).to.equal('github')
+    expect(grouped[0].items.length).to.equal(3)
+
+    const items = grouped[0].items
+    expect(items[0].text).to.equal('cool-repo')
+    expect(items[0].needsDisambiguation).to.equal(false)
+
+    expect(items[1].text).to.equal('repo')
+    expect(items[1].needsDisambiguation).to.equal(true)
+
+    expect(items[2].text).to.equal('repo')
+    expect(items[2].needsDisambiguation).to.equal(true)
   })
 })

@@ -37,7 +37,9 @@ interface IFlattenedItem<T extends IFilterListItem> {
  * A row in the list. This is used internally after the user-provided groups are
  * flattened.
  */
-type IFilterListRow<T extends IFilterListItem> = IFlattenedGroup | IFlattenedItem<T>
+type IFilterListRow<T extends IFilterListItem> =
+  | IFlattenedGroup
+  | IFlattenedItem<T>
 
 interface IFilterListProps<T extends IFilterListItem> {
   /** A class name for the wrapping element. */
@@ -75,13 +77,19 @@ interface IFilterListProps<T extends IFilterListItem> {
    *                       either a pointer device press, or a keyboard event
    *                       (arrow up/down)
    */
-  readonly onSelectionChanged?: (selectedItem: T | null, source: SelectionSource) => void
+  readonly onSelectionChanged?: (
+    selectedItem: T | null,
+    source: SelectionSource
+  ) => void
 
   /**
    * Called when a key down happens in the filter field. Users have a chance to
    * respond or cancel the default behavior by calling `preventDefault`.
    */
-  readonly onFilterKeyDown?: (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => void
+  readonly onFilterKeyDown?: (
+    filter: string,
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => void
 
   /** Any props which should cause a re-render if they change. */
   readonly invalidationProps: any
@@ -109,7 +117,10 @@ export interface IFilterSelectionSource {
 export type SelectionSource = ListSelectionSource | IFilterSelectionSource
 
 /** A List which includes the ability to filter based on its contents. */
-export class FilterList<T extends IFilterListItem> extends React.Component<IFilterListProps<T>, IFilterListState<T>> {
+export class FilterList<T extends IFilterListItem> extends React.Component<
+  IFilterListProps<T>,
+  IFilterListState<T>
+> {
   private list: List | null = null
   private filterInput: HTMLInputElement | null = null
 
@@ -124,18 +135,19 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
       <div className={classnames('filter-list', this.props.className)}>
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
-        <Row className='filter-field-row'>
+        <Row className="filter-field-row">
           <TextBox
-            type='search'
+            type="search"
             autoFocus={true}
-            placeholder='Filter'
-            className='filter-list-filter-field'
+            placeholder="Filter"
+            className="filter-list-filter-field"
             onChange={this.onFilterChanged}
             onKeyDown={this.onKeyDown}
-            onInputRef={this.onInputRef}/>
+            onInputRef={this.onInputRef}
+          />
         </Row>
 
-        <div className='filter-list-container'>
+        <div className="filter-list-container">
           <List
             rowCount={this.state.rows.length}
             rowRenderer={this.renderRow}
@@ -146,7 +158,11 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
             onRowKeyDown={this.onRowKeyDown}
             canSelectRow={this.canSelectRow}
             ref={this.onListRef}
-            invalidationProps={{ ...this.props, ...this.props.invalidationProps }}/>
+            invalidationProps={{
+              ...this.props,
+              ...this.props.invalidationProps,
+            }}
+          />
         </div>
       </div>
     )
@@ -189,18 +205,34 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
     this.setState(createStateUpdate(text, this.props))
   }
 
-  public componentDidUpdate(prevProps: IFilterListProps<T>, prevState: IFilterListState<T>) {
+  public componentDidUpdate(
+    prevProps: IFilterListProps<T>,
+    prevState: IFilterListState<T>
+  ) {
     if (this.props.onSelectionChanged) {
-      const oldSelectedItemId = getItemIdFromRowIndex(prevState.rows, prevState.selectedRow)
-      const newSelectedItemId = getItemIdFromRowIndex(this.state.rows, this.state.selectedRow)
+      const oldSelectedItemId = getItemIdFromRowIndex(
+        prevState.rows,
+        prevState.selectedRow
+      )
+      const newSelectedItemId = getItemIdFromRowIndex(
+        this.state.rows,
+        this.state.selectedRow
+      )
 
       if (oldSelectedItemId !== newSelectedItemId) {
-
-        const propSelectionId = this.props.selectedItem ? this.props.selectedItem.id : null
+        const propSelectionId = this.props.selectedItem
+          ? this.props.selectedItem.id
+          : null
 
         if (propSelectionId !== newSelectedItemId) {
-          const newSelectedItem = getItemFromRowIndex(this.state.rows, this.state.selectedRow)
-          this.props.onSelectionChanged(newSelectedItem, { kind: 'filter', filterText: this.state.filter })
+          const newSelectedItem = getItemFromRowIndex(
+            this.state.rows,
+            this.state.selectedRow
+          )
+          this.props.onSelectionChanged(newSelectedItem, {
+            kind: 'filter',
+            filterText: this.state.filter,
+          })
         }
       }
     }
@@ -223,7 +255,9 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
     const list = this.list
-    if (!list) { return }
+    if (!list) {
+      return
+    }
 
     let focusInput = false
     const firstSelectableRow = list.nextSelectableRow('down', 0)
@@ -245,19 +279,26 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const list = this.list
-    if (!list) { return }
+    if (!list) {
+      return
+    }
 
     if (this.props.onFilterKeyDown) {
       this.props.onFilterKeyDown(this.state.filter, event)
     }
 
-    if (event.defaultPrevented) { return }
+    if (event.defaultPrevented) {
+      return
+    }
 
     if (event.key === 'ArrowDown') {
       if (this.state.rows.length > 0) {
-        this.setState({ selectedRow: list.nextSelectableRow('down', 0) }, () => {
-          list.focus()
-        })
+        this.setState(
+          { selectedRow: list.nextSelectableRow('down', 0) },
+          () => {
+            list.focus()
+          }
+        )
       }
 
       event.preventDefault()
@@ -282,14 +323,19 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   }
 }
 
-function createStateUpdate<T extends IFilterListItem>(filter: string, props: IFilterListProps<T>) {
+function createStateUpdate<T extends IFilterListItem>(
+  filter: string,
+  props: IFilterListProps<T>
+) {
   const flattenedRows = new Array<IFilterListRow<T>>()
   for (const group of props.groups) {
     const items = group.items.filter(i => {
       return i.text.toLowerCase().includes(filter.toLowerCase())
     })
 
-    if (!items.length) { continue }
+    if (!items.length) {
+      continue
+    }
 
     flattenedRows.push({ kind: 'group', identifier: group.identifier })
     for (const item of items) {
@@ -297,11 +343,12 @@ function createStateUpdate<T extends IFilterListItem>(filter: string, props: IFi
     }
   }
 
-
   let selectedRow = -1
   const selectedItem = props.selectedItem
   if (selectedItem) {
-    selectedRow = flattenedRows.findIndex(i => i.kind === 'item' && i.item.id === selectedItem.id)
+    selectedRow = flattenedRows.findIndex(
+      i => i.kind === 'item' && i.item.id === selectedItem.id
+    )
   }
 
   if (selectedRow < 0 && filter.length) {
@@ -313,8 +360,10 @@ function createStateUpdate<T extends IFilterListItem>(filter: string, props: IFi
   return { filter, rows: flattenedRows, selectedRow }
 }
 
-
-function getItemFromRowIndex<T extends IFilterListItem>(items: ReadonlyArray<IFilterListRow<T>>, index: number): T | null {
+function getItemFromRowIndex<T extends IFilterListItem>(
+  items: ReadonlyArray<IFilterListRow<T>>,
+  index: number
+): T | null {
   if (index >= 0 && index < items.length) {
     const row = items[index]
 
@@ -326,7 +375,10 @@ function getItemFromRowIndex<T extends IFilterListItem>(items: ReadonlyArray<IFi
   return null
 }
 
-function getItemIdFromRowIndex<T extends IFilterListItem>(items: ReadonlyArray<IFilterListRow<T>>, index: number): string | null {
+function getItemIdFromRowIndex<T extends IFilterListItem>(
+  items: ReadonlyArray<IFilterListRow<T>>,
+  index: number
+): string | null {
   const item = getItemFromRowIndex(items, index)
   return item ? item.id : null
 }

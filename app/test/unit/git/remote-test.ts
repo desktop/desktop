@@ -3,13 +3,20 @@
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
-import { getRemotes, getDefaultRemote, addRemote, removeRemote } from '../../../src/lib/git/remote'
-import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
+import {
+  getRemotes,
+  getDefaultRemote,
+  addRemote,
+  removeRemote,
+} from '../../../src/lib/git/remote'
+import {
+  setupFixtureRepository,
+  setupEmptyRepository,
+} from '../../fixture-helper'
 
 const temp = require('temp').track()
 
 describe('git/remote', () => {
-
   after(() => {
     temp.cleanupSync()
   })
@@ -19,12 +26,17 @@ describe('git/remote', () => {
       const testRepoPath = setupFixtureRepository('repo-with-multiple-remotes')
       const repository = new Repository(testRepoPath, -1, null, false)
 
-      const url = 'https://github.com/shiftkey/friendly-bassoon.git'
+      // NB: We don't check for exact URL equality because CircleCI's git config
+      // rewrites HTTPS URLs to SSH.
+      const nwo = 'shiftkey/friendly-bassoon.git'
 
       const result = await getRemotes(repository)
 
-      expect(result).to.contain({ name: 'origin', url })
-      expect(result).to.contain({ name: 'bassoon', url })
+      expect(result[0].name).to.equal('bassoon')
+      expect(result[0].url.endsWith(nwo)).to.equal(true)
+
+      expect(result[1].name).to.equal('origin')
+      expect(result[1].url.endsWith(nwo)).to.equal(true)
     })
   })
 
@@ -60,7 +72,11 @@ describe('git/remote', () => {
   describe('addRemote', () => {
     it('can set origin and return it as default', async () => {
       const repository = await setupEmptyRepository()
-      await addRemote(repository, 'origin', 'https://github.com/desktop/desktop')
+      await addRemote(
+        repository,
+        'origin',
+        'https://github.com/desktop/desktop'
+      )
 
       const result = await getDefaultRemote(repository)
 

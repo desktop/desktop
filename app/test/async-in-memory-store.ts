@@ -1,6 +1,5 @@
-
 export class AsyncInMemoryStore {
-  private store: {[key: string]: string}
+  private store: { [key: string]: string }
 
   public constructor() {
     this.store = {}
@@ -10,7 +9,11 @@ export class AsyncInMemoryStore {
     return `__key/${key}/${login}`
   }
 
-  public setItem(key: string, loginOrValue: string, secureValue?: string): Promise<void> {
+  public setItem(
+    key: string,
+    loginOrValue: string,
+    secureValue?: string
+  ): Promise<void> {
     if (secureValue) {
       const internalKey = this.secureKey(key, loginOrValue)
       this.store[internalKey] = secureValue
@@ -30,4 +33,3 @@ export class AsyncInMemoryStore {
     return Promise.resolve(true)
   }
 }
-

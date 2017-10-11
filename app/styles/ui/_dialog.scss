@@ -221,6 +221,7 @@ dialog {
     }
 
     button {
+      @include ellipsis;
       margin-right: var(--spacing-half);
       min-width: 120px;
 
@@ -295,7 +296,10 @@ dialog {
 
   &#preferences { width: 450px; }
   &#about { width: 450px; }
+  &#create-repository { width: 400px; }
   &#create-branch { width: 400px; }
+  &#push-branch-commits { width: 450px; }
+  &#publish-branch { width: 450px; }
 
   &#confirm-remove-repository {
     width: 450px;
@@ -319,6 +323,8 @@ dialog {
       justify-content: flex-end;
     }
   }
+
+  &#add-existing-repository { width: 400px; }
 }
 
 .warning-helper-text {

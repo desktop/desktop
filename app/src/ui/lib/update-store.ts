@@ -11,6 +11,9 @@ import { getVersion } from './app-proxy'
 import { sendWillQuitSync } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 
+/** The release channel which should be checked for updates. */
+type ReleaseChannel = 'production' | 'beta'
+
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
   /** The auto updater is checking for updates. */
@@ -31,7 +34,8 @@ export interface IUpdateState {
   lastSuccessfulCheck: Date | null
 }
 
-const UpdatesURLBase = 'https://central.github.com/api/deployments/desktop/desktop/latest'
+const UpdatesURLBase =
+  'https://central.github.com/api/deployments/desktop/desktop/latest'
 
 /** A store which contains the current state of the auto updater. */
 class UpdateStore {
@@ -43,8 +47,9 @@ class UpdateStore {
   private userInitiatedUpdate = true
 
   public constructor() {
-
-    const lastSuccessfulCheckValue = localStorage.getItem(lastSuccessfulCheckKey)
+    const lastSuccessfulCheckValue = localStorage.getItem(
+      lastSuccessfulCheckKey
+    )
 
     if (lastSuccessfulCheckValue) {
       const lastSuccessfulCheckTime = parseInt(lastSuccessfulCheckValue, 10)
@@ -57,9 +62,12 @@ class UpdateStore {
     // We're using our own error event instead of `autoUpdater`s so that we can
     // properly serialize the `Error` object for transport over IPC. See
     // https://github.com/desktop/desktop/issues/1266.
-    ipcRenderer.on('auto-updater-error', (event: Electron.IpcRendererEvent, error: Error) => {
-      this.onAutoUpdaterError(error)
-    })
+    ipcRenderer.on(
+      'auto-updater-error',
+      (event: Electron.IpcMessageEvent, error: Error) => {
+        this.onAutoUpdaterError(error)
+      }
+    )
 
     autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
     autoUpdater.on('update-available', this.onUpdateAvailable)
@@ -71,9 +79,15 @@ class UpdateStore {
     // let's just avoid it.
     if (!process.env.TEST_ENV) {
       window.addEventListener('beforeunload', () => {
-        autoUpdater.removeListener('checking-for-update', this.onCheckingForUpdate)
+        autoUpdater.removeListener(
+          'checking-for-update',
+          this.onCheckingForUpdate
+        )
         autoUpdater.removeListener('update-available', this.onUpdateAvailable)
-        autoUpdater.removeListener('update-not-available', this.onUpdateNotAvailable)
+        autoUpdater.removeListener(
+          'update-not-available',
+          this.onUpdateNotAvailable
+        )
         autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
       })
     }
@@ -130,7 +144,9 @@ class UpdateStore {
   }
 
   private emitError(error: Error) {
-    const updatedError = new ErrorWithMetadata(error, { backgroundTask: !this.userInitiatedUpdate })
+    const updatedError = new ErrorWithMetadata(error, {
+      backgroundTask: !this.userInitiatedUpdate,
+    })
     this.emitter.emit('error', updatedError)
   }
 
@@ -142,22 +158,22 @@ class UpdateStore {
     }
   }
 
-  private getFeedURL(username: string): string {
-    return `${UpdatesURLBase}?version=${getVersion()}&username=${username}`
+  private getFeedURL(channel: ReleaseChannel): string {
+    return `${UpdatesURLBase}?version=${getVersion()}&env=${channel}`
   }
 
   /**
-   * Check for updates using the given username.
+   * Check for updates.
    *
-   * @param username     - The username used to check for updates.
+   * @param channel      - The release channel to check for updates.
    * @param inBackground - Are we checking for updates in the background, or was
    *                       this check user-initiated?
    */
-  public checkForUpdates(username: string, inBackground: boolean) {
+  public checkForUpdates(channel: ReleaseChannel, inBackground: boolean) {
     this.userInitiatedUpdate = !inBackground
 
     try {
-      autoUpdater.setFeedURL(this.getFeedURL(username))
+      autoUpdater.setFeedURL(this.getFeedURL(channel))
       autoUpdater.checkForUpdates()
     } catch (e) {
       this.emitError(e)
