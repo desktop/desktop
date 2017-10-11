@@ -2,8 +2,13 @@ import { APIRefState } from '../lib/api'
 import { GitHubRepository } from './github-repository'
 
 export class PullRequestRef {
+  /** The name of the ref. */
   public readonly ref: string
+
+  /** The SHA of the ref. */
   public readonly sha: string
+
+  /** The GitHub repository in which this ref lives. */
   public readonly gitHubRepository: GitHubRepository
 
   public constructor(
@@ -18,8 +23,13 @@ export class PullRequestRef {
 }
 
 export class PullRequestStatus {
+  /** The status' state. */
   public readonly state: APIRefState
+
+  /** The number of statuses represented in this combined status. */
   public readonly totalCount: number
+
+  /** The SHA for which this status applies. */
   public readonly sha: string
 
   public constructor(state: APIRefState, totalCount: number, sha: string) {
@@ -30,13 +40,31 @@ export class PullRequestStatus {
 }
 
 export class PullRequest {
+  /** The database ID. */
   public readonly id: number
+
+  /** The date on which the PR was created. */
   public readonly created: Date
+
+  /** The title of the PR. */
   public readonly title: string
+
+  /** The number. */
   public readonly number: number
+
+  /** The ref from which the pull request's changes are coming. */
   public readonly head: PullRequestRef
+
+  /** The ref which the pull request is targetting. */
   public readonly base: PullRequestRef
+
+  /** The author's login. */
   public readonly author: string
+
+  /**
+   * The status of the PR. This will be `null` if we haven't looked up its
+   * status yet or if an error occurred while looking it up.
+   */
   public readonly status: PullRequestStatus | null
 
   public constructor(

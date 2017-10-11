@@ -2,7 +2,7 @@ import Dexie from 'dexie'
 import { APIRefState } from '../api'
 
 export interface IPullRequestRef {
-  /** The ID of the GitHub repository in the database. */
+  /** The database ID of the GitHub repository in which this ref lives. */
   readonly repoId: number
 
   /** The name of the ref. */
@@ -51,7 +51,7 @@ export interface IPullRequestStatus {
   /** The status' state. */
   readonly state: APIRefState
 
-  /** The number of statuses. */
+  /** The number of statuses represented in this combined status. */
   readonly totalCount: number
 
   /** The SHA for which this status applies. */
