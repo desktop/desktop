@@ -209,6 +209,7 @@
   - [ ] Opening list shows all repos in categorized format with a working filter
     - [ ] `ESC` clears the filter
     - [ ] All repos (private, enterprise, local, public, forked) have proper icon and found in the proper category (GitHub.com/Enterprise/Other)
+      - [ ] Hover shows username/repo, url, and/or local path in tooltip
       - [ ] User must have paid account for private repos
   - [ ] Repositories cloned from non-github servers should always be in the Other group, and have the 'computer' icon.
   - [ ] Selecting a repo updates Changes/History/Diff areas
@@ -236,6 +237,7 @@
 ### History tab
   - [ ] All commits listed in chronological order, with avatar, date and name; list is scrollable with arrow keys enabled
     - [ ] Right clicking any commit shows options: Revert, Copy SHA, View on GitHub
+    - [ ] Hover shows file name in tooltip
 
 ### Diffs tab		
   - [ ] All commits have avatar, selectable SHA, # of files changed, commit message, commit description (optional)
@@ -262,10 +264,12 @@
 
 ### Branches list
   - [ ] Current branch always shows if repository present
+    - [ ] Hover shows full branch name in tooltip
   - [ ] Opening list shows all branches in categorized format with a working filter
     - [ ] `New` button opens 'New Branch' modal; if text in filter field, then prefill branch name in modal
     - [ ] Active branch is highlighted and marked with a check
     - [ ] `ESC` clears the filter
+    - [ ] Hover shows full branch name in tooltip
   - [ ] Default branch labeled and listed first, with timestamp
   - [ ] Selecting a branch switches branches
   - [ ] Creating a new branch shows `Publish branch` button
@@ -278,6 +282,7 @@
 
 ### Fetching origin/Pull
   - [ ] Code is constantly being fetched from .com with timestamp
+     - [ ] Hover shows timestamp in tooltip
     - [ ] If Pull Requests on .com, they are reflected with down arrow and quantity
     - [ ] Pull Requests and Commits can co-exist; error surfaces if merge commit
   - [ ] User cannot Push/Pull without being signed in; error message surfaced
