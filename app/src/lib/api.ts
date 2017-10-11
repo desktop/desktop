@@ -120,7 +120,7 @@ export interface IAPIRefStatus {
 interface IAPIPullRequestRef {
   readonly ref: string
   readonly sha: string
-  readonly repo: IAPIRepository
+  readonly repo: IAPIRepository | null
 }
 
 /** Information about a pull request as returned by the GitHub API. */
