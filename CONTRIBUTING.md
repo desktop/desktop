@@ -19,7 +19,7 @@ change over time as we learn and refine how we work with the community.
 [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
   * [Suggesting Enhancements](#suggesting-enhancements)
-  * [Accepting PRs](#accepting-prs)
+  * [Help Wanted](#help-wanted)
 
 [Additional Notes](#additional-notes)
   * [Issue and Pull Request Labels](#issue-and-pull-request-labels)
@@ -56,7 +56,7 @@ reports :mag_right:.
 Before creating bug reports, please check [this list](#before-submitting-a-bug-report)
 as you might find out that you don't need to create one. When you are creating
 a bug report, please [include as many details as possible](#how-do-i-submit-a-good-bug-report).
-Fill out [the required template](../../.github/ISSUE_TEMPLATE.md), the information
+Fill out [the required template](./.github/ISSUE_TEMPLATE.md), the information
 it asks for helps us resolve issues faster.
 
 #### Before Submitting A Bug Report
@@ -71,7 +71,7 @@ comment to the existing issue if there is extra information you can contribute.
 Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
 Simply create an issue on the [GitHub Desktop issue tracker](https://github.com/desktop/desktop/issues)
-and fill out the provided [issue template](../../.github/ISSUE_TEMPLATE.md).
+and fill out the provided [issue template](./.github/ISSUE_TEMPLATE.md).
 
 The information we are interested in includes:
 
@@ -91,7 +91,7 @@ community understand your suggestion :pencil: and find related suggestions
 Before creating enhancement suggestions, please check [this list](#before-submitting-an-enhancement-suggestion)
 as you might find out that you don't need to create one. When you are creating
 an enhancement suggestion, please [include as many details as possible](#how-do-i-submit-a-good-enhancement-suggestion).
-Fill in [the template](../../.github/ISSUE_TEMPLATE.md), including the steps
+Fill in [the template](./.github/ISSUE_TEMPLATE.md), including the steps
 that you imagine you would take if the feature you're requesting existed.
 
 #### Before Submitting An Enhancement Suggestion
@@ -120,7 +120,7 @@ and provide the following information:
   GIFs on macOS and Windows.
 * **List some other applications where this enhancement exists, if applicable.**
 
-### Accepting PRs
+### Help Wanted
 
 As part of building GitHub Desktop, we'll identify tasks that are good for
 external contributors to pick up. These tasks:
@@ -130,7 +130,7 @@ external contributors to pick up. These tasks:
  - have a narrow scope and/or easy reproduction steps
  - can be worked on independent of other tasks
 
-These issues will be labelled as [`accepting-prs`](https://github.com/desktop/desktop/labels/accepting-prs)
+These issues will be labelled as [`help wanted`](https://github.com/desktop/desktop/labels/help%20wanted)
 in the repository. If you are interested in contributing to the project, please
 comment on the issue to let the core team (and the community) know you are
 interested in the issue.
@@ -157,7 +157,7 @@ pull requests.
 
 | Label name | :mag_right: | Description |
 | --- | --- | --- |
-| `accepting-prs` | [search](https://github.com/desktop/desktop/labels/accepting-prs)  | Issues marked as ideal for external contributors. |
+| `help wanted` | [search](https://github.com/desktop/desktop/labels/help%20wanted)  | Issues marked as ideal for external contributors. |
 | `tech-debt` | [search](https://github.com/desktop/desktop/labels/tech-debt) | Issues related to code or architecture decisions. |
 | `needs-design-input` | [search](https://github.com/desktop/desktop/labels/needs-design-input)  | Issues that require design input from the core team before the work can be started. |
 

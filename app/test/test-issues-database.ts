@@ -1,4 +1,4 @@
-import { IssuesDatabase } from '../src/lib/dispatcher/issues-database'
+import { IssuesDatabase } from '../src/lib/databases'
 
 export class TestIssuesDatabase extends IssuesDatabase {
   public constructor() {

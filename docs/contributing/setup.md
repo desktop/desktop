@@ -24,6 +24,38 @@ You will need to install these tools on your machine:
     - *Visual Studio 2017 support has not been tested yet - see [#1766](https://github.com/desktop/desktop/issues/1766) for details*
  - *Run `npm config set msvs_version 2015` to tell node the right toolchain to use for compiling native modules.*
 
+### Fedora 26
+
+First, add the NodeJS package repository. As this version of Fedora doesn't support v7, you'll need to use v8:
+
+```
+$ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
+```
+
+After that, install the dependencies to build and test the app:
+
+```
+$ sudo yum install -y nodejs gcc-c++ make libsecret-devel libxscrnsaver
+```
+
+Because we haven't yet upgraded to NPM 5, we need to downgrade to the latest `npm@4` release:
+
+```
+$ sudo npm install -g npm@4.6.1
+```
+
+If you want to package Desktop for distribution, you will need these additional dependencies:
+
+```sh
+$ sudo yum install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
+#
+# workarounds for linker issues when packaging for AppImage
+# source: https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7
+$ sudo ln -s `find /usr/lib64/ -type f -name "libbz2.so.1*"` /usr/lib64/libbz2.so.1.0
+# source: https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974
+$ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/libreadline.so.6
+```
+
 ## Verification
 
 With these things installed, open a shell and validate you have these commands
@@ -102,7 +134,7 @@ require('devtron').install()
 
 You're almost there! Here's a couple of things we recommend you read next:
 
- - [Accepting PRs](../../CONTRIBUTING.md#accepting-prs) - we've marked some tasks in
+ - [Help Wanted](../../CONTRIBUTING.md#help-wanted) - we've marked some tasks in
    the backlog that are ideal for external contributors
  - [Code Reviews](../process/reviews.md) - some notes on how the team does
    code reviews

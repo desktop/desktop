@@ -3,12 +3,16 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { setupEmptyRepository, setupConflictedRepo } from '../fixture-helper'
+import {
+  setupEmptyRepository,
+  setupFixtureRepository,
+  setupConflictedRepo,
+} from '../fixture-helper'
 import * as Fs from 'fs'
 import * as Path from 'path'
 import { GitProcess } from 'dugite'
 
-import { GitStore } from '../../src/lib/dispatcher/git-store'
+import { GitStore } from '../../src/lib/stores/git-store'
 import { AppFileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
@@ -169,6 +173,33 @@ describe('GitStore', () => {
 
       expect(gitStore.localCommitSHAs).to.be.empty
     })
+
+    it('has no staged files', async () => {
+      const gitStore = new GitStore(repo!, shell)
+
+      await gitStore.loadStatus()
+
+      const tip = gitStore.tip as IValidBranch
+      await gitStore.loadLocalCommits(tip.branch)
+
+      expect(gitStore.localCommitSHAs.length).to.equal(1)
+
+      await gitStore.undoCommit(firstCommit!)
+
+      // compare the index state to some other tree-ish
+      // 4b825dc642cb6eb9a060e54bf8d69288fbee4904 is the magic empty tree
+      // if nothing is staged, this should return no entries
+      const result = await GitProcess.exec(
+        [
+          'diff-index',
+          '--name-status',
+          '-z',
+          '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
+        ],
+        repo!.path
+      )
+      expect(result.stdout.length).to.equal(0)
+    })
   })
 
   it('hides commented out lines from MERGE_MSG', async () => {
@@ -181,6 +212,29 @@ describe('GitStore', () => {
     expect(context).to.not.be.null
     expect(context!.summary).to.equal(`Merge branch 'master' into other-branch`)
     expect(context!.description).to.be.null
+  })
+
+  describe('repository with HEAD file', () => {
+    it('can discard modified change cleanly', async () => {
+      const path = await setupFixtureRepository('repository-with-HEAD-file')
+      const repo = new Repository(path, 1, null, false)
+      const gitStore = new GitStore(repo, shell)
+
+      const file = 'README.md'
+      const filePath = Path.join(repo.path, file)
+
+      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+
+      let status = await getStatus(repo!)
+      let files = status.workingDirectory.files
+      expect(files.length).to.equal(1)
+
+      await gitStore.discardChanges([files[0]])
+
+      status = await getStatus(repo)
+      files = status.workingDirectory.files
+      expect(files.length).to.equal(0)
+    })
   })
 
   describe('ignore files', () => {

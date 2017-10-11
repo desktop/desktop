@@ -39,7 +39,16 @@ export async function clone(
 ): Promise<void> {
   const env = envForAuthentication(options.account)
 
-  const args = [...gitNetworkArguments, 'clone', '--recursive', '--progress']
+  const args = [
+    ...gitNetworkArguments,
+    'lfs',
+    'clone',
+    '--recursive',
+    // git-lfs will create the hooks it requires by default
+    // and we don't know if the repository is LFS enabled
+    // at this stage so let's not do this
+    '--skip-repo',
+  ]
 
   let opts: IGitExecutionOptions = { env }
 
@@ -49,8 +58,8 @@ export async function clone(
     const title = `Cloning into ${path}`
     const kind = 'clone'
 
-    opts = executionOptionsWithProgress(
-      opts,
+    opts = await executionOptionsWithProgress(
+      { ...opts, trackLFSProgress: true },
       new CloneProgressParser(),
       progress => {
         const description =

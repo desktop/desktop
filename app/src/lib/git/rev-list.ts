@@ -9,25 +9,6 @@ export interface IAheadBehind {
   readonly behind: number
 }
 
-/** Get the number of commits in HEAD. */
-export async function getCommitCount(repository: Repository): Promise<number> {
-  const result = await git(
-    ['rev-list', '--count', 'HEAD'],
-    repository.path,
-    'getCommitCount',
-    {
-      successExitCodes: new Set([0, 128]),
-    }
-  )
-  // error code 128 is returned if the branch is unborn
-  if (result.exitCode === 128) {
-    return 0
-  } else {
-    const count = result.stdout
-    return parseInt(count.trim(), 10)
-  }
-}
-
 /** Calculate the number of commits the range is ahead and behind. */
 export async function getAheadBehind(
   repository: Repository,

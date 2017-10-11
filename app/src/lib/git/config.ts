@@ -20,7 +20,7 @@ export async function setGlobalConfigValue(
   value: string
 ): Promise<void> {
   await git(
-    ['config', '--global', name, value],
+    ['config', '--global', '--replace-all', name, value],
     __dirname,
     'setGlobalConfigValue'
   )
@@ -48,4 +48,48 @@ async function getConfigValueInPath(
   const output = result.stdout
   const pieces = output.split('\0')
   return pieces[0]
+}
+
+/** Get the path to the global git config. */
+export async function getGlobalConfigPath(): Promise<string | null> {
+  const result = await git(
+    ['config', '--global', '--list', '--show-origin', '--name-only', '-z'],
+    __dirname,
+    'getGlobalConfigPath'
+  )
+  const segments = result.stdout.split('\0')
+  if (segments.length < 1) {
+    return null
+  }
+
+  const pathSegment = segments[0]
+  if (!pathSegment.length) {
+    return null
+  }
+
+  const path = pathSegment.match(/file:(.+)/i)
+  if (!path || path.length < 2) {
+    return null
+  }
+
+  return path[1]
+}
+
+export interface IMergeTool {
+  /** The name of the configured merge tool. */
+  readonly name: string
+
+  /** The command to run for the merge tool. */
+  readonly command: string | null
+}
+
+/** Get the configured merge tool. */
+export async function getMergeTool(): Promise<IMergeTool | null> {
+  const name = await getGlobalConfigValue('merge.tool')
+  if (name) {
+    const command = await getGlobalConfigValue(`mergetool.${name}.cmd`)
+    return { name, command }
+  } else {
+    return null
+  }
 }

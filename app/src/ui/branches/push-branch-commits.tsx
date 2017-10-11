@@ -25,10 +25,10 @@ interface IPushBranchCommitsState {
   /**
    * A value indicating whether we're currently working on publishing
    * or pushing the branch to the remote. This value is used to tell
-   * the dialog to apply the loading state which adds a spinner and
-   * disables form controls for the duration of the operation.
+   * the dialog to apply the loading and disabled state which adds a
+   * spinner and disables form controls for the duration of the operation.
    */
-  readonly loading: boolean
+  readonly isPushingOrPublishing: boolean
 }
 
 /**
@@ -74,7 +74,7 @@ export class PushBranchCommits extends React.Component<
   public constructor(props: IPushBranchCommitsProps) {
     super(props)
 
-    this.state = { loading: false }
+    this.state = { isPushingOrPublishing: false }
   }
 
   public render() {
@@ -85,7 +85,8 @@ export class PushBranchCommits extends React.Component<
         title={this.renderDialogTitle()}
         onDismissed={this.cancel}
         onSubmit={this.cancel}
-        loading={this.state.loading}
+        loading={this.state.isPushingOrPublishing}
+        disabled={this.state.isPushingOrPublishing}
       >
         {this.renderDialogContent()}
 
@@ -158,24 +159,24 @@ export class PushBranchCommits extends React.Component<
     this.props.onDismissed()
   }
 
-  private onCreateWithoutPushButtonClick = (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    e.preventDefault()
-
+  private onCreateWithoutPushButtonClick = () => {
     this.props.onConfirm(this.props.repository, this.props.branch)
     this.props.onDismissed()
   }
 
-  private onPushOrPublishButtonClick = async () => {
+  private onPushOrPublishButtonClick = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e.preventDefault()
+
     const { repository, branch } = this.props
 
-    this.setState({ loading: true })
+    this.setState({ isPushingOrPublishing: true })
 
     try {
       await this.props.dispatcher.push(repository)
     } finally {
-      this.setState({ loading: false })
+      this.setState({ isPushingOrPublishing: false })
     }
 
     this.props.onConfirm(repository, branch)

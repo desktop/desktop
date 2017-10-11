@@ -13,7 +13,8 @@ import {
   RepositorySection,
   ImageDiffType,
 } from '../lib/app-state'
-import { Dispatcher, IssuesStore, GitHubUserStore } from '../lib/dispatcher'
+import { Dispatcher } from '../lib/dispatcher'
+import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Octicon, OcticonSymbol } from './octicons'
 
@@ -31,6 +32,7 @@ interface IRepositoryProps {
   readonly gitHubUserStore: GitHubUserStore
   readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
+  readonly askForConfirmationOnDiscardChanges: boolean
 }
 
 const enum Tab {
@@ -93,6 +95,9 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         gitHubUserStore={this.props.gitHubUserStore}
         isCommitting={this.props.state.isCommitting}
         isPushPullFetchInProgress={this.props.state.isPushPullFetchInProgress}
+        askForConfirmationOnDiscardChanges={
+          this.props.askForConfirmationOnDiscardChanges
+        }
       />
     )
   }

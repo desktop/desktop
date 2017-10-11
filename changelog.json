@@ -1,5 +1,126 @@
 {
   "releases": {
+    "1.0.4-beta0": [
+      "[Improved] Increase the contrast of the modified file status octicons - #2914",
+      "[Fixed] Showing changed files in Finder/Explorer would open the file - #2909",
+      "[Fixed] macOS: Fix app icon on High Sierra - #2915",
+      "[Fixed] Cloning an empty repository would fail - #2897 #2906",
+      "[Fixed] Catch logging exceptions - #2910"
+    ],
+    "1.0.3": [
+      "[Improved] Increase the contrast of the modified file status octicons - #2914",
+      "[Fixed] Showing changed files in Finder/Explorer would open the file - #2909",
+      "[Fixed] macOS: Fix app icon on High Sierra - #2915",
+      "[Fixed] Cloning an empty repository would fail - #2897 #2906",
+      "[Fixed] Catch logging exceptions - #2910"
+    ],
+    "1.0.2": [
+      "[Improved] Better message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Improved] Clone error message now suggests networking might be involved - #2872. Thanks @agisilaos!",
+      "[Improved] Include push/pull progress information in the push/pull button tooltip - #2879",
+      "[Improved] Allow publishing a brand new, empty repository - #2773",
+      "[Improved] Make file paths in lists selectable - #2801. Thanks @artivilla!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712",
+      "[Fixed] Use the initial path provided when creating a new repository - #2883",
+      "[Fixed] Windows: Avoid long path limits when discarding changes - #2833",
+      "[Fixed] Files would get deleted when undoing the first commit - #2764",
+      "[Fixed] Find the repository root before adding it - #2832",
+      "[Fixed] Display warning about an existing folder before cloning - #2777 #2830",
+      "[Fixed] Show contents of directory when showing a repository from Show in Explorer/Finder instead of showing the parent - #2798"
+    ],
+    "1.0.2-beta1": [
+      "[Improved] Clone error message now suggests networking might be involved - #2872. Thanks @agisilaos!",
+      "[Improved] Include push/pull progress information in the push/pull button tooltip - #2879",
+      "[Improved] Allow publishing a brand new, empty repository - #2773",
+      "[Improved] Make file paths in lists selectable - #2801. Thanks @artivilla!",
+      "[Fixed] Use the initial path provided when creating a new repository - #2883",
+      "[Fixed] Windows: Avoid long path limits when discarding changes - #2833",
+      "[Fixed] Files would get deleted when undoing the first commit - #2764",
+      "[Fixed] Find the repository root before adding it - #2832",
+      "[Fixed] Display warning about an existing folder before cloning - #2777 #2830",
+      "[Fixed] Show contents of directory when showing a repository from Show in Explorer/Finder instead of showing the parent - #2798"
+    ],
+    "1.0.2-beta0": [
+      "[Improved] Message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712"
+    ],
+    "1.0.1": [
+      "[Improved] Message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712"
+    ],
+    "1.0.1-beta0": [
+      "[Fixed] Use the loading/disabled state while publishing - #1995",
+      "[Fixed] Lock down menu item states for unborn repositories - #2744 #2573",
+      "[Fixed] Windows: Detecting the available shells and editors when using a language other than English - #2735"
+    ],
+    "1.0.0": [
+      "[Fixed] Use the loading/disabled state while publishing - #1995",
+      "[Fixed] Lock down menu item states for unborn repositories - #2744 #2573",
+      "[Fixed] Windows: Detecting the available shells and editors when using a language other than English - #2735"
+    ],
+    "1.0.0-beta3": [
+      "[New] Allow users to create repositories with descriptions - #2719. Thanks @davidcelis!",
+      "[New] Use `lfs clone` for faster cloning of LFS repositories - #2679",
+      "[Improved] Prompt to override existing LFS filters - #2693",
+      "[Fixed] Don't install LFS hooks when checking if a repo uses LFS - #2732",
+      "[Fixed] Ensure nothing is staged as part of undoing the first commit - #2656",
+      "[Fixed] \"Clone with Desktop\" wouldn't include the repository name in the path - #2704"
+    ],
+    "0.9.1": [
+      "[New] Allow users to create repositories with descriptions - #2719. Thanks @davidcelis!",
+      "[New] Use `lfs clone` for faster cloning of LFS repositories - #2679",
+      "[Improved] Prompt to override existing LFS filters - #2693",
+      "[Fixed] Don't install LFS hooks when checking if a repo uses LFS - #2732",
+      "[Fixed] Ensure nothing is staged as part of undoing the first commit - #2656",
+      "[Fixed] \"Clone with Desktop\" wouldn't include the repository name in the path - #2704"
+    ],
+    "1.0.0-beta2": [
+      "[New] Allow users to create repositories with descriptions - #2719. Thanks @davidcelis!",
+      "[New] Use `lfs clone` for faster cloning of LFS repositories - #2679",
+      "[Improved] Prompt to override existing LFS filters - #2693",
+      "[Fixed] Don't install LFS hooks when checking if a repo uses LFS - #2732",
+      "[Fixed] Ensure nothing is staged as part of undoing the first commit - #2656",
+      "[Fixed] \"Clone with Desktop\" wouldn't include the repository name in the path - #2704"
+    ],
+    "0.9.0": [
+      "[New] Allow users to create repositories with descriptions - #2719. Thanks @davidcelis!",
+      "[New] Use `lfs clone` for faster cloning of LFS repositories - #2679",
+      "[Improved] Prompt to override existing LFS filters - #2693",
+      "[Fixed] Don't install LFS hooks when checking if a repo uses LFS - #2732",
+      "[Fixed] Ensure nothing is staged as part of undoing the first commit - #2656",
+      "[Fixed] \"Clone with Desktop\" wouldn't include the repository name in the path - #2704"
+    ],
+    "0.8.2": [
+      "[New] Ask to install LFS filters when an LFS repository is added - #2227",
+      "[New] Clone GitHub repositories tab - #57",
+      "[New] Option to opt-out of confirming discarding changes - #2681",
+      "[Fixed] Long commit summary truncation - #1742",
+      "[Fixed] Ensure the repository list is always enabled - #2648",
+      "[Fixed] Windows: Detecting the available shells and editors when using a non-ASCII user encoding - #2624",
+      "[Fixed] Clicking the \"Cancel\" button on the Publish Branch dialog - #2646",
+      "[Fixed] Windows: Don't rely on PATH for knowing where to find chcp - #2678",
+      "[Fixed] Relocating a repository now actually does that - #2685",
+      "[Fixed] Clicking autocompletes inserts them - #2674",
+      "[Fixed] Use shift for shortcut chord instead of alt - #2607",
+      "[Fixed] macOS: \"Open in Terminal\" works with repositories with spaces in their path - #2682"
+    ],
+    "1.0.0-beta1": [
+      "[New] Option to to opt-out of confirming discarding changes - #2681",
+      "[Fixed] Windows: Don't rely on PATH for knowing where to find chcp - #2678",
+      "[Fixed] Relocating a repository now actually does that - #2685",
+      "[Fixed] Clicking autocompletes inserts them - #2674",
+      "[Fixed] Use shift for shortcut chord instead of alt - #2607",
+      "[Fixed] macOS: \"Open in Terminal\" works with repositories with spaces in their path - #2682"
+    ],
     "1.0.0-beta0": [
       "[New] Ask to install LFS filters when an LFS repository is added - #2227",
       "[New] Clone GitHub repositories tab - #57",

@@ -26,6 +26,9 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
    * be logged and an error thrown.
    */
   readonly expectedErrors?: ReadonlySet<DugiteError>
+
+  /** Should it track & report LFS progress? */
+  readonly trackLFSProgress?: boolean
 }
 
 /**
@@ -247,6 +250,8 @@ function getDescriptionForError(error: DugiteError): string {
       return 'Unable to merge unrelated histories in this repository.'
     case DugiteError.PushWithPrivateEmail:
       return 'Cannot push these commits as they contain an email address marked as private on GitHub.'
+    case DugiteError.LFSAttributeDoesNotMatch:
+      return 'Git LFS attribute found in global Git configuration does not match expected value.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }

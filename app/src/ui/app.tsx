@@ -4,7 +4,8 @@ import { ipcRenderer } from 'electron'
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { TitleBar } from './window/title-bar'
-import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
+import { Dispatcher } from '../lib/dispatcher'
+import { AppStore } from '../lib/stores'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
@@ -26,6 +27,7 @@ import {
   DropdownState,
   PushPullButton,
   BranchDropdown,
+  RevertProgress,
 } from './toolbar'
 import { OcticonSymbol, iconForRepository } from './octicons'
 import {
@@ -43,9 +45,11 @@ import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
 import { Account } from '../models/account'
 import { TipState } from '../models/tip'
+import { CloningRepository } from '../models/cloning-repository'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
+import { matchExistingRepository } from '../lib/repository-matching'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository } from './add-repository'
@@ -56,7 +60,7 @@ import { InstallGit } from './install-git'
 import { EditorError } from './editor'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
-import { shell } from '../lib/dispatcher/app-shell'
+import { shell } from '../lib/app-shell'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
@@ -68,13 +72,15 @@ import { TermsAndConditions } from './terms-and-conditions'
 import { ZoomInfo } from './window/zoom-info'
 import { FullScreenInfo } from './window/full-screen-info'
 import { PushBranchCommits } from './branches/push-branch-commits'
-import { Branch } from '../models/branch'
 import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { RetryAction } from '../lib/retry-actions'
 import { ShellError } from './shell'
-import { InitializeLFS } from './lfs'
+import { InitializeLFS, AttributeMismatch } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
+import { getOS } from '../lib/get-os'
+import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
+import { getAccountForRepository } from '../lib/get-account-for-repository'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -173,9 +179,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.postError(error)
     })
 
-    setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
-    this.checkForUpdates(true)
-
     ipcRenderer.on(
       'launch-timing-stats',
       (event: Electron.IpcMessageEvent, { stats }: { stats: ILaunchStats }) => {
@@ -214,7 +217,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.reportStats()
     setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
 
-    this.props.dispatcher.installGlobalLFSFilters()
+    this.props.dispatcher.installGlobalLFSFilters(false)
+
+    setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
+    this.checkForUpdates(true)
+
+    log.info(`launching: ${getVersion()} (${getOS()})`)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -279,8 +287,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
-      case 'create-pull-request':
+      case 'create-pull-request': {
         return this.openPullRequest()
+      }
       case 'install-cli':
         return this.props.dispatcher.installCLI()
       case 'open-external-editor':
@@ -611,7 +620,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private handleDragAndDrop(fileList: FileList) {
+  private async handleDragAndDrop(fileList: FileList) {
     const paths: string[] = []
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i]
@@ -624,10 +633,25 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (paths.length > 1) {
       this.addRepositories(paths)
     } else {
-      this.props.dispatcher.showPopup({
-        type: PopupType.AddRepository,
-        path: paths[0],
-      })
+      // user may accidentally provide a folder within the repository
+      // this ensures we use the repository root, if it is actually a repository
+      // otherwise we consider it an untracked repository
+      const first = paths[0]
+      const path = (await validatedRepositoryPath(first)) || first
+
+      const existingRepository = matchExistingRepository(
+        this.state.repositories,
+        path
+      )
+
+      if (existingRepository) {
+        await this.props.dispatcher.selectRepository(existingRepository)
+      } else {
+        await this.showPopup({
+          type: PopupType.AddRepository,
+          path,
+        })
+      }
     }
   }
 
@@ -643,7 +667,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    if (this.state.confirmRepoRemoval) {
+    if (this.state.askForConfirmationOnRepositoryRemoval) {
       this.props.dispatcher.showPopup({
         type: PopupType.RemoveRepository,
         repository,
@@ -869,7 +893,11 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             dispatcher={this.props.dispatcher}
             files={popup.files}
+            confirmDiscardChanges={
+              this.state.askForConfirmationOnDiscardChanges
+            }
             onDismissed={this.onPopupDismissed}
+            onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
           />
         )
       case PopupType.Preferences:
@@ -879,7 +907,12 @@ export class App extends React.Component<IAppProps, IAppState> {
             initialSelectedTab={popup.initialSelectedTab}
             dispatcher={this.props.dispatcher}
             dotComAccount={this.getDotComAccount()}
-            confirmRepoRemoval={this.state.confirmRepoRemoval}
+            confirmRepositoryRemoval={
+              this.state.askForConfirmationOnRepositoryRemoval
+            }
+            confirmDiscardChanges={
+              this.state.askForConfirmationOnDiscardChanges
+            }
             selectedExternalEditor={this.state.selectedExternalEditor}
             optOutOfUsageTracking={this.props.appStore.getStatsOptOut()}
             enterpriseAccount={this.getEnterpriseAccount()}
@@ -945,7 +978,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="create-repository"
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
-            path={popup.path}
+            initialPath={popup.path}
           />
         )
       case PopupType.CloneRepository:
@@ -1033,11 +1066,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.RemoveRepository:
-        const repo = popup.repository
-
         return (
           <ConfirmRemoveRepository
-            repository={repo}
+            repository={popup.repository}
             onConfirmation={this.onConfirmRepoRemoval}
             onDismissed={this.onPopupDismissed}
           />
@@ -1051,7 +1082,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             unPushedCommits={popup.unPushedCommits}
-            onConfirm={this.openPullRequestOnGithub}
+            onConfirm={this.openCreatePullRequestInBrowser}
             onDismissed={this.onPopupDismissed}
           />
         )
@@ -1097,9 +1128,21 @@ export class App extends React.Component<IAppProps, IAppState> {
             onInitialize={this.initializeLFS}
           />
         )
+      case PopupType.LFSAttributeMismatch:
+        return (
+          <AttributeMismatch
+            onDismissed={this.onPopupDismissed}
+            onUpdateExistingFilters={this.updateExistingLFSFilters}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private updateExistingLFSFilters = () => {
+    this.props.dispatcher.installGlobalLFSFilters(true)
+    this.onPopupDismissed()
   }
 
   private initializeLFS = (repositories: ReadonlyArray<Repository>) => {
@@ -1175,6 +1218,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private clearError = (error: Error) => {
     this.props.dispatcher.clearError(error)
+  }
+
+  private onConfirmDiscardChangesChanged = (value: boolean) => {
+    this.props.dispatcher.setConfirmDiscardChangesSetting(value)
   }
 
   private renderAppError() {
@@ -1313,11 +1360,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const state = selection.state
+    const revertProgress = state.revertProgress
+    if (revertProgress) {
+      return <RevertProgress progress={revertProgress} />
+    }
+
     const remoteName = state.remote ? state.remote.name : null
     const progress = state.pushPullFetchProgress
 
-    const tip = selection.state.branchesState.tip
-    const branchExists = tip.kind === TipState.Valid
+    const tipState = state.branchesState.tip.kind
 
     return (
       <PushPullButton
@@ -1327,8 +1378,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         remoteName={remoteName}
         lastFetched={state.lastFetched}
         networkActionInProgress={state.isPushPullFetchInProgress}
-        branchExists={branchExists}
         progress={progress}
+        tipState={tipState}
       />
     )
   }
@@ -1357,55 +1408,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private openPullRequest() {
-    const selection = this.state.selectedState
-
-    if (!selection || selection.type !== SelectionType.Repository) {
+  private openPullRequest = () => {
+    const state = this.state.selectedState
+    if (!state || state.type !== SelectionType.Repository) {
       return
     }
 
-    const tip = selection.state.branchesState.tip
-
-    if (tip.kind !== TipState.Valid) {
-      return
-    }
-
-    const dispatcher = this.props.dispatcher
-    const repository = selection.repository
-    const branch = tip.branch
-    const aheadBehind = selection.state.aheadBehind
-
-    if (!aheadBehind) {
-      dispatcher.showPopup({
-        type: PopupType.PushBranchCommits,
-        repository,
-        branch,
-      })
-    } else if (aheadBehind.ahead > 0) {
-      dispatcher.showPopup({
-        type: PopupType.PushBranchCommits,
-        repository,
-        branch,
-        unPushedCommits: aheadBehind.ahead,
-      })
-    } else {
-      this.openPullRequestOnGithub(repository, branch)
-    }
+    return this.props.dispatcher.createPullRequest(state.repository)
   }
 
-  private openPullRequestOnGithub = (
-    repository: Repository,
-    branch: Branch
-  ) => {
-    const gitHubRepository = repository.gitHubRepository
-
-    if (!gitHubRepository || !gitHubRepository.htmlURL) {
-      return
-    }
-
-    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
-
-    this.props.dispatcher.openInBrowser(baseURL)
+  private openCreatePullRequestInBrowser = (repository: Repository) => {
+    this.props.dispatcher.openCreatePullRequestInBrowser(repository)
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
@@ -1425,13 +1438,21 @@ export class App extends React.Component<IAppProps, IAppState> {
     const isOpen =
       !!currentFoldout && currentFoldout.type === FoldoutType.Branch
 
+    const repository = selection.repository
+    const account = getAccountForRepository(
+      this.state.accounts,
+      selection.repository
+    )
+
     return (
       <BranchDropdown
         dispatcher={this.props.dispatcher}
         isOpen={isOpen}
         onDropDownStateChanged={this.onBranchDropdownStateChanged}
-        repository={selection.repository}
+        repository={repository}
         repositoryState={selection.state}
+        account={account}
+        selectedTab={this.state.selectedBranchesTab}
       />
     )
   }
@@ -1496,6 +1517,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           gitHubUserStore={this.props.appStore.gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={this.state.imageDiffType}
+          askForConfirmationOnDiscardChanges={
+            this.state.askForConfirmationOnDiscardChanges
+          }
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
@@ -1537,11 +1561,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <div id="desktop-app-chrome" className={className}>
         {this.renderTitlebar()}
-        {this.state.showWelcomeFlow ? (
-          this.renderWelcomeFlow()
-        ) : (
-          this.renderApp()
-        )}
+        {this.state.showWelcomeFlow
+          ? this.renderWelcomeFlow()
+          : this.renderApp()}
         {this.renderZoomInfo()}
         {this.renderFullScreenInfo()}
       </div>

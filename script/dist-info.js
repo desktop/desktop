@@ -7,10 +7,13 @@ const fs = require('fs')
 const projectRoot = path.join(__dirname, '..')
 const appPackage = require(path.join(projectRoot, 'app', 'package.json'))
 
+function getDistRoot() {
+  return path.join(projectRoot, 'dist')
+}
+
 function getDistPath() {
   return path.join(
-    projectRoot,
-    'dist',
+    getDistRoot(),
     `${getExecutableName()}-${process.platform}-x64`
   )
 }
@@ -108,10 +111,9 @@ function getUserDataPath() {
     const home = os.homedir()
     return path.join(home, '.config', getProductName())
   } else {
-    console.error(
+    throw new Error(
       `I dunno how to resolve the user data path for ${process.platform} ${process.arch} :(`
     )
-    process.exit(1)
   }
 }
 
@@ -130,7 +132,7 @@ function getBundleSizes() {
 function getReleaseBranchName() {
   let branchName
   if (process.platform === 'darwin') {
-    branchName = process.env.TRAVIS_BRANCH
+    branchName = process.env.CIRCLE_BRANCH
   } else if (process.platform === 'win32') {
     branchName = process.env.APPVEYOR_REPO_BRANCH
   }
@@ -148,6 +150,16 @@ function getReleaseChannel() {
   return pieces[1]
 }
 
+function getReleaseSHA() {
+  // Branch name format: __release-CHANNEL-DEPLOY_ID
+  const pieces = getReleaseBranchName().split('-')
+  if (pieces.length < 3 || pieces[0] !== '__release') {
+    return null
+  }
+
+  return pieces[2]
+}
+
 function getUpdatesURL() {
   return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${getVersion()}&env=${getReleaseChannel()}`
 }
@@ -159,7 +171,44 @@ function shouldMakeDelta() {
   return channelsWithDeltas.indexOf(getReleaseChannel()) > -1
 }
 
+/**
+ * Attempt to dereference the given ref without requiring a Git environment
+ * to be present. Note that this method will not be able to dereference packed
+ * refs but should suffice for simple refs like 'HEAD'.
+ *
+ * Will throw an error for unborn HEAD.
+ *
+ * @param {string} gitDir The path to the Git repository's .git directory
+ * @param {string} ref    A qualified git ref such as 'HEAD' or 'refs/heads/master'
+ */
+function revParse(gitDir, ref) {
+  const refPath = path.join(gitDir, ref)
+  const refContents = fs.readFileSync(refPath)
+  const refRe = /^([a-f0-9]{40})|(?:ref: (refs\/.*))$/m
+  const refMatch = refRe.exec(refContents)
+
+  if (!refMatch) {
+    throw new Error(
+      `Could not de-reference HEAD to SHA, invalid ref in ${refPath}: ${refContents}`
+    )
+  }
+
+  return refMatch[1] || revParse(gitDir, refMatch[2])
+}
+
+function getSHA() {
+  // CircleCI does some funny stuff where HEAD points to an packed ref, but
+  // luckily it gives us the SHA we want in the environment.
+  const circleSHA = process.env.CIRCLE_SHA1
+  if (circleSHA) {
+    return circleSHA
+  }
+
+  return revParse(path.resolve(__dirname, '../.git'), 'HEAD')
+}
+
 module.exports = {
+  getDistRoot,
   getDistPath,
   getProductName,
   getCompanyName,
@@ -177,10 +226,12 @@ module.exports = {
   getWindowsIdentifierName,
   getBundleSizes,
   getReleaseChannel,
+  getReleaseSHA,
   getUpdatesURL,
   getWindowsDeltaNugetPackageName,
   getWindowsDeltaNugetPackagePath,
   shouldMakeDelta,
   getReleaseBranchName,
   getExecutableName,
+  getSHA,
 }
