@@ -552,20 +552,6 @@ export class AppStore {
     this.emitUpdate()
   }
 
-  private onGitStoreLoadedCommits(
-    repository: Repository,
-    commits: ReadonlyArray<Commit>
-  ) {
-    for (const commit of commits) {
-      this.gitHubUserStore._loadAndCacheUser(
-        this.accounts,
-        repository,
-        commit.sha,
-        commit.author.email
-      )
-    }
-  }
-
   private removeGitStore(repository: Repository) {
     if (this.gitStores.has(repository.hash)) {
       this.gitStores.delete(repository.hash)
@@ -578,7 +564,7 @@ export class AppStore {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits =>
-        this.onGitStoreLoadedCommits(repository, commits)
+        this.loadAndCacheUsers(repository, this.accounts, commits)
       )
       gitStore.onDidError(error => this.emitError(error))
 
@@ -2451,8 +2437,34 @@ export class AppStore {
     return this.accountsStore.removeAccount(account)
   }
 
-  public _addAccount(account: Account): Promise<void> {
-    return this.accountsStore.addAccount(account)
+  public async _addAccount(account: Account): Promise<void> {
+    await this.accountsStore.addAccount(account)
+    const selectedState = this.getState().selectedState
+
+    if (selectedState && selectedState.type === SelectionType.Repository) {
+      // ensuring we have the latest set of accounts here, rather than waiting
+      // and doing stuff when the account store emits an update and we refresh
+      // the accounts field
+      const accounts = await this.accountsStore.getAll()
+      const repoState = selectedState.state
+      const commits = repoState.commits.values()
+      this.loadAndCacheUsers(selectedState.repository, accounts, commits)
+    }
+  }
+
+  private loadAndCacheUsers(
+    repository: Repository,
+    accounts: ReadonlyArray<Account>,
+    commits: Iterable<Commit>
+  ) {
+    for (const commit of commits) {
+      this.gitHubUserStore._loadAndCacheUser(
+        accounts,
+        repository,
+        commit.sha,
+        commit.author.email
+      )
+    }
   }
 
   public _updateRepositoryMissing(
