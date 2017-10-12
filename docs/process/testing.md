@@ -102,7 +102,7 @@
   - [ ] Preferences/Options (Mac/Windows: ⌘,)
     - [ ] Accounts
       - [ ] GitHub.com name, handle, avatar, `sign out` button, if user signed in
-      - [ ] Enterprise handle, avatar,  `sign out` button, if user signed in
+      - [ ] Enterprise handle, avatar, `sign out` button, if user signed in
       - [ ] User can sign out of either account
       - [ ] User can sign-in to both Enterprise and GitHub.com at same time  
     - [ ] Git
@@ -111,7 +111,9 @@
       - [ ] `Cancel` button does not save any changes made; modal closed
     - [ ] Advanced
       - [ ] External Editor options shown in dropdown; else show "Install Atom?" link
-      - [ ] Usage data selection carried through from Welcome flow; user can opt-in/out
+      - [ ] Shell options shown in dropdown
+      - [ ] Shared usage data option; selection carried through from Welcome flow
+        - [ ] `anonymous usage data` link opens https://desktop.github.com/usage-data/
         - [ ] Check `stats-opt-out` value in Dev Tools > Application > Local storage > file://
       - [ ] Confirmation dialogue for removing repositories is checked by default; user can toggle
           - [ ] Check `ConfirmDiscardChanges` value in Dev Tools > Application > Local storage > file://
