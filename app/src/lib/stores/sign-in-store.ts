@@ -34,10 +34,10 @@ const EnterpriseTooOldMessage = `The GitHub Enterprise version does not support 
  * store can be in save for the unitialized state (null).
  */
 export enum SignInStep {
-  EndpointEntry,
-  Authentication,
-  TwoFactorAuthentication,
-  Success,
+  EndpointEntry = 'EndpointEntry',
+  Authentication = 'Authentication',
+  TwoFactorAuthentication = 'TwoFactorAuthentication',
+  Success = 'Success',
 }
 
 /**

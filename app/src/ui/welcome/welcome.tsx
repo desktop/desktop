@@ -11,11 +11,11 @@ import { UsageOptOut } from './usage-opt-out'
 
 /** The steps along the Welcome flow. */
 export enum WelcomeStep {
-  Start,
-  SignInToDotCom,
-  SignInToEnterprise,
-  ConfigureGit,
-  UsageOptOut,
+  Start = 'Start',
+  SignInToDotCom = 'SignInToDotCom',
+  SignInToEnterprise = 'SignInToEnterprise',
+  ConfigureGit = 'ConfigureGit',
+  UsageOptOut = 'UsageOptOut',
 }
 
 interface IWelcomeProps {
