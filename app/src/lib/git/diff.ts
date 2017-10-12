@@ -39,6 +39,12 @@ const MaxDiffBufferSize = 268435441
 const MaxReasonableDiffSize = 3000000
 
 /**
+ * The longest line length we should try to display. If a diff has a line longer
+ * than this, we probably shouldn't attempt it.
+ */
+const MaxLineLength = 500000
+
+/**
  * Utility function to check whether parsing this buffer is going to cause
  * issues at runtime.
  *
@@ -55,6 +61,19 @@ function isBufferTooBig(buffer: Buffer) {
   }
 
   return buffer.length >= MaxReasonableDiffSize
+}
+
+/** Is the diff too big for us to reasonably represent? */
+function isDiffTooBig(diff: IRawDiff) {
+  for (const hunk of diff.hunks) {
+    for (const line of hunk.lines) {
+      if (line.text.length > MaxLineLength) {
+        return true
+      }
+    }
+  }
+
+  return false
 }
 
 /**
@@ -96,6 +115,10 @@ export async function getCommitDiff(
   }
 
   const diffText = diffFromRawDiffOutput(output)
+  if (isDiffTooBig(diffText)) {
+    return { kind: DiffType.TooLarge, length: output.length }
+  }
+
   return convertDiff(repository, file, diffText, commitish)
 }
 
@@ -181,8 +204,11 @@ export async function getWorkingDirectoryDiff(
   }
 
   const diffText = diffFromRawDiffOutput(output)
-  const lineEndingsChange = parseLineEndingsWarning(error)
+  if (isDiffTooBig(diffText)) {
+    return { kind: DiffType.TooLarge, length: output.length }
+  }
 
+  const lineEndingsChange = parseLineEndingsWarning(error)
   return convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
 }
 
