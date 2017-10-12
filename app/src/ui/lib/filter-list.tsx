@@ -101,6 +101,9 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /** Any props which should cause a re-render if they change. */
   readonly invalidationProps: any
+
+  /** Called to render content after the filter. */
+  readonly renderPostFilter?: () => JSX.Element | null
 }
 
 interface IFilterListState<T extends IFilterListItem> {
@@ -153,6 +156,8 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
             value={this.props.filterText}
             disabled={this.props.filterDisabled}
           />
+
+          {this.props.renderPostFilter ? this.props.renderPostFilter() : null}
         </Row>
 
         <div className="filter-list-container">
