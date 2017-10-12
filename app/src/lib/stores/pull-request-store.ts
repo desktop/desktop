@@ -88,11 +88,17 @@ export class PullRequestStore {
 
     const builtPullRequests = new Array<PullRequest>()
     for (const pr of pullRequests) {
-      const head = (await this.repositoriesStore.findGitHubRepositoryByID(
-        pr.head.repoId
-      ))!
+      const headId = pr.head.repoId
+      let head: GitHubRepository | null = null
+      if (headId) {
+        head = await this.repositoriesStore.findGitHubRepositoryByID(headId)
+      }
+
+      // We know the base repo ID can't be null since it's the repository we
+      // fetched the PR from in the first place.
+      const baseId = pr.base.repoId!
       const base = (await this.repositoriesStore.findGitHubRepositoryByID(
-        pr.base.repoId
+        baseId
       ))!
 
       const prStatus = await this.getPullRequestStatusById(pr.head.sha, pr.id!)
@@ -132,14 +138,19 @@ export class PullRequestStore {
 
     const insertablePRs = new Array<IPullRequest>()
     for (const pr of pullRequests) {
-      const headRepo = await this.repositoriesStore.findOrPutGitHubRepository(
-        repository.endpoint,
-        pr.head.repo
-      )
+      let headRepo: GitHubRepository | null = null
+      if (pr.head.repo) {
+        headRepo = await this.repositoriesStore.findOrPutGitHubRepository(
+          repository.endpoint,
+          pr.head.repo
+        )
+      }
 
+      // We know the base repo isn't null since that's where we got the PR from
+      // in the first place.
       const baseRepo = await this.repositoriesStore.findOrPutGitHubRepository(
         repository.endpoint,
-        pr.base.repo
+        pr.base.repo!
       )
 
       insertablePRs.push({
@@ -149,7 +160,7 @@ export class PullRequestStore {
         head: {
           ref: pr.head.ref,
           sha: pr.head.sha,
-          repoId: headRepo.dbID!,
+          repoId: headRepo ? headRepo.dbID! : null,
         },
         base: {
           ref: pr.base.ref,

@@ -2,8 +2,11 @@ import Dexie from 'dexie'
 import { APIRefState } from '../api'
 
 export interface IPullRequestRef {
-  /** The database ID of the GitHub repository in which this ref lives. */
-  readonly repoId: number
+  /**
+   * The database ID of the GitHub repository in which this ref lives. It could
+   * be null if the repository was deleted on the site after the PR was opened.
+   */
+  readonly repoId: number | null
 
   /** The name of the ref. */
   readonly ref: string

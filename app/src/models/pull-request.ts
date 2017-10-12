@@ -8,13 +8,16 @@ export class PullRequestRef {
   /** The SHA of the ref. */
   public readonly sha: string
 
-  /** The GitHub repository in which this ref lives. */
-  public readonly gitHubRepository: GitHubRepository
+  /**
+   * The GitHub repository in which this ref lives. It could be null if the
+   * repository was deleted after the PR was opened.
+   */
+  public readonly gitHubRepository: GitHubRepository | null
 
   public constructor(
     ref: string,
     sha: string,
-    gitHubRepository: GitHubRepository
+    gitHubRepository: GitHubRepository | null
   ) {
     this.ref = ref
     this.sha = sha

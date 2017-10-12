@@ -2840,6 +2840,7 @@ export class AppStore {
     for (const pr of pullRequests) {
       if (
         pr.head.ref === upstream &&
+        pr.head.gitHubRepository &&
         // TODO: This doesn't work for when I've checked out a PR from a fork.
         pr.head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
       ) {

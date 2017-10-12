@@ -120,6 +120,11 @@ export interface IAPIRefStatus {
 interface IAPIPullRequestRef {
   readonly ref: string
   readonly sha: string
+
+  /**
+   * The repository in which this ref lives. It could be null if the repository
+   * has been deleted since the PR was opened.
+   */
   readonly repo: IAPIRepository | null
 }
 
