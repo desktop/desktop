@@ -41,7 +41,7 @@ import {
   rejectOAuthRequest,
 } from '../../lib/oauth'
 import { installCLI } from '../../ui/lib/install-cli'
-import * as GenericGitAuth from '../generic-git-auth'
+import { setGenericUsername, setGenericPassword } from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
 import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -966,8 +966,9 @@ export class Dispatcher {
     username: string,
     password: string
   ): Promise<void> {
-    GenericGitAuth.setGenericUsername(hostname, username)
-    await GenericGitAuth.setGenericPassword(hostname, username, password)
+    log.info(`storing generic credentials for '${hostname}' and '${username}'`)
+    setGenericUsername(hostname, username)
+    await setGenericPassword(hostname, username, password)
   }
 
   /** Perform the given retry action. */
