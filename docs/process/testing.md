@@ -88,7 +88,8 @@
   - [ ] About GitHub Desktop
     - [ ] Current version shown
     - [ ] Links to release notes (dotcom), terms (modal), licenses (modal)
-    - [ ] Update banner shows `whats new` link; Modal shows enhancements / bug fixes in latest build with `Install button` 
+    - [ ] Update banner shows `whats new` link and `retart now` link
+    - [ ] Update modal shows enhancements / bug fixes in latest build with `Install button`; user can X the banner
     - [ ] Clicking the version number copies to clipboard
     - [ ] Edge case: If build is "old", error message displays warning user to "... manually check for updates".
       - [ ] Clicking `Check for updates` button produces "read-only volume" error message, with link for help
