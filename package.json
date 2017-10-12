@@ -109,7 +109,7 @@
     "@types/uuid": "^3.4.0",
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
-    "electron": "1.7.8",
+    "electron": "1.7.9",
     "electron-builder": "19.33.0",
     "electron-installer-appimage": "^1.0.1",
     "electron-mocha": "^4.0.0",
