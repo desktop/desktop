@@ -56,7 +56,8 @@ macOS programs are packaged as application bundles, and applications can
 read information about each installed application.
 
 The `CFBundleIdentifier` value in the plist is what applications use to
-uniquely identify themselves, for example ``. AppKit provides the
+uniquely identify themselves, for example `com.github.GitHubClient` is the
+identifier for GitHub Desktop. AppKit provides the
 [`absolutePathForAppBundleWithIdentifier`](https://developer.apple.com/documentation/appkit/nsworkspace/1533086-absolutepathforappbundlewithiden?language=objc)
 API for searching for an application bundle.
 
