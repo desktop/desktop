@@ -54,8 +54,8 @@ function isValidBuffer(buffer: Buffer) {
   return buffer.length < MaxDiffBufferSize
 }
 
-/** Is the buffer too big for us to reasonably represent? */
-function isBufferTooBig(buffer: Buffer) {
+/** Is the buffer too large for us to reasonably represent? */
+function isBufferTooLarge(buffer: Buffer) {
   if (!isValidBuffer(buffer)) {
     return true
   }
@@ -63,8 +63,8 @@ function isBufferTooBig(buffer: Buffer) {
   return buffer.length >= MaxReasonableDiffSize
 }
 
-/** Is the diff too big for us to reasonably represent? */
-function isDiffTooBig(diff: IRawDiff) {
+/** Is the diff too large for us to reasonably represent? */
+function isDiffTooLarge(diff: IRawDiff) {
   for (const hunk of diff.hunks) {
     for (const line of hunk.lines) {
       if (line.text.length > MaxLineLength) {
@@ -110,12 +110,12 @@ export async function getCommitDiff(
     repository.path,
     'getCommitDiff'
   )
-  if (isBufferTooBig(output)) {
+  if (isBufferTooLarge(output)) {
     return { kind: DiffType.TooLarge, length: output.length }
   }
 
   const diffText = diffFromRawDiffOutput(output)
-  if (isDiffTooBig(diffText)) {
+  if (isDiffTooLarge(diffText)) {
     return { kind: DiffType.TooLarge, length: output.length }
   }
 
@@ -196,7 +196,7 @@ export async function getWorkingDirectoryDiff(
     'getWorkingDirectoryDiff',
     successExitCodes
   )
-  if (isBufferTooBig(output)) {
+  if (isBufferTooLarge(output)) {
     // we know we can't transform this process output into a diff, so let's
     // just return a placeholder for now that we can display to the user
     // to say we're at the limits of the runtime
@@ -204,7 +204,7 @@ export async function getWorkingDirectoryDiff(
   }
 
   const diffText = diffFromRawDiffOutput(output)
-  if (isDiffTooBig(diffText)) {
+  if (isDiffTooLarge(diffText)) {
     return { kind: DiffType.TooLarge, length: output.length }
   }
 
