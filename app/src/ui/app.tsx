@@ -1013,6 +1013,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
+            initialName={popup.initialName || ''}
           />
         )
       }
