@@ -966,7 +966,7 @@ export class Dispatcher {
     username: string,
     password: string
   ): Promise<void> {
-    log.info(`storing generic credentials for '${hostname}' and ${username}`)
+    log.info(`storing generic credentials for '${hostname}' and '${username}'`)
     setGenericUsername(hostname, username)
     await setGenericPassword(hostname, username, password)
   }
