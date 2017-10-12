@@ -196,11 +196,15 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     }
 
     const head = pullRequest.head
-    const isRefInThisRepo = head.repo.clone_url === gitHubRepository.cloneURL
-    if (isRefInThisRepo) {
-      this.checkoutBranch(head.ref)
-    } else {
-      // TODO: It's in a fork so we'll need to do ... something.
+    const repo = head.repo
+
+    if (repo) {
+      const isRefInThisRepo = repo.clone_url === gitHubRepository.cloneURL
+      if (isRefInThisRepo) {
+        this.checkoutBranch(head.ref)
+      } else {
+        // TODO: It's in a fork so we'll need to do ... something.
+      }
     }
   }
 
