@@ -15,7 +15,6 @@ import {
   IDiff,
   IImageDiff,
   Image,
-  maximumDiffStringSize,
   LineEndingsChange,
   parseLineEndingText,
 } from '../../models/diff'
@@ -25,13 +24,22 @@ import { spawnAndComplete } from './spawn'
 import { DiffParser } from '../diff-parser'
 
 /**
+ * V8 has a limit on the size of string it can create, and unless we want to
+ * trigger an unhandled exception we need to do the encoding conversion by hand.
+ *
+ * This is a hard limit on how big a buffer can be and still be converted into
+ * a string.
+ */
+const MaxDiffBufferSize = 268435441
+
+/**
  * Utility function to check whether parsing this buffer is going to cause
  * issues at runtime.
  *
  * @param output A buffer of binary text from a spawned process
  */
-function isValidBuffer(output: Buffer) {
-  return output.length < maximumDiffStringSize
+function isValidBuffer(buffer: Buffer) {
+  return buffer.length < MaxDiffBufferSize
 }
 
 /**
