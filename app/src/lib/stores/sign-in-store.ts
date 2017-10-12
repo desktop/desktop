@@ -34,10 +34,10 @@ const EnterpriseTooOldMessage = `The GitHub Enterprise version does not support 
  * store can be in save for the unitialized state (null).
  */
 export enum SignInStep {
-  EndpointEntry,
-  Authentication,
-  TwoFactorAuthentication,
-  Success,
+  EndpointEntry = 'EndpointEntry',
+  Authentication = 'Authentication',
+  TwoFactorAuthentication = 'TwoFactorAuthentication',
+  Success = 'Success',
 }
 
 /**
@@ -404,8 +404,11 @@ export class SignInStore {
 
     let account: Account
     try {
+      log.info('[SignInStore] initializing OAuth flow')
       account = await askUserToOAuth(currentState.endpoint)
+      log.info('[SignInStore] account resolved')
     } catch (e) {
+      log.info('[SignInStore] error with OAuth flow', e)
       this.setState({ ...currentState, error: e, loading: false })
       return
     }
