@@ -2649,6 +2649,7 @@ export class AppStore {
 
       this.updateRevertProgress(repo, null)
 
+
       this.updateRevertProgress(repo, null)
 
       return gitStore.loadHistory()
