@@ -404,7 +404,9 @@ export class SignInStore {
 
     let account: Account
     try {
+      log.debug('[SignInStore] initializing OAuth flow')
       account = await askUserToOAuth(currentState.endpoint)
+      log.debug('[SignInStore] account resolved')
     } catch (e) {
       this.setState({ ...currentState, error: e, loading: false })
       return

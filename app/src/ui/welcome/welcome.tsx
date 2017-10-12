@@ -73,18 +73,29 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     // If we're not currently in a sign in flow we don't care about
     // new props
     if (!this.inSignInStep) {
+      log.debug(`[Welcome] no sign in step found. ignoring...`)
       return
     }
 
     // We need to currently have a sign in state _and_ receive a new
     // one in order to be able to make any sort of determination about
     // what's going on in the sign in flow.
-    if (!this.props.signInState || !nextProps.signInState) {
+    if (!this.props.signInState) {
+      log.debug(`[Welcome] current sign in state not found. ignoring...`)
+      return
+    }
+
+    if (!nextProps.signInState) {
+      log.debug(`[Welcome] next sign in state not found. ignoring...`)
       return
     }
 
     // Only advance when the state first changes...
     if (this.props.signInState.kind !== nextProps.signInState.kind) {
+      log.debug(
+        `[Welcome] kind ${this.props.signInState
+          .kind} does not match ${nextProps.signInState.kind}. ignoring...`
+      )
       return
     }
 
@@ -145,6 +156,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   }
 
   private advanceToStep = (step: WelcomeStep) => {
+    log.debug(`[Welcome] advancing to step: ${step}`)
     if (step === WelcomeStep.SignInToDotCom) {
       this.props.dispatcher.beginDotComSignIn()
     } else if (step === WelcomeStep.SignInToEnterprise) {
