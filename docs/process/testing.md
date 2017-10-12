@@ -257,6 +257,8 @@
       - [ ] Green is for additions, red for deletions
       - [ ] Different file types are rendered properly
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
+  - [ ] Diffs cannot be over 3MB
+  - [ ] Diffs cannot be longer than 500,000 characters 
 
 ### Commit section
   - [ ] Commit created if user clicks `Commit to [branch]` button with commit message and at least one checked file
