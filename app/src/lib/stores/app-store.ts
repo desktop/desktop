@@ -856,9 +856,11 @@ export class AppStore {
       this.repositoriesStore.getAll(),
     ])
 
-    log.info(`loading ${repositories.length} repositories from store`)
+    log.info(
+      `[AppStore] loading ${repositories.length} repositories from store`
+    )
     accounts.forEach(a => {
-      log.info(`found account: ${a.login} (${a.name})`)
+      log.info(`[AppStore] found account: ${a.login} (${a.name})`)
     })
 
     this.accounts = accounts
@@ -1979,7 +1981,7 @@ export class AppStore {
         const hasValidToken =
           account.token.length > 0 ? 'has token' : 'empty token'
         log.info(
-          `[getAccountForRemoteURL] account found for remote: ${remote} - ${account.login} (${hasValidToken})`
+          `[AppStore.getAccountForRemoteURL] account found for remote: ${remote} - ${account.login} (${hasValidToken})`
         )
         return account
       }
@@ -1989,13 +1991,13 @@ export class AppStore {
     const username = getGenericUsername(hostname)
     if (username != null) {
       log.info(
-        `[getAccountForRemoteURL] found generic credentials for '${hostname}' and '${username}'`
+        `[AppStore.getAccountForRemoteURL] found generic credentials for '${hostname}' and '${username}'`
       )
       return { login: username, endpoint: hostname }
     }
 
     log.info(
-      `[getAccountForRemoteURL] no generic credentials found for '${remote}'`
+      `[AppStore.getAccountForRemoteURL] no generic credentials found for '${remote}'`
     )
 
     return null
@@ -2451,12 +2453,16 @@ export class AppStore {
   }
 
   public _removeAccount(account: Account): Promise<void> {
-    log.info(`removing account ${account.login} (${account.name}) from store`)
+    log.info(
+      `[AppStore] removing account ${account.login} (${account.name}) from store`
+    )
     return this.accountsStore.removeAccount(account)
   }
 
   public async _addAccount(account: Account): Promise<void> {
-    log.info(`adding account ${account.login} (${account.name}) to store`)
+    log.info(
+      `[AppStore] adding account ${account.login} (${account.name}) to store`
+    )
     await this.accountsStore.addAccount(account)
     const selectedState = this.getState().selectedState
 
@@ -2501,7 +2507,7 @@ export class AppStore {
     for (const path of paths) {
       const validatedPath = await validatedRepositoryPath(path)
       if (validatedPath) {
-        log.info(`adding repository at ${validatedPath} to store`)
+        log.info(`[AppStore] adding repository at ${validatedPath} to store`)
 
         const addedRepo = await this.repositoriesStore.addRepository(
           validatedPath
@@ -2609,7 +2615,7 @@ export class AppStore {
       const hasValidToken =
         account.token.length > 0 ? 'has token' : 'empty token'
       log.info(
-        `[withAuthenticatingUser] account found for repository: ${repository.name} - ${account.login} (${hasValidToken})`
+        `[AppStore.withAuthenticatingUser] account found for repository: ${repository.name} - ${account.login} (${hasValidToken})`
       )
     }
 
