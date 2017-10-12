@@ -33,6 +33,12 @@ import { DiffParser } from '../diff-parser'
 const MaxDiffBufferSize = 268435441
 
 /**
+ * Where `MaxDiffBufferSize` is a hard limit, this is a suggested limit. Diffs
+ * bigger than this _could_ be displayed but it might cause some slowness.
+ */
+const MaxReasonableDiffSize = 3000000
+
+/**
  * Utility function to check whether parsing this buffer is going to cause
  * issues at runtime.
  *
@@ -40,6 +46,15 @@ const MaxDiffBufferSize = 268435441
  */
 function isValidBuffer(buffer: Buffer) {
   return buffer.length < MaxDiffBufferSize
+}
+
+/** Is the diff too big for us to reasonably represent? */
+function isTooBig(buffer: Buffer) {
+  if (!isValidBuffer(buffer)) {
+    return true
+  }
+
+  return buffer.length >= MaxReasonableDiffSize
 }
 
 /**
@@ -76,7 +91,7 @@ export async function getCommitDiff(
     repository.path,
     'getCommitDiff'
   )
-  if (!isValidBuffer(output)) {
+  if (isTooBig(output)) {
     return { kind: DiffType.TooLarge, length: output.length }
   }
 
@@ -158,7 +173,7 @@ export async function getWorkingDirectoryDiff(
     'getWorkingDirectoryDiff',
     successExitCodes
   )
-  if (!isValidBuffer(output)) {
+  if (isTooBig(output)) {
     // we know we can't transform this process output into a diff, so let's
     // just return a placeholder for now that we can display to the user
     // to say we're at the limits of the runtime
