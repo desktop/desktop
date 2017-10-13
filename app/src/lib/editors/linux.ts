@@ -1,4 +1,4 @@
-import { FoundEditor } from './shared'
+import { IFoundEditor } from './found-editor'
 
 // TODO
 export enum ExternalEditor {}
@@ -9,7 +9,7 @@ export function parse(label: string): ExternalEditor | null {
 }
 
 export async function getAvailableEditors(): Promise<
-  ReadonlyArray<FoundEditor>
+  ReadonlyArray<IFoundEditor<ExternalEditor>>
 > {
   return Promise.resolve([])
 }
