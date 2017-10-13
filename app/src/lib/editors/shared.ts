@@ -1,6 +1,21 @@
 import * as Darwin from './darwin'
 import * as Win32 from './win32'
 
+export type ExternalEditor = Darwin.ExternalEditor | Win32.ExternalEditor
+
+/** Parse the label into the specified shell type. */
+export function parse(label: string): ExternalEditor | null {
+  if (__DARWIN__) {
+    return Darwin.parse(label)
+  } else if (__WIN32__) {
+    return Win32.parse(label)
+  }
+
+  throw new Error(
+    `Platform not currently supported for resolving shells: ${process.platform}`
+  )
+}
+
 interface IProgramNotFound {
   readonly editor: ExternalEditor
   readonly installed: false
@@ -17,21 +32,6 @@ interface IProgramFound {
   readonly installed: true
   readonly pathExists: true
   readonly path: string
-}
-
-export type ExternalEditor = Darwin.ExternalEditor | Win32.ExternalEditor
-
-/** Parse the label into the specified shell type. */
-export function parse(label: string): ExternalEditor | null {
-  if (__DARWIN__) {
-    return Darwin.parse(label)
-  } else if (__WIN32__) {
-    return Win32.parse(label)
-  }
-
-  throw new Error(
-    `Platform not currently supported for resolving shells: ${process.platform}`
-  )
 }
 
 export type LookupResult = IProgramNotFound | IProgramMissing | IProgramFound
