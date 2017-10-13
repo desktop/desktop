@@ -13,6 +13,7 @@ import {
 } from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
+import { NoBranches } from './no-branches'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
@@ -215,8 +216,13 @@ export class BranchList extends React.Component<
         groups={this.state.groups}
         invalidationProps={this.props.allBranches}
         renderPostFilter={this.renderNewButton}
+        renderNoItems={this.renderNoItems}
       />
     )
+  }
+
+  private renderNoItems = () => {
+    return <NoBranches onCreateNewBranch={this.onCreateNewBranch} />
   }
 
   private renderNewButton = () => {
