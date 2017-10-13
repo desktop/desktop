@@ -19,6 +19,7 @@ import { Repository } from '../../models/repository'
 import { ImageDiffType } from '../../lib/app-state'
 import {
   FileChange,
+  CommittedFileChange,
   WorkingDirectoryFileChange,
   AppFileStatus,
 } from '../../models/status'
@@ -230,29 +231,45 @@ export class Diff extends React.Component<IDiffProps, {}> {
       return
     }
 
-    if (!(file instanceof WorkingDirectoryFileChange)) {
+    let oldContents: Buffer
+    let newContents: Buffer
+
+    if (file instanceof WorkingDirectoryFileChange) {
+      ;[oldContents, newContents] = await Promise.all([
+        getBlobContents(
+          this.props.repository,
+          '',
+          file.oldPath || file.path
+        ).catch(err => new Buffer('')),
+        new Promise<Buffer>((resolve, reject) => {
+          Fs.readFile(
+            Path.resolve(this.props.repository.path, file.path),
+            (err, data) => {
+              if (err) {
+                resolve(new Buffer(''))
+              } else {
+                resolve(data)
+              }
+            }
+          )
+        }),
+      ])
+    } else if (file instanceof CommittedFileChange) {
+      ;[oldContents, newContents] = await Promise.all([
+        getBlobContents(
+          this.props.repository,
+          file.commitish + '^',
+          file.oldPath || file.path
+        ).catch(err => new Buffer('')),
+        getBlobContents(
+          this.props.repository,
+          file.commitish,
+          file.oldPath || file.path
+        ).catch(err => new Buffer('')),
+      ])
+    } else {
       return
     }
-
-    const [oldContents, newContents] = await Promise.all([
-      getBlobContents(
-        this.props.repository,
-        '',
-        file.oldPath || file.path
-      ).catch(err => new Buffer('')),
-      new Promise((resolve, reject) => {
-        Fs.readFile(
-          Path.resolve(this.props.repository.path, file.path),
-          (err, data) => {
-            if (err) {
-              resolve(new Buffer(''))
-            } else {
-              resolve(data)
-            }
-          }
-        )
-      }),
-    ])
 
     if (this.props.file !== file || this.props.diff !== diff) {
       return
