@@ -36,8 +36,17 @@ export function getDiffMode(): string {
   return DiffModeName
 }
 
-function parseToken(stream: CodeMirror.StringStream): string {
+function parseToken(stream: CodeMirror.StringStream): string | null {
+  if (!stream.sol()) {
+    return null
+  }
+
   const index = stream.peek()
+
+  if (!index) {
+    return null
+  }
+
   const token = index ? TokenNames[index] : DefaultToken
   stream.skipToEnd()
 
