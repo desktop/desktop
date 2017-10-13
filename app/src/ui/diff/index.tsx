@@ -65,6 +65,48 @@ const narrowNoNewlineSymbol = new OcticonSymbol(
   'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z'
 )
 
+async function getWorkingDirectoryContent(
+  repository: Repository,
+  file: WorkingDirectoryFileChange
+): Promise<{ oldContents: Buffer; newContents: Buffer }> {
+  const [oldContents, newContents] = await Promise.all([
+    getBlobContents(repository, '', file.oldPath || file.path).catch(
+      err => new Buffer('')
+    ),
+    new Promise<Buffer>((resolve, reject) => {
+      Fs.readFile(Path.resolve(repository.path, file.path), (err, data) => {
+        if (err) {
+          resolve(new Buffer(''))
+        } else {
+          resolve(data)
+        }
+      })
+    }),
+  ])
+
+  return { oldContents, newContents }
+}
+
+async function getCommittedContent(
+  repository: Repository,
+  file: CommittedFileChange
+): Promise<{ oldContents: Buffer; newContents: Buffer }> {
+  const [oldContents, newContents] = await Promise.all([
+    getBlobContents(
+      repository,
+      file.commitish + '^',
+      file.oldPath || file.path
+    ).catch(err => new Buffer('')),
+    getBlobContents(
+      repository,
+      file.commitish,
+      file.oldPath || file.path
+    ).catch(err => new Buffer('')),
+  ])
+
+  return { oldContents, newContents }
+}
+
 /** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: Repository
@@ -231,42 +273,12 @@ export class Diff extends React.Component<IDiffProps, {}> {
       return
     }
 
-    let oldContents: Buffer
-    let newContents: Buffer
+    let contents
 
     if (file instanceof WorkingDirectoryFileChange) {
-      ;[oldContents, newContents] = await Promise.all([
-        getBlobContents(
-          this.props.repository,
-          '',
-          file.oldPath || file.path
-        ).catch(err => new Buffer('')),
-        new Promise<Buffer>((resolve, reject) => {
-          Fs.readFile(
-            Path.resolve(this.props.repository.path, file.path),
-            (err, data) => {
-              if (err) {
-                resolve(new Buffer(''))
-              } else {
-                resolve(data)
-              }
-            }
-          )
-        }),
-      ])
+      contents = await getWorkingDirectoryContent(this.props.repository, file)
     } else if (file instanceof CommittedFileChange) {
-      ;[oldContents, newContents] = await Promise.all([
-        getBlobContents(
-          this.props.repository,
-          file.commitish + '^',
-          file.oldPath || file.path
-        ).catch(err => new Buffer('')),
-        getBlobContents(
-          this.props.repository,
-          file.commitish,
-          file.oldPath || file.path
-        ).catch(err => new Buffer('')),
-      ])
+      contents = await getCommittedContent(this.props.repository, file)
     } else {
       return
     }
@@ -278,8 +290,8 @@ export class Diff extends React.Component<IDiffProps, {}> {
     cm.setOption('mode', {
       name: DiffSyntaxMode.ModeName,
       diff,
-      oldContents,
-      newContents,
+      oldContents: contents.oldContents,
+      newContents: contents.newContents,
     })
   }
 
