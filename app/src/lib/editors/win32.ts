@@ -1,10 +1,30 @@
 import * as Path from 'path'
 import { pathExists } from '../file-system'
-import { ExternalEditor } from '../../models/editors'
 import { LookupResult, FoundEditor } from './shared'
 
 import { assertNever } from '../fatal-error'
 import { IRegistryEntry, readRegistryKeySafe } from '../registry'
+
+export enum ExternalEditor {
+  Atom = 'Atom',
+  VisualStudioCode = 'Visual Studio Code',
+  SublimeText = 'Sublime Text',
+}
+
+export function parse(label: string): ExternalEditor | null {
+  if (label === ExternalEditor.Atom) {
+    return ExternalEditor.Atom
+  }
+
+  if (label === ExternalEditor.VisualStudioCode) {
+    return ExternalEditor.VisualStudioCode
+  }
+  if (label === ExternalEditor.SublimeText) {
+    return ExternalEditor.SublimeText
+  }
+
+  return null
+}
 
 /**
  * Resolve a set of registry keys associated with the installed application.
