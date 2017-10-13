@@ -29,4 +29,14 @@
     text-align: center;
     font-size: var(--font-size-sm);
   }
+
+  kbd {
+    border-radius: var(--border-radius);
+    border: var(--base-border);
+    border-color: $gray-300;
+    display: inline-block;
+    font-family: var(--font-family-monospace);
+    padding: 1px;
+    line-height: 1;
+  }
 }
