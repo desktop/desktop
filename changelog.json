@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.0.5-beta0": [
+      "[New] The command line interface now provides some helpful help! - #2372. Thanks @j-f1!"
+    ],
     "1.0.4": [
       "[New] Report Git LFS progress when cloning, pushing, pulling, or reverting - #2226",
       "[Improved] Increased diff contrast and and line gutter selection - #2586 #2181",
