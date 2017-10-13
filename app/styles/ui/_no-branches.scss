@@ -1,0 +1,31 @@
+.no-branches {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+
+  padding: var(--spacing);
+
+  .blankslate-image {
+    width: 257px;
+    min-width: 0;
+  }
+
+  .title {
+    font-weight: var(--font-weight-semibold);
+    text-align: center;
+  }
+
+  .subtitle {
+    text-align: center;
+  }
+
+  .create-branch-button {
+    margin: var(--spacing);
+  }
+
+  .protip {
+    text-align: center;
+    font-size: var(--font-size-sm);
+  }
+}
