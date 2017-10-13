@@ -218,4 +218,31 @@ command-line program it can interact with) and confirm it exists on disk.
 ## Linux
 
 This integration isn't quite ready yet. If you're interested in this, and have
-experience with this, feel free to start hacking on the stuff under
+experience with this, feel free to start hacking on the stuff under[`app/src/lib/editors/linux.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/editors/linux.ts).
+
+To test this in development mode, you'll need to update [`app/src/lib/editors/shared.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/editors/shared.ts)
+to use the Linux module:
+
+```diff
+ import * as Darwin from './darwin'
+ import * as Win32 from './win32'
++import * as Linux from './linux'
+
+-export type ExternalEditor = Darwin.ExternalEditor | Win32.ExternalEditor
++export type ExternalEditor =
++  | Darwin.ExternalEditor
++  | Win32.ExternalEditor
++  | Linux.ExternalEditor
+
+ /** Parse the label into the specified shell type. */
+ export function parse(label: string): ExternalEditor | null {
+@@ -9,6 +13,8 @@ export function parse(label: string): ExternalEditor | null {
+     return Darwin.parse(label)
+   } else if (__WIN32__) {
+     return Win32.parse(label)
++  } else if (__LINUX__) {
++    return Linux.parse(label)
+   }
+```
+
+Then build and launch the app to test it out.
