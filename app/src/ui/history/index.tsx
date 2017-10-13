@@ -3,7 +3,7 @@ import { CommitSummary } from './commit-summary'
 import { Diff } from '../diff'
 import { FileList } from './file-list'
 import { Repository } from '../../models/repository'
-import { FileChange } from '../../models/status'
+import { CommittedFileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
 import { Dispatcher } from '../../lib/dispatcher'
 import {
@@ -45,7 +45,7 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
     }
   }
 
-  private onFileSelected = (file: FileChange) => {
+  private onFileSelected = (file: CommittedFileChange) => {
     this.props.dispatcher.changeHistoryFileSelection(
       this.props.repository,
       file

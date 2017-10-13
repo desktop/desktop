@@ -192,6 +192,21 @@ export class WorkingDirectoryFileChange extends FileChange {
   }
 }
 
+export class CommittedFileChange extends FileChange {
+  public readonly commitish: string
+
+  public constructor(
+    path: string,
+    status: AppFileStatus,
+    commitish: string,
+    oldPath?: string
+  ) {
+    super(path, status, oldPath)
+
+    this.commitish = commitish
+  }
+}
+
 /** the state of the working directory for a repository */
 export class WorkingDirectoryStatus {
   /**
