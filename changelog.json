@@ -1,19 +1,5 @@
 {
   "releases": {
-    "1.0.5-beta0": [
-      "[New] The command line interface now provides some helpful help! - #2372. Thanks @j-f1!"
-    ],
-    "1.0.4": [
-      "[New] Report Git LFS progress when cloning, pushing, pulling, or reverting - #2226",
-      "[Improved] Increased diff contrast and and line gutter selection - #2586 #2181",
-      "[Improved] Clarify why publishing a branch is disabled in various scenarios - #2773",
-      "[Improved] Improved error message when installing the command Line tool fails - #2979. Thanks @agisilaos!",
-      "[Improved] Format the branch name in \"Create Branch\" like we format branch names elsewhere - #2977. Thanks @j-f1!",
-      "[Fixed] Avatars not updating after signing in - #2911",
-      "[Fixed] Lots of bugs if there was a file named \"HEAD\" in the repository - #3009 #2721 #2938",
-      "[Fixed] Handle duplicate config values when saving user.name and user.email - #2945",
-      "[Fixed] The \"Create without pushing\" button when creating a new pull request wouldn't actually do anything - #2917 #2917"
-    ],
     "1.0.4-beta1": [
       "[New] Report Git LFS progress when cloning, pushing, pulling, or reverting - #2226",
       "[Improved] Increased diff contrast and and line gutter selection - #2586 #2181",
