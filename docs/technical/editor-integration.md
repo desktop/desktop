@@ -4,18 +4,18 @@ GitHub Desktop supports the user choosing an external program to open their
 local repositories, and this is available from the main menu and right-clicking
 on a repository in the sidebar.
 
-### My favourite editor XYZ isn't listed here!
+### My favourite editor XYZ isn't supported!
 
 This is the checklist of things that it needs to support:
 
- - it supports opening a directory, not just a file
- - it is installed by the user, so there is a reliable way to find it on the
-   user's machine
- - it comes with a command-line interface that can be launched
+ - the editor supports opening a directory, not just a file
+ - the editor is installed by the user, so there is a reliable way to find it
+   on the user's machine
+ - it comes with a command-line interface that can be launched by Desktop
 
-If you think it satifies all these read on to understand how Desktop
-integrates with each OS, and if you're still keen to integrate this please fork
-and contribute a pull request for the team to review.
+If you think your editor satifies all these please read on to understand how
+Desktop integrates with each OS, and if you're still keen to integrate this
+please fork and contribute a pull request for the team to review.
 
 ## Windows
 
@@ -38,7 +38,11 @@ export enum ExternalEditor {
 }
 ```
 
-The code for resolving each editor can be found in `findApplication()` and in
+If you want to add another editor, add a new key to the `ExternalEditor`
+enum with a friendly name for the value. This will trigger a number of compiler
+errors, which are places in the module you need to add code.
+
+The steps for resolving each editor can be found in `findApplication()` and in
 pseudocode looks like this:
 
 ```ts
@@ -49,21 +53,17 @@ async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
 }
 ```
 
-If you want to add another editor, add a new key to the `ExternalEditor`
-enum with a friendly name for the value. This will trigger a number of compiler
-errors, which are places in the module you need to add code.
-
 ### Step 1: Find the Install Location
 
-Windows programs are typically installed by the user. To assist with removal,
-entries are added to the registry that help the operating system display
-details about the program, so the user can can tidy it up later if necessary.
-These entries are used by GitHub Desktop to identify relevant programs and
-where they can be located.
+Windows programs are typically installed by the user. Installers will add
+entries to the registry to help the OS with cleaning up later, if the user
+wishes to uninstall. These entries are used by GitHub Desktop to identify
+relevant programs and where they can be located.
 
-The location for each editor is listed in `getRegistryKeys()`. Some editors
-support different install locations, but are structurally the same (for
-example 64-bit or 32-bit installations, or stable and developer channels).
+The registry locations for each editor are listed in `getRegistryKeys()`.
+Some editors support multiple install locations, but are structurally the
+same (for example 64-bit or 32-bit application, or stable and developer
+channels).
 
 ```ts
 function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
@@ -94,7 +94,7 @@ If you're not sure how your editor is installed, check one of these locations:
     permissions is found here
 
 
-It's probably hiding behind a GUID in one of these locations - this is the the key that Desktop needs to read the registry and find the installation for your editor.
+Your editor is probably hiding behind a GUID in one of these locations - this is the the key that Desktop needs to read the registry and find the installation for your editor.
 
 ### Step 2: Validate The Installation
 
@@ -103,8 +103,8 @@ number of key-value pairs - Desktop will enumerate these to ensure it's the
 application it expects, and identify where the install location of the
 application.
 
-There's two steps to this. The first step is reading the registry, and you can
-find this code in `extractApplicationInformation()`:
+There's two steps to this process. The first step is reading the registry, and
+you can see this code in `extractApplicationInformation()`:
 
 ```ts
 function extractApplicationInformation(
@@ -138,14 +138,14 @@ function extractApplicationInformation(
 }
 ```
 
-If you launch `regedit` and browse to the registry entry for your editor, you
-should see a view like this:
+If you launch `regedit` and browse to the key associated with your editor, you
+should see a list like this in the right-hand pane:
 
 ![](https://user-images.githubusercontent.com/359239/31530323-696543d8-b02b-11e7-9421-3fad76230bea.png)
 
-Desktop needs enough information to validate the installation, usually
+Desktop needs enough information to validate the installation - usually
 something related to the name of the program, and the identity of the
-publisher, along with the install location on disk.
+publisher - along with the install location on disk.
 
 The second step is to validate the installation, and this is done in
 `isExpectedInstallation()`:
@@ -172,7 +172,7 @@ function isExpectedInstallation(
 
 Now that Desktop knows the program is the one it expects, it can use the
 install location to then find the executable to launch. Many editors provide a
-shim, or a standalone tool, to manage this, rather than launching the
+shim or standalone tool to manage this, rather than launching the
 executable directly. Whatever options there are, this should be a known
 location with an interface that doesn't change between updates.
 
@@ -190,9 +190,8 @@ function getExecutableShim(
 }
 ```
 
-Desktop will confirm this file exists on disk - if it's missing or lost
-it won't let you launch the external editor.
-
+Desktop will confirm this file exists on disk before launching - if it's
+missing or lost it won't let you launch the external editor.
 
 ## macOS
 
@@ -215,7 +214,11 @@ export enum ExternalEditor {
 }
 ```
 
-The code for resolving each editor can be found in `findApplication()` and in
+If you want to add another editor, add a new key to the `ExternalEditor`
+enum with a friendly name for the value. This will trigger a number of compiler
+errors, which are places in the module you need to add code.
+
+The steps for resolving each editor can be found in `findApplication()` and in
 pseudocode looks like this:
 
 ```ts
@@ -224,10 +227,6 @@ async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
   // find executable to launch
 }
 ```
-
-If you want to add another editor, add a new key to the `ExternalEditor`
-enum with a friendly name for the value. This will trigger a number of compiler
-errors, which are places in the module you need to add code.
 
 ### Step 1: Find installation path
 
@@ -251,15 +250,15 @@ function getBundleIdentifier(editor: ExternalEditor): string {
 }
 ```
 
-AppKit provides an [`absolutePathForAppBundleWithIdentifier`](https://developer.apple.com/documentation/appkit/nsworkspace/1533086-absolutepathforappbundlewithiden?language=objc)
-API for searching for an application bundle. If it finds an application bundle,
-it will return the path to the application on the file system. Otherwise it
-will raise an exception.
+AppKit provides an [`API`](https://developer.apple.com/documentation/appkit/nsworkspace/1533086-absolutepathforappbundlewithiden?language=objc)
+for searching for an application bundle. If it finds an application bundle,
+it will return the path to the application on disk. Otherwise it will raise an
+exception.
 
 ### Step 2: Find executable to launch
 
-With that information, Desktop can resolve the shim
-(the command-line program it can interact with) and confirm it exists on disk.
+With that information, Desktop can resolve the executable and confirm it exists
+on disk before launching.
 
 This is done in the `getExecutableShim()` method:
 
