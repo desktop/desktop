@@ -107,6 +107,19 @@ async function getCommittedContent(
   return { oldContents, newContents }
 }
 
+async function getFileContent(
+  repository: Repository,
+  file: FileChange
+): Promise<{ oldContents: Buffer; newContents: Buffer }> {
+  if (file instanceof WorkingDirectoryFileChange) {
+    return await getWorkingDirectoryContent(repository, file)
+  } else if (file instanceof CommittedFileChange) {
+    return await getCommittedContent(repository, file)
+  } else {
+    throw new Error('Unknown file type')
+  }
+}
+
 /** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: Repository
@@ -273,26 +286,20 @@ export class Diff extends React.Component<IDiffProps, {}> {
       return
     }
 
-    let contents
-
-    if (file instanceof WorkingDirectoryFileChange) {
-      contents = await getWorkingDirectoryContent(this.props.repository, file)
-    } else if (file instanceof CommittedFileChange) {
-      contents = await getCommittedContent(this.props.repository, file)
-    } else {
-      return
-    }
+    const contents = await getFileContent(this.props.repository, file)
 
     if (this.props.file !== file || this.props.diff !== diff) {
       return
     }
 
-    cm.setOption('mode', {
-      name: DiffSyntaxMode.ModeName,
-      diff,
-      oldContents: contents.oldContents,
-      newContents: contents.newContents,
-    })
+    window.setTimeout(() => {
+      cm.setOption('mode', {
+        name: DiffSyntaxMode.ModeName,
+        diff,
+        oldContents: contents.oldContents,
+        newContents: contents.newContents,
+      })
+    }, 100)
   }
 
   private dispose() {
