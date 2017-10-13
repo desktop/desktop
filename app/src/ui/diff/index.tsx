@@ -292,14 +292,12 @@ export class Diff extends React.Component<IDiffProps, {}> {
       return
     }
 
-    window.setTimeout(() => {
-      cm.setOption('mode', {
-        name: DiffSyntaxMode.ModeName,
-        diff,
-        oldContents: contents.oldContents,
-        newContents: contents.newContents,
-      })
-    }, 100)
+    cm.setOption('mode', {
+      name: DiffSyntaxMode.ModeName,
+      diff,
+      oldContents: contents.oldContents,
+      newContents: contents.newContents,
+    })
   }
 
   private dispose() {
