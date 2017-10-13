@@ -46,7 +46,7 @@ The steps for resolving each editor can be found in `findApplication()` and in
 pseudocode looks like this:
 
 ```ts
-async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
+async function findApplication(editor: ExternalEditor): Promise<string | null> {
   // find install location in registry
   // validate installation
   // find executable to launch
@@ -222,7 +222,7 @@ The steps for resolving each editor can be found in `findApplication()` and in
 pseudocode looks like this:
 
 ```ts
-async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
+async function findApplication(editor: ExternalEditor): Promise<string | null> {
   // find path to installation
   // find executable to launch
 }
