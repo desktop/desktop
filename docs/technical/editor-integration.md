@@ -9,12 +9,13 @@ on a repository in the sidebar.
 This is the checklist of things that it needs to support:
 
  - it supports opening a directory, not just a file
- - it is installed by the user, so there is a reliable way to find it on the user's machine
+ - it is installed by the user, so there is a reliable way to find it on the
+   user's machine
  - it comes with a command-line interface that can be launched
 
-If you think it satifies all these, read on to understand how Desktop
-integrates, and if you're still keen to integrate this please fork and
-contribute a PR.
+If you think it satifies all these read on to understand how Desktop
+integrates with each OS, and if you're still keen to integrate this please fork
+and contribute a pull request for the team to review.
 
 ## Windows
 
@@ -27,7 +28,7 @@ These editors are currently supported:
  - [Visual Studio Code](https://code.visualstudio.com/)
  - [Sublime Text](https://www.sublimetext.com/)
 
-They're registered in an enum near the top of the file:
+These are defined in an enum at the top of the file:
 
 ```ts
 export enum ExternalEditor {
@@ -47,6 +48,10 @@ async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
   // find executable to launch
 }
 ```
+
+If you want to add another editor, add a new key to the `ExternalEditor`
+enum with a friendly name for the value. This will trigger a number of compiler
+errors, which are places in the module you need to add code.
 
 ### Step 1: Find the Install Location
 
@@ -138,9 +143,9 @@ should see a view like this:
 
 ![](https://user-images.githubusercontent.com/359239/31530323-696543d8-b02b-11e7-9421-3fad76230bea.png)
 
-We need enough information to validate the installation, usually something
-related to the name of the editor, and the identity of the author, along
-with the install location of the program.
+Desktop needs enough information to validate the installation, usually
+something related to the name of the program, and the identity of the
+publisher, along with the install location on disk.
 
 The second step is to validate the installation, and this is done in
 `isExpectedInstallation()`:
@@ -200,20 +205,84 @@ These editors are currently supported:
  - [Visual Studio Code](https://code.visualstudio.com/)
  - [Sublime Text](https://www.sublimetext.com/)
 
-They're registered in an enum near the top of the file:
+These are defined in an enum at the top of the file:
+
+```ts
+export enum ExternalEditor {
+  Atom = 'Atom',
+  VisualStudioCode = 'Visual Studio Code',
+  SublimeText = 'Sublime Text',
+}
+```
+
+The code for resolving each editor can be found in `findApplication()` and in
+pseudocode looks like this:
+
+```ts
+async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
+  // find path to installation
+  // find executable to launch
+}
+```
+
+If you want to add another editor, add a new key to the `ExternalEditor`
+enum with a friendly name for the value. This will trigger a number of compiler
+errors, which are places in the module you need to add code.
+
+### Step 1: Find installation path
 
 macOS programs are packaged as application bundles, and applications can
-read information about each installed application.
+read information from the OS to see if they are present.
 
 The `CFBundleIdentifier` value in the plist is what applications use to
 uniquely identify themselves, for example `com.github.GitHubClient` is the
-identifier for GitHub Desktop. AppKit provides the
-[`absolutePathForAppBundleWithIdentifier`](https://developer.apple.com/documentation/appkit/nsworkspace/1533086-absolutepathforappbundlewithiden?language=objc)
-API for searching for an application bundle.
+identifier for GitHub Desktop.
 
-If it finds an application bundle, it will return the path to the application
-on the file system. With that information, Desktop can resolve the shim (the
-command-line program it can interact with) and confirm it exists on disk.
+The `getBundleIdentifier()` method is the lookup method for this value:
+
+```ts
+function getBundleIdentifier(editor: ExternalEditor): string {
+  switch (editor) {
+    ...
+    case ExternalEditor.VisualStudioCode:
+      return 'com.microsoft.VSCode'
+    ...
+  }
+}
+```
+
+AppKit provides an [`absolutePathForAppBundleWithIdentifier`](https://developer.apple.com/documentation/appkit/nsworkspace/1533086-absolutepathforappbundlewithiden?language=objc)
+API for searching for an application bundle. If it finds an application bundle,
+it will return the path to the application on the file system. Otherwise it
+will raise an exception.
+
+### Step 2: Find executable to launch
+
+With that information, Desktop can resolve the shim
+(the command-line program it can interact with) and confirm it exists on disk.
+
+This is done in the `getExecutableShim()` method:
+
+```ts
+function getExecutableShim(
+  editor: ExternalEditor,
+  installPath: string
+): string {
+  switch (editor) {
+    ...
+    case ExternalEditor.VisualStudioCode:
+      return Path.join(
+        installPath,
+        'Contents',
+        'Resources',
+        'app',
+        'bin',
+        'code'
+      )
+    ...
+  }
+}
+```
 
 ## Linux
 
