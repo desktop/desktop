@@ -1,6 +1,8 @@
 import { clipboard } from 'electron'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import * as Fs from 'fs'
+import * as Path from 'path'
 import { Disposable } from 'event-kit'
 
 import {
@@ -38,7 +40,6 @@ import {
 } from './diff-explorer'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
-import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection/selection-strategy'
 import { DragDropSelection } from './selection/drag-drop-selection-strategy'
 import { RangeSelection } from './selection/range-selection-strategy'
@@ -48,6 +49,9 @@ import { fatalError } from '../../lib/fatal-error'
 
 import { RangeSelectionSizePixels } from './edge-detection'
 import { relativeChanges } from './changed-range'
+import { getBlobContents } from '../../lib/git/show'
+
+import { DiffSyntaxMode } from './diff-syntax-mode'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -77,7 +81,7 @@ interface IDiffProps {
   /** Called when the includedness of lines or a range of lines has changed. */
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
 
-  /** The diff that should be rendered */
+  /** The diff which is to be rendered */
   readonly diff: IDiff
 
   /** propagate errors up to the main application */
@@ -139,6 +143,15 @@ export class Diff extends React.Component<IDiffProps, {}> {
       this.scrollPositionToRestore = null
     }
 
+    if (
+      codeMirror &&
+      nextProps.diff.kind === DiffType.Text &&
+      (this.props.diff.kind !== DiffType.Text ||
+        this.props.diff.text !== nextProps.diff.text)
+    ) {
+      codeMirror.setOption('mode', { name: DiffSyntaxMode.ModeName })
+    }
+
     // HACK: This entire section is a hack. Whenever we receive
     // props we update all currently visible gutter elements with
     // the selection state from the file.
@@ -175,6 +188,82 @@ export class Diff extends React.Component<IDiffProps, {}> {
 
   public componentWillUnmount() {
     this.dispose()
+  }
+
+  public componentDidUpdate(prevProps: IDiffProps) {
+    const diff = this.props.diff
+    if (diff === prevProps.diff) {
+      return
+    }
+
+    if (
+      prevProps.diff.kind === DiffType.Text &&
+      diff.kind === DiffType.Text &&
+      diff.text === prevProps.diff.text
+    ) {
+      return
+    }
+
+    if (diff.kind === DiffType.Text && this.codeMirror) {
+      this.codeMirror.setOption('mode', { name: DiffSyntaxMode.ModeName })
+    }
+
+    this.initDiffSyntaxMode()
+  }
+
+  public componentDidMount() {
+    if (this.props.diff.kind === DiffType.Text) {
+      this.initDiffSyntaxMode()
+    }
+  }
+
+  public async initDiffSyntaxMode() {
+    const cm = this.codeMirror
+    const file = this.props.file
+    const diff = this.props.diff
+
+    if (!cm) {
+      return
+    }
+
+    if (diff.kind !== DiffType.Text) {
+      return
+    }
+
+    if (!(file instanceof WorkingDirectoryFileChange)) {
+      return
+    }
+
+    const [oldContents, newContents] = await Promise.all([
+      getBlobContents(
+        this.props.repository,
+        '',
+        file.oldPath || file.path
+      ).catch(err => new Buffer('')),
+      new Promise((resolve, reject) => {
+        Fs.readFile(
+          Path.resolve(this.props.repository.path, file.path),
+          (err, data) => {
+            if (err) {
+              resolve(new Buffer(''))
+            } else {
+              resolve(data)
+            }
+          }
+        )
+      }),
+    ])
+
+    if (this.props.file !== file || this.props.diff !== diff) {
+      return
+    }
+
+    cm.setOption('mode', {
+      name: DiffSyntaxMode.ModeName,
+      diff,
+      oldContents,
+      newContents,
+    })
   }
 
   private dispose() {
@@ -679,10 +768,10 @@ export class Diff extends React.Component<IDiffProps, {}> {
       showCursorWhenSelecting: false,
       cursorBlinkRate: -1,
       lineWrapping: true,
+      mode: { name: DiffSyntaxMode.ModeName },
       // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
       extraKeys: { Tab: false },
       scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
-      mode: getDiffMode(),
       styleSelectedText: true,
       lineSeparator: '\n',
       specialChars: /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/,
