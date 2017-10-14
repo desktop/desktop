@@ -165,12 +165,44 @@ const cliConfig = merge({}, commonConfig, {
   ],
 })
 
+const highlighterConfig = merge({}, commonConfig, {
+  entry: { highlighter: path.resolve(__dirname, 'src/highlighter/index') },
+  output: { libraryTarget: 'var' },
+  target: 'webworker',
+  plugins: [
+    new webpack.DefinePlugin(
+      Object.assign({}, replacements, {
+        __PROCESS_KIND__: JSON.stringify('highlighter'),
+      })
+    ),
+  ],
+})
+
+highlighterConfig.module.rules = [
+  {
+    test: /\.ts$/,
+    include: path.resolve(__dirname, 'src/highlighter'),
+    use: [
+      {
+        loader: 'awesome-typescript-loader',
+        options: {
+          useBabel: true,
+          useCache: true,
+          configFileName: 'tsconfig.webworker.json',
+        },
+      },
+    ],
+    exclude: /node_modules/,
+  },
+]
+
 module.exports = {
   main: mainConfig,
   renderer: rendererConfig,
   askPass: askPassConfig,
   crash: crashConfig,
   cli: cliConfig,
+  highlighter: highlighterConfig,
   replacements: replacements,
   externals: commonConfig.externals,
 }

@@ -271,6 +271,20 @@ export class Diff extends React.Component<IDiffProps, {}> {
     if (this.props.diff.kind === DiffType.Text) {
       this.initDiffSyntaxMode()
     }
+
+    const worker = new Worker(`file:///${__dirname}/highlighter.js`)
+    worker.onerror = ev => console.error('from worker', ev)
+    worker.onmessage = ev => console.log('from worker', ev)
+
+    worker.postMessage({
+      tabSize: 4,
+      mimeType: 'application/typescript',
+      contents: `interface IDiffSyntaxModeOptions {
+readonly diff: ITextDiff
+readonly oldContents: Buffer
+readonly newContents: Buffer
+}`,
+    })
   }
 
   public async initDiffSyntaxMode() {

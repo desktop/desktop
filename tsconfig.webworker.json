@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es6",
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "sourceMap": true,
+    "strict": true,
+    "outDir": "./out",
+    "noLib": true,
+    "types": [
+    ]
+  },
+  "files": [
+    "app/src/highlighter/index.ts"
+  ],
+  "include": [
+
+  ],
+  "exclude": [
+    "node_modules",
+    "app/node_modules",
+    "dist",
+    "out"
+  ],
+  "compileOnSave": false
+}
