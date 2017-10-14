@@ -9,7 +9,10 @@
     "sourceMap": true,
     "jsx": "react",
     "strict": true,
-    "outDir": "./out"
+    "outDir": "./out",
+    "types": [
+
+    ]
   },
   "files": [
     "app/src/lib/globals.d.ts"
