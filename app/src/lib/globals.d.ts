@@ -1,3 +1,6 @@
+/// <reference types="node" />
+/// <reference types="electron" />
+
 /** Is the app running in dev mode? */
 declare const __DEV__: boolean
 
@@ -38,7 +41,12 @@ declare const __UPDATES_URL__: string
  * The currently executing process kind, this is specific to desktop
  * and identifies the processes that we have.
  */
-declare const __PROCESS_KIND__: 'main' | 'ui' | 'crash' | 'askpass'
+declare const __PROCESS_KIND__:
+  | 'main'
+  | 'ui'
+  | 'crash'
+  | 'askpass'
+  | 'highlighter'
 
 /**
  * The DOMHighResTimeStamp type is a double and is used to store a time value.
@@ -180,7 +188,7 @@ declare const log: IDesktopLogger
 
 declare namespace NodeJS {
   // tslint:disable-next-line:interface-name
-  interface Process extends EventEmitter {
+  interface Process extends NodeJS.EventEmitter {
     once(event: 'uncaughtException', listener: (error: Error) => void): this
     on(event: 'uncaughtException', listener: (error: Error) => void): this
     removeListener(event: 'exit', listener: Function): this

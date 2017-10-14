@@ -1,4 +1,5 @@
 /* tslint:disable:no-sync-functions */
+/// <reference path="./globals.d.ts" />
 
 import * as path from 'path'
 import * as cp from 'child_process'
