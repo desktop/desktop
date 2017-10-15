@@ -124,7 +124,7 @@ function packageWindows() {
 }
 
 function packageRedhat() {
-  const installer = require('electron-installer-redhat')
+  const installer: ElectronInstallerRedhat = require('electron-installer-redhat')
 
   const options = {
     src: distPath,
@@ -134,7 +134,7 @@ function packageRedhat() {
 
   return new Promise((resolve, reject) => {
     console.log('Creating .rpm package...')
-    installer(options, function(err: Error) {
+    installer(options, err => {
       if (err) {
         reject(err)
       } else {
@@ -145,7 +145,7 @@ function packageRedhat() {
 }
 
 function packageDebian() {
-  const installer = require('electron-installer-debian')
+  const installer: ElectronInstallerDebian = require('electron-installer-debian')
 
   const options = {
     src: distPath,
@@ -155,7 +155,7 @@ function packageDebian() {
 
   return new Promise((resolve, reject) => {
     console.log('Creating .deb package...')
-    installer(options, function(err: Error) {
+    installer(options, err => {
       if (err) {
         reject(err)
       } else {
@@ -179,7 +179,7 @@ function packageAppImage() {
   fs.removeSync(makeDir)
   fs.mkdirSync(makeDir)
 
-  const installer = require('electron-installer-appimage')
+  const installer: ElectronInstallerAppImage = require('electron-installer-appimage')
 
   const options = {
     dir: distPath,
@@ -193,7 +193,7 @@ function packageAppImage() {
   })
 }
 
-async function packageLinux() {
+async function packageLinux(): Promise<void> {
   try {
     await packageRedhat()
     await packageDebian()
