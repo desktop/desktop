@@ -1,6 +1,4 @@
-#!/usr/bin/env node
-
-'use strict'
+/* tslint:disable:no-sync-functions */
 
 const fs = require('fs-extra')
 const cp = require('child_process')
@@ -10,6 +8,8 @@ const distInfo = require('./dist-info')
 const distPath = distInfo.getDistPath()
 const productName = distInfo.getProductName()
 const outputDir = path.join(distPath, '..', 'installer')
+
+import * as electronInstaller from 'electron-winstaller'
 
 if (process.platform === 'darwin') {
   packageOSX()
@@ -33,7 +33,6 @@ function packageOSX() {
 }
 
 function packageWindows() {
-  const electronInstaller = require('electron-winstaller')
   const setupCertificatePath = path.join(
     __dirname,
     'setup-windows-certificate.ps1'
@@ -76,7 +75,7 @@ function packageWindows() {
   const iconUrl = 'https://desktop.githubusercontent.com/app-icon.ico'
 
   const nugetPkgName = distInfo.getWindowsIdentifierName()
-  const options = {
+  const options: electronInstaller.Options = {
     name: nugetPkgName,
     appDirectory: distPath,
     outputDirectory: outputDir,
@@ -116,7 +115,7 @@ function packageWindows() {
 function packageRedhat() {
   const installer = require('electron-installer-redhat')
 
-  var options = {
+  const options = {
     src: distPath,
     dest: outputDir,
     arch: 'amd64',
@@ -124,7 +123,7 @@ function packageRedhat() {
 
   return new Promise((resolve, reject) => {
     console.log('Creating .rpm package...')
-    installer(options, function(err) {
+    installer(options, function(err: Error) {
       if (err) {
         reject(err)
       } else {
@@ -137,7 +136,7 @@ function packageRedhat() {
 function packageDebian() {
   const installer = require('electron-installer-debian')
 
-  var options = {
+  const options = {
     src: distPath,
     dest: outputDir,
     arch: 'amd64',
@@ -145,7 +144,7 @@ function packageDebian() {
 
   return new Promise((resolve, reject) => {
     console.log('Creating .deb package...')
-    installer(options, function(err) {
+    installer(options, function(err: Error) {
       if (err) {
         reject(err)
       } else {
@@ -171,7 +170,7 @@ function packageAppImage() {
 
   const installer = require('electron-installer-appimage')
 
-  var options = {
+  const options = {
     dir: distPath,
     targetArch: 'x64',
   }
