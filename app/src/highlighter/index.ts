@@ -7,6 +7,10 @@ import 'codemirror/addon/runmode/runmode.node.js'
 import * as CodeMirror from 'codemirror'
 
 import 'codemirror/mode/javascript/javascript'
+import 'codemirror/mode/jsx/jsx'
+import 'codemirror/mode/sass/sass'
+import 'codemirror/mode/htmlmixed/htmlmixed'
+import 'codemirror/mode/markdown/markdown'
 
 interface IToken {
   length: number
@@ -14,16 +18,33 @@ interface IToken {
   token: string
 }
 
+const extensionMIMEMap = new Map<string, string>()
+
+extensionMIMEMap.set('.ts', 'text/typescript')
+extensionMIMEMap.set('.tsx', 'text/jsx')
+extensionMIMEMap.set('.js', 'text/javascript')
+extensionMIMEMap.set('.json', 'application/json')
+extensionMIMEMap.set('.html', 'text/html')
+extensionMIMEMap.set('.htm', 'text/html')
+extensionMIMEMap.set('.markdown', 'text/x-markdown')
+extensionMIMEMap.set('.md', 'text/x-markdown')
+
+// onerror = (ev: ErrorEvent) => {
+//   close()
+// }
+
 onmessage = (ev: MessageEvent) => {
   const tabSize: number = ev.data.tabSize
-  const mimeType: string = ev.data.mimeType
+  const extension: string = ev.data.extension
   const contents: string = ev.data.contents
   const requestedLines: Array<number> | undefined = ev.data.lines
 
-  const lineFilter =
-    requestedLines && requestedLines.length
-      ? new Set<number>(requestedLines)
-      : null
+  const mimeType = extensionMIMEMap.get(extension)
+
+  if (!mimeType) {
+    postMessage({ error: `Extension not supported: ${extension}` })
+    return
+  }
 
   const mode: CodeMirror.Mode<{}> = CodeMirror.getMode({ tabSize }, mimeType)
 
@@ -31,6 +52,11 @@ onmessage = (ev: MessageEvent) => {
     postMessage({ error: `No mode found for ${mimeType}` })
     return
   }
+
+  const lineFilter =
+    requestedLines && requestedLines.length
+      ? new Set<number>(requestedLines)
+      : null
 
   const lines = contents.split(/\r?\n/)
   const state: any = mode.startState ? mode.startState() : null
@@ -78,4 +104,5 @@ onmessage = (ev: MessageEvent) => {
   }
 
   postMessage(tokens)
+  close()
 }

@@ -278,7 +278,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
 
     worker.postMessage({
       tabSize: 4,
-      mimeType: 'application/typescript',
+      extension: '.tsx',
       contents: `interface IDiffSyntaxModeOptions {
 readonly diff: ITextDiff
 readonly oldContents: Buffer
