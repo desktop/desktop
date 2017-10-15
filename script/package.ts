@@ -1,12 +1,23 @@
 /* tslint:disable:no-sync-functions */
 
-const fs = require('fs-extra')
-const cp = require('child_process')
-const path = require('path')
-const distInfo = require('./dist-info')
+import * as fs from 'fs-extra'
+import * as cp from 'child_process'
+import * as path from 'path'
+import {
+  getDistRoot,
+  getDistPath,
+  getProductName,
+  getOSXZipPath,
+  getWindowsIdentifierName,
+  getCompanyName,
+  getWindowsStandaloneName,
+  getWindowsInstallerName,
+  shouldMakeDelta,
+  getUpdatesURL,
+} from './dist-info'
 
-const distPath = distInfo.getDistPath()
-const productName = distInfo.getProductName()
+const distPath = getDistPath()
+const productName = getProductName()
 const outputDir = path.join(distPath, '..', 'installer')
 
 import * as electronInstaller from 'electron-winstaller'
@@ -23,7 +34,7 @@ if (process.platform === 'darwin') {
 }
 
 function packageOSX() {
-  const dest = distInfo.getOSXZipPath()
+  const dest = getOSXZipPath()
   fs.removeSync(dest)
 
   cp.execSync(
@@ -74,23 +85,23 @@ function packageWindows() {
 
   const iconUrl = 'https://desktop.githubusercontent.com/app-icon.ico'
 
-  const nugetPkgName = distInfo.getWindowsIdentifierName()
+  const nugetPkgName = getWindowsIdentifierName()
   const options: electronInstaller.Options = {
     name: nugetPkgName,
     appDirectory: distPath,
     outputDirectory: outputDir,
-    authors: distInfo.getCompanyName(),
+    authors: getCompanyName(),
     iconUrl: iconUrl,
     setupIcon: iconSource,
     loadingGif: splashScreenPath,
     exe: `${nugetPkgName}.exe`,
     title: productName,
-    setupExe: distInfo.getWindowsStandaloneName(),
-    setupMsi: distInfo.getWindowsInstallerName(),
+    setupExe: getWindowsStandaloneName(),
+    setupMsi: getWindowsInstallerName(),
   }
 
-  if (distInfo.shouldMakeDelta()) {
-    options.remoteReleases = distInfo.getUpdatesURL()
+  if (shouldMakeDelta()) {
+    options.remoteReleases = getUpdatesURL()
   }
 
   if (process.env.APPVEYOR) {
@@ -164,7 +175,7 @@ function packageAppImage() {
   // libburn : SORRY : Neither stdio-path nor its directory exist
   //
   // so let's just trash it (if already existing) and create the directory
-  const makeDir = path.join(distInfo.getDistRoot(), 'make')
+  const makeDir = path.join(getDistRoot(), 'make')
   fs.removeSync(makeDir)
   fs.mkdirSync(makeDir)
 
