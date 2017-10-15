@@ -34,7 +34,7 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
     case ExternalEditor.Atom:
       return ['com.github.atom']
     case ExternalEditor.VisualStudioCode:
-      return ['com.microsoft.VSCode']
+      return ['com.microsoft.VSCode', 'com.microsoft.VSCodeInsiders']
     case ExternalEditor.SublimeText:
       return ['com.sublimetext.3']
     default:
