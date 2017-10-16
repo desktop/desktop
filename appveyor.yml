@@ -21,27 +21,22 @@ version: "{build}"
 
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
-  - npm install -g npm@4.6.1
+  - npm install -g yarn@1.2.0
   - git submodule update --init --recursive
-  - npm prune
-  - cd app && npm prune && cd ..
-  - npm install
-  - npm ls --prod || true
-  - npm ls --dev || true
+  - yarn install --force
 
 build_script:
-  - npm run check-prettiness
-  - npm run lint
-  - npm run build:prod
+  - yarn check-prettiness
+  - yarn lint
+  - yarn build:prod
 
 test_script:
   - node --version
-  - npm --version
-  - npm run test:setup
+  - yarn test:setup
   - ./script/test-appveyor.bat
 
 on_success:
-  - npm run publish
+  - yarn run publish
 
 on_finish:
-  - npm run test:review
+  - yarn test:review

@@ -445,13 +445,14 @@ export class AppStore {
     })
   }
 
-  private updateBranchesState(
+  private updateBranchesState<K extends keyof IBranchesState>(
     repository: Repository,
-    fn: (branchesState: IBranchesState) => IBranchesState
+    fn: (branchesState: IBranchesState) => Pick<IBranchesState, K>
   ) {
     this.updateRepositoryState(repository, state => {
-      const branchesState = fn(state.branchesState)
-      return { branchesState }
+      const changesState = state.branchesState
+      const newState = merge(changesState, fn(changesState))
+      return { branchesState: newState }
     })
   }
 
