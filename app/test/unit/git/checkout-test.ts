@@ -1,4 +1,4 @@
-import { expect, use as chaiUse } from 'chai'
+import { expect } from 'chai'
 import { shell } from '../../helpers/test-app-shell'
 import {
   setupEmptyRepository,
@@ -9,8 +9,6 @@ import { Repository } from '../../../src/models/repository'
 import { checkoutBranch } from '../../../src/lib/git'
 import { TipState, IValidBranch } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
-
-chaiUse(require('chai-datetime'))
 
 describe('git/checkout', () => {
   it('throws when invalid characters are used for branch name', async () => {

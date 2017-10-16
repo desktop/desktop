@@ -1,7 +1,6 @@
 /* tslint:disable:no-sync-functions */
 
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import { setupFixtureRepository, openSync } from '../helpers/repositories'
 import { validatedRepositoryPath } from '../../src/lib/stores/helpers/validated-repository-path'

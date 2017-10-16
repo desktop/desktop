@@ -1,4 +1,4 @@
-import { expect, use as chaiUse } from 'chai'
+import { expect } from 'chai'
 import { shell } from '../../helpers/test-app-shell'
 import {
   setupEmptyRepository,
@@ -14,8 +14,6 @@ import {
 } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
 import { GitProcess } from 'dugite'
-
-chaiUse(require('chai-datetime'))
 
 describe('git/branch', () => {
   describe('tip', () => {

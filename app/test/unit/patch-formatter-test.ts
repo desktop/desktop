@@ -1,7 +1,6 @@
 /* tslint:disable:no-sync-functions */
 
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import * as Path from 'path'
 import * as FS from 'fs'
