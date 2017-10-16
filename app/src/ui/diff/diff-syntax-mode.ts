@@ -47,11 +47,6 @@ export class DiffSyntaxMode {
     this.diff = diff
     this.oldTokens = oldTokens
     this.newTokens = newTokens
-
-    if (oldTokens && newTokens) {
-      console.log('old', oldTokens)
-      console.log('new', newTokens)
-    }
   }
 
   public startState(): IState {
