@@ -122,6 +122,7 @@ async function getFileContent(
 
 const highlightWorkers = new Array<Worker>()
 const maxIdlingWorkers = 2
+const workerMaxRunDuration = 1000
 
 function highlight(
   contents: string,
@@ -134,11 +135,21 @@ function highlight(
     new Worker(`file:///${__dirname}/highlighter.js`)
 
   const result = new Promise<any>((resolve, reject) => {
+    let timeout: null | number = null
     worker.onerror = ev => {
+      if (timeout) {
+        window.clearTimeout(timeout)
+        timeout = null
+      }
       worker.terminate()
       reject(ev.error)
     }
     worker.onmessage = ev => {
+      if (timeout) {
+        window.clearTimeout(timeout)
+        timeout = null
+      }
+
       if (highlightWorkers.length < maxIdlingWorkers) {
         highlightWorkers.push(worker)
       } else {
@@ -148,6 +159,10 @@ function highlight(
     }
 
     worker.postMessage({ contents, extension, tabSize, lines })
+    timeout = window.setTimeout(() => {
+      worker.terminate()
+      reject(new Error('timeout'))
+    }, workerMaxRunDuration)
   })
 
   return { worker, result }
