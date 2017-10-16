@@ -120,6 +120,9 @@ async function getFileContent(
   }
 }
 
+const highlightWorkers = new Array<Worker>()
+const maxIdlingWorkers = 2
+
 function highlight(
   contents: string,
   extension: string,
