@@ -46,19 +46,15 @@ cache:
     - $HOME/.electron
 
 install:
-  - npm install -g npm@4.6.1
-  - npm prune
-  - cd app && npm prune && cd ..
-  - npm install
-  - npm ls --prod
-  - npm ls --dev
+  - npm install -g yarn@1.2.0
+  - yarn install --force
 
 script:
-  - npm run check-prettiness
-  - npm run lint
-  - npm run build:prod
-  - npm run test:setup
-  - npm test
+  - yarn check-prettiness
+  - yarn lint
+  - yarn build:prod
+  - yarn test:setup
+  - yarn test
 
 after_failure:
-  - npm run test:review
+  - yarn test:review

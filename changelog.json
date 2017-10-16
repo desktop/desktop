@@ -1,5 +1,7 @@
 {
   "releases": {
+    "1.0.5-test1": [],
+    "1.0.5-test0": [],
     "1.0.5-beta0": [
       "[New] The command line interface now provides some helpful help! - #2372. Thanks @j-f1!"
     ],

@@ -35,7 +35,7 @@ const crypto = require('crypto')
 const request = require('request')
 
 console.log('Packaging…')
-cp.execSync('npm run package')
+cp.execSync('yarn package')
 
 let sha = ''
 if (process.platform === 'darwin') {
