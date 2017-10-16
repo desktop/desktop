@@ -83,8 +83,8 @@ interface IBranchListProps {
   /** Callback to fire when the filter text is changed */
   readonly onFilterTextChanged: (filterText: string) => void
 
-  /** Should it let users create a new branch? */
-  readonly allowCreateNewBranch: boolean
+  /** Can users create a new branch? */
+  readonly canCreateNewBranch: boolean
 
   /**
    * Called when the user wants to create a new branch. It will be given a name
@@ -226,7 +226,7 @@ export class BranchList extends React.Component<
   }
 
   private renderNewButton = () => {
-    if (this.props.allowCreateNewBranch) {
+    if (this.props.canCreateNewBranch) {
       return (
         <Button className="new-branch-button" onClick={this.onCreateNewBranch}>
           New
