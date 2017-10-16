@@ -6,6 +6,14 @@ import 'codemirror/addon/runmode/runmode.node.js'
 // that we don't pull in the full CodeMirror
 import * as CodeMirror from 'codemirror'
 
+// This is a hack, some modes (looking at you markdown) uses
+// CodeMirror.innerMode which isn't defined in the stripped down
+// runmode. Luckily it's a simple, dependency free method so we'll
+// just import it and stick it on the global CodeMirror object.
+import { innerMode } from 'codemirror/src/modes'
+const cma = CodeMirror as any
+cma.innerMode = innerMode
+
 import 'codemirror/mode/javascript/javascript'
 import 'codemirror/mode/jsx/jsx'
 import 'codemirror/mode/sass/sass'
