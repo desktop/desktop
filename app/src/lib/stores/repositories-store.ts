@@ -29,6 +29,7 @@ export class RepositoriesStore {
     return this.emitter.on('did-update', fn)
   }
 
+  /** Find the matching GitHub repository or add it if it doesn't exist. */
   public async findOrPutGitHubRepository(
     endpoint: string,
     apiRepository: IAPIRepository
@@ -78,6 +79,7 @@ export class RepositoriesStore {
     )
   }
 
+  /** Find a GitHub repository by its DB ID. */
   public async findGitHubRepositoryByID(
     id: number
   ): Promise<GitHubRepository | null> {
