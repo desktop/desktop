@@ -32,6 +32,9 @@ extensionMIMEMap.set('.html', 'text/html')
 extensionMIMEMap.set('.htm', 'text/html')
 extensionMIMEMap.set('.markdown', 'text/x-markdown')
 extensionMIMEMap.set('.md', 'text/x-markdown')
+extensionMIMEMap.set('.css', 'text/css')
+extensionMIMEMap.set('.scss', 'text/x-scss')
+extensionMIMEMap.set('.less', 'text/x-less')
 
 onmessage = (ev: MessageEvent) => {
   const tabSize: number = ev.data.tabSize
