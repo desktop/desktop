@@ -130,11 +130,15 @@ function highlight(
   tabSize: number,
   lines: Array<number>
 ) {
+  if (!contents.length) {
+    return Promise.resolve({})
+  }
+
   const worker =
     highlightWorkers.shift() ||
     new Worker(`file:///${__dirname}/highlighter.js`)
 
-  const result = new Promise<any>((resolve, reject) => {
+  return new Promise<any>((resolve, reject) => {
     let timeout: null | number = null
     worker.onerror = ev => {
       if (timeout) {
@@ -164,8 +168,6 @@ function highlight(
       reject(new Error('timeout'))
     }, workerMaxRunDuration)
   })
-
-  return { worker, result }
 }
 
 /** The props for the Diff component. */
@@ -370,23 +372,19 @@ export class Diff extends React.Component<IDiffProps, {}> {
 
     console.time('highlight')
 
-    const oldHighlighter = highlight(
-      contents.oldContents.toString('utf8'),
-      Path.extname(file.oldPath || file.path),
-      tabSize,
-      oldLineFilter
-    )
-
-    const newHighlighter = highlight(
-      contents.newContents.toString('utf8'),
-      Path.extname(file.path),
-      tabSize,
-      newLineFilter
-    )
-
     const [oldTokens, newTokens] = await Promise.all([
-      oldHighlighter.result,
-      newHighlighter.result,
+      highlight(
+        contents.oldContents.toString('utf8'),
+        Path.extname(file.oldPath || file.path),
+        tabSize,
+        oldLineFilter
+      ),
+      highlight(
+        contents.newContents.toString('utf8'),
+        Path.extname(file.path),
+        tabSize,
+        newLineFilter
+      ),
     ])
     console.timeEnd('highlight')
 
