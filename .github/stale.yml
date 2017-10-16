@@ -3,11 +3,10 @@ daysUntilStale: 14
 # Number of days of inactivity before a stale issue is closed
 daysUntilClose: 14
 exemptLabels:
+  - bug
   - enhancement
   - tech-debt
   - needs-design-input
-  # either we need to fix these or burn codemirror to the ground
-  - codemirror
 staleLabel: stale
 markComment: >
   This issue has been automatically marked as stale because it has not had
