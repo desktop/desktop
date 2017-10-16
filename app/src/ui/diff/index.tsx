@@ -120,6 +120,24 @@ async function getFileContent(
   }
 }
 
+function highlight(
+  contents: string,
+  extension: string,
+  tabSize: number,
+  lines: Array<number>
+) {
+  const worker = new Worker(`file:///${__dirname}/highlighter.js`)
+
+  const result = new Promise<any>((resolve, reject) => {
+    worker.onerror = ev => reject(ev.error)
+    worker.onmessage = ev => resolve(ev.data)
+
+    worker.postMessage({ contents, extension, tabSize, lines })
+  })
+
+  return { worker, result }
+}
+
 /** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: Repository
@@ -271,20 +289,6 @@ export class Diff extends React.Component<IDiffProps, {}> {
     if (this.props.diff.kind === DiffType.Text) {
       this.initDiffSyntaxMode()
     }
-
-    const worker = new Worker(`file:///${__dirname}/highlighter.js`)
-    worker.onerror = ev => console.error('from worker', ev)
-    worker.onmessage = ev => console.log('from worker', ev)
-
-    worker.postMessage({
-      tabSize: 4,
-      extension: '.tsx',
-      contents: `interface IDiffSyntaxModeOptions {
-readonly diff: ITextDiff
-readonly oldContents: Buffer
-readonly newContents: Buffer
-}`,
-    })
   }
 
   public async initDiffSyntaxMode() {
@@ -300,17 +304,52 @@ readonly newContents: Buffer
       return
     }
 
-    const contents = await getFileContent(this.props.repository, file)
+    const contentsPromise = getFileContent(this.props.repository, file)
+
+    const oldLineFilter = new Array<number>()
+    const newLineFilter = new Array<number>()
+
+    for (const hunk of diff.hunks) {
+      for (const line of hunk.lines) {
+        if (line.oldLineNumber) {
+          oldLineFilter.push(line.oldLineNumber - 1)
+        } else if (line.newLineNumber) {
+          newLineFilter.push(line.newLineNumber - 1)
+        }
+      }
+    }
+
+    const contents = await contentsPromise
 
     if (this.props.file !== file || this.props.diff !== diff) {
       return
     }
 
+    const tabSize = cm.getOption('tabSize') || 4
+
+    const oldHighlighter = highlight(
+      contents.oldContents.toString('utf8'),
+      Path.extname(file.oldPath || file.path),
+      tabSize,
+      oldLineFilter
+    )
+    const newHighlighter = highlight(
+      contents.newContents.toString('utf8'),
+      Path.extname(file.path),
+      tabSize,
+      newLineFilter
+    )
+
+    const [oldTokens, newTokens] = await Promise.all([
+      oldHighlighter.result,
+      newHighlighter.result,
+    ])
+
     cm.setOption('mode', {
       name: DiffSyntaxMode.ModeName,
       diff,
-      oldContents: contents.oldContents,
-      newContents: contents.newContents,
+      oldTokens,
+      newTokens,
     })
   }
 

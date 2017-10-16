@@ -4,10 +4,18 @@ import { diffLineForIndex } from './diff-explorer'
 
 require('codemirror/mode/javascript/javascript')
 
+interface IToken {
+  length: number
+  text: string
+  token: string
+}
+
+type Tokens = { [line: number]: { [startIndex: number]: IToken } }
+
 interface IDiffSyntaxModeOptions {
   readonly diff: ITextDiff
-  readonly oldContents: Buffer
-  readonly newContents: Buffer
+  readonly oldTokens: Tokens
+  readonly newTokens: Tokens
 }
 
 const TokenNames: { [key: string]: string | null } = {
@@ -17,42 +25,8 @@ const TokenNames: { [key: string]: string | null } = {
   ' ': 'diff-context',
 }
 
-interface IInnerMode {
-  readonly mode: CodeMirror.Mode<{}>
-  readonly state: any
-  readonly contents?: Buffer
-  currentLine: number
-  currentLineStream?: CodeMirror.StringStream
-}
-
 interface IState {
   diffLineIndex: number
-
-  readonly oldMode: IInnerMode
-  readonly newMode: IInnerMode
-}
-
-function parseUntilLine(
-  mode: IInnerMode,
-  tabSize: number | undefined,
-  line: number,
-  lines: string[]
-) {
-  while (mode.currentLine < line && mode.currentLine <= lines.length) {
-    const lineStream =
-      mode.currentLineStream ||
-      (mode.currentLineStream = new (CodeMirror as any).StringStream(
-        lines[mode.currentLine],
-        tabSize
-      ) as CodeMirror.StringStream)
-
-    while (!lineStream.eol()) {
-      mode.mode.token(lineStream, mode.state)
-    }
-
-    delete mode.currentLineStream
-    mode.currentLine++
-  }
 }
 
 export class DiffSyntaxMode {
@@ -60,43 +34,34 @@ export class DiffSyntaxMode {
 
   private readonly config: CodeMirror.EditorConfiguration
   private readonly diff?: ITextDiff
-  private readonly oldContents?: Buffer
-  private readonly newContents?: Buffer
+  private readonly oldTokens?: Tokens
+  private readonly newTokens?: Tokens
 
   public constructor(
     config: CodeMirror.EditorConfiguration,
     diff?: ITextDiff,
-    oldContents?: Buffer,
-    newContents?: Buffer
+    oldTokens?: Tokens,
+    newTokens?: Tokens
   ) {
     this.config = config
     this.diff = diff
-    this.oldContents = oldContents
-    this.newContents = newContents
+    this.oldTokens = oldTokens
+    this.newTokens = newTokens
+
+    if (oldTokens && newTokens) {
+      console.log('old', oldTokens)
+      console.log('new', newTokens)
+    }
   }
 
-  public startState = (): IState => {
-    const oldMode = CodeMirror.getMode(this.config, 'application/typescript')
-    const oldModeState = oldMode.startState ? oldMode.startState() : undefined
+  public startState(): IState {
+    return { diffLineIndex: 0 }
+  }
 
-    const newMode = CodeMirror.getMode(this.config, 'application/typescript')
-    const newModeState = newMode.startState ? newMode.startState() : undefined
-
-    return {
-      diffLineIndex: 0,
-      oldMode: {
-        mode: oldMode,
-        state: oldModeState,
-        contents: this.oldContents,
-        currentLine: 0,
-      },
-      newMode: {
-        mode: newMode,
-        state: newModeState,
-        contents: this.newContents,
-        currentLine: 0,
-      },
-    }
+  // Should never happen except for blank diffs but
+  // let's play along
+  public blankLine(state: IState) {
+    state.diffLineIndex++
   }
 
   public token = (
@@ -137,9 +102,6 @@ export class DiffSyntaxMode {
       return null
     }
 
-    const activeMode =
-      diffLine.oldLineNumber !== null ? state.oldMode : state.newMode
-
     let diffLineNumber =
       diffLine.oldLineNumber !== null
         ? diffLine.oldLineNumber
@@ -151,70 +113,41 @@ export class DiffSyntaxMode {
       return null
     }
 
+    const activeTokens =
+      diffLine.oldLineNumber !== null ? this.oldTokens : this.newTokens
+
     // Diffs use off-by-one indexing
     diffLineNumber--
 
-    if (!activeMode.contents) {
+    if (!activeTokens) {
       stream.skipToEnd()
       state.diffLineIndex++
       return null
     }
 
-    const lines = activeMode.contents.toString('utf8').split(/\r?\n/)
+    const lineTokens = activeTokens[diffLineNumber]
 
-    parseUntilLine(activeMode, this.config.tabSize, diffLineNumber, lines)
-
-    if (activeMode.currentLine >= lines.length) {
+    if (!lineTokens) {
       stream.skipToEnd()
       state.diffLineIndex++
       return null
     }
 
-    const line = lines[activeMode.currentLine]
+    const token = lineTokens[stream.pos - stream.lineStart - 1]
 
-    if (!line.length) {
-      debugger
-      if (activeMode.mode.blankLine) {
-        activeMode.mode.blankLine(activeMode.state)
-      }
-      stream.skipToEnd()
-      state.diffLineIndex++
-      return null
+    if (!token) {
+      do {
+        stream.pos++
+      } while (!stream.eol() && !lineTokens[stream.pos - stream.lineStart - 1])
+    } else {
+      stream.pos += token.length
     }
-
-    if (diffLine.content !== line) {
-      stream.skipToEnd()
-      state.diffLineIndex++
-      return null
-    }
-
-    const lineStream =
-      activeMode.currentLineStream ||
-      (activeMode.currentLineStream = new (CodeMirror as any).StringStream(
-        line,
-        this.config.tabSize
-      ) as CodeMirror.StringStream)
-
-    const start = lineStream.pos
-    const token = activeMode.mode.token(lineStream, activeMode.state)
-    const length = lineStream.pos - start
-    lineStream.start = lineStream.pos
-
-    stream.pos += length
 
     if (stream.eol()) {
       state.diffLineIndex++
     }
 
-    return token
-
-    // stream.pos += length
-
-    // console.log(activeMode.currentLine, diffLineNumber)
-
-    // stream.skipToEnd()
-    // state.diffLineIndex++
-    // return null
+    return token ? token.token : null
   }
 }
 
@@ -226,18 +159,10 @@ CodeMirror.defineMode(DiffSyntaxMode.ModeName, function(
     throw new Error('I needs me some options')
   }
 
-  // if (
-  //   !modeOptions.diff ||
-  //   !modeOptions.oldContents ||
-  //   !modeOptions.newContents
-  // ) {
-  //   return { token: parseToken }
-  // }
-
   return new DiffSyntaxMode(
     config,
     modeOptions.diff,
-    modeOptions.oldContents,
-    modeOptions.newContents
+    modeOptions.oldTokens,
+    modeOptions.newTokens
   )
 })
