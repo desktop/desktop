@@ -21,7 +21,7 @@ import {
 import {
   setupFixtureRepository,
   setupEmptyRepository,
-} from '../../fixture-helper'
+} from '../../helpers/repositories'
 
 import {
   getStatus,

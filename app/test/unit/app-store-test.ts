@@ -23,7 +23,7 @@ import {
   TestIssuesDatabase,
   TestRepositoriesDatabase,
 } from '../helpers/databases'
-import { setupEmptyRepository } from '../fixture-helper'
+import { setupEmptyRepository } from '../helpers/repositories'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 
 import { StatsStore } from '../../src/lib/stats'

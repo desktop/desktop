@@ -3,7 +3,7 @@ import { shell } from '../../helpers/test-app-shell'
 import {
   setupEmptyRepository,
   setupFixtureRepository,
-} from '../../fixture-helper'
+} from '../../helpers/repositories'
 
 import { Repository } from '../../../src/models/repository'
 import {

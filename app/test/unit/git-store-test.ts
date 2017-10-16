@@ -13,7 +13,7 @@ import {
   setupEmptyRepository,
   setupFixtureRepository,
   setupConflictedRepo,
-} from '../fixture-helper'
+} from '../helpers/repositories'
 
 import { GitStore } from '../../src/lib/stores/git-store'
 import { AppFileStatus } from '../../src/models/status'
