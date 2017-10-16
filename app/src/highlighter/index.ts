@@ -19,6 +19,7 @@ import 'codemirror/mode/jsx/jsx'
 import 'codemirror/mode/sass/sass'
 import 'codemirror/mode/htmlmixed/htmlmixed'
 import 'codemirror/mode/markdown/markdown'
+import 'codemirror/mode/yaml/yaml'
 
 interface IToken {
   length: number
@@ -43,6 +44,8 @@ extensionMIMEMap.set('.md', 'text/x-markdown')
 extensionMIMEMap.set('.css', 'text/css')
 extensionMIMEMap.set('.scss', 'text/x-scss')
 extensionMIMEMap.set('.less', 'text/x-less')
+extensionMIMEMap.set('.yaml', 'text/yaml')
+extensionMIMEMap.set('.yml', 'text/yaml')
 
 onmessage = (ev: MessageEvent) => {
   const startTime = performance ? performance.now() : null
@@ -55,13 +58,19 @@ onmessage = (ev: MessageEvent) => {
   const mimeType = extensionMIMEMap.get(extension)
 
   if (!mimeType) {
-    throw new Error(`Extension not supported: ${extension}`)
+    console.debug(
+      `Could not map '${extension}' to supported mime type for highlighting`
+    )
+    postMessage({})
+    return
   }
 
   const mode: CodeMirror.Mode<{}> = CodeMirror.getMode({ tabSize }, mimeType)
 
   if (!mode) {
-    throw new Error(`No mode found for ${mimeType}`)
+    console.debug(`Could not find highlighting mode for '${mimeType}'`)
+    postMessage({})
+    return
   }
 
   const lineFilter =
