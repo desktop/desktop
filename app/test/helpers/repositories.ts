@@ -5,7 +5,7 @@ import * as FSE from 'fs-extra'
 
 const klawSync = require('klaw-sync')
 
-import { Repository } from '../src/models/repository'
+import { Repository } from '../../src/models/repository'
 import { GitProcess } from 'dugite'
 
 type KlawEntry = {
@@ -24,7 +24,12 @@ export const openSync = _temp.openSync
  * @returns The path to the set up fixture repository.
  */
 export function setupFixtureRepository(repositoryName: string): string {
-  const testRepoFixturePath = Path.join(__dirname, 'fixtures', repositoryName)
+  const testRepoFixturePath = Path.join(
+    __dirname,
+    '..',
+    'fixtures',
+    repositoryName
+  )
   const testRepoPath = _temp.mkdirSync('desktop-git-test-')
   FSE.copySync(testRepoFixturePath, testRepoPath)
 

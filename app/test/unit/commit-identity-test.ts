@@ -1,6 +1,4 @@
-import { expect, use as chaiUse } from 'chai'
-
-chaiUse(require('chai-datetime'))
+import { expect } from 'chai'
 
 import { CommitIdentity } from '../../src/models/commit-identity'
 

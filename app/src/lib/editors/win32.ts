@@ -24,8 +24,10 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
       return [
         // 64-bit version of VSCode - not available from home page but just made available
         'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{EA457B21-F73E-494C-ACAB-524FDE069978}_is1',
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{1287CAD5-7C8D-410D-88B9-0D1EE4A83FF2}_is1',
         // 32-bit version of VSCode - what most people will be using for the forseeable future
         'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C26E74D1-022E-4238-8B9D-1E7564A36CC9}_is1',
       ]
     case ExternalEditor.SublimeText:
       return [
@@ -75,7 +77,8 @@ function isExpectedInstallation(
       return displayName === 'Atom' && publisher === 'GitHub Inc.'
     case ExternalEditor.VisualStudioCode:
       return (
-        displayName === 'Visual Studio Code' &&
+        (displayName === 'Visual Studio Code' ||
+          displayName === 'Visual Studio Code - Insiders') &&
         publisher === 'Microsoft Corporation'
       )
     case ExternalEditor.SublimeText:
