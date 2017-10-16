@@ -10,7 +10,19 @@ exemptLabels:
 staleLabel: stale
 # Comment to post when marking an issue as stale. Set to `false` to disable
 markComment: >
+  Thanks for your contribution!
+   
   This issue has been automatically marked as stale because it has not had
-  recent activity. It will be closed if no further activity occurs.
+  recent activity. Because the GitHub Desktop team treats their issues
+  [as their backlog](https://en.wikipedia.org/wiki/Scrum_(software_development)#Product_backlog), stale issues
+  are closed. If you would like this issue to remain open:
+   
+   1. Verify that you can still reproduce the issue in the latest version of GitHub Desktop
+   1. Comment that the issue is still reproducible and include:
+      * What version of GitHub Desktop you reproduced the issue on
+      * What OS and version you reproduced the issue on
+      * What steps you followed to reproduce the issue
+   
+  Issues that are labeled as triaged will not be automatically marked as stale.
 # Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: true
