@@ -42,7 +42,7 @@ export class PullRequestStore {
 
     await this.writePullRequests(prsFromAPI, repository)
 
-    let prs = await this.getPullRequests(repository)
+    const prs = await this.getPullRequests(repository)
     const pullRequestsStatuses: Array<IPullRequestStatus> = []
 
     for (const pr of prs) {
@@ -62,9 +62,7 @@ export class PullRequestStore {
 
     await this.writePullRequestStatus(pullRequestsStatuses)
 
-    prs = await this.getPullRequests(repository)
-
-    return prs
+    return await this.getPullRequests(repository)
   }
 
   /** Get the pull requests from the database. */
