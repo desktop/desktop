@@ -35,13 +35,13 @@ $ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
 After that, install the dependencies to build and test the app:
 
 ```
-$ sudo yum install -y nodejs gcc-c++ make libsecret-devel libxscrnsaver
+$ sudo dnf install -y nodejs gcc-c++ make libsecret-devel libxscrnsaver
 ```
 
 If you want to package Desktop for distribution, you will need these additional dependencies:
 
 ```sh
-$ sudo yum install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
+$ sudo dnf install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
 #
 # workarounds for linker issues when packaging for AppImage
 # source: https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7

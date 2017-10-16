@@ -773,6 +773,7 @@ export class Dispatcher {
     switch (action.name) {
       case 'oauth':
         try {
+          log.info(`[Dispatcher] requesting authenticated user`)
           const user = await requestAuthenticatedUser(action.code)
           if (user) {
             resolveOAuthRequest(user)
