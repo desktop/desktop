@@ -22,7 +22,5 @@ markComment: >
       * What version of GitHub Desktop you reproduced the issue on
       * What OS and version you reproduced the issue on
       * What steps you followed to reproduce the issue
-   
-  Issues that are labeled as triaged will not be automatically marked as stale.
 # Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: true
