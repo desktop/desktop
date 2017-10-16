@@ -45,6 +45,8 @@ extensionMIMEMap.set('.scss', 'text/x-scss')
 extensionMIMEMap.set('.less', 'text/x-less')
 
 onmessage = (ev: MessageEvent) => {
+  const startTime = performance ? performance.now() : null
+
   const tabSize: number = ev.data.tabSize
   const extension: string = ev.data.extension
   const contents: string = ev.data.contents
@@ -113,5 +115,10 @@ onmessage = (ev: MessageEvent) => {
     }
   }
 
+  if (startTime) {
+    const endTime = performance.now()
+    const duration = endTime - startTime
+    console.info('Tokenization done in ' + duration)
+  }
   postMessage(tokens)
 }
