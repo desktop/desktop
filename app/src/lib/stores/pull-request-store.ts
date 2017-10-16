@@ -94,10 +94,14 @@ export class PullRequestStore {
 
       // We know the base repo ID can't be null since it's the repository we
       // fetched the PR from in the first place.
-      const baseId = pr.base.repoId!
-      const base = (await this.repositoriesStore.findGitHubRepositoryByID(
-        baseId
-      ))!
+      const baseId = forceUnwrap(
+        'PR cannot have a null base repo id',
+        pr.base.repoId
+      )
+      const base = forceUnwrap(
+        'PR cannot have a null base repo',
+        await this.repositoriesStore.findGitHubRepositoryByID(baseId)
+      )
 
       // We can be certain the PR ID is valid since we just got it from the
       // database.
