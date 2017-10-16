@@ -19,6 +19,8 @@ import 'codemirror/mode/sass/sass'
 import 'codemirror/mode/htmlmixed/htmlmixed'
 import 'codemirror/mode/markdown/markdown'
 import 'codemirror/mode/yaml/yaml'
+import 'codemirror/mode/xml/xml'
+import 'codemirror/mode/clike/clike'
 
 interface IToken {
   length: number
@@ -45,6 +47,19 @@ extensionMIMEMap.set('.scss', 'text/x-scss')
 extensionMIMEMap.set('.less', 'text/x-less')
 extensionMIMEMap.set('.yaml', 'text/yaml')
 extensionMIMEMap.set('.yml', 'text/yaml')
+
+extensionMIMEMap.set('.objc', 'text/x-objectivec')
+extensionMIMEMap.set('.scala', 'text/x-scala')
+extensionMIMEMap.set('.sc', 'text/x-scala')
+extensionMIMEMap.set('.cs', 'text/x-csharp')
+extensionMIMEMap.set('.java', 'text/x-java')
+extensionMIMEMap.set('.c', 'text/x-c')
+extensionMIMEMap.set('.h', 'text/x-c')
+extensionMIMEMap.set('.cpp', 'text/x-c++src')
+
+extensionMIMEMap.set('.xml', 'text/xml')
+extensionMIMEMap.set('.xaml', 'text/xml')
+extensionMIMEMap.set('.csproj', 'text/xml')
 
 onmessage = (ev: MessageEvent) => {
   const startTime = performance ? performance.now() : null
