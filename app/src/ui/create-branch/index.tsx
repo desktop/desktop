@@ -28,6 +28,7 @@ interface ICreateBranchProps {
   readonly tip: IUnbornRepository | IDetachedHead | IValidBranch
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
+  readonly initialName: string
 }
 
 enum StartPoint {
@@ -114,12 +115,18 @@ export class CreateBranch extends React.Component<
 
     this.state = {
       currentError: null,
-      proposedName: '',
+      proposedName: props.initialName,
       sanitizedName: '',
       startPoint: getStartPoint(props, StartPoint.DefaultBranch),
       isCreatingBranch: false,
       tipAtCreateStart: props.tip,
       defaultBranchAtCreateStart: props.defaultBranch,
+    }
+  }
+
+  public componentDidMount() {
+    if (this.state.proposedName.length) {
+      this.updateBranchName(this.state.proposedName)
     }
   }
 
@@ -243,6 +250,7 @@ export class CreateBranch extends React.Component<
           <Row>
             <TextBox
               label="Name"
+              value={this.state.proposedName}
               autoFocus={true}
               onChange={this.onBranchNameChange}
             />
@@ -270,7 +278,11 @@ export class CreateBranch extends React.Component<
 
   private onBranchNameChange = (event: React.FormEvent<HTMLInputElement>) => {
     const str = event.currentTarget.value
-    const sanitizedName = sanitizedBranchName(str)
+    this.updateBranchName(str)
+  }
+
+  private updateBranchName(name: string) {
+    const sanitizedName = sanitizedBranchName(name)
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === sanitizedName) > -1
     let currentError: Error | null = null
@@ -278,7 +290,7 @@ export class CreateBranch extends React.Component<
       currentError = new Error(`A branch named ${sanitizedName} already exists`)
     }
 
-    this.setState({ proposedName: str, sanitizedName })
+    this.setState({ proposedName: name, sanitizedName })
   }
 
   private createBranch = async () => {
