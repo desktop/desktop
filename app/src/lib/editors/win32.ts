@@ -1,10 +1,30 @@
 import * as Path from 'path'
 import { pathExists } from '../file-system'
-import { ExternalEditor } from '../../models/editors'
-import { LookupResult, FoundEditor } from './shared'
+import { IFoundEditor } from './found-editor'
 
 import { assertNever } from '../fatal-error'
 import { IRegistryEntry, readRegistryKeySafe } from '../registry'
+
+export enum ExternalEditor {
+  Atom = 'Atom',
+  VisualStudioCode = 'Visual Studio Code',
+  SublimeText = 'Sublime Text',
+}
+
+export function parse(label: string): ExternalEditor | null {
+  if (label === ExternalEditor.Atom) {
+    return ExternalEditor.Atom
+  }
+
+  if (label === ExternalEditor.VisualStudioCode) {
+    return ExternalEditor.VisualStudioCode
+  }
+  if (label === ExternalEditor.SublimeText) {
+    return ExternalEditor.SublimeText
+  }
+
+  return null
+}
 
 /**
  * Resolve a set of registry keys associated with the installed application.
@@ -24,8 +44,10 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
       return [
         // 64-bit version of VSCode - not available from home page but just made available
         'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{EA457B21-F73E-494C-ACAB-524FDE069978}_is1',
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{1287CAD5-7C8D-410D-88B9-0D1EE4A83FF2}_is1',
         // 32-bit version of VSCode - what most people will be using for the forseeable future
         'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C26E74D1-022E-4238-8B9D-1E7564A36CC9}_is1',
       ]
     case ExternalEditor.SublimeText:
       return [
@@ -75,7 +97,8 @@ function isExpectedInstallation(
       return displayName === 'Atom' && publisher === 'GitHub Inc.'
     case ExternalEditor.VisualStudioCode:
       return (
-        displayName === 'Visual Studio Code' &&
+        (displayName === 'Visual Studio Code' ||
+          displayName === 'Visual Studio Code - Insiders') &&
         publisher === 'Microsoft Corporation'
       )
     case ExternalEditor.SublimeText:
@@ -136,7 +159,7 @@ function extractApplicationInformation(
   return assertNever(editor, `Unknown external editor: ${editor}`)
 }
 
-async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
+async function findApplication(editor: ExternalEditor): Promise<string | null> {
   const registryKeys = getRegistryKeys(editor)
 
   let keys: ReadonlyArray<IRegistryEntry> = []
@@ -148,7 +171,7 @@ async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
   }
 
   if (keys.length === 0) {
-    return { editor, installed: false }
+    return null
   }
 
   const {
@@ -161,30 +184,17 @@ async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
     log.debug(
       `Registry entry for ${editor} did not match expected publisher settings`
     )
-    return {
-      editor,
-      installed: true,
-      pathExists: false,
-    }
+    return null
   }
 
   const path = getExecutableShim(editor, installLocation)
   const exists = await pathExists(path)
   if (!exists) {
     log.debug(`Command line interface for ${editor} not found at '${path}'`)
-    return {
-      editor,
-      installed: true,
-      pathExists: false,
-    }
+    return null
   }
 
-  return {
-    editor,
-    installed: true,
-    pathExists: true,
-    path,
-  }
+  return path
 }
 
 /**
@@ -192,26 +202,26 @@ async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
  * applications and their location on disk for Desktop to launch.
  */
 export async function getAvailableEditors(): Promise<
-  ReadonlyArray<FoundEditor>
+  ReadonlyArray<IFoundEditor<ExternalEditor>>
 > {
-  const results: Array<FoundEditor> = []
+  const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atom, code, sublime] = await Promise.all([
+  const [atomPath, codePath, sublimePath] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.SublimeText),
   ])
 
-  if (atom.installed && atom.pathExists) {
-    results.push({ editor: atom.editor, path: atom.path })
+  if (atomPath) {
+    results.push({ editor: ExternalEditor.Atom, path: atomPath })
   }
 
-  if (code.installed && code.pathExists) {
-    results.push({ editor: code.editor, path: code.path })
+  if (codePath) {
+    results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
   }
 
-  if (sublime.installed && sublime.pathExists) {
-    results.push({ editor: sublime.editor, path: sublime.path })
+  if (sublimePath) {
+    results.push({ editor: ExternalEditor.SublimeText, path: sublimePath })
   }
 
   return results
