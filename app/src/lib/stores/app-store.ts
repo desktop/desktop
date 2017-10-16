@@ -539,7 +539,6 @@ export class AppStore {
     }))
 
     this.updateBranchesState(repository, state => ({
-      ...state,
       tip: gitStore.tip,
       defaultBranch: gitStore.defaultBranch,
       allBranches: gitStore.allBranches,
@@ -2819,8 +2818,7 @@ export class AppStore {
       }
 
       return {
-        ...state,
-        pullRequests,
+        openPullRequests: pullRequests,
         currentPullRequest,
       }
     })
