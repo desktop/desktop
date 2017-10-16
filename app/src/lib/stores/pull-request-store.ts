@@ -34,13 +34,13 @@ export class PullRequestStore {
   ): Promise<ReadonlyArray<PullRequest>> {
     const api = API.fromAccount(account)
 
-    const prsFrmoAPI = await api.fetchPullRequests(
+    const prsFromAPI = await api.fetchPullRequests(
       repository.owner.login,
       repository.name,
       'open'
     )
 
-    await this.writePullRequests(prsFrmoAPI, repository)
+    await this.writePullRequests(prsFromAPI, repository)
 
     let prs = await this.getPullRequests(repository)
     const pullRequestsStatuses: Array<IPullRequestStatus> = []
