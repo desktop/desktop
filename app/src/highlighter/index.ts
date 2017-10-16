@@ -81,9 +81,12 @@ onmessage = (ev: MessageEvent) => {
       continue
     }
 
+    const ctx = { lines, line: ix }
+
     const lineStream = new (CodeMirror as any).StringStream(
       line,
-      tabSize
+      tabSize,
+      ctx
     ) as CodeMirror.StringStream
 
     while (!lineStream.eol()) {
