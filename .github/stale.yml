@@ -8,8 +8,9 @@ exemptLabels:
   - tech-debt
   - needs-design-input
 staleLabel: stale
+# Comment to post when marking an issue as stale. Set to `false` to disable
 markComment: >
   This issue has been automatically marked as stale because it has not had
-  recent activity. If you are able to answer the outstanding questions we
-  can revisit the issue to see if we can resolve it.
+  recent activity. It will be closed if no further activity occurs.
+# Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: true
