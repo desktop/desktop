@@ -18,6 +18,10 @@ interface IToken {
   token: string
 }
 
+type Tokens = {
+  [line: number]: { [startIndex: number]: IToken }
+}
+
 const extensionMIMEMap = new Map<string, string>()
 
 extensionMIMEMap.set('.ts', 'text/typescript')
@@ -29,10 +33,6 @@ extensionMIMEMap.set('.htm', 'text/html')
 extensionMIMEMap.set('.markdown', 'text/x-markdown')
 extensionMIMEMap.set('.md', 'text/x-markdown')
 
-// onerror = (ev: ErrorEvent) => {
-//   close()
-// }
-
 onmessage = (ev: MessageEvent) => {
   const tabSize: number = ev.data.tabSize
   const extension: string = ev.data.extension
@@ -42,15 +42,13 @@ onmessage = (ev: MessageEvent) => {
   const mimeType = extensionMIMEMap.get(extension)
 
   if (!mimeType) {
-    postMessage({ error: `Extension not supported: ${extension}` })
-    return
+    throw new Error(`Extension not supported: ${extension}`)
   }
 
   const mode: CodeMirror.Mode<{}> = CodeMirror.getMode({ tabSize }, mimeType)
 
   if (!mode) {
-    postMessage({ error: `No mode found for ${mimeType}` })
-    return
+    throw new Error(`No mode found for ${mimeType}`)
   }
 
   const lineFilter =
@@ -61,9 +59,7 @@ onmessage = (ev: MessageEvent) => {
   const lines = contents.split(/\r?\n/)
   const state: any = mode.startState ? mode.startState() : null
 
-  const tokens: {
-    [line: number]: { [startIndex: number]: IToken }
-  } = {}
+  const tokens: Tokens = {}
 
   for (const [ix, line] of lines.entries()) {
     // For stateless modes we can optimize by only running
@@ -104,5 +100,4 @@ onmessage = (ev: MessageEvent) => {
   }
 
   postMessage(tokens)
-  close()
 }
