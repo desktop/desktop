@@ -30,9 +30,11 @@ export async function measure<T>(
   }
 
   markBegin(id, cmd)
-  const result = await fn()
-  markEnd(id, cmd)
-  return result
+  try {
+    return await fn()
+  } finally {
+    markEnd(id, cmd)
+  }
 }
 
 /** Mark the beginning of a git operation. */
