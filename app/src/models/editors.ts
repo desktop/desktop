@@ -2,6 +2,7 @@ export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
   SublimeText = 'Sublime Text',
+  BBEdit = 'BBEdit',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -15,6 +16,10 @@ export function parse(label: string): ExternalEditor | null {
 
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
+  }
+
+  if (label === ExternalEditor.BBEdit) {
+    return ExternalEditor.BBEdit
   }
 
   return null
