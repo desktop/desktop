@@ -778,7 +778,12 @@ export class AppStore {
         .then(p =>
           this.updateStateWithPullRequests(p, repository, gitHubRepository)
         )
-        .catch(e => this.emitError(e))
+        .catch(e =>
+          console.warn(
+            `Error updating pull requests for ${gitHubRepository.fullName}`,
+            e
+          )
+        )
     }
 
     this._refreshPullRequests(repository)
