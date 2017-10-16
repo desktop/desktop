@@ -126,11 +126,23 @@ function highlight(
   tabSize: number,
   lines: Array<number>
 ) {
-  const worker = new Worker(`file:///${__dirname}/highlighter.js`)
+  const worker =
+    highlightWorkers.shift() ||
+    new Worker(`file:///${__dirname}/highlighter.js`)
 
   const result = new Promise<any>((resolve, reject) => {
-    worker.onerror = ev => reject(ev.error)
-    worker.onmessage = ev => resolve(ev.data)
+    worker.onerror = ev => {
+      worker.terminate()
+      reject(ev.error)
+    }
+    worker.onmessage = ev => {
+      if (highlightWorkers.length < maxIdlingWorkers) {
+        highlightWorkers.push(worker)
+      } else {
+        worker.terminate()
+      }
+      resolve(ev.data)
+    }
 
     worker.postMessage({ contents, extension, tabSize, lines })
   })
