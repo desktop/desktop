@@ -3,22 +3,23 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
+import * as Fs from 'fs'
+import * as Path from 'path'
+import { GitProcess } from 'dugite'
+
+import { shell } from '../helpers/test-app-shell'
+
 import {
   setupEmptyRepository,
   setupFixtureRepository,
   setupConflictedRepo,
 } from '../fixture-helper'
-import * as Fs from 'fs'
-import * as Path from 'path'
-import { GitProcess } from 'dugite'
 
 import { GitStore } from '../../src/lib/stores/git-store'
 import { AppFileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { TipState, IValidBranch } from '../../src/models/tip'
-
-import { shell } from '../test-app-shell'
 
 import { getCommit, getStatus } from '../../src/lib/git'
 

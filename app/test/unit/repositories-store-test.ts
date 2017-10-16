@@ -2,7 +2,7 @@ import * as chai from 'chai'
 const expect = chai.expect
 
 import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
-import { TestRepositoriesDatabase } from '../test-repositories-database'
+import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IAPIRepository } from '../../src/lib/api'
 
 describe('RepositoriesStore', () => {

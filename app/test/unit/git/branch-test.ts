@@ -1,8 +1,10 @@
 import { expect, use as chaiUse } from 'chai'
+import { shell } from '../../helpers/test-app-shell'
 import {
   setupEmptyRepository,
   setupFixtureRepository,
 } from '../../fixture-helper'
+
 import { Repository } from '../../../src/models/repository'
 import {
   TipState,
@@ -11,7 +13,6 @@ import {
   IUnbornRepository,
 } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
-import { shell } from '../../test-app-shell'
 import { GitProcess } from 'dugite'
 
 chaiUse(require('chai-datetime'))

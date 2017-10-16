@@ -3,8 +3,7 @@ const expect = chai.expect
 
 import { Account } from '../../src/models/account'
 import { AccountsStore } from '../../src/lib/stores'
-import { InMemoryStore } from '../in-memory-store'
-import { AsyncInMemoryStore } from '../async-in-memory-store'
+import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 
 describe('AccountsStore', () => {
   let accountsStore: AccountsStore | null = null

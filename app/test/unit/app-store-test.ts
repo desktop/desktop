@@ -17,9 +17,15 @@ import {
   RepositoriesStore,
   AccountsStore,
 } from '../../src/lib/stores'
-import { TestGitHubUserDatabase } from '../test-github-user-database'
-import { TestStatsDatabase } from '../test-stats-database'
-import { TestIssuesDatabase } from '../test-issues-database'
+import {
+  TestGitHubUserDatabase,
+  TestStatsDatabase,
+  TestIssuesDatabase,
+  TestRepositoriesDatabase,
+} from '../helpers/databases'
+import { setupEmptyRepository } from '../fixture-helper'
+import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+
 import { StatsStore } from '../../src/lib/stats'
 
 import {
@@ -30,11 +36,6 @@ import {
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
-
-import { setupEmptyRepository } from '../fixture-helper'
-import { TestRepositoriesDatabase } from '../test-repositories-database'
-import { InMemoryStore } from '../in-memory-store'
-import { AsyncInMemoryStore } from '../async-in-memory-store'
 
 describe('AppStore', () => {
   async function createAppStore(): Promise<AppStore> {
