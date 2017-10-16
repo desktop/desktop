@@ -1,5 +1,4 @@
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import { OcticonSymbol, iconForRepository } from '../../src/ui/octicons'
 import { CloningRepository } from '../../src/models/cloning-repository'

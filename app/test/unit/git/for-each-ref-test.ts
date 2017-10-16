@@ -1,13 +1,11 @@
-import { expect, use as chaiUse } from 'chai'
+import { expect } from 'chai'
 import { Repository } from '../../../src/models/repository'
 import {
   setupFixtureRepository,
   setupEmptyRepository,
-} from '../../fixture-helper'
+} from '../../helpers/repositories'
 import { getBranches } from '../../../src/lib/git/for-each-ref'
 import { BranchType } from '../../../src/models/branch'
-
-chaiUse(require('chai-datetime'))
 
 describe('git/for-each-ref', () => {
   let repository: Repository | null = null

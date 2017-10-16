@@ -1,5 +1,4 @@
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import { parseError } from '../../src/lib/squirrel-error-parser'
 

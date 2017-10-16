@@ -3,7 +3,8 @@
 /// <reference path="../../node_modules/@types/node/index.d.ts" />
 
 import 'mocha'
-import 'chai-datetime'
+import { use } from 'chai'
+use(require('chai-datetime'))
 
 // These constants are defined by Webpack at build time, but since tests aren't
 // built with Webpack we need to make sure these exist at runtime.

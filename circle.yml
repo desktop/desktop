@@ -16,31 +16,24 @@ dependencies:
 
   pre:
     - brew install node || brew upgrade node
-    - npm install -g npm@4.6.1
-    - npm prune
-    - node -v
-    - npm -v
-    - cd app && npm prune && cd ..
+    - npm install -g yarn@1.2.0
 
   override:
-    - npm install
-    - npm rebuild
-    - npm ls --prod || true
-    - npm ls --dev || true
+    - yarn install --force
 
 compile:
   override:
-    - npm run check-prettiness
-    - npm run lint
-    - npm run build:prod
+    - yarn check-prettiness
+    - yarn lint
+    - yarn build:prod
 
 test:
   override:
-    - npm run test:setup
-    - npm test
+    - yarn test:setup
+    - yarn test
 
 deployment:
   production:
     branch: /^__release-.*/
     commands:
-      - npm run publish
+      - yarn run publish

@@ -4,7 +4,7 @@ import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
 import { getChangedFiles, getCommits } from '../../../src/lib/git'
-import { setupFixtureRepository } from '../../fixture-helper'
+import { setupFixtureRepository } from '../../helpers/repositories'
 import { AppFileStatus } from '../../../src/models/status'
 import { GitProcess } from 'dugite'
 
