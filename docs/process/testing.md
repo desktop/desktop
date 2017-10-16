@@ -313,6 +313,7 @@
   - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
     - [ ] Clicking the "computer icon" opens from a Pull Request page opens the branch on Desktop
   - [ ] If private email is enabled (http://github.com/settings/emails), user is blocked from pushing to all associated repositories on Desktop?
+  - [ ] If user updates name in Settings, change should reflect in Preferences
 
 ### Pull Request list (v1.1)
  - [ ] Pull request list shown as subsection of Branch list
