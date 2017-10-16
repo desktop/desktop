@@ -122,7 +122,7 @@ async function getFileContent(
 
 const highlightWorkers = new Array<Worker>()
 const maxIdlingWorkers = 2
-const workerMaxRunDuration = 1000
+const workerMaxRunDuration = 5 * 1000
 
 function highlight(
   contents: string,
@@ -376,6 +376,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
       tabSize,
       oldLineFilter
     )
+
     const newHighlighter = highlight(
       contents.newContents.toString('utf8'),
       Path.extname(file.path),
