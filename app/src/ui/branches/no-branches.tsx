@@ -9,7 +9,6 @@ interface INoBranchesProps {
 
 export class NoBranches extends React.Component<INoBranchesProps> {
   public render() {
-    const shortcut = __DARWIN__ ? '⌘' : 'Ctrl'
     return (
       <div className="no-branches">
         <img src={BlankSlateImage} className="blankslate-image" />
@@ -29,10 +28,26 @@ export class NoBranches extends React.Component<INoBranchesProps> {
         </Button>
 
         <div className="protip">
-          ProTip! Press <kbd>{shortcut}</kbd> + <kbd>⇧</kbd> + <kbd>N</kbd> to
-          quickly create a new branch from anywhere within the app
+          ProTip! Press {this.renderShortcut()} to quickly create a new branch
+          from anywhere within the app
         </div>
       </div>
     )
+  }
+
+  private renderShortcut() {
+    if (__DARWIN__) {
+      return (
+        <span>
+          <kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>N</kbd>
+        </span>
+      )
+    } else {
+      return (
+        <span>
+          <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd>
+        </span>
+      )
+    }
   }
 }
