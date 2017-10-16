@@ -1448,7 +1448,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         repository={repository}
         repositoryState={selection.state}
         selectedTab={this.state.selectedBranchesTab}
-        pullRequests={branchesState.pullRequests}
+        pullRequests={branchesState.openPullRequests}
         currentPullRequest={branchesState.currentPullRequest}
       />
     )

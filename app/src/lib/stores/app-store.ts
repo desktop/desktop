@@ -389,7 +389,7 @@ export class AppStore {
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
-        pullRequests: null,
+        openPullRequests: null,
         currentPullRequest: null,
       },
       commitAuthor: null,
