@@ -1,4 +1,5 @@
 import { GitProcess } from 'dugite'
+import * as GitPerf from '../../ui/lib/git-perf'
 
 type ProcessOutput = {
   output: Buffer
@@ -20,73 +21,59 @@ export function spawnAndComplete(
   name: string,
   successExitCodes?: Set<number>
 ): Promise<ProcessOutput> {
-  return new Promise<ProcessOutput>((resolve, reject) => {
-    const commandName = `${name}: git ${args.join(' ')}`
-    log.debug(`Executing ${commandName}`)
+  const commandName = `${name}: git ${args.join(' ')}`
+  return GitPerf.measure(
+    commandName,
+    () =>
+      new Promise<ProcessOutput>((resolve, reject) => {
+        const process = GitProcess.spawn(args, path)
 
-    const startTime = performance && performance.now ? performance.now() : null
+        const stdout = new Array<Buffer>()
+        let output: Buffer | undefined
+        process.stdout.on('data', chunk => {
+          stdout.push(chunk as Buffer)
+        })
 
-    const process = GitProcess.spawn(args, path)
+        const stderr = new Array<Buffer>()
+        let error: Buffer | undefined
+        process.stderr.on('data', chunk => {
+          stderr.push(chunk as Buffer)
+        })
 
-    const stdout = new Array<Buffer>()
-    let output: Buffer | undefined
-    process.stdout.on('data', chunk => {
-      stdout.push(chunk as Buffer)
-    })
+        process.stdout.once('close', () => {
+          output = Buffer.concat(stdout)
 
-    const stderr = new Array<Buffer>()
-    let error: Buffer | undefined
-    process.stderr.on('data', chunk => {
-      stderr.push(chunk as Buffer)
-    })
+          if (output && error) {
+            resolve({ output, error })
+          }
+        })
 
-    function reportTimings() {
-      if (startTime) {
-        const rawTime = performance.now() - startTime
-        if (rawTime > 1000) {
-          const timeInSeconds = (rawTime / 1000).toFixed(3)
-          log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
-        }
-      }
-    }
+        process.stderr.once('close', () => {
+          error = Buffer.concat(stderr)
 
-    process.stdout.once('close', () => {
-      // process.on('exit') may fire before stdout has closed, so this is a
-      // more accurate point in time to measure that the command has completed
-      // as we cannot proceed without the contents of the stdout stream
-      reportTimings()
+          if (output && error) {
+            resolve({ output, error })
+          }
+        })
 
-      output = Buffer.concat(stdout)
-      if (output && error) {
-        resolve({ output, error })
-      }
-    })
+        process.on('error', err => {
+          // for unhandled errors raised by the process, let's surface this in the
+          // promise and make the caller handle it
+          reject(err)
+        })
 
-    process.stderr.once('close', () => {
-      error = Buffer.concat(stderr)
-
-      if (output && error) {
-        resolve({ output, error })
-      }
-    })
-
-    process.on('error', err => {
-      // for unhandled errors raised by the process, let's surface this in the
-      // promise and make the caller handle it
-      reject(err)
-    })
-
-    process.on('exit', (code, signal) => {
-      // mimic the experience of GitProcess.exec for handling known codes when
-      // the process terminates
-      const exitCodes = successExitCodes || new Set([0])
-      if (!exitCodes.has(code)) {
-        reject(
-          new Error(
-            `Git returned an unexpected exit code '${code}' which should be handled by the caller.'`
-          )
-        )
-      }
-    })
-  })
+        process.on('exit', (code, signal) => {
+          // mimic the experience of GitProcess.exec for handling known codes when
+          // the process terminates
+          const exitCodes = successExitCodes || new Set([0])
+          if (!exitCodes.has(code)) {
+            reject(
+              new Error(
+                `Git returned an unexpected exit code '${code}' which should be handled by the caller.'`
+              )
+            )
+          }
+        })
+      })
+  )
 }
