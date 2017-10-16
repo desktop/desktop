@@ -1,4 +1,4 @@
-import { GitHubUserDatabase } from '../src/lib/databases'
+import { GitHubUserDatabase } from '../../../src/lib/databases'
 
 export class TestGitHubUserDatabase extends GitHubUserDatabase {
   public constructor() {

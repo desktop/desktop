@@ -1,4 +1,4 @@
-import { PullRequestDatabase } from '../src/lib/databases'
+import { PullRequestDatabase } from '../../../src/lib/databases'
 
 export class TestPullRequestDatabase extends PullRequestDatabase {
   public constructor() {

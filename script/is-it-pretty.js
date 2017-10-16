@@ -35,7 +35,7 @@ glob(globPattern, (err, matches) => {
     console.log('This is some pretty code')
   } else {
     console.log(
-      `${uglyFiles.length} out of ${matchCount} code files are ugly. Please run 'npm run prettify' to make the following files pretty:`
+      `${uglyFiles.length} out of ${matchCount} code files are ugly. Please run 'yarn prettify' to make the following files pretty:`
     )
 
     for (const file of uglyFiles) {
