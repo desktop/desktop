@@ -3,6 +3,7 @@
 import * as fs from 'fs-extra'
 import * as cp from 'child_process'
 import * as path from 'path'
+import * as electronInstaller from 'electron-winstaller'
 import {
   getDistRoot,
   getDistPath,
@@ -19,8 +20,6 @@ import {
 const distPath = getDistPath()
 const productName = getProductName()
 const outputDir = path.join(distPath, '..', 'installer')
-
-import * as electronInstaller from 'electron-winstaller'
 
 if (process.platform === 'darwin') {
   packageOSX()
