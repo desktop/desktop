@@ -336,7 +336,15 @@ export class Diff extends React.Component<IDiffProps, {}> {
 
     const contents = await contentsPromise
 
-    if (this.props.file !== file || this.props.diff !== diff) {
+    // Check to see whether something has changes since
+    // we started loading contents that makes our contents
+    // potentially stale.
+    if (
+      this.props.file.path !== file.path ||
+      this.props.file.oldPath !== file.oldPath ||
+      this.props.diff.kind !== DiffType.Text ||
+      this.props.diff.text !== diff.text
+    ) {
       return
     }
 
@@ -359,6 +367,18 @@ export class Diff extends React.Component<IDiffProps, {}> {
       oldHighlighter.result,
       newHighlighter.result,
     ])
+
+    // Check to see whether something has changes since
+    // we started highlighting that makes our tokens
+    // potentially stale.
+    if (
+      this.props.file.path !== file.path ||
+      this.props.file.oldPath !== file.oldPath ||
+      this.props.diff.kind !== DiffType.Text ||
+      this.props.diff.text !== diff.text
+    ) {
+      return
+    }
 
     cm.setOption('mode', {
       name: DiffSyntaxMode.ModeName,
