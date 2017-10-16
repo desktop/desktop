@@ -780,7 +780,7 @@ export class AppStore {
         )
         .catch(e =>
           console.warn(
-            `Error updating pull requests for ${gitHubRepository.fullName}`,
+            `Error getting pull requests for ${gitHubRepository.fullName}`,
             e
           )
         )
