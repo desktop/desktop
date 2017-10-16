@@ -6,7 +6,7 @@ import {
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { API, IAPIPullRequest } from '../api'
-import { fatalError } from '../fatal-error'
+import { fatalError, forceUnwrap } from '../fatal-error'
 import { RepositoriesStore } from './repositories-store'
 import {
   PullRequest,
@@ -99,10 +99,16 @@ export class PullRequestStore {
         baseId
       ))!
 
-      const prStatus = await this.getPullRequestStatusById(pr.head.sha, pr.id!)
+      // We can be certain the PR ID is valid since we just got it from the
+      // database.
+      const prID = forceUnwrap(
+        'PR cannot have a null ID after being retrieved from the database',
+        pr.id
+      )
+      const prStatus = await this.getPullRequestStatusById(pr.head.sha, prID)
 
       const builtPR = new PullRequest(
-        pr.id!,
+        prID,
         new Date(pr.createdAt),
         prStatus,
         pr.title,
@@ -148,7 +154,7 @@ export class PullRequestStore {
       // in the first place.
       const baseRepo = await this.repositoriesStore.findOrPutGitHubRepository(
         repository.endpoint,
-        pr.base.repo!
+        forceUnwrap('PR cannot have a null base repo', pr.base.repo)
       )
 
       insertablePRs.push({
@@ -163,7 +169,7 @@ export class PullRequestStore {
         base: {
           ref: pr.base.ref,
           sha: pr.base.sha,
-          repoId: baseRepo.dbID!,
+          repoId: forceUnwrap('PR cannot have a null base repo', baseRepo.dbID),
         },
         author: pr.user.login,
       })
