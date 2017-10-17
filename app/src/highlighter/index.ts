@@ -76,6 +76,38 @@ extensionMIMEMap.set('.php', 'text/x-php')
 
 extensionMIMEMap.set('.py', 'text/x-python')
 
+function guessMimeType(contents: string) {
+  if (contents.startsWith('<?xml')) {
+    return 'text/xml'
+  }
+
+  if (contents.startsWith('#!')) {
+    const m = /^#!.*?(ts-node|node|bash|sh|python(?:[\d.]+)?)\r?\n/g.exec(
+      contents
+    )
+
+    if (m) {
+      switch (m[1]) {
+        case 'ts-node':
+          return 'text/typescript'
+        case 'node':
+          return 'text/javascript'
+        case 'sh':
+        case 'bash':
+          return 'text/x-sh'
+        case 'perl':
+          return 'text/x-perl'
+      }
+
+      if (m[1].startsWith('python')) {
+        return 'text/x-python'
+      }
+    }
+  }
+
+  return null
+}
+
 onmessage = (ev: MessageEvent) => {
   const startTime = performance ? performance.now() : null
 
@@ -84,12 +116,10 @@ onmessage = (ev: MessageEvent) => {
   const contents: string = ev.data.contents
   const requestedLines: Array<number> | undefined = ev.data.lines
 
-  const mimeType = extensionMIMEMap.get(extension)
+  const mimeType = extensionMIMEMap.get(extension) || guessMimeType(contents)
 
   if (!mimeType) {
-    console.debug(
-      `Could not map '${extension}' to supported mime type for highlighting`
-    )
+    console.debug(`Could not determine mime type for highlighting`)
     postMessage({})
     return
   }
