@@ -21,6 +21,7 @@ import 'codemirror/mode/markdown/markdown'
 import 'codemirror/mode/yaml/yaml'
 import 'codemirror/mode/xml/xml'
 import 'codemirror/mode/clike/clike'
+import 'codemirror/mode/shell/shell'
 
 interface IToken {
   length: number
@@ -61,6 +62,7 @@ extensionMIMEMap.set('.xml', 'text/xml')
 extensionMIMEMap.set('.xaml', 'text/xml')
 extensionMIMEMap.set('.csproj', 'text/xml')
 
+extensionMIMEMap.set('.sh', 'text/x-sh')
 onmessage = (ev: MessageEvent) => {
   const startTime = performance ? performance.now() : null
 
