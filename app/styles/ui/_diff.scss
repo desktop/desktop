@@ -1,4 +1,4 @@
-@import "../mixins";
+@import '../mixins';
 
 /** The container for the CodeMirror element. */
 .diff-code-mirror {
@@ -465,5 +465,77 @@
         right: 0;
       }
     }
+  }
+}
+
+// Syntax higlighting. Adapted from
+// https://github.com/primer/github-syntax-light/blob/5aeffad2559647286080328436156c4904a9785b/lib/github-light.css
+.cm-s-default {
+  .cm-variable {
+    color: #6f42c1;
+  }
+
+  .cm-keyword {
+    color: #d73a49;
+  }
+
+  .cm-atom {
+    color: #005cc5;
+  }
+  .cm-number {
+    color: inherit;
+  }
+
+  .cm-def {
+    color: inherit;
+  }
+
+  .cm-variable-2,
+  .cm-variable-3 {
+    color: #24292e;
+  }
+  .cm-comment,
+  .cm-meta {
+    color: $gray-500;
+  }
+  .cm-string,
+  .cm-string-2 {
+    color: #032f62;
+
+    &.cm-property {
+      color: inherit;
+    }
+  }
+  .cm-qualifier,
+  .cm-type {
+    color: #6f42c1;
+  }
+  .cm-builtin {
+    color: inherit;
+  }
+  .cm-bracket {
+    color: inherit;
+  }
+  .cm-tag {
+    color: inherit;
+  }
+  .cm-attribute {
+    color: #00c;
+  }
+  .cm-hr {
+    color: inherit;
+  }
+  .cm-link {
+    text-decoration: underline;
+    color: #032f62;
+  }
+
+  // Intra line markings takes precedence over syntax highlighting.
+  .cm-diff-delete-inner {
+    color: var(--diff-delete-text-color);
+  }
+
+  .cm-diff-add-inner {
+    color: var(--diff-add-text-color);
   }
 }
