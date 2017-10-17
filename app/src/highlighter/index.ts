@@ -26,6 +26,7 @@ import 'codemirror/mode/go/go'
 import 'codemirror/mode/perl/perl'
 import 'codemirror/mode/php/php'
 import 'codemirror/mode/python/python'
+import 'codemirror/mode/ruby/ruby'
 
 interface IToken {
   length: number
@@ -75,6 +76,8 @@ extensionMIMEMap.set('.pl', 'text/x-perl')
 extensionMIMEMap.set('.php', 'text/x-php')
 
 extensionMIMEMap.set('.py', 'text/x-python')
+
+extensionMIMEMap.set('.rb', 'text/x-ruby')
 
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {
