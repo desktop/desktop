@@ -13,20 +13,70 @@ import { innerMode } from 'codemirror/src/modes'
 const cm = CodeMirror as any
 cm.innerMode = cm.innerMode || innerMode
 
+const extensionMIMEMap = new Map<string, string>()
+
 import 'codemirror/mode/javascript/javascript'
+
+extensionMIMEMap.set('.ts', 'text/typescript')
+extensionMIMEMap.set('.js', 'text/javascript')
+extensionMIMEMap.set('.json', 'application/json')
+
 import 'codemirror/mode/jsx/jsx'
-import 'codemirror/mode/sass/sass'
+extensionMIMEMap.set('.tsx', 'text/typescript-jsx')
+extensionMIMEMap.set('.jsx', 'text/jsx')
+
 import 'codemirror/mode/htmlmixed/htmlmixed'
+extensionMIMEMap.set('.html', 'text/html')
+extensionMIMEMap.set('.htm', 'text/html')
+
+import 'codemirror/mode/css/css'
+extensionMIMEMap.set('.css', 'text/css')
+extensionMIMEMap.set('.scss', 'text/x-scss')
+extensionMIMEMap.set('.less', 'text/x-less')
+
+import 'codemirror/mode/sass/sass'
+extensionMIMEMap.set('.sass', 'text/x-sass')
+
 import 'codemirror/mode/markdown/markdown'
+extensionMIMEMap.set('.markdown', 'text/x-markdown')
+extensionMIMEMap.set('.md', 'text/x-markdown')
+
 import 'codemirror/mode/yaml/yaml'
+extensionMIMEMap.set('.yaml', 'text/yaml')
+extensionMIMEMap.set('.yml', 'text/yaml')
+
 import 'codemirror/mode/xml/xml'
+extensionMIMEMap.set('.xml', 'text/xml')
+extensionMIMEMap.set('.xaml', 'text/xml')
+extensionMIMEMap.set('.csproj', 'text/xml')
+
 import 'codemirror/mode/clike/clike'
+extensionMIMEMap.set('.objc', 'text/x-objectivec')
+extensionMIMEMap.set('.scala', 'text/x-scala')
+extensionMIMEMap.set('.sc', 'text/x-scala')
+extensionMIMEMap.set('.cs', 'text/x-csharp')
+extensionMIMEMap.set('.java', 'text/x-java')
+extensionMIMEMap.set('.c', 'text/x-c')
+extensionMIMEMap.set('.h', 'text/x-c')
+extensionMIMEMap.set('.cpp', 'text/x-c++src')
+
 import 'codemirror/mode/shell/shell'
+extensionMIMEMap.set('.sh', 'text/x-sh')
+
 import 'codemirror/mode/go/go'
+extensionMIMEMap.set('.go', 'text/x-go')
+
 import 'codemirror/mode/perl/perl'
+extensionMIMEMap.set('.pl', 'text/x-perl')
+
 import 'codemirror/mode/php/php'
+extensionMIMEMap.set('.php', 'text/x-php')
+
 import 'codemirror/mode/python/python'
+extensionMIMEMap.set('.py', 'text/x-python')
+
 import 'codemirror/mode/ruby/ruby'
+extensionMIMEMap.set('.rb', 'text/x-ruby')
 
 interface IToken {
   length: number
@@ -37,47 +87,6 @@ interface IToken {
 type Tokens = {
   [line: number]: { [startIndex: number]: IToken }
 }
-
-const extensionMIMEMap = new Map<string, string>()
-
-extensionMIMEMap.set('.ts', 'text/typescript')
-extensionMIMEMap.set('.tsx', 'text/jsx')
-extensionMIMEMap.set('.js', 'text/javascript')
-extensionMIMEMap.set('.json', 'application/json')
-extensionMIMEMap.set('.html', 'text/html')
-extensionMIMEMap.set('.htm', 'text/html')
-extensionMIMEMap.set('.markdown', 'text/x-markdown')
-extensionMIMEMap.set('.md', 'text/x-markdown')
-extensionMIMEMap.set('.css', 'text/css')
-extensionMIMEMap.set('.scss', 'text/x-scss')
-extensionMIMEMap.set('.less', 'text/x-less')
-extensionMIMEMap.set('.yaml', 'text/yaml')
-extensionMIMEMap.set('.yml', 'text/yaml')
-
-extensionMIMEMap.set('.objc', 'text/x-objectivec')
-extensionMIMEMap.set('.scala', 'text/x-scala')
-extensionMIMEMap.set('.sc', 'text/x-scala')
-extensionMIMEMap.set('.cs', 'text/x-csharp')
-extensionMIMEMap.set('.java', 'text/x-java')
-extensionMIMEMap.set('.c', 'text/x-c')
-extensionMIMEMap.set('.h', 'text/x-c')
-extensionMIMEMap.set('.cpp', 'text/x-c++src')
-
-extensionMIMEMap.set('.xml', 'text/xml')
-extensionMIMEMap.set('.xaml', 'text/xml')
-extensionMIMEMap.set('.csproj', 'text/xml')
-
-extensionMIMEMap.set('.sh', 'text/x-sh')
-
-extensionMIMEMap.set('.go', 'text/x-go')
-
-extensionMIMEMap.set('.pl', 'text/x-perl')
-
-extensionMIMEMap.set('.php', 'text/x-php')
-
-extensionMIMEMap.set('.py', 'text/x-python')
-
-extensionMIMEMap.set('.rb', 'text/x-ruby')
 
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {
