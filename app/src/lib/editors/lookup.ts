@@ -1,15 +1,16 @@
-import { FoundEditor, ExternalEditorError } from './shared'
+import { ExternalEditor, ExternalEditorError } from './shared'
+import { IFoundEditor } from './found-editor'
 import { getAvailableEditors as getAvailableEditorsDarwin } from './darwin'
 import { getAvailableEditors as getAvailableEditorsWindows } from './win32'
 
-let editorCache: ReadonlyArray<FoundEditor> | null = null
+let editorCache: ReadonlyArray<IFoundEditor<ExternalEditor>> | null = null
 
 /**
  * Resolve a list of installed editors on the user's machine, using the known
  * install identifiers that each OS supports.
  */
 export async function getAvailableEditors(): Promise<
-  ReadonlyArray<FoundEditor>
+  ReadonlyArray<IFoundEditor<ExternalEditor>>
 > {
   if (editorCache && editorCache.length > 0) {
     return editorCache
@@ -41,7 +42,7 @@ export async function getAvailableEditors(): Promise<
  */
 export async function findEditorOrDefault(
   name: string | null
-): Promise<FoundEditor> {
+): Promise<IFoundEditor<ExternalEditor>> {
   const editors = await getAvailableEditors()
   if (editors.length === 0) {
     throw new ExternalEditorError(
