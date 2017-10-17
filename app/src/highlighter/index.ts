@@ -160,7 +160,7 @@ onmessage = (ev: MessageEvent) => {
   const tokens: Tokens = {}
 
   for (const [ix, line] of lines.entries()) {
-    // No need to continue on after the max line
+    // No need to continue after the max line
     if (maxLine !== null && ix > maxLine) {
       break
     }
