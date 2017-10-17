@@ -3,7 +3,7 @@
 // This doesn't import all of CodeMirror, instead it only imports
 // a small subset. This hack is brought to you by webpack and you
 // can read all about it in webpack.common.js.
-import CodeMirror from 'codemirror'
+import * as CodeMirror from 'codemirror'
 
 // This is a hack, some modes (looking at you markdown) uses
 // CodeMirror.innerMode which isn't defined in the stripped down
