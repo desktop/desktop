@@ -34,9 +34,6 @@ extensionMIMEMap.set('.css', 'text/css')
 extensionMIMEMap.set('.scss', 'text/x-scss')
 extensionMIMEMap.set('.less', 'text/x-less')
 
-import 'codemirror/mode/sass/sass'
-extensionMIMEMap.set('.sass', 'text/x-sass')
-
 import 'codemirror/mode/markdown/markdown'
 extensionMIMEMap.set('.markdown', 'text/x-markdown')
 extensionMIMEMap.set('.md', 'text/x-markdown')
