@@ -22,6 +22,10 @@ import 'codemirror/mode/yaml/yaml'
 import 'codemirror/mode/xml/xml'
 import 'codemirror/mode/clike/clike'
 import 'codemirror/mode/shell/shell'
+import 'codemirror/mode/go/go'
+import 'codemirror/mode/perl/perl'
+import 'codemirror/mode/php/php'
+import 'codemirror/mode/python/python'
 
 interface IToken {
   length: number
@@ -63,6 +67,15 @@ extensionMIMEMap.set('.xaml', 'text/xml')
 extensionMIMEMap.set('.csproj', 'text/xml')
 
 extensionMIMEMap.set('.sh', 'text/x-sh')
+
+extensionMIMEMap.set('.go', 'text/x-go')
+
+extensionMIMEMap.set('.pl', 'text/x-perl')
+
+extensionMIMEMap.set('.php', 'text/x-php')
+
+extensionMIMEMap.set('.py', 'text/x-python')
+
 onmessage = (ev: MessageEvent) => {
   const startTime = performance ? performance.now() : null
 
