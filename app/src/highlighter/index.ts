@@ -149,12 +149,22 @@ onmessage = (ev: MessageEvent) => {
       ? new Set<number>(requestedLines)
       : null
 
+  // If we've got a set of requested lines we can keep track of the maximum
+  // line we need so that we can bail immediately when we've reached it.
+  const maxLine =
+    requestedLines && requestedLines.length ? Math.max(...requestedLines) : null
+
   const lines = contents.split(/\r?\n/)
   const state: any = mode.startState ? mode.startState() : null
 
   const tokens: Tokens = {}
 
   for (const [ix, line] of lines.entries()) {
+    // No need to continue on after the max line
+    if (maxLine !== null && ix > maxLine) {
+      break
+    }
+
     // For stateless modes we can optimize by only running
     // the tokenizer over lines we care about.
     if (lineFilter && !state) {

@@ -130,7 +130,9 @@ function highlight(
   tabSize: number,
   lines: Array<number>
 ) {
-  if (!contents.length) {
+  // Bail early if there's no content to highlight or if we don't
+  // need any lines from this file.
+  if (!contents.length || !lines.length) {
     return Promise.resolve({})
   }
 
