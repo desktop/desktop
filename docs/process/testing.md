@@ -161,7 +161,7 @@
   - [ ] Pull (Mac: ⇧⌘P; Windows: Ctrl+Shirt+P)
     - [ ] Commits from repo pulled from .com; error message shown if conflicts
   - [ ] Remove
-    - [ ] Repo is removed from Repo List; confirmation option if enabled
+    - [ ] Repo is removed from Repo List; confirmation dialgue shown if Preferences option enabled
   - [ ] View on GitHub (Mac: ⌥⌘G; Windows: Ctrl+Alt+G)
     - [ ] Repo on .com is opened; must be logged in if private repo or Enterprise
   - [ ] Open in Terminal/Command prompt
@@ -304,11 +304,11 @@
   - [ ] When a branch is local-only make sure that the `Fetch` button changes to `Publish` and it publishes
   
 ### Publishing only
-  - [ ] unpublished repository, unborn HEAD - `Publish button` enabled (user can publish repository)
-  - [ ] unpublished repository, valid branch - `Publish button` enabled (user can publish repository and branch)
-  - [ ] published repository, unborn HEAD - `Publish button` disabled (no branch to push)
-  - [ ] published repository, branch without tracking - `Publish button` enabled (user can publish branch)
-  - [ ] published repository, network action - `Publish button` disabled (don't interfere with existing action)
+  - [ ] Unpublished repository, unborn HEAD - `Publish button` enabled (user can publish repository)
+  - [ ] Unpublished repository, valid branch - `Publish button` enabled (user can publish repository and branch)
+  - [ ] Published repository, unborn HEAD - `Publish button` disabled (no branch to push)
+  - [ ] Published repository, branch without tracking - `Publish button` enabled (user can publish branch)
+  - [ ] Published repository, network action - `Publish button` disabled (don't interfere with existing action)
   
 ### Dotcom
   - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
