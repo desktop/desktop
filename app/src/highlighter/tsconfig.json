@@ -12,8 +12,5 @@
     "lib": ["scripthost", "webworker", "es2017"],
     "types": []
   },
-  "files": ["index.ts"],
-  "include": [],
-  "exclude": [],
   "compileOnSave": false
 }
