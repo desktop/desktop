@@ -1,7 +1,6 @@
 import { clipboard } from 'electron'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as Fs from 'fs'
 import * as Path from 'path'
 import { Disposable } from 'event-kit'
 
@@ -51,6 +50,7 @@ import { fatalError } from '../../lib/fatal-error'
 import { RangeSelectionSizePixels } from './edge-detection'
 import { relativeChanges } from './changed-range'
 import { getBlobContents } from '../../lib/git/show'
+import { getWorkingDirectoryContents } from '../../lib/git/diff'
 
 import { DiffSyntaxMode } from './diff-syntax-mode'
 import { ITokens } from '../../lib/tokens'
@@ -66,59 +66,37 @@ const narrowNoNewlineSymbol = new OcticonSymbol(
   'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z'
 )
 
-async function getWorkingDirectoryContent(
-  repository: Repository,
-  file: WorkingDirectoryFileChange
-): Promise<{ oldContents: Buffer; newContents: Buffer }> {
-  const [oldContents, newContents] = await Promise.all([
-    getBlobContents(repository, '', file.oldPath || file.path).catch(
-      err => new Buffer('')
-    ),
-    new Promise<Buffer>((resolve, reject) => {
-      Fs.readFile(Path.resolve(repository.path, file.path), (err, data) => {
-        if (err) {
-          resolve(new Buffer(''))
-        } else {
-          resolve(data)
-        }
-      })
-    }),
-  ])
-
-  return { oldContents, newContents }
-}
-
-async function getCommittedContent(
-  repository: Repository,
-  file: CommittedFileChange
-): Promise<{ oldContents: Buffer; newContents: Buffer }> {
-  const [oldContents, newContents] = await Promise.all([
-    getBlobContents(
-      repository,
-      file.commitish + '^',
-      file.oldPath || file.path
-    ).catch(err => new Buffer('')),
-    getBlobContents(
-      repository,
-      file.commitish,
-      file.oldPath || file.path
-    ).catch(err => new Buffer('')),
-  ])
-
-  return { oldContents, newContents }
-}
-
 async function getFileContent(
   repository: Repository,
   file: FileChange
 ): Promise<{ oldContents: Buffer; newContents: Buffer }> {
+  let oldPromise
+  let newPromise
+
   if (file instanceof WorkingDirectoryFileChange) {
-    return await getWorkingDirectoryContent(repository, file)
+    oldPromise = getBlobContents(repository, '', file.oldPath || file.path)
+    newPromise = getWorkingDirectoryContents(repository, file, 512 * 1024)
   } else if (file instanceof CommittedFileChange) {
-    return await getCommittedContent(repository, file)
+    oldPromise = getBlobContents(
+      repository,
+      `${file.commitish}^`,
+      file.oldPath || file.path
+    )
+    newPromise = getBlobContents(repository, file.commitish, file.path)
   } else {
     throw new Error('Unknown file type')
   }
+
+  const onError = (err: Error) => {
+    return new Buffer(0)
+  }
+
+  const [oldContents, newContents] = await Promise.all([
+    oldPromise.catch(onError),
+    newPromise.catch(onError),
+  ])
+
+  return { oldContents, newContents }
 }
 
 const highlightWorkers = new Array<Worker>()
