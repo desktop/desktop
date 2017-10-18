@@ -202,7 +202,10 @@ highlighterConfig.module.rules = [
         options: {
           useBabel: true,
           useCache: true,
-          configFileName: 'tsconfig.webworker.json',
+          configFileName: path.resolve(
+            __dirname,
+            'src/highlighter/tsconfig.json'
+          ),
         },
       },
     ],

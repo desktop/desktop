@@ -3,7 +3,7 @@
 // This doesn't import all of CodeMirror, instead it only imports
 // a small subset. This hack is brought to you by webpack and you
 // can read all about it in webpack.common.js.
-import * as CodeMirror from 'codemirror'
+import * as CodeMirror from 'codemirror/addon/runmode/runmode.node.js'
 
 // This is a hack, some modes (looking at you markdown) uses
 // CodeMirror.innerMode which isn't defined in the stripped down
@@ -178,13 +178,10 @@ onmessage = (ev: MessageEvent) => {
       continue
     }
 
-    const ctx = { lines, line: ix }
-
-    const lineStream = new (CodeMirror as any).StringStream(
-      line,
-      tabSize,
-      ctx
-    ) as CodeMirror.StringStream
+    const lineStream = new CodeMirror.StringStream(line, tabSize, {
+      lines,
+      line: ix,
+    })
 
     while (!lineStream.eol()) {
       const token = mode.token(lineStream, state)

@@ -8,22 +8,12 @@
     "noUnusedLocals": true,
     "sourceMap": true,
     "strict": true,
-    "outDir": "./out",
-    "noLib": true,
-    "types": [
-    ]
+    "outDir": "../../../out",
+    "lib": ["scripthost", "webworker", "es2017"],
+    "types": []
   },
-  "files": [
-    "app/src/highlighter/index.ts"
-  ],
-  "include": [
-
-  ],
-  "exclude": [
-    "node_modules",
-    "app/node_modules",
-    "dist",
-    "out"
-  ],
+  "files": ["index.ts"],
+  "include": [],
+  "exclude": [],
   "compileOnSave": false
 }
