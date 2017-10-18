@@ -313,6 +313,15 @@ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
   return parser.parse(pieces[pieces.length - 1])
 }
 
+/**
+ * Retrieve the binary contents of a blob from the object database
+ *
+ * Returns an image object containing the base64 encoded string,
+ * as <img> tags support the data URI scheme instead of
+ * needing to reference a file:// URI
+ *
+ * https://en.wikipedia.org/wiki/Data_URI_scheme
+ */
 export async function getBlobImage(
   repository: Repository,
   path: string,
@@ -326,7 +335,15 @@ export async function getBlobImage(
   }
   return diff
 }
-
+/**
+ * Retrieve the binary contents of a blob from the working directory
+ *
+ * Returns an image object containing the base64 encoded string,
+ * as <img> tags support the data URI scheme instead of
+ * needing to reference a file:// URI
+ *
+ * https://en.wikipedia.org/wiki/Data_URI_scheme
+ */
 export async function getWorkingDirectoryImage(
   repository: Repository,
   file: FileChange
