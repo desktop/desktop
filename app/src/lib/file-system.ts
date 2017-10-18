@@ -111,3 +111,45 @@ export function pathExists(path: string): Promise<boolean> {
     })
   })
 }
+
+export function open(path: string, flags: string): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    Fs.open(path, flags, (err, fd) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(fd)
+      }
+    })
+  })
+}
+
+export function read(
+  fd: number,
+  buffer: Buffer,
+  offset: number,
+  length: number,
+  position: number | null
+): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    Fs.read(fd, buffer, offset, length, position, (err, bytesRead, buffer) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(bytesRead)
+      }
+    })
+  })
+}
+
+export function close(fd: number): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    Fs.close(fd, err => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve()
+      }
+    })
+  })
+}
