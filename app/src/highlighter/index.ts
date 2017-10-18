@@ -13,6 +13,8 @@ import { innerMode } from 'codemirror/src/modes'
 const cm = CodeMirror as any
 cm.innerMode = cm.innerMode || innerMode
 
+import { ITokens } from '../lib/tokens'
+
 const extensionMIMEMap = new Map<string, string>()
 
 import 'codemirror/mode/javascript/javascript'
@@ -74,16 +76,6 @@ extensionMIMEMap.set('.py', 'text/x-python')
 
 import 'codemirror/mode/ruby/ruby'
 extensionMIMEMap.set('.rb', 'text/x-ruby')
-
-interface IToken {
-  length: number
-  text: string
-  token: string
-}
-
-type Tokens = {
-  [line: number]: { [startIndex: number]: IToken }
-}
 
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {
@@ -154,7 +146,7 @@ onmessage = (ev: MessageEvent) => {
   const lines = contents.split(/\r?\n/)
   const state: any = mode.startState ? mode.startState() : null
 
-  const tokens: Tokens = {}
+  const tokens: ITokens = {}
 
   for (const [ix, line] of lines.entries()) {
     // No need to continue after the max line
@@ -190,7 +182,6 @@ onmessage = (ev: MessageEvent) => {
         tokens[ix] = tokens[ix] || {}
         tokens[ix][lineStream.start] = {
           length: lineStream.pos - lineStream.start,
-          text: lineStream.current(),
           token,
         }
       }

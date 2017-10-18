@@ -1,21 +1,14 @@
 import { ITextDiff, DiffLineType } from '../../models/diff'
 import * as CodeMirror from 'codemirror'
 import { diffLineForIndex } from './diff-explorer'
+import { ITokens } from '../../lib/tokens'
 
 require('codemirror/mode/javascript/javascript')
 
-interface IToken {
-  length: number
-  text: string
-  token: string
-}
-
-type Tokens = { [line: number]: { [startIndex: number]: IToken } }
-
 interface IDiffSyntaxModeOptions {
   readonly diff: ITextDiff
-  readonly oldTokens: Tokens
-  readonly newTokens: Tokens
+  readonly oldTokens: ITokens
+  readonly newTokens: ITokens
 }
 
 const TokenNames: { [key: string]: string | null } = {
@@ -34,14 +27,14 @@ export class DiffSyntaxMode {
 
   private readonly config: CodeMirror.EditorConfiguration
   private readonly diff?: ITextDiff
-  private readonly oldTokens?: Tokens
-  private readonly newTokens?: Tokens
+  private readonly oldTokens?: ITokens
+  private readonly newTokens?: ITokens
 
   public constructor(
     config: CodeMirror.EditorConfiguration,
     diff?: ITextDiff,
-    oldTokens?: Tokens,
-    newTokens?: Tokens
+    oldTokens?: ITokens,
+    newTokens?: ITokens
   ) {
     this.config = config
     this.diff = diff

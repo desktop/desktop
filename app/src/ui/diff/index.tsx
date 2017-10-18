@@ -53,6 +53,7 @@ import { relativeChanges } from './changed-range'
 import { getBlobContents } from '../../lib/git/show'
 
 import { DiffSyntaxMode } from './diff-syntax-mode'
+import { ITokens } from '../../lib/tokens'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -129,7 +130,7 @@ function highlight(
   extension: string,
   tabSize: number,
   lines: Array<number>
-) {
+): Promise<ITokens> {
   // Bail early if there's no content to highlight or if we don't
   // need any lines from this file.
   if (!contents.length || !lines.length) {
@@ -161,7 +162,7 @@ function highlight(
       } else {
         worker.terminate()
       }
-      resolve(ev.data)
+      resolve(ev.data as ITokens)
     }
 
     worker.postMessage({ contents, extension, tabSize, lines })
