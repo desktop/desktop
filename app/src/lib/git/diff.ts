@@ -334,7 +334,7 @@ export async function getWorkingDirectoryImage(
   const extension = Path.extname(file.path)
   const contents = await getWorkingDirectoryContents(repository, file)
   const diff: Image = {
-    contents: contents,
+    contents: contents.toString('base64'),
     mediaType: getMediaType(extension),
   }
   return diff
@@ -342,27 +342,20 @@ export async function getWorkingDirectoryImage(
 
 /**
  * Retrieve the binary contents of a blob from the working directory
- *
- * Returns a promise containing the base64 encoded string,
- * as <img> tags support the data URI scheme instead of
- * needing to reference a file:// URI
- *
- * https://en.wikipedia.org/wiki/Data_URI_scheme
- *
  */
 async function getWorkingDirectoryContents(
   repository: Repository,
   file: FileChange
-): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
+): Promise<Buffer> {
+  return new Promise<Buffer>((resolve, reject) => {
     const path = Path.join(repository.path, file.path)
 
     Fs.readFile(path, { flag: 'r' }, (error, buffer) => {
       if (error) {
         reject(error)
-        return
+      } else {
+        resolve(buffer)
       }
-      resolve(buffer.toString('base64'))
     })
   })
 }
