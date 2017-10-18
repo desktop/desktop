@@ -1,11 +1,20 @@
 /**
  * Represents a single token inside of a line.
  * This object is useless without the startIndex
- * information contained within the ITokens interface.
+ * information contained within the ILineTokens interface.
  */
 export interface IToken {
   length: number
   token: string
+}
+
+/**
+ * A lookup object keyed on the line index (relative to the
+ * start of the line) containing the tokens parsed from
+ * that line.
+ */
+export interface ILineTokens {
+  [startIndex: number]: IToken
 }
 
 /**
@@ -19,5 +28,5 @@ export interface IToken {
  * details on how this object is to be interpreted.
  */
 export interface ITokens {
-  [line: number]: { [startIndex: number]: IToken }
+  [line: number]: ILineTokens
 }

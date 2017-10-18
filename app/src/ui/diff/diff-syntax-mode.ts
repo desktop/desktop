@@ -1,4 +1,4 @@
-import { ITextDiff, DiffLineType } from '../../models/diff'
+import { ITextDiff, DiffLine } from '../../models/diff'
 import * as CodeMirror from 'codemirror'
 import { diffLineForIndex } from './diff-explorer'
 import { ITokens } from '../../lib/tokens'
@@ -26,6 +26,41 @@ function skipLine(stream: CodeMirror.StringStream, state: IState) {
   stream.skipToEnd()
   state.diffLineIndex++
   return null
+}
+
+function getCurrentLineIndex(diffLine: DiffLine) {
+  const diffLineNumber =
+    diffLine.oldLineNumber !== null
+      ? diffLine.oldLineNumber
+      : diffLine.newLineNumber
+
+  // Diff lines numbers start at one so we adjust this
+  // in order to get the line _index_ in the before or
+  // after file contents.
+  return diffLineNumber === null ? null : diffLineNumber - 1
+}
+
+function getTokensForDiffLine(
+  diffLine: DiffLine,
+  oldTokens: ITokens | undefined,
+  newTokens: ITokens | undefined
+) {
+  const lineIndex = getCurrentLineIndex(diffLine)
+
+  if (lineIndex === null) {
+    return null
+  }
+
+  // We know that one of oldLineNumber or newLineNumber is
+  // non-null here since we've got a line index from
+  // getCurrentLineIndex
+  const activeTokens = diffLine.oldLineNumber !== null ? oldTokens : newTokens
+
+  if (!activeTokens) {
+    return null
+  }
+
+  return activeTokens[lineIndex] || null
 }
 
 export class DiffSyntaxMode {
@@ -62,6 +97,8 @@ export class DiffSyntaxMode {
     stream: CodeMirror.StringStream,
     state: IState
   ): string | null => {
+    // The first character of a line in a diff is always going to
+    // be the diff line marker so we always take care of that first.
     if (stream.sol()) {
       const index = stream.next()
 
@@ -69,49 +106,29 @@ export class DiffSyntaxMode {
         state.diffLineIndex++
       }
 
-      if (!index) {
-        return null
-      }
+      const token = index ? TokenNames[index] : null
 
-      const token = TokenNames[index]
-
-      if (!token) {
-        return null
-      }
-
-      return `line-${token} line-background-${token}`
+      return token ? `line-${token} line-background-${token}` : null
     }
 
+    // This happens when the mode is running without tokens, in this
+    // case there's really nothing more for us to do than what we've
+    // already done above to deal with the diff line marker.
     if (!this.diff) {
       return skipLine(stream, state)
     }
 
     const diffLine = diffLineForIndex(this.diff, state.diffLineIndex)
 
-    if (!diffLine || diffLine.type === DiffLineType.Hunk) {
+    if (!diffLine) {
       return skipLine(stream, state)
     }
 
-    let diffLineNumber =
-      diffLine.oldLineNumber !== null
-        ? diffLine.oldLineNumber
-        : diffLine.newLineNumber
-
-    if (diffLineNumber === null) {
-      return skipLine(stream, state)
-    }
-
-    const activeTokens =
-      diffLine.oldLineNumber !== null ? this.oldTokens : this.newTokens
-
-    // Diffs use off-by-one indexing
-    diffLineNumber--
-
-    if (!activeTokens) {
-      return skipLine(stream, state)
-    }
-
-    const lineTokens = activeTokens[diffLineNumber]
+    const lineTokens = getTokensForDiffLine(
+      diffLine,
+      this.oldTokens,
+      this.newTokens
+    )
 
     if (!lineTokens) {
       return skipLine(stream, state)
