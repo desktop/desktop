@@ -154,7 +154,7 @@ pull requests.
 | `macOS` | [search](https://github.com/desktop/desktop/labels/macOS)  | Issues specific to macOS users. |
 | `Windows` | [search](https://github.com/desktop/desktop/labels/Windows)  | Issues specific to Windows users. |
 | `codemirror` | [search](https://github.com/desktop/desktop/labels/codemirror)  | Issues related to the use of [CodeMirror](https://codemirror.net/) for rendering diffs. |
-| `electron` | [search](https://github.com/desktop/desktop/labels/electron) | Issues related to our use of [Electron](https://electron.atom.io) that may need upstream fixes
+| `electron` | [search](https://github.com/desktop/desktop/labels/electron) | Issues related to our use of [Electron](https://electron.atom.io) that may require upstream fixes. |
 
 #### Topics
 
