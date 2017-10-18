@@ -79,6 +79,14 @@
     - [ ] User can drag existing local repository into Desktop
       - [ ] Successful attempt adds repo to Repo list; else error message
 
+### Publishing a repository
+  - [ ] Publish Repository modal present if repo is unpublished and user clicks `Publish repository` button
+    - [ ] GitHub tab is default; Enterprise tab is also present
+      - [ ] User must be signed in to publish, else `Sign In` button present on tab
+    - [ ] Modal fields are Name, Description (optional), `Keep this code private` checkbox, Organization list (alpha order, tab-specific), `Cancel` button, `Publish Repository` button
+      - [ ] Clicking `Publish Repository` button pushes repo to GitHub.com or Enterprise; `Cancel` button closes modal
+        - [ ] Repository is present on GitHub.com or Enterprise if published
+
 ### Application
   - [ ] Minimize, Maximize, Close buttons work in top nav
   - [ ] Double-clicking local desktop icon opens the application (Mac only)
