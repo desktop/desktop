@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import * as Fs from 'fs'
+import * as filesystem from '../../lib/file-system'
 
 import { getBlobContents } from './show'
 
@@ -357,22 +357,48 @@ export async function getWorkingDirectoryImage(
   return diff
 }
 
+const readBufferSize = 8 * 1024
+
 /**
  * Retrieve the binary contents of a blob from the working directory
  */
-async function getWorkingDirectoryContents(
+export async function getWorkingDirectoryContents(
   repository: Repository,
-  file: FileChange
+  file: FileChange,
+  maxLength?: number
 ): Promise<Buffer> {
-  return new Promise<Buffer>((resolve, reject) => {
-    const path = Path.join(repository.path, file.path)
+  const path = Path.join(repository.path, file.path)
 
-    Fs.readFile(path, { flag: 'r' }, (error, buffer) => {
-      if (error) {
-        reject(error)
-      } else {
-        resolve(buffer)
+  if (maxLength === undefined) {
+    return filesystem.readFile(path, { flag: 'r' })
+  }
+
+  if (maxLength !== undefined && maxLength <= 0) {
+    throw new Error('maxLength must be greater than zero if given')
+  }
+
+  const readBuf = new Buffer(readBufferSize)
+  const chunks = new Array<Buffer>()
+
+  let total = 0
+  let read: number
+
+  const fd = await filesystem.open(path, 'r')
+
+  try {
+    while (
+      (read = await filesystem.read(fd, readBuf, 0, readBuf.length, null)) > 0
+    ) {
+      total += read
+      chunks.push(Buffer.from(readBuf.slice(0, read)))
+
+      if (maxLength !== undefined && total >= maxLength) {
+        break
       }
-    })
-  })
+    }
+  } finally {
+    filesystem.close(fd)
+  }
+
+  return Buffer.concat(chunks, maxLength ? Math.min(total, maxLength) : total)
 }
