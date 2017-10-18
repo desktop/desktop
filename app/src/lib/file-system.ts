@@ -153,3 +153,33 @@ export function close(fd: number): Promise<void> {
     })
   })
 }
+
+/**
+ * Asynchronous readFile - Asynchronously reads the entire contents of a file.
+ *
+ * @param fileName
+ * @param options An object with optional {encoding} and {flag} properties.  If {encoding} is specified, readFile returns a string; otherwise it returns a Buffer.
+ * @param callback - The callback is passed two arguments (err, data), where data is the contents of the file.
+ */
+export async function readFile(
+  filename: string,
+  options: { flag?: string }
+): Promise<Buffer>
+export async function readFile(
+  filename: string,
+  options: { encoding: BufferEncoding; flag?: string }
+): Promise<string>
+export async function readFile(
+  filename: string,
+  options: { encoding?: string; flag?: string }
+): Promise<Buffer | string> {
+  return new Promise<string | Buffer>((resolve, reject) => {
+    Fs.readFile(filename, options, (err, data) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(data)
+      }
+    })
+  })
+}
