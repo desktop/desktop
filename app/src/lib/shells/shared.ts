@@ -84,11 +84,11 @@ export async function launchShell(shell: FoundShell, path: string) {
   }
 
   if (__DARWIN__) {
-    return Darwin.launch(shell.shell as Darwin.Shell, path)
+    return Darwin.launch(shell as IFoundShell<Darwin.Shell>, path)
   } else if (__WIN32__) {
-    return Win32.launch(shell.shell as Win32.Shell, path)
+    return Win32.launch(shell as IFoundShell<Win32.Shell>, path)
   } else if (__LINUX__) {
-    return Linux.launch(shell.shell as Linux.Shell, path)
+    return Linux.launch(shell as IFoundShell<Linux.Shell>, path)
   }
 
   return Promise.reject(
