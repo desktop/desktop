@@ -22,6 +22,12 @@ interface IState {
   diffLineIndex: number
 }
 
+function skipLine(stream: CodeMirror.StringStream, state: IState) {
+  stream.skipToEnd()
+  state.diffLineIndex++
+  return null
+}
+
 export class DiffSyntaxMode {
   public static readonly ModeName = 'github-diff-syntax'
 
@@ -77,17 +83,13 @@ export class DiffSyntaxMode {
     }
 
     if (!this.diff) {
-      stream.skipToEnd()
-      state.diffLineIndex++
-      return null
+      return skipLine(stream, state)
     }
 
     const diffLine = diffLineForIndex(this.diff, state.diffLineIndex)
 
     if (!diffLine || diffLine.type === DiffLineType.Hunk) {
-      stream.skipToEnd()
-      state.diffLineIndex++
-      return null
+      return skipLine(stream, state)
     }
 
     let diffLineNumber =
@@ -96,9 +98,7 @@ export class DiffSyntaxMode {
         : diffLine.newLineNumber
 
     if (diffLineNumber === null) {
-      stream.skipToEnd()
-      state.diffLineIndex++
-      return null
+      return skipLine(stream, state)
     }
 
     const activeTokens =
@@ -108,22 +108,27 @@ export class DiffSyntaxMode {
     diffLineNumber--
 
     if (!activeTokens) {
-      stream.skipToEnd()
-      state.diffLineIndex++
-      return null
+      return skipLine(stream, state)
     }
 
     const lineTokens = activeTokens[diffLineNumber]
 
     if (!lineTokens) {
-      stream.skipToEnd()
-      state.diffLineIndex++
-      return null
+      return skipLine(stream, state)
     }
 
+    // -1 because the diff line that we're looking at is always prefixed
+    // by +, -, @ or space depending on the type of diff line. Those markers
+    // are obviously not present in the before/after version.
     const token = lineTokens[stream.pos - stream.lineStart - 1]
 
     if (!token) {
+      // There's no token at the current position so let's skip ahead
+      // until we find one or we hit the end of the line. Note that we
+      // don't have to worry about already being at the end of the line
+      // as it's a requirement for modes to always advance the stream. In
+      // other words, CodeMirror will never give us a stream already at
+      // the end of a line.
       do {
         stream.pos++
       } while (!stream.eol() && !lineTokens[stream.pos - stream.lineStart - 1])
