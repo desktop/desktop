@@ -185,7 +185,7 @@ declare const log: IDesktopLogger
 
 declare namespace NodeJS {
   // tslint:disable-next-line:interface-name
-  interface Process extends NodeJS.EventEmitter {
+  interface Process extends EventEmitter {
     once(event: 'uncaughtException', listener: (error: Error) => void): this
     on(event: 'uncaughtException', listener: (error: Error) => void): this
     removeListener(event: 'exit', listener: Function): this
