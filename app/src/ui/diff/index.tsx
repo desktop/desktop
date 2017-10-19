@@ -331,7 +331,6 @@ export class Diff extends React.Component<IDiffProps, {}> {
   }
 
   public async initDiffSyntaxMode() {
-    console.log('initDiffSyntaxMode')
     const cm = this.codeMirror
     const file = this.props.file
     const diff = this.props.diff
@@ -361,7 +360,6 @@ export class Diff extends React.Component<IDiffProps, {}> {
       }
     }
 
-    console.time('loadContents')
     const [oldContents, newContents] = await Promise.all([
       oldContentsPromise.catch(e => {
         log.error('Could not load old contents for syntax highlighting', e)
@@ -372,7 +370,6 @@ export class Diff extends React.Component<IDiffProps, {}> {
         return new Buffer(0)
       }),
     ])
-    console.timeEnd('loadContents')
 
     // Check to see whether something has changes since
     // we started loading contents that makes our contents
@@ -388,8 +385,6 @@ export class Diff extends React.Component<IDiffProps, {}> {
 
     const tabSize = cm.getOption('tabSize') || 4
 
-    console.time('highlight')
-
     const [oldTokens, newTokens] = await Promise.all([
       highlight(
         oldContents.toString('utf8'),
@@ -404,7 +399,6 @@ export class Diff extends React.Component<IDiffProps, {}> {
         newLineFilter
       ),
     ])
-    console.timeEnd('highlight')
 
     // Check to see whether something has changes since
     // we started highlighting that makes our tokens
