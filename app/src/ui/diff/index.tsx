@@ -77,19 +77,31 @@ async function getFileContent(
   let newPromise
 
   if (file instanceof WorkingDirectoryFileChange) {
-    oldPromise = getBlobContents(repository, '', file.oldPath || file.path)
-    newPromise = readPartialFile(
-      Path.join(repository.path, file.path),
-      0,
-      MaxHighlightContentLength - 1
-    )
+    oldPromise =
+      file.status === AppFileStatus.New
+        ? Promise.resolve(new Buffer(0))
+        : getBlobContents(repository, '', file.oldPath || file.path)
+    newPromise =
+      file.status === AppFileStatus.Deleted
+        ? Promise.resolve(new Buffer(0))
+        : readPartialFile(
+            Path.join(repository.path, file.path),
+            0,
+            MaxHighlightContentLength - 1
+          )
   } else if (file instanceof CommittedFileChange) {
-    oldPromise = getBlobContents(
-      repository,
-      `${file.commitish}^`,
-      file.oldPath || file.path
-    )
-    newPromise = getBlobContents(repository, file.commitish, file.path)
+    oldPromise =
+      file.status === AppFileStatus.New
+        ? Promise.resolve(new Buffer(0))
+        : getBlobContents(
+            repository,
+            `${file.commitish}^`,
+            file.oldPath || file.path
+          )
+    newPromise =
+      file.status === AppFileStatus.Deleted
+        ? Promise.resolve(new Buffer(0))
+        : getBlobContents(repository, file.commitish, file.path)
   } else {
     throw new Error('Unknown file type')
   }
