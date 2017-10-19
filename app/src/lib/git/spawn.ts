@@ -14,12 +14,17 @@ type ProcessOutput = {
  * @param path The path to execute the command from.
  * @param name The name of the operation - for tracing purposes.
  * @param successExitCodes An optional array of exit codes that indicate success.
+ * @param stdOutMaxLength  An optional maximum number of bytes to read from stdout.
+ *                         If the process writes more than this number of bytes it
+ *                         will be killed silently and the truncated output is
+ *                         returned.
  */
 export function spawnAndComplete(
   args: string[],
   path: string,
   name: string,
-  successExitCodes?: Set<number>
+  successExitCodes?: Set<number>,
+  stdOutMaxLength?: number
 ): Promise<ProcessOutput> {
   const commandName = `${name}: git ${args.join(' ')}`
   return GitPerf.measure(
@@ -27,33 +32,29 @@ export function spawnAndComplete(
     () =>
       new Promise<ProcessOutput>((resolve, reject) => {
         const process = GitProcess.spawn(args, path)
+        let totalStdoutLength = 0
+        let killSignalSent = false
 
-        const stdout = new Array<Buffer>()
-        let output: Buffer | undefined
-        process.stdout.on('data', chunk => {
-          stdout.push(chunk as Buffer)
-        })
+        const stdoutChunks = new Array<Buffer>()
+        process.stdout.on('data', (chunk: Buffer) => {
+          if (!stdOutMaxLength || totalStdoutLength < stdOutMaxLength) {
+            stdoutChunks.push(chunk)
+            totalStdoutLength += chunk.length
+          }
 
-        const stderr = new Array<Buffer>()
-        let error: Buffer | undefined
-        process.stderr.on('data', chunk => {
-          stderr.push(chunk as Buffer)
-        })
-
-        process.stdout.once('close', () => {
-          output = Buffer.concat(stdout)
-
-          if (output && error) {
-            resolve({ output, error })
+          if (
+            stdOutMaxLength &&
+            totalStdoutLength >= stdOutMaxLength &&
+            !killSignalSent
+          ) {
+            process.kill()
+            killSignalSent = true
           }
         })
 
-        process.stderr.once('close', () => {
-          error = Buffer.concat(stderr)
-
-          if (output && error) {
-            resolve({ output, error })
-          }
+        const stderrChunks = new Array<Buffer>()
+        process.stderr.on('data', (chunk: Buffer) => {
+          stderrChunks.push(chunk)
         })
 
         process.on('error', err => {
@@ -63,10 +64,26 @@ export function spawnAndComplete(
         })
 
         process.on('exit', (code, signal) => {
+          const stdout = Buffer.concat(
+            stdoutChunks,
+            stdOutMaxLength
+              ? Math.min(stdOutMaxLength, totalStdoutLength)
+              : totalStdoutLength
+          )
+
+          const stderr = Buffer.concat(stderrChunks)
+
           // mimic the experience of GitProcess.exec for handling known codes when
           // the process terminates
           const exitCodes = successExitCodes || new Set([0])
-          if (!exitCodes.has(code)) {
+
+          if (exitCodes.has(code) || signal) {
+            resolve({
+              output: stdout,
+              error: stderr,
+            })
+            return
+          } else {
             reject(
               new Error(
                 `Git returned an unexpected exit code '${code}' which should be handled by the caller.'`
