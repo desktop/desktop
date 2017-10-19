@@ -13,7 +13,7 @@ import { innerMode } from 'codemirror/src/modes'
 const cm = CodeMirror as any
 cm.innerMode = cm.innerMode || innerMode
 
-import { ITokens } from '../lib/tokens'
+import { ITokens, IHighlightRequest } from '../lib/highlighter'
 
 const extensionMIMEMap = new Map<string, string>()
 
@@ -112,10 +112,11 @@ function guessMimeType(contents: string) {
 onmessage = (ev: MessageEvent) => {
   const startTime = performance ? performance.now() : null
 
-  const tabSize: number = ev.data.tabSize
-  const extension: string = ev.data.extension
-  const contents: string = ev.data.contents
-  const requestedLines: Array<number> | undefined = ev.data.lines
+  const request = ev.data as IHighlightRequest
+
+  const tabSize = request.tabSize || 4
+  const extension = request.extension
+  const contents = request.contents
 
   const mimeType = extensionMIMEMap.get(extension) || guessMimeType(contents)
 
@@ -125,7 +126,7 @@ onmessage = (ev: MessageEvent) => {
     return
   }
 
-  const mode: CodeMirror.Mode<{}> = CodeMirror.getMode({ tabSize }, mimeType)
+  const mode: CodeMirror.Mode<{}> = CodeMirror.getMode({}, mimeType)
 
   if (!mode) {
     console.debug(`Could not find highlighting mode for '${mimeType}'`)
@@ -134,14 +135,13 @@ onmessage = (ev: MessageEvent) => {
   }
 
   const lineFilter =
-    requestedLines && requestedLines.length
-      ? new Set<number>(requestedLines)
+    request.lines && request.lines.length
+      ? new Set<number>(request.lines)
       : null
 
   // If we've got a set of requested lines we can keep track of the maximum
   // line we need so that we can bail immediately when we've reached it.
-  const maxLine =
-    requestedLines && requestedLines.length ? Math.max(...requestedLines) : null
+  const maxLine = lineFilter ? Math.max(...lineFilter) : null
 
   const lines = contents.split(/\r?\n/)
   const state: any = mode.startState ? mode.startState() : null
