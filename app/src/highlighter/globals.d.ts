@@ -61,77 +61,77 @@ declare namespace CodeMirror {
   }
 
   class StringStream {
-    constructor(string: string, tabSize: number, context: StringStreamContext)
+    public constructor(string: string, tabSize: number, context: StringStreamContext)
 
-    lastColumnPos: number
-    lastColumnValue: number
-    lineStart: number
+    public lastColumnPos: number
+    public lastColumnValue: number
+    public lineStart: number
 
     /**
      * Current position in the string.
      */
-    pos: number
+    public pos: number
 
     /**
      * Where the stream's position was when it was first passed to the token function.
      */
-    start: number
+    public start: number
 
     /**
      * The current line's content.
      */
-    string: string
+    public string: string
 
     /**
      * Number of spaces per tab character.
      */
-    tabSize: number
+    public tabSize: number
 
     /**
      * Returns true only if the stream is at the end of the line.
      */
-    eol(): boolean
+    public eol(): boolean
 
     /**
      * Returns true only if the stream is at the start of the line.
      */
-    sol(): boolean
+    public sol(): boolean
 
     /**
      * Returns the next character in the stream without advancing it. Will return an null at the end of the line.
      */
-    peek(): string | null
+    public peek(): string | null
 
     /**
      * Returns the next character in the stream and advances it. Also returns null when no more characters are available.
      */
-    next(): string | null
+    public next(): string | null
 
     /**
      * match can be a character, a regular expression, or a function that takes a character and returns a boolean.
      * If the next character in the stream 'matches' the given argument, it is consumed and returned.
      * Otherwise, undefined is returned.
      */
-    eat(match: string): string
-    eat(match: RegExp): string
-    eat(match: (char: string) => boolean): string
+    public eat(match: string): string
+    public eat(match: RegExp): string
+    public eat(match: (char: string) => boolean): string
 
     /**
      * Repeatedly calls eat with the given argument, until it fails. Returns true if any characters were eaten.
      */
-    eatWhile(match: string): boolean
-    eatWhile(match: RegExp): boolean
-    eatWhile(match: (char: string) => boolean): boolean
+    public eatWhile(match: string): boolean
+    public eatWhile(match: RegExp): boolean
+    public eatWhile(match: (char: string) => boolean): boolean
 
     /**
      * Shortcut for eatWhile when matching white-space.
      */
-    eatSpace(): boolean
+    public eatSpace(): boolean
 
     /**
      * Moves the position to the end of the line.
      */
-    skipToEnd(): void
+    public skipToEnd(): void
 
     /**
      * Skips to the next occurrence of the given character, if found on the current line (doesn't advance the stream if
@@ -139,7 +139,7 @@ declare namespace CodeMirror {
      *
      * Returns true if the character was found.
      */
-    skipTo(ch: string): boolean
+    public skipTo(ch: string): boolean
 
     /**
      * Act like a multi-character eat - if consume is true or not given - or a look-ahead that doesn't update the stream
@@ -147,29 +147,29 @@ declare namespace CodeMirror {
      * string, caseFold can be set to true to make the match case-insensitive. When successfully matching a regular
      * expression, the returned value will be the array returned by match, in case you need to extract matched groups.
      */
-    match(pattern: string, consume?: boolean, caseFold?: boolean): boolean
-    match(pattern: RegExp, consume?: boolean): string[]
+    public match(pattern: string, consume?: boolean, caseFold?: boolean): boolean
+    public match(pattern: RegExp, consume?: boolean): string[]
 
     /**
      * Backs up the stream n characters. Backing it up further than the start of the current token will cause things to
      * break, so be careful.
      */
-    backUp(n: number): void
+    public backUp(n: number): void
 
     /**
      * Returns the column (taking into account tabs) at which the current token starts.
      */
-    column(): number
+    public column(): number
 
     /**
      * Tells you how far the current line has been indented, in spaces. Corrects for tab characters.
      */
-    indentation(): number
+    public indentation(): number
 
     /**
      * Get the string between the start of the current token and the current stream position.
      */
-    current(): string
+    public current(): string
   }
 
   /**
