@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import * as ChildProcess from 'child_process'
 import * as os from 'os'

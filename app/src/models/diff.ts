@@ -6,6 +6,45 @@ import { assertNever } from '../lib/fatal-error'
  */
 export const maximumDiffStringSize = 268435441
 
+/**
+ * A container for holding an image for display in the application
+ */
+export class Image {
+  /**
+   * The base64 encoded contents of the image
+   */
+  public readonly contents: string
+
+  /**
+   * The data URI media type, so the browser can render the image correctly
+   */
+  public readonly mediaType: string
+}
+
+/** each diff is made up of a number of hunks */
+export class DiffHunk {
+  /** details from the diff hunk header about the line start and patch length */
+  public readonly header: DiffHunkHeader
+  /** the contents - context and changes - of the diff setion */
+  public readonly lines: ReadonlyArray<DiffLine>
+  /** the diff hunk's start position in the overall file diff */
+  public readonly unifiedDiffStart: number
+  /** the diff hunk's end position in the overall file diff */
+  public readonly unifiedDiffEnd: number
+
+  public constructor(
+    header: DiffHunkHeader,
+    lines: ReadonlyArray<DiffLine>,
+    unifiedDiffStart: number,
+    unifiedDiffEnd: number
+  ) {
+    this.header = header
+    this.unifiedDiffStart = unifiedDiffStart
+    this.unifiedDiffEnd = unifiedDiffEnd
+    this.lines = lines
+  }
+}
+
 export enum DiffType {
   /** changes to a text file, which may be partially selected for commit */
   Text,
@@ -160,45 +199,6 @@ export class DiffHunkHeader {
     this.newStartLine = newStartLine
     this.newLineCount = newLineCount
   }
-}
-
-/** each diff is made up of a number of hunks */
-export class DiffHunk {
-  /** details from the diff hunk header about the line start and patch length */
-  public readonly header: DiffHunkHeader
-  /** the contents - context and changes - of the diff setion */
-  public readonly lines: ReadonlyArray<DiffLine>
-  /** the diff hunk's start position in the overall file diff */
-  public readonly unifiedDiffStart: number
-  /** the diff hunk's end position in the overall file diff */
-  public readonly unifiedDiffEnd: number
-
-  public constructor(
-    header: DiffHunkHeader,
-    lines: ReadonlyArray<DiffLine>,
-    unifiedDiffStart: number,
-    unifiedDiffEnd: number
-  ) {
-    this.header = header
-    this.unifiedDiffStart = unifiedDiffStart
-    this.unifiedDiffEnd = unifiedDiffEnd
-    this.lines = lines
-  }
-}
-
-/**
- * A container for holding an image for display in the application
- */
-export class Image {
-  /**
-   * The base64 encoded contents of the image
-   */
-  public readonly contents: string
-
-  /**
-   * The data URI media type, so the browser can render the image correctly
-   */
-  public readonly mediaType: string
 }
 
 export class FileSummary {

@@ -44,13 +44,13 @@ cache:
   directories:
     - node_modules
     - $HOME/.electron
+    - .eslintcache
 
 install:
   - npm install -g yarn@1.2.1
   - yarn install --force
 
 script:
-  - yarn check-prettiness
   - yarn lint
   - yarn build:prod
   - yarn test:setup

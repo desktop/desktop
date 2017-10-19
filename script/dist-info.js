@@ -5,6 +5,7 @@ const os = require('os')
 const fs = require('fs')
 
 const projectRoot = path.join(__dirname, '..')
+// eslint-disable-next-line import/no-dynamic-require
 const appPackage = require(path.join(projectRoot, 'app', 'package.json'))
 
 function getDistRoot() {
