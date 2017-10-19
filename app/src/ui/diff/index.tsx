@@ -49,7 +49,7 @@ import { fatalError } from '../../lib/fatal-error'
 
 import { RangeSelectionSizePixels } from './edge-detection'
 import { relativeChanges } from './changed-range'
-import { getBlobContents } from '../../lib/git/show'
+import { getPartialBlobContents } from '../../lib/git/show'
 import { readPartialFile } from '../../lib/file-system'
 
 import { DiffSyntaxMode } from './diff-syntax-mode'
@@ -91,7 +91,12 @@ async function getOldFileContent(
     throw new Error('Unknown file type')
   }
 
-  return getBlobContents(repository, commitish, file.oldPath || file.path)
+  return getPartialBlobContents(
+    repository,
+    commitish,
+    file.oldPath || file.path,
+    MaxHighlightContentLength
+  )
 }
 
 async function getNewFileContent(
@@ -109,7 +114,12 @@ async function getNewFileContent(
       MaxHighlightContentLength - 1
     )
   } else if (file instanceof CommittedFileChange) {
-    return getBlobContents(repository, file.commitish, file.path)
+    return getPartialBlobContents(
+      repository,
+      file.commitish,
+      file.path,
+      MaxHighlightContentLength
+    )
   } else {
     throw new Error('Unknown file type')
   }
