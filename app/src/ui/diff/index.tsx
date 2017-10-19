@@ -138,7 +138,7 @@ function highlight(
     highlightWorkers.shift() ||
     new Worker(`file:///${__dirname}/highlighter.js`)
 
-  return new Promise<any>((resolve, reject) => {
+  return new Promise<ITokens>((resolve, reject) => {
     let timeout: null | number = null
     worker.onerror = ev => {
       if (timeout) {
