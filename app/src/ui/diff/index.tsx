@@ -195,7 +195,7 @@ interface IDiffProps {
   /** Called when the includedness of lines or a range of lines has changed. */
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
 
-  /** The diff which is to be rendered */
+  /** The diff that should be rendered */
   readonly diff: IDiff
 
   /** propagate errors up to the main application */
