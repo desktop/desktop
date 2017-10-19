@@ -40,6 +40,7 @@ declare namespace CodeMirror {
     options?: { tabSize?: number; state?: any }
   ): void
 
+  // tslint:disable-next-line:interface-name
   interface EditorConfiguration {
     /** How many spaces a block (whatever that means in the edited language) should be indented. The default is 2. */
     indentUnit?: number
@@ -51,10 +52,12 @@ declare namespace CodeMirror {
   /**
    * A function that, given a CodeMirror configuration object and an optional mode configuration object, returns a mode object.
    */
+  // tslint:disable-next-line:interface-name
   interface ModeFactory<T> {
     (config: CodeMirror.EditorConfiguration, modeOptions?: any): Mode<T>
   }
 
+  // tslint:disable-next-line:interface-name
   interface StringStreamContext {
     lines: string[]
     line: number
@@ -176,6 +179,7 @@ declare namespace CodeMirror {
    * A Mode is, in the simplest case, a lexer (tokenizer) for your language — a function that takes a character stream as input,
    * advances it past a token, and returns a style for that token. More advanced modes can also handle indentation for the language.
    */
+  // tslint:disable-next-line:interface-name
   interface Mode<T> {
     /**
      * This function should read one token from the stream it is given as an argument, optionally update its state,
