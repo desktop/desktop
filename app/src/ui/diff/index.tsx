@@ -59,7 +59,7 @@ import { ITokens } from '../../lib/tokens'
 const MaxIntraLineDiffStringLength = 4096
 
 /** The maximum number of bytes we'll process for highligting. */
-const MaxHighlightContentLength = 512 * 1024
+const MaxHighlightContentLength = 256 * 1024
 
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
@@ -127,7 +127,7 @@ async function getNewFileContent(
 
 const highlightWorkers = new Array<Worker>()
 const maxIdlingWorkers = 2
-const workerMaxRunDuration = 5 * 1000
+// const workerMaxRunDuration = 5 * 1000
 
 function highlight(
   contents: string,
@@ -169,11 +169,11 @@ function highlight(
       resolve(ev.data as ITokens)
     }
 
-    worker.postMessage({ contents, extension, tabSize, lines })
-    timeout = window.setTimeout(() => {
-      worker.terminate()
-      reject(new Error('timeout'))
-    }, workerMaxRunDuration)
+    worker.postMessage({ contents, extension, tabSize, lines: undefined })
+    // timeout = window.setTimeout(() => {
+    //   worker.terminate()
+    //   reject(new Error('timeout'))
+    // }, workerMaxRunDuration)
   })
 }
 
