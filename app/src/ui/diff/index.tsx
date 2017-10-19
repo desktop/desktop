@@ -53,7 +53,7 @@ import { getPartialBlobContents } from '../../lib/git/show'
 import { readPartialFile } from '../../lib/file-system'
 
 import { DiffSyntaxMode } from './diff-syntax-mode'
-import { ITokens, IHighlightRequest } from '../../lib/highlighter/types'
+import { highlight } from '../../lib/highlighter/worker'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -123,67 +123,6 @@ async function getNewFileContent(
   } else {
     throw new Error('Unknown file type')
   }
-}
-
-const highlightWorkers = new Array<Worker>()
-const maxIdlingWorkers = 2
-const workerMaxRunDuration = 5 * 1000
-
-function highlight(
-  contents: string,
-  extension: string,
-  tabSize: number,
-  lines: Array<number>
-): Promise<ITokens> {
-  // Bail early if there's no content to highlight or if we don't
-  // need any lines from this file.
-  if (!contents.length || !lines.length) {
-    return Promise.resolve({})
-  }
-
-  const worker =
-    highlightWorkers.shift() ||
-    new Worker(`file:///${__dirname}/highlighter.js`)
-
-  return new Promise<ITokens>((resolve, reject) => {
-    let timeout: null | number = null
-    worker.onerror = ev => {
-      if (timeout) {
-        window.clearTimeout(timeout)
-        timeout = null
-      }
-      worker.terminate()
-      reject(ev.error)
-    }
-    worker.onmessage = ev => {
-      if (timeout) {
-        window.clearTimeout(timeout)
-        timeout = null
-      }
-
-      if (highlightWorkers.length < maxIdlingWorkers) {
-        highlightWorkers.push(worker)
-      } else {
-        worker.terminate()
-      }
-      resolve(ev.data as ITokens)
-    }
-
-    const request: IHighlightRequest = {
-      contents,
-      extension,
-      tabSize,
-      lines,
-    }
-
-    worker.postMessage(request)
-
-    timeout = window.setTimeout(() => {
-      worker.terminate()
-      log.error('Highlighting worker timed out')
-      reject(resolve({}))
-    }, workerMaxRunDuration)
-  })
 }
 
 /** The props for the Diff component. */
