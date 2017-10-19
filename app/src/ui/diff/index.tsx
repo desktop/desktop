@@ -53,7 +53,7 @@ import { getPartialBlobContents } from '../../lib/git/show'
 import { readPartialFile } from '../../lib/file-system'
 
 import { DiffSyntaxMode } from './diff-syntax-mode'
-import { ITokens } from '../../lib/highlighter'
+import { ITokens, IHighlightRequest } from '../../lib/highlighter'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -169,10 +169,19 @@ function highlight(
       resolve(ev.data as ITokens)
     }
 
-    worker.postMessage({ contents, extension, tabSize, lines: undefined })
+    const request: IHighlightRequest = {
+      contents,
+      extension,
+      tabSize,
+      lines,
+    }
+
+    worker.postMessage(request)
+
     timeout = window.setTimeout(() => {
       worker.terminate()
-      reject(new Error('timeout'))
+      log.error('Highlighting worker timed out')
+      reject(resolve({}))
     }, workerMaxRunDuration)
   })
 }
