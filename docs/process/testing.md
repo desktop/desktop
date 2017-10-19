@@ -51,6 +51,7 @@
       - [ ] If repository name is over 100 characterers, warning message is surfaced in modal
     - [ ] `Create Repository` button adds new repo, which is added to Repo list
     - [ ] `Cancel` button does not save any changes made; modal closed
+    - [ ] User cannot create a new repo inside a locked local directory 
   - [ ] Clone a Repository (Mac: ⇧⌘O; Windows: Ctrl+Shift+O)
     - [ ] Enter valid URL or username/repo/gist, else error message
       - [ ] If authentication error for Github.com, modal with username/password surfaced; `Cancel` or `Save and Retry` buttons
