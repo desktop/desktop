@@ -1,7 +1,7 @@
 import { ITextDiff, DiffLine } from '../../models/diff'
 import * as CodeMirror from 'codemirror'
 import { diffLineForIndex } from './diff-explorer'
-import { ITokens } from '../../lib/highlighter'
+import { ITokens } from '../../lib/highlighter/types'
 
 require('codemirror/mode/javascript/javascript')
 

@@ -13,7 +13,7 @@ import { innerMode } from 'codemirror/src/modes'
 const cm = CodeMirror as any
 cm.innerMode = cm.innerMode || innerMode
 
-import { ITokens, IHighlightRequest } from '../lib/highlighter'
+import { ITokens, IHighlightRequest } from '../lib/highlighter/types'
 
 const extensionMIMEMap = new Map<string, string>()
 
