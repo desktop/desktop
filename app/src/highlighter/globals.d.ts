@@ -1,45 +1,4 @@
 declare namespace CodeMirror {
-  /**
-   * The first argument is a configuration object as passed to the mode constructor function, and the second argument
-   * is a mode specification as in the EditorConfiguration mode option.
-   */
-  function getMode<T>(
-    config: CodeMirror.EditorConfiguration,
-    mode: any
-  ): Mode<T>
-
-  /**
-   * id will be the id for the defined mode. Typically, you should use this second argument to defineMode as your module scope function
-   * (modes should not leak anything into the global scope!), i.e. write your whole mode inside this function.
-   */
-  function defineMode(id: string, modefactory: ModeFactory<any>): void
-
-  function defineMIME(mime: string, spec: any): void
-
-  function startState(mode: Mode<{}>, a1: any, a2: any): any
-
-  function resolveMode(spec: any): any
-
-  function extendMode(mode: any, properties: any): void
-
-  /**
-   * Runs a CodeMirror mode over text without opening an editor instance.
-   *
-   * @param text The document to run through the highlighter.
-   * @param mode The mode to use (must be loaded as normal).
-   * @param output If this is a function, it will be called for each token with
-   *               two arguments, the token's text and the token's style class
-   *               (may be null for unstyled tokens). If it is a DOM node, the
-   *               tokens will be converted to span elements as in an editor,
-   *               and inserted into the node (through innerHTML).
-   */
-  function runMode(
-    text: string,
-    modespec: any,
-    callback: (text: string, style: string | null) => void,
-    options?: { tabSize?: number; state?: any }
-  ): void
-
   // tslint:disable-next-line:interface-name
   interface EditorConfiguration {
     /** How many spaces a block (whatever that means in the edited language) should be indented. The default is 2. */
@@ -63,13 +22,67 @@ declare namespace CodeMirror {
     line: number
   }
 
-  class StringStream {
-    public constructor(
-      string: string,
-      tabSize: number,
-      context: StringStreamContext
-    )
+  /**
+   * A Mode is, in the simplest case, a lexer (tokenizer) for your language — a function that takes a character stream as input,
+   * advances it past a token, and returns a style for that token. More advanced modes can also handle indentation for the language.
+   */
+  // tslint:disable-next-line:interface-name
+  interface Mode<T> {
+    /**
+     * A function that produces a state object to be used at the start of a document.
+     */
+    startState?: () => T
+    /**
+     * For languages that have significant blank lines, you can define a blankLine(state) method on your mode that will get called
+     * whenever a blank line is passed over, so that it can update the parser state.
+     */
+    blankLine?: (state: T) => void
+    /**
+     * Given a state returns a safe copy of that state.
+     */
+    copyState?: (state: T) => T
 
+    /**
+     * The indentation method should inspect the given state object, and optionally the textAfter string, which contains the text on
+     * the line that is being indented, and return an integer, the amount of spaces to indent.
+     */
+    indent?: (state: T, textAfter: string) => number
+
+    /** The four below strings are used for working with the commenting addon. */
+    /**
+     * String that starts a line comment.
+     */
+    lineComment?: string
+    /**
+     * String that starts a block comment.
+     */
+    blockCommentStart?: string
+    /**
+     * String that ends a block comment.
+     */
+    blockCommentEnd?: string
+    /**
+     * String to put at the start of continued lines in a block comment.
+     */
+    blockCommentLead?: string
+
+    /**
+     * Trigger a reindent whenever one of the characters in the string is typed.
+     */
+    electricChars?: string
+    /**
+     * Trigger a reindent whenever the regex matches the part of the line before the cursor.
+     */
+    electricinput?: RegExp
+
+    /**
+     * This function should read one token from the stream it is given as an argument, optionally update its state,
+     * and return a style string, or null for tokens that do not have to be styled. Multiple styles can be returned, separated by spaces.
+     */
+    token(stream: StringStream, state: T): string | null
+  }
+
+  class StringStream {
     public lastColumnPos: number
     public lastColumnValue: number
     public lineStart: number
@@ -93,6 +106,13 @@ declare namespace CodeMirror {
      * Number of spaces per tab character.
      */
     public tabSize: number
+
+    public constructor(
+      // tslint:disable-next-line:variable-name
+      string: string,
+      tabSize: number,
+      context: StringStreamContext
+    )
 
     /**
      * Returns true only if the stream is at the end of the line.
@@ -184,64 +204,45 @@ declare namespace CodeMirror {
   }
 
   /**
-   * A Mode is, in the simplest case, a lexer (tokenizer) for your language — a function that takes a character stream as input,
-   * advances it past a token, and returns a style for that token. More advanced modes can also handle indentation for the language.
+   * The first argument is a configuration object as passed to the mode constructor function, and the second argument
+   * is a mode specification as in the EditorConfiguration mode option.
    */
-  // tslint:disable-next-line:interface-name
-  interface Mode<T> {
-    /**
-     * This function should read one token from the stream it is given as an argument, optionally update its state,
-     * and return a style string, or null for tokens that do not have to be styled. Multiple styles can be returned, separated by spaces.
-     */
-    token(stream: StringStream, state: T): string | null
+  function getMode<T>(
+    config: CodeMirror.EditorConfiguration,
+    mode: any
+  ): Mode<T>
 
-    /**
-     * A function that produces a state object to be used at the start of a document.
-     */
-    startState?: () => T
-    /**
-     * For languages that have significant blank lines, you can define a blankLine(state) method on your mode that will get called
-     * whenever a blank line is passed over, so that it can update the parser state.
-     */
-    blankLine?: (state: T) => void
-    /**
-     * Given a state returns a safe copy of that state.
-     */
-    copyState?: (state: T) => T
+  /**
+   * id will be the id for the defined mode. Typically, you should use this second argument to defineMode as your module scope function
+   * (modes should not leak anything into the global scope!), i.e. write your whole mode inside this function.
+   */
+  function defineMode(id: string, modefactory: ModeFactory<any>): void
 
-    /**
-     * The indentation method should inspect the given state object, and optionally the textAfter string, which contains the text on
-     * the line that is being indented, and return an integer, the amount of spaces to indent.
-     */
-    indent?: (state: T, textAfter: string) => number
+  function defineMIME(mime: string, spec: any): void
 
-    /** The four below strings are used for working with the commenting addon. */
-    /**
-     * String that starts a line comment.
-     */
-    lineComment?: string
-    /**
-     * String that starts a block comment.
-     */
-    blockCommentStart?: string
-    /**
-     * String that ends a block comment.
-     */
-    blockCommentEnd?: string
-    /**
-     * String to put at the start of continued lines in a block comment.
-     */
-    blockCommentLead?: string
+  function startState(mode: Mode<{}>, a1: any, a2: any): any
 
-    /**
-     * Trigger a reindent whenever one of the characters in the string is typed.
-     */
-    electricChars?: string
-    /**
-     * Trigger a reindent whenever the regex matches the part of the line before the cursor.
-     */
-    electricinput?: RegExp
-  }
+  function resolveMode(spec: any): any
+
+  function extendMode(mode: any, properties: any): void
+
+  /**
+   * Runs a CodeMirror mode over text without opening an editor instance.
+   *
+   * @param text The document to run through the highlighter.
+   * @param mode The mode to use (must be loaded as normal).
+   * @param output If this is a function, it will be called for each token with
+   *               two arguments, the token's text and the token's style class
+   *               (may be null for unstyled tokens). If it is a DOM node, the
+   *               tokens will be converted to span elements as in an editor,
+   *               and inserted into the node (through innerHTML).
+   */
+  function runMode(
+    text: string,
+    modespec: any,
+    callback: (text: string, style: string | null) => void,
+    options?: { tabSize?: number; state?: any }
+  ): void
 }
 
 declare module 'codemirror/addon/runmode/runmode.node.js' {
