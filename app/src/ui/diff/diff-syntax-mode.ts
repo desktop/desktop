@@ -28,39 +28,36 @@ function skipLine(stream: CodeMirror.StringStream, state: IState) {
   return null
 }
 
-function getCurrentLineIndex(diffLine: DiffLine) {
-  const diffLineNumber =
-    diffLine.oldLineNumber !== null
-      ? diffLine.oldLineNumber
-      : diffLine.newLineNumber
-
-  // Diff lines numbers start at one so we adjust this
-  // in order to get the line _index_ in the before or
-  // after file contents.
-  return diffLineNumber === null ? null : diffLineNumber - 1
-}
-
+/**
+ * Attempt to get tokens for a particular diff line. This will attempt
+ * to look up tokens in both the old tokens and the new which is
+ * important because for context lines we might only have tokens in
+ * one version and we need to be resilient about that.
+ */
 function getTokensForDiffLine(
   diffLine: DiffLine,
   oldTokens: ITokens | undefined,
   newTokens: ITokens | undefined
 ) {
-  const lineIndex = getCurrentLineIndex(diffLine)
-
-  if (lineIndex === null) {
-    return null
+  // Note: Diff lines numbers start at one so we adjust this in order
+  // to get the line _index_ in the before or after file contents.
+  if (
+    oldTokens &&
+    diffLine.oldLineNumber &&
+    oldTokens[diffLine.oldLineNumber - 1]
+  ) {
+    return oldTokens[diffLine.oldLineNumber - 1]
   }
 
-  // We know that one of oldLineNumber or newLineNumber is
-  // non-null here since we've got a line index from
-  // getCurrentLineIndex
-  const activeTokens = diffLine.oldLineNumber !== null ? oldTokens : newTokens
-
-  if (!activeTokens) {
-    return null
+  if (
+    newTokens &&
+    diffLine.newLineNumber &&
+    newTokens[diffLine.newLineNumber - 1]
+  ) {
+    return newTokens[diffLine.newLineNumber - 1]
   }
 
-  return activeTokens[lineIndex] || null
+  return null
 }
 
 export class DiffSyntaxMode {
