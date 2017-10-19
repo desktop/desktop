@@ -143,6 +143,15 @@ export async function readFile(
   })
 }
 
+/**
+ * Read a specific region from a file.
+ *
+ * @param path  Path to the file
+ * @param start First index relative to the start of the file to
+ *              read from
+ * @param end   Last index (inclusive) relative to the start of the
+ *              file to read to
+ */
 export async function readPartialFile(
   path: string,
   start: number,
