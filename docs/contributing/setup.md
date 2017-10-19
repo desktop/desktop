@@ -40,7 +40,7 @@ $ sudo dnf install -y nodejs gcc-c++ make libsecret-devel libxscrnsaver
 
 If you want to package Desktop for distribution, you will need these additional dependencies:
 
-```shellsession
+```sh
 $ sudo dnf install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
 #
 # workarounds for linker issues when packaging for AppImage
