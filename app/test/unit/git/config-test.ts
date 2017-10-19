@@ -10,7 +10,7 @@ import {
   setGlobalConfigValue,
 } from '../../../src/lib/git'
 import { GitProcess } from 'dugite'
-import { setupFixtureRepository } from '../../fixture-helper'
+import { setupFixtureRepository } from '../../helpers/repositories'
 
 describe('git/config', () => {
   let repository: Repository | null = null

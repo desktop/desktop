@@ -37,11 +37,7 @@ import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
-import {
-  ExternalEditor,
-  parse as parseExternalEditor,
-} from '../../models/editors'
-import { getAvailableEditors } from '../editors'
+import { ExternalEditor, getAvailableEditors, parse } from '../editors'
 import { CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from '../databases/github-user-database'
 import { GitHubUserStore } from './github-user-store'
@@ -445,13 +441,14 @@ export class AppStore {
     })
   }
 
-  private updateBranchesState(
+  private updateBranchesState<K extends keyof IBranchesState>(
     repository: Repository,
-    fn: (branchesState: IBranchesState) => IBranchesState
+    fn: (branchesState: IBranchesState) => Pick<IBranchesState, K>
   ) {
     this.updateRepositoryState(repository, state => {
-      const branchesState = fn(state.branchesState)
-      return { branchesState }
+      const changesState = state.branchesState
+      const newState = merge(changesState, fn(changesState))
+      return { branchesState: newState }
     })
   }
 
@@ -938,7 +935,7 @@ export class AppStore {
   private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
     const externalEditorValue = localStorage.getItem(externalEditorKey)
     if (externalEditorValue) {
-      const value = parseExternalEditor(externalEditorValue)
+      const value = parse(externalEditorValue)
       if (value) {
         return value
       }

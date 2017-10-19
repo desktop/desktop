@@ -1,14 +1,24 @@
-#!/usr/bin/env node
+/* tslint:disable:no-sync-functions */
 
-'use strict'
+import * as fs from 'fs-extra'
+import * as cp from 'child_process'
+import * as path from 'path'
+import * as electronInstaller from 'electron-winstaller'
+import {
+  getDistRoot,
+  getDistPath,
+  getProductName,
+  getOSXZipPath,
+  getWindowsIdentifierName,
+  getCompanyName,
+  getWindowsStandaloneName,
+  getWindowsInstallerName,
+  shouldMakeDelta,
+  getUpdatesURL,
+} from './dist-info'
 
-const fs = require('fs-extra')
-const cp = require('child_process')
-const path = require('path')
-const distInfo = require('./dist-info')
-
-const distPath = distInfo.getDistPath()
-const productName = distInfo.getProductName()
+const distPath = getDistPath()
+const productName = getProductName()
 const outputDir = path.join(distPath, '..', 'installer')
 
 if (process.platform === 'darwin') {
@@ -23,7 +33,7 @@ if (process.platform === 'darwin') {
 }
 
 function packageOSX() {
-  const dest = distInfo.getOSXZipPath()
+  const dest = getOSXZipPath()
   fs.removeSync(dest)
 
   cp.execSync(
@@ -33,7 +43,6 @@ function packageOSX() {
 }
 
 function packageWindows() {
-  const electronInstaller = require('electron-winstaller')
   const setupCertificatePath = path.join(
     __dirname,
     'setup-windows-certificate.ps1'
@@ -75,23 +84,23 @@ function packageWindows() {
 
   const iconUrl = 'https://desktop.githubusercontent.com/app-icon.ico'
 
-  const nugetPkgName = distInfo.getWindowsIdentifierName()
-  const options = {
+  const nugetPkgName = getWindowsIdentifierName()
+  const options: electronInstaller.Options = {
     name: nugetPkgName,
     appDirectory: distPath,
     outputDirectory: outputDir,
-    authors: distInfo.getCompanyName(),
+    authors: getCompanyName(),
     iconUrl: iconUrl,
     setupIcon: iconSource,
     loadingGif: splashScreenPath,
     exe: `${nugetPkgName}.exe`,
     title: productName,
-    setupExe: distInfo.getWindowsStandaloneName(),
-    setupMsi: distInfo.getWindowsInstallerName(),
+    setupExe: getWindowsStandaloneName(),
+    setupMsi: getWindowsInstallerName(),
   }
 
-  if (distInfo.shouldMakeDelta()) {
-    options.remoteReleases = distInfo.getUpdatesURL()
+  if (shouldMakeDelta()) {
+    options.remoteReleases = getUpdatesURL()
   }
 
   if (process.env.APPVEYOR) {
@@ -114,9 +123,9 @@ function packageWindows() {
 }
 
 function packageRedhat() {
-  const installer = require('electron-installer-redhat')
+  const installer: ElectronInstallerRedhat = require('electron-installer-redhat')
 
-  var options = {
+  const options = {
     src: distPath,
     dest: outputDir,
     arch: 'amd64',
@@ -124,7 +133,7 @@ function packageRedhat() {
 
   return new Promise((resolve, reject) => {
     console.log('Creating .rpm package...')
-    installer(options, function(err) {
+    installer(options, err => {
       if (err) {
         reject(err)
       } else {
@@ -135,9 +144,9 @@ function packageRedhat() {
 }
 
 function packageDebian() {
-  const installer = require('electron-installer-debian')
+  const installer: ElectronInstallerDebian = require('electron-installer-debian')
 
-  var options = {
+  const options = {
     src: distPath,
     dest: outputDir,
     arch: 'amd64',
@@ -145,7 +154,7 @@ function packageDebian() {
 
   return new Promise((resolve, reject) => {
     console.log('Creating .deb package...')
-    installer(options, function(err) {
+    installer(options, err => {
       if (err) {
         reject(err)
       } else {
@@ -165,13 +174,13 @@ function packageAppImage() {
   // libburn : SORRY : Neither stdio-path nor its directory exist
   //
   // so let's just trash it (if already existing) and create the directory
-  const makeDir = path.join(distInfo.getDistRoot(), 'make')
+  const makeDir = path.join(getDistRoot(), 'make')
   fs.removeSync(makeDir)
   fs.mkdirSync(makeDir)
 
-  const installer = require('electron-installer-appimage')
+  const installer: ElectronInstallerAppImage = require('electron-installer-appimage')
 
-  var options = {
+  const options = {
     dir: distPath,
     targetArch: 'x64',
   }
@@ -183,7 +192,7 @@ function packageAppImage() {
   })
 }
 
-async function packageLinux() {
+async function packageLinux(): Promise<void> {
   try {
     await packageRedhat()
     await packageDebian()

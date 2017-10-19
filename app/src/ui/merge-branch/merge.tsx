@@ -165,6 +165,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             onFilterTextChanged={this.onFilterTextChanged}
             selectedBranch={selectedBranch}
             onSelectionChanged={this.onSelectionChanged}
+            canCreateNewBranch={false}
           />
         </DialogContent>
         <DialogFooter>

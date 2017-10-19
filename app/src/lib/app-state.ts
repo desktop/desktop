@@ -19,7 +19,7 @@ import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
 import { RetryAction } from './retry-actions'
-import { ExternalEditor } from '../models/editors'
+import { ExternalEditor } from '../lib/editors'
 import { PreferencesTab } from '../models/preferences'
 import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
@@ -223,7 +223,11 @@ export type Popup =
       type: PopupType.CloneRepository
       initialURL: string | null
     }
-  | { type: PopupType.CreateBranch; repository: Repository }
+  | {
+      type: PopupType.CreateBranch
+      repository: Repository
+      initialName?: string
+    }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }
   | { type: PopupType.InstallGit; path: string }

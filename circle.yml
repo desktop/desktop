@@ -16,7 +16,7 @@ dependencies:
 
   pre:
     - brew install node || brew upgrade node
-    - npm install -g yarn@1.2.0
+    - npm install -g yarn@1.2.1
 
   override:
     - yarn install --force
