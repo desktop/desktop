@@ -1,6 +1,7 @@
 import { ChildProcess } from 'child_process'
 
 import { git } from './core'
+import { spawnAndComplete } from './spawn'
 
 import { Repository } from '../../models/repository'
 
@@ -38,4 +39,25 @@ export async function getBlobContents(
   const blobContents = await git(args, repository.path, 'getBlobContents', opts)
 
   return Buffer.from(blobContents.stdout, 'binary')
+}
+
+export async function getPartialBlobContents(
+  repository: Repository,
+  commitish: string,
+  path: string,
+  length: number
+): Promise<Buffer> {
+  const successExitCodes = new Set([0, 1])
+
+  const args = ['show', `${commitish}:${path}`]
+
+  const { output } = await spawnAndComplete(
+    args,
+    repository.path,
+    'getPartialBlobContents',
+    successExitCodes,
+    length
+  )
+
+  return output
 }
