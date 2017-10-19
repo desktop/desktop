@@ -112,7 +112,7 @@ export function pathExists(path: string): Promise<boolean> {
   })
 }
 
-export function open(path: string, flags: string): Promise<number> {
+function open(path: string, flags: string): Promise<number> {
   return new Promise<number>((resolve, reject) => {
     Fs.open(path, flags, (err, fd) => {
       if (err) {
@@ -124,7 +124,7 @@ export function open(path: string, flags: string): Promise<number> {
   })
 }
 
-export function read(
+function read(
   fd: number,
   buffer: Buffer,
   offset: number,
@@ -142,7 +142,7 @@ export function read(
   })
 }
 
-export function close(fd: number): Promise<void> {
+function close(fd: number): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     Fs.close(fd, err => {
       if (err) {
@@ -183,4 +183,38 @@ export async function readFile(
       }
     })
   })
+}
+
+const readBufferSize = 8 * 1024
+
+export async function readPartialFile(
+  path: string,
+  maxLength: number
+): Promise<Buffer> {
+  if (maxLength <= 0) {
+    throw new Error('maxLength must be greater than zero if given')
+  }
+
+  const readBuf = new Buffer(readBufferSize)
+  const chunks = new Array<Buffer>()
+
+  let total = 0
+
+  const fd = await open(path, 'r')
+
+  try {
+    let c
+    while ((c = await read(fd, readBuf, 0, readBuf.length, null)) > 0) {
+      total += c
+      chunks.push(Buffer.from(readBuf.slice(0, c)))
+
+      if (maxLength !== undefined && total >= maxLength) {
+        break
+      }
+    }
+  } finally {
+    close(fd)
+  }
+
+  return Buffer.concat(chunks, maxLength ? Math.min(total, maxLength) : total)
 }

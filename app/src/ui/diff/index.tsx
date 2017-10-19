@@ -50,13 +50,16 @@ import { fatalError } from '../../lib/fatal-error'
 import { RangeSelectionSizePixels } from './edge-detection'
 import { relativeChanges } from './changed-range'
 import { getBlobContents } from '../../lib/git/show'
-import { getWorkingDirectoryContents } from '../../lib/git/diff'
+import { readPartialFile } from '../../lib/file-system'
 
 import { DiffSyntaxMode } from './diff-syntax-mode'
 import { ITokens } from '../../lib/tokens'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
+
+/** The maximum number of bytes we'll process for highligting. */
+const MaxHighlightContentLength = 512 * 1024
 
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
@@ -75,7 +78,10 @@ async function getFileContent(
 
   if (file instanceof WorkingDirectoryFileChange) {
     oldPromise = getBlobContents(repository, '', file.oldPath || file.path)
-    newPromise = getWorkingDirectoryContents(repository, file, 512 * 1024)
+    newPromise = readPartialFile(
+      Path.join(repository.path, file.path),
+      MaxHighlightContentLength
+    )
   } else if (file instanceof CommittedFileChange) {
     oldPromise = getBlobContents(
       repository,
