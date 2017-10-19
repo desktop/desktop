@@ -28,6 +28,7 @@ import {
   IDiff,
   IImageDiff,
   ITextDiff,
+  DiffLine,
   DiffLineType,
 } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
@@ -123,6 +124,60 @@ async function getNewFileContent(
   } else {
     throw new Error('Unknown file type')
   }
+}
+
+/**
+ * Figure out which lines we need to have tokenized in
+ * both the old and new version of the file.
+ */
+function getLineFilters(
+  diff: ITextDiff
+): { oldLineFilter: Array<number>; newLineFilter: Array<number> } {
+  const oldLineFilter = new Array<number>()
+  const newLineFilter = new Array<number>()
+
+  const diffLines = new Array<DiffLine>()
+
+  let anyAdded = false
+  let anyDeleted = false
+
+  for (const hunk of diff.hunks) {
+    for (const line of hunk.lines) {
+      if (line.type === DiffLineType.Add) {
+        anyAdded = true
+      } else if (line.type === DiffLineType.Delete) {
+        anyDeleted = true
+      }
+      diffLines.push(line)
+    }
+  }
+
+  for (const line of diffLines) {
+    // So this might need a little explaining. What we're trying
+    // to achieve here is if the diff contains only additions or
+    // only deletions we'll source all the highlighted lines from
+    // either the before or after file. That way we can completely
+    // disregard loading, and highlighting, the other version.
+    if (line.oldLineNumber !== null && line.newLineNumber !== null) {
+      if (anyAdded && !anyDeleted) {
+        newLineFilter.push(line.newLineNumber - 1)
+      } else {
+        oldLineFilter.push(line.oldLineNumber - 1)
+      }
+    } else {
+      // If there's a mix we'll prioritize the old version since
+      // that's immutable and less likely to be the subject of a
+      // race condition when someone rapidly modifies the file on
+      // disk.
+      if (line.oldLineNumber !== null) {
+        oldLineFilter.push(line.oldLineNumber - 1)
+      } else if (line.newLineNumber !== null) {
+        newLineFilter.push(line.newLineNumber - 1)
+      }
+    }
+  }
+
+  return { oldLineFilter, newLineFilter }
 }
 
 /** The props for the Diff component. */
@@ -292,21 +347,15 @@ export class Diff extends React.Component<IDiffProps, {}> {
       return
     }
 
-    const oldContentsPromise = getOldFileContent(repo, file)
-    const newContentsPromise = getNewFileContent(repo, file)
+    const lineFilters = getLineFilters(diff)
 
-    const oldLineFilter = new Array<number>()
-    const newLineFilter = new Array<number>()
+    const oldContentsPromise = lineFilters.oldLineFilter.length
+      ? getOldFileContent(repo, file)
+      : Promise.resolve(new Buffer(0))
 
-    for (const hunk of diff.hunks) {
-      for (const line of hunk.lines) {
-        if (line.newLineNumber) {
-          newLineFilter.push(line.newLineNumber - 1)
-        } else if (line.oldLineNumber) {
-          oldLineFilter.push(line.oldLineNumber - 1)
-        }
-      }
-    }
+    const newContentsPromise = lineFilters.newLineFilter.length
+      ? getNewFileContent(repo, file)
+      : Promise.resolve(new Buffer(0))
 
     const [oldContents, newContents] = await Promise.all([
       oldContentsPromise.catch(e => {
@@ -338,13 +387,13 @@ export class Diff extends React.Component<IDiffProps, {}> {
         oldContents.toString('utf8'),
         Path.extname(file.oldPath || file.path),
         tabSize,
-        oldLineFilter
+        lineFilters.oldLineFilter
       ),
       highlight(
         newContents.toString('utf8'),
         Path.extname(file.path),
         tabSize,
-        newLineFilter
+        lineFilters.newLineFilter
       ),
     ])
 
