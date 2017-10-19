@@ -80,7 +80,11 @@ async function getOldFileContent(
   let commitish
 
   if (file instanceof WorkingDirectoryFileChange) {
-    commitish = ''
+    // If we pass an empty string here we get the contents
+    // that are in the index. But since we call diff with
+    // --no-index (see diff.ts) we need to look at what's
+    // actually committed to get the appropriate content.
+    commitish = 'HEAD'
   } else if (file instanceof CommittedFileChange) {
     commitish = `${file.commitish}^`
   } else {
