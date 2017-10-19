@@ -53,7 +53,7 @@ import { getPartialBlobContents } from '../../lib/git/show'
 import { readPartialFile } from '../../lib/file-system'
 
 import { DiffSyntaxMode } from './diff-syntax-mode'
-import { ITokens } from '../../lib/tokens'
+import { ITokens } from '../../lib/highlighter'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
