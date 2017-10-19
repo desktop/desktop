@@ -69,53 +69,46 @@ const narrowNoNewlineSymbol = new OcticonSymbol(
   'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z'
 )
 
-async function getFileContent(
+async function getOldFileContent(
   repository: Repository,
   file: FileChange
-): Promise<{ oldContents: Buffer; newContents: Buffer }> {
-  let oldPromise
-  let newPromise
+): Promise<Buffer> {
+  if (file.status === AppFileStatus.New) {
+    return new Buffer(0)
+  }
+
+  let commitish
 
   if (file instanceof WorkingDirectoryFileChange) {
-    oldPromise =
-      file.status === AppFileStatus.New
-        ? Promise.resolve(new Buffer(0))
-        : getBlobContents(repository, '', file.oldPath || file.path)
-    newPromise =
-      file.status === AppFileStatus.Deleted
-        ? Promise.resolve(new Buffer(0))
-        : readPartialFile(
-            Path.join(repository.path, file.path),
-            0,
-            MaxHighlightContentLength - 1
-          )
+    commitish = ''
   } else if (file instanceof CommittedFileChange) {
-    oldPromise =
-      file.status === AppFileStatus.New
-        ? Promise.resolve(new Buffer(0))
-        : getBlobContents(
-            repository,
-            `${file.commitish}^`,
-            file.oldPath || file.path
-          )
-    newPromise =
-      file.status === AppFileStatus.Deleted
-        ? Promise.resolve(new Buffer(0))
-        : getBlobContents(repository, file.commitish, file.path)
+    commitish = `${file.commitish}^`
   } else {
     throw new Error('Unknown file type')
   }
 
-  const onError = (err: Error) => {
+  return getBlobContents(repository, commitish, file.oldPath || file.path)
+}
+
+async function getNewFileContent(
+  repository: Repository,
+  file: FileChange
+): Promise<Buffer> {
+  if (file.status === AppFileStatus.Deleted) {
     return new Buffer(0)
   }
 
-  const [oldContents, newContents] = await Promise.all([
-    oldPromise.catch(onError),
-    newPromise.catch(onError),
-  ])
-
-  return { oldContents, newContents }
+  if (file instanceof WorkingDirectoryFileChange) {
+    return readPartialFile(
+      Path.join(repository.path, file.path),
+      0,
+      MaxHighlightContentLength - 1
+    )
+  } else if (file instanceof CommittedFileChange) {
+    return getBlobContents(repository, file.commitish, file.path)
+  } else {
+    throw new Error('Unknown file type')
+  }
 }
 
 const highlightWorkers = new Array<Worker>()
@@ -328,6 +321,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
     const cm = this.codeMirror
     const file = this.props.file
     const diff = this.props.diff
+    const repo = this.props.repository
 
     if (!cm) {
       return
@@ -337,23 +331,33 @@ export class Diff extends React.Component<IDiffProps, {}> {
       return
     }
 
-    const contentsPromise = getFileContent(this.props.repository, file)
+    const oldContentsPromise = getOldFileContent(repo, file)
+    const newContentsPromise = getNewFileContent(repo, file)
 
     const oldLineFilter = new Array<number>()
     const newLineFilter = new Array<number>()
 
     for (const hunk of diff.hunks) {
       for (const line of hunk.lines) {
-        if (line.oldLineNumber) {
-          oldLineFilter.push(line.oldLineNumber - 1)
-        } else if (line.newLineNumber) {
+        if (line.newLineNumber) {
           newLineFilter.push(line.newLineNumber - 1)
+        } else if (line.oldLineNumber) {
+          oldLineFilter.push(line.oldLineNumber - 1)
         }
       }
     }
 
     console.time('loadContents')
-    const contents = await contentsPromise
+    const [oldContents, newContents] = await Promise.all([
+      oldContentsPromise.catch(e => {
+        log.error('Could not load old contents for syntax highlighting', e)
+        return new Buffer(0)
+      }),
+      newContentsPromise.catch(e => {
+        log.error('Could not load new contents for syntax highlighting', e)
+        return new Buffer(0)
+      }),
+    ])
     console.timeEnd('loadContents')
 
     // Check to see whether something has changes since
@@ -374,13 +378,13 @@ export class Diff extends React.Component<IDiffProps, {}> {
 
     const [oldTokens, newTokens] = await Promise.all([
       highlight(
-        contents.oldContents.toString('utf8'),
+        oldContents.toString('utf8'),
         Path.extname(file.oldPath || file.path),
         tabSize,
         oldLineFilter
       ),
       highlight(
-        contents.newContents.toString('utf8'),
+        newContents.toString('utf8'),
         Path.extname(file.path),
         tabSize,
         newLineFilter
