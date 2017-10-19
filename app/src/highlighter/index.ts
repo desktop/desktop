@@ -124,7 +124,7 @@ onmessage = (ev: MessageEvent) => {
     return
   }
 
-  const mode: CodeMirror.Mode<{}> = CodeMirror.getMode({}, mimeType)
+  const mode = CodeMirror.getMode({}, mimeType)
 
   if (!mode) {
     console.debug(`Could not find highlighting mode for '${mimeType}'`)
