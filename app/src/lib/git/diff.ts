@@ -348,11 +348,12 @@ export async function getWorkingDirectoryImage(
   repository: Repository,
   file: FileChange
 ): Promise<Image> {
-  const extension = Path.extname(file.path)
-  const contents = await getWorkingDirectoryContents(repository, file)
+  const contents = await filesystem.readFile(
+    Path.join(repository.path, file.path)
+  )
   const diff: Image = {
     contents: contents.toString('base64'),
-    mediaType: getMediaType(extension),
+    mediaType: getMediaType(Path.extname(file.path)),
   }
   return diff
 }
