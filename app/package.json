@@ -19,7 +19,6 @@
   "dependencies": {
     "app-path": "^2.2.0",
     "byline": "^5.0.0",
-    "chalk": "^2.0.1",
     "classnames": "^2.2.5",
     "codemirror": "^5.29.0",
     "deep-equal": "^1.0.1",
@@ -32,7 +31,6 @@
     "fs-extra": "^2.1.2",
     "keytar": "^4.0.4",
     "moment": "^2.17.1",
-    "mri": "^1.1.0",
     "primer-support": "^4.0.0",
     "react": "^15.6.2",
     "react-addons-shallow-compare": "^15.6.2",
@@ -41,7 +39,6 @@
     "react-virtualized": "^9.10.1",
     "runas": "^3.1.1",
     "source-map-support": "^0.4.15",
-    "strip-ansi": "^4.0.0",
     "textarea-caret": "^3.0.2",
     "ua-parser-js": "^0.7.12",
     "untildify": "^3.0.2",

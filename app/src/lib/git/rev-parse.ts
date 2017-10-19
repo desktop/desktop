@@ -1,6 +1,7 @@
 import * as Path from 'path'
 
 import { git } from './core'
+import { Repository } from '../../models/repository'
 import { RepositoryDoesNotExistErrorCode } from 'dugite'
 
 /**
@@ -50,6 +51,26 @@ export async function getTopLevelWorkingDirectory(
   }
 
   return Path.resolve(path, relativePath)
+}
+
+/**
+ * Attempts to dereference the HEAD symbolic link to a commit sha.
+ * Returns null if HEAD is unborn.
+ */
+export async function resolveHEAD(
+  repository: Repository
+): Promise<string | null> {
+  const result = await git(
+    ['rev-parse', '--verify', 'HEAD^{commit}'],
+    repository.path,
+    'resolveHEAD',
+    { successExitCodes: new Set([0, 128]) }
+  )
+  if (result.exitCode === 0) {
+    return result.stdout
+  } else {
+    return null
+  }
 }
 
 /** Is the path a git repository? */

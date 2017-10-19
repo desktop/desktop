@@ -135,8 +135,8 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       },
       {
         label: __DARWIN__
-          ? 'Open with Default Program'
-          : 'Open with default program',
+          ? 'Open in ${this.selectedExternalEditor}'
+          : 'Open in ${this.selectedExternalEditor}',
         action: () => this.props.onOpenItem(this.props.path),
         enabled: isSafeExtension && this.props.status !== AppFileStatus.Deleted,
       }
