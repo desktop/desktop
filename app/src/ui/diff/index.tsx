@@ -143,11 +143,8 @@ function getLineFilters(
 
   for (const hunk of diff.hunks) {
     for (const line of hunk.lines) {
-      if (line.type === DiffLineType.Add) {
-        anyAdded = true
-      } else if (line.type === DiffLineType.Delete) {
-        anyDeleted = true
-      }
+      anyAdded = anyAdded || line.type === DiffLineType.Add
+      anyDeleted = anyDeleted || line.type === DiffLineType.Delete
       diffLines.push(line)
     }
   }
