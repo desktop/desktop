@@ -127,7 +127,7 @@ async function getNewFileContent(
 
 const highlightWorkers = new Array<Worker>()
 const maxIdlingWorkers = 2
-// const workerMaxRunDuration = 5 * 1000
+const workerMaxRunDuration = 5 * 1000
 
 function highlight(
   contents: string,
@@ -170,10 +170,10 @@ function highlight(
     }
 
     worker.postMessage({ contents, extension, tabSize, lines: undefined })
-    // timeout = window.setTimeout(() => {
-    //   worker.terminate()
-    //   reject(new Error('timeout'))
-    // }, workerMaxRunDuration)
+    timeout = window.setTimeout(() => {
+      worker.terminate()
+      reject(new Error('timeout'))
+    }, workerMaxRunDuration)
   })
 }
 
