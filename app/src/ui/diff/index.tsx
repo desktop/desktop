@@ -80,7 +80,8 @@ async function getFileContent(
     oldPromise = getBlobContents(repository, '', file.oldPath || file.path)
     newPromise = readPartialFile(
       Path.join(repository.path, file.path),
-      MaxHighlightContentLength
+      0,
+      MaxHighlightContentLength - 1
     )
   } else if (file instanceof CommittedFileChange) {
     oldPromise = getBlobContents(

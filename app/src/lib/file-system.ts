@@ -112,48 +112,6 @@ export function pathExists(path: string): Promise<boolean> {
   })
 }
 
-function open(path: string, flags: string): Promise<number> {
-  return new Promise<number>((resolve, reject) => {
-    Fs.open(path, flags, (err, fd) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(fd)
-      }
-    })
-  })
-}
-
-function read(
-  fd: number,
-  buffer: Buffer,
-  offset: number,
-  length: number,
-  position: number | null
-): Promise<number> {
-  return new Promise<number>((resolve, reject) => {
-    Fs.read(fd, buffer, offset, length, position, (err, bytesRead, buffer) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(bytesRead)
-      }
-    })
-  })
-}
-
-function close(fd: number): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    Fs.close(fd, err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
-}
-
 /**
  * Asynchronous readFile - Asynchronously reads the entire contents of a file.
  *
@@ -185,36 +143,21 @@ export async function readFile(
   })
 }
 
-const readBufferSize = 8 * 1024
-
 export async function readPartialFile(
   path: string,
-  maxLength: number
+  start: number,
+  end: number
 ): Promise<Buffer> {
-  if (maxLength <= 0) {
-    throw new Error('maxLength must be greater than zero if given')
-  }
+  return await new Promise<Buffer>((resolve, reject) => {
+    const chunks = new Array<Buffer>()
+    let total = 0
 
-  const readBuf = new Buffer(readBufferSize)
-  const chunks = new Array<Buffer>()
-
-  let total = 0
-
-  const fd = await open(path, 'r')
-
-  try {
-    let c
-    while ((c = await read(fd, readBuf, 0, readBuf.length, null)) > 0) {
-      total += c
-      chunks.push(Buffer.from(readBuf.slice(0, c)))
-
-      if (maxLength !== undefined && total >= maxLength) {
-        break
-      }
-    }
-  } finally {
-    close(fd)
-  }
-
-  return Buffer.concat(chunks, maxLength ? Math.min(total, maxLength) : total)
+    Fs.createReadStream(path, { start, end })
+      .on('data', (chunk: Buffer) => {
+        chunks.push(chunk)
+        total += chunk.length
+      })
+      .on('error', reject)
+      .on('end', () => resolve(Buffer.concat(chunks, total)))
+  })
 }
