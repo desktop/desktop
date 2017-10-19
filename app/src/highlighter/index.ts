@@ -110,8 +110,6 @@ function guessMimeType(contents: string) {
 }
 
 onmessage = (ev: MessageEvent) => {
-  const startTime = performance ? performance.now() : null
-
   const request = ev.data as IHighlightRequest
 
   const tabSize = request.tabSize || 4
@@ -190,10 +188,5 @@ onmessage = (ev: MessageEvent) => {
     }
   }
 
-  if (startTime) {
-    const endTime = performance.now()
-    const duration = endTime - startTime
-    console.info('Tokenization done in ' + duration)
-  }
   postMessage(tokens)
 }
