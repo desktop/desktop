@@ -64,7 +64,11 @@ declare namespace CodeMirror {
   }
 
   class StringStream {
-    public constructor(string: string, tabSize: number, context: StringStreamContext)
+    public constructor(
+      string: string,
+      tabSize: number,
+      context: StringStreamContext
+    )
 
     public lastColumnPos: number
     public lastColumnValue: number
@@ -150,7 +154,11 @@ declare namespace CodeMirror {
      * string, caseFold can be set to true to make the match case-insensitive. When successfully matching a regular
      * expression, the returned value will be the array returned by match, in case you need to extract matched groups.
      */
-    public match(pattern: string, consume?: boolean, caseFold?: boolean): boolean
+    public match(
+      pattern: string,
+      consume?: boolean,
+      caseFold?: boolean
+    ): boolean
     public match(pattern: RegExp, consume?: boolean): string[]
 
     /**
