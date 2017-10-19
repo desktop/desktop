@@ -163,17 +163,18 @@ export function close(fd: number): Promise<void> {
  */
 export async function readFile(
   filename: string,
-  options: { flag?: string }
+  options?: { flag?: string }
 ): Promise<Buffer>
 export async function readFile(
   filename: string,
-  options: { encoding: BufferEncoding; flag?: string }
+  options?: { encoding: BufferEncoding; flag?: string }
 ): Promise<string>
 export async function readFile(
   filename: string,
-  options: { encoding?: string; flag?: string }
+  options?: { encoding?: string; flag?: string }
 ): Promise<Buffer | string> {
   return new Promise<string | Buffer>((resolve, reject) => {
+    options = options || { flag: 'r' }
     Fs.readFile(filename, options, (err, data) => {
       if (err) {
         reject(err)
