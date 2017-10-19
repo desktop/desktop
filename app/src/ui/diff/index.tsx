@@ -162,7 +162,8 @@ function getLineFilters(
         oldLineFilter.push(line.oldLineNumber - 1)
       }
     } else {
-      // If there's a mix we'll prioritize the old version since
+      // If there's a mix (meaning we'll have to read from both
+      // anyway) we'll prioritize the old version since
       // that's immutable and less likely to be the subject of a
       // race condition when someone rapidly modifies the file on
       // disk.
