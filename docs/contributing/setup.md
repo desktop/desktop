@@ -40,13 +40,16 @@ $ sudo dnf install -y nodejs gcc-c++ make libsecret-devel libxscrnsaver
 
 If you want to package Desktop for distribution, you will need these additional dependencies:
 
-```sh
+```shellsession
 $ sudo dnf install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
-#
-# workarounds for linker issues when packaging for AppImage
-# source: https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7
+```
+
+If you have problems packaging for AppImage, you may need to force the linker to use the right
+version of specific dependencies. More information [here](https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7)
+and [here](https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974)
+
+```shellsession
 $ sudo ln -s `find /usr/lib64/ -type f -name "libbz2.so.1*"` /usr/lib64/libbz2.so.1.0
-# source: https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974
 $ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/libreadline.so.6
 ```
 
@@ -65,13 +68,13 @@ yourself changing packages, this will prevent mismatches in versions between mac
 Then validate you have these commands available and that the versions look similar:
 
 ```shellsession
-> node -v
+$ node -v
 v7.8.0
 
-> yarn -v
+$ yarn -v
 1.2.0
 
-> python --version
+$ python --version
 Python 2.7.13
 ```
 
