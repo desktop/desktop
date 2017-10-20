@@ -184,6 +184,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
           onFilterTextChanged={this.onFilterTextChanged}
           selectedBranch={this.state.selectedBranch}
           onSelectionChanged={this.onSelectionChanged}
+          canCreateNewBranch={true}
+          onCreateNewBranch={this.onCreateBranchWithName}
         />
       </div>
     )
