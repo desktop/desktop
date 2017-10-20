@@ -64,4 +64,12 @@ export interface IHighlightRequest {
    * modes we can significantly speed up the highlight process.
    */
   lines?: Array<number>
+
+  /**
+   * When enabled (off by default), an extra CSS class will be
+   * added to each token, indicating the (inner) mode that
+   * produced it, prefixed with "cm-m-". For example, tokens from
+   * the XML mode will get the cm-m-xml class.
+   */
+  addModeClass?: boolean
 }

@@ -180,10 +180,16 @@ onmessage = (ev: MessageEvent) => {
       const token = mode.token(lineStream, state)
 
       if (token && (!lineFilter || lineFilter.has(ix))) {
+        const inner =
+          request.addModeClass === true
+            ? CodeMirror.innerMode(mode, state) as any
+            : null
+        const innerModeName = inner.mode && inner.mode.name
+
         tokens[ix] = tokens[ix] || {}
         tokens[ix][lineStream.start] = {
           length: lineStream.pos - lineStream.start,
-          token,
+          token: innerModeName ? `m-${innerModeName} ${token}` : token,
         }
       }
 

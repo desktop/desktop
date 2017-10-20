@@ -71,6 +71,7 @@ export function highlight(
       extension,
       tabSize,
       lines,
+      addModeClass: true,
     }
 
     worker.postMessage(request)

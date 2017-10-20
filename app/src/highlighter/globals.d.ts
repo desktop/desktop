@@ -241,6 +241,14 @@ declare namespace CodeMirror {
     callback: (text: string, style: string | null) => void,
     options?: { tabSize?: number; state?: any }
   ): void
+
+  // This is a bit of a cheat since it's not really in yet but
+  // it will be once https://github.com/codemirror/CodeMirror/pull/5034
+  // makes it into a release.
+  function innerMode(
+    mode: CodeMirror.Mode<{}>,
+    state: any
+  ): { mode: CodeMirror.Mode<{}>; state: any }
 }
 
 declare module 'codemirror/addon/runmode/runmode.node.js' {
