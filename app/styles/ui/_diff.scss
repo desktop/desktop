@@ -487,7 +487,7 @@
   }
 
   .cm-def {
-    color: #6f42c1;
+    color: inherit;
   }
 
   .cm-variable-2,
@@ -506,9 +506,11 @@
       color: inherit;
     }
   }
-  .cm-qualifier,
-  .cm-type {
+  .cm-qualifier {
     color: #6f42c1;
+  }
+  .cm-type {
+    color: #d73a49;
   }
   .cm-builtin {
     color: inherit;
