@@ -540,4 +540,10 @@
   .cm-diff-add-inner {
     color: var(--diff-add-text-color);
   }
+
+  .cm-m-css {
+    &.cm-property {
+      color: #005cc5;
+    }
+  }
 }
