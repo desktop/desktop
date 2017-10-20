@@ -27,9 +27,9 @@ export function assertNever(x: never, message: string): never {
  * value is defined.
  */
 export function forceUnwrap<T>(message: string, x: T | null | undefined): T {
-  if (x) {
-    return x
-  } else {
+  if (x == null) {
     return fatalError(message)
+  } else {
+    return x
   }
 }
