@@ -28,25 +28,28 @@ You will need to install these tools on your machine:
 
 First, add the NodeJS package repository. As this version of Fedora doesn't support v7, you'll need to use v8:
 
-```
+```shellsession
 $ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
 ```
 
 After that, install the dependencies to build and test the app:
 
-```
+```shellsession
 $ sudo dnf install -y nodejs gcc-c++ make libsecret-devel libxscrnsaver
 ```
 
 If you want to package Desktop for distribution, you will need these additional dependencies:
 
-```sh
+```shellsession
 $ sudo dnf install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
-#
-# workarounds for linker issues when packaging for AppImage
-# source: https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7
+```
+
+If you have problems packaging for AppImage, you may need to force the linker to use the right
+version of specific dependencies. More information [here](https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7)
+and [here](https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974)
+
+```shellsession
 $ sudo ln -s `find /usr/lib64/ -type f -name "libbz2.so.1*"` /usr/lib64/libbz2.so.1.0
-# source: https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974
 $ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/libreadline.so.6
 ```
 
@@ -55,8 +58,8 @@ $ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/li
 With these things installed, open a shell and install `yarn` (you might need
 to `sudo` here depending on how Node was installed):
 
-```
-> npm install -g yarn@1.2.0
+```shellsession
+$ npm install -g yarn@1.2.0
 ```
 
 This is important because yarn uses lock files to pin dependencies. If you find
@@ -64,14 +67,14 @@ yourself changing packages, this will prevent mismatches in versions between mac
 
 Then validate you have these commands available and that the versions look similar:
 
-```
-> node -v
+```shellsession
+$ node -v
 v7.8.0
 
-> yarn -v
+$ yarn -v
 1.2.0
 
-> python --version
+$ python --version
 Python 2.7.13
 ```
 
@@ -107,8 +110,8 @@ problems.
 wish to run the entire test suite to see it you can pass along a search string
 in order to only run the tests that match that string.
 
-```
-yarn test:unit -- --grep CloneProgressParser
+```shellsession
+$ yarn test:unit -- --grep CloneProgressParser
 ```
 
 This example will run all test names containing `CloneProgressParser`.
