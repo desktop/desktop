@@ -4,6 +4,15 @@ import { encodePathAsUrl } from '../../src/lib/path'
 
 describe('path', () => {
   describe('encodePathAsUrl', () => {
+    if (__WIN32__) {
+      it('normalizes path separators', () => {
+        const dirName =
+          'C:/Users/shiftkey\\AppData\\Local\\GitHubDesktop\\app-1.0.4\\resources\\app'
+        const uri = encodePathAsUrl(dirName, 'folder/file.html')
+        expect(uri.startsWith('file://C:\\Users\\shiftkey\\'))
+      })
+    }
+
     it('handles and already encoded path', () => {
       const dirName =
         'C:/Users/shift%20key%20\\AppData\\Local\\GitHubDesktop\\app-1.0.4\\resources\\app'
@@ -18,7 +27,6 @@ describe('path', () => {
         'C:/Users/The Kong #2\\AppData\\Local\\GitHubDesktop\\app-1.0.4\\resources\\app'
       const uri = encodePathAsUrl(dirName, 'index.html')
       expect(uri.startsWith('file://'))
-
       expect(uri.indexOf('%23')).is.greaterThan(0)
     })
   })

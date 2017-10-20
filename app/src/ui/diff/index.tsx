@@ -13,7 +13,7 @@ import { BinaryFile } from './binary-file'
 import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
-
+import { encodePathAsUrl } from '../../lib/path'
 import { ImageDiffType } from '../../lib/app-state'
 import {
   FileChange,
@@ -766,7 +766,10 @@ export class Diff extends React.Component<IDiffProps, {}> {
     }
 
     if (diff.kind === DiffType.TooLarge) {
-      const BlankSlateImage = `file:///${__dirname}/static/empty-no-file-selected.svg`
+      const BlankSlateImage = encodePathAsUrl(
+        __dirname,
+        'static/empty-no-file-selected.svg'
+      )
       const diffSizeMB = Math.round(diff.length / (1024 * 1024))
       return (
         <div className="panel empty">
