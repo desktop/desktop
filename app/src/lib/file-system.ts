@@ -1,6 +1,7 @@
 import * as Fs from 'fs-extra'
 import * as Os from 'os'
 import * as Path from 'path'
+import * as Url from 'url'
 import { Disposable } from 'event-kit'
 import { Tailer } from './tailer'
 
@@ -109,5 +110,19 @@ export function pathExists(path: string): Promise<boolean> {
         resolve(true)
       }
     })
+  })
+}
+
+/**
+ * Resolve and encode the path information into a URL.
+ *
+ * @param pathSegments array of path segments to resolve
+ */
+export function encodePath(...pathSegments: string[]): string {
+  const path = Path.resolve(...pathSegments)
+  return Url.format({
+    pathname: path,
+    protocol: 'file:',
+    slashes: true,
   })
 }
