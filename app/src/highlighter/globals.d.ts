@@ -216,14 +216,19 @@ declare namespace CodeMirror {
    * id will be the id for the defined mode. Typically, you should use this second argument to defineMode as your module scope function
    * (modes should not leak anything into the global scope!), i.e. write your whole mode inside this function.
    */
+  // tslint:disable-next-line:no-unused-function
   function defineMode(id: string, modefactory: ModeFactory<any>): void
 
+  // tslint:disable-next-line:no-unused-function
   function defineMIME(mime: string, spec: any): void
 
+  // tslint:disable-next-line:no-unused-function
   function startState(mode: Mode<{}>, a1: any, a2: any): any
 
+  // tslint:disable-next-line:no-unused-function
   function resolveMode(spec: any): any
 
+  // tslint:disable-next-line:no-unused-function
   function extendMode(mode: any, properties: any): void
 
   /**
@@ -237,6 +242,7 @@ declare namespace CodeMirror {
    *               tokens will be converted to span elements as in an editor,
    *               and inserted into the node (through innerHTML).
    */
+  // tslint:disable-next-line:no-unused-function
   function runMode(
     text: string,
     modespec: any,
