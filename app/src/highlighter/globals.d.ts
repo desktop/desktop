@@ -1,5 +1,6 @@
+/* tslint:disable */
+
 declare namespace CodeMirror {
-  // tslint:disable-next-line:interface-name
   interface EditorConfiguration {
     /** How many spaces a block (whatever that means in the edited language) should be indented. The default is 2. */
     indentUnit?: number
@@ -11,12 +12,10 @@ declare namespace CodeMirror {
   /**
    * A function that, given a CodeMirror configuration object and an optional mode configuration object, returns a mode object.
    */
-  // tslint:disable-next-line:interface-name
   interface ModeFactory<T> {
     (config: CodeMirror.EditorConfiguration, modeOptions?: any): Mode<T>
   }
 
-  // tslint:disable-next-line:interface-name
   interface StringStreamContext {
     lines: string[]
     line: number
@@ -26,7 +25,6 @@ declare namespace CodeMirror {
    * A Mode is, in the simplest case, a lexer (tokenizer) for your language — a function that takes a character stream as input,
    * advances it past a token, and returns a style for that token. More advanced modes can also handle indentation for the language.
    */
-  // tslint:disable-next-line:interface-name
   interface Mode<T> {
     /**
      * A function that produces a state object to be used at the start of a document.
@@ -216,19 +214,14 @@ declare namespace CodeMirror {
    * id will be the id for the defined mode. Typically, you should use this second argument to defineMode as your module scope function
    * (modes should not leak anything into the global scope!), i.e. write your whole mode inside this function.
    */
-  // tslint:disable-next-line:no-unused-function
   function defineMode(id: string, modefactory: ModeFactory<any>): void
 
-  // tslint:disable-next-line:no-unused-function
   function defineMIME(mime: string, spec: any): void
 
-  // tslint:disable-next-line:no-unused-function
   function startState(mode: Mode<{}>, a1: any, a2: any): any
 
-  // tslint:disable-next-line:no-unused-function
   function resolveMode(spec: any): any
 
-  // tslint:disable-next-line:no-unused-function
   function extendMode(mode: any, properties: any): void
 
   /**
