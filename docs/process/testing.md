@@ -228,9 +228,10 @@
   - [ ] Current repo is always shown in top slot with respective icon; if repo exists
   - [ ] Opening list shows all repos in categorized format with a working filter
     - [ ] `ESC` clears the filter
-    - [ ] All repos (private, enterprise, local, public, forked) have proper icon and found in the proper category (GitHub.com/Enterprise/Other)
+    - [ ] All repos (private, enterprise, local, public, forked, other) have proper icon and found in the proper category (GitHub.com/Enterprise/Other)
       - [ ] Hover shows username/repo, url, and/or local path in tooltip
       - [ ] User must have paid account for private repos
+      - [ ] Repo icon is updated if admin changes status (public vs private)
   - [ ] Repositories cloned from non-github servers should always be in the Other group, and have the 'computer' icon.
   - [ ] Selecting a repo updates Changes/History/Diff areas
     - [ ] If no Changes, Diff area shows `Open this repository` link to Finder/Explorer on local
