@@ -235,7 +235,6 @@ declare namespace CodeMirror {
    *               tokens will be converted to span elements as in an editor,
    *               and inserted into the node (through innerHTML).
    */
-  // tslint:disable-next-line:no-unused-function
   function runMode(
     text: string,
     modespec: any,
