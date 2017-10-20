@@ -1,22 +1,42 @@
 import * as Path from 'path'
-import { ExternalEditor } from '../../models/editors'
 import { pathExists } from '../file-system'
-import { LookupResult, FoundEditor } from './shared'
+import { IFoundEditor } from './found-editor'
 import { assertNever } from '../fatal-error'
+
+export enum ExternalEditor {
+  Atom = 'Atom',
+  VisualStudioCode = 'Visual Studio Code',
+  SublimeText = 'Sublime Text',
+}
+
+export function parse(label: string): ExternalEditor | null {
+  if (label === ExternalEditor.Atom) {
+    return ExternalEditor.Atom
+  }
+
+  if (label === ExternalEditor.VisualStudioCode) {
+    return ExternalEditor.VisualStudioCode
+  }
+  if (label === ExternalEditor.SublimeText) {
+    return ExternalEditor.SublimeText
+  }
+
+  return null
+}
 
 /**
  * appPath will raise an error if it cannot find the program.
  */
 const appPath: (bundleId: string) => Promise<string> = require('app-path')
 
-function getBundleIdentifier(editor: ExternalEditor): string {
+function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
   switch (editor) {
     case ExternalEditor.Atom:
-      return 'com.github.atom'
+      return ['com.github.atom']
     case ExternalEditor.VisualStudioCode:
-      return 'com.microsoft.VSCode'
+      return ['com.microsoft.VSCode', 'com.microsoft.VSCodeInsiders']
     case ExternalEditor.SublimeText:
-      return 'com.sublimetext.3'
+      return ['com.sublimetext.3']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -45,30 +65,24 @@ function getExecutableShim(
   }
 }
 
-async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
-  try {
-    const identifier = getBundleIdentifier(editor)
-    const installPath = await appPath(identifier)
-    const path = getExecutableShim(editor, installPath)
-    const exists = await pathExists(path)
-    if (!exists) {
-      log.debug(`Command line interface for ${editor} not found at '${path}'`)
-      return {
-        editor,
-        installed: true,
-        pathExists: false,
+async function findApplication(editor: ExternalEditor): Promise<string | null> {
+  const identifiers = getBundleIdentifiers(editor)
+  for (const identifier of identifiers) {
+    try {
+      const installPath = await appPath(identifier)
+      const path = getExecutableShim(editor, installPath)
+      const exists = await pathExists(path)
+      if (exists) {
+        return path
       }
+
+      log.debug(`Command line interface for ${editor} not found at '${path}'`)
+    } catch (error) {
+      log.debug(`Unable to locate ${editor} installation`, error)
     }
-    return {
-      editor,
-      installed: true,
-      pathExists: true,
-      path,
-    }
-  } catch (error) {
-    log.debug(`Unable to locate ${editor} installation`, error)
-    return { editor, installed: false }
   }
+
+  return null
 }
 
 /**
@@ -76,26 +90,26 @@ async function findApplication(editor: ExternalEditor): Promise<LookupResult> {
  * to register itself on a user's machine when installing.
  */
 export async function getAvailableEditors(): Promise<
-  ReadonlyArray<FoundEditor>
+  ReadonlyArray<IFoundEditor<ExternalEditor>>
 > {
-  const results: Array<FoundEditor> = []
+  const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atom, code, sublime] = await Promise.all([
+  const [atomPath, codePath, sublimePath] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.SublimeText),
   ])
 
-  if (atom.installed && atom.pathExists) {
-    results.push({ editor: atom.editor, path: atom.path })
+  if (atomPath) {
+    results.push({ editor: ExternalEditor.Atom, path: atomPath })
   }
 
-  if (code.installed && code.pathExists) {
-    results.push({ editor: code.editor, path: code.path })
+  if (codePath) {
+    results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
   }
 
-  if (sublime.installed && sublime.pathExists) {
-    results.push({ editor: sublime.editor, path: sublime.path })
+  if (sublimePath) {
+    results.push({ editor: ExternalEditor.SublimeText, path: sublimePath })
   }
 
   return results

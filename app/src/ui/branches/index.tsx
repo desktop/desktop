@@ -118,6 +118,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
             onFilterTextChanged={this.onFilterTextChanged}
             selectedBranch={this.state.selectedBranch}
             onSelectionChanged={this.onSelectionChanged}
+            canCreateNewBranch={true}
+            onCreateNewBranch={this.onCreateBranchWithName}
           />
         )
 
@@ -187,12 +189,17 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     )
   }
 
-  private onCreateBranch = () => {
+  private onCreateBranchWithName = (name: string) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository: this.props.repository,
+      initialName: name,
     })
+  }
+
+  private onCreateBranch = () => {
+    this.onCreateBranchWithName('')
   }
 
   private onCreatePullRequest = () => {
