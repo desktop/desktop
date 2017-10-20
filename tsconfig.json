@@ -9,10 +9,9 @@
     "sourceMap": true,
     "jsx": "react",
     "strict": true,
-    "outDir": "./out",
-    "types": ["node", "electron"]
+    "outDir": "./out"
   },
-  "include": ["app/src/**/*.ts", "app/src/**/*.tsx", "app/src/**/*.d.tsx"],
+  "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
   "exclude": [
     "node_modules",
     "app/node_modules",
