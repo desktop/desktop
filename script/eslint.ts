@@ -1,5 +1,7 @@
 #!/usr/bin/env ts-node
 
+import chalk from 'chalk'
+
 interface IClient {
   // there’s other stuff; I’m not including it
   // because it’s not needed here.
@@ -27,7 +29,7 @@ const onExit = process.on.bind(process, 'exit') as ProcessOnExit
 onExit(code => {
   if (code && ESLINT_ARGS.indexOf('--fix') === -1) {
     console.error(
-      '\x1b[1m\x1b[32m→ To fix some of these errors, run \x1b[4mnpm run eslint:fix\x1b[24\x1b[39m\x1b[22m\n'
+      chalk`{bold.green → To fix some of these errors, run {underline npm run eslint:fix}}`
     )
   }
 })
