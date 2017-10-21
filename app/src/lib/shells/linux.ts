@@ -5,7 +5,7 @@ import { IFoundShell } from './found-shell'
 
 export enum Shell {
   Gnome = 'gnome-terminal',
-  Tilix = 'tilix'
+  Tilix = 'tilix',
 }
 
 export const Default = Shell.Gnome
@@ -23,8 +23,8 @@ export function parse(label: string): Shell {
 }
 
 async function getPathIfAvailable(path: string): Promise<string | null> {
-  return new Promise<string | null>((resolve) => {
-    fs.stat(path, (err) => {
+  return new Promise<string | null>(resolve => {
+    fs.stat(path, err => {
       if (err) {
         resolve(null)
       } else {
@@ -47,10 +47,10 @@ async function getShellPath(shell: Shell): Promise<string | null> {
 
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
-  > {
+> {
   const [gnomeTerminalPath, tilixPath] = await Promise.all([
     getShellPath(Shell.Gnome),
-    getShellPath(Shell.Tilix)
+    getShellPath(Shell.Tilix),
   ])
 
   const shells: Array<IFoundShell<Shell>> = []
