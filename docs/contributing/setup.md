@@ -35,7 +35,7 @@ $ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
 After that, install the dependencies to build and test the app:
 
 ```shellsession
-$ sudo dnf install -y nodejs gcc-c++ make libsecret-devel libxscrnsaver
+$ sudo dnf install -y nodejs gcc-c++ make libsecret-devel libXScrnSaver
 ```
 
 If you want to package Desktop for distribution, you will need these additional dependencies:
