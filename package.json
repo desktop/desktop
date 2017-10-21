@@ -61,6 +61,7 @@
     "eslint-plugin-prettier": "^2.1.2",
     "eslint-plugin-react": "^7.1.0",
     "eslint-plugin-typescript": "^0.4.0",
+    "eslint_d": "^5.1.0",
     "express": "^4.15.0",
     "extract-text-webpack-plugin": "^3.0.0",
     "fs-extra": "^2.1.2",
@@ -127,15 +128,11 @@
     "electron-installer-appimage": "^1.0.1",
     "electron-mocha": "^4.0.0",
     "electron-packager": "^8.7.2",
-    "electron-winstaller": "2.5.2",
-    "eslint_d": "^5.1.0",
-    "prettier": "~1.7.0",
-    "tslint-config-prettier": "^1.1.0",
-    "tslint-react": "~3.0.0"
+    "electron-winstaller": "2.5.2"
   },
   "optionalDependencies": {
-    "electron-installer-redhat": "^0.5.0",
-    "electron-installer-debian": "^0.6.0"
+    "electron-installer-debian": "^0.6.0",
+    "electron-installer-redhat": "^0.5.0"
   },
   "build": {
     "linux": {
