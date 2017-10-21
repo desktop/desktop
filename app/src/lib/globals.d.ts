@@ -64,7 +64,8 @@ declare type DOMHighResTimeStamp = number
  *
  * https://developer.mozilla.org/en-US/docs/Web/API/IdleDeadline
  */
-interface IdleDeadline { // eslint-disable-line typescript/interface-name-prefix
+// eslint-disable-next-line typescript/interface-name-prefix
+interface IdleDeadline {
   readonly didTimeout: boolean
   readonly timeRemaining: () => DOMHighResTimeStamp
 }
@@ -75,7 +76,8 @@ interface IdleDeadline { // eslint-disable-line typescript/interface-name-prefix
  *
  * See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
  */
-interface IdleCallbackOptions { // eslint-disable-line typescript/interface-name-prefix
+// eslint-disable-next-line typescript/interface-name-prefix
+interface IdleCallbackOptions {
   /**
    * If timeout is specified and has a positive value, and the callback has not
    * already been called by the time timeout milliseconds have passed, the
