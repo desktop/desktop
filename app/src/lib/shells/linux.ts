@@ -4,7 +4,7 @@ import { assertNever, fatalError } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
 export enum Shell {
-  Gnome = 'gnome-terminal',
+  Gnome = 'GNOME Terminal',
   Tilix = 'tilix',
 }
 
