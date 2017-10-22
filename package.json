@@ -101,7 +101,6 @@
     "@types/byline": "^4.2.31",
     "@types/chai": "^4.0.3",
     "@types/chai-datetime": "0.0.30",
-    "@types/chalk": "^0.4.31",
     "@types/classnames": "^2.2.2",
     "@types/codemirror": "0.0.46",
     "@types/electron-packager": "^8.7.1",
