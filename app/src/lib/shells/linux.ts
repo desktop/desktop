@@ -1,6 +1,6 @@
 import { spawn } from 'child_process'
 import { pathExists } from '../file-system'
-import { assertNever, fatalError } from '../fatal-error'
+import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
 export enum Shell {
@@ -61,13 +61,6 @@ export async function launch(
   shell: IFoundShell<Shell>,
   path: string
 ): Promise<void> {
-  const shellPath = await getShellPath(shell.shell)
-
-  if (!shellPath) {
-    fatalError(`${shell.shell} is not installed`)
-    return
-  }
-
   const commandArgs = ['--working-directory', path]
-  await spawn(shellPath, commandArgs)
+  await spawn(shell.path, commandArgs)
 }
