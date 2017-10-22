@@ -22,7 +22,7 @@ export async function launchExternalEditor(
     )
   }
 
-  if (__WIN32__ || __DARWIN__) {
+  if (__WIN32__ || __DARWIN__ || __LINUX__) {
     spawn(editorPath, [path])
     return
   }
