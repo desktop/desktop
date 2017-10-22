@@ -5,7 +5,7 @@ import { IFoundShell } from './found-shell'
 
 export enum Shell {
   Gnome = 'GNOME Terminal',
-  Tilix = 'tilix',
+  Tilix = 'Tilix',
 }
 
 export const Default = Shell.Gnome
