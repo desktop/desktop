@@ -1,5 +1,5 @@
 import { spawn } from 'child_process'
-import * as fs from 'fs'
+import { pathExists } from '../file-system'
 import { assertNever, fatalError } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
@@ -23,23 +23,15 @@ export function parse(label: string): Shell {
 }
 
 async function getPathIfAvailable(path: string): Promise<string | null> {
-  return new Promise<string | null>(resolve => {
-    fs.stat(path, err => {
-      if (err) {
-        resolve(null)
-      } else {
-        resolve(path)
-      }
-    })
-  })
+  return (await pathExists(path)) ? path : null
 }
 
-async function getShellPath(shell: Shell): Promise<string | null> {
+function getShellPath(shell: Shell): Promise<string | null> {
   switch (shell) {
     case Shell.Gnome:
-      return await getPathIfAvailable('/usr/bin/gnome-terminal')
+      return getPathIfAvailable('/usr/bin/gnome-terminal')
     case Shell.Tilix:
-      return await getPathIfAvailable('/usr/bin/tilix')
+      return getPathIfAvailable('/usr/bin/tilix')
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
