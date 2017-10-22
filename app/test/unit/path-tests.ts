@@ -5,7 +5,7 @@ import { encodePathAsUrl } from '../../src/lib/path'
 describe('path', () => {
   describe('encodePathAsUrl', () => {
     if (__WIN32__) {
-      it('normalizes path separators', () => {
+      it('normalizes path separators on Windows', () => {
         const dirName =
           'C:/Users/shiftkey\\AppData\\Local\\GitHubDesktop\\app-1.0.4\\resources\\app'
         const uri = encodePathAsUrl(dirName, 'folder/file.html')
