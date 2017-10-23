@@ -1,3 +1,4 @@
+// @ts-check
 'use strict'
 
 const fs = require('fs')
@@ -10,13 +11,14 @@ const path = require('path')
  *
  * Will throw an error for unborn HEAD.
  *
- * @param {string} gitDir The path to the Git repository's .git directory
- * @param {string} ref    A qualified git ref such as 'HEAD' or 'refs/heads/master'
+ * @param   {string} gitDir The path to the Git repository's .git directory
+ * @param   {string} ref    A qualified git ref such as 'HEAD' or 'refs/heads/master'
+ * @returns {string}        The ref SHA
  */
 function revParse(gitDir, ref) {
   const refPath = path.join(gitDir, ref)
   // eslint-disable-next-line no-sync
-  const refContents = fs.readFileSync(refPath)
+  const refContents = fs.readFileSync(refPath, 'utf8')
   const refRe = /^([a-f0-9]{40})|(?:ref: (refs\/.*))$/m
   const refMatch = refRe.exec(refContents)
 
@@ -32,6 +34,7 @@ function revParse(gitDir, ref) {
 function getSHA() {
   // CircleCI does some funny stuff where HEAD points to an packed ref, but
   // luckily it gives us the SHA we want in the environment.
+  /** @type {string} */
   const circleSHA = process.env.CIRCLE_SHA1
   if (circleSHA) {
     return circleSHA

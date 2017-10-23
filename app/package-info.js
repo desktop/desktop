@@ -1,9 +1,10 @@
+// @ts-check
 'use strict'
 
 const path = require('path')
 
 const projectRoot = __dirname
-// eslint-disable-next-line import/no-dynamic-require
+/** @type {{ [key: string]: string }} */
 const appPackage = require(path.join(projectRoot, 'package.json'))
 
 function getProductName() {

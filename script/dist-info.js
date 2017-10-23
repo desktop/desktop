@@ -1,3 +1,4 @@
+// @ts-check
 'use strict'
 
 const path = require('path')
@@ -88,6 +89,9 @@ function getWindowsIdentifierName() {
   return 'GitHubDesktop'
 }
 
+// TS-in-JS adds a `[key: string]: any` element to Objects by default.
+// Supress that.
+/** @returns {{ rendererSize: number, mainSize: number }} */
 function getBundleSizes() {
   const rendererStats = fs.statSync(
     path.join(projectRoot, 'out', 'renderer.js')
@@ -97,6 +101,7 @@ function getBundleSizes() {
 }
 
 function getReleaseBranchName() {
+  /** @type {string} */
   let branchName
   if (process.platform === 'darwin') {
     branchName = process.env.CIRCLE_BRANCH
@@ -111,7 +116,9 @@ function getReleaseChannel() {
   // Branch name format: __release-CHANNEL-DEPLOY_ID
   const pieces = getReleaseBranchName().split('-')
   if (pieces.length < 3 || pieces[0] !== '__release') {
-    return process.env.NODE_ENV || 'development'
+    /** @type {string} */
+    const NODE_ENV = process.env.NODE_ENV
+    return NODE_ENV || 'development'
   }
 
   return pieces[1]
