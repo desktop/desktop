@@ -131,7 +131,7 @@ export class PullRequestStore {
   private async writePullRequests(
     pullRequests: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
-  ): Promise<void> {
+  ): Promise<number> {
     const repoId = repository.dbID
 
     if (!repoId) {
@@ -139,7 +139,7 @@ export class PullRequestStore {
         "Cannot store pull requests for a repository that hasn't been inserted into the database!"
       )
 
-      return
+      return -1
     }
 
     const table = this.db.pullRequests
@@ -179,9 +179,9 @@ export class PullRequestStore {
       })
     }
 
-    await this.db.transaction('rw', table, async () => {
+    return await this.db.transaction('rw', table, async () => {
       await table.clear()
-      await table.bulkAdd(insertablePRs)
+      return await table.bulkAdd(insertablePRs)
     })
   }
 
