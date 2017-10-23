@@ -74,6 +74,44 @@ export class PullRequestStore {
     return pullRequestsStatuses
   }
 
+  /** Get the pull request statuses from the database */
+  public async getPullRequestStatuses(
+    pullReqeuests: Array<PullRequest>,
+    repository: GitHubRepository
+  ): Promise<ReadonlyArray<PullRequestStatus>> {
+    const gitHubRepositoryID = repository.dbID
+
+    if (!gitHubRepositoryID) {
+      fatalError(
+        "Cannot get pull requests for a repository that hasn't been inserted into the database!"
+      )
+
+      return []
+    }
+
+    const result: Array<PullRequestStatus> = []
+    const prs = await this.getPullRequests(repository)
+
+    for (const pr of prs) {
+      const status = await this.getPullRequestStatusById(pr.head.sha, pr.id)
+
+      if (!status) {
+        continue
+      }
+
+      result.push(
+        new PullRequestStatus(
+          pr.number,
+          status.state,
+          status.totalCount,
+          status.sha
+        )
+      )
+    }
+
+    return result
+  }
+
   /** Get the pull requests from the database. */
   public async getPullRequests(
     repository: GitHubRepository
