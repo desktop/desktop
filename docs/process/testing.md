@@ -198,10 +198,12 @@
   - [ ] Rename (cannot be master)
     - [ ] `Rename` button changes branch name if field updated
     - [ ] `Cancel` button closes modal
+    - [ ] Protected branches cannot be renamed
   - [ ] Delete (cannot be master)
     - [ ] Option to delete branch on the remote; default is unchecked
     - [ ] `Delete` button deletes branch name (and remote too if option checked)
     - [ ] `Cancel` button closes modal
+    - [ ] Protected branches cannot be deleted
   - [ ] Update from Default Branch (cannot be master)
   - [ ] Merge into Current Branch
     - [ ] Use can filter existing branches
