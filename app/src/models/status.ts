@@ -192,7 +192,17 @@ export class WorkingDirectoryFileChange extends FileChange {
   }
 }
 
+/**
+ * An object encapsulating the changes to a committed file.
+ */
 export class CommittedFileChange extends FileChange {
+  /**
+   * A commit SHA or some other identifier that ultimately
+   * dereferences to a commit. This is the pointer to the
+   * 'after' version of this change. I.e. the parent of this
+   * commit will contain the 'before' (or nothing, if the
+   * file change represents a new file).
+   */
   public readonly commitish: string
 
   public constructor(
