@@ -29,14 +29,14 @@ export function parse(label: string): ExternalEditor | null {
  */
 const appPath: (bundleId: string) => Promise<string> = require('app-path')
 
-function getBundleIdentifier(editor: ExternalEditor): string {
+function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
   switch (editor) {
     case ExternalEditor.Atom:
-      return 'com.github.atom'
+      return ['com.github.atom']
     case ExternalEditor.VisualStudioCode:
-      return 'com.microsoft.VSCode'
+      return ['com.microsoft.VSCode', 'com.microsoft.VSCodeInsiders']
     case ExternalEditor.SublimeText:
-      return 'com.sublimetext.3'
+      return ['com.sublimetext.3']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -66,20 +66,23 @@ function getExecutableShim(
 }
 
 async function findApplication(editor: ExternalEditor): Promise<string | null> {
-  try {
-    const identifier = getBundleIdentifier(editor)
-    const installPath = await appPath(identifier)
-    const path = getExecutableShim(editor, installPath)
-    const exists = await pathExists(path)
-    if (!exists) {
+  const identifiers = getBundleIdentifiers(editor)
+  for (const identifier of identifiers) {
+    try {
+      const installPath = await appPath(identifier)
+      const path = getExecutableShim(editor, installPath)
+      const exists = await pathExists(path)
+      if (exists) {
+        return path
+      }
+
       log.debug(`Command line interface for ${editor} not found at '${path}'`)
-      return null
+    } catch (error) {
+      log.debug(`Unable to locate ${editor} installation`, error)
     }
-    return path
-  } catch (error) {
-    log.debug(`Unable to locate ${editor} installation`, error)
-    return null
   }
+
+  return null
 }
 
 /**

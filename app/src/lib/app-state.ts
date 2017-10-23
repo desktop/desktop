@@ -223,7 +223,11 @@ export type Popup =
       type: PopupType.CloneRepository
       initialURL: string | null
     }
-  | { type: PopupType.CreateBranch; repository: Repository }
+  | {
+      type: PopupType.CreateBranch
+      repository: Repository
+      initialName?: string
+    }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }
   | { type: PopupType.InstallGit; path: string }
