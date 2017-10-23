@@ -87,7 +87,8 @@
       - [ ] User must be signed in to publish, else `Sign In` button present on tab
     - [ ] Modal fields are Name, Description (optional), `Keep this code private` checkbox, Organization list (alpha order, tab-specific), `Cancel` button, `Publish Repository` button
       - [ ] Clicking `Publish Repository` button pushes repo to GitHub.com or Enterprise; `Cancel` button closes modal
-        - [ ] Repository is present on GitHub.com or Enterprise if published
+        - [ ] Repository is present on GitHub.com or Enterprise if published 
+	- [ ] 'Visibility can't be private error' shown, if user's plan is not sufficient
 
 ### Application
   - [ ] Minimize, Maximize, Close buttons work in top nav
