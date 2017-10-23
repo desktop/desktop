@@ -42,6 +42,10 @@ export class PullRequestStore {
 
     await this.writePullRequests(prsFromAPI, repository)
 
+    const results = await this.getPullRequests(repository)
+
+    await this.refreshStatusesForPullRequests(results, repository, account)
+
     return await this.getPullRequests(repository)
   }
 
