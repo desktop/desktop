@@ -751,6 +751,7 @@ export class AppStore {
     this.emitUpdate()
 
     this.stopBackgroundFetching()
+    this.stopPullRequestUpdater()
 
     if (!repository) {
       return Promise.resolve(null)
@@ -798,8 +799,10 @@ export class AppStore {
     // for edge cases where _selectRepository is re-entract, calling this here
     // ensures we clean up the existing background fetcher correctly (if set)
     this.stopBackgroundFetching()
+    this.stopPullRequestUpdater()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
+    this.startPullRequestUpdater(repository)
     this.refreshMentionables(repository)
 
     if (repository instanceof Repository) {
@@ -869,7 +872,7 @@ export class AppStore {
     this.currentPullRequestUpdater.start()
   }
 
-  private stopPullRequestUpdater(repository: Repository) {
+  private stopPullRequestUpdater() {
     const updater = this.currentPullRequestUpdater
 
     if (updater) {
