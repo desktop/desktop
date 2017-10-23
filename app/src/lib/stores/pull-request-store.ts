@@ -128,6 +128,28 @@ export class PullRequestStore {
     return builtPullRequests
   }
 
+  private async getPullRequestStatusById(
+    sha: string,
+    pullRequestId: number
+  ): Promise<PullRequestStatus | null> {
+    const result = await this.db.pullRequestStatus
+      .where('[sha+pullRequestId]')
+      .equals([sha, pullRequestId])
+      .limit(1)
+      .first()
+
+    if (!result) {
+      return null
+    }
+
+    return new PullRequestStatus(
+      result.pullRequestId,
+      result.state,
+      result.totalCount,
+      result.sha
+    )
+  }
+
   private async writePullRequests(
     pullRequests: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
@@ -183,23 +205,6 @@ export class PullRequestStore {
       await table.clear()
       return await table.bulkAdd(insertablePRs)
     })
-  }
-
-  private async getPullRequestStatusById(
-    sha: string,
-    pullRequestId: number
-  ): Promise<PullRequestStatus | null> {
-    const result = await this.db.pullRequestStatus
-      .where('[sha+pullRequestId]')
-      .equals([sha, pullRequestId])
-      .limit(1)
-      .first()
-
-    if (!result) {
-      return null
-    }
-
-    return new PullRequestStatus(result.state, result.totalCount, result.sha)
   }
 
   private async writePullRequestStatus(
