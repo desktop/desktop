@@ -7,7 +7,7 @@ experimental:
 
 machine:
   xcode:
-    version: 7.3
+    version: 9
 
 dependencies:
   cache_directories:
