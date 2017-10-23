@@ -844,6 +844,40 @@ export class AppStore {
     this.gitHubUserStore.updateMentionables(gitHubRepository, account)
   }
 
+  private startPullRequestUpdater(repository: Repository) {
+    if (this.currentPullRequestUpdater) {
+      fatalError(
+        `A pull request updater is already active and cannot start updating on ${repository.name}`
+      )
+
+      return
+    }
+
+    const account = getAccountForRepository(this.accounts, repository)
+
+    if (!account) {
+      return
+    }
+
+    const updater = new PullRequestUpdater(
+      repository,
+      account,
+      this.pullRequestStore
+    )
+    this.currentPullRequestUpdater = updater
+
+    this.currentPullRequestUpdater.start()
+  }
+
+  private stopPullRequestUpdater(repository: Repository) {
+    const updater = this.currentPullRequestUpdater
+
+    if (updater) {
+      updater.stop()
+      this.currentPullRequestUpdater = null
+    }
+  }
+
   private startBackgroundFetching(
     repository: Repository,
     withInitialSkew: boolean
