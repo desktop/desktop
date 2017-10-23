@@ -5,10 +5,14 @@ import { ITokens } from '../../lib/highlighter/types'
 
 require('codemirror/mode/javascript/javascript')
 
-interface IDiffSyntaxModeOptions {
+export interface IDiffSyntaxModeOptions {
   readonly diff: ITextDiff
   readonly oldTokens: ITokens
   readonly newTokens: ITokens
+}
+
+export interface IDiffSyntaxModeSpec extends IDiffSyntaxModeOptions {
+  readonly name: 'github-diff-syntax'
 }
 
 const TokenNames: { [key: string]: string | null } = {

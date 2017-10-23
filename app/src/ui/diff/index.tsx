@@ -53,7 +53,7 @@ import { relativeChanges } from './changed-range'
 import { getPartialBlobContents } from '../../lib/git/show'
 import { readPartialFile } from '../../lib/file-system'
 
-import { DiffSyntaxMode } from './diff-syntax-mode'
+import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
 import { highlight } from '../../lib/highlighter/worker'
 
 /** The longest line for which we'd try to calculate a line diff. */
@@ -407,12 +407,14 @@ export class Diff extends React.Component<IDiffProps, {}> {
       return
     }
 
-    cm.setOption('mode', {
+    const spec: IDiffSyntaxModeSpec = {
       name: DiffSyntaxMode.ModeName,
       diff,
       oldTokens,
       newTokens,
-    })
+    }
+
+    cm.setOption('mode', spec)
   }
 
   private dispose() {
