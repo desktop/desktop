@@ -42,10 +42,19 @@ export class PullRequestStore {
 
     await this.writePullRequests(prsFromAPI, repository)
 
-    const prs = await this.getPullRequests(repository)
+    return await this.getPullRequests(repository)
+  }
+
+  public async refreshPullRequestStatuses(
+    pullRequests: Array<PullRequest>,
+    repository: GitHubRepository,
+    account: Account
+  ): Promise<ReadonlyArray<IPullRequestStatus>> {
+    const api = API.fromAccount(account)
+
     const pullRequestsStatuses: Array<IPullRequestStatus> = []
 
-    for (const pr of prs) {
+    for (const pr of pullRequests) {
       const status = await api.fetchCombinedRefStatus(
         repository.owner.login,
         repository.name,
@@ -62,7 +71,7 @@ export class PullRequestStore {
 
     await this.writePullRequestStatus(pullRequestsStatuses)
 
-    return await this.getPullRequests(repository)
+    return pullRequestsStatuses
   }
 
   /** Get the pull requests from the database. */
