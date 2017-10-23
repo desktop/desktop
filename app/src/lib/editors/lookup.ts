@@ -2,6 +2,7 @@ import { ExternalEditor, ExternalEditorError } from './shared'
 import { IFoundEditor } from './found-editor'
 import { getAvailableEditors as getAvailableEditorsDarwin } from './darwin'
 import { getAvailableEditors as getAvailableEditorsWindows } from './win32'
+import { getAvailableEditors as getAvailableEditorsLinux } from './linux'
 
 let editorCache: ReadonlyArray<IFoundEditor<ExternalEditor>> | null = null
 
@@ -23,6 +24,11 @@ export async function getAvailableEditors(): Promise<
 
   if (__WIN32__) {
     editorCache = await getAvailableEditorsWindows()
+    return editorCache
+  }
+
+  if (__LINUX__) {
+    editorCache = await getAvailableEditorsLinux()
     return editorCache
   }
 
