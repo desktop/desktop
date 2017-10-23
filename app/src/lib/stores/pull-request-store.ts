@@ -76,7 +76,7 @@ export class PullRequestStore {
 
   /** Get the pull request statuses from the database */
   public async getPullRequestStatuses(
-    pullReqeuests: Array<PullRequest>,
+    pullReqeuests: ReadonlyArray<PullRequest>,
     repository: GitHubRepository
   ): Promise<ReadonlyArray<PullRequestStatus>> {
     const gitHubRepositoryID = repository.dbID
