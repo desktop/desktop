@@ -204,7 +204,7 @@ export class PullRequestStore {
 
   private async writePullRequestStatus(
     statuses: Array<IPullRequestStatus>
-  ): Promise<void> {
-    await this.db.pullRequestStatus.bulkAdd(statuses)
+  ): Promise<number> {
+    return await this.db.pullRequestStatus.bulkAdd(statuses)
   }
 }
