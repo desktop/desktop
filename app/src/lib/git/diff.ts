@@ -56,11 +56,7 @@ function isValidBuffer(buffer: Buffer) {
 
 /** Is the buffer too large for us to reasonably represent? */
 function isBufferTooLarge(buffer: Buffer) {
-  if (!isValidBuffer(buffer)) {
-    return true
-  }
-
-  return buffer.length >= MaxReasonableDiffSize
+  return !isValidBuffer(buffer) || buffer.length >= MaxReasonableDiffSize
 }
 
 /** Is the diff too large for us to reasonably represent? */
