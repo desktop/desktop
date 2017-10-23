@@ -6,8 +6,21 @@ import { ITokens } from '../../lib/highlighter/types'
 require('codemirror/mode/javascript/javascript')
 
 export interface IDiffSyntaxModeOptions {
+  /**
+   * The unified diff representing the change
+   */
   readonly diff: ITextDiff
+
+  /**
+   * Tokens returned from the highlighter for the 'before'
+   * version of the change
+   */
   readonly oldTokens: ITokens
+
+  /**
+   * Tokens returned from the highlighter for the 'after'
+   * version of the change
+   */
   readonly newTokens: ITokens
 }
 
