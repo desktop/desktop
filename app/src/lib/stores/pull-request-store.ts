@@ -109,12 +109,11 @@ export class PullRequestStore {
         'PR cannot have a null ID after being retrieved from the database',
         pr.id
       )
-      const prStatus = await this.getPullRequestStatusById(pr.head.sha, prID)
 
       const builtPR = new PullRequest(
         prID,
         new Date(pr.createdAt),
-        prStatus,
+        null,
         pr.title,
         pr.number,
         new PullRequestRef(pr.head.ref, pr.head.sha, head),
