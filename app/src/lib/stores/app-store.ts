@@ -140,6 +140,9 @@ export class AppStore {
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
 
+  /** The pull request updater for the currently selected repository */
+  private currentPullRequestUpdater: PullRequestUpdater | null = null
+
   private repositoryState = new Map<string, IRepositoryState>()
   private showWelcomeFlow = false
 
