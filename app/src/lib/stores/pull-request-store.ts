@@ -157,10 +157,15 @@ export class PullRequestStore {
         pr.id
       )
 
+      const pullRequestStatus = await this.getPullRequestStatusById(
+        pr.head.sha,
+        prID
+      )
+
       const builtPR = new PullRequest(
         prID,
         new Date(pr.createdAt),
-        null,
+        pullRequestStatus,
         pr.title,
         pr.number,
         new PullRequestRef(pr.head.ref, pr.head.sha, head),
