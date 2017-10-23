@@ -5,6 +5,7 @@ import { assertNever } from '../fatal-error'
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  SublimeText = 'Sublime Text',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -16,6 +17,10 @@ export function parse(label: string): ExternalEditor | null {
     return ExternalEditor.VisualStudioCode
   }
 
+  if (label === ExternalEditor.SublimeText) {
+    return ExternalEditor.SublimeText
+  }
+
   return null
 }
 
@@ -25,10 +30,12 @@ async function getPathIfAvailable(path: string): Promise<string | null> {
 
 function getEditorPath(editor: ExternalEditor): Promise<string | null> {
   switch (editor) {
-    case ExternalEditor.VisualStudioCode:
-      return getPathIfAvailable('/usr/bin/code')
     case ExternalEditor.Atom:
       return getPathIfAvailable('/usr/bin/atom')
+    case ExternalEditor.VisualStudioCode:
+      return getPathIfAvailable('/usr/bin/code')
+    case ExternalEditor.SublimeText:
+      return getPathIfAvailable('/usr/bin/subl')
     default:
       return assertNever(editor, `Unknown editor: ${editor}`)
   }
@@ -39,9 +46,10 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atomPath, codePath] = await Promise.all([
+  const [atomPath, codePath, sublimePath] = await Promise.all([
     getEditorPath(ExternalEditor.Atom),
     getEditorPath(ExternalEditor.VisualStudioCode),
+    getEditorPath(ExternalEditor.SublimeText),
   ])
 
   if (atomPath) {
@@ -50,6 +58,10 @@ export async function getAvailableEditors(): Promise<
 
   if (codePath) {
     results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
+  }
+
+  if (sublimePath) {
+    results.push({ editor: ExternalEditor.SublimeText, path: sublimePath })
   }
 
   return results
