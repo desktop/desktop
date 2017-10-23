@@ -63,7 +63,7 @@ export function spawnAndComplete(
           reject(err)
         })
 
-        process.on('exit', (code, signal) => {
+        process.on('close', (code, signal) => {
           const stdout = Buffer.concat(
             stdoutChunks,
             stdOutMaxLength
