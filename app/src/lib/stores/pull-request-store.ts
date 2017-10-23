@@ -53,6 +53,12 @@ export class PullRequestStore {
 
     return await this.refreshStatusesForPullRequests(prs, repository, account)
   }
+
+  public async refreshStatusesForPullRequests(
+    pullRequests: ReadonlyArray<PullRequest>,
+    repository: GitHubRepository,
+    account: Account
+  ): Promise<ReadonlyArray<PullRequestStatus>> {
     const api = API.fromAccount(account)
 
     const pullRequestsStatuses: Array<IPullRequestStatus> = []
