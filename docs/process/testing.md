@@ -4,6 +4,7 @@
       - [ ] Homebrew package manager: $ brew cask install github-desktop
     - [ ] Windows: https://central.github.com/deployments/desktop/desktop/latest/win32
       - [ ] Chocolatey package manager: c:\> choco install github-desktop
+      - [ ] 64-bit and up
     - [ ] Data is retained if you download and open a fresh copy
   - [ ] Release notes page is up-to-date
   - [ ] Help page is accessible
