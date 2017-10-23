@@ -1,6 +1,6 @@
 import { PullRequestStore } from '../pull-request-store'
 import { Account } from '../../../models/account'
-import { fatalError, forceUnwrap } from '../../fatal-error'
+import { fatalError } from '../../fatal-error'
 import { PullRequest } from '../../../models/pull-request'
 import { GitHubRepository } from '../../../models/github-repository'
 
@@ -22,7 +22,7 @@ export class PullRequestUpdater {
   private readonly timeoutHandles = new Map<TimeoutHandles, number>()
   private isStopped: boolean = true
 
-  private currentPullRequest: PullRequest | null = null
+  private currentPullRequests: ReadonlyArray<PullRequest> = []
 
   public constructor(
     repository: GitHubRepository,
@@ -35,8 +35,10 @@ export class PullRequestUpdater {
   }
 
   public start() {
-    if (this.isStopped) {
-      fatalError('Cannot start the Pull Request Updater that has been stopped.')
+    if (!this.isStopped) {
+      fatalError(
+        'Cannot start the Pull Request Updater that is already running.'
+      )
 
       return
     }
@@ -68,57 +70,55 @@ export class PullRequestUpdater {
   }
 
   public didPushPullRequest(pullRequest: PullRequest) {
-    this.setCurrentPullRequest(pullRequest)
-  }
-
-  private setCurrentPullRequest(pullRequest: PullRequest | null) {
-    if (
-      pullRequest &&
-      this.currentPullRequest &&
-      pullRequest.id === this.currentPullRequest.id
-    ) {
+    if (this.currentPullRequests.find(p => p.id === pullRequest.id)) {
       return
     }
 
-    this.currentPullRequest = pullRequest
+    this.currentPullRequests = [...this.currentPullRequests, pullRequest]
 
-    if (pullRequest) {
-      const handle = window.setTimeout(
-        () => this.refreshPullRequestStatus(),
-        PostPushInterval
-      )
-      this.timeoutHandles.set(TimeoutHandles.PushedPullRequest, handle)
-    } else {
-      const pushedPRHandle = this.timeoutHandles.get(
-        TimeoutHandles.PushedPullRequest
-      )
-      if (pushedPRHandle) {
-        window.clearTimeout(pushedPRHandle)
-        this.timeoutHandles.delete(TimeoutHandles.PushedPullRequest)
-      }
+    const pushedPRHandle = this.timeoutHandles.get(
+      TimeoutHandles.PushedPullRequest
+    )
+    if (pushedPRHandle) {
+      return
     }
+
+    const handle = window.setTimeout(
+      () => this.refreshPullRequestStatus(),
+      PostPushInterval
+    )
+    this.timeoutHandles.set(TimeoutHandles.PushedPullRequest, handle)
   }
 
   private async refreshPullRequestStatus() {
-    const pullRequest = forceUnwrap(
-      'Should not refresh status when there is no pull request',
-      this.currentPullRequest
-    )
+    const pullRequests = this.currentPullRequests
 
-    const status = await this.store.refreshSinglePullRequestStatus(
-      this.repository,
-      this.account,
-      pullRequest
-    )
+    for (const pr of pullRequests) {
+      const status = await this.store.refreshSinglePullRequestStatus(
+        this.repository,
+        this.account,
+        pr
+      )
 
-    console.log('status for', status)
+      console.log('status for', status)
 
-    if (
-      !status.totalCount ||
-      status.state === 'success' ||
-      status.state === 'failure'
-    ) {
-      this.setCurrentPullRequest(null)
+      if (
+        !status.totalCount ||
+        status.state === 'success' ||
+        status.state === 'failure'
+      ) {
+        this.currentPullRequests = this.currentPullRequests.filter(
+          p => p.id === pr.id
+        )
+      }
+    }
+
+    if (!this.currentPullRequests.length) {
+      const handle = this.timeoutHandles.get(TimeoutHandles.PushedPullRequest)
+      if (handle) {
+        window.clearTimeout(handle)
+        this.timeoutHandles.delete(TimeoutHandles.PushedPullRequest)
+      }
     }
   }
 }
