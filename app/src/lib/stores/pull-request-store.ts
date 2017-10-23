@@ -49,6 +49,19 @@ export class PullRequestStore {
     return await this.getPullRequests(repository)
   }
 
+  public async refreshSinglePullRequestStatus(
+    repository: GitHubRepository,
+    account: Account,
+    pullRequest: PullRequest
+  ): Promise<PullRequestStatus> {
+    const results = await this.refreshStatusesForPullRequests(
+      [pullRequest],
+      repository,
+      account
+    )
+    return results[0]
+  }
+
   public async refreshPullRequestStatuses(
     repository: GitHubRepository,
     account: Account

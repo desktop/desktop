@@ -1,7 +1,8 @@
 import { PullRequestStore } from '../pull-request-store'
-import { Repository } from '../../../models/repository'
 import { Account } from '../../../models/account'
-import { fatalError } from '../../fatal-error'
+import { fatalError, forceUnwrap } from '../../fatal-error'
+import { PullRequest } from '../../../models/pull-request'
+import { GitHubRepository } from '../../../models/github-repository'
 
 const PullRequestInterval = 1000 * 60 * 3
 const StatusInterval = 1000 * 60
@@ -13,23 +14,18 @@ enum TimeoutHandles {
   PushedPullRequest = 'PushedPullRequestHandle',
 }
 
-export enum PullRequestUpdaterState {
-  Normal,
-  PostPush,
-}
-
 export class PullRequestUpdater {
-  private readonly repository: Repository
+  private readonly repository: GitHubRepository
   private readonly account: Account
   private readonly store: PullRequestStore
 
   private readonly timeoutHandles = new Map<TimeoutHandles, number>()
   private isStopped: boolean = true
 
-  private currentState = PullRequestUpdaterState.Normal
+  private currentPullRequest: PullRequest | null = null
 
   public constructor(
-    repository: Repository,
+    repository: GitHubRepository,
     account: Account,
     pullRequestStore: PullRequestStore
   ) {
@@ -44,24 +40,19 @@ export class PullRequestUpdater {
 
       return
     }
-    const gitHubRepository = this.repository.gitHubRepository
-
-    if (!gitHubRepository) {
-      return
-    }
 
     this.timeoutHandles.set(
       TimeoutHandles.PullRequest,
 
       window.setTimeout(() => {
-        this.store.refreshPullRequests(gitHubRepository, this.account)
+        this.store.refreshPullRequests(this.repository, this.account)
       }, PullRequestInterval)
     )
 
     this.timeoutHandles.set(
       TimeoutHandles.Status,
       window.setTimeout(() => {
-        this.store.refreshPullRequestStatuses(gitHubRepository, this.account)
+        this.store.refreshPullRequestStatuses(this.repository, this.account)
       }, StatusInterval)
     )
   }
@@ -76,29 +67,58 @@ export class PullRequestUpdater {
     this.timeoutHandles.clear()
   }
 
-  public setState(newState: PullRequestUpdaterState) {
-    if (newState === this.currentState) {
+  public didPushPullRequest(pullRequest: PullRequest) {
+    this.setCurrentPullRequest(pullRequest)
+  }
+
+  private setCurrentPullRequest(pullRequest: PullRequest | null) {
+    if (
+      pullRequest &&
+      this.currentPullRequest &&
+      pullRequest.id === this.currentPullRequest.id
+    ) {
       return
     }
 
-    this.currentState = newState
+    this.currentPullRequest = pullRequest
 
-    switch (newState) {
-      case PullRequestUpdaterState.Normal:
-        {
-          const pushedPRHandle = this.timeoutHandles.get(
-            TimeoutHandles.PushedPullRequest
-          )
-          if (pushedPRHandle) {
-            window.clearTimeout(pushedPRHandle)
-            this.timeoutHandles.delete(TimeoutHandles.PushedPullRequest)
-          }
-        }
-        break
-      case PullRequestUpdaterState.PostPush: {
-        const handle = window.setTimeout(() => {}, PostPushInterval)
-        this.timeoutHandles.set(TimeoutHandles.PushedPullRequest, handle)
+    if (pullRequest) {
+      const handle = window.setTimeout(
+        () => this.refreshPullRequestStatus(),
+        PostPushInterval
+      )
+      this.timeoutHandles.set(TimeoutHandles.PushedPullRequest, handle)
+    } else {
+      const pushedPRHandle = this.timeoutHandles.get(
+        TimeoutHandles.PushedPullRequest
+      )
+      if (pushedPRHandle) {
+        window.clearTimeout(pushedPRHandle)
+        this.timeoutHandles.delete(TimeoutHandles.PushedPullRequest)
       }
+    }
+  }
+
+  private async refreshPullRequestStatus() {
+    const pullRequest = forceUnwrap(
+      'Should not refresh status when there is no pull request',
+      this.currentPullRequest
+    )
+
+    const status = await this.store.refreshSinglePullRequestStatus(
+      this.repository,
+      this.account,
+      pullRequest
+    )
+
+    console.log('status for', status)
+
+    if (
+      !status.totalCount ||
+      status.state === 'success' ||
+      status.state === 'failure'
+    ) {
+      this.setCurrentPullRequest(null)
     }
   }
 }

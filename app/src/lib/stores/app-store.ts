@@ -107,10 +107,7 @@ import { BranchesTab } from '../../models/branches-tab'
 import { PullRequestStore } from './pull-request-store'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
-import {
-  PullRequestUpdater,
-  PullRequestUpdaterState,
-} from './helpers/pull-request-updater'
+import { PullRequestUpdater } from './helpers/pull-request-updater'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -865,8 +862,12 @@ export class AppStore {
       return
     }
 
+    if (!repository.gitHubRepository) {
+      return
+    }
+
     const updater = new PullRequestUpdater(
-      repository,
+      repository.gitHubRepository,
       account,
       this.pullRequestStore
     )
@@ -1811,7 +1812,11 @@ export class AppStore {
 
         const prUpdater = this.currentPullRequestUpdater
         if (prUpdater) {
-          prUpdater.setState(PullRequestUpdaterState.PostPush)
+          const state = this.getRepositoryState(repository)
+          const currentPR = state.branchesState.currentPullRequest
+          if (currentPR) {
+            prUpdater.didPushPullRequest(currentPR)
+          }
         }
       }
     })
