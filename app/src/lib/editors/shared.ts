@@ -12,7 +12,7 @@ export function parse(label: string): ExternalEditor | null {
   }
 
   throw new Error(
-    `Platform not currently supported for resolving shells: ${process.platform}`
+    `Platform not currently supported for resolving editors: ${process.platform}`
   )
 }
 
