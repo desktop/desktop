@@ -107,6 +107,7 @@ import { BranchesTab } from '../../models/branches-tab'
 import { PullRequestStore } from './pull-request-store'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
+import { PullRequestUpdater } from './helpers/pull-request-updater'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
