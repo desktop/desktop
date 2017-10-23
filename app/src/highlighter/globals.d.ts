@@ -242,9 +242,6 @@ declare namespace CodeMirror {
     options?: { tabSize?: number; state?: any }
   ): void
 
-  // This is a bit of a cheat since it's not really in yet but
-  // it will be once https://github.com/codemirror/CodeMirror/pull/5034
-  // makes it into a release.
   function innerMode(
     mode: CodeMirror.Mode<{}>,
     state: any
@@ -253,11 +250,4 @@ declare namespace CodeMirror {
 
 declare module 'codemirror/addon/runmode/runmode.node.js' {
   export = CodeMirror
-}
-
-declare module 'codemirror/src/modes' {
-  export function innerMode(
-    mode: CodeMirror.Mode<{}>,
-    state: any
-  ): { mode: CodeMirror.Mode<{}>; state: any }
 }

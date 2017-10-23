@@ -5,17 +5,6 @@
 // can read all about it in webpack.common.js.
 import * as CodeMirror from 'codemirror/addon/runmode/runmode.node.js'
 
-// This is a hack, some modes (looking at you markdown) uses
-// CodeMirror.innerMode which isn't defined in the stripped down
-// runmode. Luckily it's a simple, dependency free method so we'll
-// just import it and stick it on the global CodeMirror object.
-//
-// We can remove this when https://github.com/codemirror/CodeMirror/pull/5034
-// makes it into a release.
-import { innerMode } from 'codemirror/src/modes'
-const cm = CodeMirror as any
-cm.innerMode = cm.innerMode || innerMode
-
 import { ITokens, IHighlightRequest } from '../lib/highlighter/types'
 
 const extensionMIMEMap = new Map<string, string>()

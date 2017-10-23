@@ -21,7 +21,7 @@
     "byline": "^5.0.0",
     "chalk": "^2.0.1",
     "classnames": "^2.2.5",
-    "codemirror": "^5.29.0",
+    "codemirror": "^5.31.0",
     "deep-equal": "^1.0.1",
     "dexie": "^2.0.0",
     "dugite": "^1.45.0",
