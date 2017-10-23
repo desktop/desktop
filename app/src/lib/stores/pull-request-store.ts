@@ -49,7 +49,7 @@ export class PullRequestStore {
     pullRequests: Array<PullRequest>,
     repository: GitHubRepository,
     account: Account
-  ): Promise<ReadonlyArray<IPullRequestStatus>> {
+  ): Promise<ReadonlyArray<PullRequestStatus>> {
     const api = API.fromAccount(account)
 
     const pullRequestsStatuses: Array<IPullRequestStatus> = []
@@ -71,7 +71,7 @@ export class PullRequestStore {
 
     await this.writePullRequestStatus(pullRequestsStatuses)
 
-    return pullRequestsStatuses
+    return await this.getPullRequestStatuses(pullRequests, repository)
   }
 
   /** Get the pull request statuses from the database */
