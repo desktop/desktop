@@ -91,10 +91,10 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     }
 
     // Only advance when the state first changes...
-    if (this.props.signInState.kind !== nextProps.signInState.kind) {
+    if (this.props.signInState.kind === nextProps.signInState.kind) {
       log.info(
-        `[Welcome] kind ${this.props.signInState
-          .kind} does not match ${nextProps.signInState.kind}. ignoring...`
+        `[Welcome] kind ${this.props.signInState.kind} is the same ${nextProps
+          .signInState.kind}. ignoring...`
       )
       return
     }
