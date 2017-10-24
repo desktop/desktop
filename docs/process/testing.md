@@ -344,3 +344,6 @@
 - Relationship between branches
 - Show Git LFS (Cloning, Committing, Checking out, Reverting, Switching branches)
 - Report Git LFS (Cloning, Pushing, Pulling, Switching branches, Reverting)
+- CI Status
+ - [ ] PR status can be updated independently of respective PR
+ - [ ] Status checks run frequently in background, especially if yellow
