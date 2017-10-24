@@ -21,18 +21,18 @@ export async function measure<T>(
   log.debug(`Executing ${cmd}`)
   const startTime = performance && performance.now ? performance.now() : null
 
-  if (startTime) {
-    const rawTime = performance.now() - startTime
-    if (rawTime > 1000) {
-      const timeInSeconds = (rawTime / 1000).toFixed(3)
-      log.info(`Executing ${cmd} (took ${timeInSeconds}s)`)
-    }
-  }
-
   markBegin(id, cmd)
   try {
     return await fn()
   } finally {
+    if (startTime) {
+      const rawTime = performance.now() - startTime
+      if (rawTime > 1000) {
+        const timeInSeconds = (rawTime / 1000).toFixed(3)
+        log.info(`Executing ${cmd} (took ${timeInSeconds}s)`)
+      }
+    }
+
     markEnd(id, cmd)
   }
 }
