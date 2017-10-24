@@ -102,21 +102,24 @@ function guessMimeType(contents: string) {
   return null
 }
 
+function detectMode(request: IHighlightRequest): CodeMirror.Mode<{}> | null {
+  const mimeType =
+    extensionMIMEMap.get(request.extension) || guessMimeType(request.contents)
+
+  if (!mimeType) {
+    return null
+  }
+
+  return CodeMirror.getMode({}, mimeType) || null
+}
+
 onmessage = (ev: MessageEvent) => {
   const request = ev.data as IHighlightRequest
 
   const tabSize = request.tabSize || 4
-  const extension = request.extension
   const contents = request.contents
 
-  const mimeType = extensionMIMEMap.get(extension) || guessMimeType(contents)
-
-  if (!mimeType) {
-    postMessage({})
-    return
-  }
-
-  const mode = CodeMirror.getMode({}, mimeType)
+  const mode = detectMode(request)
 
   if (!mode) {
     postMessage({})
