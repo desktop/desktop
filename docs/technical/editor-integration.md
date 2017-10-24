@@ -287,7 +287,7 @@ function getExecutableShim(
 ## Linux
 
 
-The source for the editor integration on macOS is found in
+The source for the editor integration on Linux is found in
 [`app/src/lib/editors/linux.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/editors/linux.ts).
 
 These editors are currently supported:
