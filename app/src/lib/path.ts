@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import * as Url from 'url'
+import fileUrl = require('file-url')
 
 /**
  * Resolve and encode the path information into a URL.
@@ -8,9 +8,5 @@ import * as Url from 'url'
  */
 export function encodePathAsUrl(...pathSegments: string[]): string {
   const path = Path.resolve(...pathSegments)
-  return Url.format({
-    pathname: path,
-    protocol: 'file:',
-    slashes: true,
-  })
+  return fileUrl(path)
 }
