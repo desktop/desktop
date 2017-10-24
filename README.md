@@ -20,7 +20,7 @@ There are several community-supported package managers that can be used to insta
  - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
       `c:\> choco install github-desktop`
  - macOS users can install using [Homebrew](https://brew.sh/) package manager:
-      `$ brew cask install github`
+      `$ brew cask install github-desktop`
 
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
