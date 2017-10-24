@@ -13,7 +13,7 @@ This is the checklist of things that it needs to support:
    on the user's machine
  - it comes with a command-line interface that can be launched by Desktop
 
-If you think your editor satifies all these please read on to understand how
+If you think your editor satisfies all these please read on to understand how
 Desktop integrates with each OS, and if you're still keen to integrate this
 please fork and contribute a pull request for the team to review.
 
