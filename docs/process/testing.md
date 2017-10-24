@@ -330,13 +330,15 @@
   - [ ] If private email is enabled (http://github.com/settings/emails), user is blocked from pushing to all associated repositories on Desktop?
   - [ ] If user updates name in Settings, change should reflect in Preferences
 
-### Pull Request list (v1.1)
+### Pull Request list + CI status (v1.1)
  - [ ] Pull request list shown as subsection of Branch list
  - [ ] If no pull requests, then no badge shown, and Pull Request tab shows `0` 
    - [ ] User shown current branch in text block, and given option to create a new branch or create new pull request
  - [ ] Pull request for the current branch selected by default, with pull-request-number badge in header
  - [ ] Pull request list can be filtered; `esc` key clears filter; arrow keys can scroll list
  - [ ] Results in chronological order, with name, id number, date, username, and CI status
+ - [ ] PR status can be updated independently of respective PR
+ - [ ] Status checks run frequently in background, especially if yellow
 
 ### TBD placeholder
 - Merge tool for conflicted files
@@ -344,6 +346,3 @@
 - Relationship between branches
 - Show Git LFS (Cloning, Committing, Checking out, Reverting, Switching branches)
 - Report Git LFS (Cloning, Pushing, Pulling, Switching branches, Reverting)
-- CI Status
- - [ ] PR status can be updated independently of respective PR
- - [ ] Status checks run frequently in background, especially if yellow
