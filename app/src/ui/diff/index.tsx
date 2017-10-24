@@ -4,6 +4,7 @@ import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 import { Disposable } from 'event-kit'
 
+import { assertNever } from '../../lib/fatal-error'
 import {
   NewImageDiff,
   ModifiedImageDiff,
@@ -17,7 +18,6 @@ import { Repository } from '../../models/repository'
 
 import { ImageDiffType } from '../../lib/app-state'
 import {
-  FileChange,
   CommittedFileChange,
   WorkingDirectoryFileChange,
   AppFileStatus,
@@ -72,7 +72,7 @@ const narrowNoNewlineSymbol = new OcticonSymbol(
 
 async function getOldFileContent(
   repository: Repository,
-  file: FileChange
+  file: WorkingDirectoryFileChange | CommittedFileChange
 ): Promise<Buffer> {
   if (file.status === AppFileStatus.New) {
     return new Buffer(0)
@@ -89,7 +89,7 @@ async function getOldFileContent(
   } else if (file instanceof CommittedFileChange) {
     commitish = `${file.commitish}^`
   } else {
-    throw new Error('Unknown file type')
+    return assertNever(file, 'Unknown file change type')
   }
 
   return getPartialBlobContents(
@@ -102,7 +102,7 @@ async function getOldFileContent(
 
 async function getNewFileContent(
   repository: Repository,
-  file: FileChange
+  file: WorkingDirectoryFileChange | CommittedFileChange
 ): Promise<Buffer> {
   if (file.status === AppFileStatus.Deleted) {
     return new Buffer(0)
@@ -121,9 +121,9 @@ async function getNewFileContent(
       file.path,
       MaxHighlightContentLength
     )
-  } else {
-    throw new Error('Unknown file type')
   }
+
+  return assertNever(file, 'Unknown file change type')
 }
 
 /**
@@ -190,7 +190,7 @@ interface IDiffProps {
   readonly readOnly: boolean
 
   /** The file whose diff should be displayed. */
-  readonly file: FileChange
+  readonly file: WorkingDirectoryFileChange | CommittedFileChange
 
   /** Called when the includedness of lines or a range of lines has changed. */
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
