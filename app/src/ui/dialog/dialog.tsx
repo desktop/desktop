@@ -202,10 +202,10 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   private onWindowFocus = () => {
-    // On Windows, a click which focuses the window will also get passed down
-    // into the DOM. But we don't want to dismiss the dialog based on that
-    // click. See https://github.com/desktop/desktop/issues/2486.
-    if (__WIN32__) {
+    // On Windows and Linux, a click which focuses the window will also get
+    // passed down into the DOM. But we don't want to dismiss the dialog based
+    // on that click. See https://github.com/desktop/desktop/issues/2486.
+    if (__WIN32__ || __LINUX__) {
       this.clearClickDismissalTimer()
 
       this.disableClickDismissal = true
