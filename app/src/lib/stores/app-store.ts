@@ -104,7 +104,9 @@ import {
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { getAccountForRepository } from '../get-account-for-repository'
 import { BranchesTab } from '../../models/branches-tab'
+import { PullRequestStore } from './pull-request-store'
 import { Owner } from '../../models/owner'
+import { PullRequest } from '../../models/pull-request'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -215,6 +217,8 @@ export class AppStore {
 
   private selectedBranchesTab = BranchesTab.Branches
 
+  private pullRequestStore: PullRequestStore
+
   public constructor(
     gitHubUserStore: GitHubUserStore,
     cloningRepositoriesStore: CloningRepositoriesStore,
@@ -223,7 +227,8 @@ export class AppStore {
     statsStore: StatsStore,
     signInStore: SignInStore,
     accountsStore: AccountsStore,
-    repositoriesStore: RepositoriesStore
+    repositoriesStore: RepositoriesStore,
+    pullRequestStore: PullRequestStore
   ) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
@@ -233,6 +238,7 @@ export class AppStore {
     this.signInStore = signInStore
     this.accountsStore = accountsStore
     this.repositoriesStore = repositoriesStore
+    this.pullRequestStore = pullRequestStore
     this.showWelcomeFlow = !hasShownWelcomeFlow()
 
     const window = remote.getCurrentWindow()
@@ -379,6 +385,8 @@ export class AppStore {
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
+        openPullRequests: null,
+        currentPullRequest: null,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -760,8 +768,21 @@ export class AppStore {
     const gitHubRepository = repository.gitHubRepository
     if (gitHubRepository) {
       this._updateIssues(gitHubRepository)
+
+      this.pullRequestStore
+        .getPullRequests(gitHubRepository)
+        .then(p =>
+          this.updateStateWithPullRequests(p, repository, gitHubRepository)
+        )
+        .catch(e =>
+          console.warn(
+            `Error getting pull requests for ${gitHubRepository.fullName}`,
+            e
+          )
+        )
     }
 
+    this._refreshPullRequests(repository)
     await this._refreshRepository(repository)
 
     // The selected repository could have changed while we were refreshing.
@@ -2758,6 +2779,76 @@ export class AppStore {
     } else {
       await this._openCreatePullRequestInBrowser(repository)
     }
+  }
+
+  public async _refreshPullRequests(repository: Repository): Promise<void> {
+    const gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) {
+      return
+    }
+
+    const account = getAccountForEndpoint(
+      this.accounts,
+      gitHubRepository.endpoint
+    )
+    if (!account) {
+      return Promise.resolve()
+    }
+
+    const pullRequests = await this.pullRequestStore.refreshPullRequests(
+      gitHubRepository,
+      account
+    )
+
+    this.updateStateWithPullRequests(pullRequests, repository, gitHubRepository)
+  }
+
+  private updateStateWithPullRequests(
+    pullRequests: ReadonlyArray<PullRequest>,
+    repository: Repository,
+    githubRepository: GitHubRepository
+  ) {
+    this.updateBranchesState(repository, state => {
+      let currentPullRequest = null
+      if (state.tip.kind === TipState.Valid) {
+        currentPullRequest = this.findAssociatedPullRequest(
+          state.tip.branch,
+          pullRequests,
+          githubRepository
+        )
+      }
+
+      return {
+        openPullRequests: pullRequests,
+        currentPullRequest,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  private findAssociatedPullRequest(
+    branch: Branch,
+    pullRequests: ReadonlyArray<PullRequest>,
+    gitHubRepository: GitHubRepository
+  ): PullRequest | null {
+    const upstream = branch.upstreamWithoutRemote
+    if (!upstream) {
+      return null
+    }
+
+    for (const pr of pullRequests) {
+      if (
+        pr.head.ref === upstream &&
+        pr.head.gitHubRepository &&
+        // TODO: This doesn't work for when I've checked out a PR from a fork.
+        pr.head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
+      ) {
+        return pr
+      }
+    }
+
+    return null
   }
 
   public async _openCreatePullRequestInBrowser(

@@ -270,9 +270,9 @@ dom-matches@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/dom-matches/-/dom-matches-2.0.0.tgz#d2728b416a87533980eb089b848d253cf23a758c"
 
-dugite@1.46.0:
-  version "1.46.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.46.0.tgz#86e2585ee2784c228298068f3ea0bb5de08e7a98"
+dugite@1.47.0:
+  version "1.47.0"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.47.0.tgz#b1029b1d0a1c2bbebe385e049777cd5f33978f56"
   dependencies:
     checksum "^0.1.1"
     mkdirp "^0.5.1"
