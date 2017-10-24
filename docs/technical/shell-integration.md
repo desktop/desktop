@@ -163,15 +163,15 @@ The source for the Linux shell integration is found in [`app/src/lib/shells/linu
 
 These shells are currently supported:
 
- - [GNOME Terminal](link-goes-here)
- - [Telix](link-goes-here)
+ - [GNOME Terminal](https://help.gnome.org/users/gnome-terminal/stable/)
+ - [Tilix](https://github.com/gnunn1/tilix)
 
 These are defined in an enum at the top of the file:
 
 ```ts
 export enum Shell {
-  Gnome = 'gnome-terminal',
-  Telix = 'telix',
+  Gnome = 'GNOME Terminal',
+  Tilix = 'Tilix',
 }
 ```
 
