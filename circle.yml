@@ -7,7 +7,7 @@ experimental:
 
 machine:
   xcode:
-    version: 7.3
+    version: 9
 
 dependencies:
   cache_directories:
@@ -15,7 +15,7 @@ dependencies:
     - "~/.electron"
 
   pre:
-    - brew install node || brew upgrade node
+    - brew install node@8.7.0
     - npm install -g yarn@1.2.1
 
   override:
