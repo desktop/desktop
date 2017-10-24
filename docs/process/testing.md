@@ -332,13 +332,15 @@
 
 ### Pull Request list + CI status (v1.1)
  - [ ] Pull request list shown as subsection of Branch list
+   - [ ] Only open Pull Requests are reflected; closed Pull Requests not shown in the list
+ - [ ] Pull Request toolbar status is surfaced with yellow, green or red icon, or no icon if no status
  - [ ] If no pull requests, then no badge shown, and Pull Request tab shows `0` 
-   - [ ] User shown current branch in text block, and given option to create a new branch or create new pull request
+   - [ ] User shown current branch in text area, and given option to create a new branch or create new pull request
  - [ ] Pull request for the current branch selected by default, with pull-request-number badge in header
- - [ ] Pull request list can be filtered; `esc` key clears filter; arrow keys can scroll list
- - [ ] Results in chronological order, with name, id number, date, username, and CI status
+   - [ ] Pull request list can be filtered; `esc` key clears filter; arrow keys can scroll list
+   - [ ] Results in chronological order, with name, id number, date, username, and CI status
+     - [ ] Status checks run frequently in background, especially if yellow
  - [ ] PR status can be updated independently of respective PR
- - [ ] Status checks run frequently in background, especially if yellow
 
 ### TBD placeholder
 - Merge tool for conflicted files
