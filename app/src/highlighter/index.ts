@@ -112,7 +112,6 @@ onmessage = (ev: MessageEvent) => {
   const mimeType = extensionMIMEMap.get(extension) || guessMimeType(contents)
 
   if (!mimeType) {
-    console.debug(`Could not determine mime type for highlighting`)
     postMessage({})
     return
   }
@@ -120,7 +119,6 @@ onmessage = (ev: MessageEvent) => {
   const mode = CodeMirror.getMode({}, mimeType)
 
   if (!mode) {
-    console.debug(`Could not find highlighting mode for '${mimeType}'`)
     postMessage({})
     return
   }
