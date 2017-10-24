@@ -37,7 +37,7 @@ branches:
 
 language: node_js
 node_js:
-  - "7"
+  - "8.7.0"
 
 cache:
   timeout: 600
