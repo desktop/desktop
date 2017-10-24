@@ -9,7 +9,7 @@ This is the checklist of things that it needs to support:
 
  - Desktop can check it exists on the user's machine
  - Desktop is able to launch it using the operating system's APIs
- - It had a stable interface (command line arguments) that doesn't change
+ - It has a stable interface (command line arguments) that doesn't change
    between updates
 
 If you think your shell satifies all these requirements please read on to
