@@ -59,7 +59,7 @@ import { highlight } from '../../lib/highlighter/worker'
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
 
-/** The maximum number of bytes we'll process for highligting. */
+/** The maximum number of bytes we'll process for highlighting. */
 const MaxHighlightContentLength = 256 * 1024
 
 // This is a custom version of the no-newline octicon that's exactly as
