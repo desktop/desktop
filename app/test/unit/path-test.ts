@@ -9,16 +9,24 @@ describe('path', () => {
         const dirName =
           'C:/Users/shiftkey\\AppData\\Local\\GitHubDesktop\\app-1.0.4\\resources\\app'
         const uri = encodePathAsUrl(dirName, 'folder/file.html')
-        expect(uri.startsWith('file:///C:/Users/shiftkey/'))
+        expect(uri.startsWith('file:///C:/Users/shiftkey/AppData/Local/'))
+      })
+
+      it('encodes spaces and hashes', () => {
+        const dirName =
+          'C:/Users/The Kong #2\\AppData\\Local\\GitHubDesktop\\app-1.0.4\\resources\\app'
+        const uri = encodePathAsUrl(dirName, 'index.html')
+        expect(uri.startsWith('file:///C:/Users/The%20Kong%20%232/'))
       })
     }
 
-    it('should encode hash symbol', () => {
-      const dirName =
-        'C:/Users/The Kong #2\\AppData\\Local\\GitHubDesktop\\app-1.0.4\\resources\\app'
-      const uri = encodePathAsUrl(dirName, 'index.html')
-      expect(uri.startsWith('file:///'))
-      expect(uri.indexOf('%23')).is.greaterThan(0)
-    })
+    if (__DARWIN__ || __LINUX__) {
+      it('encodes spaces and hashes', () => {
+        const dirName =
+          '/Users/The Kong #2\\AppData\\Local\\GitHubDesktop\\app-1.0.4\\resources\\app'
+        const uri = encodePathAsUrl(dirName, 'index.html')
+        expect(uri.startsWith('file:////Users/The%20Kong%20%232/'))
+      })
+    }
   })
 })
