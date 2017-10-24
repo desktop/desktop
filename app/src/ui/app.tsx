@@ -80,7 +80,6 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
-import { getAccountForRepository } from '../lib/get-account-for-repository'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1444,10 +1443,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       !!currentFoldout && currentFoldout.type === FoldoutType.Branch
 
     const repository = selection.repository
-    const account = getAccountForRepository(
-      this.state.accounts,
-      selection.repository
-    )
+    const branchesState = selection.state.branchesState
 
     return (
       <BranchDropdown
@@ -1456,8 +1452,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         onDropDownStateChanged={this.onBranchDropdownStateChanged}
         repository={repository}
         repositoryState={selection.state}
-        account={account}
         selectedTab={this.state.selectedBranchesTab}
+        pullRequests={branchesState.openPullRequests}
+        currentPullRequest={branchesState.currentPullRequest}
       />
     )
   }

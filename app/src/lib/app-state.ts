@@ -24,6 +24,7 @@ import { PreferencesTab } from '../models/preferences'
 import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
+import { PullRequest } from '../models/pull-request'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -508,6 +509,12 @@ export interface IBranchesState {
    * switches over the last couple of thousand reflog entries.
    */
   readonly recentBranches: ReadonlyArray<Branch>
+
+  /** The open pull requests in the repository. */
+  readonly openPullRequests: ReadonlyArray<PullRequest> | null
+
+  /** The pull request associated with the current branch. */
+  readonly currentPullRequest: PullRequest | null
 }
 
 export interface IHistorySelection {

@@ -1,5 +1,6 @@
 import * as Darwin from './darwin'
 import * as Win32 from './win32'
+import * as Linux from './linux'
 
 export type ExternalEditor = Darwin.ExternalEditor | Win32.ExternalEditor
 
@@ -9,10 +10,12 @@ export function parse(label: string): ExternalEditor | null {
     return Darwin.parse(label)
   } else if (__WIN32__) {
     return Win32.parse(label)
+  } else if (__LINUX__) {
+    return Linux.parse(label)
   }
 
   throw new Error(
-    `Platform not currently supported for resolving shells: ${process.platform}`
+    `Platform not currently supported for resolving editors: ${process.platform}`
   )
 }
 
