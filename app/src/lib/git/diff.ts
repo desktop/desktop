@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import * as filesystem from '../../lib/file-system'
+import * as fileSystem from '../../lib/file-system'
 
 import { getBlobContents } from './show'
 
@@ -348,7 +348,7 @@ export async function getWorkingDirectoryImage(
   repository: Repository,
   file: FileChange
 ): Promise<Image> {
-  const contents = await filesystem.readFile(
+  const contents = await fileSystem.readFile(
     Path.join(repository.path, file.path)
   )
   const diff: Image = {
