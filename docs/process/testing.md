@@ -50,6 +50,7 @@
     - [ ] Modal opens with name, path (choose option), readme (unchecked), git ignore, license. Name and path mandatory.
       - [ ] If `Add this repository` warning message appears, clicking it adds to Repo list
       - [ ] If repository name is over 100 characterers, warning message is surfaced in modal
+      - [ ] If repository contains URL-hostile characters, show error message
     - [ ] `Create Repository` button adds new repo, which is added to Repo list
     - [ ] `Cancel` button does not save any changes made; modal closed
     - [ ] User cannot create a new repo inside a locked local directory 
