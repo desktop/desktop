@@ -3,7 +3,11 @@
 // This doesn't import all of CodeMirror, instead it only imports
 // a small subset. This hack is brought to you by webpack and you
 // can read all about it in webpack.common.js.
-import * as CodeMirror from 'codemirror/addon/runmode/runmode.node.js'
+import {
+  getMode,
+  innerMode,
+  StringStream,
+} from 'codemirror/addon/runmode/runmode.node.js'
 
 import { ITokens, IHighlightRequest } from '../lib/highlighter/types'
 
@@ -110,7 +114,7 @@ function detectMode(request: IHighlightRequest): CodeMirror.Mode<{}> | null {
     return null
   }
 
-  return CodeMirror.getMode({}, mimeType) || null
+  return getMode({}, mimeType) || null
 }
 
 onmessage = (ev: MessageEvent) => {
@@ -162,19 +166,15 @@ onmessage = (ev: MessageEvent) => {
       continue
     }
 
-    const lineStream = new CodeMirror.StringStream(line, tabSize, {
-      lines,
-      line: ix,
-    })
+    const lineCtx = { lines, line: ix }
+    const lineStream = new StringStream(line, tabSize, lineCtx)
 
     while (!lineStream.eol()) {
       const token = mode.token(lineStream, state)
 
       if (token && (!lineFilter || lineFilter.has(ix))) {
         const inner =
-          request.addModeClass === true
-            ? CodeMirror.innerMode(mode, state) as any
-            : null
+          request.addModeClass === true ? innerMode(mode, state) as any : null
         const innerModeName = inner.mode && inner.mode.name
 
         tokens[ix] = tokens[ix] || {}
