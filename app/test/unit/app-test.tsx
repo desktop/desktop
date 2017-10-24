@@ -15,6 +15,7 @@ import {
   SignInStore,
   RepositoriesStore,
   AccountsStore,
+  PullRequestStore,
 } from '../../src/lib/stores'
 import { InMemoryDispatcher } from '../helpers/in-memory-dispatcher'
 import {
@@ -22,6 +23,7 @@ import {
   TestStatsDatabase,
   TestIssuesDatabase,
   TestRepositoriesDatabase,
+  TestPullRequestDatabase,
 } from '../helpers/databases'
 import { StatsStore } from '../../src/lib/stats'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
@@ -51,6 +53,11 @@ describe('App', () => {
       new AsyncInMemoryStore()
     )
 
+    const pullRequestStore = new PullRequestStore(
+      new TestPullRequestDatabase(),
+      repositoriesStore
+    )
+
     appStore = new AppStore(
       new GitHubUserStore(db),
       new CloningRepositoriesStore(),
@@ -59,7 +66,8 @@ describe('App', () => {
       statsStore,
       new SignInStore(),
       accountsStore,
-      repositoriesStore
+      repositoriesStore,
+      pullRequestStore
     )
 
     dispatcher = new InMemoryDispatcher(appStore)

@@ -76,7 +76,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   /**
    * Checks to see whether or not we're currently in a sign in step
    * and whether the newly received props signal that the user has
-   * signed in successfully. If both conditions holds true we move
+   * signed in successfully. If both conditions hold true we move
    * the user to the configure git step.
    */
   private advanceOnSuccessfulSignIn(nextProps: IWelcomeProps) {
@@ -101,10 +101,10 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     }
 
     // Only advance when the state first changes...
-    if (this.props.signInState.kind !== nextProps.signInState.kind) {
+    if (this.props.signInState.kind === nextProps.signInState.kind) {
       log.info(
         `[Welcome] kind ${this.props.signInState
-          .kind} does not match ${nextProps.signInState.kind}. ignoring...`
+          .kind} is the same as ${nextProps.signInState.kind}. ignoring...`
       )
       return
     }

@@ -29,7 +29,58 @@ export class RepositoriesStore {
     return this.emitter.on('did-update', fn)
   }
 
-  private async findGitHubRepository(
+  /** Find the matching GitHub repository or add it if it doesn't exist. */
+  public async findOrPutGitHubRepository(
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ): Promise<GitHubRepository> {
+    return this.db.transaction(
+      'rw',
+      this.db.repositories,
+      this.db.gitHubRepositories,
+      this.db.owners,
+      async () => {
+        const gitHubRepository = await this.db.gitHubRepositories
+          .where('cloneURL')
+          .equals(apiRepository.clone_url)
+          .limit(1)
+          .first()
+        if (!gitHubRepository) {
+          return this.putGitHubRepository(endpoint, apiRepository)
+        } else {
+          return this.buildGitHubRepository(gitHubRepository)
+        }
+      }
+    )
+  }
+
+  private async buildGitHubRepository(
+    dbRepo: IDatabaseGitHubRepository
+  ): Promise<GitHubRepository> {
+    const owner = await this.db.owners.get(dbRepo.ownerID)
+    if (!owner) {
+      throw new Error(`Couldn't find the owner for ${dbRepo.name}`)
+    }
+
+    let parent: GitHubRepository | null = null
+    if (dbRepo.parentID) {
+      parent = await this.findGitHubRepositoryByID(dbRepo.parentID)
+    }
+
+    return new GitHubRepository(
+      dbRepo.name,
+      new Owner(owner.login, owner.endpoint, owner.id!),
+      dbRepo.id!,
+      dbRepo.private,
+      dbRepo.htmlURL,
+      dbRepo.defaultBranch,
+      dbRepo.cloneURL,
+      parent
+    )
+  }
+
+  /** Find a GitHub repository by its DB ID. */
+  public async findGitHubRepositoryByID(
     id: number
   ): Promise<GitHubRepository | null> {
     const gitHubRepository = await this.db.gitHubRepositories.get(id)
@@ -37,27 +88,7 @@ export class RepositoriesStore {
       return null
     }
 
-    const owner = await this.db.owners.get(gitHubRepository.ownerID)
-    if (!owner) {
-      log.error(`Couldn't find the owner for ${gitHubRepository.name}`)
-      return null
-    }
-
-    let parent: GitHubRepository | null = null
-    if (gitHubRepository.parentID) {
-      parent = await this.findGitHubRepository(gitHubRepository.parentID)
-    }
-
-    return new GitHubRepository(
-      gitHubRepository.name,
-      new Owner(owner.login, owner.endpoint, owner.id!),
-      gitHubRepository.id!,
-      gitHubRepository.private,
-      gitHubRepository.htmlURL,
-      gitHubRepository.defaultBranch,
-      gitHubRepository.cloneURL,
-      parent
-    )
+    return this.buildGitHubRepository(gitHubRepository)
   }
 
   /** Get all the local repositories. */
@@ -74,7 +105,7 @@ export class RepositoriesStore {
           let inflatedRepo: Repository | null = null
           let gitHubRepository: GitHubRepository | null = null
           if (repo.gitHubRepositoryID) {
-            gitHubRepository = await this.findGitHubRepository(
+            gitHubRepository = await this.findGitHubRepositoryByID(
               repo.gitHubRepositoryID
             )
           }
@@ -113,7 +144,7 @@ export class RepositoriesStore {
           id = existing.id!
 
           if (existing.gitHubRepositoryID) {
-            gitHubRepo = await this.findGitHubRepository(
+            gitHubRepo = await this.findGitHubRepositoryByID(
               existing.gitHubRepositoryID
             )
           }

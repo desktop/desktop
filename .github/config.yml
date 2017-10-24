@@ -7,3 +7,7 @@ requestInfoReplyComment: >
   more time fixing bugs, implementing enhancements, and reviewing and merging pull requests.
 
 requestInfoLabelToAdd: more-information-needed
+
+requestInfoOn:
+  pullRequest: false
+  issue: true

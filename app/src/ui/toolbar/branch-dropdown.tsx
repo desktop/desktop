@@ -7,16 +7,10 @@ import { ToolbarDropdown, DropdownState } from './dropdown'
 import { IRepositoryState } from '../../lib/app-state'
 import { Branches } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
-import { Account } from '../../models/account'
 import { BranchesTab } from '../../models/branches-tab'
 import { enablePreviewFeatures } from '../../lib/feature-flag'
-import { API } from '../../lib/api'
-import { IPullRequest } from '../../models/pull-request'
-import { GitHubRepository } from '../../models/github-repository'
-import { Branch } from '../../models/branch'
+import { PullRequest } from '../../models/pull-request'
 import { PullRequestBadge } from '../branches/pull-request-badge'
-
-const RefreshPullRequestInterval = 1000 * 60 * 10
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -38,32 +32,20 @@ interface IBranchDropdownProps {
    */
   readonly onDropDownStateChanged: (state: DropdownState) => void
 
-  /** The account for the associated GitHub repository, if one exists. */
-  readonly account: Account | null
-
   /** The currently selected tab. */
   readonly selectedTab: BranchesTab
-}
 
-interface IBranchDropdownState {
-  readonly pullRequests: ReadonlyArray<IPullRequest> | null
+  /** The open pull requests in the repository. */
+  readonly pullRequests: ReadonlyArray<PullRequest> | null
+
+  /** The pull request associated with the current branch. */
+  readonly currentPullRequest: PullRequest | null
 }
 
 /**
  * A drop down for selecting the currently checked out branch.
  */
-export class BranchDropdown extends React.Component<
-  IBranchDropdownProps,
-  IBranchDropdownState
-> {
-  private refeshPullRequestTimerId: number | null = null
-
-  public constructor(props: IBranchDropdownProps) {
-    super(props)
-
-    this.state = { pullRequests: null }
-  }
-
+export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
@@ -79,112 +61,10 @@ export class BranchDropdown extends React.Component<
         defaultBranch={branchesState.defaultBranch}
         dispatcher={this.props.dispatcher}
         repository={this.props.repository}
-        account={this.props.account}
         selectedTab={this.props.selectedTab}
-        pullRequests={this.state.pullRequests}
+        pullRequests={this.props.pullRequests}
       />
     )
-  }
-
-  public componentDidMount() {
-    if (enablePreviewFeatures()) {
-      this.updatePullRequests(this.props)
-
-      this.refeshPullRequestTimerId = window.setInterval(
-        () => this.updatePullRequests(this.props),
-        RefreshPullRequestInterval
-      )
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: IBranchDropdownProps) {
-    if (
-      enablePreviewFeatures() &&
-      (this.props.account !== nextProps.account ||
-        this.props.repository !== nextProps.repository)
-    ) {
-      this.setState({ pullRequests: null })
-      this.updatePullRequests(nextProps)
-    }
-  }
-
-  public componentWillUnmount() {
-    const timerId = this.refeshPullRequestTimerId
-    if (timerId) {
-      window.clearInterval(timerId)
-      this.refeshPullRequestTimerId = null
-    }
-  }
-
-  private async fetchPullRequests(
-    account: Account,
-    repository: GitHubRepository
-  ): Promise<ReadonlyArray<IPullRequest> | null> {
-    const api = API.fromAccount(account)
-    try {
-      const pullRequests = await api.fetchPullRequests(
-        repository.owner.login,
-        repository.name,
-        'open'
-      )
-
-      const pullRequestsWithStatus: Array<IPullRequest> = []
-      for (const pr of pullRequests) {
-        const created = new Date(pr.created_at)
-        try {
-          const status = await api.fetchCombinedRefStatus(
-            repository.owner.login,
-            repository.name,
-            pr.head.sha
-          )
-
-          pullRequestsWithStatus.push({
-            ...pr,
-            status,
-            created,
-          })
-        } catch (e) {
-          pullRequestsWithStatus.push({
-            ...pr,
-            status: { state: 'pending', total_count: 0 },
-            created,
-          })
-        }
-      }
-
-      return pullRequestsWithStatus
-    } catch (e) {
-      return null
-    }
-  }
-
-  private async updatePullRequests(props: IBranchDropdownProps) {
-    const account = props.account
-    if (!account) {
-      return
-    }
-
-    const gitHubRepository = props.repository.gitHubRepository
-    if (!gitHubRepository) {
-      return
-    }
-
-    const pullRequests = await this.fetchPullRequests(account, gitHubRepository)
-    this.setState({ pullRequests })
-  }
-
-  private get currentPullRequest(): IPullRequest | null {
-    const repositoryState = this.props.repositoryState
-    const branchesState = repositoryState.branchesState
-    const pullRequests = this.state.pullRequests
-    const gitHubRepository = this.props.repository.gitHubRepository
-
-    const tip = branchesState.tip
-    if (tip.kind === TipState.Valid && pullRequests && gitHubRepository) {
-      return findCurrentPullRequest(tip.branch, pullRequests, gitHubRepository)
-    } else {
-      return null
-    }
   }
 
   private onDropDownStateChanged = (state: DropdownState) => {
@@ -210,7 +90,7 @@ export class BranchDropdown extends React.Component<
     let canOpen = true
     let tooltip: string
 
-    if (this.currentPullRequest) {
+    if (this.props.currentPullRequest) {
       icon = OcticonSymbol.gitPullRequest
     }
 
@@ -274,7 +154,7 @@ export class BranchDropdown extends React.Component<
   }
 
   private renderPullRequestInfo() {
-    const pr = this.currentPullRequest
+    const pr = this.props.currentPullRequest
     if (!pr) {
       return null
     }
@@ -285,28 +165,4 @@ export class BranchDropdown extends React.Component<
 
     return <PullRequestBadge number={pr.number} status={pr.status} />
   }
-}
-
-function findCurrentPullRequest(
-  currentBranch: Branch,
-  pullRequests: ReadonlyArray<IPullRequest>,
-  gitHubRepository: GitHubRepository
-): IPullRequest | null {
-  const upstream = currentBranch.upstreamWithoutRemote
-  if (!upstream) {
-    return null
-  }
-
-  for (const pr of pullRequests) {
-    if (
-      pr.head.ref === upstream &&
-      pr.head.repo &&
-      // TODO: This doesn't work for when I've checked out a PR from a fork.
-      pr.head.repo.clone_url === gitHubRepository.cloneURL
-    ) {
-      return pr
-    }
-  }
-
-  return null
 }
