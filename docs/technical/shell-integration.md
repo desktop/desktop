@@ -90,8 +90,8 @@ The source for the macOS shell integration is found in [`app/src/lib/shells/darw
 These shells are currently supported:
 
  - Terminal
- - [Hyper](link-goes-here)
- - [iTerm2](link-goes-here)
+ - [Hyper](https://hyper.sh/)
+ - [iTerm2](https://www.iterm2.com/)
 
 These are defined in an enum at the top of the file:
 
