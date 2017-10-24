@@ -1,16 +1,16 @@
 import * as React from 'react'
-import { IPullRequest } from '../../models/pull-request'
 import {
   FilterList,
   IFilterListGroup,
   IFilterListItem,
 } from '../lib/filter-list'
 import { PullRequestListItem } from './pull-request-list-item'
+import { PullRequest } from '../../models/pull-request'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
   readonly text: string
-  readonly pullRequest: IPullRequest
+  readonly pullRequest: PullRequest
 }
 
 /**
@@ -25,10 +25,10 @@ const RowHeight = 47
 
 interface IPullRequestListProps {
   /** The pull requests to display. */
-  readonly pullRequests: ReadonlyArray<IPullRequest>
+  readonly pullRequests: ReadonlyArray<PullRequest>
 
   /** Called when the user clicks on a pull request. */
-  readonly onPullRequestClicked: (pullRequest: IPullRequest) => void
+  readonly onPullRequestClicked: (pullRequest: PullRequest) => void
 
   /** Called when the user wants to dismiss the foldout. */
   readonly onDismiss: () => void
@@ -88,7 +88,7 @@ export class PullRequestList extends React.Component<
         title={pr.title}
         number={pr.number}
         created={pr.created}
-        author={pr.user.login}
+        author={pr.author}
         status={pr.status}
       />
     )
@@ -118,7 +118,7 @@ export class PullRequestList extends React.Component<
 }
 
 function createListItems(
-  pullRequests: ReadonlyArray<IPullRequest>
+  pullRequests: ReadonlyArray<PullRequest>
 ): IFilterListGroup<IPullRequestListItem> {
   const items = pullRequests.map(pr => ({
     text: pr.title,
