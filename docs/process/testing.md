@@ -36,7 +36,7 @@
   - [ ] Skip "username+password" step
     - [ ] Configure Git
       - [ ] Name and email pulled from global `.gitconfig` file, if configured
-  	- [ ] If recognized, your avatar is present in example commit
+  	- [ ] If recognized, your avatar is present in example commit; gravatars not recognized
       - [ ] `Continue` okay if fields populated or blank
   	- [ ] Valid login credentials from dotcom or Enterprise carried through
 	  - [ ] User sees Repository landing page if sign in successful
