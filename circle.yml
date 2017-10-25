@@ -17,7 +17,7 @@ dependencies:
     - "~/.electron"
 
   pre:
-    - brew install node@8.7.0
+    - brew install node || brew upgrade node
     - npm install -g yarn@1.2.1
 
   override:
