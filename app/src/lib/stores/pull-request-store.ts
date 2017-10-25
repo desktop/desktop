@@ -95,10 +95,7 @@ export class PullRequestStore {
       })
     }
 
-    if (pullRequests.length) {
-      await this.clearPullRequestStatuses()
-      await this.writePullRequestStatus(pullRequestsStatuses)
-    }
+    await this.writePullRequestStatus(pullRequestsStatuses)
 
     return await this.getPullRequestStatuses(pullRequests, repository)
   }
@@ -289,19 +286,21 @@ export class PullRequestStore {
 
   private async writePullRequestStatus(
     statuses: Array<IPullRequestStatus>
-  ): Promise<number> {
+  ): Promise<void> {
     const table = this.db.pullRequestStatus
 
     return await this.db.transaction('rw', table, async () => {
-      return await table.bulkAdd(statuses)
-    })
-  }
-
-  private async clearPullRequestStatuses(): Promise<void> {
-    const table = this.db.pullRequestStatus
-
-    return await this.db.transaction('rw', table, async () => {
-      await table.clear()
+      for (const status of statuses) {
+        const existing = await table
+          .where('[sha+pullRequestId]')
+          .equals([status.sha, status.pullRequestId])
+          .first()
+        if (existing) {
+          await table.put({ id: existing.id, ...status })
+        } else {
+          await table.add(status)
+        }
+      }
     })
   }
 }
