@@ -130,7 +130,8 @@ export class AccountsStore {
     }
 
     const rawAccounts: ReadonlyArray<IAccount> = JSON.parse(raw)
-    const accountsWithTokens = rawAccounts.map(async account => {
+    const accountsWithTokens = []
+    for (const account of rawAccounts) {
       const accountWithoutToken = new Account(
         account.login,
         account.endpoint,
@@ -140,14 +141,17 @@ export class AccountsStore {
         account.id,
         account.name
       )
-      const token = await this.secureStore.getItem(
-        getKeyForAccount(accountWithoutToken),
-        account.login
-      )
-      return accountWithoutToken.withToken(token || '')
-    })
 
-    this.accounts = await Promise.all(accountsWithTokens)
+      const key = getKeyForAccount(accountWithoutToken)
+      try {
+        const token = await this.secureStore.getItem(key, account.login)
+        accountsWithTokens.push(accountWithoutToken.withToken(token || ''))
+      } catch (e) {
+        log.error(`Error getting token for '${key}'. Skipping.`, e)
+      }
+    }
+
+    this.accounts = accountsWithTokens
     this.emitUpdate()
   }
 
