@@ -21,6 +21,14 @@ addons:
       # this package is essential for testing Electron in a headless fashion
       # https://github.com/electron/electron/blob/master/docs/tutorial/testing-on-headless-ci.md
       - xvfb
+      # packages required for electron-installer-debian
+      - fakeroot
+      - dpkg
+      # packages required for electron-installer-redhat
+      - rpm
+      # packages required for electron-installer-appimage
+      - xz-utils
+      - xorriso
 
 branches:
   only:
@@ -36,21 +44,17 @@ cache:
   directories:
     - node_modules
     - $HOME/.electron
+    - .eslintcache
 
 install:
-  - npm install -g npm@4.6.1
-  - npm prune
-  - cd app && npm prune && cd ..
-  - npm install
-  - npm ls --prod
-  - npm ls --dev
+  - npm install -g yarn@1.2.1
+  - yarn install --force
 
 script:
-  - npm run check-prettiness
-  - npm run lint
-  - npm run build:prod
-  - npm run test:setup
-  - npm test
+  - yarn lint
+  - yarn build:prod
+  - yarn test:setup
+  - yarn test
 
 after_failure:
-  - npm run test:review
+  - yarn test:review

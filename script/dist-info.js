@@ -5,6 +5,7 @@ const os = require('os')
 const fs = require('fs')
 
 const projectRoot = path.join(__dirname, '..')
+// eslint-disable-next-line import/no-dynamic-require
 const appPackage = require(path.join(projectRoot, 'app', 'package.json'))
 
 function getDistRoot() {
@@ -171,6 +172,13 @@ function shouldMakeDelta() {
   return channelsWithDeltas.indexOf(getReleaseChannel()) > -1
 }
 
+function getCLICommands() {
+  return fs
+    .readdirSync(path.resolve(projectRoot, 'app', 'src', 'cli', 'commands'))
+    .filter(name => name.endsWith('.ts'))
+    .map(name => name.replace(/\.ts$/, ''))
+}
+
 /**
  * Attempt to dereference the given ref without requiring a Git environment
  * to be present. Note that this method will not be able to dereference packed
@@ -233,5 +241,6 @@ module.exports = {
   shouldMakeDelta,
   getReleaseBranchName,
   getExecutableName,
+  getCLICommands,
   getSHA,
 }

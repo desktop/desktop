@@ -27,7 +27,7 @@ export class RangeSelection implements ISelectionStrategy {
   }
 
   public paint(elements: Map<number, DiffLineGutter>) {
-    range(this._start, this._end).forEach(row => {
+    range(this._start, this._end + 1).forEach(row => {
       const element = elements.get(row)
 
       if (!element) {
@@ -39,9 +39,7 @@ export class RangeSelection implements ISelectionStrategy {
         return
       }
 
-      const selected = this._desiredSelection
-
-      element.setSelected(selected)
+      element.setSelected(this._desiredSelection)
     })
   }
 

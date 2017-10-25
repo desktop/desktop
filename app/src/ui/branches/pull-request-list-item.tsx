@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as moment from 'moment'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { IAPIRefStatus } from '../../lib/api'
 import { CIStatus } from './ci-status'
+import { PullRequestStatus } from '../../models/pull-request'
 
 interface IPullRequestListItemProps {
   /** The title. */
@@ -18,7 +18,7 @@ interface IPullRequestListItemProps {
   readonly author: string
 
   /** The CI status. */
-  readonly status: IAPIRefStatus
+  readonly status: PullRequestStatus | null
 }
 
 /** Pull requests as rendered in the Pull Requests list. */
@@ -28,12 +28,11 @@ export class PullRequestListItem extends React.Component<
 > {
   public render() {
     const timeAgo = moment(this.props.created).fromNow()
-    const { title, author, status } = this.props
+    const { title, author } = this.props
     const subtitle = `#${this.props.number} opened ${timeAgo} by ${author}`
     return (
       <div className="pull-request-item">
         <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
-
         <div className="info">
           <div className="title" title={title}>
             {title}
@@ -42,9 +41,18 @@ export class PullRequestListItem extends React.Component<
             {subtitle}
           </div>
         </div>
-
-        {status.total_count > 0 ? <CIStatus status={status} /> : null}
+        {this.renderPullRequestStatus()}
       </div>
     )
+  }
+
+  private renderPullRequestStatus() {
+    const status = this.props.status
+
+    if (!status || status.totalCount === 0) {
+      return null
+    }
+
+    return <CIStatus status={status} />
   }
 }

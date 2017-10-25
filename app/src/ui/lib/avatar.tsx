@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { IAvatarUser } from '../../models/avatar'
+import { encodePathAsUrl } from '../../lib/path'
 
-const DefaultAvatarURL = `file:///${__dirname}/static/default-avatar.png`
+const DefaultAvatarURL = encodePathAsUrl(__dirname, 'static/default-avatar.png')
 
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */

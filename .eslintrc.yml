@@ -1,0 +1,87 @@
+root: true
+parser: typescript-eslint-parser
+plugins:
+  - typescript
+  - babel
+  - react
+  - prettier
+
+extends:
+  - prettier
+  - prettier/react
+
+rules:
+  ##########
+  # CUSTOM #
+  ##########
+  insecure-random: error
+
+  ###########
+  # PLUGINS #
+  ###########
+  # TYPESCRIPT
+  typescript/interface-name-prefix:
+    - error
+    - always
+  typescript/no-angle-bracket-type-assertion: error
+  typescript/explicit-member-accessibility: error
+  typescript/no-unused-vars: error
+  typescript/no-use-before-define:
+    - error
+    - functions: false
+      variables: false
+      typedefs: false
+  ## blocked by https://github.com/nzakas/eslint-plugin-typescript/pull/23
+  # typescript/member-ordering: error
+  ##
+  ## blocked by https://github.com/nzakas/eslint-plugin-typescript/issues/41
+  # typescript/type-annotation-spacing: error
+  ##
+
+  # Babel
+  babel/no-invalid-this: error
+
+  # React
+  react/jsx-boolean-value:
+    - error
+    - always
+  react/jsx-key: error
+  react/jsx-no-bind: error
+  react/no-string-refs: error
+
+  ###########
+  # BUILTIN #
+  ###########
+  curly: error
+  no-new-wrappers: error
+  no-redeclare:
+    - error
+    - builtinGlobals: true
+  no-eval: error
+  no-sync: error
+  no-unused-expressions: error
+  no-var: error
+  prefer-const: error
+  eqeqeq:
+    - error
+    - smart
+
+  ###########
+  # SPECIAL #
+  ###########
+  prettier/prettier:
+    - error
+    - singleQuote: true
+      trailingComma: es5
+      semi: false
+      parser: typescript
+  no-restricted-syntax:
+    - error
+    # no-default-export
+    - selector: ExportDefaultDeclaration
+      message: Use of default exports is forbidden
+
+parserOptions:
+  sourceType: module
+  ecmaFeatures:
+    jsx: true

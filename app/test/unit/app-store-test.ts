@@ -1,7 +1,6 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import * as Path from 'path'
 import * as Fs from 'fs'
@@ -16,10 +15,18 @@ import {
   SignInStore,
   RepositoriesStore,
   AccountsStore,
+  PullRequestStore,
 } from '../../src/lib/stores'
-import { TestGitHubUserDatabase } from '../test-github-user-database'
-import { TestStatsDatabase } from '../test-stats-database'
-import { TestIssuesDatabase } from '../test-issues-database'
+import {
+  TestGitHubUserDatabase,
+  TestStatsDatabase,
+  TestIssuesDatabase,
+  TestRepositoriesDatabase,
+  TestPullRequestDatabase,
+} from '../helpers/databases'
+import { setupEmptyRepository } from '../helpers/repositories'
+import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+
 import { StatsStore } from '../../src/lib/stats'
 
 import {
@@ -30,11 +37,6 @@ import {
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { getCommit } from '../../src/lib/git'
-
-import { setupEmptyRepository } from '../fixture-helper'
-import { TestRepositoriesDatabase } from '../test-repositories-database'
-import { InMemoryStore } from '../in-memory-store'
-import { AsyncInMemoryStore } from '../async-in-memory-store'
 
 describe('AppStore', () => {
   async function createAppStore(): Promise<AppStore> {
@@ -56,6 +58,11 @@ describe('AppStore', () => {
       new AsyncInMemoryStore()
     )
 
+    const pullRequestStore = new PullRequestStore(
+      new TestPullRequestDatabase(),
+      repositoriesStore
+    )
+
     return new AppStore(
       new GitHubUserStore(db),
       new CloningRepositoriesStore(),
@@ -64,7 +71,8 @@ describe('AppStore', () => {
       new StatsStore(statsDb),
       new SignInStore(),
       accountsStore,
-      repositoriesStore
+      repositoriesStore,
+      pullRequestStore
     )
   }
 

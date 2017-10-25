@@ -19,8 +19,7 @@ const filePath = path.resolve(
   'sprite.octicons.svg'
 )
 
-/* tslint:disable:no-sync-functions */
-const file = fs.readFileSync(filePath, 'utf-8')
+const file = fs.readFileSync(filePath, 'utf-8') // eslint-disable-line no-sync
 
 interface IXML2JSResult {
   svg: { symbol: ReadonlyArray<IXML2JSNode> }

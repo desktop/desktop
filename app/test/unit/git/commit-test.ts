@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import * as path from 'path'
 import { expect } from 'chai'
@@ -17,7 +17,7 @@ import {
   setupFixtureRepository,
   setupEmptyRepository,
   setupConflictedRepo,
-} from '../../fixture-helper'
+} from '../../helpers/repositories'
 
 import { GitProcess } from 'dugite'
 import {

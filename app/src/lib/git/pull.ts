@@ -45,8 +45,8 @@ export async function pull(
     const title = `Pulling ${remote}`
     const kind = 'pull'
 
-    opts = executionOptionsWithProgress(
-      opts,
+    opts = await executionOptionsWithProgress(
+      { ...opts, trackLFSProgress: true },
       new PullProgressParser(),
       progress => {
         // In addition to progress output from the remote end and from

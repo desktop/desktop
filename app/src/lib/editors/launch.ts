@@ -22,12 +22,5 @@ export async function launchExternalEditor(
     )
   }
 
-  if (__WIN32__ || __DARWIN__) {
-    spawn(editorPath, [path])
-    return
-  }
-
-  throw new ExternalEditorError(
-    `'Open in External Editor' has not been implemented for platform: '${process.platform}'`
-  )
+  spawn(editorPath, [path])
 }

@@ -27,6 +27,7 @@ import {
   DropdownState,
   PushPullButton,
   BranchDropdown,
+  RevertProgress,
 } from './toolbar'
 import { OcticonSymbol, iconForRepository } from './octicons'
 import {
@@ -79,7 +80,6 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
-import { getAccountForRepository } from '../lib/get-account-for-repository'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1012,6 +1012,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
+            initialName={popup.initialName || ''}
           />
         )
       }
@@ -1081,7 +1082,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             unPushedCommits={popup.unPushedCommits}
-            onConfirm={this.openPullRequestOnGitHub}
+            onConfirm={this.openCreatePullRequestInBrowser}
             onDismissed={this.onPopupDismissed}
           />
         )
@@ -1305,9 +1306,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
-    newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
-      : this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+    }
   }
 
   private renderRepositoryToolbarButton() {
@@ -1359,8 +1362,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const state = selection.state
+    const revertProgress = state.revertProgress
+    if (revertProgress) {
+      return <RevertProgress progress={revertProgress} />
+    }
+
     const remoteName = state.remote ? state.remote.name : null
     const progress = state.pushPullFetchProgress
+
+    const tipState = state.branchesState.tip.kind
 
     return (
       <PushPullButton
@@ -1371,6 +1381,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         lastFetched={state.lastFetched}
         networkActionInProgress={state.isPushPullFetchInProgress}
         progress={progress}
+        tipState={tipState}
       />
     )
   }
@@ -1405,17 +1416,19 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    return this.openPullRequestOnGitHub(state.repository)
+    return this.props.dispatcher.createPullRequest(state.repository)
   }
 
-  private openPullRequestOnGitHub = (repository: Repository) => {
-    this.props.dispatcher.openCreatePullRequest(repository)
+  private openCreatePullRequestInBrowser = (repository: Repository) => {
+    this.props.dispatcher.openCreatePullRequestInBrowser(repository)
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
-    newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
-      : this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    }
   }
 
   private renderBranchToolbarButton(): JSX.Element | null {
@@ -1430,10 +1443,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       !!currentFoldout && currentFoldout.type === FoldoutType.Branch
 
     const repository = selection.repository
-    const account = getAccountForRepository(
-      this.state.accounts,
-      selection.repository
-    )
+    const branchesState = selection.state.branchesState
 
     return (
       <BranchDropdown
@@ -1442,8 +1452,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         onDropDownStateChanged={this.onBranchDropdownStateChanged}
         repository={repository}
         repositoryState={selection.state}
-        account={account}
         selectedTab={this.state.selectedBranchesTab}
+        pullRequests={branchesState.openPullRequests}
+        currentPullRequest={branchesState.currentPullRequest}
       />
     )
   }

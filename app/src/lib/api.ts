@@ -45,6 +45,7 @@ export interface IAPIRepository {
   readonly private: boolean
   readonly fork: boolean
   readonly default_branch: string
+  readonly parent: IAPIRepository | null
 }
 
 /**
@@ -119,7 +120,12 @@ export interface IAPIRefStatus {
 interface IAPIPullRequestRef {
   readonly ref: string
   readonly sha: string
-  readonly repo: IAPIRepository
+
+  /**
+   * The repository in which this ref lives. It could be null if the repository
+   * has been deleted since the PR was opened.
+   */
+  readonly repo: IAPIRepository | null
 }
 
 /** Information about a pull request as returned by the GitHub API. */

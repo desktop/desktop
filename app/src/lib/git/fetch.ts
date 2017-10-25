@@ -38,8 +38,8 @@ export async function fetch(
     const title = `Fetching ${remote}`
     const kind = 'fetch'
 
-    opts = executionOptionsWithProgress(
-      opts,
+    opts = await executionOptionsWithProgress(
+      { ...opts, trackLFSProgress: true },
       new FetchProgressParser(),
       progress => {
         // In addition to progress output from the remote end and from

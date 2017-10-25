@@ -27,6 +27,7 @@ const replacements = {
   __RELEASE_CHANNEL__: JSON.stringify(channel),
   __UPDATES_URL__: JSON.stringify(distInfo.getUpdatesURL()),
   __SHA__: JSON.stringify(distInfo.getSHA()),
+  __CLI_COMMANDS__: JSON.stringify(distInfo.getCLICommands()),
   'process.platform': JSON.stringify(process.platform),
   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   'process.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV),
