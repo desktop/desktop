@@ -57,9 +57,18 @@ export class AccountsStore {
     this.emitter.emit('did-update', {})
   }
 
+  private emitError(error: Error) {
+    this.emitter.emit('did-error', error)
+  }
+
   /** Register a function to be called when the store updates. */
   public onDidUpdate(fn: () => void): Disposable {
     return this.emitter.on('did-update', fn)
+  }
+
+  /** Register a function to be called when an error occurs. */
+  public onDidError(fn: (error: Error) => void): Disposable {
+    return this.emitter.on('did-error', fn)
   }
 
   /**
@@ -148,6 +157,8 @@ export class AccountsStore {
         accountsWithTokens.push(accountWithoutToken.withToken(token || ''))
       } catch (e) {
         log.error(`Error getting token for '${key}'. Skipping.`, e)
+
+        this.emitError(e)
       }
     }
 
