@@ -199,6 +199,7 @@
     - [ ] `Cancel` button closes modal
   - [ ] Rename (cannot be master)
     - [ ] `Rename` button changes branch name if field updated
+      - [ ] Same branch on GitHub.com is not renamed
     - [ ] `Cancel` button closes modal
     - [ ] Protected branches cannot be renamed
   - [ ] Delete (cannot be master)
