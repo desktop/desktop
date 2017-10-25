@@ -93,11 +93,17 @@ export class AccountsStore {
       log.warn(`Failed to fetch user ${account.login}`, e)
     }
 
-    await this.secureStore.setItem(
-      getKeyForAccount(updated),
-      updated.login,
-      updated.token
-    )
+    try {
+      await this.secureStore.setItem(
+        getKeyForAccount(updated),
+        updated.login,
+        updated.token
+      )
+    } catch (e) {
+      log.error(`Error adding account '${account.login}'`, e)
+      this.emitError(e)
+      return
+    }
 
     this.accounts = this.accounts.concat(updated)
 
@@ -108,8 +114,12 @@ export class AccountsStore {
   public async refresh(): Promise<void> {
     const updatedAccounts = new Array<Account>()
     for (const account of this.accounts) {
-      const updated = await updatedAccount(account)
-      updatedAccounts.push(updated)
+      try {
+        const updated = await updatedAccount(account)
+        updatedAccounts.push(updated)
+      } catch (e) {
+        log.warn(`Error refreshing account '${account.login}'`, e)
+      }
     }
 
     this.accounts = updatedAccounts
@@ -122,7 +132,16 @@ export class AccountsStore {
   public async removeAccount(account: Account): Promise<void> {
     await this.loadingPromise
 
-    await this.secureStore.deleteItem(getKeyForAccount(account), account.login)
+    try {
+      await this.secureStore.deleteItem(
+        getKeyForAccount(account),
+        account.login
+      )
+    } catch (e) {
+      log.error(`Error removing account '${account.login}'`, e)
+      this.emitError(e)
+      return
+    }
 
     this.accounts = this.accounts.filter(a => a.id !== account.id)
 
