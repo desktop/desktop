@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import * as path from 'path'
 import * as cp from 'child_process'
@@ -52,7 +52,6 @@ updateLicenseDump(err => {
 
     if (isPublishableBuild) {
       process.exit(1)
-      return
     }
   }
 
@@ -177,12 +176,14 @@ function copyStaticResources() {
 }
 
 function copyDependencies() {
+  // eslint-disable-next-line import/no-dynamic-require
   const originalPackage: Package = require(path.join(
     projectRoot,
     'app',
     'package.json'
   ))
 
+  // eslint-disable-next-line import/no-dynamic-require
   const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
   const externals = commonConfig.externals
   const oldDependencies = originalPackage.dependencies
