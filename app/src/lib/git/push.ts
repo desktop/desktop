@@ -64,8 +64,8 @@ export async function push(
     const title = `Pushing to ${remote}`
     const kind = 'push'
 
-    opts = executionOptionsWithProgress(
-      opts,
+    opts = await executionOptionsWithProgress(
+      { ...opts, trackLFSProgress: true },
       new PushProgressParser(),
       progress => {
         const description =

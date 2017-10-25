@@ -1,24 +1,23 @@
-import { ExternalEditor } from '../../models/editors'
+import * as Darwin from './darwin'
+import * as Win32 from './win32'
+import * as Linux from './linux'
 
-interface IProgramNotFound {
-  readonly editor: ExternalEditor
-  readonly installed: false
+export type ExternalEditor = Darwin.ExternalEditor | Win32.ExternalEditor
+
+/** Parse the label into the specified shell type. */
+export function parse(label: string): ExternalEditor | null {
+  if (__DARWIN__) {
+    return Darwin.parse(label)
+  } else if (__WIN32__) {
+    return Win32.parse(label)
+  } else if (__LINUX__) {
+    return Linux.parse(label)
+  }
+
+  throw new Error(
+    `Platform not currently supported for resolving editors: ${process.platform}`
+  )
 }
-
-interface IProgramMissing {
-  readonly editor: ExternalEditor
-  readonly installed: true
-  readonly pathExists: false
-}
-
-interface IProgramFound {
-  readonly editor: ExternalEditor
-  readonly installed: true
-  readonly pathExists: true
-  readonly path: string
-}
-
-export type LookupResult = IProgramNotFound | IProgramMissing | IProgramFound
 
 /**
  * A found external editor on the user's machine

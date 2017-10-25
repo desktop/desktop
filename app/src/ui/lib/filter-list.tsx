@@ -101,6 +101,12 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /** Any props which should cause a re-render if they change. */
   readonly invalidationProps: any
+
+  /** Called to render content after the filter. */
+  readonly renderPostFilter?: () => JSX.Element | null
+
+  /** Called when there are no items to render.  */
+  readonly renderNoItems?: () => JSX.Element | null
 }
 
 interface IFilterListState<T extends IFilterListItem> {
@@ -153,27 +159,37 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
             value={this.props.filterText}
             disabled={this.props.filterDisabled}
           />
+
+          {this.props.renderPostFilter ? this.props.renderPostFilter() : null}
         </Row>
 
-        <div className="filter-list-container">
-          <List
-            rowCount={this.state.rows.length}
-            rowRenderer={this.renderRow}
-            rowHeight={this.props.rowHeight}
-            selectedRow={this.state.selectedRow}
-            onSelectionChanged={this.onSelectionChanged}
-            onRowClick={this.onRowClick}
-            onRowKeyDown={this.onRowKeyDown}
-            canSelectRow={this.canSelectRow}
-            ref={this.onListRef}
-            invalidationProps={{
-              ...this.props,
-              ...this.props.invalidationProps,
-            }}
-          />
-        </div>
+        <div className="filter-list-container">{this.renderContent()}</div>
       </div>
     )
+  }
+
+  private renderContent() {
+    if (this.state.rows.length === 0 && this.props.renderNoItems) {
+      return this.props.renderNoItems()
+    } else {
+      return (
+        <List
+          rowCount={this.state.rows.length}
+          rowRenderer={this.renderRow}
+          rowHeight={this.props.rowHeight}
+          selectedRow={this.state.selectedRow}
+          onSelectionChanged={this.onSelectionChanged}
+          onRowClick={this.onRowClick}
+          onRowKeyDown={this.onRowKeyDown}
+          canSelectRow={this.canSelectRow}
+          ref={this.onListRef}
+          invalidationProps={{
+            ...this.props,
+            ...this.props.invalidationProps,
+          }}
+        />
+      )
+    }
   }
 
   public componentWillReceiveProps(nextProps: IFilterListProps<T>) {

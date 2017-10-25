@@ -17,7 +17,7 @@ import {
   setupFixtureRepository,
   setupEmptyRepository,
   setupConflictedRepo,
-} from '../../fixture-helper'
+} from '../../helpers/repositories'
 
 import { GitProcess } from 'dugite'
 import {
