@@ -288,6 +288,7 @@ export class AppStore {
       this.accounts = accounts
       this.emitUpdate()
     })
+    accountsStore.onDidError(error => this.emitError(error))
 
     repositoriesStore.onDidUpdate(async () => {
       const repositories = await this.repositoriesStore.getAll()
