@@ -2470,18 +2470,34 @@ export class AppStore {
     return this.repositoriesStore.updateRepositoryPath(repository, path)
   }
 
-  public _removeAccount(account: Account): Promise<void> {
+  public async _removeAccount(account: Account): Promise<void> {
     log.info(
       `[AppStore] removing account ${account.login} (${account.name}) from store`
     )
-    return this.accountsStore.removeAccount(account)
+
+    try {
+      await this.accountsStore.removeAccount(account)
+    } catch (e) {
+      log.error(`Error removing account '${account.login}'`, e)
+
+      this.emitError(e)
+    }
   }
 
   public async _addAccount(account: Account): Promise<void> {
     log.info(
       `[AppStore] adding account ${account.login} (${account.name}) to store`
     )
-    await this.accountsStore.addAccount(account)
+
+    try {
+      await this.accountsStore.addAccount(account)
+    } catch (e) {
+      log.error(`Error adding account '${account.login}'`, e)
+
+      this.emitError(e)
+      return
+    }
+
     const selectedState = this.getState().selectedState
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
