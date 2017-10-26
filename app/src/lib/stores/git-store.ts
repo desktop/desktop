@@ -14,6 +14,7 @@ import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
 import { structuralEquals } from '../../lib/equality'
 import { compare } from '../../lib/compare'
 import { queueWorkHigh } from '../../lib/queue-work'
+import { removeFile } from '../../lib/file-system'
 
 import {
   reset,
@@ -802,8 +803,25 @@ export class GitStore {
 
   /** Ignore the given path or pattern. */
   public async ignore(pattern: string): Promise<void> {
-    const text = (await this.readGitIgnore()) || ''
     const repository = this.repository
+
+    if (pattern.startsWith('*')) {
+      // TODO: scan filesystem for all entries matching this expression
+    } else {
+      const status = await getStatus(repository)
+      const match = status.workingDirectory.files.find(p => p.path === pattern)
+      if (match) {
+        // if we have pending changes against this file, discard it
+        // using the workflow defined by the user
+        await this.discardChanges([match])
+      } else {
+        // the file is tracked but has no pending changes, just remove it
+        const path = Path.join(repository.path, pattern)
+        await removeFile(path)
+      }
+    }
+
+    const text = (await this.readGitIgnore()) || ''
     const currentContents = await formatGitIgnoreContents(text, repository)
     const newText = await formatGitIgnoreContents(
       `${currentContents}${pattern}`,
