@@ -273,10 +273,11 @@
     - [ ] Long commit descriptions can be toggled with expand/collapse icon
       - [ ] Reverting commit repopulates commit area
         - [ ] Error message if no changes to commit
-  - [ ] All files within a commit listed, with respective +/•/- sign; list is scrollable
+  - [ ] All files within a commit listed, with respective +/•/-/-> sign; list is scrollable
     - [ ] Diffs are viewable; list is scrollable with arrow keys enabled
       - [ ] Green is for additions, red for deletions
       - [ ] Different file types are rendered properly
+      - [ ] Single pic file with the `->` sign has multiple view options: 2-up (default); Swipe; Onion Skin; and Difference
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
   - [ ] Diffs cannot be over 3MB
   - [ ] Diffs cannot be longer than 500,000 characters 
