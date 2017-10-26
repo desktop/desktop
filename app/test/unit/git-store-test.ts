@@ -74,11 +74,9 @@ describe('GitStore', () => {
     status = await getStatus(repo)
     files = status.workingDirectory.files
 
-    expect(files.length).to.equal(2)
+    expect(files.length).to.equal(1)
     expect(files[0].path).to.equal('README.md')
     expect(files[0].status).to.equal(AppFileStatus.Modified)
-    expect(files[1].path).to.equal('LICENSE.md')
-    expect(files[1].status).to.equal(AppFileStatus.New)
   })
 
   it('discarding a tracked file will remove it from disk', async () => {
