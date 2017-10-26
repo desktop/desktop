@@ -41,7 +41,8 @@
   "license": "MIT",
   "engines": {
     "node": ">= 7",
-    "npm": ">= 4"
+    "npm": ">= 4",
+    "yarn": "^1.2.0"
   },
   "dependencies": {
     "awesome-typescript-loader": "^3.1.2",
