@@ -36,7 +36,7 @@ export class EmojiAutocompletionProvider
   }
 
   public getRegExp(): RegExp {
-    return /(?:^|\n| )(?::)([a-z0-9\\+\\-][a-z0-9_]*)?/g
+    return /(?:^|\n| )(?::)([a-z\d\\+-][a-z\d_]*)?/g
   }
 
   public async getAutocompletionItems(

@@ -57,9 +57,18 @@ export class AccountsStore {
     this.emitter.emit('did-update', {})
   }
 
+  private emitError(error: Error) {
+    this.emitter.emit('did-error', error)
+  }
+
   /** Register a function to be called when the store updates. */
   public onDidUpdate(fn: () => void): Disposable {
     return this.emitter.on('did-update', fn)
+  }
+
+  /** Register a function to be called when an error occurs. */
+  public onDidError(fn: (error: Error) => void): Disposable {
+    return this.emitter.on('did-error', fn)
   }
 
   /**
@@ -84,11 +93,17 @@ export class AccountsStore {
       log.warn(`Failed to fetch user ${account.login}`, e)
     }
 
-    await this.secureStore.setItem(
-      getKeyForAccount(updated),
-      updated.login,
-      updated.token
-    )
+    try {
+      await this.secureStore.setItem(
+        getKeyForAccount(updated),
+        updated.login,
+        updated.token
+      )
+    } catch (e) {
+      log.error(`Error adding account '${account.login}'`, e)
+      this.emitError(e)
+      return
+    }
 
     this.accounts = this.accounts.concat(updated)
 
@@ -99,8 +114,12 @@ export class AccountsStore {
   public async refresh(): Promise<void> {
     const updatedAccounts = new Array<Account>()
     for (const account of this.accounts) {
-      const updated = await updatedAccount(account)
-      updatedAccounts.push(updated)
+      try {
+        const updated = await updatedAccount(account)
+        updatedAccounts.push(updated)
+      } catch (e) {
+        log.warn(`Error refreshing account '${account.login}'`, e)
+      }
     }
 
     this.accounts = updatedAccounts
@@ -113,7 +132,16 @@ export class AccountsStore {
   public async removeAccount(account: Account): Promise<void> {
     await this.loadingPromise
 
-    await this.secureStore.deleteItem(getKeyForAccount(account), account.login)
+    try {
+      await this.secureStore.deleteItem(
+        getKeyForAccount(account),
+        account.login
+      )
+    } catch (e) {
+      log.error(`Error removing account '${account.login}'`, e)
+      this.emitError(e)
+      return
+    }
 
     this.accounts = this.accounts.filter(a => a.id !== account.id)
 
@@ -130,7 +158,8 @@ export class AccountsStore {
     }
 
     const rawAccounts: ReadonlyArray<IAccount> = JSON.parse(raw)
-    const accountsWithTokens = rawAccounts.map(async account => {
+    const accountsWithTokens = []
+    for (const account of rawAccounts) {
       const accountWithoutToken = new Account(
         account.login,
         account.endpoint,
@@ -140,14 +169,19 @@ export class AccountsStore {
         account.id,
         account.name
       )
-      const token = await this.secureStore.getItem(
-        getKeyForAccount(accountWithoutToken),
-        account.login
-      )
-      return accountWithoutToken.withToken(token || '')
-    })
 
-    this.accounts = await Promise.all(accountsWithTokens)
+      const key = getKeyForAccount(accountWithoutToken)
+      try {
+        const token = await this.secureStore.getItem(key, account.login)
+        accountsWithTokens.push(accountWithoutToken.withToken(token || ''))
+      } catch (e) {
+        log.error(`Error getting token for '${key}'. Skipping.`, e)
+
+        this.emitError(e)
+      }
+    }
+
+    this.accounts = accountsWithTokens
     this.emitUpdate()
   }
 

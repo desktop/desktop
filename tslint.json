@@ -1,9 +1,9 @@
 {
   "extends": [
-    "tslint-react",
     "tslint-config-prettier"
   ],
   "rulesDirectory": [
+    "node_modules/tslint-react/rules",
     "node_modules/vrsource-tslint-rules/rules",
     "node_modules/tslint-microsoft-contrib/",
     "tslint-rules/"
@@ -11,50 +11,13 @@
   "rules": {
     "button-group-order": true,
     "class-name": true,
-    "curly": true,
-    "indent": [
-      true,
-      "spaces"
-    ],
-    "insecure-random": [ true ],
-    "interface-name": [ true, "always-prefix"],
     "jsdoc-format": true,
-    "literal-spacing": [
-      false,
-      {
-        "array": ["never"],
-        "object": ["always"]
-      }
-    ],
-    "member-access": [
-      true,
-      "check-accessor",
-      "check-constructor"
-    ],
     "member-ordering": [
       true,
       "static-before-instance",
       "variables-before-functions"
     ],
-    "no-construct": true,
-    "no-default-export": true,
-    "no-duplicate-variable": true,
-    "no-eval": true,
-    "no-internal-module": true,
-    "no-invalid-this": true,
     "no-stateless-class": true,
-    "no-sync-functions": true,
-    "no-trailing-whitespace": [ true, "ignore-comments", "ignore-jsdoc" ],
-    "no-unused-expression": true,
-    "no-unused-variable": [true, "react"],
-    "no-use-before-declare": true,
-    "no-var-keyword": true,
-    "one-line": [
-      true,
-      "check-open-brace",
-      "check-whitespace"
-    ],
-    "prefer-const": true,
     "promise-must-complete": true,
     "react-no-unbound-dispatcher-props": true,
     "react-proper-lifecycle-methods": true,
@@ -66,21 +29,6 @@
       }
     ],
     "react-this-binding-issue": true,
-    "semicolon": [
-      true,
-      "never"
-    ],
-    "trailing-comma": [
-      false,
-      {
-        "multiline": "always",
-        "singleline": "never"
-      }
-    ],
-    "triple-equals": [
-      true,
-      "allow-null-check"
-    ],
     "typedef-whitespace": [
       true,
       {
@@ -94,14 +42,6 @@
     "variable-name": [
       true,
       "ban-keywords"
-    ],
-    "whitespace": [
-      true,
-      "check-branch",
-      "check-decl",
-      "check-operator",
-      "check-separator",
-      "check-type"
     ]
   }
 }

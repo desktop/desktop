@@ -1,15 +1,16 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { IAPIRefStatus, APIRefState } from '../../lib/api'
+import { APIRefState } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
+import { PullRequestStatus } from '../../models/pull-request'
 
 interface ICIStatusProps {
   /** The classname for the underlying element. */
   readonly className?: string
 
   /** The status to display. */
-  readonly status: IAPIRefStatus
+  readonly status: PullRequestStatus
 }
 
 /** The little CI status indicator. */
