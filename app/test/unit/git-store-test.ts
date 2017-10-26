@@ -101,10 +101,10 @@ describe('GitStore', () => {
     const files = status.workingDirectory.files
 
     expect(files.length).to.equal(2)
-    expect(files[0].path).equals('.gitignore')
-    expect(files[0].status).equals(AppFileStatus.New)
-    expect(files[1].path).equals(relativeFilePath)
-    expect(files[1].status).equals(AppFileStatus.Deleted)
+    expect(files[0].path).equals(relativeFilePath)
+    expect(files[0].status).equals(AppFileStatus.Deleted)
+    expect(files[1].path).equals('.gitignore')
+    expect(files[1].status).equals(AppFileStatus.New)
   })
 
   it('can discard a renamed file', async () => {
