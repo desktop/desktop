@@ -1,3 +1,4 @@
+/* eslint-disable typescript/interface-name-prefix */
 /** Is the app running in dev mode? */
 declare const __DEV__: boolean
 
@@ -69,7 +70,6 @@ declare type DOMHighResTimeStamp = number
  *
  * https://developer.mozilla.org/en-US/docs/Web/API/IdleDeadline
  */
-// eslint-disable-next-line typescript/interface-name-prefix
 interface IdleDeadline {
   readonly didTimeout: boolean
   readonly timeRemaining: () => DOMHighResTimeStamp
@@ -81,7 +81,6 @@ interface IdleDeadline {
  *
  * See https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
  */
-// eslint-disable-next-line typescript/interface-name-prefix
 interface IdleCallbackOptions {
   /**
    * If timeout is specified and has a positive value, and the callback has not
@@ -186,7 +185,6 @@ declare const log: IDesktopLogger
 // these changes should be pushed into the Electron declarations
 
 declare namespace NodeJS {
-  // eslint-disable-next-line typescript/interface-name-prefix
   interface Process extends EventEmitter {
     once(event: 'uncaughtException', listener: (error: Error) => void): this
     on(event: 'uncaughtException', listener: (error: Error) => void): this
@@ -196,7 +194,6 @@ declare namespace NodeJS {
 }
 
 declare namespace Electron {
-  // eslint-disable-next-line typescript/interface-name-prefix
   interface MenuItem {
     readonly accelerator?: Electron.Accelerator
     readonly submenu?: Electron.Menu
@@ -204,7 +201,6 @@ declare namespace Electron {
     readonly type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
   }
 
-  // eslint-disable-next-line typescript/interface-name-prefix
   interface RequestOptions {
     readonly method: string
     readonly url: string
@@ -213,7 +209,6 @@ declare namespace Electron {
 
   type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
-  // eslint-disable-next-line typescript/interface-name-prefix
   interface SystemPreferences {
     getUserDefault(
       key: 'AppleActionOnDoubleClick',
