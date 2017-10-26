@@ -81,6 +81,34 @@ describe('GitStore', () => {
     expect(files[1].status).to.equal(AppFileStatus.New)
   })
 
+  it('discarding a tracked file will remove it from disk', async () => {
+    const repo = await setupEmptyRepository()
+    const gitStore = new GitStore(repo, shell)
+
+    const relativeFilePath = Path.join('directory', 'README.txt')
+    const filePath = Path.join(repo.path, relativeFilePath)
+
+    Fs.mkdirSync(Path.join(repo.path, 'directory'))
+
+    Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+
+    // commit the file so it's tracked
+    await GitProcess.exec(['add', relativeFilePath], repo.path)
+    await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
+
+    // ignore the tracked file
+    await gitStore.ignore(relativeFilePath)
+
+    const status = await getStatus(repo)
+    const files = status.workingDirectory.files
+
+    expect(files.length).to.equal(2)
+    expect(files[0].path).equals('.gitignore')
+    expect(files[0].status).equals(AppFileStatus.New)
+    expect(files[1].path).equals(relativeFilePath)
+    expect(files[1].status).equals(AppFileStatus.Deleted)
+  })
+
   it('can discard a renamed file', async () => {
     const repo = await setupEmptyRepository()
     const gitStore = new GitStore(repo, shell)
