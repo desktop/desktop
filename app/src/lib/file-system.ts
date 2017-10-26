@@ -111,3 +111,20 @@ export function pathExists(path: string): Promise<boolean> {
     })
   })
 }
+
+/**
+ * Helper function to promisify fs.unlink for deleting a file from disk.
+ *
+ * @param path Path to delete from disk.
+ */
+export function removeFile(path: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    Fs.unlink(path, error => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve()
+      }
+    })
+  })
+}
