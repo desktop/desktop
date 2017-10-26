@@ -1,7 +1,11 @@
 import * as React from 'react'
+import { encodePathAsUrl } from '../../lib/path'
 import { Button } from '../lib/button'
 
-const BlankSlateImage = `file:///${__dirname}/static/empty-no-branches.svg`
+const BlankSlateImage = encodePathAsUrl(
+  __dirname,
+  'static/empty-no-branches.svg'
+)
 
 interface INoBranchesProps {
   readonly onCreateNewBranch: () => void

@@ -1,5 +1,19 @@
 {
   "releases": {
+    "1.0.5-beta1": [
+      "[New] Create new branches from the Branches foldout - #2784",
+      "[New] Add support for VSCode Insiders - #3012 #3062. Thanks @MSathieu!",
+      "[New] Linx: Add Atom and Sublime Text support - #3133. Thanks @ziggy42!",
+      "[New] Linux: Tilix support - #3117. Thanks @ziggy42!",
+      "[New] Linux: Add Visual Studio Code support - #3122. Thanks @ziggy42!",
+      "[Improved] Report errors when a problem occurs storing tokens - #3159",
+      "[Improved] Bump to Git 2.14.3 - #3146",
+      "[Improved] Don't try to display diffs that could cause the app to hang - #2596",
+      "[Fixed] Handle local user accounts with URL-hostile characters - #3107",
+      "[Fixed] Cloning a repository which uses Git LFS would leave all the files appearing modified - #3146",
+      "[Fixed] Signing in in the Welcome flow could hang - #2769",
+      "[Fixed] Properly replace old Git LFS configuration values - #2984"
+    ],
     "1.0.5-test1": [],
     "1.0.5-test0": [],
     "1.0.5-beta0": [

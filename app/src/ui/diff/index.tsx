@@ -15,7 +15,7 @@ import { BinaryFile } from './binary-file'
 import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
-
+import { encodePathAsUrl } from '../../lib/path'
 import { ImageDiffType } from '../../lib/app-state'
 import {
   CommittedFileChange,
@@ -749,7 +749,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
       //
       // The only way to unsubscribe is to pass the exact same function given to the
       // 'on' function to the 'off' so we need a reference to ourselves, basically.
-      let deleteHandler: () => void
+      let deleteHandler: () => void // eslint-disable-line prefer-const
 
       // Since we manually render a react component we have to take care of unmounting
       // it or else we'll leak memory. This disposable will unmount the component.
@@ -1006,7 +1006,10 @@ export class Diff extends React.Component<IDiffProps, {}> {
     }
 
     if (diff.kind === DiffType.TooLarge) {
-      const BlankSlateImage = `file:///${__dirname}/static/empty-no-file-selected.svg`
+      const BlankSlateImage = encodePathAsUrl(
+        __dirname,
+        'static/empty-no-file-selected.svg'
+      )
       const diffSizeMB = Math.round(diff.length / (1024 * 1024))
       return (
         <div className="panel empty">

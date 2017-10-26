@@ -17,7 +17,7 @@ function log(level: LogLevel, message: string, error?: Error) {
   )
 }
 
-g.log = <IDesktopLogger>{
+g.log = {
   error(message: string, error?: Error) {
     log('error', message, error)
     console.error(formatLogMessage(message, error))
@@ -34,4 +34,4 @@ g.log = <IDesktopLogger>{
     log('debug', message, error)
     console.debug(formatLogMessage(message, error))
   },
-}
+} as IDesktopLogger

@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import * as fs from 'fs-extra'
 import * as cp from 'child_process'

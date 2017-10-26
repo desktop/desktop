@@ -15,25 +15,17 @@ interface IExpectedParameter {
   readonly type: string
 }
 
-export class Rule extends Lint.Rules.AbstractRule {
-    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
-      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
-        return this.applyWithWalker(new ReactProperLifecycleMethodsWalker(sourceFile, this.getOptions()))
-      } else {
-          return []
-      }
-    }
-}
-
 class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
-
   private propsTypeName: string
   private stateTypeName: string
 
   protected visitClassDeclaration(node: ts.ClassDeclaration): void {
     if (node.heritageClauses && node.heritageClauses.length) {
       for (const heritageClause of node.heritageClauses) {
-        if (heritageClause.token === ts.SyntaxKind.ExtendsKeyword && heritageClause.types) {
+        if (
+          heritageClause.token === ts.SyntaxKind.ExtendsKeyword &&
+          heritageClause.types
+        ) {
           for (const type of heritageClause.types) {
             const inheritedName = type.expression.getText()
 
@@ -54,7 +46,10 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
 
   protected visitMethodDeclaration(node: ts.MethodDeclaration): void {
     const methodName = node.name.getText()
-    if (methodName.startsWith('component') || methodName.startsWith('shouldComponent')) {
+    if (
+      methodName.startsWith('component') ||
+      methodName.startsWith('shouldComponent')
+    ) {
       switch (methodName) {
         case 'componentWillMount':
         case 'componentDidMount':
@@ -86,7 +81,10 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
     }
   }
 
-  private verifyParameter(node: ts.ParameterDeclaration, expectedParameter: IExpectedParameter): boolean {
+  private verifyParameter(
+    node: ts.ParameterDeclaration,
+    expectedParameter: IExpectedParameter
+  ): boolean {
     const parameterName = node.name.getText()
 
     const parameterStart = node.getStart()
@@ -94,7 +92,9 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
 
     if (parameterName !== expectedParameter.name) {
       const message = `parameter should be named ${expectedParameter.name}.`
-      this.addFailure(this.createFailure(parameterStart, parameterWidth, message))
+      this.addFailure(
+        this.createFailure(parameterStart, parameterWidth, message)
+      )
       return false
     }
 
@@ -102,14 +102,19 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
 
     if (parameterTypeName !== expectedParameter.type) {
       const message = `parameter should be of type ${expectedParameter.type}.`
-      this.addFailure(this.createFailure(parameterStart, parameterWidth, message))
+      this.addFailure(
+        this.createFailure(parameterStart, parameterWidth, message)
+      )
       return false
     }
 
     return true
   }
 
-  private verifyParameters(node: ts.MethodDeclaration, expectedParameters: ReadonlyArray<IExpectedParameter>): boolean {
+  private verifyParameters(
+    node: ts.MethodDeclaration,
+    expectedParameters: ReadonlyArray<IExpectedParameter>
+  ): boolean {
     // It's okay to omit parameters
     for (let i = 0; i < node.parameters.length; i++) {
       const parameter = node.parameters[i]
@@ -120,7 +125,9 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
         const parameterWidth = parameter.getWidth()
         const message = `unknown parameter ${parameterName}`
 
-        this.addFailure(this.createFailure(parameterStart, parameterWidth, message))
+        this.addFailure(
+          this.createFailure(parameterStart, parameterWidth, message)
+        )
         return false
       }
 
@@ -132,7 +139,9 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
     // Remove trailing unused void parameters
     for (let i = node.parameters.length - 1; i >= 0; i--) {
       const parameter = node.parameters[i]
-      const parameterTypeName = parameter.type ? parameter.type.getText() : undefined
+      const parameterTypeName = parameter.type
+        ? parameter.type.getText()
+        : undefined
 
       if (parameterTypeName === 'void') {
         const parameterName = parameter.getText()
@@ -140,7 +149,9 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
         const parameterWidth = parameter.getWidth()
         const message = `remove unused void parameter ${parameterName}.`
 
-        this.addFailure(this.createFailure(parameterStart, parameterWidth, message))
+        this.addFailure(
+          this.createFailure(parameterStart, parameterWidth, message)
+        )
         return false
       } else {
         break
@@ -151,7 +162,9 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
   }
 
   private verifyComponentWillReceiveProps(node: ts.MethodDeclaration) {
-    this.verifyParameters(node, [ { name: 'nextProps', type: this.propsTypeName } ])
+    this.verifyParameters(node, [
+      { name: 'nextProps', type: this.propsTypeName },
+    ])
   }
 
   private verifyComponentWillUpdate(node: ts.MethodDeclaration) {
@@ -179,9 +192,21 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
     const start = node.name.getStart()
     const width = node.name.getWidth()
 
-    const message = 'Method names starting with component or shouldComponent ' +
+    const message =
+      'Method names starting with component or shouldComponent ' +
       'are prohibited since they can be confused with React lifecycle methods.'
 
     this.addFailure(this.createFailure(start, width, message))
+  }
+}
+export class Rule extends Lint.Rules.AbstractRule {
+  public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
+    if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
+      return this.applyWithWalker(
+        new ReactProperLifecycleMethodsWalker(sourceFile, this.getOptions())
+      )
+    } else {
+      return []
+    }
   }
 }
