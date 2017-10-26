@@ -123,10 +123,12 @@ export async function readFile(
   filename: string,
   options?: { flag?: string }
 ): Promise<Buffer>
+// eslint-disable-next-line no-redeclare
 export async function readFile(
   filename: string,
   options?: { encoding: BufferEncoding; flag?: string }
 ): Promise<string>
+// eslint-disable-next-line no-redeclare
 export async function readFile(
   filename: string,
   options?: { encoding?: string; flag?: string }
