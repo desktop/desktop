@@ -257,7 +257,9 @@
       - [ ] Right-clicking any file shows menu with options
         - [ ] User can discard the file; pending confirmation dialogue
 	  - [ ] `Do not show this message again`overrides the preference setting if true  
-        - [ ] User to ignore single/all files, show in Finder/Explorer, reveal in external editor, or open in default program
+        - [ ] User can ignore single/all files, show in Finder/Explorer, reveal in external editor, or open in default program
+	  - [ ] A specific files can only be ignored once
+	  - [ ] All ignored files found in Repository Settings > Ignored Files tab
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers sizes
 
