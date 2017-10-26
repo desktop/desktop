@@ -1,4 +1,4 @@
-/* tslint:disable */
+/* eslint-disable */
 
 declare namespace CodeMirror {
   interface EditorConfiguration {
