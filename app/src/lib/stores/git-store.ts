@@ -14,7 +14,7 @@ import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
 import { structuralEquals } from '../../lib/equality'
 import { compare } from '../../lib/compare'
 import { queueWorkHigh } from '../../lib/queue-work'
-import { removeFile } from '../../lib/file-system'
+import { removeFile, pathExists } from '../../lib/file-system'
 
 import {
   reset,
@@ -814,9 +814,12 @@ export class GitStore {
         // if we have pending changes against this file, discard it
         // using the workflow defined by the user
         await this.discardChanges([match])
-      } else {
-        // the file is tracked but has no pending changes, just remove it
-        const path = Path.join(repository.path, pattern)
+      }
+
+      // the file is tracked but has no pending changes, just remove it
+      const path = Path.join(repository.path, pattern)
+      const exists = await pathExists(path)
+      if (exists) {
         await removeFile(path)
       }
     }
