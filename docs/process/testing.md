@@ -298,7 +298,8 @@
   - [ ] Current branch always shows if repository present
     - [ ] Hover shows full branch name in tooltip
   - [ ] Opening list shows all branches in categorized format with a working filter
-    - [ ] `New` button opens 'New Branch' modal; if text in filter field, then prefill branch name in modal
+    - [ ] `New` button opens 'New Branch' modal
+    - [ ] If filters results are nil, then prefill branch name in modal if user clicks `Create New Branch`
     - [ ] Active branch is highlighted and marked with a check
     - [ ] `ESC` clears the filter
     - [ ] Hover shows full branch name in tooltip
