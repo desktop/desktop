@@ -26,7 +26,7 @@
     "1.0.5-beta1": [
       "[New] Create new branches from the Branches foldout - #2784",
       "[New] Add support for VSCode Insiders - #3012 #3062. Thanks @MSathieu!",
-      "[New] Linx: Add Atom and Sublime Text support - #3133. Thanks @ziggy42!",
+      "[New] Linux: Add Atom and Sublime Text support - #3133. Thanks @ziggy42!",
       "[New] Linux: Tilix support - #3117. Thanks @ziggy42!",
       "[New] Linux: Add Visual Studio Code support - #3122. Thanks @ziggy42!",
       "[Improved] Report errors when a problem occurs storing tokens - #3159",
