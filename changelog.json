@@ -1,5 +1,9 @@
 {
   "releases": {
+    "1.0.7-beta0": [
+      "[Fixed] The Branches list wouldn't display the branches for non-GitHub repositories - #3169",
+      "[Fixed] Pushing or pulling could error when the temp directory was unavailable - #3046"
+    ],
     "1.0.6": [
       "[Fixed] The Branches list wouldn't display the branches for non-GitHub repositories - #3169",
       "[Fixed] Pushing or pulling could error when the temp directory was unavailable - #3046"
