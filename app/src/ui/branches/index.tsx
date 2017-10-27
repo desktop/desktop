@@ -103,7 +103,11 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private renderSelectedTab() {
-    const tab = this.props.selectedTab
+    let tab = this.props.selectedTab
+    if (!enablePreviewFeatures()) {
+      tab = BranchesTab.Branches
+    }
+
     switch (tab) {
       case BranchesTab.Branches:
         return (
