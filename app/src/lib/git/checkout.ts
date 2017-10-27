@@ -1,4 +1,4 @@
-import { git, IGitExecutionOptions } from './core'
+import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import {
   CheckoutProgressParser,
@@ -62,8 +62,8 @@ export async function checkoutBranch(
   }
 
   const args = progressCallback
-    ? ['checkout', '--progress', name, '--']
-    : ['checkout', name, '--']
+    ? [...gitNetworkArguments, 'checkout', '--progress', name, '--']
+    : [...gitNetworkArguments, 'checkout', name, '--']
 
   await git(args, repository.path, 'checkoutBranch', opts)
 }
