@@ -6,6 +6,12 @@ import {
 } from '../progress'
 import { ICheckoutProgress } from '../app-state'
 
+import {
+  IGitAccount,
+  envForAuthentication,
+  AuthenticationErrors,
+} from './authentication'
+
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
 /**
@@ -24,10 +30,14 @@ export type ProgressCallback = (progress: ICheckoutProgress) => void
  */
 export async function checkoutBranch(
   repository: Repository,
+  account: IGitAccount | null,
   name: string,
   progressCallback?: ProgressCallback
 ): Promise<void> {
-  let opts: IGitExecutionOptions = {}
+  let opts: IGitExecutionOptions = {
+    env: envForAuthentication(account),
+    expectedErrors: AuthenticationErrors,
+  }
 
   if (progressCallback) {
     const title = `Checking out branch ${name}`
