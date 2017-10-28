@@ -102,7 +102,7 @@ function getBundleSizes() {
 
 function getReleaseBranchName() {
   /** @type {string} */
-  let branchName
+  let branchName = ''
   if (process.platform === 'darwin') {
     branchName = process.env.CIRCLE_BRANCH
   } else if (process.platform === 'win32') {

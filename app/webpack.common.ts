@@ -1,16 +1,16 @@
 'use strict'
 
-const path = require('path')
-const Fs = require('fs')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const CleanWebpackPlugin = require('clean-webpack-plugin')
-const webpack = require('webpack')
-const merge = require('webpack-merge')
-const appInfo = require('./app-info')
-const packageInfo = require('./package-info')
-const distInfo = require('../script/dist-info')
+///<reference types="node"/>
 
-const channel = distInfo.getReleaseChannel()
+import * as path from 'path'
+import * as HtmlWebpackPlugin from 'html-webpack-plugin'
+import * as CleanWebpackPlugin from 'clean-webpack-plugin'
+import * as webpack from 'webpack'
+import * as merge from 'webpack-merge'
+import { getReleaseChannel } from '../script/dist-info'
+import { getReplacements } from './app-info'
+
+const channel = getReleaseChannel()
 
 const externals = ['7zip']
 if (channel === 'development') {
@@ -18,9 +18,9 @@ if (channel === 'development') {
 }
 
 const outputDir = 'out'
-const replacements = appInfo.getReplacements()
+const replacements = getReplacements()
 
-const commonConfig = {
+const commonConfig: webpack.Configuration = {
   externals: externals,
   output: {
     filename: '[name].js',
@@ -38,6 +38,9 @@ const commonConfig = {
             options: {
               useBabel: true,
               useCache: true,
+              compilerOptions: {
+                noEmit: false, // override from tsconfig.json
+              },
             },
           },
         ],
@@ -171,8 +174,7 @@ const highlighterConfig = merge({}, commonConfig, {
     },
   },
 })
-
-highlighterConfig.module.rules = [
+;(highlighterConfig.module as webpack.NewModule).rules = [
   {
     test: /\.ts$/,
     include: path.resolve(__dirname, 'src/highlighter'),
@@ -193,13 +195,13 @@ highlighterConfig.module.rules = [
   },
 ]
 
-module.exports = {
-  main: mainConfig,
-  renderer: rendererConfig,
-  askPass: askPassConfig,
-  crash: crashConfig,
-  cli: cliConfig,
-  highlighter: highlighterConfig,
-  replacements: replacements,
-  externals: commonConfig.externals,
+export {
+  mainConfig as main,
+  rendererConfig as renderer,
+  askPassConfig as askPass,
+  crashConfig as crash,
+  cliConfig as cli,
+  highlighterConfig as highlighter,
+  replacements,
+  externals,
 }

@@ -1,6 +1,8 @@
 // @ts-check
 'use strict'
 
+///<reference types="node" />
+
 const fs = require('fs')
 const path = require('path')
 
@@ -24,7 +26,7 @@ function getCLICommands() {
   )
 }
 
-function s(text) {
+function s(/** @type {any} */ text) {
   return JSON.stringify(text)
 }
 

@@ -1,11 +1,11 @@
 'use strict'
 
-const common = require('./webpack.common')
+import * as common from './webpack.common'
 
-const webpack = require('webpack')
-const merge = require('webpack-merge')
+import * as webpack from 'webpack'
+import * as merge from 'webpack-merge'
 
-const config = {
+const config: webpack.Configuration = {
   devtool: 'source-map',
 }
 
@@ -18,7 +18,7 @@ const rendererConfig = merge({}, common.renderer, config, {
   entry: {
     renderer: [
       'webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr',
-      common.renderer.entry.renderer,
+      (common.renderer.entry as webpack.Entry).renderer as string,
     ],
   },
   output: {

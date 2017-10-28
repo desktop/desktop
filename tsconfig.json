@@ -10,9 +10,16 @@
     "sourceMap": true,
     "jsx": "react",
     "strict": true,
+    "noEmit": true,
     "outDir": "./out"
   },
-  "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "app/**/*.d.tsx",
+    "script/dist-info.js",
+    "app/webpack.*.ts"
+  ],
   "exclude": [
     "node_modules",
     "app/node_modules",

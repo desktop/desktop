@@ -2,12 +2,12 @@
 
 const common = require('./webpack.common')
 
-const webpack = require('webpack')
-const merge = require('webpack-merge')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const BabelPlugin = require('babel-webpack-plugin')
+import * as webpack from 'webpack'
+import * as merge from 'webpack-merge'
+import * as ExtractTextPlugin from 'extract-text-webpack-plugin'
+import * as BabelPlugin from 'babel-webpack-plugin'
 
-const config = {
+const config: webpack.Configuration = {
   devtool: 'source-map',
   plugins: [
     new BabelPlugin({
