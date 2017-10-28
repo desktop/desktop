@@ -27,6 +27,7 @@ enum RepositorySettingsTab {
 interface IRepositorySettingsState {
   readonly selectedTab: RepositorySettingsTab
   readonly remote: IRemote | null
+  readonly remoteDeleted: boolean
   readonly ignoreText: string | null
   readonly ignoreTextHasChanged: boolean
   readonly disabled: boolean
@@ -43,6 +44,7 @@ export class RepositorySettings extends React.Component<
     this.state = {
       selectedTab: RepositorySettingsTab.Remote,
       remote: props.remote,
+      remoteDeleted: false,
       ignoreText: null,
       ignoreTextHasChanged: false,
       disabled: false,
@@ -105,15 +107,23 @@ export class RepositorySettings extends React.Component<
 
   private renderFooter() {
     const tab = this.state.selectedTab
-    const remote = this.state.remote
-    if (tab === RepositorySettingsTab.Remote && !remote) {
+    if (tab !== RepositorySettingsTab.Remote) {
       return null
     }
+
+    const remote = this.state.remote
+    if (!remote) {
+      return null
+    }
+
+    const disabled = remote.url.length === 0
 
     return (
       <DialogFooter>
         <ButtonGroup>
-          <Button type="submit">Save</Button>
+          <Button type="submit" disabled={disabled}>
+            Save
+          </Button>
           <Button onClick={this.props.onDismissed}>Cancel</Button>
         </ButtonGroup>
       </DialogFooter>
@@ -130,6 +140,8 @@ export class RepositorySettings extends React.Component<
             <Remote
               remote={remote}
               onRemoteUrlChanged={this.onRemoteUrlChanged}
+              onRemoteRemoved={this.onRemoteRemoved}
+              remoteDeleted={this.state.remoteDeleted}
             />
           )
         } else {
@@ -166,20 +178,36 @@ export class RepositorySettings extends React.Component<
     const errors = new Array<JSX.Element | string>()
 
     if (this.state.remote && this.props.remote) {
-      if (this.state.remote.url !== this.props.remote.url) {
+      if (this.state.remoteDeleted) {
         try {
-          await this.props.dispatcher.setRemoteURL(
+          await this.props.dispatcher.removeRemote(
             this.props.repository,
-            this.props.remote.name,
-            this.state.remote.url
+            this.props.remote.name
           )
         } catch (e) {
           log.error(
-            `RepositorySettings: unable to set remote URL at ${this.props
+            `RepositorySettings: unable to remove remote at ${this.props
               .repository.path}`,
             e
           )
-          errors.push(`Failed setting the remote URL: ${e}`)
+          errors.push(`Failed removing the remote: ${e}`)
+        }
+      } else {
+        if (this.state.remote.url !== this.props.remote.url) {
+          try {
+            await this.props.dispatcher.setRemoteURL(
+              this.props.repository,
+              this.props.remote.name,
+              this.state.remote.url
+            )
+          } catch (e) {
+            log.error(
+              `RepositorySettings: unable to set remote URL at ${this.props
+                .repository.path}`,
+              e
+            )
+            errors.push(`Failed setting the remote URL: ${e}`)
+          }
         }
       }
     }
@@ -216,6 +244,10 @@ export class RepositorySettings extends React.Component<
 
     const newRemote = { ...remote, url }
     this.setState({ remote: newRemote })
+  }
+
+  private onRemoteRemoved = () => {
+    this.setState({ remoteDeleted: true })
   }
 
   private onIgnoreTextChanged = (text: string) => {
