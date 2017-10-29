@@ -68,7 +68,7 @@ export async function getAvailableShells(): Promise<
   return shells
 }
 
-function wrap(context: string, cp: ChildProcess) {
+function addErrorTracing(context: string, cp: ChildProcess) {
   cp.stderr.on('data', chunk => {
     const text = chunk instanceof Buffer ? chunk.toString() : chunk
     log.debug(`[${context}] stderr: '${text}'`)
@@ -89,19 +89,24 @@ export async function launch(
 
   if (shell === Shell.PowerShell) {
     const psCommand = `"Set-Location -LiteralPath '${path}'"`
-    await spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
-      shell: true,
-      cwd: path,
-    })
+    const cp = spawn(
+      'START',
+      ['powershell', '-NoExit', '-Command', psCommand],
+      {
+        shell: true,
+        cwd: path,
+      }
+    )
+    addErrorTracing(`PowerShell`, cp)
   } else if (shell === Shell.GitBash) {
     const cp = spawn(foundShell.path, [`--cd="${path}"`], {
       shell: true,
       cwd: path,
     })
-
-    wrap(`Git Bash`, cp)
+    addErrorTracing(`Git Bash`, cp)
   } else if (shell === Shell.Cmd) {
-    await spawn('START', ['cmd'], { shell: true, cwd: path })
+    const cp = spawn('START', ['cmd'], { shell: true, cwd: path })
+    addErrorTracing(`CMD`, cp)
   } else {
     assertNever(shell, `Unknown shell: ${shell}`)
   }
