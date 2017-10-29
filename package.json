@@ -29,7 +29,7 @@
     "eslint:fix": "ts-node script/eslint.ts --fix",
     "eslint-check": "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
     "publish": "node script/publish",
-    "clean-slate": "rimraf out node_modules app/node_modules && npm install",
+    "clean-slate": "rimraf out node_modules app/node_modules && yarn",
     "rebuild-hard:dev": "yarn clean-slate && yarn build:dev",
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod"
   },
@@ -41,7 +41,7 @@
   "license": "MIT",
   "engines": {
     "node": ">= 7",
-    "npm": ">= 4"
+    "yarn": ">= 1.2.0"
   },
   "dependencies": {
     "awesome-typescript-loader": "^3.1.2",
