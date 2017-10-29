@@ -99,7 +99,7 @@ export async function launch(
     )
     addErrorTracing(`PowerShell`, cp)
   } else if (shell === Shell.GitBash) {
-    const cp = spawn(foundShell.path, [`--cd="${path}"`], {
+    const cp = spawn(`"${foundShell.path}"`, [`--cd="${path}"`], {
       shell: true,
       cwd: path,
     })
