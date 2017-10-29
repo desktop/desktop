@@ -33,9 +33,10 @@ function getEditorPath(editor: ExternalEditor): Promise<string | null> {
     case ExternalEditor.Atom:
       return getPathIfAvailable('/usr/bin/atom')
     case ExternalEditor.VisualStudioCode:
-      var codePath = getPathIfAvailable('/usr/bin/code');
-      if (codePath)
+      const codePath = getPathIfAvailable('/usr/bin/code')
+      if (codePath) {
         return codePath
+      }
       return getPathIfAvailable('/usr/bin/code-insiders')
     case ExternalEditor.SublimeText:
       return getPathIfAvailable('/usr/bin/subl')
