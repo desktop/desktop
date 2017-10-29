@@ -81,9 +81,20 @@ export async function launch(
       cwd: path,
     })
   } else if (shell === Shell.GitBash) {
-    await spawn(foundShell.path, [`--cd="${path}"`], {
+    const cp = spawn(foundShell.path, [`--cd="${path}"`], {
       shell: true,
       cwd: path,
+    })
+
+    cp.stderr.on('data', chunk => {
+      const text = chunk instanceof Buffer ? chunk.toString() : chunk
+      log.debug(`[Git Bash] stderr: '${text}'`)
+    })
+
+    cp.on('exit', code => {
+      if (code !== 0) {
+        log.debug(`[Git Bash] exit code: ${code}`)
+      }
     })
   } else if (shell === Shell.Cmd) {
     await spawn('START', ['cmd'], { shell: true, cwd: path })
