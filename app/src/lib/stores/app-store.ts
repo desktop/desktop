@@ -2880,4 +2880,23 @@ export class AppStore {
 
     return this._refreshRepository(repository)
   }
+
+  private getIgnoreExistingUpstreamRemoteKey(repository: Repository): string {
+    return `repository/${repository.id}/ignoreExistingUpstreamRemote`
+  }
+
+  public _ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
+    const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
+    localStorage.setItem(key, '1')
+
+    return Promise.resolve()
+  }
+
+  public getIgnoreExistingUpstreamRemote(
+    repository: Repository
+  ): Promise<boolean> {
+    const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
+    const value = localStorage.getItem(key)
+    return Promise.resolve(value ? true : false)
+  }
 }

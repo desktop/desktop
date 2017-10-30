@@ -1066,4 +1066,8 @@ export class Dispatcher {
   public updateExistingUpstreamRemote(repository: Repository): Promise<void> {
     return this.appStore._updateExistingUpstreamRemote(repository)
   }
+
+  public ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
+    return this.appStore._ignoreExistingUpstreamRemote(repository)
+  }
 }
