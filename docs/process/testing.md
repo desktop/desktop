@@ -93,6 +93,7 @@
 
 ### Application
   - [ ] Minimize, Maximize, Close buttons work in top nav
+      - [ ] If user zooms in and quits app, settings should be retained when reopened
   - [ ] Double-clicking local desktop icon opens the application (Mac only)
   - [ ] Double clicking top nav bar toggles full-screen / last used screen-size (Mac only); Exit by (Mac: ^⌘f11; Windows: Alt)
   - [ ] Clicking Desktop icon in dock/taskbar opens the application
