@@ -1468,11 +1468,13 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     const kind = 'checkout'
 
-    await gitStore.performFailableOperation(() => {
-      return checkoutBranch(repository, name, progress => {
-        this.updateCheckoutProgress(repository, progress)
-      })
-    })
+    await this.withAuthenticatingUser(repository, (repository, account) =>
+      gitStore.performFailableOperation(() =>
+        checkoutBranch(repository, account, name, progress => {
+          this.updateCheckoutProgress(repository, progress)
+        })
+      )
+    )
 
     try {
       this.updateCheckoutProgress(repository, {
@@ -1629,7 +1631,7 @@ export class AppStore {
       const gitStore = this.getGitStore(repository)
 
       await gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, defaultBranch.name)
+        checkoutBranch(repository, account, defaultBranch.name)
       )
       await gitStore.performFailableOperation(() =>
         deleteBranch(repository, branch, account, includeRemote)

@@ -16,7 +16,7 @@ describe('git/checkout', () => {
 
     let errorRaised = false
     try {
-      await checkoutBranch(repository, '..')
+      await checkoutBranch(repository, null, '..')
     } catch (error) {
       errorRaised = true
       expect(error.message).to.equal('fatal: invalid reference: ..\n')
@@ -29,7 +29,7 @@ describe('git/checkout', () => {
     const path = await setupFixtureRepository('repo-with-many-refs')
     const repository = new Repository(path, -1, null, false)
 
-    await checkoutBranch(repository, 'commit-with-long-description')
+    await checkoutBranch(repository, null, 'commit-with-long-description')
 
     const store = new GitStore(repository, shell)
     await store.loadStatus()

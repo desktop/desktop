@@ -41,8 +41,13 @@ export class Tailer {
       )
     }
 
-    const watcher = Fs.watch(this.path, this.onWatchEvent)
-    this.state = { watcher, position: 0 }
+    try {
+      const watcher = Fs.watch(this.path, this.onWatchEvent)
+      this.state = { watcher, position: 0 }
+    } catch (e) {
+      log.debug(`unable to watch path: ${this.path}`, e)
+      this.state = null
+    }
   }
 
   private onWatchEvent = (event: string) => {

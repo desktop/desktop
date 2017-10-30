@@ -241,6 +241,10 @@ function getDescriptionForError(error: DugiteError): string {
       return 'Cannot push these commits as they contain an email address marked as private on GitHub.'
     case DugiteError.LFSAttributeDoesNotMatch:
       return 'Git LFS attribute found in global Git configuration does not match expected value.'
+    case DugiteError.ProtectedBranchDeleteRejected:
+      return 'This branch cannot be deleted from the remote repository because it is marked as protected.'
+    case DugiteError.ProtectedBranchRequiredStatus:
+      return 'The push was rejected by the remote server because a required status check has not been satisfied.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }

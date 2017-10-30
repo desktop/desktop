@@ -103,7 +103,11 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private renderSelectedTab() {
-    const tab = this.props.selectedTab
+    let tab = this.props.selectedTab
+    if (!enablePreviewFeatures() || !this.props.repository.gitHubRepository) {
+      tab = BranchesTab.Branches
+    }
+
     switch (tab) {
       case BranchesTab.Branches:
         return (
@@ -162,31 +166,10 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   public render() {
-    if (this.props.repository.gitHubRepository) {
-      return (
-        <div className="branches-container">
-          {this.renderTabBar()}
-          {this.renderSelectedTab()}
-        </div>
-      )
-    }
-
     return (
-      <div className="branches-list-container">
-        <BranchList
-          defaultBranch={this.props.defaultBranch}
-          currentBranch={this.props.currentBranch}
-          allBranches={this.props.allBranches}
-          recentBranches={this.props.recentBranches}
-          onItemClick={this.onItemClick}
-          filterText={this.state.filterText}
-          onFilterKeyDown={this.onFilterKeyDown}
-          onFilterTextChanged={this.onFilterTextChanged}
-          selectedBranch={this.state.selectedBranch}
-          onSelectionChanged={this.onSelectionChanged}
-          canCreateNewBranch={true}
-          onCreateNewBranch={this.onCreateBranchWithName}
-        />
+      <div className="branches-container">
+        {this.renderTabBar()}
+        {this.renderSelectedTab()}
       </div>
     )
   }
