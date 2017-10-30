@@ -4,8 +4,8 @@
  * information contained within the ILineTokens interface.
  */
 export interface IToken {
-  length: number
-  token: string
+  readonly length: number
+  readonly token: string
 }
 
 /**
