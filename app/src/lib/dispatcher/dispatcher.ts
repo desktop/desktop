@@ -854,6 +854,17 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's prefered privacy option when publishing a repository for the first time
+   *
+   * @param {boolean} value
+   * @returns {Promise<void>}
+   * @memberof Dispatcher
+   */
+  public setDefaultPrivacySetting(value: boolean): Promise<void> {
+    return this.appStore._setDefaultPrivacyWhenPublishingForTheFirstTimeSetting(value)
+  }
+
+  /**
    * Sets the user's preference for an external program to open repositories in.
    */
   public setExternalEditor(editor: ExternalEditor): Promise<void> {

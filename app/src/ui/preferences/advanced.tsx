@@ -15,12 +15,14 @@ interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly defaultPrivacy: boolean
   readonly availableEditors: ReadonlyArray<ExternalEditor>
   readonly selectedExternalEditor?: ExternalEditor
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
+  readonly onDefalutPrivayChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
@@ -36,6 +38,7 @@ interface IAdvancedPreferencesState {
   readonly selectedShell: Shell
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
+  readonly defaultPrivacy: boolean
 }
 
 export class Advanced extends React.Component<
@@ -49,6 +52,7 @@ export class Advanced extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
+      defaultPrivacy: this.props.defaultPrivacy,
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
     }
@@ -99,6 +103,15 @@ export class Advanced extends React.Component<
 
     this.setState({ confirmDiscardChanges: value })
     this.props.onConfirmDiscardChangesChanged(value)
+  }
+
+  private onDefalutPrivayChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ defaultPrivacy: value })
+    this.props.onDefalutPrivayChanged(value)
   }
 
   private onConfirmRepositoryRemovalChanged = (
@@ -258,6 +271,17 @@ export class Advanced extends React.Component<
                 : CheckboxValue.Off
             }
             onChange={this.onConfirmDiscardChangesChanged}
+          />
+        </Row>
+        <Row>
+          <Checkbox
+            label="Default privacy when publishing repository to GitHub"
+            value={
+              this.state.defaultPrivacy
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onDefalutPrivayChanged}
           />
         </Row>
       </DialogContent>
