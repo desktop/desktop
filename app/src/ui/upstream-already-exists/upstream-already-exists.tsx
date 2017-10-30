@@ -13,18 +13,30 @@ interface IUpstreamAlreadyExistsProps {
   readonly existingRemote: IRemote
 
   readonly onDismissed: () => void
+
+  /** Called when the user chooses to update the existing remote. */
   readonly onUpdate: (repository: Repository) => void
+
+  /** Called when the user chooses to ignore the warning. */
   readonly onIgnore: (repository: Repository) => void
 }
 
+/**
+ * The dialog shown when a repository is a fork but its upstream remote doesn't
+ * point to the parent repository.
+ */
 export class UpstreamAlreadyExists extends React.Component<
   IUpstreamAlreadyExistsProps
 > {
   public render() {
     const name = this.props.repository.name
+    const gitHubRepository = forceUnwrap(
+      'A repository must have a GitHub repository to add an upstream remote',
+      this.props.repository.gitHubRepository
+    )
     const parent = forceUnwrap(
-      '',
-      forceUnwrap('', this.props.repository.gitHubRepository).parent
+      'A repository must have a parent repository to add an upstream remote',
+      gitHubRepository.parent
     )
     const parentName = parent.fullName
     const existingURL = this.props.existingRemote.url

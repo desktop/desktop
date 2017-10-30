@@ -59,6 +59,7 @@ const LoadingHistoryRequestKey = 'history'
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
 
+/** The name for a fork's upstream remote. */
 export const UpstreamRemoteName = 'upstream'
 
 /** A commit message summary and description. */
@@ -698,6 +699,7 @@ export class GitStore {
     this.emitUpdate()
   }
 
+  /** Load the upstream remote if it exists. */
   public async loadUpstreamRemote(): Promise<void> {
     const parent =
       this.repository.gitHubRepository &&
@@ -712,6 +714,10 @@ export class GitStore {
     this.emitUpdate()
   }
 
+  /**
+   * Add the upstream remote if the repository is a fork and an upstream remote
+   * doesn't already exist.
+   */
   public async addUpstreamRemoteIfNeeded(): Promise<void> {
     const parent =
       this.repository.gitHubRepository &&
@@ -1050,6 +1056,10 @@ export class GitStore {
     )
   }
 
+  /**
+   * Update the repository's existing upstream remote to point to the parent
+   * repository.
+   */
   public async updateExistingUpstreamRemote(): Promise<void> {
     const gitHubRepository = forceUnwrap(
       'To update an upstream remote, the repository must be a GitHub repository',
