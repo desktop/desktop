@@ -718,7 +718,7 @@ export class GitStore {
       ) {
         this._upstream = upstream
       } else {
-        throw new RemoteAlreadyExistsError(this.repository, upstream)
+        throw new UpstreamAlreadyExistsError(this.repository, upstream)
       }
     } else {
       const url = forceUnwrap(
