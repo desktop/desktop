@@ -277,9 +277,7 @@ export class Advanced extends React.Component<
           <Checkbox
             label="Default privacy when publishing repository to GitHub"
             value={
-              this.state.defaultPrivacy
-                ? CheckboxValue.On
-                : CheckboxValue.Off
+              this.state.defaultPrivacy ? CheckboxValue.On : CheckboxValue.Off
             }
             onChange={this.onDefalutPrivayChanged}
           />

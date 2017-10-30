@@ -937,9 +937,7 @@ export class AppStore {
         ? confirmDiscardChangesDefault
         : confirmDiscardChangesValue === '1'
 
-    const defaultPrivacyValue = localStorage.getItem(
-      defaultPrivacyKey
-    )
+    const defaultPrivacyValue = localStorage.getItem(defaultPrivacyKey)
 
     this.defaultPrivacy =
       defaultPrivacyValue === null
@@ -2354,7 +2352,9 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public _setDefaultPrivacyWhenPublishingForTheFirstTimeSetting(value: boolean): Promise<void> {
+  public _setDefaultPrivacyWhenPublishingForTheFirstTimeSetting(
+    value: boolean
+  ): Promise<void> {
     this.defaultPrivacy = value
 
     localStorage.setItem(defaultPrivacyKey, value ? '1' : '0')

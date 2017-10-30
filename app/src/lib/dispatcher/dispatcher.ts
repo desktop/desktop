@@ -861,7 +861,9 @@ export class Dispatcher {
    * @memberof Dispatcher
    */
   public setDefaultPrivacySetting(value: boolean): Promise<void> {
-    return this.appStore._setDefaultPrivacyWhenPublishingForTheFirstTimeSetting(value)
+    return this.appStore._setDefaultPrivacyWhenPublishingForTheFirstTimeSetting(
+      value
+    )
   }
 
   /**
