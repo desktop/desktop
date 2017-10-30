@@ -799,8 +799,7 @@ export class AppStore {
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.refreshMentionables(repository)
 
-    const gitStore = this.getGitStore(repository)
-    gitStore.addUpstreamRemoteIfNeeded()
+    this.addUpstreamRemoteIfNeeded(repository)
 
     return this._repositoryWithRefreshedGitHubRepository(repository)
   }
@@ -2901,5 +2900,15 @@ export class AppStore {
     const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
     const value = localStorage.getItem(key)
     return Promise.resolve(value ? true : false)
+  }
+
+  private async addUpstreamRemoteIfNeeded(repository: Repository) {
+    const gitStore = this.getGitStore(repository)
+    const ignored = await this.getIgnoreExistingUpstreamRemote(repository)
+    if (ignored) {
+      return
+    }
+
+    return gitStore.addUpstreamRemoteIfNeeded()
   }
 }
