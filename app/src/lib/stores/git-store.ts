@@ -42,9 +42,13 @@ import {
   revertCommit,
   unstageAllFiles,
   openMergeTool,
+  addRemote,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
+import { parseRemote } from '../remote-parsing'
+import { RemoteAlreadyExistsError } from './remote-already-exists-error'
+import { forceUnwrap } from '../fatal-error'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -53,6 +57,8 @@ const LoadingHistoryRequestKey = 'history'
 
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
+
+const UpstreamRemoteName = 'upstream'
 
 /** A commit message summary and description. */
 export interface ICommitMessage {
@@ -92,6 +98,8 @@ export class GitStore {
   private _aheadBehind: IAheadBehind | null = null
 
   private _remote: IRemote | null = null
+
+  private _upstream: IRemote | null = null
 
   private _lastFetched: Date | null = null
 
@@ -689,6 +697,41 @@ export class GitStore {
     this.emitUpdate()
   }
 
+  public async loadOrAddUpstreamRemote(): Promise<void> {
+    const parent =
+      this.repository.gitHubRepository &&
+      this.repository.gitHubRepository.parent
+    if (!parent) {
+      return
+    }
+
+    const remotes = await getRemotes(this.repository)
+    const upstream = remotes.find(r => r.name === UpstreamRemoteName)
+    if (upstream) {
+      const parsedUpstream = parseRemote(upstream.url)
+      const parentURL = new URL(parent.owner.endpoint)
+      if (
+        parsedUpstream &&
+        parsedUpstream.owner === parent.owner.login &&
+        parsedUpstream.name === parent.name &&
+        parsedUpstream.hostname === parentURL.hostname
+      ) {
+        this._upstream = upstream
+      } else {
+        throw new RemoteAlreadyExistsError(this.repository, upstream)
+      }
+    } else {
+      const url = forceUnwrap(
+        'Parent repositories are fully loaded',
+        parent.cloneURL
+      )
+      await addRemote(this.repository, UpstreamRemoteName, url)
+      this._upstream = { name: UpstreamRemoteName, url }
+    }
+
+    this.emitUpdate()
+  }
+
   /**
    * The number of commits the current branch is ahead and behind, relative to
    * its upstream.
@@ -703,6 +746,14 @@ export class GitStore {
   /** Get the remote we're working with. */
   public get remote(): IRemote | null {
     return this._remote
+  }
+
+  /**
+   * Get the remote for the upstream repository. This will be null if the
+   * repository isn't a fork, or if the fork doesn't have an upstream remote.
+   */
+  public get upstream(): IRemote | null {
+    return this._upstream
   }
 
   public setCommitMessage(message: ICommitMessage | null): Promise<void> {
