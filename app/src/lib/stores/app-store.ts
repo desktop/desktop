@@ -799,6 +799,9 @@ export class AppStore {
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.refreshMentionables(repository)
 
+    const gitStore = this.getGitStore(repository)
+    gitStore.addUpstreamRemoteIfNeeded()
+
     return this._repositoryWithRefreshedGitHubRepository(repository)
   }
 

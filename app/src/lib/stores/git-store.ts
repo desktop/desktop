@@ -49,6 +49,7 @@ import { RetryAction, RetryActionType } from '../retry-actions'
 import { parseRemote } from '../remote-parsing'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
 import { forceUnwrap } from '../fatal-error'
+import { GitHubRepository } from '../../models/github-repository'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -697,7 +698,9 @@ export class GitStore {
     this.emitUpdate()
   }
 
-  public async loadOrAddUpstreamRemote(): Promise<void> {
+  public async loadUpstreamRemote(): Promise<void> {}
+
+  public async addUpstreamRemoteIfNeeded(): Promise<void> {
     const parent =
       this.repository.gitHubRepository &&
       this.repository.gitHubRepository.parent
@@ -706,6 +709,33 @@ export class GitStore {
     }
 
     const remotes = await getRemotes(this.repository)
+    const upstream = this.findUpstreamRemote(parent, remotes)
+    if (upstream) {
+      return
+    }
+
+    const remoteWithUpstreamName = remotes.find(
+      r => r.name === UpstreamRemoteName
+    )
+    if (remoteWithUpstreamName) {
+      throw new UpstreamAlreadyExistsError(
+        this.repository,
+        remoteWithUpstreamName
+      )
+    }
+
+    const url = forceUnwrap(
+      'Parent repositories are fully loaded',
+      parent.cloneURL
+    )
+    await addRemote(this.repository, UpstreamRemoteName, url)
+    this._upstream = { name: UpstreamRemoteName, url }
+  }
+
+  private findUpstreamRemote(
+    parent: GitHubRepository,
+    remotes: ReadonlyArray<IRemote>
+  ): IRemote | null {
     const upstream = remotes.find(r => r.name === UpstreamRemoteName)
     if (upstream) {
       const parsedUpstream = parseRemote(upstream.url)
@@ -716,20 +746,11 @@ export class GitStore {
         parsedUpstream.name === parent.name &&
         parsedUpstream.hostname === parentURL.hostname
       ) {
-        this._upstream = upstream
-      } else {
-        throw new UpstreamAlreadyExistsError(this.repository, upstream)
+        return upstream
       }
-    } else {
-      const url = forceUnwrap(
-        'Parent repositories are fully loaded',
-        parent.cloneURL
-      )
-      await addRemote(this.repository, UpstreamRemoteName, url)
-      this._upstream = { name: UpstreamRemoteName, url }
     }
 
-    this.emitUpdate()
+    return null
   }
 
   /**
