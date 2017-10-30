@@ -799,11 +799,7 @@ export class AppStore {
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.refreshMentionables(repository)
 
-    if (repository instanceof Repository) {
-      return this._repositoryWithRefreshedGitHubRepository(repository)
-    } else {
-      return repository
-    }
+    return this._repositoryWithRefreshedGitHubRepository(repository)
   }
 
   public async _updateIssues(repository: GitHubRepository) {
