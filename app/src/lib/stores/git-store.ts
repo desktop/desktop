@@ -698,7 +698,19 @@ export class GitStore {
     this.emitUpdate()
   }
 
-  public async loadUpstreamRemote(): Promise<void> {}
+  public async loadUpstreamRemote(): Promise<void> {
+    const parent =
+      this.repository.gitHubRepository &&
+      this.repository.gitHubRepository.parent
+    if (!parent) {
+      return
+    }
+
+    const remotes = await getRemotes(this.repository)
+    const upstream = this.findUpstreamRemote(parent, remotes)
+    this._upstream = upstream
+    this.emitUpdate()
+  }
 
   public async addUpstreamRemoteIfNeeded(): Promise<void> {
     const parent =

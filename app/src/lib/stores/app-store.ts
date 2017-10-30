@@ -1334,7 +1334,7 @@ export class AppStore {
       this.refreshAuthor(repository),
       gitStore.loadContextualCommitMessage(),
       refreshSectionPromise,
-      gitStore.loadOrAddUpstreamRemote(),
+      gitStore.loadUpstreamRemote(),
     ])
   }
 
