@@ -2871,4 +2871,13 @@ export class AppStore {
     const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
     await this._openInBrowser(baseURL)
   }
+
+  public async _updateExistingUpstreamRemote(
+    repository: Repository
+  ): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    await gitStore.updateExistingUpstreamRemote()
+
+    return this._refreshRepository(repository)
+  }
 }

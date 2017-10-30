@@ -1062,4 +1062,8 @@ export class Dispatcher {
   public refreshPullRequests(repository: Repository): Promise<void> {
     return this.appStore._refreshPullRequests(repository)
   }
+
+  public updateExistingUpstreamRemote(repository: Repository): Promise<void> {
+    return this.appStore._updateExistingUpstreamRemote(repository)
+  }
 }

@@ -47,7 +47,7 @@ import {
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
 import { parseRemote } from '../remote-parsing'
-import { RemoteAlreadyExistsError } from './remote-already-exists-error'
+import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
 import { forceUnwrap } from '../fatal-error'
 
 /** The number of commits to load from history per batch. */
@@ -58,7 +58,7 @@ const LoadingHistoryRequestKey = 'history'
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
 
-const UpstreamRemoteName = 'upstream'
+export const UpstreamRemoteName = 'upstream'
 
 /** A commit message summary and description. */
 export interface ICommitMessage {
@@ -1010,6 +1010,11 @@ export class GitStore {
     await this.performFailableOperation(() =>
       openMergeTool(this.repository, path)
     )
+  }
+
+  public async updateExistingUpstreamRemote(): Promise<void> {
+    const url = this.repository.gitHubRepository!.parent!.cloneURL!
+    await setRemoteURL(this.repository, UpstreamRemoteName, url)
   }
 }
 
