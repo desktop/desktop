@@ -740,7 +740,10 @@ export class GitStore {
       'Parent repositories are fully loaded',
       parent.cloneURL
     )
-    await addRemote(this.repository, UpstreamRemoteName, url)
+
+    await this.performFailableOperation(() =>
+      addRemote(this.repository, UpstreamRemoteName, url)
+    )
     this._upstream = { name: UpstreamRemoteName, url }
   }
 
