@@ -2894,7 +2894,7 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public getIgnoreExistingUpstreamRemote(
+  private getIgnoreExistingUpstreamRemote(
     repository: Repository
   ): Promise<boolean> {
     const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
