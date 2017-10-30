@@ -730,10 +730,12 @@ export class GitStore {
       r => r.name === UpstreamRemoteName
     )
     if (remoteWithUpstreamName) {
-      throw new UpstreamAlreadyExistsError(
+      const error = new UpstreamAlreadyExistsError(
         this.repository,
         remoteWithUpstreamName
       )
+      this.emitError(error)
+      return
     }
 
     const url = forceUnwrap(
