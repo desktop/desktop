@@ -194,7 +194,7 @@ export class Preferences extends React.Component<
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
-            onDefalutPrivayChanged={this.onDefalutPrivayChanged}
+            onDefaultPrivacyChanged={this.onDefalutPrivayChanged}
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}

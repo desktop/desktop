@@ -22,7 +22,7 @@ interface IAdvancedPreferencesProps {
   readonly selectedShell: Shell
   readonly onOptOutofReportingchanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
-  readonly onDefalutPrivayChanged: (checked: boolean) => void
+  readonly onDefaultPrivacyChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
@@ -111,7 +111,7 @@ export class Advanced extends React.Component<
     const value = event.currentTarget.checked
 
     this.setState({ defaultPrivacy: value })
-    this.props.onDefalutPrivayChanged(value)
+    this.props.onDefaultPrivacyChanged(value)
   }
 
   private onConfirmRepositoryRemovalChanged = (
