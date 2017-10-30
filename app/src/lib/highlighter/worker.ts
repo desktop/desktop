@@ -1,8 +1,10 @@
 import { ITokens, IHighlightRequest } from './types'
+import { encodePathAsUrl } from '../../lib/path'
 
 const highlightWorkers = new Array<Worker>()
 const maxIdlingWorkers = 2
 const workerMaxRunDuration = 5 * 1000
+const workerUri = encodePathAsUrl(__dirname, 'highlighter.js')
 
 /**
  * Request an automatic detection of the language and highlight
@@ -35,11 +37,8 @@ export function highlight(
     return Promise.resolve({})
   }
 
-  // Get an existing, idle worker or create a new one if none
-  // exists.
-  const worker =
-    highlightWorkers.shift() ||
-    new Worker(`file:///${__dirname}/highlighter.js`)
+  // Get an idle worker or create a new one if none exist.
+  const worker = highlightWorkers.shift() || new Worker(workerUri)
 
   return new Promise<ITokens>((resolve, reject) => {
     let timeout: null | number = null
