@@ -1,7 +1,7 @@
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
 
-export class RemoteAlreadyExistsError extends Error {
+export class UpstreamAlreadyExistsError extends Error {
   public readonly repository: Repository
   public readonly existingRemote: IRemote
 
