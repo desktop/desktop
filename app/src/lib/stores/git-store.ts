@@ -1049,8 +1049,22 @@ export class GitStore {
   }
 
   public async updateExistingUpstreamRemote(): Promise<void> {
-    const url = this.repository.gitHubRepository!.parent!.cloneURL!
-    await setRemoteURL(this.repository, UpstreamRemoteName, url)
+    const gitHubRepository = forceUnwrap(
+      'To update an upstream remote, the repository must be a GitHub repository',
+      this.repository.gitHubRepository
+    )
+    const parent = forceUnwrap(
+      'To update an upstream remote, the repository must have a parent',
+      gitHubRepository.parent
+    )
+    const url = forceUnwrap(
+      'Parent repositories are always fulled loaded',
+      parent.cloneURL
+    )
+
+    await this.performFailableOperation(() =>
+      setRemoteURL(this.repository, UpstreamRemoteName, url)
+    )
   }
 }
 
