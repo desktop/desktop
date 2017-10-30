@@ -1,4 +1,4 @@
-import { spawn } from 'child_process'
+import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
 import { assertNever } from '../fatal-error'
 import { readRegistryKeySafe } from '../registry'
@@ -68,6 +68,19 @@ export async function getAvailableShells(): Promise<
   return shells
 }
 
+function addErrorTracing(context: string, cp: ChildProcess) {
+  cp.stderr.on('data', chunk => {
+    const text = chunk instanceof Buffer ? chunk.toString() : chunk
+    log.debug(`[${context}] stderr: '${text}'`)
+  })
+
+  cp.on('exit', code => {
+    if (code !== 0) {
+      log.debug(`[${context}] exit code: ${code}`)
+    }
+  })
+}
+
 export async function launch(
   foundShell: IFoundShell<Shell>,
   path: string
@@ -76,17 +89,24 @@ export async function launch(
 
   if (shell === Shell.PowerShell) {
     const psCommand = `"Set-Location -LiteralPath '${path}'"`
-    await spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
-      shell: true,
-      cwd: path,
-    })
+    const cp = spawn(
+      'START',
+      ['powershell', '-NoExit', '-Command', psCommand],
+      {
+        shell: true,
+        cwd: path,
+      }
+    )
+    addErrorTracing(`PowerShell`, cp)
   } else if (shell === Shell.GitBash) {
-    await spawn(foundShell.path, [`--cd="${path}"`], {
+    const cp = spawn(`"${foundShell.path}"`, [`--cd="${path}"`], {
       shell: true,
       cwd: path,
     })
+    addErrorTracing(`Git Bash`, cp)
   } else if (shell === Shell.Cmd) {
-    await spawn('START', ['cmd'], { shell: true, cwd: path })
+    const cp = spawn('START', ['cmd'], { shell: true, cwd: path })
+    addErrorTracing(`CMD`, cp)
   } else {
     assertNever(shell, `Unknown shell: ${shell}`)
   }
