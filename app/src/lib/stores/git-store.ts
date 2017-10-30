@@ -507,7 +507,8 @@ export class GitStore {
   }
 
   /**
-   * Fetch the default remote, using the given account for authentication.
+   * Fetch the default and upstream remote, using the given account for
+   * authentication.
    *
    * @param account          - The account to use for authentication if needed.
    * @param backgroundTask   - Was the fetch done as part of a background task?
@@ -519,17 +520,22 @@ export class GitStore {
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
+    const remotes = []
     const remote = this.remote
-    if (!remote) {
+    if (remote) {
+      remotes.push(remote)
+    }
+
+    const upstream = this.upstream
+    if (upstream) {
+      remotes.push(upstream)
+    }
+
+    if (!remotes.length) {
       return Promise.resolve()
     }
 
-    return this.fetchRemotes(
-      account,
-      [remote],
-      backgroundTask,
-      progressCallback
-    )
+    return this.fetchRemotes(account, remotes, backgroundTask, progressCallback)
   }
 
   /**
