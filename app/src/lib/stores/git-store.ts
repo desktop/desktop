@@ -1058,7 +1058,7 @@ export class GitStore {
       gitHubRepository.parent
     )
     const url = forceUnwrap(
-      'Parent repositories are always fulled loaded',
+      'Parent repositories are always fully loaded',
       parent.cloneURL
     )
 
