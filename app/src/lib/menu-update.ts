@@ -2,7 +2,7 @@ import { MenuIDs } from '../main-process/menu'
 import { merge } from './merge'
 import { IAppState, SelectionType } from '../lib/app-state'
 import { Repository } from '../models/repository'
-import { CloningRepository } from './dispatcher'
+import { CloningRepository } from '../models/cloning-repository'
 import { TipState } from '../models/tip'
 import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
@@ -93,6 +93,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   let hasPublishedBranch = false
   let networkActionInProgress = false
   let tipStateIsUnknown = false
+  let branchIsUnborn = false
 
   let hasRemote = false
 
@@ -107,6 +108,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
     onBranch = tip.kind === TipState.Valid
     tipStateIsUnknown = tip.kind === TipState.Unknown
+    branchIsUnborn = tip.kind === TipState.Unborn
 
     // If we are:
     //  1. on the default branch, or
@@ -138,7 +140,6 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'open-in-shell',
     'open-working-directory',
     'show-repository-settings',
-    'create-branch',
     'show-changes',
     'show-history',
     'show-branches-list',
@@ -156,8 +157,14 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
       menuStateBuilder.enable(id)
     }
 
-    menuStateBuilder.setEnabled('rename-branch', onNonDefaultBranch)
-    menuStateBuilder.setEnabled('delete-branch', onNonDefaultBranch)
+    menuStateBuilder.setEnabled(
+      'rename-branch',
+      onNonDefaultBranch && !branchIsUnborn
+    )
+    menuStateBuilder.setEnabled(
+      'delete-branch',
+      onNonDefaultBranch && !branchIsUnborn
+    )
     menuStateBuilder.setEnabled(
       'update-branch',
       onNonDefaultBranch && hasDefaultBranch
@@ -169,13 +176,22 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     )
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
-    menuStateBuilder.setEnabled('create-pull-request', isHostedOnGitHub)
-    menuStateBuilder.setEnabled('push', hasRemote && !networkActionInProgress)
+    menuStateBuilder.setEnabled(
+      'create-pull-request',
+      isHostedOnGitHub && !branchIsUnborn
+    )
+    menuStateBuilder.setEnabled(
+      'push',
+      hasRemote && !branchIsUnborn && !networkActionInProgress
+    )
     menuStateBuilder.setEnabled(
       'pull',
       hasPublishedBranch && !networkActionInProgress
     )
-    menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
+    menuStateBuilder.setEnabled(
+      'create-branch',
+      !tipStateIsUnknown && !branchIsUnborn
+    )
 
     if (
       selectedState &&

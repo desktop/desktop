@@ -1,5 +1,136 @@
 {
   "releases": {
+    "1.0.7-beta0": [
+      "[Fixed] The Branches list wouldn't display the branches for non-GitHub repositories - #3169",
+      "[Fixed] Pushing or pulling could error when the temp directory was unavailable - #3046"
+    ],
+    "1.0.6": [
+      "[Fixed] The Branches list wouldn't display the branches for non-GitHub repositories - #3169",
+      "[Fixed] Pushing or pulling could error when the temp directory was unavailable - #3046"
+    ],
+    "1.0.5": [
+      "[New] The command line interface now provides some helpful help! - #2372. Thanks @j-f1!",
+      "[New] Create new branches from the Branches foldout - #2784",
+      "[New] Add support for VSCode Insiders - #3012 #3062. Thanks @MSathieu!",
+      "[New] Linux: Add Atom and Sublime Text support - #3133. Thanks @ziggy42!",
+      "[New] Linux: Tilix support - #3117. Thanks @ziggy42!",
+      "[New] Linux: Add Visual Studio Code support - #3122. Thanks @ziggy42!",
+      "[Improved] Report errors when a problem occurs storing tokens - #3159",
+      "[Improved] Bump to Git 2.14.3 - #3146",
+      "[Improved] Don't try to display diffs that could cause the app to hang - #2596",
+      "[Fixed] Handle local user accounts with URL-hostile characters - #3107",
+      "[Fixed] Cloning a repository which uses Git LFS would leave all the files appearing modified - #3146",
+      "[Fixed] Signing in in the Welcome flow could hang - #2769",
+      "[Fixed] Properly replace old Git LFS configuration values - #2984"
+    ],
+    "1.0.5-beta1": [
+      "[New] Create new branches from the Branches foldout - #2784",
+      "[New] Add support for VSCode Insiders - #3012 #3062. Thanks @MSathieu!",
+      "[New] Linux: Add Atom and Sublime Text support - #3133. Thanks @ziggy42!",
+      "[New] Linux: Tilix support - #3117. Thanks @ziggy42!",
+      "[New] Linux: Add Visual Studio Code support - #3122. Thanks @ziggy42!",
+      "[Improved] Report errors when a problem occurs storing tokens - #3159",
+      "[Improved] Bump to Git 2.14.3 - #3146",
+      "[Improved] Don't try to display diffs that could cause the app to hang - #2596",
+      "[Fixed] Handle local user accounts with URL-hostile characters - #3107",
+      "[Fixed] Cloning a repository which uses Git LFS would leave all the files appearing modified - #3146",
+      "[Fixed] Signing in in the Welcome flow could hang - #2769",
+      "[Fixed] Properly replace old Git LFS configuration values - #2984"
+    ],
+    "1.0.5-test1": [],
+    "1.0.5-test0": [],
+    "1.0.5-beta0": [
+      "[New] The command line interface now provides some helpful help! - #2372. Thanks @j-f1!"
+    ],
+    "1.0.4": [
+      "[New] Report Git LFS progress when cloning, pushing, pulling, or reverting - #2226",
+      "[Improved] Increased diff contrast and and line gutter selection - #2586 #2181",
+      "[Improved] Clarify why publishing a branch is disabled in various scenarios - #2773",
+      "[Improved] Improved error message when installing the command Line tool fails - #2979. Thanks @agisilaos!",
+      "[Improved] Format the branch name in \"Create Branch\" like we format branch names elsewhere - #2977. Thanks @j-f1!",
+      "[Fixed] Avatars not updating after signing in - #2911",
+      "[Fixed] Lots of bugs if there was a file named \"HEAD\" in the repository - #3009 #2721 #2938",
+      "[Fixed] Handle duplicate config values when saving user.name and user.email - #2945",
+      "[Fixed] The \"Create without pushing\" button when creating a new pull request wouldn't actually do anything - #2917 #2917"
+    ],
+    "1.0.4-beta1": [
+      "[New] Report Git LFS progress when cloning, pushing, pulling, or reverting - #2226",
+      "[Improved] Increased diff contrast and and line gutter selection - #2586 #2181",
+      "[Improved] Clarify why publishing a branch is disabled in various scenarios - #2773",
+      "[Improved] Improved error message when installing the command Line tool fails - #2979. Thanks @agisilaos!",
+      "[Improved] Format the branch name in \"Create Branch\" like we format branch names elsewhere - #2977. Thanks @j-f1!",
+      "[Fixed] Avatars not updating after signing in - #2911",
+      "[Fixed] Lots of bugs if there was a file named \"HEAD\" in the repository - #3009 #2721 #2938",
+      "[Fixed] Handle duplicate config values when saving user.name and user.email - #2945",
+      "[Fixed] The \"Create without pushing\" button when creating a new pull request wouldn't actually do anything - #2917 #2917"
+    ],
+    "1.0.4-beta0": [
+      "[Improved] Increase the contrast of the modified file status octicons - #2914",
+      "[Fixed] Showing changed files in Finder/Explorer would open the file - #2909",
+      "[Fixed] macOS: Fix app icon on High Sierra - #2915",
+      "[Fixed] Cloning an empty repository would fail - #2897 #2906",
+      "[Fixed] Catch logging exceptions - #2910"
+    ],
+    "1.0.3": [
+      "[Improved] Increase the contrast of the modified file status octicons - #2914",
+      "[Fixed] Showing changed files in Finder/Explorer would open the file - #2909",
+      "[Fixed] macOS: Fix app icon on High Sierra - #2915",
+      "[Fixed] Cloning an empty repository would fail - #2897 #2906",
+      "[Fixed] Catch logging exceptions - #2910"
+    ],
+    "1.0.2": [
+      "[Improved] Better message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Improved] Clone error message now suggests networking might be involved - #2872. Thanks @agisilaos!",
+      "[Improved] Include push/pull progress information in the push/pull button tooltip - #2879",
+      "[Improved] Allow publishing a brand new, empty repository - #2773",
+      "[Improved] Make file paths in lists selectable - #2801. Thanks @artivilla!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712",
+      "[Fixed] Use the initial path provided when creating a new repository - #2883",
+      "[Fixed] Windows: Avoid long path limits when discarding changes - #2833",
+      "[Fixed] Files would get deleted when undoing the first commit - #2764",
+      "[Fixed] Find the repository root before adding it - #2832",
+      "[Fixed] Display warning about an existing folder before cloning - #2777 #2830",
+      "[Fixed] Show contents of directory when showing a repository from Show in Explorer/Finder instead of showing the parent - #2798"
+    ],
+    "1.0.2-beta1": [
+      "[Improved] Clone error message now suggests networking might be involved - #2872. Thanks @agisilaos!",
+      "[Improved] Include push/pull progress information in the push/pull button tooltip - #2879",
+      "[Improved] Allow publishing a brand new, empty repository - #2773",
+      "[Improved] Make file paths in lists selectable - #2801. Thanks @artivilla!",
+      "[Fixed] Use the initial path provided when creating a new repository - #2883",
+      "[Fixed] Windows: Avoid long path limits when discarding changes - #2833",
+      "[Fixed] Files would get deleted when undoing the first commit - #2764",
+      "[Fixed] Find the repository root before adding it - #2832",
+      "[Fixed] Display warning about an existing folder before cloning - #2777 #2830",
+      "[Fixed] Show contents of directory when showing a repository from Show in Explorer/Finder instead of showing the parent - #2798"
+    ],
+    "1.0.2-beta0": [
+      "[Improved] Message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712"
+    ],
+    "1.0.1": [
+      "[Improved] Message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712"
+    ],
+    "1.0.1-beta0": [
+      "[Fixed] Use the loading/disabled state while publishing - #1995",
+      "[Fixed] Lock down menu item states for unborn repositories - #2744 #2573",
+      "[Fixed] Windows: Detecting the available shells and editors when using a language other than English - #2735"
+    ],
+    "1.0.0": [
+      "[Fixed] Use the loading/disabled state while publishing - #1995",
+      "[Fixed] Lock down menu item states for unborn repositories - #2744 #2573",
+      "[Fixed] Windows: Detecting the available shells and editors when using a language other than English - #2735"
+    ],
     "1.0.0-beta3": [
       "[New] Allow users to create repositories with descriptions - #2719. Thanks @davidcelis!",
       "[New] Use `lfs clone` for faster cloning of LFS repositories - #2679",

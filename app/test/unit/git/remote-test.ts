@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import { expect } from 'chai'
 
@@ -12,7 +12,7 @@ import {
 import {
   setupFixtureRepository,
   setupEmptyRepository,
-} from '../../fixture-helper'
+} from '../../helpers/repositories'
 
 describe('git/remote', () => {
   describe('getRemotes', () => {

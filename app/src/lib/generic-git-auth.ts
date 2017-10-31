@@ -1,7 +1,7 @@
 import * as URL from 'url'
 import { parseRemote } from './remote-parsing'
 import { getKeyForEndpoint } from './auth'
-import { TokenStore } from './dispatcher/token-store'
+import { TokenStore } from './stores/token-store'
 
 /** Get the hostname to use for the given remote. */
 export function getGenericHostname(remoteURL: string): string {
@@ -26,15 +26,6 @@ function getKeyForUsername(hostname: string): string {
 export function getGenericUsername(hostname: string): string | null {
   const key = getKeyForUsername(hostname)
   return localStorage.getItem(key)
-}
-
-/** Get the password for the host. */
-export function getGenericPassword(
-  hostname: string,
-  username: string
-): Promise<string | null> {
-  const key = getKeyForEndpoint(hostname)
-  return TokenStore.getItem(key, username)
 }
 
 /** Set the username for the host. */

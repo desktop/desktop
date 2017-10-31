@@ -1,23 +1,15 @@
 import * as React from 'react'
-import { List, SelectionSource } from '../list'
+import { List, SelectionSource } from '../lib/list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
-
-interface IPosition {
-  readonly top: number
-  readonly left: number
-}
 
 interface IRange {
   readonly start: number
   readonly length: number
 }
 
-const getCaretCoordinates: (
-  element: HTMLElement,
-  position: number
-) => IPosition = require('textarea-caret')
+import getCaretCoordinates = require('textarea-caret')
 
 interface IAutocompletingTextInputProps<ElementType> {
   /**
@@ -132,6 +124,7 @@ export abstract class AutocompletingTextInput<
     const element = this.element!
     let coordinates = getCaretCoordinates(element, state.range.start)
     coordinates = {
+      ...coordinates,
       top: coordinates.top - element.scrollTop,
       left: coordinates.left - element.scrollLeft,
     }
@@ -251,10 +244,7 @@ export abstract class AutocompletingTextInput<
   protected abstract getElementTagName(): 'textarea' | 'input'
 
   private renderTextInput() {
-    return React.createElement<
-      React.HTMLAttributes<ElementType>,
-      ElementType
-    >(this.getElementTagName(), {
+    const props = {
       type: 'text',
       placeholder: this.props.placeholder,
       value: this.props.value,
@@ -262,7 +252,12 @@ export abstract class AutocompletingTextInput<
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
       onBlur: this.onBlur,
-    })
+    }
+
+    return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(
+      this.getElementTagName(),
+      props
+    )
   }
 
   private onBlur = (e: React.FocusEvent<ElementType>) => {

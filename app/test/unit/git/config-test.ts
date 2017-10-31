@@ -1,10 +1,16 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
-import { getConfigValue, getGlobalConfigPath } from '../../../src/lib/git'
-import { setupFixtureRepository } from '../../fixture-helper'
+import {
+  getConfigValue,
+  getGlobalConfigPath,
+  getGlobalConfigValue,
+  setGlobalConfigValue,
+} from '../../../src/lib/git'
+import { GitProcess } from 'dugite'
+import { setupFixtureRepository } from '../../helpers/repositories'
 
 describe('git/config', () => {
   let repository: Repository | null = null
@@ -34,6 +40,34 @@ describe('git/config', () => {
       const path = await getGlobalConfigPath()
       expect(path).not.to.equal(null)
       expect(path!.length).to.be.greaterThan(0)
+    })
+  })
+
+  describe('setGlobalConfigValue', () => {
+    const key = 'foo.bar'
+
+    beforeEach(async () => {
+      await GitProcess.exec(
+        ['config', '--add', '--global', key, 'first'],
+        __dirname
+      )
+      await GitProcess.exec(
+        ['config', '--add', '--global', key, 'second'],
+        __dirname
+      )
+    })
+
+    it('will replace all entries for a global value', async () => {
+      await setGlobalConfigValue(key, 'the correct value')
+      const value = await getGlobalConfigValue(key)
+      expect(value).to.equal('the correct value')
+    })
+
+    afterEach(async () => {
+      await GitProcess.exec(
+        ['config', '--unset-all', '--global', key],
+        __dirname
+      )
     })
   })
 })

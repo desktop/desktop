@@ -1,5 +1,4 @@
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import { DiffParser } from '../../src/lib/diff-parser'
 import { DiffLineType } from '../../src/models/diff'

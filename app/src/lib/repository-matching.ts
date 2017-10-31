@@ -1,16 +1,34 @@
 import * as URL from 'url'
+import * as Path from 'path'
 
-import { GitHubRepository } from '../models/github-repository'
+import { CloningRepository } from '../models/cloning-repository'
+import { Repository } from '../models/repository'
 import { Account } from '../models/account'
-import { Owner } from '../models/owner'
 import { getHTMLURL } from './api'
 import { parseRemote } from './remote-parsing'
+
+export interface IMatchedGitHubRepository {
+  /**
+   * The name of the repository, e.g., for https://github.com/user/repo, the
+   * name is `repo`.
+   */
+  readonly name: string
+
+  /**
+   * The login of the owner of the repository, e.g., for
+   * https://github.com/user/repo, the owner is `user`.
+   */
+  readonly owner: string
+
+  /** The API endpoint. */
+  readonly endpoint: string
+}
 
 /** Try to use the list of users and a remote URL to guess a GitHub repository. */
 export function matchGitHubRepository(
   accounts: ReadonlyArray<Account>,
   remote: string
-): GitHubRepository | null {
+): IMatchedGitHubRepository | null {
   for (const account of accounts) {
     const match = matchRemoteWithAccount(account, remote)
     if (match) {
@@ -24,7 +42,7 @@ export function matchGitHubRepository(
 function matchRemoteWithAccount(
   account: Account,
   remote: string
-): GitHubRepository | null {
+): IMatchedGitHubRepository | null {
   const htmlURL = getHTMLURL(account.endpoint)
   const parsed = URL.parse(htmlURL)
   const host = parsed.hostname
@@ -43,8 +61,34 @@ function matchRemoteWithAccount(
     owner &&
     name
   ) {
-    return new GitHubRepository(name, new Owner(owner, account.endpoint), null)
+    return { name, owner, endpoint: account.endpoint }
   }
 
   return null
+}
+
+/**
+ * Find an existing repository associated with this path
+ *
+ * @param repositories The list of repositories tracked in the app
+ * @param path The path on disk which might be a repository
+ */
+export function matchExistingRepository(
+  repositories: ReadonlyArray<Repository | CloningRepository>,
+  path: string
+): Repository | CloningRepository | null {
+  return (
+    repositories.find(r => {
+      if (__WIN32__) {
+        // Windows is guaranteed to be case-insensitive so we can be a
+        // bit more accepting.
+        return (
+          Path.normalize(r.path).toLowerCase() ===
+          Path.normalize(path).toLowerCase()
+        )
+      } else {
+        return Path.normalize(r.path) === Path.normalize(path)
+      }
+    }) || null
+  )
 }

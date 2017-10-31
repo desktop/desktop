@@ -1,7 +1,11 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
+import { encodePathAsUrl } from '../../lib/path'
 
-const BlankSlateImage = `file:///${__dirname}/static/empty-no-file-selected.svg`
+const BlankSlateImage = encodePathAsUrl(
+  __dirname,
+  'static/empty-no-file-selected.svg'
+)
 
 interface INoChangesProps {
   /** Called when the user chooses to open the repository. */

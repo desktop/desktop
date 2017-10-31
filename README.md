@@ -20,7 +20,7 @@ There are several community-supported package managers that can be used to insta
  - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
       `c:\> choco install github-desktop`
  - macOS users can install using [Homebrew](https://brew.sh/) package manager:
-      `$ brew cask install github-desktop`
+      `$ brew cask install github`
 
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
@@ -46,7 +46,7 @@ The [CONTRIBUTING.md](./CONTRIBUTING.md) document will help you get setup and
 familiar with the source. The [documentation](docs/) folder also contains more
 resources relevant to the project.
 
-If you're looking for something to work on, check out the [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+label%3Ahelp%20wanted) label.
+If you're looking for something to work on, check out the [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) label.
 
 ## More Resources
 

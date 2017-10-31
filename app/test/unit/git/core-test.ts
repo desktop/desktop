@@ -1,11 +1,11 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import { expect } from 'chai'
 import { GitError } from 'dugite'
 
 import { Repository } from '../../../src/models/repository'
 import { git } from '../../../src/lib/git'
-import { setupFixtureRepository } from '../../fixture-helper'
+import { setupFixtureRepository } from '../../helpers/repositories'
 
 describe('git/core', () => {
   let repository: Repository | null = null

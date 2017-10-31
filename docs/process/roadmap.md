@@ -2,13 +2,6 @@
 
 The following are our marketing releases as planned to date. They contain the broad features we're considering. The further away a release is, the less defined it is. Releases are subject to change at any time.
 
-## 1.0
-
-- Feature complete
-- Stable
-- Replaces existing Desktop apps
-- See the [1.0 milestone](https://github.com/desktop/desktop/milestone/7)
-
 ## 1.1
 
 - Relationship to _X_

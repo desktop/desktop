@@ -4,7 +4,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { LinkButton } from '../lib/link-button'
 import { getGlobalConfigPath } from '../../lib/git'
-import { shell } from '../../lib/dispatcher/app-shell'
+import { shell } from '../../lib/app-shell'
 
 interface IAttributeMismatchProps {
   /** Called when the dialog should be dismissed. */

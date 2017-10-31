@@ -9,32 +9,36 @@ import { ipcRenderer, remote } from 'electron'
 import { App } from './app'
 import {
   Dispatcher,
+  gitAuthenticationErrorHandler,
+  externalEditorErrorHandler,
+  openShellErrorHandler,
+  lfsAttributeMismatchHandler,
+  defaultErrorHandler,
+  missingRepositoryHandler,
+  backgroundTaskHandler,
+  pushNeedsPullHandler,
+} from '../lib/dispatcher'
+import {
   AppStore,
   GitHubUserStore,
-  GitHubUserDatabase,
   CloningRepositoriesStore,
   EmojiStore,
-} from '../lib/dispatcher'
+  IssuesStore,
+  SignInStore,
+  RepositoriesStore,
+  TokenStore,
+  AccountsStore,
+  PullRequestStore,
+} from '../lib/stores'
+import { GitHubUserDatabase } from '../lib/databases'
 import { URLActionType } from '../lib/parse-app-url'
 import { SelectionType } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import {
   IssuesDatabase,
-  IssuesStore,
-  SignInStore,
-  defaultErrorHandler,
-  missingRepositoryHandler,
-  backgroundTaskHandler,
-  pushNeedsPullHandler,
-  AccountsStore,
   RepositoriesDatabase,
-  RepositoriesStore,
-  TokenStore,
-  gitAuthenticationErrorHandler,
-  externalEditorErrorHandler,
-  openShellErrorHandler,
-  lfsAttributeMismatchHandler,
-} from '../lib/dispatcher'
+  PullRequestDatabase,
+} from '../lib/databases'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
@@ -110,6 +114,11 @@ const repositoriesStore = new RepositoriesStore(
   new RepositoriesDatabase('Database')
 )
 
+const pullRequestStore = new PullRequestStore(
+  new PullRequestDatabase('PullRequestDatabase'),
+  repositoriesStore
+)
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -118,7 +127,8 @@ const appStore = new AppStore(
   statsStore,
   signInStore,
   accountsStore,
-  repositoriesStore
+  repositoriesStore,
+  pullRequestStore
 )
 
 const dispatcher = new Dispatcher(appStore)

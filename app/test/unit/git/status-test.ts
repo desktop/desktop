@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import * as path from 'path'
 import { expect } from 'chai'
@@ -8,7 +8,7 @@ import { getStatus } from '../../../src/lib/git/status'
 import {
   setupFixtureRepository,
   setupEmptyRepository,
-} from '../../fixture-helper'
+} from '../../helpers/repositories'
 import { AppFileStatus } from '../../../src/models/status'
 import { GitProcess } from 'dugite'
 

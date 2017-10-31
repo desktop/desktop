@@ -12,6 +12,8 @@ import {
   SelectionSource,
 } from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
+import { Button } from '../lib/button'
+import { NoBranches } from './no-branches'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
@@ -80,6 +82,15 @@ interface IBranchListProps {
 
   /** Callback to fire when the filter text is changed */
   readonly onFilterTextChanged: (filterText: string) => void
+
+  /** Can users create a new branch? */
+  readonly canCreateNewBranch: boolean
+
+  /**
+   * Called when the user wants to create a new branch. It will be given a name
+   * to prepopulate the new branch name field.
+   */
+  readonly onCreateNewBranch?: (name: string) => void
 }
 
 interface IBranchListState {
@@ -204,7 +215,31 @@ export class BranchList extends React.Component<
         onSelectionChanged={this.onSelectionChanged}
         groups={this.state.groups}
         invalidationProps={this.props.allBranches}
+        renderPostFilter={this.renderNewButton}
+        renderNoItems={this.renderNoItems}
       />
     )
+  }
+
+  private renderNoItems = () => {
+    return <NoBranches onCreateNewBranch={this.onCreateNewBranch} />
+  }
+
+  private renderNewButton = () => {
+    if (this.props.canCreateNewBranch) {
+      return (
+        <Button className="new-branch-button" onClick={this.onCreateNewBranch}>
+          New
+        </Button>
+      )
+    } else {
+      return null
+    }
+  }
+
+  private onCreateNewBranch = () => {
+    if (this.props.onCreateNewBranch) {
+      this.props.onCreateNewBranch(this.props.filterText)
+    }
   }
 }

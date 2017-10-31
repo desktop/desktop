@@ -1,21 +1,17 @@
-import { FoundEditor, ExternalEditorError } from './shared'
-import {
-  getAvailableEditors as getAvailableEditorsDarwin,
-  getFirstEditorOrDefault as getFirstEditorOrDefaultDarwin,
-} from './darwin'
-import {
-  getAvailableEditors as getAvailableEditorsWindows,
-  getFirstEditorOrDefault as getFirstEditorOrDefaultWindows,
-} from './win32'
+import { ExternalEditor, ExternalEditorError } from './shared'
+import { IFoundEditor } from './found-editor'
+import { getAvailableEditors as getAvailableEditorsDarwin } from './darwin'
+import { getAvailableEditors as getAvailableEditorsWindows } from './win32'
+import { getAvailableEditors as getAvailableEditorsLinux } from './linux'
 
-let editorCache: ReadonlyArray<FoundEditor> | null = null
+let editorCache: ReadonlyArray<IFoundEditor<ExternalEditor>> | null = null
 
 /**
  * Resolve a list of installed editors on the user's machine, using the known
  * install identifiers that each OS supports.
  */
 export async function getAvailableEditors(): Promise<
-  ReadonlyArray<FoundEditor>
+  ReadonlyArray<IFoundEditor<ExternalEditor>>
 > {
   if (editorCache && editorCache.length > 0) {
     return editorCache
@@ -31,27 +27,16 @@ export async function getAvailableEditors(): Promise<
     return editorCache
   }
 
-  return Promise.reject(
-    `Platform not currently supported for resolving editors: ${process.platform}`
-  )
-}
-
-/**
- * Find the first editor that exists on the user's machine, or return null if
- * no matches are found.
- */
-export function getFirstEditorOrDefault(): Promise<FoundEditor | null> {
-  if (__DARWIN__) {
-    return getFirstEditorOrDefaultDarwin()
+  if (__LINUX__) {
+    editorCache = await getAvailableEditorsLinux()
+    return editorCache
   }
 
-  if (__WIN32__) {
-    return getFirstEditorOrDefaultWindows()
-  }
-
-  return Promise.reject(
+  log.warn(
     `Platform not currently supported for resolving editors: ${process.platform}`
   )
+
+  return []
 }
 
 /**
@@ -63,7 +48,7 @@ export function getFirstEditorOrDefault(): Promise<FoundEditor | null> {
  */
 export async function findEditorOrDefault(
   name: string | null
-): Promise<FoundEditor> {
+): Promise<IFoundEditor<ExternalEditor>> {
   const editors = await getAvailableEditors()
   if (editors.length === 0) {
     throw new ExternalEditorError(

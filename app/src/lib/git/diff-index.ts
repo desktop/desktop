@@ -82,7 +82,7 @@ export async function getIndexChanges(
   const args = ['diff-index', '--cached', '--name-status', '--no-renames', '-z']
 
   let result = await git(
-    [...args, 'HEAD'],
+    [...args, 'HEAD', '--'],
     repository.path,
     'getIndexChanges',
     {

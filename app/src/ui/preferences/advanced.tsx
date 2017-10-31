@@ -5,8 +5,11 @@ import { LinkButton } from '../lib/link-button'
 import { Row } from '../../ui/lib/row'
 import { SamplesURL } from '../../lib/stats'
 import { Select } from '../lib/select'
-import { ExternalEditor, parse as parseEditor } from '../../models/editors'
+import { ExternalEditor, parse as parseEditor } from '../../lib/editors'
 import { Shell, parse as parseShell } from '../../lib/shells'
+import { TextBox } from '../lib/text-box'
+import { enablePreviewFeatures } from '../../lib/feature-flag'
+import { IMergeTool } from '../../lib/git/config'
 
 interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
@@ -21,6 +24,10 @@ interface IAdvancedPreferencesProps {
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onSelectedEditorChanged: (editor: ExternalEditor) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
+
+  readonly mergeTool: IMergeTool | null
+  readonly onMergeToolNameChanged: (name: string) => void
+  readonly onMergeToolCommandChanged: (command: string) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -184,11 +191,42 @@ export class Advanced extends React.Component<
     )
   }
 
+  private renderMergeTool() {
+    if (!enablePreviewFeatures()) {
+      return null
+    }
+
+    const mergeTool = this.props.mergeTool
+
+    return (
+      <div className="brutalism">
+        <strong>{__DARWIN__ ? 'Merge Tool' : 'Merge tool'}</strong>
+
+        <Row>
+          <TextBox
+            placeholder="Name"
+            value={mergeTool ? mergeTool.name : ''}
+            onValueChanged={this.props.onMergeToolNameChanged}
+          />
+        </Row>
+
+        <Row>
+          <TextBox
+            placeholder="Command"
+            value={mergeTool && mergeTool.command ? mergeTool.command : ''}
+            onValueChanged={this.props.onMergeToolCommandChanged}
+          />
+        </Row>
+      </div>
+    )
+  }
+
   public render() {
     return (
       <DialogContent>
         <Row>{this.renderExternalEditor()}</Row>
         <Row>{this.renderSelectedShell()}</Row>
+        {this.renderMergeTool()}
         <Row>
           <Checkbox
             label={this.reportDesktopUsageLabel()}

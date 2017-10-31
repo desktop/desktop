@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import * as path from 'path'
 import * as Fs from 'fs'
@@ -11,7 +11,7 @@ import {
   getTopLevelWorkingDirectory,
 } from '../../../src/lib/git/rev-parse'
 import { git } from '../../../src/lib/git/core'
-import { setupFixtureRepository, mkdirSync } from '../../fixture-helper'
+import { setupFixtureRepository, mkdirSync } from '../../helpers/repositories'
 
 describe('git/rev-parse', () => {
   let repository: Repository | null = null

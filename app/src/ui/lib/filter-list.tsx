@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as classnames from 'classnames'
 
-import { List, SelectionSource as ListSelectionSource } from '../list'
+import { List, SelectionSource as ListSelectionSource } from '../lib/list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
@@ -58,7 +58,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly renderItem: (item: T) => JSX.Element | null
 
   /** Called to render header for the group with the given identifier. */
-  readonly renderGroupHeader: (identifier: string) => JSX.Element | null
+  readonly renderGroupHeader?: (identifier: string) => JSX.Element | null
 
   /** Called to render content before/above the filter and list. */
   readonly renderPreList?: () => JSX.Element | null
@@ -91,13 +91,22 @@ interface IFilterListProps<T extends IFilterListItem> {
   ) => void
 
   /** The current filter text to use in the form */
-  readonly filterText: string
+  readonly filterText?: string
 
   /** Called when the filter text is changed by the user */
-  readonly onFilterTextChanged: (text: string) => void
+  readonly onFilterTextChanged?: (text: string) => void
+
+  /** Is the filter field disabled? */
+  readonly filterDisabled?: boolean
 
   /** Any props which should cause a re-render if they change. */
   readonly invalidationProps: any
+
+  /** Called to render content after the filter. */
+  readonly renderPostFilter?: () => JSX.Element | null
+
+  /** Called when there are no items to render.  */
+  readonly renderNoItems?: () => JSX.Element | null
 }
 
 interface IFilterListState<T extends IFilterListItem> {
@@ -148,28 +157,39 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
             onKeyDown={this.onKeyDown}
             onInputRef={this.onInputRef}
             value={this.props.filterText}
+            disabled={this.props.filterDisabled}
           />
+
+          {this.props.renderPostFilter ? this.props.renderPostFilter() : null}
         </Row>
 
-        <div className="filter-list-container">
-          <List
-            rowCount={this.state.rows.length}
-            rowRenderer={this.renderRow}
-            rowHeight={this.props.rowHeight}
-            selectedRow={this.state.selectedRow}
-            onSelectionChanged={this.onSelectionChanged}
-            onRowClick={this.onRowClick}
-            onRowKeyDown={this.onRowKeyDown}
-            canSelectRow={this.canSelectRow}
-            ref={this.onListRef}
-            invalidationProps={{
-              ...this.props,
-              ...this.props.invalidationProps,
-            }}
-          />
-        </div>
+        <div className="filter-list-container">{this.renderContent()}</div>
       </div>
     )
+  }
+
+  private renderContent() {
+    if (this.state.rows.length === 0 && this.props.renderNoItems) {
+      return this.props.renderNoItems()
+    } else {
+      return (
+        <List
+          rowCount={this.state.rows.length}
+          rowRenderer={this.renderRow}
+          rowHeight={this.props.rowHeight}
+          selectedRow={this.state.selectedRow}
+          onSelectionChanged={this.onSelectionChanged}
+          onRowClick={this.onRowClick}
+          onRowKeyDown={this.onRowKeyDown}
+          canSelectRow={this.canSelectRow}
+          ref={this.onListRef}
+          invalidationProps={{
+            ...this.props,
+            ...this.props.invalidationProps,
+          }}
+        />
+      )
+    }
   }
 
   public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
@@ -191,8 +211,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     const row = this.state.rows[index]
     if (row.kind === 'item') {
       return this.props.renderItem(row.item)
-    } else {
+    } else if (this.props.renderGroupHeader) {
       return this.props.renderGroupHeader(row.identifier)
+    } else {
+      return null
     }
   }
 
@@ -203,14 +225,20 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   private onInputRef = (instance: HTMLInputElement | null) => {
     this.filterInput = instance
 
-    if (this.filterInput && this.props.filterText.length > 0) {
+    if (
+      this.filterInput &&
+      this.props.filterText &&
+      this.props.filterText.length > 0
+    ) {
       this.filterInput.select()
     }
   }
 
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const text = event.currentTarget.value
-    this.props.onFilterTextChanged(text)
+    if (this.props.onFilterTextChanged) {
+      this.props.onFilterTextChanged(text)
+    }
   }
 
   public componentDidUpdate(
@@ -239,7 +267,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           )
           this.props.onSelectionChanged(newSelectedItem, {
             kind: 'filter',
-            filterText: this.props.filterText,
+            filterText: this.props.filterText || '',
           })
         }
       }
@@ -268,7 +296,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
 
     let focusInput = false
-    const firstSelectableRow = list.nextSelectableRow('down', 0)
+    const firstSelectableRow = list.nextSelectableRow('down', -1)
     const lastSelectableRow = list.nextSelectableRow('up', 0)
     if (event.key === 'ArrowUp' && row === firstSelectableRow) {
       focusInput = true
@@ -302,7 +330,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     if (event.key === 'ArrowDown') {
       if (this.state.rows.length > 0) {
         this.setState(
-          { selectedRow: list.nextSelectableRow('down', 0) },
+          { selectedRow: list.nextSelectableRow('down', -1) },
           () => {
             list.focus()
           }
@@ -325,7 +353,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         return
       }
 
-      const row = list.nextSelectableRow('down', 0)
+      const row = list.nextSelectableRow('down', -1)
       this.onRowClick(row)
     }
   }
@@ -335,7 +363,7 @@ function createStateUpdate<T extends IFilterListItem>(
   props: IFilterListProps<T>
 ) {
   const flattenedRows = new Array<IFilterListRow<T>>()
-  const filter = props.filterText.toLowerCase()
+  const filter = (props.filterText || '').toLowerCase()
 
   for (const group of props.groups) {
     const items = group.items.filter(i => {
@@ -346,7 +374,10 @@ function createStateUpdate<T extends IFilterListItem>(
       continue
     }
 
-    flattenedRows.push({ kind: 'group', identifier: group.identifier })
+    if (props.renderGroupHeader) {
+      flattenedRows.push({ kind: 'group', identifier: group.identifier })
+    }
+
     for (const item of items) {
       flattenedRows.push({ kind: 'item', item })
     }

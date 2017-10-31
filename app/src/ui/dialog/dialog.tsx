@@ -192,7 +192,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   public componentDidMount() {
     // This cast to any is necessary since React doesn't know about the
     // dialog element yet.
-    // tslint:disable-next-line:whitespace
     ;(this.dialogElement as any).showModal()
 
     this.setState({ isAppearing: true })
@@ -202,10 +201,10 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   private onWindowFocus = () => {
-    // On Windows, a click which focuses the window will also get passed down
-    // into the DOM. But we don't want to dismiss the dialog based on that
-    // click. See https://github.com/desktop/desktop/issues/2486.
-    if (__WIN32__) {
+    // On Windows and Linux, a click which focuses the window will also get
+    // passed down into the DOM. But we don't want to dismiss the dialog based
+    // on that click. See https://github.com/desktop/desktop/issues/2486.
+    if (__WIN32__ || __LINUX__) {
       this.clearClickDismissalTimer()
 
       this.disableClickDismissal = true
@@ -367,7 +366,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       >
         {this.renderHeader()}
 
-        <form onSubmit={this.onSubmit} autoFocus={true}>
+        <form onSubmit={this.onSubmit}>
           <fieldset disabled={this.props.disabled}>
             {this.props.children}
           </fieldset>

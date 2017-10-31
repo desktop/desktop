@@ -3,14 +3,11 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { IChangesState, PopupType } from '../../lib/app-state'
+import { ICommitMessage, IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
-import {
-  Dispatcher,
-  IGitHubUser,
-  IssuesStore,
-  GitHubUserStore,
-} from '../../lib/dispatcher'
+import { Dispatcher } from '../../lib/dispatcher'
+import { IGitHubUser } from '../../lib/databases'
+import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../models/commit'
 import { UndoCommit } from './undo-commit'
@@ -20,8 +17,7 @@ import {
   IssuesAutocompletionProvider,
   UserAutocompletionProvider,
 } from '../autocompletion'
-import { ICommitMessage } from '../../lib/app-state'
-import { ClickSource } from '../list'
+import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'

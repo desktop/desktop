@@ -1,12 +1,11 @@
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import { groupRepositories } from '../../src/ui/repositories-list/group-repositories'
 import { Repository } from '../../src/models/repository'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
 import { getDotComAPIEndpoint } from '../../src/lib/api'
-import { CloningRepository } from '../../src/lib/dispatcher'
+import { CloningRepository } from '../../src/models/cloning-repository'
 
 describe('repository list grouping', () => {
   const repositories: Array<Repository | CloningRepository> = [
@@ -16,7 +15,7 @@ describe('repository list grouping', () => {
       2,
       new GitHubRepository(
         'my-repo2',
-        new Owner('', getDotComAPIEndpoint()),
+        new Owner('', getDotComAPIEndpoint(), null),
         1
       ),
       false
@@ -24,7 +23,7 @@ describe('repository list grouping', () => {
     new Repository(
       'repo3',
       3,
-      new GitHubRepository('my-repo3', new Owner('', ''), 1),
+      new GitHubRepository('my-repo3', new Owner('', '', null), 1),
       false
     ),
   ]
@@ -57,14 +56,14 @@ describe('repository list grouping', () => {
     const repoB = new Repository(
       'b',
       2,
-      new GitHubRepository('b', new Owner('', getDotComAPIEndpoint()), 1),
+      new GitHubRepository('b', new Owner('', getDotComAPIEndpoint(), null), 1),
       false
     )
     const repoC = new Repository('c', 2, null, false)
     const repoD = new Repository(
       'd',
       2,
-      new GitHubRepository('d', new Owner('', getDotComAPIEndpoint()), 1),
+      new GitHubRepository('d', new Owner('', getDotComAPIEndpoint(), null), 1),
       false
     )
     const repoZ = new Repository('z', 3, null, false)
@@ -94,7 +93,7 @@ describe('repository list grouping', () => {
       1,
       new GitHubRepository(
         'repo',
-        new Owner('user1', getDotComAPIEndpoint()),
+        new Owner('user1', getDotComAPIEndpoint(), null),
         1
       ),
       false
@@ -104,7 +103,7 @@ describe('repository list grouping', () => {
       2,
       new GitHubRepository(
         'cool-repo',
-        new Owner('user2', getDotComAPIEndpoint()),
+        new Owner('user2', getDotComAPIEndpoint(), null),
         2
       ),
       false
@@ -114,7 +113,7 @@ describe('repository list grouping', () => {
       2,
       new GitHubRepository(
         'repo',
-        new Owner('user2', getDotComAPIEndpoint()),
+        new Owner('user2', getDotComAPIEndpoint(), null),
         2
       ),
       false

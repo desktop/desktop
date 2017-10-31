@@ -1,9 +1,8 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import * as fs from 'fs'
 import * as path from 'path'
-const distInfo = require('./dist-info')
-const getUserDataPath: () => string = distInfo.getUserDataPath
+import { getUserDataPath } from './dist-info'
 
 export function getLogFiles(): ReadonlyArray<string> {
   const directory = path.join(getUserDataPath(), 'logs')
