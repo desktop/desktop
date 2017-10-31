@@ -41,18 +41,18 @@ export interface IHighlightRequest {
    * stream to count columns. See CodeMirror's StringStream
    * class for more details.
    */
-  tabSize: number
+  readonly tabSize: number
 
   /**
    * The file extension of the path in question as returned
    * by node's extname() function (i.e. with a leading dot).
    */
-  extension: string
+  readonly extension: string
 
   /**
    * The actual contents which is to be used for highlighting.
    */
-  contents: string
+  readonly contents: string
 
   /**
    * An optional filter of lines which needs to be tokenized.
@@ -63,7 +63,7 @@ export interface IHighlightRequest {
    * to be serialized over the IPC boundary) and, for stateless
    * modes we can significantly speed up the highlight process.
    */
-  lines?: Array<number>
+  readonly lines?: Array<number>
 
   /**
    * When enabled (off by default), an extra CSS class will be
@@ -71,5 +71,5 @@ export interface IHighlightRequest {
    * produced it, prefixed with "cm-m-". For example, tokens from
    * the XML mode will get the cm-m-xml class.
    */
-  addModeClass?: boolean
+  readonly addModeClass?: boolean
 }
