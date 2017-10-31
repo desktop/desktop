@@ -17,15 +17,15 @@ import { Emitter, Disposable } from 'event-kit'
 
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore {
-  private readonly db: PullRequestDatabase
   private readonly emitter = new Emitter()
+  private readonly pullRequestDatabase: PullRequestDatabase
   private readonly repositoriesStore: RepositoriesStore
 
   public constructor(
     db: PullRequestDatabase,
     repositoriesStore: RepositoriesStore
   ) {
-    this.db = db
+    this.pullRequestDatabase = db
     this.repositoriesStore = repositoriesStore
   }
 
@@ -211,7 +211,7 @@ export class PullRequestStore {
     sha: string,
     pullRequestId: number
   ): Promise<PullRequestStatus | null> {
-    const result = await this.db.pullRequestStatus
+    const result = await this.pullRequestDatabase.pullRequestStatus
       .where('[sha+pullRequestId]')
       .equals([sha, pullRequestId])
       .limit(1)
@@ -243,7 +243,7 @@ export class PullRequestStore {
       return -1
     }
 
-    const table = this.db.pullRequests
+    const table = this.pullRequestDatabase.pullRequests
 
     const insertablePRs = new Array<IPullRequest>()
     for (const pr of pullRequests) {
@@ -280,7 +280,7 @@ export class PullRequestStore {
       })
     }
 
-    return await this.db.transaction('rw', table, async () => {
+    return await this.pullRequestDatabase.transaction('rw', table, async () => {
       await table.clear()
       return await table.bulkAdd(insertablePRs)
     })
@@ -289,9 +289,9 @@ export class PullRequestStore {
   private async writePullRequestStatus(
     statuses: Array<IPullRequestStatus>
   ): Promise<void> {
-    const table = this.db.pullRequestStatus
+    const table = this.pullRequestDatabase.pullRequestStatus
 
-    return await this.db.transaction('rw', table, async () => {
+    return await this.pullRequestDatabase.transaction('rw', table, async () => {
       for (const status of statuses) {
         const existing = await table
           .where('[sha+pullRequestId]')
