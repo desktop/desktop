@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import * as Fs from 'fs'
+import * as fileSystem from '../../lib/file-system'
 
 import { getBlobContents } from './show'
 
@@ -358,6 +358,15 @@ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
   return parser.parse(pieces[pieces.length - 1])
 }
 
+/**
+ * Retrieve the binary contents of a blob from the object database
+ *
+ * Returns an image object containing the base64 encoded string,
+ * as <img> tags support the data URI scheme instead of
+ * needing to reference a file:// URI
+ *
+ * https://en.wikipedia.org/wiki/Data_URI_scheme
+ */
 export async function getBlobImage(
   repository: Repository,
   path: string,
@@ -371,43 +380,25 @@ export async function getBlobImage(
   }
   return diff
 }
-
-export async function getWorkingDirectoryImage(
-  repository: Repository,
-  file: FileChange
-): Promise<Image> {
-  const extension = Path.extname(file.path)
-  const contents = await getWorkingDirectoryContents(repository, file)
-  const diff: Image = {
-    contents: contents,
-    mediaType: getMediaType(extension),
-  }
-  return diff
-}
-
 /**
  * Retrieve the binary contents of a blob from the working directory
  *
- * Returns a promise containing the base64 encoded string,
+ * Returns an image object containing the base64 encoded string,
  * as <img> tags support the data URI scheme instead of
  * needing to reference a file:// URI
  *
  * https://en.wikipedia.org/wiki/Data_URI_scheme
- *
  */
-async function getWorkingDirectoryContents(
+export async function getWorkingDirectoryImage(
   repository: Repository,
   file: FileChange
-): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    const path = Path.join(repository.path, file.path)
-
-    Fs.readFile(path, { flag: 'r' }, (error, buffer) => {
-      if (error) {
-        reject(error)
-        return
-      }
-      resolve(buffer.toString('base64'))
-    })
-  })
+): Promise<Image> {
+  const contents = await fileSystem.readFile(
+    Path.join(repository.path, file.path)
+  )
+  const diff: Image = {
+    contents: contents.toString('base64'),
+    mediaType: getMediaType(Path.extname(file.path)),
+  }
+  return diff
 }

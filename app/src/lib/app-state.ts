@@ -7,7 +7,7 @@ import { Branch } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import {
-  FileChange,
+  CommittedFileChange,
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../models/status'
@@ -519,7 +519,7 @@ export interface IBranchesState {
 
 export interface IHistorySelection {
   readonly sha: string | null
-  readonly file: FileChange | null
+  readonly file: CommittedFileChange | null
 }
 
 export interface IHistoryState {
@@ -528,7 +528,7 @@ export interface IHistoryState {
   /** The ordered SHAs. */
   readonly history: ReadonlyArray<string>
 
-  readonly changedFiles: ReadonlyArray<FileChange>
+  readonly changedFiles: ReadonlyArray<CommittedFileChange>
 
   readonly diff: IDiff | null
 }

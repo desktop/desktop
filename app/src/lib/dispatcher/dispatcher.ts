@@ -5,7 +5,10 @@ import { Disposable } from 'event-kit'
 
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
-import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  CommittedFileChange,
+} from '../../models/status'
 import { DiffSelection } from '../../models/diff'
 import {
   RepositorySection,
@@ -145,7 +148,7 @@ export class Dispatcher {
    */
   public changeHistoryFileSelection(
     repository: Repository,
-    file: FileChange
+    file: CommittedFileChange
   ): Promise<void> {
     return this.appStore._changeHistoryFileSelection(repository, file)
   }
