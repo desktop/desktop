@@ -52,14 +52,17 @@ export class UpstreamAlreadyExists extends React.Component<
       >
         <DialogContent>
           <p>
-            <Ref>{name}</Ref> is a fork of <Ref>{parentName}</Ref>, but its{' '}
-            <Ref>{UpstreamRemoteName}</Ref> remote is <Ref>{existingURL}</Ref>{' '}
-            instead of <Ref>{replacementURL}</Ref>
+            The repository <Ref>{name}</Ref> is a fork of{' '}
+            <Ref>{parentName}</Ref>, but its <Ref>{UpstreamRemoteName}</Ref>{' '}
+            remote points elsewhere.
           </p>
           <p>
-            Would you like to update the <Ref>{UpstreamRemoteName}</Ref> remote
-            to use the expected URL?
+            • Current: <Ref>{existingURL}</Ref>
           </p>
+          <p>
+            • Expected: <Ref>{replacementURL}</Ref>
+          </p>
+          <p>Would you like to update the remote to use the expected URL?</p>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup destructive={true}>
