@@ -78,7 +78,7 @@ export function highlight(
     timeout = window.setTimeout(() => {
       worker.terminate()
       log.error('Highlighting worker timed out')
-      reject(resolve({}))
+      resolve({})
     }, workerMaxRunDuration)
   })
 }
