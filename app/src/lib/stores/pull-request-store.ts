@@ -21,6 +21,8 @@ export class PullRequestStore {
   private readonly pullRequestDatabase: PullRequestDatabase
   private readonly repositoriesStore: RepositoriesStore
 
+  private pullRequests: ReadonlyArray<PullRequest> = []
+
   public constructor(
     db: PullRequestDatabase,
     repositoriesStore: RepositoriesStore
@@ -33,16 +35,18 @@ export class PullRequestStore {
   public async refreshPullRequests(
     repository: GitHubRepository,
     account: Account
-  ): Promise<ReadonlyArray<PullRequest>> {
+  ): Promise<void> {
     const api = API.fromAccount(account)
 
-    const prsFromAPI = await api.fetchPullRequests(
+    const raw = await api.fetchPullRequests(
       repository.owner.login,
       repository.name,
       'open'
     )
 
-    await this.writePullRequests(prsFromAPI, repository)
+    const result = await this.writePullRequests(raw, repository)
+
+    if (result <= 0) return
 
     const results = await this.getPullRequests(repository)
 
@@ -144,67 +148,9 @@ export class PullRequestStore {
   public async getPullRequests(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<PullRequest>> {
-    const gitHubRepositoryID = repository.dbID
-    if (!gitHubRepositoryID) {
-      fatalError(
-        "Cannot get pull requests for a repository that hasn't been inserted into the database!"
-      )
+    await this.loadPullRequestsFromStorage(repository)
 
-      return []
-    }
-
-    const pullRequests = await this.db.pullRequests
-      .where('base.repoId')
-      .equals(gitHubRepositoryID)
-      .reverse()
-      .sortBy('number')
-
-    const builtPullRequests = new Array<PullRequest>()
-    for (const pr of pullRequests) {
-      const headId = pr.head.repoId
-      let head: GitHubRepository | null = null
-      if (headId) {
-        head = await this.repositoriesStore.findGitHubRepositoryByID(headId)
-      }
-
-      // We know the base repo ID can't be null since it's the repository we
-      // fetched the PR from in the first place.
-      const baseId = forceUnwrap(
-        'PR cannot have a null base repo id',
-        pr.base.repoId
-      )
-      const base = forceUnwrap(
-        'PR cannot have a null base repo',
-        await this.repositoriesStore.findGitHubRepositoryByID(baseId)
-      )
-
-      // We can be certain the PR ID is valid since we just got it from the
-      // database.
-      const prID = forceUnwrap(
-        'PR cannot have a null ID after being retrieved from the database',
-        pr.id
-      )
-
-      const pullRequestStatus = await this.getPullRequestStatusById(
-        pr.head.sha,
-        prID
-      )
-
-      const builtPR = new PullRequest(
-        prID,
-        new Date(pr.createdAt),
-        pullRequestStatus,
-        pr.title,
-        pr.number,
-        new PullRequestRef(pr.head.ref, pr.head.sha, head),
-        new PullRequestRef(pr.base.ref, pr.base.sha, base),
-        pr.author
-      )
-
-      builtPullRequests.push(builtPR)
-    }
-
-    return builtPullRequests
+    return this.pullRequests.slice()
   }
 
   private async getPullRequestStatusById(
@@ -305,6 +251,77 @@ export class PullRequestStore {
       }
     })
   }
+
+  private async loadPullRequestsFromStorage(
+    repository: GitHubRepository
+  ): Promise<void> {
+    const gitHubRepositoryID = repository.dbID
+
+    if (!gitHubRepositoryID) {
+      fatalError(
+        "Cannot get pull requests for a repository that hasn't been inserted into the database!"
+      )
+
+      return
+    }
+
+    const raw = await this.pullRequestDatabase.pullRequests
+      .where('base.repoId')
+      .equals(gitHubRepositoryID)
+      .reverse()
+      .sortBy('number')
+
+    const pullRequests = new Array<PullRequest>()
+
+    for (const pr of raw) {
+      const headId = pr.head.repoId
+
+      let head: GitHubRepository | null = null
+
+      if (headId) {
+        head = await this.repositoriesStore.findGitHubRepositoryByID(headId)
+      }
+
+      // We know the base repo ID can't be null since it's the repository we
+      // fetched the PR from in the first place.
+      const baseId = forceUnwrap(
+        'PR cannot have a null base repo id',
+        pr.base.repoId
+      )
+      const base = forceUnwrap(
+        'PR cannot have a null base repo',
+        await this.repositoriesStore.findGitHubRepositoryByID(baseId)
+      )
+
+      // We can be certain the PR ID is valid since we just got it from the
+      // database.
+      const prID = forceUnwrap(
+        'PR cannot have a null ID after being retrieved from the database',
+        pr.id
+      )
+
+      const pullRequestStatus = await this.getPullRequestStatusById(
+        pr.head.sha,
+        prID
+      )
+
+      const pullRequest = new PullRequest(
+        prID,
+        new Date(pr.createdAt),
+        pullRequestStatus,
+        pr.title,
+        pr.number,
+        new PullRequestRef(pr.head.ref, pr.head.sha, head),
+        new PullRequestRef(pr.base.ref, pr.base.sha, base),
+        pr.author
+      )
+
+      pullRequests.push(pullRequest)
+    }
+
+    this.pullRequests = pullRequests
+  }
+
   private emitUpdate() {
     this.emitter.emit('did-update', {})
   }
