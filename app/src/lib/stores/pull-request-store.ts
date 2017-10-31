@@ -13,10 +13,12 @@ import {
   PullRequestRef,
   PullRequestStatus,
 } from '../../models/pull-request'
+import { Emitter, Disposable } from 'event-kit'
 
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore {
   private readonly db: PullRequestDatabase
+  private readonly emitter = new Emitter()
   private readonly repositoriesStore: RepositoriesStore
 
   public constructor(
@@ -302,5 +304,22 @@ export class PullRequestStore {
         }
       }
     })
+  }
+  private emitUpdate() {
+    this.emitter.emit('did-update', {})
+  }
+
+  private emitError(error: Error) {
+    this.emitter.emit('did-error', error)
+  }
+
+  /** Register a function to be called when the store updates. */
+  public onDidUpdate(fn: () => void): Disposable {
+    return this.emitter.on('did-update', fn)
+  }
+
+  /** Register a function to be called when an error occurs. */
+  public onDidError(fn: (error: Error) => void): Disposable {
+    return this.emitter.on('did-error', fn)
   }
 }
