@@ -969,7 +969,17 @@ export class Dispatcher {
   ): Promise<void> {
     log.info(`storing generic credentials for '${hostname}' and '${username}'`)
     setGenericUsername(hostname, username)
-    await setGenericPassword(hostname, username, password)
+
+    try {
+      await setGenericPassword(hostname, username, password)
+    } catch (e) {
+      log.error(
+        `Error saving generic git credentials: ${username}@${hostname}`,
+        e
+      )
+
+      this.postError(e)
+    }
   }
 
   /** Perform the given retry action. */

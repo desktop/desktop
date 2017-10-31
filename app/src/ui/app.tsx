@@ -1306,9 +1306,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
-    newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
-      : this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+    }
   }
 
   private renderRepositoryToolbarButton() {
@@ -1422,9 +1424,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
-    newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
-      : this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    }
   }
 
   private renderBranchToolbarButton(): JSX.Element | null {

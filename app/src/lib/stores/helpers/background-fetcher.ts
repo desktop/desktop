@@ -147,7 +147,7 @@ function skewInterval(): number {
 
   // We don't need cryptographically secure random numbers for
   // the skew. Pseudo-random should be just fine.
-  // tslint:disable-next-line:insecure-random
+  // eslint-disable-next-line insecure-random
   const skew = Math.ceil(Math.random() * SkewUpperBound)
   _skewInterval = skew
   return skew

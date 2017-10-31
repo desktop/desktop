@@ -1,10 +1,16 @@
-import { git, IGitExecutionOptions } from './core'
+import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import {
   CheckoutProgressParser,
   executionOptionsWithProgress,
 } from '../progress'
 import { ICheckoutProgress } from '../app-state'
+
+import {
+  IGitAccount,
+  envForAuthentication,
+  AuthenticationErrors,
+} from './authentication'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
@@ -24,10 +30,14 @@ export type ProgressCallback = (progress: ICheckoutProgress) => void
  */
 export async function checkoutBranch(
   repository: Repository,
+  account: IGitAccount | null,
   name: string,
   progressCallback?: ProgressCallback
 ): Promise<void> {
-  let opts: IGitExecutionOptions = {}
+  let opts: IGitExecutionOptions = {
+    env: envForAuthentication(account),
+    expectedErrors: AuthenticationErrors,
+  }
 
   if (progressCallback) {
     const title = `Checking out branch ${name}`
@@ -52,8 +62,8 @@ export async function checkoutBranch(
   }
 
   const args = progressCallback
-    ? ['checkout', '--progress', name, '--']
-    : ['checkout', name, '--']
+    ? [...gitNetworkArguments, 'checkout', '--progress', name, '--']
+    : [...gitNetworkArguments, 'checkout', name, '--']
 
   await git(args, repository.path, 'checkoutBranch', opts)
 }

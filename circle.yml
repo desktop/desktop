@@ -11,6 +11,7 @@ machine:
 
 dependencies:
   cache_directories:
+    - ".eslintcache"
     - "node_modules"
     - "~/.electron"
 
@@ -23,7 +24,6 @@ dependencies:
 
 compile:
   override:
-    - yarn check-prettiness
     - yarn lint
     - yarn build:prod
 

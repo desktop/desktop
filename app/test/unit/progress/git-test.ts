@@ -67,59 +67,57 @@ describe('GitProgressParser', () => {
 
     expect(result.kind).to.equal('context')
   })
-})
 
-describe('progress parser', () => {
   it('parses progress with no total', () => {
     const result = parse('remote: Counting objects: 167587')
 
-    expect(result).to.deep.equal(<IGitProgressInfo>{
+    expect(result).to.deep.equal({
       title: 'remote: Counting objects',
       text: 'remote: Counting objects: 167587',
       value: 167587,
       done: false,
       percent: undefined,
       total: undefined,
-    })
+    } as IGitProgressInfo)
   })
 
   it('parses final progress with no total', () => {
     const result = parse('remote: Counting objects: 167587, done.')
 
-    expect(result).to.deep.equal(<IGitProgressInfo>{
+    expect(result).to.deep.equal({
       title: 'remote: Counting objects',
       text: 'remote: Counting objects: 167587, done.',
       value: 167587,
       done: true,
       percent: undefined,
       total: undefined,
-    })
+    } as IGitProgressInfo)
   })
 
   it('parses progress with total', () => {
     const result = parse('remote: Compressing objects:  72% (16/22)')
 
-    expect(result).to.deep.equal(<IGitProgressInfo>{
+    expect(result).to.deep.equal({
       title: 'remote: Compressing objects',
       text: 'remote: Compressing objects:  72% (16/22)',
       value: 16,
       done: false,
       percent: 72,
       total: 22,
-    })
+    } as IGitProgressInfo)
   })
 
   it('parses final with total', () => {
     const result = parse('remote: Compressing objects: 100% (22/22), done.')
 
-    expect(result).to.deep.equal(<IGitProgressInfo>{
+    expect(result).to.deep.equal({
       title: 'remote: Compressing objects',
       text: 'remote: Compressing objects: 100% (22/22), done.',
       value: 22,
       done: true,
       percent: 100,
       total: 22,
-    })
+    } as IGitProgressInfo)
   })
 
   it('parses with total and throughput', () => {
@@ -127,14 +125,14 @@ describe('progress parser', () => {
       'Receiving objects:  99% (166741/167587), 267.24 MiB | 2.40 MiB/s'
     )
 
-    expect(result).to.deep.equal(<IGitProgressInfo>{
+    expect(result).to.deep.equal({
       title: 'Receiving objects',
       text: 'Receiving objects:  99% (166741/167587), 267.24 MiB | 2.40 MiB/s',
       value: 166741,
       done: false,
       percent: 99,
       total: 167587,
-    })
+    } as IGitProgressInfo)
   })
 
   it('parses final with total and throughput', () => {
@@ -142,7 +140,7 @@ describe('progress parser', () => {
       'Receiving objects: 100% (167587/167587), 279.67 MiB | 2.43 MiB/s, done.'
     )
 
-    expect(result).to.deep.equal(<IGitProgressInfo>{
+    expect(result).to.deep.equal({
       title: 'Receiving objects',
       text:
         'Receiving objects: 100% (167587/167587), 279.67 MiB | 2.43 MiB/s, done.',
@@ -150,7 +148,7 @@ describe('progress parser', () => {
       done: true,
       percent: 100,
       total: 167587,
-    })
+    } as IGitProgressInfo)
   })
 
   it("does not parse things that aren't progress", () => {

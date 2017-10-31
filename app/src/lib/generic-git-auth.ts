@@ -28,15 +28,6 @@ export function getGenericUsername(hostname: string): string | null {
   return localStorage.getItem(key)
 }
 
-/** Get the password for the host. */
-export function getGenericPassword(
-  hostname: string,
-  username: string
-): Promise<string | null> {
-  const key = getKeyForEndpoint(hostname)
-  return TokenStore.getItem(key, username)
-}
-
 /** Set the username for the host. */
 export function setGenericUsername(hostname: string, username: string) {
   const key = getKeyForUsername(hostname)

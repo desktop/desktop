@@ -1,5 +1,6 @@
 import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
+import { encodePathAsUrl } from '../lib/path'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
 import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-app-url'
@@ -132,8 +133,7 @@ export class AppWindow {
     this.window.on('blur', () => this.window.webContents.send('blur'))
 
     registerWindowStateChangedEvents(this.window)
-
-    this.window.loadURL(`file://${__dirname}/index.html`)
+    this.window.loadURL(encodePathAsUrl(__dirname, 'index.html'))
   }
 
   /**

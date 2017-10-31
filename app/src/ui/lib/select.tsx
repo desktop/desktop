@@ -47,7 +47,7 @@ export class Select extends React.Component<ISelectProps, ISelectState> {
     const label = this.props.label
     const inputId = this.state.inputId
 
-    return !!label ? <label htmlFor={inputId}>{label}</label> : null
+    return label ? <label htmlFor={inputId}>{label}</label> : null
   }
 
   public render() {
