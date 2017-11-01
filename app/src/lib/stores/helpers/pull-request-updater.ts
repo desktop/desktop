@@ -91,30 +91,24 @@ export class PullRequestUpdater {
   }
 
   private async refreshPullRequestStatus() {
-    const pullRequests = this.currentPullRequests
+    await this.store.refreshPullRequestStatuses(this.repository, this.account)
+    const prStatuses = await this.store.getPullRequestStatuses()
 
-    for (const pr of pullRequests) {
-      const status = await this.store.refreshSinglePullRequestStatus(
-        this.repository,
-        this.account,
-        pr
-      )
-
-      console.log('status for', status)
-
+    for (const prStatus of prStatuses) {
       if (
-        !status.totalCount ||
-        status.state === 'success' ||
-        status.state === 'failure'
+        !prStatus.totalCount ||
+        prStatus.state === 'success' ||
+        prStatus.state === 'failure'
       ) {
         this.currentPullRequests = this.currentPullRequests.filter(
-          p => p.id === pr.id
+          p => p.number === prStatus.pullRequestNumber
         )
       }
     }
 
     if (!this.currentPullRequests.length) {
       const handle = this.timeoutHandles.get(TimeoutHandles.PushedPullRequest)
+
       if (handle) {
         window.clearTimeout(handle)
         this.timeoutHandles.delete(TimeoutHandles.PushedPullRequest)
