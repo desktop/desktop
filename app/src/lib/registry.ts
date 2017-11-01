@@ -32,37 +32,35 @@ function isStandardPowershellProperty(name: string): boolean {
 export async function readRegistryKeySafe(
   key: string
 ): Promise<ReadonlyArray<IRegistryEntry>> {
-  const results = new Array<IRegistryEntry>()
-  const script = `Get-ItemProperty "${key}" | ConvertTo-Json -Depth 1`
+  const script = `Get-ItemProperty "${key}" | Out-String`
   const stdout = await executePowerShellScript(script)
-  const jsonText = stdout.trim()
+  const output = stdout.trim()
 
-  if (jsonText.length) {
-    try {
-      const json = JSON.parse(stdout)
+  if (output.length === 0) {
+    return []
+  }
 
-      for (const [name, value] of Object.entries(json)) {
-        // PowerShell won't let you exclude the default properties
-        // when interacting with the registry. We'll skip over these
-        // because the caller doesn't care about them too
-        if (isStandardPowershellProperty(name)) {
-          continue
-        }
+  const results = new Array<IRegistryEntry>()
+  const lines = stdout.split('\n')
 
-        // PowerShell may return objects when serializing - this is to
-        // ensure we don't accidentally also share those with the caller
-        if (typeof value === 'string') {
-          results.push({ name, value })
-        }
-      }
-    } catch (err) {
-      debugger
-      log.debug(
-        `unable to parse JSON returned from registry for key: ${key}`,
-        err
-      )
-      log.debug(`JSON text: '${jsonText}'`)
+  for (const line of lines) {
+    if (line.length === 0 || line.indexOf(' : ') === -1) {
+      // skip rows which aren't formatted in the expected way
+      continue
     }
+
+    const [left, right] = line.split(' : ')
+    const name = left.trim()
+    const value = right.trim()
+
+    // PowerShell won't let you exclude the default properties
+    // when interacting with the registry. We'll skip over these
+    // because the caller doesn't care about them too
+    if (isStandardPowershellProperty(name)) {
+      continue
+    }
+
+    results.push({ name, value })
   }
 
   return results
