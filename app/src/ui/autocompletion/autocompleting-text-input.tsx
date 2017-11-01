@@ -106,7 +106,7 @@ export abstract class AutocompletingTextInput<
     )
   }
 
-  private storeAutocompletionListRef = (ref: List) => {
+  private storeAutocompletionListRef = (ref: List | null) => {
     this.autocompletionList = ref
   }
 
