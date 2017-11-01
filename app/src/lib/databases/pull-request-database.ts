@@ -73,7 +73,7 @@ export class PullRequestDatabase extends Dexie {
     })
 
     this.version(2).stores({
-      pullRequestStatus: 'id++, &[sha+pullRequestId]',
+      pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
     })
   }
 }
