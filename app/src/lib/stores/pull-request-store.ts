@@ -22,6 +22,7 @@ export class PullRequestStore {
   private readonly repositoriesStore: RepositoriesStore
 
   private pullRequests: ReadonlyArray<PullRequest> = []
+  private pullRequestStatuses: ReadonlyArray<PullRequestStatus> = []
 
   public constructor(
     db: PullRequestDatabase,
