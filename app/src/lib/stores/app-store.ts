@@ -2852,12 +2852,11 @@ export class AppStore {
       return Promise.resolve()
     }
 
-    await this.pullRequestStore.refreshPullRequests(
-      gitHubRepository,
-      account
-    )
+    await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
 
-    const pullRequests = await this.pullRequestStore.getPullRequests(gitHubRepository)
+    const pullRequests = await this.pullRequestStore.getPullRequests(
+      gitHubRepository
+    )
 
     this.updateStateWithPullRequests(pullRequests, repository, gitHubRepository)
   }
