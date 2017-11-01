@@ -83,13 +83,13 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
 
 If you're not sure how your editor is installed, check one of these locations:
 
- - `HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
+ - `HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
     uninstall information about 64-bit Windows software is found here
 
- - `HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
+ - `HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
     uninstall information about 32-bit Windows software is found here
 
- - `HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
+ - `HEKY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
     uninstall information for software that doesn't require administrator
     permissions is found here
 
