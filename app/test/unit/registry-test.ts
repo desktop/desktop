@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 
-import { getActiveCodePage } from '../../src/lib/shell'
 import { readRegistryKeySafe } from '../../src/lib/registry'
 
 if (process.platform === 'win32') {
@@ -17,21 +16,6 @@ if (process.platform === 'win32') {
         'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate'
       )
       expect(entries.length).to.be.greaterThan(0)
-    })
-
-    it('cleans up changes to the active code page', async () => {
-      const utf8CodePage = 65001
-
-      const beforeCodePage = await getActiveCodePage()
-      expect(beforeCodePage).to.not.equal(utf8CodePage)
-
-      await readRegistryKeySafe(
-        'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate'
-      )
-      const afterCodePage = await getActiveCodePage()
-
-      expect(afterCodePage).to.not.equal(utf8CodePage)
-      expect(afterCodePage).to.equal(beforeCodePage)
     })
   })
 }
