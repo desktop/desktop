@@ -1,5 +1,11 @@
 import * as Path from 'path'
 
+/**
+ * Get the path to the PowerShell executable.
+ *
+ * If the %SystemRoot% environment variable set, will return the absolute path.
+ * If not found, it assumes PowerShell is on the PATH.
+ */
 export function getPowerShellPath(): string {
   const systemRoot = process.env['SystemRoot']
   if (systemRoot) {
