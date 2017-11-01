@@ -39,21 +39,29 @@ export class PullRequestStore {
   ): Promise<void> {
     const api = API.fromAccount(account)
 
-    const raw = await api.fetchPullRequests(
-      repository.owner.login,
-      repository.name,
-      'open'
-    )
+    try {
+      const raw = await api.fetchPullRequests(
+        repository.owner.login,
+        repository.name,
+        'open'
+      )
 
-    const result = await this.writePullRequests(raw, repository)
+      const result = await this.writePRs(raw, repository)
 
-    if (result <= 0) return
+      if (result <= 0) {
+        return
+      }
 
-    const results = await this.getPullRequests(repository)
+      const results = await this.getPullRequests(repository)
 
-    await this.refreshStatusesForPullRequests(results, repository, account)
+      await this.refreshStatusesForPRs(results, repository, account)
 
-    return await this.getPullRequests(repository)
+      this.pullRequests = await this.getPullRequests(repository)
+      this.emitUpdate()
+    } catch (error) {
+      log.warn(`Error refreshing pull requests for '${repository.name}`)
+      this.emitError(error)
+    }
   }
 
   public async refreshSinglePullRequestStatus(
@@ -67,89 +75,80 @@ export class PullRequestStore {
   public async refreshPullRequestStatuses(
     repository: GitHubRepository,
     account: Account
-  ): Promise<ReadonlyArray<PullRequestStatus>> {
+  ): Promise<void> {
     const prs = await this.getPullRequests(repository)
 
-    return await this.refreshStatusesForPullRequests(prs, repository, account)
+    await this.refreshStatusesForPRs(prs, repository, account)
   }
 
-  public async refreshStatusesForPullRequests(
+  public async refreshStatusesForPRs(
     pullRequests: ReadonlyArray<PullRequest>,
     repository: GitHubRepository,
     account: Account
-  ): Promise<ReadonlyArray<PullRequestStatus>> {
+  ): Promise<void> {
     const api = API.fromAccount(account)
 
-    const pullRequestsStatuses: Array<IPullRequestStatus> = []
+    const statuses: Array<IPullRequestStatus> = []
+    const prs: Array<PullRequest> = []
 
     for (const pr of pullRequests) {
-      const status = await api.fetchCombinedRefStatus(
+      const apiStatus = await api.fetchCombinedRefStatus(
         repository.owner.login,
         repository.name,
         pr.head.sha
       )
 
-      pullRequestsStatuses.push({
-        state: status.state,
-        totalCount: status.total_count,
-        pullRequestId: pr.id,
+      const status = {
+        pullRequestNumber: pr.number,
+        state: apiStatus.state,
+        totalCount: apiStatus.total_count,
         sha: pr.head.sha,
-      })
-    }
-
-    await this.writePullRequestStatus(pullRequestsStatuses)
-
-    return await this.getPullRequestStatuses(pullRequests, repository)
-  }
-
-  /** Get the pull request statuses from the database */
-  public async getPullRequestStatuses(
-    pullReqeuests: ReadonlyArray<PullRequest>,
-    repository: GitHubRepository
-  ): Promise<ReadonlyArray<PullRequestStatus>> {
-    const gitHubRepositoryID = repository.dbID
-
-    if (!gitHubRepositoryID) {
-      fatalError(
-        "Cannot get pull requests for a repository that hasn't been inserted into the database!"
-      )
-
-      return []
-    }
-
-    const result: Array<PullRequestStatus> = []
-    const prs = await this.getPullRequests(repository)
-
-    for (const pr of prs) {
-      const status = await this.getPullRequestStatusById(pr.head.sha, pr.id)
-
-      if (!status) {
-        continue
       }
 
-      result.push(
-        new PullRequestStatus(
+      statuses.push({
+        pullRequestId: pr.id,
+        state: apiStatus.state,
+        totalCount: apiStatus.total_count,
+        sha: pr.head.sha,
+      })
+
+      prs.push(
+        new PullRequest(
+          pr.id,
+          pr.created,
+          status,
+          pr.title,
           pr.number,
-          status.state,
-          status.totalCount,
-          status.sha
+          pr.head,
+          pr.base,
+          pr.author
         )
       )
     }
 
-    return result
+    await this.writePRStatus(statuses)
+
+    this.pullRequestStatuses = await this.getPRStatuses(
+      repository,
+      pullRequests
+    )
+    this.emitUpdate()
   }
 
   /** Get the pull requests from the database. */
   public async getPullRequests(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<PullRequest>> {
-    await this.loadPullRequestsFromStorage(repository)
+    await this.getPRs(repository)
 
     return this.pullRequests.slice()
   }
 
-  private async getPullRequestStatusById(
+  public async getPullRequestStatuses() {
+    return this.pullRequestStatuses.slice()
+  }
+
+  private async getPRStatusById(
     sha: string,
     pullRequestId: number
   ): Promise<PullRequestStatus | null> {
@@ -171,7 +170,7 @@ export class PullRequestStore {
     )
   }
 
-  private async writePullRequests(
+  private async writePRs(
     pullRequests: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
   ): Promise<number> {
@@ -222,18 +221,25 @@ export class PullRequestStore {
       })
     }
 
-    return await this.pullRequestDatabase.transaction('rw', table, async () => {
-      await table.clear()
-      return await table.bulkAdd(insertablePRs)
-    })
+    const inserts = await this.pullRequestDatabase.transaction(
+      'rw',
+      table,
+      async () => {
+        await table.clear()
+        return await table.bulkAdd(insertablePRs)
+      }
+    )
+
+    this.emitUpdate()
+    return inserts
   }
 
-  private async writePullRequestStatus(
+  private async writePRStatus(
     statuses: Array<IPullRequestStatus>
   ): Promise<void> {
     const table = this.pullRequestDatabase.pullRequestStatus
 
-    return await this.pullRequestDatabase.transaction('rw', table, async () => {
+    await this.pullRequestDatabase.transaction('rw', table, async () => {
       for (const status of statuses) {
         const existing = await table
           .where('[sha+pullRequestId]')
@@ -246,11 +252,49 @@ export class PullRequestStore {
         }
       }
     })
+
+    this.emitUpdate()
   }
 
-  private async loadPullRequestsFromStorage(
-    repository: GitHubRepository
-  ): Promise<void> {
+  /** Get the pull request statuses from the database */
+  private async getPRStatuses(
+    repository: GitHubRepository,
+    pullRequests: ReadonlyArray<PullRequest>
+  ): Promise<ReadonlyArray<PullRequestStatus>> {
+    const gitHubRepositoryID = repository.dbID
+
+    if (!gitHubRepositoryID) {
+      fatalError(
+        "Cannot get pull requests for a repository that hasn't been inserted into the database!"
+      )
+
+      return []
+    }
+
+    const prStatuses: Array<PullRequestStatus> = []
+
+    for (const pr of pullRequests) {
+      const rawPRStatuses = await this.pullRequestDatabase.pullRequestStatus
+        .where('pullRequestId')
+        .equals(pr.id)
+        .toArray()
+
+      for (const rawPRStatus of rawPRStatuses) {
+        prStatuses.push(
+          new PullRequestStatus(
+            pr.number,
+            rawPRStatus.state,
+            rawPRStatus.totalCount,
+            rawPRStatus.sha
+          )
+        )
+      }
+    }
+
+    return prStatuses
+  }
+
+  private async getPRs(repository: GitHubRepository): Promise<void> {
     const gitHubRepositoryID = repository.dbID
 
     if (!gitHubRepositoryID) {
@@ -296,10 +340,7 @@ export class PullRequestStore {
         pr.id
       )
 
-      const pullRequestStatus = await this.getPullRequestStatusById(
-        pr.head.sha,
-        prID
-      )
+      const pullRequestStatus = await this.getPRStatusById(pr.head.sha, prID)
 
       const pullRequest = new PullRequest(
         prID,
@@ -316,6 +357,7 @@ export class PullRequestStore {
     }
 
     this.pullRequests = pullRequests
+    this.emitUpdate()
   }
 
   private emitUpdate() {
