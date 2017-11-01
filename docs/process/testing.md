@@ -349,9 +349,17 @@
      - [ ] Status checks run frequently in background, especially if yellow
  - [ ] PR status can be updated independently of respective PR
 
-### TBD placeholder
+### TBD placeholder (WIP)
 - Merge tool for conflicted files
 - Conflicted files vs changed files
 - Relationship between branches
+  - Commit/Compare tabs now occupy left pane
+    - Compare tab shows branch dropdown
+      - Choose a branch from the list (same order as branch list? current branch present?) or user filter; `esc` clears filter
+       - Once branch selected, quantity of commits behind surfaced; matches commits shown
+         - `Merge X commits` button is activated
+           - Merge conflict count surfaced below button if relevant
+           - Clicking `Merge` button merges all shown commits 
+    - Commit history present, chronological order, descending
 - Show Git LFS (Cloning, Committing, Checking out, Reverting, Switching branches)
 - Report Git LFS (Cloning, Pushing, Pulling, Switching branches, Reverting)
