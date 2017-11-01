@@ -1,6 +1,11 @@
 import { spawn as spawnCore } from 'child_process'
 
-/** Spawn a command with arguments and capture its output. */
+/**
+ * Spawn a command with arguments and capture its output.
+ *
+ * This has some Windows-specific behaviour to ensure it raises the correct
+ * events, and should be avoided for non-Windows platforms.
+ */
 export function spawn(
   command: string,
   args: ReadonlyArray<string>
