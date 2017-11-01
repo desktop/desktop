@@ -50,7 +50,7 @@ For Git Bash we perform a couple of checks:
 
 ```ts
 const gitBash = await readRegistryKeySafe(
-  'HKEY_LOCAL_MACHINE\\SOFTWARE\\GitForWindows'
+  'HKLM:\\SOFTWARE\\GitForWindows'
 )
 if (gitBash.length > 0) {
   const installPathEntry = gitBash.find(e => e.name === 'InstallPath')

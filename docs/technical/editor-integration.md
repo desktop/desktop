@@ -72,9 +72,9 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
     case ExternalEditor.VisualStudioCode:
       return [
         // 64-bit version of VSCode
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{EA457B21-F73E-494C-ACAB-524FDE069978}_is1',
+        'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{EA457B21-F73E-494C-ACAB-524FDE069978}_is1',
         // 32-bit version of VSCode
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
+        'HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
       ]
     ...
   }
@@ -83,10 +83,10 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
 
 If you're not sure how your editor is installed, check one of these locations:
 
- - `HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
+ - `HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
     uninstall information about 64-bit Windows software is found here
 
- - `HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
+ - `HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
     uninstall information about 32-bit Windows software is found here
 
  - `HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -

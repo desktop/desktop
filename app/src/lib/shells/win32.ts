@@ -39,7 +39,7 @@ export async function getAvailableShells(): Promise<
   ]
 
   const powerShell = await readRegistryKeySafe(
-    'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
+    'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
   )
   if (powerShell.length > 0) {
     const path = powerShell[0].value.replace(
@@ -52,9 +52,7 @@ export async function getAvailableShells(): Promise<
     })
   }
 
-  const gitBash = await readRegistryKeySafe(
-    'HKEY_LOCAL_MACHINE\\SOFTWARE\\GitForWindows'
-  )
+  const gitBash = await readRegistryKeySafe('HKLM:\\SOFTWARE\\GitForWindows')
   if (gitBash.length > 0) {
     const installPathEntry = gitBash.find(e => e.name === 'InstallPath')
     if (installPathEntry) {

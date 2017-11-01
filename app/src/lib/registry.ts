@@ -1,97 +1,75 @@
 import * as Path from 'path'
-import { pathExists } from './file-system'
+import * as ChildProcess from 'child_process'
 
-import { spawn } from 'child_process'
-import { getActiveCodePage } from './shell'
+// TODO: extract this so it's shared with squirrel-updater
+function getPowerShellPath(): string {
+  const systemRoot = process.env['SystemRoot']
+  if (systemRoot) {
+    const system32Path = Path.join(process.env.SystemRoot, 'System32')
+    return Path.join(
+      system32Path,
+      'WindowsPowerShell',
+      'v1.0',
+      'powershell.exe'
+    )
+  } else {
+    return 'powershell.exe'
+  }
+}
 
-// This is a stripped back version of winreg:
-// https://github.com/fresc81/node-winreg
-//
-// I was seeing significant overhead when spawning the process to enumerate
-// the keys found by `reg.exe`, and rather than trying to fix and potentially
-// regress other parts I've extracted just the bit that I need to use.
+// TODO: this is also shared with squirrel-updater - can we unify this?
+
+/** Spawn a command with arguments and capture its output. */
+function spawn(command: string, args: ReadonlyArray<string>): Promise<string> {
+  try {
+    const child = ChildProcess.spawn(command, args as string[])
+    return new Promise<string>((resolve, reject) => {
+      let stdout = ''
+      child.stdout.on('data', data => {
+        stdout += data
+      })
+
+      child.on('close', code => {
+        if (code === 0) {
+          resolve(stdout)
+        } else {
+          reject(new Error(`Command "${command} ${args}" failed: "${stdout}"`))
+        }
+      })
+
+      child.on('error', (err: Error) => {
+        reject(err)
+      })
+
+      // This is necessary if using Powershell 2 on Windows 7 to get the events
+      // to raise.
+      // See http://stackoverflow.com/questions/9155289/calling-powershell-from-nodejs
+      child.stdin.end()
+    })
+  } catch (error) {
+    return Promise.reject(error)
+  }
+}
 
 export interface IRegistryEntry {
   readonly name: string
-  readonly type: string
   readonly value: string
 }
 
-const ITEM_PATTERN = /^(.*)\s(REG_SZ|REG_MULTI_SZ|REG_EXPAND_SZ|REG_DWORD|REG_QWORD|REG_BINARY|REG_NONE)\s+([^\s].*)$/
+/**
+ * These entries may be returned whenever PowerShell is reading a registry
+ * entry. We don't care about them, it's just noise.
+ */
+const standardPowerShellProperties = [
+  'PSPath',
+  'PSParentPath',
+  'PSChildName',
+  'PSDrive',
+  'PSProvider',
+]
 
-function parse(output: string): ReadonlyArray<IRegistryEntry> {
-  const lines = output.split('\n')
-
-  const items = []
-  const results = new Array<IRegistryEntry>()
-  let lineNumber = 0
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim()
-    if (line.length > 0) {
-      if (lineNumber !== 0) {
-        items.push(line)
-      }
-      ++lineNumber
-    }
-  }
-
-  for (let i = 0; i < items.length; i++) {
-    const match = ITEM_PATTERN.exec(items[i])
-    if (match) {
-      const name = match[1].trim()
-      const type = match[2].trim()
-      const value = match[3]
-      results.push({ name, type, value })
-    }
-  }
-
-  return results
-}
-
-function getPathToBatchFile(): string {
-  if (process.env.TEST_ENV) {
-    return Path.join(__dirname, '..', '..', 'static', 'win32', 'registry.bat')
-  } else {
-    return Path.join(__dirname, 'static', 'registry.bat')
-  }
-}
-
-const batchFilePath = getPathToBatchFile()
-
-function readRegistry(
-  key: string,
-  activeCodePage: number
-): Promise<ReadonlyArray<IRegistryEntry>> {
-  return new Promise<ReadonlyArray<IRegistryEntry>>((resolve, reject) => {
-    const proc = spawn(batchFilePath, [key, activeCodePage.toString()], {
-      cwd: undefined,
-    })
-
-    const buffers: Array<Buffer> = []
-    let errorThrown = false
-    proc.on('close', code => {
-      if (errorThrown) {
-        resolve([])
-      } else if (code !== 0) {
-        log.debug(`Unable to find registry key - exit code ${code} returned`)
-        resolve([])
-      } else {
-        const output = Buffer.concat(buffers).toString('utf8')
-        const results = parse(output)
-        resolve(results)
-      }
-    })
-
-    proc.stdout.on('data', (data: Buffer) => {
-      buffers.push(data)
-    })
-
-    proc.on('error', err => {
-      errorThrown = true
-      log.debug('An error occurred while trying to find the program', err)
-    })
-  })
+function isStandardPowershellProperty(name: string): boolean {
+  return standardPowerShellProperties.indexOf(name) > -1
 }
 
 /**
@@ -105,19 +83,54 @@ function readRegistry(
 export async function readRegistryKeySafe(
   key: string
 ): Promise<ReadonlyArray<IRegistryEntry>> {
-  const exists = await pathExists(batchFilePath)
-  if (!exists) {
-    log.error(
-      `Unable to find batch script at expected location: '${batchFilePath}'`
-    )
-    return []
+  const args = [
+    '-noprofile',
+    '-ExecutionPolicy',
+    'RemoteSigned',
+    '-command',
+    // Set encoding and execute the command, capture the output, and return it
+    // via .NET's console in order to have consistent UTF-8 encoding.
+    // See http://stackoverflow.com/questions/22349139/utf-8-output-from-powershell
+    // to address https://github.com/atom/atom/issues/5063
+    `
+      [Console]::OutputEncoding=[System.Text.Encoding]::UTF8
+      $output = get-itemproperty "${key}" | ConvertTo-Json -Depth 1
+      [Console]::WriteLine($output)
+    `,
+  ]
+
+  const results = new Array<IRegistryEntry>()
+
+  const stdout = await spawn(getPowerShellPath(), args)
+  const jsonText = stdout.trim()
+
+  if (jsonText.length) {
+    try {
+      const json = JSON.parse(stdout)
+
+      for (const [name, value] of Object.entries(json)) {
+        // PowerShell won't let you exclude the default properties
+        // when interacting with the registry. We'll skip over these
+        // because the caller doesn't care about them too
+        if (isStandardPowershellProperty(name)) {
+          continue
+        }
+
+        // PowerShell may return objects when serializing - this is to
+        // ensure we don't accidentally also share those with the caller
+        if (typeof value === 'string') {
+          results.push({ name, value })
+        }
+      }
+    } catch (err) {
+      debugger
+      log.debug(
+        `unable to parse JSON returned from registry for key: ${key}`,
+        err
+      )
+      log.debug(`JSON text: '${jsonText}'`)
+    }
   }
 
-  const activeCodePage = await getActiveCodePage()
-  if (!activeCodePage) {
-    log.debug('Unable to resolve active code page')
-    return []
-  }
-
-  return await readRegistry(key, activeCodePage)
+  return results
 }
