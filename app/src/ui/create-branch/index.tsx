@@ -290,7 +290,7 @@ export class CreateBranch extends React.Component<
       currentError = new Error(`A branch named ${sanitizedName} already exists`)
     }
 
-    this.setState({ proposedName: name, sanitizedName })
+    this.setState({ proposedName: name, sanitizedName, currentError })
   }
 
   private createBranch = async () => {
