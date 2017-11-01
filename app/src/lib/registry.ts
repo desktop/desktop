@@ -32,7 +32,11 @@ function isStandardPowershellProperty(name: string): boolean {
 export async function readRegistryKeySafe(
   key: string
 ): Promise<ReadonlyArray<IRegistryEntry>> {
-  const script = `Get-ItemProperty "${key}" | Out-String`
+  // PowerShell by default assumes you're looking at the output of the command
+  // in a terminal, so it'll try and be clever to optimize this output to fit.
+  // We don't want long rows to wrap, so providing a -Width argument here
+  // ensures that we can parse this output sensibly
+  const script = `Get-ItemProperty "${key}" | Out-String -Width 4096`
   const stdout = await executePowerShellScript(script)
   const output = stdout.trim()
 
