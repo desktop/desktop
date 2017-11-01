@@ -3,7 +3,7 @@ import * as Os from 'os'
 
 import { pathExists, mkdirIfNeeded, writeFile } from '../lib/file-system'
 import { spawn } from '../lib/win32/spawn'
-import { getPowerShellPath } from '../lib/win32/powershell'
+import { executePowerShellScript } from '../lib/win32/powershell'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
@@ -158,23 +158,8 @@ async function updateShortcut(): Promise<void> {
 
 /** Get the path segments in the user's `Path`. */
 async function getPathSegments(): Promise<ReadonlyArray<string>> {
-  const args = [
-    '-noprofile',
-    '-ExecutionPolicy',
-    'RemoteSigned',
-    '-command',
-    // Set encoding and execute the command, capture the output, and return it
-    // via .NET's console in order to have consistent UTF-8 encoding.
-    // See http://stackoverflow.com/questions/22349139/utf-8-output-from-powershell
-    // to address https://github.com/atom/atom/issues/5063
-    `
-      [Console]::OutputEncoding=[System.Text.Encoding]::UTF8
-      $output=[environment]::GetEnvironmentVariable('Path', 'User')
-      [Console]::WriteLine($output)
-    `,
-  ]
-
-  const stdout = await spawn(getPowerShellPath(), args)
+  const script = `[environment]::GetEnvironmentVariable('Path', 'User')`
+  const stdout = await executePowerShellScript(script)
   const pathOutput = stdout.replace(/^\s+|\s+$/g, '')
   return pathOutput.split(/;+/).filter(segment => segment.length)
 }

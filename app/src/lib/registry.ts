@@ -1,7 +1,4 @@
-import { getPowerShellPath } from './win32/powershell'
-import { spawn } from './win32/spawn'
-
-// TODO: this is also shared with squirrel-updater - can we unify this?
+import { executePowerShellScript } from './win32/powershell'
 
 export interface IRegistryEntry {
   readonly name: string
@@ -35,25 +32,9 @@ function isStandardPowershellProperty(name: string): boolean {
 export async function readRegistryKeySafe(
   key: string
 ): Promise<ReadonlyArray<IRegistryEntry>> {
-  const args = [
-    '-noprofile',
-    '-ExecutionPolicy',
-    'RemoteSigned',
-    '-command',
-    // Set encoding and execute the command, capture the output, and return it
-    // via .NET's console in order to have consistent UTF-8 encoding.
-    // See http://stackoverflow.com/questions/22349139/utf-8-output-from-powershell
-    // to address https://github.com/atom/atom/issues/5063
-    `
-      [Console]::OutputEncoding=[System.Text.Encoding]::UTF8
-      $output = get-itemproperty "${key}" | ConvertTo-Json -Depth 1
-      [Console]::WriteLine($output)
-    `,
-  ]
-
   const results = new Array<IRegistryEntry>()
-
-  const stdout = await spawn(getPowerShellPath(), args)
+  const script = `get-itemproperty "${key}" | ConvertTo-Json -Depth 1`
+  const stdout = await executePowerShellScript(script)
   const jsonText = stdout.trim()
 
   if (jsonText.length) {
