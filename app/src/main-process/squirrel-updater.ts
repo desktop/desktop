@@ -2,7 +2,7 @@ import * as Path from 'path'
 import * as Os from 'os'
 
 import { pathExists, mkdirIfNeeded, writeFile } from '../lib/file-system'
-import { spawn } from '../lib/win32/spawn'
+import { spawn as spawnWindows } from '../lib/win32/spawn'
 import { executePowerShellScript } from '../lib/win32/powershell'
 
 const appFolder = Path.resolve(process.execPath, '..')
@@ -111,7 +111,7 @@ async function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
 async function spawnSquirrelUpdate(
   commands: ReadonlyArray<string>
 ): Promise<void> {
-  await spawn(updateDotExe, commands)
+  await spawnWindows(updateDotExe, commands)
 }
 
 type ShortcutLocations = ReadonlyArray<'StartMenu' | 'Desktop'>
@@ -175,5 +175,5 @@ async function setPathSegments(paths: ReadonlyArray<string>): Promise<void> {
     setxPath = 'setx.exe'
   }
 
-  await spawn(setxPath, ['Path', paths.join(';')])
+  await spawnWindows(setxPath, ['Path', paths.join(';')])
 }
