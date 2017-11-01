@@ -1,26 +1,12 @@
-import * as Path from 'path'
-import * as ChildProcess from 'child_process'
-
-// TODO: extract this so it's shared with squirrel-updater
-function getPowerShellPath(): string {
-  const systemRoot = process.env['SystemRoot']
-  if (systemRoot) {
-    const system32Path = Path.join(process.env.SystemRoot, 'System32')
-    return Path.join(
-      system32Path,
-      'WindowsPowerShell',
-      'v1.0',
-      'powershell.exe'
-    )
-  } else {
-    return 'powershell.exe'
-  }
-}
+import { spawn as spawnCore } from 'child_process'
 
 /** Spawn a command with arguments and capture its output. */
-export function spawn(args: ReadonlyArray<string>): Promise<string> {
+export function spawn(
+  command: string,
+  args: ReadonlyArray<string>
+): Promise<string> {
   try {
-    const child = ChildProcess.spawn(getPowerShellPath(), args as string[])
+    const child = spawnCore(command, args as string[])
     return new Promise<string>((resolve, reject) => {
       let stdout = ''
       child.stdout.on('data', data => {

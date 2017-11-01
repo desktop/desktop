@@ -1,7 +1,9 @@
-import * as ChildProcess from 'child_process'
 import * as Path from 'path'
 import * as Os from 'os'
+
 import { pathExists, mkdirIfNeeded, writeFile } from '../lib/file-system'
+import { spawn } from '../lib/win32/spawn'
+import { getPowerShellPath } from '../lib/win32/powershell'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
@@ -156,20 +158,6 @@ async function updateShortcut(): Promise<void> {
 
 /** Get the path segments in the user's `Path`. */
 async function getPathSegments(): Promise<ReadonlyArray<string>> {
-  let powershellPath: string
-  const systemRoot = process.env['SystemRoot']
-  if (systemRoot) {
-    const system32Path = Path.join(process.env.SystemRoot, 'System32')
-    powershellPath = Path.join(
-      system32Path,
-      'WindowsPowerShell',
-      'v1.0',
-      'powershell.exe'
-    )
-  } else {
-    powershellPath = 'powershell.exe'
-  }
-
   const args = [
     '-noprofile',
     '-ExecutionPolicy',
@@ -186,7 +174,7 @@ async function getPathSegments(): Promise<ReadonlyArray<string>> {
     `,
   ]
 
-  const stdout = await spawn(powershellPath, args)
+  const stdout = await spawn(getPowerShellPath(), args)
   const pathOutput = stdout.replace(/^\s+|\s+$/g, '')
   return pathOutput.split(/;+/).filter(segment => segment.length)
 }
@@ -203,36 +191,4 @@ async function setPathSegments(paths: ReadonlyArray<string>): Promise<void> {
   }
 
   await spawn(setxPath, ['Path', paths.join(';')])
-}
-
-/** Spawn a command with arguments and capture its output. */
-function spawn(command: string, args: ReadonlyArray<string>): Promise<string> {
-  try {
-    const child = ChildProcess.spawn(command, args as string[])
-    return new Promise<string>((resolve, reject) => {
-      let stdout = ''
-      child.stdout.on('data', data => {
-        stdout += data
-      })
-
-      child.on('close', code => {
-        if (code === 0) {
-          resolve(stdout)
-        } else {
-          reject(new Error(`Command "${command} ${args}" failed: "${stdout}"`))
-        }
-      })
-
-      child.on('error', (err: Error) => {
-        reject(err)
-      })
-
-      // This is necessary if using Powershell 2 on Windows 7 to get the events
-      // to raise.
-      // See http://stackoverflow.com/questions/9155289/calling-powershell-from-nodejs
-      child.stdin.end()
-    })
-  } catch (error) {
-    return Promise.reject(error)
-  }
 }

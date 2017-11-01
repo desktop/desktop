@@ -1,5 +1,5 @@
-import * as ChildProcess from 'child_process'
-import { spawn as spawnPowerShell } from './powershell'
+import { getPowerShellPath } from './win32/powershell'
+import { spawn } from './win32/spawn'
 
 // TODO: this is also shared with squirrel-updater - can we unify this?
 
@@ -53,7 +53,7 @@ export async function readRegistryKeySafe(
 
   const results = new Array<IRegistryEntry>()
 
-  const stdout = await spawnPowerShell(args)
+  const stdout = await spawn(getPowerShellPath(), args)
   const jsonText = stdout.trim()
 
   if (jsonText.length) {
