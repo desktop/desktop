@@ -56,12 +56,14 @@ export class UpstreamAlreadyExists extends React.Component<
             <Ref>{parentName}</Ref>, but its <Ref>{UpstreamRemoteName}</Ref>{' '}
             remote points elsewhere.
           </p>
-          <p>
-            • Current: <Ref>{existingURL}</Ref>
-          </p>
-          <p>
-            • Expected: <Ref>{replacementURL}</Ref>
-          </p>
+          <ul>
+            <li>
+              Current: <Ref>{existingURL}</Ref>
+            </li>
+            <li>
+              Expected: <Ref>{replacementURL}</Ref>
+            </li>
+          </ul>
           <p>Would you like to update the remote to use the expected URL?</p>
         </DialogContent>
         <DialogFooter>
