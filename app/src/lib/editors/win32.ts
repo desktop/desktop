@@ -38,7 +38,7 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
   switch (editor) {
     case ExternalEditor.Atom:
       return [
-        'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
+        'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
       ]
     case ExternalEditor.VisualStudioCode:
       return [

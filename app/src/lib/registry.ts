@@ -33,7 +33,7 @@ export async function readRegistryKeySafe(
   key: string
 ): Promise<ReadonlyArray<IRegistryEntry>> {
   const results = new Array<IRegistryEntry>()
-  const script = `get-itemproperty "${key}" | ConvertTo-Json -Depth 1`
+  const script = `Get-ItemProperty "${key}" | ConvertTo-Json -Depth 1`
   const stdout = await executePowerShellScript(script)
   const jsonText = stdout.trim()
 
