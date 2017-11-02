@@ -6,7 +6,7 @@ import { GitHubRepository } from '../../../models/github-repository'
 
 const PullRequestInterval = 1000 * 60 * 3
 const StatusInterval = 1000 * 60
-const PostPushInterval = 1000 * 60
+const PostPushInterval = 1000 * 30
 
 enum TimeoutHandles {
   PullRequest = 'PullRequestHandle',
