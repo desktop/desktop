@@ -2899,7 +2899,7 @@ export class AppStore {
   ): Promise<boolean> {
     const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
     const value = localStorage.getItem(key)
-    return Promise.resolve(value === '1' ? true : false)
+    return Promise.resolve(value === '1')
   }
 
   private async addUpstreamRemoteIfNeeded(repository: Repository) {
