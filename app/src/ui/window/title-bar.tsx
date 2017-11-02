@@ -32,6 +32,12 @@ interface ITitleBarState {
 }
 
 function getState(props: ITitleBarProps): ITitleBarState {
+  // See windowZoomFactor in ITitleBarProps, this is only
+  // applicable on macOS.
+  if (!__DARWIN__) {
+    return { style: undefined }
+  }
+
   return {
     style: props.windowZoomFactor
       ? { zoom: 1 / props.windowZoomFactor }

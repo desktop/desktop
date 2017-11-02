@@ -110,22 +110,11 @@ export async function git(
 
   const opts = { ...defaultOptions, ...options }
 
-  const startTime = performance && performance.now ? performance.now() : null
-
   const commandName = `${name}: git ${args.join(' ')}`
-  log.debug(`Executing ${commandName}`)
 
   const result = await GitPerf.measure(commandName, () =>
     GitProcess.exec(args, path, options)
   )
-
-  if (startTime) {
-    const rawTime = performance.now() - startTime
-    if (rawTime > 1000) {
-      const timeInSeconds = (rawTime / 1000).toFixed(3)
-      log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
-    }
-  }
 
   const exitCode = result.exitCode
 

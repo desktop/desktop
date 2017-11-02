@@ -22,7 +22,7 @@ import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import {
-  FileChange,
+  CommittedFileChange,
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../../models/status'
@@ -374,7 +374,7 @@ export class AppStore {
           sha: null,
           file: null,
         },
-        changedFiles: new Array<FileChange>(),
+        changedFiles: new Array<CommittedFileChange>(),
         history: new Array<string>(),
         diff: null,
       },
@@ -677,7 +677,7 @@ export class AppStore {
     this.updateHistoryState(repository, state => {
       const commitChanged = state.selection.sha !== sha
       const changedFiles = commitChanged
-        ? new Array<FileChange>()
+        ? new Array<CommittedFileChange>()
         : state.changedFiles
       const file = commitChanged ? null : state.selection.file
       const selection = { sha, file }
@@ -697,7 +697,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeHistoryFileSelection(
     repository: Repository,
-    file: FileChange
+    file: CommittedFileChange
   ): Promise<void> {
     this.updateHistoryState(repository, state => {
       const selection = { sha: state.selection.sha, file }
