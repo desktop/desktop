@@ -1065,4 +1065,16 @@ export class Dispatcher {
   public refreshPullRequests(repository: Repository): Promise<void> {
     return this.appStore._refreshPullRequests(repository)
   }
+
+  /**
+   * Update the existing `upstream` remote to point to the repository's parent.
+   */
+  public updateExistingUpstreamRemote(repository: Repository): Promise<void> {
+    return this.appStore._updateExistingUpstreamRemote(repository)
+  }
+
+  /** Ignore the existing `upstream` remote. */
+  public ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
+    return this.appStore._ignoreExistingUpstreamRemote(repository)
+  }
 }
