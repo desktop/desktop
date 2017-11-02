@@ -32,7 +32,7 @@ export class PullRequestStore {
     this.repositoriesStore = repositoriesStore
   }
 
-  /** Update the list of open pull requests for the repository. */
+  /** Loads all pull requests against the given repository. */
   public async refreshPullRequests(
     repository: GitHubRepository,
     account: Account
@@ -64,6 +64,7 @@ export class PullRequestStore {
     }
   }
 
+  /** Loads the status for a given pull request. */
   public async refreshSinglePullRequestStatus(
     repository: GitHubRepository,
     account: Account,
@@ -72,6 +73,7 @@ export class PullRequestStore {
     await this.refreshStatusesForPRs([pullRequest], repository, account)
   }
 
+  /** Loads the status for all pull request against a given repository. */
   public async refreshPullRequestStatuses(
     repository: GitHubRepository,
     account: Account
@@ -82,6 +84,7 @@ export class PullRequestStore {
   }
 
   public async refreshStatusesForPRs(
+  /** Get the pull requests from the database. */
     pullRequests: ReadonlyArray<PullRequest>,
     repository: GitHubRepository,
     account: Account
