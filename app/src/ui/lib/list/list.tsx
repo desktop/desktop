@@ -538,7 +538,7 @@ export class List extends React.Component<IListProps, IListState> {
     this.grid = ref
   }
 
-  private onFakeScrollRef = (ref: HTMLDivElement) => {
+  private onFakeScrollRef = (ref: HTMLDivElement | null) => {
     this.fakeScroll = ref
   }
 

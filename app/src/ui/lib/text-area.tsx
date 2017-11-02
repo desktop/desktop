@@ -44,7 +44,7 @@ interface ITextAreaProps {
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void
 
   /** A callback to receive the underlying `textarea` instance. */
-  readonly onTextAreaRef?: (instance: HTMLTextAreaElement) => void
+  readonly onTextAreaRef?: (instance: HTMLTextAreaElement | null) => void
 }
 
 /** A textarea element with app-standard styles. */

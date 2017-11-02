@@ -103,7 +103,7 @@ export class PullRequestList extends React.Component<
     this.props.onPullRequestClicked(pr)
   }
 
-  private onSelectionChanged = (selectedItem: IPullRequestListItem) => {
+  private onSelectionChanged = (selectedItem: IPullRequestListItem | null) => {
     this.setState({ selectedItem })
   }
 

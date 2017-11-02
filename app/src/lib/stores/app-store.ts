@@ -1832,7 +1832,7 @@ export class AppStore {
       const remote = gitStore.remote
 
       if (!remote) {
-        return Promise.reject(new Error('The repository has no remotes.'))
+        throw new Error('The repository has no remotes.')
       }
 
       const state = this.getRepositoryState(repository)

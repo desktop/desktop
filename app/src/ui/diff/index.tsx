@@ -990,7 +990,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
     }
   }
 
-  private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
+  private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost | null) => {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
 

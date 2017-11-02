@@ -227,10 +227,14 @@ export class AppMenuBar extends React.Component<
     this.stolenFocusElement = null
   }
 
-  private onMenuBarFocusIn = (event: FocusEvent) => {
+  private onMenuBarFocusIn = (event: Event) => {
+    const focusEvent = event as FocusEvent
     if (!this.hasFocus) {
-      if (event.relatedTarget && event.relatedTarget instanceof HTMLElement) {
-        this.stolenFocusElement = event.relatedTarget
+      if (
+        focusEvent.relatedTarget &&
+        focusEvent.relatedTarget instanceof HTMLElement
+      ) {
+        this.stolenFocusElement = focusEvent.relatedTarget
       } else {
         this.stolenFocusElement = null
       }
@@ -239,7 +243,7 @@ export class AppMenuBar extends React.Component<
     this.clearFocusOutTimeout()
   }
 
-  private onMenuBarFocusOut = (event: FocusEvent) => {
+  private onMenuBarFocusOut = (event: Event) => {
     // When keyboard focus moves from one descendant within the
     // menu bar to another we will receive one 'focusout' event
     // followed quickly by a 'focusin' event. As such we

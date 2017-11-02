@@ -28,7 +28,7 @@ interface IToggleButtonProps {
    * handling of the `ref` type into some ungodly monstrosity. Hopefully someday
    * this will be unnecessary.
    */
-  readonly onButtonRef?: (instance: HTMLButtonElement) => void
+  readonly onButtonRef?: (instance: HTMLButtonElement | null) => void
 }
 
 interface IToggleButtonState {

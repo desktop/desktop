@@ -23,8 +23,6 @@ interface ICommitListProps {
 
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
-  private list: List | null
-
   private renderCommit = (row: number) => {
     const sha = this.props.history[row]
     const commit = this.props.commits.get(sha)
@@ -83,10 +81,6 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return this.props.history.findIndex(s => s === sha)
   }
 
-  private onListRef = (ref: List) => {
-    this.list = ref
-  }
-
   public render() {
     if (this.props.history.length === 0) {
       return <div className="panel blankslate">No history</div>
@@ -95,7 +89,6 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return (
       <div id="commit-list">
         <List
-          ref={this.onListRef}
           rowCount={this.props.history.length}
           rowHeight={RowHeight}
           selectedRow={this.rowForSHA(this.props.selectedSHA)}
