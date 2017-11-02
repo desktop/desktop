@@ -64,7 +64,7 @@ export class PullRequestStore {
     }
   }
 
-  /** Loads the status for a given pull request. */
+  /** Loads the status for the given pull request. */
   public async refreshSinglePullRequestStatus(
     repository: GitHubRepository,
     account: Account,
@@ -83,7 +83,7 @@ export class PullRequestStore {
     await this.getStatusForPRs(prs, repository, account)
   }
 
-  /** Get the pull requests from the database. */
+  /** Gets the pull requests against the given repository. */
   public async getPullRequests(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<PullRequest>> {
@@ -92,6 +92,7 @@ export class PullRequestStore {
     return this.pullRequests.slice()
   }
 
+  /** Gets the statuses for all the loaded pull request. */
   public async getPullRequestStatuses() {
     return this.pullRequestStatuses.slice()
   }
