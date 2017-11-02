@@ -34,6 +34,7 @@ export class PullRequestUpdater {
     this.store = pullRequestStore
   }
 
+  /** Starts the updater */
   public start() {
     if (!this.isStopped) {
       fatalError(
@@ -69,6 +70,7 @@ export class PullRequestUpdater {
     this.timeoutHandles.clear()
   }
 
+  /** Starts fetching the statuses of PRs at an accelerated rate */
   public didPushPullRequest(pullRequest: PullRequest) {
     if (this.currentPullRequests.find(p => p.id === pullRequest.id)) {
       return
