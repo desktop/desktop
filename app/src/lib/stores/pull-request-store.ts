@@ -54,7 +54,7 @@ export class PullRequestStore {
 
       const results = await this.getPullRequests(repository)
 
-      await this.refreshStatusesForPRs(results, repository, account)
+      await this.getStatusForPRs(results, repository, account)
 
       this.pullRequests = await this.getPullRequests(repository)
       this.emitUpdate()
@@ -70,7 +70,7 @@ export class PullRequestStore {
     account: Account,
     pullRequest: PullRequest
   ): Promise<void> {
-    await this.refreshStatusesForPRs([pullRequest], repository, account)
+    await this.getStatusForPRs([pullRequest], repository, account)
   }
 
   /** Loads the status for all pull request against a given repository. */
@@ -80,11 +80,23 @@ export class PullRequestStore {
   ): Promise<void> {
     const prs = await this.getPullRequests(repository)
 
-    await this.refreshStatusesForPRs(prs, repository, account)
+    await this.getStatusForPRs(prs, repository, account)
   }
 
-  public async refreshStatusesForPRs(
   /** Get the pull requests from the database. */
+  public async getPullRequests(
+    repository: GitHubRepository
+  ): Promise<ReadonlyArray<PullRequest>> {
+    await this.getPRs(repository)
+
+    return this.pullRequests.slice()
+  }
+
+  public async getPullRequestStatuses() {
+    return this.pullRequestStatuses.slice()
+  }
+
+  private async getStatusForPRs(
     pullRequests: ReadonlyArray<PullRequest>,
     repository: GitHubRepository,
     account: Account
@@ -136,19 +148,6 @@ export class PullRequestStore {
       pullRequests
     )
     this.emitUpdate()
-  }
-
-  /** Get the pull requests from the database. */
-  public async getPullRequests(
-    repository: GitHubRepository
-  ): Promise<ReadonlyArray<PullRequest>> {
-    await this.getPRs(repository)
-
-    return this.pullRequests.slice()
-  }
-
-  public async getPullRequestStatuses() {
-    return this.pullRequestStatuses.slice()
   }
 
   private async getPRStatusById(
