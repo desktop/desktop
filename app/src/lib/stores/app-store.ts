@@ -300,6 +300,9 @@ export class AppStore {
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
+
+    pullRequestStore.onDidError(error => this.emitError(error))
+    pullRequestStore.onDidUpdate(() => this.emitUpdate())
   }
 
   /** Load the emoji from disk. */

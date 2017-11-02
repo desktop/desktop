@@ -27,16 +27,11 @@ export class PullRequestUpdater {
   public constructor(
     repository: GitHubRepository,
     account: Account,
-    pullRequestStore: PullRequestStore,
-    onError: (error: Error) => void,
-    onUpdate: () => void
+    pullRequestStore: PullRequestStore
   ) {
     this.repository = repository
     this.account = account
     this.store = pullRequestStore
-
-    this.store.onDidError(onError)
-    this.store.onDidUpdate(onUpdate)
   }
 
   /** Starts the updater */
