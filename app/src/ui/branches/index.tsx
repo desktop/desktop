@@ -158,13 +158,29 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   private renderPullRequests() {
     if (this.loading) {
       return (
-        <div style={{ width: 200, height: 200, backgroundColor: 'red' }}>
+        <div
+          key="1"
+          style={{
+            width: 200,
+            height: 200,
+            backgroundColor: 'red',
+            position: 'absolute',
+          }}
+        >
           test
         </div>
       )
     } else if (1 < 2) {
       return (
-        <div style={{ width: 200, height: 200, backgroundColor: 'green' }}>
+        <div
+          key="2"
+          style={{
+            width: 200,
+            height: 200,
+            backgroundColor: 'green',
+            position: 'absolute',
+          }}
+        >
           test2
         </div>
       )

@@ -53,23 +53,21 @@
   flex: 1;
 
   .swap-enter {
-    height: 0;
+    opacity: 0.01;
   }
 
   .swap-enter.swap-enter-active {
-    height: 200;
-
-    transition: height 4s ease-in;
+    opacity: 1;
+    transition: opacity 500ms ease-in;
   }
 
   .swap-leave {
-    height: 200;
+    opacity: 1;
   }
 
   .swap-leave.swap-leave-active {
-    height: 0;
-
-    transition: height 4s ease-out;
+    opacity: 0.01;
+    transition: opacity 300ms ease-in;
   }
 }
 
