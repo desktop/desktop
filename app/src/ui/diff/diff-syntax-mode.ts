@@ -80,18 +80,15 @@ function getTokensForDiffLine(
 export class DiffSyntaxMode {
   public static readonly ModeName = 'github-diff-syntax'
 
-  private readonly config: CodeMirror.EditorConfiguration
   private readonly diff?: ITextDiff
   private readonly oldTokens?: ITokens
   private readonly newTokens?: ITokens
 
   public constructor(
-    config: CodeMirror.EditorConfiguration,
     diff?: ITextDiff,
     oldTokens?: ITokens,
     newTokens?: ITokens
   ) {
-    this.config = config
     this.diff = diff
     this.oldTokens = oldTokens
     this.newTokens = newTokens
@@ -184,7 +181,6 @@ CodeMirror.defineMode(DiffSyntaxMode.ModeName, function(
   }
 
   return new DiffSyntaxMode(
-    config,
     modeOptions.diff,
     modeOptions.oldTokens,
     modeOptions.newTokens

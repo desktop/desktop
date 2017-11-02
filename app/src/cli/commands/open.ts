@@ -3,10 +3,6 @@ import * as Path from 'path'
 import { ICommandModule, mriArgv } from '../load-commands'
 import { openDesktop } from '../open-desktop'
 
-interface IOpenArgs extends mriArgv {
-  readonly path: string
-}
-
 const command: ICommandModule = {
   command: 'open <path>',
   aliases: ['<path>'],
@@ -19,7 +15,7 @@ const command: ICommandModule = {
       required: false,
     },
   ],
-  handler({ _: [pathArg] }: IOpenArgs) {
+  handler({ _: [pathArg] }: mriArgv) {
     if (!pathArg) {
       // just open Desktop
       openDesktop()

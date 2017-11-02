@@ -809,11 +809,9 @@ export class AppStore {
     this.startPullRequestUpdater(repository)
     this.refreshMentionables(repository)
 
-    if (repository instanceof Repository) {
-      return this._repositoryWithRefreshedGitHubRepository(repository)
-    } else {
-      return repository
-    }
+    this.addUpstreamRemoteIfNeeded(repository)
+
+    return this._repositoryWithRefreshedGitHubRepository(repository)
   }
 
   public async _updateIssues(repository: GitHubRepository) {
@@ -1383,6 +1381,7 @@ export class AppStore {
       this.refreshAuthor(repository),
       gitStore.loadContextualCommitMessage(),
       refreshSectionPromise,
+      gitStore.loadUpstreamRemote(),
     ])
   }
 
@@ -1890,7 +1889,7 @@ export class AppStore {
       const remote = gitStore.remote
 
       if (!remote) {
-        return Promise.reject(new Error('The repository has no remotes.'))
+        throw new Error('The repository has no remotes.')
       }
 
       const state = this.getRepositoryState(repository)
@@ -2931,5 +2930,43 @@ export class AppStore {
 
     const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
     await this._openInBrowser(baseURL)
+  }
+
+  public async _updateExistingUpstreamRemote(
+    repository: Repository
+  ): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    await gitStore.updateExistingUpstreamRemote()
+
+    return this._refreshRepository(repository)
+  }
+
+  private getIgnoreExistingUpstreamRemoteKey(repository: Repository): string {
+    return `repository/${repository.id}/ignoreExistingUpstreamRemote`
+  }
+
+  public _ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
+    const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
+    localStorage.setItem(key, '1')
+
+    return Promise.resolve()
+  }
+
+  private getIgnoreExistingUpstreamRemote(
+    repository: Repository
+  ): Promise<boolean> {
+    const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
+    const value = localStorage.getItem(key)
+    return Promise.resolve(value === '1')
+  }
+
+  private async addUpstreamRemoteIfNeeded(repository: Repository) {
+    const gitStore = this.getGitStore(repository)
+    const ignored = await this.getIgnoreExistingUpstreamRemote(repository)
+    if (ignored) {
+      return
+    }
+
+    return gitStore.addUpstreamRemoteIfNeeded()
   }
 }
