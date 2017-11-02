@@ -12,6 +12,7 @@ import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
 import { NoPullRequests } from './no-pull-requests'
 import { PullRequest } from '../../models/pull-request'
+import { CSSTransitionGroup } from 'react-transition-group'
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -31,6 +32,8 @@ interface IBranchesState {
 
 /** The Branches list component. */
 export class Branches extends React.Component<IBranchesProps, IBranchesState> {
+  private loading = true
+
   public constructor(props: IBranchesProps) {
     super(props)
 
@@ -38,6 +41,13 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       selectedBranch: props.currentBranch,
       filterText: '',
     }
+  }
+
+  public componentDidMount() {
+    setTimeout(() => {
+      this.loading = false
+      this.forceUpdate()
+    }, 6000)
   }
 
   private onItemClick = (item: Branch) => {
@@ -128,41 +138,68 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
         )
 
       case BranchesTab.PullRequests: {
-        const pullRequests = this.props.pullRequests
-        if (pullRequests) {
-          if (pullRequests.length > 0) {
-            return (
-              <PullRequestList
-                pullRequests={pullRequests}
-                onPullRequestClicked={this.onPullRequestClicked}
-                onDismiss={this.onDismiss}
-              />
-            )
-          } else {
-            const repo = this.props.repository
-            const name = repo.gitHubRepository
-              ? repo.gitHubRepository.fullName
-              : repo.name
-            const isOnDefaultBranch =
-              this.props.defaultBranch &&
-              this.props.currentBranch &&
-              this.props.defaultBranch.name === this.props.currentBranch.name
-            return (
-              <NoPullRequests
-                repositoryName={name}
-                isOnDefaultBranch={!!isOnDefaultBranch}
-                onCreateBranch={this.onCreateBranch}
-                onCreatePullRequest={this.onCreatePullRequest}
-              />
-            )
-          }
-        } else {
-          return <PullRequestsLoading />
-        }
+        return (
+          <CSSTransitionGroup
+            transitionName="swap"
+            component="div"
+            id="pr-transition-div"
+            transitionEnterTimeout={4000}
+            transitionLeaveTimeout={4000}
+          >
+            {this.renderPullRequests()}
+          </CSSTransitionGroup>
+        )
       }
     }
 
     return assertNever(tab, `Unknown Branches tab: ${tab}`)
+  }
+
+  private renderPullRequests() {
+    if (this.loading) {
+      return (
+        <div style={{ width: 200, height: 200, backgroundColor: 'red' }}>
+          test
+        </div>
+      )
+    } else if (1 < 2) {
+      return (
+        <div style={{ width: 200, height: 200, backgroundColor: 'green' }}>
+          test2
+        </div>
+      )
+    }
+    const pullRequests = this.props.pullRequests
+    if (pullRequests && !this.loading) {
+      if (pullRequests.length > 0) {
+        return (
+          <PullRequestList
+            pullRequests={pullRequests}
+            onPullRequestClicked={this.onPullRequestClicked}
+            onDismiss={this.onDismiss}
+          />
+        )
+      } else {
+        const repo = this.props.repository
+        const name = repo.gitHubRepository
+          ? repo.gitHubRepository.fullName
+          : repo.name
+        const isOnDefaultBranch =
+          this.props.defaultBranch &&
+          this.props.currentBranch &&
+          this.props.defaultBranch.name === this.props.currentBranch.name
+        return (
+          <NoPullRequests
+            repositoryName={name}
+            isOnDefaultBranch={!!isOnDefaultBranch}
+            onCreateBranch={this.onCreateBranch}
+            onCreatePullRequest={this.onCreatePullRequest}
+          />
+        )
+      }
+    } else {
+      return <PullRequestsLoading />
+    }
   }
 
   public render() {

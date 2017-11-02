@@ -48,6 +48,31 @@
   }
 }
 
+#pr-transition-div {
+  display: flex;
+  flex: 1;
+
+  .swap-enter {
+    height: 0;
+  }
+
+  .swap-enter.swap-enter-active {
+    height: 200;
+
+    transition: height 4s ease-in;
+  }
+
+  .swap-leave {
+    height: 200;
+  }
+
+  .swap-leave.swap-leave-active {
+    height: 0;
+
+    transition: height 4s ease-out;
+  }
+}
+
 .pull-request-list {
   width: 300px;
 
