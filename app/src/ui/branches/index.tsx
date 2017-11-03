@@ -140,7 +140,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       case BranchesTab.PullRequests: {
         return (
           <CSSTransitionGroup
-            transitionName="swap"
+            transitionName="cross-fade"
             component="div"
             id="pr-transition-div"
             transitionEnterTimeout={4000}

@@ -54,20 +54,20 @@
   flex: 1;
   position: relative;
 
-  .swap-enter {
+  .cross-fade-enter {
     opacity: 0.01;
   }
 
-  .swap-enter.swap-enter-active {
+  .cross-fade-enter.cross-fade-enter-active {
     opacity: 1;
     transition: opacity 500ms ease-in;
   }
 
-  .swap-leave {
+  .cross-fade-leave {
     opacity: 1;
   }
 
-  .swap-leave.swap-leave-active {
+  .cross-fade-leave.cross-fade-leave-active {
     opacity: 0.01;
     transition: opacity 300ms ease-in;
   }
