@@ -14,6 +14,10 @@ enum TimeoutHandles {
   PushedPullRequest = 'PushedPullRequestHandle',
 }
 
+/**
+ * Acts as a service for downloading the latest pull request
+ * and status info from GitHub.
+ */
 export class PullRequestUpdater {
   private readonly repository: GitHubRepository
   private readonly account: Account
