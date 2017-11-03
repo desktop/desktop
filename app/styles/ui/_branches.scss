@@ -55,12 +55,12 @@
   position: relative;
 
   .cross-fade-enter {
-    opacity: 0.01;
+    opacity: 0;
   }
 
   .cross-fade-enter.cross-fade-enter-active {
     opacity: 1;
-    transition: opacity 500ms ease-in;
+    transition: opacity 300ms ease-in;
   }
 
   .cross-fade-leave {
@@ -68,8 +68,8 @@
   }
 
   .cross-fade-leave.cross-fade-leave-active {
-    opacity: 0.01;
-    transition: opacity 300ms ease-in;
+    opacity: 0;
+    transition: opacity 200ms ease-in;
   }
 }
 
