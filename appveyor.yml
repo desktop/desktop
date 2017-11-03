@@ -22,7 +22,7 @@ version: "{build}"
 
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
-  - npm install -g yarn@1.2.1
+  - npm install -g yarn@1.3.2
   - git submodule update --init --recursive
   - yarn install --force
 
