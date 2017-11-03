@@ -81,7 +81,7 @@ With these things installed, open a shell and install `yarn` (you might need
 to `sudo` here depending on how Node was installed):
 
 ```shellsession
-$ npm install -g yarn@1.2.0
+$ npm install -g yarn@1.3.2
 ```
 
 This is important because yarn uses lock files to pin dependencies. If you find
