@@ -156,40 +156,12 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private renderPullRequests() {
-    if (this.loading) {
-      return (
-        <div
-          key="1"
-          style={{
-            width: 200,
-            height: 200,
-            backgroundColor: 'red',
-            position: 'absolute',
-          }}
-        >
-          test
-        </div>
-      )
-    } else if (1 < 2) {
-      return (
-        <div
-          key="2"
-          style={{
-            width: 200,
-            height: 200,
-            backgroundColor: 'green',
-            position: 'absolute',
-          }}
-        >
-          test2
-        </div>
-      )
-    }
     const pullRequests = this.props.pullRequests
     if (pullRequests && !this.loading) {
       if (pullRequests.length > 0) {
         return (
           <PullRequestList
+            key="pr-list"
             pullRequests={pullRequests}
             onPullRequestClicked={this.onPullRequestClicked}
             onDismiss={this.onDismiss}
@@ -214,7 +186,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
         )
       }
     } else {
-      return <PullRequestsLoading />
+      return <PullRequestsLoading key="prs-loading" />
     }
   }
 
