@@ -25,7 +25,7 @@
     "compile:tslint": "tsc -p tslint-rules",
     "compile:script": "tsc -p script",
     "lint": "yarn compile:tslint && yarn compile:script && yarn tslint && yarn eslint-check && yarn eslint",
-    "tslint": "tslint ./{scripts,tslint-rules}/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
+    "tslint": "tslint ./{script,tslint-rules}/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
     "eslint": "ts-node script/eslint.ts",
     "eslint:fix": "ts-node script/eslint.ts --fix",
     "eslint-check": "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
