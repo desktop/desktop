@@ -529,9 +529,10 @@ export class SignInStore {
       currentState.kind !== SignInStep.TwoFactorAuthentication
     ) {
       const stepText = currentState ? currentState.kind : 'null'
-      return fatalError(
+      fatalError(
         `Sign in step '${stepText}' not compatible with two factor authentication`
       )
+      return
     }
 
     this.setState({ ...currentState, loading: true })
@@ -603,7 +604,7 @@ export class SignInStore {
           this.emitError(new Error(EnterpriseTooOldMessage))
           break
         default:
-          return assertNever(response, `Unknown response: ${response}`)
+          assertNever(response, `Unknown response: ${response}`)
       }
     }
   }

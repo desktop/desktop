@@ -142,7 +142,7 @@ function createState(props: IMenuPaneProps): IMenuPaneState {
 }
 
 export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
-  private list: List
+  private list: List | null
 
   public constructor(props: IMenuPaneProps) {
     super(props)
@@ -223,7 +223,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     return itemIsSelectable(item)
   }
 
-  private onListRef = (list: List) => {
+  private onListRef = (list: List | null) => {
     this.list = list
   }
 

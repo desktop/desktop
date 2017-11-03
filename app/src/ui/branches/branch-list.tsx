@@ -170,7 +170,8 @@ export class BranchList extends React.Component<
     }
   }
 
-  private renderGroupHeader = (identifier: BranchGroupIdentifier) => {
+  private renderGroupHeader = (id: string) => {
+    const identifier = id as BranchGroupIdentifier
     return (
       <div className="branches-list-content filter-list-group-header">
         {this.getGroupLabel(identifier)}
