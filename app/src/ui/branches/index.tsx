@@ -14,6 +14,9 @@ import { NoPullRequests } from './no-pull-requests'
 import { PullRequest } from '../../models/pull-request'
 import { CSSTransitionGroup } from 'react-transition-group'
 
+const PullRequestsLoadingCrossFadeInTimeout = 300
+const PullRequestsLoadingCrossFadeOutTimeout = 200
+
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
   readonly currentBranch: Branch | null
@@ -143,8 +146,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
             transitionName="cross-fade"
             component="div"
             id="pr-transition-div"
-            transitionEnterTimeout={4000}
-            transitionLeaveTimeout={4000}
+            transitionEnterTimeout={PullRequestsLoadingCrossFadeInTimeout}
+            transitionLeaveTimeout={PullRequestsLoadingCrossFadeOutTimeout}
           >
             {this.renderPullRequests()}
           </CSSTransitionGroup>
