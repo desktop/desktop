@@ -35,8 +35,6 @@ interface IBranchesState {
 
 /** The Branches list component. */
 export class Branches extends React.Component<IBranchesProps, IBranchesState> {
-  private loading = true
-
   public constructor(props: IBranchesProps) {
     super(props)
 
@@ -44,13 +42,6 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       selectedBranch: props.currentBranch,
       filterText: '',
     }
-  }
-
-  public componentDidMount() {
-    setTimeout(() => {
-      this.loading = false
-      this.forceUpdate()
-    }, 6000)
   }
 
   private onItemClick = (item: Branch) => {
@@ -160,7 +151,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   private renderPullRequests() {
     const pullRequests = this.props.pullRequests
-    if (pullRequests && !this.loading) {
+    if (pullRequests) {
       if (pullRequests.length > 0) {
         return (
           <PullRequestList
