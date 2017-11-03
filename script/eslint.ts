@@ -26,7 +26,8 @@ const client: IClient = require('eslint_d/lib/client')
 const ESLINT_ARGS = [
   '--cache',
   '--rulesdir=./eslint-rules',
-  './{script,eslint-rules}/**/*.{j,t}s?(x)',
+  './eslint-rules/**/*.{j,t}s?(x)',
+  './script/**/*.ts',
   './tslint-rules/**/*.ts',
   './app/{src,typings,test}/**/*.{j,t}s?(x)',
   ...process.argv.slice(2),
