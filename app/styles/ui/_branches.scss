@@ -175,7 +175,7 @@
   }
 }
 
-@keyframes progress {
+@keyframes loading-pulse {
   from {
     transform: translate(-100%, 0);
   }
@@ -196,7 +196,7 @@
   height: 100%;
   width: 100%;
   position: absolute;
-  animation: progress 1.5s ease-in-out infinite;
+  animation: loading-pulse 1.5s ease-in-out infinite;
 }
 
 .branches-list {
