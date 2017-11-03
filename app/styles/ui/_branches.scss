@@ -137,11 +137,13 @@
     min-width: 0;
     flex-grow: 1;
 
+    --background-color: $gray-200;
+
     .icon {
       margin-right: var(--spacing-half);
       width: 16px; // Force a consistent width
       flex-shrink: 0;
-      color: var(--box-alt-background-color);
+      color: var(--background-color);
     }
 
     .info {
@@ -152,7 +154,7 @@
       .title {
         height: 12px;
         flex: 1;
-        background-color: var(--box-alt-background-color);
+        background-color: var(--background-color);
         margin-right: var(--spacing-half);
         margin-bottom: var(--spacing-half);
       }
@@ -160,7 +162,7 @@
       .subtitle {
         height: 12px;
         flex: 1;
-        background-color: var(--box-alt-background-color);
+        background-color: var(--background-color);
         margin-right: var(--spacing-half);
       }
     }
@@ -168,7 +170,7 @@
     .status {
       width: 16px;
       flex-shrink: 0;
-      color: var(--box-alt-background-color);
+      color: var(--background-color);
     }
   }
 }
