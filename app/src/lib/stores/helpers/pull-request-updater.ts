@@ -4,8 +4,8 @@ import { fatalError } from '../../fatal-error'
 import { PullRequest } from '../../../models/pull-request'
 import { GitHubRepository } from '../../../models/github-repository'
 
-const PullRequestInterval = 1000 * 60 * 3
-const StatusInterval = 1000 * 60
+const PullRequestInterval = 1000 * 60 * 10
+const StatusInterval = 1000 * 60 * 10
 const PostPushInterval = 1000 * 60
 
 enum TimeoutHandles {
