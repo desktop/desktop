@@ -71,6 +71,8 @@ async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
 }
 
 generateIconData().then(result => {
+  console.log(`Writing ${result.length} octicons...`)
+
   const out = fs.createWriteStream(
     Path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts'),
     {
@@ -101,8 +103,7 @@ generateIconData().then(result => {
   out.write('}\n')
   out.end()
 
-  console.log(`Wrote ${result.length} octicons`)
-
-  // this is a shortcut to prettify the generated code
-  cp.execSync('yarn eslint:fix')
+  console.log('Ensuring generated file is formatted correctly...')
+  const root = Path.dirname(__dirname)
+  return cp.spawn('yarn', ['eslint:fix'], { cwd: root })
 })
