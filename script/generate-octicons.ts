@@ -54,7 +54,7 @@ async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
 
     if (!viewBoxMatch) {
       throw new Error(
-        `*** ERROR! Unexpected viewBox format for ${octicon.symbol}`
+        `Unexpected viewBox format for ${octicon.symbol} - '${viewBox}'`
       )
     }
 
