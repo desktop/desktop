@@ -5,11 +5,12 @@
  * and generates the TypeScript class containing just what Desktop needs.
  */
 
-import xml2js = require('xml2js')
-import fs = require('fs')
-import path = require('path')
-import toCamelCase = require('to-camel-case')
+import * as fs from 'fs'
+import * as Path from 'path'
 import * as cp from 'child_process'
+
+import xml2js = require('xml2js')
+import toCamelCase = require('to-camel-case')
 
 interface IXML2JSNode {
   path: {
@@ -48,20 +49,20 @@ async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
   for (const name of Object.keys(octicons)) {
     const octicon = octicons[name]
 
-    const id = octicon.symbol
     const viewBox = octicon.options.viewBox
     const viewBoxMatch = viewBoxRe.exec(viewBox)
 
     if (!viewBoxMatch) {
-      throw new Error(`*** ERROR! Unexpected viewBox format for ${id}`)
+      throw new Error(
+        `*** ERROR! Unexpected viewBox format for ${octicon.symbol}`
+      )
     }
 
     const [, width, height] = viewBoxMatch
 
-    const path = octicon.path
-    const result = await readXml(path)
+    const result = await readXml(octicon.path)
     const pathData = result.path.$.d
-    const jsFriendlyName = toCamelCase(id)
+    const jsFriendlyName = toCamelCase(octicon.symbol)
 
     results.push({ jsFriendlyName, width, height, pathData })
   }
@@ -71,7 +72,7 @@ async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
 
 generateIconData().then(result => {
   const out = fs.createWriteStream(
-    path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts'),
+    Path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts'),
     {
       encoding: 'utf-8',
     }
@@ -102,5 +103,6 @@ generateIconData().then(result => {
 
   console.log(`Wrote ${result.length} octicons`)
 
-  cp.exec('yarn eslint:fix')
+  // this is a shortcut to prettify the generated code
+  cp.execSync('yarn eslint:fix')
 })
