@@ -1,4 +1,4 @@
-import { remote, ipcRenderer } from 'electron'
+import { remote } from 'electron'
 
 // Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
 // use with `remote`.
@@ -7,12 +7,9 @@ const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
 
-import { getVersion } from './app-proxy'
 import { sendWillQuitSync } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
-
-/** The release channel which should be checked for updates. */
-type ReleaseChannel = 'production' | 'beta'
+import { parseError } from '../../lib/squirrel-error-parser'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -33,9 +30,6 @@ export interface IUpdateState {
   status: UpdateStatus
   lastSuccessfulCheck: Date | null
 }
-
-const UpdatesURLBase =
-  'https://central.github.com/api/deployments/desktop/desktop/latest'
 
 /** A store which contains the current state of the auto updater. */
 class UpdateStore {
@@ -59,16 +53,7 @@ class UpdateStore {
       }
     }
 
-    // We're using our own error event instead of `autoUpdater`s so that we can
-    // properly serialize the `Error` object for transport over IPC. See
-    // https://github.com/desktop/desktop/issues/1266.
-    ipcRenderer.on(
-      'auto-updater-error',
-      (event: Electron.IpcMessageEvent, error: Error) => {
-        this.onAutoUpdaterError(error)
-      }
-    )
-
+    autoUpdater.on('error', this.onAutoUpdaterError)
     autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
     autoUpdater.on('update-available', this.onUpdateAvailable)
     autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
@@ -79,6 +64,7 @@ class UpdateStore {
     // let's just avoid it.
     if (!process.env.TEST_ENV) {
       window.addEventListener('beforeunload', () => {
+        autoUpdater.removeListener('error', this.onAutoUpdaterError)
         autoUpdater.removeListener(
           'checking-for-update',
           this.onCheckingForUpdate
@@ -102,9 +88,14 @@ class UpdateStore {
   }
 
   private onAutoUpdaterError = (error: Error) => {
-    // If we get an error during any stage of the update process we'll
     this.status = UpdateStatus.UpdateNotAvailable
-    this.emitError(error)
+
+    if (__WIN32__) {
+      const parsedError = parseError(error)
+      this.emitError(parsedError || error)
+    } else {
+      this.emitError(error)
+    }
   }
 
   private onCheckingForUpdate = () => {
@@ -158,22 +149,24 @@ class UpdateStore {
     }
   }
 
-  private getFeedURL(channel: ReleaseChannel): string {
-    return `${UpdatesURLBase}?version=${getVersion()}&env=${channel}`
-  }
-
   /**
    * Check for updates.
    *
-   * @param channel      - The release channel to check for updates.
    * @param inBackground - Are we checking for updates in the background, or was
    *                       this check user-initiated?
    */
-  public checkForUpdates(channel: ReleaseChannel, inBackground: boolean) {
+  public checkForUpdates(inBackground: boolean) {
+    // An update has been downloaded and the app is waiting to be restarted.
+    // Checking for updates again may result in the running app being nuked
+    // when it finds a subsequent update.
+    if (__WIN32__ && this.status === UpdateStatus.UpdateReady) {
+      return
+    }
+
     this.userInitiatedUpdate = !inBackground
 
     try {
-      autoUpdater.setFeedURL(this.getFeedURL(channel))
+      autoUpdater.setFeedURL(__UPDATES_URL__)
       autoUpdater.checkForUpdates()
     } catch (e) {
       this.emitError(e)
@@ -184,7 +177,7 @@ class UpdateStore {
   public quitAndInstallUpdate() {
     // This is synchronous so that we can ensure the app will let itself be quit
     // before we call the function to quit.
-    // tslint:disable-next-line:no-sync-functions
+    // eslint-disable-next-line no-sync
     sendWillQuitSync()
     autoUpdater.quitAndInstall()
   }

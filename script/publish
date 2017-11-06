@@ -3,32 +3,43 @@
 'use strict'
 
 const TEST_PUBLISH = false
+const PUBLISH_CHANNELS = ['production', 'test', 'beta']
+const distInfo = require('./dist-info')
 
-let branchName = ''
-if (process.platform === 'darwin') {
-  branchName = process.env.TRAVIS_BRANCH
-} else if (process.platform === 'win32') {
-  branchName = process.env.APPVEYOR_REPO_BRANCH
+if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
+  console.log('Not a publishable build. Skipping publish.')
+  process.exit(0)
 }
 
-if (!/^__release.*/.test(branchName) && !TEST_PUBLISH) {
-  console.log(`${branchName} isn't a release branch. Skipping publish.`)
+const releaseSHA = distInfo.getReleaseSHA()
+if (!releaseSHA) {
+  console.log(`No release SHA found for build. Skipping publish.`)
+  process.exit(0)
+}
+
+const currentTipSHA = distInfo.getSHA()
+if (
+  !currentTipSHA ||
+  !currentTipSHA.toUpperCase().startsWith(releaseSHA.toUpperCase())
+) {
+  console.log(
+    `Current tip '${currentTipSHA}' does not match release SHA '${releaseSHA}'. Skipping publish.`
+  )
   process.exit(0)
 }
 
 const fs = require('fs')
 const cp = require('child_process')
 const AWS = require('aws-sdk')
-const distInfo = require('./dist-info')
 const crypto = require('crypto')
 const request = require('request')
 
 console.log('Packaging…')
-cp.execSync('npm run package')
+cp.execSync('yarn package')
 
 let sha = ''
 if (process.platform === 'darwin') {
-  sha = process.env.TRAVIS_COMMIT
+  sha = process.env.CIRCLE_SHA1
 } else if (process.platform === 'win32') {
   sha = process.env.APPVEYOR_REPO_COMMIT
 }
@@ -80,6 +91,16 @@ function uploadWindowsAssets() {
       distInfo.getWindowsFullNugetPackagePath()
     ),
   ]
+
+  if (distInfo.shouldMakeDelta()) {
+    uploads.push(
+      upload(
+        distInfo.getWindowsDeltaNugetPackageName(),
+        distInfo.getWindowsDeltaNugetPackagePath()
+      )
+    )
+  }
+
   return Promise.all(uploads)
 }
 
@@ -134,7 +155,7 @@ function updateDeploy(artifacts) {
   const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
     context: process.platform,
-    branch_name: branchName,
+    branch_name: distInfo.getReleaseBranchName(),
     artifacts,
     stats: {
       platform: process.platform,

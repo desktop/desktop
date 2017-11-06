@@ -1,25 +1,28 @@
 import * as React from 'react'
+import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
-import { List } from '../list'
-import { IGitHubUser } from '../../lib/dispatcher'
+import { List } from '../lib/list'
+import { IGitHubUser } from '../../lib/databases'
 
 const RowHeight = 48
 
 interface ICommitListProps {
   readonly onCommitChanged: (commit: Commit) => void
   readonly onScroll: (start: number, end: number) => void
+  readonly onRevertCommit: (commit: Commit) => void
+  readonly onViewCommitOnGitHub: (sha: string) => void
+  readonly repository: Repository
   readonly history: ReadonlyArray<string>
   readonly commits: Map<string, Commit>
   readonly selectedSHA: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
+  readonly localCommitSHAs: ReadonlyArray<string>
 }
 
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
-  private list: List | null
-
   private renderCommit = (row: number) => {
     const sha = this.props.history[row]
     const commit = this.props.commits.get(sha)
@@ -38,12 +41,18 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       }
     }
 
+    const isLocal = this.props.localCommitSHAs.indexOf(commit.sha) > -1
+
     return (
       <CommitListItem
         key={commit.sha}
+        gitHubRepository={this.props.repository.gitHubRepository}
+        isLocal={isLocal}
         commit={commit}
         user={avatarUser}
         emoji={this.props.emoji}
+        onRevertCommit={this.props.onRevertCommit}
+        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
       />
     )
   }
@@ -72,10 +81,6 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return this.props.history.findIndex(s => s === sha)
   }
 
-  private onListRef = (ref: List) => {
-    this.list = ref
-  }
-
   public render() {
     if (this.props.history.length === 0) {
       return <div className="panel blankslate">No history</div>
@@ -84,7 +89,6 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return (
       <div id="commit-list">
         <List
-          ref={this.onListRef}
           rowCount={this.props.history.length}
           rowHeight={RowHeight}
           selectedRow={this.rowForSHA(this.props.selectedSHA)}

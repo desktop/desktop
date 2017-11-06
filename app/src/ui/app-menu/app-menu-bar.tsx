@@ -1,9 +1,13 @@
 import * as React from 'react'
-import { IMenu, ISubmenuItem } from '../../models/app-menu'
+import {
+  IMenu,
+  ISubmenuItem,
+  findItemByAccessKey,
+  itemIsSelectable,
+} from '../../models/app-menu'
 import { AppMenuBarButton } from './app-menu-bar-button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { AppMenuFoldout, FoldoutType } from '../../lib/app-state'
-import { findItemByAccessKey, itemIsSelectable } from '../../models/app-menu'
 
 interface IAppMenuBarProps {
   readonly appMenu: ReadonlyArray<IMenu>
@@ -27,7 +31,7 @@ interface IAppMenuBarProps {
 
   /**
    * An optional function that's called when the menubar loses focus.
-   * 
+   *
    * Note that this function will only be called once no descendant element
    * of the menu bar has keyboard focus. In other words this differs
    * from the traditional onBlur event.
@@ -47,7 +51,7 @@ interface IAppMenuBarState {
  * Creates menu bar state given props. This is intentionally not
  * an instance member in order to avoid mistakenly using any other
  * input data or state than the received props.
- * 
+ *
  * The state consists of a list of visible top-level menu items which have
  * child menus of their own (ie submenu items).
  */
@@ -95,12 +99,12 @@ export class AppMenuBar extends React.Component<
    * element which had focus prior to the component receiving it. We do so in
    * order to be able to restore focus to that element when we decide to
    * _programmatically_ give up our focus.
-   * 
+   *
    * A good example of this is when the user is focused on a text box and hits
    * the Alt key. Focus will then move to the first menu item in the menu bar.
    * If the user then hits Enter we relinquish our focus and return it back to
    * the text box again.
-   * 
+   *
    * As long as we hold on to this reference we might be preventing GC from
    * collecting a potentially huge subtree of the DOM so we need to make sure
    * to clear it out as soon as we're done with it.
@@ -223,10 +227,14 @@ export class AppMenuBar extends React.Component<
     this.stolenFocusElement = null
   }
 
-  private onMenuBarFocusIn = (event: FocusEvent) => {
+  private onMenuBarFocusIn = (event: Event) => {
+    const focusEvent = event as FocusEvent
     if (!this.hasFocus) {
-      if (event.relatedTarget && event.relatedTarget instanceof HTMLElement) {
-        this.stolenFocusElement = event.relatedTarget
+      if (
+        focusEvent.relatedTarget &&
+        focusEvent.relatedTarget instanceof HTMLElement
+      ) {
+        this.stolenFocusElement = focusEvent.relatedTarget
       } else {
         this.stolenFocusElement = null
       }
@@ -235,7 +243,7 @@ export class AppMenuBar extends React.Component<
     this.clearFocusOutTimeout()
   }
 
-  private onMenuBarFocusOut = (event: FocusEvent) => {
+  private onMenuBarFocusOut = (event: Event) => {
     // When keyboard focus moves from one descendant within the
     // menu bar to another we will receive one 'focusout' event
     // followed quickly by a 'focusin' event. As such we

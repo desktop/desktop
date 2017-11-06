@@ -1,12 +1,12 @@
 import * as React from 'react'
+import { Dispatcher } from '../../lib/dispatcher'
 import {
-  Dispatcher,
   SignInState,
   SignInStep,
   IEndpointEntryState,
   IAuthenticationState,
   ITwoFactorAuthenticationState,
-} from '../../lib/dispatcher'
+} from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
@@ -84,7 +84,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         this.props.onDismissed()
         break
       default:
-        return assertNever(state, `Unknown sign in step ${stepKind}`)
+        assertNever(state, `Unknown sign in step ${stepKind}`)
     }
   }
 
@@ -231,9 +231,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   ) {
     return (
       <DialogContent>
-        <p>
-          {getWelcomeMessage(state.type)}
-        </p>
+        <p>{getWelcomeMessage(state.type)}</p>
         <Row>
           <TextBox
             label="Authentication code"
@@ -279,11 +277,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
     const disabled = state.loading
 
-    const errors = state.error
-      ? <DialogError>
-          {state.error.message}
-        </DialogError>
-      : null
+    const errors = state.error ? (
+      <DialogError>{state.error.message}</DialogError>
+    ) : null
 
     return (
       <Dialog

@@ -1,5 +1,3 @@
-import * as Path from 'path'
-import { Account } from '../../models/account'
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
 
@@ -21,13 +19,16 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
    * caller. Unexpected exit codes will be logged and an
    * error thrown. Defaults to 0 if undefined.
    */
-  readonly successExitCodes?: Set<number>
+  readonly successExitCodes?: ReadonlySet<number>
 
   /**
    * The git errors which are expected by the caller. Unexpected errors will
    * be logged and an error thrown.
    */
-  readonly expectedErrors?: Set<DugiteError>
+  readonly expectedErrors?: ReadonlySet<DugiteError>
+
+  /** Should it track & report LFS progress? */
+  readonly trackLFSProgress?: boolean
 }
 
 /**
@@ -109,22 +110,11 @@ export async function git(
 
   const opts = { ...defaultOptions, ...options }
 
-  const startTime = performance && performance.now ? performance.now() : null
-
   const commandName = `${name}: git ${args.join(' ')}`
-  log.debug(`Executing ${commandName}`)
 
   const result = await GitPerf.measure(commandName, () =>
     GitProcess.exec(args, path, options)
   )
-
-  if (startTime) {
-    const rawTime = performance.now() - startTime
-    if (rawTime > 1000) {
-      const timeInSeconds = (rawTime / 1000).toFixed(3)
-      log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
-    }
-  }
 
   const exitCode = result.exitCode
 
@@ -249,18 +239,15 @@ function getDescriptionForError(error: DugiteError): string {
       return 'Unable to merge unrelated histories in this repository.'
     case DugiteError.PushWithPrivateEmail:
       return 'Cannot push these commits as they contain an email address marked as private on GitHub.'
+    case DugiteError.LFSAttributeDoesNotMatch:
+      return 'Git LFS attribute found in global Git configuration does not match expected value.'
+    case DugiteError.ProtectedBranchDeleteRejected:
+      return 'This branch cannot be deleted from the remote repository because it is marked as protected.'
+    case DugiteError.ProtectedBranchRequiredStatus:
+      return 'The push was rejected by the remote server because a required status check has not been satisfied.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
-}
-
-function getAskPassTrampolinePath(): string {
-  const extension = __WIN32__ ? 'bat' : 'sh'
-  return Path.resolve(__dirname, 'static', `ask-pass-trampoline.${extension}`)
-}
-
-function getAskPassScriptPath(): string {
-  return Path.resolve(__dirname, 'ask-pass.js')
 }
 
 /**
@@ -278,33 +265,3 @@ export const gitNetworkArguments: ReadonlyArray<string> = [
   '-c',
   'credential.helper=',
 ]
-
-/** Get the environment for authenticating remote operations. */
-export function envForAuthentication(account: Account | null): Object {
-  const env = {
-    DESKTOP_PATH: process.execPath,
-    DESKTOP_ASKPASS_SCRIPT: getAskPassScriptPath(),
-    GIT_ASKPASS: getAskPassTrampolinePath(),
-    // supported since Git 2.3, this is used to ensure we never interactively prompt
-    // for credentials - even as a fallback
-    GIT_TERMINAL_PROMPT: '0',
-  }
-
-  if (!account) {
-    return env
-  }
-
-  return Object.assign(env, {
-    DESKTOP_USERNAME: account.login,
-    DESKTOP_ENDPOINT: account.endpoint,
-  })
-}
-
-export function expectedAuthenticationErrors(): Set<DugiteError> {
-  return new Set([
-    DugiteError.HTTPSAuthenticationFailed,
-    DugiteError.SSHAuthenticationFailed,
-    DugiteError.HTTPSRepositoryNotFound,
-    DugiteError.SSHRepositoryNotFound,
-  ])
-}

@@ -54,12 +54,8 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
       <Row className="account-info">
         <Avatar user={avatarUser} />
         <div className="user-info">
-          <div className="name">
-            {account.name}
-          </div>
-          <div className="login">
-            @{account.login}
-          </div>
+          <div className="name">{account.name}</div>
+          <div className="login">@{account.login}</div>
         </div>
         <Button onClick={this.logout(account)}>
           {__DARWIN__ ? 'Sign Out' : 'Sign out'}

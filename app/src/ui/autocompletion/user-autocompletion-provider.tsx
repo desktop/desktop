@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { IAutocompletionProvider } from './index'
-import { GitHubUserStore } from '../../lib/dispatcher'
+import { GitHubUserStore } from '../../lib/stores'
 import { GitHubRepository } from '../../models/github-repository'
 
 /** An autocompletion hit for a user. */
@@ -30,7 +30,7 @@ export class UserAutocompletionProvider
   }
 
   public getRegExp(): RegExp {
-    return /(?:^|\n| )(?:@)([a-z0-9\\+\\-][a-z0-9_\-]*)?/g
+    return /(?:^|\n| )(?:@)([a-z\d\\+-][a-z\d_-]*)?/g
   }
 
   public async getAutocompletionItems(
@@ -46,12 +46,8 @@ export class UserAutocompletionProvider
   public renderItem(item: IUserHit): JSX.Element {
     return (
       <div className="user" key={item.username}>
-        <span className="username">
-          {item.username}
-        </span>
-        <span className="name">
-          {item.name}
-        </span>
+        <span className="username">{item.username}</span>
+        <span className="name">{item.name}</span>
       </div>
     )
   }

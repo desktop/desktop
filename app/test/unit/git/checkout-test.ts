@@ -1,15 +1,14 @@
-import { expect, use as chaiUse } from 'chai'
+import { expect } from 'chai'
+import { shell } from '../../helpers/test-app-shell'
 import {
   setupEmptyRepository,
   setupFixtureRepository,
-} from '../../fixture-helper'
+} from '../../helpers/repositories'
+
 import { Repository } from '../../../src/models/repository'
 import { checkoutBranch } from '../../../src/lib/git'
 import { TipState, IValidBranch } from '../../../src/models/tip'
-import { GitStore } from '../../../src/lib/dispatcher/git-store'
-import { shell } from '../../test-app-shell'
-
-chaiUse(require('chai-datetime'))
+import { GitStore } from '../../../src/lib/stores'
 
 describe('git/checkout', () => {
   it('throws when invalid characters are used for branch name', async () => {
@@ -17,7 +16,7 @@ describe('git/checkout', () => {
 
     let errorRaised = false
     try {
-      await checkoutBranch(repository, '..')
+      await checkoutBranch(repository, null, '..')
     } catch (error) {
       errorRaised = true
       expect(error.message).to.equal('fatal: invalid reference: ..\n')
@@ -30,7 +29,7 @@ describe('git/checkout', () => {
     const path = await setupFixtureRepository('repo-with-many-refs')
     const repository = new Repository(path, -1, null, false)
 
-    await checkoutBranch(repository, 'commit-with-long-description')
+    await checkoutBranch(repository, null, 'commit-with-long-description')
 
     const store = new GitStore(repository, shell)
     await store.loadStatus()

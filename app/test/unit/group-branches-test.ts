@@ -1,5 +1,4 @@
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import { groupBranches } from '../../src/ui/branches/group-branches'
 import { Branch, BranchType } from '../../src/models/branch'

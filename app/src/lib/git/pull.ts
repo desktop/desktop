@@ -1,15 +1,17 @@
 import {
   git,
-  envForAuthentication,
-  expectedAuthenticationErrors,
   GitError,
   IGitExecutionOptions,
   gitNetworkArguments,
 } from './core'
 import { Repository } from '../../models/repository'
-import { Account } from '../../models/account'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
 import { IPullProgress } from '../app-state'
+import {
+  IGitAccount,
+  envForAuthentication,
+  AuthenticationErrors,
+} from './authentication'
 
 /**
  * Pull from the specified remote.
@@ -26,21 +28,21 @@ import { IPullProgress } from '../app-state'
  */
 export async function pull(
   repository: Repository,
-  account: Account | null,
+  account: IGitAccount | null,
   remote: string,
   progressCallback?: (progress: IPullProgress) => void
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
-    expectedErrors: expectedAuthenticationErrors(),
+    expectedErrors: AuthenticationErrors,
   }
 
   if (progressCallback) {
     const title = `Pulling ${remote}`
     const kind = 'pull'
 
-    opts = executionOptionsWithProgress(
-      opts,
+    opts = await executionOptionsWithProgress(
+      { ...opts, trackLFSProgress: true },
       new PullProgressParser(),
       progress => {
         // In addition to progress output from the remote end and from

@@ -1,7 +1,7 @@
 import * as ChildProcess from 'child_process'
 import * as Path from 'path'
-import * as Fs from 'fs-extra'
 import * as Os from 'os'
+import { pathExists, mkdirIfNeeded, writeFile } from '../lib/file-system'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
@@ -45,7 +45,10 @@ async function handleUpdated(): Promise<void> {
 }
 
 async function installCLI(): Promise<void> {
-  const binPath = await writeCLITrampoline()
+  const binPath = getBinPath()
+  await mkdirIfNeeded(binPath)
+  await writeBatchScriptCLITrampoline(binPath)
+  await writeShellScriptCLITrampoline(binPath)
   const paths = await getPathSegments()
   if (paths.indexOf(binPath) < 0) {
     await setPathSegments([...paths, binPath])
@@ -60,6 +63,11 @@ function getBinPath(): string {
   return Path.resolve(process.execPath, '../../bin')
 }
 
+function resolveVersionedPath(binPath: string, relativePath: string): string {
+  const appFolder = Path.resolve(process.execPath, '..')
+  return Path.relative(binPath, Path.join(appFolder, relativePath))
+}
+
 /**
  * Here's the problem: our app's path contains its version number. So each time
  * we update, the path to our app changes. So it's Real Hard to add our path
@@ -71,31 +79,30 @@ function getBinPath(): string {
  * rewrite the trampoline to point to the new, version-specific path. Bingo
  * bango Bob's your uncle.
  */
-async function writeCLITrampoline(): Promise<string> {
-  const binPath = getBinPath()
-  const appFolder = Path.resolve(process.execPath, '..')
-  const versionedPath = Path.relative(
+async function writeBatchScriptCLITrampoline(binPath: string): Promise<void> {
+  const versionedPath = resolveVersionedPath(
     binPath,
-    Path.join(appFolder, 'resources/app/static/github.bat')
+    'resources/app/static/github.bat'
   )
-  const trampline = `@echo off\n"%~dp0\\${versionedPath}" %*`
-  const trampolinePath = Path.join(binPath, 'github.bat')
-  return new Promise<string>((resolve, reject) => {
-    Fs.ensureDir(binPath, err => {
-      if (err) {
-        reject(err)
-        return
-      }
 
-      Fs.writeFile(trampolinePath, trampline, err => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(binPath)
-        }
-      })
-    })
-  })
+  const trampoline = `@echo off\n"%~dp0\\${versionedPath}" %*`
+  const trampolinePath = Path.join(binPath, 'github.bat')
+
+  return writeFile(trampolinePath, trampoline)
+}
+
+async function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
+  const versionedPath = resolveVersionedPath(
+    binPath,
+    'resources/app/static/github.sh'
+  )
+
+  const trampoline = `#!/usr/bin/env bash
+  DIR="$( cd "$( dirname "\$\{BASH_SOURCE[0]\}" )" && pwd )"
+  sh "$DIR/${versionedPath}" "$@"`
+  const trampolinePath = Path.join(binPath, 'github')
+
+  return writeFile(trampolinePath, trampoline, { encoding: 'utf8', mode: 755 })
 }
 
 /** Spawn the Squirrel.Windows `Update.exe` with a command. */
@@ -129,7 +136,7 @@ function removeShortcut(): Promise<void> {
   return spawnSquirrelUpdate(['--removeShortcut', exeName])
 }
 
-function updateShortcut(): Promise<void> {
+async function updateShortcut(): Promise<void> {
   const homeDirectory = Os.homedir()
   if (homeDirectory) {
     const desktopShortcutPath = Path.join(
@@ -137,14 +144,11 @@ function updateShortcut(): Promise<void> {
       'Desktop',
       'GitHub Desktop.lnk'
     )
-    return new Promise<void>((resolve, reject) => {
-      Fs.exists(desktopShortcutPath, exists => {
-        const locations: ShortcutLocations = exists
-          ? ['StartMenu', 'Desktop']
-          : ['StartMenu']
-        createShortcut(locations).then(resolve).catch(reject)
-      })
-    })
+    const exists = await pathExists(desktopShortcutPath)
+    const locations: ShortcutLocations = exists
+      ? ['StartMenu', 'Desktop']
+      : ['StartMenu']
+    return createShortcut(locations)
   } else {
     return createShortcut(['StartMenu', 'Desktop'])
   }

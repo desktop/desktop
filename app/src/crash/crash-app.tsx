@@ -2,6 +2,7 @@ import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
 import { ICrashDetails, ErrorType } from './shared'
 import { TitleBar } from '../ui/window/title-bar'
+import { encodePathAsUrl } from '../lib/path'
 import {
   WindowState,
   getWindowState,
@@ -36,7 +37,10 @@ interface ICrashAppState {
 
 // Note that we're reusing the welcome illustration here, any changes to it
 // will have to be reflected in the welcome flow as well.
-const BottomImageUri = `file:///${__dirname}/static/welcome-illustration-left-bottom.svg`
+const BottomImageUri = encodePathAsUrl(
+  __dirname,
+  'static/welcome-illustration-left-bottom.svg'
+)
 
 const issuesUri = 'https://github.com/desktop/desktop/issues'
 
@@ -122,9 +126,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     return (
       <header>
         <Octicon symbol={OcticonSymbol.stop} className="error-icon" />
-        <h1>
-          {message}
-        </h1>
+        <h1>{message}</h1>
       </header>
     )
   }
@@ -158,19 +160,11 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
       return
     }
 
-    return (
-      <pre className="error">
-        {prepareErrorMessage(error)}
-      </pre>
-    )
+    return <pre className="error">{prepareErrorMessage(error)}</pre>
   }
 
   private renderFooter() {
-    return (
-      <div className="footer">
-        {this.renderQuitButton()}
-      </div>
-    )
+    return <div className="footer">{this.renderQuitButton()}</div>
   }
 
   private renderQuitButton() {

@@ -4,6 +4,10 @@ import { Octicon, iconForRepository } from '../octicons'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
 
+const defaultEditorLabel = __DARWIN__
+  ? 'Open in External Editor'
+  : 'Open in external editor'
+
 interface IRepositoryListItemProps {
   readonly repository: Repositoryish
 
@@ -16,8 +20,17 @@ interface IRepositoryListItemProps {
   /** Called when the repository should be shown in the shell. */
   readonly onOpenInShell: (repository: Repositoryish) => void
 
+  /** Called when the repository should be opened in an external editor */
+  readonly onOpenInExternalEditor: (repository: Repositoryish) => void
+
+  /** The current external editor selected by the user */
+  readonly externalEditorLabel?: string
+
   /** Does the repository need to be disambiguated in the list? */
   readonly needsDisambiguation: boolean
+
+  /** The label for the user's preferred shell. */
+  readonly shellLabel: string
 }
 
 /** A repository item. */
@@ -48,14 +61,8 @@ export class RepositoryListItem extends React.Component<
         <Octicon symbol={iconForRepository(repository)} />
 
         <div className="name">
-          {prefix
-            ? <span className="prefix">
-                {prefix}
-              </span>
-            : null}
-          <span>
-            {repository.name}
-          </span>
+          {prefix ? <span className="prefix">{prefix}</span> : null}
+          <span>{repository.name}</span>
         </div>
       </div>
     )
@@ -77,16 +84,24 @@ export class RepositoryListItem extends React.Component<
 
     const repository = this.props.repository
     const missing = repository instanceof Repository && repository.missing
+    const openInExternalEditor = this.props.externalEditorLabel
+      ? `Open in ${this.props.externalEditorLabel}`
+      : defaultEditorLabel
 
     const items: ReadonlyArray<IMenuItem> = [
       {
-        label: __DARWIN__ ? 'Open in Terminal' : 'Open command prompt',
+        label: `Open in ${this.props.shellLabel}`,
         action: this.openInShell,
         enabled: !missing,
       },
       {
         label: __DARWIN__ ? 'Show in Finder' : 'Show in Explorer',
         action: this.showRepository,
+        enabled: !missing,
+      },
+      {
+        label: openInExternalEditor,
+        action: this.openInExternalEditor,
         enabled: !missing,
       },
       { type: 'separator' },
@@ -108,5 +123,9 @@ export class RepositoryListItem extends React.Component<
 
   private openInShell = () => {
     this.props.onOpenInShell(this.props.repository)
+  }
+
+  private openInExternalEditor = () => {
+    this.props.onOpenInExternalEditor(this.props.repository)
   }
 }

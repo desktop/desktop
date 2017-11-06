@@ -13,7 +13,7 @@ const sourceMapSupport = require('source-map-support')
  * since it's possible that the error which caused us to spawn the crash
  * process was related to source maps.
  */
-const knownFilesWithSourceMap = ['renderer.js', 'main.js', 'shared.js']
+const knownFilesWithSourceMap = ['renderer.js', 'main.js']
 
 function retrieveSourceMap(source: string) {
   // This is a happy path in case we know for certain that we won't be
@@ -48,13 +48,13 @@ function retrieveSourceMap(source: string) {
   //  https://github.com/v8/v8/wiki/Stack-Trace-API#customizing-stack-traces
   // This happens on-demand when someone accesses the stack
   // property on an error object and has to be synchronous :/
-  // tslint:disable-next-line:no-sync-functions
+  // eslint-disable-next-line no-sync
   if (!Fs.existsSync(path)) {
     return
   }
 
   try {
-    // tslint:disable-next-line:no-sync-functions
+    // eslint-disable-next-line no-sync
     const map = Fs.readFileSync(path, 'utf8')
     return { url: Path.basename(path), map }
   } catch (error) {
@@ -125,7 +125,6 @@ function sourceMappedStackTrace(error: Error): string | undefined {
     // in our weak map. In order to get around that we'll eagerly access the
     // stack, forcing our handler to run which should ensure that the native
     // frames are stored in our weak map.
-    // tslint:disable-next-line:whitespace
     ;(error.stack || '').toString()
     frames = stackFrameMap.get(error)
   }

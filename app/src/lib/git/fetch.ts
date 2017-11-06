@@ -1,19 +1,14 @@
-import {
-  git,
-  envForAuthentication,
-  IGitExecutionOptions,
-  gitNetworkArguments,
-} from './core'
+import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
-import { Account } from '../../models/account'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { IFetchProgress } from '../app-state'
+import { IGitAccount, envForAuthentication } from './authentication'
 
 /**
  * Fetch from the given remote.
- * 
+ *
  * @param repository - The repository to fetch into
- * 
+ *
  * @param account    - The account to use when authenticating with the remote
  *
  * @param remote     - The remote to fetch from
@@ -26,7 +21,7 @@ import { IFetchProgress } from '../app-state'
  */
 export async function fetch(
   repository: Repository,
-  account: Account | null,
+  account: IGitAccount | null,
   remote: string,
   progressCallback?: (progress: IFetchProgress) => void
 ): Promise<void> {
@@ -39,8 +34,8 @@ export async function fetch(
     const title = `Fetching ${remote}`
     const kind = 'fetch'
 
-    opts = executionOptionsWithProgress(
-      opts,
+    opts = await executionOptionsWithProgress(
+      { ...opts, trackLFSProgress: true },
       new FetchProgressParser(),
       progress => {
         // In addition to progress output from the remote end and from
@@ -75,7 +70,7 @@ export async function fetch(
 /** Fetch a given refspec from the given remote. */
 export async function fetchRefspec(
   repository: Repository,
-  account: Account | null,
+  account: IGitAccount | null,
   remote: string,
   refspec: string
 ): Promise<void> {

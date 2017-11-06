@@ -12,6 +12,7 @@ const config = {
 const mainConfig = merge({}, common.main, config)
 const askPassConfig = merge({}, common.askPass, config)
 const cliConfig = merge({}, common.cli, config)
+const highlighterConfig = merge({}, common.highlighter, config)
 
 const rendererConfig = merge({}, common.renderer, config, {
   entry: {
@@ -37,8 +38,6 @@ const rendererConfig = merge({}, common.renderer, config, {
   plugins: [new webpack.HotModuleReplacementPlugin()],
 })
 
-const sharedConfig = merge({}, common.shared, config, {})
-
 const crashConfig = merge({}, common.crash, config, {
   module: {
     rules: [
@@ -55,9 +54,9 @@ const crashConfig = merge({}, common.crash, config, {
 
 module.exports = [
   mainConfig,
-  sharedConfig,
   rendererConfig,
   askPassConfig,
   crashConfig,
   cliConfig,
+  highlighterConfig,
 ]

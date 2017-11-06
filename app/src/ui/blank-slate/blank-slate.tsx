@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { encodePathAsUrl } from '../../lib/path'
 import { UiView } from '../ui-view'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -20,7 +21,10 @@ interface IBlankSlateProps {
  */
 export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
   public render() {
-    const BlankSlateImage = `file:///${__dirname}/static/empty-no-repo.svg`
+    const BlankSlateImage = encodePathAsUrl(
+      __dirname,
+      'static/empty-no-repo.svg'
+    )
 
     return (
       <UiView id="blank-slate">
@@ -39,20 +43,20 @@ export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
           </div>
 
           <div className="callout">
-            <Octicon symbol={OcticonSymbol.repoClone} />
-            <div>Clone an existing project from GitHub to your computer</div>
-            <Button onClick={this.props.onClone}>
-              {__DARWIN__ ? 'Clone a Repository' : 'Clone a repository'}
-            </Button>
-          </div>
-
-          <div className="callout">
             <Octicon symbol={OcticonSymbol.deviceDesktop} />
             <div>
               Add an existing project on your computer and publish it to GitHub
             </div>
             <Button onClick={this.props.onAdd}>
               {__DARWIN__ ? 'Add a Local Repository' : 'Add a local repository'}
+            </Button>
+          </div>
+
+          <div className="callout">
+            <Octicon symbol={OcticonSymbol.repoClone} />
+            <div>Clone an existing project from GitHub to your computer</div>
+            <Button onClick={this.props.onClone}>
+              {__DARWIN__ ? 'Clone a Repository' : 'Clone a repository'}
             </Button>
           </div>
         </div>

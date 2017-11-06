@@ -1,16 +1,11 @@
-import { expect, use as chaiUse } from 'chai'
+import { expect } from 'chai'
 import { Repository } from '../../../src/models/repository'
 import {
   setupFixtureRepository,
   setupEmptyRepository,
-} from '../../fixture-helper'
-import {
-  getBranches,
-  getCurrentBranch,
-} from '../../../src/lib/git/for-each-ref'
+} from '../../helpers/repositories'
+import { getBranches } from '../../../src/lib/git/for-each-ref'
 import { BranchType } from '../../../src/models/branch'
-
-chaiUse(require('chai-datetime'))
 
 describe('git/for-each-ref', () => {
   let repository: Repository | null = null
@@ -62,33 +57,6 @@ describe('git/for-each-ref', () => {
       const repo = await setupEmptyRepository()
       const branches = await getBranches(repo)
       expect(branches.length).to.equal(0)
-    })
-  })
-
-  describe('getCurrentBranch', () => {
-    it('fetches branch using for-each-ref', async () => {
-      const currentBranch = await getCurrentBranch(repository!)
-
-      expect(currentBranch!.name).to.equal('commit-with-long-description')
-      expect(currentBranch!.upstream).to.be.null
-      expect(currentBranch!.tip.sha).to.equal(
-        'dfa96676b65e1c0ed43ca25492252a5e384c8efd'
-      )
-      expect(currentBranch!.tip.summary).to.equal('this is a commit title')
-      expect(currentBranch!.tip.body).to.contain('lucky last')
-      expect(currentBranch!.tip.author.name).to.equal('Brendan Forster')
-      expect(currentBranch!.tip.author.email).to.equal('brendan@github.com')
-      expect(currentBranch!.tip.author.date).to.equalDate(
-        new Date('Tue Oct 18 16:23:42 2016 +1100')
-      )
-
-      expect(currentBranch!.tip.parentSHAs.length).to.equal(1)
-    })
-
-    it('should return null for empty repo', async () => {
-      const repo = await setupEmptyRepository()
-      const branch = await getCurrentBranch(repo)
-      expect(branch).to.be.null
     })
   })
 })

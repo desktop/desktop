@@ -1,7 +1,6 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import * as Path from 'path'
 import * as FS from 'fs'
@@ -21,7 +20,7 @@ import {
 import { DiffParser } from '../../src/lib/diff-parser'
 import { formatPatch } from '../../src/lib/patch-formatter'
 import { getWorkingDirectoryDiff, convertDiff } from '../../src/lib/git'
-import { setupFixtureRepository } from '../fixture-helper'
+import { setupFixtureRepository } from '../helpers/repositories'
 
 async function parseDiff(diff: string): Promise<ITextDiff> {
   const parser = new DiffParser()
@@ -323,6 +322,39 @@ describe('patch formatting', () => {
       expect(patch).to.have.string('@@ -1 +1,2 @@')
       expect(patch).to.have.string(' ')
       expect(patch).to.have.string('+added line 2')
+    })
+
+    it('creates the right patch when a `No newline` marker is involved', async () => {
+      const rawDiff = [
+        '--- a/file.md',
+        '+++ b/file.md',
+        '@@ -23,5 +24,5 @@ and more stuff',
+        ' ',
+        ' ',
+        ' ',
+        '-',
+        '-and fun stuff? I dnno',
+        '\\ No newline at end of file',
+        '+and fun stuff? I dnno',
+        '+it could be,',
+      ].join('\n')
+      const diff = await parseDiff(rawDiff)
+
+      // Select the second added line
+      const selection = DiffSelection.fromInitialSelection(
+        DiffSelectionType.None
+      ).withLineSelection(7, true)
+
+      const file = new WorkingDirectoryFileChange(
+        'file.md',
+        AppFileStatus.Modified,
+        selection
+      )
+
+      const patch = formatPatch(file, diff)
+
+      expect(patch).to.contain('\\ No newline at end of file')
+      expect(patch).to.contain('+it could be')
     })
   })
 })

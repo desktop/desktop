@@ -1,11 +1,14 @@
 import * as Path from 'path'
 
-import { ipcRenderer, remote } from 'electron'
+import { remote } from 'electron'
 import { Disposable } from 'event-kit'
 
-import { Account, IAccount } from '../../models/account'
-import { Repository, IRepository } from '../../models/repository'
-import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
+import { Account } from '../../models/account'
+import { Repository } from '../../models/repository'
+import {
+  WorkingDirectoryFileChange,
+  CommittedFileChange,
+} from '../../models/status'
 import { DiffSelection } from '../../models/diff'
 import {
   RepositorySection,
@@ -13,23 +16,23 @@ import {
   PopupType,
   Foldout,
   FoldoutType,
+  ImageDiffType,
 } from '../app-state'
-import { Action } from './actions'
-import { AppStore } from './app-store'
-import { CloningRepository } from './cloning-repositories-store'
+import { AppStore } from '../stores/app-store'
+import { CloningRepository } from '../../models/cloning-repository'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
+import { ExternalEditor } from '../../lib/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
-import { ICommitMessage } from './git-store'
+import { ICommitMessage } from '../stores/git-store'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
+import { matchExistingRepository } from '../../lib/repository-matching'
 import { ILaunchStats } from '../stats'
-import { fatalError } from '../fatal-error'
-import { structuralEquals } from '../equality'
-import { isGitOnPath } from '../open-shell'
-import { uuid } from '../uuid'
-import { shell } from './app-shell'
+import { fatalError, assertNever } from '../fatal-error'
+import { isGitOnPath } from '../is-git-on-path'
+import { shell } from '../app-shell'
 import {
   URLActionType,
   IOpenRepositoryFromURLAction,
@@ -40,36 +43,13 @@ import {
   resolveOAuthRequest,
   rejectOAuthRequest,
 } from '../../lib/oauth'
-import { validatedRepositoryPath } from './validated-repository-path'
 import { installCLI } from '../../ui/lib/install-cli'
-
-/**
- * Extend Error so that we can create new Errors with a callstack different from
- * the callsite.
- */
-class IPCError extends Error {
-  public readonly message: string
-  public readonly stack: string
-
-  public constructor(name: string, message: string, stack: string) {
-    super(name)
-    this.name = name
-    this.message = message
-    this.stack = stack
-  }
-}
-
-interface IResult<T> {
-  type: 'result'
-  readonly result: T
-}
-
-interface IError {
-  type: 'error'
-  readonly error: Error
-}
-
-type IPCResponse<T> = IResult<T> | IError
+import { setGenericUsername, setGenericPassword } from '../generic-git-auth'
+import { RetryAction, RetryActionType } from '../retry-actions'
+import { Shell } from '../shells'
+import { CloneRepositoryTab } from '../../models/clone-repository-tab'
+import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
+import { BranchesTab } from '../../models/branches-tab'
 
 /**
  * An error handler function.
@@ -87,174 +67,34 @@ export type ErrorHandler = (
  * decouples the consumer of state from where/how it is stored.
  */
 export class Dispatcher {
-  private appStore: AppStore
+  private readonly appStore: AppStore
 
   private readonly errorHandlers = new Array<ErrorHandler>()
 
   public constructor(appStore: AppStore) {
     this.appStore = appStore
-
-    appStore.onDidAuthenticate(user => {
-      this.addAccount(user)
-    })
-
-    ipcRenderer.on(
-      'shared/did-update',
-      (event: Electron.IpcMessageEvent, args: any[]) =>
-        this.onSharedDidUpdate(event, args)
-    )
   }
 
-  public async loadInitialState(): Promise<void> {
-    const users = await this.loadUsers()
-    const repositories = await this.loadRepositories()
-    this.appStore._loadFromSharedProcess(users, repositories, true)
-  }
-
-  private dispatchToSharedProcess<T>(action: Action): Promise<T> {
-    return this.send(action.name, action)
-  }
-
-  private send<T>(name: string, args: Object): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      const requestGuid = uuid()
-      ipcRenderer.once(
-        `shared/response/${requestGuid}`,
-        (event: any, args: any[]) => {
-          const response: IPCResponse<T> = args[0]
-          if (response.type === 'result') {
-            resolve(response.result)
-          } else {
-            const errorInfo = response.error
-            const error = new IPCError(
-              errorInfo.name,
-              errorInfo.message,
-              errorInfo.stack || ''
-            )
-            if (__DEV__) {
-            }
-
-            reject(error)
-          }
-        }
-      )
-
-      ipcRenderer.send('shared/request', [{ guid: requestGuid, name, args }])
-    })
-  }
-
-  private onSharedDidUpdate(event: Electron.IpcMessageEvent, args: any[]) {
-    const state: {
-      repositories: ReadonlyArray<IRepository>
-      accounts: ReadonlyArray<IAccount>
-    } =
-      args[0].state
-    const inflatedAccounts = state.accounts.map(Account.fromJSON)
-    const inflatedRepositories = state.repositories.map(Repository.fromJSON)
-    this.appStore._loadFromSharedProcess(
-      inflatedAccounts,
-      inflatedRepositories,
-      false
-    )
-  }
-
-  /** Get the users */
-  private async loadUsers(): Promise<ReadonlyArray<Account>> {
-    const json = await this.dispatchToSharedProcess<ReadonlyArray<IAccount>>({
-      name: 'get-accounts',
-    })
-    return json.map(Account.fromJSON)
-  }
-
-  /** Get the repositories the user has added to the app. */
-  private async loadRepositories(): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatchToSharedProcess<
-      ReadonlyArray<IRepository>
-    >({
-      name: 'get-repositories',
-    })
-    return json.map(Repository.fromJSON)
+  /** Load the initial state for the app. */
+  public loadInitialState(): Promise<void> {
+    return this.appStore.loadInitialState()
   }
 
   /**
    * Add the repositories at the given paths. If a path isn't a repository, then
    * this will post an error to that affect.
    */
-  public async addRepositories(
+  public addRepositories(
     paths: ReadonlyArray<string>
   ): Promise<ReadonlyArray<Repository>> {
-    const validatedPaths = new Array<string>()
-    for (const path of paths) {
-      const validatedPath = await validatedRepositoryPath(path)
-      if (validatedPath) {
-        validatedPaths.push(validatedPath)
-      } else {
-        this.postError({
-          name: 'add-repository',
-          message: `${path} isn't a git repository.`,
-        })
-      }
-    }
-
-    const json = await this.dispatchToSharedProcess<
-      ReadonlyArray<IRepository>
-    >({
-      name: 'add-repositories',
-      paths: validatedPaths,
-    })
-    const addedRepositories = json.map(Repository.fromJSON)
-
-    const refreshedRepositories = new Array<Repository>()
-    for (const repository of addedRepositories) {
-      const refreshedRepository = await this.refreshGitHubRepositoryInfo(
-        repository
-      )
-      refreshedRepositories.push(refreshedRepository)
-    }
-
-    return refreshedRepositories
+    return this.appStore._addRepositories(paths)
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
-  public async removeRepositories(
+  public removeRepositories(
     repositories: ReadonlyArray<Repository | CloningRepository>
   ): Promise<void> {
-    const localRepositories = repositories.filter(
-      r => r instanceof Repository
-    ) as ReadonlyArray<Repository>
-    const cloningRepositories = repositories.filter(
-      r => r instanceof CloningRepository
-    ) as ReadonlyArray<CloningRepository>
-    cloningRepositories.forEach(r => {
-      this.appStore._removeCloningRepository(r)
-    })
-
-    const repositoryIDs = localRepositories.map(r => r.id)
-    await this.dispatchToSharedProcess<ReadonlyArray<number>>({
-      name: 'remove-repositories',
-      repositoryIDs,
-    })
-
-    this.showFoldout({ type: FoldoutType.Repository })
-  }
-
-  /** Refresh the associated GitHub repository. */
-  private async refreshGitHubRepositoryInfo(
-    repository: Repository
-  ): Promise<Repository> {
-    const refreshedRepository = await this.appStore._repositoryWithRefreshedGitHubRepository(
-      repository
-    )
-
-    if (structuralEquals(refreshedRepository, repository)) {
-      return refreshedRepository
-    }
-
-    const repo = await this.dispatchToSharedProcess<IRepository>({
-      name: 'update-github-repository',
-      repository: refreshedRepository,
-    })
-    return Repository.fromJSON(repo)
+    return this.appStore._removeRepositories(repositories)
   }
 
   /** Update the repository's `missing` flag. */
@@ -262,12 +102,7 @@ export class Dispatcher {
     repository: Repository,
     missing: boolean
   ): Promise<Repository> {
-    const repo = await this.dispatchToSharedProcess<IRepository>({
-      name: 'update-repository-missing',
-      repository,
-      missing,
-    })
-    return Repository.fromJSON(repo)
+    return this.appStore._updateRepositoryMissing(repository, missing)
   }
 
   /** Load the history for the repository. */
@@ -313,22 +148,21 @@ export class Dispatcher {
    */
   public changeHistoryFileSelection(
     repository: Repository,
-    file: FileChange
+    file: CommittedFileChange
   ): Promise<void> {
     return this.appStore._changeHistoryFileSelection(repository, file)
   }
 
+  /** Set the repository filter text. */
+  public setRepositoryFilterText(text: string): Promise<void> {
+    return this.appStore._setRepositoryFilterText(text)
+  }
+
   /** Select the repository. */
-  public async selectRepository(
+  public selectRepository(
     repository: Repository | CloningRepository
   ): Promise<Repository | null> {
-    let repo = await this.appStore._selectRepository(repository)
-
-    if (repository instanceof Repository) {
-      repo = await this.refreshGitHubRepositoryInfo(repository)
-    }
-
-    return repo
+    return this.appStore._selectRepository(repository)
   }
 
   /** Load the working directory status. */
@@ -442,40 +276,14 @@ export class Dispatcher {
     return this.appStore._checkoutBranch(repository, name)
   }
 
-  /**
-   * Perform a function which may need authentication on a repository. This may
-   * first update the GitHub association for the repository.
-   */
-  private async withAuthenticatingUser<T>(
-    repository: Repository,
-    fn: (repository: Repository, account: Account | null) => Promise<T>
-  ): Promise<T> {
-    let updatedRepository = repository
-    let account = this.appStore.getAccountForRepository(updatedRepository)
-    // If we don't have a user association, it might be because we haven't yet
-    // tried to associate the repository with a GitHub repository, or that
-    // association is out of date. So try again before we bail on providing an
-    // authenticating user.
-    if (!account) {
-      updatedRepository = await this.refreshGitHubRepositoryInfo(repository)
-      account = this.appStore.getAccountForRepository(updatedRepository)
-    }
-
-    return fn(updatedRepository, account)
-  }
-
   /** Push the current branch. */
-  public async push(repository: Repository): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repo, user) =>
-      this.appStore._push(repo, user)
-    )
+  public push(repository: Repository): Promise<void> {
+    return this.appStore._push(repository)
   }
 
   /** Pull the current branch. */
-  public async pull(repository: Repository): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repo, user) =>
-      this.appStore._pull(repo, user)
-    )
+  public pull(repository: Repository): Promise<void> {
+    return this.appStore._pull(repository)
   }
 
   /** Fetch a specific refspec for the repository. */
@@ -483,20 +291,16 @@ export class Dispatcher {
     repository: Repository,
     fetchspec: string
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repo, user) => {
-      return this.appStore.fetchRefspec(repo, fetchspec, user)
-    })
+    return this.appStore._fetchRefspec(repository, fetchspec)
   }
 
   /** Fetch all refs for the repository */
   public fetch(repository: Repository): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repo, user) =>
-      this.appStore.fetch(repo, user)
-    )
+    return this.appStore._fetch(repository)
   }
 
   /** Publish the repository to GitHub with the given properties. */
-  public async publishRepository(
+  public publishRepository(
     repository: Repository,
     name: string,
     description: string,
@@ -504,7 +308,7 @@ export class Dispatcher {
     account: Account,
     org: IAPIUser | null
   ): Promise<Repository> {
-    await this.appStore._publishRepository(
+    return this.appStore._publishRepository(
       repository,
       name,
       description,
@@ -512,7 +316,6 @@ export class Dispatcher {
       account,
       org
     )
-    return this.refreshGitHubRepositoryInfo(repository)
   }
 
   /**
@@ -555,35 +358,15 @@ export class Dispatcher {
    * Clone a missing repository to the previous path, and update it's
    * state in the repository list if the clone completes without error.
    */
-  public async cloneAgain(
-    url: string,
-    path: string,
-    account: Account | null
-  ): Promise<void> {
-    const { promise, repository } = this.appStore._clone(url, path, { account })
-    await this.selectRepository(repository)
-    const success = await promise
-    if (!success) {
-      return
-    }
-
-    // In the background the shared process has updated the repository list.
-    // To ensure a smooth transition back, we should lookup the new repository
-    // and update it's state after the clone has completed
-    const repositories = await this.loadRepositories()
-    const found = repositories.find(r => r.path === path) || null
-
-    if (found) {
-      const updatedRepository = await this.updateRepositoryMissing(found, false)
-      await this.selectRepository(updatedRepository)
-    }
+  public cloneAgain(url: string, path: string): Promise<void> {
+    return this.appStore._cloneAgain(url, path)
   }
 
   /** Clone the repository to the path. */
   public async clone(
     url: string,
     path: string,
-    options: { account: Account | null; branch?: string }
+    options?: { branch?: string }
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
       const { promise, repository } = this.appStore._clone(url, path, options)
@@ -615,10 +398,12 @@ export class Dispatcher {
    * Delete the branch. This will delete both the local branch and the remote
    * branch, and then check out the default branch.
    */
-  public deleteBranch(repository: Repository, branch: Branch): Promise<void> {
-    return this.withAuthenticatingUser(repository, (repo, user) =>
-      this.appStore._deleteBranch(repo, branch, user)
-    )
+  public deleteBranch(
+    repository: Repository,
+    branch: Branch,
+    includeRemote: boolean
+  ): Promise<void> {
+    return this.appStore._deleteBranch(repository, branch, includeRemote)
   }
 
   /** Discard the changes to the given files. */
@@ -632,6 +417,11 @@ export class Dispatcher {
   /** Undo the given commit. */
   public undoCommit(repository: Repository, commit: Commit): Promise<void> {
     return this.appStore._undoCommit(repository, commit)
+  }
+
+  /** Revert the commit with the given SHA */
+  public revertCommit(repository: Repository, commit: Commit): Promise<void> {
+    return this.appStore._revertCommit(repository, commit)
   }
 
   /**
@@ -701,16 +491,13 @@ export class Dispatcher {
   }
 
   /** Add the account to the app. */
-  public async addAccount(account: Account): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'add-account', account })
+  public addAccount(account: Account): Promise<void> {
+    return this.appStore._addAccount(account)
   }
 
   /** Remove the given account from the app. */
   public removeAccount(account: Account): Promise<void> {
-    return this.dispatchToSharedProcess<void>({
-      name: 'remove-account',
-      account,
-    })
+    return this.appStore._removeAccount(account)
   }
 
   /**
@@ -793,6 +580,11 @@ export class Dispatcher {
     } else {
       this.appStore._showPopup({ type: PopupType.InstallGit, path })
     }
+  }
+
+  /** Opens a Git repository in the user provided program */
+  public async openInExternalEditor(path: string): Promise<void> {
+    return this.appStore._openInExternalEditor(path)
   }
 
   /**
@@ -973,11 +765,7 @@ export class Dispatcher {
     repository: Repository,
     path: string
   ): Promise<void> {
-    await this.dispatchToSharedProcess<IRepository>({
-      name: 'update-repository-path',
-      repository,
-      path,
-    })
+    await this.appStore._updateRepositoryPath(repository, path)
   }
 
   public async setAppFocusState(isFocused: boolean): Promise<void> {
@@ -988,6 +776,7 @@ export class Dispatcher {
     switch (action.name) {
       case 'oauth':
         try {
+          log.info(`[Dispatcher] requesting authenticated user`)
           const user = await requestAuthenticatedUser(action.code)
           if (user) {
             resolveOAuthRequest(user)
@@ -1008,31 +797,33 @@ export class Dispatcher {
         const repository = await this.openRepository(url, branchToClone)
         if (repository) {
           this.handleCloneInDesktopOptions(repository, action)
+        } else {
+          log.warn(
+            `Open Repository from URL failed, did not find repository: ${url} - payload: ${JSON.stringify(
+              action
+            )}`
+          )
         }
         break
 
       case 'open-repository-from-path':
+        // user may accidentally provide a folder within the repository
+        // this ensures we use the repository root, if it is actually a repository
+        // otherwise we consider it an untracked repository
+        const path = (await validatedRepositoryPath(action.path)) || action.path
+
         const state = this.appStore.getState()
-        const repositories = state.repositories
-        const existingRepository = repositories.find(r => {
-          if (__WIN32__) {
-            // Windows is guaranteed to be case-insensitive so we can be a
-            // bit more accepting.
-            return (
-              Path.normalize(r.path).toLowerCase() ===
-              Path.normalize(action.path).toLowerCase()
-            )
-          } else {
-            return Path.normalize(r.path) === Path.normalize(action.path)
-          }
-        })
+        const existingRepository = matchExistingRepository(
+          state.repositories,
+          path
+        )
 
         if (existingRepository) {
-          this.selectRepository(existingRepository)
+          await this.selectRepository(existingRepository)
         } else {
-          return this.showPopup({
+          await this.showPopup({
             type: PopupType.AddRepository,
-            path: action.path,
+            path,
           })
         }
         break
@@ -1051,7 +842,32 @@ export class Dispatcher {
    * Sets the user's preference so that confirmation to remove repo is not asked
    */
   public setConfirmRepoRemovalSetting(value: boolean): Promise<void> {
-    return this.appStore._setConfirmRepoRemoval(value)
+    return this.appStore._setConfirmRepositoryRemovalSetting(value)
+  }
+
+  /**
+   * Sets the user's preference so that confirmation to discard changes is not asked
+   *
+   * @param {boolean} value
+   * @returns {Promise<void>}
+   * @memberof Dispatcher
+   */
+  public setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
+    return this.appStore._setConfirmDiscardChangesSetting(value)
+  }
+
+  /**
+   * Sets the user's preference for an external program to open repositories in.
+   */
+  public setExternalEditor(editor: ExternalEditor): Promise<void> {
+    return this.appStore._setExternalEditor(editor)
+  }
+
+  /**
+   * Sets the user's preferred shell.
+   */
+  public setShell(shell: Shell): Promise<void> {
+    return this.appStore._setShell(shell)
   }
 
   /**
@@ -1070,9 +886,12 @@ export class Dispatcher {
   ): Promise<void> {
     const { filepath, pr, branch } = action
 
-    // we need to refetch for a forked PR and check that out
     if (pr && branch) {
+      // we need to refetch for a forked PR and check that out
       await this.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
+    }
+
+    if (branch) {
       await this.checkoutBranch(repository, branch)
     }
 
@@ -1111,7 +930,11 @@ export class Dispatcher {
       return this.checkoutBranch(repo, branch)
     } else {
       return this.appStore._startOpenInDesktop(() => {
-        this.showPopup({ type: PopupType.CloneRepository, initialURL: url })
+        this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
+        this.showPopup({
+          type: PopupType.CloneRepository,
+          initialURL: url,
+        })
       })
     }
   }
@@ -1131,5 +954,127 @@ export class Dispatcher {
 
       this.postError(e)
     }
+  }
+
+  /** Prompt the user to authenticate for a generic git server. */
+  public promptForGenericGitAuthentication(
+    repository: Repository | CloningRepository,
+    retry: RetryAction
+  ): Promise<void> {
+    return this.appStore.promptForGenericGitAuthentication(repository, retry)
+  }
+
+  /** Save the generic git credentials. */
+  public async saveGenericGitCredentials(
+    hostname: string,
+    username: string,
+    password: string
+  ): Promise<void> {
+    log.info(`storing generic credentials for '${hostname}' and '${username}'`)
+    setGenericUsername(hostname, username)
+
+    try {
+      await setGenericPassword(hostname, username, password)
+    } catch (e) {
+      log.error(
+        `Error saving generic git credentials: ${username}@${hostname}`,
+        e
+      )
+
+      this.postError(e)
+    }
+  }
+
+  /** Perform the given retry action. */
+  public async performRetry(retryAction: RetryAction): Promise<void> {
+    switch (retryAction.type) {
+      case RetryActionType.Push:
+        return this.push(retryAction.repository)
+
+      case RetryActionType.Pull:
+        return this.pull(retryAction.repository)
+
+      case RetryActionType.Fetch:
+        return this.fetch(retryAction.repository)
+
+      case RetryActionType.Clone:
+        await this.clone(retryAction.url, retryAction.path, retryAction.options)
+        break
+
+      default:
+        return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
+    }
+  }
+
+  /** Change the selected image diff type. */
+  public changeImageDiffType(type: ImageDiffType): Promise<void> {
+    return this.appStore._changeImageDiffType(type)
+  }
+
+  /** Install the global Git LFS filters. */
+  public installGlobalLFSFilters(force: boolean): Promise<void> {
+    return this.appStore._installGlobalLFSFilters(force)
+  }
+
+  /** Install the LFS filters */
+  public installLFSHooks(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    return this.appStore._installLFSHooks(repositories)
+  }
+
+  /** Change the selected Clone Repository tab. */
+  public changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
+    return this.appStore._changeCloneRepositoriesTab(tab)
+  }
+
+  /** Open the merge tool for the given file. */
+  public openMergeTool(repository: Repository, path: string): Promise<void> {
+    return this.appStore._openMergeTool(repository, path)
+  }
+
+  /** Change the selected Branches foldout tab. */
+  public changeBranchesTab(tab: BranchesTab): Promise<void> {
+    return this.appStore._changeBranchesTab(tab)
+  }
+
+  /**
+   * Open the Create Pull Request page on GitHub after verifying ahead/behind.
+   *
+   * Note that this method will present the user with a dialog in case the
+   * current branch in the repository is ahead or behind the remote.
+   * The dialog lets the user choose whether get in sync with the remote
+   * or open the PR anyway. This is distinct from the
+   * openCreatePullRequestInBrowser method which immediately opens the
+   * create pull request page without showing a dialog.
+   */
+  public createPullRequest(repository: Repository): Promise<void> {
+    return this.appStore._createPullRequest(repository)
+  }
+
+  /**
+   * Immediately open the Create Pull Request page on GitHub.
+   *
+   * See the createPullRequest method for more details.
+   */
+  public openCreatePullRequestInBrowser(repository: Repository): Promise<void> {
+    return this.appStore._openCreatePullRequestInBrowser(repository)
+  }
+
+  /** Refresh the list of open pull requests for the repository. */
+  public refreshPullRequests(repository: Repository): Promise<void> {
+    return this.appStore._refreshPullRequests(repository)
+  }
+
+  /**
+   * Update the existing `upstream` remote to point to the repository's parent.
+   */
+  public updateExistingUpstreamRemote(repository: Repository): Promise<void> {
+    return this.appStore._updateExistingUpstreamRemote(repository)
+  }
+
+  /** Ignore the existing `upstream` remote. */
+  public ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
+    return this.appStore._ignoreExistingUpstreamRemote(repository)
   }
 }

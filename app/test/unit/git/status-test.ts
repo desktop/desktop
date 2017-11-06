@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import * as path from 'path'
 import { expect } from 'chai'
@@ -8,12 +8,11 @@ import { getStatus } from '../../../src/lib/git/status'
 import {
   setupFixtureRepository,
   setupEmptyRepository,
-} from '../../fixture-helper'
+} from '../../helpers/repositories'
 import { AppFileStatus } from '../../../src/models/status'
 import { GitProcess } from 'dugite'
 
 import * as fs from 'fs-extra'
-const temp = require('temp').track()
 
 describe('git/status', () => {
   let repository: Repository | null = null
@@ -21,10 +20,6 @@ describe('git/status', () => {
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
-  })
-
-  after(() => {
-    temp.cleanupSync()
   })
 
   describe('getStatus', () => {

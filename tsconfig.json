@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "es6",
+    "target": "es2017",
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
@@ -11,11 +11,13 @@
     "strict": true,
     "outDir": "./out"
   },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
   "exclude": [
     "node_modules",
     "app/node_modules",
     "dist",
-    "out"
+    "out",
+    "app/src/highlighter"
   ],
   "compileOnSave": false
 }

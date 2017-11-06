@@ -1,0 +1,39 @@
+experimental:
+  notify:
+    branches:
+      only:
+        - master
+        - /^__release-.*/
+
+machine:
+  xcode:
+    version: 7.3
+
+dependencies:
+  cache_directories:
+    - ".eslintcache"
+    - "node_modules"
+    - "~/.electron"
+
+  pre:
+    - brew install node || brew upgrade node
+    - npm install -g yarn@1.3.2
+
+  override:
+    - yarn install --force
+
+compile:
+  override:
+    - yarn lint
+    - yarn build:prod
+
+test:
+  override:
+    - yarn test:setup
+    - yarn test
+
+deployment:
+  production:
+    branch: /^__release-.*/
+    commands:
+      - yarn run publish

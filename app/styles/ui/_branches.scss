@@ -1,12 +1,148 @@
 @import '../mixins';
 
-.branches-list-container {
+.branches-container {
   height: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+
+  & > .tab-bar {
+    border-top: var(--base-border);
+  }
 
   .branches-list {
     width: 300px;
+  }
+}
+
+.pull-request-tab {
+  display: flex;
+  flex-direction: row;
+
+  align-items: center;
+
+  .count {
+    display: flex;
+
+    background: $gray-300;
+    color: var(--text-color);
+
+    margin-left: var(--spacing-half);
+
+    // Perfectly round semi circle ends with real tight
+    // padding on either side. Now in two flavors!
+    @include darwin {
+      height: 13px;
+      line-height: 13px;
+    }
+
+    @include win32 {
+      height: 14px;
+      line-height: 14px;
+    }
+
+    border-radius: 8px;
+    padding: 0 6px;
+
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+.pull-request-list {
+  width: 300px;
+
+  .filter-list-filter-field {
+    // The rows have built-in margin to their content so
+    // we only need half a spacer here
+    padding-bottom: var(--spacing-half);
+  }
+
+  .pull-request-item {
+    padding: 0 var(--spacing);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    flex-grow: 1;
+
+    .icon {
+      margin-right: var(--spacing-half);
+      width: 16px; // Force a consistent width
+      flex-shrink: 0;
+
+      // Align the icon baseline with the title text
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+
+    .info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex-grow: 1;
+      margin-right: var(--spacing-half);
+
+      .title {
+        @include ellipsis;
+        min-width: 0;
+        margin-right: var(--spacing-half);
+
+        font-weight: var(--font-weight-semibold);
+      }
+
+      .subtitle {
+        @include ellipsis;
+        min-width: 0;
+        margin-right: var(--spacing-half);
+
+        font-weight: var(--font-weight-light);
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary-color);
+      }
+    }
+  }
+
+  .pull-request-loading-item {
+    padding: 0 var(--spacing);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    flex-grow: 1;
+
+    .icon {
+      margin-right: var(--spacing-half);
+      width: 16px; // Force a consistent width
+      flex-shrink: 0;
+      color: var(--box-alt-background-color);
+    }
+
+    .info {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+
+      .title {
+        height: 12px;
+        flex: 1;
+        background-color: var(--box-alt-background-color);
+        margin-right: var(--spacing-half);
+        margin-bottom: var(--spacing-half);
+      }
+
+      .subtitle {
+        height: 12px;
+        flex: 1;
+        background-color: var(--box-alt-background-color);
+        margin-right: var(--spacing-half);
+      }
+    }
+
+    .status {
+      width: 16px;
+      flex-shrink: 0;
+      color: var(--box-alt-background-color);
+    }
   }
 }
 
@@ -43,5 +179,43 @@
       text-align: right;
       white-space: nowrap;
     }
+  }
+
+  .filter-list-filter-field {
+    padding-right: 0;
+  }
+
+  // We need to beat Row's style at the specificity game :|
+  button.new-branch-button {
+    align-self: center;
+    margin-right: var(--spacing);
+    width: 60px;
+  }
+}
+
+.no-pull-requests {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing);
+
+  .blankslate-image {
+    width: 257px;
+    min-width: 0;
+  }
+
+  .title {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .no-prs {
+    padding-bottom: var(--spacing);
+  }
+
+  .call-to-action {
+    font-size: var(--font-size-sm);
   }
 }

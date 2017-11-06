@@ -1,11 +1,11 @@
-import { git, envForAuthentication, gitNetworkArguments } from './core'
+import { git, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
-import { Account } from '../../models/account'
+import { IGitAccount, envForAuthentication } from './authentication'
 
-/** 
+/**
  * Create a new branch from the given start point.
- * 
+ *
  * @param repository - The repository in which to create the new branch
  * @param name       - The name of the new branch
  * @param startPoint - A committish string that the new branch should be based
@@ -37,23 +37,26 @@ export async function renameBranch(
 }
 
 /**
- * Delete the branch. If the branch has a remote branch, it too will be
+ * Delete the branch. If the branch has a remote branch and `includeRemote` is true, it too will be
  * deleted. Silently deletes local branch if remote one is already deleted.
  */
 export async function deleteBranch(
   repository: Repository,
   branch: Branch,
-  account: Account | null
+  account: IGitAccount | null,
+  includeRemote: boolean
 ): Promise<true> {
   if (branch.type === BranchType.Local) {
-    await git(['branch', '-D', branch.name], repository.path, 'deleteBranch')
+    await git(
+      ['branch', '-D', branch.name],
+      repository.path,
+      'deleteLocalBranch'
+    )
   }
 
   const remote = branch.remote
 
-  // If the user is not authenticated, the push is going to fail
-  // Let this propagate and leave it to the caller to handle
-  if (!remote) {
+  if (!includeRemote || !remote) {
     return true
   }
 
@@ -64,7 +67,6 @@ export async function deleteBranch(
     remote
   )
 
-  // Delete local branch only if remote one is already deleted
   if (branchExistsOnRemote) {
     const args = [
       ...gitNetworkArguments,
@@ -74,7 +76,10 @@ export async function deleteBranch(
     ]
 
     const opts = { env: envForAuthentication(account) }
-    await git(args, repository.path, 'deleteBranch', opts)
+
+    // If the user is not authenticated, the push is going to fail
+    // Let this propagate and leave it to the caller to handle
+    await git(args, repository.path, 'deleteRemoteBranch', opts)
   }
 
   return true
@@ -83,7 +88,7 @@ export async function deleteBranch(
 async function checkIfBranchExistsOnRemote(
   repository: Repository,
   branch: Branch,
-  account: Account | null,
+  account: IGitAccount | null,
   remote: string
 ): Promise<boolean> {
   const args = [

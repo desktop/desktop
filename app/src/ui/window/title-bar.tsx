@@ -32,6 +32,12 @@ interface ITitleBarState {
 }
 
 function getState(props: ITitleBarProps): ITitleBarState {
+  // See windowZoomFactor in ITitleBarProps, this is only
+  // applicable on macOS.
+  if (!__DARWIN__) {
+    return { style: undefined }
+  }
+
   return {
     style: props.windowZoomFactor
       ? { zoom: 1 / props.windowZoomFactor }
@@ -54,9 +60,11 @@ export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
 
     switch (actionOnDoubleClick) {
       case 'Maximize':
-        mainWindow.isMaximized()
-          ? mainWindow.unmaximize()
-          : mainWindow.maximize()
+        if (mainWindow.isMaximized()) {
+          mainWindow.unmaximize()
+        } else {
+          mainWindow.maximize()
+        }
         break
       case 'Minimize':
         mainWindow.minimize()
@@ -95,9 +103,9 @@ export class TitleBar extends React.Component<ITitleBarProps, ITitleBarState> {
     const titleBarClass =
       this.props.titleBarStyle === 'light' ? 'light-title-bar' : ''
 
-    const appIcon = this.props.showAppIcon
-      ? <Octicon className="app-icon" symbol={OcticonSymbol.markGithub} />
-      : null
+    const appIcon = this.props.showAppIcon ? (
+      <Octicon className="app-icon" symbol={OcticonSymbol.markGithub} />
+    ) : null
 
     const onTitlebarDoubleClick = __DARWIN__
       ? this.onTitlebarDoubleClickDarwin

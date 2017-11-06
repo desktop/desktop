@@ -252,19 +252,16 @@ export class StatsStore {
   private async updateDailyMeasures<K extends keyof IDailyMeasures>(
     fn: (measures: IDailyMeasures) => Pick<IDailyMeasures, K>
   ): Promise<void> {
-    const db = this.db
     const defaultMeasures = DefaultDailyMeasures
-    await this.db.transaction('rw', this.db.dailyMeasures, function*() {
-      const measures: IDailyMeasures | null = yield db.dailyMeasures
-        .limit(1)
-        .first()
+    await this.db.transaction('rw', this.db.dailyMeasures, async () => {
+      const measures = await this.db.dailyMeasures.limit(1).first()
       const measuresWithDefaults = {
         ...defaultMeasures,
         ...measures,
       }
       const newMeasures = merge(measuresWithDefaults, fn(measuresWithDefaults))
 
-      return db.dailyMeasures.put(newMeasures)
+      return this.db.dailyMeasures.put(newMeasures)
     })
   }
 
@@ -309,11 +306,9 @@ export class StatsStore {
 
   /** Post some data to our stats endpoint. */
   private post(body: object): Promise<Response> {
-    const options = {
+    const options: RequestInit = {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: new Headers({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(body),
     }
 

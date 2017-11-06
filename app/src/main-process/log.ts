@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import * as winston from 'winston'
 
-import { getLogPath } from '../lib/logging/get-log-path'
+import { getLogDirectoryPath } from '../lib/logging/get-log-path'
 import { LogLevel } from '../lib/logging/log-level'
 import { mkdirIfNeeded } from '../lib/file-system'
 
@@ -13,10 +13,10 @@ require('winston-daily-rotate-file')
  */
 const MaxLogFiles = 14
 
-/** resolve the log file location based on the current environment */
+/** resolve the log file location based on the current channel */
 function getLogFilePath(directory: string): string {
-  const environment = process.env.NODE_ENV || 'production'
-  const fileName = `desktop.${environment}.log`
+  const channel = __RELEASE_CHANNEL__
+  const fileName = `desktop.${channel}.log`
   return Path.join(directory, fileName)
 }
 
@@ -71,11 +71,16 @@ function getLogger(): Promise<winston.LogMethod> {
   }
 
   loggerPromise = new Promise<winston.LogMethod>((resolve, reject) => {
-    const logPath = getLogPath()
+    const logDirectory = getLogDirectoryPath()
 
-    mkdirIfNeeded(logPath)
+    mkdirIfNeeded(logDirectory)
       .then(() => {
-        resolve(initializeWinston(getLogFilePath(logPath)))
+        try {
+          const logger = initializeWinston(getLogFilePath(logDirectory))
+          resolve(logger)
+        } catch (err) {
+          reject(err)
+        }
       })
       .catch(error => {
         reject(error)

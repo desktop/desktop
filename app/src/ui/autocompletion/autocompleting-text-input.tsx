@@ -1,23 +1,15 @@
 import * as React from 'react'
-import { List, SelectionSource } from '../list'
+import { List, SelectionSource } from '../lib/list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
-
-interface IPosition {
-  readonly top: number
-  readonly left: number
-}
 
 interface IRange {
   readonly start: number
   readonly length: number
 }
 
-const getCaretCoordinates: (
-  element: HTMLElement,
-  position: number
-) => IPosition = require('textarea-caret')
+import getCaretCoordinates = require('textarea-caret')
 
 interface IAutocompletingTextInputProps<ElementType> {
   /**
@@ -114,7 +106,7 @@ export abstract class AutocompletingTextInput<
     )
   }
 
-  private storeAutocompletionListRef = (ref: List) => {
+  private storeAutocompletionListRef = (ref: List | null) => {
     this.autocompletionList = ref
   }
 
@@ -132,6 +124,7 @@ export abstract class AutocompletingTextInput<
     const element = this.element!
     let coordinates = getCaretCoordinates(element, state.range.start)
     coordinates = {
+      ...coordinates,
       top: coordinates.top - element.scrollTop,
       left: coordinates.left - element.scrollLeft,
     }
@@ -179,12 +172,27 @@ export abstract class AutocompletingTextInput<
           scrollToRow={selectedRow}
           selectOnHover={true}
           focusOnHover={false}
+          onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}
           onSelectionChanged={this.onSelectionChanged}
           invalidationProps={searchText}
         />
       </div>
     )
+  }
+
+  private onRowMouseDown = (row: number, event: React.MouseEvent<any>) => {
+    const currentAutoCompletionState = this.state.autocompletionState
+
+    if (!currentAutoCompletionState) {
+      return
+    }
+
+    const item = currentAutoCompletionState.items[row]
+
+    if (item) {
+      this.insertCompletion(item)
+    }
   }
 
   private onSelectionChanged = (row: number, source: SelectionSource) => {
@@ -221,7 +229,7 @@ export abstract class AutocompletingTextInput<
 
     // This is pretty gross. Clicking on the list moves focus off the text area.
     // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
-    setTimeout(() => {
+    window.setTimeout(() => {
       const element = this.element
       if (element) {
         element.focus()
@@ -236,14 +244,28 @@ export abstract class AutocompletingTextInput<
   protected abstract getElementTagName(): 'textarea' | 'input'
 
   private renderTextInput() {
-    return React.createElement<any, any>(this.getElementTagName(), {
-      ref: (ref: ElementType) => (this.element = ref),
+    const props = {
       type: 'text',
       placeholder: this.props.placeholder,
       value: this.props.value,
+      ref: this.onRef,
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
-    })
+      onBlur: this.onBlur,
+    }
+
+    return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(
+      this.getElementTagName(),
+      props
+    )
+  }
+
+  private onBlur = (e: React.FocusEvent<ElementType>) => {
+    this.close()
+  }
+
+  private onRef = (ref: ElementType | null) => {
+    this.element = ref
   }
 
   public render() {
@@ -284,7 +306,7 @@ export abstract class AutocompletingTextInput<
       this.props.onValueChanged(newText)
     }
 
-    this.setState({ autocompletionState: null })
+    this.close()
   }
 
   private getMovementDirection(
@@ -348,8 +370,12 @@ export abstract class AutocompletingTextInput<
         this.insertCompletion(item)
       }
     } else if (event.key === 'Escape') {
-      this.setState({ autocompletionState: null })
+      this.close()
     }
+  }
+
+  private close() {
+    this.setState({ autocompletionState: null })
   }
 
   private async attemptAutocompletion(

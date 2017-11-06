@@ -48,7 +48,7 @@ export class RelativeTime extends React.Component<
 
   private clearTimer() {
     if (this.timer) {
-      clearTimeout(this.timer)
+      window.clearTimeout(this.timer)
       this.timer = null
     }
   }
@@ -121,9 +121,7 @@ export class RelativeTime extends React.Component<
 
   public render() {
     return (
-      <span title={this.state.absoluteText}>
-        {this.state.relativeText}
-      </span>
+      <span title={this.state.absoluteText}>{this.state.relativeText}</span>
     )
   }
 }

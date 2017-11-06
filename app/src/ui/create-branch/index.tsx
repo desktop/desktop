@@ -6,6 +6,7 @@ import { sanitizedBranchName } from '../../lib/sanitize-branch'
 import { Branch } from '../../models/branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
+import { Ref } from '../lib/ref'
 import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
 import { ButtonGroup } from '../lib/button-group'
@@ -27,6 +28,7 @@ interface ICreateBranchProps {
   readonly tip: IUnbornRepository | IDetachedHead | IValidBranch
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
+  readonly initialName: string
 }
 
 enum StartPoint {
@@ -113,12 +115,18 @@ export class CreateBranch extends React.Component<
 
     this.state = {
       currentError: null,
-      proposedName: '',
+      proposedName: props.initialName,
       sanitizedName: '',
       startPoint: getStartPoint(props, StartPoint.DefaultBranch),
       isCreatingBranch: false,
       tipAtCreateStart: props.tip,
       defaultBranchAtCreateStart: props.defaultBranch,
+    }
+  }
+
+  public componentDidMount() {
+    if (this.state.proposedName.length) {
+      this.updateBranchName(this.state.proposedName)
     }
   }
 
@@ -171,8 +179,9 @@ export class CreateBranch extends React.Component<
         )
         return (
           <p>
-            Your new branch will be based on your currently checked out branch ({currentBranch.name}).{' '}
-            {currentBranch.name} is the {defaultBranchLink} for your repository.
+            Your new branch will be based on your currently checked out branch (<Ref>{currentBranch.name}</Ref>).{' '}
+            <Ref>{currentBranch.name}</Ref> is the {defaultBranchLink} for your
+            repository.
           </p>
         )
       } else {
@@ -235,16 +244,13 @@ export class CreateBranch extends React.Component<
         loading={this.state.isCreatingBranch}
         disabled={this.state.isCreatingBranch}
       >
-        {error
-          ? <DialogError>
-              {error.message}
-            </DialogError>
-          : null}
+        {error ? <DialogError>{error.message}</DialogError> : null}
 
         <DialogContent>
           <Row>
             <TextBox
               label="Name"
+              value={this.state.proposedName}
               autoFocus={true}
               onChange={this.onBranchNameChange}
             />
@@ -272,15 +278,18 @@ export class CreateBranch extends React.Component<
 
   private onBranchNameChange = (event: React.FormEvent<HTMLInputElement>) => {
     const str = event.currentTarget.value
-    const sanitizedName = sanitizedBranchName(str)
+    this.updateBranchName(str)
+  }
+
+  private updateBranchName(name: string) {
+    const sanitizedName = sanitizedBranchName(name)
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === sanitizedName) > -1
-    let currentError: Error | null = null
-    if (alreadyExists) {
-      currentError = new Error(`A branch named ${sanitizedName} already exists`)
-    }
+    const currentError = alreadyExists
+      ? new Error(`A branch named ${sanitizedName} already exists`)
+      : null
 
-    this.setState({ proposedName: str, sanitizedName })
+    this.setState({ proposedName: name, sanitizedName, currentError })
   }
 
   private createBranch = async () => {

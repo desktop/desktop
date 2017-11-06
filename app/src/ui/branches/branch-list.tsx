@@ -12,6 +12,8 @@ import {
   SelectionSource,
 } from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
+import { Button } from '../lib/button'
+import { NoBranches } from './no-branches'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
@@ -54,7 +56,6 @@ interface IBranchListProps {
    * respond or cancel the default behavior by calling `preventDefault`.
    */
   readonly onFilterKeyDown?: (
-    filter: string,
     event: React.KeyboardEvent<HTMLInputElement>
   ) => void
 
@@ -63,9 +64,8 @@ interface IBranchListProps {
 
   /**
    * This function will be called when the selection changes as a result of a
-   * user keyboard or mouse action (i.e. not when props change). Note that this
-   * differs from `onRowSelected`. For example, it won't be called if an already
-   * selected row is clicked on.
+   * user keyboard or mouse action (i.e. not when props change). This function
+   * will not be invoked when an already selected row is clicked on.
    *
    * @param selectedItem - The Branch that was just selected
    * @param source       - The kind of user action that provoked the change,
@@ -76,10 +76,33 @@ interface IBranchListProps {
     selectedItem: Branch | null,
     source: SelectionSource
   ) => void
+
+  /** The current filter text to render */
+  readonly filterText: string
+
+  /** Callback to fire when the filter text is changed */
+  readonly onFilterTextChanged: (filterText: string) => void
+
+  /** Can users create a new branch? */
+  readonly canCreateNewBranch: boolean
+
+  /**
+   * Called when the user wants to create a new branch. It will be given a name
+   * to prepopulate the new branch name field.
+   */
+  readonly onCreateNewBranch?: (name: string) => void
 }
 
 interface IBranchListState {
+  /**
+   * The grouped list of branches.
+   *
+   * Groups are currently defined as 'default branch', 'current branch',
+   * 'recent branches' and all branches.
+   */
   readonly groups: ReadonlyArray<IFilterListGroup<IBranchListItem>>
+
+  /** The selected item in the filtered list */
   readonly selectedItem: IBranchListItem | null
 }
 
@@ -147,7 +170,8 @@ export class BranchList extends React.Component<
     }
   }
 
-  private renderGroupHeader = (identifier: BranchGroupIdentifier) => {
+  private renderGroupHeader = (id: string) => {
+    const identifier = id as BranchGroupIdentifier
     return (
       <div className="branches-list-content filter-list-group-header">
         {this.getGroupLabel(identifier)}
@@ -182,6 +206,8 @@ export class BranchList extends React.Component<
       <BranchesFilterList
         className="branches-list"
         rowHeight={RowHeight}
+        filterText={this.props.filterText}
+        onFilterTextChanged={this.props.onFilterTextChanged}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
@@ -190,7 +216,31 @@ export class BranchList extends React.Component<
         onSelectionChanged={this.onSelectionChanged}
         groups={this.state.groups}
         invalidationProps={this.props.allBranches}
+        renderPostFilter={this.renderNewButton}
+        renderNoItems={this.renderNoItems}
       />
     )
+  }
+
+  private renderNoItems = () => {
+    return <NoBranches onCreateNewBranch={this.onCreateNewBranch} />
+  }
+
+  private renderNewButton = () => {
+    if (this.props.canCreateNewBranch) {
+      return (
+        <Button className="new-branch-button" onClick={this.onCreateNewBranch}>
+          New
+        </Button>
+      )
+    } else {
+      return null
+    }
+  }
+
+  private onCreateNewBranch = () => {
+    if (this.props.onCreateNewBranch) {
+      this.props.onCreateNewBranch(this.props.filterText)
+    }
   }
 }

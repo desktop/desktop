@@ -39,7 +39,7 @@ export function showCertificateTrustDialog(
  * that would tell the app to quit.
  */
 export function sendWillQuitSync() {
-  // tslint:disable-next-line:no-sync-functions
+  // eslint-disable-next-line no-sync
   ipcRenderer.sendSync('will-quit')
 }
 
@@ -103,6 +103,14 @@ export function registerContextualMenuActionDispatcher() {
 export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   currentContextualMenuItems = items
   ipcRenderer.send('show-contextual-menu', items)
+}
+
+/** Update the menu item labels with the user's preferred apps. */
+export function updatePreferredAppMenuItemLabels(labels: {
+  editor?: string
+  shell: string
+}) {
+  ipcRenderer.send('update-preferred-app-menu-item-labels', labels)
 }
 
 function getIpcFriendlyError(error: Error) {

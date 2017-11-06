@@ -1,7 +1,6 @@
 import * as OS from 'os'
 import * as URL from 'url'
 import { Account } from '../models/account'
-import { IEmail } from '../models/email'
 
 import {
   request,
@@ -46,6 +45,7 @@ export interface IAPIRepository {
   readonly private: boolean
   readonly fork: boolean
   readonly default_branch: string
+  readonly parent: IAPIRepository | null
 }
 
 /**
@@ -65,6 +65,7 @@ export interface IAPIUser {
   readonly login: string
   readonly avatar_url: string
   readonly name: string
+  readonly type: 'User' | 'Organization'
 }
 
 /** The users we get from the mentionables endpoint. */
@@ -83,18 +84,20 @@ export interface IAPIMentionableUser {
 }
 
 /**
+ * `null` can be returned by the API for legacy reasons. A non-null value is
+ * set for the primary email address currently, but in the future visibility
+ * may be defined for each email address.
+ */
+export type EmailVisibility = 'public' | 'private' | null
+
+/**
  * Information about a user's email as returned by the GitHub API.
  */
 export interface IAPIEmail {
   readonly email: string
   readonly verified: boolean
   readonly primary: boolean
-  /**
-   * `null` can be returned by the API for legacy reasons. A non-null value is
-   * set for the primary email address currently, but in the future visibility
-   * may be defined for each email address.
-   */
-  readonly visibility: 'public' | 'private' | null
+  readonly visibility: EmailVisibility
 }
 
 /** Information about an issue as returned by the GitHub API. */
@@ -103,6 +106,36 @@ export interface IAPIIssue {
   readonly title: string
   readonly state: 'open' | 'closed'
   readonly updated_at: string
+}
+
+/** The combined state of a ref. */
+export type APIRefState = 'failure' | 'pending' | 'success'
+
+/** The API response to a ref status request. */
+export interface IAPIRefStatus {
+  readonly state: APIRefState
+  readonly total_count: number
+}
+
+interface IAPIPullRequestRef {
+  readonly ref: string
+  readonly sha: string
+
+  /**
+   * The repository in which this ref lives. It could be null if the repository
+   * has been deleted since the PR was opened.
+   */
+  readonly repo: IAPIRepository | null
+}
+
+/** Information about a pull request as returned by the GitHub API. */
+export interface IAPIPullRequest {
+  readonly number: number
+  readonly title: string
+  readonly created_at: string
+  readonly user: IAPIUser
+  readonly head: IAPIPullRequestRef
+  readonly base: IAPIPullRequestRef
 }
 
 /** The metadata about a GitHub server. */
@@ -209,6 +242,18 @@ export class API {
     }
   }
 
+  /** Fetch all repos a user has access to. */
+  public async fetchRepositories(): Promise<ReadonlyArray<
+    IAPIRepository
+  > | null> {
+    try {
+      return await this.fetchAll<IAPIRepository>('user/repos')
+    } catch (error) {
+      log.warn(`fetchRepositories: ${error}`)
+      return null
+    }
+  }
+
   /** Fetch the logged in account. */
   public async fetchAccount(): Promise<IAPIUser> {
     try {
@@ -222,16 +267,9 @@ export class API {
   }
 
   /** Fetch the current user's emails. */
-  public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
-    const isDotCom = this.endpoint === getDotComAPIEndpoint()
-
-    // workaround for /user/public_emails throwing a 500
-    // while we investigate the API issue
-    // see https://github.com/desktop/desktop/issues/1508 for context
+  public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
     try {
-      // GitHub Enterprise does not have the concept of private emails
-      const apiPath = isDotCom ? 'user/public_emails' : 'user/emails'
-      const response = await this.request('GET', apiPath)
+      const response = await this.request('GET', 'user/emails')
       const result = await parsedResponse<ReadonlyArray<IAPIEmail>>(response)
 
       return Array.isArray(result) ? result : []
@@ -330,10 +368,12 @@ export class API {
     state: 'open' | 'closed' | 'all',
     since: Date | null
   ): Promise<ReadonlyArray<IAPIIssue>> {
-    const params =
-      since && !isNaN(since.getTime())
-        ? { since: toGitHubIsoDateString(since) }
-        : {}
+    const params: { [key: string]: string } = {
+      state,
+    }
+    if (since && !isNaN(since.getTime())) {
+      params.since = toGitHubIsoDateString(since)
+    }
 
     const url = urlWithQueryString(`repos/${owner}/${name}/issues`, params)
     try {
@@ -347,6 +387,42 @@ export class API {
     }
   }
 
+  /** Fetch the pull requests in the given repository. */
+  public async fetchPullRequests(
+    owner: string,
+    name: string,
+    state: 'open' | 'closed' | 'all'
+  ): Promise<ReadonlyArray<IAPIPullRequest>> {
+    const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, { state })
+    try {
+      const prs = await this.fetchAll<IAPIPullRequest>(url)
+      return prs
+    } catch (e) {
+      log.warn(`fetchPullRequests: failed for repository ${owner}/${name}`, e)
+      throw e
+    }
+  }
+
+  /** Get the combined status for the given ref. */
+  public async fetchCombinedRefStatus(
+    owner: string,
+    name: string,
+    ref: string
+  ): Promise<IAPIRefStatus> {
+    const path = `repos/${owner}/${name}/commits/${ref}/status`
+    try {
+      const response = await this.request('GET', path)
+      const status = await parsedResponse<IAPIRefStatus>(response)
+      return status
+    } catch (e) {
+      log.warn(
+        `fetchCombinedRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
+        e
+      )
+      throw e
+    }
+  }
+
   /**
    * Authenticated requests to a paginating resource such as issues.
    *
@@ -356,7 +432,11 @@ export class API {
    */
   private async fetchAll<T>(path: string): Promise<ReadonlyArray<T>> {
     const buf = new Array<T>()
-    let nextPath: string | null = path
+
+    const params = {
+      per_page: '100',
+    }
+    let nextPath: string | null = urlWithQueryString(path, params)
 
     do {
       const response = await this.request('GET', nextPath)

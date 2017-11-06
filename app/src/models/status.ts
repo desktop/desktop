@@ -1,4 +1,4 @@
-import { DiffSelection } from './diff'
+import { DiffSelection, DiffSelectionType } from './diff'
 import { OcticonSymbol } from '../ui/octicons'
 import { assertNever } from '../lib/fatal-error'
 
@@ -192,6 +192,31 @@ export class WorkingDirectoryFileChange extends FileChange {
   }
 }
 
+/**
+ * An object encapsulating the changes to a committed file.
+ */
+export class CommittedFileChange extends FileChange {
+  /**
+   * A commit SHA or some other identifier that ultimately
+   * dereferences to a commit. This is the pointer to the
+   * 'after' version of this change. I.e. the parent of this
+   * commit will contain the 'before' (or nothing, if the
+   * file change represents a new file).
+   */
+  public readonly commitish: string
+
+  public constructor(
+    path: string,
+    status: AppFileStatus,
+    commitish: string,
+    oldPath?: string
+  ) {
+    super(path, status, oldPath)
+
+    this.commitish = commitish
+  }
+}
+
 /** the state of the working directory for a repository */
 export class WorkingDirectoryStatus {
   /**
@@ -208,7 +233,14 @@ export class WorkingDirectoryStatus {
    */
   public readonly includeAll: boolean | null = true
 
-  public constructor(
+  /** Create a new status with the given files. */
+  public static fromFiles(
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ): WorkingDirectoryStatus {
+    return new WorkingDirectoryStatus(files, getIncludeAllState(files))
+  }
+
+  private constructor(
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     includeAll: boolean | null
   ) {
@@ -224,22 +256,32 @@ export class WorkingDirectoryStatus {
     return new WorkingDirectoryStatus(newFiles, includeAll)
   }
 
-  /** Update by replacing the file with the same ID with a new file. */
-  public byReplacingFile(
-    file: WorkingDirectoryFileChange
-  ): WorkingDirectoryStatus {
-    const newFiles = this.files.map(f => {
-      if (f.id === file.id) {
-        return file
-      } else {
-        return f
-      }
-    })
-    return new WorkingDirectoryStatus(newFiles, this.includeAll)
-  }
-
   /** Find the file with the given ID. */
   public findFileWithID(id: string): WorkingDirectoryFileChange | null {
     return this.files.find(f => f.id === id) || null
   }
+}
+
+function getIncludeAllState(
+  files: ReadonlyArray<WorkingDirectoryFileChange>
+): boolean | null {
+  if (!files.length) {
+    return true
+  }
+
+  const allSelected = files.every(
+    f => f.selection.getSelectionType() === DiffSelectionType.All
+  )
+  const noneSelected = files.every(
+    f => f.selection.getSelectionType() === DiffSelectionType.None
+  )
+
+  let includeAll: boolean | null = null
+  if (allSelected) {
+    includeAll = true
+  } else if (noneSelected) {
+    includeAll = false
+  }
+
+  return includeAll
 }

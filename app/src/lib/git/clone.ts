@@ -1,17 +1,12 @@
-import {
-  git,
-  envForAuthentication,
-  IGitExecutionOptions,
-  gitNetworkArguments,
-} from './core'
-import { Account } from '../../models/account'
+import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { ICloneProgress } from '../app-state'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
+import { envForAuthentication, IGitAccount } from './authentication'
 
 /** Additional arguments to provide when cloning a repository */
 export type CloneOptions = {
   /** The optional identity to provide when cloning. */
-  readonly account: Account | null
+  readonly account: IGitAccount | null
   /** The branch to checkout after the clone has completed. */
   readonly branch?: string
 }
@@ -44,7 +39,16 @@ export async function clone(
 ): Promise<void> {
   const env = envForAuthentication(options.account)
 
-  const args = [...gitNetworkArguments, 'clone', '--recursive', '--progress']
+  const args = [
+    ...gitNetworkArguments,
+    'lfs',
+    'clone',
+    '--recursive',
+    // git-lfs will create the hooks it requires by default
+    // and we don't know if the repository is LFS enabled
+    // at this stage so let's not do this
+    '--skip-repo',
+  ]
 
   let opts: IGitExecutionOptions = { env }
 
@@ -54,8 +58,8 @@ export async function clone(
     const title = `Cloning into ${path}`
     const kind = 'clone'
 
-    opts = executionOptionsWithProgress(
-      opts,
+    opts = await executionOptionsWithProgress(
+      { ...opts, trackLFSProgress: true },
       new CloneProgressParser(),
       progress => {
         const description =

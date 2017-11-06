@@ -9,21 +9,37 @@ import { ipcRenderer, remote } from 'electron'
 import { App } from './app'
 import {
   Dispatcher,
+  gitAuthenticationErrorHandler,
+  externalEditorErrorHandler,
+  openShellErrorHandler,
+  lfsAttributeMismatchHandler,
+  defaultErrorHandler,
+  missingRepositoryHandler,
+  backgroundTaskHandler,
+  pushNeedsPullHandler,
+  upstreamAlreadyExistsHandler,
+} from '../lib/dispatcher'
+import {
   AppStore,
   GitHubUserStore,
-  GitHubUserDatabase,
   CloningRepositoriesStore,
   EmojiStore,
-} from '../lib/dispatcher'
+  IssuesStore,
+  SignInStore,
+  RepositoriesStore,
+  TokenStore,
+  AccountsStore,
+  PullRequestStore,
+} from '../lib/stores'
+import { GitHubUserDatabase } from '../lib/databases'
 import { URLActionType } from '../lib/parse-app-url'
 import { SelectionType } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
-import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import {
-  defaultErrorHandler,
-  createMissingRepositoryHandler,
-  backgroundTaskHandler,
-} from '../lib/dispatcher'
+  IssuesDatabase,
+  RepositoriesDatabase,
+  PullRequestDatabase,
+} from '../lib/databases'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
@@ -94,20 +110,39 @@ const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
 const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
 const signInStore = new SignInStore()
 
+const accountsStore = new AccountsStore(localStorage, TokenStore)
+const repositoriesStore = new RepositoriesStore(
+  new RepositoriesDatabase('Database')
+)
+
+const pullRequestStore = new PullRequestStore(
+  new PullRequestDatabase('PullRequestDatabase'),
+  repositoriesStore
+)
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
   emojiStore,
   issuesStore,
   statsStore,
-  signInStore
+  signInStore,
+  accountsStore,
+  repositoriesStore,
+  pullRequestStore
 )
 
 const dispatcher = new Dispatcher(appStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
+dispatcher.registerErrorHandler(externalEditorErrorHandler)
+dispatcher.registerErrorHandler(openShellErrorHandler)
+dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
+dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
+dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
-dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
+dispatcher.registerErrorHandler(missingRepositoryHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 

@@ -3,8 +3,7 @@ import * as React from 'react'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { openShell } from '../../lib/open-shell'
-import { shell } from '../../lib/dispatcher/app-shell'
+import { shell } from '../../lib/app-shell'
 
 interface IInstallGitProps {
   /**
@@ -18,6 +17,9 @@ interface IInstallGitProps {
    * doing whatever they're doing.
    */
   readonly path: string
+
+  /** Called when the user chooses to open the shell. */
+  readonly onOpenShell: (path: string) => void
 }
 
 /**
@@ -30,8 +32,7 @@ export class InstallGit extends React.Component<IInstallGitProps, {}> {
   }
 
   private onContinue = () => {
-    openShell(this.props.path)
-    this.props.onDismissed()
+    this.props.onOpenShell(this.props.path)
   }
 
   private onExternalLink = () => {
@@ -44,7 +45,7 @@ export class InstallGit extends React.Component<IInstallGitProps, {}> {
       <Dialog
         id="install-git"
         type="warning"
-        title={__DARWIN__ ? 'Open in Terminal' : 'Open command prompt'}
+        title={__DARWIN__ ? 'Unable to Locate Git' : 'Unable to locate Git'}
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}
       >

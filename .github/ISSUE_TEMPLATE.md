@@ -9,6 +9,17 @@ https://github.com/desktop/desktop/blob/master/CODE_OF_CONDUCT.md
 
 <!--
 
+Are you encountering an issue where the “Minimize” tooltip stays visible
+when you click the minimize button in the window? If so, that is an issue
+with Electron, the framework the app uses. Please subscribe to the issue
+at this link for updates on the issue:
+
+https://github.com/electron/electron/issues/9943
+
+-->
+
+<!--
+
 Please summarize the issue in the title, and then use the template below to
 fill out the details so we can reproduce the issue on our end.
 
@@ -38,7 +49,7 @@ issue:
  - If you are on macOS, launch `About This Mac` and write down the OS version
    listed.
  - If you are on Windows, open `Command Prompt` and attach the output of this
-   command*: `cmd /c ver`
+   command: `cmd /c ver`
 
 -->
 
@@ -76,7 +87,7 @@ Desktop:
  - If you are on macOS, attach the most recent log file from:
    `~/Library/Application Support/GitHub Desktop/logs/*.desktop.production.log`
  - If you are on Windows, attach the most recent log file from:
-   `%APPDATA%\\GitHub Desktop\\logs\\*.desktop.production.log`
+   `%APPDATA%\GitHub Desktop\logs\*.desktop.production.log`
 
 The log files are organized by date, so see if anything was generated for
 today's date.

@@ -45,11 +45,11 @@ export class FullScreenInfo extends React.Component<
 
     // Clean up any stray timeout
     if (this.infoDisappearTimeoutId !== null) {
-      clearTimeout(this.infoDisappearTimeoutId)
+      window.clearTimeout(this.infoDisappearTimeoutId)
     }
 
     if (this.transitionGroupDisappearTimeoutId !== null) {
-      clearTimeout(this.transitionGroupDisappearTimeoutId)
+      window.clearTimeout(this.transitionGroupDisappearTimeoutId)
     }
 
     if (nextProps.windowState === 'full-screen') {

@@ -1,12 +1,9 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
-const temp = require('temp').track()
-
-import { setupFixtureRepository } from '../fixture-helper'
-import { validatedRepositoryPath } from '../../src/lib/dispatcher/validated-repository-path'
+import { setupFixtureRepository, openSync } from '../helpers/repositories'
+import { validatedRepositoryPath } from '../../src/lib/stores/helpers/validated-repository-path'
 
 describe('validatedRepositoryPath', () => {
   it('returns the path to the repository', async () => {
@@ -16,7 +13,7 @@ describe('validatedRepositoryPath', () => {
   })
 
   it('returns null if the path is not a repository', async () => {
-    const testRepoPath = temp.openSync('repo-test').path
+    const testRepoPath = openSync('repo-test').path
     const result = await validatedRepositoryPath(testRepoPath)
     expect(result).to.equal(null)
   })

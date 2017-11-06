@@ -1,7 +1,6 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import * as path from 'path'
 import * as fs from 'fs-extra'
@@ -21,7 +20,7 @@ import {
 import {
   setupFixtureRepository,
   setupEmptyRepository,
-} from '../../fixture-helper'
+} from '../../helpers/repositories'
 
 import {
   getStatus,

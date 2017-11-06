@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import * as path from 'path'
 import { expect } from 'chai'
@@ -17,7 +17,7 @@ import {
   setupFixtureRepository,
   setupEmptyRepository,
   setupConflictedRepo,
-} from '../../fixture-helper'
+} from '../../helpers/repositories'
 
 import { GitProcess } from 'dugite'
 import {
@@ -32,7 +32,6 @@ import {
 } from '../../../src/models/diff'
 
 import * as fs from 'fs-extra'
-const temp = require('temp').track()
 
 async function getTextDiff(
   repo: Repository,
@@ -49,10 +48,6 @@ describe('git/commit', () => {
   beforeEach(async () => {
     const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
-  })
-
-  after(() => {
-    temp.cleanupSync()
   })
 
   describe('createCommit normal', () => {

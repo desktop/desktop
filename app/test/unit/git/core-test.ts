@@ -1,13 +1,11 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import { expect } from 'chai'
 import { GitError } from 'dugite'
 
 import { Repository } from '../../../src/models/repository'
 import { git } from '../../../src/lib/git'
-import { setupFixtureRepository } from '../../fixture-helper'
-
-const temp = require('temp').track()
+import { setupFixtureRepository } from '../../helpers/repositories'
 
 describe('git/core', () => {
   let repository: Repository | null = null
@@ -15,10 +13,6 @@ describe('git/core', () => {
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
-  })
-
-  after(() => {
-    temp.cleanupSync()
   })
 
   describe('error handling', () => {

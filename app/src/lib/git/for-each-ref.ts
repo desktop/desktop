@@ -19,6 +19,7 @@ export async function getBranches(
     '%(objectname)', // SHA
     '%(author)',
     '%(parent)', // parent SHAs
+    '%(symref)',
     '%(subject)',
     '%(body)',
     `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
@@ -39,7 +40,9 @@ export async function getBranches(
   // Remove the trailing newline
   lines.splice(-1, 1)
 
-  const branches = lines.map((line, ix) => {
+  const branches = []
+
+  for (const [ix, line] of lines.entries()) {
     // preceding newline character after first row
     const pieces = (ix > 0 ? line.substr(1) : line).split('\0')
 
@@ -56,8 +59,9 @@ export async function getBranches(
     }
 
     const parentSHAs = pieces[5].split(' ')
-    const summary = pieces[6]
-    const body = pieces[7]
+    const symref = pieces[6]
+    const summary = pieces[7]
+    const body = pieces[8]
 
     const tip = new Commit(sha, summary, body, author, parentSHAs)
 
@@ -65,34 +69,15 @@ export async function getBranches(
       ? BranchType.Local
       : BranchType.Remote
 
-    return new Branch(name, upstream.length > 0 ? upstream : null, tip, type)
-  })
+    if (symref.length > 0) {
+      // excude symbolic refs from the branch list
+      continue
+    }
 
-  return branches
-}
-
-/** Get the name of the current branch. */
-export async function getCurrentBranch(
-  repository: Repository
-): Promise<Branch | null> {
-  const revParseResult = await git(
-    ['rev-parse', '--abbrev-ref', 'HEAD'],
-    repository.path,
-    'getCurrentBranch',
-    { successExitCodes: new Set([0, 1, 128]) }
-  )
-  // error code 1 is returned if no upstream
-  // error code 128 is returned if the branch is unborn
-  if (revParseResult.exitCode === 1 || revParseResult.exitCode === 128) {
-    return null
+    branches.push(
+      new Branch(name, upstream.length > 0 ? upstream : null, tip, type)
+    )
   }
 
-  const untrimmedName = revParseResult.stdout
-  let name = untrimmedName.trim()
-  // New branches have a `heads/` prefix.
-  name = name.replace(/^heads\//, '')
-
-  const branches = await getBranches(repository, `refs/heads/${name}`)
-
-  return branches[0] || null
+  return branches
 }

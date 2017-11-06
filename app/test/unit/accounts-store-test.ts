@@ -1,11 +1,8 @@
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import { Account } from '../../src/models/account'
-import { Email } from '../../src/models/email'
-import { AccountsStore } from '../../src/shared-process/accounts-store'
-import { InMemoryStore } from '../in-memory-store'
-import { AsyncInMemoryStore } from '../async-in-memory-store'
+import { AccountsStore } from '../../src/lib/stores'
+import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 
 describe('AccountsStore', () => {
   let accountsStore: AccountsStore | null = null
@@ -18,9 +15,9 @@ describe('AccountsStore', () => {
 
   describe('adding a new user', () => {
     it('contains the added user', async () => {
-      const newAccountLogin = 'tonald-drump'
+      const newAccountLogin = 'joan'
       await accountsStore!.addAccount(
-        new Account(newAccountLogin, '', '', new Array<Email>(), '', 1, '')
+        new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '')
       )
 
       const users = await accountsStore!.getAll()

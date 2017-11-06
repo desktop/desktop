@@ -13,6 +13,7 @@ import { TabBar } from '../tab-bar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
+import { getGitDescription } from '../../lib/git/description'
 
 enum PublishTab {
   DotCom = 0,
@@ -45,6 +46,9 @@ interface IPublishState {
    * related to the current step.
    */
   readonly error: Error | null
+
+  /** Is the repository currently being published? */
+  readonly publishing: boolean
 }
 
 /**
@@ -72,6 +76,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       currentTab: startingTab,
       publishSettings,
       error: null,
+      publishing: false,
     }
   }
 
@@ -82,6 +87,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         title={__DARWIN__ ? 'Publish Repository' : 'Publish repository'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.publishRepository}
+        disabled={this.state.publishing}
+        loading={this.state.publishing}
       >
         <TabBar
           onTabClicked={this.onTabClicked}
@@ -91,16 +98,28 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
           <span>Enterprise</span>
         </TabBar>
 
-        {this.state.error
-          ? <DialogError>
-              {this.state.error.message}
-            </DialogError>
-          : null}
+        {this.state.error ? (
+          <DialogError>{this.state.error.message}</DialogError>
+        ) : null}
 
         {this.renderContent()}
         {this.renderFooter()}
       </Dialog>
     )
+  }
+
+  public async componentDidMount() {
+    try {
+      const description = await getGitDescription(this.props.repository.path)
+      const settings = {
+        ...this.state.publishSettings,
+        description,
+      }
+
+      this.setState({ publishSettings: settings })
+    } catch (error) {
+      log.warn(`Couldn't get the repository's description`, error)
+    }
   }
 
   private renderContent() {
@@ -115,11 +134,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         />
       )
     } else {
-      return (
-        <DialogContent>
-          {this.renderSignInTab(tab)}
-        </DialogContent>
-      )
+      return <DialogContent>{this.renderSignInTab(tab)}</DialogContent>
     }
   }
 
@@ -196,7 +211,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private publishRepository = async () => {
-    this.setState({ error: null })
+    this.setState({ error: null, publishing: true })
 
     const tab = this.state.currentTab
     const account = this.getAccountForTab(tab)
@@ -219,11 +234,14 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
       this.props.onDismissed()
     } catch (e) {
-      this.setState({ error: e })
+      this.setState({ error: e, publishing: false })
     }
   }
 
   private onTabClicked = (index: PublishTab) => {
-    this.setState({ currentTab: index })
+    // Clear the selected org since dot com and Enterprise will have a different
+    // set of orgs.
+    const settings = { ...this.state.publishSettings, org: null }
+    this.setState({ currentTab: index, publishSettings: settings })
   }
 }
