@@ -299,6 +299,14 @@ app.on('ready', () => {
   ipcMain.on(
     'open-external',
     (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
+      const pathLowerCase = path.toLowerCase()
+      if (
+        pathLowerCase.startsWith('http://') ||
+        pathLowerCase.startsWith('https://')
+      ) {
+        log.info(`opening in browser: ${path}`)
+      }
+
       const result = shell.openExternal(path)
       event.sender.send('open-external-result', { result })
     }
