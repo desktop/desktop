@@ -1,8 +1,12 @@
 import * as React from 'react'
+import { encodePathAsUrl } from '../../lib/path'
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
 
-const BlankSlateImage = `file:///${__dirname}/static/empty-no-pull-requests.svg`
+const BlankSlateImage = encodePathAsUrl(
+  __dirname,
+  'static/empty-no-pull-requests.svg'
+)
 
 interface INoPullRequestsProps {
   /** The name of the repository. */

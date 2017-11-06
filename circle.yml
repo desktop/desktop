@@ -13,19 +13,19 @@ machine:
 
 dependencies:
   cache_directories:
+    - ".eslintcache"
     - "node_modules"
     - "~/.electron"
 
   pre:
     - brew install node@8.7.0
-    - npm install -g yarn@1.2.1
+    - npm install -g yarn@1.3.2
 
   override:
     - yarn install --force
 
 compile:
   override:
-    - yarn check-prettiness
     - yarn lint
     - yarn build:prod
 

@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import { expect } from 'chai'
 
@@ -19,7 +19,7 @@ async function createAndCheckout(
   name: string
 ): Promise<void> {
   await createBranch(repository, name)
-  await checkoutBranch(repository, name)
+  await checkoutBranch(repository, null, name)
 }
 
 describe('git/reflog', () => {

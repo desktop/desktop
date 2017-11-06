@@ -4,15 +4,14 @@ import { FoldoutType, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { BranchList } from './branch-list'
-import { Account } from '../../models/account'
 import { TabBar } from '../tab-bar'
 import { BranchesTab } from '../../models/branches-tab'
 import { assertNever } from '../../lib/fatal-error'
 import { enablePreviewFeatures } from '../../lib/feature-flag'
-import { IPullRequest } from '../../models/pull-request'
 import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
 import { NoPullRequests } from './no-pull-requests'
+import { PullRequest } from '../../models/pull-request'
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -21,9 +20,8 @@ interface IBranchesProps {
   readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly account: Account | null
   readonly selectedTab: BranchesTab
-  readonly pullRequests: ReadonlyArray<IPullRequest> | null
+  readonly pullRequests: ReadonlyArray<PullRequest> | null
 }
 
 interface IBranchesState {
@@ -69,12 +67,12 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.setState({ filterText })
   }
 
-  private onSelectionChanged = (selectedBranch: Branch) => {
+  private onSelectionChanged = (selectedBranch: Branch | null) => {
     this.setState({ selectedBranch })
   }
 
   private renderTabBar() {
-    if (!this.props.account) {
+    if (!this.props.repository.gitHubRepository) {
       return null
     }
 
@@ -105,7 +103,11 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private renderSelectedTab() {
-    const tab = this.props.selectedTab
+    let tab = this.props.selectedTab
+    if (!enablePreviewFeatures() || !this.props.repository.gitHubRepository) {
+      tab = BranchesTab.Branches
+    }
+
     switch (tab) {
       case BranchesTab.Branches:
         return (
@@ -194,7 +196,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.props.dispatcher.changeBranchesTab(tab)
   }
 
-  private onPullRequestClicked = (pullRequest: IPullRequest) => {
+  private onPullRequestClicked = (pullRequest: PullRequest) => {
     const gitHubRepository = this.props.repository.gitHubRepository
     if (!gitHubRepository) {
       return log.error(
@@ -203,15 +205,13 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     }
 
     const head = pullRequest.head
-    const repo = head.repo
-
-    if (repo) {
-      const isRefInThisRepo = repo.clone_url === gitHubRepository.cloneURL
-      if (isRefInThisRepo) {
-        this.checkoutBranch(head.ref)
-      } else {
-        // TODO: It's in a fork so we'll need to do ... something.
-      }
+    const isRefInThisRepo =
+      head.gitHubRepository &&
+      head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
+    if (isRefInThisRepo) {
+      this.checkoutBranch(head.ref)
+    } else {
+      // TODO: It's in a fork so we'll need to do ... something.
     }
   }
 

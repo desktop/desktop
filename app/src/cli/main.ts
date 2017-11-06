@@ -1,5 +1,5 @@
 import * as mri from 'mri'
-import * as chalk from 'chalk'
+import chalk from 'chalk'
 
 import { dasherizeOption, CommandError } from './util'
 import { commands } from './load-commands'

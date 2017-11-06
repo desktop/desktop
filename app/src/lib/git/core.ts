@@ -110,22 +110,11 @@ export async function git(
 
   const opts = { ...defaultOptions, ...options }
 
-  const startTime = performance && performance.now ? performance.now() : null
-
   const commandName = `${name}: git ${args.join(' ')}`
-  log.debug(`Executing ${commandName}`)
 
   const result = await GitPerf.measure(commandName, () =>
     GitProcess.exec(args, path, options)
   )
-
-  if (startTime) {
-    const rawTime = performance.now() - startTime
-    if (rawTime > 1000) {
-      const timeInSeconds = (rawTime / 1000).toFixed(3)
-      log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
-    }
-  }
 
   const exitCode = result.exitCode
 
@@ -252,6 +241,10 @@ function getDescriptionForError(error: DugiteError): string {
       return 'Cannot push these commits as they contain an email address marked as private on GitHub.'
     case DugiteError.LFSAttributeDoesNotMatch:
       return 'Git LFS attribute found in global Git configuration does not match expected value.'
+    case DugiteError.ProtectedBranchDeleteRejected:
+      return 'This branch cannot be deleted from the remote repository because it is marked as protected.'
+    case DugiteError.ProtectedBranchRequiredStatus:
+      return 'The push was rejected by the remote server because a required status check has not been satisfied.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }

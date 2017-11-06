@@ -17,6 +17,7 @@ import {
   missingRepositoryHandler,
   backgroundTaskHandler,
   pushNeedsPullHandler,
+  upstreamAlreadyExistsHandler,
 } from '../lib/dispatcher'
 import {
   AppStore,
@@ -28,12 +29,17 @@ import {
   RepositoriesStore,
   TokenStore,
   AccountsStore,
+  PullRequestStore,
 } from '../lib/stores'
 import { GitHubUserDatabase } from '../lib/databases'
 import { URLActionType } from '../lib/parse-app-url'
 import { SelectionType } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
-import { IssuesDatabase, RepositoriesDatabase } from '../lib/databases'
+import {
+  IssuesDatabase,
+  RepositoriesDatabase,
+  PullRequestDatabase,
+} from '../lib/databases'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
@@ -109,6 +115,11 @@ const repositoriesStore = new RepositoriesStore(
   new RepositoriesDatabase('Database')
 )
 
+const pullRequestStore = new PullRequestStore(
+  new PullRequestDatabase('PullRequestDatabase'),
+  repositoriesStore
+)
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -117,12 +128,14 @@ const appStore = new AppStore(
   statsStore,
   signInStore,
   accountsStore,
-  repositoriesStore
+  repositoriesStore,
+  pullRequestStore
 )
 
 const dispatcher = new Dispatcher(appStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)

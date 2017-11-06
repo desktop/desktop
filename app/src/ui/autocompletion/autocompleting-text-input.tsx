@@ -4,20 +4,12 @@ import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
 
-interface IPosition {
-  readonly top: number
-  readonly left: number
-}
-
 interface IRange {
   readonly start: number
   readonly length: number
 }
 
-const getCaretCoordinates: (
-  element: HTMLElement,
-  position: number
-) => IPosition = require('textarea-caret')
+import getCaretCoordinates = require('textarea-caret')
 
 interface IAutocompletingTextInputProps<ElementType> {
   /**
@@ -114,7 +106,7 @@ export abstract class AutocompletingTextInput<
     )
   }
 
-  private storeAutocompletionListRef = (ref: List) => {
+  private storeAutocompletionListRef = (ref: List | null) => {
     this.autocompletionList = ref
   }
 
@@ -132,6 +124,7 @@ export abstract class AutocompletingTextInput<
     const element = this.element!
     let coordinates = getCaretCoordinates(element, state.range.start)
     coordinates = {
+      ...coordinates,
       top: coordinates.top - element.scrollTop,
       left: coordinates.left - element.scrollLeft,
     }

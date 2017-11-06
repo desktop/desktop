@@ -13,7 +13,7 @@ This is the checklist of things that it needs to support:
    on the user's machine
  - it comes with a command-line interface that can be launched by Desktop
 
-If you think your editor satifies all these please read on to understand how
+If you think your editor satisfies all these please read on to understand how
 Desktop integrates with each OS, and if you're still keen to integrate this
 please fork and contribute a pull request for the team to review.
 
@@ -94,7 +94,8 @@ If you're not sure how your editor is installed, check one of these locations:
     permissions is found here
 
 
-Your editor is probably hiding behind a GUID in one of these locations - this is the the key that Desktop needs to read the registry and find the installation for your editor.
+Your editor is probably hiding behind a GUID in one of these locations - this
+is the the key that Desktop needs to read the registry and find the installation for your editor.
 
 ### Step 2: Validate The Installation
 
@@ -285,32 +286,63 @@ function getExecutableShim(
 
 ## Linux
 
-This integration isn't quite ready yet. If you're interested in this, and have
-experience with this, feel free to start hacking on the stuff under[`app/src/lib/editors/linux.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/editors/linux.ts).
 
-To test this in development mode, you'll need to update [`app/src/lib/editors/shared.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/editors/shared.ts)
-to use the Linux module:
+The source for the editor integration on Linux is found in
+[`app/src/lib/editors/linux.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/editors/linux.ts).
 
-```diff
- import * as Darwin from './darwin'
- import * as Win32 from './win32'
-+import * as Linux from './linux'
+These editors are currently supported:
 
--export type ExternalEditor = Darwin.ExternalEditor | Win32.ExternalEditor
-+export type ExternalEditor =
-+  | Darwin.ExternalEditor
-+  | Win32.ExternalEditor
-+  | Linux.ExternalEditor
+ - [Atom](https://atom.io/)
+ - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Sublime Text](https://www.sublimetext.com/)
 
- /** Parse the label into the specified shell type. */
- export function parse(label: string): ExternalEditor | null {
-@@ -9,6 +13,8 @@ export function parse(label: string): ExternalEditor | null {
-     return Darwin.parse(label)
-   } else if (__WIN32__) {
-     return Win32.parse(label)
-+  } else if (__LINUX__) {
-+    return Linux.parse(label)
-   }
+These are defined in an enum at the top of the file:
+
+```ts
+export enum ExternalEditor {
+  Atom = 'Atom',
+  VisualStudioCode = 'Visual Studio Code',
+  SublimeText = 'Sublime Text',
+}
 ```
 
-Then build and launch the app to test it out.
+If you want to add another editor, add a new key to the `ExternalEditor`
+enum with a friendly name for the value. This will trigger a compiler
+error, and you need to add code to `getEditorPath()` to get the source
+building again.
+
+### Step 1: Find executable path
+
+The `getEditorPath()` maps the editor enum to an expected path to the
+editor executable. Add a new `case` statement for your editor.
+
+```ts
+case ExternalEditor.VisualStudioCode:
+  return getPathIfAvailable('/usr/bin/code')
+```
+### Step 2: Lookup executable
+
+Once you've done that, add code to `getAvailableEditors()` so that it checks
+for your new editor, following the existing patterns.
+
+```ts
+export async function getAvailableEditors(): Promise<
+  ReadonlyArray<IFoundEditor<ExternalEditor>>
+> {
+  const results: Array<IFoundEditor<ExternalEditor>> = []
+
+  const [atomPath, codePath, sublimePath] = await Promise.all([
+    getEditorPath(ExternalEditor.Atom),
+    getEditorPath(ExternalEditor.VisualStudioCode),
+    getEditorPath(ExternalEditor.SublimeText),
+  ])
+
+  ...
+
+  if (codePath) {
+    results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
+  }
+
+  ...
+}
+```
