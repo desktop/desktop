@@ -90,6 +90,7 @@
       - [ ] Clicking `Publish Repository` button pushes repo to GitHub.com or Enterprise; `Cancel` button closes modal
         - [ ] Repository is present on GitHub.com or Enterprise if published 
 	- [ ] 'Visibility can't be private error' shown, if user's plan is not sufficient
+	- [ ] A `.gitattributes` file is added to the repository as part of the initial commit
 
 ### Application
   - [ ] Minimize, Maximize, Close buttons work in top nav
