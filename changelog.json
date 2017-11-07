@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.0.8-test1": [
+      "Testing electron-packager and electron-winstaller changes"
+    ],
     "1.0.8-beta0": [
       "[New] Syntax highlighted diffs - #1312",
       "[New] Add upstream to forked repositories - #2364",
