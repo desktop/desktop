@@ -868,7 +868,6 @@ export class AppStore {
       return
     }
 
-
     const updater = new PullRequestUpdater(
       repository.gitHubRepository,
       account,
