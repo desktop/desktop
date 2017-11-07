@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { encodePathAsUrl } from '../../lib/path'
 import { UiView } from '../ui-view'
 import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -20,7 +21,10 @@ interface IBlankSlateProps {
  */
 export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
   public render() {
-    const BlankSlateImage = `file:///${__dirname}/static/empty-no-repo.svg`
+    const BlankSlateImage = encodePathAsUrl(
+      __dirname,
+      'static/empty-no-repo.svg'
+    )
 
     return (
       <UiView id="blank-slate">

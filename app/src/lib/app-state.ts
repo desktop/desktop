@@ -7,7 +7,7 @@ import { Branch } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import {
-  FileChange,
+  CommittedFileChange,
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../models/status'
@@ -24,6 +24,7 @@ import { PreferencesTab } from '../models/preferences'
 import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
+import { PullRequest } from '../models/pull-request'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -204,6 +205,7 @@ export enum PopupType {
   OpenShellFailed,
   InitializeLFS,
   LFSAttributeMismatch,
+  UpstreamAlreadyExists,
 }
 
 export type Popup =
@@ -261,6 +263,11 @@ export type Popup =
   | { type: PopupType.OpenShellFailed; message: string }
   | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
   | { type: PopupType.LFSAttributeMismatch }
+  | {
+      type: PopupType.UpstreamAlreadyExists
+      repository: Repository
+      existingRemote: IRemote
+    }
 
 export enum FoldoutType {
   Repository,
@@ -508,11 +515,17 @@ export interface IBranchesState {
    * switches over the last couple of thousand reflog entries.
    */
   readonly recentBranches: ReadonlyArray<Branch>
+
+  /** The open pull requests in the repository. */
+  readonly openPullRequests: ReadonlyArray<PullRequest> | null
+
+  /** The pull request associated with the current branch. */
+  readonly currentPullRequest: PullRequest | null
 }
 
 export interface IHistorySelection {
   readonly sha: string | null
-  readonly file: FileChange | null
+  readonly file: CommittedFileChange | null
 }
 
 export interface IHistoryState {
@@ -521,7 +534,7 @@ export interface IHistoryState {
   /** The ordered SHAs. */
   readonly history: ReadonlyArray<string>
 
-  readonly changedFiles: ReadonlyArray<FileChange>
+  readonly changedFiles: ReadonlyArray<CommittedFileChange>
 
   readonly diff: IDiff | null
 }

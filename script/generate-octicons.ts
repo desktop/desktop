@@ -1,39 +1,80 @@
 /* generate-octicons
  *
  * Utility script for generating a strongly typed representation of all
- * octicons currently in the master branch of primer/octicons. Automatically
- * downloads the latest version of the `sprite.octicons.svg` file.
+ * octicons distributed by the octicons NPM package. Enumerates the icons
+ * and generates the TypeScript class containing just what Desktop needs.
  */
 
-import fs = require('fs')
+import * as fs from 'fs'
+import * as Path from 'path'
+import * as cp from 'child_process'
+
 import xml2js = require('xml2js')
-import path = require('path')
 import toCamelCase = require('to-camel-case')
 
-const filePath = path.resolve(
-  __dirname,
-  '..',
-  'node_modules',
-  'octicons',
-  'build',
-  'sprite.octicons.svg'
-)
-
-/* tslint:disable:no-sync-functions */
-const file = fs.readFileSync(filePath, 'utf-8')
-
-interface IXML2JSResult {
-  svg: { symbol: ReadonlyArray<IXML2JSNode> }
-}
 interface IXML2JSNode {
-  $: { [key: string]: string }
-  path: ReadonlyArray<IXML2JSNode>
+  path: {
+    $: {
+      d: string
+    }
+  }
 }
 
-xml2js.parseString(file, function(err, result: IXML2JSResult) {
-  const viewBoxRe = /0 0 (\d+) (\d+)/
+interface IOcticonData {
+  readonly jsFriendlyName: string
+  readonly pathData: string
+  readonly width: string
+  readonly height: string
+}
+
+const viewBoxRe = /0 0 (\d+) (\d+)/
+
+function readXml(xml: string): Promise<IXML2JSNode> {
+  return new Promise((resolve, reject) => {
+    xml2js.parseString(xml, function(err, result: IXML2JSNode) {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(result)
+      }
+    })
+  })
+}
+
+async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
+  const octicons = require('octicons')
+
+  const results = new Array<IOcticonData>()
+
+  for (const name of Object.keys(octicons)) {
+    const octicon = octicons[name]
+
+    const viewBox = octicon.options.viewBox
+    const viewBoxMatch = viewBoxRe.exec(viewBox)
+
+    if (!viewBoxMatch) {
+      throw new Error(
+        `Unexpected viewBox format for ${octicon.symbol} - '${viewBox}'`
+      )
+    }
+
+    const [, width, height] = viewBoxMatch
+
+    const result = await readXml(octicon.path)
+    const pathData = result.path.$.d
+    const jsFriendlyName = toCamelCase(octicon.symbol)
+
+    results.push({ jsFriendlyName, width, height, pathData })
+  }
+
+  return results
+}
+
+generateIconData().then(result => {
+  console.log(`Writing ${result.length} octicons...`)
+
   const out = fs.createWriteStream(
-    path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts'),
+    Path.resolve(__dirname, '../app/src/ui/octicons/octicons.generated.ts'),
     {
       encoding: 'utf-8',
     }
@@ -51,32 +92,18 @@ xml2js.parseString(file, function(err, result: IXML2JSResult) {
   out.write(
     '\n  public constructor(public w: number, public h: number, public d: string) { }\n\n'
   )
-  let count = 0
-  result.svg.symbol.forEach(function(symbol) {
-    count++
 
-    const id = symbol.$.id
-    const viewBox = symbol.$.viewBox
-    const pathData = symbol.path[0].$.d
-
-    const viewBoxMatch = viewBoxRe.exec(viewBox)
-
-    if (!viewBoxMatch) {
-      console.error(`*** ERROR! Unexpected viewBox format for ${id}`)
-      process.exitCode = 1
-      return
-    }
-
-    const [, w, h] = viewBoxMatch
-    const jsFriendlyName = toCamelCase(id)
-
+  result.forEach(function(symbol) {
+    const { jsFriendlyName, pathData, width, height } = symbol
     out.write(
-      `  public static get ${jsFriendlyName}() { return new OcticonSymbol(${w}, ${h}, '${pathData}') }\n`
+      `  public static get ${jsFriendlyName}() { return new OcticonSymbol(${width}, ${height}, '${pathData}') }\n`
     )
   })
 
   out.write('}\n')
   out.end()
 
-  console.log(`Wrote ${count} octicons`)
+  console.log('Ensuring generated file is formatted correctly...')
+  const root = Path.dirname(__dirname)
+  return cp.spawn('yarn', ['lint:fix'], { cwd: root, stdio: 'inherit' })
 })

@@ -1,3 +1,4 @@
+/* eslint-disable typescript/interface-name-prefix */
 /** Is the app running in dev mode? */
 declare const __DEV__: boolean
 
@@ -38,7 +39,12 @@ declare const __UPDATES_URL__: string
  * The currently executing process kind, this is specific to desktop
  * and identifies the processes that we have.
  */
-declare const __PROCESS_KIND__: 'main' | 'ui' | 'crash' | 'askpass'
+declare const __PROCESS_KIND__:
+  | 'main'
+  | 'ui'
+  | 'crash'
+  | 'askpass'
+  | 'highlighter'
 
 /**
  * The DOMHighResTimeStamp type is a double and is used to store a time value.
@@ -179,7 +185,6 @@ declare const log: IDesktopLogger
 // these changes should be pushed into the Electron declarations
 
 declare namespace NodeJS {
-  // tslint:disable-next-line:interface-name
   interface Process extends EventEmitter {
     once(event: 'uncaughtException', listener: (error: Error) => void): this
     on(event: 'uncaughtException', listener: (error: Error) => void): this
@@ -189,7 +194,6 @@ declare namespace NodeJS {
 }
 
 declare namespace Electron {
-  // tslint:disable-next-line:interface-name
   interface MenuItem {
     readonly accelerator?: Electron.Accelerator
     readonly submenu?: Electron.Menu
@@ -197,7 +201,6 @@ declare namespace Electron {
     readonly type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio'
   }
 
-  // tslint:disable-next-line:interface-name
   interface RequestOptions {
     readonly method: string
     readonly url: string
@@ -206,12 +209,36 @@ declare namespace Electron {
 
   type AppleActionOnDoubleClickPref = 'Maximize' | 'Minimize' | 'None'
 
-  // tslint:disable-next-line:interface-name
   interface SystemPreferences {
     getUserDefault(
       key: 'AppleActionOnDoubleClick',
       type: 'string'
     ): AppleActionOnDoubleClickPref
+  }
+
+  interface WebviewTag extends HTMLElement {
+    // Copied from https://github.com/electron/electron-typescript-definitions/pull/81
+    // until we can upgrade to a version of Electron which includes the fix.
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
+      useCapture?: boolean
+    ): void
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      useCapture?: boolean
+    ): void
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
+      useCapture?: boolean
+    ): void
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      useCapture?: boolean
+    ): void
   }
 }
 

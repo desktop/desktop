@@ -1,4 +1,4 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
 import { expect } from 'chai'
 
@@ -15,12 +15,14 @@ import {
   SignInStore,
   RepositoriesStore,
   AccountsStore,
+  PullRequestStore,
 } from '../../src/lib/stores'
 import {
   TestGitHubUserDatabase,
   TestStatsDatabase,
   TestIssuesDatabase,
   TestRepositoriesDatabase,
+  TestPullRequestDatabase,
 } from '../helpers/databases'
 import { setupEmptyRepository } from '../helpers/repositories'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
@@ -56,6 +58,11 @@ describe('AppStore', () => {
       new AsyncInMemoryStore()
     )
 
+    const pullRequestStore = new PullRequestStore(
+      new TestPullRequestDatabase(),
+      repositoriesStore
+    )
+
     return new AppStore(
       new GitHubUserStore(db),
       new CloningRepositoriesStore(),
@@ -64,7 +71,8 @@ describe('AppStore', () => {
       new StatsStore(statsDb),
       new SignInStore(),
       accountsStore,
-      repositoriesStore
+      repositoriesStore,
+      pullRequestStore
     )
   }
 

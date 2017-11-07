@@ -53,13 +53,35 @@ $ sudo ln -s `find /usr/lib64/ -type f -name "libbz2.so.1*"` /usr/lib64/libbz2.s
 $ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/libreadline.so.6
 ```
 
+### Ubuntu 16.04
+
+First, install curl:
+
+```shellsession
+$ sudo apt install curl
+```
+
+Then add the NodeJS package repository:
+
+```shellsession
+$ curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+```
+
+After that, install the dependencies to build and test the app:
+
+```shellsession
+$ sudo apt update && sudo apt install -y nodejs gcc make libsecret-1-dev
+```
+
+If you want to package Desktop for distribution, you may need additional dependencies.
+
 ## Verification
 
 With these things installed, open a shell and install `yarn` (you might need
 to `sudo` here depending on how Node was installed):
 
 ```shellsession
-$ npm install -g yarn@1.2.0
+$ npm install -g yarn@1.3.2
 ```
 
 This is important because yarn uses lock files to pin dependencies. If you find

@@ -5,7 +5,10 @@ import { Disposable } from 'event-kit'
 
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
-import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  CommittedFileChange,
+} from '../../models/status'
 import { DiffSelection } from '../../models/diff'
 import {
   RepositorySection,
@@ -145,7 +148,7 @@ export class Dispatcher {
    */
   public changeHistoryFileSelection(
     repository: Repository,
-    file: FileChange
+    file: CommittedFileChange
   ): Promise<void> {
     return this.appStore._changeHistoryFileSelection(repository, file)
   }
@@ -969,7 +972,17 @@ export class Dispatcher {
   ): Promise<void> {
     log.info(`storing generic credentials for '${hostname}' and '${username}'`)
     setGenericUsername(hostname, username)
-    await setGenericPassword(hostname, username, password)
+
+    try {
+      await setGenericPassword(hostname, username, password)
+    } catch (e) {
+      log.error(
+        `Error saving generic git credentials: ${username}@${hostname}`,
+        e
+      )
+
+      this.postError(e)
+    }
   }
 
   /** Perform the given retry action. */
@@ -1046,5 +1059,22 @@ export class Dispatcher {
    */
   public openCreatePullRequestInBrowser(repository: Repository): Promise<void> {
     return this.appStore._openCreatePullRequestInBrowser(repository)
+  }
+
+  /** Refresh the list of open pull requests for the repository. */
+  public refreshPullRequests(repository: Repository): Promise<void> {
+    return this.appStore._refreshPullRequests(repository)
+  }
+
+  /**
+   * Update the existing `upstream` remote to point to the repository's parent.
+   */
+  public updateExistingUpstreamRemote(repository: Repository): Promise<void> {
+    return this.appStore._updateExistingUpstreamRemote(repository)
+  }
+
+  /** Ignore the existing `upstream` remote. */
+  public ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
+    return this.appStore._ignoreExistingUpstreamRemote(repository)
   }
 }
