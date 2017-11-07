@@ -55,6 +55,7 @@ import { readPartialFile } from '../../lib/file-system'
 
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
 import { highlight } from '../../lib/highlighter/worker'
+import { ITokens } from '../../lib/highlighter/types'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -77,8 +78,14 @@ interface ILineFilters {
 }
 
 interface IFileContents {
+  readonly file: ChangedFile
   readonly oldContents: Buffer
   readonly newContents: Buffer
+}
+
+interface IFileTokens {
+  readonly oldTokens: ITokens
+  readonly newTokens: ITokens
 }
 
 async function getOldFileContent(
@@ -161,7 +168,7 @@ async function getFileContents(
     }),
   ])
 
-  return { oldContents, newContents }
+  return { file, oldContents, newContents }
 }
 
 /**
@@ -212,6 +219,37 @@ function getLineFilters(diff: ITextDiff): ILineFilters {
   }
 
   return { oldLineFilter, newLineFilter }
+}
+
+async function highlightContents(
+  contents: IFileContents,
+  tabSize: number,
+  lineFilters: ILineFilters
+): Promise<IFileTokens> {
+  const { file, oldContents, newContents } = contents
+
+  const [oldTokens, newTokens] = await Promise.all([
+    highlight(
+      oldContents.toString('utf8'),
+      Path.extname(file.oldPath || file.path),
+      tabSize,
+      lineFilters.oldLineFilter
+    ).catch(e => {
+      log.error(`Highlighter worked failed for old contents: ${e}`)
+      return {}
+    }),
+    highlight(
+      newContents.toString('utf8'),
+      Path.extname(file.path),
+      tabSize,
+      lineFilters.newLineFilter
+    ).catch(e => {
+      log.error(`Highlighter worked failed for new contents: ${e}`)
+      return {}
+    }),
+  ])
+
+  return { oldTokens, newTokens }
 }
 
 /** The props for the Diff component. */
@@ -395,26 +433,11 @@ export class Diff extends React.Component<IDiffProps, {}> {
     const tsOpt = cm.getOption('tabSize')
     const tabSize = typeof tsOpt === 'number' ? tsOpt : 4
 
-    const [oldTokens, newTokens] = await Promise.all([
-      highlight(
-        contents.oldContents.toString('utf8'),
-        Path.extname(file.oldPath || file.path),
-        tabSize,
-        lineFilters.oldLineFilter
-      ).catch(e => {
-        log.error(`Highlighter worked failed for old contents: ${e}`)
-        return {}
-      }),
-      highlight(
-        contents.newContents.toString('utf8'),
-        Path.extname(file.path),
-        tabSize,
-        lineFilters.newLineFilter
-      ).catch(e => {
-        log.error(`Highlighter worked failed for new contents: ${e}`)
-        return {}
-      }),
-    ])
+    const { oldTokens, newTokens } = await highlightContents(
+      contents,
+      tabSize,
+      lineFilters
+    )
 
     // Check to see whether something has changes since
     // we started highlighting that makes our tokens
