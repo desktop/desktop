@@ -59,7 +59,7 @@ export class PullRequestStore {
       this.pullRequests = await this.getPullRequests(repository)
       this.emitUpdate()
     } catch (error) {
-      log.warn(`Error refreshing pull requests for '${repository.name}`)
+      log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
       this.emitError(error)
     }
   }
