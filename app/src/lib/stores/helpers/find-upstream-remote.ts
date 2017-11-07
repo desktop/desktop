@@ -6,6 +6,10 @@ import { forceUnwrap } from '../../fatal-error'
 /** The name for a fork's upstream remote. */
 export const UpstreamRemoteName = 'upstream'
 
+/**
+ * Find the upstream remote based on the parent repository and the list of
+ * remotes.
+ */
 export function findUpstreamRemote(
   parent: GitHubRepository,
   remotes: ReadonlyArray<IRemote>
