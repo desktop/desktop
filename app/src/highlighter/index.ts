@@ -146,7 +146,7 @@ function readToken(
     const token = mode.token(stream, state)
 
     if (stream.pos > stream.start) {
-      return innerModeName ? `m-${innerModeName} ${token}` : token
+      return token && innerModeName ? `m-${innerModeName} ${token}` : token
     }
   }
 
