@@ -53,8 +53,9 @@ export function highlight(
     worker.onerror = ev => {
       clearTimeout()
       worker.terminate()
-      reject(ev.error)
+      reject(ev.error || new Error(ev.message))
     }
+
     worker.onmessage = ev => {
       clearTimeout()
       if (highlightWorkers.length < maxIdlingWorkers) {
@@ -77,8 +78,7 @@ export function highlight(
 
     timeout = window.setTimeout(() => {
       worker.terminate()
-      log.error('Highlighting worker timed out')
-      resolve({})
+      reject(new Error('timed out'))
     }, workerMaxRunDuration)
   })
 }
