@@ -337,11 +337,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
     const diff = this.props.diff
     const repo = this.props.repository
 
-    if (!cm) {
-      return
-    }
-
-    if (diff.kind !== DiffType.Text) {
+    if (!cm || diff.kind !== DiffType.Text) {
       return
     }
 
