@@ -135,6 +135,24 @@ function getInnerModeName(
   return inner && inner.mode ? getModeName(inner.mode) : null
 }
 
+function readToken(
+  mode: CodeMirror.Mode<{}>,
+  stream: StringStream,
+  state: any,
+  addModeClass: boolean
+): string | null {
+  for (let i = 0; i < 10; i++) {
+    const innerModeName = addModeClass ? getInnerModeName(mode, state) : null
+    const token = mode.token(stream, state)
+
+    if (stream.pos > stream.start) {
+      return innerModeName ? `m-${innerModeName} ${token}` : token
+    }
+  }
+
+  throw new Error(`Mode ${getModeName(mode)} failed to advance stream.`)
+}
+
 onmessage = (ev: MessageEvent) => {
   const request = ev.data as IHighlightRequest
 
@@ -188,16 +206,13 @@ onmessage = (ev: MessageEvent) => {
     const lineStream = new StringStream(line, tabSize, lineCtx)
 
     while (!lineStream.eol()) {
-      const token = mode.token(lineStream, state)
+      const token = readToken(mode, lineStream, state, !!request.addModeClass)
 
       if (token && (!lineFilter || lineFilter.has(ix))) {
-        const innerModeName =
-          request.addModeClass === true ? getInnerModeName(mode, state) : null
-
         tokens[ix] = tokens[ix] || {}
         tokens[ix][lineStream.start] = {
           length: lineStream.pos - lineStream.start,
-          token: innerModeName ? `m-${innerModeName} ${token}` : token,
+          token,
         }
       }
 
