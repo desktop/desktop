@@ -252,6 +252,27 @@ async function highlightContents(
   return { oldTokens, newTokens }
 }
 
+/**
+ * Checks to see if any key parameters in the props object that are used
+ * when performing highlighting has changed. This is used to determine
+ * whether highlighting should abort in between asynchronous operations
+ * due to some factor (like which file is currently selected) have changed
+ * and thus rendering the in-flight highlighting data useless.
+ */
+function highlightParametersEqual(newProps: IDiffProps, prevProps: IDiffProps) {
+  if (newProps === prevProps) {
+    return true
+  }
+
+  return (
+    newProps.file.path === prevProps.file.path &&
+    newProps.file.oldPath === prevProps.file.oldPath &&
+    newProps.diff.kind === DiffType.Text &&
+    prevProps.diff.kind === DiffType.Text &&
+    newProps.diff.text === prevProps.diff.text
+  )
+}
+
 /** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: Repository
@@ -415,18 +436,15 @@ export class Diff extends React.Component<IDiffProps, {}> {
       return
     }
 
+    // Store the current props to that we can see if anything
+    // changes from underneath us as we're making asynchronous
+    // operations that makes our data stale or useless.
+    const propsSnapshot = this.props
+
     const lineFilters = getLineFilters(diff)
     const contents = await getFileContents(repo, file, lineFilters)
 
-    // Check to see whether something has changes since
-    // we started loading contents that makes our contents
-    // potentially stale.
-    if (
-      this.props.file.path !== file.path ||
-      this.props.file.oldPath !== file.oldPath ||
-      this.props.diff.kind !== DiffType.Text ||
-      this.props.diff.text !== diff.text
-    ) {
+    if (!highlightParametersEqual(this.props, propsSnapshot)) {
       return
     }
 
@@ -439,15 +457,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
       lineFilters
     )
 
-    // Check to see whether something has changes since
-    // we started highlighting that makes our tokens
-    // potentially stale.
-    if (
-      this.props.file.path !== file.path ||
-      this.props.file.oldPath !== file.oldPath ||
-      this.props.diff.kind !== DiffType.Text ||
-      this.props.diff.text !== diff.text
-    ) {
+    if (!highlightParametersEqual(this.props, propsSnapshot)) {
       return
     }
 
