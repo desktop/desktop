@@ -858,15 +858,16 @@ export class AppStore {
       return
     }
 
+    if (!repository.gitHubRepository) {
+      return
+    }
+
     const account = getAccountForRepository(this.accounts, repository)
 
     if (!account) {
       return
     }
 
-    if (!repository.gitHubRepository) {
-      return
-    }
 
     const updater = new PullRequestUpdater(
       repository.gitHubRepository,
