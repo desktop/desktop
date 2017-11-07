@@ -378,7 +378,8 @@ export class Diff extends React.Component<IDiffProps, {}> {
       return
     }
 
-    const tabSize = cm.getOption('tabSize') || 4
+    const tsOpt = cm.getOption('tabSize')
+    const tabSize = typeof tsOpt === 'number' ? tsOpt : 4
 
     const [oldTokens, newTokens] = await Promise.all([
       highlight(
