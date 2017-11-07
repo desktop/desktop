@@ -1,10 +1,20 @@
 {
   "releases": {
+    "1.0.8-beta0": [
+      "[New] Syntax highlighted diffs - #1312",
+      "[New] Add upstream to forked repositories - #2364",
+      "[Fixed] Only reset scale of title bar on macOS - #3193",
+      "[Fixed] Filter symbolic refs in the branch list - #3196",
+      "[Fixed] Address path issue with invoking Git Bash - #3186",
+      "[Fixed] Update embedded Git to support repository hooks and error messages - #3067 #3079",
+      "[Fixed] Provide credentials to LFS repositories when performing checkout - #3167",
+      "[Fixed] Assorted changelog typos - #3174 #3184 #3207. Thanks @strafe, @alanaasmaa and @jt2k!"
+    ],
     "1.0.7": [
       "[New] Syntax highlighted diffs - #1312",
       "[New] Add upstream to forked repositories - #2364",
       "[Fixed] Only reset scale of title bar on macOS - #3193",
-      "[Fixed] Filter symbolic refs when showing the branch list - #3196",
+      "[Fixed] Filter symbolic refs in the branch list - #3196",
       "[Fixed] Address path issue with invoking Git Bash - #3186",
       "[Fixed] Update embedded Git to support repository hooks and error messages - #3067 #3079",
       "[Fixed] Provide credentials to LFS repositories when performing checkout - #3167",
