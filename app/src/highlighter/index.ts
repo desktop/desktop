@@ -135,6 +135,28 @@ function getInnerModeName(
   return inner && inner.mode ? getModeName(inner.mode) : null
 }
 
+/**
+ * Extract the next token from the line stream or null if no token
+ * could be extracted from the current position in the line stream.
+ *
+ * This method is more or less equal to the readToken method in
+ * CodeMirror but since the readToken class in CodeMirror isn't included
+ * in the Node runmode we're not able to use it.
+ *
+ * Worth noting here is that we're also replicated the workaround for
+ * modes that aren't adhering to the rules of never returning without
+ * advancing the line stream by trying it again (up to ten times). See
+ * https://github.com/codemirror/CodeMirror/commit/2c60a2 for more
+ * details on that.
+ *
+ * @param mode         The current (outer) mode
+ * @param stream       The StringStream for the current line
+ * @param state        The current mode state (if any)
+ * @param addModeClass Whether or not to append the current (inner) mode name
+ *                     as an extra CSS clas to the token, indicating the mode
+ *                     that produced it, prefixed with "cm-m-". For example,
+ *                     tokens from the XML mode will get the cm-m-xml class.
+ */
 function readToken(
   mode: CodeMirror.Mode<{}>,
   stream: StringStream,
