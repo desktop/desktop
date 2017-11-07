@@ -66,7 +66,7 @@ import 'codemirror/mode/perl/perl'
 extensionMIMEMap.set('.pl', 'text/x-perl')
 
 import 'codemirror/mode/php/php'
-extensionMIMEMap.set('.php', 'text/x-php')
+extensionMIMEMap.set('.php', 'application/x-httpd-php')
 
 import 'codemirror/mode/python/python'
 extensionMIMEMap.set('.py', 'text/x-python')
