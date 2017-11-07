@@ -451,11 +451,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
     const tsOpt = cm.getOption('tabSize')
     const tabSize = typeof tsOpt === 'number' ? tsOpt : 4
 
-    const { oldTokens, newTokens } = await highlightContents(
-      contents,
-      tabSize,
-      lineFilters
-    )
+    const tokens = await highlightContents(contents, tabSize, lineFilters)
 
     if (!highlightParametersEqual(this.props, propsSnapshot)) {
       return
@@ -464,8 +460,8 @@ export class Diff extends React.Component<IDiffProps, {}> {
     const spec: IDiffSyntaxModeSpec = {
       name: DiffSyntaxMode.ModeName,
       diff,
-      oldTokens,
-      newTokens,
+      oldTokens: tokens.oldTokens,
+      newTokens: tokens.newTokens,
     }
 
     cm.setOption('mode', spec)
