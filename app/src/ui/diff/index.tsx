@@ -383,13 +383,19 @@ export class Diff extends React.Component<IDiffProps, {}> {
         Path.extname(file.oldPath || file.path),
         tabSize,
         lineFilters.oldLineFilter
-      ),
+      ).catch(e => {
+        log.error(`Highlighter worked failed for old contents: ${e}`)
+        return {}
+      }),
       highlight(
         newContents.toString('utf8'),
         Path.extname(file.path),
         tabSize,
         lineFilters.newLineFilter
-      ),
+      ).catch(e => {
+        log.error(`Highlighter worked failed for new contents: ${e}`)
+        return {}
+      }),
     ])
 
     // Check to see whether something has changes since
