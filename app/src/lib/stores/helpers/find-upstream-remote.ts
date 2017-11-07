@@ -20,16 +20,19 @@ export function findUpstreamRemote(
   }
 
   const parsedUpstream = parseRemote(upstream.url)
+  if (!parsedUpstream || !parsedUpstream.name || !parsedUpstream.owner) {
+    return null
+  }
+
   const cloneURL = forceUnwrap(
     'Parent repositories are fully loaded',
     parent.cloneURL
   )
   const parentURL = new URL(cloneURL)
   if (
-    parsedUpstream &&
-    parsedUpstream.owner === parent.owner.login &&
-    parsedUpstream.name === parent.name &&
-    parsedUpstream.hostname === parentURL.hostname
+    parsedUpstream.owner.toLowerCase() === parent.owner.login.toLowerCase() &&
+    parsedUpstream.name.toLowerCase() === parent.name.toLowerCase() &&
+    parsedUpstream.hostname.toLowerCase() === parentURL.hostname.toLowerCase()
   ) {
     return upstream
   } else {
