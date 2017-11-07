@@ -7,8 +7,8 @@ import {
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
 
-describe.only('findUpstreamRemote', () => {
-  it('finds it', () => {
+describe('findUpstreamRemote', () => {
+  it('finds the upstream', () => {
     const parent = new GitHubRepository(
       'github-release-stats',
       new Owner('somsubhra', 'https://api.github.com', null),
