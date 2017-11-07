@@ -235,7 +235,7 @@ async function highlightContents(
       tabSize,
       lineFilters.oldLineFilter
     ).catch(e => {
-      log.error(`Highlighter worked failed for old contents: ${e}`)
+      log.error('Highlighter worked failed for old contents', e)
       return {}
     }),
     highlight(
@@ -244,7 +244,7 @@ async function highlightContents(
       tabSize,
       lineFilters.newLineFilter
     ).catch(e => {
-      log.error(`Highlighter worked failed for new contents: ${e}`)
+      log.error('Highlighter worked failed for new contents', e)
       return {}
     }),
   ])
