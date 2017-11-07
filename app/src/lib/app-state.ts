@@ -205,6 +205,7 @@ export enum PopupType {
   OpenShellFailed,
   InitializeLFS,
   LFSAttributeMismatch,
+  UpstreamAlreadyExists,
 }
 
 export type Popup =
@@ -262,6 +263,11 @@ export type Popup =
   | { type: PopupType.OpenShellFailed; message: string }
   | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
   | { type: PopupType.LFSAttributeMismatch }
+  | {
+      type: PopupType.UpstreamAlreadyExists
+      repository: Repository
+      existingRemote: IRemote
+    }
 
 export enum FoldoutType {
   Repository,

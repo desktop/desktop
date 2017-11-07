@@ -70,7 +70,7 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
     }
   }
 
-  private onInputRef = (input: HTMLInputElement) => {
+  private onInputRef = (input: HTMLInputElement | null) => {
     this.input = input
     // Necessary since componentDidUpdate doesn't run on initial
     // render
