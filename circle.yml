@@ -20,7 +20,8 @@ dependencies:
     #       a specific version of node. There's no output, but hopefully
     #       support will notice and investigate. So for now, we're going to
     #       keep an eye on this and ensure it's running the latest 8.x release
-    - brew install node || brew upgrade node
+    - brew update
+    - brew install node@8.9.0
     - npm install -g yarn@1.3.2
 
   override:
