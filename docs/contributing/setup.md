@@ -6,13 +6,13 @@ You will need to install these tools on your machine:
 
 ### macOS
 
- - [Node.js v8.7.0](https://nodejs.org/dist/v8.7.0/) - this is the version embedded into Electron
+ - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/) - this is the version embedded into Electron
  - [Python 2.7](https://www.python.org/downloads/mac-osx/)
  - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
 ### Windows
 
- - [Node.js v8.7.0](https://nodejs.org/dist/v8.7.0/) - this is the version embedded into Electron
+ - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/) - this is the version embedded into Electron
     - *Make sure you allow the Node.js installer to add node to the PATH.*
  - [Python 2.7](https://www.python.org/downloads/windows/)
     - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
