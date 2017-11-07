@@ -26,7 +26,7 @@ You will need to install these tools on your machine:
 
 ### Fedora 26
 
-First, add the NodeJS package repository. As this version of Fedora doesn't support v7, you'll need to use v8:
+First, add the NodeJS package repository.
 
 ```shellsession
 $ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
