@@ -76,6 +76,11 @@ interface ILineFilters {
   readonly newLineFilter: Array<number>
 }
 
+interface IFileContents {
+  readonly oldContents: Buffer
+  readonly newContents: Buffer
+}
+
 async function getOldFileContent(
   repository: Repository,
   file: ChangedFile
@@ -130,6 +135,33 @@ async function getNewFileContent(
   }
 
   return assertNever(file, 'Unknown file change type')
+}
+
+async function getFileContents(
+  repo: Repository,
+  file: ChangedFile,
+  lineFilters: ILineFilters
+): Promise<IFileContents> {
+  const oldContentsPromise = lineFilters.oldLineFilter.length
+    ? getOldFileContent(repo, file)
+    : Promise.resolve(new Buffer(0))
+
+  const newContentsPromise = lineFilters.newLineFilter.length
+    ? getNewFileContent(repo, file)
+    : Promise.resolve(new Buffer(0))
+
+  const [oldContents, newContents] = await Promise.all([
+    oldContentsPromise.catch(e => {
+      log.error('Could not load old contents for syntax highlighting', e)
+      return new Buffer(0)
+    }),
+    newContentsPromise.catch(e => {
+      log.error('Could not load new contents for syntax highlighting', e)
+      return new Buffer(0)
+    }),
+  ])
+
+  return { oldContents, newContents }
 }
 
 /**
@@ -346,25 +378,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
     }
 
     const lineFilters = getLineFilters(diff)
-
-    const oldContentsPromise = lineFilters.oldLineFilter.length
-      ? getOldFileContent(repo, file)
-      : Promise.resolve(new Buffer(0))
-
-    const newContentsPromise = lineFilters.newLineFilter.length
-      ? getNewFileContent(repo, file)
-      : Promise.resolve(new Buffer(0))
-
-    const [oldContents, newContents] = await Promise.all([
-      oldContentsPromise.catch(e => {
-        log.error('Could not load old contents for syntax highlighting', e)
-        return new Buffer(0)
-      }),
-      newContentsPromise.catch(e => {
-        log.error('Could not load new contents for syntax highlighting', e)
-        return new Buffer(0)
-      }),
-    ])
+    const contents = await getFileContents(repo, file, lineFilters)
 
     // Check to see whether something has changes since
     // we started loading contents that makes our contents
@@ -383,7 +397,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
 
     const [oldTokens, newTokens] = await Promise.all([
       highlight(
-        oldContents.toString('utf8'),
+        contents.oldContents.toString('utf8'),
         Path.extname(file.oldPath || file.path),
         tabSize,
         lineFilters.oldLineFilter
@@ -392,7 +406,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
         return {}
       }),
       highlight(
-        newContents.toString('utf8'),
+        contents.newContents.toString('utf8'),
         Path.extname(file.path),
         tabSize,
         lineFilters.newLineFilter
