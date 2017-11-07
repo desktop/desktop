@@ -4876,9 +4876,9 @@ object.pick@^1.3.0:
   dependencies:
     isobject "^3.0.1"
 
-octicons@^6.0.1:
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/octicons/-/octicons-6.0.1.tgz#481f4947780c495e42eef113e5b764075e226b84"
+octicons@^7.0.1:
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/octicons/-/octicons-7.0.1.tgz#2f8f8d71547213c50525b26684192d5e6be257fb"
   dependencies:
     object-assign "^4.1.1"
 
