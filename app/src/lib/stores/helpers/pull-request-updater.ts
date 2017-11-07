@@ -4,8 +4,13 @@ import { fatalError } from '../../fatal-error'
 import { PullRequest } from '../../../models/pull-request'
 import { GitHubRepository } from '../../../models/github-repository'
 
+//** Interval to check for pull requests */
 const PullRequestInterval = 1000 * 60 * 10
+
+//** Interval to check for pull request statuses */
 const StatusInterval = 1000 * 60 * 10
+
+//** Interval to check for pull request statuses after commits have been pushed */
 const PostPushInterval = 1000 * 60
 
 enum TimeoutHandles {
