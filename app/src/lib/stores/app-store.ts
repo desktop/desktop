@@ -22,7 +22,7 @@ import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import {
-  FileChange,
+  CommittedFileChange,
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../../models/status'
@@ -300,6 +300,9 @@ export class AppStore {
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
+
+    pullRequestStore.onDidError(error => this.emitError(error))
+    pullRequestStore.onDidUpdate(() => this.emitUpdate())
   }
 
   /** Load the emoji from disk. */
@@ -371,7 +374,7 @@ export class AppStore {
           sha: null,
           file: null,
         },
-        changedFiles: new Array<FileChange>(),
+        changedFiles: new Array<CommittedFileChange>(),
         history: new Array<string>(),
         diff: null,
       },
@@ -674,7 +677,7 @@ export class AppStore {
     this.updateHistoryState(repository, state => {
       const commitChanged = state.selection.sha !== sha
       const changedFiles = commitChanged
-        ? new Array<FileChange>()
+        ? new Array<CommittedFileChange>()
         : state.changedFiles
       const file = commitChanged ? null : state.selection.file
       const selection = { sha, file }
@@ -694,7 +697,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeHistoryFileSelection(
     repository: Repository,
-    file: FileChange
+    file: CommittedFileChange
   ): Promise<void> {
     this.updateHistoryState(repository, state => {
       const selection = { sha: state.selection.sha, file }
@@ -806,11 +809,9 @@ export class AppStore {
     this.startPullRequestUpdater(repository)
     this.refreshMentionables(repository)
 
-    if (repository instanceof Repository) {
-      return this._repositoryWithRefreshedGitHubRepository(repository)
-    } else {
-      return repository
-    }
+    this.addUpstreamRemoteIfNeeded(repository)
+
+    return this._repositoryWithRefreshedGitHubRepository(repository)
   }
 
   public async _updateIssues(repository: GitHubRepository) {
@@ -1380,6 +1381,7 @@ export class AppStore {
       this.refreshAuthor(repository),
       gitStore.loadContextualCommitMessage(),
       refreshSectionPromise,
+      gitStore.loadUpstreamRemote(),
     ])
   }
 
@@ -1887,7 +1889,7 @@ export class AppStore {
       const remote = gitStore.remote
 
       if (!remote) {
-        return Promise.reject(new Error('The repository has no remotes.'))
+        throw new Error('The repository has no remotes.')
       }
 
       const state = this.getRepositoryState(repository)
@@ -2928,5 +2930,43 @@ export class AppStore {
 
     const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
     await this._openInBrowser(baseURL)
+  }
+
+  public async _updateExistingUpstreamRemote(
+    repository: Repository
+  ): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    await gitStore.updateExistingUpstreamRemote()
+
+    return this._refreshRepository(repository)
+  }
+
+  private getIgnoreExistingUpstreamRemoteKey(repository: Repository): string {
+    return `repository/${repository.id}/ignoreExistingUpstreamRemote`
+  }
+
+  public _ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
+    const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
+    localStorage.setItem(key, '1')
+
+    return Promise.resolve()
+  }
+
+  private getIgnoreExistingUpstreamRemote(
+    repository: Repository
+  ): Promise<boolean> {
+    const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
+    const value = localStorage.getItem(key)
+    return Promise.resolve(value === '1')
+  }
+
+  private async addUpstreamRemoteIfNeeded(repository: Repository) {
+    const gitStore = this.getGitStore(repository)
+    const ignored = await this.getIgnoreExistingUpstreamRemote(repository)
+    if (ignored) {
+      return
+    }
+
+    return gitStore.addUpstreamRemoteIfNeeded()
   }
 }

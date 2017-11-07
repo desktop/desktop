@@ -141,7 +141,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     }
   }
 
-  private onRef = (ref: HTMLDivElement) => {
+  private onRef = (ref: HTMLDivElement | null) => {
     this.wrapper = ref
   }
 

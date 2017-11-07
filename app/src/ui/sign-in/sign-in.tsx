@@ -84,7 +84,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         this.props.onDismissed()
         break
       default:
-        return assertNever(state, `Unknown sign in step ${stepKind}`)
+        assertNever(state, `Unknown sign in step ${stepKind}`)
     }
   }
 

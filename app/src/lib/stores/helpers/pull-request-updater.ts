@@ -14,6 +14,10 @@ enum TimeoutHandles {
   PushedPullRequest = 'PushedPullRequestHandle',
 }
 
+/**
+ * Acts as a service for downloading the latest pull request
+ * and status info from GitHub.
+ */
 export class PullRequestUpdater {
   private readonly repository: GitHubRepository
   private readonly account: Account
@@ -34,6 +38,7 @@ export class PullRequestUpdater {
     this.store = pullRequestStore
   }
 
+  /** Starts the updater */
   public start() {
     if (!this.isStopped) {
       fatalError(
@@ -69,6 +74,7 @@ export class PullRequestUpdater {
     this.timeoutHandles.clear()
   }
 
+  /** Starts fetching the statuses of PRs at an accelerated rate */
   public didPushPullRequest(pullRequest: PullRequest) {
     if (this.currentPullRequests.find(p => p.id === pullRequest.id)) {
       return

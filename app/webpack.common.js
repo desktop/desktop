@@ -165,12 +165,61 @@ const cliConfig = merge({}, commonConfig, {
   ],
 })
 
+const highlighterConfig = merge({}, commonConfig, {
+  entry: { highlighter: path.resolve(__dirname, 'src/highlighter/index') },
+  output: { libraryTarget: 'var' },
+  target: 'webworker',
+  plugins: [
+    new webpack.DefinePlugin(
+      Object.assign({}, replacements, {
+        __PROCESS_KIND__: JSON.stringify('highlighter'),
+      })
+    ),
+  ],
+  resolve: {
+    // We don't want to bundle all of CodeMirror in the highlighter. A web
+    // worker doesn't have access to the DOM and most of CodeMirror's core
+    // code is useless to us in that context. So instead we use this super
+    // nifty subset of codemirror that defines the minimal context needed
+    // to run a mode inside of node. Now, we're not running in node
+    // but CodeMirror doesn't have to know about that.
+    alias: {
+      codemirror$: 'codemirror/addon/runmode/runmode.node.js',
+      '../lib/codemirror$': '../addon/runmode/runmode.node.js',
+      '../../lib/codemirror$': '../../addon/runmode/runmode.node.js',
+      '../../addon/runmode/runmode$': '../../addon/runmode/runmode.node.js',
+    },
+  },
+})
+
+highlighterConfig.module.rules = [
+  {
+    test: /\.ts$/,
+    include: path.resolve(__dirname, 'src/highlighter'),
+    use: [
+      {
+        loader: 'awesome-typescript-loader',
+        options: {
+          useBabel: true,
+          useCache: true,
+          configFileName: path.resolve(
+            __dirname,
+            'src/highlighter/tsconfig.json'
+          ),
+        },
+      },
+    ],
+    exclude: /node_modules/,
+  },
+]
+
 module.exports = {
   main: mainConfig,
   renderer: rendererConfig,
   askPass: askPassConfig,
   crash: crashConfig,
   cli: cliConfig,
+  highlighter: highlighterConfig,
   replacements: replacements,
   externals: commonConfig.externals,
 }

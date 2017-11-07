@@ -51,7 +51,7 @@
       "[Fixed] Avatars not updating after signing in - #2911",
       "[Fixed] Lots of bugs if there was a file named \"HEAD\" in the repository - #3009 #2721 #2938",
       "[Fixed] Handle duplicate config values when saving user.name and user.email - #2945",
-      "[Fixed] The \"Create without pushing\" button when creating a new pull request wouldn't actually do anything - #2917 #2917"
+      "[Fixed] The \"Create without pushing\" button when creating a new pull request wouldn't actually do anything - #2917"
     ],
     "1.0.4-beta1": [
       "[New] Report Git LFS progress when cloning, pushing, pulling, or reverting - #2226",

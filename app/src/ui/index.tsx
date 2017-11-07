@@ -17,6 +17,7 @@ import {
   missingRepositoryHandler,
   backgroundTaskHandler,
   pushNeedsPullHandler,
+  upstreamAlreadyExistsHandler,
 } from '../lib/dispatcher'
 import {
   AppStore,
@@ -134,6 +135,7 @@ const appStore = new AppStore(
 const dispatcher = new Dispatcher(appStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
 dispatcher.registerErrorHandler(externalEditorErrorHandler)
 dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)

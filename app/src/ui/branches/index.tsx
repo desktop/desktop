@@ -67,7 +67,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.setState({ filterText })
   }
 
-  private onSelectionChanged = (selectedBranch: Branch) => {
+  private onSelectionChanged = (selectedBranch: Branch | null) => {
     this.setState({ selectedBranch })
   }
 

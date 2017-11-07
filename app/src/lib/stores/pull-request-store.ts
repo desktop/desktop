@@ -32,7 +32,7 @@ export class PullRequestStore {
     this.repositoriesStore = repositoriesStore
   }
 
-  /** Update the list of open pull requests for the repository. */
+  /** Loads all pull requests against the given repository. */
   public async refreshPullRequests(
     repository: GitHubRepository,
     account: Account
@@ -54,7 +54,7 @@ export class PullRequestStore {
 
       const results = await this.getPullRequests(repository)
 
-      await this.refreshStatusesForPRs(results, repository, account)
+      await this.getStatusForPRs(results, repository, account)
 
       this.pullRequests = await this.getPullRequests(repository)
       this.emitUpdate()
@@ -64,24 +64,40 @@ export class PullRequestStore {
     }
   }
 
+  /** Loads the status for the given pull request. */
   public async refreshSinglePullRequestStatus(
     repository: GitHubRepository,
     account: Account,
     pullRequest: PullRequest
   ): Promise<void> {
-    await this.refreshStatusesForPRs([pullRequest], repository, account)
+    await this.getStatusForPRs([pullRequest], repository, account)
   }
 
+  /** Loads the status for all pull request against a given repository. */
   public async refreshPullRequestStatuses(
     repository: GitHubRepository,
     account: Account
   ): Promise<void> {
     const prs = await this.getPullRequests(repository)
 
-    await this.refreshStatusesForPRs(prs, repository, account)
+    await this.getStatusForPRs(prs, repository, account)
   }
 
-  public async refreshStatusesForPRs(
+  /** Gets the pull requests against the given repository. */
+  public async getPullRequests(
+    repository: GitHubRepository
+  ): Promise<ReadonlyArray<PullRequest>> {
+    await this.getPRs(repository)
+
+    return this.pullRequests.slice()
+  }
+
+  /** Gets the statuses for all the loaded pull request. */
+  public async getPullRequestStatuses() {
+    return this.pullRequestStatuses.slice()
+  }
+
+  private async getStatusForPRs(
     pullRequests: ReadonlyArray<PullRequest>,
     repository: GitHubRepository,
     account: Account
@@ -133,19 +149,6 @@ export class PullRequestStore {
       pullRequests
     )
     this.emitUpdate()
-  }
-
-  /** Get the pull requests from the database. */
-  public async getPullRequests(
-    repository: GitHubRepository
-  ): Promise<ReadonlyArray<PullRequest>> {
-    await this.getPRs(repository)
-
-    return this.pullRequests.slice()
-  }
-
-  public async getPullRequestStatuses() {
-    return this.pullRequestStatuses.slice()
   }
 
   private async getPRStatusById(

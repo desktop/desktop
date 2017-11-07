@@ -272,7 +272,7 @@ export class ToolbarDropdown extends React.Component<
     )
   }
 
-  private onRef = (ref: ToolbarButton) => {
+  private onRef = (ref: ToolbarButton | null) => {
     this.innerButton = ref
   }
 
