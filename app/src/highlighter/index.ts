@@ -180,6 +180,7 @@ onmessage = (ev: MessageEvent) => {
 
   const tabSize = request.tabSize || 4
   const contents = request.contents
+  const addModeClass = request.addModeClass === true
 
   const mode = detectMode(request)
 
@@ -228,7 +229,7 @@ onmessage = (ev: MessageEvent) => {
     const lineStream = new StringStream(line, tabSize, lineCtx)
 
     while (!lineStream.eol()) {
-      const token = readToken(mode, lineStream, state, !!request.addModeClass)
+      const token = readToken(mode, lineStream, state, addModeClass)
 
       if (token && (!lineFilter || lineFilter.has(ix))) {
         tokens[ix] = tokens[ix] || {}
