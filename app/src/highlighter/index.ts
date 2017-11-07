@@ -117,6 +117,11 @@ function detectMode(request: IHighlightRequest): CodeMirror.Mode<{}> | null {
   return getMode({}, mimeType) || null
 }
 
+function getModeName(mode: CodeMirror.Mode<{}>): string | null {
+  const name = (mode as any).name
+  return name && typeof name === 'string' ? name : null
+}
+
 /**
  * Helper method to determine the name of the innermost (i.e. current)
  * mode. Think of this as an abstraction over CodeMirror's innerMode
@@ -127,16 +132,7 @@ function getInnerModeName(
   state: any
 ): string | null {
   const inner = innerMode(mode, state)
-
-  if (inner && inner.mode) {
-    const name = (inner.mode as any).name
-
-    if (name && typeof name === 'string') {
-      return name
-    }
-  }
-
-  return null
+  return inner && inner.mode ? getModeName(inner.mode) : null
 }
 
 onmessage = (ev: MessageEvent) => {
