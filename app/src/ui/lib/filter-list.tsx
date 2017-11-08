@@ -329,20 +329,23 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
     if (event.key === 'ArrowDown') {
       if (this.state.rows.length > 0) {
-        this.setState(
-          { selectedRow: list.nextSelectableRow('down', -1) },
-          () => {
+        const selectedRow = list.nextSelectableRow('down', -1)
+        if (selectedRow) {
+          this.setState({ selectedRow }, () => {
             list.focus()
-          }
-        )
+          })
+        }
       }
 
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
       if (this.state.rows.length > 0) {
-        this.setState({ selectedRow: list.nextSelectableRow('up', 0) }, () => {
-          list.focus()
-        })
+        const selectedRow = list.nextSelectableRow('up', 0)
+        if (selectedRow) {
+          this.setState({ selectedRow }, () => {
+            list.focus()
+          })
+        }
       }
 
       event.preventDefault()
@@ -354,7 +357,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       }
 
       const row = list.nextSelectableRow('down', -1)
-      this.onRowClick(row)
+
+      if (row) {
+        this.onRowClick(row)
+      }
     }
   }
 }
