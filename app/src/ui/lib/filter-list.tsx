@@ -96,8 +96,11 @@ interface IFilterListProps<T extends IFilterListItem> {
   /** Called when the filter text is changed by the user */
   readonly onFilterTextChanged?: (text: string) => void
 
-  /** Is the filter field disabled? */
-  readonly filterDisabled?: boolean
+  /**
+   * Whether or not the filter list should allow selection
+   * and filtering. Defaults to false.
+   */
+  readonly disabled?: boolean
 
   /** Any props which should cause a re-render if they change. */
   readonly invalidationProps: any
@@ -157,7 +160,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
             onKeyDown={this.onKeyDown}
             onInputRef={this.onInputRef}
             value={this.props.filterText}
-            disabled={this.props.filterDisabled}
+            disabled={this.props.disabled}
           />
 
           {this.props.renderPostFilter ? this.props.renderPostFilter() : null}
@@ -275,6 +278,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   private canSelectRow = (index: number) => {
+    if (this.props.disabled) {
+      return false
+    }
+
     const row = this.state.rows[index]
     return row.kind === 'item'
   }

@@ -55,7 +55,7 @@ export class PullRequestsLoading extends React.Component<{}, {}> {
         selectedItem={null}
         renderItem={this.renderItem}
         invalidationProps={groups}
-        filterDisabled={true}
+        disabled={true}
       />
     )
   }
