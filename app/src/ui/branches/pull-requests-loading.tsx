@@ -4,8 +4,7 @@ import {
   PullRequestListItem,
   IPullRequestListItemProps,
 } from './pull-request-list-item'
-
-const RowHeight = 45
+import { RowHeight } from './pull-request-list'
 
 const FacadeCount = 6
 
