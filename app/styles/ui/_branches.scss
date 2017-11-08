@@ -124,6 +124,10 @@
       }
     }
 
+    .ci-status {
+      margin-right: var(--spacing-half);
+    }
+
     &.loading {
       --background-color: $gray-200;
       .icon {
