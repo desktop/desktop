@@ -29,6 +29,13 @@ Desktop for Windows application.
 repositories into the new application - you can drag-and-drop your repositories
 from disk onto the application to get started.
 
+### Beta Channel
+
+Want to test out new features and get fixes before everyone else? Install the
+beta channel to get access to early builds of Desktop:
+
+ - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
+ - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
 
 ## I have a problem with GitHub Desktop
 
