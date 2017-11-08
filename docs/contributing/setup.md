@@ -6,13 +6,13 @@ You will need to install these tools on your machine:
 
 ### macOS
 
- - [Node.js v7](https://nodejs.org/en/download/current) - this is the version embedded into Electron
+ - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
  - [Python 2.7](https://www.python.org/downloads/mac-osx/)
  - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
 ### Windows
 
- - [Node.js v7](https://nodejs.org/en/download/current) - this is the version embedded into Electron
+ - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
     - *Make sure you allow the Node.js installer to add node to the PATH.*
  - [Python 2.7](https://www.python.org/downloads/windows/)
     - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
@@ -26,7 +26,7 @@ You will need to install these tools on your machine:
 
 ### Fedora 26
 
-First, add the NodeJS package repository. As this version of Fedora doesn't support v7, you'll need to use v8:
+First, add the NodeJS package repository.
 
 ```shellsession
 $ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
