@@ -46,11 +46,7 @@ export class PullRequestStore {
         'open'
       )
 
-      const result = await this.writePRs(raw, repository)
-
-      if (result <= 0) {
-        return
-      }
+      await this.writePRs(raw, repository)
 
       const results = await this.getPullRequests(repository)
 
@@ -176,7 +172,7 @@ export class PullRequestStore {
   private async writePRs(
     pullRequests: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
-  ): Promise<number> {
+  ): Promise<void> {
     const repoId = repository.dbID
 
     if (!repoId) {
@@ -184,7 +180,7 @@ export class PullRequestStore {
         "Cannot store pull requests for a repository that hasn't been inserted into the database!"
       )
 
-      return -1
+      return
     }
 
     const table = this.pullRequestDatabase.pullRequests
@@ -224,17 +220,12 @@ export class PullRequestStore {
       })
     }
 
-    const inserts = await this.pullRequestDatabase.transaction(
-      'rw',
-      table,
-      async () => {
-        await table.clear()
-        return await table.bulkAdd(insertablePRs)
-      }
-    )
+    await this.pullRequestDatabase.transaction('rw', table, async () => {
+      await table.clear()
+      return await table.bulkAdd(insertablePRs)
+    })
 
-    this.emitUpdate()
-    return inserts
+    return this.emitUpdate()
   }
 
   private async writePRStatus(
