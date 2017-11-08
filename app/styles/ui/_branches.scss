@@ -138,8 +138,17 @@
         .title,
         .subtitle {
           background-color: var(--background-color);
-          margin-bottom: var(--spacing-half);
-          height: 12px;
+          // The title with text in it is 18px (1em = 12px and with 1.5 x
+          // line height we'll get 18) but we don't want to fill the entire
+          // box because then we'll end up with one big slab of gray rather
+          // than two fake gray text lines. So we'll split the difference
+          // between 1em and 1.5em between the top and bottom margin so that
+          // it looks nicely positioned with the text that'll fade in later.
+          height: 1em;
+          margin-top: 0.2em;
+          margin-bottom: 0.3em;
+
+          border-radius: 1px;
         }
       }
 
