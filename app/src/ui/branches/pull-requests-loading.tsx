@@ -1,6 +1,9 @@
 import * as React from 'react'
 import { FilterList, IFilterListItem } from '../lib/filter-list'
-import { Octicon, OcticonSymbol } from '../octicons'
+import {
+  PullRequestListItem,
+  IPullRequestListItemProps,
+} from './pull-request-list-item'
 
 const RowHeight = 45
 
@@ -13,6 +16,19 @@ const FacadeCount = 6
 const PullRequestsLoadingList: new () => FilterList<
   IFilterListItem
 > = FilterList as any
+
+const prLoadingItemProps: IPullRequestListItemProps = {
+  loading: true,
+  author: '',
+  created: new Date(0),
+  number: 0,
+  title: '',
+  status: {
+    sha: '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
+    totalCount: 1,
+    state: 'pending',
+  },
+}
 
 /** The placeholder for when pull requests are still loading. */
 export class PullRequestsLoading extends React.Component<{}, {}> {
@@ -46,17 +62,6 @@ export class PullRequestsLoading extends React.Component<{}, {}> {
   }
 
   private renderItem = (item: IFilterListItem) => {
-    return (
-      <div className="pull-request-loading-item">
-        <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
-
-        <div className="info">
-          <div className="title" />
-          <div className="subtitle" />
-        </div>
-
-        <Octicon className="status" symbol={OcticonSymbol.primitiveDot} />
-      </div>
-    )
+    return <PullRequestListItem {...prLoadingItemProps} />
   }
 }
