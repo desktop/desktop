@@ -129,15 +129,14 @@
     }
 
     &.loading {
-      --background-color: $gray-200;
       .icon {
-        color: var(--background-color);
+        color: var(--box-skeleton-background-color);
       }
 
       .info {
         .title,
         .subtitle {
-          background-color: var(--background-color);
+          background-color: var(--box-skeleton-background-color);
           // The title with text in it is 18px (1em = 12px and with 1.5 x
           // line height we'll get 18) but we don't want to fill the entire
           // box because then we'll end up with one big slab of gray rather
@@ -153,7 +152,7 @@
       }
 
       .ci-status {
-        color: var(--background-color);
+        color: var(--box-skeleton-background-color);
       }
 
       &::after {
