@@ -38,7 +38,7 @@
       - [ ] Name and email pulled from global `.gitconfig` file, if configured
   	- [ ] If recognized, your avatar is present in example commit; gravatars not recognized
       - [ ] `Continue` okay if fields populated or blank
-  	- [ ] Valid login credentials from dotcom or Enterprise carried through
+  	- [ ] Valid login credentials from github.com or Enterprise carried through
 	  - [ ] User sees Repository landing page if sign in successful
   - [ ] Usage Data
     - [ ] Checked by default; user can uncheck. (Should not be checked if user on free plan only.)
@@ -103,7 +103,7 @@
 ### GitHub Desktop menu top-level
   - [ ] About GitHub Desktop
     - [ ] Current version shown
-    - [ ] Links to release notes (dotcom), terms (modal), licenses (modal)
+    - [ ] Links to release notes (github.com), terms (modal), licenses (modal)
     - [ ] Update banner shows `whats new` link and `retart now` link
     - [ ] Update modal shows enhancements / bug fixes in latest build with `Install button`; user can X the banner
     - [ ] Clicking the version number copies to clipboard
@@ -332,7 +332,7 @@
   - [ ] Published repository, branch without tracking - `Publish button` enabled (user can publish branch)
   - [ ] Published repository, network action - `Publish button` disabled (don't interfere with existing action)
   
-### Dotcom
+### Github.com
   - [ ] If Desktop linked to .com (/settings/applications), the Desktop icon should show on File Revisions tab for all Pull Requests.
     - [ ] Clicking the "computer icon" opens from a Pull Request page opens the branch on Desktop
   - [ ] If private email is enabled (http://github.com/settings/emails), user is blocked from pushing to all associated repositories on Desktop?
