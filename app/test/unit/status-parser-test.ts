@@ -100,5 +100,6 @@ describe('parsePorcelainStatus', () => {
     expect(entries[0].path).to
       .equal(`ProjectSID/Images.xcassets/iPhone 67/Status Center/Report X68 Y461
       /.DS_Store`)
+    expect(entries[0].statusCode).to.equal('D.')
   })
 })
