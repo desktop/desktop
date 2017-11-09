@@ -23,4 +23,3 @@ export function getWindowsDeltaNugetPackagePath(): string
 export function shouldMakeDelta(): boolean
 export function getReleaseBranchName(): string
 export function getExecutableName(): string
-export function getSHA(): string
