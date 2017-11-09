@@ -44,25 +44,21 @@ function getMenuEntries() {
 
 function getReplacements() {
   const replacements = {
-    __OAUTH_CLIENT_ID__: JSON.stringify(
-      process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId
-    ),
-    __OAUTH_SECRET__: JSON.stringify(
+    __OAUTH_CLIENT_ID__: s(process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId),
+    __OAUTH_SECRET__: s(
       process.env.DESKTOP_OAUTH_CLIENT_SECRET || devClientSecret
     ),
     __DARWIN__: process.platform === 'darwin',
     __WIN32__: process.platform === 'win32',
     __LINUX__: process.platform === 'linux',
     __DEV__: channel === 'development',
-    __RELEASE_CHANNEL__: JSON.stringify(channel),
-    __UPDATES_URL__: JSON.stringify(distInfo.getUpdatesURL()),
-    __SHA__: JSON.stringify(distInfo.getSHA()),
-    __CLI_COMMANDS__: JSON.stringify(getCLICommands()),
-    'process.platform': JSON.stringify(process.platform),
-    'process.env.NODE_ENV': JSON.stringify(
-      process.env.NODE_ENV || 'development'
-    ),
-    'process.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV),
+    __RELEASE_CHANNEL__: s(channel),
+    __UPDATES_URL__: s(distInfo.getUpdatesURL()),
+    __SHA__: s(distInfo.getSHA()),
+    __CLI_COMMANDS__: s(getCLICommands()),
+    'process.platform': s(process.platform),
+    'process.env.NODE_ENV': s(process.env.NODE_ENV || 'development'),
+    'process.env.TEST_ENV': s(process.env.TEST_ENV),
   }
 
   return Object.assign(replacements, getMenuEntries())
