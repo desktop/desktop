@@ -52,6 +52,12 @@ declare const __PROCESS_KIND__:
 declare const __MENU_SHOW_LOGS_IN_FILE_MANAGER__: string
 
 /**
+ * These labels are placeholders in the UI which are platform-specific
+ */
+declare const __LABEL_SHOW_IN_FILE_MANAGER__: string
+declare const __LABEL_REVEAL_IN_FILE_MANAGER__: string
+declare const __LABEL_FILE_MANAGER_NAME__: string
+/**
  * The DOMHighResTimeStamp type is a double and is used to store a time value.
  *
  * The value could be a discrete point in time or the difference in time between

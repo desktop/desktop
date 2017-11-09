@@ -43,6 +43,28 @@ function getMenuEntries() {
   }
 }
 
+function getPlatformLabels() {
+  if (process.platform === 'darwin') {
+    return {
+      __LABEL_SHOW_IN_FILE_MANAGER__: s('Show in Finder'),
+      __LABEL_REVEAL_IN_FILE_MANAGER__: s('Reveal in Finder'),
+      __LABEL_FILE_MANAGER_NAME__: s('Finder'),
+    }
+  }
+  if (process.platform === 'win32') {
+    return {
+      __LABEL_SHOW_IN_FILE_MANAGER__: s('Show in Explorer'),
+      __LABEL_REVEAL_IN_FILE_MANAGER__: s('Show in Explorer'),
+      __LABEL_FILE_MANAGER_NAME__: s('Explorer'),
+    }
+  }
+  return {
+    __LABEL_SHOW_IN_FILE_MANAGER__: s('Show in File Manager'),
+    __LABEL_REVEAL_IN_FILE_MANAGER__: s('Show in File Manager'),
+    __LABEL_FILE_MANAGER_NAME__: s('File Manager'),
+  }
+}
+
 function getReplacements() {
   const replacements = {
     __OAUTH_CLIENT_ID__: s(process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId),
@@ -62,7 +84,7 @@ function getReplacements() {
     'process.env.TEST_ENV': s(process.env.TEST_ENV),
   }
 
-  return Object.assign(replacements, getMenuEntries())
+  return Object.assign(replacements, getMenuEntries(), getPlatformLabels())
 }
 
 module.exports = { getReplacements, getCLICommands }
