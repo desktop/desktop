@@ -241,6 +241,5 @@ module.exports = {
   shouldMakeDelta,
   getReleaseBranchName,
   getExecutableName,
-  getCLICommands,
   getSHA,
 }

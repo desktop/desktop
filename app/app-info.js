@@ -1,0 +1,71 @@
+'use strict'
+
+const fs = require('fs')
+const path = require('path')
+
+const distInfo = require('../script/dist-info')
+
+const projectRoot = path.join(__dirname, '..')
+
+const devClientId = '3a723b10ac5575cc5bb9'
+const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
+
+const channel = distInfo.getReleaseChannel()
+
+function getCLICommands() {
+  return (
+    // eslint-disable-next-line no-sync
+    fs
+      .readdirSync(path.resolve(projectRoot, 'app', 'src', 'cli', 'commands'))
+      .filter(name => name.endsWith('.ts'))
+      .map(name => name.replace(/\.ts$/, ''))
+  )
+}
+
+function s(text) {
+  return JSON.stringify(text)
+}
+
+function getMenuEntries() {
+  if (process.platform === 'darwin') {
+    return {
+      __MENU_SHOW_LOGS_IN_FILE_MANAGER__: s('Show Logs in Finder'),
+    }
+  }
+  if (process.platform === 'win32') {
+    return {
+      __MENU_SHOW_LOGS_IN_FILE_MANAGER__: s('S&how Logs in Explorer'),
+    }
+  }
+  return {
+    __MENU_SHOW_LOGS_IN_FILE_MANAGER__: s('Show logs in File Manager'),
+  }
+}
+
+function getReplacements() {
+  const replacements = {
+    __OAUTH_CLIENT_ID__: JSON.stringify(
+      process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId
+    ),
+    __OAUTH_SECRET__: JSON.stringify(
+      process.env.DESKTOP_OAUTH_CLIENT_SECRET || devClientSecret
+    ),
+    __DARWIN__: process.platform === 'darwin',
+    __WIN32__: process.platform === 'win32',
+    __LINUX__: process.platform === 'linux',
+    __DEV__: channel === 'development',
+    __RELEASE_CHANNEL__: JSON.stringify(channel),
+    __UPDATES_URL__: JSON.stringify(distInfo.getUpdatesURL()),
+    __SHA__: JSON.stringify(distInfo.getSHA()),
+    __CLI_COMMANDS__: JSON.stringify(getCLICommands()),
+    'process.platform': JSON.stringify(process.platform),
+    'process.env.NODE_ENV': JSON.stringify(
+      process.env.NODE_ENV || 'development'
+    ),
+    'process.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV),
+  }
+
+  return Object.assign(replacements, getMenuEntries())
+}
+
+module.exports = { getReplacements, getCLICommands }

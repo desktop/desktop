@@ -47,6 +47,11 @@ declare const __PROCESS_KIND__:
   | 'highlighter'
 
 /**
+ * The label to open the logs folder can differ per-platform
+ */
+declare const __MENU_SHOW_LOGS_IN_FILE_MANAGER__: string
+
+/**
  * The DOMHighResTimeStamp type is a double and is used to store a time value.
  *
  * The value could be a discrete point in time or the difference in time between

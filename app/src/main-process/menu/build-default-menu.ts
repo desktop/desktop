@@ -339,7 +339,7 @@ export function buildDefaultMenu(
   }
 
   const showLogsItem: Electron.MenuItemConstructorOptions = {
-    label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
+    label: __MENU_SHOW_LOGS_IN_FILE_MANAGER__,
     click() {
       const logPath = getLogDirectoryPath()
       mkdirIfNeeded(logPath)
