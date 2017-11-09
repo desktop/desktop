@@ -27,23 +27,26 @@ function s(text) {
   return JSON.stringify(text)
 }
 
-function getMenuEntries() {
+function getMenuPlaceholders() {
   if (process.platform === 'darwin') {
     return {
       __MENU_SHOW_LOGS_IN_FILE_MANAGER__: s('Show Logs in Finder'),
+      __MENU_SHOW_IN_FILE_MANAGER__: s('Show in Finder'),
     }
   }
   if (process.platform === 'win32') {
     return {
       __MENU_SHOW_LOGS_IN_FILE_MANAGER__: s('S&how Logs in Explorer'),
+      __MENU_SHOW_IN_FILE_MANAGER__: s('Show in E&xplorer'),
     }
   }
   return {
     __MENU_SHOW_LOGS_IN_FILE_MANAGER__: s('Show logs in File Manager'),
+    __MENU_SHOW_IN_FILE_MANAGER__: s('Show in File Manager'),
   }
 }
 
-function getPlatformLabels() {
+function getPlatformPlaceholders() {
   if (process.platform === 'darwin') {
     return {
       __LABEL_SHOW_IN_FILE_MANAGER__: s('Show in Finder'),
@@ -84,7 +87,11 @@ function getReplacements() {
     'process.env.TEST_ENV': s(process.env.TEST_ENV),
   }
 
-  return Object.assign(replacements, getMenuEntries(), getPlatformLabels())
+  return Object.assign(
+    replacements,
+    getMenuPlaceholders(),
+    getPlatformPlaceholders()
+  )
 }
 
 module.exports = { getReplacements, getCLICommands }

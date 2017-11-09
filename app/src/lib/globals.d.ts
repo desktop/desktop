@@ -47,9 +47,13 @@ declare const __PROCESS_KIND__:
   | 'highlighter'
 
 /**
- * The label to open the logs folder can differ per-platform
+ * These menu entries are separated because Windows and Linux can use
+ * accelerators( ??? TODO: that's not the right phrase) to select a
+ * menu item immediately. They need to be reviewed to ensure no clashes
+ * wtih other shortcuts.
  */
 declare const __MENU_SHOW_LOGS_IN_FILE_MANAGER__: string
+declare const __MENU_SHOW_IN_FILE_MANAGER__: string
 
 /**
  * These labels are placeholders in the UI which are platform-specific

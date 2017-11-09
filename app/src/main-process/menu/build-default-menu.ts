@@ -231,7 +231,7 @@ export function buildDefaultMenu(
         click: emit('open-in-shell'),
       },
       {
-        label: __DARWIN__ ? 'Show in Finder' : 'Show in E&xplorer',
+        label: __MENU_SHOW_IN_FILE_MANAGER__,
         id: 'open-working-directory',
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
