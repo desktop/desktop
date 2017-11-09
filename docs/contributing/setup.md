@@ -18,11 +18,17 @@ You will need to install these tools on your machine:
     - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
       to configure node-gyp manually with the path which is annoying.*
     - *Ensure the **Add python.exe to Path** option is selected.*
- - Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
-    - *If you already have Visual Studio 2015 installed, ensure you have the **Common Tools for Visual C++ 2015**
-      feature as that is required by Node.js for installing native modules.*
-    - *Visual Studio 2017 support has not been tested yet - see [#1766](https://github.com/desktop/desktop/issues/1766) for details*
- - *Run `npm config set msvs_version 2015` to tell node the right toolchain to use for compiling native modules.*
+ - One of Visual Studio 2015, Visual C++ Build Tools or Visual Studio 2017
+   - [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
+     - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
+   - Visual Studio 2015 
+     - *Ensure you select the **Common Tools for Visual C++ 2015** feature as that is required by Node.js
+        for installing native modules.*
+     - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
+   - [Visual Studio 2017](https://www.visualstudio.com/vs/community/)
+     - *Ensure you select the **Desktop development with C++** feature as that is required by Node.js for
+        installing native modules.*
+     - *Run `npm config set msvs_version 2017` to tell node to use this toolchain.*
 
 ### Fedora 26
 
