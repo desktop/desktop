@@ -5,7 +5,7 @@ We have a first responder rotation. The goals of the rotation are:
 1. Ensure community issues and PRs are answered in a timely manner.
 1. Ensure support load is shared across the whole team.
 1. Free up the rest of the team to focus on milestone work.
-1. Give everyone a regular break from the milestone work.
+1. Give everyone a regular break from milestone work.
 
 Each rotation is a week long. While first responder your primary duties are:
 
