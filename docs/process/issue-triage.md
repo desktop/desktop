@@ -94,6 +94,8 @@ issues from time to time that isn't and won't be covered here.
 1. Label the issue as an `enhancement` if the issue mentions new behaviour
    or functionality that the app should have.
 
+# Labels
+
 ## More Information Needed
 
 Periodically we should be doing a sweep of issues that are open and labeled
@@ -107,8 +109,6 @@ If a problem is consistently not reproducible, we **need** more information
 from the person reporting the problem. If it isn't a simple misunderstanding
 about the steps to reproduce the problem, then we should label it
 `more-information-needed` as well and follow that process.
-
-Incoming issues should be grouped into one of these buckets:
 
 ## Bugs
 
