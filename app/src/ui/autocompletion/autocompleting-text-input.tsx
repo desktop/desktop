@@ -354,14 +354,17 @@ export abstract class AutocompletingTextInput<
         direction,
         selectedRow
       )
-      const newSelectedItem = currentAutoCompletionState.items[nextRow]
 
-      const newAutoCompletionState = {
-        ...currentAutoCompletionState,
-        selectedItem: newSelectedItem,
+      if (nextRow !== null) {
+        const newSelectedItem = currentAutoCompletionState.items[nextRow]
+
+        const newAutoCompletionState = {
+          ...currentAutoCompletionState,
+          selectedItem: newSelectedItem,
+        }
+
+        this.setState({ autocompletionState: newAutoCompletionState })
       }
-
-      this.setState({ autocompletionState: newAutoCompletionState })
     } else if (event.key === 'Enter' || event.key === 'Tab') {
       const item = currentAutoCompletionState.selectedItem
       if (item) {
