@@ -104,7 +104,8 @@ JavaScript is interpreted and executed at runtime.
 ### Placeholders
 
 As we are working in TypeScript, we need to define these placeholders as
-globals under [`app/src/lib/globals.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/globals.d.ts).
+globals under [`app/src/lib/globals.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/globals.d.ts)
+to provide the appropriate type information to the source code.
 
 For example, the values for `__DARWIN__` and `__WIN32__` are declared as
 booleans.
@@ -118,7 +119,7 @@ declare const __WIN32__: boolean
 ```
 
 As a convention, globals which should be replaced by Webpack should be prefixed
-with two underscores, e.g. `__DEV__`.
+and suffixed with two underscores, e.g. `__DEV__`.
 
 ### Platform-specific Menu Items
 
@@ -165,7 +166,7 @@ function getMenuPlaceholders() {
 }
 ```
 
-As ensure these placeholders as added as globals under
+Ensure these placeholders also exist as globals under
 [`app/src/lib/globals.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/globals.d.ts).
 
 
@@ -181,7 +182,7 @@ declare const __MENU_SHOW_IN_FILE_MANAGER__: string
 
 ### Platform-specific Labels
 
-For other places in the user interface that still differ per-platform,
+For other places in the user interface that will differ per-platform,
 the `getPlatformPlaceholders()` method should contain all the necessary
 values:
 
