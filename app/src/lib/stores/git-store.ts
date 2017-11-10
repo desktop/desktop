@@ -46,10 +46,12 @@ import {
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
-import { parseRemote } from '../remote-parsing'
 import { UpstreamAlreadyExistsError } from './upstream-already-exists-error'
 import { forceUnwrap } from '../fatal-error'
-import { GitHubRepository } from '../../models/github-repository'
+import {
+  findUpstreamRemote,
+  UpstreamRemoteName,
+} from './helpers/find-upstream-remote'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -58,9 +60,6 @@ const LoadingHistoryRequestKey = 'history'
 
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
-
-/** The name for a fork's upstream remote. */
-export const UpstreamRemoteName = 'upstream'
 
 /** A commit message summary and description. */
 export interface ICommitMessage {
@@ -715,7 +714,7 @@ export class GitStore {
     }
 
     const remotes = await getRemotes(this.repository)
-    const upstream = this.findUpstreamRemote(parent, remotes)
+    const upstream = findUpstreamRemote(parent, remotes)
     this._upstream = upstream
     this.emitUpdate()
   }
@@ -733,7 +732,7 @@ export class GitStore {
     }
 
     const remotes = await getRemotes(this.repository)
-    const upstream = this.findUpstreamRemote(parent, remotes)
+    const upstream = findUpstreamRemote(parent, remotes)
     if (upstream) {
       return
     }
@@ -759,31 +758,6 @@ export class GitStore {
       addRemote(this.repository, UpstreamRemoteName, url)
     )
     this._upstream = { name: UpstreamRemoteName, url }
-  }
-
-  private findUpstreamRemote(
-    parent: GitHubRepository,
-    remotes: ReadonlyArray<IRemote>
-  ): IRemote | null {
-    const upstream = remotes.find(r => r.name === UpstreamRemoteName)
-    if (upstream) {
-      const parsedUpstream = parseRemote(upstream.url)
-      const cloneURL = forceUnwrap(
-        'Parent repositories are fully loaded',
-        parent.cloneURL
-      )
-      const parentURL = new URL(cloneURL)
-      if (
-        parsedUpstream &&
-        parsedUpstream.owner === parent.owner.login &&
-        parsedUpstream.name === parent.name &&
-        parsedUpstream.hostname === parentURL.hostname
-      ) {
-        return upstream
-      }
-    }
-
-    return null
   }
 
   /**

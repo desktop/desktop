@@ -1,10 +1,18 @@
 {
   "releases": {
+    "1.0.9-beta0": [
+      "[Fixed] Crash when rendering diffs for certain types of files - #3249",
+      "[Fixed] Continually being prompted to add the upstream remote, even when it already exists - #3252"
+    ],
     "1.0.8-test1": [
       "Testing electron-packager and electron-winstaller changes"
     ],
+    "1.0.8": [
+      "[Fixed] Crash when rendering diffs for certain types of files - #3249",
+      "[Fixed] Continually being prompted to add the upstream remote, even when it already exists - #3252"
+    ],
     "1.0.8-beta0": [
-      "[New] Syntax highlighted diffs - #1312",
+      "[New] Syntax highlighted diffs - #3101",
       "[New] Add upstream to forked repositories - #2364",
       "[Fixed] Only reset scale of title bar on macOS - #3193",
       "[Fixed] Filter symbolic refs in the branch list - #3196",
@@ -14,7 +22,7 @@
       "[Fixed] Assorted changelog typos - #3174 #3184 #3207. Thanks @strafe, @alanaasmaa and @jt2k!"
     ],
     "1.0.7": [
-      "[New] Syntax highlighted diffs - #1312",
+      "[New] Syntax highlighted diffs - #3101",
       "[New] Add upstream to forked repositories - #2364",
       "[Fixed] Only reset scale of title bar on macOS - #3193",
       "[Fixed] Filter symbolic refs in the branch list - #3196",

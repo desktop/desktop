@@ -66,7 +66,7 @@ import 'codemirror/mode/perl/perl'
 extensionMIMEMap.set('.pl', 'text/x-perl')
 
 import 'codemirror/mode/php/php'
-extensionMIMEMap.set('.php', 'text/x-php')
+extensionMIMEMap.set('.php', 'application/x-httpd-php')
 
 import 'codemirror/mode/python/python'
 extensionMIMEMap.set('.py', 'text/x-python')
@@ -117,11 +117,70 @@ function detectMode(request: IHighlightRequest): CodeMirror.Mode<{}> | null {
   return getMode({}, mimeType) || null
 }
 
+function getModeName(mode: CodeMirror.Mode<{}>): string | null {
+  const name = (mode as any).name
+  return name && typeof name === 'string' ? name : null
+}
+
+/**
+ * Helper method to determine the name of the innermost (i.e. current)
+ * mode. Think of this as an abstraction over CodeMirror's innerMode
+ * with added type guards.
+ */
+function getInnerModeName(
+  mode: CodeMirror.Mode<{}>,
+  state: any
+): string | null {
+  const inner = innerMode(mode, state)
+  return inner && inner.mode ? getModeName(inner.mode) : null
+}
+
+/**
+ * Extract the next token from the line stream or null if no token
+ * could be extracted from the current position in the line stream.
+ *
+ * This method is more or less equal to the readToken method in
+ * CodeMirror but since the readToken class in CodeMirror isn't included
+ * in the Node runmode we're not able to use it.
+ *
+ * Worth noting here is that we're also replicated the workaround for
+ * modes that aren't adhering to the rules of never returning without
+ * advancing the line stream by trying it again (up to ten times). See
+ * https://github.com/codemirror/CodeMirror/commit/2c60a2 for more
+ * details on that.
+ *
+ * @param mode         The current (outer) mode
+ * @param stream       The StringStream for the current line
+ * @param state        The current mode state (if any)
+ * @param addModeClass Whether or not to append the current (inner) mode name
+ *                     as an extra CSS clas to the token, indicating the mode
+ *                     that produced it, prefixed with "cm-m-". For example,
+ *                     tokens from the XML mode will get the cm-m-xml class.
+ */
+function readToken(
+  mode: CodeMirror.Mode<{}>,
+  stream: StringStream,
+  state: any,
+  addModeClass: boolean
+): string | null {
+  for (let i = 0; i < 10; i++) {
+    const innerModeName = addModeClass ? getInnerModeName(mode, state) : null
+    const token = mode.token(stream, state)
+
+    if (stream.pos > stream.start) {
+      return token && innerModeName ? `m-${innerModeName} ${token}` : token
+    }
+  }
+
+  throw new Error(`Mode ${getModeName(mode)} failed to advance stream.`)
+}
+
 onmessage = (ev: MessageEvent) => {
   const request = ev.data as IHighlightRequest
 
   const tabSize = request.tabSize || 4
   const contents = request.contents
+  const addModeClass = request.addModeClass === true
 
   const mode = detectMode(request)
 
@@ -170,17 +229,13 @@ onmessage = (ev: MessageEvent) => {
     const lineStream = new StringStream(line, tabSize, lineCtx)
 
     while (!lineStream.eol()) {
-      const token = mode.token(lineStream, state)
+      const token = readToken(mode, lineStream, state, addModeClass)
 
       if (token && (!lineFilter || lineFilter.has(ix))) {
-        const inner =
-          request.addModeClass === true ? innerMode(mode, state) as any : null
-        const innerModeName = inner.mode && inner.mode.name
-
         tokens[ix] = tokens[ix] || {}
         tokens[ix][lineStream.start] = {
           length: lineStream.pos - lineStream.start,
-          token: innerModeName ? `m-${innerModeName} ${token}` : token,
+          token,
         }
       }
 
