@@ -2,7 +2,28 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { getUserDataPath } from './dist-info'
+import * as os from 'os'
+
+import { getExecutableName, getProductName } from './dist-info'
+
+function getUserDataPath() {
+  if (process.platform === 'win32') {
+    return path.join(process.env.APPDATA, getExecutableName())
+  } else if (process.platform === 'darwin') {
+    const home = os.homedir()
+    return path.join(home, 'Library', 'Application Support', getProductName())
+  } else if (process.platform === 'linux') {
+    if (process.env.XDG_CONFIG_HOME) {
+      return path.join(process.env.XDG_CONFIG_HOME, getProductName())
+    }
+    const home = os.homedir()
+    return path.join(home, '.config', getProductName())
+  } else {
+    throw new Error(
+      `I dunno how to resolve the user data path for ${process.platform} ${process.arch} :(`
+    )
+  }
+}
 
 export function getLogFiles(): ReadonlyArray<string> {
   const directory = path.join(getUserDataPath(), 'logs')

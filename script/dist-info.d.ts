@@ -12,7 +12,6 @@ export function getWindowsStandalonePath(): string
 export function getWindowsFullNugetPackageName(): string
 export function getWindowsFullNugetPackagePath(): string
 export function getBundleID(): string
-export function getUserDataPath(): string
 export function getWindowsIdentifierName(): string
 export function getBundleSizes(): { rendererSize: number; mainSize: number }
 export function getReleaseChannel(): string | null

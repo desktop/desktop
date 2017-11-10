@@ -1,7 +1,6 @@
 'use strict'
 
 const path = require('path')
-const os = require('os')
 const fs = require('fs')
 
 const projectRoot = path.join(__dirname, '..')
@@ -99,25 +98,6 @@ function getBundleID() {
   return appPackage.bundleID
 }
 
-function getUserDataPath() {
-  if (process.platform === 'win32') {
-    return path.join(process.env.APPDATA, getExecutableName())
-  } else if (process.platform === 'darwin') {
-    const home = os.homedir()
-    return path.join(home, 'Library', 'Application Support', getProductName())
-  } else if (process.platform === 'linux') {
-    if (process.env.XDG_CONFIG_HOME) {
-      return path.join(process.env.XDG_CONFIG_HOME, getProductName())
-    }
-    const home = os.homedir()
-    return path.join(home, '.config', getProductName())
-  } else {
-    throw new Error(
-      `I dunno how to resolve the user data path for ${process.platform} ${process.arch} :(`
-    )
-  }
-}
-
 function getWindowsIdentifierName() {
   return 'GitHubDesktop'
 }
@@ -187,7 +167,6 @@ module.exports = {
   getWindowsFullNugetPackageName,
   getWindowsFullNugetPackagePath,
   getBundleID,
-  getUserDataPath,
   getWindowsIdentifierName,
   getBundleSizes,
   getReleaseChannel,
