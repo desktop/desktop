@@ -119,6 +119,16 @@ is as follows:
 * Run `yarn build:dev` to create a development build of the app.
 * Run `yarn start` to launch the application. Changes will be compiled in the
   background. The app can then be reloaded to see the changes (Ctrl/Command+R).
+  
+**Optional Tip**: On macOS and Linux, you can use `screen` to avoid filling your terminal with logging output:
+
+```shellsession
+$ screen -S "desktop" yarn start # -S sets the name of the session; you can pick anything
+$ # Your screen clears and shows logs. Press Ctrl+A then D to exit.
+[detached]
+$ screen -R "desktop" # to reopen the session, read the logs, and exit (Ctrl+C)
+[screen is terminating]
+```
 
 If you've made changes in the `main-process` folder you need to run `yarn
 build:dev` to rebuild the package, and then `yarn start` for these changes to be
