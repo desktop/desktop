@@ -114,10 +114,10 @@ is as follows:
 * Run `yarn start` to launch the application. Changes will be compiled in the
   background. The app can then be reloaded to see the changes (Ctrl/Command+R).
   
-**Tip**: Use `screen` to avoid filling your terminal with logging output:
+**Optional Tip**: On macOS and Linux, you can use `screen` to avoid filling your terminal with logging output:
 
 ```shellsession
-$ screen -S "desktop" "yarn start" # -S sets the name of the session; you can pick anything
+$ screen -S "desktop" yarn start # -S sets the name of the session; you can pick anything
 $ # Your screen clears and shows logs. Press Ctrl+A then D to exit.
 [detached]
 $ screen -R "desktop" # to reopen the session, read the logs, and exit (Ctrl+C)
