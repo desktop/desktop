@@ -1,10 +1,7 @@
 {
-  "extends": [
-    "tslint-config-prettier"
-  ],
+  "extends": ["tslint-config-prettier"],
   "rulesDirectory": [
     "node_modules/tslint-react/rules",
-    "node_modules/vrsource-tslint-rules/rules",
     "node_modules/tslint-microsoft-contrib/",
     "tslint-rules/"
   ],
@@ -22,7 +19,8 @@
     "react-no-unbound-dispatcher-props": true,
     "react-proper-lifecycle-methods": true,
     "react-readonly-props-and-state": true,
-    "react-unused-props-and-state": [ true,
+    "react-unused-props-and-state": [
+      true,
       {
         "props-interface-regex": "Props$",
         "state-interface-regex": "State$"
@@ -39,9 +37,6 @@
         "variable-declaration": "nospace"
       }
     ],
-    "variable-name": [
-      true,
-      "ban-keywords"
-    ]
+    "variable-name": [true, "ban-keywords"]
   }
 }
