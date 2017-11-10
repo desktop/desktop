@@ -3,8 +3,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
-
-import { getExecutableName, getProductName } from './dist-info'
+import { getProductName } from '../app/package-info'
+import { getExecutableName } from './dist-info'
 
 function getUserDataPath() {
   if (process.platform === 'win32') {

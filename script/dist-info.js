@@ -3,9 +3,11 @@
 const path = require('path')
 const fs = require('fs')
 
+const packageInfo = require('../app/package-info')
+const productName = packageInfo.getProductName()
+const version = packageInfo.getVersion()
+
 const projectRoot = path.join(__dirname, '..')
-// eslint-disable-next-line import/no-dynamic-require
-const appPackage = require(path.join(projectRoot, 'app', 'package.json'))
 
 function getDistRoot() {
   return path.join(projectRoot, 'dist')
@@ -23,26 +25,10 @@ function getExecutableName() {
 
   return process.platform === 'win32'
     ? `${getWindowsIdentifierName()}${suffix}`
-    : getProductName()
-}
-
-function getProductName() {
-  const productName = appPackage.productName
-  return process.env.NODE_ENV === 'development'
-    ? `${productName}-dev`
     : productName
 }
 
-function getCompanyName() {
-  return appPackage.companyName
-}
-
-function getVersion() {
-  return appPackage.version
-}
-
 function getOSXZipName() {
-  const productName = getProductName()
   return `${productName}.zip`
 }
 
@@ -69,7 +55,7 @@ function getWindowsStandalonePath() {
 }
 
 function getWindowsFullNugetPackageName() {
-  return `${getWindowsIdentifierName()}-${getVersion()}-full.nupkg`
+  return `${getWindowsIdentifierName()}-${version}-full.nupkg`
 }
 
 function getWindowsFullNugetPackagePath() {
@@ -82,7 +68,7 @@ function getWindowsFullNugetPackagePath() {
 }
 
 function getWindowsDeltaNugetPackageName() {
-  return `${getWindowsIdentifierName()}-${getVersion()}-delta.nupkg`
+  return `${getWindowsIdentifierName()}-${version}-delta.nupkg`
 }
 
 function getWindowsDeltaNugetPackagePath() {
@@ -92,10 +78,6 @@ function getWindowsDeltaNugetPackagePath() {
     'installer',
     getWindowsDeltaNugetPackageName()
   )
-}
-
-function getBundleID() {
-  return appPackage.bundleID
 }
 
 function getWindowsIdentifierName() {
@@ -142,7 +124,7 @@ function getReleaseSHA() {
 }
 
 function getUpdatesURL() {
-  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${getVersion()}&env=${getReleaseChannel()}`
+  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${version}&env=${getReleaseChannel()}`
 }
 
 function shouldMakeDelta() {
@@ -155,9 +137,6 @@ function shouldMakeDelta() {
 module.exports = {
   getDistRoot,
   getDistPath,
-  getProductName,
-  getCompanyName,
-  getVersion,
   getOSXZipName,
   getOSXZipPath,
   getWindowsInstallerName,
@@ -166,7 +145,6 @@ module.exports = {
   getWindowsStandalonePath,
   getWindowsFullNugetPackageName,
   getWindowsFullNugetPackagePath,
-  getBundleID,
   getWindowsIdentifierName,
   getBundleSizes,
   getReleaseChannel,

@@ -7,7 +7,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 const appInfo = require('./app-info')
-
+const packageInfo = require('./package-info')
 const distInfo = require('../script/dist-info')
 
 const devClientId = '3a723b10ac5575cc5bb9'
