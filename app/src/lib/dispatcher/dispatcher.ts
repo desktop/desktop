@@ -573,9 +573,12 @@ export class Dispatcher {
   }
 
   /** Opens a Git-enabled terminal setting the working directory to the repository path */
-  public async openShell(path: string): Promise<void> {
+  public async openShell(
+    path: string,
+    ignoreWarning: boolean = false
+  ): Promise<void> {
     const gitFound = await isGitOnPath()
-    if (gitFound) {
+    if (gitFound || ignoreWarning) {
       this.appStore._openShell(path)
     } else {
       this.appStore._showPopup({ type: PopupType.InstallGit, path })
