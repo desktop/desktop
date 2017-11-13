@@ -160,6 +160,9 @@ export interface IAppState {
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChanges: boolean
 
+  /** Default privacy option when publishing a repository */
+  readonly defaultPrivacy: boolean
+
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor?: ExternalEditor
 

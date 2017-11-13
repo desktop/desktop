@@ -118,8 +118,10 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
+const defaultPrivacyDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
+const defaultPrivacyKey: string = 'defaultPrivacy'
 
 const externalEditorKey: string = 'externalEditor'
 
@@ -196,6 +198,7 @@ export class AppStore {
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
+  private defaultPrivacy: boolean = defaultPrivacyDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
 
   private selectedExternalEditor?: ExternalEditor
@@ -521,6 +524,7 @@ export class AppStore {
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
+      defaultPrivacy: this.defaultPrivacy,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
       selectedShell: this.selectedShell,
@@ -930,6 +934,13 @@ export class AppStore {
       confirmDiscardChangesValue === null
         ? confirmDiscardChangesDefault
         : confirmDiscardChangesValue === '1'
+
+    const defaultPrivacyValue = localStorage.getItem(defaultPrivacyKey)
+
+    this.defaultPrivacy =
+      defaultPrivacyValue === null
+        ? defaultPrivacyDefault
+        : defaultPrivacyValue === '1'
 
     const externalEditorValue = await this.getSelectedExternalEditor()
     if (externalEditorValue) {
@@ -2335,6 +2346,17 @@ export class AppStore {
     this.confirmDiscardChanges = value
 
     localStorage.setItem(confirmDiscardChangesKey, value ? '1' : '0')
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setDefaultPrivacyWhenPublishingForTheFirstTimeSetting(
+    value: boolean
+  ): Promise<void> {
+    this.defaultPrivacy = value
+
+    localStorage.setItem(defaultPrivacyKey, value ? '1' : '0')
     this.emitUpdate()
 
     return Promise.resolve()

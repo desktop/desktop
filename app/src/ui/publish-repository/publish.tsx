@@ -29,6 +29,9 @@ interface IPublishProps {
   /** The signed in accounts. */
   readonly accounts: ReadonlyArray<Account>
 
+  /** The signed in accounts. */
+  readonly defaultPrivacy: boolean
+
   /** The function to call when the dialog should be dismissed. */
   readonly onDismissed: () => void
 }
@@ -68,7 +71,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     const publishSettings = {
       name: props.repository.name,
       description: '',
-      private: true,
+      private: this.props.defaultPrivacy,
       org: null,
     }
 
