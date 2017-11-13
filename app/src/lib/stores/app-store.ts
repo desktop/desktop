@@ -107,6 +107,7 @@ import { BranchesTab } from '../../models/branches-tab'
 import { PullRequestStore } from './pull-request-store'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
+import { PullRequestUpdater } from './helpers/pull-request-updater'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -138,6 +139,9 @@ export class AppStore {
 
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
+
+  /** The pull request updater for the currently selected repository */
+  private currentPullRequestUpdater: PullRequestUpdater | null = null
 
   private repositoryState = new Map<string, IRepositoryState>()
   private showWelcomeFlow = false
@@ -296,6 +300,9 @@ export class AppStore {
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
+
+    pullRequestStore.onDidError(error => this.emitError(error))
+    pullRequestStore.onDidUpdate(() => this.emitUpdate())
   }
 
   /** Load the emoji from disk. */
@@ -748,6 +755,7 @@ export class AppStore {
     this.emitUpdate()
 
     this.stopBackgroundFetching()
+    this.stopPullRequestUpdater()
 
     if (!repository) {
       return Promise.resolve(null)
@@ -795,8 +803,10 @@ export class AppStore {
     // for edge cases where _selectRepository is re-entract, calling this here
     // ensures we clean up the existing background fetcher correctly (if set)
     this.stopBackgroundFetching()
+    this.stopPullRequestUpdater()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
+    this.startPullRequestUpdater(repository)
     this.refreshMentionables(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
@@ -837,6 +847,44 @@ export class AppStore {
     }
 
     this.gitHubUserStore.updateMentionables(gitHubRepository, account)
+  }
+
+  private startPullRequestUpdater(repository: Repository) {
+    if (this.currentPullRequestUpdater) {
+      fatalError(
+        `A pull request updater is already active and cannot start updating on ${repository.name}`
+      )
+
+      return
+    }
+
+    if (!repository.gitHubRepository) {
+      return
+    }
+
+    const account = getAccountForRepository(this.accounts, repository)
+
+    if (!account) {
+      return
+    }
+
+    const updater = new PullRequestUpdater(
+      repository.gitHubRepository,
+      account,
+      this.pullRequestStore
+    )
+    this.currentPullRequestUpdater = updater
+
+    this.currentPullRequestUpdater.start()
+  }
+
+  private stopPullRequestUpdater() {
+    const updater = this.currentPullRequestUpdater
+
+    if (updater) {
+      updater.stop()
+      this.currentPullRequestUpdater = null
+    }
   }
 
   private startBackgroundFetching(
@@ -1766,6 +1814,15 @@ export class AppStore {
         )
 
         this.updatePushPullFetchProgress(repository, null)
+
+        const prUpdater = this.currentPullRequestUpdater
+        if (prUpdater) {
+          const state = this.getRepositoryState(repository)
+          const currentPR = state.branchesState.currentPullRequest
+          if (currentPR) {
+            prUpdater.didPushPullRequest(currentPR)
+          }
+        }
       }
     })
   }
@@ -2797,9 +2854,10 @@ export class AppStore {
       return Promise.resolve()
     }
 
-    const pullRequests = await this.pullRequestStore.refreshPullRequests(
-      gitHubRepository,
-      account
+    await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
+
+    const pullRequests = await this.pullRequestStore.getPullRequests(
+      gitHubRepository
     )
 
     this.updateStateWithPullRequests(pullRequests, repository, gitHubRepository)
