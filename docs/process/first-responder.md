@@ -10,10 +10,10 @@ We have a first responder rotation. The goals of the rotation are:
 Each rotation is a week long. While first responder your primary duties are:
 
 1. Triage issues.
-  * Troubleshoot or follow up on troubleshooting started by the previous first responder. The current first responder should always bear responsibility for pushing troubleshooting forward, unless another team member has explicitly taken ownership.
-  * Ensure issues are labeled accurately.
-  * Review the [more-information-needed](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+label%3Amore-information-needed+sort%3Aupdated-asc) and [needs-reproduction](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+sort%3Aupdated-asc+label%3Aneeds-reproduction) issues and close any that have gone 2 weeks with no new activity.
-  * See [issue-triage.md](issue-triage.md) for more information on our issue triage process.
+    * Troubleshoot or follow up on troubleshooting started by the previous first responder. The current first responder should always bear responsibility for pushing troubleshooting forward, unless another team member has explicitly taken ownership.
+    * Ensure issues are labeled accurately.
+    * Review the [more-information-needed](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+label%3Amore-information-needed+sort%3Aupdated-asc) and [needs-reproduction](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+sort%3Aupdated-asc+label%3Aneeds-reproduction) issues and close any that have gone 2 weeks with no new activity.
+    * See [issue-triage.md](issue-triage.md) for more information on our issue triage process.
 1. Check community pull requests and label ones that are `ready-for-review`.
 1. Review community pull requests.
 
