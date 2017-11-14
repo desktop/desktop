@@ -21,4 +21,4 @@ Once those things are done, you should feel free to spend your time scratching y
 
 That said, tasks which need design work generally *aren't* well-suited to this. It would pull our fantastic designers away from milestone work and it would be hard to get done in a week's time.
 
-If you're at a loss for ideas or wonder if something is an appropriate first responder task, ask the rest of the team!
+If you're at a loss for ideas or wonder if something is an appropriate first responder task, ask the rest of the team! Or poke through the [`tech-debt`](https://github.com/desktop/desktop/labels/tech-debt) label for some inspiration.
