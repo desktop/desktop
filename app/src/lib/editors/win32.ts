@@ -23,10 +23,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
   }
-  if (label === ExternalEditor.ColdFusionBuilder3){
+  if (label === ExternalEditor.ColdFusionBuilder3) {
     return ExternalEditor.ColdFusionBuilder3
   }
-
 
   return null
 }
@@ -58,10 +57,10 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
       return [
         'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
       ]
-      case ExternalEditor.ColdFusionBuilder3:
-      return[
+    case ExternalEditor.ColdFusionBuilder3:
+      return [
         //64-bit version of ColdFusionBuilder3
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 3_is1'
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 3_is1',
       ]
 
     default:
@@ -119,8 +118,9 @@ function isExpectedInstallation(
         displayName === 'Sublime Text' && publisher === 'Sublime HQ Pty Ltd'
       )
     case ExternalEditor.ColdFusionBuilder3:
-      return(
-        displayName === 'Adobe ColdFusion Builder 3' && publisher === 'Adobe Systems Incorporated'
+      return (
+        displayName === 'Adobe ColdFusion Builder 3' &&
+        publisher === 'Adobe Systems Incorporated'
       )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -184,7 +184,6 @@ function extractApplicationInformation(
 
     return { displayName, publisher, installLocation }
   }
-
 
   return assertNever(editor, `Unknown external editor: ${editor}`)
 }
@@ -255,8 +254,11 @@ export async function getAvailableEditors(): Promise<
     results.push({ editor: ExternalEditor.SublimeText, path: sublimePath })
   }
 
-  if (cfBuilder3Path){
-    results.push({ editor: ExternalEditor.ColdFusionBuilder3, path: cfBuilder3Path})
+  if (cfBuilder3Path) {
+    results.push({
+      editor: ExternalEditor.ColdFusionBuilder3,
+      path: cfBuilder3Path,
+    })
   }
 
   return results
