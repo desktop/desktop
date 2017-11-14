@@ -1,5 +1,33 @@
 {
   "releases": {
+    "1.0.9-beta0": [
+      "[Fixed] Crash when rendering diffs for certain types of files - #3249",
+      "[Fixed] Continually being prompted to add the upstream remote, even when it already exists - #3252"
+    ],
+    "1.0.8": [
+      "[Fixed] Crash when rendering diffs for certain types of files - #3249",
+      "[Fixed] Continually being prompted to add the upstream remote, even when it already exists - #3252"
+    ],
+    "1.0.8-beta0": [
+      "[New] Syntax highlighted diffs - #3101",
+      "[New] Add upstream to forked repositories - #2364",
+      "[Fixed] Only reset scale of title bar on macOS - #3193",
+      "[Fixed] Filter symbolic refs in the branch list - #3196",
+      "[Fixed] Address path issue with invoking Git Bash - #3186",
+      "[Fixed] Update embedded Git to support repository hooks and better error messages - #3067 #3079",
+      "[Fixed] Provide credentials to LFS repositories when performing checkout - #3167",
+      "[Fixed] Assorted changelog typos - #3174 #3184 #3207. Thanks @strafe, @alanaasmaa and @jt2k!"
+    ],
+    "1.0.7": [
+      "[New] Syntax highlighted diffs - #3101",
+      "[New] Add upstream to forked repositories - #2364",
+      "[Fixed] Only reset scale of title bar on macOS - #3193",
+      "[Fixed] Filter symbolic refs in the branch list - #3196",
+      "[Fixed] Address path issue with invoking Git Bash - #3186",
+      "[Fixed] Update embedded Git to support repository hooks and better error messages - #3067 #3079",
+      "[Fixed] Provide credentials to LFS repositories when performing checkout - #3167",
+      "[Fixed] Assorted changelog typos - #3174 #3184 #3207. Thanks @strafe, @alanaasmaa and @jt2k!"
+    ],
     "1.0.7-beta0": [
       "[Fixed] The Branches list wouldn't display the branches for non-GitHub repositories - #3169",
       "[Fixed] Pushing or pulling could error when the temp directory was unavailable - #3046"

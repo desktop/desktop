@@ -88,4 +88,17 @@ describe('parsePorcelainStatus', () => {
     expect(entries[i++].value).to.equal('branch.upstream origin/master')
     expect(entries[i++].value).to.equal('branch.ab +1 -0')
   })
+
+  it('parses a path which includes a newline', () => {
+    const x = `1 D. N... 100644 000000 000000 dc9fb24e86f7445720b39dcb39a7fc0e410d9583 0000000000000000000000000000000000000000 ProjectSID/Images.xcassets/iPhone 67/Status Center/Report X68 Y461
+      /.DS_Store`
+    const entries = parsePorcelainStatus(x) as ReadonlyArray<IStatusEntry>
+
+    expect(entries.length).to.equal(1)
+
+    expect(entries[0].path).to
+      .equal(`ProjectSID/Images.xcassets/iPhone 67/Status Center/Report X68 Y461
+      /.DS_Store`)
+    expect(entries[0].statusCode).to.equal('D.')
+  })
 })

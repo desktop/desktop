@@ -1022,7 +1022,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <InstallGit
             key="install-git"
             onDismissed={this.onPopupDismissed}
-            onOpenShell={this.onOpenShell}
+            onOpenShell={this.onOpenShellIgnoreWarning}
             path={popup.path}
           />
         )
@@ -1180,8 +1180,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private onOpenShell = (path: string) => {
-    this.props.dispatcher.openShell(path)
+  private onOpenShellIgnoreWarning = (path: string) => {
+    this.props.dispatcher.openShell(path, true)
     this.onPopupDismissed()
   }
 
