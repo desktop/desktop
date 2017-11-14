@@ -110,6 +110,7 @@ function isExpectedInstallation(
     case ExternalEditor.VisualStudioCode:
       return (
         (displayName === 'Visual Studio Code' ||
+          displayName === 'Microsoft Visual Studio Code' ||
           displayName === 'Visual Studio Code - Insiders') &&
         publisher === 'Microsoft Corporation'
       )
