@@ -20,3 +20,8 @@ export function enablePreviewFeatures(): boolean {
 
   return false
 }
+
+/** Should the app enable beta features? */
+export function enableBetaFeatures(): boolean {
+  return enablePreviewFeatures() || __RELEASE_CHANNEL__ === 'beta'
+}
