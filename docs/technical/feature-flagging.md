@@ -17,6 +17,15 @@ We're currently focused on user interface changes - new views, significant
 changes to existing views, and so on. We can revisit this list when we
 identify other cases where this sort of feature flagging needs to occur.
 
+A **beta feature** should be:
+
+- a feature that is slated for an upcoming release, and
+- is usably complete, but
+- needs more testing, or
+- needs to be used to see how it feels
+
+Beta features are a superset of preview features.
+
 ## Why not just ship it?
 
 A few reasons:
@@ -31,8 +40,8 @@ A few reasons:
 
 ## How to Feature Flag?
 
-At runtime your code should check [`enablePreviewFeatures()`](https://github.com/desktop/desktop/blob/2286edb0e1cf376ab81a1ffe02115abdde88527f/app/src/lib/feature-flag.ts#L6)
-and either display the new feature or the existing one.
+At runtime your code should check either [`enablePreviewFeatures()`](https://github.com/desktop/desktop/blob/2286edb0e1cf376ab81a1ffe02115abdde88527f/app/src/lib/feature-flag.ts#L6)
+or [`enableBetaFeatures()`](https://github.com/desktop/desktop/blob/f68f2270aa50934c6523b5b06bac5413dab91451/app/src/lib/feature-flag.ts#L25) and either display the new feature or the existing one.
 
 A simple example is the new clone experience in [#2436](https://github.com/desktop/desktop/pull/2436):
 
