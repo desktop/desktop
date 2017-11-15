@@ -9,7 +9,7 @@ export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
   SublimeText = 'Sublime Text',
-  ColdFusionBuilder3 = 'ColdFusion Builder 3',
+  CFBuilder = 'ColdFusion Builder',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -23,8 +23,8 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
   }
-  if (label === ExternalEditor.ColdFusionBuilder3) {
-    return ExternalEditor.ColdFusionBuilder3
+  if (label === ExternalEditor.CFBuilder) {
+    return ExternalEditor.CFBuilder
   }
 
   return null
@@ -57,10 +57,12 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
       return [
         'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
       ]
-    case ExternalEditor.ColdFusionBuilder3:
+    case ExternalEditor.CFBuilder:
       return [
         //64-bit version of ColdFusionBuilder3
         'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 3_is1',
+        //64-bit version of ColdFusionBuilder2016
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 2016',
       ]
 
     default:
@@ -85,7 +87,7 @@ function getExecutableShim(
       return Path.join(installLocation, 'bin', 'code.cmd')
     case ExternalEditor.SublimeText:
       return Path.join(installLocation, 'subl.exe')
-    case ExternalEditor.ColdFusionBuilder3:
+    case ExternalEditor.CFBuilder:
       return Path.join(installLocation, 'CFBuilder.exe')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -118,10 +120,11 @@ function isExpectedInstallation(
       return (
         displayName === 'Sublime Text' && publisher === 'Sublime HQ Pty Ltd'
       )
-    case ExternalEditor.ColdFusionBuilder3:
+    case ExternalEditor.CFBuilder:
       return (
-        displayName === 'Adobe ColdFusion Builder 3' &&
-        publisher === 'Adobe Systems Incorporated'
+        displayName === 'Adobe ColdFusion Builder 3' ||
+        (displayName === 'Adobe ColdFusion Builder 2016' &&
+          publisher === 'Adobe Systems Incorporated')
       )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -172,7 +175,7 @@ function extractApplicationInformation(
 
     return { displayName, publisher, installLocation }
   }
-  if (editor === ExternalEditor.ColdFusionBuilder3) {
+  if (editor === ExternalEditor.CFBuilder) {
     for (const item of keys) {
       if (item.name === 'DisplayName') {
         displayName = item.value
@@ -236,29 +239,38 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atomPath, codePath, sublimePath, cfBuilder3Path] = await Promise.all([
+  const [atomPath, codePath, sublimePath, cfBuilderPath] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.SublimeText),
-    findApplication(ExternalEditor.ColdFusionBuilder3),
+    findApplication(ExternalEditor.CFBuilder),
   ])
 
   if (atomPath) {
-    results.push({ editor: ExternalEditor.Atom, path: atomPath })
+    results.push({
+      editor: ExternalEditor.Atom,
+      path: atomPath,
+    })
   }
 
   if (codePath) {
-    results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
+    results.push({
+      editor: ExternalEditor.VisualStudioCode,
+      path: codePath,
+    })
   }
 
   if (sublimePath) {
-    results.push({ editor: ExternalEditor.SublimeText, path: sublimePath })
+    results.push({
+      editor: ExternalEditor.SublimeText,
+      path: sublimePath,
+    })
   }
 
-  if (cfBuilder3Path) {
+  if (cfBuilderPath) {
     results.push({
-      editor: ExternalEditor.ColdFusionBuilder3,
-      path: cfBuilder3Path,
+      editor: ExternalEditor.CFBuilder,
+      path: cfBuilderPath,
     })
   }
 
