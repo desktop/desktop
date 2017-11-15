@@ -80,6 +80,8 @@ export class PullRequestList extends React.Component<
     const selectedItem = pullRequest
       ? findItemForPullRequest(group, pullRequest)
       : this.state.selectedItem
+        ? findItemForPullRequest(group, this.state.selectedItem.pullRequest)
+        : null
     this.setState({ groupedItems: [group], selectedItem })
   }
 
