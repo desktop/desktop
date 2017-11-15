@@ -62,7 +62,7 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
         //64-bit version of ColdFusionBuilder3
         'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 3_is1',
         //64-bit version of ColdFusionBuilder2016
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 2016'
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 2016',
       ]
 
     default:
@@ -123,8 +123,8 @@ function isExpectedInstallation(
     case ExternalEditor.CFBuilder:
       return (
         displayName === 'Adobe ColdFusion Builder 3' ||
-        displayName === 'Adobe ColdFusion Builder 2016' &&
-        publisher === 'Adobe Systems Incorporated'
+        (displayName === 'Adobe ColdFusion Builder 2016' &&
+          publisher === 'Adobe Systems Incorporated')
       )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -249,25 +249,28 @@ export async function getAvailableEditors(): Promise<
   if (atomPath) {
     results.push({
       editor: ExternalEditor.Atom,
-      path: atomPath })
+      path: atomPath,
+    })
   }
 
   if (codePath) {
     results.push({
       editor: ExternalEditor.VisualStudioCode,
-      path: codePath })
+      path: codePath,
+    })
   }
 
   if (sublimePath) {
     results.push({
       editor: ExternalEditor.SublimeText,
-      path: sublimePath })
+      path: sublimePath,
+    })
   }
 
   if (cfBuilderPath) {
     results.push({
       editor: ExternalEditor.CFBuilder,
-      path: cfBuilderPath
+      path: cfBuilderPath,
     })
   }
 
