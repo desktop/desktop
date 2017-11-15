@@ -51,19 +51,33 @@ export class PullRequestList extends React.Component<
   public constructor(props: IPullRequestListProps) {
     super(props)
 
+    const group = createListItems(props.pullRequests)
+    const pullRequest = props.currentPullRequest
+    const selectedItem = pullRequest
+      ? findItemForPullRequest(group, pullRequest)
+      : null
+
     this.state = {
-      groupedItems: [createListItems(props.pullRequests)],
+      groupedItems: [group],
       filterText: '',
-      selectedItem: null,
+      selectedItem: selectedItem || null,
     }
   }
 
   public componentWillReceiveProps(nextProps: IPullRequestListProps) {
-    if (nextProps.pullRequests === this.props.pullRequests) {
+    if (
+      nextProps.pullRequests === this.props.pullRequests &&
+      nextProps.currentPullRequest === this.props.currentPullRequest
+    ) {
       return
     }
 
-    this.setState({ groupedItems: [createListItems(nextProps.pullRequests)] })
+    const group = createListItems(nextProps.pullRequests)
+    const pullRequest = nextProps.currentPullRequest
+    const selectedItem = pullRequest
+      ? findItemForPullRequest(group, pullRequest)
+      : this.state.selectedItem
+    this.setState({ groupedItems: [group], selectedItem })
   }
 
   public render() {
@@ -133,4 +147,11 @@ function createListItems(
     identifier: 'pull-requests',
     items,
   }
+}
+
+function findItemForPullRequest(
+  group: IFilterListGroup<IPullRequestListItem>,
+  pullRequest: PullRequest
+): IPullRequestListItem | null {
+  return group.items.find(i => i.pullRequest.id === pullRequest.id) || null
 }
