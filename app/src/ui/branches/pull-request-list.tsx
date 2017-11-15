@@ -27,6 +27,9 @@ interface IPullRequestListProps {
   /** The pull requests to display. */
   readonly pullRequests: ReadonlyArray<PullRequest>
 
+  /** The pull request associated with the current branch. */
+  readonly currentPullRequest: PullRequest | null
+
   /** Called when the user clicks on a pull request. */
   readonly onPullRequestClicked: (pullRequest: PullRequest) => void
 
