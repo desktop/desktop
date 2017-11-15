@@ -122,9 +122,9 @@ function isExpectedInstallation(
       )
     case ExternalEditor.CFBuilder:
       return (
-        displayName === 'Adobe ColdFusion Builder 3' ||
-        (displayName === 'Adobe ColdFusion Builder 2016' &&
-          publisher === 'Adobe Systems Incorporated')
+        (displayName === 'Adobe ColdFusion Builder 3' ||
+          displayName === 'Adobe ColdFusion Builder 2016' &&
+        publisher === 'Adobe Systems Incorporated')
       )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
