@@ -101,4 +101,15 @@ describe('parsePorcelainStatus', () => {
       /.DS_Store`)
     expect(entries[0].statusCode).to.equal('D.')
   })
+
+  it('parses a typechange', () => {
+    const x =
+      '1 .T N... 120000 120000 100755 6165716e8b408ad09b51d1a37aa1ef50e7f84376 6165716e8b408ad09b51d1a37aa1ef50e7f84376 pdf_linux-x64/lib/libQt5Core.so.5'
+    const entries = parsePorcelainStatus(x) as ReadonlyArray<IStatusEntry>
+
+    expect(entries.length).to.equal(1)
+
+    expect(entries[0].path).to.equal('pdf_linux-x64/lib/libQt5Core.so.5')
+    expect(entries[0].statusCode).to.equal('.T')
+  })
 })
