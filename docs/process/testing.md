@@ -210,8 +210,8 @@
     - [ ] `Delete` button deletes branch name (and remote too if option checked)
     - [ ] `Cancel` button closes modal
     - [ ] Protected branches cannot be deleted
-  - [ ] Update from Default Branch (cannot be master)
-  - [ ] Merge into Current Branch
+  - [ ] Update from Default Branch (cannot be master; Mac: ⇧⌘?; Windows: Ctrl+?)
+  - [ ] Merge into Current Branch (Mac: ⇧⌘?; Windows: Ctrl+?)
     - [ ] Use can filter existing branches
     - [ ] User can select branch, other than current
     - [ ] `Merge` button only activated if something to merge
