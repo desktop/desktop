@@ -56,6 +56,9 @@ extensionMIMEMap.set('.c', 'text/x-c')
 extensionMIMEMap.set('.h', 'text/x-c')
 extensionMIMEMap.set('.cpp', 'text/x-c++src')
 
+import 'codemirror/mode/swift/swift'
+extensionMIMEMap.set('.swift', 'text/x-swift')
+
 import 'codemirror/mode/shell/shell'
 extensionMIMEMap.set('.sh', 'text/x-sh')
 
