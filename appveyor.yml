@@ -20,9 +20,6 @@ skip_tags: true
 
 version: "{build}"
 
-init:
-  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-
 install:
   - cmd: regedit /s script\default-to-tls12-on-appveyor.reg
   - ps: Install-Product node $env:nodejs_version $env:platform
@@ -44,4 +41,3 @@ on_success:
 
 on_finish:
   - yarn test:review
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
