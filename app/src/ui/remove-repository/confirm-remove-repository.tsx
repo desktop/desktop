@@ -49,8 +49,8 @@ export class ConfirmRemoveRepository extends React.Component<
         </DialogContent>
         <DialogFooter>
           <ButtonGroup destructive={true}>
-            <Button type="submit">Cancel</Button>
-            <Button onClick={this.onConfirmed}>Remove</Button>
+            <Button type="submit">Remove</Button>
+            <Button onClick={this.onConfirmed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
