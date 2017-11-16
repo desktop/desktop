@@ -1,5 +1,15 @@
 {
   "releases": {
+    "1.0.9": [
+      "[New] ColdFusion Builder is now available as an option for External Editor - #3336 #3321. Thanks @AtomicCons!",
+      "[New] Swift code is now syntax highlighted - #3305. Thanks @agisilaos!",
+      "[Improved] Better message on the 'Publish Branch' button when HEAD is unborn - #3344. Thanks @Venkat5694!",
+      "[Improved] Better error message when trying to push to an archived repository - #3084. Thanks @agisilaos!",
+      "[Fixed] Parse changed files whose paths include a newline - #3271",
+      "[Fixed] Parse file type changes - #3334",
+      "[Fixed] Windows: 'Open without Git' would present the dialog again instead of actually opening a shell without git - #3290",
+      "[Fixed] Avoid text selection when dragging resizable dividers - #3268"
+    ],
     "1.0.9-beta0": [
       "[Fixed] Crash when rendering diffs for certain types of files - #3249",
       "[Fixed] Continually being prompted to add the upstream remote, even when it already exists - #3252"
