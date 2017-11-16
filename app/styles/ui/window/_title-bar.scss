@@ -66,7 +66,6 @@
       height: 100%;
       padding: 0;
       margin: 0;
-      overflow: hidden;
 
       // Reset styles from global buttons
       border: none;
@@ -76,6 +75,40 @@
       color: #a0a0a0;
       background-color: transparent;
       transition: background-color 0.25s ease;
+
+      &::before {
+        content: attr(data-title);
+
+        background-color: var(--box-alt-background-color);
+        color: black;
+
+        border-radius: 2px;
+        padding: 8px;
+
+        margin-top: 4px;
+      }
+
+      &::after {
+        content: '';
+
+        border: 4px solid transparent;
+        border-bottom-color: var(--box-alt-background-color);
+        margin-top: -4px
+      }
+
+      &::before, &::after {
+        opacity: 0;
+        visibility: hidden;
+
+        pointer-events: none;
+
+        position: absolute;
+        top: 100%;
+        right: 50%;
+        transform: translateX(50%);
+
+        transition: opacity 0.25s ease;
+      }
 
       &:focus { outline: none; }
 
@@ -93,13 +126,25 @@
           // Immediate feedback when clicking
           transition: none;
         }
+
+        &::before, &::after {
+          opacity: 1;
+          visibility: visible;
+        }
       }
 
       // Close button is a special case, it needs to be red
       // on hover and slightly lighter red on active.
       &.close:hover {
-        background-color: #e81123;
+        --close-red: #e81223;
+        background-color: var(--close-red);
         color: #fff;
+
+        &::before {
+          background-color: var(--close-red);
+          color: white;
+        }
+        &::after { border-bottom-color: #e81123; }
 
         &:active {
           background-color: #bf0f1d;
