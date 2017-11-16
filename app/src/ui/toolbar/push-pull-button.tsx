@@ -178,7 +178,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     }
 
     if (tipState === TipState.Unborn) {
-      return 'Cannot publish unborn repository'
+      return 'Cannot publish unborn HEAD'
     }
 
     if (!this.props.aheadBehind) {
