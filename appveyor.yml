@@ -43,3 +43,4 @@ on_success:
 
 on_finish:
   - yarn test:review
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
