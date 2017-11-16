@@ -76,6 +76,7 @@ function isDiffTooLarge(diff: IRawDiff) {
  *  Defining the list of known extensions we can render inside the app
  */
 const imageFileExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.ico'])
+const visualTextFileExtensions = new Set(['.svg'])
 
 /**
  * Render the difference between a file in the given commit and its parent
@@ -273,9 +274,8 @@ export async function convertDiff(
   commitish: string,
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
+  const extension = Path.extname(file.path)
   if (diff.isBinary) {
-    const extension = Path.extname(file.path)
-
     // some extension we don't know how to parse, never mind
     if (!imageFileExtensions.has(extension)) {
       return {
@@ -283,6 +283,18 @@ export async function convertDiff(
       }
     } else {
       return getImageDiff(repository, file, commitish)
+    }
+  }
+
+  if (visualTextFileExtensions.has(extension)) {
+    const imageDiff = await getImageDiff(repository, file, commitish)
+    return {
+      kind: DiffType.VisualText,
+      previous: imageDiff.previous,
+      current: imageDiff.current,
+      text: diff.contents,
+      hunks: diff.hunks,
+      lineEndingsChange,
     }
   }
 
@@ -298,6 +310,9 @@ export async function convertDiff(
  * Map a given file extension to the related data URL media type
  */
 function getMediaType(extension: string) {
+  if (extension === '.svg') {
+    return 'image/svg+xml'
+  }
   if (extension === '.png') {
     return 'image/png'
   }
