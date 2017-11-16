@@ -4,6 +4,9 @@
       "[Fixed] Crash when rendering diffs for certain types of files - #3249",
       "[Fixed] Continually being prompted to add the upstream remote, even when it already exists - #3252"
     ],
+    "1.0.8-test1": [
+      "Testing electron-packager and electron-winstaller changes"
+    ],
     "1.0.8": [
       "[Fixed] Crash when rendering diffs for certain types of files - #3249",
       "[Fixed] Continually being prompted to add the upstream remote, even when it already exists - #3252"
