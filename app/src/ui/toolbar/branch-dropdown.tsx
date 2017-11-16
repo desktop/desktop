@@ -63,6 +63,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         repository={this.props.repository}
         selectedTab={this.props.selectedTab}
         pullRequests={this.props.pullRequests}
+        currentPullRequest={this.props.currentPullRequest}
       />
     )
   }
