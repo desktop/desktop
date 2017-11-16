@@ -2,7 +2,6 @@ import * as React from 'react'
 
 import { ImageDiffType } from '../../../lib/app-state'
 import { Image } from '../../../models/diff'
-import { TabBar, TabBarType } from '../../tab-bar'
 import { TwoUp } from './two-up'
 import { DifferenceBlend } from './difference-blend'
 import { OnionSkin } from './onion-skin'
@@ -14,7 +13,6 @@ interface IModifiedImageDiffProps {
   readonly previous: Image
   readonly current: Image
   readonly diffType: ImageDiffType
-  readonly onChangeDiffType: (type: ImageDiffType) => void
 }
 
 export interface ICommonImageDiffProperties {
@@ -143,28 +141,11 @@ export class ModifiedImageDiff extends React.Component<
   }
 
   public render() {
-    return (
-      <div className="panel image" id="diff">
-        {this.renderCurrentDiffType()}
-
-        <TabBar
-          selectedIndex={this.props.diffType}
-          onTabClicked={this.props.onChangeDiffType}
-          type={TabBarType.Switch}
-        >
-          <span>2-up</span>
-          <span>Swipe</span>
-          <span>Onion Skin</span>
-          <span>Difference</span>
-        </TabBar>
-      </div>
-    )
-  }
-
-  private renderCurrentDiffType() {
     const maxSize = this.getMaxSize()
     const type = this.props.diffType
     switch (type) {
+      case ImageDiffType.Text:
+      // means that we had a visual text diff set on Text but now it's not available. Just default to TwoUp
       case ImageDiffType.TwoUp:
         return (
           <TwoUp
