@@ -35,7 +35,10 @@
   }
 
   .toolbar-dropdown {
-    &.branch-button { width: 230px; }
+    &.branch-button {
+      max-width: 460px;
+      min-width: 230px;
+    }
   }
 
   .toolbar-button {
