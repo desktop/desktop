@@ -20,6 +20,9 @@ skip_tags: true
 
 version: "{build}"
 
+init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   - npm install -g yarn@1.3.2
