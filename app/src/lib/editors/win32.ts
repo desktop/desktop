@@ -9,6 +9,7 @@ export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
   SublimeText = 'Sublime Text',
+  CFBuilder = 'ColdFusion Builder',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -21,6 +22,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
+  }
+  if (label === ExternalEditor.CFBuilder) {
+    return ExternalEditor.CFBuilder
   }
 
   return null
@@ -53,6 +57,14 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
       return [
         'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
       ]
+    case ExternalEditor.CFBuilder:
+      return [
+        //64-bit version of ColdFusionBuilder3
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 3_is1',
+        //64-bit version of ColdFusionBuilder2016
+        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 2016',
+      ]
+
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -75,6 +87,8 @@ function getExecutableShim(
       return Path.join(installLocation, 'bin', 'code.cmd')
     case ExternalEditor.SublimeText:
       return Path.join(installLocation, 'subl.exe')
+    case ExternalEditor.CFBuilder:
+      return Path.join(installLocation, 'CFBuilder.exe')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -98,6 +112,7 @@ function isExpectedInstallation(
     case ExternalEditor.VisualStudioCode:
       return (
         (displayName === 'Visual Studio Code' ||
+          displayName === 'Microsoft Visual Studio Code' ||
           displayName === 'Visual Studio Code - Insiders') &&
         publisher === 'Microsoft Corporation'
       )
@@ -105,7 +120,12 @@ function isExpectedInstallation(
       return (
         displayName === 'Sublime Text' && publisher === 'Sublime HQ Pty Ltd'
       )
-
+    case ExternalEditor.CFBuilder:
+      return (
+        (displayName === 'Adobe ColdFusion Builder 3' ||
+          displayName === 'Adobe ColdFusion Builder 2016') &&
+        publisher === 'Adobe Systems Incorporated'
+      )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -149,6 +169,19 @@ function extractApplicationInformation(
       } else if (item.name === 'Publisher') {
         publisher = item.value
       } else if (item.name === 'Inno Setup: App Path') {
+        installLocation = item.value
+      }
+    }
+
+    return { displayName, publisher, installLocation }
+  }
+  if (editor === ExternalEditor.CFBuilder) {
+    for (const item of keys) {
+      if (item.name === 'DisplayName') {
+        displayName = item.value
+      } else if (item.name === 'Publisher') {
+        publisher = item.value
+      } else if (item.name === 'InstallLocation') {
         installLocation = item.value
       }
     }
@@ -206,22 +239,39 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atomPath, codePath, sublimePath] = await Promise.all([
+  const [atomPath, codePath, sublimePath, cfBuilderPath] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.SublimeText),
+    findApplication(ExternalEditor.CFBuilder),
   ])
 
   if (atomPath) {
-    results.push({ editor: ExternalEditor.Atom, path: atomPath })
+    results.push({
+      editor: ExternalEditor.Atom,
+      path: atomPath,
+    })
   }
 
   if (codePath) {
-    results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
+    results.push({
+      editor: ExternalEditor.VisualStudioCode,
+      path: codePath,
+    })
   }
 
   if (sublimePath) {
-    results.push({ editor: ExternalEditor.SublimeText, path: sublimePath })
+    results.push({
+      editor: ExternalEditor.SublimeText,
+      path: sublimePath,
+    })
+  }
+
+  if (cfBuilderPath) {
+    results.push({
+      editor: ExternalEditor.CFBuilder,
+      path: cfBuilderPath,
+    })
   }
 
   return results

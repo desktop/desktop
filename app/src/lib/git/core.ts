@@ -173,7 +173,7 @@ function getDescriptionForError(error: DugiteError): string {
     case DugiteError.SSHAuthenticationFailed:
     case DugiteError.SSHPermissionDenied:
     case DugiteError.HTTPSAuthenticationFailed:
-      return `Authentication failed. You may not have permission to access the repository. Open ${__DARWIN__
+      return `Authentication failed. You may not have permission to access the repository or the repository may have been archived. Open ${__DARWIN__
         ? 'preferences'
         : 'options'} and verify that you're signed in with an account that has permission to access this repository.`
     case DugiteError.RemoteDisconnection:

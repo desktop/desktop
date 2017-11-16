@@ -26,6 +26,9 @@ export class PullRequestRef {
 }
 
 export class PullRequestStatus {
+  /** The pull request this status is associated with */
+  public readonly pullRequestNumber: number
+
   /** The status' state. */
   public readonly state: APIRefState
 
@@ -35,7 +38,13 @@ export class PullRequestStatus {
   /** The SHA for which this status applies. */
   public readonly sha: string
 
-  public constructor(state: APIRefState, totalCount: number, sha: string) {
+  public constructor(
+    pullRequestNumber: number,
+    state: APIRefState,
+    totalCount: number,
+    sha: string
+  ) {
+    this.pullRequestNumber = pullRequestNumber
     this.state = state
     this.totalCount = totalCount
     this.sha = sha
