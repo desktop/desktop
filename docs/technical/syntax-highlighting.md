@@ -16,6 +16,7 @@ Initially we support syntax highlighting for the following languages.
  - Yaml
  - XML
  - Objective-C
+ - Swift
  - Scala
  - Java
  - C
