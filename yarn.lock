@@ -2364,9 +2364,9 @@ electron-window@^0.8.0:
   dependencies:
     is-electron-renderer "^2.0.0"
 
-electron-winstaller@2.5.2:
-  version "2.5.2"
-  resolved "https://registry.yarnpkg.com/electron-winstaller/-/electron-winstaller-2.5.2.tgz#07b8a3a0556b86d0df404ea40aacfb71b260d373"
+electron-winstaller@^2.6.3:
+  version "2.6.3"
+  resolved "https://registry.yarnpkg.com/electron-winstaller/-/electron-winstaller-2.6.3.tgz#d54f77c0cececc4fc55eeb5968d345cf69645ea4"
   dependencies:
     asar "^0.11.0"
     bluebird "^3.3.4"
