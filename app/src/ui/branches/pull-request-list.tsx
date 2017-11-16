@@ -63,7 +63,7 @@ export class PullRequestList extends React.Component<
     this.state = {
       groupedItems: [group],
       filterText: '',
-      selectedItem: selectedItem || null,
+      selectedItem,
     }
   }
 
