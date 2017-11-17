@@ -26,6 +26,9 @@ interface IBranchesProps {
   readonly repository: Repository
   readonly selectedTab: BranchesTab
   readonly pullRequests: ReadonlyArray<PullRequest> | null
+
+  /** The pull request associated with the current branch. */
+  readonly currentPullRequest: PullRequest | null
 }
 
 interface IBranchesState {
@@ -157,6 +160,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
           <PullRequestList
             key="pr-list"
             pullRequests={pullRequests}
+            currentPullRequest={this.props.currentPullRequest}
             onPullRequestClicked={this.onPullRequestClicked}
             onDismiss={this.onDismiss}
           />
