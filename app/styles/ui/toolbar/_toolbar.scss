@@ -35,7 +35,16 @@
   }
 
   .toolbar-dropdown {
-    &.branch-button { width: 230px; }
+    &.branch-button {
+      width: 230px;
+
+      // Reset the styles applied from the PathText component when used.
+      // Note that the .text qualifier is important or else we'll apply
+      // this to path text components within the foldout as well.
+      .text .dirname {
+        color: inherit;
+      }
+    }
   }
 
   .toolbar-button {

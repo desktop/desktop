@@ -1,5 +1,7 @@
 import * as React from 'react'
 import * as Path from 'path'
+import * as classNames from 'classnames'
+
 import { clamp } from '../../lib/clamp'
 
 interface IPathTextProps {
@@ -15,6 +17,12 @@ interface IPathTextProps {
    * though never updated after the initial measurement.
    */
   readonly availableWidth?: number
+
+  /**
+   * An optional className to be applied to the rendered
+   * top level element of the component.
+   */
+  readonly className?: string
 }
 
 interface IPathDisplayState {
@@ -280,13 +288,10 @@ export class PathText extends React.PureComponent<
 
     const truncated = this.state.length < this.state.normalizedPath.length
     const title = truncated ? this.state.normalizedPath : undefined
+    const className = classNames('path-text-component', this.props.className)
 
     return (
-      <div
-        className="path-text-component"
-        ref={this.onPathElementRef}
-        title={title}
-      >
+      <div className={className} ref={this.onPathElementRef} title={title}>
         <span ref={this.onPathInnerElementRef}>
           {directoryElement}
           <span className="filename">{this.state.fileText}</span>
