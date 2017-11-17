@@ -35,7 +35,11 @@ Note, however that this list is likely to grow stale so I'd recommend checking [
 
 ### I want to add my favorite language
 
-Cool! As long as it's a language that [CodeMirror supports out of the box](https://codemirror.net/mode/index.html) we should be able to make it work. Open an issue and we'll take it from there. It would be swell if you could also submit a PR with a sample file for the language to [desktop/highlighter-tests](https://github.com/desktop/highlighter-tests).
+Cool! As long as it's a language that [CodeMirror supports out of the box](https://codemirror.net/mode/index.html) we should be able to make it work. Open an issue and we'll take it from there.
+
+If you want to create a PR and add highlighter support for your favourite programming langauge don't forget to:
+1. Submit a PR with a sample file for the language to [desktop/highlighter-tests](https://github.com/desktop/highlighter-tests).
+2. Add the language that the highlighter going to support to the `Supported Languages` list above.
 
 ## Why do the diffs on GitHub.com and Desktop look different
 
