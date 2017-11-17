@@ -11,6 +11,7 @@ Initially we support syntax highlighting for the following languages.
  - JavaScript
  - JSON
  - TypeScript
+ - Coffeescript
  - HTML
  - Markdown
  - Yaml
