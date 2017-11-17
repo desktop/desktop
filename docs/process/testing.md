@@ -296,6 +296,7 @@
     - [ ] `Push` with number of commits badge is decremented or reverts to `Fetch origin`
   - [ ] `Undo` button disabled if user is pushing commit
   - [ ] User can publish a new repo with no commits (aka unborn repo/branch)
+  - [ ] User can make new branch the default branch, by making the intial commit on the new branch. 
 
 ### Branches list
   - [ ] Current branch always shows if repository present
