@@ -48,6 +48,7 @@ extensionMIMEMap.set('.svg', 'text/xml')
 
 import 'codemirror/mode/clike/clike'
 extensionMIMEMap.set('.objc', 'text/x-objectivec')
+extensionMIMEMap.set('.m', 'text/x-objectivec')
 extensionMIMEMap.set('.scala', 'text/x-scala')
 extensionMIMEMap.set('.sc', 'text/x-scala')
 extensionMIMEMap.set('.cs', 'text/x-csharp')
