@@ -32,6 +32,9 @@ extensionMIMEMap.set('.css', 'text/css')
 extensionMIMEMap.set('.scss', 'text/x-scss')
 extensionMIMEMap.set('.less', 'text/x-less')
 
+import 'codemirror/mode/vue/vue'
+extensionMIMEMap.set('.vue', 'text/x-vue')
+
 import 'codemirror/mode/markdown/markdown'
 extensionMIMEMap.set('.markdown', 'text/x-markdown')
 extensionMIMEMap.set('.md', 'text/x-markdown')
