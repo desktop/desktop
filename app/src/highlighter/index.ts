@@ -14,10 +14,12 @@ import { ITokens, IHighlightRequest } from '../lib/highlighter/types'
 const extensionMIMEMap = new Map<string, string>()
 
 import 'codemirror/mode/javascript/javascript'
-
 extensionMIMEMap.set('.ts', 'text/typescript')
 extensionMIMEMap.set('.js', 'text/javascript')
 extensionMIMEMap.set('.json', 'application/json')
+
+import 'codemirror/mode/coffeescript/coffeescript'
+extensionMIMEMap.set('.coffee', 'text/x-coffeescript')
 
 import 'codemirror/mode/jsx/jsx'
 extensionMIMEMap.set('.tsx', 'text/typescript-jsx')
