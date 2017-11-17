@@ -47,7 +47,7 @@ extensionMIMEMap.set('.csproj', 'text/xml')
 extensionMIMEMap.set('.svg', 'text/xml')
 
 import 'codemirror/mode/clike/clike'
-extensionMIMEMap.set('.objc', 'text/x-objectivec')
+extensionMIMEMap.set('.m', 'text/x-objectivec')
 extensionMIMEMap.set('.scala', 'text/x-scala')
 extensionMIMEMap.set('.sc', 'text/x-scala')
 extensionMIMEMap.set('.cs', 'text/x-csharp')
@@ -55,6 +55,9 @@ extensionMIMEMap.set('.java', 'text/x-java')
 extensionMIMEMap.set('.c', 'text/x-c')
 extensionMIMEMap.set('.h', 'text/x-c')
 extensionMIMEMap.set('.cpp', 'text/x-c++src')
+
+import 'codemirror/mode/swift/swift'
+extensionMIMEMap.set('.swift', 'text/x-swift')
 
 import 'codemirror/mode/shell/shell'
 extensionMIMEMap.set('.sh', 'text/x-sh')
