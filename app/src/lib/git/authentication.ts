@@ -22,6 +22,7 @@ export function envForAuthentication(auth: IGitAccount | null): Object {
     // supported since Git 2.3, this is used to ensure we never interactively prompt
     // for credentials - even as a fallback
     GIT_TERMINAL_PROMPT: '0',
+    GIT_TRACE: localStorage.getItem('git-trace') || '0',
   }
 
   if (!auth) {
