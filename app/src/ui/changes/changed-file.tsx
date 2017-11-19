@@ -129,7 +129,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
     items.push(
       { type: 'separator' },
       {
-        label: __DARWIN__ ? 'Reveal in Finder' : 'Show in Explorer',
+        label: __LABEL_REVEAL_IN_FILE_MANAGER__,
         action: () => this.props.onRevealInFileManager(this.props.path),
         enabled: this.props.status !== AppFileStatus.Deleted,
       },

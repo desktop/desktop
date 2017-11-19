@@ -95,7 +95,7 @@ export class RepositoryListItem extends React.Component<
         enabled: !missing,
       },
       {
-        label: __DARWIN__ ? 'Show in Finder' : 'Show in Explorer',
+        label: __LABEL_SHOW_IN_FILE_MANAGER__,
         action: this.showRepository,
         enabled: !missing,
       },

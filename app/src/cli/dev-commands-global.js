@@ -1,6 +1,3 @@
-const Fs = require('fs')
-const path = require('path')
+const appInfo = require('../../../app/app-info')
 
-const distInfo = require('../../../script/dist-info')
-
-global.__CLI_COMMANDS__ = distInfo.getCLICommands()
+global.__CLI_COMMANDS__ = appInfo.getCLICommands()

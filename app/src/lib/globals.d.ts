@@ -47,6 +47,21 @@ declare const __PROCESS_KIND__:
   | 'highlighter'
 
 /**
+ * These menu entries are separated because Windows and Linux can use
+ * accelerators( ??? TODO: that's not the right phrase) to select a
+ * menu item immediately. They need to be reviewed to ensure no clashes
+ * wtih other shortcuts.
+ */
+declare const __MENU_SHOW_LOGS_IN_FILE_MANAGER__: string
+declare const __MENU_SHOW_IN_FILE_MANAGER__: string
+
+/**
+ * These labels are placeholders in the UI which are platform-specific
+ */
+declare const __LABEL_SHOW_IN_FILE_MANAGER__: string
+declare const __LABEL_REVEAL_IN_FILE_MANAGER__: string
+declare const __LABEL_FILE_MANAGER_NAME__: string
+/**
  * The DOMHighResTimeStamp type is a double and is used to store a time value.
  *
  * The value could be a discrete point in time or the difference in time between

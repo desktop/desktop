@@ -231,7 +231,7 @@ export function buildDefaultMenu(
         click: emit('open-in-shell'),
       },
       {
-        label: __DARWIN__ ? 'Show in Finder' : 'Show in E&xplorer',
+        label: __MENU_SHOW_IN_FILE_MANAGER__,
         id: 'open-working-directory',
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
@@ -339,7 +339,7 @@ export function buildDefaultMenu(
   }
 
   const showLogsItem: Electron.MenuItemConstructorOptions = {
-    label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
+    label: __MENU_SHOW_LOGS_IN_FILE_MANAGER__,
     click() {
       const logPath = getLogDirectoryPath()
       mkdirIfNeeded(logPath)
