@@ -16,7 +16,6 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.Atom) {
     return ExternalEditor.Atom
   }
-
   if (label === ExternalEditor.VisualStudioCode) {
     return ExternalEditor.VisualStudioCode
   }
@@ -111,9 +110,8 @@ function isExpectedInstallation(
       return displayName === 'Atom' && publisher === 'GitHub Inc.'
     case ExternalEditor.VisualStudioCode:
       return (
-        (displayName === 'Visual Studio Code' ||
-          displayName === 'Microsoft Visual Studio Code' ||
-          displayName === 'Visual Studio Code - Insiders') &&
+        (displayName === 'Microsoft Visual Studio Code' ||
+          displayName === 'Microsoft Visual Studio Code Insiders') &&
         publisher === 'Microsoft Corporation'
       )
     case ExternalEditor.SublimeText:
@@ -159,11 +157,26 @@ function extractApplicationInformation(
     return { displayName, publisher, installLocation }
   }
 
-  if (
-    editor === ExternalEditor.VisualStudioCode ||
-    editor === ExternalEditor.SublimeText
-  ) {
+  if (editor === ExternalEditor.VisualStudioCode) {
     for (const item of keys) {
+      if (item.name === 'DisplayName') {
+        displayName = item.value
+      } else if (item.name === 'Publisher') {
+        publisher = item.value
+      } else if (item.name === 'Inno Setup: App Path') {
+        installLocation = item.value
+      }
+    }
+
+    return { displayName, publisher, installLocation }
+  }
+
+  if (editor === ExternalEditor.SublimeText) {
+    for (const item of keys) {
+      // NOTE:
+      // Sublime Text bakes the build number into the DisplayName value, so for
+      // forward-compatibility whenever they decide to drop a new build let's
+      // use this entry which doesn't contain the version number
       if (item.name === 'Inno Setup: Icon Group') {
         displayName = item.value
       } else if (item.name === 'Publisher') {
