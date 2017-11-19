@@ -163,7 +163,7 @@ function extractApplicationInformation(
         displayName = item.value
       } else if (item.name === 'Publisher') {
         publisher = item.value
-      } else if (item.name === 'Inno Setup: App Path') {
+      } else if (item.name === 'InstallLocation') {
         installLocation = item.value
       }
     }
@@ -181,7 +181,7 @@ function extractApplicationInformation(
         displayName = item.value
       } else if (item.name === 'Publisher') {
         publisher = item.value
-      } else if (item.name === 'Inno Setup: App Path') {
+      } else if (item.name === 'InstallLocation') {
         installLocation = item.value
       }
     }
