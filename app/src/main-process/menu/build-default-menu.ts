@@ -277,6 +277,7 @@ export function buildDefaultMenu(
           ? 'Update From Default Branch'
           : '&Update from default branch',
         id: 'update-branch',
+        accelerator: 'CmdOrCtrl+U',
         click: emit('update-branch'),
       },
       {
@@ -284,6 +285,7 @@ export function buildDefaultMenu(
           ? 'Merge Into Current Branch…'
           : '&Merge into current branch…',
         id: 'merge-branch',
+        accelerator: 'CmdOrCtrl+M',
         click: emit('merge-branch'),
       },
       separator,
