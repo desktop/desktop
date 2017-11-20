@@ -4,7 +4,7 @@ import { AppFileStatus, mapStatus, iconForStatus } from '../../models/status'
 import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Button } from '../lib/button'
-import { enablePreviewFeatures } from '../../lib/feature-flag'
+import { enableMergeTool } from '../../lib/feature-flag'
 
 interface IChangedFileDetailsProps {
   readonly path: string
@@ -45,7 +45,7 @@ export class ChangedFileDetails extends React.Component<
   private renderDecorator() {
     const status = this.props.status
     const diff = this.props.diff
-    if (status === AppFileStatus.Conflicted && enablePreviewFeatures()) {
+    if (status === AppFileStatus.Conflicted && enableMergeTool()) {
       return (
         <Button className="open-merge-tool" onClick={this.onOpenMergeTool}>
           {__DARWIN__ ? 'Open Merge Tool' : 'Open merge tool'}
