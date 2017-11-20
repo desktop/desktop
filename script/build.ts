@@ -10,14 +10,13 @@ import * as packager from 'electron-packager'
 const legalEagle: LegalEagle = require('legal-eagle')
 
 import {
-  getReleaseChannel,
-  getDistRoot,
-  getExecutableName,
   getBundleID,
   getCompanyName,
   getProductName,
   getVersion,
-} from './dist-info'
+} from '../app/package-info'
+
+import { getReleaseChannel, getDistRoot, getExecutableName } from './dist-info'
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
