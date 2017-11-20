@@ -10,19 +10,15 @@ const appInfo = require('./app-info')
 const packageInfo = require('./package-info')
 const distInfo = require('../script/dist-info')
 
-const devClientId = '3a723b10ac5575cc5bb9'
-const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
-
 const channel = distInfo.getReleaseChannel()
-
-const replacements = appInfo.getReplacements()
-
-const outputDir = 'out'
 
 const externals = ['7zip']
 if (channel === 'development') {
   externals.push('devtron')
 }
+
+const outputDir = 'out'
+const replacements = appInfo.getReplacements()
 
 const commonConfig = {
   externals: externals,
