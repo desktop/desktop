@@ -1,2 +1,2 @@
-export function getReplacements(): any
+export function getReplacements(): {}
 export function getCLICommands(): string[]
