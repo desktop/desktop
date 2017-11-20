@@ -1,5 +1,12 @@
 {
   "releases": {
+    "1.0.10-beta1": [
+      "[New] Vue.js code is now syntax highlighted! - #3368. Thanks @wanecek!",
+      "[New] CoffeeScript is now syntax highlighted! - #3356. Thanks @agisilaos!",
+      "[New] Highlight .m as Objective-C - #3355. Thanks @koenpunt!",
+      "[Improved] Use smarter middle truncation for branch names - #3357",
+      "[Fixed] Windows: Removed the title attribute on the Windows buttons so that they no longer leave their tooltips hanging around - #3348. Thanks @j-f1!"
+    ],
     "1.0.10-beta0": [
       "[New] ColdFusion Builder is now available as an option for External Editor - #3336 #3321. Thanks @AtomicCons!",
       "[New] Swift code is now syntax highlighted - #3305. Thanks @agisilaos!",
