@@ -179,7 +179,7 @@
     - [ ] Repo is removed from Repo List; confirmation dialgue shown if Preferences option enabled
   - [ ] View on GitHub (Mac: `⌥⌘G`; Windows: `Ctrl+Alt+G`)
     - [ ] Repo on .com is opened; must be logged in if private repo or Enterprise
-  - [ ] Open in Terminal/Command prompt (Mac: `^``; Windows: )
+  - [ ] Open in Terminal/Command prompt (Mac: `^[tilde-sign]`; Windows: )
     - [ ] Local repo is opened
     - [ ] If git not installed, modal asks to Open with Git or Install Git
   - [ ] Show in Finder/Explorer (Mac: `⇧⌘F`; Windows: `Ctrl+Shift+F`)
