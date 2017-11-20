@@ -40,20 +40,9 @@ A few reasons:
 
 ## How to Feature Flag?
 
-At runtime your code should check either [`enablePreviewFeatures()`](https://github.com/desktop/desktop/blob/2286edb0e1cf376ab81a1ffe02115abdde88527f/app/src/lib/feature-flag.ts#L6)
-or [`enableBetaFeatures()`](https://github.com/desktop/desktop/blob/f68f2270aa50934c6523b5b06bac5413dab91451/app/src/lib/feature-flag.ts#L25) and either display the new feature or the existing one.
+First add a new function to [feature-flag.ts](https://github.com/desktop/desktop/blob/3ee29eb1bd083a53f69fdbec2e2b10ec93404e44/app/src/lib/feature-flag.ts#L30). The function should usually check `enableDevelopmentFeatures()` or `enableBetaFeatures()`. Then, at runtime, your code should check either your feature flag function and either display the new feature or the existing one.
 
-A simple example is the new clone experience in [#2436](https://github.com/desktop/desktop/pull/2436):
-
-```ts
-public render() {
-  if (enablePreviewFeatures()) {
-    return this.renderPreviewInterface()
-  } else {
-    return this.renderClassicInterface()
-  }
-}
-```
+See pull request integration in [#3339](https://github.com/desktop/desktop/pull/3339) for an example.
 
 This separation and naming scheme makes it easier to clean up the new or old
 feature once things are stabilized.
