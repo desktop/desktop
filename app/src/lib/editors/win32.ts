@@ -174,9 +174,8 @@ function extractApplicationInformation(
   if (editor === ExternalEditor.SublimeText) {
     for (const item of keys) {
       // NOTE:
-      // Sublime Text bakes the build number into the DisplayName value, so for
-      // forward-compatibility whenever they decide to drop a new build let's
-      // use this entry which doesn't contain the version number
+      // Sublime Text appends the build number to the DisplayName value, so for
+      // forward-compatibility let's do a simple check for the identifier
       if (
         item.name === 'DisplayName' &&
         item.value &&
