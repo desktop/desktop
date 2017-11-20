@@ -5,6 +5,7 @@
 const TEST_PUBLISH = false
 const PUBLISH_CHANNELS = ['production', 'test', 'beta']
 const distInfo = require('./dist-info')
+const gitInfo = require('../app/git-info')
 
 if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
   console.log('Not a publishable build. Skipping publish.')
@@ -17,7 +18,7 @@ if (!releaseSHA) {
   process.exit(0)
 }
 
-const currentTipSHA = distInfo.getSHA()
+const currentTipSHA = gitInfo.getSHA()
 if (
   !currentTipSHA ||
   !currentTipSHA.toUpperCase().startsWith(releaseSHA.toUpperCase())
