@@ -268,7 +268,8 @@
 
 ### History tab
   - [ ] All commits listed in chronological order, with avatar, date and name; list is scrollable with arrow keys enabled
-    - [ ] Right clicking any commit shows options: Revert, Copy SHA, View on GitHub
+    - [ ] Right clicking any commit shows options: Revert, Copy SHA, View on GitHub (or GitHub Enterprise)
+      - [ ] Reverting a commit does not remove the commit from the History
     - [ ] Hover shows file name in tooltip
 
 ### Diffs tab		
