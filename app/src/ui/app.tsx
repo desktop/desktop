@@ -231,6 +231,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
+    // if a modal is showing, ignore any menu events
+    if (this.currentPopupContent()) {
+      return
+    }
+
     switch (name) {
       case 'push':
         return this.push()
