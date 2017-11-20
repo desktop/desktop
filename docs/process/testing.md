@@ -301,6 +301,7 @@
 ### Branches list
   - [ ] Current branch always shows if repository present
     - [ ] Hover shows full branch name in tooltip
+    - [ ] Long branch names are truncated, with beginning/end of branch name shown
   - [ ] Opening list shows all branches in categorized format with a working filter
     - [ ] `New` button opens 'New Branch' modal
     - [ ] If filters results are nil, then prefill branch name in modal if user clicks `Create New Branch`
