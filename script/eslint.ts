@@ -28,6 +28,7 @@ const ESLINT_ARGS = [
   '--rulesdir=./eslint-rules',
   './{script,eslint-rules}/**/*.{j,t}s?(x)',
   './tslint-rules/**/*.ts',
+  './app/webpack*.js',
   './app/{src,typings,test}/**/*.{j,t}s?(x)',
   ...process.argv.slice(2),
 ]

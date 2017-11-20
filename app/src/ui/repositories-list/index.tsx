@@ -89,7 +89,8 @@ export class RepositoriesList extends React.Component<
     }
   }
 
-  private renderGroupHeader = (identifier: RepositoryGroupIdentifier) => {
+  private renderGroupHeader = (id: string) => {
+    const identifier = id as RepositoryGroupIdentifier
     const label = this.getGroupLabel(identifier)
     return (
       <div key={identifier} className="filter-list-group-header">

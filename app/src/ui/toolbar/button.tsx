@@ -16,7 +16,7 @@ export enum ToolbarButtonStyle {
 
 export interface IToolbarButtonProps {
   /** The primary button text, describing its function */
-  readonly title?: string
+  readonly title?: string | JSX.Element
 
   /** An optional description of the function of the button */
   readonly description?: JSX.Element | string

@@ -274,16 +274,18 @@ export class GitHubUserStore {
   ) {
     const userID = user.id
     if (!userID) {
-      return fatalError(
+      fatalError(
         `Cannot store a mentionable association for a user that hasn't been cached yet.`
       )
+      return
     }
 
     const repositoryID = repository.dbID
     if (!repositoryID) {
-      return fatalError(
+      fatalError(
         `Cannot store a mentionable association for a repository that hasn't been cached yet.`
       )
+      return
     }
 
     await this.database.transaction(
@@ -314,18 +316,20 @@ export class GitHubUserStore {
   ) {
     const repositoryID = repository.dbID
     if (!repositoryID) {
-      return fatalError(
+      fatalError(
         `Cannot prune removed mentionables for a repository that hasn't been cached yet.`
       )
+      return
     }
 
     const userIDs = new Set<number>()
     for (const user of users) {
       const userID = user.id
       if (!userID) {
-        return fatalError(
+        fatalError(
           `Cannot prune removed mentionables with a user that hasn't been cached yet: ${user}`
         )
+        return
       }
 
       userIDs.add(userID)

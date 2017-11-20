@@ -244,7 +244,7 @@ export class DiffLineGutter extends React.Component<
     this.props.onMouseDown(this.props.index, this.props.diff, isRangeSelection)
   }
 
-  private applyEventHandlers = (elem: HTMLSpanElement) => {
+  private applyEventHandlers = (elem: HTMLSpanElement | null) => {
     // set this so we can compute the width of the diff gutter
     // whether it is an editable line or not
     if (elem) {

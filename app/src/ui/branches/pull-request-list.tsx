@@ -27,6 +27,12 @@ interface IPullRequestListProps {
   /** The pull requests to display. */
   readonly pullRequests: ReadonlyArray<PullRequest>
 
+  /**
+   * The pull request associated with the current branch. This is used to
+   * pre-select the currently checked out PR in the list of pull requests.
+   */
+  readonly currentPullRequest: PullRequest | null
+
   /** Called when the user clicks on a pull request. */
   readonly onPullRequestClicked: (pullRequest: PullRequest) => void
 
@@ -48,10 +54,16 @@ export class PullRequestList extends React.Component<
   public constructor(props: IPullRequestListProps) {
     super(props)
 
+    const group = createListItems(props.pullRequests)
+    const pullRequest = props.currentPullRequest
+    const selectedItem = pullRequest
+      ? findItemForPullRequest(group, pullRequest)
+      : null
+
     this.state = {
-      groupedItems: [createListItems(props.pullRequests)],
+      groupedItems: [group],
       filterText: '',
-      selectedItem: null,
+      selectedItem,
     }
   }
 
@@ -60,7 +72,14 @@ export class PullRequestList extends React.Component<
       return
     }
 
-    this.setState({ groupedItems: [createListItems(nextProps.pullRequests)] })
+    const group = createListItems(nextProps.pullRequests)
+
+    const currentlySelectedItem = this.state.selectedItem
+    const selectedItem = currentlySelectedItem
+      ? findItemForPullRequest(group, currentlySelectedItem.pullRequest)
+      : null
+
+    this.setState({ groupedItems: [group], selectedItem })
   }
 
   public render() {
@@ -103,7 +122,7 @@ export class PullRequestList extends React.Component<
     this.props.onPullRequestClicked(pr)
   }
 
-  private onSelectionChanged = (selectedItem: IPullRequestListItem) => {
+  private onSelectionChanged = (selectedItem: IPullRequestListItem | null) => {
     this.setState({ selectedItem })
   }
 
@@ -130,4 +149,11 @@ function createListItems(
     identifier: 'pull-requests',
     items,
   }
+}
+
+function findItemForPullRequest(
+  group: IFilterListGroup<IPullRequestListItem>,
+  pullRequest: PullRequest
+): IPullRequestListItem | null {
+  return group.items.find(i => i.pullRequest.id === pullRequest.id) || null
 }

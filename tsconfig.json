@@ -11,11 +11,13 @@
     "strict": true,
     "outDir": "./out"
   },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
   "exclude": [
     "node_modules",
     "app/node_modules",
     "dist",
-    "out"
+    "out",
+    "app/src/highlighter"
   ],
   "compileOnSave": false
 }

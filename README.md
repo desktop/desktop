@@ -1,6 +1,10 @@
 # [GitHub Desktop](https://desktop.github.com)
 
-[![CircleCI](https://circleci.com/gh/desktop/desktop.svg?style=svg)](https://circleci.com/gh/desktop/desktop) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/kstdl28ba3f7drbr/branch/master?svg=true)](https://ci.appveyor.com/project/github-windows/desktop/branch/master)
+[![Travis](https://img.shields.io/travis/desktop/desktop.svg?style=flat-square&label=Travis+CI)](https://travis-ci.org/desktop/desktop)
+[![CircleCI](https://img.shields.io/circleci/project/github/desktop/desktop.svg?style=flat-square&label=CircleCI)](https://circleci.com/gh/desktop/desktop)
+[![AppVeyor Build Status](https://img.shields.io/appveyor/ci/github-windows/desktop/master.svg?style=flat-square&label=AppVeyor&logo=appveyor)](https://ci.appveyor.com/project/github-windows/desktop/branch/master)
+[![license](https://img.shields.io/github/license/desktop/desktop.svg?style=flat-square)](https://github.com/desktop/desktop/blob/master/LICENSE)
+![90+% TypeScript](https://img.shields.io/github/languages/top/desktop/desktop.svg?style=flat-square&colorB=green)
 
 GitHub Desktop is an open source [Electron](https://electron.atom.io)-based
 GitHub app. It is written in [TypeScript](http://www.typescriptlang.org) and
@@ -29,6 +33,13 @@ Desktop for Windows application.
 repositories into the new application - you can drag-and-drop your repositories
 from disk onto the application to get started.
 
+### Beta Channel
+
+Want to test out new features and get fixes before everyone else? Install the
+beta channel to get access to early builds of Desktop:
+
+ - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
+ - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
 
 ## I have a problem with GitHub Desktop
 

@@ -285,12 +285,11 @@ export class CreateBranch extends React.Component<
     const sanitizedName = sanitizedBranchName(name)
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === sanitizedName) > -1
-    let currentError: Error | null = null
-    if (alreadyExists) {
-      currentError = new Error(`A branch named ${sanitizedName} already exists`)
-    }
+    const currentError = alreadyExists
+      ? new Error(`A branch named ${sanitizedName} already exists`)
+      : null
 
-    this.setState({ proposedName: name, sanitizedName })
+    this.setState({ proposedName: name, sanitizedName, currentError })
   }
 
   private createBranch = async () => {

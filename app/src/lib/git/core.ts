@@ -110,22 +110,11 @@ export async function git(
 
   const opts = { ...defaultOptions, ...options }
 
-  const startTime = performance && performance.now ? performance.now() : null
-
   const commandName = `${name}: git ${args.join(' ')}`
-  log.debug(`Executing ${commandName}`)
 
   const result = await GitPerf.measure(commandName, () =>
     GitProcess.exec(args, path, options)
   )
-
-  if (startTime) {
-    const rawTime = performance.now() - startTime
-    if (rawTime > 1000) {
-      const timeInSeconds = (rawTime / 1000).toFixed(3)
-      log.info(`Executing ${commandName} (took ${timeInSeconds}s)`)
-    }
-  }
 
   const exitCode = result.exitCode
 
@@ -184,7 +173,7 @@ function getDescriptionForError(error: DugiteError): string {
     case DugiteError.SSHAuthenticationFailed:
     case DugiteError.SSHPermissionDenied:
     case DugiteError.HTTPSAuthenticationFailed:
-      return `Authentication failed. You may not have permission to access the repository. Open ${__DARWIN__
+      return `Authentication failed. You may not have permission to access the repository or the repository may have been archived. Open ${__DARWIN__
         ? 'preferences'
         : 'options'} and verify that you're signed in with an account that has permission to access this repository.`
     case DugiteError.RemoteDisconnection:

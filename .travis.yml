@@ -37,7 +37,7 @@ branches:
 
 language: node_js
 node_js:
-  - "7"
+  - "8.9.0"
 
 cache:
   timeout: 600
@@ -47,7 +47,7 @@ cache:
     - .eslintcache
 
 install:
-  - npm install -g yarn@1.2.1
+  - npm install -g yarn@1.3.2
   - yarn install --force
 
 script:

@@ -4,7 +4,7 @@ platform:
   - x64
 
 environment:
-  nodejs_version: "7"
+  nodejs_version: "8.9.0"
 
 cache:
   - .eslintcache
@@ -21,8 +21,9 @@ skip_tags: true
 version: "{build}"
 
 install:
+  - cmd: regedit /s script\default-to-tls12-on-appveyor.reg
   - ps: Install-Product node $env:nodejs_version $env:platform
-  - npm install -g yarn@1.2.1
+  - npm install -g yarn@1.3.2
   - git submodule update --init --recursive
   - yarn install --force
 

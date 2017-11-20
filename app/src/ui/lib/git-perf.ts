@@ -17,10 +17,24 @@ export async function measure<T>(
   fn: () => Promise<T>
 ): Promise<T> {
   const id = ++markID
+
+  log.debug(`Executing ${cmd}`)
+  const startTime = performance && performance.now ? performance.now() : null
+
   markBegin(id, cmd)
-  const result = await fn()
-  markEnd(id, cmd)
-  return result
+  try {
+    return await fn()
+  } finally {
+    if (startTime) {
+      const rawTime = performance.now() - startTime
+      if (rawTime > 1000) {
+        const timeInSeconds = (rawTime / 1000).toFixed(3)
+        log.info(`Executing ${cmd} (took ${timeInSeconds}s)`)
+      }
+    }
+
+    markEnd(id, cmd)
+  }
 }
 
 /** Mark the beginning of a git operation. */

@@ -1,5 +1,63 @@
 {
   "releases": {
+    "1.0.10-beta0": [
+      "[New] ColdFusion Builder is now available as an option for External Editor - #3336 #3321. Thanks @AtomicCons!",
+      "[New] Swift code is now syntax highlighted - #3305. Thanks @agisilaos!",
+      "[Improved] Better message on the 'Publish Branch' button when HEAD is unborn - #3344. Thanks @Venkat5694!",
+      "[Improved] Better error message when trying to push to an archived repository - #3084. Thanks @agisilaos!",
+      "[Fixed] Parse changed files whose paths include a newline - #3271",
+      "[Fixed] Parse file type changes - #3334",
+      "[Fixed] Windows: 'Open without Git' would present the dialog again instead of actually opening a shell without git - #3290",
+      "[Fixed] Avoid text selection when dragging resizable dividers - #3268"
+    ],
+    "1.0.9": [
+      "[New] ColdFusion Builder is now available as an option for External Editor - #3336 #3321. Thanks @AtomicCons!",
+      "[New] Swift code is now syntax highlighted - #3305. Thanks @agisilaos!",
+      "[Improved] Better message on the 'Publish Branch' button when HEAD is unborn - #3344. Thanks @Venkat5694!",
+      "[Improved] Better error message when trying to push to an archived repository - #3084. Thanks @agisilaos!",
+      "[Fixed] Parse changed files whose paths include a newline - #3271",
+      "[Fixed] Parse file type changes - #3334",
+      "[Fixed] Windows: 'Open without Git' would present the dialog again instead of actually opening a shell without git - #3290",
+      "[Fixed] Avoid text selection when dragging resizable dividers - #3268"
+    ],
+    "1.0.9-beta1": [
+      "[New] ColdFusion Builder is now available as an option for External Editor - #3336 #3321. Thanks @AtomicCons!",
+      "[New] Swift code is now syntax highlighted - #3305. Thanks @agisilaos!",
+      "[Improved] Better message on the 'Publish Branch' button when HEAD is unborn - #3344. Thanks @Venkat5694!",
+      "[Improved] Better error message when trying to push to an archived repository - #3084. Thanks @agisilaos!",
+      "[Fixed] Parse changed files whose paths include a newline - #3271",
+      "[Fixed] Parse file type changes - #3334",
+      "[Fixed] Windows: 'Open without Git' would present the dialog again instead of actually opening a shell without git - #3290",
+      "[Fixed] Avoid text selection when dragging resizable dividers - #3268"
+    ],
+    "1.0.9-beta0": [
+      "[Fixed] Crash when rendering diffs for certain types of files - #3249",
+      "[Fixed] Continually being prompted to add the upstream remote, even when it already exists - #3252"
+    ],
+    "1.0.8": [
+      "[Fixed] Crash when rendering diffs for certain types of files - #3249",
+      "[Fixed] Continually being prompted to add the upstream remote, even when it already exists - #3252"
+    ],
+    "1.0.8-beta0": [
+      "[New] Syntax highlighted diffs - #3101",
+      "[New] Add upstream to forked repositories - #2364",
+      "[Fixed] Only reset scale of title bar on macOS - #3193",
+      "[Fixed] Filter symbolic refs in the branch list - #3196",
+      "[Fixed] Address path issue with invoking Git Bash - #3186",
+      "[Fixed] Update embedded Git to support repository hooks and better error messages - #3067 #3079",
+      "[Fixed] Provide credentials to LFS repositories when performing checkout - #3167",
+      "[Fixed] Assorted changelog typos - #3174 #3184 #3207. Thanks @strafe, @alanaasmaa and @jt2k!"
+    ],
+    "1.0.7": [
+      "[New] Syntax highlighted diffs - #3101",
+      "[New] Add upstream to forked repositories - #2364",
+      "[Fixed] Only reset scale of title bar on macOS - #3193",
+      "[Fixed] Filter symbolic refs in the branch list - #3196",
+      "[Fixed] Address path issue with invoking Git Bash - #3186",
+      "[Fixed] Update embedded Git to support repository hooks and better error messages - #3067 #3079",
+      "[Fixed] Provide credentials to LFS repositories when performing checkout - #3167",
+      "[Fixed] Assorted changelog typos - #3174 #3184 #3207. Thanks @strafe, @alanaasmaa and @jt2k!"
+    ],
     "1.0.7-beta0": [
       "[Fixed] The Branches list wouldn't display the branches for non-GitHub repositories - #3169",
       "[Fixed] Pushing or pulling could error when the temp directory was unavailable - #3046"
@@ -51,7 +109,7 @@
       "[Fixed] Avatars not updating after signing in - #2911",
       "[Fixed] Lots of bugs if there was a file named \"HEAD\" in the repository - #3009 #2721 #2938",
       "[Fixed] Handle duplicate config values when saving user.name and user.email - #2945",
-      "[Fixed] The \"Create without pushing\" button when creating a new pull request wouldn't actually do anything - #2917 #2917"
+      "[Fixed] The \"Create without pushing\" button when creating a new pull request wouldn't actually do anything - #2917"
     ],
     "1.0.4-beta1": [
       "[New] Report Git LFS progress when cloning, pushing, pulling, or reverting - #2226",

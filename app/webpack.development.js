@@ -12,6 +12,7 @@ const config = {
 const mainConfig = merge({}, common.main, config)
 const askPassConfig = merge({}, common.askPass, config)
 const cliConfig = merge({}, common.cli, config)
+const highlighterConfig = merge({}, common.highlighter, config)
 
 const rendererConfig = merge({}, common.renderer, config, {
   entry: {
@@ -57,4 +58,5 @@ module.exports = [
   askPassConfig,
   crashConfig,
   cliConfig,
+  highlighterConfig,
 ]

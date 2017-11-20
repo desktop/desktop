@@ -1,4 +1,6 @@
+/* tslint:disable:no-sync-functions */
 /* eslint-disable no-sync */
+/// <reference path="./globals.d.ts" />
 
 import * as path from 'path'
 import * as cp from 'child_process'
@@ -231,8 +233,8 @@ function copyDependencies() {
     Object.keys(newDependencies).length ||
     Object.keys(newDevDependencies).length
   ) {
-    console.log('  Installing npm dependencies…')
-    cp.execSync('npm install', { cwd: outRoot, env: process.env })
+    console.log('  Installing dependencies via yarn…')
+    cp.execSync('yarn install', { cwd: outRoot, env: process.env })
   }
 
   if (!isPublishableBuild) {

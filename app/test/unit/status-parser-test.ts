@@ -88,4 +88,28 @@ describe('parsePorcelainStatus', () => {
     expect(entries[i++].value).to.equal('branch.upstream origin/master')
     expect(entries[i++].value).to.equal('branch.ab +1 -0')
   })
+
+  it('parses a path which includes a newline', () => {
+    const x = `1 D. N... 100644 000000 000000 dc9fb24e86f7445720b39dcb39a7fc0e410d9583 0000000000000000000000000000000000000000 ProjectSID/Images.xcassets/iPhone 67/Status Center/Report X68 Y461
+      /.DS_Store`
+    const entries = parsePorcelainStatus(x) as ReadonlyArray<IStatusEntry>
+
+    expect(entries.length).to.equal(1)
+
+    expect(entries[0].path).to
+      .equal(`ProjectSID/Images.xcassets/iPhone 67/Status Center/Report X68 Y461
+      /.DS_Store`)
+    expect(entries[0].statusCode).to.equal('D.')
+  })
+
+  it('parses a typechange', () => {
+    const x =
+      '1 .T N... 120000 120000 100755 6165716e8b408ad09b51d1a37aa1ef50e7f84376 6165716e8b408ad09b51d1a37aa1ef50e7f84376 pdf_linux-x64/lib/libQt5Core.so.5'
+    const entries = parsePorcelainStatus(x) as ReadonlyArray<IStatusEntry>
+
+    expect(entries.length).to.equal(1)
+
+    expect(entries[0].path).to.equal('pdf_linux-x64/lib/libQt5Core.so.5')
+    expect(entries[0].statusCode).to.equal('.T')
+  })
 })

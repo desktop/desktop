@@ -22,7 +22,7 @@ import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import {
-  FileChange,
+  CommittedFileChange,
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../../models/status'
@@ -107,6 +107,7 @@ import { BranchesTab } from '../../models/branches-tab'
 import { PullRequestStore } from './pull-request-store'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
+import { PullRequestUpdater } from './helpers/pull-request-updater'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -138,6 +139,9 @@ export class AppStore {
 
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
+
+  /** The pull request updater for the currently selected repository */
+  private currentPullRequestUpdater: PullRequestUpdater | null = null
 
   private repositoryState = new Map<string, IRepositoryState>()
   private showWelcomeFlow = false
@@ -296,6 +300,9 @@ export class AppStore {
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
+
+    pullRequestStore.onDidError(error => this.emitError(error))
+    pullRequestStore.onDidUpdate(() => this.emitUpdate())
   }
 
   /** Load the emoji from disk. */
@@ -367,7 +374,7 @@ export class AppStore {
           sha: null,
           file: null,
         },
-        changedFiles: new Array<FileChange>(),
+        changedFiles: new Array<CommittedFileChange>(),
         history: new Array<string>(),
         diff: null,
       },
@@ -670,7 +677,7 @@ export class AppStore {
     this.updateHistoryState(repository, state => {
       const commitChanged = state.selection.sha !== sha
       const changedFiles = commitChanged
-        ? new Array<FileChange>()
+        ? new Array<CommittedFileChange>()
         : state.changedFiles
       const file = commitChanged ? null : state.selection.file
       const selection = { sha, file }
@@ -690,7 +697,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeHistoryFileSelection(
     repository: Repository,
-    file: FileChange
+    file: CommittedFileChange
   ): Promise<void> {
     this.updateHistoryState(repository, state => {
       const selection = { sha: state.selection.sha, file }
@@ -748,6 +755,7 @@ export class AppStore {
     this.emitUpdate()
 
     this.stopBackgroundFetching()
+    this.stopPullRequestUpdater()
 
     if (!repository) {
       return Promise.resolve(null)
@@ -795,15 +803,15 @@ export class AppStore {
     // for edge cases where _selectRepository is re-entract, calling this here
     // ensures we clean up the existing background fetcher correctly (if set)
     this.stopBackgroundFetching()
+    this.stopPullRequestUpdater()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
+    this.startPullRequestUpdater(repository)
     this.refreshMentionables(repository)
 
-    if (repository instanceof Repository) {
-      return this._repositoryWithRefreshedGitHubRepository(repository)
-    } else {
-      return repository
-    }
+    this.addUpstreamRemoteIfNeeded(repository)
+
+    return this._repositoryWithRefreshedGitHubRepository(repository)
   }
 
   public async _updateIssues(repository: GitHubRepository) {
@@ -839,6 +847,44 @@ export class AppStore {
     }
 
     this.gitHubUserStore.updateMentionables(gitHubRepository, account)
+  }
+
+  private startPullRequestUpdater(repository: Repository) {
+    if (this.currentPullRequestUpdater) {
+      fatalError(
+        `A pull request updater is already active and cannot start updating on ${repository.name}`
+      )
+
+      return
+    }
+
+    if (!repository.gitHubRepository) {
+      return
+    }
+
+    const account = getAccountForRepository(this.accounts, repository)
+
+    if (!account) {
+      return
+    }
+
+    const updater = new PullRequestUpdater(
+      repository.gitHubRepository,
+      account,
+      this.pullRequestStore
+    )
+    this.currentPullRequestUpdater = updater
+
+    this.currentPullRequestUpdater.start()
+  }
+
+  private stopPullRequestUpdater() {
+    const updater = this.currentPullRequestUpdater
+
+    if (updater) {
+      updater.stop()
+      this.currentPullRequestUpdater = null
+    }
   }
 
   private startBackgroundFetching(
@@ -1335,6 +1381,7 @@ export class AppStore {
       this.refreshAuthor(repository),
       gitStore.loadContextualCommitMessage(),
       refreshSectionPromise,
+      gitStore.loadUpstreamRemote(),
     ])
   }
 
@@ -1767,6 +1814,15 @@ export class AppStore {
         )
 
         this.updatePushPullFetchProgress(repository, null)
+
+        const prUpdater = this.currentPullRequestUpdater
+        if (prUpdater) {
+          const state = this.getRepositoryState(repository)
+          const currentPR = state.branchesState.currentPullRequest
+          if (currentPR) {
+            prUpdater.didPushPullRequest(currentPR)
+          }
+        }
       }
     })
   }
@@ -1833,7 +1889,7 @@ export class AppStore {
       const remote = gitStore.remote
 
       if (!remote) {
-        return Promise.reject(new Error('The repository has no remotes.'))
+        throw new Error('The repository has no remotes.')
       }
 
       const state = this.getRepositoryState(repository)
@@ -2798,9 +2854,10 @@ export class AppStore {
       return Promise.resolve()
     }
 
-    const pullRequests = await this.pullRequestStore.refreshPullRequests(
-      gitHubRepository,
-      account
+    await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
+
+    const pullRequests = await this.pullRequestStore.getPullRequests(
+      gitHubRepository
     )
 
     this.updateStateWithPullRequests(pullRequests, repository, gitHubRepository)
@@ -2873,5 +2930,43 @@ export class AppStore {
 
     const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
     await this._openInBrowser(baseURL)
+  }
+
+  public async _updateExistingUpstreamRemote(
+    repository: Repository
+  ): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    await gitStore.updateExistingUpstreamRemote()
+
+    return this._refreshRepository(repository)
+  }
+
+  private getIgnoreExistingUpstreamRemoteKey(repository: Repository): string {
+    return `repository/${repository.id}/ignoreExistingUpstreamRemote`
+  }
+
+  public _ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
+    const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
+    localStorage.setItem(key, '1')
+
+    return Promise.resolve()
+  }
+
+  private getIgnoreExistingUpstreamRemote(
+    repository: Repository
+  ): Promise<boolean> {
+    const key = this.getIgnoreExistingUpstreamRemoteKey(repository)
+    const value = localStorage.getItem(key)
+    return Promise.resolve(value === '1')
+  }
+
+  private async addUpstreamRemoteIfNeeded(repository: Repository) {
+    const gitStore = this.getGitStore(repository)
+    const ignored = await this.getIgnoreExistingUpstreamRemote(repository)
+    if (ignored) {
+      return
+    }
+
+    return gitStore.addUpstreamRemoteIfNeeded()
   }
 }

@@ -9,7 +9,7 @@ export type DropdownState = 'open' | 'closed'
 
 export interface IToolbarDropdownProps {
   /** The primary button text, describing its function */
-  readonly title?: string
+  readonly title?: string | JSX.Element
 
   /** An optional description of the function of the button */
   readonly description?: string | JSX.Element
@@ -272,7 +272,7 @@ export class ToolbarDropdown extends React.Component<
     )
   }
 
-  private onRef = (ref: ToolbarButton) => {
+  private onRef = (ref: ToolbarButton | null) => {
     this.innerButton = ref
   }
 

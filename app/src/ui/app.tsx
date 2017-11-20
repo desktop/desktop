@@ -80,6 +80,7 @@ import { InitializeLFS, AttributeMismatch } from './lfs'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
+import { UpstreamAlreadyExists } from './upstream-already-exists/index'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1021,7 +1022,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <InstallGit
             key="install-git"
             onDismissed={this.onPopupDismissed}
-            onOpenShell={this.onOpenShell}
+            onOpenShell={this.onOpenShellIgnoreWarning}
             path={popup.path}
           />
         )
@@ -1135,9 +1136,27 @@ export class App extends React.Component<IAppProps, IAppState> {
             onUpdateExistingFilters={this.updateExistingLFSFilters}
           />
         )
+      case PopupType.UpstreamAlreadyExists:
+        return (
+          <UpstreamAlreadyExists
+            repository={popup.repository}
+            existingRemote={popup.existingRemote}
+            onDismissed={this.onPopupDismissed}
+            onUpdate={this.onUpdateExistingUpstreamRemote}
+            onIgnore={this.onIgnoreExistingUpstreamRemote}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onUpdateExistingUpstreamRemote = (repository: Repository) => {
+    this.props.dispatcher.updateExistingUpstreamRemote(repository)
+  }
+
+  private onIgnoreExistingUpstreamRemote = (repository: Repository) => {
+    this.props.dispatcher.ignoreExistingUpstreamRemote(repository)
   }
 
   private updateExistingLFSFilters = () => {
@@ -1161,8 +1180,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private onOpenShell = (path: string) => {
-    this.props.dispatcher.openShell(path)
+  private onOpenShellIgnoreWarning = (path: string) => {
+    this.props.dispatcher.openShell(path, true)
     this.onPopupDismissed()
   }
 

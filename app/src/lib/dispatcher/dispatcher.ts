@@ -5,7 +5,10 @@ import { Disposable } from 'event-kit'
 
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
-import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  CommittedFileChange,
+} from '../../models/status'
 import { DiffSelection } from '../../models/diff'
 import {
   RepositorySection,
@@ -145,7 +148,7 @@ export class Dispatcher {
    */
   public changeHistoryFileSelection(
     repository: Repository,
-    file: FileChange
+    file: CommittedFileChange
   ): Promise<void> {
     return this.appStore._changeHistoryFileSelection(repository, file)
   }
@@ -570,9 +573,12 @@ export class Dispatcher {
   }
 
   /** Opens a Git-enabled terminal setting the working directory to the repository path */
-  public async openShell(path: string): Promise<void> {
+  public async openShell(
+    path: string,
+    ignoreWarning: boolean = false
+  ): Promise<void> {
     const gitFound = await isGitOnPath()
-    if (gitFound) {
+    if (gitFound || ignoreWarning) {
       this.appStore._openShell(path)
     } else {
       this.appStore._showPopup({ type: PopupType.InstallGit, path })
@@ -1061,5 +1067,17 @@ export class Dispatcher {
   /** Refresh the list of open pull requests for the repository. */
   public refreshPullRequests(repository: Repository): Promise<void> {
     return this.appStore._refreshPullRequests(repository)
+  }
+
+  /**
+   * Update the existing `upstream` remote to point to the repository's parent.
+   */
+  public updateExistingUpstreamRemote(repository: Repository): Promise<void> {
+    return this.appStore._updateExistingUpstreamRemote(repository)
+  }
+
+  /** Ignore the existing `upstream` remote. */
+  public ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
+    return this.appStore._ignoreExistingUpstreamRemote(repository)
   }
 }
