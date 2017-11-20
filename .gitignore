@@ -1,8 +1,8 @@
-out/
+out/log/
 dist/
 node_modules/
 npm-debug.log
 app/node_modules/
-DS_Store.log
-awcache.log
-idea/
+.DS_Store
+.awcache
+.idea/
