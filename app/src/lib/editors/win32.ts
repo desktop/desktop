@@ -177,8 +177,12 @@ function extractApplicationInformation(
       // Sublime Text bakes the build number into the DisplayName value, so for
       // forward-compatibility whenever they decide to drop a new build let's
       // use this entry which doesn't contain the version number
-      if (item.name === 'Inno Setup: Icon Group') {
-        displayName = item.value
+      if (
+        item.name === 'DisplayName' &&
+        item.value &&
+        item.value.startsWith('Sublime Text')
+      ) {
+        displayName = 'Sublime Text'
       } else if (item.name === 'Publisher') {
         publisher = item.value
       } else if (item.name === 'InstallLocation') {
