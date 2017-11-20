@@ -1,9 +1,9 @@
 ### Download Desktop
   - [ ] User can download latest (Mac & Windows) Desktop from https://desktop.github.com/    
     - [ ] Mac: https://central.github.com/deployments/desktop/desktop/latest/darwin
-      - [ ] Homebrew package manager: $ brew cask install github-desktop
+      - [ ] Homebrew package manager: `$ brew cask install github-desktop`
     - [ ] Windows: https://central.github.com/deployments/desktop/desktop/latest/win32
-      - [ ] Chocolatey package manager: c:\> choco install github-desktop
+      - [ ] Chocolatey package manager: `c:\> choco install github-desktop`
       - [ ] 64-bit and up
     - [ ] Data is retained if you download and open a fresh copy
   - [ ] Release notes page is up-to-date
@@ -11,7 +11,7 @@
   - [ ] 'Please update' notifcation shown in Classic apps
 
 ### Welcome Flow
-  - [ ] Create your account (/join?source=github-desktop)
+  - [ ] Create your account (`/join?source=github-desktop`)
     - [ ] User is not automatically logged into Desktop post account creation
   - [ ] `Sign in to Github.com` link
     - [ ] `Sign in` successful if valid username/email and password
@@ -21,7 +21,7 @@
 	  - [ ] User sees Repository landing page if sign in successful
 	  - [ ] Error message if code is wrong or inactive 
       - [ ] Error message if incorrect username/email or password
-    - [ ] Forgot link (/password_reset)
+    - [ ] Forgot link (`/password_reset`)
     - [ ] `Cancel` returns to initial Welcome Flow
     - [ ] `Sign in using your browser` opens default browser
       - [ ] Browser login, "authorize" GitHub Desktop, “accept” link
@@ -46,7 +46,7 @@
     - [ ] `Cancel` returns to initial Configure Git page
 
 ### Repositories landing page; default no repositories 
-  - [ ] Create New Repository (Mac: ⌘N; Windows: Ctrl+N)
+  - [ ] Create New Repository (Mac: `⌘N`; Windows: `Ctrl+N`)
     - [ ] Modal opens with name, path (choose option), readme (unchecked), git ignore, license. Name and path mandatory.
       - [ ] If `Add this repository` warning message appears, clicking it adds to Repo list
       - [ ] If repository name is over 100 characterers, warning message is surfaced in modal
@@ -54,8 +54,8 @@
     - [ ] `Create Repository` button adds new repo, which is added to Repo list
     - [ ] `Cancel` button does not save any changes made; modal closed
     - [ ] User cannot create a new repo inside a locked local directory 
-  - [ ] Clone a Repository (Mac: ⇧⌘O; Windows: Ctrl+Shift+O)
-    - [ ] Enter valid URL or username/repo/gist, else error message
+  - [ ] Clone a Repository (Mac: `⇧⌘O`; Windows: `Ctrl+Shift+O`)
+    - [ ] Enter valid URL or `username/repo/gist`, else error message
       - [ ] If authentication error for Github.com, modal with username/password surfaced; `Cancel` or `Save and Retry` buttons
         - [ ] If successful, repo is cloned
 	- [ ] Modal surfaces again if unsuccessful
@@ -68,14 +68,14 @@
     - [ ] `Clone` creates repo at selected path
       - [ ] Repo added to Repo list
     - [ ] `Cancel` closes modal, no repo cloned
-  - [ ] Add a Local Repository (Mac: ⌘O; Windows: Ctrl+O)
+  - [ ] Add a Local Repository (Mac: `⌘O`; Windows: `Ctrl+O`)
     - [ ] Valid path can be entered or selected
     - [ ] `Add repository` activated if repo path exists
       - [ ] Repo added to Repo list
       - [ ] If directory path not valid, 'Create a new repo' error message is present
     - [ ] `Cancel` closes modal, no repo added
     - [ ] Large repos (> 100MB) trigger Initialize Git LFS modal
-      - [ ] Link takes user to (https://git-lfs.github.com/)
+      - [ ] Link takes user to (`https://git-lfs.github.com/`)
       - [ ] Local path to repo is displayed
       - [ ] User can click `Cancel` or `Initialize Git LFS`
   - [ ] Drag and drop repository
@@ -97,7 +97,7 @@
   - [ ] Minimize, Maximize, Close buttons work in top nav
       - [ ] If user zooms in and quits app, settings should be retained when reopened
   - [ ] Double-clicking local desktop icon opens the application (Mac only)
-  - [ ] Double clicking top nav bar toggles full-screen / last used screen-size (Mac only); Exit by (Mac: ^⌘f11; Windows: Alt)
+  - [ ] Double clicking top nav bar toggles full-screen / last used screen-size (Mac only); Exit by (Mac: `^⌘f11`; Windows: `Alt`)
   - [ ] Clicking Desktop icon in dock/taskbar opens the application
   - [ ] Changing desktop icon name while app is open results in package error; closed app name change is successful
 
@@ -116,7 +116,7 @@
       - [ ] If checking for update or download latest update, the `Check for updates` button is disabled
       - [ ] Restarting the app automatically checks for updates
     - [ ] `Close` button closes modal 
-  - [ ] Preferences/Options (Mac/Windows: ⌘,)
+  - [ ] Preferences/Options (Mac/Windows: `⌘,`)
     - [ ] Accounts
       - [ ] GitHub.com name, handle, avatar, `sign out` button, if user signed in
       - [ ] Enterprise handle, avatar, `sign out` button, if user signed in
@@ -141,50 +141,50 @@
   - [ ] Install command line tool installs tool at `/usr/local/bin/github` (Mac only as Windows done automagically, Helper may require password, else error message)
     - [ ] If already installed, user sees: "The command line tool has been installed at /usr/local/bin/github"
     - [ ] Clicking `OK` closes modal
-  - [ ] Quit/Exit Desktop (Mac: ⌘Q)
+  - [ ] Quit/Exit Desktop (Mac: `⌘Q`)
     - [ ] Quitting/Exiting and reopening Desktop returns you to last visited repo
 
 ### File top-level menu
-  - [ ] Create New Repository (Mac: ⌘N; Windows: Ctrl+N)
-  - [ ] Clone a Repository (Mac: ⇧⌘O; Windows: Ctrl+Shift+O)
-  - [ ] Add a Local Repository (Mac: ⌘O; Windows: Ctrl+O)
-  - [ ] Options... (Windows only: Ctrl+,)
+  - [ ] Create New Repository (Mac: `⌘N`; Windows: `Ctrl+N`)
+  - [ ] Clone a Repository (Mac: `⇧⌘O`; Windows: `Ctrl+Shift+O`)
+  - [ ] Add a Local Repository (Mac: `⌘O`; Windows: `Ctrl+O`)
+  - [ ] Options... (Windows only: `Ctrl+,`)
   - [ ] Exit (Windows only; quits the app)
 
 ### Edit top-level menu
-  - [ ] Undo (Mac: ⌘Z; Windows: Ctrl+Z)
-  - [ ] Redo (Mac: ⇧⌘Z; Windows: Ctrl+Y)
-  - [ ] Cut (Mac: ⌘X; Windows: Ctrl+X)
-  - [ ] Copy (Mac: ⌘C; Windows: Ctrl+C)
-  - [ ] Paste (Mac: ⌘V; Windows: Ctrl+V)
-  - [ ] Select all (Mac: ⌘A; Windows: Ctrl+A)
+  - [ ] Undo (Mac: `⌘Z`; Windows: `Ctrl+Z`)
+  - [ ] Redo (Mac: `⇧⌘Z`; Windows: `Ctrl+Y`)
+  - [ ] Cut (Mac: `⌘X`; Windows: `Ctrl+X`)
+  - [ ] Copy (Mac: `⌘C`; Windows: `Ctrl+C`)
+  - [ ] Paste (Mac: `⌘V`; Windows: `Ctrl+V`)
+  - [ ] Select all (Mac: `⌘A`; Windows: `Ctrl+A`)
 
 ### View top-level menu
-  - [ ] Show Changes (Mac: ⌘1; Windows: Ctrl+1)
-  - [ ] Show History (Mac: ⌘2; Windows: Ctrl+2)
-  - [ ] Show Repositories List (Mac: ⌘T; Windows: Ctrl+T)
-  - [ ] Show Branches List (Mac: ⌘B; Windows: Ctrl+B)
-  - [ ] Enter Full Zoom (Mac: ^⌘F; Windows: F11)
-  - [ ] Reset Zoom (Mac: ⌘0; Windows: Ctrl+0)
-  - [ ] Zoom In (Mac: ⌘=; Windows: Ctrl+=)
-  - [ ] Zoom Out (Mac: ⌘-; Windows: Ctrl+-)
-  - [ ] Toggle Developer Tools (Mac: ⌥⌘I; Windows: Ctrl+Shift+I)
+  - [ ] Show Changes (Mac: `⌘1`; Windows: `Ctrl+1`)
+  - [ ] Show History (Mac: `⌘2`; Windows: `Ctrl+2`)
+  - [ ] Show Repositories List (Mac: `⌘T`; Windows: `Ctrl+T`)
+  - [ ] Show Branches List (Mac: `⌘B`; Windows: `Ctrl+B`)
+  - [ ] Enter Full Zoom (Mac: `^⌘F`; Windows: `F11`)
+  - [ ] Reset Zoom (Mac: `⌘0`; Windows: `Ctrl+0`)
+  - [ ] Zoom In (Mac: `⌘=`; Windows: `Ctrl+=`)
+  - [ ] Zoom Out (Mac: `⌘-`; Windows: `Ctrl+-`)
+  - [ ] Toggle Developer Tools (Mac: `⌥⌘I`; Windows: `Ctrl+Shift+I`)
 
 ### Repository top-level menu. (Only enabled if one repo present)
-  - [ ] Push (Mac: ⌘P; Windows: Ctrl+P)
+  - [ ] Push (Mac: `⌘P`; Windows: `Ctrl+P`)
     - [ ] Commits from repo pushed to .com; error message shown if conflicts
-  - [ ] Pull (Mac: ⇧⌘P; Windows: Ctrl+Shirt+P)
+  - [ ] Pull (Mac: `⇧⌘P`; Windows: `Ctrl+Shirt+P`)
     - [ ] Commits from repo pulled from .com; error message shown if conflicts
   - [ ] Remove
     - [ ] Repo is removed from Repo List; confirmation dialgue shown if Preferences option enabled
-  - [ ] View on GitHub (Mac: ⌥⌘G; Windows: Ctrl+Alt+G)
+  - [ ] View on GitHub (Mac: `⌥⌘G`; Windows: `Ctrl+Alt+G`)
     - [ ] Repo on .com is opened; must be logged in if private repo or Enterprise
-  - [ ] Open in Terminal/Command prompt
+  - [ ] Open in Terminal/Command prompt (Mac: `^``; Windows: )
     - [ ] Local repo is opened
     - [ ] If git not installed, modal asks to Open with Git or Install Git
-  - [ ] Show in Finder/Explorer (Mac: ⇧⌘F; Windows: Ctrl+Shift+F)
+  - [ ] Show in Finder/Explorer (Mac: `⇧⌘F`; Windows: `Ctrl+Shift+F`)
     - [ ] Local repo is opened
-  - [ ] Open in External Editor (Mac: ⇧⌘A; Windows: Ctrl+Shift+A); see External Editor option in prefs
+  - [ ] Open in External Editor (Mac: `⇧⌘A`; Windows: `Ctrl+Shift+A`); see External Editor option in prefs
     - [ ] Secondary modal appears if no Editors set; option to Download Atom 
   - [ ] Repository settings
     - [ ] Remote path can be edited; origin already set. Cannot be empty string, else error message.
@@ -196,7 +196,7 @@
 	- [ ] `Cancel` button closes modal
 
 ### Branch top-level menu
-  - [ ] New Branch (Mac: ⇧⌘N; Windows: Ctrl+Shift+N)
+  - [ ] New Branch (Mac: `⇧⌘N`; Windows: `Ctrl+Shift+N`)
     - [ ] Clicking `Create Branch` makes new branch based on the entered name, if not a duplicate
     - [ ] Master branch is mentioned in the list; current branch shown first
     - [ ] `Cancel` button closes modal
@@ -210,14 +210,14 @@
     - [ ] `Delete` button deletes branch name (and remote too if option checked)
     - [ ] `Cancel` button closes modal
     - [ ] Protected branches cannot be deleted
-  - [ ] Update from Default Branch (cannot be master; Mac: ⇧⌘?; Windows: Ctrl+?)
-  - [ ] Merge into Current Branch (Mac: ⇧⌘?; Windows: Ctrl+?)
+  - [ ] Update from Default Branch (cannot be master; Mac: `⇧⌘?`; Windows: `Ctrl+?`)
+  - [ ] Merge into Current Branch (Mac: `⇧⌘?`; Windows: `Ctrl+?`)
     - [ ] Use can filter existing branches
     - [ ] User can select branch, other than current
     - [ ] `Merge` button only activated if something to merge
     - [ ] `Cancel` button closes modal
-  - [ ] Compare on GitHub (Mac: ⇧⌘C; Windows: Ctrl+Shift+C) (if repo already published on `github.com`)
-  - [ ] Create Pull request (Mac: ⌘R; Windows: Ctrl+R) opens Pull Request on `github.com` 
+  - [ ] Compare on GitHub (Mac: `⇧⌘C`; Windows: `Ctrl+Shift+C`) (if repo already published on `github.com`)
+  - [ ] Create Pull request (Mac: `⌘R`; Windows: `Ctrl+R`) opens Pull Request on `github.com` 
     - [ ] If branch unpublished, dialogue asks to publish the branch
     - [ ] `Push Local Changes` modal surfaces with option to `Create Without Pushing` and `Push Commits`;(trigger: `Create Pull Request` after commit on branch before pushing)
 
@@ -360,7 +360,7 @@
 - Relationship between branches
   - Commit/Compare tabs now occupy left pane
     - Compare tab shows branch dropdown
-      - Choose a branch from the list (same order as branch list? current branch present?) or user filter; `esc` clears filter
+      - Choose a branch from the list (same order as branch list? current branch present?) or user filter; `ESC` clears filter
        - Once branch selected, quantity of commits behind surfaced; matches commits shown
          - `Merge X commits` button is activated
            - Merge conflict count surfaced below button if relevant
