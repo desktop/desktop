@@ -8,7 +8,7 @@ import { IRepositoryState } from '../../lib/app-state'
 import { Branches } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
-import { enableBetaFeatures } from '../../lib/feature-flag'
+import { enablePRIntegration } from '../../lib/feature-flag'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestBadge } from '../branches/pull-request-badge'
 import { PathText } from '../lib/path-text'
@@ -161,7 +161,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       return null
     }
 
-    if (!enableBetaFeatures()) {
+    if (!enablePRIntegration()) {
       return null
     }
 

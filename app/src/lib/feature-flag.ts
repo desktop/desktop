@@ -22,6 +22,11 @@ export function enablePreviewFeatures(): boolean {
 }
 
 /** Should the app enable beta features? */
-export function enableBetaFeatures(): boolean {
+function enableBetaFeatures(): boolean {
   return enablePreviewFeatures() || __RELEASE_CHANNEL__ === 'beta'
+}
+
+/** Should PR integration be enabled? */
+export function enablePRIntegration(): boolean {
+  return enableBetaFeatures()
 }
