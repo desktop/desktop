@@ -5,7 +5,7 @@ const Disable = false
  * checks. This is backed by the GITHUB_DESKTOP_PREVIEW_FEATURES environment
  * variable, which is checked for non-development environments.
  */
-function enablePreviewFeatures(): boolean {
+function enableDevelopmentFeatures(): boolean {
   if (Disable) {
     return false
   }
@@ -23,7 +23,7 @@ function enablePreviewFeatures(): boolean {
 
 /** Should the app enable beta features? */
 function enableBetaFeatures(): boolean {
-  return enablePreviewFeatures() || __RELEASE_CHANNEL__ === 'beta'
+  return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
 }
 
 /** Should PR integration be enabled? */
@@ -33,5 +33,5 @@ export function enablePRIntegration(): boolean {
 
 /** Should merge tool integration be enabled? */
 export function enableMergeTool(): boolean {
-  return enablePreviewFeatures()
+  return enableDevelopmentFeatures()
 }
