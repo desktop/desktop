@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as moment from 'moment'
 
 import { Octicon, OcticonSymbol } from '../octicons'
+import { PathText } from '../lib/path-text'
 
 interface IBranchProps {
   readonly name: string
@@ -26,9 +27,7 @@ export class BranchListItem extends React.Component<IBranchProps, {}> {
     return (
       <div className="branches-list-item">
         <Octicon className="icon" symbol={icon} />
-        <div className="name" title={name}>
-          {name}
-        </div>
+        <PathText path={name} className="name" />
         <div className="description" title={infoTitle}>
           {date}
         </div>

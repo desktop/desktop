@@ -11,6 +11,7 @@ import { BranchesTab } from '../../models/branches-tab'
 import { enableBetaFeatures } from '../../lib/feature-flag'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestBadge } from '../branches/pull-request-badge'
+import { PathText } from '../lib/path-text'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -86,7 +87,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
     let icon = OcticonSymbol.gitBranch
     let iconClassName: string | undefined = undefined
-    let title: string
+    let title: string | JSX.Element
     let description = __DARWIN__ ? 'Current Branch' : 'Current branch'
     let canOpen = true
     let tooltip: string
@@ -108,8 +109,8 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       icon = OcticonSymbol.gitCommit
       description = 'Detached HEAD'
     } else if (tip.kind === TipState.Valid) {
-      title = tip.branch.name
-      tooltip = `Current branch is ${title}`
+      title = <PathText path={tip.branch.name} />
+      tooltip = `Current branch is ${tip.branch.name}`
     } else {
       return assertNever(tip, `Unknown tip state: ${tipKind}`)
     }
@@ -118,7 +119,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     let progressValue: number | undefined = undefined
 
     if (checkoutProgress) {
-      title = checkoutProgress.targetBranch
+      title = <PathText path={checkoutProgress.targetBranch} />
       description = __DARWIN__ ? 'Switching to Branch' : 'Switching to branch'
 
       if (checkoutProgress.value > 0) {

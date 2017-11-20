@@ -2,6 +2,9 @@
 
 .path-text-component {
   @include ellipsis;
+  max-width: 100%;
 
-  .dirname { color: var(--text-secondary-color); }
+  .dirname {
+    color: var(--text-secondary-color);
+  }
 }
