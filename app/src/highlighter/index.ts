@@ -14,10 +14,12 @@ import { ITokens, IHighlightRequest } from '../lib/highlighter/types'
 const extensionMIMEMap = new Map<string, string>()
 
 import 'codemirror/mode/javascript/javascript'
-
 extensionMIMEMap.set('.ts', 'text/typescript')
 extensionMIMEMap.set('.js', 'text/javascript')
 extensionMIMEMap.set('.json', 'application/json')
+
+import 'codemirror/mode/coffeescript/coffeescript'
+extensionMIMEMap.set('.coffee', 'text/x-coffeescript')
 
 import 'codemirror/mode/jsx/jsx'
 extensionMIMEMap.set('.tsx', 'text/typescript-jsx')
@@ -31,6 +33,9 @@ import 'codemirror/mode/css/css'
 extensionMIMEMap.set('.css', 'text/css')
 extensionMIMEMap.set('.scss', 'text/x-scss')
 extensionMIMEMap.set('.less', 'text/x-less')
+
+import 'codemirror/mode/vue/vue'
+extensionMIMEMap.set('.vue', 'text/x-vue')
 
 import 'codemirror/mode/markdown/markdown'
 extensionMIMEMap.set('.markdown', 'text/x-markdown')
@@ -47,7 +52,7 @@ extensionMIMEMap.set('.csproj', 'text/xml')
 extensionMIMEMap.set('.svg', 'text/xml')
 
 import 'codemirror/mode/clike/clike'
-extensionMIMEMap.set('.objc', 'text/x-objectivec')
+extensionMIMEMap.set('.m', 'text/x-objectivec')
 extensionMIMEMap.set('.scala', 'text/x-scala')
 extensionMIMEMap.set('.sc', 'text/x-scala')
 extensionMIMEMap.set('.cs', 'text/x-csharp')
