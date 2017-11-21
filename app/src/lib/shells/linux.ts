@@ -7,6 +7,8 @@ export enum Shell {
   Gnome = 'GNOME Terminal',
   Tilix = 'Tilix',
   Urxvt = 'URxvt',
+  Konsole = 'Konsole',
+  Xterm = 'XTerm',
 }
 
 export const Default = Shell.Gnome
@@ -24,6 +26,14 @@ export function parse(label: string): Shell {
     return Shell.Urxvt
   }
 
+  if (label === Shell.Konsole) {
+    return Shell.Konsole
+  }
+
+  if (lable === Shell.Xterm) {
+    return Shell.Xterm
+  }
+
   return Default
 }
 
@@ -39,6 +49,10 @@ function getShellPath(shell: Shell): Promise<string | null> {
       return getPathIfAvailable('/usr/bin/tilix')
     case Shell.Urxvt:
       return getPathIfAvailable('/usr/bin/urxvt')
+    case Shell.Konsole:
+      return getPathIfAvailable('/usr/bin/konsole')
+    case Shell.Xterm:
+      return getPathIfAvailable('/usr/bin/xterm')
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
@@ -47,10 +61,16 @@ function getShellPath(shell: Shell): Promise<string | null> {
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const [gnomeTerminalPath, tilixPath, urxvtPath] = await Promise.all([
+  const [gnomeTerminalPath,
+         tilixPath,
+         urxvtPath,
+         konsolePath,
+         xtermPath] = await Promise.all([
     getShellPath(Shell.Gnome),
     getShellPath(Shell.Tilix),
     getShellPath(Shell.Urxvt),
+    getShellPath(Shell.Konsole),
+    getShellPath(Shell.Xterm),
   ])
 
   const shells: Array<IFoundShell<Shell>> = []
@@ -66,6 +86,14 @@ export async function getAvailableShells(): Promise<
     shells.push({ shell: Shell.Urxvt, path: urxvtPath })
   }
 
+  if (konsolePath) {
+    shells.push({ shell: Shell.Konsole, path: konsolePath })
+  }
+
+  if (xtermPath) {
+    shells.push({ shell: Shell.Xterm, path: xtermPath})
+  }
+
   return shells
 }
 
@@ -73,10 +101,18 @@ export async function launch(
   shell: IFoundShell<Shell>,
   path: string
 ): Promise<void> {
-  // Urxvt requires specific arguments when launched as a command
   if (shell.shell === Shell.Urxvt) {
-    // /usr/bin/urxvt -cd /path/to/project/
     const commandArgs = ['-cd', path]
+    await spawn(shell.path, commandArgs)
+  }
+
+  if (shell.shell === Shell.Konsole) {
+    const commandArgs = ['--workdir', path]
+    await spawn(shell.path, commandArgs)
+  }
+
+  if (shell.shell === Shell.Xterm) {
+    const commandArgs = ['-e \'cd PATH && /bin/bash\''.replace('PATH', path)]
     await spawn(shell.path, commandArgs)
   }
 
