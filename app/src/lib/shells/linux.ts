@@ -30,7 +30,7 @@ export function parse(label: string): Shell {
     return Shell.Konsole
   }
 
-  if (lable === Shell.Xterm) {
+  if (label === Shell.Xterm) {
     return Shell.Xterm
   }
 
