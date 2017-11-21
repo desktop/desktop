@@ -16,8 +16,6 @@ matrix:
 addons:
   apt:
     packages:
-      # by default the container VMs have Git 1.9.1, ermagherd...
-      - git-all
       # this is required to compile keytar
       - libsecret-1-dev
       # this package is essential for testing Electron in a headless fashion
