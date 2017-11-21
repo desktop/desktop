@@ -1,5 +1,9 @@
 {
   "releases": {
+    "1.0.10-beta2": [
+      "[New] SQL is now syntax highlighted! - #3389. Thanks @say25!",
+      "[Fixed] Windows: Detect VS Code when installed to non-standard locations - #3304"
+    ],
     "1.0.10-beta1": [
       "[New] Vue.js code is now syntax highlighted! - #3368. Thanks @wanecek!",
       "[New] CoffeeScript is now syntax highlighted! - #3356. Thanks @agisilaos!",
