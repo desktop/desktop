@@ -25,6 +25,7 @@ There are several community-supported package managers that can be used to insta
       `c:\> choco install github-desktop`
  - macOS users can install using [Homebrew](https://brew.sh/) package manager:
       `$ brew cask install github`
+ - Arch Linux users can install from the AUR: https://aur.archlinux.org/packages/github-desktop-git/
 
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
