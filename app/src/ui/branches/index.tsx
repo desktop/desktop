@@ -7,7 +7,7 @@ import { BranchList } from './branch-list'
 import { TabBar } from '../tab-bar'
 import { BranchesTab } from '../../models/branches-tab'
 import { assertNever } from '../../lib/fatal-error'
-import { enablePreviewFeatures } from '../../lib/feature-flag'
+import { enablePRIntegration } from '../../lib/feature-flag'
 import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
 import { NoPullRequests } from './no-pull-requests'
@@ -83,7 +83,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       return null
     }
 
-    if (!enablePreviewFeatures()) {
+    if (!enablePRIntegration()) {
       return null
     }
 
@@ -111,7 +111,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   private renderSelectedTab() {
     let tab = this.props.selectedTab
-    if (!enablePreviewFeatures() || !this.props.repository.gitHubRepository) {
+    if (!enablePRIntegration() || !this.props.repository.gitHubRepository) {
       tab = BranchesTab.Branches
     }
 
