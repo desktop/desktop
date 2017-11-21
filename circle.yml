@@ -14,11 +14,12 @@ dependencies:
     - ".eslintcache"
     - "node_modules"
     - "~/.electron"
+    - "~/Library/Caches/Yarn/v1"
 
   pre:
     - brew update
     - brew upgrade node@8
-    - npm install -g yarn@1.3.2
+    - brew install yarn
 
   override:
     - yarn install --force
