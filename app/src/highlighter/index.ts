@@ -67,6 +67,9 @@ extensionMIMEMap.set('.swift', 'text/x-swift')
 import 'codemirror/mode/shell/shell'
 extensionMIMEMap.set('.sh', 'text/x-sh')
 
+import 'codemirror/mode/sql/sql'
+extensionMIMEMap.set('.sql', 'text/x-sql')
+
 import 'codemirror/mode/go/go'
 extensionMIMEMap.set('.go', 'text/x-go')
 
