@@ -72,7 +72,7 @@
     "html-webpack-plugin": "^2.30.1",
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.15.0",
-    "mocha": "^3.4.2",
+    "mocha": "^4.0.1",
     "node-native-loader": "^1.1.1",
     "node-sass": "^4.5.2",
     "octicons": "^7.0.1",
@@ -102,8 +102,8 @@
   },
   "devDependencies": {
     "@types/byline": "^4.2.31",
-    "@types/chai": "^4.0.3",
-    "@types/chai-datetime": "0.0.30",
+    "@types/chai": "^4.0.5",
+    "@types/chai-datetime": "^0.0.31",
     "@types/classnames": "^2.2.2",
     "@types/codemirror": "^0.0.49",
     "@types/electron-packager": "^8.7.1",
@@ -130,7 +130,7 @@
     "electron": "1.7.9",
     "electron-builder": "19.33.0",
     "electron-installer-appimage": "^1.0.1",
-    "electron-mocha": "^4.0.0",
+    "electron-mocha": "^5.0.0",
     "electron-packager": "^8.7.2",
     "electron-winstaller": "2.5.2"
   },
