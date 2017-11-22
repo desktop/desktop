@@ -190,6 +190,18 @@ app.on('ready', () => {
 
   let enableMenuGlobally = true
 
+  function setAllMenuItems(enabled: boolean) {
+    for (const item of menu.items) {
+      item.enabled = enabled
+      const subMenu = item.submenu
+      if (subMenu) {
+        for (const subMenuItem of subMenu.items) {
+          subMenuItem.enabled = enabled
+        }
+      }
+    }
+  }
+
   ipcMain.on(
     'update-menu-state',
     (
@@ -215,6 +227,7 @@ app.on('ready', () => {
           // the renderer and the main process
           if (menuItem.enabled !== newState) {
             menuItem.enabled = newState
+
             sendMenuChangedEvent = true
           }
         } else {
@@ -232,6 +245,7 @@ app.on('ready', () => {
     'set-all-menu-items',
     (event: Electron.IpcMessageEvent, enabled: boolean) => {
       enableMenuGlobally = enabled
+      setAllMenuItems(enabled)
     }
   )
 

@@ -231,11 +231,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    // if a modal is showing, ignore any menu events
-    if (this.currentPopupContent()) {
-      return
-    }
-
     switch (name) {
       case 'push':
         return this.push()
@@ -384,8 +379,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const compareURL = `${htmlURL}/compare/${branchTip.branch
-      .upstreamWithoutRemote}`
+    const compareURL = `${htmlURL}/compare/${
+      branchTip.branch.upstreamWithoutRemote
+    }`
     this.props.dispatcher.openInBrowser(compareURL)
   }
 
