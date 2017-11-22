@@ -188,7 +188,7 @@ app.on('ready', () => {
     }
   )
 
-  let menuEnabledGlobally = true
+  let enableMenuGlobally = true
 
   ipcMain.on(
     'update-menu-state',
@@ -208,7 +208,7 @@ app.on('ready', () => {
         const menuItem = findMenuItemByID(menu, id)
 
         if (menuItem) {
-          const newState = menuEnabledGlobally && state.enabled
+          const newState = enableMenuGlobally && state.enabled
 
           // Only send the updated app menu when the state actually changes
           // or we might end up introducing a never ending loop between
@@ -231,7 +231,7 @@ app.on('ready', () => {
   ipcMain.on(
     'set-all-menu-items',
     (event: Electron.IpcMessageEvent, enabled: boolean) => {
-      menuEnabledGlobally = enabled
+      enableMenuGlobally = enabled
     }
   )
 
