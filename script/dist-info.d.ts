@@ -1,8 +1,5 @@
 export function getDistRoot(): string
 export function getDistPath(): string
-export function getProductName(): string
-export function getCompanyName(): string
-export function getVersion(): string
 export function getOSXZipName(): string
 export function getOSXZipPath(): string
 export function getWindowsInstallerName(): string
@@ -11,8 +8,6 @@ export function getWindowsStandaloneName(): string
 export function getWindowsStandalonePath(): string
 export function getWindowsFullNugetPackageName(): string
 export function getWindowsFullNugetPackagePath(): string
-export function getBundleID(): string
-export function getUserDataPath(): string
 export function getWindowsIdentifierName(): string
 export function getBundleSizes(): { rendererSize: number; mainSize: number }
 export function getReleaseChannel(): string | null
@@ -23,4 +18,3 @@ export function getWindowsDeltaNugetPackagePath(): string
 export function shouldMakeDelta(): boolean
 export function getReleaseBranchName(): string
 export function getExecutableName(): string
-export function getSHA(): string

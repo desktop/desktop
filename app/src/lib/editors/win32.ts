@@ -16,7 +16,6 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.Atom) {
     return ExternalEditor.Atom
   }
-
   if (label === ExternalEditor.VisualStudioCode) {
     return ExternalEditor.VisualStudioCode
   }
@@ -111,9 +110,8 @@ function isExpectedInstallation(
       return displayName === 'Atom' && publisher === 'GitHub Inc.'
     case ExternalEditor.VisualStudioCode:
       return (
-        (displayName === 'Visual Studio Code' ||
-          displayName === 'Microsoft Visual Studio Code' ||
-          displayName === 'Visual Studio Code - Insiders') &&
+        (displayName === 'Microsoft Visual Studio Code' ||
+          displayName === 'Microsoft Visual Studio Code Insiders') &&
         publisher === 'Microsoft Corporation'
       )
     case ExternalEditor.SublimeText:
@@ -159,16 +157,34 @@ function extractApplicationInformation(
     return { displayName, publisher, installLocation }
   }
 
-  if (
-    editor === ExternalEditor.VisualStudioCode ||
-    editor === ExternalEditor.SublimeText
-  ) {
+  if (editor === ExternalEditor.VisualStudioCode) {
     for (const item of keys) {
-      if (item.name === 'Inno Setup: Icon Group') {
+      if (item.name === 'DisplayName') {
         displayName = item.value
       } else if (item.name === 'Publisher') {
         publisher = item.value
-      } else if (item.name === 'Inno Setup: App Path') {
+      } else if (item.name === 'InstallLocation') {
+        installLocation = item.value
+      }
+    }
+
+    return { displayName, publisher, installLocation }
+  }
+
+  if (editor === ExternalEditor.SublimeText) {
+    for (const item of keys) {
+      // NOTE:
+      // Sublime Text appends the build number to the DisplayName value, so for
+      // forward-compatibility let's do a simple check for the identifier
+      if (
+        item.name === 'DisplayName' &&
+        item.value &&
+        item.value.startsWith('Sublime Text')
+      ) {
+        displayName = 'Sublime Text'
+      } else if (item.name === 'Publisher') {
+        publisher = item.value
+      } else if (item.name === 'InstallLocation') {
         installLocation = item.value
       }
     }
