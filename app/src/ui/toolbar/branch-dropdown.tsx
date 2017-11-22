@@ -81,7 +81,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   public render() {
     const repositoryState = this.props.repositoryState
     const branchesState = repositoryState.branchesState
-    const currentPullRequestState = this.props.currentPullRequest
 
     const tip = branchesState.tip
     const tipKind = tip.kind
@@ -92,10 +91,8 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     let description = __DARWIN__ ? 'Current Branch' : 'Current branch'
     let canOpen = true
     let tooltip: string
-    let canShowPRBadge = false
-    let branchname: string | undefined
 
-    if (currentPullRequestState) {
+    if (this.props.currentPullRequest) {
       icon = OcticonSymbol.gitPullRequest
     }
 
@@ -104,7 +101,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       return null
     } else if (tip.kind === TipState.Unborn) {
       title = tip.ref
-      branchname = tip.ref
       tooltip = `Current branch is ${tip.ref}`
       canOpen = false
     } else if (tip.kind === TipState.Detached) {
@@ -114,7 +110,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       description = 'Detached HEAD'
     } else if (tip.kind === TipState.Valid) {
       title = <PathText path={tip.branch.name} />
-      branchname = tip.branch.name
       tooltip = `Current branch is ${tip.branch.name}`
     } else {
       return assertNever(tip, `Unknown tip state: ${tipKind}`)
@@ -138,14 +133,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       canOpen = false
     }
 
-    if (
-      branchname !== undefined &&
-      currentPullRequestState &&
-      branchname == currentPullRequestState.head.ref
-    ) {
-      canShowPRBadge = true
-    }
-
     const isOpen = this.props.isOpen
     const currentState: DropdownState = isOpen && canOpen ? 'open' : 'closed'
 
@@ -163,11 +150,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
       >
-      {canShowPRBadge ?
-        this.renderPullRequestInfo() :
-        null
-      }
-
+        {this.renderPullRequestInfo()}
       </ToolbarDropdown>
     )
   }
