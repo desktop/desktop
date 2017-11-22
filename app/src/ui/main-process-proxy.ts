@@ -10,6 +10,11 @@ export function updateMenuState(
   ipcRenderer.send('update-menu-state', state)
 }
 
+/** Enable or disable the menu globally. */
+export function updateMenu(enabled: boolean) {
+  ipcRenderer.send('set-all-menu-items', enabled)
+}
+
 /** Tell the main process that the renderer is ready. */
 export function sendReady(time: number) {
   ipcRenderer.send('renderer-ready', time)

@@ -223,6 +223,25 @@ app.on('ready', () => {
   )
 
   ipcMain.on(
+    'set-all-menu-items',
+    (event: Electron.IpcMessageEvent, enabled: boolean) => {
+      for (const item of menu.items) {
+        item.enabled = enabled
+        const submenu = item.submenu as Electron.Menu
+        if (submenu) {
+          for (const subMenuItem of submenu.items) {
+            subMenuItem.enabled = enabled
+          }
+        }
+      }
+
+      if (mainWindow) {
+        mainWindow.sendAppMenu()
+      }
+    }
+  )
+
+  ipcMain.on(
     'show-contextual-menu',
     (event: Electron.IpcMessageEvent, items: ReadonlyArray<any>) => {
       const menu = new Menu()
