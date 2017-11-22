@@ -141,7 +141,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     if (
       branchname !== undefined &&
       currentPullRequestState &&
-      branchname === currentPullRequestState.head.ref
+      branchname == currentPullRequestState.head.ref
     ) {
       canShowPRBadge = true
     }
@@ -163,7 +163,11 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         showDisclosureArrow={canOpen}
         progressValue={progressValue}
       >
-        {canShowPRBadge ? this.renderPullRequestInfo() : null}
+      {canShowPRBadge ?
+        this.renderPullRequestInfo() :
+        null
+      }
+
       </ToolbarDropdown>
     )
   }
