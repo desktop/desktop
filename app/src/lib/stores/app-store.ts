@@ -2182,9 +2182,7 @@ export class AppStore {
         if (timeSinceFetch < twoMinutes) {
           const timeInSeconds = Math.floor(timeSinceFetch / 1000)
           console.debug(
-            `skipping background fetch as repository was fetched ${
-              timeInSeconds
-            }s ago`
+            `skipping background fetch as repository was fetched ${timeInSeconds}s ago`
           )
           return Promise.resolve()
         }
