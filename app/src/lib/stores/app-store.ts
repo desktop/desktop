@@ -2170,6 +2170,27 @@ export class AppStore {
     account: IGitAccount | null,
     backgroundTask: boolean
   ): Promise<void> {
+    if (backgroundTask) {
+      const gitStore = this.getGitStore(repository)
+      const lastFetched = gitStore.lastFetched
+
+      if (lastFetched) {
+        const now = new Date()
+        const timeSinceFetch = now.getTime() - lastFetched.getTime()
+        const twoMinutes = 2 * 60 * 1000
+
+        if (timeSinceFetch < twoMinutes) {
+          const timeInSeconds = Math.floor(timeSinceFetch / 1000)
+          console.debug(
+            `skipping background fetch as repository was fetched ${
+              timeInSeconds
+            }s ago`
+          )
+          return Promise.resolve()
+        }
+      }
+    }
+
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
 
