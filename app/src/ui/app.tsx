@@ -81,6 +81,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
 import { UpstreamAlreadyExists } from './upstream-already-exists/index'
+import { SChannelError } from './schannel-error/index'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1144,6 +1145,13 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             onUpdate={this.onUpdateExistingUpstreamRemote}
             onIgnore={this.onIgnoreExistingUpstreamRemote}
+          />
+        )
+      case PopupType.SChannelError:
+        return (
+          <SChannelError
+            onDismissed={this.onPopupDismissed}
+            errorText={popup.errorText}
           />
         )
       default:

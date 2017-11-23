@@ -206,6 +206,7 @@ export enum PopupType {
   InitializeLFS,
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
+  SChannelError,
 }
 
 export type Popup =
@@ -268,6 +269,7 @@ export type Popup =
       repository: Repository
       existingRemote: IRemote
     }
+  | { type: PopupType.SChannelError; errorText: string }
 
 export enum FoldoutType {
   Repository,
