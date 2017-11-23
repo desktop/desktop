@@ -26,7 +26,7 @@ import { ExternalEditor } from '../../lib/editors'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from '../stores/git-store'
-import { executeMenuItem, updateMenu } from '../../ui/main-process-proxy'
+import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { matchExistingRepository } from '../../lib/repository-matching'
 import { ILaunchStats } from '../stats'
@@ -236,14 +236,11 @@ export class Dispatcher {
 
   /** Show the popup. This will close any current popup. */
   public showPopup(popup: Popup): Promise<void> {
-    const task = this.appStore._showPopup(popup)
-    updateMenu(false)
-    return task
+    return this.appStore._showPopup(popup)
   }
 
   /** Close the current popup. */
   public closePopup(): Promise<void> {
-    updateMenu(true)
     return this.appStore._closePopup()
   }
 
