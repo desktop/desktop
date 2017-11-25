@@ -13,16 +13,24 @@ Initially we support syntax highlighting for the following languages.
  - TypeScript
  - Coffeescript
  - HTML
+ - CSS
+ - SCSS
+ - LESS
+ - VUE
  - Markdown
  - Yaml
  - XML
  - Objective-C
- - Swift
  - Scala
+ - C#
  - Java
  - C
  - C++
+ - Ocaml
+ - F#
  - sh/bash
+ - Swift
+ - SQL
  - Go
  - Perl
  - PHP
