@@ -344,7 +344,7 @@
   - [ ] If user updates name in Settings, change should reflect in Preferences
 
 ### Pull Request list + CI status (v1.1)
- - [ ] Pull request list shown as subsection of Branch list
+ - [ ] Pull request list shown as tab on Branch list
    - [ ] Only open Pull Requests are reflected; closed Pull Requests not shown in the list
  - [ ] Pull Request toolbar status is surfaced with yellow, green or red icon, or no icon if no status
  - [ ] If no pull requests, then no badge shown, and Pull Request tab shows `0` 
@@ -353,6 +353,7 @@
    - [ ] Pull request list can be filtered; `esc` key clears filter; arrow keys can scroll list
    - [ ] Results in chronological order, with name, id number, date, username, and CI status
      - [ ] Status checks run frequently in background, especially if yellow
+     - [ ] If user hovers over CI status icons, tooltips show individual/group status details
  - [ ] PR status can be updated independently of respective PR
 
 ### TBD placeholder (WIP)
