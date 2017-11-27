@@ -519,7 +519,6 @@ export class API {
       }
 
       if (response.status === HttpStatusCode.NotModified) {
-        log.warn(`fetchMentionables: '${path}' returned a 304`)
         return null
       }
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
