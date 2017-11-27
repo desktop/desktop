@@ -196,7 +196,9 @@ export class DiffParser {
     if (!str) {
       if (!defaultValue) {
         throw new Error(
-          `Group ${group} missing from regexp match and no defaultValue was provided`
+          `Group ${
+            group
+          } missing from regexp match and no defaultValue was provided`
         )
       }
 

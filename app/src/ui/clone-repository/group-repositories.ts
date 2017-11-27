@@ -37,19 +37,19 @@ function getIcon(gitHubRepo: IAPIRepository): OcticonSymbol {
 function convert(
   repositories: ReadonlyArray<IAPIRepository>
 ): ReadonlyArray<IClonableRepositoryListItem> {
-  const repos: ReadonlyArray<
-    IClonableRepositoryListItem
-  > = repositories.map(repo => {
-    const icon = getIcon(repo)
+  const repos: ReadonlyArray<IClonableRepositoryListItem> = repositories.map(
+    repo => {
+      const icon = getIcon(repo)
 
-    return {
-      id: repo.html_url,
-      text: `${repo.owner.login}/${repo.name}`,
-      url: repo.clone_url,
-      name: repo.name,
-      icon,
+      return {
+        id: repo.html_url,
+        text: `${repo.owner.login}/${repo.name}`,
+        url: repo.clone_url,
+        name: repo.name,
+        icon,
+      }
     }
-  })
+  )
 
   return repos
 }
