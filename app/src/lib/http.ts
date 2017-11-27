@@ -60,10 +60,11 @@ async function deserialize<T>(response: Response): Promise<T> {
     const json = await response.json()
     return json as T
   } catch (e) {
+    const url = response.url
     const contentLength = response.headers.get('Content-Length') || '(missing)'
     const requestId = response.headers.get('X-GitHub-Request-Id') || '(missing)'
     log.warn(
-      `Unable to deserialize JSON string to object - length: '${contentLength}' id: '${requestId}'`,
+      `Unable to deserialize JSON string to object - '${url}' length: '${contentLength}' id: '${requestId}'`,
       e
     )
     throw e
