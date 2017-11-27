@@ -112,7 +112,7 @@ export async function launch(
   }
 
   if (shell.shell === Shell.Xterm) {
-    const commandArgs = [`-e 'cd ${ path } && /bin/bash'`]
+    const commandArgs = ['-e', `cd ${ path } && /bin/bash`]
     await spawn(shell.path, commandArgs)
   }
 
