@@ -13,10 +13,14 @@ const defaultEditorLabel = __DARWIN__
 const defaultShellLabel = __DARWIN__
   ? 'Open in Terminal'
   : 'Open in Command Prompt'
+const defaultPullRequestLabel = __DARWIN__
+  ? 'Create Pull Request'
+  : 'Create pull request'
 
 export function buildDefaultMenu(
   editorLabel: string = defaultEditorLabel,
-  shellLabel: string = defaultShellLabel
+  shellLabel: string = defaultShellLabel,
+  pullRequestLabel: string = defaultPullRequestLabel
 ): Electron.Menu {
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
@@ -294,7 +298,7 @@ export function buildDefaultMenu(
         click: emit('compare-branch'),
       },
       {
-        label: __DARWIN__ ? 'Create Pull Request' : 'Create &pull request',
+        label: pullRequestLabel,
         id: 'create-pull-request',
         accelerator: 'CmdOrCtrl+R',
         click: emit('create-pull-request'),
