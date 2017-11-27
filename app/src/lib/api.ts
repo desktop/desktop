@@ -445,19 +445,8 @@ export class API {
         return []
       }
       if (response.status === HttpStatusCode.NotModified) {
-        // This code here is to poke at the response body to see
-        // if it actually contains some JSON that we can parse
-        try {
-          if (response.ok) {
-            await response.json()
-          }
-        } catch (e) {
-          log.warn(
-            `fetchAll: '${path}' returned a 304 without any valid JSON`,
-            e
-          )
-          return []
-        }
+        log.warn(`fetchAll: '${path}' returned a 304`)
+        return []
       }
 
       const items = await parsedResponse<ReadonlyArray<T>>(response)
@@ -522,17 +511,12 @@ export class API {
       const path = `repos/${owner}/${name}/mentionables/users`
       const response = await this.request('GET', path, undefined, headers)
       if (response.status === HttpStatusCode.NotModified) {
+        log.warn(`fetchMentionables: '${path}' returned a 304`)
         return null
       }
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchMentionables: '${path}' returned a 404`)
         return null
-      }
-      if (response.status === HttpStatusCode.NotModified) {
-        log.warn(`fetchMentionables: '${path}' returned a 304, poking at JSON`)
-        // This code here is to poke at the response body to see
-        // if it actually contains some JSON that we can parse
-        await response.json()
       }
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
         response
