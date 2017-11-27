@@ -1024,13 +1024,38 @@ export class AppStore {
   }
 
   /** Update the menu with the names of the user's preferred apps. */
-  private updatePreferredAppMenuItemLabels() {
+  private async updatePreferredAppMenuItemLabels(repository?: Repository) {
     const editorLabel = this.selectedExternalEditor
       ? `Open in ${this.selectedExternalEditor}`
       : undefined
 
+    let prLabel = undefined
+
+    if (repository && repository.gitHubRepository) {
+      const githubRepository = repository.gitHubRepository
+      const repoState = this.repositoryState.get(repository.hash)
+
+      if (repoState) {
+        const pullRequests = await this.pullRequestStore.getPullRequests(
+          githubRepository
+        )
+        const branchState = repoState.branchesState
+
+        if (branchState.tip.kind === TipState.Valid) {
+          let currentPullRequest = this.findAssociatedPullRequest(
+            branchState.tip.branch,
+            pullRequests,
+            githubRepository
+          )
+
+          prLabel = currentPullRequest ? 'Show Pull Request' : prLabel
+        }
+      }
+    }
+
     updatePreferredAppMenuItemLabels({
       editor: editorLabel,
+      pullRequestLabel: prLabel,
       shell: `Open in ${this.selectedShell}`,
     })
   }
@@ -2851,6 +2876,8 @@ export class AppStore {
     } else {
       await this._openCreatePullRequestInBrowser(repository)
     }
+
+    this.updatePreferredAppMenuItemLabels(repository)
   }
 
   public async _refreshPullRequests(repository: Repository): Promise<void> {
@@ -2874,6 +2901,7 @@ export class AppStore {
     )
 
     this.updateStateWithPullRequests(pullRequests, repository, gitHubRepository)
+    this.updatePreferredAppMenuItemLabels(repository)
   }
 
   private updateStateWithPullRequests(
