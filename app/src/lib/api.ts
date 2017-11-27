@@ -161,7 +161,7 @@ interface IAPIAuthorization {
 
 /** The response we receive from fetching mentionables. */
 interface IAPIMentionablesResponse {
-  readonly etag: string
+  readonly etag: string | null
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
@@ -522,7 +522,7 @@ export class API {
         response
       )
       const responseEtag = response.headers.get('etag')
-      return { users, etag: responseEtag || '' }
+      return { users, etag: responseEtag || null }
     } catch (e) {
       log.warn(`fetchMentionables: failed for ${owner}/${name}`, e)
       return null
