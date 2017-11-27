@@ -40,9 +40,7 @@ export class APIError extends Error {
         message = `${message} (${additionalMessages})`
       }
     } else {
-      message = `API error ${response.url}: ${response.statusText} (${
-        response.status
-      })`
+      message = `API error ${response.url}: ${response.statusText} (${response.status})`
     }
 
     super(message)

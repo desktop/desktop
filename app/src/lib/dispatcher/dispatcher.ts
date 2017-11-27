@@ -335,9 +335,7 @@ export class Dispatcher {
 
     if (currentError) {
       fatalError(
-        `Unhandled error ${
-          currentError
-        }. This shouldn't happen! All errors should be handled, even if it's just by the default handler.`
+        `Unhandled error ${currentError}. This shouldn't happen! All errors should be handled, even if it's just by the default handler.`
       )
     }
   }
@@ -804,9 +802,9 @@ export class Dispatcher {
           this.handleCloneInDesktopOptions(repository, action)
         } else {
           log.warn(
-            `Open Repository from URL failed, did not find repository: ${
-              url
-            } - payload: ${JSON.stringify(action)}`
+            `Open Repository from URL failed, did not find repository: ${url} - payload: ${JSON.stringify(
+              action
+            )}`
           )
         }
         break
@@ -836,9 +834,9 @@ export class Dispatcher {
       default:
         const unknownAction: IUnknownAction = action
         log.warn(
-          `Unknown URL action: ${
-            unknownAction.name
-          } - payload: ${JSON.stringify(unknownAction)}`
+          `Unknown URL action: ${unknownAction.name} - payload: ${JSON.stringify(
+            unknownAction
+          )}`
         )
     }
   }

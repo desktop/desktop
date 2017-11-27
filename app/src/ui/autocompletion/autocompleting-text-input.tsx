@@ -388,9 +388,7 @@ export abstract class AutocompletingTextInput<
       const regex = new RegExp(provider.getRegExp())
       if (!regex.global) {
         fatalError(
-          `The regex (${regex}) returned from ${
-            provider
-          } isn't global, but it should be!`
+          `The regex (${regex}) returned from ${provider} isn't global, but it should be!`
         )
         continue
       }
