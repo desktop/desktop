@@ -112,8 +112,9 @@ export async function launch(
   }
 
   if (shell.shell === Shell.Xterm) {
-    const commandArgs = ['-e', `cd ${ path } && /bin/bash`]
-    await spawn(shell.path, commandArgs)
+    const commandArgs = ['-e', '/bin/bash']
+    const commandOptions = {cwd: path}
+    await spawn(shell.path, commandArgs, commandOptions)
   }
 
   const commandArgs = ['--working-directory', path]
