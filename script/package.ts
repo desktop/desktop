@@ -76,9 +76,7 @@ function packageWindows() {
 
   if (!fs.existsSync(splashScreenPath)) {
     console.error(
-      `expected setup splash screen gif not found at location: ${
-        splashScreenPath
-      }`
+      `expected setup splash screen gif not found at location: ${splashScreenPath}`
     )
     process.exit(1)
   }
@@ -106,9 +104,8 @@ function packageWindows() {
 
   if (process.env.APPVEYOR) {
     const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
-    options.signWithParams = `/f ${certificatePath} /p ${
-      process.env.WINDOWS_CERT_PASSWORD
-    } /tr http://timestamp.digicert.com /td sha256`
+    options.signWithParams = `/f ${certificatePath} /p ${process.env
+      .WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256`
   }
 
   electronInstaller

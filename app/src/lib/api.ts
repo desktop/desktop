@@ -416,9 +416,7 @@ export class API {
       return status
     } catch (e) {
       log.warn(
-        `fetchCombinedRefStatus: failed for repository ${owner}/${
-          name
-        } on ref ${ref}`,
+        `fetchCombinedRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
         e
       )
       throw e
@@ -709,9 +707,7 @@ async function getNote(): Promise<string> {
     localUsername = await username()
   } catch (e) {
     log.error(
-      `getNote: unable to resolve machine username, using '${
-        localUsername
-      }' as a fallback`,
+      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`,
       e
     )
   }
@@ -791,9 +787,7 @@ export function getOAuthAuthorizationURL(
 ): string {
   const urlBase = getHTMLURL(endpoint)
   const scope = encodeURIComponent(Scopes.join(' '))
-  return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${
-    scope
-  }&state=${state}`
+  return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
 
 export async function requestOAuthToken(

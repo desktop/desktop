@@ -477,9 +477,7 @@ export class AppMenu {
 
     if (ourMenuItem.type !== 'submenuItem') {
       throw new Error(
-        `Attempt to open a submenu from an item of wrong type: ${
-          ourMenuItem.type
-        }`
+        `Attempt to open a submenu from an item of wrong type: ${ourMenuItem.type}`
       )
     }
 
