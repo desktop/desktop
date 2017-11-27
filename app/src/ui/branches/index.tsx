@@ -25,10 +25,13 @@ interface IBranchesProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly selectedTab: BranchesTab
-  readonly pullRequests: ReadonlyArray<PullRequest> | null
+  readonly pullRequests: ReadonlyArray<PullRequest>
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
+
+  /** Are we currently loading pull requests? */
+  readonly isLoadingPullRequests: boolean
 }
 
 interface IBranchesState {
@@ -154,17 +157,19 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   private renderPullRequests() {
     const pullRequests = this.props.pullRequests
-    if (pullRequests) {
-      if (pullRequests.length > 0) {
-        return (
-          <PullRequestList
-            key="pr-list"
-            pullRequests={pullRequests}
-            currentPullRequest={this.props.currentPullRequest}
-            onPullRequestClicked={this.onPullRequestClicked}
-            onDismiss={this.onDismiss}
-          />
-        )
+    if (pullRequests.length) {
+      return (
+        <PullRequestList
+          key="pr-list"
+          pullRequests={pullRequests}
+          currentPullRequest={this.props.currentPullRequest}
+          onPullRequestClicked={this.onPullRequestClicked}
+          onDismiss={this.onDismiss}
+        />
+      )
+    } else {
+      if (this.props.isLoadingPullRequests) {
+        return <PullRequestsLoading key="prs-loading" />
       } else {
         const repo = this.props.repository
         const name = repo.gitHubRepository
@@ -176,6 +181,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
           this.props.defaultBranch.name === this.props.currentBranch.name
         return (
           <NoPullRequests
+            key="no-prs"
             repositoryName={name}
             isOnDefaultBranch={!!isOnDefaultBranch}
             onCreateBranch={this.onCreateBranch}
@@ -183,8 +189,6 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
           />
         )
       }
-    } else {
-      return <PullRequestsLoading key="prs-loading" />
     }
   }
 

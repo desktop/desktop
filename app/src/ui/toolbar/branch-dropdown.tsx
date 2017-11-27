@@ -37,10 +37,13 @@ interface IBranchDropdownProps {
   readonly selectedTab: BranchesTab
 
   /** The open pull requests in the repository. */
-  readonly pullRequests: ReadonlyArray<PullRequest> | null
+  readonly pullRequests: ReadonlyArray<PullRequest>
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
+
+  /** Are we currently loading pull requests? */
+  readonly isLoadingPullRequests: boolean
 }
 
 /**
@@ -65,6 +68,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         selectedTab={this.props.selectedTab}
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
+        isLoadingPullRequests={this.props.isLoadingPullRequests}
       />
     )
   }
