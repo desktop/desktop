@@ -37,7 +37,9 @@ export function createUniqueId(prefix: string): string {
   if (__DEV__) {
     if (activeIds.size > 50) {
       console.warn(
-        `Id pool contains ${activeIds.size} entries, it's possible that id's aren't being released properly.`
+        `Id pool contains ${
+          activeIds.size
+        } entries, it's possible that id's aren't being released properly.`
       )
     }
   }
