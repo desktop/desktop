@@ -24,6 +24,8 @@ export class PullRequestStore {
   private pullRequests: ReadonlyArray<PullRequest> = []
   private pullRequestStatuses: ReadonlyArray<PullRequestStatus> = []
 
+  private refreshPullRequestsCount = 0
+
   public constructor(
     db: PullRequestDatabase,
     repositoriesStore: RepositoriesStore
@@ -39,6 +41,9 @@ export class PullRequestStore {
   ): Promise<void> {
     const api = API.fromAccount(account)
 
+    this.refreshPullRequestsCount++
+    this.emitUpdate()
+
     try {
       const raw = await api.fetchPullRequests(
         repository.owner.login,
@@ -53,11 +58,18 @@ export class PullRequestStore {
       await this.getStatusForPRs(results, repository, account)
 
       this.pullRequests = await this.getPullRequests(repository)
-      this.emitUpdate()
     } catch (error) {
       log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
       this.emitError(error)
+    } finally {
+      this.refreshPullRequestsCount--
+      this.emitUpdate()
     }
+  }
+
+  /** Is the store currently fetching the list of open pull requests? */
+  public get isFetchingPullRequests(): boolean {
+    return this.refreshPullRequestsCount > 0
   }
 
   /** Loads the status for the given pull request. */
