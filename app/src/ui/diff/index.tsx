@@ -505,7 +505,9 @@ export class Diff extends React.Component<IDiffProps, {}> {
 
       if (this.gutterWidth === 0) {
         console.error(
-          `element at row ${row} does not have a width, should probably look into that`
+          `element at row ${
+            row
+          } does not have a width, should probably look into that`
         )
       }
     }

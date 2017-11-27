@@ -339,7 +339,11 @@ describe('git/diff', () => {
 
       fs.writeFileSync(
         filePath,
-        `WRITING MANY LINES ${lineEnding} USING THIS LINE ENDING ${lineEnding} TO SHOW THAT GIT${lineEnding} WILL INSERT IT WITHOUT CHANGING THING ${lineEnding} HA HA BUSINESS`
+        `WRITING MANY LINES ${lineEnding} USING THIS LINE ENDING ${
+          lineEnding
+        } TO SHOW THAT GIT${lineEnding} WILL INSERT IT WITHOUT CHANGING THING ${
+          lineEnding
+        } HA HA BUSINESS`
       )
 
       await GitProcess.exec(['add', 'foo'], repo.path)
@@ -353,7 +357,11 @@ describe('git/diff', () => {
 
       fs.writeFileSync(
         filePath,
-        `WRITING MANY LINES ${lineEnding} USING THIS LINE ENDING ${lineEnding} TO SHOW THAT GIT${lineEnding} WILL INSERT IT WITHOUT CHANGING THING ${lineEnding} HA HA BUSINESS`
+        `WRITING MANY LINES ${lineEnding} USING THIS LINE ENDING ${
+          lineEnding
+        } TO SHOW THAT GIT${lineEnding} WILL INSERT IT WITHOUT CHANGING THING ${
+          lineEnding
+        } HA HA BUSINESS`
       )
 
       const status = await getStatus(repo)
