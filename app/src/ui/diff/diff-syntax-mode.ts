@@ -1,4 +1,4 @@
-import { ITextDiff, DiffLine } from '../../models/diff'
+import { ITextDiffData, DiffLine } from '../../models/diff'
 import * as CodeMirror from 'codemirror'
 import { diffLineForIndex } from './diff-explorer'
 import { ITokens } from '../../lib/highlighter/types'
@@ -9,7 +9,7 @@ export interface IDiffSyntaxModeOptions {
   /**
    * The unified diff representing the change
    */
-  readonly diff: ITextDiff
+  readonly diff: ITextDiffData
 
   /**
    * Tokens returned from the highlighter for the 'before'
@@ -80,12 +80,12 @@ function getTokensForDiffLine(
 export class DiffSyntaxMode {
   public static readonly ModeName = 'github-diff-syntax'
 
-  private readonly diff?: ITextDiff
+  private readonly diff?: ITextDiffData
   private readonly oldTokens?: ITokens
   private readonly newTokens?: ITokens
 
   public constructor(
-    diff?: ITextDiff,
+    diff?: ITextDiffData,
     oldTokens?: ITokens,
     newTokens?: ITokens
   ) {

@@ -48,6 +48,9 @@ export enum ImageDiffType {
 
   /** Highlight differences. */
   Difference,
+
+  /** Text differences for files supporting visual diffs. */
+  Text,
 }
 
 export type PossibleSelections =
