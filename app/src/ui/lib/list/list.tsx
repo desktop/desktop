@@ -492,7 +492,8 @@ export class List extends React.Component<IListProps, IListState> {
       content = (
         <AutoSizer disableWidth={true} disableHeight={true}>
           {({ width, height }: { width: number; height: number }) =>
-            this.renderContents(width, height)}
+            this.renderContents(width, height)
+          }
         </AutoSizer>
       )
     }

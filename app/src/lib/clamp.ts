@@ -1,6 +1,6 @@
-/** 
+/**
  * Helper function to coerce a number into a valid range.
- * 
+ *
  * Ensures that the returned value is at least min and at most
  * (inclusive) max.
  */

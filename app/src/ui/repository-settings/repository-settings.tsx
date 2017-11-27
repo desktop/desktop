@@ -57,8 +57,9 @@ export class RepositorySettings extends React.Component<
       this.setState({ ignoreText })
     } catch (e) {
       log.error(
-        `RepositorySettings: unable to read .gitignore file at ${this.props
-          .repository.path}`,
+        `RepositorySettings: unable to read .gitignore file at ${
+          this.props.repository.path
+        }`,
         e
       )
       this.setState({ errors: [`Could not read .gitignore: ${e}`] })
@@ -175,8 +176,9 @@ export class RepositorySettings extends React.Component<
           )
         } catch (e) {
           log.error(
-            `RepositorySettings: unable to set remote URL at ${this.props
-              .repository.path}`,
+            `RepositorySettings: unable to set remote URL at ${
+              this.props.repository.path
+            }`,
             e
           )
           errors.push(`Failed setting the remote URL: ${e}`)
@@ -192,8 +194,9 @@ export class RepositorySettings extends React.Component<
         )
       } catch (e) {
         log.error(
-          `RepositorySettings: unable to save gitignore at ${this.props
-            .repository.path}`,
+          `RepositorySettings: unable to save gitignore at ${
+            this.props.repository.path
+          }`,
           e
         )
         errors.push(`Failed saving the .gitignore file: ${e}`)
