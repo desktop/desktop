@@ -140,7 +140,7 @@
   },
   "build": {
     "linux": {
-      "category": "public.app-category.developer-tools",
+      "category": "Development",
       "icon": "app/static/logos"
     }
   }
