@@ -510,19 +510,21 @@ export class API {
     try {
       const path = `repos/${owner}/${name}/mentionables/users`
       const response = await this.request('GET', path, undefined, headers)
-      if (response.status === HttpStatusCode.NotModified) {
-        log.warn(`fetchMentionables: '${path}' returned a 304`)
-        return null
-      }
+
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchMentionables: '${path}' returned a 404`)
+        return null
+      }
+
+      if (response.status === HttpStatusCode.NotModified) {
+        log.warn(`fetchMentionables: '${path}' returned a 304`)
         return null
       }
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
         response
       )
-      const responseEtag = response.headers.get('etag')
-      return { users, etag: responseEtag || null }
+      const etag = response.headers.get('etag')
+      return { users, etag }
     } catch (e) {
       log.warn(`fetchMentionables: failed for ${owner}/${name}`, e)
       return null
