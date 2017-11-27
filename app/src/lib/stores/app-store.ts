@@ -108,6 +108,7 @@ import { PullRequestStore } from './pull-request-store'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
+import { reportError } from '../../main-process/exception-reporting'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1026,35 +1027,52 @@ export class AppStore {
       ? `Open in ${this.selectedExternalEditor}`
       : undefined
 
-    let prLabel = undefined
-
-    if (repository && repository.gitHubRepository) {
-      const githubRepository = repository.gitHubRepository
-      const repoState = this.repositoryState.get(repository.hash)
-
-      if (repoState) {
-        const pullRequests = await this.pullRequestStore.getPullRequests(
-          githubRepository
-        )
-        const branchState = repoState.branchesState
-
-        if (branchState.tip.kind === TipState.Valid) {
-          const currentPullRequest = this.findAssociatedPullRequest(
-            branchState.tip.branch,
-            pullRequests,
-            githubRepository
-          )
-
-          prLabel = currentPullRequest ? 'Show Pull Request' : prLabel
-        }
-      }
-    }
+    let prLabel = await this.getPullRequestLabel(repository)
 
     updatePreferredAppMenuItemLabels({
       editor: editorLabel,
       pullRequestLabel: prLabel,
       shell: `Open in ${this.selectedShell}`,
     })
+  }
+
+  private async getPullRequestLabel(repository?: Repository) {
+    if (!repository) {
+      return
+    }
+
+    const githubRepository = repository.gitHubRepository
+
+    if (!githubRepository) {
+      return
+    }
+
+    const repositoryState = this.repositoryState.get(repository.hash)
+
+    if (!repositoryState) {
+      return
+    }
+
+    const pullRequests = await this.pullRequestStore.getPullRequests(
+      githubRepository
+    )
+    const branchState = repositoryState.branchesState
+
+    if (branchState.tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const currentPullRequest = this.findAssociatedPullRequest(
+      branchState.tip.branch,
+      pullRequests,
+      githubRepository
+    )
+
+    if (!currentPullRequest) {
+      return
+    }
+
+    return __DARWIN__ ? 'Show Pull Request' : 'Show pull request'
   }
 
   private updateRepositorySelectionAfterRepositoriesChanged() {
