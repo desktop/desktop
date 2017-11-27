@@ -26,7 +26,7 @@ interface IDiffProps extends ITextDiffUtilsProps {
 /** A component which renders a diff for a file. */
 export class ImageDiff extends React.Component<IDiffProps, {}> {
   private isModified = () => {
-    return this.props.current && this.props.previous
+    return !!this.props.current && !!this.props.previous
   }
   private onChangeDiffType = (index: number) => {
     if (this.isModified()) {
@@ -76,23 +76,25 @@ export class ImageDiff extends React.Component<IDiffProps, {}> {
     return null
   }
 
-  public render() {
-    const isModified = this.isModified()
-    const shouldRenderTabBar = this.props.text || isModified
-    let tabs
-    if (isModified) {
-      tabs = [
-        <span key="2-up">2-up</span>,
-        <span key="swipe">Swipe</span>,
-        <span key="onion">Onion Skin</span>,
-        <span key="diff">Difference</span>,
-      ]
-    } else {
-      tabs = [<span key="visual">Visual</span>]
-    }
+  private renderTabs(isModified: boolean): JSX.Element[] {
+    const tabs = isModified
+      ? [
+          <span key="2-up">2-up</span>,
+          <span key="swipe">Swipe</span>,
+          <span key="onion">Onion Skin</span>,
+          <span key="diff">Difference</span>,
+        ]
+      : [<span key="visual">Visual</span>]
+
     if (this.props.text) {
       tabs.push(<span key="text">Text</span>)
     }
+    return tabs
+  }
+
+  public render() {
+    const isModified = this.isModified()
+    const shouldRenderTabBar = this.props.text || isModified
     return (
       <div className="panel image" id="diff">
         {this.renderContent()}
@@ -107,7 +109,7 @@ export class ImageDiff extends React.Component<IDiffProps, {}> {
             onTabClicked={this.onChangeDiffType}
             type={TabBarType.Switch}
           >
-            {tabs}
+            {this.renderTabs(isModified)}
           </TabBar>
         ) : null}
       </div>
