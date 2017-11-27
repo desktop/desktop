@@ -60,12 +60,10 @@ async function deserialize<T>(response: Response): Promise<T> {
     const json = await response.json()
     return json as T
   } catch (e) {
-    const url = response.url
-    const statusCode = response.status
     const contentLength = response.headers.get('Content-Length') || '(missing)'
     const requestId = response.headers.get('X-GitHub-Request-Id') || '(missing)'
     log.warn(
-      `Unable to deserialize JSON string to object - '${url}' - status code ${statusCode}, length: '${contentLength}' id: '${requestId}'`,
+      `deserialize: invalid JSON found at '${response.url}' - status: ${response.status}, length: '${contentLength}' id: '${requestId}'`,
       e
     )
     throw e
