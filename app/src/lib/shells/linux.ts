@@ -60,18 +60,20 @@ function getShellPath(shell: Shell): Promise<string | null> {
 
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
-  > {
-  const [gnomeTerminalPath,
+> {
+  const [
+    gnomeTerminalPath,
     tilixPath,
     urxvtPath,
     konsolePath,
-    xtermPath] = await Promise.all([
-      getShellPath(Shell.Gnome),
-      getShellPath(Shell.Tilix),
-      getShellPath(Shell.Urxvt),
-      getShellPath(Shell.Konsole),
-      getShellPath(Shell.Xterm),
-    ])
+    xtermPath,
+  ] = await Promise.all([
+    getShellPath(Shell.Gnome),
+    getShellPath(Shell.Tilix),
+    getShellPath(Shell.Urxvt),
+    getShellPath(Shell.Konsole),
+    getShellPath(Shell.Xterm),
+  ])
 
   const shells: Array<IFoundShell<Shell>> = []
   if (gnomeTerminalPath) {
