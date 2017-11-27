@@ -510,7 +510,11 @@ export class API {
         return null
       }
       if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchAll: '${path}' returned a 404`)
+        log.warn(`fetchMentionables: '${path}' returned a 404`)
+        return null
+      }
+      if (response.status === HttpStatusCode.NotModified) {
+        log.warn(`fetchMentionables: '${path}' returned a 304`)
         return null
       }
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
