@@ -60,18 +60,18 @@ function getShellPath(shell: Shell): Promise<string | null> {
 
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
-> {
+  > {
   const [gnomeTerminalPath,
-         tilixPath,
-         urxvtPath,
-         konsolePath,
-         xtermPath] = await Promise.all([
-    getShellPath(Shell.Gnome),
-    getShellPath(Shell.Tilix),
-    getShellPath(Shell.Urxvt),
-    getShellPath(Shell.Konsole),
-    getShellPath(Shell.Xterm),
-  ])
+    tilixPath,
+    urxvtPath,
+    konsolePath,
+    xtermPath] = await Promise.all([
+      getShellPath(Shell.Gnome),
+      getShellPath(Shell.Tilix),
+      getShellPath(Shell.Urxvt),
+      getShellPath(Shell.Konsole),
+      getShellPath(Shell.Xterm),
+    ])
 
   const shells: Array<IFoundShell<Shell>> = []
   if (gnomeTerminalPath) {
@@ -91,7 +91,7 @@ export async function getAvailableShells(): Promise<
   }
 
   if (xtermPath) {
-    shells.push({ shell: Shell.Xterm, path: xtermPath})
+    shells.push({ shell: Shell.Xterm, path: xtermPath })
   }
 
   return shells
@@ -113,7 +113,7 @@ export async function launch(
 
   if (shell.shell === Shell.Xterm) {
     const commandArgs = ['-e', '/bin/bash']
-    const commandOptions = {cwd: path}
+    const commandOptions = { cwd: path }
     await spawn(shell.path, commandArgs, commandOptions)
   }
 

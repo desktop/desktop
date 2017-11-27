@@ -230,12 +230,19 @@ export async function launch(
   shell: IFoundShell<Shell>,
   path: string
 ): Promise<void> {
+  if (shell.shell === Shell.Urxvt) {
+    const commandArgs = ['-cd', path]
+    await spawn(shell.path, commandArgs)
+  }
 
-  ...
-  
+  if (shell.shell === Shell.Konsole) {
+    const commandArgs = ['--workdir', path]
+    await spawn(shell.path, commandArgs)
+  }
+
   if (shell.shell === Shell.Xterm) {
     const commandArgs = ['-e', '/bin/bash']
-    const commandOptions = {cwd: path}
+    const commandOptions = { cwd: path }
     await spawn(shell.path, commandArgs, commandOptions)
   }
 
