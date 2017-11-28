@@ -80,7 +80,50 @@ function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
   return true
 }
 
+const allMenuIds: ReadonlyArray<MenuIDs> = [
+  'rename-branch',
+  'delete-branch',
+  'preferences',
+  'update-branch',
+  'merge-branch',
+  'view-repository-on-github',
+  'compare-branch',
+  'open-in-shell',
+  'push',
+  'pull',
+  'branch',
+  'repository',
+  'create-branch',
+  'show-changes',
+  'show-history',
+  'show-repository-list',
+  'show-branches-list',
+  'open-working-directory',
+  'show-repository-settings',
+  'open-external-editor',
+  'remove-repository',
+  'new-repository',
+  'add-local-repository',
+  'clone-repository',
+  'about',
+  'create-pull-request',
+]
+
+function disableAllMenuItems(): Map<MenuIDs, IMenuItemState> {
+  const menuStateBuilder = new MenuStateBuilder()
+
+  for (const menuId of allMenuIds) {
+    menuStateBuilder.disable(menuId)
+  }
+
+  return menuStateBuilder.state
+}
+
 function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
+  if (state.currentPopup) {
+    return disableAllMenuItems()
+  }
+
   const selectedState = state.selectedState
   const isHostedOnGitHub = selectedState
     ? isRepositoryHostedOnGitHub(selectedState.repository)
