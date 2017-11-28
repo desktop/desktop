@@ -79,7 +79,9 @@ export async function launchShell(shell: FoundShell, path: string) {
   if (!exists) {
     const label = __DARWIN__ ? 'Preferences' : 'Options'
     throw new ShellError(
-      `Could not find executable for '${shell.shell}' at path '${shell.path}'.  Please open ${label} and select an available shell.`
+      `Could not find executable for '${shell.shell}' at path '${
+        shell.path
+      }'.  Please open ${label} and select an available shell.`
     )
   }
 

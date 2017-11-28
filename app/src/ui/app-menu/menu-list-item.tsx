@@ -10,7 +10,7 @@ interface IMenuListItemProps {
 
   /**
    * Whether or not to highlight the access key of a menu item (if one exists).
-   * 
+   *
    * See the highlight prop of AccessText component for more details.
    */
   readonly highlightAccessKey: boolean
@@ -28,7 +28,7 @@ interface IMenuListItemProps {
    * menu item has a submenu. This can be turned off when the menu item is
    * used as a stand-alone item or when expanding the submenu doesn't follow
    * the default conventions (i.e. expanding to the right).
-   * 
+   *
    * Defaults to true if not specified (i.e. undefined)
    */
   readonly renderSubMenuArrow?: boolean

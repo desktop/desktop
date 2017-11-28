@@ -161,7 +161,7 @@ interface IAPIAuthorization {
 
 /** The response we receive from fetching mentionables. */
 interface IAPIMentionablesResponse {
-  readonly etag: string
+  readonly etag: string | null
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
@@ -416,7 +416,9 @@ export class API {
       return status
     } catch (e) {
       log.warn(
-        `fetchCombinedRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
+        `fetchCombinedRefStatus: failed for repository ${owner}/${
+          name
+        } on ref ${ref}`,
         e
       )
       throw e
@@ -442,6 +444,10 @@ export class API {
       const response = await this.request('GET', nextPath)
       if (response.status === HttpStatusCode.NotFound) {
         log.warn(`fetchAll: '${path}' returned a 404`)
+        return []
+      }
+      if (response.status === HttpStatusCode.NotModified) {
+        log.warn(`fetchAll: '${path}' returned a 304`)
         return []
       }
 
@@ -506,18 +512,20 @@ export class API {
     try {
       const path = `repos/${owner}/${name}/mentionables/users`
       const response = await this.request('GET', path, undefined, headers)
-      if (response.status === HttpStatusCode.NotModified) {
+
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(`fetchMentionables: '${path}' returned a 404`)
         return null
       }
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchAll: '${path}' returned a 404`)
+
+      if (response.status === HttpStatusCode.NotModified) {
         return null
       }
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
         response
       )
-      const responseEtag = response.headers.get('etag')
-      return { users, etag: responseEtag || '' }
+      const etag = response.headers.get('etag')
+      return { users, etag }
     } catch (e) {
       log.warn(`fetchMentionables: failed for ${owner}/${name}`, e)
       return null
@@ -707,7 +715,9 @@ async function getNote(): Promise<string> {
     localUsername = await username()
   } catch (e) {
     log.error(
-      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`,
+      `getNote: unable to resolve machine username, using '${
+        localUsername
+      }' as a fallback`,
       e
     )
   }
@@ -787,7 +797,9 @@ export function getOAuthAuthorizationURL(
 ): string {
   const urlBase = getHTMLURL(endpoint)
   const scope = encodeURIComponent(Scopes.join(' '))
-  return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
+  return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${
+    scope
+  }&state=${state}`
 }
 
 export async function requestOAuthToken(
