@@ -34,7 +34,7 @@ Please report unacceptable behavior to [opensource+desktop@github.com](mailto:op
 
 ### The Roadmap
 
-GitHub Desktop recently announced it's
+GitHub Desktop recently announced its
 [1.0 release](https://github.com/blog/2437-announcing-github-desktop-1-0) and
 are working towards deprecating the classic Mac and Windows applications.
 
