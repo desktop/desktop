@@ -50,10 +50,15 @@ function getEditorPath(editor: ExternalEditor): Promise<string | null> {
 
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<IFoundEditor<ExternalEditor>>
-  > {
+> {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atomPath, codePath, codeInsidersPath, sublimePath] = await Promise.all([
+  const [
+    atomPath,
+    codePath,
+    codeInsidersPath,
+    sublimePath,
+  ] = await Promise.all([
     getEditorPath(ExternalEditor.Atom),
     getEditorPath(ExternalEditor.VisualStudioCode),
     getEditorPath(ExternalEditor.VisualStudioCodeInsiders),
@@ -69,7 +74,10 @@ export async function getAvailableEditors(): Promise<
   }
 
   if (codeInsidersPath) {
-    results.push({ editor: ExternalEditor.VisualStudioCode, path: codeInsidersPath })
+    results.push({
+      editor: ExternalEditor.VisualStudioCode,
+      path: codeInsidersPath,
+    })
   }
 
   if (sublimePath) {

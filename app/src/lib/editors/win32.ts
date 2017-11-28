@@ -120,12 +120,12 @@ function isExpectedInstallation(
       return displayName === 'Atom' && publisher === 'GitHub Inc.'
     case ExternalEditor.VisualStudioCode:
       return (
-        (displayName === 'Microsoft Visual Studio Code') &&
+        displayName === 'Microsoft Visual Studio Code' &&
         publisher === 'Microsoft Corporation'
       )
     case ExternalEditor.VisualStudioCodeInsiders:
       return (
-        (displayName === 'Microsoft Visual Studio Code Insiders') &&
+        displayName === 'Microsoft Visual Studio Code Insiders' &&
         publisher === 'Microsoft Corporation'
       )
     case ExternalEditor.SublimeText:
@@ -171,7 +171,10 @@ function extractApplicationInformation(
     return { displayName, publisher, installLocation }
   }
 
-  if (editor === ExternalEditor.VisualStudioCode || editor === ExternalEditor.VisualStudioCodeInsiders) {
+  if (
+    editor === ExternalEditor.VisualStudioCode ||
+    editor === ExternalEditor.VisualStudioCodeInsiders
+  ) {
     for (const item of keys) {
       if (item.name === 'DisplayName') {
         displayName = item.value
@@ -267,10 +270,16 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
  */
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<IFoundEditor<ExternalEditor>>
-  > {
+> {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atomPath, codePath, codeInsidersPath, sublimePath, cfBuilderPath] = await Promise.all([
+  const [
+    atomPath,
+    codePath,
+    codeInsidersPath,
+    sublimePath,
+    cfBuilderPath,
+  ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.VisualStudioCodeInsiders),
