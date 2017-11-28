@@ -60,5 +60,8 @@ script:
   - yarn test:setup
   - yarn test
 
+after_success:
+  - yarn run publish
+
 after_failure:
   - yarn test:review
