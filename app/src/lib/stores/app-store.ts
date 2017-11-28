@@ -1038,11 +1038,7 @@ export class AppStore {
     })
   }
 
-  private async getPullRequestLabel(repository?: Repository) {
-    if (!repository) {
-      return
-    }
-
+  private getPullRequestLabel(repository: Repository) {
     const githubRepository = repository.gitHubRepository
 
     if (!githubRepository) {
