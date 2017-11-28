@@ -187,8 +187,11 @@
   - [ ] Open in External Editor (Mac: `⇧⌘A`; Windows: `Ctrl+Shift+A`); see External Editor option in prefs
     - [ ] Secondary modal appears if no Editors set; option to Download Atom 
   - [ ] Repository settings
-    - [ ] Remote path can be edited; origin already set. Cannot be empty string, else error message.
+    - [ ] Remote path can be edited for existing repo; origin already set. Cannot be empty string, else error message.
       - [ ] `Saved` button saves last entry
+      - [ ] `Cancel` button closes modal
+    - [ ] User can opt for `Setup custom remote` for a non-GitHub repository
+      - [ ] `Save & Publish` button saves last entry
       - [ ] `Cancel` button closes modal
     - [ ] Ignored Files
       - [ ] `.gitignore` file contents are shown and can be edited
