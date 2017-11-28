@@ -108,7 +108,6 @@ import { PullRequestStore } from './pull-request-store'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
-import { reportError } from '../../main-process/exception-reporting'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
