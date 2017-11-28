@@ -143,6 +143,7 @@
     - [ ] Clicking `OK` closes modal
   - [ ] Quit/Exit Desktop (Mac: `⌘Q`)
     - [ ] Quitting/Exiting and reopening Desktop returns you to last visited repo
+  - [ ] Menu items are disabled any modal is present; MacOS-default menu items not applicable   
 
 ### File top-level menu
   - [ ] Create New Repository (Mac: `⌘N`; Windows: `Ctrl+N`)
