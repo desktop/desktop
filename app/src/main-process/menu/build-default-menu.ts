@@ -15,7 +15,7 @@ const defaultShellLabel = __DARWIN__
   : 'Open in Command Prompt'
 const defaultPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
-  : 'Create pull request'
+  : 'Create &pull request'
 
 export function buildDefaultMenu(
   editorLabel: string = defaultEditorLabel,
