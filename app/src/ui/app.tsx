@@ -1593,11 +1593,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onRepositoryFilterTextChanged = (text: string) => {
-    if (!/\S/.test(text)) {
-      // string is just empty or whitespace
-      return
-    }
-
     this.props.dispatcher.setRepositoryFilterText(text)
   }
 
