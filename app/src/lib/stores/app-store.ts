@@ -1055,20 +1055,9 @@ export class AppStore {
 
     const branchState = repositoryState.branchesState
 
-    if (branchState.tip.kind !== TipState.Valid) {
-      return
-    }
+    branchState.currentPullRequest
 
-    const pullRequests = await this.pullRequestStore.getPullRequests(
-      githubRepository
-    )
-    const currentPullRequest = this.findAssociatedPullRequest(
-      branchState.tip.branch,
-      pullRequests,
-      githubRepository
-    )
-
-    if (!currentPullRequest) {
+    if (!branchState.currentPullRequest) {
       return
     }
 
