@@ -1029,7 +1029,11 @@ export class AppStore {
       ? `Open in ${this.selectedExternalEditor}`
       : undefined
 
-    const prLabel = await this.getPullRequestLabel(repository)
+    let prLabel: string | undefined
+
+    if (repository) {
+      prLabel = await this.getPullRequestLabel(repository)
+    }
 
     updatePreferredAppMenuItemLabels({
       editor: editorLabel,
