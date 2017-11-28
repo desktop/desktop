@@ -302,7 +302,11 @@ export class AppStore {
     })
 
     pullRequestStore.onDidError(error => this.emitError(error))
-    pullRequestStore.onDidUpdate(() => this.emitUpdate())
+    pullRequestStore.onDidUpdate(() => {
+      this.updateBranchesState(this.sele)
+
+      this.emitUpdate()
+    })
   }
 
   /** Load the emoji from disk. */
