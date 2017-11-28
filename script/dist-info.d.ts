@@ -2,6 +2,8 @@ export function getDistRoot(): string
 export function getDistPath(): string
 export function getOSXZipName(): string
 export function getOSXZipPath(): string
+export function getLinuxZipName(): string
+export function getLinuxZipPath(): string
 export function getWindowsInstallerName(): string
 export function getWindowsInstallerPath(): string
 export function getWindowsStandaloneName(): string

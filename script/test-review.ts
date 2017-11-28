@@ -11,11 +11,9 @@ function reviewLogs() {
   })
 }
 
-if (process.platform === 'darwin') {
+if (process.platform === 'darwin' || process.platform === 'linux') {
   reviewLogs()
-}
-
-if (process.platform === 'win32') {
+} else if (process.platform === 'win32') {
   if (process.env.APPVEYOR_TEST_RESULT !== '0') {
     reviewLogs()
   }

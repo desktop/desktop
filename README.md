@@ -19,6 +19,7 @@ Download the official installer for your operating system:
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
  - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
+ - [Linux](https://central.github.com/deployments/desktop/desktop/latest/linux)
 
 There are several community-supported package managers that can be used to install Github Desktop.
  - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
@@ -41,6 +42,7 @@ beta channel to get access to early builds of Desktop:
 
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
+ - [Linux](https://central.github.com/deployments/desktop/desktop/latest/linux?env=beta)
 
 ## I have a problem with GitHub Desktop
 
