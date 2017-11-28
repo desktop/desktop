@@ -3,18 +3,18 @@
 :+1: :tada: :sparkling_heart: Thanks for your interest! :sparkling_heart: :tada: :+1:
 
 The following is a set of guidelines for contributing to GitHub Desktop and its
-related projects, which are hosted in the [Desktop Organization](https://github.com/desktop)
+related projects, which are hosted in the [Desktop organization](https://github.com/desktop)
 on GitHub. These are just guidelines, not rules. Use your best judgment, and
 feel free to propose changes to this document in a pull request.
 
-Note that GitHub Desktop is currently a public beta, so everything is likely to
-change over time as we learn and refine how we work with the community.
+Note that GitHub Desktop is an evolving project, so expect things to change over
+time as the team learns, listens and refines how we work with the community.
 
 #### Table Of Contents
 
 [What should I know before I get started?](#what-should-i-know-before-i-get-started)
   * [Code of Conduct](#code-of-conduct)
-  * [The Beta Roadmap](#the-beta-roadmap)
+  * [The Roadmap](#the-roadmap)
 
 [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
@@ -32,17 +32,19 @@ This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDU
 By participating, you are expected to uphold this code.
 Please report unacceptable behavior to [opensource+desktop@github.com](mailto:opensource+desktop@github.com).
 
-### The Beta Roadmap
+### The Roadmap
 
-Currently GitHub Desktop is in a public beta, and the team is focused on
-triaging reported issues and working towards a 1.0 milestone - where the
-application can be used in place of the classic Mac and Windows applications.
-You can follow this progress under the [Milestones](https://github.com/desktop/desktop/milestones)
-tab.
+GitHub Desktop recently announced it's
+[1.0 release](https://github.com/blog/2437-announcing-github-desktop-1-0) and
+are working towards deprecating the classic Mac and Windows applications.
 
-We're still thinking about where we want to take GitHub Desktop after we reach
-this 1.0 milestone. If you have ideas or suggestions please read the [Suggesting Enhancements](#suggesting-enhancements)
-section below to understand how to contribute your feedback.
+Beyond that, we are working on a roadmap you can read [here](https://github.com/desktop/desktop/blob/master/docs/process/roadmap.md).
+The immediate milestones are more detailed, and the latter milestones are more
+fuzzy and subject to change.
+
+If you have ideas or suggestions please read the
+[Suggesting Enhancements](#suggesting-enhancements) section below to understand
+how to contribute your feedback.
 
 ## How Can I Contribute?
 
