@@ -57,6 +57,12 @@
     padding-bottom: var(--spacing-half);
   }
 
+  .selected:focus {
+    .ci-status {
+      fill: var(--background-color);
+    }
+  }
+
   .pull-request-item {
     padding: 0 var(--spacing);
     display: flex;
