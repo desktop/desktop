@@ -1057,8 +1057,6 @@ export class AppStore {
 
     const branchState = repositoryState.branchesState
 
-    branchState.currentPullRequest
-
     if (!branchState.currentPullRequest) {
       return
     }
