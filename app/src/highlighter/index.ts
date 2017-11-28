@@ -60,6 +60,11 @@ extensionMIMEMap.set('.java', 'text/x-java')
 extensionMIMEMap.set('.c', 'text/x-c')
 extensionMIMEMap.set('.h', 'text/x-c')
 extensionMIMEMap.set('.cpp', 'text/x-c++src')
+extensionMIMEMap.set('.hpp', 'text/x-c++src')
+
+import 'codemirror/mode/mllike/mllike'
+extensionMIMEMap.set('.ml', 'text/x-ocaml')
+extensionMIMEMap.set('.fs', 'text/x-fsharp')
 
 import 'codemirror/mode/swift/swift'
 extensionMIMEMap.set('.swift', 'text/x-swift')

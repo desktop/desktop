@@ -33,7 +33,9 @@ export async function getAvailableEditors(): Promise<
   }
 
   log.warn(
-    `Platform not currently supported for resolving editors: ${process.platform}`
+    `Platform not currently supported for resolving editors: ${
+      process.platform
+    }`
   )
 
   return []
@@ -61,7 +63,9 @@ export async function findEditorOrDefault(
     const match = editors.find(p => p.editor === name) || null
     if (!match) {
       const menuItemName = __DARWIN__ ? 'Preferences' : 'Options'
-      const message = `The editor '${name}' could not be found. Please open ${menuItemName} and choose an available editor.`
+      const message = `The editor '${name}' could not be found. Please open ${
+        menuItemName
+      } and choose an available editor.`
 
       throw new ExternalEditorError(message, { openPreferences: true })
     }

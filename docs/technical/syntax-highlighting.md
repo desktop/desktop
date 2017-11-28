@@ -6,28 +6,9 @@ We introduced syntax highlighted diffs in [#3101](https://github.com/desktop/des
 
 ## Supported languages
 
-Initially we support syntax highlighting for the following languages.
+We currently support syntax highlighting for the following languages.
 
- - JavaScript
- - JSON
- - TypeScript
- - Coffeescript
- - HTML
- - Markdown
- - Yaml
- - XML
- - Objective-C
- - Swift
- - Scala
- - Java
- - C
- - C++
- - sh/bash
- - Go
- - Perl
- - PHP
- - Python
- - Ruby
+JavaScript, JSON, TypeScript, Coffeescript, HTML, CSS, SCSS, LESS, VUE, Markdown, Yaml, XML, Objective-C, Scala, C#, Java, C, C++, Ocaml, F#, sh/bash, Swift, SQL, Go, Perl, PHP, Python, Ruby
 
 This list was never meant to be exhaustive, we expect to add more languages going forward but this seemed like a good first step.
 

@@ -14,11 +14,11 @@ export function structuralEquals<T extends object>(
 /**
  * Performs a shallow equality comparison on the two objects, iterating over
  * their keys (non-recursively) and compares their values.
- * 
+ *
  * This method is functionally identical to that of React's shallowCompare
  * function and is intended to be used where we need to test for the same
  * kind of equality comparisons that a PureComponent performs.
- * 
+ *
  * Note that for Arrays and primitive types this method will follow the same
  * semantics as Object.is, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
  */

@@ -28,6 +28,7 @@ import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../lib/app-state'
+import { pathExists } from '../../lib/file-system'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -200,7 +201,9 @@ export class CreateRepository extends React.Component<
     } catch (e) {
       this.setState({ creating: false })
       log.error(
-        `createRepository: unable to initialize a Git repository at ${fullPath}`,
+        `createRepository: unable to initialize a Git repository at ${
+          fullPath
+        }`,
         e
       )
       return this.props.dispatcher.postError(e)
@@ -241,7 +244,9 @@ export class CreateRepository extends React.Component<
         await writeGitDescription(fullPath, description)
       } catch (e) {
         log.error(
-          `createRepository: unable to write .git/description file at ${fullPath}`,
+          `createRepository: unable to write .git/description file at ${
+            fullPath
+          }`,
           e
         )
         this.props.dispatcher.postError(e)
@@ -272,7 +277,11 @@ export class CreateRepository extends React.Component<
     }
 
     try {
-      await writeGitAttributes(fullPath)
+      const gitAttributes = Path.join(fullPath, '.gitattributes')
+      const gitAttributesExists = await pathExists(gitAttributes)
+      if (!gitAttributesExists) {
+        await writeGitAttributes(fullPath)
+      }
     } catch (e) {
       log.error(
         `createRepository: unable to write .gitattributes at ${fullPath}`,
