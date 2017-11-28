@@ -852,9 +852,7 @@ export class AppStore {
   private startPullRequestUpdater(repository: Repository) {
     if (this.currentPullRequestUpdater) {
       fatalError(
-        `A pull request updater is already active and cannot start updating on ${
-          repository.name
-        }`
+        `A pull request updater is already active and cannot start updating on ${repository.name}`
       )
 
       return
@@ -895,9 +893,7 @@ export class AppStore {
   ) {
     if (this.currentBackgroundFetcher) {
       fatalError(
-        `We should only have on background fetcher active at once, but we're trying to start background fetching on ${
-          repository.name
-        } while another background fetcher is still active!`
+        `We should only have on background fetcher active at once, but we're trying to start background fetching on ${repository.name} while another background fetcher is still active!`
       )
       return
     }
@@ -937,17 +933,18 @@ export class AppStore {
 
     // doing this that the current user can be found by any of their email addresses
     for (const account of accounts) {
-      const userAssociations: ReadonlyArray<IGitHubUser> = account.emails.map(
-        email =>
-          // NB: We're not using object spread here because `account` has more
-          // keys than we want.
-          ({
-            endpoint: account.endpoint,
-            email: email.email,
-            login: account.login,
-            avatarURL: account.avatarURL,
-            name: account.name,
-          })
+      const userAssociations: ReadonlyArray<
+        IGitHubUser
+      > = account.emails.map(email =>
+        // NB: We're not using object spread here because `account` has more
+        // keys than we want.
+        ({
+          endpoint: account.endpoint,
+          email: email.email,
+          login: account.login,
+          avatarURL: account.avatarURL,
+          name: account.name,
+        })
       )
 
       for (const user of userAssociations) {
@@ -990,7 +987,7 @@ export class AppStore {
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
 
-    this.updatePreferredAppMenuItemLabels()
+    this.updateMenuItemLabels()
 
     const imageDiffTypeValue = localStorage.getItem(imageDiffTypeKey)
     this.imageDiffType =
@@ -1023,8 +1020,10 @@ export class AppStore {
     return null
   }
 
-  /** Update the menu with the names of the user's preferred apps. */
-  private async updatePreferredAppMenuItemLabels(repository?: Repository) {
+  /**
+   * Update menu labels for editor, shell, and pull requests.
+   */
+  private async updateMenuItemLabels(repository?: Repository) {
     const editorLabel = this.selectedExternalEditor
       ? `Open in ${this.selectedExternalEditor}`
       : undefined
@@ -2090,9 +2089,7 @@ export class AppStore {
         const hasValidToken =
           account.token.length > 0 ? 'has token' : 'empty token'
         log.info(
-          `[AppStore.getAccountForRemoteURL] account found for remote: ${
-            remote
-          } - ${account.login} (${hasValidToken})`
+          `[AppStore.getAccountForRemoteURL] account found for remote: ${remote} - ${account.login} (${hasValidToken})`
         )
         return account
       }
@@ -2102,17 +2099,13 @@ export class AppStore {
     const username = getGenericUsername(hostname)
     if (username != null) {
       log.info(
-        `[AppStore.getAccountForRemoteURL] found generic credentials for '${
-          hostname
-        }' and '${username}'`
+        `[AppStore.getAccountForRemoteURL] found generic credentials for '${hostname}' and '${username}'`
       )
       return { login: username, endpoint: hostname }
     }
 
     log.info(
-      `[AppStore.getAccountForRemoteURL] no generic credentials found for '${
-        remote
-      }'`
+      `[AppStore.getAccountForRemoteURL] no generic credentials found for '${remote}'`
     )
 
     return null
@@ -2440,7 +2433,7 @@ export class AppStore {
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
 
-    this.updatePreferredAppMenuItemLabels()
+    this.updateMenuItemLabels()
 
     return Promise.resolve()
   }
@@ -2450,7 +2443,7 @@ export class AppStore {
     localStorage.setItem(shellKey, shell)
     this.emitUpdate()
 
-    this.updatePreferredAppMenuItemLabels()
+    this.updateMenuItemLabels()
 
     return Promise.resolve()
   }
@@ -2569,9 +2562,7 @@ export class AppStore {
 
   public _removeAccount(account: Account): Promise<void> {
     log.info(
-      `[AppStore] removing account ${account.login} (${
-        account.name
-      }) from store`
+      `[AppStore] removing account ${account.login} (${account.name}) from store`
     )
     return this.accountsStore.removeAccount(account)
   }
@@ -2732,9 +2723,7 @@ export class AppStore {
       const hasValidToken =
         account.token.length > 0 ? 'has token' : 'empty token'
       log.info(
-        `[AppStore.withAuthenticatingUser] account found for repository: ${
-          repository.name
-        } - ${account.login} (${hasValidToken})`
+        `[AppStore.withAuthenticatingUser] account found for repository: ${repository.name} - ${account.login} (${hasValidToken})`
       )
     }
 
@@ -2881,7 +2870,7 @@ export class AppStore {
       await this._openCreatePullRequestInBrowser(repository)
     }
 
-    this.updatePreferredAppMenuItemLabels(repository)
+    this.updateMenuItemLabels(repository)
   }
 
   public async _refreshPullRequests(repository: Repository): Promise<void> {
@@ -2905,7 +2894,7 @@ export class AppStore {
     )
 
     this.updateStateWithPullRequests(pullRequests, repository, gitHubRepository)
-    this.updatePreferredAppMenuItemLabels(repository)
+    this.updateMenuItemLabels(repository)
   }
 
   private updateStateWithPullRequests(
@@ -2973,9 +2962,7 @@ export class AppStore {
 
     const branch = tip.branch
 
-    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${
-      branch.nameWithoutRemote
-    }`
+    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${branch.nameWithoutRemote}`
     await this._openInBrowser(baseURL)
   }
 
