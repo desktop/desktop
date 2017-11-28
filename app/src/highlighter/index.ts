@@ -75,6 +75,9 @@ extensionMIMEMap.set('.sh', 'text/x-sh')
 import 'codemirror/mode/sql/sql'
 extensionMIMEMap.set('.sql', 'text/x-sql')
 
+import 'codemirror/mode/cypher/cypher'
+extensionMIMEMap.set('.cql', 'application/x-cypher-query')
+
 import 'codemirror/mode/go/go'
 extensionMIMEMap.set('.go', 'text/x-go')
 
