@@ -126,19 +126,19 @@
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
     "electron": "1.7.9",
-    "electron-builder": "19.33.0",
+    "electron-builder": "19.45.5",
     "electron-installer-appimage": "^1.0.1",
     "electron-mocha": "^5.0.0",
     "electron-packager": "^8.7.2",
     "electron-winstaller": "2.5.2"
   },
   "optionalDependencies": {
-    "electron-installer-debian": "^0.6.0",
+    "electron-installer-debian": "^0.7.1",
     "electron-installer-redhat": "^0.5.0"
   },
   "build": {
     "linux": {
-      "category": "public.app-category.developer-tools",
+      "category": "Development",
       "icon": "app/static/logos"
     }
   }

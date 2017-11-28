@@ -79,7 +79,11 @@ After that, install the dependencies to build and test the app:
 $ sudo apt update && sudo apt install -y nodejs gcc make libsecret-1-dev
 ```
 
-If you want to package Desktop for distribution, you may need additional dependencies.
+If you want to package Desktop for distribution, install these packages:
+
+```shellsession
+$ sudo apt install -y fakeroot dpkg rpm xz-utils xorriso zsync
+```
 
 ## Verification
 
