@@ -1026,7 +1026,7 @@ export class AppStore {
   /**
    * Update menu labels for editor, shell, and pull requests.
    */
-  private async updateMenuItemLabels(repository?: Repository) {
+  private updateMenuItemLabels(repository?: Repository) {
     const editorLabel = this.selectedExternalEditor
       ? `Open in ${this.selectedExternalEditor}`
       : undefined
@@ -1034,7 +1034,7 @@ export class AppStore {
     let prLabel: string | undefined
 
     if (repository) {
-      prLabel = await this.getPullRequestLabel(repository)
+      prLabel = this.getPullRequestLabel(repository)
     }
 
     updatePreferredAppMenuItemLabels({
