@@ -61,10 +61,10 @@ export async function getAvailableShells(): Promise<
     'HKEY_CURRENT_USER\\Software\\Classes\\Directory\\Background\\shell\\Hyper\\command'
   )
   if (hyper.length > 0) {
-    const commandPieces = hyper[0].value.match(
-      /(["'])(.*?)\1/
-    )
-    const path = commandPieces ? commandPieces[2] : process.env.LocalAppData.concat('\\hyper\\Hyper.exe')
+    const commandPieces = hyper[0].value.match(/(["'])(.*?)\1/)
+    const path = commandPieces
+      ? commandPieces[2]
+      : process.env.LocalAppData.concat('\\hyper\\Hyper.exe')
     shells.push({
       shell: Shell.Hyper,
       path: path,
