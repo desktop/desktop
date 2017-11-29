@@ -36,13 +36,9 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
     case ExternalEditor.VisualStudioCode:
       return ['com.microsoft.VSCode', 'com.microsoft.VSCodeInsiders']
     case ExternalEditor.SublimeText:
-<<<<<<< HEAD
-      return 'com.sublimetext.3'
-    case ExternalEditor.BBEdit:
-      return 'com.barebones.bbedit'
-=======
       return ['com.sublimetext.3']
->>>>>>> master
+    case ExternalEditor.BBEdit:
+      return ['com.barebones.bbedit']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -108,11 +104,7 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-<<<<<<< HEAD
-  const [atom, code, sublime, bbedit] = await Promise.all([
-=======
   const [atomPath, codePath, sublimePath] = await Promise.all([
->>>>>>> master
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.SublimeText),
