@@ -129,6 +129,9 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const shellKey = 'shell'
 
+// background fetching should not occur more than once every two minutes
+const BackgroundFetchMinimumInterval = 2 * 60 * 1000
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -899,9 +902,8 @@ export class AppStore {
 
     const now = new Date()
     const timeSinceFetch = now.getTime() - lastFetched.getTime()
-    const twoMinutes = 2 * 60 * 1000
 
-    if (timeSinceFetch < twoMinutes) {
+    if (timeSinceFetch < BackgroundFetchMinimumInterval) {
       const timeInSeconds = Math.floor(timeSinceFetch / 1000)
       console.debug(
         `skipping background fetch as repository was fetched ${
