@@ -100,17 +100,14 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [
-    atomPath,
-    codePath,
-    codeInsidersPath,
-    sublimePath,
-  ] = await Promise.all([
-    findApplication(ExternalEditor.Atom),
-    findApplication(ExternalEditor.VisualStudioCode),
-    findApplication(ExternalEditor.VisualStudioCodeInsiders),
-    findApplication(ExternalEditor.SublimeText),
-  ])
+  const [atomPath, codePath, codeInsidersPath, sublimePath] = await Promise.all(
+    [
+      findApplication(ExternalEditor.Atom),
+      findApplication(ExternalEditor.VisualStudioCode),
+      findApplication(ExternalEditor.VisualStudioCodeInsiders),
+      findApplication(ExternalEditor.SublimeText),
+    ]
+  )
 
   if (atomPath) {
     results.push({ editor: ExternalEditor.Atom, path: atomPath })
