@@ -7,6 +7,7 @@ export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
   SublimeText = 'Sublime Text',
+  BBEdit = 'BBEdit',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -19,6 +20,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
+  }
+  if (label === ExternalEditor.BBEdit) {
+    return ExternalEditor.BBEdit
   }
 
   return null
@@ -66,9 +70,8 @@ function getExecutableShim(
       return Path.join(
         installPath,
         'Contents',
-        'SharedSupport',
-        'bin',
-        'bbedit'
+        'Helpers',
+        'bbedit_tool'
       )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -104,7 +107,7 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atomPath, codePath, sublimePath] = await Promise.all([
+  const [atomPath, codePath, sublimePath, bbeditPath] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.SublimeText),
@@ -123,8 +126,8 @@ export async function getAvailableEditors(): Promise<
     results.push({ editor: ExternalEditor.SublimeText, path: sublimePath })
   }
 
-  if (bbedit.installed && bbedit.pathExists) {
-    results.push({ editor: bbedit.editor, path: bbedit.path })
+  if (bbeditPath) {
+    results.push({ editor: ExternalEditor.BBEdit, path: bbedit.bbeditPath })
   }
 
   return results
