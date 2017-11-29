@@ -28,24 +28,6 @@ export class Repository {
   }
 
   /**
-   * Create a new repository the same as the receiver but with the given GitHub
-   * repository.
-   */
-  public withGitHubRepository(gitHubRepository: GitHubRepository): Repository {
-    return new Repository(this.path, this.id, gitHubRepository, this.missing)
-  }
-
-  /** Create a new repository with a changed `missing` flag. */
-  public withMissing(missing: boolean): Repository {
-    return new Repository(this.path, this.id, this.gitHubRepository, missing)
-  }
-
-  /** Create a new repository with a changed path. */
-  public withPath(path: string): Repository {
-    return new Repository(path, this.id, this.gitHubRepository, this.missing)
-  }
-
-  /**
    * A hash of the properties of the object.
    *
    * Objects with the same hash are guaranteed to be structurally equal.

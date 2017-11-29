@@ -5,6 +5,7 @@ import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { mkdirIfNeeded } from '../../lib/file-system'
 
 import { log } from '../log'
+import { openDirectorySafe } from '../shell'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
@@ -343,7 +344,7 @@ export function buildDefaultMenu(
       const logPath = getLogDirectoryPath()
       mkdirIfNeeded(logPath)
         .then(() => {
-          shell.showItemInFolder(logPath)
+          openDirectorySafe(logPath)
         })
         .catch(err => {
           log('error', err.message)

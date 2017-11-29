@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { setupFixtureRepository } from '../../fixture-helper'
+import { setupFixtureRepository } from '../../helpers/repositories'
 import { Repository } from '../../../src/models/repository'
 import { GitProcess } from 'dugite'
 import { isUsingLFS } from '../../../src/lib/git/lfs'

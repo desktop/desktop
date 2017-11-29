@@ -9,7 +9,7 @@ import {
   checkoutBranch,
   renameBranch,
 } from '../../../src/lib/git'
-import { setupFixtureRepository } from '../../fixture-helper'
+import { setupFixtureRepository } from '../../helpers/repositories'
 import { Branch, BranchType } from '../../../src/models/branch'
 import { Commit } from '../../../src/models/commit'
 import { CommitIdentity } from '../../../src/models/commit-identity'

@@ -1,5 +1,4 @@
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
@@ -16,15 +15,18 @@ import {
   SignInStore,
   RepositoriesStore,
   AccountsStore,
+  PullRequestStore,
 } from '../../src/lib/stores'
-import { InMemoryDispatcher } from '../in-memory-dispatcher'
-import { TestGitHubUserDatabase } from '../test-github-user-database'
-import { TestStatsDatabase } from '../test-stats-database'
-import { TestIssuesDatabase } from '../test-issues-database'
-import { TestRepositoriesDatabase } from '../test-repositories-database'
+import { InMemoryDispatcher } from '../helpers/in-memory-dispatcher'
+import {
+  TestGitHubUserDatabase,
+  TestStatsDatabase,
+  TestIssuesDatabase,
+  TestRepositoriesDatabase,
+  TestPullRequestDatabase,
+} from '../helpers/databases'
 import { StatsStore } from '../../src/lib/stats'
-import { InMemoryStore } from '../in-memory-store'
-import { AsyncInMemoryStore } from '../async-in-memory-store'
+import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 
 describe('App', () => {
   let appStore: AppStore | null = null
@@ -51,6 +53,11 @@ describe('App', () => {
       new AsyncInMemoryStore()
     )
 
+    const pullRequestStore = new PullRequestStore(
+      new TestPullRequestDatabase(),
+      repositoriesStore
+    )
+
     appStore = new AppStore(
       new GitHubUserStore(db),
       new CloningRepositoriesStore(),
@@ -59,7 +66,8 @@ describe('App', () => {
       statsStore,
       new SignInStore(),
       accountsStore,
-      repositoriesStore
+      repositoriesStore,
+      pullRequestStore
     )
 
     dispatcher = new InMemoryDispatcher(appStore)

@@ -68,7 +68,12 @@ export async function getAvailableShells(): Promise<
   return shells
 }
 
-export async function launch(shell: Shell, path: string): Promise<void> {
+export async function launch(
+  foundShell: IFoundShell<Shell>,
+  path: string
+): Promise<void> {
+  const shell = foundShell.shell
+
   if (shell === Shell.PowerShell) {
     const psCommand = `"Set-Location -LiteralPath '${path}'"`
     await spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
@@ -76,7 +81,7 @@ export async function launch(shell: Shell, path: string): Promise<void> {
       cwd: path,
     })
   } else if (shell === Shell.GitBash) {
-    await spawn('"%ProgramFiles%\\Git\\git-bash.exe"', [`--cd="${path}"`], {
+    await spawn(foundShell.path, [`--cd="${path}"`], {
       shell: true,
       cwd: path,
     })

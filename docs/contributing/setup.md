@@ -24,19 +24,57 @@ You will need to install these tools on your machine:
     - *Visual Studio 2017 support has not been tested yet - see [#1766](https://github.com/desktop/desktop/issues/1766) for details*
  - *Run `npm config set msvs_version 2015` to tell node the right toolchain to use for compiling native modules.*
 
+### Fedora 26
+
+First, add the NodeJS package repository. As this version of Fedora doesn't support v7, you'll need to use v8:
+
+```shellsession
+$ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
+```
+
+After that, install the dependencies to build and test the app:
+
+```shellsession
+$ sudo dnf install -y nodejs gcc-c++ make libsecret-devel libXScrnSaver
+```
+
+If you want to package Desktop for distribution, you will need these additional dependencies:
+
+```shellsession
+$ sudo dnf install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
+```
+
+If you have problems packaging for AppImage, you may need to force the linker to use the right
+version of specific dependencies. More information [here](https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7)
+and [here](https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974)
+
+```shellsession
+$ sudo ln -s `find /usr/lib64/ -type f -name "libbz2.so.1*"` /usr/lib64/libbz2.so.1.0
+$ sudo ln -s `find /usr/lib64/ -type f -name "libreadline.so.7.0"` /usr/lib64/libreadline.so.6
+```
+
 ## Verification
 
-With these things installed, open a shell and validate you have these commands
-available and that the versions look similar:
+With these things installed, open a shell and install `yarn` (you might need
+to `sudo` here depending on how Node was installed):
 
+```shellsession
+$ npm install -g yarn@1.2.0
 ```
-> node -v
+
+This is important because yarn uses lock files to pin dependencies. If you find
+yourself changing packages, this will prevent mismatches in versions between machines.
+
+Then validate you have these commands available and that the versions look similar:
+
+```shellsession
+$ node -v
 v7.8.0
 
-> npm -v
-4.2.0
+$ yarn -v
+1.2.0
 
-> python --version
+$ python --version
 Python 2.7.13
 ```
 
@@ -49,13 +87,13 @@ repository.
 After cloning the repository, the typical workflow to get up running
 is as follows:
 
-* Run `npm install` to get all required dependencies on your machine.
-* Run `npm run build:dev` to create a development build of the app.
-* Run `npm start` to launch the application. Changes will be compiled in the
+* Run `yarn` to get all required dependencies on your machine.
+* Run `yarn build:dev` to create a development build of the app.
+* Run `yarn start` to launch the application. Changes will be compiled in the
   background. The app can then be reloaded to see the changes (Ctrl/Command+R).
 
-If you've made changes in the `main-process` folder you need to run `npm run
-build:dev` to rebuild the package, and then `npm start` for these changes to be
+If you've made changes in the `main-process` folder you need to run `yarn
+build:dev` to rebuild the package, and then `yarn start` for these changes to be
 reflected in the running app.
 
 If you're still encountering issues with building, refer to our
@@ -64,16 +102,16 @@ problems.
 
 ## Running tests
 
-- `npm test` - Runs all unit and integration tests
-- `npm run test:unit` - Runs all unit tests
-- `npm run test:integration` - Runs all integration tests
+- `yarn test` - Runs all unit and integration tests
+- `yarn test:unit` - Runs all unit tests
+- `yarn test:integration` - Runs all integration tests
 
 **Pro Tip:** If you're only interested in the results of a single test and don't
 wish to run the entire test suite to see it you can pass along a search string
 in order to only run the tests that match that string.
 
-```
-npm run test:unit -- --grep CloneProgressParser
+```shellsession
+$ yarn test:unit -- --grep CloneProgressParser
 ```
 
 This example will run all test names containing `CloneProgressParser`.
