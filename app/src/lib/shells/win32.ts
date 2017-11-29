@@ -7,6 +7,7 @@ import { IFoundShell } from './found-shell'
 export enum Shell {
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
+  Hyper = 'Hyper',
   GitBash = 'Git Bash',
 }
 
@@ -19,6 +20,10 @@ export function parse(label: string): Shell {
 
   if (label === Shell.PowerShell) {
     return Shell.PowerShell
+  }
+
+  if (label === Shell.Hyper) {
+    return Shell.Hyper
   }
 
   if (label === Shell.GitBash) {
@@ -49,6 +54,20 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.PowerShell,
       path,
+    })
+  }
+
+  const hyper = await readRegistryKeySafe(
+    'HKEY_CURRENT_USER\\Software\\Classes\\Directory\\Background\\shell\\Hyper\\command'
+  )
+  if (hyper.length > 0) {
+    const commandPieces = hyper[0].value.match(
+      /(["'])(.*?)\1/
+    )
+    const path = commandPieces ? commandPieces[2] : process.env.LocalAppData.concat('\\hyper\\Hyper.exe')
+    shells.push({
+      shell: Shell.Hyper,
+      path: path,
     })
   }
 
@@ -98,6 +117,12 @@ export async function launch(
       }
     )
     addErrorTracing(`PowerShell`, cp)
+  } else if (shell === Shell.Hyper) {
+    const cp = spawn(`"${foundShell.path}"`, [`"${path}"`], {
+      shell: true,
+      cwd: path,
+    })
+    addErrorTracing(`Hyper`, cp)
   } else if (shell === Shell.GitBash) {
     const cp = spawn(`"${foundShell.path}"`, [`--cd="${path}"`], {
       shell: true,
