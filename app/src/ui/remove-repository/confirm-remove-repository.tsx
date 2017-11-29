@@ -36,7 +36,7 @@ export class ConfirmRemoveRepository extends React.Component<
         type="warning"
         title={__DARWIN__ ? 'Remove Repository' : 'Remove repository'}
         onDismissed={this.cancel}
-        onSubmit={this.cancel}
+        onSubmit={this.onConfirmed}
       >
         <DialogContent>
           <p>
