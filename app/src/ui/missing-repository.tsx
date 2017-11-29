@@ -34,6 +34,12 @@ export class MissingRepository extends React.Component<
     }
 
     buttons.push(
+      <Button key="retry" onClick={this.retry}>
+        Retry
+      </Button>
+    )
+
+    buttons.push(
       <Button key="remove" onClick={this.remove}>
         Remove
       </Button>
@@ -57,6 +63,10 @@ export class MissingRepository extends React.Component<
   private canCloneAgain() {
     const gitHubRepository = this.props.repository.gitHubRepository
     return gitHubRepository && gitHubRepository.cloneURL
+  }
+
+  private retry = () => {
+    this.props.dispatcher.updateRepositoryMissing(this.props.repository, false)
   }
 
   private remove = () => {
