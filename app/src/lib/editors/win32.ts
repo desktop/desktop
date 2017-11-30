@@ -92,8 +92,9 @@ function getExecutableShim(
     case ExternalEditor.Atom:
       return Path.join(installLocation, 'bin', 'atom.cmd')
     case ExternalEditor.VisualStudioCode:
-    case ExternalEditor.VisualStudioCodeInsiders:
       return Path.join(installLocation, 'bin', 'code.cmd')
+    case ExternalEditor.VisualStudioCodeInsiders:
+      return Path.join(installLocation, 'bin', 'code-insiders.cmd')
     case ExternalEditor.SublimeText:
       return Path.join(installLocation, 'subl.exe')
     case ExternalEditor.CFBuilder:
