@@ -57,7 +57,14 @@ export async function getStatus(
   repository: Repository
 ): Promise<IStatusResult> {
   const result = await git(
-    ['status', '--untracked-files=all', '--branch', '--porcelain=2', '-z'],
+    [
+      '--no-optional-locks',
+      'status',
+      '--untracked-files=all',
+      '--branch',
+      '--porcelain=2',
+      '-z',
+    ],
     repository.path,
     'getStatus'
   )
