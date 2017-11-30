@@ -122,7 +122,7 @@ export async function getAvailableEditors(): Promise<
   }
 
   if (bbeditPath) {
-    results.push({ editor: ExternalEditor.BBEdit, path: bbedit.bbeditPath })
+    results.push({ editor: ExternalEditor.BBEdit, path: bbeditPath })
   }
 
   return results
