@@ -67,12 +67,7 @@ function getExecutableShim(
     case ExternalEditor.SublimeText:
       return Path.join(installPath, 'Contents', 'SharedSupport', 'bin', 'subl')
     case ExternalEditor.BBEdit:
-      return Path.join(
-        installPath,
-        'Contents',
-        'Helpers',
-        'bbedit_tool'
-      )
+      return Path.join(installPath, 'Contents', 'Helpers', 'bbedit_tool')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
