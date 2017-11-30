@@ -1031,11 +1031,9 @@ export class AppStore {
       ? `Open in ${this.selectedExternalEditor}`
       : undefined
 
-    let prLabel: string | undefined
-
-    if (repository) {
-      prLabel = this.getPullRequestLabel(repository)
-    }
+    let prLabel = repository
+      ? this.getPullRequestLabel(repository)
+      : undefined
 
     updatePreferredAppMenuItemLabels({
       editor: editorLabel,
@@ -1046,21 +1044,24 @@ export class AppStore {
 
   private getPullRequestLabel(repository: Repository) {
     const githubRepository = repository.gitHubRepository
+    const defaultPRLabel = __DARWIN__
+    ? 'Create Pull Request'
+    : 'Create &pull request'
 
     if (!githubRepository) {
-      return
+      return defaultPRLabel
     }
 
     const repositoryState = this.repositoryState.get(repository.hash)
 
     if (!repositoryState) {
-      return
+      return defaultPRLabel
     }
 
     const branchState = repositoryState.branchesState
 
     if (!branchState.currentPullRequest) {
-      return
+      return defaultPRLabel
     }
 
     return __DARWIN__ ? 'Show Pull Request' : 'Show &pull request'
