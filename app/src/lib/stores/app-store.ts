@@ -2901,7 +2901,9 @@ export class AppStore {
     )
 
     const repository = this.repositories.find(
-      r => r.gitHubRepository === gitHubRepository
+      r =>
+        !!r.gitHubRepository &&
+        r.gitHubRepository.dbID === gitHubRepository.dbID
     )
     if (!repository) {
       return
