@@ -294,6 +294,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.props.dispatcher.installCLI()
       case 'open-external-editor':
         return this.openCurrentRepositoryInExternalEditor()
+      case 'show-pull-request':
+        return this.showPullRequest()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
