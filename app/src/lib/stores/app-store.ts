@@ -306,7 +306,7 @@ export class AppStore {
 
     pullRequestStore.onDidError(error => this.emitError(error))
     pullRequestStore.onDidUpdate(gitHubRepository =>
-      this.onPullRequstStoreUpdated(gitHubRepository)
+      this.onPullRequestStoreUpdated(gitHubRepository)
     )
   }
 
@@ -2892,7 +2892,7 @@ export class AppStore {
     return this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
   }
 
-  private async onPullRequstStoreUpdated(gitHubRepository: GitHubRepository) {
+  private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {
     const pullRequests = await this.pullRequestStore.getPullRequests(
       gitHubRepository
     )
