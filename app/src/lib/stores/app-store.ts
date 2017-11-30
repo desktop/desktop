@@ -2887,6 +2887,27 @@ export class AppStore {
     this.updateMenuItemLabels(repository)
   }
 
+  public async _showPullRequest(repository: Repository): Promise<void> {
+    const gitHubRepository = repository.gitHubRepository
+
+    if (!gitHubRepository) {
+      return
+    }
+
+    const state = this.getRepositoryState(repository)
+    const currentPullRequest = state.branchesState.currentPullRequest
+
+    if (!currentPullRequest) {
+      return
+    }
+
+    const baseURL = `${gitHubRepository.htmlURL}/pull/${
+      currentPullRequest.number
+    }`
+
+    await this._openInBrowser(baseURL)
+  }
+
   public async _refreshPullRequests(repository: Repository): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
