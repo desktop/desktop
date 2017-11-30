@@ -25,3 +25,4 @@ export type MenuEvent =
   | 'create-pull-request'
   | 'install-cli'
   | 'open-external-editor'
+  | 'show-pull-request'
