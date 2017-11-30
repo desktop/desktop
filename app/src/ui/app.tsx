@@ -287,15 +287,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
-      case 'create-pull-request': {
+      case 'open-pull-request': {
         return this.openPullRequest()
       }
       case 'install-cli':
         return this.props.dispatcher.installCLI()
       case 'open-external-editor':
         return this.openCurrentRepositoryInExternalEditor()
-      case 'show-pull-request':
-        return this.showPullRequest()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -1434,21 +1432,18 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private openPullRequest = () => {
     const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
-      return
-    }
-
-    return this.props.dispatcher.createPullRequest(state.repository)
-  }
-
-  private showPullRequest = () => {
-    const state = this.state.selectedState
 
     if (!state || state.type !== SelectionType.Repository) {
       return
     }
 
-    return this.props.dispatcher.showPullRequest(state.repository)
+    const currentPullRequest = state.state.branchesState.currentPullRequest
+
+    if (currentPullRequest) {
+      this.props.dispatcher.showPullRequest(state.repository)
+    } else {
+      this.props.dispatcher.createPullRequest(state.repository)
+    }
   }
 
   private openCreatePullRequestInBrowser = (repository: Repository) => {
