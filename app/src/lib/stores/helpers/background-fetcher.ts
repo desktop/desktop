@@ -27,6 +27,7 @@ export class BackgroundFetcher {
   private readonly repository: Repository
   private readonly account: Account
   private readonly fetch: (repository: Repository) => Promise<void>
+  private readonly shouldPerformFetch: (repository: Repository) => boolean
 
   /** The handle for our setTimeout invocation. */
   private timeoutHandle: number | null = null
@@ -37,11 +38,13 @@ export class BackgroundFetcher {
   public constructor(
     repository: Repository,
     account: Account,
-    fetch: (repository: Repository) => Promise<void>
+    fetch: (repository: Repository) => Promise<void>,
+    shouldPerformFetch: (repository: Repository) => boolean
   ) {
     this.repository = repository
     this.account = account
     this.fetch = fetch
+    this.shouldPerformFetch = shouldPerformFetch
   }
 
   /** Start background fetching. */
@@ -88,10 +91,13 @@ export class BackgroundFetcher {
       return
     }
 
-    try {
-      await this.fetch(this.repository)
-    } catch (e) {
-      log.error('Error performing periodic fetch', e)
+    const shouldFetch = this.shouldPerformFetch(this.repository)
+    if (shouldFetch) {
+      try {
+        await this.fetch(this.repository)
+      } catch (e) {
+        log.error('Error performing periodic fetch', e)
+      }
     }
 
     if (this.stopped) {

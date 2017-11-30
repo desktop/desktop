@@ -161,7 +161,7 @@ interface IAPIAuthorization {
 
 /** The response we receive from fetching mentionables. */
 interface IAPIMentionablesResponse {
-  readonly etag: string
+  readonly etag: string | null
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
@@ -446,6 +446,10 @@ export class API {
         log.warn(`fetchAll: '${path}' returned a 404`)
         return []
       }
+      if (response.status === HttpStatusCode.NotModified) {
+        log.warn(`fetchAll: '${path}' returned a 304`)
+        return []
+      }
 
       const items = await parsedResponse<ReadonlyArray<T>>(response)
       if (items) {
@@ -508,18 +512,20 @@ export class API {
     try {
       const path = `repos/${owner}/${name}/mentionables/users`
       const response = await this.request('GET', path, undefined, headers)
-      if (response.status === HttpStatusCode.NotModified) {
+
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(`fetchMentionables: '${path}' returned a 404`)
         return null
       }
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchAll: '${path}' returned a 404`)
+
+      if (response.status === HttpStatusCode.NotModified) {
         return null
       }
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
         response
       )
-      const responseEtag = response.headers.get('etag')
-      return { users, etag: responseEtag || '' }
+      const etag = response.headers.get('etag')
+      return { users, etag }
     } catch (e) {
       log.warn(`fetchMentionables: failed for ${owner}/${name}`, e)
       return null

@@ -29,6 +29,7 @@ addons:
       # packages required for electron-installer-appimage
       - xz-utils
       - xorriso
+      - zsync
 
 branches:
   only:
