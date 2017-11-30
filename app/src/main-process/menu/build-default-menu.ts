@@ -301,10 +301,7 @@ export function buildDefaultMenu(
         label: pullRequestLabel,
         id: 'create-pull-request',
         accelerator: 'CmdOrCtrl+R',
-        click:
-          pullRequestLabel === defaultPullRequestLabel
-            ? emit('create-pull-request')
-            : emit('show-pull-request'),
+        click: emit('open-pull-request'),
       },
     ],
   })
