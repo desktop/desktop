@@ -59,7 +59,7 @@
 
   .selected:focus {
     .ci-status {
-      fill: var(--background-color);
+      color: inherit;
     }
   }
 
