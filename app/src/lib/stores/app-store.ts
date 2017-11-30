@@ -1857,8 +1857,9 @@ export class AppStore {
         if (prUpdater) {
           const state = this.getRepositoryState(repository)
           const currentPR = state.branchesState.currentPullRequest
-          if (currentPR) {
-            prUpdater.didPushPullRequest(currentPR)
+          const gitHubRepository = repository.gitHubRepository
+          if (currentPR && gitHubRepository) {
+            prUpdater.didPushPullRequest(gitHubRepository, currentPR)
           }
         }
       }
