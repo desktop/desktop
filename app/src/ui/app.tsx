@@ -1441,6 +1441,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.createPullRequest(state.repository)
   }
 
+  private showPullRequest = () => {
+    const state = this.state.selectedState
+
+    if (!state || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    return this.props.dispatcher.showPullRequest(state.repository)
+  }
+
   private openCreatePullRequestInBrowser = (repository: Repository) => {
     this.props.dispatcher.openCreatePullRequestInBrowser(repository)
   }
