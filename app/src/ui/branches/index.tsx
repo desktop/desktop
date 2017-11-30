@@ -167,28 +167,26 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
           onDismiss={this.onDismiss}
         />
       )
+    } else if (this.props.isLoadingPullRequests) {
+      return <PullRequestsLoading key="prs-loading" />
     } else {
-      if (this.props.isLoadingPullRequests) {
-        return <PullRequestsLoading key="prs-loading" />
-      } else {
-        const repo = this.props.repository
-        const name = repo.gitHubRepository
-          ? repo.gitHubRepository.fullName
-          : repo.name
-        const isOnDefaultBranch =
-          this.props.defaultBranch &&
-          this.props.currentBranch &&
-          this.props.defaultBranch.name === this.props.currentBranch.name
-        return (
-          <NoPullRequests
-            key="no-prs"
-            repositoryName={name}
-            isOnDefaultBranch={!!isOnDefaultBranch}
-            onCreateBranch={this.onCreateBranch}
-            onCreatePullRequest={this.onCreatePullRequest}
-          />
-        )
-      }
+      const repo = this.props.repository
+      const name = repo.gitHubRepository
+        ? repo.gitHubRepository.fullName
+        : repo.name
+      const isOnDefaultBranch =
+        this.props.defaultBranch &&
+        this.props.currentBranch &&
+        this.props.defaultBranch.name === this.props.currentBranch.name
+      return (
+        <NoPullRequests
+          key="no-prs"
+          repositoryName={name}
+          isOnDefaultBranch={!!isOnDefaultBranch}
+          onCreateBranch={this.onCreateBranch}
+          onCreatePullRequest={this.onCreatePullRequest}
+        />
+      )
     }
   }
 
