@@ -39,7 +39,6 @@ export class PullRequestStore {
     const api = API.fromAccount(account)
 
     this.changeActiveFetchCount(repository, c => c + 1)
-    this.emitUpdate(repository)
 
     try {
       const raw = await api.fetchPullRequests(
@@ -57,7 +56,6 @@ export class PullRequestStore {
       this.emitError(error)
     } finally {
       this.changeActiveFetchCount(repository, c => c - 1)
-      this.emitUpdate(repository)
     }
   }
 
@@ -72,6 +70,8 @@ export class PullRequestStore {
     const currentCount = this.activeFetchCountPerRepository.get(key) || 0
     const newCount = fn(currentCount)
     this.activeFetchCountPerRepository.set(key, newCount)
+
+    this.emitUpdate(repository)
   }
 
   /** Is the store currently fetching the list of open pull requests? */
