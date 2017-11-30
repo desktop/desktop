@@ -1031,7 +1031,7 @@ export class AppStore {
       ? `Open in ${this.selectedExternalEditor}`
       : undefined
 
-    let prLabel = repository
+    const prLabel = repository
       ? this.getPullRequestLabel(repository)
       : undefined
 
@@ -1045,8 +1045,8 @@ export class AppStore {
   private getPullRequestLabel(repository: Repository) {
     const githubRepository = repository.gitHubRepository
     const defaultPRLabel = __DARWIN__
-    ? 'Create Pull Request'
-    : 'Create &pull request'
+      ? 'Create Pull Request'
+      : 'Create &pull request'
 
     if (!githubRepository) {
       return defaultPRLabel
