@@ -57,7 +57,7 @@
     padding-bottom: var(--spacing-half);
   }
 
-  .selected:focus {
+  .list-item.selected:focus {
     .ci-status {
       color: inherit;
     }
