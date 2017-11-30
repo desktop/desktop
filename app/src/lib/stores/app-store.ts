@@ -905,7 +905,8 @@ export class AppStore {
 
     if (timeSinceFetch < BackgroundFetchMinimumInterval) {
       const timeInSeconds = Math.floor(timeSinceFetch / 1000)
-      console.debug(
+
+      log.debug(
         `skipping background fetch as repository was fetched ${
           timeInSeconds
         }s ago`
