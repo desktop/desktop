@@ -417,12 +417,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const tip = state.state.branchesState.tip
+    const aheadBehind = state.state.aheadBehind
 
     if (tip.kind === TipState.Valid) {
       this.props.dispatcher.showPopup({
         type: PopupType.DeleteBranch,
         repository: state.repository,
         branch: tip.branch,
+        aheadBehind: aheadBehind,
       })
     }
   }
@@ -884,6 +886,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
+            aheadBehind={popup.aheadBehind}
             onDismissed={this.onPopupDismissed}
           />
         )
