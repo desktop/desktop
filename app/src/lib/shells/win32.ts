@@ -61,10 +61,14 @@ export async function getAvailableShells(): Promise<
     'HKEY_CURRENT_USER\\Software\\Classes\\Directory\\Background\\shell\\Hyper\\command'
   )
   if (hyper.length > 0) {
+    // Registry key is structured as "{installationPath}\app-x.x.x\Hyper.exe" "%V"
+
+    // Get the pieces in between quotes
+    // commandPieces = ['"{installationPath}\app-x.x.x\Hyper.exe"', '"', '{installationPath}\app-x.x.x\Hyper.exe', ...]
     const commandPieces = hyper[0].value.match(/(["'])(.*?)\1/)
     const path = commandPieces
-      ? commandPieces[2]
-      : process.env.LocalAppData.concat('\\hyper\\Hyper.exe')
+      ? commandPieces[2] // Get path from the pieces when not null
+      : process.env.LocalAppData.concat('\\hyper\\Hyper.exe') // Else fall back to the launcher in install root
     shells.push({
       shell: Shell.Hyper,
       path: path,
