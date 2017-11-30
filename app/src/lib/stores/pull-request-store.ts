@@ -39,7 +39,7 @@ export class PullRequestStore {
     const api = API.fromAccount(account)
 
     this.changeActiveFetchCount(repository, c => c + 1)
-    this.emitUpdate()
+    this.emitUpdate(repository)
 
     try {
       const raw = await api.fetchPullRequests(
@@ -57,7 +57,7 @@ export class PullRequestStore {
       this.emitError(error)
     } finally {
       this.changeActiveFetchCount(repository, c => c - 1)
-      this.emitUpdate()
+      this.emitUpdate(repository)
     }
   }
 
@@ -150,7 +150,7 @@ export class PullRequestStore {
     }
 
     await this.writePRStatus(statuses)
-    this.emitUpdate()
+    this.emitUpdate(repository)
   }
 
   private async getPRStatusById(
@@ -250,8 +250,6 @@ export class PullRequestStore {
         }
       }
     })
-
-    this.emitUpdate()
   }
 
   /** Gets the pull requests against the given repository. */
@@ -320,8 +318,8 @@ export class PullRequestStore {
     return pullRequests
   }
 
-  private emitUpdate() {
-    this.emitter.emit('did-update', {})
+  private emitUpdate(repository: GitHubRepository) {
+    this.emitter.emit('did-update', repository)
   }
 
   private emitError(error: Error) {
@@ -329,7 +327,7 @@ export class PullRequestStore {
   }
 
   /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: () => void): Disposable {
+  public onDidUpdate(fn: (repository: GitHubRepository) => void): Disposable {
     return this.emitter.on('did-update', fn)
   }
 

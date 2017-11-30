@@ -305,11 +305,9 @@ export class AppStore {
     })
 
     pullRequestStore.onDidError(error => this.emitError(error))
-    pullRequestStore.onDidUpdate(() => {
-      this.updateBranchesState(this.sele)
-
-      this.emitUpdate()
-    })
+    pullRequestStore.onDidUpdate(gitHubRepository =>
+      this.onPullRequstStoreUpdated(gitHubRepository)
+    )
   }
 
   /** Load the emoji from disk. */
@@ -785,18 +783,6 @@ export class AppStore {
     const gitHubRepository = repository.gitHubRepository
     if (gitHubRepository) {
       this._updateIssues(gitHubRepository)
-
-      this.pullRequestStore
-        .getPullRequests(gitHubRepository)
-        .then(p =>
-          this.updateStateWithPullRequests(p, repository, gitHubRepository)
-        )
-        .catch(e =>
-          console.warn(
-            `Error getting pull requests for ${gitHubRepository.fullName}`,
-            e
-          )
-        )
     }
 
     this._refreshPullRequests(repository)
@@ -2900,36 +2886,41 @@ export class AppStore {
       gitHubRepository.endpoint
     )
     if (!account) {
-      return Promise.resolve()
+      return
     }
 
-    await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
+    return this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
+  }
 
+  private async onPullRequstStoreUpdated(gitHubRepository: GitHubRepository) {
     const pullRequests = await this.pullRequestStore.getPullRequests(
       gitHubRepository
     )
+    const isLoading = this.pullRequestStore.isFetchingPullRequests(
+      gitHubRepository
+    )
 
-    this.updateStateWithPullRequests(pullRequests, repository, gitHubRepository)
-  }
+    const repository = this.repositories.find(
+      r => r.gitHubRepository === gitHubRepository
+    )
+    if (!repository) {
+      return
+    }
 
-  private updateStateWithPullRequests(
-    pullRequests: ReadonlyArray<PullRequest>,
-    repository: Repository,
-    githubRepository: GitHubRepository
-  ) {
     this.updateBranchesState(repository, state => {
       let currentPullRequest = null
       if (state.tip.kind === TipState.Valid) {
         currentPullRequest = this.findAssociatedPullRequest(
           state.tip.branch,
           pullRequests,
-          githubRepository
+          gitHubRepository
         )
       }
 
       return {
         openPullRequests: pullRequests,
         currentPullRequest,
+        isLoadingPullRequests: isLoading,
       }
     })
 
