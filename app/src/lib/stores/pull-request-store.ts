@@ -76,10 +76,10 @@ export class PullRequestStore {
 
   /** Is the store currently fetching the list of open pull requests? */
   public isFetchingPullRequests(repository: GitHubRepository): boolean {
-    const key = repository.dbID
-    if (!key) {
-      return false
-    }
+    const key = forceUnwrap(
+      'Cannot fetch PRs for a repository which is not in the database',
+      repository.dbID
+    )
 
     const currentCount = this.activeFetchCountPerRepository.get(key) || 0
     return currentCount > 0
