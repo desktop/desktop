@@ -1,5 +1,23 @@
 {
   "releases": {
+    "1.0.10-beta3": [
+      "[New] Change \"Create Pull Request\" to \"Show Pull Request\" when there is already a pull request open for the branch - #2524",
+      "[New] VSCode Insiders build is now a supported external editor - #3441. Thanks @say25!",
+      "[New] BBEdit is now a supported external editor - #3467. Thanks @NiklasBr!",
+      "[New] Hyper is now a supported shell - #3475. Thanks @JordanMussi!",
+      "[New] Cypher is now syntax highlighted - #3440. Thanks @say25!",
+      "[New] .hpp is now syntax highlighted as C++ - #3420. Thanks @say25!",
+      "[New] ML-like languages are now syntax highlighted - #3401. Thanks @say25!",
+      "[Improved] Use the same colors in pull request dropdown as we use on GitHub.com - #3451",
+      "[Improved] Fancy pull request loading animations - #2868",
+      "[Improved] Avoid excessive background fetching when switching repositories - #3329",
+      "[Improved] Refresh the pull request list when the Push/Pull/Fetch button is clicked - #3448",
+      "[Improved] Ignore menu events sent when a modal is shown - #3308",
+      "[Fixed] Hitting Return would select the first item in a filter list when the filter text was empty - #3447",
+      "[Fixed] Add some missing keyboard shortcuts - #3327. Thanks @say25!",
+      "[Fixed] Handle \"304 Not Modified\" responses - #3399",
+      "[Fixed] Don't overwrite an existing .gitattributes when creating a new repository - #3419. Thanks @strafe!"
+    ],
     "1.0.10-beta2": [
       "[New] SQL is now syntax highlighted! - #3389. Thanks @say25!",
       "[Fixed] Windows: Detect VS Code when installed to non-standard locations - #3304"
