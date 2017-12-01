@@ -24,7 +24,7 @@
   .count {
     display: flex;
 
-    background: $gray-300;
+    background: $gray-200;
     color: var(--text-color);
 
     margin-left: var(--spacing-half);
@@ -82,6 +82,12 @@
     // The rows have built-in margin to their content so
     // we only need half a spacer here
     padding-bottom: var(--spacing-half);
+  }
+
+  .list-item.selected:focus {
+    .ci-status {
+      color: inherit;
+    }
   }
 
   .pull-request-item {
