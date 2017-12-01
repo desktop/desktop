@@ -1,5 +1,5 @@
 .toolbar-dropdown.open .pr-badge {
-  background: $gray-300;
+  background: $gray-200;
 }
 
 .toolbar-dropdown:not(.open) .pr-badge {
@@ -35,7 +35,7 @@
 }
 
 .toolbar-dropdown.open .ci-status-pending {
-  color: $orange-800;
+  color: $yellow-700;
 }
 
 .toolbar-dropdown.open .ci-status-failure {
@@ -43,5 +43,5 @@
 }
 
 .toolbar-dropdown.open .ci-status-success {
-  color: $green-700;
+  color: $green-500;
 }
