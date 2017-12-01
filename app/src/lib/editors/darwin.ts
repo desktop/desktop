@@ -6,6 +6,7 @@ import { assertNever } from '../fatal-error'
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
 }
@@ -14,9 +15,11 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.Atom) {
     return ExternalEditor.Atom
   }
-
   if (label === ExternalEditor.VisualStudioCode) {
     return ExternalEditor.VisualStudioCode
+  }
+  if (label === ExternalEditor.VisualStudioCodeInsiders) {
+    return ExternalEditor.VisualStudioCodeInsiders
   }
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
@@ -38,7 +41,9 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
     case ExternalEditor.Atom:
       return ['com.github.atom']
     case ExternalEditor.VisualStudioCode:
-      return ['com.microsoft.VSCode', 'com.microsoft.VSCodeInsiders']
+      return ['com.microsoft.VSCode']
+    case ExternalEditor.VisualStudioCodeInsiders:
+      return ['com.microsoft.VSCodeInsiders']
     case ExternalEditor.SublimeText:
       return ['com.sublimetext.3']
     case ExternalEditor.BBEdit:
@@ -56,6 +61,7 @@ function getExecutableShim(
     case ExternalEditor.Atom:
       return Path.join(installPath, 'Contents', 'Resources', 'app', 'atom.sh')
     case ExternalEditor.VisualStudioCode:
+    case ExternalEditor.VisualStudioCodeInsiders:
       return Path.join(
         installPath,
         'Contents',
@@ -102,9 +108,16 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atomPath, codePath, sublimePath, bbeditPath] = await Promise.all([
+  const [
+    atomPath,
+    codePath,
+    codeInsidersPath,
+    sublimePath,
+    bbeditPath,
+  ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
+    findApplication(ExternalEditor.VisualStudioCodeInsiders),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.BBEdit),
   ])
@@ -115,6 +128,13 @@ export async function getAvailableEditors(): Promise<
 
   if (codePath) {
     results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
+  }
+
+  if (codeInsidersPath) {
+    results.push({
+      editor: ExternalEditor.VisualStudioCodeInsiders,
+      path: codeInsidersPath,
+    })
   }
 
   if (sublimePath) {
