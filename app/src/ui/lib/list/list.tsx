@@ -332,10 +332,21 @@ export class List extends React.Component<IListProps, IListState> {
     direction: 'up' | 'down',
     row: number
   ): number | null {
-    for (let i = 1; i < this.props.rowCount; i++) {
+    // If the row we're starting from is outside our list, make sure we start
+    // walking from _just_ outside the list. We'll also need to walk one more
+    // row than we normally would since the first step is just getting us into
+    // the list.
+    const baseRow = Math.min(Math.max(row, -1), this.props.rowCount)
+    const startOutsideList = row < 0 || row >= this.props.rowCount
+    const rowDelta = startOutsideList
+      ? this.props.rowCount + 1
+      : this.props.rowCount
+
+    for (let i = 1; i < rowDelta; i++) {
       const delta = direction === 'up' ? i * -1 : i
       // Modulo accounting for negative values, see https://stackoverflow.com/a/4467559
-      const nextRow = (row + delta + this.props.rowCount) % this.props.rowCount
+      const nextRow =
+        (baseRow + delta + this.props.rowCount) % this.props.rowCount
 
       if (this.canSelectRow(nextRow)) {
         return nextRow
