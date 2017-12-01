@@ -325,26 +325,24 @@ export class List extends React.Component<IListProps, IListState> {
   /**
    * Determine the next selectable row, given the direction and row. This will
    * take `canSelectRow` into account.
+   *
+   * Returns null if no row can be selected.
    */
-  public nextSelectableRow(direction: 'up' | 'down', row: number): number {
-    let newRow = row
-    if (direction === 'up') {
-      newRow = row - 1
-      if (newRow < 0) {
-        newRow = this.props.rowCount - 1
-      }
-    } else {
-      newRow = row + 1
-      if (newRow > this.props.rowCount - 1) {
-        newRow = 0
+  public nextSelectableRow(
+    direction: 'up' | 'down',
+    row: number
+  ): number | null {
+    for (let i = 1; i < this.props.rowCount; i++) {
+      const delta = direction === 'up' ? i * -1 : i
+      // Modulo accounting for negative values, see https://stackoverflow.com/a/4467559
+      const nextRow = (row + delta + this.props.rowCount) % this.props.rowCount
+
+      if (this.canSelectRow(nextRow)) {
+        return nextRow
       }
     }
 
-    if (this.canSelectRow(newRow)) {
-      return newRow
-    } else {
-      return this.nextSelectableRow(direction, newRow)
-    }
+    return null
   }
 
   /** Convenience method for invoking canSelectRow callback when it exists */
@@ -358,11 +356,13 @@ export class List extends React.Component<IListProps, IListState> {
   ) {
     const newRow = this.nextSelectableRow(direction, this.props.selectedRow)
 
-    if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(newRow, { kind: 'keyboard', event })
-    }
+    if (newRow !== null) {
+      if (this.props.onSelectionChanged) {
+        this.props.onSelectionChanged(newRow, { kind: 'keyboard', event })
+      }
 
-    this.scrollRowToVisible(newRow)
+      this.scrollRowToVisible(newRow)
+    }
   }
 
   private scrollRowToVisible(row: number) {
@@ -492,7 +492,8 @@ export class List extends React.Component<IListProps, IListState> {
       content = (
         <AutoSizer disableWidth={true} disableHeight={true}>
           {({ width, height }: { width: number; height: number }) =>
-            this.renderContents(width, height)}
+            this.renderContents(width, height)
+          }
         </AutoSizer>
       )
     }

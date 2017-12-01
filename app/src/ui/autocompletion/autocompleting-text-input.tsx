@@ -354,14 +354,17 @@ export abstract class AutocompletingTextInput<
         direction,
         selectedRow
       )
-      const newSelectedItem = currentAutoCompletionState.items[nextRow]
 
-      const newAutoCompletionState = {
-        ...currentAutoCompletionState,
-        selectedItem: newSelectedItem,
+      if (nextRow !== null) {
+        const newSelectedItem = currentAutoCompletionState.items[nextRow]
+
+        const newAutoCompletionState = {
+          ...currentAutoCompletionState,
+          selectedItem: newSelectedItem,
+        }
+
+        this.setState({ autocompletionState: newAutoCompletionState })
       }
-
-      this.setState({ autocompletionState: newAutoCompletionState })
     } else if (event.key === 'Enter' || event.key === 'Tab') {
       const item = currentAutoCompletionState.selectedItem
       if (item) {
@@ -388,7 +391,9 @@ export abstract class AutocompletingTextInput<
       const regex = new RegExp(provider.getRegExp())
       if (!regex.global) {
         fatalError(
-          `The regex (${regex}) returned from ${provider} isn't global, but it should be!`
+          `The regex (${regex}) returned from ${
+            provider
+          } isn't global, but it should be!`
         )
         continue
       }

@@ -24,7 +24,9 @@ import { AuthenticationMode } from '../../lib/2fa'
 import { minimumSupportedEnterpriseVersion } from '../../lib/enterprise'
 
 function getUnverifiedUserErrorMessage(login: string): string {
-  return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
+  return `Unable to authenticate. The account ${
+    login
+  } is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
 }
 
 const EnterpriseTooOldMessage = `The GitHub Enterprise version does not support GitHub Desktop. Talk to your server's administrator about upgrading to the latest version of GitHub Enterprise.`
@@ -234,7 +236,9 @@ export class SignInStore {
       }
     } else {
       throw new Error(
-        `Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct, that your GitHub Enterprise instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
+        `Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct, that your GitHub Enterprise instance is running version ${
+          minimumSupportedEnterpriseVersion
+        } or later, that you have an internet connection and try again.`
       )
     }
   }
@@ -338,8 +342,9 @@ export class SignInStore {
       if (response.kind === AuthorizationResponseKind.Error) {
         this.emitError(
           new Error(
-            `The server responded with an error while attempting to authenticate (${response
-              .response.status})\n\n${response.response.statusText}`
+            `The server responded with an error while attempting to authenticate (${
+              response.response.status
+            })\n\n${response.response.statusText}`
           )
         )
         this.setState({ ...currentState, loading: false })
@@ -530,7 +535,9 @@ export class SignInStore {
     ) {
       const stepText = currentState ? currentState.kind : 'null'
       fatalError(
-        `Sign in step '${stepText}' not compatible with two factor authentication`
+        `Sign in step '${
+          stepText
+        }' not compatible with two factor authentication`
       )
       return
     }
@@ -583,8 +590,9 @@ export class SignInStore {
         case AuthorizationResponseKind.Error:
           this.emitError(
             new Error(
-              `The server responded with an error (${response.response
-                .status})\n\n${response.response.statusText}`
+              `The server responded with an error (${
+                response.response.status
+              })\n\n${response.response.statusText}`
             )
           )
           break
