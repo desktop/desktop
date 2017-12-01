@@ -287,7 +287,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
-      case 'create-pull-request': {
+      case 'open-pull-request': {
         return this.openPullRequest()
       }
       case 'install-cli':
@@ -1432,11 +1432,19 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private openPullRequest = () => {
     const state = this.state.selectedState
+
     if (!state || state.type !== SelectionType.Repository) {
       return
     }
 
-    return this.props.dispatcher.createPullRequest(state.repository)
+    const currentPullRequest = state.state.branchesState.currentPullRequest
+    const dispatcher = this.props.dispatcher
+
+    if (currentPullRequest) {
+      dispatcher.showPullRequest(state.repository)
+    } else {
+      dispatcher.createPullRequest(state.repository)
+    }
   }
 
   private openCreatePullRequestInBrowser = (repository: Repository) => {

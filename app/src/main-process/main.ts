@@ -155,9 +155,13 @@ app.on('ready', () => {
     'update-preferred-app-menu-item-labels',
     (
       event: Electron.IpcMessageEvent,
-      labels: { editor?: string; shell: string }
+      labels: { editor?: string; pullRequestLabel?: string; shell: string }
     ) => {
-      menu = buildDefaultMenu(labels.editor, labels.shell)
+      menu = buildDefaultMenu(
+        labels.editor,
+        labels.shell,
+        labels.pullRequestLabel
+      )
       Menu.setApplicationMenu(menu)
       if (mainWindow) {
         mainWindow.sendAppMenu()

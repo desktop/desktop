@@ -1012,7 +1012,7 @@ export class AppStore {
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
 
-    this.updatePreferredAppMenuItemLabels()
+    this.updateMenuItemLabels()
 
     const imageDiffTypeValue = localStorage.getItem(imageDiffTypeKey)
     this.imageDiffType =
@@ -1045,16 +1045,48 @@ export class AppStore {
     return null
   }
 
-  /** Update the menu with the names of the user's preferred apps. */
-  private updatePreferredAppMenuItemLabels() {
+  /**
+   * Update menu labels for editor, shell, and pull requests.
+   */
+  private updateMenuItemLabels(repository?: Repository) {
     const editorLabel = this.selectedExternalEditor
       ? `Open in ${this.selectedExternalEditor}`
       : undefined
 
+    const prLabel = repository
+      ? this.getPullRequestLabel(repository)
+      : undefined
+
     updatePreferredAppMenuItemLabels({
       editor: editorLabel,
+      pullRequestLabel: prLabel,
       shell: `Open in ${this.selectedShell}`,
     })
+  }
+
+  private getPullRequestLabel(repository: Repository) {
+    const githubRepository = repository.gitHubRepository
+    const defaultPRLabel = __DARWIN__
+      ? 'Create Pull Request'
+      : 'Create &pull request'
+
+    if (!githubRepository) {
+      return defaultPRLabel
+    }
+
+    const repositoryState = this.repositoryState.get(repository.hash)
+
+    if (!repositoryState) {
+      return defaultPRLabel
+    }
+
+    const branchState = repositoryState.branchesState
+
+    if (!branchState.currentPullRequest) {
+      return defaultPRLabel
+    }
+
+    return __DARWIN__ ? 'Show Pull Request' : 'Show &pull request'
   }
 
   private updateRepositorySelectionAfterRepositoriesChanged() {
@@ -2434,7 +2466,7 @@ export class AppStore {
     localStorage.setItem(externalEditorKey, selectedEditor)
     this.emitUpdate()
 
-    this.updatePreferredAppMenuItemLabels()
+    this.updateMenuItemLabels()
 
     return Promise.resolve()
   }
@@ -2444,7 +2476,7 @@ export class AppStore {
     localStorage.setItem(shellKey, shell)
     this.emitUpdate()
 
-    this.updatePreferredAppMenuItemLabels()
+    this.updateMenuItemLabels()
 
     return Promise.resolve()
   }
@@ -2874,6 +2906,29 @@ export class AppStore {
     } else {
       await this._openCreatePullRequestInBrowser(repository)
     }
+
+    this.updateMenuItemLabels(repository)
+  }
+
+  public async _showPullRequest(repository: Repository): Promise<void> {
+    const gitHubRepository = repository.gitHubRepository
+
+    if (!gitHubRepository) {
+      return
+    }
+
+    const state = this.getRepositoryState(repository)
+    const currentPullRequest = state.branchesState.currentPullRequest
+
+    if (!currentPullRequest) {
+      return
+    }
+
+    const baseURL = `${gitHubRepository.htmlURL}/pull/${
+      currentPullRequest.number
+    }`
+
+    await this._openInBrowser(baseURL)
   }
 
   public async _refreshPullRequests(repository: Repository): Promise<void> {
@@ -2890,7 +2945,8 @@ export class AppStore {
       return
     }
 
-    return this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
+    await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
+    return this.updateMenuItemLabels(repository)
   }
 
   private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {

@@ -1058,6 +1058,13 @@ export class Dispatcher {
   }
 
   /**
+   * Show the current pull request on github.com
+   */
+  public showPullRequest(repository: Repository): Promise<void> {
+    return this.appStore._showPullRequest(repository)
+  }
+
+  /**
    * Immediately open the Create Pull Request page on GitHub.
    *
    * See the createPullRequest method for more details.
