@@ -1475,6 +1475,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         selectedTab={this.state.selectedBranchesTab}
         pullRequests={branchesState.openPullRequests}
         currentPullRequest={branchesState.currentPullRequest}
+        isLoadingPullRequests={branchesState.isLoadingPullRequests}
       />
     )
   }
