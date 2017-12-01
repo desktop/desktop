@@ -86,6 +86,11 @@
   --box-alt-background-color: $gray-100;
 
   /**
+   * Background color for skeleton or "loading" boxes
+   */
+  --box-skeleton-background-color: $gray-200;
+
+  /**
    * Border color for boxes.
    */
   --box-border-color: $gray-200;

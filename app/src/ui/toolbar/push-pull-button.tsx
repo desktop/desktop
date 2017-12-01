@@ -201,18 +201,25 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
   }
 
   private performAction = () => {
-    if (!this.props.aheadBehind) {
-      this.props.dispatcher.push(this.props.repository)
+    const repository = this.props.repository
+    const dispatcher = this.props.dispatcher
+    const aheadBehind = this.props.aheadBehind
+
+    if (!aheadBehind) {
+      dispatcher.push(repository)
       return
     }
 
-    const { ahead, behind } = this.props.aheadBehind
+    const { ahead, behind } = aheadBehind
+
     if (behind > 0) {
-      this.props.dispatcher.pull(this.props.repository)
+      dispatcher.pull(repository)
     } else if (ahead > 0) {
-      this.props.dispatcher.push(this.props.repository)
+      dispatcher.push(repository)
     } else {
-      this.props.dispatcher.fetch(this.props.repository)
+      dispatcher.fetch(repository)
     }
+
+    dispatcher.refreshPullRequests(repository)
   }
 }

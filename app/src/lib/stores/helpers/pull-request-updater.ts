@@ -80,7 +80,10 @@ export class PullRequestUpdater {
   }
 
   /** Starts fetching the statuses of PRs at an accelerated rate */
-  public didPushPullRequest(pullRequest: PullRequest) {
+  public didPushPullRequest(
+    repository: GitHubRepository,
+    pullRequest: PullRequest
+  ) {
     if (this.currentPullRequests.find(p => p.id === pullRequest.id)) {
       return
     }
@@ -95,24 +98,29 @@ export class PullRequestUpdater {
     }
 
     const handle = window.setTimeout(
-      () => this.refreshPullRequestStatus(),
+      () => this.refreshPullRequestStatus(repository),
       PostPushInterval
     )
     this.timeoutHandles.set(TimeoutHandles.PushedPullRequest, handle)
   }
 
-  private async refreshPullRequestStatus() {
+  private async refreshPullRequestStatus(repository: GitHubRepository) {
     await this.store.refreshPullRequestStatuses(this.repository, this.account)
-    const prStatuses = await this.store.getPullRequestStatuses()
+    const prs = await this.store.getPullRequests(repository)
 
-    for (const prStatus of prStatuses) {
+    for (const pr of prs) {
+      const status = pr.status
+      if (!status) {
+        continue
+      }
+
       if (
-        !prStatus.totalCount ||
-        prStatus.state === 'success' ||
-        prStatus.state === 'failure'
+        !status.totalCount ||
+        status.state === 'success' ||
+        status.state === 'failure'
       ) {
         this.currentPullRequests = this.currentPullRequests.filter(
-          p => p.number !== prStatus.pullRequestNumber
+          p => p.number !== status.pullRequestNumber
         )
       }
     }
