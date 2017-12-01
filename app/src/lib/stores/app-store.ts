@@ -2945,8 +2945,8 @@ export class AppStore {
       return
     }
 
-    this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
-    this.updateMenuItemLabels(repository)
+    await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
+    return this.updateMenuItemLabels(repository)
   }
 
   private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {
