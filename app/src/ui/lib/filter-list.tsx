@@ -349,8 +349,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     } else if (event.key === 'Enter') {
       // no repositories currently displayed, bail out
       if (!this.state.rows.length) {
-        event.preventDefault()
-        return
+        return event.preventDefault()
+      }
+
+      const filterText = this.props.filterText
+
+      if (filterText !== undefined && !/\S/.test(filterText)) {
+        return event.preventDefault()
       }
 
       const row = list.nextSelectableRow('down', -1)

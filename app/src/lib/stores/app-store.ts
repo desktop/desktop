@@ -129,6 +129,9 @@ const imageDiffTypeKey = 'image-diff-type'
 
 const shellKey = 'shell'
 
+// background fetching should not occur more than once every two minutes
+const BackgroundFetchMinimumInterval = 2 * 60 * 1000
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -889,6 +892,31 @@ export class AppStore {
     }
   }
 
+  private shouldBackgroundFetch(repository: Repository): boolean {
+    const gitStore = this.getGitStore(repository)
+    const lastFetched = gitStore.lastFetched
+
+    if (!lastFetched) {
+      return true
+    }
+
+    const now = new Date()
+    const timeSinceFetch = now.getTime() - lastFetched.getTime()
+
+    if (timeSinceFetch < BackgroundFetchMinimumInterval) {
+      const timeInSeconds = Math.floor(timeSinceFetch / 1000)
+
+      log.debug(
+        `skipping background fetch as repository was fetched ${
+          timeInSeconds
+        }s ago`
+      )
+      return false
+    }
+
+    return true
+  }
+
   private startBackgroundFetching(
     repository: Repository,
     withInitialSkew: boolean
@@ -911,8 +939,11 @@ export class AppStore {
       return
     }
 
-    const fetcher = new BackgroundFetcher(repository, account, r =>
-      this.performFetch(r, account, true)
+    const fetcher = new BackgroundFetcher(
+      repository,
+      account,
+      r => this.performFetch(r, account, true),
+      r => this.shouldBackgroundFetch(r)
     )
     fetcher.start(withInitialSkew)
     this.currentBackgroundFetcher = fetcher
