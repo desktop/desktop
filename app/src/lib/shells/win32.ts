@@ -90,7 +90,10 @@ export async function getAvailableShells(): Promise<
 
   if (gitBash.length > 0) {
     const installPathEntry = gitBash.find(e => e.name === 'InstallPath')
-    if (installPathEntry && installPathEntry.type == RegistryValueType.REG_SZ) {
+    if (
+      installPathEntry &&
+      installPathEntry.type === RegistryValueType.REG_SZ
+    ) {
       shells.push({
         shell: Shell.GitBash,
         path: Path.join(installPathEntry.data, 'git-bash.exe'),
