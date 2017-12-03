@@ -836,9 +836,9 @@ regenerator-runtime@^0.11.0:
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.11.0.tgz#7e54fe5b5ccd5d6624ea6255c3473be090b802e1"
 
-registry-js@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/registry-js/-/registry-js-1.0.0.tgz#69d42ea1bc7686bd2b722ad0edd98486f296a124"
+registry-js@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/registry-js/-/registry-js-1.0.1.tgz#11b17d2257e6646153b5e80387506e041c54472e"
   dependencies:
     nan "^2.8.0"
 
