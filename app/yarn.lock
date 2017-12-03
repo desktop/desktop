@@ -684,6 +684,10 @@ nan@2.x:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.7.0.tgz#d95bf721ec877e08db276ed3fc6eb78f9083ad46"
 
+nan@^2.8.0:
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.8.0.tgz#ed715f3fe9de02b57a5e6252d90a96675e1f085a"
+
 node-fetch@^1.0.1:
   version "1.7.3"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-1.7.3.tgz#980f6f72d85211a5347c6b2bc18c5b84c3eb47ef"
@@ -831,6 +835,12 @@ react@^15.6.2:
 regenerator-runtime@^0.11.0:
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.11.0.tgz#7e54fe5b5ccd5d6624ea6255c3473be090b802e1"
+
+registry-js@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/registry-js/-/registry-js-1.0.0.tgz#69d42ea1bc7686bd2b722ad0edd98486f296a124"
+  dependencies:
+    nan "^2.8.0"
 
 request@^2.83.0:
   version "2.83.0"
