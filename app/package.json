@@ -40,7 +40,6 @@
     "react-dom": "^15.6.2",
     "react-transition-group": "^1.2.0",
     "react-virtualized": "^9.10.1",
-    "registry-js": "^1.0.0",
     "runas": "^3.1.1",
     "source-map-support": "^0.4.15",
     "strip-ansi": "^4.0.0",
@@ -62,5 +61,8 @@
     "style-loader": "^0.13.2",
     "temp": "^0.8.3",
     "webpack-hot-middleware": "^2.10.0"
+  },
+  "optionalDependencies": {
+    "registry-js": "^1.0.0"
   }
 }
