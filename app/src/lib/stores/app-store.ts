@@ -941,7 +941,7 @@ export class AppStore {
     const fetcher = new BackgroundFetcher(
       repository,
       account,
-      r => this.performFetch(r, account, true),
+      r => this.performFetch(r, account, FetchType.BackgroundTask),
       r => this.shouldBackgroundFetch(r)
     )
     fetcher.start(withInitialSkew)
