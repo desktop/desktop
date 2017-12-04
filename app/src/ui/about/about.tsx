@@ -114,7 +114,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       case UpdateStatus.UpdateReady:
         return (
           <Row>
-            <Button onClick={this.onQuitAndInstall}>Install Update</Button>
+            <Button onClick={this.onQuitAndInstall}>Quit and Install Update</Button>
           </Row>
         )
       case UpdateStatus.UpdateNotAvailable:
