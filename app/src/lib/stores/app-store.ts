@@ -2231,9 +2231,9 @@ export class AppStore {
   }
 
   /** Fetch the repository. */
-  public _fetch(repository: Repository): Promise<void> {
+  public _fetch(repository: Repository, fetchType: FetchType): Promise<void> {
     return this.withAuthenticatingUser(repository, (repository, account) => {
-      return this.performFetch(repository, account, false)
+      return this.performFetch(repository, account, fetchType)
     })
   }
 
