@@ -109,6 +109,14 @@ import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 
+/**
+ * Todo: come up with something clever
+ */
+export enum FetchType {
+  BackgroundTask,
+  NonBackgrounTask,
+}
+
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 const defaultSidebarWidth: number = 250
