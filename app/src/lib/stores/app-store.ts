@@ -2240,7 +2240,7 @@ export class AppStore {
   private async performFetch(
     repository: Repository,
     account: IGitAccount | null,
-    backgroundTask: boolean
+    fetchType: FetchType
   ): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
@@ -2248,8 +2248,9 @@ export class AppStore {
       try {
         const fetchWeight = 0.9
         const refreshWeight = 0.1
+        const isBackgroundTask = fetchType === FetchType.BackgroundTask
 
-        await gitStore.fetch(account, backgroundTask, progress => {
+        await gitStore.fetch(account, isBackgroundTask, progress => {
           this.updatePushPullFetchProgress(repository, {
             ...progress,
             value: progress.value * fetchWeight,
@@ -2278,6 +2279,10 @@ export class AppStore {
         await this.fastForwardBranches(repository)
       } finally {
         this.updatePushPullFetchProgress(repository, null)
+
+        if (fetchType !== FetchType.BackgroundTask) {
+          this._refreshPullRequests(repository)
+        }
       }
     })
   }
