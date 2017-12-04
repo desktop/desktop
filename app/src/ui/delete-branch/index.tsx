@@ -3,7 +3,6 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { IAheadBehind } from '../../lib/app-state'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
@@ -14,7 +13,7 @@ interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
-  readonly aheadBehind: IAheadBehind | null
+  readonly existsOnRemote: boolean
   readonly onDismissed: () => void
 }
 
@@ -62,7 +61,7 @@ export class DeleteBranch extends React.Component<
   }
 
   private renderDeleteOnRemote() {
-    if (this.props.branch.remote && this.props.aheadBehind) {
+    if (this.props.branch.remote && this.props.existsOnRemote) {
       return (
         <div>
           <p>
