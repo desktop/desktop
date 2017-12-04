@@ -4,7 +4,7 @@
       "[New] Change \"Create Pull Request\" to \"Show Pull Request\" when there is already a pull request open for the branch - #2524",
       "[New] VSCode Insiders build is now a supported external editor - #3441. Thanks @say25!",
       "[New] BBEdit is now a supported external editor - #3467. Thanks @NiklasBr!",
-      "[New] Hyper is now a supported shell - #3475. Thanks @JordanMussi!",
+      "[New] Hyper is now a supported shell - #3455. Thanks @JordanMussi!",
       "[New] Cypher is now syntax highlighted - #3440. Thanks @say25!",
       "[New] .hpp is now syntax highlighted as C++ - #3420. Thanks @say25!",
       "[New] ML-like languages are now syntax highlighted - #3401. Thanks @say25!",
