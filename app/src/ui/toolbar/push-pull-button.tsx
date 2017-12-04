@@ -6,6 +6,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { RelativeTime } from '../relative-time'
+import { FetchType } from '../../lib/stores/index'
 
 interface IPushPullButtonProps {
   /**
