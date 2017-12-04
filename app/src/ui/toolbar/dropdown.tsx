@@ -9,7 +9,7 @@ export type DropdownState = 'open' | 'closed'
 
 export interface IToolbarDropdownProps {
   /** The primary button text, describing its function */
-  readonly title?: string | JSX.Element
+  readonly title?: string
 
   /** An optional description of the function of the button */
   readonly description?: string | JSX.Element
