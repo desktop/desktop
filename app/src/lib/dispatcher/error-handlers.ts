@@ -240,7 +240,7 @@ export async function pushNeedsPullHandler(
   }
 
   // Since they need to pull, go ahead and do a fetch for them.
-  dispatcher.fetch(repository, FetchType.NonBackgrounTask)
+  dispatcher.fetch(repository, FetchType.NonBackgroundTask)
 
   return error
 }

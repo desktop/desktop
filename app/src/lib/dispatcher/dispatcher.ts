@@ -1001,7 +1001,7 @@ export class Dispatcher {
         return this.pull(retryAction.repository)
 
       case RetryActionType.Fetch:
-        return this.fetch(retryAction.repository, FetchType.NonBackgrounTask)
+        return this.fetch(retryAction.repository, FetchType.NonBackgroundTask)
 
       case RetryActionType.Clone:
         await this.clone(retryAction.url, retryAction.path, retryAction.options)
