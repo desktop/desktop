@@ -108,6 +108,7 @@ import { PullRequestStore } from './pull-request-store'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
+import * as QueryString from 'querystring'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -3026,10 +3027,11 @@ export class AppStore {
     }
 
     const branch = tip.branch
-
+    const urlEncodedBranchName = QueryString.escape(branch.nameWithoutRemote)
     const baseURL = `${gitHubRepository.htmlURL}/pull/new/${
-      branch.nameWithoutRemote
+      urlEncodedBranchName
     }`
+
     await this._openInBrowser(baseURL)
   }
 
