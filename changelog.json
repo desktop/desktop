@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.0.10-test4": [
+      "[Improved] New registry component has a significant fix for Windows 7"
+    ],
     "1.0.10-test3": [
       "[Improved] Yet another build with the new registry component"
     ],
