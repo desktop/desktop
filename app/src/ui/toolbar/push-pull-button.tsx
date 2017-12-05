@@ -218,7 +218,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     } else if (ahead > 0) {
       dispatcher.push(repository)
     } else {
-      dispatcher.fetch(repository, FetchType.NonBackgroundTask)
+      dispatcher.fetch(repository, FetchType.UserInitiatedTask)
     }
   }
 }

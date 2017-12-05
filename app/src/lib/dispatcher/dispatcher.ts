@@ -50,7 +50,7 @@ import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { BranchesTab } from '../../models/branches-tab'
-import { FetchType } from '../../lib/stores/app-store'
+import { FetchType } from '../../lib/stores'
 
 /**
  * An error handler function.
@@ -1001,7 +1001,7 @@ export class Dispatcher {
         return this.pull(retryAction.repository)
 
       case RetryActionType.Fetch:
-        return this.fetch(retryAction.repository, FetchType.NonBackgroundTask)
+        return this.fetch(retryAction.repository, FetchType.UserInitiatedTask)
 
       case RetryActionType.Clone:
         await this.clone(retryAction.url, retryAction.path, retryAction.options)
