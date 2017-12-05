@@ -114,7 +114,7 @@ import { PullRequestUpdater } from './helpers/pull-request-updater'
  */
 export enum FetchType {
   BackgroundTask,
-  NonBackgrounTask,
+  NonBackgroundTask,
 }
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
