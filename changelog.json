@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.0.10-test3": [
+      "[Improved] Yet another build with the new registry component"
+    ],
     "1.0.10-test2": [
       "[Improved] Another build with the new registry component"
     ],
