@@ -49,7 +49,17 @@ export async function getAvailableShells(): Promise<
   )
   if (powerShell.length > 0) {
     const first = powerShell[0]
-    if (first.type === RegistryValueType.REG_EXPAND_SZ) {
+
+    // NOTE:
+    // on Windows 7 these are both REG_SZ, which technically isn't supposed
+    // to contain unexpanded references to environment variables. But given
+    // it's also %SystemRoot% and we do the expanding here I think this is
+    // a fine workaround to do to support the maximum number of setups.
+
+    if (
+      first.type === RegistryValueType.REG_EXPAND_SZ ||
+      first.type === RegistryValueType.REG_SZ
+    ) {
       const path = first.data.replace(
         /^%SystemRoot%/i,
         process.env.SystemRoot || 'C:\\Windows'
