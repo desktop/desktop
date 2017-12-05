@@ -1,17 +1,5 @@
 {
   "releases": {
-    "1.0.10-test4": [
-      "[Improved] New registry component has a significant fix for Windows 7"
-    ],
-    "1.0.10-test3": [
-      "[Improved] Yet another build with the new registry component"
-    ],
-    "1.0.10-test2": [
-      "[Improved] Another build with the new registry component"
-    ],
-    "1.0.10-test1": [
-      "[Improved] Using a new way to interact with the registry"
-    ],
     "1.0.10-beta3": [
       "[New] Change \"Create Pull Request\" to \"Show Pull Request\" when there is already a pull request open for the branch - #2524",
       "[New] VSCode Insiders build is now a supported external editor - #3441. Thanks @say25!",
