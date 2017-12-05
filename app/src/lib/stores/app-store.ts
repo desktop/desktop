@@ -110,7 +110,8 @@ import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 
 /**
- * Todo: come up with something clever
+ * Enum used by fetch to determine if
+ * a fetch was initiated by the backgroundFetcher
  */
 export enum FetchType {
   BackgroundTask,
