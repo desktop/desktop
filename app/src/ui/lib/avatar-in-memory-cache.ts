@@ -1,5 +1,7 @@
 import * as crypto from 'crypto'
 
+import { IAvatarUser } from '../../models/avatar'
+
 const inMemoryCache = new Map<string, string | null>()
 
 /**
@@ -53,12 +55,12 @@ async function fetchAndCache(requestUrl: string): Promise<string | null> {
 
 /**
  * Fetch an avatar associated to associate with a user, using graceful fallback
- * in the cases an avatar is not accessible.
+ * when the resource is not accessible.
  *
  * @param avatarURL The GitHub avatar URL to try first
- * @param email The email address to translate into a Gravatar URL
+ * @param email The email address to translate into a Gravatar URL as a fallback
  */
-export async function fetchAvatar(
+export async function lookupAvatar(
   avatarURL: string,
   email: string
 ): Promise<string | null> {
@@ -90,4 +92,22 @@ export async function fetchAvatar(
   }
 
   return null
+}
+
+/**
+ * Fetch the avatar associated with the current user
+ *
+ * @param defaultURL default avatar to render
+ * @param user current user to inspect
+ */
+export async function fetchAvatarUrl(
+  defaultURL: string,
+  user?: IAvatarUser
+): Promise<string> {
+  if (!user) {
+    return defaultURL
+  }
+
+  const avatar = await lookupAvatar(user.avatarURL, user.email)
+  return avatar || defaultURL
 }

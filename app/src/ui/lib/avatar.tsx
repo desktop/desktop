@@ -1,18 +1,9 @@
 import * as React from 'react'
-import { IAvatarUser } from '../../models/avatar'
 import { encodePathAsUrl } from '../../lib/path'
-import { fetchAvatar } from './avatar-in-memory-cache'
+import { IAvatarUser } from '../../models/avatar'
+import { fetchAvatarUrl } from './avatar-in-memory-cache'
 
 const DefaultAvatarURL = encodePathAsUrl(__dirname, 'static/default-avatar.png')
-
-async function fetchDataUrl(user?: IAvatarUser): Promise<string> {
-  if (!user) {
-    return DefaultAvatarURL
-  }
-
-  const avatar = await fetchAvatar(user.avatarURL, user.email)
-  return avatar || DefaultAvatarURL
-}
 
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
@@ -32,11 +23,6 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     super(props)
 
     this.state = { dataUrl: DefaultAvatarURL }
-  }
-
-  public async componentWillMount() {
-    const dataUrl = await fetchDataUrl(this.props.user)
-    this.setState({ dataUrl })
   }
 
   public shouldComponentUpdate(
@@ -65,8 +51,13 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     return false
   }
 
+  public async componentWillMount() {
+    const dataUrl = await fetchAvatarUrl(DefaultAvatarURL, this.props.user)
+    this.setState({ dataUrl })
+  }
+
   public async componentWillReceiveProps(nextProps: IAvatarProps) {
-    const dataUrl = await fetchDataUrl(nextProps.user)
+    const dataUrl = await fetchAvatarUrl(DefaultAvatarURL, nextProps.user)
     this.setState({ dataUrl })
   }
 
