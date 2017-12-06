@@ -58,10 +58,10 @@ async function fetchAndCache(requestUrl: string): Promise<string | null> {
 }
 
 /**
- * Fetch an avatar associated to associate with a user, using graceful fallback
- * when the resource is not accessible.
+ * Fetch an avatar to associate with a user, with fallback when the resource is
+ * not accessible.
  *
- * @param avatarURL The GitHub avatar URL to try first
+ * @param avatarURL The GitHub avatar URL to lookup first
  * @param email The email address to translate into a Gravatar URL as a fallback
  */
 export async function lookupAvatar(
