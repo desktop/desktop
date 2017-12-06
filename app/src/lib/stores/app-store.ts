@@ -3011,6 +3011,37 @@ export class AppStore {
     return null
   }
 
+  public _updateCurrentPullRequest(
+    branch: Branch,
+    pullRequests: ReadonlyArray<PullRequest>,
+    repository: Repository
+  ) {
+    const gitHubRepository = repository.gitHubRepository
+
+    if (!gitHubRepository) {
+      return
+    }
+
+    this.updateBranchesState(repository, state => {
+      let currentPullRequest: PullRequest | null = null
+
+      if (state.tip.kind === TipState.Valid) {
+        currentPullRequest = this.findAssociatedPullRequest(
+          state.tip.branch,
+          pullRequests,
+          gitHubRepository
+        )
+      }
+
+      return {
+        openPullRequests: pullRequests,
+        currentPullRequest,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
   public async _openCreatePullRequestInBrowser(
     repository: Repository
   ): Promise<void> {
