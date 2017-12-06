@@ -81,6 +81,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { getOS } from '../lib/get-os'
 import { validatedRepositoryPath } from '../lib/stores/helpers/validated-repository-path'
 import { UpstreamAlreadyExists } from './upstream-already-exists/index'
+import { Branch } from '../models/branch'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1484,7 +1485,30 @@ export class App extends React.Component<IAppProps, IAppState> {
         pullRequests={branchesState.openPullRequests}
         currentPullRequest={branchesState.currentPullRequest}
         isLoadingPullRequests={branchesState.isLoadingPullRequests}
+        onSelectionChanged={this.onBranchChanged}
       />
+    )
+  }
+
+  private onBranchChanged = (branch: Branch | null) => {
+    if (!branch) {
+      return
+    }
+
+    const selection = this.state.selectedState
+
+    if (!selection || selection.type !== SelectionType.Repository) {
+      return
+    }
+
+    const repository = selection.repository
+    const branchesState = selection.state.branchesState
+    const pullRequests = branchesState.openPullRequests
+
+    this.props.dispatcher.updateCurrentPullRequest(
+      branch,
+      pullRequests,
+      repository
     )
   }
 
