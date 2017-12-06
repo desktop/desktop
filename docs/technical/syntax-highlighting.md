@@ -6,7 +6,7 @@ We introduced syntax highlighted diffs in [#3101](https://github.com/desktop/des
 
 ## Supported languages
 
-We currently support syntax highlighting for the following languages.
+We currently support syntax highlighting for the following languages:
 
 * JavaScript
 * JSON
