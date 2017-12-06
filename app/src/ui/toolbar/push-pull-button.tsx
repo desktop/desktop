@@ -6,6 +6,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { RelativeTime } from '../relative-time'
+import { FetchType } from '../../lib/stores/index'
 
 interface IPushPullButtonProps {
   /**
@@ -217,9 +218,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     } else if (ahead > 0) {
       dispatcher.push(repository)
     } else {
-      dispatcher.fetch(repository)
+      dispatcher.fetch(repository, FetchType.UserInitiatedTask)
     }
-
-    dispatcher.refreshPullRequests(repository)
   }
 }
