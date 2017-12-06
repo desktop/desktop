@@ -43,19 +43,18 @@ export async function fetchAvatar(
   avatarURL: string,
   email: string
 ): Promise<string | null> {
-  // first, lookup a cached value for the avatar
   const cachedAccountAvatar = inMemoryCache.get(avatarURL)
-  if (cachedAccountAvatar !== undefined) {
+  if (cachedAccountAvatar) {
     return cachedAccountAvatar
   }
 
-  const accountAvatar = await fetchAndCache(avatarURL)
-  if (accountAvatar) {
-    return accountAvatar
+  if (cachedAccountAvatar === undefined) {
+    // no cache entry found for GitHub avatar
+    const accountAvatar = await fetchAndCache(avatarURL)
+    if (accountAvatar) {
+      return accountAvatar
+    }
   }
-
-  // if that doesn't work, let's use their email address to generate a Gravatar
-  // URL and try to resolve that
 
   const gravatarURL = generateGravatarUrl(email)
   const cachedGravatarAvatar = inMemoryCache.get(gravatarURL)
@@ -63,9 +62,12 @@ export async function fetchAvatar(
     return cachedGravatarAvatar
   }
 
-  const gravatarAvatar = await fetchAndCache(gravatarURL)
-  if (gravatarAvatar) {
-    return gravatarAvatar
+  if (cachedGravatarAvatar === undefined) {
+    // no cache entry found for Gravatar avatar
+    const gravatarAvatar = await fetchAndCache(gravatarURL)
+    if (gravatarAvatar) {
+      return gravatarAvatar
+    }
   }
 
   return null
