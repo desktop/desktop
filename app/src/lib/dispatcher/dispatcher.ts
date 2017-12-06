@@ -50,6 +50,7 @@ import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { BranchesTab } from '../../models/branches-tab'
+import { PullRequest } from '../../models/pull-request'
 
 /**
  * An error handler function.
@@ -883,6 +884,14 @@ export class Dispatcher {
   public revealInFileManager(repository: Repository, path: string) {
     const normalized = Path.join(repository.path, path)
     return shell.showItemInFolder(normalized)
+  }
+
+  public updateCurrentPullRequest(
+    branch: Branch,
+    pullRequests: ReadonlyArray<PullRequest>,
+    repository: Repository
+  ) {
+    this.appStore._updateCurrentPullRequest(branch, pullRequests, repository)
   }
 
   private async handleCloneInDesktopOptions(
