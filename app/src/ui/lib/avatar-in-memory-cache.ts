@@ -2,26 +2,38 @@ import * as crypto from 'crypto'
 
 const inMemoryCache = new Map<string, string | null>()
 
-function generateGravatarUrl(email: string): string {
+/**
+ * Convert an email address to a Gravatar URL
+ *
+ * @param email The email address associated with a user
+ * @param size The size (in pixels) of the avatar to render
+ */
+function generateGravatarUrl(email: string, size: number = 200): string {
   const input = email.trim().toLowerCase()
   const hash = crypto
     .createHash('md5')
     .update(input)
     .digest('hex')
 
-  return `https://www.gravatar.com/avatar/${hash}?s=200`
+  return `https://www.gravatar.com/avatar/${hash}?s=${size}`
 }
 
-const myHeaders = new Headers()
+const defaultHeaders = new Headers()
 
 const defaultInit: RequestInit = {
   method: 'GET',
-  headers: myHeaders,
+  headers: defaultHeaders,
   mode: 'cors',
   cache: 'default',
 }
 
-async function fetchAndCache(requestUrl: string) {
+/**
+ * Fetch an avatar URL and cache it in memory, using the browser's
+ * URL.createObjectURL represent the local image blob.
+ *
+ * @param requestUrl The source URL to fetch
+ */
+async function fetchAndCache(requestUrl: string): Promise<string | null> {
   let url: string | null = null
 
   try {
@@ -39,6 +51,13 @@ async function fetchAndCache(requestUrl: string) {
   return url
 }
 
+/**
+ * Fetch an avatar associated to associate with a user, using graceful fallback
+ * in the cases an avatar is not accessible.
+ *
+ * @param avatarURL The GitHub avatar URL to try first
+ * @param email The email address to translate into a Gravatar URL
+ */
 export async function fetchAvatar(
   avatarURL: string,
   email: string
