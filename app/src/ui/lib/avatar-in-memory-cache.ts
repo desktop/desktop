@@ -1,24 +1,7 @@
-import * as crypto from 'crypto'
-
+import { generateGravatarUrl } from '../../lib/gravatar'
 import { IAvatarUser } from '../../models/avatar'
 
 const inMemoryCache = new Map<string, string | null>()
-
-/**
- * Convert an email address to a Gravatar URL format
- *
- * @param email The email address associated with a user
- * @param size The size (in pixels) of the avatar to render
- */
-function generateGravatarUrl(email: string, size: number = 200): string {
-  const input = email.trim().toLowerCase()
-  const hash = crypto
-    .createHash('md5')
-    .update(input)
-    .digest('hex')
-
-  return `https://www.gravatar.com/avatar/${hash}?s=${size}`
-}
 
 const defaultHeaders = new Headers()
 
