@@ -32,6 +32,7 @@ interface IBranchesProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+  readonly onSelectionChange: (branch: Branch | null) => void
 }
 
 interface IBranchesState {
@@ -78,6 +79,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private onSelectionChanged = (selectedBranch: Branch | null) => {
+    this.props.onSelectionChange(selectedBranch)
     this.setState({ selectedBranch })
   }
 
