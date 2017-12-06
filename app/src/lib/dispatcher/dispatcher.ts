@@ -51,6 +51,7 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { BranchesTab } from '../../models/branches-tab'
 import { PullRequest } from '../../models/pull-request'
+import { FetchType } from '../../lib/stores'
 
 /**
  * An error handler function.
@@ -296,8 +297,8 @@ export class Dispatcher {
   }
 
   /** Fetch all refs for the repository */
-  public fetch(repository: Repository): Promise<void> {
-    return this.appStore._fetch(repository)
+  public fetch(repository: Repository, fetchType: FetchType): Promise<void> {
+    return this.appStore._fetch(repository, fetchType)
   }
 
   /** Publish the repository to GitHub with the given properties. */
@@ -1009,7 +1010,7 @@ export class Dispatcher {
         return this.pull(retryAction.repository)
 
       case RetryActionType.Fetch:
-        return this.fetch(retryAction.repository)
+        return this.fetch(retryAction.repository, FetchType.UserInitiatedTask)
 
       case RetryActionType.Clone:
         await this.clone(retryAction.url, retryAction.path, retryAction.options)
