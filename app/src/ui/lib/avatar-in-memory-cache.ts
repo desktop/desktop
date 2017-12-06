@@ -5,7 +5,7 @@ import { IAvatarUser } from '../../models/avatar'
 const inMemoryCache = new Map<string, string | null>()
 
 /**
- * Convert an email address to a Gravatar URL
+ * Convert an email address to a Gravatar URL format
  *
  * @param email The email address associated with a user
  * @param size The size (in pixels) of the avatar to render
@@ -31,7 +31,11 @@ const defaultInit: RequestInit = {
 
 /**
  * Fetch an avatar URL and cache it in memory, using the browser's
- * URL.createObjectURL represent the local image blob.
+ * URL.createObjectURL method to refer to the blob content, instead of
+ * converting into the data URI format.
+ *
+ * This method will store a `null` in the cache if the request fails, so that
+ * it avoids repeated requests to the same URL for the current session.
  *
  * @param requestUrl The source URL to fetch
  */
