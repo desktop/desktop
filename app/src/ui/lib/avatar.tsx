@@ -28,7 +28,7 @@ interface IAvatarState {
 
 /** A component for displaying a user avatar. */
 export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
-  constructor(props: IAvatarProps) {
+  public constructor(props: IAvatarProps) {
     super(props)
 
     this.state = { dataUrl: DefaultAvatarURL }
