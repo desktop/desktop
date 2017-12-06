@@ -1,8 +1,18 @@
 import * as React from 'react'
 import { IAvatarUser } from '../../models/avatar'
 import { encodePathAsUrl } from '../../lib/path'
+import { fetchAvatar } from './avatar-in-memory-cache'
 
 const DefaultAvatarURL = encodePathAsUrl(__dirname, 'static/default-avatar.png')
+
+async function fetchDataUrl(user?: IAvatarUser): Promise<string> {
+  if (!user) {
+    return DefaultAvatarURL
+  }
+
+  const avatar = await fetchAvatar(user.avatarURL, user.email)
+  return avatar || DefaultAvatarURL
+}
 
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
@@ -12,8 +22,54 @@ interface IAvatarProps {
   readonly title?: string
 }
 
+interface IAvatarState {
+  readonly dataUrl?: string
+}
+
 /** A component for displaying a user avatar. */
-export class Avatar extends React.Component<IAvatarProps, {}> {
+export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
+  constructor(props: IAvatarProps) {
+    super(props)
+
+    this.state = { dataUrl: DefaultAvatarURL }
+  }
+
+  public async componentWillMount() {
+    const dataUrl = await fetchDataUrl(this.props.user)
+    this.setState({ dataUrl })
+  }
+
+  public shouldComponentUpdate(
+    nextProps: IAvatarProps,
+    nextState: IAvatarState
+  ) {
+    if (nextState.dataUrl !== this.state.dataUrl) {
+      return true
+    }
+
+    if (nextProps.user && this.props.user) {
+      if (
+        nextProps.user.avatarURL !== this.props.user.avatarURL ||
+        nextProps.user.email !== this.props.user.email ||
+        nextProps.user.name !== this.props.user.name ||
+        nextProps.title !== this.props.title
+      ) {
+        return true
+      }
+    }
+
+    if (!nextProps.user && !this.props.user) {
+      return nextProps.title !== this.props.title
+    }
+
+    return false
+  }
+
+  public async componentWillReceiveProps(nextProps: IAvatarProps) {
+    const dataUrl = await fetchDataUrl(nextProps.user)
+    this.setState({ dataUrl })
+  }
+
   private getTitle(): string {
     if (this.props.title) {
       return this.props.title
@@ -33,7 +89,6 @@ export class Avatar extends React.Component<IAvatarProps, {}> {
   }
 
   public render() {
-    const url = this.props.user ? this.props.user.avatarURL : DefaultAvatarURL
     const title = this.getTitle()
     const ariaLabel = this.props.user
       ? `Avatar for ${this.props.user.name || this.props.user.email}`
@@ -44,7 +99,7 @@ export class Avatar extends React.Component<IAvatarProps, {}> {
         <img
           className="avatar"
           title={title}
-          src={url}
+          src={this.state.dataUrl}
           alt={title}
           aria-label={ariaLabel}
         />
