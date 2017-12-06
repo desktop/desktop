@@ -11,6 +11,7 @@ import { BranchesTab } from '../../models/branches-tab'
 import { enablePRIntegration } from '../../lib/feature-flag'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestBadge } from '../branches/pull-request-badge'
+import { Branch } from '../../models/branch'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -43,6 +44,8 @@ interface IBranchDropdownProps {
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  readonly onSelectionChanged: (branch: Branch | null) => void
 }
 
 /**
@@ -68,6 +71,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         pullRequests={this.props.pullRequests}
         currentPullRequest={this.props.currentPullRequest}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
+        onSelectionChange={this.props.onSelectionChanged}
       />
     )
   }
