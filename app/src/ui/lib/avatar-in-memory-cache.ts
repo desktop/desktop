@@ -45,8 +45,13 @@ async function fetchAndCache(requestUrl: string): Promise<string | null> {
   try {
     const response = await fetch(requestUrl, defaultInit)
     if (response.ok) {
-      const blob = await response.blob()
-      url = URL.createObjectURL(blob)
+      const contentType = response.headers.get('Content-Type')
+      if (contentType && contentType.startsWith('text/html')) {
+        // we're encountering a request to sign in, let's skip this
+      } else {
+        const blob = await response.blob()
+        url = URL.createObjectURL(blob)
+      }
     }
   } catch {
     // catch and ignore any network errors
