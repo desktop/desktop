@@ -26,14 +26,14 @@ export function generateGravatarUrl(email: string, size: number = 200): string {
  * GitHub Enterprise, where avatar URLs are inaccessible
  * in some scenarios.
  *
- * @param endpoint The API endpoint for the account
- * @param author The commit author
+ * @param avatar_url The canonical avatar to use
  * @param email The email address to use as a fallback
+ * @param endpoint The API endpoint for the account
  */
 export function getAvatarWithEnterpriseFallback(
-  endpoint: string,
   avatar_url: string,
-  email: string
+  email: string,
+  endpoint: string
 ): string {
   if (endpoint === getDotComAPIEndpoint()) {
     return avatar_url

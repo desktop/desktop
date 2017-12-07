@@ -209,9 +209,9 @@ async function updatedAccount(account: Account): Promise<Account> {
 
   const defaultEmail = emails[0].email || ''
   const avatarURL = getAvatarWithEnterpriseFallback(
-    account.endpoint,
     user.avatar_url,
-    defaultEmail
+    defaultEmail,
+    account.endpoint
   )
 
   return new Account(

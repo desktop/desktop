@@ -670,9 +670,9 @@ export async function fetchUser(
     const emails = await api.fetchEmails()
     const defaultEmail = emails[0].email || ''
     const avatarURL = getAvatarWithEnterpriseFallback(
-      endpoint,
       user.avatar_url,
-      defaultEmail
+      defaultEmail,
+      endpoint
     )
     return new Account(
       user.login,

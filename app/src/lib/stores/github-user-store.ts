@@ -102,9 +102,9 @@ export class GitHubUserStore {
         email,
         endpoint: account.endpoint,
         avatarURL: getAvatarWithEnterpriseFallback(
-          account.endpoint,
           m.avatar_url,
-          email
+          email,
+          account.endpoint
         ),
       }
     })
@@ -209,9 +209,9 @@ export class GitHubUserStore {
       )
       if (apiCommit && apiCommit.author) {
         const avatarURL = getAvatarWithEnterpriseFallback(
-          account.endpoint,
           apiCommit.author.avatar_url,
-          email
+          email,
+          account.endpoint
         )
 
         return {
@@ -227,9 +227,9 @@ export class GitHubUserStore {
     const matchingUser = await api.searchForUserWithEmail(email)
     if (matchingUser) {
       const avatarURL = getAvatarWithEnterpriseFallback(
-        account.endpoint,
         matchingUser.avatar_url,
-        email
+        email,
+        account.endpoint
       )
       return {
         email,
