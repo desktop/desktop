@@ -15,7 +15,11 @@ export interface IMenuItemState {
  * Utility class for coalescing updates to menu items
  */
 class MenuStateBuilder {
-  private readonly _state = new Map<MenuIDs, IMenuItemState>()
+  private readonly _state: Map<MenuIDs, IMenuItemState>
+
+  public constructor(state: Map<MenuIDs, IMenuItemState> = new Map()) {
+    this._state = state
+  }
 
   /**
    * Returns an Map where each key is a MenuID and the values
@@ -51,6 +55,19 @@ class MenuStateBuilder {
   public setEnabled(id: MenuIDs, enabled: boolean): this {
     this.updateMenuItem(id, { enabled })
     return this
+  }
+
+  /**
+   * Create a new state builder by merging the current state with the state from
+   * the other state builder. This will replace values in `this` with values
+   * from `other`.
+   */
+  public merge(other: MenuStateBuilder): MenuStateBuilder {
+    const merged = new Map<MenuIDs, IMenuItemState>(this._state)
+    for (const [key, value] of other._state) {
+      merged.set(key, value)
+    }
+    return new MenuStateBuilder(merged)
   }
 }
 
