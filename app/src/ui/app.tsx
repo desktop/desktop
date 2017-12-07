@@ -417,14 +417,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const tip = state.state.branchesState.tip
-    const aheadBehind = state.state.aheadBehind
+    const existsOnRemote = state.state.aheadBehind !== null
 
     if (tip.kind === TipState.Valid) {
       this.props.dispatcher.showPopup({
         type: PopupType.DeleteBranch,
         repository: state.repository,
         branch: tip.branch,
-        existsOnRemote: aheadBehind != null,
+        existsOnRemote: existsOnRemote,
       })
     }
   }
