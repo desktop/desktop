@@ -190,6 +190,9 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   ]
 
   const menuStateBuilder = new MenuStateBuilder()
+  for (const menuId of allMenuIds) {
+    menuStateBuilder.enable(menuId)
+  }
 
   const windowOpen = state.windowState !== 'hidden'
   const inWelcomeFlow = state.showWelcomeFlow
