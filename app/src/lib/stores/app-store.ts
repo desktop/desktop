@@ -795,7 +795,6 @@ export class AppStore {
       this._updateIssues(gitHubRepository)
     }
 
-    this._refreshPullRequests(repository)
     await this._refreshRepository(repository)
 
     // The selected repository could have changed while we were refreshing.
@@ -1458,9 +1457,11 @@ export class AppStore {
       gitStore.loadContextualCommitMessage(),
       refreshSectionPromise,
       gitStore.loadUpstreamRemote(),
+      this._refreshPullRequests(repository),
     ])
 
     this._updateCurrentPullRequests(repository)
+    this.updateMenuItemLabels(repository)
   }
 
   /**
@@ -2932,8 +2933,6 @@ export class AppStore {
     } else {
       await this._openCreatePullRequestInBrowser(repository)
     }
-
-    this.updateMenuItemLabels(repository)
   }
 
   public async _showPullRequest(repository: Repository): Promise<void> {
