@@ -3025,11 +3025,7 @@ export class AppStore {
     return null
   }
 
-  public _updateCurrentPullRequest(
-    branch: Branch,
-    pullRequests: ReadonlyArray<PullRequest>,
-    repository: Repository
-  ) {
+  public _updateCurrentPullRequests(repository: Repository) {
     const gitHubRepository = repository.gitHubRepository
 
     if (!gitHubRepository) {
@@ -3042,13 +3038,12 @@ export class AppStore {
       if (state.tip.kind === TipState.Valid) {
         currentPullRequest = this.findAssociatedPullRequest(
           state.tip.branch,
-          pullRequests,
+          state.openPullRequests,
           gitHubRepository
         )
       }
 
       return {
-        openPullRequests: pullRequests,
         currentPullRequest,
       }
     })
