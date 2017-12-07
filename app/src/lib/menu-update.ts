@@ -136,11 +136,7 @@ function getAllMenusDisabledBuilder(): MenuStateBuilder {
   return menuStateBuilder
 }
 
-function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
-  if (state.currentPopup) {
-    return getAllMenusDisabledBuilder().state
-  }
-
+function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   const selectedState = state.selectedState
   const isHostedOnGitHub = selectedState
     ? isRepositoryHostedOnGitHub(selectedState.repository)
@@ -206,7 +202,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'open-external-editor',
   ]
 
-  const menuStateBuilder = getAllMenusEnabledBuilder()
+  const menuStateBuilder = new MenuStateBuilder()
 
   const windowOpen = state.windowState !== 'hidden'
   const inWelcomeFlow = state.showWelcomeFlow
@@ -286,8 +282,17 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
   }
+  return menuStateBuilder
+}
 
-  return menuStateBuilder.merge(getMenuStateInWelcomeFlow(inWelcomeFlow)).state
+function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
+  if (state.currentPopup) {
+    return getAllMenusDisabledBuilder().state
+  }
+
+  return getAllMenusEnabledBuilder()
+    .merge(getRepositoryMenuBuilder(state))
+    .merge(getMenuStateInWelcomeFlow(state.showWelcomeFlow)).state
 }
 
 function getAllMenusEnabledBuilder(): MenuStateBuilder {
