@@ -26,12 +26,8 @@ export class PullRequestBadge extends React.Component<
       <div className="pr-badge">
         <span className="number">#{this.props.number}</span>
 
-        {this.renderPullRequestStatus(status)}
+        <CIStatus status={status} />
       </div>
     )
   }
-
-  private renderPullRequestStatus = (status: PullRequestStatus) => (
-    <CIStatus status={status} />
-  )
 }
