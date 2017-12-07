@@ -2,7 +2,12 @@ import { Emitter, Disposable } from 'event-kit'
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
-import { API, EmailVisibility } from '../api'
+import {
+  API,
+  EmailVisibility,
+  fetchMetadata,
+  getDotComAPIEndpoint,
+} from '../api'
 import { fatalError } from '../fatal-error'
 
 /** The data-only interface for storage. */
@@ -208,6 +213,16 @@ async function updatedAccount(account: Account): Promise<Account> {
   const user = await api.fetchAccount()
   const emails = await api.fetchEmails()
 
+  const endpoint = account.endpoint
+
+  let endpointVersion: string | undefined = undefined
+  if (endpoint !== getDotComAPIEndpoint()) {
+    const meta = await fetchMetadata(endpoint)
+    if (meta) {
+      endpointVersion = meta.installed_version
+    }
+  }
+
   return new Account(
     account.login,
     account.endpoint,
@@ -215,6 +230,7 @@ async function updatedAccount(account: Account): Promise<Account> {
     emails,
     user.avatar_url,
     user.id,
-    user.name
+    user.name,
+    endpointVersion
   )
 }
