@@ -1424,6 +1424,14 @@ export class AppStore {
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
 
+    this.updateBranchesState(repository, state => {
+      return {
+        currentPullRequest: null,
+      }
+    })
+
+    this.emitUpdate()
+
     // When refreshing we *always* check the status so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
@@ -1431,6 +1439,7 @@ export class AppStore {
 
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
+
     if (section === RepositorySection.History) {
       refreshSectionPromise = this.refreshHistorySection(repository)
     } else if (section === RepositorySection.Changes) {
@@ -1450,6 +1459,8 @@ export class AppStore {
       refreshSectionPromise,
       gitStore.loadUpstreamRemote(),
     ])
+
+    this._updateCurrentPullRequests(repository)
   }
 
   /**
