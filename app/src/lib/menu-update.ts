@@ -292,7 +292,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
   return getAllMenusEnabledBuilder()
     .merge(getRepositoryMenuBuilder(state))
-    .merge(getMenuStateInWelcomeFlow(state.showWelcomeFlow)).state
+    .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow)).state
 }
 
 function getAllMenusEnabledBuilder(): MenuStateBuilder {
@@ -303,7 +303,7 @@ function getAllMenusEnabledBuilder(): MenuStateBuilder {
   return menuStateBuilder
 }
 
-function getMenuStateInWelcomeFlow(inWelcomeFlow: boolean): MenuStateBuilder {
+function getInWelcomeFlowBuilder(inWelcomeFlow: boolean): MenuStateBuilder {
   const welcomeScopedIds: ReadonlyArray<MenuIDs> = [
     'new-repository',
     'add-local-repository',
