@@ -308,7 +308,7 @@ function getMediaType(extension: string) {
     return 'image/gif'
   }
   if (extension === '.ico') {
-    return 'image/x-icon';
+    return 'image/x-icon'
   }
 
   // fallback value as per the spec
