@@ -813,6 +813,7 @@ export class AppStore {
     this.refreshMentionables(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
+    await this._refreshPullRequests(repository)
 
     return this._repositoryWithRefreshedGitHubRepository(repository)
   }
@@ -1449,7 +1450,6 @@ export class AppStore {
       gitStore.loadContextualCommitMessage(),
       refreshSectionPromise,
       gitStore.loadUpstreamRemote(),
-      this._refreshPullRequests(repository),
     ])
 
     this._updateCurrentPullRequests(repository)
