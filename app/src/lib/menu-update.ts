@@ -126,19 +126,19 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'create-pull-request',
 ]
 
-function disableAllMenuItems(): Map<MenuIDs, IMenuItemState> {
+function getAllMenusDisabledBuilder(): MenuStateBuilder {
   const menuStateBuilder = new MenuStateBuilder()
 
   for (const menuId of allMenuIds) {
     menuStateBuilder.disable(menuId)
   }
 
-  return menuStateBuilder.state
+  return menuStateBuilder
 }
 
 function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   if (state.currentPopup) {
-    return disableAllMenuItems()
+    return getAllMenusDisabledBuilder().state
   }
 
   const selectedState = state.selectedState
@@ -206,10 +206,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'open-external-editor',
   ]
 
-  const menuStateBuilder = new MenuStateBuilder()
-  for (const menuId of allMenuIds) {
-    menuStateBuilder.enable(menuId)
-  }
+  const menuStateBuilder = getAllMenusEnabledBuilder()
 
   const windowOpen = state.windowState !== 'hidden'
   const inWelcomeFlow = state.showWelcomeFlow
@@ -290,6 +287,18 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.disable('pull')
   }
 
+  return menuStateBuilder.merge(getMenuStateInWelcomeFlow(inWelcomeFlow)).state
+}
+
+function getAllMenusEnabledBuilder(): MenuStateBuilder {
+  const menuStateBuilder = new MenuStateBuilder()
+  for (const menuId of allMenuIds) {
+    menuStateBuilder.enable(menuId)
+  }
+  return menuStateBuilder
+}
+
+function getMenuStateInWelcomeFlow(inWelcomeFlow: boolean): MenuStateBuilder {
   const welcomeScopedIds: ReadonlyArray<MenuIDs> = [
     'new-repository',
     'add-local-repository',
@@ -298,6 +307,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'about',
   ]
 
+  const menuStateBuilder = new MenuStateBuilder()
   if (inWelcomeFlow) {
     for (const id of welcomeScopedIds) {
       menuStateBuilder.disable(id)
@@ -308,7 +318,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     }
   }
 
-  return menuStateBuilder.state
+  return menuStateBuilder
 }
 
 /**
