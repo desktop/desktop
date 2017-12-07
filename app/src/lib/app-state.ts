@@ -522,7 +522,10 @@ export interface IBranchesState {
   readonly recentBranches: ReadonlyArray<Branch>
 
   /** The open pull requests in the repository. */
-  readonly openPullRequests: ReadonlyArray<PullRequest> | null
+  readonly openPullRequests: ReadonlyArray<PullRequest>
+
+  /** Are we currently loading pull requests? */
+  readonly isLoadingPullRequests: boolean
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null

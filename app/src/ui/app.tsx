@@ -287,7 +287,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showAbout()
       case 'boomtown':
         return this.boomtown()
-      case 'create-pull-request': {
+      case 'open-pull-request': {
         return this.openPullRequest()
       }
       case 'install-cli':
@@ -420,12 +420,21 @@ export class App extends React.Component<IAppProps, IAppState> {
     const existsOnRemote = state.state.aheadBehind !== null
 
     if (tip.kind === TipState.Valid) {
-      this.props.dispatcher.showPopup({
-        type: PopupType.DeleteBranch,
-        repository: state.repository,
-        branch: tip.branch,
-        existsOnRemote: existsOnRemote,
-      })
+      const currentPullRequest = state.state.branchesState.currentPullRequest
+      if (currentPullRequest) {
+        this.props.dispatcher.postError(
+          new Error(
+            `You can't delete this branch because it has an open pull request.`
+          )
+        )
+      } else {
+        this.props.dispatcher.showPopup({
+          type: PopupType.DeleteBranch,
+          repository: state.repository,
+          branch: tip.branch,
+          existsOnRemote: existsOnRemote,
+        })
+      }
     }
   }
 
@@ -1435,11 +1444,19 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private openPullRequest = () => {
     const state = this.state.selectedState
+
     if (!state || state.type !== SelectionType.Repository) {
       return
     }
 
-    return this.props.dispatcher.createPullRequest(state.repository)
+    const currentPullRequest = state.state.branchesState.currentPullRequest
+    const dispatcher = this.props.dispatcher
+
+    if (currentPullRequest) {
+      dispatcher.showPullRequest(state.repository)
+    } else {
+      dispatcher.createPullRequest(state.repository)
+    }
   }
 
   private openCreatePullRequestInBrowser = (repository: Repository) => {
@@ -1478,6 +1495,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         selectedTab={this.state.selectedBranchesTab}
         pullRequests={branchesState.openPullRequests}
         currentPullRequest={branchesState.currentPullRequest}
+        isLoadingPullRequests={branchesState.isLoadingPullRequests}
       />
     )
   }

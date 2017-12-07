@@ -1,13 +1,21 @@
 import * as Path from 'path'
+
+import {
+  enumerateValues,
+  HKEY,
+  RegistryValue,
+  RegistryValueType,
+} from 'registry-js'
+
 import { pathExists } from '../file-system'
 import { IFoundEditor } from './found-editor'
 
 import { assertNever } from '../fatal-error'
-import { IRegistryEntry, readRegistryKeySafe } from '../registry'
 
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
 }
@@ -18,6 +26,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.VisualStudioCode) {
     return ExternalEditor.VisualStudioCode
+  }
+  if (label === ExternalEditor.VisualStudioCodeInsiders) {
+    return ExternalEditor.VisualStudioCodeInsiders
   }
   if (label === ExternalEditor.SublimeText) {
     return ExternalEditor.SublimeText
@@ -37,31 +48,70 @@ export function parse(label: string): ExternalEditor | null {
  *
  * @param editor The external editor that may be installed locally.
  */
-function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
+function getRegistryKeys(
+  editor: ExternalEditor
+): ReadonlyArray<{ key: HKEY; subKey: string }> {
   switch (editor) {
     case ExternalEditor.Atom:
       return [
-        'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
+        {
+          key: HKEY.HKEY_CURRENT_USER,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\atom',
+        },
       ]
     case ExternalEditor.VisualStudioCode:
       return [
         // 64-bit version of VSCode - not available from home page but just made available
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{EA457B21-F73E-494C-ACAB-524FDE069978}_is1',
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{1287CAD5-7C8D-410D-88B9-0D1EE4A83FF2}_is1',
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{EA457B21-F73E-494C-ACAB-524FDE069978}_is1',
+        },
         // 32-bit version of VSCode - what most people will be using for the forseeable future
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C26E74D1-022E-4238-8B9D-1E7564A36CC9}_is1',
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F8A2A208-72B3-4D61-95FC-8A65D340689B}_is1',
+        },
+      ]
+    case ExternalEditor.VisualStudioCodeInsiders:
+      return [
+        // 64-bit version of VSCode - not available from home page but just made available
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{1287CAD5-7C8D-410D-88B9-0D1EE4A83FF2}_is1',
+        },
+        // 32-bit version of VSCode - what most people will be using for the forseeable future
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C26E74D1-022E-4238-8B9D-1E7564A36CC9}_is1',
+        },
       ]
     case ExternalEditor.SublimeText:
       return [
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sublime Text 3_is1',
+        },
       ]
     case ExternalEditor.CFBuilder:
       return [
         //64-bit version of ColdFusionBuilder3
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 3_is1',
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 3_is1',
+        },
         //64-bit version of ColdFusionBuilder2016
-        'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 2016',
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 2016',
+        },
       ]
 
     default:
@@ -84,6 +134,8 @@ function getExecutableShim(
       return Path.join(installLocation, 'bin', 'atom.cmd')
     case ExternalEditor.VisualStudioCode:
       return Path.join(installLocation, 'bin', 'code.cmd')
+    case ExternalEditor.VisualStudioCodeInsiders:
+      return Path.join(installLocation, 'bin', 'code-insiders.cmd')
     case ExternalEditor.SublimeText:
       return Path.join(installLocation, 'subl.exe')
     case ExternalEditor.CFBuilder:
@@ -110,8 +162,12 @@ function isExpectedInstallation(
       return displayName === 'Atom' && publisher === 'GitHub Inc.'
     case ExternalEditor.VisualStudioCode:
       return (
-        (displayName === 'Microsoft Visual Studio Code' ||
-          displayName === 'Microsoft Visual Studio Code Insiders') &&
+        displayName === 'Microsoft Visual Studio Code' &&
+        publisher === 'Microsoft Corporation'
+      )
+    case ExternalEditor.VisualStudioCodeInsiders:
+      return (
+        displayName === 'Microsoft Visual Studio Code Insiders' &&
         publisher === 'Microsoft Corporation'
       )
     case ExternalEditor.SublimeText:
@@ -129,6 +185,14 @@ function isExpectedInstallation(
   }
 }
 
+function getKeyOrEmpty(
+  keys: ReadonlyArray<RegistryValue>,
+  key: string
+): string {
+  const entry = keys.find(k => k.name === key)
+  return entry && entry.type === RegistryValueType.REG_SZ ? entry.data : ''
+}
+
 /**
  * Map the registry information to a list of known installer fields.
  *
@@ -137,71 +201,60 @@ function isExpectedInstallation(
  */
 function extractApplicationInformation(
   editor: ExternalEditor,
-  keys: ReadonlyArray<IRegistryEntry>
+  keys: ReadonlyArray<RegistryValue>
 ): { displayName: string; publisher: string; installLocation: string } {
-  let displayName = ''
-  let publisher = ''
-  let installLocation = ''
-
   if (editor === ExternalEditor.Atom) {
-    for (const item of keys) {
-      if (item.name === 'DisplayName') {
-        displayName = item.value
-      } else if (item.name === 'Publisher') {
-        publisher = item.value
-      } else if (item.name === 'InstallLocation') {
-        installLocation = item.value
-      }
-    }
-
+    const displayName = getKeyOrEmpty(keys, 'DisplayName')
+    const publisher = getKeyOrEmpty(keys, 'Publisher')
+    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
     return { displayName, publisher, installLocation }
   }
 
-  if (editor === ExternalEditor.VisualStudioCode) {
-    for (const item of keys) {
-      if (item.name === 'DisplayName') {
-        displayName = item.value
-      } else if (item.name === 'Publisher') {
-        publisher = item.value
-      } else if (item.name === 'InstallLocation') {
-        installLocation = item.value
-      }
-    }
-
+  if (
+    editor === ExternalEditor.VisualStudioCode ||
+    editor === ExternalEditor.VisualStudioCodeInsiders
+  ) {
+    const displayName = getKeyOrEmpty(keys, 'DisplayName')
+    const publisher = getKeyOrEmpty(keys, 'Publisher')
+    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
     return { displayName, publisher, installLocation }
   }
 
   if (editor === ExternalEditor.SublimeText) {
+    let displayName = ''
+    let publisher = ''
+    let installLocation = ''
+
     for (const item of keys) {
       // NOTE:
       // Sublime Text appends the build number to the DisplayName value, so for
       // forward-compatibility let's do a simple check for the identifier
       if (
         item.name === 'DisplayName' &&
-        item.value &&
-        item.value.startsWith('Sublime Text')
+        item.type === RegistryValueType.REG_SZ &&
+        item.data.startsWith('Sublime Text')
       ) {
         displayName = 'Sublime Text'
-      } else if (item.name === 'Publisher') {
-        publisher = item.value
-      } else if (item.name === 'InstallLocation') {
-        installLocation = item.value
+      } else if (
+        item.name === 'Publisher' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        publisher = item.data
+      } else if (
+        item.name === 'InstallLocation' &&
+        item.type === RegistryValueType.REG_SZ
+      ) {
+        installLocation = item.data
       }
     }
 
     return { displayName, publisher, installLocation }
   }
-  if (editor === ExternalEditor.CFBuilder) {
-    for (const item of keys) {
-      if (item.name === 'DisplayName') {
-        displayName = item.value
-      } else if (item.name === 'Publisher') {
-        publisher = item.value
-      } else if (item.name === 'InstallLocation') {
-        installLocation = item.value
-      }
-    }
 
+  if (editor === ExternalEditor.CFBuilder) {
+    const displayName = getKeyOrEmpty(keys, 'DisplayName')
+    const publisher = getKeyOrEmpty(keys, 'Publisher')
+    const installLocation = getKeyOrEmpty(keys, 'InstallLocation')
     return { displayName, publisher, installLocation }
   }
 
@@ -211,9 +264,9 @@ function extractApplicationInformation(
 async function findApplication(editor: ExternalEditor): Promise<string | null> {
   const registryKeys = getRegistryKeys(editor)
 
-  let keys: ReadonlyArray<IRegistryEntry> = []
-  for (const key of registryKeys) {
-    keys = await readRegistryKeySafe(key)
+  let keys: ReadonlyArray<RegistryValue> = []
+  for (const { key, subKey } of registryKeys) {
+    keys = enumerateValues(key, subKey)
     if (keys.length > 0) {
       break
     }
@@ -255,9 +308,16 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atomPath, codePath, sublimePath, cfBuilderPath] = await Promise.all([
+  const [
+    atomPath,
+    codePath,
+    codeInsidersPath,
+    sublimePath,
+    cfBuilderPath,
+  ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
+    findApplication(ExternalEditor.VisualStudioCodeInsiders),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.CFBuilder),
   ])
@@ -273,6 +333,13 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.VisualStudioCode,
       path: codePath,
+    })
+  }
+
+  if (codeInsidersPath) {
+    results.push({
+      editor: ExternalEditor.VisualStudioCodeInsiders,
+      path: codeInsidersPath,
     })
   }
 

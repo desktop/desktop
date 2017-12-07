@@ -204,6 +204,7 @@ These editors are currently supported:
  - [Atom](https://atom.io/)
  - [Visual Studio Code](https://code.visualstudio.com/)
  - [Sublime Text](https://www.sublimetext.com/)
+ - [BBEdit](http://www.barebones.com/products/bbedit/)
 
 These are defined in an enum at the top of the file:
 
