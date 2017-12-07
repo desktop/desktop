@@ -245,6 +245,43 @@ export async function pushNeedsPullHandler(
   return error
 }
 
+// schannel: next InitializeSecurityContext failed: Unknown error (0x80092012) - The revocation function was unable to check revocation for the certificate.
+// schannel: next InitializeSecurityContext failed: Unknown error (0x80092013) - The revocation function was unable to check revocation because the revocation server was offline.
+
+const schannelRe = /schannel: next InitializeSecurityContext failed:/
+
+/** Handle SChannel errors and display a friendly error */
+export async function schannelErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  // TODO: i think this only needs to look at stderr but whatever
+
+  const stdout = gitError.result.stdout
+  if (schannelRe.test(stdout)) {
+    dispatcher.showPopup({ type: PopupType.SChannelError, errorText: stdout })
+    return null
+  }
+
+  const stderr = gitError.result.stderr
+  if (schannelRe.test(stderr)) {
+    dispatcher.showPopup({ type: PopupType.SChannelError, errorText: stderr })
+    return null
+  }
+
+  return error
+}
+
 /**
  * Handler for when we attempt to install the global LFS filters and LFS throws
  * an error.
