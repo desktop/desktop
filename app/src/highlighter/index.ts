@@ -93,6 +93,9 @@ extensionMIMEMap.set('.py', 'text/x-python')
 import 'codemirror/mode/ruby/ruby'
 extensionMIMEMap.set('.rb', 'text/x-ruby')
 
+import 'codemirror/mode/clojure/clojure'
+extensionMIMEMap.set('.clj', 'text/x-clojure')
+
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {
     return 'text/xml'
