@@ -29,6 +29,7 @@ interface IAccount {
   readonly token: string
   readonly login: string
   readonly endpoint: string
+  readonly endpointVersion?: string
   readonly emails: ReadonlyArray<IEmail>
   readonly avatarURL: string
   readonly id: number
@@ -167,7 +168,8 @@ export class AccountsStore {
         account.emails,
         account.avatarURL,
         account.id,
-        account.name
+        account.name,
+        account.endpointVersion
       )
 
       const key = getKeyForAccount(accountWithoutToken)
