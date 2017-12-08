@@ -156,7 +156,7 @@ export class GitStore {
     const commits = await this.performFailableOperation(() =>
       getCommits(this.repository, `HEAD..${mergeBase}`, CommitBatchSize)
     )
-    if (!commits) {
+    if (commits == null) {
       return
     }
 
