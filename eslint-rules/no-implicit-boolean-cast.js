@@ -41,10 +41,11 @@ module.exports = {
 
         const annotation = variable.defs[0].name.typeAnnotation
         if (!annotation || annotation.type !== 'BooleanTypeAnnotation') {
-          // not var foo: boolean
+          let suffix = ''
+          if (annotation) suffix = `, it’s a(n) ${sc.getText(annotation)}`
           context.report({
             node: test,
-            message: 'This isn’t a boolean!'
+            message: `\`${id.name}\` is not a boolean${suffix}.`
           })
         }
       }
