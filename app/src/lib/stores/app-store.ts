@@ -44,7 +44,7 @@ import { GitHubUserStore } from './github-user-store'
 import { shell } from '../app-shell'
 import { EmojiStore } from './emoji-store'
 import { GitStore, ICommitMessage } from './git-store'
-import { assertNever } from '../fatal-error'
+import { assertNever, forceUnwrap } from '../fatal-error'
 import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
@@ -3085,5 +3085,24 @@ export class AppStore {
     }
 
     return gitStore.addUpstreamRemoteIfNeeded()
+  }
+
+  public async _checkoutPullRequest(
+    repository: Repository,
+    pullRequest: PullRequest
+  ): Promise<void> {
+    const gitHubRepository = forceUnwrap(
+      `Cannot checkout a PR if the repository doesn't have a GitHub repository`,
+      repository.gitHubRepository
+    )
+    const head = pullRequest.head
+    const branchName = head.ref
+    const isRefInThisRepo =
+      head.gitHubRepository &&
+      head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
+    if (isRefInThisRepo) {
+      this._checkoutBranch(repository, branchName)
+    } else {
+    }
   }
 }
