@@ -3103,6 +3103,13 @@ export class AppStore {
     if (isRefInThisRepo) {
       this._checkoutBranch(repository, branchName)
     } else {
+      // we need to refetch for a forked PR and check that out
+      await this._fetchRefspec(
+        repository,
+        `pull/${pullRequest.number}/head:${branchName}`
+      )
+
+      this._checkoutBranch(repository, branchName)
     }
   }
 }
