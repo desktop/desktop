@@ -138,6 +138,10 @@ export class GitStore {
     return this.emitter.on('did-error', fn)
   }
 
+  public invalidateHistory() {
+    this._history = new Array()
+  }
+
   /** Load history from HEAD. */
   public async loadHistory() {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) {

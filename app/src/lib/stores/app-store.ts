@@ -2021,6 +2021,8 @@ export class AppStore {
             value: refreshStartProgress,
           })
 
+          gitStore.invalidateHistory()
+
           await this._refreshRepository(repository)
 
           this.updatePushPullFetchProgress(repository, {
