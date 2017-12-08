@@ -2,10 +2,6 @@ import * as React from 'react'
 import { ipcRenderer } from 'electron'
 import { CSSTransitionGroup } from 'react-transition-group'
 
-import { TitleBar } from './window/title-bar'
-import { ZoomInfo } from './window/zoom-info'
-import { FullScreenInfo } from './window/full-screen-info'
-
 import {
   IAppState,
   RepositorySection,
@@ -37,6 +33,8 @@ import { Account } from '../models/account'
 import { TipState } from '../models/tip'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { CloningRepository } from '../models/cloning-repository'
+
+import { TitleBar, ZoomInfo, FullScreenInfo } from './window'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
