@@ -245,6 +245,10 @@ dialog {
         padding-left: var(--spacing-half);
       }
     }
+
+    .dialog-error {
+      padding: 0 0 var(--spacing) 0;
+    }
   }
 
   .dialog-footer {
