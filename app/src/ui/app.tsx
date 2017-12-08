@@ -417,13 +417,24 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const tip = state.state.branchesState.tip
+    const existsOnRemote = state.state.aheadBehind !== null
 
     if (tip.kind === TipState.Valid) {
-      this.props.dispatcher.showPopup({
-        type: PopupType.DeleteBranch,
-        repository: state.repository,
-        branch: tip.branch,
-      })
+      const currentPullRequest = state.state.branchesState.currentPullRequest
+      if (currentPullRequest) {
+        this.props.dispatcher.postError(
+          new Error(
+            `You can't delete this branch because it has an open pull request.`
+          )
+        )
+      } else {
+        this.props.dispatcher.showPopup({
+          type: PopupType.DeleteBranch,
+          repository: state.repository,
+          branch: tip.branch,
+          existsOnRemote: existsOnRemote,
+        })
+      }
     }
   }
 
@@ -884,6 +895,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
+            existsOnRemote={popup.existsOnRemote}
             onDismissed={this.onPopupDismissed}
           />
         )

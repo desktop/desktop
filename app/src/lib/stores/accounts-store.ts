@@ -8,6 +8,7 @@ import {
   fetchMetadata,
   getDotComAPIEndpoint,
 } from '../api'
+import { getAvatarWithEnterpriseFallback } from '../gravatar'
 import { fatalError } from '../fatal-error'
 
 /** The data-only interface for storage. */
@@ -222,13 +223,20 @@ async function updatedAccount(account: Account): Promise<Account> {
       endpointVersion = meta.installed_version
     }
   }
+                                  
+  const defaultEmail = emails[0].email || ''
+  const avatarURL = getAvatarWithEnterpriseFallback(
+    user.avatar_url,
+    defaultEmail,
+    account.endpoint
+  )
 
   return new Account(
     account.login,
     account.endpoint,
     account.token,
     emails,
-    user.avatar_url,
+    avatarURL,
     user.id,
     user.name,
     endpointVersion
