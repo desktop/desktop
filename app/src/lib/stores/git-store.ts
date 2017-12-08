@@ -146,14 +146,14 @@ export class GitStore {
       return
     }
 
-    let commits = await this.performFailableOperation(() =>
+    const commits = await this.performFailableOperation(() =>
       getCommits(this.repository, `HEAD..${mergeBase}`, CommitBatchSize)
     )
     if (!commits) {
       return
     }
 
-    let existingHistory = this._history
+    const existingHistory = this._history
     const index = existingHistory.findIndex(c => c === mergeBase)
 
     if (index > -1) {
