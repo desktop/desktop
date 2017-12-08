@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { ipcRenderer } from 'electron'
+import { CSSTransitionGroup } from 'react-transition-group'
 
 import { TitleBar } from './window/title-bar'
 import { ZoomInfo } from './window/zoom-info'
@@ -54,6 +55,7 @@ import { OcticonSymbol, iconForRepository } from './octicons'
 import {
   showCertificateTrustDialog,
   registerContextualMenuActionDispatcher,
+  sendReady,
 } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
@@ -74,10 +76,8 @@ import { About } from './about'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
-import { CSSTransitionGroup } from 'react-transition-group'
 import { BlankSlateView } from './blank-slate'
 import { ConfirmRemoveRepository } from './remove-repository'
-import { sendReady } from './main-process-proxy'
 import { TermsAndConditions } from './terms-and-conditions'
 // TODO: this should be referencing the index
 import { PushBranchCommits } from './branches/push-branch-commits'
