@@ -1978,7 +1978,7 @@ export class AppStore {
           mergeBase = await getMergeBase(
             repository,
             tip.branch.name,
-            tip.branch.upstream!
+            tip.branch.upstream
           )
         }
 
