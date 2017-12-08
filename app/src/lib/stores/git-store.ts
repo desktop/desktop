@@ -138,8 +138,36 @@ export class GitStore {
     return this.emitter.on('did-error', fn)
   }
 
-  public invalidateHistory() {
-    this._history = new Array()
+  public async reconcileHistory(mergeBase: string): Promise<void> {
+    // TODO: what about if there's an in-flight request for history?
+
+    if (this._history.length === 0) {
+      // no history loaded, no work to do
+      return
+    }
+
+    let commits = await this.performFailableOperation(() =>
+      getCommits(this.repository, `HEAD..${mergeBase}`, CommitBatchSize)
+    )
+    if (!commits) {
+      return
+    }
+
+    let existingHistory = this._history
+    const index = existingHistory.findIndex(c => c === mergeBase)
+
+    if (index > -1) {
+      const remainingHistory = existingHistory.slice(index)
+      // TODO: confirm we don't have duplicates of the merge base
+      // TODO: confirm this list includes the merge base
+      this._history = [...commits.map(c => c.sha), ...remainingHistory]
+    }
+
+    // TODO: commits may contain existing local commits
+    //       are there any gotchas in here to worry about?
+    this.storeCommits(commits)
+    this.emitNewCommitsLoaded(commits)
+    this.emitUpdate()
   }
 
   /** Load history from HEAD. */

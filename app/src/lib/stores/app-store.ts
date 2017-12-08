@@ -79,6 +79,7 @@ import {
   checkoutBranch,
   getDefaultRemote,
   formatAsLocalRef,
+  getMergeBase,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -1961,16 +1962,26 @@ export class AppStore {
       }
 
       const state = this.getRepositoryState(repository)
+      const tip = state.branchesState.tip
 
-      if (state.branchesState.tip.kind === TipState.Unborn) {
+      if (tip.kind === TipState.Unborn) {
         throw new Error('The current branch is unborn.')
       }
 
-      if (state.branchesState.tip.kind === TipState.Detached) {
+      if (tip.kind === TipState.Detached) {
         throw new Error('The current repository is in a detached HEAD state.')
       }
 
-      if (state.branchesState.tip.kind === TipState.Valid) {
+      if (tip.kind === TipState.Valid) {
+        let mergeBase: string | null = null
+        if (tip.branch.upstream) {
+          mergeBase = await getMergeBase(
+            repository,
+            tip.branch.name,
+            tip.branch.upstream!
+          )
+        }
+
         const title = `Pulling ${remote.name}`
         const kind = 'pull'
         this.updatePushPullFetchProgress(repository, {
@@ -2021,7 +2032,9 @@ export class AppStore {
             value: refreshStartProgress,
           })
 
-          gitStore.invalidateHistory()
+          if (mergeBase) {
+            await gitStore.reconcileHistory(mergeBase)
+          }
 
           await this._refreshRepository(repository)
 
