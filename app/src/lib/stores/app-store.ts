@@ -813,7 +813,7 @@ export class AppStore {
     this.refreshMentionables(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
-    await this._refreshPullRequests(repository)
+    this._refreshPullRequests(repository)
 
     return this._repositoryWithRefreshedGitHubRepository(repository)
   }
