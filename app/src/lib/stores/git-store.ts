@@ -139,12 +139,15 @@ export class GitStore {
   }
 
   public async reconcileHistory(mergeBase: string): Promise<void> {
-    // TODO: what about if there's an in-flight request for history?
-
     if (this._history.length === 0) {
-      // no history loaded, no work to do
       return
     }
+
+    if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
+      return
+    }
+
+    this.requestsInFight.add(LoadingHistoryRequestKey)
 
     const commits = await this.performFailableOperation(() =>
       getCommits(this.repository, `HEAD..${mergeBase}`, CommitBatchSize)
@@ -164,6 +167,9 @@ export class GitStore {
     }
 
     this.storeCommits(commits)
+
+    this.requestsInFight.delete(LoadingHistoryRequestKey)
+
     this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
   }
