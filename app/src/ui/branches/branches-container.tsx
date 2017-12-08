@@ -39,7 +39,7 @@ interface IBranchesState {
   readonly filterText: string
 }
 
-/** The Branches list component. */
+/** The unified Branches and Pull Requests component. */
 export class BranchesContainer extends React.Component<
   IBranchesProps,
   IBranchesState
