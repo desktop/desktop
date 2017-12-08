@@ -4,6 +4,8 @@ import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { IFetchProgress } from '../app-state'
 import { IGitAccount, envForAuthentication } from './authentication'
 
+import { getLogFilePath, addTracing, withTracingCleanup } from './tracing'
+
 /**
  * Fetch from the given remote.
  *
@@ -25,9 +27,11 @@ export async function fetch(
   remote: string,
   progressCallback?: (progress: IFetchProgress) => void
 ): Promise<void> {
+  const logFile = getLogFilePath('fetch')
+
   let opts: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
-    env: envForAuthentication(account),
+    env: addTracing(envForAuthentication(account), logFile),
   }
 
   if (progressCallback) {
@@ -64,7 +68,11 @@ export async function fetch(
     ? [...gitNetworkArguments, 'fetch', '--progress', '--prune', remote]
     : [...gitNetworkArguments, 'fetch', '--prune', remote]
 
-  await git(args, repository.path, 'fetch', opts)
+  await withTracingCleanup(
+    () => git(args, repository.path, 'fetch', opts),
+    logFile,
+    repository.path
+  )
 }
 
 /** Fetch a given refspec from the given remote. */
@@ -74,12 +82,18 @@ export async function fetchRefspec(
   remote: string,
   refspec: string
 ): Promise<void> {
+  const logFile = getLogFilePath('fetch')
+
   const options = {
     successExitCodes: new Set([0, 128]),
-    env: envForAuthentication(account),
+    env: addTracing(envForAuthentication(account), logFile),
   }
 
   const args = [...gitNetworkArguments, 'fetch', remote, refspec]
 
-  await git(args, repository.path, 'fetchRefspec', options)
+  await withTracingCleanup(
+    () => git(args, repository.path, 'fetchRefspec', options),
+    logFile,
+    repository.path
+  )
 }

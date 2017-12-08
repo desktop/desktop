@@ -13,6 +13,8 @@ import {
   AuthenticationErrors,
 } from './authentication'
 
+import { getLogFilePath, addTracing, withTracingCleanup } from './tracing'
+
 /**
  * Push from the remote to the branch, optionally setting the upstream.
  *
@@ -54,8 +56,10 @@ export async function push(
     args.push('--set-upstream')
   }
 
+  const logFile = getLogFilePath('push')
+
   let opts: IGitExecutionOptions = {
-    env: envForAuthentication(account),
+    env: addTracing(envForAuthentication(account), logFile),
     expectedErrors: AuthenticationErrors,
   }
 
@@ -93,9 +97,15 @@ export async function push(
     })
   }
 
-  const result = await git(args, repository.path, 'push', opts)
+  await withTracingCleanup(
+    async () => {
+      const result = await git(args, repository.path, 'push', opts)
 
-  if (result.gitErrorDescription) {
-    throw new GitError(result, args)
-  }
+      if (result.gitErrorDescription) {
+        throw new GitError(result, args)
+      }
+    },
+    logFile,
+    repository.path
+  )
 }
