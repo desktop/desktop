@@ -3100,7 +3100,7 @@ export class AppStore {
       head.gitHubRepository &&
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
     if (isRefInThisRepo) {
-      this._checkoutBranch(repository, head.ref)
+      await this._checkoutBranch(repository, head.ref)
     } else if (head.gitHubRepository) {
       const branchName = `${head.gitHubRepository.owner.login}/${head.ref}`
       await this._fetchRefspec(
@@ -3108,7 +3108,7 @@ export class AppStore {
         `pull/${pullRequest.number}/head:${branchName}`
       )
 
-      this._checkoutBranch(repository, branchName)
+      await this._checkoutBranch(repository, branchName)
     } else {
       // The HEAD repository has been deleted. What to do?
     }
