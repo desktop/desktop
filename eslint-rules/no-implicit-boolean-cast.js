@@ -35,9 +35,9 @@ module.exports = {
         const id = getIdentifier(test)
         const variable = context.getScope().set.get(id.name)
         if (variable) {
-          const def = variable.defs[0].name.typeAnnotation.typeAnnotation
-          if (def.type !== 'BooleanTypeAnnotation') {
-            // var foo: [not] boolean
+          const annotation = variable.defs[0].name.typeAnnotation
+          if (!annotation || annotation.type !== 'BooleanTypeAnnotation') {
+            // not var foo: boolean
             context.report({
               node: test,
               message: 'This isn’t a boolean!'
