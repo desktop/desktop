@@ -3110,7 +3110,8 @@ export class AppStore {
 
       await this._checkoutBranch(repository, branchName)
     } else {
-      // The HEAD repository has been deleted. What to do?
+      const error = new Error('The head repository has been deleted.')
+      this.emitError(error)
     }
   }
 }
