@@ -9,7 +9,7 @@ interface IDialogErrorProps {}
  * should be rendered as the first child of the <Dialog> component
  * and support arbitrary content.
  *
- * The content (error message) is paired with a stop icon and receive
+ * The content (error message) is paired with a alert icon and receive
  * special styling.
  *
  * Provide `children` to display content inside the error dialog.
@@ -17,8 +17,8 @@ interface IDialogErrorProps {}
 export class DialogError extends React.Component<IDialogErrorProps, {}> {
   public render() {
     return (
-      <div className="dialog-error">
-        <Octicon symbol={OcticonSymbol.stop} />
+      <div className="dialog-error warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
         <div>{this.props.children}</div>
       </div>
     )
