@@ -223,7 +223,7 @@ async function updatedAccount(account: Account): Promise<Account> {
       endpointVersion = meta.installed_version
     }
   }
-                                  
+
   const defaultEmail = emails[0].email || ''
   const avatarURL = getAvatarWithEnterpriseFallback(
     user.avatar_url,
