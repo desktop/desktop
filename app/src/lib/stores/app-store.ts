@@ -3027,7 +3027,7 @@ export class AppStore {
     return null
   }
 
-  public _updateCurrentPullRequests(repository: Repository) {
+  public _updateCurrentPullRequest(repository: Repository) {
     const gitHubRepository = repository.gitHubRepository
 
     if (!gitHubRepository) {
