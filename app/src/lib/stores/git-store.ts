@@ -138,6 +138,10 @@ export class GitStore {
     return this.emitter.on('did-error', fn)
   }
 
+  /**
+   * Reconcile the local history view with the repository state
+   * after a pull has completed, to include merged remote commits.
+   */
   public async reconcileHistory(mergeBase: string): Promise<void> {
     if (this._history.length === 0) {
       return
