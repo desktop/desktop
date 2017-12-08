@@ -51,6 +51,7 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { BranchesTab } from '../../models/branches-tab'
 import { FetchType } from '../../lib/stores'
+import { PullRequest } from '../../models/pull-request'
 
 /**
  * An error handler function.
@@ -1089,5 +1090,12 @@ export class Dispatcher {
   /** Ignore the existing `upstream` remote. */
   public ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
     return this.appStore._ignoreExistingUpstreamRemote(repository)
+  }
+
+  public async checkoutPullRequest(
+    repository: Repository,
+    pullRequest: PullRequest
+  ): Promise<void> {
+    return this.appStore._checkoutPullRequest(repository, pullRequest)
   }
 }

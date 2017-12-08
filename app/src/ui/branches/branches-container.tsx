@@ -225,22 +225,10 @@ export class BranchesContainer extends React.Component<
   }
 
   private onPullRequestClicked = (pullRequest: PullRequest) => {
-    const gitHubRepository = this.props.repository.gitHubRepository
-    if (!gitHubRepository) {
-      return log.error(
-        `We shouldn't be checking out a PR on a repository that doesn't have a GitHub repository.`
-      )
-    }
-
-    const head = pullRequest.head
-    const isRefInThisRepo =
-      head.gitHubRepository &&
-      head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
-    if (isRefInThisRepo) {
-      this.checkoutBranch(head.ref)
-    } else {
-      // TODO: It's in a fork so we'll need to do ... something.
-    }
+    this.props.dispatcher.checkoutPullRequest(
+      this.props.repository,
+      pullRequest
+    )
   }
 
   private onDismiss = () => {
