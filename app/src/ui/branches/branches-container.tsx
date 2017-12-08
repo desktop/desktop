@@ -40,7 +40,10 @@ interface IBranchesState {
 }
 
 /** The Branches list component. */
-export class Branches extends React.Component<IBranchesProps, IBranchesState> {
+export class BranchesContainer extends React.Component<
+  IBranchesProps,
+  IBranchesState
+> {
   public constructor(props: IBranchesProps) {
     super(props)
 
