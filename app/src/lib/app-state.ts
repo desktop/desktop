@@ -206,6 +206,7 @@ export enum PopupType {
   InitializeLFS,
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
+  ReleaseNotes,
 }
 
 export type Popup =
@@ -273,6 +274,7 @@ export type Popup =
       repository: Repository
       existingRemote: IRemote
     }
+  | { type: PopupType.ReleaseNotes }
 
 export enum FoldoutType {
   Repository,

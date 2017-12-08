@@ -1,0 +1,19 @@
+@import '../../../styles/variables';
+
+#release-notes {
+  max-height: 450px;
+
+  .header {
+    height: 100px;
+    font-size: 14px;
+    font-weight: var(--font-weight-semibold);
+
+    .date {
+      font-size: 11px;
+    }
+  }
+
+  .column {
+    width: 250px;
+  }
+}

@@ -1,10 +1,12 @@
 import * as React from 'react'
+import { Dispatcher } from '../../lib/dispatcher/index'
 import { LinkButton } from '../lib/link-button'
 import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { PopupType } from '../../lib/app-state';
 
 interface IUpdateAvailableProps {
-  readonly releaseNotesLink: string
+  readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
 }
 
@@ -24,7 +26,7 @@ export class UpdateAvailable extends React.Component<
         <span>
           An updated version of GitHub Desktop is available and will be
           installed at the next launch. See{' '}
-          <LinkButton uri={this.props.releaseNotesLink}>what's new</LinkButton>{' '}
+          <LinkButton onClick={this.showReleaseNotes}>what's new</LinkButton>{' '}
           or <LinkButton onClick={this.updateNow}>restart now</LinkButton>.
         </span>
 
@@ -33,6 +35,10 @@ export class UpdateAvailable extends React.Component<
         </a>
       </div>
     )
+  }
+
+  private showReleaseNotes = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.ReleaseNotes })
   }
 
   private updateNow = () => {
