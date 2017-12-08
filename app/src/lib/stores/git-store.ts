@@ -164,6 +164,12 @@ export class GitStore {
     const index = existingHistory.findIndex(c => c === mergeBase)
 
     if (index > -1) {
+      log.debug(
+        `reconciling history - adding ${
+          commits.length
+        } commits before merge base ${mergeBase.substr(0, 8)}`
+      )
+
       // rebuild the local history state by combining the commits _before_ the
       // merge base with the current commits on the tip of this current branch
       const remainingHistory = existingHistory.slice(index)
