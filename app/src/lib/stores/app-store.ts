@@ -1452,7 +1452,7 @@ export class AppStore {
       gitStore.loadUpstreamRemote(),
     ])
 
-    this._updateCurrentPullRequests(repository)
+    this._updateCurrentPullRequest(repository)
     this.updateMenuItemLabels(repository)
   }
 
