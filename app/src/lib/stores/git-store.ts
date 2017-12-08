@@ -157,14 +157,12 @@ export class GitStore {
     const index = existingHistory.findIndex(c => c === mergeBase)
 
     if (index > -1) {
+      // rebuild the local history state by combining the commits _before_ the
+      // merge base with the current commits on the tip of this current branch
       const remainingHistory = existingHistory.slice(index)
-      // TODO: confirm we don't have duplicates of the merge base
-      // TODO: confirm this list includes the merge base
       this._history = [...commits.map(c => c.sha), ...remainingHistory]
     }
 
-    // TODO: commits may contain existing local commits
-    //       are there any gotchas in here to worry about?
     this.storeCommits(commits)
     this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
