@@ -1,1 +1,5 @@
 export { PushBranchCommits } from './push-branch-commits'
+export { BranchList } from './branch-list'
+export { Branches } from './branch-popup'
+export { PullRequestBadge } from './pull-request-badge'
+export { groupBranches } from './group-branches'

@@ -5,12 +5,11 @@ import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
 import { IRepositoryState } from '../../lib/app-state'
-import { Branches } from '../branches/branch-popup'
+import { Branches, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { enablePRIntegration } from '../../lib/feature-flag'
 import { PullRequest } from '../../models/pull-request'
-import { PullRequestBadge } from '../branches/pull-request-badge'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
