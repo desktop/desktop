@@ -14,13 +14,14 @@ module.exports = {
         case 'ThisExpression':
         case 'SuperExpression':
           return node
-        case 'MemberExpression':
-          return getIdentifier(node.object)
-        case 'CallExpression':
-        case 'NewExpression':
-          return getIdentifier(node.callee)
+        // See https://github.com/eslint/typescript-eslint-parser/pull/94 for progress on this
+        // case 'MemberExpression':
+        //   return getIdentifier(node.object)
+        // case 'CallExpression':
+        // case 'NewExpression':
+        //   return getIdentifier(node.callee)
       }
-      return node.type 
+      return null
     }
     return {
       IfStatement(node) {
@@ -33,16 +34,18 @@ module.exports = {
         if (test.type === 'BinaryExpression') return;
 
         const id = getIdentifier(test)
+        if (!id) return
+        
         const variable = context.getScope().set.get(id.name)
-        if (variable) {
-          const annotation = variable.defs[0].name.typeAnnotation
-          if (!annotation || annotation.type !== 'BooleanTypeAnnotation') {
-            // not var foo: boolean
-            context.report({
-              node: test,
-              message: 'This isn’t a boolean!'
-            })
-          }
+        if (!variable) return
+
+        const annotation = variable.defs[0].name.typeAnnotation
+        if (!annotation || annotation.type !== 'BooleanTypeAnnotation') {
+          // not var foo: boolean
+          context.report({
+            node: test,
+            message: 'This isn’t a boolean!'
+          })
         }
       }
     };
