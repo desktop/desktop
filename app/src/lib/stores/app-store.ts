@@ -795,7 +795,6 @@ export class AppStore {
       this._updateIssues(gitHubRepository)
     }
 
-    this._refreshPullRequests(repository)
     await this._refreshRepository(repository)
 
     // The selected repository could have changed while we were refreshing.
@@ -814,6 +813,7 @@ export class AppStore {
     this.refreshMentionables(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
+    this._refreshPullRequests(repository)
 
     return this._repositoryWithRefreshedGitHubRepository(repository)
   }
@@ -1431,6 +1431,7 @@ export class AppStore {
 
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
+
     if (section === RepositorySection.History) {
       refreshSectionPromise = this.refreshHistorySection(repository)
     } else if (section === RepositorySection.Changes) {
@@ -1450,6 +1451,9 @@ export class AppStore {
       refreshSectionPromise,
       gitStore.loadUpstreamRemote(),
     ])
+
+    this._updateCurrentPullRequest(repository)
+    this.updateMenuItemLabels(repository)
   }
 
   /**
@@ -2921,8 +2925,6 @@ export class AppStore {
     } else {
       await this._openCreatePullRequestInBrowser(repository)
     }
-
-    this.updateMenuItemLabels(repository)
   }
 
   public async _showPullRequest(repository: Repository): Promise<void> {
@@ -3023,6 +3025,32 @@ export class AppStore {
     }
 
     return null
+  }
+
+  private _updateCurrentPullRequest(repository: Repository) {
+    const gitHubRepository = repository.gitHubRepository
+
+    if (!gitHubRepository) {
+      return
+    }
+
+    this.updateBranchesState(repository, state => {
+      let currentPullRequest: PullRequest | null = null
+
+      if (state.tip.kind === TipState.Valid) {
+        currentPullRequest = this.findAssociatedPullRequest(
+          state.tip.branch,
+          state.openPullRequests,
+          gitHubRepository
+        )
+      }
+
+      return {
+        currentPullRequest,
+      }
+    })
+
+    this.emitUpdate()
   }
 
   public async _openCreatePullRequestInBrowser(

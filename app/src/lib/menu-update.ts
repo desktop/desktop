@@ -15,7 +15,11 @@ export interface IMenuItemState {
  * Utility class for coalescing updates to menu items
  */
 class MenuStateBuilder {
-  private readonly _state = new Map<MenuIDs, IMenuItemState>()
+  private readonly _state: Map<MenuIDs, IMenuItemState>
+
+  public constructor(state: Map<MenuIDs, IMenuItemState> = new Map()) {
+    this._state = state
+  }
 
   /**
    * Returns an Map where each key is a MenuID and the values
@@ -51,6 +55,19 @@ class MenuStateBuilder {
   public setEnabled(id: MenuIDs, enabled: boolean): this {
     this.updateMenuItem(id, { enabled })
     return this
+  }
+
+  /**
+   * Create a new state builder by merging the current state with the state from
+   * the other state builder. This will replace values in `this` with values
+   * from `other`.
+   */
+  public merge(other: MenuStateBuilder): MenuStateBuilder {
+    const merged = new Map<MenuIDs, IMenuItemState>(this._state)
+    for (const [key, value] of other._state) {
+      merged.set(key, value)
+    }
+    return new MenuStateBuilder(merged)
   }
 }
 
@@ -109,21 +126,17 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'create-pull-request',
 ]
 
-function disableAllMenuItems(): Map<MenuIDs, IMenuItemState> {
+function getAllMenusDisabledBuilder(): MenuStateBuilder {
   const menuStateBuilder = new MenuStateBuilder()
 
   for (const menuId of allMenuIds) {
     menuStateBuilder.disable(menuId)
   }
 
-  return menuStateBuilder.state
+  return menuStateBuilder
 }
 
-function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
-  if (state.currentPopup) {
-    return disableAllMenuItems()
-  }
-
+function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   const selectedState = state.selectedState
   const isHostedOnGitHub = selectedState
     ? isRepositoryHostedOnGitHub(selectedState.repository)
@@ -269,7 +282,28 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
   }
+  return menuStateBuilder
+}
 
+function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
+  if (state.currentPopup) {
+    return getAllMenusDisabledBuilder().state
+  }
+
+  return getAllMenusEnabledBuilder()
+    .merge(getRepositoryMenuBuilder(state))
+    .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow)).state
+}
+
+function getAllMenusEnabledBuilder(): MenuStateBuilder {
+  const menuStateBuilder = new MenuStateBuilder()
+  for (const menuId of allMenuIds) {
+    menuStateBuilder.enable(menuId)
+  }
+  return menuStateBuilder
+}
+
+function getInWelcomeFlowBuilder(inWelcomeFlow: boolean): MenuStateBuilder {
   const welcomeScopedIds: ReadonlyArray<MenuIDs> = [
     'new-repository',
     'add-local-repository',
@@ -278,6 +312,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'about',
   ]
 
+  const menuStateBuilder = new MenuStateBuilder()
   if (inWelcomeFlow) {
     for (const id of welcomeScopedIds) {
       menuStateBuilder.disable(id)
@@ -288,7 +323,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     }
   }
 
-  return menuStateBuilder.state
+  return menuStateBuilder
 }
 
 /**
