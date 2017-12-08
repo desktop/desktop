@@ -3105,7 +3105,7 @@ export class AppStore {
       const branchName = `${head.gitHubRepository.owner.login}/${head.ref}`
       await this._fetchRefspec(
         repository,
-        `+pull/${pullRequest.number}/head:${branchName}`
+        `pull/${pullRequest.number}/head:${branchName}`
       )
 
       this._checkoutBranch(repository, branchName)
