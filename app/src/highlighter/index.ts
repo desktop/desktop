@@ -65,6 +65,8 @@ extensionMIMEMap.set('.hpp', 'text/x-c++src')
 import 'codemirror/mode/mllike/mllike'
 extensionMIMEMap.set('.ml', 'text/x-ocaml')
 extensionMIMEMap.set('.fs', 'text/x-fsharp')
+extensionMIMEMap.set('.fsx', 'text/x-fsharp')
+extensionMIMEMap.set('.fsi', 'text/x-fsharp')
 
 import 'codemirror/mode/swift/swift'
 extensionMIMEMap.set('.swift', 'text/x-swift')
