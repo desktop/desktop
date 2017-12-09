@@ -141,6 +141,9 @@ export class BranchesContainer extends React.Component<
             onSelectionChanged={this.onBranchSelectionChanged}
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
+            canShowBranchContextMenu={true}
+            onCreateNewBranchFromStartPoint={this.onCreateBranchFromStartPoint}
+            onDeleteBranch={this.onDeleteBranch}
           />
         )
 
@@ -218,6 +221,25 @@ export class BranchesContainer extends React.Component<
 
   private onCreateBranch = () => {
     this.onCreateBranchWithName('')
+  }
+
+  private onCreateBranchFromStartPoint = (branch: Branch) => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.showPopup({
+      type: PopupType.CreateBranch,
+      repository: this.props.repository,
+      initialBranch: branch,
+    })
+  }
+
+  private onDeleteBranch = (branch: Branch) => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.DeleteBranch,
+      repository: this.props.repository,
+      branch: branch,
+    })
   }
 
   private onCreatePullRequest = () => {

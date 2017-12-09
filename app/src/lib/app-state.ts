@@ -235,6 +235,7 @@ export type Popup =
       type: PopupType.CreateBranch
       repository: Repository
       initialName?: string
+      initialBranch?: Branch
     }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }
