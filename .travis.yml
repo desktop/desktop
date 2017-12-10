@@ -60,6 +60,7 @@ script:
   - yarn build:prod
   - yarn test:setup
   - yarn test
+  - yarn run package
 
 after_failure:
   - yarn test:review
