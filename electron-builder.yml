@@ -1,0 +1,9 @@
+linux:
+  category: "GNOME;GTK;Development"
+  packageCategory: "GNOME;GTK;Development"
+  icon: "app/static/logos"
+  target:
+    - deb
+    - rpm
+    - AppImage
+  maintainer: "GitHub, Inc <opensource+desktop@github.com>"
