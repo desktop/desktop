@@ -79,7 +79,7 @@ export class RepositoriesList extends React.Component<
 
   private getGroupLabel(identifier: RepositoryGroupIdentifier) {
     if (identifier === 'github') {
-      return 'GitHub'
+      return 'GitHub.com'
     } else if (identifier === 'enterprise') {
       return 'Enterprise'
     } else if (identifier === 'other') {
