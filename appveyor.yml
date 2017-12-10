@@ -4,7 +4,7 @@ platform:
   - x64
 
 environment:
-  nodejs_version: "8.9.3"
+  nodejs_version: "8.9.2"
 
 cache:
   - .eslintcache
