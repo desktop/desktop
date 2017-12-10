@@ -125,7 +125,7 @@
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
     "electron": "1.7.9",
-    "electron-builder": "19.45.5",
+    "electron-builder": "19.48.3",
     "electron-installer-appimage": "^1.0.1",
     "electron-mocha": "^5.0.0",
     "electron-packager": "^8.7.2",
