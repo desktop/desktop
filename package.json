@@ -129,7 +129,7 @@
     "electron-installer-appimage": "^1.0.1",
     "electron-mocha": "^5.0.0",
     "electron-packager": "^8.7.2",
-    "electron-winstaller": "2.5.2"
+    "electron-winstaller": "^2.6.3"
   },
   "optionalDependencies": {
     "electron-installer-debian": "^0.7.1",
