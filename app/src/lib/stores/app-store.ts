@@ -1740,17 +1740,23 @@ export class AppStore {
     includeRemote: boolean
   ): Promise<void> {
     return this.withAuthenticatingUser(repository, async (repo, account) => {
-      const defaultBranch = this.getRepositoryState(repository).branchesState
-        .defaultBranch
-      if (!defaultBranch) {
-        throw new Error(`No default branch!`)
-      }
-
+      const state = this.getRepositoryState(repository)
+      const branchesState = state.branchesState
       const gitStore = this.getGitStore(repository)
 
-      await gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, defaultBranch.name)
-      )
+      // If we are on the branch about to be deleted then checkout the default branch
+      if (branchesState.tip.kind === TipState.Valid && branchesState.tip.branch.name === branch.name) {
+        const defaultBranch = branchesState
+          .defaultBranch
+        if (!defaultBranch) {
+          throw new Error(`No default branch!`)
+        }
+
+        await gitStore.performFailableOperation(() =>
+          checkoutBranch(repository, account, defaultBranch.name)
+        )
+      }
+
       await gitStore.performFailableOperation(() =>
         deleteBranch(repository, branch, account, includeRemote)
       )
