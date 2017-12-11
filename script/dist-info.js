@@ -25,13 +25,11 @@ function getExecutableName() {
 
   if (process.platform === 'win32') {
     return `${getWindowsIdentifierName()}${suffix}`
-  }
-
-  if (process.platform === 'linux') {
+  } else if (process.platform === 'linux') {
     return 'desktop'
+  } else {
+    return productName
   }
-
-  return productName
 }
 
 function getOSXZipName() {
