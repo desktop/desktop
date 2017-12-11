@@ -69,7 +69,9 @@ rules:
   ###########
   # SPECIAL #
   ###########
-  prettier/prettier: error
+  prettier/prettier:
+    - error
+    - parser: typescript
   no-restricted-syntax:
     - error
     # no-default-export
