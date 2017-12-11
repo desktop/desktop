@@ -17,6 +17,14 @@
     width: 275px;
   }
 
+  &.menu-pane-edit {
+    width: 175px;
+  }
+
+  &.menu-pane-help {
+    width: 200px;
+  }
+
   // Open panes (except the first one) should have a border on their
   // right hand side to create a divider between them and their parent
   // menu.
