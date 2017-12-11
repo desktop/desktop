@@ -132,7 +132,7 @@ function packageLinux() {
     'electron-builder'
   )
 
-  const configPath = path.resolve(__dirname, '..', 'electron-builder.yml')
+  const configPath = path.resolve(__dirname, 'electron-builder-linux.yml')
 
   const args = [
     'build',
