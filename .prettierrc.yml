@@ -3,3 +3,4 @@ trailingComma: es5
 semi: false
 proseWrap: always
 parser: typescript
+proseWrap: always
