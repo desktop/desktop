@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.0.11-test0": [
+      "[Improved] now with a new major version of electron-packager"
+    ],
     "1.0.11-beta0": [
       "[Improved] Refresh the pull requests list after fetching - #3503",
       "[Improved] Rename the \"Install Update\" button to \"Quit and Install Update\" - #3494. Thanks @say25!",
