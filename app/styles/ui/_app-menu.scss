@@ -9,6 +9,15 @@
   height: 100%;
   width: 240px;
 
+  // Need just a wee bit more vertical space for
+  // the branch menu on Windows due to long accelerator
+  // texts for the merge and update menu items, see #3547
+  @include win32 {
+    &.menu-pane-branch {
+      width: 275px;
+    }
+  }
+
   // Open panes (except the first one) should have a border on their
   // right hand side to create a divider between them and their parent
   // menu.
