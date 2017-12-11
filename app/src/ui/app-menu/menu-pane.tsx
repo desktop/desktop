@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
 import { List, ClickSource, SelectionSource } from '../lib/list'
 import {
@@ -9,6 +10,11 @@ import {
 import { MenuListItem } from './menu-list-item'
 
 interface IMenuPaneProps {
+  /**
+   * An optional classname which will be appended to the 'menu-pane' class
+   */
+  readonly className?: string
+
   /**
    * The current Menu pane depth, starts at zero and increments by one for each
    * open submenu.
@@ -256,9 +262,11 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
         ? { height: getListHeight(this.props.items) + 5, maxHeight: '100%' }
         : {}
 
+    const className = classNames('menu-pane', this.props.className)
+
     return (
       <div
-        className="menu-pane"
+        className={className}
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
         style={style}
