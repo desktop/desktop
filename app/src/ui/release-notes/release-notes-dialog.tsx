@@ -1,18 +1,13 @@
 import * as React from 'react'
-import { updateStore } from '../lib/update-store'
 import * as semver from 'semver'
 
-import { ButtonGroup } from '../../ui/lib/button-group'
-import { Button } from '../../ui/lib/button'
+import { getChangeLog, parseReleaseEntries } from '../../lib/release-notes'
+
+import { updateStore } from '../lib/update-store'
+import { ButtonGroup } from '../lib/button-group'
+import { Button } from '../lib/button'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-
-type Release = {
-  readonly name: string
-  readonly notes: ReadonlyArray<string>
-  readonly pub_date: string
-  readonly version: string
-}
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
@@ -38,24 +33,23 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, IReleaseNo
   public async componentDidMount() {
     const currentVersion = this.props.currentVersion
 
-    const changelog = 'https://central.github.com/deployments/desktop/desktop/changelog.json'
-    const query = __RELEASE_CHANNEL__ === 'beta' ? '?env=beta' : ''
-
     try {
-      const response = await fetch(`${changelog}${query}`)
-      if (response.ok) {
-        const releases: ReadonlyArray<Release> = await response.json()
-        const newReleases = releases.filter(release => semver.gt(release.version, currentVersion))
+      const releases = await getChangeLog()
+      const newReleases = releases.filter(release => semver.gt(release.version, currentVersion))
 
-        for (const release of newReleases) {
-          console.log(`got release ${release.version}`)
-        }
+      let allReleaseEntries: Array<string> = []
 
-        // TODO: find out which versions should be displayed
-        // TODO: set some state
+      for (const release of newReleases) {
+        allReleaseEntries = allReleaseEntries.concat(release.notes)
       }
+
+      const releaseEntries = parseReleaseEntries(allReleaseEntries)
+      for (const entry of releaseEntries) {
+        log.info(`found entry: ${entry.kind} - ${entry.message}`)
+      }
+
     } catch {
-      // TODO TODO: handle error about network
+      // TODO: handle error about network
     } finally {
       this.setState({ isLoading: false })
     }
