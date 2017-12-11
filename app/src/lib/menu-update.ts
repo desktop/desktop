@@ -273,6 +273,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       menuStateBuilder.enable('remove-repository')
     }
 
+    menuStateBuilder.disable('create-branch')
     menuStateBuilder.disable('rename-branch')
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('update-branch')
