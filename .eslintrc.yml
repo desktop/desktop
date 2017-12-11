@@ -69,12 +69,7 @@ rules:
   ###########
   # SPECIAL #
   ###########
-  prettier/prettier:
-    - error
-    - singleQuote: true
-      trailingComma: es5
-      semi: false
-      parser: typescript
+  prettier/prettier: error
   no-restricted-syntax:
     - error
     # no-default-export
