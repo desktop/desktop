@@ -49,6 +49,9 @@ import 'codemirror/mode/xml/xml'
 extensionMIMEMap.set('.xml', 'text/xml')
 extensionMIMEMap.set('.xaml', 'text/xml')
 extensionMIMEMap.set('.csproj', 'text/xml')
+extensionMIMEMap.set('.fsproj', 'text/xml')
+extensionMIMEMap.set('.vcxproj', 'text/xml')
+extensionMIMEMap.set('.vbproj', 'text/xml')
 extensionMIMEMap.set('.svg', 'text/xml')
 
 import 'codemirror/mode/clike/clike'
