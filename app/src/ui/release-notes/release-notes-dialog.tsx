@@ -64,7 +64,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, IReleaseNo
           </p>
           </DialogContent>
           <DialogFooter>
-          <ButtonGroup>
+          <ButtonGroup destructive={true}>
             <Button type="submit">Close</Button>
             <Button onClick={this.updateNow}>{ __DARWIN__ ? 'Install Now' : 'Install now'}</Button>
           </ButtonGroup>
