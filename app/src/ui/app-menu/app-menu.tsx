@@ -64,6 +64,11 @@ export type CloseSource = IKeyboardCloseSource | IItemExecutedCloseSource
 
 const expandCollapseTimeout = 300
 
+/**
+ * Converts a menu pane id into something that's reasonable to use as
+ * a classname by replacing forbidden characters and cleaning it
+ * up in general.
+ */
 function menuPaneClassNameFromId(id: string) {
   const className = id
     // Get rid of the leading @. for auto-generated ids
