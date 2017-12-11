@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { updateStore } from '../lib/update-store'
+import * as semver from 'semver'
 
 import { ButtonGroup } from '../../ui/lib/button-group'
 import { Button } from '../../ui/lib/button'
@@ -15,6 +16,7 @@ type Release = {
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
+  readonly currentVersion: string
 }
 
 interface IReleaseNotesState {
@@ -34,15 +36,18 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, IReleaseNo
   }
 
   public async componentDidMount() {
+    const currentVersion = this.props.currentVersion
+
     const changelog = 'https://central.github.com/deployments/desktop/desktop/changelog.json'
     const query = __RELEASE_CHANNEL__ === 'beta' ? '?env=beta' : ''
 
     try {
       const response = await fetch(`${changelog}${query}`)
       if (response.ok) {
-        const json: ReadonlyArray<Release> = await response.json()
+        const releases: ReadonlyArray<Release> = await response.json()
+        const newReleases = releases.filter(release => semver.gt(release.version, currentVersion))
 
-        for (const release of json) {
+        for (const release of newReleases) {
           console.log(`got release ${release.version}`)
         }
 
