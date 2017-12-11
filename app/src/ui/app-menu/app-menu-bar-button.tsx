@@ -258,7 +258,7 @@ export class AppMenuBarButton extends React.Component<
   private dropDownContentRenderer = () => {
     const menuState = this.props.menuState
 
-    if (!this.isMenuOpen) {
+    if (!this.isMenuOpen || !this.props.menuItem.enabled) {
       return null
     }
 
