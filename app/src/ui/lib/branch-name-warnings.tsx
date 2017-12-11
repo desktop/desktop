@@ -8,7 +8,7 @@ export function renderBranchNameWarning(
   proposedName: string,
   sanitizedName: string
 ) {
-  if (proposedName !== '' && /^\s*$/.test(sanitizedName)) {
+  if (proposedName.length > 0 && /^\s*$/.test(sanitizedName)) {
     return (
       <Row className="warning-helper-text">
         <Octicon symbol={OcticonSymbol.alert} />

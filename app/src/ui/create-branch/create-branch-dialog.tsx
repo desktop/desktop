@@ -231,7 +231,7 @@ export class CreateBranch extends React.Component<
 
   public render() {
     const disabled =
-      !this.state.proposedName.length ||
+      this.state.proposedName.length <= 0 ||
       !!this.state.currentError ||
       /^\s*$/.test(this.state.sanitizedName)
     const error = this.state.currentError
