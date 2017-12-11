@@ -9,13 +9,12 @@
   height: 100%;
   width: 240px;
 
-  // Need just a wee bit more vertical space for
-  // the branch menu on Windows due to long accelerator
-  // texts for the merge and update menu items, see #3547
-  @include win32 {
-    &.menu-pane-branch {
-      width: 275px;
-    }
+  // Custom widths for some menus since we don't have
+  // auto-sizeable foldouts at the moment (or rather we
+  // do but our List implementation prevents them from
+  // working). See #3547 for an example.
+  &.menu-pane-branch {
+    width: 275px;
   }
 
   // Open panes (except the first one) should have a border on their
