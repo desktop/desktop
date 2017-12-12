@@ -185,5 +185,5 @@ function findItemForPullRequest(
   group: IFilterListGroup<IPullRequestListItem>,
   pullRequest: PullRequest
 ): IPullRequestListItem | null {
-  return group.items.find(i => i.pullRequest.id === pullRequest.id) || null
+  return group.items.find(i => i.pullRequest.number === pullRequest.number) || null
 }
