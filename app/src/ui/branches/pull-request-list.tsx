@@ -3,6 +3,7 @@ import {
   FilterList,
   IFilterListGroup,
   IFilterListItem,
+  SelectionSource,
 } from '../lib/filter-list'
 import { PullRequestListItem } from './pull-request-list-item'
 import { PullRequest } from '../../models/pull-request'
@@ -143,8 +144,16 @@ export class PullRequestList extends React.Component<
     }
   }
 
-  private onSelectionChanged = (selectedItem: IPullRequestListItem | null) => {
-    this.setState({ selectedItem })
+  private onSelectionChanged = (
+    selectedItem: IPullRequestListItem | null,
+    source: SelectionSource
+  ) => {
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(
+        selectedItem != null ? selectedItem.pullRequest : null,
+        source
+      )
+    }
   }
 
   private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
