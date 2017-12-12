@@ -86,9 +86,7 @@ export function spawnAndComplete(
           } else {
             reject(
               new Error(
-                `Git returned an unexpected exit code '${
-                  code
-                }' which should be handled by the caller.'`
+                `Git returned an unexpected exit code '${code}' which should be handled by the caller.'`
               )
             )
           }

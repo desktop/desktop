@@ -76,9 +76,7 @@ function packageWindows() {
 
   if (!fs.existsSync(splashScreenPath)) {
     console.error(
-      `expected setup splash screen gif not found at location: ${
-        splashScreenPath
-      }`
+      `expected setup splash screen gif not found at location: ${splashScreenPath}`
     )
     process.exit(1)
   }

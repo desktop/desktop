@@ -348,9 +348,7 @@ export class GitHubUserStore {
       const userID = user.id
       if (!userID) {
         fatalError(
-          `Cannot prune removed mentionables with a user that hasn't been cached yet: ${
-            user
-          }`
+          `Cannot prune removed mentionables with a user that hasn't been cached yet: ${user}`
         )
         return
       }
