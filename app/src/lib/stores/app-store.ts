@@ -2918,7 +2918,7 @@ export class AppStore {
     const branch = tip.branch
     const aheadBehind = state.aheadBehind
 
-    if (!aheadBehind) {
+    if (aheadBehind == null) {
       this._showPopup({
         type: PopupType.PushBranchCommits,
         repository,
