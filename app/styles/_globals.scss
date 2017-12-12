@@ -29,7 +29,8 @@ html {
 
 // We never want the window to be scrollable, everything has to fit
 // or be placed into a scrollable container.
-html, body {
+html,
+body {
   height: 100%;
   width: 100%;
   margin: 0;
@@ -58,7 +59,9 @@ body {
 }
 
 :not(input):not(textarea) {
-  &, &::after, &::before {
+  &,
+  &::after,
+  &::before {
     -webkit-user-select: none;
     user-select: none;
     cursor: default;
@@ -81,9 +84,14 @@ img {
 // margin for easier control within type scales as it avoids margin collapsing.
 //
 // From: https://github.com/twbs/bootstrap/blob/a0f10e6dcb9aef2d8e36e57f3c8b1b06034a8877/scss/_reboot.scss
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin-top: 0;
-  margin-bottom: .5rem;
+  margin-bottom: 0.5rem;
 }
 
 // Regardless of platform behavior we never want buttons to be

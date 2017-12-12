@@ -11,7 +11,7 @@
   top: 0;
   left: 0;
 
-  &>div {
+  & > div {
     padding: var(--spacing);
     min-width: 100px;
     background: rgba($gray-900, 0.6);
@@ -27,15 +27,25 @@
   }
 
   .zoom-in {
-    &-appear { transform: scale(0.25); opacity: 0; }
+    &-appear {
+      transform: scale(0.25);
+      opacity: 0;
+    }
   }
 
   .zoom-out {
-    &-appear { transform: scale(1.75); opacity: 0; }
+    &-appear {
+      transform: scale(1.75);
+      opacity: 0;
+    }
   }
 
-  .zoom-in, .zoom-out {
-    &-leave-active { opacity: 0; transition: opacity 100ms ease-out; }
+  .zoom-in,
+  .zoom-out {
+    &-leave-active {
+      opacity: 0;
+      transition: opacity 100ms ease-out;
+    }
     &-appear-active {
       transform: scale(1);
       opacity: 1;

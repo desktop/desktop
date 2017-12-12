@@ -2,7 +2,6 @@
 
 /** A React component holding history's commit list */
 #commit-list {
-
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -30,7 +29,10 @@
       overflow: hidden;
       margin-left: var(--spacing-half);
 
-      .summary, .byline { @include ellipsis }
+      .summary,
+      .byline {
+        @include ellipsis;
+      }
     }
   }
 }

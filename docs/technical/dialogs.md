@@ -25,10 +25,10 @@ are constrained to within the dialog itself.
 ## Errors
 
 Dialogs should, when practical, render errors caused by its actions inline as
-opposed to opening an error dialog. An example of this is the Preferences dialog.
-If the dialog fails to write to the .gitignore or git config files as part of
-persisting changes it renders a short error message inline in the dialog using
-the `DialogError` component.
+opposed to opening an error dialog. An example of this is the Preferences
+dialog. If the dialog fails to write to the .gitignore or git config files as
+part of persisting changes it renders a short error message inline in the dialog
+using the `DialogError` component.
 
 The `DialogError` component, if used, must be the first child element of the
 Dialog itself.
@@ -49,21 +49,20 @@ Dialog itself.
 </Dialog>
 ```
 
-The content inside of the DialogError should be primarily text based. Avoid using
-the term 'Error' inside the text as that should be evident already based on the
-styling of the `DialogError` component.
+The content inside of the DialogError should be primarily text based. Avoid
+using the term 'Error' inside the text as that should be evident already based
+on the styling of the `DialogError` component.
 
 ## Best practices
 
 ### DO: Let children render the DialogContent component
 
 If you're using a one-child-per-tab approach you should render the DialogContent
-as the top-level element in those children instead of wrapping children inside the
-DialogContent element. This avoid needless nesting and lets us leverage generic
-dialog/form/row styles in a more straightforward way.
+as the top-level element in those children instead of wrapping children inside
+the DialogContent element. This avoid needless nesting and lets us leverage
+generic dialog/form/row styles in a more straightforward way.
 
 #### Example (good)
-
 
 ```html
 <!-- SomeComponent.tsx -->
@@ -84,7 +83,6 @@ dialog/form/row styles in a more straightforward way.
 ```
 
 #### Example (bad)
-
 
 ```html
 <!-- SomeComponent.tsx -->
@@ -108,8 +106,8 @@ dialog/form/row styles in a more straightforward way.
 
 ### DO: Use Row components to lay out content
 
-The `Row` component receives a bottom margin, when used as an immediate
-child of `DialogContent`, making it an excellent tool for structuring content.
+The `Row` component receives a bottom margin, when used as an immediate child of
+`DialogContent`, making it an excellent tool for structuring content.
 
 If the content is primary text, as opposed to form component the `<p>` element
 should be used instead of the `Row` component.

@@ -37,12 +37,18 @@
 }
 
 .toast-animation {
-  &-appear { transform: scale(0.25); opacity: 0.1; }
+  &-appear {
+    transform: scale(0.25);
+    opacity: 0.1;
+  }
   &-appear-active {
     transform: scale(1);
     opacity: 1;
     transition: all 100ms ease-out;
   }
 
-  &-leave-active { opacity: 0; transition: all 250ms ease-out; }
+  &-leave-active {
+    opacity: 0;
+    transition: all 250ms ease-out;
+  }
 }

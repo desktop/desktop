@@ -15,16 +15,21 @@
   border-radius: var(--border-radius);
   overflow: hidden; // To get those sweet rounded corners
 
-  &.emoji { width: 200px; }
-  &.user { width: 220px; }
-  &.issue { width: 300px; }
+  &.emoji {
+    width: 200px;
+  }
+  &.user {
+    width: 220px;
+  }
+  &.issue {
+    width: 300px;
+  }
 
   background-color: var(--background-color);
 
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
 
-  .list-item
-  {
+  .list-item {
     border-bottom: none;
 
     &:not(:first-child) {
@@ -40,14 +45,13 @@
       border-top-color: var(--box-selected-active-background-color);
 
       & + .list-item {
-        border-top-color: var(--box-selected-active-background-color);      
+        border-top-color: var(--box-selected-active-background-color);
       }
     }
   }
 }
 
 .autocompletion-item {
-
   flex-grow: 1;
   height: 100%;
   min-width: 0;
@@ -61,7 +65,6 @@
   }
 
   .emoji {
-
     display: flex;
     flex-grow: 1;
 

@@ -26,14 +26,16 @@
     box-shadow: 0 0 0 1px var(--secondary-button-focus-shadow-color);
   }
 
-  &:disabled { opacity: 0.6; }
+  &:disabled {
+    opacity: 0.6;
+  }
 
   .octicon {
     vertical-align: middle;
   }
 }
 
-.button-component[type='submit'] {
+.button-component[type="submit"] {
   background-color: var(--button-background);
   color: var(--button-text-color);
   border: 1px solid var(--button-background);

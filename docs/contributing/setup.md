@@ -1,4 +1,4 @@
-#  Development Environment Setup
+# Development Environment Setup
 
 ## Setup
 
@@ -6,29 +6,33 @@ You will need to install these tools on your machine:
 
 ### macOS
 
- - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
- - [Python 2.7](https://www.python.org/downloads/mac-osx/)
- - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
+* [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
+* [Python 2.7](https://www.python.org/downloads/mac-osx/)
+* Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
 ### Windows
 
- - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
-    - *Make sure you allow the Node.js installer to add node to the PATH.*
- - [Python 2.7](https://www.python.org/downloads/windows/)
-    - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
-      to configure node-gyp manually with the path which is annoying.*
-    - *Ensure the **Add python.exe to Path** option is selected.*
- - One of Visual Studio 2015, Visual C++ Build Tools or Visual Studio 2017
-   - [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
-     - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
-   - Visual Studio 2015 
-     - *Ensure you select the **Common Tools for Visual C++ 2015** feature as that is required by Node.js
-        for installing native modules.*
-     - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
-   - [Visual Studio 2017](https://www.visualstudio.com/vs/community/)
-     - *Ensure you select the **Desktop development with C++** feature as that is required by Node.js for
-        installing native modules.*
-     - *Run `npm config set msvs_version 2017` to tell node to use this toolchain.*
+* [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
+  * _Make sure you allow the Node.js installer to add node to the PATH._
+* [Python 2.7](https://www.python.org/downloads/windows/)
+  * _Let Python install into the default suggested path (`c:\Python27`),
+    otherwise you'll have to configure node-gyp manually with the path which is
+    annoying._
+  * _Ensure the **Add python.exe to Path** option is selected._
+* One of Visual Studio 2015, Visual C++ Build Tools or Visual Studio 2017
+  * [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
+    * _Run `npm config set msvs_version 2015` to tell node to use this
+      toolchain._
+  * Visual Studio 2015
+    * _Ensure you select the **Common Tools for Visual C++ 2015** feature as
+      that is required by Node.js for installing native modules._
+    * _Run `npm config set msvs_version 2015` to tell node to use this
+      toolchain._
+  * [Visual Studio 2017](https://www.visualstudio.com/vs/community/)
+    * _Ensure you select the **Desktop development with C++** feature as that is
+      required by Node.js for installing native modules._
+    * _Run `npm config set msvs_version 2017` to tell node to use this
+      toolchain._
 
 ### Fedora 26
 
@@ -44,15 +48,18 @@ After that, install the dependencies to build and test the app:
 $ sudo dnf install -y nodejs gcc-c++ make libsecret-devel libXScrnSaver
 ```
 
-If you want to package Desktop for distribution, you will need these additional dependencies:
+If you want to package Desktop for distribution, you will need these additional
+dependencies:
 
 ```shellsession
 $ sudo dnf install fakeroot dpkg rpm rpm-build xz xorriso appstream bzip2-devel
 ```
 
-If you have problems packaging for AppImage, you may need to force the linker to use the right
-version of specific dependencies. More information [here](https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7)
-and [here](https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974)
+If you have problems packaging for AppImage, you may need to force the linker to
+use the right version of specific dependencies. More information
+[here](https://michaelheap.com/error-while-loading-shared-libraries-libbz2-so-1-0-cannot-open-shared-object-file-on-centos-7)
+and
+[here](https://github.com/electron-userland/electron-builder/issues/993#issuecomment-291021974)
 
 ```shellsession
 $ sudo ln -s `find /usr/lib64/ -type f -name "libbz2.so.1*"` /usr/lib64/libbz2.so.1.0
@@ -87,17 +94,19 @@ $ sudo apt install -y fakeroot dpkg rpm xz-utils xorriso zsync
 
 ## Verification
 
-With these things installed, open a shell and install `yarn` (you might need
-to `sudo` here depending on how Node was installed):
+With these things installed, open a shell and install `yarn` (you might need to
+`sudo` here depending on how Node was installed):
 
 ```shellsession
 $ npm install -g yarn@1.3.2
 ```
 
 This is important because yarn uses lock files to pin dependencies. If you find
-yourself changing packages, this will prevent mismatches in versions between machines.
+yourself changing packages, this will prevent mismatches in versions between
+machines.
 
-Then validate you have these commands available and that the versions look similar:
+Then validate you have these commands available and that the versions look
+similar:
 
 ```shellsession
 $ node -v
@@ -110,21 +119,21 @@ $ python --version
 Python 2.7.13
 ```
 
-There are also [additional resources](tooling.md) to
-configure your favorite editor to work nicely with the GitHub Desktop
-repository.
+There are also [additional resources](tooling.md) to configure your favorite
+editor to work nicely with the GitHub Desktop repository.
 
 ## Building Desktop
 
-After cloning the repository, the typical workflow to get up running
-is as follows:
+After cloning the repository, the typical workflow to get up running is as
+follows:
 
 * Run `yarn` to get all required dependencies on your machine.
 * Run `yarn build:dev` to create a development build of the app.
 * Run `yarn start` to launch the application. Changes will be compiled in the
   background. The app can then be reloaded to see the changes (Ctrl/Command+R).
-  
-**Optional Tip**: On macOS and Linux, you can use `screen` to avoid filling your terminal with logging output:
+
+**Optional Tip**: On macOS and Linux, you can use `screen` to avoid filling your
+terminal with logging output:
 
 ```shellsession
 $ screen -S "desktop" yarn start # -S sets the name of the session; you can pick anything
@@ -134,19 +143,18 @@ $ screen -R "desktop" # to reopen the session, read the logs, and exit (Ctrl+C)
 [screen is terminating]
 ```
 
-If you've made changes in the `main-process` folder you need to run `yarn
-build:dev` to rebuild the package, and then `yarn start` for these changes to be
-reflected in the running app.
+If you've made changes in the `main-process` folder you need to run
+`yarn build:dev` to rebuild the package, and then `yarn start` for these changes
+to be reflected in the running app.
 
 If you're still encountering issues with building, refer to our
-[troubleshooting](troubleshooting.md) guide for more common
-problems.
+[troubleshooting](troubleshooting.md) guide for more common problems.
 
 ## Running tests
 
-- `yarn test` - Runs all unit and integration tests
-- `yarn test:unit` - Runs all unit tests
-- `yarn test:integration` - Runs all integration tests
+* `yarn test` - Runs all unit and integration tests
+* `yarn test:unit` - Runs all unit tests
+* `yarn test:integration` - Runs all integration tests
 
 **Pro Tip:** If you're only interested in the results of a single test and don't
 wish to run the entire test suite to see it you can pass along a search string
@@ -171,8 +179,8 @@ When running the app in development mode,
 should automatically install itself on first start when in development mode.
 
 An additional extension, [Devtron](http://electron.atom.io/devtron/), is also
-included but is disabled by default. To enable Devtron, select the Console
-tab in Chrome Developer Tools and run this command:
+included but is disabled by default. To enable Devtron, select the Console tab
+in Chrome Developer Tools and run this command:
 
 ```js
 require('devtron').install()
@@ -182,7 +190,7 @@ require('devtron').install()
 
 You're almost there! Here's a couple of things we recommend you read next:
 
- - [Help Wanted](../../CONTRIBUTING.md#help-wanted) - we've marked some tasks in
-   the backlog that are ideal for external contributors
- - [Code Reviews](../process/reviews.md) - some notes on how the team does
-   code reviews
+* [Help Wanted](../../CONTRIBUTING.md#help-wanted) - we've marked some tasks in
+  the backlog that are ideal for external contributors
+* [Code Reviews](../process/reviews.md) - some notes on how the team does code
+  reviews
