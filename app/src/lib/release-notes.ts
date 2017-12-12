@@ -7,7 +7,7 @@ type Release = {
   readonly version: string
 }
 
-type ReleaseEntry = {
+export type ReleaseEntry = {
   readonly kind: 'new' | 'added' | 'removed' | 'fixed' | 'improved' | 'pretext'
   readonly message: string
 }
@@ -54,7 +54,10 @@ export function parseReleaseEntries(
   return entries
 }
 
-export function getReleaseSummary(currentVersion: string, releases: ReadonlyArray<Release>): ReleaseSummary {
+export function getReleaseSummary(
+  currentVersion: string,
+  releases: ReadonlyArray<Release>
+): ReleaseSummary {
   const newReleases = releases.filter(release =>
     semver.gt(release.version, currentVersion)
   )

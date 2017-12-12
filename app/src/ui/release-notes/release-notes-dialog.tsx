@@ -3,12 +3,14 @@ import * as React from 'react'
 import {
   getChangeLog,
   getReleaseSummary,
-  ReleaseSummary
+  ReleaseSummary,
+  ReleaseEntry,
 } from '../../lib/release-notes'
 
 import { updateStore } from '../lib/update-store'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
+import { Loading } from '../lib/loading'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
@@ -24,10 +26,18 @@ interface IReleaseNotesState {
 }
 
 const monthNames = [
-  "January", "February", "March",
-  "April", "May", "June", "July",
-  "August", "September", "October",
-  "November", "December"
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ]
 
 function getPrefix(day: number) {
@@ -73,7 +83,6 @@ export class ReleaseNotes extends React.Component<
       const releaseSummary = getReleaseSummary(currentVersion, releases)
 
       this.setState({ releaseSummary })
-
     } catch {
       // TODO: handle error about network
     } finally {
@@ -81,13 +90,39 @@ export class ReleaseNotes extends React.Component<
     }
   }
 
+  private renderList(
+    releaseEntries: ReadonlyArray<ReleaseEntry>,
+    header: string
+  ): JSX.Element | null {
+    if (releaseEntries.length === 0) {
+      return null
+    }
+
+    const options = new Array<JSX.Element>()
+
+    for (const entry of releaseEntries) {
+      options.push(<li>{entry.message}</li>)
+    }
+
+    return (
+      <div>
+        <p>{header}</p>
+        <ul>{options}</ul>
+      </div>
+    )
+  }
+
   private showReleaseContents(releaseSummary: ReleaseSummary) {
     return (
       <DialogContent>
-        <p>Version {releaseSummary.latestVersion}</p>
-        <p>{formatDate(releaseSummary.datePublished)}</p>
+        <div className="header">
+          <p>Version {releaseSummary.latestVersion}</p>
+          <p>{formatDate(releaseSummary.datePublished)}</p>
+        </div>
 
-        <p>some release notes go here</p>
+        {this.renderList(releaseSummary.bugfixes, 'Bugfixes')}
+        {this.renderList(releaseSummary.enhancements, 'Enhancements')}
+        {this.renderList(releaseSummary.other, 'Other')}
       </DialogContent>
     )
   }
@@ -95,12 +130,13 @@ export class ReleaseNotes extends React.Component<
   private showLoadingIndicator() {
     return (
       <DialogContent>
-        <p>fetching release notes</p>
+        <Loading />
       </DialogContent>
     )
   }
 
   public render() {
+    // TODO: what to show if an error occurs
     const content = this.state.releaseSummary
       ? this.showReleaseContents(this.state.releaseSummary)
       : this.showLoadingIndicator()
