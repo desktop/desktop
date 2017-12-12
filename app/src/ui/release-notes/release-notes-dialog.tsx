@@ -1,10 +1,9 @@
 import * as React from 'react'
-import * as semver from 'semver'
 
 import {
   getChangeLog,
-  parseReleaseEntries,
-  groupEntries,
+  getReleaseSummary,
+  ReleaseSummary
 } from '../../lib/release-notes'
 
 import { updateStore } from '../lib/update-store'
@@ -21,7 +20,36 @@ interface IReleaseNotesProps {
 interface IReleaseNotesState {
   readonly loading: boolean
   readonly error?: Error
-  readonly latestVersion?: string
+  readonly releaseSummary?: ReleaseSummary
+}
+
+const monthNames = [
+  "January", "February", "March",
+  "April", "May", "June", "July",
+  "August", "September", "October",
+  "November", "December"
+]
+
+function getPrefix(day: number) {
+  const remainder = day % 10
+  if (remainder === 1) {
+    return 'st'
+  } else if (remainder === 2) {
+    return 'nd'
+  } else if (remainder === 3) {
+    return 'rd'
+  } else {
+    return 'th'
+  }
+}
+
+function formatDate(date: Date) {
+  const day = date.getDate()
+  const prefix = getPrefix(day)
+  const monthIndex = date.getMonth()
+  const year = date.getFullYear()
+
+  return `${monthNames[monthIndex]} ${day}${prefix} ${year}`
 }
 
 /**
@@ -42,28 +70,10 @@ export class ReleaseNotes extends React.Component<
 
     try {
       const releases = await getChangeLog()
-      const newReleases = releases.filter(release =>
-        semver.gt(release.version, currentVersion)
-      )
+      const releaseSummary = getReleaseSummary(currentVersion, releases)
 
-      // TODO: what if we don't have any new releases?
-      this.setState({ latestVersion: newReleases[0].version })
+      this.setState({ releaseSummary })
 
-      let allReleaseEntries: Array<string> = []
-
-      for (const release of newReleases) {
-        allReleaseEntries = allReleaseEntries.concat(release.notes)
-      }
-
-      const releaseEntries = parseReleaseEntries(allReleaseEntries)
-      for (const entry of releaseEntries) {
-        log.info(`found entry: ${entry.kind} - ${entry.message}`)
-      }
-
-      const grouped = groupEntries(releaseEntries)
-
-      if (grouped.pretext != null) {
-      }
     } catch {
       // TODO: handle error about network
     } finally {
@@ -71,10 +81,11 @@ export class ReleaseNotes extends React.Component<
     }
   }
 
-  private showReleaseContents() {
+  private showReleaseContents(releaseSummary: ReleaseSummary) {
     return (
       <DialogContent>
-        <p>Version {this.state.latestVersion}</p>
+        <p>Version {releaseSummary.latestVersion}</p>
+        <p>{formatDate(releaseSummary.datePublished)}</p>
 
         <p>some release notes go here</p>
       </DialogContent>
@@ -90,9 +101,9 @@ export class ReleaseNotes extends React.Component<
   }
 
   public render() {
-    const content = this.state.loading
-      ? this.showLoadingIndicator()
-      : this.showReleaseContents()
+    const content = this.state.releaseSummary
+      ? this.showReleaseContents(this.state.releaseSummary)
+      : this.showLoadingIndicator()
 
     return (
       <Dialog id="release-notes" onDismissed={this.props.onDismissed}>

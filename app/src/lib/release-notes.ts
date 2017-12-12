@@ -1,3 +1,5 @@
+import * as semver from 'semver'
+
 type Release = {
   readonly name: string
   readonly notes: ReadonlyArray<string>
@@ -10,8 +12,10 @@ type ReleaseEntry = {
   readonly message: string
 }
 
-type ReleaseNotesSummary = {
-  readonly pretext: string | null
+export type ReleaseSummary = {
+  readonly latestVersion: string
+  readonly datePublished: Date
+  readonly pretext?: string
   readonly enhancements: ReadonlyArray<ReleaseEntry>
   readonly bugfixes: ReadonlyArray<ReleaseEntry>
   readonly other: ReadonlyArray<ReleaseEntry>
@@ -50,17 +54,32 @@ export function parseReleaseEntries(
   return entries
 }
 
-export function groupEntries(
-  entries: ReadonlyArray<ReleaseEntry>
-): ReleaseNotesSummary {
+export function getReleaseSummary(currentVersion: string, releases: ReadonlyArray<Release>): ReleaseSummary {
+  const newReleases = releases.filter(release =>
+    semver.gt(release.version, currentVersion)
+  )
+
+  let allReleaseEntries: Array<string> = []
+
+  for (const release of newReleases) {
+    allReleaseEntries = allReleaseEntries.concat(release.notes)
+  }
+
+  const entries = parseReleaseEntries(allReleaseEntries)
+
   const enhancements = entries.filter(
     e => e.kind === 'new' || e.kind === 'added' || e.kind === 'improved'
   )
   const bugfixes = entries.filter(e => e.kind === 'fixed')
   const other = entries.filter(e => e.kind === 'removed')
 
+  const latestRelease = newReleases[0]
+
   return {
-    pretext: null,
+    latestVersion: latestRelease.version,
+    datePublished: new Date(latestRelease.pub_date),
+    // TODO: find pretext entry
+    pretext: undefined,
     enhancements,
     bugfixes,
     other,
