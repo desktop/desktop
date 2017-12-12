@@ -37,6 +37,7 @@ interface IBranchesProps {
 interface IBranchesState {
   readonly selectedBranch: Branch | null
   readonly filterText: string
+  readonly selectedPullRequest: PullRequest | null
 }
 
 /** The unified Branches and Pull Requests component. */
@@ -50,6 +51,7 @@ export class BranchesContainer extends React.Component<
     this.state = {
       selectedBranch: props.currentBranch,
       filterText: '',
+      selectedPullRequest: props.currentPullRequest
     }
   }
 
@@ -241,6 +243,8 @@ export class BranchesContainer extends React.Component<
     } else {
       // TODO: It's in a fork so we'll need to do ... something.
     }
+
+    this.setState({ selectedPullRequest: pullRequest})
   }
 
   private onDismiss = () => {
