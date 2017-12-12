@@ -22,9 +22,7 @@ function revParse(gitDir, ref) {
 
   if (!refMatch) {
     throw new Error(
-      `Could not de-reference HEAD to SHA, invalid ref in ${refPath}: ${
-        refContents
-      }`
+      `Could not de-reference HEAD to SHA, invalid ref in ${refPath}: ${refContents}`
     )
   }
 

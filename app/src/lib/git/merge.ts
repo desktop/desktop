@@ -8,3 +8,16 @@ export async function merge(
 ): Promise<void> {
   await git(['merge', branch], repository.path, 'merge')
 }
+
+export async function getMergeBase(
+  repository: Repository,
+  firstRef: string,
+  secondRef: string
+): Promise<string> {
+  const process = await git(
+    ['merge-base', firstRef, secondRef],
+    repository.path,
+    'merge-base'
+  )
+  return process.stdout.trim()
+}
