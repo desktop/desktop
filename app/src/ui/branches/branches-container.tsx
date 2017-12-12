@@ -86,6 +86,12 @@ export class BranchesContainer extends React.Component<
     this.setState({ selectedBranch })
   }
 
+  private onPullRequestSelectionChanged = (
+    selectedPullRequest: PullRequest | null
+  ) => {
+    this.setState({ selectedPullRequest })
+  }
+
   private renderTabBar() {
     if (!this.props.repository.gitHubRepository) {
       return null
