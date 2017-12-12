@@ -137,9 +137,10 @@ export class PullRequestList extends React.Component<
     this.setState({ filterText })
   }
 
-  private onItemClick = (selectedItem: IPullRequestListItem) => {
-    const pr = selectedItem.pullRequest
-    this.props.onPullRequestClicked(pr)
+  private onItemClick = (item: IPullRequestListItem) => {
+    if (this.props.onItemClick) {
+      this.props.onItemClick(item.pullRequest)
+    }
   }
 
   private onSelectionChanged = (selectedItem: IPullRequestListItem | null) => {
