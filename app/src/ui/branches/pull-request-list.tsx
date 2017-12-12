@@ -34,10 +34,17 @@ interface IPullRequestListProps {
   readonly currentPullRequest: PullRequest | null
 
   /** Called when the user clicks on a pull request. */
-  readonly onPullRequestClicked: (pullRequest: PullRequest) => void
+  readonly onItemClick: (pullRequest: PullRequest) => void
 
   /** Called when the user wants to dismiss the foldout. */
   readonly onDismiss: () => void
+
+  readonly selectedPullRequest: PullRequest | null
+
+  readonly onSelectionChanged?: (
+    pullRequest: PullRequest | null,
+    source: SelectionSource
+  ) => void
 }
 
 interface IPullRequestListState {
