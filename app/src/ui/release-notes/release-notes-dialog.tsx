@@ -1,7 +1,11 @@
 import * as React from 'react'
 import * as semver from 'semver'
 
-import { getChangeLog, parseReleaseEntries } from '../../lib/release-notes'
+import {
+  getChangeLog,
+  parseReleaseEntries,
+  groupEntries,
+} from '../../lib/release-notes'
 
 import { updateStore } from '../lib/update-store'
 import { ButtonGroup } from '../lib/button-group'
@@ -15,19 +19,22 @@ interface IReleaseNotesProps {
 }
 
 interface IReleaseNotesState {
-  readonly isLoading: boolean
-  readonly isError: boolean
+  readonly loading: boolean
+  readonly error?: Error
+  readonly latestVersion?: string
 }
 
 /**
  * The dialog to show with details about the newest release
  */
-export class ReleaseNotes extends React.Component<IReleaseNotesProps, IReleaseNotesState> {
-
-  constructor(props: IReleaseNotesProps) {
+export class ReleaseNotes extends React.Component<
+  IReleaseNotesProps,
+  IReleaseNotesState
+> {
+  public constructor(props: IReleaseNotesProps) {
     super(props)
 
-    this.state = { isLoading: true, isError: false }
+    this.state = { loading: true }
   }
 
   public async componentDidMount() {
@@ -35,7 +42,12 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, IReleaseNo
 
     try {
       const releases = await getChangeLog()
-      const newReleases = releases.filter(release => semver.gt(release.version, currentVersion))
+      const newReleases = releases.filter(release =>
+        semver.gt(release.version, currentVersion)
+      )
+
+      // TODO: what if we don't have any new releases?
+      this.setState({ latestVersion: newReleases[0].version })
 
       let allReleaseEntries: Array<string> = []
 
@@ -48,25 +60,49 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, IReleaseNo
         log.info(`found entry: ${entry.kind} - ${entry.message}`)
       }
 
+      const grouped = groupEntries(releaseEntries)
+
+      if (grouped.pretext != null) {
+      }
     } catch {
       // TODO: handle error about network
     } finally {
-      this.setState({ isLoading: false })
+      this.setState({ loading: false })
     }
   }
 
+  private showReleaseContents() {
+    return (
+      <DialogContent>
+        <p>Version {this.state.latestVersion}</p>
+
+        <p>some release notes go here</p>
+      </DialogContent>
+    )
+  }
+
+  private showLoadingIndicator() {
+    return (
+      <DialogContent>
+        <p>fetching release notes</p>
+      </DialogContent>
+    )
+  }
+
   public render() {
+    const content = this.state.loading
+      ? this.showLoadingIndicator()
+      : this.showReleaseContents()
+
     return (
       <Dialog id="release-notes" onDismissed={this.props.onDismissed}>
-        <DialogContent>
-          <p>
-            some release notes go here
-          </p>
-          </DialogContent>
-          <DialogFooter>
+        {content}
+        <DialogFooter>
           <ButtonGroup destructive={true}>
             <Button type="submit">Close</Button>
-            <Button onClick={this.updateNow}>{ __DARWIN__ ? 'Install Now' : 'Install now'}</Button>
+            <Button onClick={this.updateNow}>
+              {__DARWIN__ ? 'Install Now' : 'Install now'}
+            </Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>

@@ -1,4 +1,3 @@
-
 type Release = {
   readonly name: string
   readonly notes: ReadonlyArray<string>
@@ -11,9 +10,18 @@ type ReleaseEntry = {
   readonly message: string
 }
 
+type ReleaseNotesSummary = {
+  readonly pretext: string | null
+  readonly enhancements: ReadonlyArray<ReleaseEntry>
+  readonly bugfixes: ReadonlyArray<ReleaseEntry>
+  readonly other: ReadonlyArray<ReleaseEntry>
+}
+
 const itemEntryRe = /^\[(new|fixed|improved|removed|added|pretext)\]\s(.*)/i
 
-export function parseReleaseEntries(notes: ReadonlyArray<string>): ReadonlyArray<ReleaseEntry> {
+export function parseReleaseEntries(
+  notes: ReadonlyArray<string>
+): ReadonlyArray<ReleaseEntry> {
   const entries = new Array<ReleaseEntry>()
 
   for (const note of notes) {
@@ -42,8 +50,26 @@ export function parseReleaseEntries(notes: ReadonlyArray<string>): ReadonlyArray
   return entries
 }
 
+export function groupEntries(
+  entries: ReadonlyArray<ReleaseEntry>
+): ReleaseNotesSummary {
+  const enhancements = entries.filter(
+    e => e.kind === 'new' || e.kind === 'added' || e.kind === 'improved'
+  )
+  const bugfixes = entries.filter(e => e.kind === 'fixed')
+  const other = entries.filter(e => e.kind === 'removed')
+
+  return {
+    pretext: null,
+    enhancements,
+    bugfixes,
+    other,
+  }
+}
+
 export async function getChangeLog(): Promise<ReadonlyArray<Release>> {
-  const changelog = 'https://central.github.com/deployments/desktop/desktop/changelog.json'
+  const changelog =
+    'https://central.github.com/deployments/desktop/desktop/changelog.json'
   const query = __RELEASE_CHANNEL__ === 'beta' ? '?env=beta' : ''
 
   const response = await fetch(`${changelog}${query}`)
@@ -54,4 +80,3 @@ export async function getChangeLog(): Promise<ReadonlyArray<Release>> {
     return []
   }
 }
-

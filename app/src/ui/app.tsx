@@ -1177,7 +1177,12 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       case PopupType.ReleaseNotes:
-        return <ReleaseNotes currentVersion={getVersion()} onDismissed={this.onPopupDismissed} />
+        return (
+          <ReleaseNotes
+            currentVersion={getVersion()}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
