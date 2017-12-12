@@ -1,3 +1,5 @@
 app/static/common
 app/test/fixtures
 gemoji
+dist
+out
