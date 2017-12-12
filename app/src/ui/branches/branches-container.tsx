@@ -82,7 +82,7 @@ export class BranchesContainer extends React.Component<
     this.setState({ filterText })
   }
 
-  private onSelectionChanged = (selectedBranch: Branch | null) => {
+  private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
     this.setState({ selectedBranch })
   }
 
@@ -136,7 +136,7 @@ export class BranchesContainer extends React.Component<
             onFilterKeyDown={this.onFilterKeyDown}
             onFilterTextChanged={this.onFilterTextChanged}
             selectedBranch={this.state.selectedBranch}
-            onSelectionChanged={this.onSelectionChanged}
+            onSelectionChanged={this.onBranchSelectionChanged}
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
           />
