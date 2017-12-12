@@ -39,16 +39,7 @@ export async function clone(
 ): Promise<void> {
   const env = envForAuthentication(options.account)
 
-  const args = [
-    ...gitNetworkArguments,
-    'lfs',
-    'clone',
-    '--recursive',
-    // git-lfs will create the hooks it requires by default
-    // and we don't know if the repository is LFS enabled
-    // at this stage so let's not do this
-    '--skip-repo',
-  ]
+  const args = [...gitNetworkArguments, 'clone', '--recursive']
 
   let opts: IGitExecutionOptions = { env }
 
