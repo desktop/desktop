@@ -12,6 +12,7 @@ import {
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import { getAvatarWithEnterpriseFallback } from './gravatar'
+import { read } from 'fs-extra'
 
 const username: () => Promise<string> = require('username')
 
@@ -112,10 +113,21 @@ export interface IAPIIssue {
 /** The combined state of a ref. */
 export type APIRefState = 'error' | 'failure' | 'pending' | 'success'
 
+export interface IAPIRefStatusItem {
+  readonly created_at: string
+  readonly updated_at: string
+  readonly state: APIRefState
+  readonly target_url: string
+  readonly description: string
+  readonly context: string
+  readonly id: number
+}
+
 /** The API response to a ref status request. */
 export interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
+  readonly statuses: ReadonlyArray<IAPIRefStatusItem>
 }
 
 export interface IAPIPullRequestRef {
