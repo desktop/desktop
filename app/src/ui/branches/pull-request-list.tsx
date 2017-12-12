@@ -87,9 +87,17 @@ export class PullRequestList extends React.Component<
 
     const group = createListItems(nextProps.pullRequests)
     const currentlySelectedItem = this.state.selectedItem
-    const selectedItem = currentlySelectedItem
-      ? findItemForPullRequest(group, currentlySelectedItem.pullRequest)
-      : null
+
+    let selectedItem: IPullRequestListItem | null = null
+
+    if (currentlySelectedItem == null) {
+      selectedItem =
+        this.props.currentPullRequest != null ?
+          findItemForPullRequest(group, this.props.currentPullRequest) :
+          null
+    } else {
+      selectedItem = findItemForPullRequest(group, currentlySelectedItem.pullRequest)
+    }
 
     this.setState({ groupedItems: [group], selectedItem })
   }
