@@ -93,9 +93,7 @@ function runCommand(name: string) {
         throw new CommandError(
           `Value passed to flag ${dasherizeOption(
             flag
-          )} was of type ${typeof value}, but was expected to be of type ${
-            expectedType
-          }`
+          )} was of type ${typeof value}, but was expected to be of type ${expectedType}`
         )
       }
     }
