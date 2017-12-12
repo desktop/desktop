@@ -36,8 +36,8 @@ interface IBranchesProps {
 
 interface IBranchesState {
   readonly selectedBranch: Branch | null
-  readonly filterText: string
   readonly selectedPullRequest: PullRequest | null
+  readonly filterText: string
 }
 
 /** The unified Branches and Pull Requests component. */
@@ -50,8 +50,8 @@ export class BranchesContainer extends React.Component<
 
     this.state = {
       selectedBranch: props.currentBranch,
+      selectedPullRequest: props.currentPullRequest,
       filterText: '',
-      selectedPullRequest: props.currentPullRequest
     }
   }
 
