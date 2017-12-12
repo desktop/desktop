@@ -110,7 +110,7 @@ export interface IAPIIssue {
 }
 
 /** The combined state of a ref. */
-export type APIRefState = 'failure' | 'pending' | 'success'
+export type APIRefState = 'error' | 'failure' | 'pending' | 'success'
 
 /** The API response to a ref status request. */
 export interface IAPIRefStatus {
@@ -118,7 +118,7 @@ export interface IAPIRefStatus {
   readonly total_count: number
 }
 
-interface IAPIPullRequestRef {
+export interface IAPIPullRequestRef {
   readonly ref: string
   readonly sha: string
 
