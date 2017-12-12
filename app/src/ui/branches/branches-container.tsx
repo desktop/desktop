@@ -252,7 +252,7 @@ export class BranchesContainer extends React.Component<
       // TODO: It's in a fork so we'll need to do ... something.
     }
 
-    this.setState({ selectedPullRequest: pullRequest})
+    this.onPullRequestSelectionChanged(pullRequest)
   }
 
   private onDismiss = () => {
