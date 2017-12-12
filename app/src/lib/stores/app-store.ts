@@ -1745,9 +1745,11 @@ export class AppStore {
       const gitStore = this.getGitStore(repository)
 
       // If we are on the branch about to be deleted then checkout the default branch
-      if (branchesState.tip.kind === TipState.Valid && branchesState.tip.branch.name === branch.name) {
-        const defaultBranch = branchesState
-          .defaultBranch
+      if (
+        branchesState.tip.kind === TipState.Valid &&
+        branchesState.tip.branch.name === branch.name
+      ) {
+        const defaultBranch = branchesState.defaultBranch
         if (!defaultBranch) {
           throw new Error(`No default branch!`)
         }
