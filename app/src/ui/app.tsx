@@ -242,6 +242,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.selectChanges()
       case 'select-history':
         return this.selectHistory()
+      case 'choose-repository':
+        return this.chooseRepository()
       case 'add-local-repository':
         return this.showAddLocalRepo()
       case 'create-branch':
@@ -258,17 +260,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.deleteBranch()
       case 'show-preferences':
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
-      case 'choose-repository': {
-        if (
-          this.state.currentFoldout &&
-          this.state.currentFoldout.type === FoldoutType.Repository
-        ) {
-          return this.props.dispatcher.closeFoldout(FoldoutType.Repository)
-        }
-        return this.props.dispatcher.showFoldout({
-          type: FoldoutType.Repository,
-        })
-      }
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
       case 'update-branch':
@@ -457,15 +448,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private showBranches() {
-    const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
-      return
-    }
-
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
-  }
-
   private showAbout() {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
@@ -476,6 +458,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
+    this.props.dispatcher.closeCurrentFoldout()
     this.props.dispatcher.changeRepositorySection(
       state.repository,
       RepositorySection.Changes
@@ -488,10 +471,40 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
+    this.props.dispatcher.closeCurrentFoldout()
     this.props.dispatcher.changeRepositorySection(
       state.repository,
       RepositorySection.History
     )
+  }
+
+  private chooseRepository() {
+    if (
+      this.state.currentFoldout &&
+      this.state.currentFoldout.type === FoldoutType.Repository
+    ) {
+      return this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+    }
+
+    return this.props.dispatcher.showFoldout({
+      type: FoldoutType.Repository,
+    })
+  }
+
+  private showBranches() {
+    const state = this.state.selectedState
+    if (!state || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    if (
+      this.state.currentFoldout &&
+      this.state.currentFoldout.type === FoldoutType.Branch
+    ) {
+      return this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    }
+
+    return this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
   }
 
   private push() {

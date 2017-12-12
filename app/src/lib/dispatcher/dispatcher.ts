@@ -250,7 +250,12 @@ export class Dispatcher {
     return this.appStore._showFoldout(foldout)
   }
 
-  /** Close the current foldout. */
+  /** Close the current foldout. If opening a new foldout use closeFoldout instead. */
+  public closeCurrentFoldout(): Promise<void> {
+    return this.appStore._closeCurrentFoldout()
+  }
+
+  /** Close the specified foldout. */
   public closeFoldout(foldout: FoldoutType): Promise<void> {
     return this.appStore._closeFoldout(foldout)
   }
