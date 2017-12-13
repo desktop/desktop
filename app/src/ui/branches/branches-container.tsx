@@ -235,6 +235,7 @@ export class BranchesContainer extends React.Component<
   }
 
   private onPullRequestClicked = (pullRequest: PullRequest) => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.checkoutPullRequest(
       this.props.repository,
       pullRequest
