@@ -1,11 +1,9 @@
 import * as React from 'react'
 
-import {
-  getChangeLog,
-  getReleaseSummary,
-  ReleaseSummary,
-  ReleaseEntry,
-} from '../../lib/release-notes'
+import { generateReleaseSummary } from '../../lib/release-notes'
+import { Octicon, OcticonSymbol } from '../octicons'
+
+import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
 
 import { updateStore } from '../lib/update-store'
 import { ButtonGroup } from '../lib/button-group'
@@ -79,9 +77,7 @@ export class ReleaseNotes extends React.Component<
     const currentVersion = this.props.currentVersion
 
     try {
-      const releases = await getChangeLog()
-      const releaseSummary = getReleaseSummary(currentVersion, releases)
-
+      const releaseSummary = await generateReleaseSummary(currentVersion)
       this.setState({ releaseSummary })
     } catch {
       // TODO: handle error about network
@@ -90,8 +86,27 @@ export class ReleaseNotes extends React.Component<
     }
   }
 
+  private onCloseButtonClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (this.props.onDismissed) {
+      this.props.onDismissed()
+    }
+  }
+
+  private renderCloseButton() {
+    // We're intentionally using <a> here instead of <button> because
+    // we can't prevent chromium from giving it focus when the the dialog
+    // appears. Setting tabindex to -1 doesn't work. This might be a bug,
+    // I don't know and we may want to revisit it at some point but for
+    // now an anchor will have to do.
+    return (
+      <a className="close" onClick={this.onCloseButtonClick}>
+        <Octicon symbol={OcticonSymbol.x} />
+      </a>
+    )
+  }
+
   private renderList(
-    releaseEntries: ReadonlyArray<ReleaseEntry>,
+    releaseEntries: ReadonlyArray<ReleaseNote>,
     header: string
   ): JSX.Element | null {
     if (releaseEntries.length === 0) {
@@ -100,29 +115,35 @@ export class ReleaseNotes extends React.Component<
 
     const options = new Array<JSX.Element>()
 
-    for (const entry of releaseEntries) {
-      options.push(<li>{entry.message}</li>)
+    for (const [i, entry] of releaseEntries.entries()) {
+      options.push(<li key={i}>{entry.message}</li>)
     }
 
     return (
-      <div>
-        <p>{header}</p>
-        <ul>{options}</ul>
+      <div className="section">
+        <p className="header">{header}</p>
+        <ul className="entries">{options}</ul>
       </div>
     )
   }
 
   private showReleaseContents(releaseSummary: ReleaseSummary) {
+    // TODO: how to split layout
     return (
       <DialogContent>
-        <div className="header">
-          <p>Version {releaseSummary.latestVersion}</p>
-          <p>{formatDate(releaseSummary.datePublished)}</p>
-        </div>
+        <header className="dialog-header">
+          <div className="title">
+            <p className="version">Version {releaseSummary.latestVersion}</p>
+            <p className="date">{formatDate(releaseSummary.datePublished)}</p>
+          </div>
+          {this.renderCloseButton()}
+        </header>
 
-        {this.renderList(releaseSummary.bugfixes, 'Bugfixes')}
-        {this.renderList(releaseSummary.enhancements, 'Enhancements')}
-        {this.renderList(releaseSummary.other, 'Other')}
+        <div className="column">
+          {this.renderList(releaseSummary.bugfixes, 'Bugfixes')}
+          {this.renderList(releaseSummary.enhancements, 'Enhancements')}
+          {this.renderList(releaseSummary.other, 'Other')}
+        </div>
       </DialogContent>
     )
   }
@@ -130,6 +151,13 @@ export class ReleaseNotes extends React.Component<
   private showLoadingIndicator() {
     return (
       <DialogContent>
+        <header className="dialog-header">
+          <div className="title">
+            <p className="version" />
+            <p className="date" />
+          </div>
+          {this.renderCloseButton()}
+        </header>
         <Loading />
       </DialogContent>
     )

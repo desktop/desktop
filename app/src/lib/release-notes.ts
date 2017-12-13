@@ -1,32 +1,17 @@
 import * as semver from 'semver'
 
-type Release = {
-  readonly name: string
-  readonly notes: ReadonlyArray<string>
-  readonly pub_date: string
-  readonly version: string
-}
-
-export type ReleaseEntry = {
-  readonly kind: 'new' | 'added' | 'removed' | 'fixed' | 'improved' | 'pretext'
-  readonly message: string
-}
-
-export type ReleaseSummary = {
-  readonly latestVersion: string
-  readonly datePublished: Date
-  readonly pretext?: string
-  readonly enhancements: ReadonlyArray<ReleaseEntry>
-  readonly bugfixes: ReadonlyArray<ReleaseEntry>
-  readonly other: ReadonlyArray<ReleaseEntry>
-}
+import {
+  ReleaseMetadata,
+  ReleaseNote,
+  ReleaseSummary,
+} from '../models/release-notes'
 
 const itemEntryRe = /^\[(new|fixed|improved|removed|added|pretext)\]\s(.*)/i
 
 export function parseReleaseEntries(
   notes: ReadonlyArray<string>
-): ReadonlyArray<ReleaseEntry> {
-  const entries = new Array<ReleaseEntry>()
+): ReadonlyArray<ReleaseNote> {
+  const entries = new Array<ReleaseNote>()
 
   for (const note of notes) {
     const text = note.trim()
@@ -56,7 +41,7 @@ export function parseReleaseEntries(
 
 export function getReleaseSummary(
   currentVersion: string,
-  releases: ReadonlyArray<Release>
+  releases: ReadonlyArray<ReleaseMetadata>
 ): ReleaseSummary {
   const newReleases = releases.filter(release =>
     semver.gt(release.version, currentVersion)
@@ -89,16 +74,23 @@ export function getReleaseSummary(
   }
 }
 
-export async function getChangeLog(): Promise<ReadonlyArray<Release>> {
+async function getChangeLog(): Promise<ReadonlyArray<ReleaseMetadata>> {
   const changelog =
     'https://central.github.com/deployments/desktop/desktop/changelog.json'
   const query = __RELEASE_CHANNEL__ === 'beta' ? '?env=beta' : ''
 
   const response = await fetch(`${changelog}${query}`)
   if (response.ok) {
-    const releases: ReadonlyArray<Release> = await response.json()
+    const releases: ReadonlyArray<ReleaseMetadata> = await response.json()
     return releases
   } else {
     return []
   }
+}
+
+export async function generateReleaseSummary(
+  currentVersion: string
+): Promise<ReleaseSummary> {
+  const releases = await getChangeLog()
+  return getReleaseSummary(currentVersion, releases)
 }

@@ -11,6 +11,9 @@ import { sendWillQuitSync } from '../main-process-proxy'
 import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 import { parseError } from '../../lib/squirrel-error-parser'
 
+import { ReleaseSummary } from '../../models/release-notes'
+import { generateReleaseSummary } from '../../lib/release-notes'
+
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
   /** The auto updater is checking for updates. */
@@ -29,6 +32,7 @@ export enum UpdateStatus {
 export interface IUpdateState {
   status: UpdateStatus
   lastSuccessfulCheck: Date | null
+  newReleaseSummary: ReleaseSummary | null
 }
 
 /** A store which contains the current state of the auto updater. */
@@ -36,6 +40,7 @@ class UpdateStore {
   private emitter = new Emitter()
   private status = UpdateStatus.UpdateNotAvailable
   private lastSuccessfulCheck: Date | null = null
+  private newReleaseSummary: ReleaseSummary | null = null
 
   /** Is the most recent update check user initiated? */
   private userInitiatedUpdate = true
@@ -115,8 +120,12 @@ class UpdateStore {
     this.emitDidChange()
   }
 
-  private onUpdateDownloaded = () => {
+  private onUpdateDownloaded = async () => {
     this.status = UpdateStatus.UpdateReady
+
+    const appVersion = remote.app.getVersion()
+    this.newReleaseSummary = await generateReleaseSummary(appVersion)
+
     this.emitDidChange()
   }
 
@@ -146,6 +155,7 @@ class UpdateStore {
     return {
       status: this.status,
       lastSuccessfulCheck: this.lastSuccessfulCheck,
+      newReleaseSummary: this.newReleaseSummary,
     }
   }
 
