@@ -110,7 +110,7 @@ export interface IAPIIssue {
 }
 
 /** The combined state of a ref. */
-export type APIRefState = 'error' | 'failure' | 'pending' | 'success'
+export type APIRefState = 'failure' | 'pending' | 'success'
 
 export interface IAPIRefStatusItem {
   readonly created_at: string
