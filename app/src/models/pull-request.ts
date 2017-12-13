@@ -38,6 +38,9 @@ export class PullRequestStatus {
   /** The SHA for which this status applies. */
   public readonly sha: string
 
+  /** The list of all statuses for a specific ref. */
+  public readonly statuses: ReadonlyArray<IAPIRefStatusItem>
+
   public constructor(
     pullRequestNumber: number,
     state: APIRefState,
