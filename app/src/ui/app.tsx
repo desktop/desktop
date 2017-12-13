@@ -329,7 +329,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private updateBranch() {
     const state = this.state.selectedState
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -343,7 +343,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private mergeBranch() {
     const state = this.state.selectedState
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -360,7 +360,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const state = this.state.selectedState
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -380,7 +380,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private openCurrentRepositoryWorkingDirectory() {
     const state = this.state.selectedState
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -389,7 +389,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renameBranch() {
     const state = this.state.selectedState
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -405,7 +405,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private deleteBranch() {
     const state = this.state.selectedState
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -454,7 +454,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private selectChanges() {
     const state = this.state.selectedState
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -467,7 +467,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private selectHistory() {
     const state = this.state.selectedState
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -493,7 +493,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private showBranches() {
     const state = this.state.selectedState
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -509,7 +509,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private push() {
     const state = this.state.selectedState
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -518,7 +518,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private async pull() {
     const state = this.state.selectedState
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -710,7 +710,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private getRepository(): Repository | CloningRepository | null {
     const state = this.state.selectedState
-    if (state === null) {
+    if (state == null) {
       return null
     }
 
@@ -1460,7 +1460,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private openPullRequest = () => {
     const state = this.state.selectedState
 
-    if (state === null || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
