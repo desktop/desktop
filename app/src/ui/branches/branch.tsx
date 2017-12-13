@@ -71,7 +71,7 @@ export class BranchListItem extends React.Component<IBranchProps, {}> {
 
       const items: IMenuItem[] = [
         {
-          label: __DARWIN__ ? 'New Branch from here' : 'New branch from here',
+          label: __DARWIN__ ? 'New Branch From Here' : 'New branch from here',
           action: () => this.onCreateNewBranchFromStartPoint(),
         },
         {
@@ -84,13 +84,13 @@ export class BranchListItem extends React.Component<IBranchProps, {}> {
     }
   }
 
-  private onCreateNewBranchFromStartPoint = () => {
+  private onCreateNewBranchFromStartPoint() {
     if (this.props.onCreateNewBranchFromStartPoint) {
       this.props.onCreateNewBranchFromStartPoint(this.props.branch)
     }
   }
 
-  private onDeleteBranch = () => {
+  private onDeleteBranch() {
     if (this.props.onDeleteBranch) {
       this.props.onDeleteBranch(this.props.branch)
     }
