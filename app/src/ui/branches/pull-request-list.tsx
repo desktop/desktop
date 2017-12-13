@@ -144,8 +144,7 @@ export class PullRequestList extends React.Component<
         number={pr.number}
         created={pr.created}
         author={pr.author}
-        status={pr.status}
-        statuses={refStatuses}
+        status={status}
       />
     )
   }
