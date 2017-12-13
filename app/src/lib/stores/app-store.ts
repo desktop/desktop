@@ -1514,7 +1514,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(): Promise<void> {
     const currentPopup = this.currentPopup
-    if (!currentPopup) {
+    if (currentPopup == null) {
       return Promise.resolve()
     }
 
@@ -1535,8 +1535,18 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _closeCurrentFoldout(): Promise<void> {
+    if (this.currentFoldout == null) {
+      return
+    }
+
+    this.currentFoldout = null
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _closeFoldout(foldout: FoldoutType): Promise<void> {
-    if (!this.currentFoldout) {
+    if (this.currentFoldout == null) {
       return
     }
 
