@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import * as React from 'react'
 import { ButtonGroup } from '../../ui/lib/button-group'
 import { Button } from '../../ui/lib/button'
@@ -40,9 +41,10 @@ export class ConfirmRemoveRepository extends React.Component<
       >
         <DialogContent>
           <p>
-            Are you sure you want to remove the repository "{
-              this.props.repository.name
-            }"?
+              Are you sure you want to remove the repository?
+          </p>
+          <p className="name">
+              {this.props.repository.name}
           </p>
           <p className="description">
             The repository will be removed from GitHub Desktop but will remain
