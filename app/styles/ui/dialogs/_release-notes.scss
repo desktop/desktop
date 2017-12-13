@@ -3,17 +3,40 @@
 #release-notes {
   max-height: 450px;
 
-  .header {
+  .dialog-header {
     height: 100px;
-    font-size: 14px;
-    font-weight: var(--font-weight-semibold);
 
-    .date {
-      font-size: 11px;
+    .title {
+      text-align: center;
+
+      .version {
+        font-size: 14px;
+        font-weight: var(--font-weight-semibold);
+      }
+
+      .date {
+        font-size: 11px;
+      }
+    }
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+
+    li {
+      padding-left: 0;
     }
   }
 
   .column {
-    width: 250px;
+    overflow: scroll;
+
+    .section {
+      .header {
+        font-size: 12px;
+        font-weight: var(--font-weight-semibold);
+      }
+    }
   }
 }
