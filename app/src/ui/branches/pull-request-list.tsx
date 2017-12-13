@@ -126,6 +126,8 @@ export class PullRequestList extends React.Component<
 
   private renderPullRequest = (item: IPullRequestListItem) => {
     const pr = item.pullRequest
+    const refStatuses = pr.status != null ? pr.status.statuses : []
+
     return (
       <PullRequestListItem
         title={pr.title}
@@ -133,6 +135,7 @@ export class PullRequestList extends React.Component<
         created={pr.created}
         author={pr.author}
         status={pr.status}
+        statuses={refStatuses}
       />
     )
   }
