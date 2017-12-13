@@ -42,7 +42,6 @@
     "react-virtualized": "^9.10.1",
     "registry-js": "^1.0.7",
     "runas": "^3.1.1",
-    "semver": "^5.4.1",
     "source-map-support": "^0.4.15",
     "strip-ansi": "^4.0.0",
     "textarea-caret": "^3.0.2",
