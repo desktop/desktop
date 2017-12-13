@@ -16,10 +16,35 @@ interface IBranchProps {
   readonly canShowBranchContextMenu: boolean
   readonly onCreateNewBranchFromStartPoint?: (branch: Branch) => void
   readonly onDeleteBranch?: (branch: Branch) => void
+
+  /** The current filter text to render */
+  readonly filterText: string
 }
 
 /** The branch component. */
 export class BranchListItem extends React.Component<IBranchProps, {}> {
+  private renderHighlightedName(name: string) {
+    const filterText = this.props.filterText
+    const matchStart = name.indexOf(filterText)
+    const matchLength = filterText.length
+
+    if (matchStart === -1) {
+      return (
+        <div className="name" title={name}>
+          {name}
+        </div>
+      )
+    }
+
+    return (
+      <div className="name" title={name}>
+        {name.substr(0, matchStart)}
+        <mark>{name.substr(matchStart, matchLength)}</mark>
+        {name.substr(matchStart + matchLength)}
+      </div>
+    )
+  }
+
   public render() {
     const lastCommitDate = this.props.lastCommitDate
     const isCurrentBranch = this.props.isCurrentBranch
@@ -33,9 +58,7 @@ export class BranchListItem extends React.Component<IBranchProps, {}> {
     return (
       <div className="branches-list-item" onContextMenu={this.onContextMenu}>
         <Octicon className="icon" symbol={icon} />
-        <div className="name" title={name}>
-          {name}
-        </div>
+        {this.renderHighlightedName(name)}
         <div className="description" title={infoTitle}>
           {date}
         </div>

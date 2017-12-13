@@ -166,6 +166,7 @@ export class BranchList extends React.Component<
           this.props.onCreateNewBranchFromStartPoint
         }
         onDeleteBranch={this.props.onDeleteBranch}
+        filterText={this.props.filterText}
       />
     )
   }

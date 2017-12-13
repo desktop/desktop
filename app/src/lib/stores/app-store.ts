@@ -1514,7 +1514,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(): Promise<void> {
     const currentPopup = this.currentPopup
-    if (!currentPopup) {
+    if (currentPopup == null) {
       return Promise.resolve()
     }
 
@@ -1535,8 +1535,18 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _closeCurrentFoldout(): Promise<void> {
+    if (this.currentFoldout == null) {
+      return
+    }
+
+    this.currentFoldout = null
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _closeFoldout(foldout: FoldoutType): Promise<void> {
-    if (!this.currentFoldout) {
+    if (this.currentFoldout == null) {
       return
     }
 
@@ -2940,7 +2950,7 @@ export class AppStore {
         unPushedCommits: aheadBehind.ahead,
       })
     } else {
-      await this._openCreatePullRequestInBrowser(repository)
+      await this._openCreatePullRequestInBrowser(repository, branch)
     }
   }
 
@@ -3071,21 +3081,14 @@ export class AppStore {
   }
 
   public async _openCreatePullRequestInBrowser(
-    repository: Repository
+    repository: Repository,
+    branch: Branch
   ): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
     }
 
-    const state = this.getRepositoryState(repository)
-    const tip = state.branchesState.tip
-
-    if (tip.kind !== TipState.Valid) {
-      return
-    }
-
-    const branch = tip.branch
     const urlEncodedBranchName = QueryString.escape(branch.nameWithoutRemote)
     const baseURL = `${
       gitHubRepository.htmlURL
