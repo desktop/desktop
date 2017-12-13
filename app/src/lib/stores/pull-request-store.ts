@@ -126,6 +126,7 @@ export class PullRequestStore {
         state: apiStatus.state,
         totalCount: apiStatus.total_count,
         sha: pr.head.sha,
+        statuses: apiStatus.statuses,
       }
 
       statuses.push({
@@ -133,6 +134,7 @@ export class PullRequestStore {
         state: apiStatus.state,
         totalCount: apiStatus.total_count,
         sha: pr.head.sha,
+        statuses: apiStatus.statuses,
       })
 
       prs.push(
@@ -171,7 +173,8 @@ export class PullRequestStore {
       result.pullRequestId,
       result.state,
       result.totalCount,
-      result.sha
+      result.sha,
+      result.statuses
     )
   }
 
