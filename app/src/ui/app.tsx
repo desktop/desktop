@@ -141,6 +141,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
           requestIdleCallback(() => {
             this.performDeferredLaunchActions()
+            // HACK to trigger the flow for viewing a new update
+            this.props.dispatcher.setUpdateBannerVisibility(true)
           })
         },
         { timeout: ReadyDelay }
