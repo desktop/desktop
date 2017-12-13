@@ -27,6 +27,7 @@ import { validatedRepositoryPath } from '../lib/stores/helpers/validated-reposit
 import { MenuEvent } from '../main-process/menu'
 
 import { Repository } from '../models/repository'
+import { Branch } from '../models/branch'
 import { PreferencesTab } from '../models/preferences'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { Account } from '../models/account'
@@ -1461,8 +1462,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private openCreatePullRequestInBrowser = (repository: Repository) => {
-    this.props.dispatcher.openCreatePullRequestInBrowser(repository)
+  private openCreatePullRequestInBrowser = (
+    repository: Repository,
+    branch: Branch
+  ) => {
+    this.props.dispatcher.openCreatePullRequestInBrowser(repository, branch)
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
