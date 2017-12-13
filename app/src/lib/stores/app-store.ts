@@ -2920,8 +2920,9 @@ export class AppStore {
 
     if (aheadBehind == null) {
       this._showPopup({
-        type: PopupType.PublishRepository,
+        type: PopupType.PushBranchCommits,
         repository,
+        branch,
       })
     } else if (aheadBehind.ahead > 0) {
       this._showPopup({
