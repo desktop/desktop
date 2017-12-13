@@ -6,7 +6,7 @@ import {
   SelectionSource,
 } from '../lib/filter-list'
 import { PullRequestListItem } from './pull-request-list-item'
-import { PullRequest } from '../../models/pull-request'
+import { PullRequest, PullRequestStatus } from '../../models/pull-request'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -127,6 +127,16 @@ export class PullRequestList extends React.Component<
   private renderPullRequest = (item: IPullRequestListItem) => {
     const pr = item.pullRequest
     const refStatuses = pr.status != null ? pr.status.statuses : []
+    const status =
+      pr.status != null
+        ? new PullRequestStatus(
+            pr.number,
+            pr.status.state,
+            pr.status.totalCount,
+            pr.status.sha,
+            refStatuses
+          )
+        : null
 
     return (
       <PullRequestListItem
