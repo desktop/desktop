@@ -3,6 +3,7 @@ import {
   FilterList,
   IFilterListGroup,
   IFilterListItem,
+  SelectionSource,
 } from '../lib/filter-list'
 import { PullRequestListItem } from './pull-request-list-item'
 import { PullRequest } from '../../models/pull-request'
@@ -34,10 +35,17 @@ interface IPullRequestListProps {
   readonly currentPullRequest: PullRequest | null
 
   /** Called when the user clicks on a pull request. */
-  readonly onPullRequestClicked: (pullRequest: PullRequest) => void
+  readonly onItemClick: (pullRequest: PullRequest) => void
 
   /** Called when the user wants to dismiss the foldout. */
   readonly onDismiss: () => void
+
+  readonly selectedPullRequest: PullRequest | null
+
+  readonly onSelectionChanged?: (
+    pullRequest: PullRequest | null,
+    source: SelectionSource
+  ) => void
 }
 
 interface IPullRequestListState {
@@ -55,10 +63,16 @@ export class PullRequestList extends React.Component<
     super(props)
 
     const group = createListItems(props.pullRequests)
-    const pullRequest = props.currentPullRequest
-    const selectedItem = pullRequest
-      ? findItemForPullRequest(group, pullRequest)
-      : null
+    const selectedPullRequest = props.selectedPullRequest
+
+    let selectedItem: IPullRequestListItem | null =
+      props.currentPullRequest != null
+        ? findItemForPullRequest(group, props.currentPullRequest)
+        : null
+
+    if (selectedPullRequest != null) {
+      selectedItem = findItemForPullRequest(group, selectedPullRequest)
+    }
 
     this.state = {
       groupedItems: [group],
@@ -74,9 +88,20 @@ export class PullRequestList extends React.Component<
 
     const group = createListItems(nextProps.pullRequests)
     const currentlySelectedItem = this.state.selectedItem
-    const selectedItem = currentlySelectedItem
-      ? findItemForPullRequest(group, currentlySelectedItem.pullRequest)
-      : null
+
+    let selectedItem: IPullRequestListItem | null = null
+
+    if (currentlySelectedItem == null) {
+      selectedItem =
+        this.props.currentPullRequest != null
+          ? findItemForPullRequest(group, this.props.currentPullRequest)
+          : null
+    } else {
+      selectedItem = findItemForPullRequest(
+        group,
+        currentlySelectedItem.pullRequest
+      )
+    }
 
     this.setState({ groupedItems: [group], selectedItem })
   }
@@ -116,13 +141,22 @@ export class PullRequestList extends React.Component<
     this.setState({ filterText })
   }
 
-  private onItemClick = (selectedItem: IPullRequestListItem) => {
-    const pr = selectedItem.pullRequest
-    this.props.onPullRequestClicked(pr)
+  private onItemClick = (item: IPullRequestListItem) => {
+    if (this.props.onItemClick) {
+      this.props.onItemClick(item.pullRequest)
+    }
   }
 
-  private onSelectionChanged = (selectedItem: IPullRequestListItem | null) => {
-    this.setState({ selectedItem })
+  private onSelectionChanged = (
+    selectedItem: IPullRequestListItem | null,
+    source: SelectionSource
+  ) => {
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(
+        selectedItem != null ? selectedItem.pullRequest : null,
+        source
+      )
+    }
   }
 
   private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -154,5 +188,7 @@ function findItemForPullRequest(
   group: IFilterListGroup<IPullRequestListItem>,
   pullRequest: PullRequest
 ): IPullRequestListItem | null {
-  return group.items.find(i => i.pullRequest.id === pullRequest.id) || null
+  return (
+    group.items.find(i => i.pullRequest.number === pullRequest.number) || null
+  )
 }

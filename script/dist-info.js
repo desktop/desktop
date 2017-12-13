@@ -23,9 +23,13 @@ function getDistPath() {
 function getExecutableName() {
   const suffix = process.env.NODE_ENV === 'development' ? '-dev' : ''
 
-  return process.platform === 'win32'
-    ? `${getWindowsIdentifierName()}${suffix}`
-    : productName
+  if (process.platform === 'win32') {
+    return `${getWindowsIdentifierName()}${suffix}`
+  } else if (process.platform === 'linux') {
+    return 'desktop'
+  } else {
+    return productName
+  }
 }
 
 function getOSXZipName() {
@@ -124,9 +128,7 @@ function getReleaseSHA() {
 }
 
 function getUpdatesURL() {
-  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${
-    version
-  }&env=${getReleaseChannel()}`
+  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${version}&env=${getReleaseChannel()}`
 }
 
 function shouldMakeDelta() {

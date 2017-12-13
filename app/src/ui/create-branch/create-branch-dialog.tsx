@@ -248,11 +248,10 @@ export class CreateBranch extends React.Component<
   }
 
   public render() {
-    const proposedName = this.state.proposedName
     const disabled =
-      !proposedName.length ||
+      this.state.proposedName.length <= 0 ||
       !!this.state.currentError ||
-      /^\s*$/.test(this.state.proposedName)
+      /^\s*$/.test(this.state.sanitizedName)
     const error = this.state.currentError
 
     return (
