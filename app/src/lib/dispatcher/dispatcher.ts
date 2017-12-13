@@ -1073,8 +1073,11 @@ export class Dispatcher {
    *
    * See the createPullRequest method for more details.
    */
-  public openCreatePullRequestInBrowser(repository: Repository): Promise<void> {
-    return this.appStore._openCreatePullRequestInBrowser(repository)
+  public openCreatePullRequestInBrowser(
+    repository: Repository,
+    branch: Branch
+  ): Promise<void> {
+    return this.appStore._openCreatePullRequestInBrowser(repository, branch)
   }
 
   /** Refresh the list of open pull requests for the repository. */
