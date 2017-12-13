@@ -12,7 +12,6 @@ import {
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import { getAvatarWithEnterpriseFallback } from './gravatar'
-import { read } from 'fs-extra'
 
 const username: () => Promise<string> = require('username')
 
