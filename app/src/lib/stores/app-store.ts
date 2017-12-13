@@ -2932,7 +2932,7 @@ export class AppStore {
         unPushedCommits: aheadBehind.ahead,
       })
     } else {
-      await this._openCreatePullRequestInBrowser(repository)
+      await this._openCreatePullRequestInBrowser(repository, branch)
     }
   }
 
@@ -3063,21 +3063,14 @@ export class AppStore {
   }
 
   public async _openCreatePullRequestInBrowser(
-    repository: Repository
+    repository: Repository,
+    branch: Branch
   ): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
     }
 
-    const state = this.getRepositoryState(repository)
-    const tip = state.branchesState.tip
-
-    if (tip.kind !== TipState.Valid) {
-      return
-    }
-
-    const branch = tip.branch
     const urlEncodedBranchName = QueryString.escape(branch.nameWithoutRemote)
     const baseURL = `${
       gitHubRepository.htmlURL
