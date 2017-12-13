@@ -3,7 +3,7 @@ import * as moment from 'moment'
 import * as classNames from 'classnames'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { CIStatus } from './ci-status'
-import { PullRequestStatus } from '../../models/pull-request'
+import { PullRequestStatus, CombinedRefStatus } from '../../models/pull-request'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -20,6 +20,8 @@ export interface IPullRequestListItemProps {
 
   /** The CI status. */
   readonly status: PullRequestStatus | null
+
+  readonly statuses: ReadonlyArray<CombinedRefStatus>
 
   /**
    * Whether or not this list item is a skeleton item
