@@ -13,10 +13,12 @@
       .version {
         font-size: 14px;
         font-weight: var(--font-weight-semibold);
+        margin-bottom: 0;
       }
 
       .date {
         font-size: 11px;
+        color: var(--text-secondary-color);
       }
     }
   }
