@@ -1,4 +1,4 @@
-@import "../mixins";
+@import '../mixins';
 
 .repository-list {
   height: 100%;
@@ -51,6 +51,14 @@
 
       .prefix {
         color: var(--text-tertiary-color);
+      }
+
+      /* Used to highlight substring matches in filtered lists */
+      mark {
+        font-weight: bold;
+        /* Reset browser defaults */
+        background-color: inherit;
+        color: currentColor;
       }
     }
   }

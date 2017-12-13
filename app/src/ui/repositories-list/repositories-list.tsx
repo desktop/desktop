@@ -73,6 +73,7 @@ export class RepositoriesList extends React.Component<
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         externalEditorLabel={this.props.externalEditorLabel}
         shellLabel={this.props.shellLabel}
+        filterText={this.props.filterText}
       />
     )
   }
