@@ -165,11 +165,11 @@ export class Preferences extends React.Component<
     const disallowedNameCharacters = disallowedCharacters(name)
     const disallowedEmailCharacters = disallowedCharacters(email)
 
-    if (disallowedNameCharacters) {
+    if (disallowedNameCharacters !== null) {
       return `Git name field cannot be a disallowed character "${
         disallowedNameCharacters
       }"`
-    } else if (disallowedEmailCharacters) {
+    } else if (disallowedEmailCharacters !== null) {
       return `Git email field cannot be a disallowed character "${
         disallowedEmailCharacters
       }"`
@@ -179,7 +179,7 @@ export class Preferences extends React.Component<
   }
 
   private renderDisallowedCharactersError(message: string | null) {
-    if (message) {
+    if (message !== null) {
       return <DialogError>{message}</DialogError>
     } else {
       return null
