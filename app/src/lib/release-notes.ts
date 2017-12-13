@@ -1,5 +1,3 @@
-import * as semver from 'semver'
-
 import {
   ReleaseMetadata,
   ReleaseNote,
@@ -41,27 +39,15 @@ export function parseReleaseEntries(
 
 export function getReleaseSummary(
   currentVersion: string,
-  releases: ReadonlyArray<ReleaseMetadata>
+  latestRelease: ReleaseMetadata
 ): ReleaseSummary {
-  const newReleases = releases.filter(release =>
-    semver.gt(release.version, currentVersion)
-  )
-
-  let allReleaseEntries: Array<string> = []
-
-  for (const release of newReleases) {
-    allReleaseEntries = allReleaseEntries.concat(release.notes)
-  }
-
-  const entries = parseReleaseEntries(allReleaseEntries)
+  const entries = parseReleaseEntries(latestRelease.notes)
 
   const enhancements = entries.filter(
     e => e.kind === 'new' || e.kind === 'added' || e.kind === 'improved'
   )
   const bugfixes = entries.filter(e => e.kind === 'fixed')
   const other = entries.filter(e => e.kind === 'removed')
-
-  const latestRelease = newReleases[0]
 
   return {
     latestVersion: latestRelease.version,
@@ -92,5 +78,6 @@ export async function generateReleaseSummary(
   currentVersion: string
 ): Promise<ReleaseSummary> {
   const releases = await getChangeLog()
-  return getReleaseSummary(currentVersion, releases)
+  const latestRelease = releases[0]
+  return getReleaseSummary(currentVersion, latestRelease)
 }
