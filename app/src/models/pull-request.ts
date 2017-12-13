@@ -25,6 +25,16 @@ export class PullRequestRef {
   }
 }
 
+export class CombinedRefStatus {
+  public readonly created_at: string
+  public readonly updated_at: string
+  public readonly state: APIRefState
+  public readonly target_url: string
+  public readonly description: string
+  public readonly context: string
+  public readonly id: number
+}
+
 export class PullRequestStatus {
   /** The pull request this status is associated with */
   public readonly pullRequestNumber: number
