@@ -49,18 +49,20 @@ export class PullRequestStatus {
   public readonly sha: string
 
   /** The list of all statuses for a specific ref. */
-  public readonly statuses: ReadonlyArray<IAPIRefStatusItem>
+  public readonly statuses: ReadonlyArray<CombinedRefStatus>
 
   public constructor(
     pullRequestNumber: number,
     state: APIRefState,
     totalCount: number,
-    sha: string
+    sha: string,
+    statuses: ReadonlyArray<CombinedRefStatus>
   ) {
     this.pullRequestNumber = pullRequestNumber
     this.state = state
     this.totalCount = totalCount
     this.sha = sha
+    this.statuses = statuses
   }
 }
 
