@@ -7,10 +7,6 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 
-// At some point we'll make index.tsx only be exports
-// see https://github.com/desktop/desktop/issues/383
-export { ChangesSidebar } from './sidebar'
-
 interface IChangesProps {
   readonly repository: Repository
   readonly file: WorkingDirectoryFileChange

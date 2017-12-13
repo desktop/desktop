@@ -79,6 +79,7 @@ import {
   checkoutBranch,
   getDefaultRemote,
   formatAsLocalRef,
+  getMergeBase,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -908,9 +909,7 @@ export class AppStore {
       const timeInSeconds = Math.floor(timeSinceFetch / 1000)
 
       log.debug(
-        `skipping background fetch as repository was fetched ${
-          timeInSeconds
-        }s ago`
+        `skipping background fetch as repository was fetched ${timeInSeconds}s ago`
       )
       return false
     }
@@ -1975,16 +1974,26 @@ export class AppStore {
       }
 
       const state = this.getRepositoryState(repository)
+      const tip = state.branchesState.tip
 
-      if (state.branchesState.tip.kind === TipState.Unborn) {
+      if (tip.kind === TipState.Unborn) {
         throw new Error('The current branch is unborn.')
       }
 
-      if (state.branchesState.tip.kind === TipState.Detached) {
+      if (tip.kind === TipState.Detached) {
         throw new Error('The current repository is in a detached HEAD state.')
       }
 
-      if (state.branchesState.tip.kind === TipState.Valid) {
+      if (tip.kind === TipState.Valid) {
+        let mergeBase: string | null = null
+        if (tip.branch.upstream) {
+          mergeBase = await getMergeBase(
+            repository,
+            tip.branch.name,
+            tip.branch.upstream
+          )
+        }
+
         const title = `Pulling ${remote.name}`
         const kind = 'pull'
         this.updatePushPullFetchProgress(repository, {
@@ -2034,6 +2043,10 @@ export class AppStore {
             title: refreshTitle,
             value: refreshStartProgress,
           })
+
+          if (mergeBase) {
+            await gitStore.reconcileHistory(mergeBase)
+          }
 
           await this._refreshRepository(repository)
 
@@ -2140,9 +2153,9 @@ export class AppStore {
         const hasValidToken =
           account.token.length > 0 ? 'has token' : 'empty token'
         log.info(
-          `[AppStore.getAccountForRemoteURL] account found for remote: ${
-            remote
-          } - ${account.login} (${hasValidToken})`
+          `[AppStore.getAccountForRemoteURL] account found for remote: ${remote} - ${
+            account.login
+          } (${hasValidToken})`
         )
         return account
       }
@@ -2152,17 +2165,13 @@ export class AppStore {
     const username = getGenericUsername(hostname)
     if (username != null) {
       log.info(
-        `[AppStore.getAccountForRemoteURL] found generic credentials for '${
-          hostname
-        }' and '${username}'`
+        `[AppStore.getAccountForRemoteURL] found generic credentials for '${hostname}' and '${username}'`
       )
       return { login: username, endpoint: hostname }
     }
 
     log.info(
-      `[AppStore.getAccountForRemoteURL] no generic credentials found for '${
-        remote
-      }'`
+      `[AppStore.getAccountForRemoteURL] no generic credentials found for '${remote}'`
     )
 
     return null
@@ -3080,9 +3089,9 @@ export class AppStore {
 
     const branch = tip.branch
     const urlEncodedBranchName = QueryString.escape(branch.nameWithoutRemote)
-    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${
-      urlEncodedBranchName
-    }`
+    const baseURL = `${
+      gitHubRepository.htmlURL
+    }/pull/new/${urlEncodedBranchName}`
 
     await this._openInBrowser(baseURL)
   }

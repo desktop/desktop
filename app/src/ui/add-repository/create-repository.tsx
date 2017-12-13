@@ -201,9 +201,7 @@ export class CreateRepository extends React.Component<
     } catch (e) {
       this.setState({ creating: false })
       log.error(
-        `createRepository: unable to initialize a Git repository at ${
-          fullPath
-        }`,
+        `createRepository: unable to initialize a Git repository at ${fullPath}`,
         e
       )
       return this.props.dispatcher.postError(e)
@@ -244,9 +242,7 @@ export class CreateRepository extends React.Component<
         await writeGitDescription(fullPath, description)
       } catch (e) {
         log.error(
-          `createRepository: unable to write .git/description file at ${
-            fullPath
-          }`,
+          `createRepository: unable to write .git/description file at ${fullPath}`,
           e
         )
         this.props.dispatcher.postError(e)
@@ -403,7 +399,7 @@ export class CreateRepository extends React.Component<
     )
   }
 
-  private renderInvalidPathWarning() {
+  private renderInvalidPathError() {
     const isValidPath = this.state.isValidPath
     const pathSet = isValidPath !== null
 
@@ -466,6 +462,8 @@ export class CreateRepository extends React.Component<
         onSubmit={this.createRepository}
         onDismissed={this.props.onDismissed}
       >
+        {this.renderInvalidPathError()}
+
         <DialogContent>
           <Row>
             <TextBox
@@ -499,8 +497,6 @@ export class CreateRepository extends React.Component<
               Choose…
             </Button>
           </Row>
-
-          {this.renderInvalidPathWarning()}
 
           {this.renderGitRepositoryWarning()}
 
