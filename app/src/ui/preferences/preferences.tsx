@@ -166,13 +166,9 @@ export class Preferences extends React.Component<
     const disallowedEmailCharacters = disallowedCharacters(email)
 
     if (disallowedNameCharacters !== null) {
-      return `Git name field cannot be a disallowed character "${
-        disallowedNameCharacters
-      }"`
+      return `Git name field cannot be a disallowed character "${disallowedNameCharacters}"`
     } else if (disallowedEmailCharacters !== null) {
-      return `Git email field cannot be a disallowed character "${
-        disallowedEmailCharacters
-      }"`
+      return `Git email field cannot be a disallowed character "${disallowedEmailCharacters}"`
     } else {
       return null
     }
