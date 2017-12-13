@@ -8,6 +8,7 @@
 
     .title {
       text-align: center;
+      flex-grow: 1;
 
       .version {
         font-size: 14px;
@@ -31,8 +32,11 @@
 
   .column {
     overflow: scroll;
+    max-height: 200px;
 
     .section {
+      margin-top: var(--spacing);
+
       .header {
         font-size: 12px;
         font-weight: var(--font-weight-semibold);
