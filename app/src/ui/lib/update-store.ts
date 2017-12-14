@@ -32,7 +32,7 @@ export enum UpdateStatus {
 export interface IUpdateState {
   status: UpdateStatus
   lastSuccessfulCheck: Date | null
-  newReleaseSummary: ReleaseSummary | null
+  newRelease: ReleaseSummary | null
 }
 
 /** A store which contains the current state of the auto updater. */
@@ -40,7 +40,7 @@ class UpdateStore {
   private emitter = new Emitter()
   private status = UpdateStatus.UpdateNotAvailable
   private lastSuccessfulCheck: Date | null = null
-  private newReleaseSummary: ReleaseSummary | null = null
+  private newRelease: ReleaseSummary | null = null
 
   /** Is the most recent update check user initiated? */
   private userInitiatedUpdate = true
@@ -121,10 +121,20 @@ class UpdateStore {
   }
 
   private onUpdateDownloaded = async () => {
+    const appVersion = remote.app.getVersion()
+    this.newRelease = await generateReleaseSummary(appVersion)
+
     this.status = UpdateStatus.UpdateReady
 
+    this.emitDidChange()
+  }
+
+  // HACK: remove this before merging, plz
+  public async _fakeUpdateReady() {
     const appVersion = remote.app.getVersion()
-    this.newReleaseSummary = await generateReleaseSummary(appVersion)
+    this.newRelease = await generateReleaseSummary(appVersion)
+
+    this.status = UpdateStatus.UpdateReady
 
     this.emitDidChange()
   }
@@ -155,7 +165,7 @@ class UpdateStore {
     return {
       status: this.status,
       lastSuccessfulCheck: this.lastSuccessfulCheck,
-      newReleaseSummary: this.newReleaseSummary,
+      newRelease: this.newRelease,
     }
   }
 

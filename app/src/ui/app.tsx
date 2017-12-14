@@ -141,8 +141,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
           requestIdleCallback(() => {
             this.performDeferredLaunchActions()
-            // HACK to trigger the flow for viewing a new update
-            this.props.dispatcher.setUpdateBannerVisibility(true)
+
+            // HACK: remove this before merging, plz
+            updateStore._fakeUpdateReady()
           })
         },
         { timeout: ReadyDelay }
@@ -169,10 +170,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       const status = state.status
 
       if (
-        !(
-          __RELEASE_CHANNEL__ === 'development' ||
-          __RELEASE_CHANNEL__ === 'test'
-        ) &&
+        // HACK: just let me test this on my development machine
+        //!(
+        //  __RELEASE_CHANNEL__ === 'development' ||
+        //  __RELEASE_CHANNEL__ === 'test'
+        //) &&
         status === UpdateStatus.UpdateReady
       ) {
         this.props.dispatcher.setUpdateBannerVisibility(true)
@@ -1534,9 +1536,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    const newRelease = updateStore.state.newRelease
+    if (newRelease == null) {
+      return null
+    }
+
     return (
       <UpdateAvailable
         dispatcher={this.props.dispatcher}
+        newRelease={newRelease}
         onDismissed={this.onUpdateAvailableDismissed}
       />
     )

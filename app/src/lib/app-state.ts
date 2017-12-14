@@ -25,6 +25,7 @@ import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
+import { ReleaseSummary } from '../models/release-notes'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -274,7 +275,10 @@ export type Popup =
       repository: Repository
       existingRemote: IRemote
     }
-  | { type: PopupType.ReleaseNotes }
+  | {
+      type: PopupType.ReleaseNotes
+      newRelease: ReleaseSummary
+    }
 
 export enum FoldoutType {
   Repository,

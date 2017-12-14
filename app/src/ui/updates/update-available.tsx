@@ -5,8 +5,11 @@ import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PopupType } from '../../lib/app-state'
 
+import { ReleaseSummary } from '../../models/release-notes'
+
 interface IUpdateAvailableProps {
   readonly dispatcher: Dispatcher
+  readonly newRelease: ReleaseSummary
   readonly onDismissed: () => void
 }
 
@@ -38,7 +41,10 @@ export class UpdateAvailable extends React.Component<
   }
 
   private showReleaseNotes = () => {
-    this.props.dispatcher.showPopup({ type: PopupType.ReleaseNotes })
+    this.props.dispatcher.showPopup({
+      type: PopupType.ReleaseNotes,
+      newRelease: this.props.newRelease,
+    })
   }
 
   private updateNow = () => {
