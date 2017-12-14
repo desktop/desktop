@@ -1537,11 +1537,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const newRelease = updateStore.state.newRelease
-    if (newRelease == null) {
-      return null
-    }
-
     return (
       <UpdateAvailable
         dispatcher={this.props.dispatcher}

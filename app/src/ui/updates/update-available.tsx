@@ -4,12 +4,13 @@ import { LinkButton } from '../lib/link-button'
 import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { PopupType } from '../../lib/app-state'
+import { shell } from '../../lib/app-shell'
 
 import { ReleaseSummary } from '../../models/release-notes'
 
 interface IUpdateAvailableProps {
   readonly dispatcher: Dispatcher
-  readonly newRelease: ReleaseSummary
+  readonly newRelease: ReleaseSummary | null
   readonly onDismissed: () => void
 }
 
@@ -41,10 +42,17 @@ export class UpdateAvailable extends React.Component<
   }
 
   private showReleaseNotes = () => {
-    this.props.dispatcher.showPopup({
-      type: PopupType.ReleaseNotes,
-      newRelease: this.props.newRelease,
-    })
+    if (this.props.newRelease == null) {
+      // if, for some reason we're not able to render the release notes we
+      // should redirect the user to the website so we do _something_
+      const releaseNotesUri = 'https://desktop.github.com/release-notes/'
+      shell.openExternal(releaseNotesUri)
+    } else {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ReleaseNotes,
+        newRelease: this.props.newRelease,
+      })
+    }
   }
 
   private updateNow = () => {
