@@ -1540,7 +1540,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <UpdateAvailable
         dispatcher={this.props.dispatcher}
-        newRelease={newRelease}
+        newRelease={updateStore.state.newRelease}
         onDismissed={this.onUpdateAvailableDismissed}
       />
     )
