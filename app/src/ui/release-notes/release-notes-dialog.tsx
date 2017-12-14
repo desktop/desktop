@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 import { Octicon, OcticonSymbol } from '../octicons'
+import { encodePathAsUrl } from '../../lib/path'
 
 import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
 
@@ -9,6 +10,15 @@ import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+
+const ReleaseNoteHeaderLeftUri = encodePathAsUrl(
+  __dirname,
+  'static/release-note-header-left.svg'
+)
+const ReleaseNoteHeaderRightUri = encodePathAsUrl(
+  __dirname,
+  'static/release-note-header-right.svg'
+)
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
@@ -96,10 +106,18 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
       <Dialog id="release-notes" onDismissed={this.props.onDismissed}>
         <DialogContent>
           <header className="dialog-header">
+            <img
+              className="welcome-graphic-bottom"
+              src={ReleaseNoteHeaderLeftUri}
+            />
             <div className="title">
               <p className="version">Version {release.latestVersion}</p>
               <p className="date">{release.datePublished}</p>
             </div>
+            <img
+              className="welcome-graphic-bottom"
+              src={ReleaseNoteHeaderRightUri}
+            />
             {this.renderCloseButton()}
           </header>
           {contents}
