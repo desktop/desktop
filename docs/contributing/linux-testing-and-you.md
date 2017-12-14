@@ -16,7 +16,7 @@ The goals for this testing process are:
 
 Release Candidate installers can be found on [**@shiftkey's**](https://github.com/shiftkey) [fork](https://github.com/shiftkey/desktop), listed under the [Releases](https://github.com/shiftkey/desktop/releases) tab. The current installer formats supported are Debian, RPM and AppImage.
 
-We aim to make new installers available soon after the main Desktop project tags and publishes a new update. To receive notifications when these updates are published, [subscribe](https://github.com/shiftkey/desktop/subscription) to [**@shiftkey's**](https://github.com/shiftkey) fork of the repository.
+@shiftkey aims to make new installers available soon after the main Desktop project tags and publishes a new update. To receive notifications when these updates are published, [subscribe](https://github.com/shiftkey/desktop/subscription) to [**@shiftkey's**](https://github.com/shiftkey) fork of the repository.
 
 Subscribing to notifications also helps the core team to identify how many people are actively interested in this testing process.
 
