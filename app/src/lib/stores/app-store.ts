@@ -80,6 +80,8 @@ import {
   getDefaultRemote,
   formatAsLocalRef,
   getMergeBase,
+  getRemotes,
+  setRemoteURL,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -3142,10 +3144,24 @@ export class AppStore {
     if (isRefInThisRepo) {
       await this._checkoutBranch(repository, head.ref)
     } else if (head.gitHubRepository) {
+      const forkURL = forceUnwrap(
+        `A pull request's head is always populated`,
+        head.gitHubRepository.cloneURL
+      )
+      const remotes = await getRemotes(repository)
+      const forkRemote = remotes.find(r => r.name === 'fork')
+      if (forkRemote != null) {
+        await setRemoteURL(repository, 'fork', forkURL)
+      } else {
+        await addRemote(repository, 'fork', forkURL)
+      }
+
+      await this._fetchRefspec(repository, 'fork')
+
       const branchName = `pr/${pullRequest.number}`
       await this._fetchRefspec(
         repository,
-        `pull/${pullRequest.number}/head:${branchName}`
+        `${pullRequest.head.ref}:${branchName}`
       )
 
       await this._checkoutBranch(repository, branchName)
