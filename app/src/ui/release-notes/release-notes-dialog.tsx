@@ -107,7 +107,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         <DialogContent>
           <header className="dialog-header">
             <img
-              className="welcome-graphic-bottom"
+              className="release-note-graphic-left"
               src={ReleaseNoteHeaderLeftUri}
             />
             <div className="title">
@@ -115,7 +115,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
               <p className="date">{release.datePublished}</p>
             </div>
             <img
-              className="welcome-graphic-bottom"
+              className="release-note-graphic-right"
               src={ReleaseNoteHeaderRightUri}
             />
             {this.renderCloseButton()}
