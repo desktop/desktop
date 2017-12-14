@@ -32,16 +32,22 @@
     }
   }
 
-  .column {
-    overflow: scroll;
+  .container {
     max-height: 200px;
+    display: flex;
+    flex-direction: row;
 
-    .section {
-      margin-top: var(--spacing);
+    .column {
+      overflow: scroll;
+      max-width: 200px;
 
-      .header {
-        font-size: 12px;
-        font-weight: var(--font-weight-semibold);
+      .section {
+        margin-top: var(--spacing);
+
+        .header {
+          font-size: 12px;
+          font-weight: var(--font-weight-semibold);
+        }
       }
     }
   }
