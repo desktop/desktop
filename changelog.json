@@ -1,5 +1,30 @@
 {
   "releases": {
+    "1.0.12-beta0": [
+      "[New] Highlight substring matches in the \"Branches\" and \"Repositories\" list when filtering - #910. Thanks @JordanMussi!",
+      "[New] Add preview for ico files - #3531. Thanks @serhiivinichuk!",
+      "[New] Fallback to Gravatar for loading avatars - #821",
+      "[New] Provide syntax highlighting for Visual Studio project files - #3552. Thanks @saul!",
+      "[New] Provide syntax highlighting for F# fsx and fsi files - #3544. Thanks @saul!",
+      "[New] Provide syntax highlighting for Kotlin files - #3555. Thanks @ziggy42!",
+      "[New] Provide syntax highlighting for Clojure - #3523. Thanks @mtkp!",
+      "[Improved] Toggle the \"Repository List\" from the menu - #2638. Thanks @JordanMussi!",
+      "[Improved] Prevent saving of disallowed character strings for your name and email  - #3204",
+      "[Improved] Error messages now appear at the top of the \"Create a New Repository\" dialog - #3571. Thanks @http-request!",
+      "[Improved] \"Repository List\" header is now \"Github.com\" for consistency - #3567. Thanks @iFun!",
+      "[Improved] Rename the \"Install Update\" button to \"Quit and Install Update\" - #3494. Thanks @say25!",
+      "[Fixed] Fix ordering of commit history when your branch and tracking branch have both changed  - #2737",
+      "[Fixed] Prevent creating a branch that starts with a period - #3013. Thanks @JordanMussi!",
+      "[Fixed] Branch names are properly encoded when creating a pull request - #3509",
+      "[Fixed] Re-enable all the menu items after closing a popup - #3533",
+      "[Fixed] Removes option to delete remote branch after it's been deleted - #2964. Thanks @JordanMussi!",
+      "[Fixed] Windows: Detects available editors and shells now works even when the group policy blocks write registry access - #3105 #3405",
+      "[Fixed] Windows: Menu items are no longer truncated - #3547",
+      "[Fixed] Windows: Prevent disabled menu items from being accessed - #3391 #1521",
+      "[Fixed] Preserve the selected pull request when a manual fetch is done - #3524",
+      "[Fixed] Update pull request badge after switching branches or pull requests - #3454",
+      "[Fixed] Restore keyboard arrow navigation for pull request list - #3499"
+    ],
     "1.0.11": [
       "[New] Highlight substring matches in the \"Branches\" and \"Repositories\" list when filtering - #910. Thanks @JordanMussi!",
       "[New] Add preview for ico files - #3531. Thanks @serhiivinichuk!",
