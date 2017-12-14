@@ -52,3 +52,9 @@ feature once things are stabilized.
 To opt-in for testing preview features, set the
 `GITHUB_DESKTOP_PREVIEW_FEATURES` environment variable to any value and launch
 the Desktop app.
+
+### macOS
+
+```shellsession
+$ launchctl setenv GITHUB_DESKTOP_PREVIEW_FEATURES 'awesomesauce!'
+```
