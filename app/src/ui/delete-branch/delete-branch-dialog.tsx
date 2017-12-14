@@ -8,7 +8,6 @@ import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
-import { getBranchAheadBehind } from '../../lib/git/rev-list'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -61,10 +60,7 @@ export class DeleteBranch extends React.Component<
   }
 
   private renderDeleteOnRemote() {
-    if (
-      this.props.branch.remote &&
-      getBranchAheadBehind(this.props.repository, this.props.branch) !== null
-    ) {
+    if (this.props.branch.remote && this.props.branch.existsOnRemote) {
       return (
         <div>
           <p>
