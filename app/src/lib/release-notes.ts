@@ -21,7 +21,7 @@ const monthNames = [
   'December',
 ]
 
-function getPrefix(day: number) {
+function getSuffix(day: number) {
   const remainder = day % 10
   if (remainder === 1) {
     return 'st'
@@ -36,11 +36,11 @@ function getPrefix(day: number) {
 
 function formatDate(date: Date) {
   const day = date.getDate()
-  const prefix = getPrefix(day)
+  const suffix = getSuffix(day)
   const monthIndex = date.getMonth()
   const year = date.getFullYear()
 
-  return `${monthNames[monthIndex]} ${day}${prefix} ${year}`
+  return `${monthNames[monthIndex]} ${day}${suffix} ${year}`
 }
 
 export function parseReleaseEntries(
