@@ -1468,10 +1468,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     const currentPullRequest = state.state.branchesState.currentPullRequest
     const dispatcher = this.props.dispatcher
 
-    if (currentPullRequest) {
-      dispatcher.showPullRequest(state.repository)
-    } else {
+    if (currentPullRequest == null) {
       dispatcher.createPullRequest(state.repository)
+    } else {
+      dispatcher.showPullRequest(state.repository)
     }
   }
 
