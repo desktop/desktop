@@ -8,19 +8,13 @@ import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
 import { updateStore } from '../lib/update-store'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
-import { Loading } from '../lib/loading'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
+  readonly newRelease: ReleaseSummary
   readonly currentVersion: string
-}
-
-interface IReleaseNotesState {
-  readonly loading: boolean
-  readonly error?: Error
-  readonly releaseSummary?: ReleaseSummary
 }
 
 const monthNames = [
@@ -63,10 +57,7 @@ function formatDate(date: Date) {
 /**
  * The dialog to show with details about the newest release
  */
-export class ReleaseNotes extends React.Component<
-  IReleaseNotesProps,
-  IReleaseNotesState
-> {
+export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   public constructor(props: IReleaseNotesProps) {
     super(props)
 
@@ -148,26 +139,8 @@ export class ReleaseNotes extends React.Component<
     )
   }
 
-  private showLoadingIndicator() {
-    return (
-      <DialogContent>
-        <header className="dialog-header">
-          <div className="title">
-            <p className="version" />
-            <p className="date" />
-          </div>
-          {this.renderCloseButton()}
-        </header>
-        <Loading />
-      </DialogContent>
-    )
-  }
-
   public render() {
-    // TODO: what to show if an error occurs
-    const content = this.state.releaseSummary
-      ? this.showReleaseContents(this.state.releaseSummary)
-      : this.showLoadingIndicator()
+    const content = this.showReleaseContents(this.props.newRelease)
 
     return (
       <Dialog id="release-notes" onDismissed={this.props.onDismissed}>

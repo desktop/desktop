@@ -1184,6 +1184,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <ReleaseNotes
             currentVersion={getVersion()}
+            newRelease={popup.newRelease}
             onDismissed={this.onPopupDismissed}
           />
         )
