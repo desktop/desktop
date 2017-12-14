@@ -1,3 +1,5 @@
+@import "../mixins";
+
 #add-repository {
   width: 350px;
 
@@ -24,9 +26,7 @@
       padding: 0 var(--spacing-double);
 
       .name {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        @include ellipsis;
       }
     }
 

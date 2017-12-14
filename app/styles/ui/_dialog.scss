@@ -333,12 +333,6 @@ dialog {
       color: var(--text-secondary-color);
       font-size: var(--font-size-sm);
     }
-
-    .name {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
   }
 
   &#sign-in {
