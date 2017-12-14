@@ -1183,7 +1183,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.ReleaseNotes:
         return (
           <ReleaseNotes
-            currentVersion={getVersion()}
             newRelease={popup.newRelease}
             onDismissed={this.onPopupDismissed}
           />

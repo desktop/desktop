@@ -75,7 +75,6 @@ export function parseReleaseEntries(
 }
 
 export function getReleaseSummary(
-  currentVersion: string,
   latestRelease: ReleaseMetadata
 ): ReleaseSummary {
   const entries = parseReleaseEntries(latestRelease.notes)
@@ -113,10 +112,8 @@ async function getChangeLog(): Promise<ReadonlyArray<ReleaseMetadata>> {
   }
 }
 
-export async function generateReleaseSummary(
-  currentVersion: string
-): Promise<ReleaseSummary> {
+export async function generateReleaseSummary(): Promise<ReleaseSummary> {
   const releases = await getChangeLog()
   const latestRelease = releases[0]
-  return getReleaseSummary(currentVersion, latestRelease)
+  return getReleaseSummary(latestRelease)
 }

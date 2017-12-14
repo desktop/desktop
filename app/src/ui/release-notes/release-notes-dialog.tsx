@@ -14,7 +14,6 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
   readonly newRelease: ReleaseSummary
-  readonly currentVersion: string
 }
 
 /**
@@ -28,10 +27,8 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   }
 
   public async componentDidMount() {
-    const currentVersion = this.props.currentVersion
-
     try {
-      const releaseSummary = await generateReleaseSummary(currentVersion)
+      const releaseSummary = await generateReleaseSummary()
       this.setState({ releaseSummary })
     } catch {
       // TODO: handle error about network

@@ -121,8 +121,7 @@ class UpdateStore {
   }
 
   private onUpdateDownloaded = async () => {
-    const appVersion = remote.app.getVersion()
-    this.newRelease = await generateReleaseSummary(appVersion)
+    this.newRelease = await generateReleaseSummary()
 
     this.status = UpdateStatus.UpdateReady
 
@@ -131,8 +130,7 @@ class UpdateStore {
 
   // HACK: remove this before merging, plz
   public async _fakeUpdateReady() {
-    const appVersion = remote.app.getVersion()
-    this.newRelease = await generateReleaseSummary(appVersion)
+    this.newRelease = await generateReleaseSummary()
 
     this.status = UpdateStatus.UpdateReady
 
