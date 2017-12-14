@@ -14,9 +14,7 @@ The goals for this testing process are:
 
 ## Testing Release Candidates
 
-Release Candidate installers can be found on [**@shiftkey**](https://github.com/shiftkey)'s [fork](https://github.com/shiftkey/desktop), listed under the [Releases](https://github.com/shiftkey/desktop/releases) tab.
-
-The current installer formats supported are Debian, RPM and AppImage.
+Release Candidate installers can be found on [**@shiftkey's**](https://github.com/shiftkey) [fork](https://github.com/shiftkey/desktop), listed under the [Releases](https://github.com/shiftkey/desktop/releases) tab. The current installer formats supported are Debian, RPM and AppImage.
 
 We aim to make new installers available soon after the main Desktop project tags and publishes a new update. To receive notifications when these updates are published, [subscribe](https://github.com/shiftkey/desktop/subscription) to [**@shiftkey's**](https://github.com/shiftkey) fork of the repository.
 
@@ -64,4 +62,4 @@ We use `electron-packager` to generate the artifacts and `electron-builder` to g
 * [`electron-builder-linux.yml` config file](https://github.com/desktop/desktop/blob/master/script/electron-builder-linux.yml)
 * [Usage in Desktop](https://github.com/desktop/desktop/blob/master/script/package.ts#L124-L145)
 
-We use `electron-builder-linux.yml` to configure the installers, so please investigate the documentation to see if something has been overlooked and can be enabled fairly easily.
+We use `electron-builder-linux.yml` to configure the installers, so please investigate the documentation if you find a problem with an installer to see if something has been overlooked and can be fixed fairly easily.
