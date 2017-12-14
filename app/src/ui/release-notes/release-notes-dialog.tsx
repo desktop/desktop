@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import { generateReleaseSummary } from '../../lib/release-notes'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
@@ -20,23 +19,6 @@ interface IReleaseNotesProps {
  * The dialog to show with details about the newest release
  */
 export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
-  public constructor(props: IReleaseNotesProps) {
-    super(props)
-
-    this.state = { loading: true }
-  }
-
-  public async componentDidMount() {
-    try {
-      const releaseSummary = await generateReleaseSummary()
-      this.setState({ releaseSummary })
-    } catch {
-      // TODO: handle error about network
-    } finally {
-      this.setState({ loading: false })
-    }
-  }
-
   private onCloseButtonClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (this.props.onDismissed) {
       this.props.onDismissed()
@@ -78,33 +60,50 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     )
   }
 
-  private showReleaseContents(releaseSummary: ReleaseSummary) {
-    // TODO: how to split layout
+  private drawSingleColumnLayout(release: ReleaseSummary): JSX.Element {
     return (
-      <DialogContent>
-        <header className="dialog-header">
-          <div className="title">
-            <p className="version">Version {releaseSummary.latestVersion}</p>
-            <p className="date">{releaseSummary.datePublished}</p>
-          </div>
-          {this.renderCloseButton()}
-        </header>
+      <div className="container">
+        {this.renderList(release.bugfixes, 'Bugfixes')}
+        {this.renderList(release.enhancements, 'Enhancements')}
+        {this.renderList(release.other, 'Other')}
+      </div>
+    )
+  }
 
+  private drawTwoColumnLayout(release: ReleaseSummary): JSX.Element {
+    return (
+      <div className="container">
         <div className="column">
-          {this.renderList(releaseSummary.bugfixes, 'Bugfixes')}
-          {this.renderList(releaseSummary.enhancements, 'Enhancements')}
-          {this.renderList(releaseSummary.other, 'Other')}
+          {this.renderList(release.enhancements, 'Enhancements')}
+          {this.renderList(release.other, 'Other')}
         </div>
-      </DialogContent>
+        <div className="column">
+          {this.renderList(release.bugfixes, 'Bugfixes')}
+        </div>
+      </div>
     )
   }
 
   public render() {
-    const content = this.showReleaseContents(this.props.newRelease)
+    const release = this.props.newRelease
+
+    const contents =
+      release.enhancements.length > 0 && release.bugfixes.length > 0
+        ? this.drawTwoColumnLayout(release)
+        : this.drawSingleColumnLayout(release)
 
     return (
       <Dialog id="release-notes" onDismissed={this.props.onDismissed}>
-        {content}
+        <DialogContent>
+          <header className="dialog-header">
+            <div className="title">
+              <p className="version">Version {release.latestVersion}</p>
+              <p className="date">{release.datePublished}</p>
+            </div>
+            {this.renderCloseButton()}
+          </header>
+          {contents}
+        </DialogContent>
         <DialogFooter>
           <ButtonGroup destructive={true}>
             <Button type="submit">Close</Button>
