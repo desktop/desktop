@@ -3143,31 +3143,13 @@ export class AppStore {
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
     if (isRefInThisRepo) {
       await this._checkoutBranch(repository, head.ref)
-    } else if (head.gitHubRepository) {
-      const forkURL = forceUnwrap(
-        `A pull request's head is always populated`,
-        head.gitHubRepository.cloneURL
-      )
-      const remotes = await getRemotes(repository)
-      const forkRemote = remotes.find(r => r.name === 'fork')
-      if (forkRemote != null) {
-        await setRemoteURL(repository, 'fork', forkURL)
-      } else {
-        await addRemote(repository, 'fork', forkURL)
-      }
-
-      await this._fetchRefspec(repository, 'fork')
-
-      const branchName = `pr/${pullRequest.number}`
-      await this._fetchRefspec(
-        repository,
-        `${pullRequest.head.ref}:${branchName}`
-      )
-
-      await this._checkoutBranch(repository, branchName)
-    } else {
-      const error = new Error('The head repository has been deleted.')
-      this.emitError(error)
+    } else if (head.gitHubRepository != null) {
+      // step1: add a remote with a magic prefix if needed
+      const cloneURL = forceUnwrap('This pull request\'s head is not populated but should be', head.gitHubRepository.cloneURL)
+      // missing: check if we already have the remote (and, if so, add a magic prefix)
+      await addRemote(repository, `desktop/${head.gitHubRepository.owner.login}`, cloneURL)
+      // step2: fetch
+      // step3: checkout ref as pr/[PR Number]
     }
   }
 }
