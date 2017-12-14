@@ -6,6 +6,43 @@ import {
 
 const itemEntryRe = /^\[(new|fixed|improved|removed|added|pretext)\]\s(.*)/i
 
+const monthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
+function getPrefix(day: number) {
+  const remainder = day % 10
+  if (remainder === 1) {
+    return 'st'
+  } else if (remainder === 2) {
+    return 'nd'
+  } else if (remainder === 3) {
+    return 'rd'
+  } else {
+    return 'th'
+  }
+}
+
+function formatDate(date: Date) {
+  const day = date.getDate()
+  const prefix = getPrefix(day)
+  const monthIndex = date.getMonth()
+  const year = date.getFullYear()
+
+  return `${monthNames[monthIndex]} ${day}${prefix} ${year}`
+}
+
 export function parseReleaseEntries(
   notes: ReadonlyArray<string>
 ): ReadonlyArray<ReleaseNote> {
@@ -49,9 +86,11 @@ export function getReleaseSummary(
   const bugfixes = entries.filter(e => e.kind === 'fixed')
   const other = entries.filter(e => e.kind === 'removed')
 
+  const publishedDate = new Date(latestRelease.pub_date)
+
   return {
     latestVersion: latestRelease.version,
-    datePublished: new Date(latestRelease.pub_date),
+    datePublished: formatDate(publishedDate),
     // TODO: find pretext entry
     pretext: undefined,
     enhancements,

@@ -17,43 +17,6 @@ interface IReleaseNotesProps {
   readonly currentVersion: string
 }
 
-const monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-]
-
-function getPrefix(day: number) {
-  const remainder = day % 10
-  if (remainder === 1) {
-    return 'st'
-  } else if (remainder === 2) {
-    return 'nd'
-  } else if (remainder === 3) {
-    return 'rd'
-  } else {
-    return 'th'
-  }
-}
-
-function formatDate(date: Date) {
-  const day = date.getDate()
-  const prefix = getPrefix(day)
-  const monthIndex = date.getMonth()
-  const year = date.getFullYear()
-
-  return `${monthNames[monthIndex]} ${day}${prefix} ${year}`
-}
-
 /**
  * The dialog to show with details about the newest release
  */
@@ -125,7 +88,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         <header className="dialog-header">
           <div className="title">
             <p className="version">Version {releaseSummary.latestVersion}</p>
-            <p className="date">{formatDate(releaseSummary.datePublished)}</p>
+            <p className="date">{releaseSummary.datePublished}</p>
           </div>
           {this.renderCloseButton()}
         </header>
