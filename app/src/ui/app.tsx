@@ -27,6 +27,7 @@ import { validatedRepositoryPath } from '../lib/stores/helpers/validated-reposit
 import { MenuEvent } from '../main-process/menu'
 
 import { Repository } from '../models/repository'
+import { Branch } from '../models/branch'
 import { PreferencesTab } from '../models/preferences'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { Account } from '../models/account'
@@ -242,6 +243,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.selectChanges()
       case 'select-history':
         return this.selectHistory()
+      case 'choose-repository':
+        return this.chooseRepository()
       case 'add-local-repository':
         return this.showAddLocalRepo()
       case 'create-branch':
@@ -258,17 +261,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.deleteBranch()
       case 'show-preferences':
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
-      case 'choose-repository': {
-        if (
-          this.state.currentFoldout &&
-          this.state.currentFoldout.type === FoldoutType.Repository
-        ) {
-          return this.props.dispatcher.closeFoldout(FoldoutType.Repository)
-        }
-        return this.props.dispatcher.showFoldout({
-          type: FoldoutType.Repository,
-        })
-      }
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
       case 'update-branch':
@@ -338,7 +330,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private updateBranch() {
     const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -352,7 +344,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private mergeBranch() {
     const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -369,7 +361,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -389,7 +381,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private openCurrentRepositoryWorkingDirectory() {
     const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -398,7 +390,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renameBranch() {
     const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -414,7 +406,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private deleteBranch() {
     const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -455,25 +447,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private showBranches() {
-    const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
-      return
-    }
-
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
-  }
-
   private showAbout() {
     this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
   private selectChanges() {
     const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
+    this.props.dispatcher.closeCurrentFoldout()
     this.props.dispatcher.changeRepositorySection(
       state.repository,
       RepositorySection.Changes
@@ -482,19 +466,49 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private selectHistory() {
     const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
+    this.props.dispatcher.closeCurrentFoldout()
     this.props.dispatcher.changeRepositorySection(
       state.repository,
       RepositorySection.History
     )
   }
 
+  private chooseRepository() {
+    if (
+      this.state.currentFoldout &&
+      this.state.currentFoldout.type === FoldoutType.Repository
+    ) {
+      return this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+    }
+
+    return this.props.dispatcher.showFoldout({
+      type: FoldoutType.Repository,
+    })
+  }
+
+  private showBranches() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    if (
+      this.state.currentFoldout &&
+      this.state.currentFoldout.type === FoldoutType.Branch
+    ) {
+      return this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    }
+
+    return this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+  }
+
   private push() {
     const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -503,7 +517,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private async pull() {
     const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
@@ -695,7 +709,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private getRepository(): Repository | CloningRepository | null {
     const state = this.state.selectedState
-    if (!state) {
+    if (state == null) {
       return null
     }
 
@@ -1444,22 +1458,25 @@ export class App extends React.Component<IAppProps, IAppState> {
   private openPullRequest = () => {
     const state = this.state.selectedState
 
-    if (!state || state.type !== SelectionType.Repository) {
+    if (state == null || state.type !== SelectionType.Repository) {
       return
     }
 
     const currentPullRequest = state.state.branchesState.currentPullRequest
     const dispatcher = this.props.dispatcher
 
-    if (currentPullRequest) {
-      dispatcher.showPullRequest(state.repository)
-    } else {
+    if (currentPullRequest == null) {
       dispatcher.createPullRequest(state.repository)
+    } else {
+      dispatcher.showPullRequest(state.repository)
     }
   }
 
-  private openCreatePullRequestInBrowser = (repository: Repository) => {
-    this.props.dispatcher.openCreatePullRequestInBrowser(repository)
+  private openCreatePullRequestInBrowser = (
+    repository: Repository,
+    branch: Branch
+  ) => {
+    this.props.dispatcher.openCreatePullRequestInBrowser(repository, branch)
   }
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {

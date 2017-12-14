@@ -73,13 +73,14 @@ export class RepositoriesList extends React.Component<
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         externalEditorLabel={this.props.externalEditorLabel}
         shellLabel={this.props.shellLabel}
+        filterText={this.props.filterText}
       />
     )
   }
 
   private getGroupLabel(identifier: RepositoryGroupIdentifier) {
     if (identifier === 'github') {
-      return 'GitHub'
+      return 'GitHub.com'
     } else if (identifier === 'enterprise') {
       return 'Enterprise'
     } else if (identifier === 'other') {

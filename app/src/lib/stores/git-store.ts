@@ -138,6 +138,52 @@ export class GitStore {
     return this.emitter.on('did-error', fn)
   }
 
+  /**
+   * Reconcile the local history view with the repository state
+   * after a pull has completed, to include merged remote commits.
+   */
+  public async reconcileHistory(mergeBase: string): Promise<void> {
+    if (this._history.length === 0) {
+      return
+    }
+
+    if (this.requestsInFight.has(LoadingHistoryRequestKey)) {
+      return
+    }
+
+    this.requestsInFight.add(LoadingHistoryRequestKey)
+
+    const commits = await this.performFailableOperation(() =>
+      getCommits(this.repository, `HEAD..${mergeBase}`, CommitBatchSize)
+    )
+    if (commits == null) {
+      return
+    }
+
+    const existingHistory = this._history
+    const index = existingHistory.findIndex(c => c === mergeBase)
+
+    if (index > -1) {
+      log.debug(
+        `reconciling history - adding ${
+          commits.length
+        } commits before merge base ${mergeBase.substr(0, 8)}`
+      )
+
+      // rebuild the local history state by combining the commits _before_ the
+      // merge base with the current commits on the tip of this current branch
+      const remainingHistory = existingHistory.slice(index)
+      this._history = [...commits.map(c => c.sha), ...remainingHistory]
+    }
+
+    this.storeCommits(commits)
+
+    this.requestsInFight.delete(LoadingHistoryRequestKey)
+
+    this.emitNewCommitsLoaded(commits)
+    this.emitUpdate()
+  }
+
   /** Load history from HEAD. */
   public async loadHistory() {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) {

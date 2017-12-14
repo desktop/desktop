@@ -64,6 +64,26 @@ export type CloseSource = IKeyboardCloseSource | IItemExecutedCloseSource
 
 const expandCollapseTimeout = 300
 
+/**
+ * Converts a menu pane id into something that's reasonable to use as
+ * a classname by replacing forbidden characters and cleaning it
+ * up in general.
+ */
+function menuPaneClassNameFromId(id: string) {
+  const className = id
+    // Get rid of the leading @. for auto-generated ids
+    .replace(/^@\./, '')
+    // No accelerator key modifier necessary
+    .replace('&', '')
+    // Get rid of stuff that's not safe for css class names
+    .replace(/[^a-z0-9_]+/gi, '-')
+    // Get rid of redundant underscores
+    .replace(/_+/, '_')
+    .toLowerCase()
+
+  return className.length ? `menu-pane-${className}` : undefined
+}
+
 export class AppMenu extends React.Component<IAppMenuProps, {}> {
   /**
    * The index of the menu pane that should receive focus after the
@@ -267,11 +287,13 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
     // versa.
     // If the menu doesn't have an id it's the root menu
     const key = menu.id || '@'
+    const className = menu.id ? menuPaneClassNameFromId(menu.id) : undefined
 
     return (
       <MenuPane
         key={key}
         ref={this.onMenuPaneRef}
+        className={className}
         autoHeight={this.props.autoHeight}
         depth={depth}
         items={menu.items}
