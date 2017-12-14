@@ -42,6 +42,8 @@ cp.execSync('yarn package')
 let sha = ''
 if (process.platform === 'darwin') {
   sha = process.env.CIRCLE_SHA1
+} else if (process.platform === 'linux') {
+  sha = process.env.TRAVIS_COMMIT
 } else if (process.platform === 'win32') {
   sha = process.env.APPVEYOR_REPO_COMMIT
 }
@@ -53,6 +55,8 @@ console.log('Uploading…')
 let uploadPromise = null
 if (process.platform === 'darwin') {
   uploadPromise = uploadOSXAssets()
+} else if (process.platform === 'linux') {
+  uploadPromise = uploadLinuxAssets()
 } else if (process.platform === 'win32') {
   uploadPromise = uploadWindowsAssets()
 } else {
@@ -75,6 +79,11 @@ uploadPromise
 
 function uploadOSXAssets() {
   const uploads = [upload(distInfo.getOSXZipName(), distInfo.getOSXZipPath())]
+  return Promise.all(uploads)
+}
+
+function uploadLinuxAssets() {
+  const uploads = [upload(distInfo.getLinuxZipName(), distInfo.getLinuxZipPath())]
   return Promise.all(uploads)
 }
 

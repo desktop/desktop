@@ -40,6 +40,14 @@ function getOSXZipPath() {
   return path.join(getDistPath(), '..', getOSXZipName())
 }
 
+function getLinuxZipName() {
+  return `${productName}.zip`
+}
+
+function getLinuxZipPath() {
+  return path.join(getDistPath(), '..', getLinuxZipName())
+}
+
 function getWindowsInstallerName() {
   const productName = getExecutableName()
   return `${productName}Setup.msi`
@@ -100,6 +108,8 @@ function getReleaseBranchName() {
   let branchName
   if (process.platform === 'darwin') {
     branchName = process.env.CIRCLE_BRANCH
+  } else if (process.platform === 'linux') {
+    branchName = process.env.TRAVIS_BRANCH
   } else if (process.platform === 'win32') {
     branchName = process.env.APPVEYOR_REPO_BRANCH
   }
@@ -143,6 +153,8 @@ module.exports = {
   getDistPath,
   getOSXZipName,
   getOSXZipPath,
+  getLinuxZipName,
+  getLinuxZipPath,
   getWindowsInstallerName,
   getWindowsInstallerPath,
   getWindowsStandaloneName,
