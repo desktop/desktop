@@ -8,6 +8,7 @@ import { ReleaseNote, ReleaseSummary } from '../../models/release-notes'
 import { updateStore } from '../lib/update-store'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
+import { LinkButton } from '../lib/link-button'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
@@ -19,6 +20,48 @@ const ReleaseNoteHeaderRightUri = encodePathAsUrl(
   __dirname,
   'static/release-note-header-right.svg'
 )
+
+const externalContributionRe = /^(.*)(#\d+)(.*)(@[a-zA-Z0-9\-]+)!(.*)$/
+const otherContributionRe = /^(.*)(#\d+)(.*)$/
+
+function desktopIssueUrl(numberWithHash: string): string {
+  return `https://github.com/desktop/desktop/issues/${numberWithHash.substr(1)}`
+}
+
+function accountUrl(name: string): string {
+  return `https://github.com/${name.substr(1)}`
+}
+function renderLineItem(note: string): (JSX.Element | string)[] | string {
+  const externalContribution = externalContributionRe.exec(note)
+  if (externalContribution) {
+    const issueNumber = externalContribution[2]
+    const issueUrl = desktopIssueUrl(issueNumber)
+    const mention = externalContribution[4]
+    const mentionUrl = accountUrl(issueNumber)
+
+    return [
+      externalContribution[1],
+      <LinkButton uri={issueUrl}>{issueNumber}</LinkButton>,
+      externalContribution[3],
+      <LinkButton uri={mentionUrl}>{mention}</LinkButton>,
+      externalContribution[5],
+    ]
+  }
+
+  const otherContribution = otherContributionRe.exec(note)
+  if (otherContribution) {
+    const issueNumber = otherContribution[2]
+    const issueUrl = desktopIssueUrl(issueNumber)
+
+    return [
+      otherContribution[1],
+      <LinkButton uri={issueUrl}>{issueNumber}</LinkButton>,
+      otherContribution[3],
+    ]
+  }
+
+  return note
+}
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
@@ -59,7 +102,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
     const options = new Array<JSX.Element>()
 
     for (const [i, entry] of releaseEntries.entries()) {
-      options.push(<li key={i}>{entry.message}</li>)
+      options.push(<li key={i}>{renderLineItem(entry.message)}</li>)
     }
 
     return (
