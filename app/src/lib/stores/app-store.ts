@@ -3168,10 +3168,16 @@ export class AppStore {
       })
 
       const localBranchName = `pr/${pullRequest.number}`
-      const doesBranchExist = gitStore.allBranches.find(branch => branch.name === localBranchName) != null
+      const doesBranchExist =
+        gitStore.allBranches.find(branch => branch.name === localBranchName) !=
+        null
 
       if (!doesBranchExist) {
-        await this._createBranch(repository, localBranchName, `${remoteName}/${head.ref}`)
+        await this._createBranch(
+          repository,
+          localBranchName,
+          `${remoteName}/${head.ref}`
+        )
       }
 
       await this._checkoutBranch(repository, localBranchName)
