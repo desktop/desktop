@@ -7,6 +7,7 @@ import { URLActionType } from '../lib/parse-app-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
 import { now } from './now'
+import * as path from 'path'
 
 let windowStateKeeper: any | null = null
 
@@ -57,6 +58,10 @@ export class AppWindow {
       windowOptions.titleBarStyle = 'hidden'
     } else if (__WIN32__) {
       windowOptions.frame = false
+    }
+
+    if (__LINUX__) {
+      windowOptions.icon = path.join(__dirname, 'static', 'icon-logo.png')
     }
 
     this.window = new BrowserWindow(windowOptions)
