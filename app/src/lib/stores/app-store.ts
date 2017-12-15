@@ -3161,6 +3161,12 @@ export class AppStore {
         )
       }
 
+      await this.withAuthenticatingUser(repository, async (repo, account) => {
+        const gitStore = this.getGitStore(repository)
+
+        await gitStore.fetchRemote(account, remoteName, false)
+      })
+
       //checkout -
 
       // step3: checkout ref as pr/[PR Number]
