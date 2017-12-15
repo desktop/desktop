@@ -3004,21 +3004,13 @@ export class AppStore {
     }
 
     this.updateBranchesState(repository, state => {
-      let currentPullRequest = null
-      if (state.tip.kind === TipState.Valid) {
-        currentPullRequest = this.findAssociatedPullRequest(
-          state.tip.branch,
-          pullRequests,
-          gitHubRepository
-        )
-      }
-
       return {
         openPullRequests: pullRequests,
-        currentPullRequest,
         isLoadingPullRequests: isLoading,
       }
     })
+
+    this._updateCurrentPullRequest(repository)
 
     this.emitUpdate()
   }
@@ -3026,7 +3018,8 @@ export class AppStore {
   private findAssociatedPullRequest(
     branch: Branch,
     pullRequests: ReadonlyArray<PullRequest>,
-    gitHubRepository: GitHubRepository
+    gitHubRepository: GitHubRepository,
+    remote: IRemote
   ): PullRequest | null {
     const upstream = branch.upstreamWithoutRemote
     if (!upstream) {
