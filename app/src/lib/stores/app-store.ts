@@ -111,6 +111,7 @@ import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
+import { IRemote } from '../../models/remote'
 
 /**
  * Enum used by fetch to determine if
