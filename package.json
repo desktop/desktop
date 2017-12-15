@@ -117,7 +117,6 @@
     "@types/react-dom": "^16.0.2",
     "@types/react-transition-group": "1.1.1",
     "@types/react-virtualized": "^9.7.4",
-    "@types/semver": "^5.4.0",
     "@types/strip-ansi": "^3.0.0",
     "@types/temp": "^0.8.29",
     "@types/to-camel-case": "^1.0.0",
