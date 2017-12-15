@@ -41,9 +41,13 @@ function renderLineItem(note: string): (JSX.Element | string)[] | string {
 
     return [
       externalContribution[1],
-      <LinkButton uri={issueUrl}>{issueNumber}</LinkButton>,
+      <LinkButton key={2} uri={issueUrl}>
+        {issueNumber}
+      </LinkButton>,
       externalContribution[3],
-      <LinkButton uri={mentionUrl}>{mention}</LinkButton>,
+      <LinkButton key={4} uri={mentionUrl}>
+        {mention}
+      </LinkButton>,
       externalContribution[5],
     ]
   }
@@ -55,7 +59,9 @@ function renderLineItem(note: string): (JSX.Element | string)[] | string {
 
     return [
       otherContribution[1],
-      <LinkButton uri={issueUrl}>{issueNumber}</LinkButton>,
+      <LinkButton key={2} uri={issueUrl}>
+        {issueNumber}
+      </LinkButton>,
       otherContribution[3],
     ]
   }
