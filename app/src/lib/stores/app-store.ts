@@ -111,6 +111,7 @@ import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
+import { IRemote } from '../../models/remote'
 
 /**
  * Enum used by fetch to determine if
@@ -3030,8 +3031,7 @@ export class AppStore {
       if (
         pr.head.ref === upstream &&
         pr.head.gitHubRepository &&
-        // TODO: This doesn't work for when I've checked out a PR from a fork.
-        pr.head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
+        pr.head.gitHubRepository.cloneURL === remote.url
       ) {
         return pr
       }
