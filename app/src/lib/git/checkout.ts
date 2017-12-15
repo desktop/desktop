@@ -12,6 +12,15 @@ import {
   AuthenticationErrors,
 } from './authentication'
 
+/**
+ * Abstracts away all the optional arguments one can pass
+ * to the checkoutBranch function
+ */
+export interface ICheckoutOptions {
+  readonly progressCallback?: ProgressCallback
+  readonly baseRef?: string
+}
+
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
 /**
@@ -32,20 +41,22 @@ export async function checkoutBranch(
   repository: Repository,
   account: IGitAccount | null,
   name: string,
-  progressCallback?: ProgressCallback
+  options: ICheckoutOptions = {}
 ): Promise<void> {
-  let opts: IGitExecutionOptions = {
+  let gitExecutionOpts: IGitExecutionOptions = {
     env: envForAuthentication(account),
     expectedErrors: AuthenticationErrors,
   }
 
-  if (progressCallback) {
+  const progressCallback = options.progressCallback
+
+  if (progressCallback != null) {
     const title = `Checking out branch ${name}`
     const kind = 'checkout'
     const targetBranch = name
 
-    opts = await executionOptionsWithProgress(
-      { ...opts, trackLFSProgress: true },
+    gitExecutionOpts = await executionOptionsWithProgress(
+      { ...gitExecutionOpts, trackLFSProgress: true },
       new CheckoutProgressParser(),
       progress => {
         if (progress.kind === 'progress') {
@@ -61,11 +72,12 @@ export async function checkoutBranch(
     progressCallback({ kind, title, value: 0, targetBranch })
   }
 
-  const args = progressCallback
-    ? [...gitNetworkArguments, 'checkout', '--progress', name, '--']
-    : [...gitNetworkArguments, 'checkout', name, '--']
+  const args =
+    progressCallback != null
+      ? [...gitNetworkArguments, 'checkout', '--progress', name, '--']
+      : [...gitNetworkArguments, 'checkout', name, '--']
 
-  await git(args, repository.path, 'checkoutBranch', opts)
+  await git(args, repository.path, 'checkoutBranch', gitExecutionOpts)
 }
 
 /** Check out the paths at HEAD. */

@@ -1597,11 +1597,15 @@ export class AppStore {
     const kind = 'checkout'
 
     await this.withAuthenticatingUser(repository, (repository, account) =>
-      gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, name, progress => {
-          this.updateCheckoutProgress(repository, progress)
-        })
-      )
+      gitStore.performFailableOperation(() => {
+        const opts = {
+          progressCallback: (progress: ICheckoutProgress) => {
+            this.updateCheckoutProgress(repository, progress)
+          },
+        }
+
+        return checkoutBranch(repository, account, name, opts)
+      })
     )
 
     try {
