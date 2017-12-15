@@ -3050,11 +3050,14 @@ export class AppStore {
     this.updateBranchesState(repository, state => {
       let currentPullRequest: PullRequest | null = null
 
-      if (state.tip.kind === TipState.Valid) {
+      const remote = this.getRepositoryState(repository).remote
+
+      if (state.tip.kind === TipState.Valid && remote) {
         currentPullRequest = this.findAssociatedPullRequest(
           state.tip.branch,
           state.openPullRequests,
-          gitHubRepository
+          gitHubRepository,
+          remote
         )
       }
 
