@@ -3161,15 +3161,20 @@ export class AppStore {
         )
       }
 
-      await this.withAuthenticatingUser(repository, async (repo, account) => {
-        const gitStore = this.getGitStore(repository)
+      const gitStore = this.getGitStore(repository)
 
+      await this.withAuthenticatingUser(repository, async (repo, account) => {
         await gitStore.fetchRemote(account, remoteName, false)
       })
 
-      //checkout -
+      const localBranchName = `pr/${pullRequest.number}`
+      const doesBranchExist = gitStore.allBranches.find(branch => branch.name === localBranchName) != null
 
-      // step3: checkout ref as pr/[PR Number]
+      if (!doesBranchExist) {
+        await this._createBranch(repository, localBranchName, `${remoteName}/${head.ref}`)
+      }
+
+      await this._checkoutBranch(repository, localBranchName)
     }
   }
 }
