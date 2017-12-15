@@ -81,7 +81,6 @@ import {
   formatAsLocalRef,
   getMergeBase,
   getRemotes,
-  setRemoteURL,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
