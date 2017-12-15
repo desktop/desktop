@@ -3143,8 +3143,24 @@ export class AppStore {
     if (isRefInThisRepo) {
       await this._checkoutBranch(repository, head.ref)
     } else if (head.gitHubRepository != null) {
-      const cloneURL = forceUnwrap('This pull request\'s head is not populated but should be', head.gitHubRepository.cloneURL)
-      await addRemote(repository, `desktop/${head.gitHubRepository.owner.login}`, cloneURL)
+      const cloneURL = forceUnwrap(
+        "This pull request's head is not populated but should be",
+        head.gitHubRepository.cloneURL
+      )
+      const remoteName = `github-desktop/${head.gitHubRepository.owner.login}`
+      const remotes = await getRemotes(repository)
+      const remote = remotes.find(r => r.name === remoteName)
+
+      if (remote == null) {
+        await addRemote(repository, remoteName, cloneURL)
+      } else if (remote.url !== cloneURL) {
+        log.error(
+          `Expected PR remote ${remoteName} url to be ${cloneURL} got ${
+            remote.url
+          }.`
+        )
+      }
+
       //checkout -
 
       // step3: checkout ref as pr/[PR Number]
