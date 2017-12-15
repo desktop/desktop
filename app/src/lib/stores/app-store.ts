@@ -3143,11 +3143,10 @@ export class AppStore {
     if (isRefInThisRepo) {
       await this._checkoutBranch(repository, head.ref)
     } else if (head.gitHubRepository != null) {
-      // step1: add a remote with a magic prefix if needed
       const cloneURL = forceUnwrap('This pull request\'s head is not populated but should be', head.gitHubRepository.cloneURL)
-      // missing: check if we already have the remote (and, if so, add a magic prefix)
       await addRemote(repository, `desktop/${head.gitHubRepository.owner.login}`, cloneURL)
-      // step2: fetch
+      //checkout -
+
       // step3: checkout ref as pr/[PR Number]
     }
   }
