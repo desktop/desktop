@@ -38,17 +38,18 @@ export class PullRequestStore {
 
   /** Loads all pull requests against the given repository. */
   public async refreshPullRequests(
-    repository: GitHubRepository,
+    repository: Repository,
     account: Account
   ): Promise<void> {
+    const githubRepo = forceUnwrap('', repository.gitHubRepository)
     const api = API.fromAccount(account)
 
     this.changeActiveFetchCount(githubRepo, c => c + 1)
 
     try {
       const raw = await api.fetchPullRequests(
-        repository.owner.login,
-        repository.name,
+        githubRepo.owner.login,
+        githubRepo.name,
         'open'
       )
 

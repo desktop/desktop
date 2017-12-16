@@ -877,7 +877,7 @@ export class AppStore {
     }
 
     const updater = new PullRequestUpdater(
-      repository.gitHubRepository,
+      repository,
       account,
       this.pullRequestStore
     )
@@ -1901,8 +1901,9 @@ export class AppStore {
           const state = this.getRepositoryState(repository)
           const currentPR = state.branchesState.currentPullRequest
           const gitHubRepository = repository.gitHubRepository
+
           if (currentPR && gitHubRepository) {
-            prUpdater.didPushPullRequest(gitHubRepository, currentPR)
+            prUpdater.didPushPullRequest(repository, currentPR)
           }
         }
       }
@@ -2982,7 +2983,7 @@ export class AppStore {
       return
     }
 
-    await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
+    await this.pullRequestStore.refreshPullRequests(repository, account)
     this.updateMenuItemLabels(repository)
   }
 
