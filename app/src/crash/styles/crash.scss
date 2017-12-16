@@ -5,7 +5,8 @@
 @import '../../../styles/ui/button';
 @import '../../../styles/ui/scroll';
 
-#desktop-crash-container, #crash-app {
+#desktop-crash-container,
+#crash-app {
   height: 100%;
 }
 
@@ -35,7 +36,6 @@ pre.error {
 }
 
 header {
-
   margin-bottom: var(--spacing-double);
   display: flex;
   flex: none;
