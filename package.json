@@ -11,7 +11,8 @@
       "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe mocha -t 30000 --require ts-node/register app/test/integration/*.ts",
     "test:unit":
       "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe electron-mocha -t 10000 --renderer --require ts-node/register --require ./app/test/globals.ts app/test/unit/*.{ts,tsx} app/test/unit/**/*.{ts,tsx}",
-    "test": "yarn test:unit && yarn test:integration",
+    "test":
+      "cross-env FORCE_COLOR=1 run-p --aggregate-output test:unit test:integration",
     "test:setup": "ts-node script/test-setup.ts",
     "test:review": "ts-node script/test-review.ts",
     "postinstall":
@@ -31,9 +32,12 @@
     "generate-octicons": "ts-node script/generate-octicons.ts",
     "compile:script": "tsc -p script",
     "lint": "yarn lint:src && yarn lint:prettier",
-    "lint:fix": "yarn lint:src:fix && yarn lint:prettier --write",
-    "lint:prettier":
-      "prettier '**/*.md' '**/*.scss' '**/*.json' --list-different",
+    "lint:fix": "cross-env FORCE_COLOR=1 run-p --aggregate-output lint:*:fix",
+    "lint:prettier": "cross-env FORCE_COLOR=1 run-p prettier:*",
+    "lint:prettier:fix": "cross-env FORCE_COLOR=1 run-p 'prettier:* --write'",
+    "prettier:md": "prettier --list-different '**/*.md'",
+    "prettier:scss": "prettier --list-different '**/*.scss'",
+    "prettier:json": "prettier --list-different '**/*.json'",
     "lint:src": "yarn tslint && yarn eslint-check && yarn eslint",
     "lint:src:fix": "yarn tslint --fix && yarn eslint --fix",
     "tslint":
@@ -138,6 +142,7 @@
     "electron-builder": "19.48.3",
     "electron-mocha": "^5.0.0",
     "electron-packager": "^10.1.0",
-    "electron-winstaller": "2.5.2"
+    "electron-winstaller": "2.5.2",
+    "npm-run-all": "^4.1.2"
   }
 }
