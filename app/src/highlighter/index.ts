@@ -101,6 +101,9 @@ extensionMIMEMap.set('.rb', 'text/x-ruby')
 
 import 'codemirror/mode/clojure/clojure'
 extensionMIMEMap.set('.clj', 'text/x-clojure')
+extensionMIMEMap.set('.cljc', 'text/x-clojure')
+extensionMIMEMap.set('.cljs', 'text/x-clojure')
+extensionMIMEMap.set('.edn', 'text/x-clojure')
 
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {
