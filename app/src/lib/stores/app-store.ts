@@ -81,7 +81,6 @@ import {
   formatAsLocalRef,
   getMergeBase,
   getRemotes,
-  removeRemote,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -107,7 +106,7 @@ import {
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { getAccountForRepository } from '../get-account-for-repository'
 import { BranchesTab } from '../../models/branches-tab'
-import { PullRequestStore } from './pull-request-store'
+import { PullRequestStore, ForkedRemotePrefix } from './pull-request-store'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
@@ -145,9 +144,6 @@ const shellKey = 'shell'
 
 // background fetching should not occur more than once every two minutes
 const BackgroundFetchMinimumInterval = 2 * 60 * 1000
-
-const FORK_PULL_REQUEST_PREFIX = 'github-desktop-'
-
 export class AppStore {
   private emitter = new Emitter()
 
@@ -2988,44 +2984,6 @@ export class AppStore {
 
     await this.pullRequestStore.refreshPullRequests(gitHubRepository, account)
     this.updateMenuItemLabels(repository)
-
-    const remotes = await getRemotes(repository)
-    const openPullRequests = this.getRepositoryState(repository).branchesState
-      .openPullRequests
-    const forkedRemotesToDelete = this.forkedRemotesToDelete(
-      remotes,
-      openPullRequests
-    )
-    await this.deleteForkedRemotes(repository, forkedRemotesToDelete)
-  }
-
-  private forkedRemotesToDelete(
-    remotes: ReadonlyArray<IRemote>,
-    openPullRequests: ReadonlyArray<PullRequest>
-  ): ReadonlyArray<IRemote> {
-    const forkedRemotes = remotes.filter(remote =>
-      remote.name.startsWith(FORK_PULL_REQUEST_PREFIX)
-    )
-    const remotesOfPullRequests = new Set<string>()
-    openPullRequests.forEach(openPullRequest => {
-      const { gitHubRepository } = openPullRequest.head
-      if (gitHubRepository != null && gitHubRepository.cloneURL != null)
-        remotesOfPullRequests.add(gitHubRepository.cloneURL)
-    })
-    const forkedRemotesToDelete = forkedRemotes.filter(
-      forkedRemote => !remotesOfPullRequests.has(forkedRemote.url)
-    )
-
-    return forkedRemotesToDelete
-  }
-
-  private async deleteForkedRemotes(
-    repository: Repository,
-    remotes: ReadonlyArray<IRemote>
-  ) {
-    for (const remote of remotes) {
-      await removeRemote(repository, remote.name)
-    }
   }
 
   private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {
@@ -3166,7 +3124,7 @@ export class AppStore {
   }
 
   private forkPullRequestRemoteName(remoteName: string) {
-    return `${FORK_PULL_REQUEST_PREFIX}${remoteName}`
+    return `${ForkedRemotePrefix}${remoteName}`
   }
 
   public async _checkoutPullRequest(

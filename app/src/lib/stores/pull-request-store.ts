@@ -14,6 +14,11 @@ import {
   PullRequestStatus,
 } from '../../models/pull-request'
 import { Emitter, Disposable } from 'event-kit'
+import { Repository } from '../../models/repository'
+import { getRemotes, removeRemote } from '../git'
+import { IRemote } from '../../models/remote'
+
+export const ForkedRemotePrefix = 'github-desktop-'
 
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore {
@@ -38,7 +43,7 @@ export class PullRequestStore {
   ): Promise<void> {
     const api = API.fromAccount(account)
 
-    this.changeActiveFetchCount(repository, c => c + 1)
+    this.changeActiveFetchCount(githubRepo, c => c + 1)
 
     try {
       const raw = await api.fetchPullRequests(
@@ -47,15 +52,59 @@ export class PullRequestStore {
         'open'
       )
 
-      await this.writePRs(raw, repository)
+      await this.writePRs(raw, githubRepo)
 
-      const prs = await this.getPullRequests(repository)
-      await this.refreshStatusForPRs(prs, repository, account)
+      const prs = await this.getPullRequests(githubRepo)
+
+      await this.refreshStatusForPRs(prs, githubRepo, account)
+      await this.pruneForkedRemotes(repository, prs)
     } catch (error) {
       log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
       this.emitError(error)
     } finally {
-      this.changeActiveFetchCount(repository, c => c - 1)
+      this.changeActiveFetchCount(githubRepo, c => c - 1)
+    }
+  }
+
+  private async pruneForkedRemotes(
+    repository: Repository,
+    pullRequests: ReadonlyArray<PullRequest>
+  ) {
+    const remotes = await getRemotes(repository)
+    const forkedRemotesToDelete = this.forkedRemotesToDelete(
+      remotes,
+      pullRequests
+    )
+
+    await this.deleteForkedRemotes(repository, forkedRemotesToDelete)
+  }
+
+  private forkedRemotesToDelete(
+    remotes: ReadonlyArray<IRemote>,
+    openPullRequests: ReadonlyArray<PullRequest>
+  ): ReadonlyArray<IRemote> {
+    const forkedRemotes = remotes.filter(remote =>
+      remote.name.startsWith(ForkedRemotePrefix)
+    )
+    const remotesOfPullRequests = new Set<string>()
+    openPullRequests.forEach(openPullRequest => {
+      const { gitHubRepository } = openPullRequest.head
+      if (gitHubRepository != null && gitHubRepository.cloneURL != null)
+        remotesOfPullRequests.add(gitHubRepository.cloneURL)
+    })
+    const forkedRemotesToDelete = forkedRemotes.filter(
+      forkedRemote => !remotesOfPullRequests.has(forkedRemote.url)
+    )
+
+    return forkedRemotesToDelete
+  }
+
+  private async deleteForkedRemotes(
+    repository: Repository,
+    remotes: ReadonlyArray<IRemote>
+  ) {
+    for (const remote of remotes) {
+      await removeRemote(repository, remote.name)
     }
   }
 
