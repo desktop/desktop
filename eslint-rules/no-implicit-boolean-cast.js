@@ -1,54 +1,56 @@
 module.exports = {
   meta: {
+    fixable: 'code',
     docs: {
       description: 'Do not implicitly cast values to a boolean',
       category: 'Best Practices',
     },
   },
   create(context) {
-    const sc = context.getSourceCode();
+    const sc = context.getSourceCode()
+    const services = context.parserServices
 
-    function getIdentifier(node) {
-      switch (node.type) {
-        case 'Identifier':
-        case 'ThisExpression':
-        case 'SuperExpression':
-          return node
-        // See https://github.com/eslint/typescript-eslint-parser/pull/94 for progress on this
-        // case 'MemberExpression':
-        //   return getIdentifier(node.object)
-        // case 'CallExpression':
-        // case 'NewExpression':
-        //   return getIdentifier(node.callee)
+    function check(node) {
+      if (node.type === 'UnaryExpression' && node.operator === '!') {
+        check(node.argument)
+        return
+      } else if (node.type === 'LogicalExpression') {
+        check(node.left)
+        check(node.right)
+        return
       }
-      return null
+
+      const type = context.parserServices.getType(node)
+
+      if (type.intrinsicName !== 'boolean') {
+        let suffix = ''
+        if (type.intrinsicName !== 'unknown') {
+          suffix = `, it’s of type \`${services.typeChecker.typeToString(
+            type
+          )}\``
+        }
+
+        context.report({
+          node,
+          message: `\`${sc.getText(node)}\` is not a boolean${suffix}.`,
+          fix(fixer) {
+            if (node.parent.type === 'UnaryExpression') {
+              return fixer.replaceText(
+                node.parent,
+                `${sc.getText(node)} == null`
+              )
+            }
+            return fixer.replaceText(node, `${sc.getText(node)} != null`)
+          },
+        })
+      }
     }
+
     return {
-      IfStatement(node) {
-        let { test } = node;
-
-        if (test.type === "UnaryExpression" && test.operator === "!") {
-          test = test.argument;
-        }
-
-        if (test.type === 'BinaryExpression') return;
-
-        const id = getIdentifier(test)
-        if (!id) return
-        
-        const variable = context.getScope().set.get(id.name)
-        if (!variable) return
-
-        const annotation = variable.defs[0].name.typeAnnotation
-        if (!annotation || annotation.type !== 'BooleanTypeAnnotation') {
-          let suffix = ''
-          if (annotation) suffix = `, it’s of type \`${sc.getText(annotation.typeAnnotation)}\``
-          context.report({
-            node: test,
-            message: `\`${id.name}\` is not a boolean${suffix}.`
-          })
-        }
-      }
-    };
+      // wait until all the parents are resolved
+      'IfStatement, TernaryExpression:exit'(node) {
+        check(node.test)
+      },
+    }
   },
 }
