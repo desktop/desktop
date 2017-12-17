@@ -31,7 +31,7 @@ const viewBoxRe = /0 0 (\d+) (\d+)/
 
 function readXml(xml: string): Promise<IXML2JSNode> {
   return new Promise((resolve, reject) => {
-    xml2js.parseString(xml, function(err, result: IXML2JSNode) {
+    xml2js.parseString(xml, function(err: Error | null, result: IXML2JSNode) {
       if (err) {
         reject(err)
       } else {

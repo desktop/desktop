@@ -2,6 +2,8 @@
 
 'use strict'
 
+///<reference path="./globals.d.ts"/>
+
 import { run } from './run'
 import express = require('express')
 import webpack = require('webpack')
