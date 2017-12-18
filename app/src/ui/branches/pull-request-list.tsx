@@ -63,16 +63,7 @@ export class PullRequestList extends React.Component<
     super(props)
 
     const group = createListItems(props.pullRequests)
-    const selectedPullRequest = props.selectedPullRequest
-
-    let selectedItem: IPullRequestListItem | null =
-      props.currentPullRequest != null
-        ? findItemForPullRequest(group, props.currentPullRequest)
-        : null
-
-    if (selectedPullRequest != null) {
-      selectedItem = findItemForPullRequest(group, selectedPullRequest)
-    }
+    const selectedItem = this.resolveSelectedItem(group, props, null)
 
     this.state = {
       groupedItems: [group],
@@ -83,15 +74,23 @@ export class PullRequestList extends React.Component<
 
   public componentWillReceiveProps(nextProps: IPullRequestListProps) {
     const group = createListItems(nextProps.pullRequests)
-    const currentlySelectedItem = this.state.selectedItem
+    const selectedItem = this.resolveSelectedItem(
+      group,
+      nextProps,
+      this.state.selectedItem
+    )
+    this.setState({ groupedItems: [group], selectedItem })
+  }
 
+  private resolveSelectedItem(
+    group: IFilterListGroup<IPullRequestListItem>,
+    props: IPullRequestListProps,
+    currentlySelectedItem: IPullRequestListItem | null
+  ): IPullRequestListItem | null {
     let selectedItem: IPullRequestListItem | null = null
 
-    if (nextProps.selectedPullRequest != null) {
-      selectedItem = findItemForPullRequest(
-        group,
-        nextProps.selectedPullRequest
-      )
+    if (props.selectedPullRequest != null) {
+      selectedItem = findItemForPullRequest(group, props.selectedPullRequest)
     }
 
     if (selectedItem == null && currentlySelectedItem != null) {
@@ -101,7 +100,7 @@ export class PullRequestList extends React.Component<
       )
     }
 
-    this.setState({ groupedItems: [group], selectedItem })
+    return selectedItem
   }
 
   public render() {
