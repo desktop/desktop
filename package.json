@@ -5,42 +5,31 @@
   },
   "description": "GitHub Desktop build dependencies",
   "scripts": {
-    "cli":
-      "ts-node --require ./app/test/globals.ts --require ./app/src/cli/dev-commands-global.js app/src/cli/main.ts",
-    "test:integration":
-      "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe mocha -t 30000 --require ts-node/register app/test/integration/*.ts",
-    "test:unit":
-      "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe electron-mocha -t 10000 --renderer --require ts-node/register --require ./app/test/globals.ts app/test/unit/*.{ts,tsx} app/test/unit/**/*.{ts,tsx}",
+    "cli": "ts-node --require ./app/test/globals.ts --require ./app/src/cli/dev-commands-global.js app/src/cli/main.ts",
+    "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe mocha -t 30000 --require ts-node/register app/test/integration/*.ts",
+    "test:unit": "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe electron-mocha -t 10000 --renderer --require ts-node/register --require ./app/test/globals.ts app/test/unit/*.{ts,tsx} app/test/unit/**/*.{ts,tsx}",
     "test": "yarn test:unit && yarn test:integration",
     "test:setup": "ts-node script/test-setup.ts",
     "test:review": "ts-node script/test-review.ts",
-    "postinstall":
-      "cd app && yarn install --force && cd .. && git submodule update --recursive --init",
+    "postinstall": "cd app && yarn install --force && cd .. && git submodule update --recursive --init",
     "start": "cross-env NODE_ENV=development node script/start",
     "start:prod": "cross-env NODE_ENV=production node script/start",
     "debug": "cross-env NODE_ENV=development node script/debug",
-    "compile:dev":
-      "cross-env NODE_ENV=development parallel-webpack --config app/webpack.development.js",
-    "compile:prod":
-      "cross-env NODE_ENV=production parallel-webpack --config app/webpack.production.js",
-    "build:dev":
-      "yarn compile:dev && cross-env NODE_ENV=development ts-node script/build.ts",
-    "build:prod":
-      "yarn compile:prod && cross-env NODE_ENV=production ts-node script/build.ts",
+    "compile:dev": "cross-env NODE_ENV=development parallel-webpack --config app/webpack.development.js",
+    "compile:prod": "cross-env NODE_ENV=production parallel-webpack --config app/webpack.production.js",
+    "build:dev": "yarn compile:dev && cross-env NODE_ENV=development ts-node script/build.ts",
+    "build:prod": "yarn compile:prod && cross-env NODE_ENV=production ts-node script/build.ts",
     "package": "ts-node -P script script/package.ts",
     "generate-octicons": "ts-node script/generate-octicons.ts",
     "compile:script": "tsc -p script",
     "lint": "yarn lint:src && yarn lint:prettier",
     "lint:fix": "yarn lint:src:fix && yarn lint:prettier --write",
-    "lint:prettier":
-      "prettier '**/*.md' '**/*.scss' '**/*.json' --list-different",
+    "lint:prettier": "prettier '**/*.md' '**/*.scss' --list-different",
     "lint:src": "yarn tslint && yarn eslint-check && yarn eslint",
     "lint:src:fix": "yarn tslint --fix && yarn eslint --fix",
-    "tslint":
-      "cross-env NODE_OPTIONS='-r ts-node/register' tslint ./{script,tslint-rules}/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
+    "tslint": "cross-env NODE_OPTIONS='-r ts-node/register' tslint ./{script,tslint-rules}/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
     "eslint": "ts-node script/eslint.ts",
-    "eslint-check":
-      "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
+    "eslint-check": "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && yarn",
     "rebuild-hard:dev": "yarn clean-slate && yarn build:dev",

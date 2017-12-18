@@ -12,3 +12,4 @@ app/node_modules/
 app/static/common
 app/test/fixtures
 gemoji
+*.json
