@@ -72,21 +72,30 @@ describe('git/checkout', () => {
     expect(validBranch.branch.name).to.equal('commit-with-long-description')
   })
 
-  it('can checkout a remote branch', async () => {
+  it('can checkout a branch when it exists on multiple remotes', async () => {
     const path = await setupFixtureRepository('checkout-test-cases')
     const repository = new Repository(path, -1, null, false)
 
     const expectedBranch = 'first'
-    const remote = 'first-remote'
+    const firstRemote = 'first-remote'
+    const secondRemote = 'second-remote'
 
     const branches = await getBranches(repository)
-    const branch = branches.find(b => b.name === `${remote}/${expectedBranch}`)
+    const firstBranch = `${firstRemote}/${expectedBranch}`
+    const firstRemoteBranch = branches.find(b => b.name === firstBranch)
 
-    if (branch == null) {
-      throw new Error(`Could not find branch: ${expectedBranch}`)
+    if (firstRemoteBranch == null) {
+      throw new Error(`Could not find branch: '${firstBranch}'`)
     }
 
-    await checkoutBranch(repository, null, branch)
+    const secondBranch = `${secondRemote}/${expectedBranch}`
+    const secondRemoteBranch = branches.find(b => b.name === secondBranch)
+
+    if (secondRemoteBranch == null) {
+      throw new Error(`Could not find branch: '${secondBranch}'`)
+    }
+
+    await checkoutBranch(repository, null, firstRemoteBranch)
 
     const store = new GitStore(repository, shell)
     await store.loadStatus()
