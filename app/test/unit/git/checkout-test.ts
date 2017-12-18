@@ -6,7 +6,7 @@ import {
 } from '../../helpers/repositories'
 
 import { Repository } from '../../../src/models/repository'
-import { checkoutBranch, getBranches } from '../../../src/lib/git'
+import { checkoutBranch, getBranches, createBranch } from '../../../src/lib/git'
 import { TipState, IValidBranch } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
 import { Branch, BranchType } from '../../../src/models/branch'
@@ -107,5 +107,34 @@ describe('git/checkout', () => {
     expect(validBranch.branch.name).to.equal(expectedBranch)
     expect(validBranch.branch.type).to.equal(BranchType.Local)
     expect(validBranch.branch.remote).to.equal('first-remote')
+  })
+
+  it('will fail when an existing branch matches the remote branch', async () => {
+    const path = await setupFixtureRepository('checkout-test-cases')
+    const repository = new Repository(path, -1, null, false)
+
+    const expectedBranch = 'first'
+    const firstRemote = 'first-remote'
+
+    const branches = await getBranches(repository)
+    const firstBranch = `${firstRemote}/${expectedBranch}`
+    const remoteBranch = branches.find(b => b.name === firstBranch)
+
+    if (remoteBranch == null) {
+      throw new Error(`Could not find branch: '${firstBranch}'`)
+    }
+
+    await createBranch(repository, expectedBranch)
+
+    let errorRaised = false
+
+    try {
+      await checkoutBranch(repository, null, remoteBranch)
+    } catch (error) {
+      errorRaised = true
+      expect(error.message).to.equal('A branch with that name already exists.')
+    }
+
+    expect(errorRaised).to.be.true
   })
 })
