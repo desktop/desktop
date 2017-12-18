@@ -173,7 +173,6 @@ export class BranchesContainer extends React.Component<
         <PullRequestList
           key="pr-list"
           pullRequests={pullRequests}
-          currentPullRequest={this.props.currentPullRequest}
           onSelectionChanged={this.onPullRequestSelectionChanged}
           selectedPullRequest={this.state.selectedPullRequest}
           onItemClick={this.onPullRequestClicked}

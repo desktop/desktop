@@ -28,12 +28,6 @@ interface IPullRequestListProps {
   /** The pull requests to display. */
   readonly pullRequests: ReadonlyArray<PullRequest>
 
-  /**
-   * The pull request associated with the current branch. This is used to
-   * pre-select the currently checked out PR in the list of pull requests.
-   */
-  readonly currentPullRequest: PullRequest | null
-
   /** Called when the user clicks on a pull request. */
   readonly onItemClick: (pullRequest: PullRequest) => void
 
