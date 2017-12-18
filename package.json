@@ -27,7 +27,7 @@
     "lint:prettier": "prettier '**/*.md' '**/*.scss' --list-different",
     "lint:src": "yarn tslint && yarn eslint-check && yarn eslint",
     "lint:src:fix": "yarn tslint --fix && yarn eslint --fix",
-    "tslint": "cross-env NODE_OPTIONS='-r ts-node/register' tslint ./{script,tslint-rules}/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
+    "tslint": "NODE_OPTIONS='-r ts-node/register' tslint ./{script,tslint-rules}/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
     "eslint": "ts-node script/eslint.ts",
     "eslint-check": "eslint --print-config .eslintrc.* | eslint-config-prettier-check",
     "publish": "node script/publish",
