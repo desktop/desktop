@@ -82,10 +82,6 @@ export class PullRequestList extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: IPullRequestListProps) {
-    if (nextProps.pullRequests === this.props.pullRequests) {
-      return
-    }
-
     const group = createListItems(nextProps.pullRequests)
     const currentlySelectedItem = this.state.selectedItem
 
