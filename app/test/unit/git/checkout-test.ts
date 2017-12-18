@@ -6,17 +6,39 @@ import {
 } from '../../helpers/repositories'
 
 import { Repository } from '../../../src/models/repository'
-import { checkoutBranch } from '../../../src/lib/git'
+import { checkoutBranch, getBranches } from '../../../src/lib/git'
 import { TipState, IValidBranch } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
+import { Branch, BranchType } from '../../../src/models/branch'
 
 describe('git/checkout', () => {
   it('throws when invalid characters are used for branch name', async () => {
     const repository = await setupEmptyRepository()
 
+    const branch: Branch = {
+      name: '..',
+      nameWithoutRemote: '..',
+      upstream: null,
+      upstreamWithoutRemote: null,
+      type: BranchType.Local,
+      tip: {
+        sha: '',
+        summary: '',
+        body: '',
+        author: {
+          name: '',
+          email: '',
+          date: new Date(),
+          tzOffset: 0,
+        },
+        parentSHAs: [],
+      },
+      remote: null,
+    }
+
     let errorRaised = false
     try {
-      await checkoutBranch(repository, null, '..')
+      await checkoutBranch(repository, null, branch)
     } catch (error) {
       errorRaised = true
       expect(error.message).to.equal('fatal: invalid reference: ..\n')
@@ -29,7 +51,16 @@ describe('git/checkout', () => {
     const path = await setupFixtureRepository('repo-with-many-refs')
     const repository = new Repository(path, -1, null, false)
 
-    await checkoutBranch(repository, null, 'commit-with-long-description')
+    const branches = await getBranches(
+      repository,
+      'refs/heads/commit-with-long-description'
+    )
+
+    if (branches.length === 0) {
+      throw new Error(`Could not find branch: commit-with-long-description`)
+    }
+
+    await checkoutBranch(repository, null, branches[0])
 
     const store = new GitStore(repository, shell)
     await store.loadStatus()
