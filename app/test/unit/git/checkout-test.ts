@@ -71,4 +71,32 @@ describe('git/checkout', () => {
     const validBranch = tip as IValidBranch
     expect(validBranch.branch.name).to.equal('commit-with-long-description')
   })
+
+  it('can checkout a remote branch', async () => {
+    const path = await setupFixtureRepository('checkout-test-cases')
+    const repository = new Repository(path, -1, null, false)
+
+    const expectedBranch = 'first'
+    const remote = 'first-remote'
+
+    const branches = await getBranches(repository)
+    const branch = branches.find(b => b.name === `${remote}/${expectedBranch}`)
+
+    if (branch == null) {
+      throw new Error(`Could not find branch: ${expectedBranch}`)
+    }
+
+    await checkoutBranch(repository, null, branch)
+
+    const store = new GitStore(repository, shell)
+    await store.loadStatus()
+    const tip = store.tip
+
+    expect(tip.kind).to.equal(TipState.Valid)
+
+    const validBranch = tip as IValidBranch
+    expect(validBranch.branch.name).to.equal(expectedBranch)
+    expect(validBranch.branch.type).to.equal(BranchType.Local)
+    expect(validBranch.branch.remote).to.equal('first-remote')
+  })
 })
