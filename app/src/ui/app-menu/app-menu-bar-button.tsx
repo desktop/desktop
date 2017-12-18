@@ -185,7 +185,6 @@ export class AppMenuBarButton extends React.Component<
   public render() {
     const item = this.props.menuItem
     const dropDownState = this.isMenuOpen ? 'open' : 'closed'
-    const disabled = !item.enabled
 
     return (
       <ToolbarDropdown
@@ -197,7 +196,6 @@ export class AppMenuBarButton extends React.Component<
         showDisclosureArrow={false}
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
-        disabled={disabled}
         tabIndex={-1}
         role="menuitem"
       >

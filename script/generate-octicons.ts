@@ -96,9 +96,7 @@ generateIconData().then(result => {
   result.forEach(function(symbol) {
     const { jsFriendlyName, pathData, width, height } = symbol
     out.write(
-      `  public static get ${jsFriendlyName}() { return new OcticonSymbol(${
-        width
-      }, ${height}, '${pathData}') }\n`
+      `  public static get ${jsFriendlyName}() { return new OcticonSymbol(${width}, ${height}, '${pathData}') }\n`
     )
   })
 
