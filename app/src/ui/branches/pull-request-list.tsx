@@ -48,6 +48,27 @@ interface IPullRequestListState {
   readonly selectedItem: IPullRequestListItem | null
 }
 
+function resolveSelectedItem(
+  group: IFilterListGroup<IPullRequestListItem>,
+  props: IPullRequestListProps,
+  currentlySelectedItem: IPullRequestListItem | null
+): IPullRequestListItem | null {
+  let selectedItem: IPullRequestListItem | null = null
+
+  if (props.selectedPullRequest != null) {
+    selectedItem = findItemForPullRequest(group, props.selectedPullRequest)
+  }
+
+  if (selectedItem == null && currentlySelectedItem != null) {
+    selectedItem = findItemForPullRequest(
+      group,
+      currentlySelectedItem.pullRequest
+    )
+  }
+
+  return selectedItem
+}
+
 /** The list of open pull requests. */
 export class PullRequestList extends React.Component<
   IPullRequestListProps,
@@ -57,7 +78,7 @@ export class PullRequestList extends React.Component<
     super(props)
 
     const group = createListItems(props.pullRequests)
-    const selectedItem = this.resolveSelectedItem(group, props, null)
+    const selectedItem = resolveSelectedItem(group, props, null)
 
     this.state = {
       groupedItems: [group],
@@ -68,33 +89,12 @@ export class PullRequestList extends React.Component<
 
   public componentWillReceiveProps(nextProps: IPullRequestListProps) {
     const group = createListItems(nextProps.pullRequests)
-    const selectedItem = this.resolveSelectedItem(
+    const selectedItem = resolveSelectedItem(
       group,
       nextProps,
       this.state.selectedItem
     )
     this.setState({ groupedItems: [group], selectedItem })
-  }
-
-  private resolveSelectedItem(
-    group: IFilterListGroup<IPullRequestListItem>,
-    props: IPullRequestListProps,
-    currentlySelectedItem: IPullRequestListItem | null
-  ): IPullRequestListItem | null {
-    let selectedItem: IPullRequestListItem | null = null
-
-    if (props.selectedPullRequest != null) {
-      selectedItem = findItemForPullRequest(group, props.selectedPullRequest)
-    }
-
-    if (selectedItem == null && currentlySelectedItem != null) {
-      selectedItem = findItemForPullRequest(
-        group,
-        currentlySelectedItem.pullRequest
-      )
-    }
-
-    return selectedItem
   }
 
   public render() {
