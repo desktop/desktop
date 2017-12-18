@@ -87,12 +87,14 @@ export class PullRequestList extends React.Component<
 
     let selectedItem: IPullRequestListItem | null = null
 
-    if (currentlySelectedItem == null) {
-      selectedItem =
-        this.props.currentPullRequest != null
-          ? findItemForPullRequest(group, this.props.currentPullRequest)
-          : null
-    } else {
+    if (nextProps.selectedPullRequest != null) {
+      selectedItem = findItemForPullRequest(
+        group,
+        nextProps.selectedPullRequest
+      )
+    }
+
+    if (selectedItem == null && currentlySelectedItem != null) {
       selectedItem = findItemForPullRequest(
         group,
         currentlySelectedItem.pullRequest
