@@ -34,7 +34,9 @@ addons:
 branches:
   only:
     - master
+    - linux
     - /^__release-.*/
+    - /^release-.*/
 
 language: node_js
 node_js:
@@ -58,3 +60,21 @@ script:
 
 after_failure:
   - yarn test:review
+
+after_success:
+  - yarn run package
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file_glob: true
+  file:
+    - ${TRAVIS_BUILD_DIR}/dist/*.yml
+    - ${TRAVIS_BUILD_DIR}/dist/*.AppImage
+    - ${TRAVIS_BUILD_DIR}/dist/*.deb
+    - ${TRAVIS_BUILD_DIR}/dist/*.rpm
+  skip_cleanup: true
+  draft: true
+  tag_name: $TRAVIS_TAG
+  on:
+    tags: true
