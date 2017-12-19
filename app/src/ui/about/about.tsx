@@ -194,6 +194,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       )
     }
 
+    if (__LINUX__) {
+      return null
+    }
+
     const updateState = this.state.updateState
 
     switch (updateState.status) {

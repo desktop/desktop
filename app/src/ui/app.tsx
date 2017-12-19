@@ -307,6 +307,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
+    if (__LINUX__) {
+      return
+    }
+
     updateStore.checkForUpdates(inBackground)
   }
 
