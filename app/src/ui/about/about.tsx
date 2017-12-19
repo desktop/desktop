@@ -225,6 +225,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       return null
     }
 
+    if (__LINUX__) {
+      return null
+    }
+
     if (!this.state.updateState.lastSuccessfulCheck) {
       return (
         <DialogError>
