@@ -173,7 +173,6 @@ export class BranchesContainer extends React.Component<
         <PullRequestList
           key="pr-list"
           pullRequests={pullRequests}
-          currentPullRequest={this.props.currentPullRequest}
           onSelectionChanged={this.onPullRequestSelectionChanged}
           selectedPullRequest={this.state.selectedPullRequest}
           onItemClick={this.onPullRequestClicked}
@@ -249,6 +248,11 @@ export class BranchesContainer extends React.Component<
     if (isRefInThisRepo) {
       this.checkoutBranch(head.ref)
     } else {
+      log.debug(
+        `onPullRequestClicked, but we can't checkout the branch: '${
+          head.ref
+        }' belongs to fork '${pullRequest.author}'`
+      )
       // TODO: It's in a fork so we'll need to do ... something.
     }
 
