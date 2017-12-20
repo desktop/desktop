@@ -67,7 +67,7 @@ export class BranchesContainer extends React.Component<
 
   private checkoutRef(ref: string) {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.checkoutRef(this.props.repository, ref)
+    this.props.dispatcher.checkoutBranch(this.props.repository, ref)
   }
 
   private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
