@@ -88,6 +88,11 @@ interface ITextBoxState {
    * component is mounted and then released once the component unmounts.
    */
   readonly inputId?: string
+
+  /**
+   * Text to display in the underlying input element
+   */
+  readonly value?: string
 }
 
 /** An input element with app-standard styles. */
@@ -96,7 +101,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     const friendlyName = this.props.label || this.props.placeholder
     const inputId = createUniqueId(`TextBox_${friendlyName}`)
 
-    this.setState({ inputId })
+    this.setState({ inputId, value: this.props.value })
   }
 
   public componentWillUnmount() {
@@ -105,14 +110,26 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
+  public componentWillReceiveProps(nextProps: ITextBoxProps) {
+    if (this.state.value !== nextProps.value) {
+      this.setState({ value: nextProps.value })
+    }
+  }
+
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.value
+
     if (this.props.onChange) {
       this.props.onChange(event)
     }
 
-    if (this.props.onValueChanged && !event.defaultPrevented) {
-      this.props.onValueChanged(event.currentTarget.value)
-    }
+    const defaultPrevented = event.defaultPrevented
+
+    this.setState({ value }, () => {
+      if (this.props.onValueChanged && !defaultPrevented) {
+        this.props.onValueChanged(value)
+      }
+    })
   }
 
   private onRef = (instance: HTMLInputElement | null) => {
@@ -164,7 +181,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           disabled={this.props.disabled}
           type={this.props.type}
           placeholder={this.props.placeholder}
-          value={this.props.value}
+          value={this.state.value}
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
           ref={this.onRef}
