@@ -119,6 +119,13 @@ export class AccountsStore {
         updatedAccounts.push(await updatedAccount(account))
       } catch (e) {
         log.warn(`Error refreshing account '${account.login}'`, e)
+        // If the fetch failed for whatever reason we'll retain
+        // the old Account instance. Usually this fails due to
+        // connectivity issues but in the future we should
+        // investigate whether we're able to detect here that the
+        // token is definitely not valid anymore and let the
+        // user know that they've been signed out.
+        updatedAccounts.push(account)
       }
     }
 
