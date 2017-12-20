@@ -29,9 +29,10 @@ export class DeletePullRequest extends React.Component<IDeleteBranchProps, {}> {
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
+          <p>This branch has an open pull request associated with it.</p>
           <p>
-            This branch has an open pull request associated with it. You should
-            also remove the remote branch on GitHub:{' '}
+            If this pull request has been merged, you can also remove the remote
+            branch on GitHub:{' '}
             <LinkButton onClick={this.openPullRequest}>
               #{this.props.pullRequest.number}
             </LinkButton>
