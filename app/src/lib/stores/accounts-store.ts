@@ -116,8 +116,7 @@ export class AccountsStore {
     const updatedAccounts = new Array<Account>()
     for (const account of this.accounts) {
       try {
-        const updated = await updatedAccount(account)
-        updatedAccounts.push(updated)
+        updatedAccounts.push(await updatedAccount(account))
       } catch (e) {
         log.warn(`Error refreshing account '${account.login}'`, e)
       }
