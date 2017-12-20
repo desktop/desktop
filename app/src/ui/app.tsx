@@ -889,7 +889,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const popup = this.state.currentPopup
-
     if (!popup) {
       return null
     }
@@ -1245,7 +1244,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderPopup() {
     const content = this.currentPopupContent()
-
     if (content == null) {
       return null
     }

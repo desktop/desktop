@@ -230,7 +230,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     return (
       <CSSTransition
         classNames="undo"
-        transitionAppear={true}
+        appear={true}
         timeout={UndoCommitAnimationTimeout}
       >
         <UndoCommit

@@ -131,13 +131,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     return <p className={className}>{error.message}</p>
   }
 
-  private renderDialog() {
-    const error = this.state.error
-
-    if (!error) {
-      return null
-    }
-
+  private renderDialog(error: Error): JSX.Element {
     return (
       <Dialog
         id="app-error"
@@ -174,8 +168,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   public render() {
-    const dialog = this.renderDialog()
-    if (dialog == null) {
+    const error = this.state.error
+    if (!error) {
       return null
     }
 
@@ -188,7 +182,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
           exit: dialogTransitionLeaveTimeout,
         }}
       >
-        {dialog}
+        {this.renderDialog(error)}
       </CSSTransition>
     )
   }
