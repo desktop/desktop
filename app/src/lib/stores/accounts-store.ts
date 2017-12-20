@@ -118,6 +118,7 @@ export class AccountsStore {
       this.accounts.map(acc => this.tryUpdateAccount(acc))
     )
 
+    this.save()
     this.emitUpdate()
   }
 
