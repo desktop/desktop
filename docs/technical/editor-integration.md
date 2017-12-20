@@ -95,7 +95,7 @@ If you're not sure how your editor is installed, check one of these locations:
 
 
 Your editor is probably hiding behind a GUID in one of these locations - this
-is the the key that Desktop needs to read the registry and find the installation for your editor.
+is the key that Desktop needs to read the registry and find the installation for your editor.
 
 ### Step 2: Validate The Installation
 
