@@ -1587,31 +1587,36 @@ export class AppStore {
     }
   }
 
-  public async _checkoutRef(
+  private getLocalBranch(
     repository: Repository,
-    name: string
-  ): Promise<Repository> {
+    branch: string
+  ): Branch | null {
     const gitStore = this.getGitStore(repository)
-    const branch = gitStore.allBranches.find(b => b.nameWithoutRemote === name)
-
-    if (branch != null) {
-      return this._checkoutBranch(repository, branch)
-    }
-
-    return repository
+    return (
+      gitStore.allBranches.find(b => b.nameWithoutRemote === branch) || null
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(
     repository: Repository,
-    branch: Branch
+    branch: Branch | string
   ): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
     const kind = 'checkout'
 
+    const foundBranch =
+      branch instanceof String
+        ? this.getLocalBranch(repository, branch)
+        : branch
+
+    if (foundBranch == null) {
+      return repository
+    }
+
     await this.withAuthenticatingUser(repository, (repository, account) =>
       gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, branch, progress => {
+        checkoutBranch(repository, account, foundBranch, progress => {
           this.updateCheckoutProgress(repository, progress)
         })
       )

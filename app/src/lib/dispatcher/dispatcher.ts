@@ -275,17 +275,9 @@ export class Dispatcher {
   }
 
   /** Check out the given branch. */
-  public checkoutRef(
-    repository: Repository,
-    name: string
-  ): Promise<Repository> {
-    return this.appStore._checkoutRef(repository, name)
-  }
-
-  /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
-    branch: Branch
+    branch: Branch | string
   ): Promise<Repository> {
     return this.appStore._checkoutBranch(repository, branch)
   }
@@ -909,7 +901,7 @@ export class Dispatcher {
     }
 
     if (branch) {
-      await this.checkoutRef(repository, branch)
+      await this.checkoutBranch(repository, branch)
     }
 
     if (filepath) {
@@ -944,7 +936,7 @@ export class Dispatcher {
         return repo
       }
 
-      return this.checkoutRef(repo, branch)
+      return this.checkoutBranch(repo, branch)
     } else {
       return this.appStore._startOpenInDesktop(() => {
         this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
