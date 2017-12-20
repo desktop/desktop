@@ -33,7 +33,9 @@ export async function getAvailableEditors(): Promise<
   }
 
   log.warn(
-    `Platform not currently supported for resolving editors: ${process.platform}`
+    `Platform not currently supported for resolving editors: ${
+      process.platform
+    }`
   )
 
   return []

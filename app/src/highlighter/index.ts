@@ -49,6 +49,9 @@ import 'codemirror/mode/xml/xml'
 extensionMIMEMap.set('.xml', 'text/xml')
 extensionMIMEMap.set('.xaml', 'text/xml')
 extensionMIMEMap.set('.csproj', 'text/xml')
+extensionMIMEMap.set('.fsproj', 'text/xml')
+extensionMIMEMap.set('.vcxproj', 'text/xml')
+extensionMIMEMap.set('.vbproj', 'text/xml')
 extensionMIMEMap.set('.svg', 'text/xml')
 
 import 'codemirror/mode/clike/clike'
@@ -60,10 +63,14 @@ extensionMIMEMap.set('.java', 'text/x-java')
 extensionMIMEMap.set('.c', 'text/x-c')
 extensionMIMEMap.set('.h', 'text/x-c')
 extensionMIMEMap.set('.cpp', 'text/x-c++src')
+extensionMIMEMap.set('.hpp', 'text/x-c++src')
+extensionMIMEMap.set('.kt', 'text/x-kotlin')
 
 import 'codemirror/mode/mllike/mllike'
 extensionMIMEMap.set('.ml', 'text/x-ocaml')
 extensionMIMEMap.set('.fs', 'text/x-fsharp')
+extensionMIMEMap.set('.fsx', 'text/x-fsharp')
+extensionMIMEMap.set('.fsi', 'text/x-fsharp')
 
 import 'codemirror/mode/swift/swift'
 extensionMIMEMap.set('.swift', 'text/x-swift')
@@ -73,6 +80,9 @@ extensionMIMEMap.set('.sh', 'text/x-sh')
 
 import 'codemirror/mode/sql/sql'
 extensionMIMEMap.set('.sql', 'text/x-sql')
+
+import 'codemirror/mode/cypher/cypher'
+extensionMIMEMap.set('.cql', 'application/x-cypher-query')
 
 import 'codemirror/mode/go/go'
 extensionMIMEMap.set('.go', 'text/x-go')
@@ -88,6 +98,12 @@ extensionMIMEMap.set('.py', 'text/x-python')
 
 import 'codemirror/mode/ruby/ruby'
 extensionMIMEMap.set('.rb', 'text/x-ruby')
+
+import 'codemirror/mode/clojure/clojure'
+extensionMIMEMap.set('.clj', 'text/x-clojure')
+extensionMIMEMap.set('.cljc', 'text/x-clojure')
+extensionMIMEMap.set('.cljs', 'text/x-clojure')
+extensionMIMEMap.set('.edn', 'text/x-clojure')
 
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {

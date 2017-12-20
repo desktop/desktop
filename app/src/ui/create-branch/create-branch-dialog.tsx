@@ -179,9 +179,11 @@ export class CreateBranch extends React.Component<
         )
         return (
           <p>
-            Your new branch will be based on your currently checked out branch (<Ref>{currentBranch.name}</Ref>).{' '}
-            <Ref>{currentBranch.name}</Ref> is the {defaultBranchLink} for your
-            repository.
+            Your new branch will be based on your currently checked out branch (<Ref
+            >
+              {currentBranch.name}
+            </Ref>). <Ref>{currentBranch.name}</Ref> is the {defaultBranchLink}{' '}
+            for your repository.
           </p>
         )
       } else {
@@ -228,11 +230,10 @@ export class CreateBranch extends React.Component<
   }
 
   public render() {
-    const proposedName = this.state.proposedName
     const disabled =
-      !proposedName.length ||
+      this.state.proposedName.length <= 0 ||
       !!this.state.currentError ||
-      /^\s*$/.test(this.state.proposedName)
+      /^\s*$/.test(this.state.sanitizedName)
     const error = this.state.currentError
 
     return (

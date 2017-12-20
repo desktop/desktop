@@ -89,7 +89,9 @@ function packageApp(
       return platform
     }
     throw new Error(
-      `Unable to convert to platform for electron-packager: '${process.platform}`
+      `Unable to convert to platform for electron-packager: '${
+        process.platform
+      }`
     )
   }
 
@@ -309,7 +311,9 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
         let licensesMessage = ''
         for (const key in summary) {
           const license = summary[key]
-          licensesMessage += `${key} (${license.repository}): ${license.license}\n`
+          licensesMessage += `${key} (${license.repository}): ${
+            license.license
+          }\n`
         }
 
         const message = `The following dependencies have unknown or non-permissive licenses. Check it out and update ${overridesPath} if appropriate:\n${licensesMessage}`

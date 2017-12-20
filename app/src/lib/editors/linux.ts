@@ -5,6 +5,7 @@ import { assertNever } from '../fatal-error'
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
 }
 
@@ -14,6 +15,10 @@ export function parse(label: string): ExternalEditor | null {
   }
 
   if (label === ExternalEditor.VisualStudioCode) {
+    return ExternalEditor.VisualStudioCode
+  }
+
+  if (label === ExternalEditor.VisualStudioCodeInsiders) {
     return ExternalEditor.VisualStudioCode
   }
 
@@ -33,10 +38,8 @@ function getEditorPath(editor: ExternalEditor): Promise<string | null> {
     case ExternalEditor.Atom:
       return getPathIfAvailable('/usr/bin/atom')
     case ExternalEditor.VisualStudioCode:
-      const codePath = getPathIfAvailable('/usr/bin/code')
-      if (codePath) {
-        return codePath
-      }
+      return getPathIfAvailable('/usr/bin/code')
+    case ExternalEditor.VisualStudioCodeInsiders:
       return getPathIfAvailable('/usr/bin/code-insiders')
     case ExternalEditor.SublimeText:
       return getPathIfAvailable('/usr/bin/subl')
@@ -50,11 +53,14 @@ export async function getAvailableEditors(): Promise<
 > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
-  const [atomPath, codePath, sublimePath] = await Promise.all([
-    getEditorPath(ExternalEditor.Atom),
-    getEditorPath(ExternalEditor.VisualStudioCode),
-    getEditorPath(ExternalEditor.SublimeText),
-  ])
+  const [atomPath, codePath, codeInsidersPath, sublimePath] = await Promise.all(
+    [
+      getEditorPath(ExternalEditor.Atom),
+      getEditorPath(ExternalEditor.VisualStudioCode),
+      getEditorPath(ExternalEditor.VisualStudioCodeInsiders),
+      getEditorPath(ExternalEditor.SublimeText),
+    ]
+  )
 
   if (atomPath) {
     results.push({ editor: ExternalEditor.Atom, path: atomPath })
@@ -62,6 +68,13 @@ export async function getAvailableEditors(): Promise<
 
   if (codePath) {
     results.push({ editor: ExternalEditor.VisualStudioCode, path: codePath })
+  }
+
+  if (codeInsidersPath) {
+    results.push({
+      editor: ExternalEditor.VisualStudioCode,
+      path: codeInsidersPath,
+    })
   }
 
   if (sublimePath) {

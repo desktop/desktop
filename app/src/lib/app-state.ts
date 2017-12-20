@@ -210,7 +210,12 @@ export enum PopupType {
 
 export type Popup =
   | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
-  | { type: PopupType.DeleteBranch; repository: Repository; branch: Branch }
+  | {
+      type: PopupType.DeleteBranch
+      repository: Repository
+      branch: Branch
+      existsOnRemote: boolean
+    }
   | {
       type: PopupType.ConfirmDiscardChanges
       repository: Repository
@@ -517,7 +522,10 @@ export interface IBranchesState {
   readonly recentBranches: ReadonlyArray<Branch>
 
   /** The open pull requests in the repository. */
-  readonly openPullRequests: ReadonlyArray<PullRequest> | null
+  readonly openPullRequests: ReadonlyArray<PullRequest>
+
+  /** Are we currently loading pull requests? */
+  readonly isLoadingPullRequests: boolean
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null

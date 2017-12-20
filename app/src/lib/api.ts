@@ -11,6 +11,7 @@ import {
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
+import { getAvatarWithEnterpriseFallback } from './gravatar'
 
 const username: () => Promise<string> = require('username')
 
@@ -161,7 +162,7 @@ interface IAPIAuthorization {
 
 /** The response we receive from fetching mentionables. */
 interface IAPIMentionablesResponse {
-  readonly etag: string
+  readonly etag: string | null
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
@@ -444,6 +445,10 @@ export class API {
         log.warn(`fetchAll: '${path}' returned a 404`)
         return []
       }
+      if (response.status === HttpStatusCode.NotModified) {
+        log.warn(`fetchAll: '${path}' returned a 304`)
+        return []
+      }
 
       const items = await parsedResponse<ReadonlyArray<T>>(response)
       if (items) {
@@ -506,18 +511,20 @@ export class API {
     try {
       const path = `repos/${owner}/${name}/mentionables/users`
       const response = await this.request('GET', path, undefined, headers)
-      if (response.status === HttpStatusCode.NotModified) {
+
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(`fetchMentionables: '${path}' returned a 404`)
         return null
       }
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchAll: '${path}' returned a 404`)
+
+      if (response.status === HttpStatusCode.NotModified) {
         return null
       }
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
         response
       )
-      const responseEtag = response.headers.get('etag')
-      return { users, etag: responseEtag || '' }
+      const etag = response.headers.get('etag')
+      return { users, etag }
     } catch (e) {
       log.warn(`fetchMentionables: failed for ${owner}/${name}`, e)
       return null
@@ -659,12 +666,18 @@ export async function fetchUser(
   try {
     const user = await api.fetchAccount()
     const emails = await api.fetchEmails()
+    const defaultEmail = emails[0].email || ''
+    const avatarURL = getAvatarWithEnterpriseFallback(
+      user.avatar_url,
+      defaultEmail,
+      endpoint
+    )
     return new Account(
       user.login,
       endpoint,
       token,
       emails,
-      user.avatar_url,
+      avatarURL,
       user.id,
       user.name
     )

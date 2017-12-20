@@ -23,9 +23,13 @@ function getDistPath() {
 function getExecutableName() {
   const suffix = process.env.NODE_ENV === 'development' ? '-dev' : ''
 
-  return process.platform === 'win32'
-    ? `${getWindowsIdentifierName()}${suffix}`
-    : productName
+  if (process.platform === 'win32') {
+    return `${getWindowsIdentifierName()}${suffix}`
+  } else if (process.platform === 'linux') {
+    return 'desktop'
+  } else {
+    return productName
+  }
 }
 
 function getOSXZipName() {

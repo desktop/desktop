@@ -12,6 +12,10 @@ import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
 import { NoPullRequests } from './no-pull-requests'
 import { PullRequest } from '../../models/pull-request'
+import { CSSTransitionGroup } from 'react-transition-group'
+
+const PullRequestsLoadingCrossFadeInTimeout = 300
+const PullRequestsLoadingCrossFadeOutTimeout = 200
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -21,24 +25,32 @@ interface IBranchesProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly selectedTab: BranchesTab
-  readonly pullRequests: ReadonlyArray<PullRequest> | null
+  readonly pullRequests: ReadonlyArray<PullRequest>
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
+
+  /** Are we currently loading pull requests? */
+  readonly isLoadingPullRequests: boolean
 }
 
 interface IBranchesState {
   readonly selectedBranch: Branch | null
+  readonly selectedPullRequest: PullRequest | null
   readonly filterText: string
 }
 
-/** The Branches list component. */
-export class Branches extends React.Component<IBranchesProps, IBranchesState> {
+/** The unified Branches and Pull Requests component. */
+export class BranchesContainer extends React.Component<
+  IBranchesProps,
+  IBranchesState
+> {
   public constructor(props: IBranchesProps) {
     super(props)
 
     this.state = {
       selectedBranch: props.currentBranch,
+      selectedPullRequest: props.currentPullRequest,
       filterText: '',
     }
   }
@@ -70,8 +82,14 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.setState({ filterText })
   }
 
-  private onSelectionChanged = (selectedBranch: Branch | null) => {
+  private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
     this.setState({ selectedBranch })
+  }
+
+  private onPullRequestSelectionChanged = (
+    selectedPullRequest: PullRequest | null
+  ) => {
+    this.setState({ selectedPullRequest })
   }
 
   private renderTabBar() {
@@ -124,49 +142,64 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
             onFilterKeyDown={this.onFilterKeyDown}
             onFilterTextChanged={this.onFilterTextChanged}
             selectedBranch={this.state.selectedBranch}
-            onSelectionChanged={this.onSelectionChanged}
+            onSelectionChanged={this.onBranchSelectionChanged}
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
           />
         )
 
       case BranchesTab.PullRequests: {
-        const pullRequests = this.props.pullRequests
-        if (pullRequests) {
-          if (pullRequests.length > 0) {
-            return (
-              <PullRequestList
-                pullRequests={pullRequests}
-                currentPullRequest={this.props.currentPullRequest}
-                onPullRequestClicked={this.onPullRequestClicked}
-                onDismiss={this.onDismiss}
-              />
-            )
-          } else {
-            const repo = this.props.repository
-            const name = repo.gitHubRepository
-              ? repo.gitHubRepository.fullName
-              : repo.name
-            const isOnDefaultBranch =
-              this.props.defaultBranch &&
-              this.props.currentBranch &&
-              this.props.defaultBranch.name === this.props.currentBranch.name
-            return (
-              <NoPullRequests
-                repositoryName={name}
-                isOnDefaultBranch={!!isOnDefaultBranch}
-                onCreateBranch={this.onCreateBranch}
-                onCreatePullRequest={this.onCreatePullRequest}
-              />
-            )
-          }
-        } else {
-          return <PullRequestsLoading />
-        }
+        return (
+          <CSSTransitionGroup
+            transitionName="cross-fade"
+            component="div"
+            id="pr-transition-div"
+            transitionEnterTimeout={PullRequestsLoadingCrossFadeInTimeout}
+            transitionLeaveTimeout={PullRequestsLoadingCrossFadeOutTimeout}
+          >
+            {this.renderPullRequests()}
+          </CSSTransitionGroup>
+        )
       }
     }
 
     return assertNever(tab, `Unknown Branches tab: ${tab}`)
+  }
+
+  private renderPullRequests() {
+    const pullRequests = this.props.pullRequests
+    if (pullRequests.length) {
+      return (
+        <PullRequestList
+          key="pr-list"
+          pullRequests={pullRequests}
+          onSelectionChanged={this.onPullRequestSelectionChanged}
+          selectedPullRequest={this.state.selectedPullRequest}
+          onItemClick={this.onPullRequestClicked}
+          onDismiss={this.onDismiss}
+        />
+      )
+    } else if (this.props.isLoadingPullRequests) {
+      return <PullRequestsLoading key="prs-loading" />
+    } else {
+      const repo = this.props.repository
+      const name = repo.gitHubRepository
+        ? repo.gitHubRepository.fullName
+        : repo.name
+      const isOnDefaultBranch =
+        this.props.defaultBranch &&
+        this.props.currentBranch &&
+        this.props.defaultBranch.name === this.props.currentBranch.name
+      return (
+        <NoPullRequests
+          key="no-prs"
+          repositoryName={name}
+          isOnDefaultBranch={!!isOnDefaultBranch}
+          onCreateBranch={this.onCreateBranch}
+          onCreatePullRequest={this.onCreatePullRequest}
+        />
+      )
+    }
   }
 
   public render() {
@@ -215,8 +248,15 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     if (isRefInThisRepo) {
       this.checkoutBranch(head.ref)
     } else {
+      log.debug(
+        `onPullRequestClicked, but we can't checkout the branch: '${
+          head.ref
+        }' belongs to fork '${pullRequest.author}'`
+      )
       // TODO: It's in a fork so we'll need to do ... something.
     }
+
+    this.onPullRequestSelectionChanged(pullRequest)
   }
 
   private onDismiss = () => {

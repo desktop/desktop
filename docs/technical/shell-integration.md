@@ -12,7 +12,7 @@ This is the checklist of things that it needs to support:
  - It has a stable interface (command line arguments) that doesn't change
    between updates
 
-If you think your shell satifies all these requirements please read on to
+If you think your shell satisfies all these requirements please read on to
 understand how Desktop integrates with each OS, and if you're still keen to
 integrate this please fork and contribute a pull request for the team to
 review.
@@ -25,6 +25,7 @@ These shells are currently supported:
 
  - Command Prompt (cmd)
  - PowerShell
+ - [Hyper](https://hyper.sh/)
  - Git Bash (from [Git for Windows](https://git-for-windows.github.io/))
 
 These are defined in an enum at the top of the file:
@@ -33,6 +34,7 @@ These are defined in an enum at the top of the file:
 export enum Shell {
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
+  Hyper = 'Hyper',
   GitBash = 'Git Bash',
 }
 ```
@@ -147,7 +149,7 @@ export async function getAvailableShells(): Promise<
 
 The launch step will use the `open` command in macOS to launch a given bundle
 at the path requested by the user. You may not need to make changes here,
-unless your shell behaviour differs significanlty from this.
+unless your shell behaviour differs significantly from this.
 
 ```ts
 export async function launch(shell: Shell, path: string): Promise<void> {
@@ -165,6 +167,9 @@ These shells are currently supported:
 
  - [GNOME Terminal](https://help.gnome.org/users/gnome-terminal/stable/)
  - [Tilix](https://github.com/gnunn1/tilix)
+ - [Rxvt Unicode](http://software.schmorp.de/pkg/rxvt-unicode.html)
+ - [Konsole](https://konsole.kde.org/)
+ - [XTerm](http://invisible-island.net/xterm/)
 
 These are defined in an enum at the top of the file:
 
@@ -172,6 +177,9 @@ These are defined in an enum at the top of the file:
 export enum Shell {
   Gnome = 'GNOME Terminal',
   Tilix = 'Tilix',
+  Urxvt = 'URxvt',
+  Konsole = 'Konsole',
+  Xterm = 'XTerm',
 }
 ```
 
@@ -200,6 +208,9 @@ export async function getAvailableShells(): Promise<
   const [gnomeTerminalPath, tilixPath] = await Promise.all([
     getShellPath(Shell.Gnome),
     getShellPath(Shell.Tilix),
+    getShellPath(Shell.Urxvt),
+    getShellPath(Shell.Konsole),
+    getShellPath(Shell.Xterm),
   ])
 
   ...
@@ -221,6 +232,22 @@ export async function launch(
   shell: IFoundShell<Shell>,
   path: string
 ): Promise<void> {
+  if (shell.shell === Shell.Urxvt) {
+    const commandArgs = ['-cd', path]
+    await spawn(shell.path, commandArgs)
+  }
+
+  if (shell.shell === Shell.Konsole) {
+    const commandArgs = ['--workdir', path]
+    await spawn(shell.path, commandArgs)
+  }
+
+  if (shell.shell === Shell.Xterm) {
+    const commandArgs = ['-e', '/bin/bash']
+    const commandOptions = { cwd: path }
+    await spawn(shell.path, commandArgs, commandOptions)
+  }
+
   const commandArgs = ['--working-directory', path]
   await spawn(shell.path, commandArgs)
 }

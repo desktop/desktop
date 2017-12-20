@@ -15,10 +15,6 @@ import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { IGitHubUser } from '../../lib/databases'
 import { Resizable } from '../resizable'
 
-// At some point we'll make index.tsx only be exports
-// see https://github.com/desktop/desktop/issues/383
-export { HistorySidebar } from './sidebar'
-
 interface IHistoryProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher

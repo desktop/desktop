@@ -338,8 +338,9 @@ export class SignInStore {
       if (response.kind === AuthorizationResponseKind.Error) {
         this.emitError(
           new Error(
-            `The server responded with an error while attempting to authenticate (${response
-              .response.status})\n\n${response.response.statusText}`
+            `The server responded with an error while attempting to authenticate (${
+              response.response.status
+            })\n\n${response.response.statusText}`
           )
         )
         this.setState({ ...currentState, loading: false })
@@ -583,8 +584,9 @@ export class SignInStore {
         case AuthorizationResponseKind.Error:
           this.emitError(
             new Error(
-              `The server responded with an error (${response.response
-                .status})\n\n${response.response.statusText}`
+              `The server responded with an error (${
+                response.response.status
+              })\n\n${response.response.statusText}`
             )
           )
           break
