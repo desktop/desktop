@@ -105,14 +105,13 @@ export class AccountsStore {
       return
     }
 
-    this.accounts = [ ...this.accounts, updated ]
+    this.accounts = [...this.accounts, updated]
 
     this.save()
   }
 
   /** Refresh all accounts by fetching their latest info from the API. */
   public async refresh(): Promise<void> {
-
     this.accounts = await Promise.all(
       this.accounts.map(acc => this.tryUpdateAccount(acc))
     )
