@@ -19,6 +19,9 @@ interface IAvatarState {
 
 /** A component for displaying a user avatar. */
 export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
+  // TODO: handle this anti-pattern https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
+  private itsReallyMounted: boolean = false
+
   public constructor(props: IAvatarProps) {
     super(props)
 
@@ -52,13 +55,20 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   public async componentWillMount() {
+    this.itsReallyMounted = true
     const dataUrl = await fetchAvatarUrl(DefaultAvatarURL, this.props.user)
     this.setState({ dataUrl })
   }
 
   public async componentWillReceiveProps(nextProps: IAvatarProps) {
     const dataUrl = await fetchAvatarUrl(DefaultAvatarURL, nextProps.user)
-    this.setState({ dataUrl })
+    if (this.itsReallyMounted) {
+      this.setState({ dataUrl })
+    }
+  }
+
+  public componentWillUnmount() {
+    this.itsReallyMounted = false
   }
 
   private getTitle(): string {
