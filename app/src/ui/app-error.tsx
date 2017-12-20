@@ -10,7 +10,7 @@ import {
 import { GitError } from '../lib/git/core'
 import { GitError as GitErrorType } from 'dugite'
 import { Popup, PopupType } from '../lib/app-state'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { CSSTransition } from 'react-transition-group'
 
 interface IAppErrorProps {
   /** The list of queued, app-wide, errors  */
@@ -174,15 +174,22 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   public render() {
+    const dialog = this.renderDialog()
+    if (dialog == null) {
+      return null
+    }
+
     return (
-      <CSSTransitionGroup
-        transitionName="modal"
+      <CSSTransition
+        classNames="modal"
         component="div"
-        transitionEnterTimeout={dialogTransitionEnterTimeout}
-        transitionLeaveTimeout={dialogTransitionLeaveTimeout}
+        timeout={{
+          enter: dialogTransitionEnterTimeout,
+          exit: dialogTransitionLeaveTimeout,
+        }}
       >
-        {this.renderDialog()}
-      </CSSTransitionGroup>
+        {dialog}
+      </CSSTransition>
     )
   }
 }
