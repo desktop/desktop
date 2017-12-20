@@ -105,7 +105,7 @@ export class AccountsStore {
       return
     }
 
-    this.accounts = this.accounts.concat(updated)
+    this.accounts = [ ...this.accounts, updated ]
 
     this.save()
   }
