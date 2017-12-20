@@ -2,8 +2,7 @@ import { Emitter, Disposable } from 'event-kit'
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
-import { API, EmailVisibility } from '../api'
-import { getAvatarWithEnterpriseFallback } from '../gravatar'
+import { fetchUser, EmailVisibility } from '../api'
 import { fatalError } from '../fatal-error'
 
 /** The data-only interface for storage. */
@@ -218,24 +217,5 @@ async function updatedAccount(account: Account): Promise<Account> {
     )
   }
 
-  const api = API.fromAccount(account)
-  const user = await api.fetchAccount()
-  const emails = await api.fetchEmails()
-
-  const defaultEmail = emails[0].email || ''
-  const avatarURL = getAvatarWithEnterpriseFallback(
-    user.avatar_url,
-    defaultEmail,
-    account.endpoint
-  )
-
-  return new Account(
-    account.login,
-    account.endpoint,
-    account.token,
-    emails,
-    avatarURL,
-    user.id,
-    user.name
-  )
+  return fetchUser(account.endpoint, account.token)
 }
