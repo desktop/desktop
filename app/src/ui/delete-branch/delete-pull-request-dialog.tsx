@@ -24,7 +24,7 @@ export class DeletePullRequest extends React.Component<IDeleteBranchProps, {}> {
     return (
       <Dialog
         id="delete-branch"
-        title={__DARWIN__ ? 'Delete Pull Request' : 'Delete pull request'}
+        title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
         type="warning"
         onDismissed={this.props.onDismissed}
       >
