@@ -1,6 +1,6 @@
 # Linux Testing and You
 
-GitHub Desktop doesn't currently support Linux in an official capacity, but many in the community have already been experimenting and testing it on on their preferred distributions.
+GitHub Desktop doesn't currently support Linux in an official capacity, but many in the community have already been experimenting and testing it on their preferred distributions.
 
 This document outlines the process to help provide a set of quality installers, based on community feedback and contributions.
 
