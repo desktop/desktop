@@ -12,7 +12,7 @@ import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
 import { NoPullRequests } from './no-pull-requests'
 import { PullRequest } from '../../models/pull-request'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { CSSTransition } from 'react-transition-group'
 
 const PullRequestsLoadingCrossFadeInTimeout = 300
 const PullRequestsLoadingCrossFadeOutTimeout = 200
@@ -150,15 +150,17 @@ export class BranchesContainer extends React.Component<
 
       case BranchesTab.PullRequests: {
         return (
-          <CSSTransitionGroup
-            transitionName="cross-fade"
+          <CSSTransition
+            classNames="cross-fade"
             component="div"
             id="pr-transition-div"
-            transitionEnterTimeout={PullRequestsLoadingCrossFadeInTimeout}
-            transitionLeaveTimeout={PullRequestsLoadingCrossFadeOutTimeout}
+            timeout={{
+              enter: PullRequestsLoadingCrossFadeInTimeout,
+              exit: PullRequestsLoadingCrossFadeOutTimeout,
+            }}
           >
             {this.renderPullRequests()}
-          </CSSTransitionGroup>
+          </CSSTransition>
         )
       }
     }

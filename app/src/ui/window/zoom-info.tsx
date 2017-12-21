@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { CSSTransition } from 'react-transition-group'
 
 interface IZoomInfoProps {
   readonly windowZoomFactor: number
@@ -103,18 +103,17 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
     }
 
     return (
-      <CSSTransitionGroup
+      <CSSTransition
         id="window-zoom-info"
-        transitionName={this.state.transitionName}
+        classNames={this.state.transitionName}
         component="div"
-        transitionAppear={true}
-        transitionEnter={false}
-        transitionLeave={true}
-        transitionAppearTimeout={transitionDuration}
-        transitionLeaveTimeout={transitionDuration}
+        appear={true}
+        enter={false}
+        exit={true}
+        timeout={transitionDuration}
       >
         {this.renderZoomInfo()}
-      </CSSTransitionGroup>
+      </CSSTransition>
     )
   }
 }

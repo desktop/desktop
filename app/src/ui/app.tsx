@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ipcRenderer } from 'electron'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { CSSTransition } from 'react-transition-group'
 
 import {
   IAppState,
@@ -1249,14 +1249,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     return (
-      <CSSTransitionGroup
-        transitionName="modal"
+      <CSSTransition
+        classNames="modal"
         component="div"
-        transitionEnterTimeout={dialogTransitionEnterTimeout}
-        transitionLeaveTimeout={dialogTransitionLeaveTimeout}
+        timeout={{
+          enter: dialogTransitionEnterTimeout,
+          exit: dialogTransitionLeaveTimeout,
+        }}
       >
         {content}
-      </CSSTransitionGroup>
+      </CSSTransition>
     )
   }
 

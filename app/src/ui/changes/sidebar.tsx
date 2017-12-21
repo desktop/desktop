@@ -19,7 +19,7 @@ import {
 } from '../autocompletion'
 import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { CSSTransition } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
 
 /**
@@ -228,12 +228,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
 
     return (
-      <CSSTransitionGroup
-        transitionName="undo"
-        transitionAppear={true}
-        transitionAppearTimeout={UndoCommitAnimationTimeout}
-        transitionEnterTimeout={UndoCommitAnimationTimeout}
-        transitionLeaveTimeout={UndoCommitAnimationTimeout}
+      <CSSTransition
+        classNames="undo"
+        appear={true}
+        timeout={UndoCommitAnimationTimeout}
       >
         <UndoCommit
           isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
@@ -241,7 +239,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onUndo={this.onUndo}
           emoji={this.props.emoji}
         />
-      </CSSTransitionGroup>
+      </CSSTransition>
     )
   }
 
