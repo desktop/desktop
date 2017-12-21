@@ -6,6 +6,7 @@ import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
 import { Row } from '../lib/row'
 import { merge } from '../../lib/merge'
+import { compare } from '../../lib/compare'
 
 interface IPublishRepositoryProps {
   /** The user to use for publishing. */
@@ -109,7 +110,10 @@ export class PublishRepository extends React.Component<
 
     let selectedIndex = -1
     const selectedOrg = this.props.settings.org
-    for (const [index, org] of this.state.orgs.entries()) {
+    const orgs = this.state.orgs
+      .entries()
+      .sort((a, b) => compare(a.name, b.name))
+    for (const [index, org] of orgs) {
       if (selectedOrg && selectedOrg.id === org.id) {
         selectedIndex = index
       }
