@@ -36,6 +36,7 @@ interface IBranchesProps {
 
 interface IBranchesState {
   readonly selectedBranch: Branch | null
+  readonly selectedPullRequest: PullRequest | null
   readonly filterText: string
 }
 
@@ -49,6 +50,7 @@ export class BranchesContainer extends React.Component<
 
     this.state = {
       selectedBranch: props.currentBranch,
+      selectedPullRequest: props.currentPullRequest,
       filterText: '',
     }
   }
@@ -80,8 +82,14 @@ export class BranchesContainer extends React.Component<
     this.setState({ filterText })
   }
 
-  private onSelectionChanged = (selectedBranch: Branch | null) => {
+  private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
     this.setState({ selectedBranch })
+  }
+
+  private onPullRequestSelectionChanged = (
+    selectedPullRequest: PullRequest | null
+  ) => {
+    this.setState({ selectedPullRequest })
   }
 
   private renderTabBar() {
@@ -134,7 +142,7 @@ export class BranchesContainer extends React.Component<
             onFilterKeyDown={this.onFilterKeyDown}
             onFilterTextChanged={this.onFilterTextChanged}
             selectedBranch={this.state.selectedBranch}
-            onSelectionChanged={this.onSelectionChanged}
+            onSelectionChanged={this.onBranchSelectionChanged}
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
           />
@@ -165,8 +173,9 @@ export class BranchesContainer extends React.Component<
         <PullRequestList
           key="pr-list"
           pullRequests={pullRequests}
-          currentPullRequest={this.props.currentPullRequest}
-          onPullRequestClicked={this.onPullRequestClicked}
+          onSelectionChanged={this.onPullRequestSelectionChanged}
+          selectedPullRequest={this.state.selectedPullRequest}
+          onItemClick={this.onPullRequestClicked}
           onDismiss={this.onDismiss}
         />
       )
@@ -239,8 +248,15 @@ export class BranchesContainer extends React.Component<
     if (isRefInThisRepo) {
       this.checkoutBranch(head.ref)
     } else {
+      log.debug(
+        `onPullRequestClicked, but we can't checkout the branch: '${
+          head.ref
+        }' belongs to fork '${pullRequest.author}'`
+      )
       // TODO: It's in a fork so we'll need to do ... something.
     }
+
+    this.onPullRequestSelectionChanged(pullRequest)
   }
 
   private onDismiss = () => {

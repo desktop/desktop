@@ -2,8 +2,7 @@ import { Emitter, Disposable } from 'event-kit'
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
-import { API, EmailVisibility } from '../api'
-import { getAvatarWithEnterpriseFallback } from '../gravatar'
+import { fetchUser, EmailVisibility } from '../api'
 import { fatalError } from '../fatal-error'
 
 /** The data-only interface for storage. */
@@ -106,25 +105,39 @@ export class AccountsStore {
       return
     }
 
-    this.accounts = this.accounts.concat(updated)
+    this.accounts = [...this.accounts, updated]
 
     this.save()
   }
 
   /** Refresh all accounts by fetching their latest info from the API. */
   public async refresh(): Promise<void> {
-    const updatedAccounts = new Array<Account>()
-    for (const account of this.accounts) {
-      try {
-        const updated = await updatedAccount(account)
-        updatedAccounts.push(updated)
-      } catch (e) {
-        log.warn(`Error refreshing account '${account.login}'`, e)
-      }
-    }
+    this.accounts = await Promise.all(
+      this.accounts.map(acc => this.tryUpdateAccount(acc))
+    )
 
-    this.accounts = updatedAccounts
+    this.save()
     this.emitUpdate()
+  }
+
+  /**
+   * Attempts to update the Account with new information from
+   * the API.
+   *
+   * If the update fails for whatever reason this function
+   * will return the old Account instance. Usually updates fails
+   * due to connectivity issues but in the future we should
+   * investigate whether we're able to detect here that the
+   * token is definitely not valid anymore and let the
+   * user know that they've been signed out.
+   */
+  private async tryUpdateAccount(account: Account): Promise<Account> {
+    try {
+      return await updatedAccount(account)
+    } catch (e) {
+      log.warn(`Error refreshing account '${account.login}'`, e)
+      return account
+    }
   }
 
   /**
@@ -203,24 +216,5 @@ async function updatedAccount(account: Account): Promise<Account> {
     )
   }
 
-  const api = API.fromAccount(account)
-  const user = await api.fetchAccount()
-  const emails = await api.fetchEmails()
-
-  const defaultEmail = emails[0].email || ''
-  const avatarURL = getAvatarWithEnterpriseFallback(
-    user.avatar_url,
-    defaultEmail,
-    account.endpoint
-  )
-
-  return new Account(
-    account.login,
-    account.endpoint,
-    account.token,
-    emails,
-    avatarURL,
-    user.id,
-    user.name
-  )
+  return fetchUser(account.endpoint, account.token)
 }

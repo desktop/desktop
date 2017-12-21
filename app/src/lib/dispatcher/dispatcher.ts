@@ -250,7 +250,12 @@ export class Dispatcher {
     return this.appStore._showFoldout(foldout)
   }
 
-  /** Close the current foldout. */
+  /** Close the current foldout. If opening a new foldout use closeFoldout instead. */
+  public closeCurrentFoldout(): Promise<void> {
+    return this.appStore._closeCurrentFoldout()
+  }
+
+  /** Close the specified foldout. */
   public closeFoldout(foldout: FoldoutType): Promise<void> {
     return this.appStore._closeFoldout(foldout)
   }
@@ -1068,8 +1073,11 @@ export class Dispatcher {
    *
    * See the createPullRequest method for more details.
    */
-  public openCreatePullRequestInBrowser(repository: Repository): Promise<void> {
-    return this.appStore._openCreatePullRequestInBrowser(repository)
+  public openCreatePullRequestInBrowser(
+    repository: Repository,
+    branch: Branch
+  ): Promise<void> {
+    return this.appStore._openCreatePullRequestInBrowser(repository, branch)
   }
 
   /** Refresh the list of open pull requests for the repository. */
