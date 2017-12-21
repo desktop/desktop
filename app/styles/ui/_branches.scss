@@ -63,11 +63,11 @@
     transition: opacity 300ms ease-in;
   }
 
-  .cross-fade-leave {
+  .cross-fade-exit {
     opacity: 1;
   }
 
-  .cross-fade-leave.cross-fade-leave-active {
+  .cross-fade-exit.cross-fade-exit-active {
     opacity: 0;
     transition: opacity 200ms ease-in;
   }

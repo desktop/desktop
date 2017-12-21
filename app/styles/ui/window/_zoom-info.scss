@@ -35,7 +35,7 @@
   }
 
   .zoom-in, .zoom-out {
-    &-leave-active { opacity: 0; transition: opacity 100ms ease-out; }
+    &-exit-active { opacity: 0; transition: opacity 100ms ease-out; }
     &-appear-active {
       transform: scale(1);
       opacity: 1;

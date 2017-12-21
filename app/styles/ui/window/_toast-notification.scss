@@ -44,5 +44,5 @@
     transition: all 100ms ease-out;
   }
 
-  &-leave-active { opacity: 0; transition: all 250ms ease-out; }
+  &-exit-active { opacity: 0; transition: all 250ms ease-out; }
 }

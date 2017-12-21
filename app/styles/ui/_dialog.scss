@@ -60,7 +60,7 @@ dialog {
       }
     }
 
-    &-leave {
+    &-exit {
       opacity: 1;
       transform: scale(1);
       pointer-events: none;
@@ -70,7 +70,7 @@ dialog {
       }
     }
 
-    &-leave-active {
+    &-exit-active {
       opacity: 0.01;
       transform: scale(0.25);
       transition: opacity 100ms ease-in,
