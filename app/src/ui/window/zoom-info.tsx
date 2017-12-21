@@ -83,11 +83,7 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
     this.setState({ renderTransitionGroup: false })
   }
 
-  private renderZoomInfo() {
-    if (!this.state.renderInfo) {
-      return null
-    }
-
+  private renderZoomInfo(): JSX.Element {
     const zoomPercent = `${(this.state.windowZoomFactor * 100).toFixed(0)} %`
 
     return (
@@ -99,6 +95,10 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
 
   public render() {
     if (!this.state.renderTransitionGroup) {
+      return null
+    }
+
+    if (!this.state.renderInfo) {
       return null
     }
 

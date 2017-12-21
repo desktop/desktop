@@ -1244,6 +1244,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderPopup() {
+    const content = this.currentPopupContent()
+    if (content == null) {
+      return null
+    }
+
     return (
       <CSSTransitionGroup
         transitionName="modal"
@@ -1251,7 +1256,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         transitionEnterTimeout={dialogTransitionEnterTimeout}
         transitionLeaveTimeout={dialogTransitionLeaveTimeout}
       >
-        {this.currentPopupContent()}
+        {content}
       </CSSTransitionGroup>
     )
   }
