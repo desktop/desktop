@@ -38,7 +38,7 @@
     "react": "^15.6.2",
     "react-addons-shallow-compare": "^15.6.2",
     "react-dom": "^15.6.2",
-    "react-transition-group": "^1.2.0",
+    "react-transition-group": "^2.2.1",
     "react-virtualized": "^9.10.1",
     "registry-js": "^1.0.7",
     "runas": "^3.1.1",

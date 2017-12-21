@@ -115,7 +115,7 @@
     "@types/react": "^16.0.19",
     "@types/react-addons-test-utils": "^0.14.20",
     "@types/react-dom": "^16.0.2",
-    "@types/react-transition-group": "1.1.1",
+    "@types/react-transition-group": "^2.0.6",
     "@types/react-virtualized": "^9.7.4",
     "@types/strip-ansi": "^3.0.0",
     "@types/temp": "^0.8.29",
