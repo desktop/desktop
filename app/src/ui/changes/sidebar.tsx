@@ -227,15 +227,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       return null
     }
 
-    const child = (
-      <UndoCommit
-        isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
-        commit={commit}
-        onUndo={this.onUndo}
-        emoji={this.props.emoji}
-      />
-    )
-
     return (
       <CSSTransitionGroup
         transitionName="undo"
@@ -244,7 +235,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         transitionEnterTimeout={UndoCommitAnimationTimeout}
         transitionLeaveTimeout={UndoCommitAnimationTimeout}
       >
-        {child}
+        <UndoCommit
+          isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
+          commit={commit}
+          onUndo={this.onUndo}
+          emoji={this.props.emoji}
+        />
       </CSSTransitionGroup>
     )
   }
