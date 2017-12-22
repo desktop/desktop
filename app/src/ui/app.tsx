@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ipcRenderer } from 'electron'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { CSSTransition } from 'react-transition-group'
 
 import {
   IAppState,
@@ -889,7 +889,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const popup = this.state.currentPopup
-
     if (!popup) {
       return null
     }
@@ -1244,15 +1243,22 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderPopup() {
+    const content = this.currentPopupContent()
+    if (content == null) {
+      return null
+    }
+
     return (
-      <CSSTransitionGroup
-        transitionName="modal"
+      <CSSTransition
         component="div"
-        transitionEnterTimeout={dialogTransitionEnterTimeout}
-        transitionLeaveTimeout={dialogTransitionLeaveTimeout}
+        classNames="modal"
+        timeout={{
+          enter: dialogTransitionEnterTimeout,
+          exit: dialogTransitionLeaveTimeout,
+        }}
       >
-        {this.currentPopupContent()}
-      </CSSTransitionGroup>
+        {content}
+      </CSSTransition>
     )
   }
 

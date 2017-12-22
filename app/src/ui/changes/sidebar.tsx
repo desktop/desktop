@@ -19,7 +19,7 @@ import {
 } from '../autocompletion'
 import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { CSSTransition } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
 
 /**
@@ -223,28 +223,23 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   private renderMostRecentLocalCommit() {
     const commit = this.props.mostRecentLocalCommit
-    let child: JSX.Element | null = null
-    if (commit) {
-      child = (
+    if (commit == null) {
+      return null
+    }
+
+    return (
+      <CSSTransition
+        classNames="undo"
+        appear={true}
+        timeout={UndoCommitAnimationTimeout}
+      >
         <UndoCommit
           isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
           commit={commit}
           onUndo={this.onUndo}
           emoji={this.props.emoji}
         />
-      )
-    }
-
-    return (
-      <CSSTransitionGroup
-        transitionName="undo"
-        transitionAppear={true}
-        transitionAppearTimeout={UndoCommitAnimationTimeout}
-        transitionEnterTimeout={UndoCommitAnimationTimeout}
-        transitionLeaveTimeout={UndoCommitAnimationTimeout}
-      >
-        {child}
-      </CSSTransitionGroup>
+      </CSSTransition>
     )
   }
 

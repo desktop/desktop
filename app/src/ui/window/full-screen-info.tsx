@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { CSSTransitionGroup } from 'react-transition-group'
+import { CSSTransition } from 'react-transition-group'
 import { WindowState } from '../../lib/window-state'
 
 interface IFullScreenInfoProps {
@@ -28,8 +28,8 @@ export class FullScreenInfo extends React.Component<
   private infoDisappearTimeoutId: number | null = null
   private transitionGroupDisappearTimeoutId: number | null = null
 
-  public constructor() {
-    super()
+  public constructor(props: IFullScreenInfoProps) {
+    super(props)
 
     this.state = {
       renderInfo: false,
@@ -85,7 +85,11 @@ export class FullScreenInfo extends React.Component<
     this.setState({ renderTransitionGroup: false })
   }
 
-  private renderFullScreenNotification() {
+  public render() {
+    if (!this.state.renderTransitionGroup) {
+      return null
+    }
+
     if (!this.state.renderInfo) {
       return null
     }
@@ -93,30 +97,19 @@ export class FullScreenInfo extends React.Component<
     const kbdShortcut = __DARWIN__ ? '⌃⌘F' : 'F11'
 
     return (
-      <div key="notification" className="toast-notification">
-        Press <kbd>{kbdShortcut}</kbd> to exit fullscreen
-      </div>
-    )
-  }
-
-  public render() {
-    if (!this.state.renderTransitionGroup) {
-      return null
-    }
-
-    return (
-      <CSSTransitionGroup
-        className="toast-notification-container"
+      <CSSTransition
+        classNames="toast-notification-container"
         transitionName="toast-animation"
         component="div"
-        transitionAppear={true}
-        transitionEnter={false}
-        transitionLeave={true}
-        transitionAppearTimeout={transitionAppearDuration}
-        transitionLeaveTimeout={transitionLeaveDuration}
+        timeout={{
+          enter: transitionAppearDuration,
+          exit: transitionLeaveDuration,
+        }}
       >
-        {this.renderFullScreenNotification()}
-      </CSSTransitionGroup>
+        <div key="notification" className="toast-notification">
+          Press <kbd>{kbdShortcut}</kbd> to exit fullscreen
+        </div>
+      </CSSTransition>
     )
   }
 }
