@@ -1,12 +1,9 @@
-#!/usr/bin/env node
-
 'use strict'
 
-const TEST_PUBLISH = false
 const PUBLISH_CHANNELS = ['production', 'test', 'beta']
-const distInfo = require('./dist-info')
-const gitInfo = require('../app/git-info')
-const packageInfo = require('../app/package-info')
+import * as distInfo from './dist-info'
+import * as gitInfo from '../app/git-info'
+import * as packageInfo from '../app/package-info'
 
 if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
   console.log('Not a publishable build. Skipping publish.')
@@ -22,7 +19,7 @@ if (!releaseSHA) {
 const currentTipSHA = gitInfo.getSHA()
 if (
   !currentTipSHA ||
-  !currentTipSHA.toUpperCase().startsWith(releaseSHA.toUpperCase())
+  !currentTipSHA.toUpperCase().startsWith(releaseSHA!.toUpperCase())
 ) {
   console.log(
     `Current tip '${currentTipSHA}' does not match release SHA '${releaseSHA}'. Skipping publish.`
@@ -30,14 +27,14 @@ if (
   process.exit(0)
 }
 
-const fs = require('fs')
-const cp = require('child_process')
-const AWS = require('aws-sdk')
-const crypto = require('crypto')
-const request = require('request')
+import * as Fs from 'fs'
+import { execSync } from 'child_process'
+import * as AWS from 'aws-sdk'
+import * as Crypto from 'crypto'
+import * as request from 'request'
 
 console.log('Packaging…')
-cp.execSync('yarn package')
+execSync('yarn package')
 
 let sha = ''
 if (process.platform === 'darwin') {
@@ -60,7 +57,7 @@ if (process.platform === 'darwin') {
   process.exit(1)
 }
 
-uploadPromise
+uploadPromise!
   .then(artifacts => {
     const names = artifacts.map(function(item, index) {
       return item.name
@@ -106,7 +103,14 @@ function uploadWindowsAssets() {
   return Promise.all(uploads)
 }
 
-function upload(assetName, assetPath) {
+interface IUploadResult {
+  name: string
+  url: string
+  size: number
+  sha: string
+}
+
+function upload(assetName: string, assetPath: string) {
   const s3Info = {
     accessKeyId: process.env.S3_KEY,
     secretAccessKey: process.env.S3_SECRET,
@@ -124,36 +128,39 @@ function upload(assetName, assetPath) {
     Bucket: bucket,
     ACL: 'public-read',
     Key: key,
-    Body: fs.createReadStream(assetPath),
+    Body: Fs.createReadStream(assetPath),
   }
 
-  return new Promise((resolve, reject) => {
-    s3.upload(uploadParams, (error, data) => {
-      if (error) {
-        reject(error)
-      } else {
-        const stats = fs.statSync(assetPath)
-        const hash = crypto.createHash('sha1')
-        const input = fs.createReadStream(assetPath)
+  return new Promise<IUploadResult>((resolve, reject) => {
+    s3.upload(
+      uploadParams,
+      (error: Error, data: AWS.S3.ManagedUpload.SendData) => {
+        if (error) {
+          reject(error)
+        } else {
+          const stats = Fs.statSync(assetPath)
+          const hash = Crypto.createHash('sha1')
+          const input = Fs.createReadStream(assetPath)
 
-        hash.on('finish', () => {
-          const sha = hash.read().toString('hex')
-          resolve({ name: assetName, url, size: stats['size'], sha })
-        })
+          hash.on('finish', () => {
+            const sha = hash.read().toString('hex')
+            resolve({ name: assetName, url, size: stats['size'], sha })
+          })
 
-        input.pipe(hash)
+          input.pipe(hash)
+        }
       }
-    })
+    )
   })
 }
 
-function createSignature(body) {
-  const hmac = crypto.createHmac('sha1', process.env.DEPLOYMENT_SECRET)
+function createSignature(body: any) {
+  const hmac = Crypto.createHmac('sha1', process.env.DEPLOYMENT_SECRET)
   hmac.update(JSON.stringify(body))
   return `sha1=${hmac.digest('hex')}`
 }
 
-function updateDeploy(artifacts) {
+function updateDeploy(artifacts: ReadonlyArray<IUploadResult>) {
   const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
     context: process.platform,

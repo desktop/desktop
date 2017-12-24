@@ -10,7 +10,8 @@
     "noUnusedLocals": true,
     "strictNullChecks": true,
     "sourceMap": false,
-    "noEmit": true
+    "noEmit": true,
+    "allowJs": true
   },
   "compileOnSave": false
 }
