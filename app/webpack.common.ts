@@ -12,13 +12,13 @@ import { getReplacements } from './app-info'
 
 const channel = getReleaseChannel()
 
-const externals = ['7zip']
+export const externals = ['7zip']
 if (channel === 'development') {
   externals.push('devtron')
 }
 
 const outputDir = 'out'
-const replacements = getReplacements()
+export const replacements = getReplacements()
 
 const commonConfig: webpack.Configuration = {
   externals: externals,
@@ -71,7 +71,7 @@ const commonConfig: webpack.Configuration = {
   },
 }
 
-const mainConfig = merge({}, commonConfig, {
+export const main = merge({}, commonConfig, {
   entry: { main: path.resolve(__dirname, 'src/main-process/main') },
   target: 'electron-main',
   plugins: [
@@ -83,7 +83,7 @@ const mainConfig = merge({}, commonConfig, {
   ],
 })
 
-const rendererConfig = merge({}, commonConfig, {
+export const renderer = merge({}, commonConfig, {
   entry: { renderer: path.resolve(__dirname, 'src/ui/index') },
   target: 'electron-renderer',
   module: {
@@ -107,7 +107,7 @@ const rendererConfig = merge({}, commonConfig, {
   ],
 })
 
-const askPassConfig = merge({}, commonConfig, {
+export const askPass = merge({}, commonConfig, {
   entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
   target: 'node',
   plugins: [
@@ -119,7 +119,7 @@ const askPassConfig = merge({}, commonConfig, {
   ],
 })
 
-const crashConfig = merge({}, commonConfig, {
+export const crash = merge({}, commonConfig, {
   entry: { crash: path.resolve(__dirname, 'src/crash/index') },
   target: 'electron-renderer',
   plugins: [
@@ -136,7 +136,7 @@ const crashConfig = merge({}, commonConfig, {
   ],
 })
 
-const cliConfig = merge({}, commonConfig, {
+export const cli = merge({}, commonConfig, {
   entry: { cli: path.resolve(__dirname, 'src/cli/main') },
   target: 'node',
   plugins: [
@@ -148,7 +148,7 @@ const cliConfig = merge({}, commonConfig, {
   ],
 })
 
-const highlighterConfig = merge({}, commonConfig, {
+export const highlighter = merge({}, commonConfig, {
   entry: { highlighter: path.resolve(__dirname, 'src/highlighter/index') },
   output: { libraryTarget: 'var' },
   target: 'webworker',
@@ -174,7 +174,7 @@ const highlighterConfig = merge({}, commonConfig, {
     },
   },
 })
-;(highlighterConfig.module as webpack.NewModule).rules = [
+;(highlighter.module as webpack.NewModule).rules = [
   {
     test: /\.ts$/,
     include: path.resolve(__dirname, 'src/highlighter'),
@@ -194,14 +194,3 @@ const highlighterConfig = merge({}, commonConfig, {
     exclude: /node_modules/,
   },
 ]
-
-export {
-  mainConfig as main,
-  rendererConfig as renderer,
-  askPassConfig as askPass,
-  crashConfig as crash,
-  cliConfig as cli,
-  highlighterConfig as highlighter,
-  replacements,
-  externals,
-}

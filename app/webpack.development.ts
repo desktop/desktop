@@ -52,7 +52,7 @@ const crashConfig = merge({}, common.crash, config, {
   },
 })
 
-module.exports = [
+export = [
   mainConfig,
   rendererConfig,
   askPassConfig,
