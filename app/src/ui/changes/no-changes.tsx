@@ -15,7 +15,9 @@ interface INoChangesProps {
 /** The component to display when there are no local changes. */
 export class NoChanges extends React.Component<INoChangesProps, {}> {
   public render() {
-    const opener = __DARWIN__ ? 'Finder' : 'Explorer'
+    const opener = __DARWIN__
+      ? 'Finder'
+      : __WIN32__ ? 'Explorer' : 'your File Manager'
     return (
       <div className="panel blankslate" id="no-changes">
         <img src={BlankSlateImage} className="blankslate-image" />
