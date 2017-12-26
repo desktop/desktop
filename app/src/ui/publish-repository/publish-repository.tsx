@@ -110,8 +110,8 @@ export class PublishRepository extends React.Component<
 
     let selectedIndex = -1
     const selectedOrg = this.props.settings.org
-    const orgs = [...this.state.orgs.entries()].sort(
-      ([, a], [, b]) => compare(a.name, b.name)
+    const orgs = [...this.state.orgs.entries()].sort(([, a], [, b]) =>
+      compare(a.name, b.name)
     )
     for (const [index, org] of orgs) {
       if (selectedOrg && selectedOrg.id === org.id) {
