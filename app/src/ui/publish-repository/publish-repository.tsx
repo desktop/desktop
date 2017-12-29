@@ -66,6 +66,7 @@ export class PublishRepository extends React.Component<
   private async fetchOrgs(account: Account) {
     const api = API.fromAccount(account)
     const orgs = await api.fetchOrgs()
+    orgs.sort((a, b) => compare(a.login, b.login))
     this.setState({ orgs })
   }
 
@@ -110,10 +111,7 @@ export class PublishRepository extends React.Component<
 
     let selectedIndex = -1
     const selectedOrg = this.props.settings.org
-    const orgs = [...this.state.orgs.entries()].sort(([, a], [, b]) =>
-      compare(a.name, b.name)
-    )
-    for (const [index, org] of orgs) {
+    for (const [index, org] of this.state.orgs.entries) {
       if (selectedOrg && selectedOrg.id === org.id) {
         selectedIndex = index
       }
