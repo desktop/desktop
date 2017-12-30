@@ -1,7 +1,7 @@
 import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
 import { assertNever } from '../fatal-error'
-import { readRegistryKeySafe } from '../registry'
+import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
 import { IFoundShell } from './found-shell'
 
 export enum Shell {
@@ -43,47 +43,70 @@ export async function getAvailableShells(): Promise<
     },
   ]
 
-  const powerShell = await readRegistryKeySafe(
-    'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
+  const powerShell = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
   )
   if (powerShell.length > 0) {
-    const path = powerShell[0].value.replace(
-      /^%SystemRoot%/i,
-      process.env.SystemRoot || 'C:\\Windows'
-    )
-    shells.push({
-      shell: Shell.PowerShell,
-      path,
-    })
+    const first = powerShell[0]
+
+    // NOTE:
+    // on Windows 7 these are both REG_SZ, which technically isn't supposed
+    // to contain unexpanded references to environment variables. But given
+    // it's also %SystemRoot% and we do the expanding here I think this is
+    // a fine workaround to do to support the maximum number of setups.
+
+    if (
+      first.type === RegistryValueType.REG_EXPAND_SZ ||
+      first.type === RegistryValueType.REG_SZ
+    ) {
+      const path = first.data.replace(
+        /^%SystemRoot%/i,
+        process.env.SystemRoot || 'C:\\Windows'
+      )
+      shells.push({
+        shell: Shell.PowerShell,
+        path,
+      })
+    }
   }
 
-  const hyper = await readRegistryKeySafe(
-    'HKEY_CURRENT_USER\\Software\\Classes\\Directory\\Background\\shell\\Hyper\\command'
+  const hyper = enumerateValues(
+    HKEY.HKEY_CURRENT_USER,
+    'Software\\Classes\\Directory\\Background\\shell\\Hyper\\command'
   )
   if (hyper.length > 0) {
-    // Registry key is structured as "{installationPath}\app-x.x.x\Hyper.exe" "%V"
+    const first = hyper[0]
+    if (first.type === RegistryValueType.REG_SZ) {
+      // Registry key is structured as "{installationPath}\app-x.x.x\Hyper.exe" "%V"
 
-    // Get the pieces in between quotes
-    // commandPieces = ['"{installationPath}\app-x.x.x\Hyper.exe"', '"', '{installationPath}\app-x.x.x\Hyper.exe', ...]
-    const commandPieces = hyper[0].value.match(/(["'])(.*?)\1/)
-    const path = commandPieces
-      ? commandPieces[2] // Get path from the pieces when not null
-      : process.env.LocalAppData.concat('\\hyper\\Hyper.exe') // Else fall back to the launcher in install root
-    shells.push({
-      shell: Shell.Hyper,
-      path: path,
-    })
+      // This regex is designed to get the path to the version-specific Hyper.
+      // commandPieces = ['"{installationPath}\app-x.x.x\Hyper.exe"', '"', '{installationPath}\app-x.x.x\Hyper.exe', ...]
+      const commandPieces = first.data.match(/(["'])(.*?)\1/)
+      const path = commandPieces
+        ? commandPieces[2]
+        : process.env.LocalAppData.concat('\\hyper\\Hyper.exe') // fall back to the launcher in install root
+      shells.push({
+        shell: Shell.Hyper,
+        path: path,
+      })
+    }
   }
 
-  const gitBash = await readRegistryKeySafe(
-    'HKEY_LOCAL_MACHINE\\SOFTWARE\\GitForWindows'
+  const gitBash = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'SOFTWARE\\GitForWindows'
   )
+
   if (gitBash.length > 0) {
     const installPathEntry = gitBash.find(e => e.name === 'InstallPath')
-    if (installPathEntry) {
+    if (
+      installPathEntry &&
+      installPathEntry.type === RegistryValueType.REG_SZ
+    ) {
       shells.push({
         shell: Shell.GitBash,
-        path: Path.join(installPathEntry.value, 'git-bash.exe'),
+        path: Path.join(installPathEntry.data, 'git-bash.exe'),
       })
     }
   }

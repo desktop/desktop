@@ -50,6 +50,7 @@ import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { BranchesTab } from '../../models/branches-tab'
+import { FetchType } from '../../lib/stores'
 
 /**
  * An error handler function.
@@ -249,7 +250,12 @@ export class Dispatcher {
     return this.appStore._showFoldout(foldout)
   }
 
-  /** Close the current foldout. */
+  /** Close the current foldout. If opening a new foldout use closeFoldout instead. */
+  public closeCurrentFoldout(): Promise<void> {
+    return this.appStore._closeCurrentFoldout()
+  }
+
+  /** Close the specified foldout. */
   public closeFoldout(foldout: FoldoutType): Promise<void> {
     return this.appStore._closeFoldout(foldout)
   }
@@ -295,8 +301,8 @@ export class Dispatcher {
   }
 
   /** Fetch all refs for the repository */
-  public fetch(repository: Repository): Promise<void> {
-    return this.appStore._fetch(repository)
+  public fetch(repository: Repository, fetchType: FetchType): Promise<void> {
+    return this.appStore._fetch(repository, fetchType)
   }
 
   /** Publish the repository to GitHub with the given properties. */
@@ -335,9 +341,7 @@ export class Dispatcher {
 
     if (currentError) {
       fatalError(
-        `Unhandled error ${
-          currentError
-        }. This shouldn't happen! All errors should be handled, even if it's just by the default handler.`
+        `Unhandled error ${currentError}. This shouldn't happen! All errors should be handled, even if it's just by the default handler.`
       )
     }
   }
@@ -804,9 +808,9 @@ export class Dispatcher {
           this.handleCloneInDesktopOptions(repository, action)
         } else {
           log.warn(
-            `Open Repository from URL failed, did not find repository: ${
-              url
-            } - payload: ${JSON.stringify(action)}`
+            `Open Repository from URL failed, did not find repository: ${url} - payload: ${JSON.stringify(
+              action
+            )}`
           )
         }
         break
@@ -1000,7 +1004,7 @@ export class Dispatcher {
         return this.pull(retryAction.repository)
 
       case RetryActionType.Fetch:
-        return this.fetch(retryAction.repository)
+        return this.fetch(retryAction.repository, FetchType.UserInitiatedTask)
 
       case RetryActionType.Clone:
         await this.clone(retryAction.url, retryAction.path, retryAction.options)
@@ -1069,8 +1073,11 @@ export class Dispatcher {
    *
    * See the createPullRequest method for more details.
    */
-  public openCreatePullRequestInBrowser(repository: Repository): Promise<void> {
-    return this.appStore._openCreatePullRequestInBrowser(repository)
+  public openCreatePullRequestInBrowser(
+    repository: Repository,
+    branch: Branch
+  ): Promise<void> {
+    return this.appStore._openCreatePullRequestInBrowser(repository, branch)
   }
 
   /** Refresh the list of open pull requests for the repository. */

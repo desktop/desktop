@@ -75,7 +75,7 @@ function isDiffTooLarge(diff: IRawDiff) {
 /**
  *  Defining the list of known extensions we can render inside the app
  */
-const imageFileExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif'])
+const imageFileExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.ico'])
 
 /**
  * Render the difference between a file in the given commit and its parent
@@ -306,6 +306,9 @@ function getMediaType(extension: string) {
   }
   if (extension === '.gif') {
     return 'image/gif'
+  }
+  if (extension === '.ico') {
+    return 'image/x-icon'
   }
 
   // fallback value as per the spec

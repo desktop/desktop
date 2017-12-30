@@ -337,7 +337,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     if (event.key === 'ArrowDown') {
       if (this.state.rows.length > 0) {
         const selectedRow = list.nextSelectableRow('down', -1)
-        if (selectedRow) {
+        if (selectedRow != null) {
           this.setState({ selectedRow }, () => {
             list.focus()
           })
@@ -348,7 +348,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     } else if (event.key === 'ArrowUp') {
       if (this.state.rows.length > 0) {
         const selectedRow = list.nextSelectableRow('up', 0)
-        if (selectedRow) {
+        if (selectedRow != null) {
           this.setState({ selectedRow }, () => {
             list.focus()
           })

@@ -11,6 +11,7 @@ import {
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
+import { getAvatarWithEnterpriseFallback } from './gravatar'
 
 const username: () => Promise<string> = require('username')
 
@@ -416,9 +417,7 @@ export class API {
       return status
     } catch (e) {
       log.warn(
-        `fetchCombinedRefStatus: failed for repository ${owner}/${
-          name
-        } on ref ${ref}`,
+        `fetchCombinedRefStatus: failed for repository ${owner}/${name} on ref ${ref}`,
         e
       )
       throw e
@@ -667,12 +666,18 @@ export async function fetchUser(
   try {
     const user = await api.fetchAccount()
     const emails = await api.fetchEmails()
+    const defaultEmail = emails[0].email || ''
+    const avatarURL = getAvatarWithEnterpriseFallback(
+      user.avatar_url,
+      defaultEmail,
+      endpoint
+    )
     return new Account(
       user.login,
       endpoint,
       token,
       emails,
-      user.avatar_url,
+      avatarURL,
       user.id,
       user.name
     )
@@ -715,9 +720,7 @@ async function getNote(): Promise<string> {
     localUsername = await username()
   } catch (e) {
     log.error(
-      `getNote: unable to resolve machine username, using '${
-        localUsername
-      }' as a fallback`,
+      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`,
       e
     )
   }
@@ -797,9 +800,7 @@ export function getOAuthAuthorizationURL(
 ): string {
   const urlBase = getHTMLURL(endpoint)
   const scope = encodeURIComponent(Scopes.join(' '))
-  return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${
-    scope
-  }&state=${state}`
+  return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
 
 export async function requestOAuthToken(

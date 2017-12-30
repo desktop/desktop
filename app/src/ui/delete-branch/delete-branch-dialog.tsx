@@ -13,6 +13,7 @@ interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
+  readonly existsOnRemote: boolean
   readonly onDismissed: () => void
 }
 
@@ -60,7 +61,7 @@ export class DeleteBranch extends React.Component<
   }
 
   private renderDeleteOnRemote() {
-    if (this.props.branch.remote) {
+    if (this.props.branch.remote && this.props.existsOnRemote) {
       return (
         <div>
           <p>

@@ -11,6 +11,7 @@ import { Repository } from '../../models/repository'
 import { PopupType } from '../../lib/app-state'
 import { ShellError } from '../shells'
 import { UpstreamAlreadyExistsError } from '../stores/upstream-already-exists-error'
+import { FetchType } from '../stores/index'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -239,7 +240,7 @@ export async function pushNeedsPullHandler(
   }
 
   // Since they need to pull, go ahead and do a fetch for them.
-  dispatcher.fetch(repository)
+  dispatcher.fetch(repository, FetchType.UserInitiatedTask)
 
   return error
 }

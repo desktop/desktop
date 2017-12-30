@@ -316,9 +316,7 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
           }\n`
         }
 
-        const message = `The following dependencies have unknown or non-permissive licenses. Check it out and update ${
-          overridesPath
-        } if appropriate:\n${licensesMessage}`
+        const message = `The following dependencies have unknown or non-permissive licenses. Check it out and update ${overridesPath} if appropriate:\n${licensesMessage}`
         callback(new Error(message))
       } else {
         legalEagle(
@@ -341,9 +339,7 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
             summary[`desktop@${appVersion}`] = {
               repository: 'https://github.com/desktop/desktop',
               license: 'MIT',
-              source: `https://github.com/desktop/desktop/blob/release-${
-                appVersion
-              }/LICENSE`,
+              source: `https://github.com/desktop/desktop/blob/release-${appVersion}/LICENSE`,
               sourceText: licenseText,
             }
 
