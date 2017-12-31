@@ -140,10 +140,11 @@ function upload(assetName: string, assetPath: string) {
         } else {
           const stats = Fs.statSync(assetPath)
           const hash = Crypto.createHash('sha1')
+          hash.setEncoding('hex')
           const input = Fs.createReadStream(assetPath)
 
           hash.on('finish', () => {
-            const sha = hash.read().toString('hex')
+            let sha = hash.read() as string
             resolve({ name: assetName, url, size: stats['size'], sha })
           })
 
