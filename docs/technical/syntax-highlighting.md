@@ -11,7 +11,7 @@ We currently support syntax highlighting for the following languages.
 
 JavaScript, JSON, TypeScript, Coffeescript, HTML, CSS, SCSS, LESS, VUE,
 Markdown, Yaml, XML, Objective-C, Scala, C#, Java, C, C++, Kotlin, Ocaml, F#,
-sh/bash, Swift, SQL, CYPHER, Go, Perl, PHP, Python, Ruby, Clojure
+sh/bash, Swift, SQL, CYPHER, Go, Perl, PHP, Python, Ruby, Clojure, Rust
 
 This list was never meant to be exhaustive, we expect to add more languages
 going forward but this seemed like a good first step.
