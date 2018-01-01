@@ -24,7 +24,7 @@
     "clean:tslint": "rimraf tslint-rules/*.js",
     "compile:tslint": "tsc -p tslint-rules",
     "compile:script": "tsc -p script",
-    "lint": "yarn lint:src && yarn lint:prettier",
+    "lint": "yarn lint:src && yarn lint:prettier || echo '\u001b[1m\u001b[32m→ To fix some of these errors, run \u001b[39m\u001b[22m\u001b[1m\u001b[32m\u001b[4myarn eslint:fix\u001b[24m\u001b[39m\u001b[22m'",
     "lint:fix": "yarn lint:src:fix && yarn lint:prettier --write",
     "lint:prettier": "prettier '**/*.md' '**/*.scss' --list-different",
     "lint:src": "yarn tslint && yarn eslint-check && yarn eslint",
