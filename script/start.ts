@@ -11,7 +11,6 @@ import configs = require('../app/webpack.development')
 
 import { run } from './run'
 
-
 function startApp() {
   const runningApp = run({ stdio: 'inherit' })
   if (!runningApp) {
@@ -39,7 +38,10 @@ if (process.env.NODE_ENV === 'production') {
   const message = 'Could not find public path from configuration'
   server.use(
     devMiddleware(compiler, {
-      publicPath: u(message, u(message, u(message, rendererConfig).output).publicPath),
+      publicPath: u(
+        message,
+        u(message, u(message, rendererConfig).output).publicPath
+      ),
       noInfo: true,
     })
   )

@@ -144,7 +144,7 @@ function upload(assetName: string, assetPath: string) {
           const input = Fs.createReadStream(assetPath)
 
           hash.on('finish', () => {
-            let sha = hash.read() as string
+            const sha = hash.read() as string
             resolve({ name: assetName, url, size: stats['size'], sha })
           })
 
@@ -194,9 +194,9 @@ function updateDeploy(artifacts: ReadonlyArray<IUploadResult>) {
       if (response.statusCode !== 200) {
         reject(
           new Error(
-            `Received a non-200 response (${response.statusCode}): ${JSON.stringify(
-              body
-            )}`
+            `Received a non-200 response (${
+              response.statusCode
+            }): ${JSON.stringify(body)}`
           )
         )
         return
