@@ -359,6 +359,9 @@
      - [ ] Status checks run frequently in background, especially if yellow
      - [ ] If user hovers over CI status icons, tooltips show individual/group status details
  - [ ] PR status can be updated independently of respective PR
+ 
+### Security
+ - [ ] `Untrusted server` warning surfaced if GitHub cannot verify the identity of `api.github.com`; user can `Cancel` or `Continue`
 
 ### TBD placeholder (WIP)
 - Merge tool for conflicted files
