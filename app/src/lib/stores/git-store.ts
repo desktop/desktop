@@ -43,6 +43,7 @@ import {
   unstageAllFiles,
   openMergeTool,
   addRemote,
+  listSubmodules,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
