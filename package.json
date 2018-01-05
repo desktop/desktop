@@ -24,6 +24,7 @@
     "clean:tslint": "rimraf tslint-rules/*.js",
     "compile:tslint": "tsc -p tslint-rules",
     "compile:script": "tsc -p script",
+    "spellcheck": "spellchecker --files \"*.md\" \"docs/**/*.md\" --dictionary dictionary.txt",
     "lint": "yarn compile:tslint && yarn compile:script && yarn tslint && yarn eslint-check && yarn eslint",
     "lint:fix": "yarn compile:tslint && yarn tslint:fix && yarn eslint:fix",
     "tslint": "tslint ./{script,tslint-rules}/*.ts ./app/{src,typings,test}/**/*.{ts,tsx}",
@@ -128,6 +129,7 @@
     "electron-builder": "19.48.3",
     "electron-mocha": "^5.0.0",
     "electron-packager": "^10.1.0",
-    "electron-winstaller": "2.5.2"
+    "electron-winstaller": "2.5.2",
+    "spellchecker-cli": "^3.0.1"
   }
 }
