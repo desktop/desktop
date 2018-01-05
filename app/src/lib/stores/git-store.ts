@@ -944,14 +944,19 @@ export class GitStore {
     const pathsToCheckout = new Array<string>()
     const pathsToReset = new Array<string>()
 
+    const submodules = await listSubmodules(this.repository)
+
     await queueWorkHigh(files, async file => {
       if (file.status !== AppFileStatus.Deleted) {
-        // N.B. moveItemToTrash is synchronous can take a fair bit of time
-        // which is why we're running it inside this work queue that spreads
-        // out the calls across as many animation frames as it needs to.
-        this.shell.moveItemToTrash(
-          Path.resolve(this.repository.path, file.path)
-        )
+        const foundSubmodule = submodules.find(s => s.path === file.path)
+        if (foundSubmodule == null) {
+          // N.B. moveItemToTrash is synchronous can take a fair bit of time
+          // which is why we're running it inside this work queue that spreads
+          // out the calls across as many animation frames as it needs to.
+          this.shell.moveItemToTrash(
+            Path.resolve(this.repository.path, file.path)
+          )
+        }
       }
 
       if (
