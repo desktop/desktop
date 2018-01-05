@@ -241,6 +241,7 @@
   - [ ] Current repo is always shown in top slot with respective icon; if repo exists
   - [ ] Opening list shows all repos in categorized format with a working filter
     - [ ] `ESC` clears the filter
+    - [ ] Search filter match results in bold characters
     - [ ] All repos (private, enterprise, local, public, forked, other) have proper icon and found in the proper category (GitHub.com/Enterprise/Other)
       - [ ] Hover shows username/repo, url, and/or local path in tooltip
       - [ ] User must have paid account for private repos
@@ -312,6 +313,7 @@
     - [ ] If filters results are nil, then prefill branch name in modal if user clicks `Create New Branch`
     - [ ] Active branch is highlighted and marked with a check
     - [ ] `ESC` clears the filter
+    - [ ] Search filter match results in bold characters
     - [ ] Hover shows full branch name in tooltip
   - [ ] Default branch labeled and listed first, with timestamp
   - [ ] Selecting a branch switches branches
