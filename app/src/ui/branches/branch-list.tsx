@@ -224,7 +224,12 @@ export class BranchList extends React.Component<
   }
 
   private renderNoItems = () => {
-    return <NoBranches onCreateNewBranch={this.onCreateNewBranch} />
+    return (
+      <NoBranches
+        onCreateNewBranch={this.onCreateNewBranch}
+        canCreateNewBranch={this.props.canCreateNewBranch}
+      />
+    )
   }
 
   private renderNewButton = () => {
