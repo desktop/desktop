@@ -14,15 +14,13 @@ export async function listSubmodules(
     'listSubmodules'
   )
 
-  const entries = result.stdout
-    .split('\n')
-    .map(x => x.trim())
-    .filter(x => x.length > 0)
-    .map(x => x.split(/\s+/))
-
   const submodules = new Array<SubmoduleEntry>()
 
-  for (const entry of entries) {
+  for (const entry of result.stdout.split('\n')) {
+    if (entry.length === 0) {
+      continue
+    }
+
     // entries are of the format:
     //  1eaabe34fc6f486367a176207420378f587d3b48 git (v2.16.0-rc0)
     //
@@ -33,6 +31,9 @@ export async function listSubmodules(
     //   - "U" if the submodule has merge conflicts
     //
     // then the 40-character SHA represents the current commit
+    const sha = entry.substr(1, 40)
+
+    const rest = entry.substr(42).split(/\s+/)
     //
     // then the path to the submodule
     //
@@ -43,11 +44,10 @@ export async function listSubmodules(
     //     {shortsha} is the abbreviated SHA of the current commit
     //
     // TODO: what if there are no tags in the submodule?
-    const sha = entry[0].substr(1)
-    const path = entry[1]
 
-    const tagInBraces = entry[2]
-    const nearestTag = entry[2].substr(1, tagInBraces.length - 2)
+    const [path, tagInBraces] = rest
+
+    const nearestTag = tagInBraces.substr(1, tagInBraces.length - 2)
     submodules.push(new SubmoduleEntry(sha, path, nearestTag))
   }
 
