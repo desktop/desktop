@@ -39,11 +39,12 @@ export async function listSubmodules(
     //
     // then the output of `git describe` for the submodule in braces:
     //   - (tag) if the current commit is associated with a tag
-    //   - ({tag}-{count}-{short-sha}) if the current commit does not have a tag
+    //   - ({tag}-{count}-{short-sha}) if the current commit is near a tag
     //     {count} is the number of commits ahead of the tag
     //     {shortsha} is the abbreviated SHA of the current commit
+    //   - (heads/{branch}) if the current commit is on a known branch
     //
-    // TODO: what if there are no tags in the submodule?
+    // TODO: can we make git describe crash in here _somehow_???
 
     const [path, tagInBraces] = rest
 

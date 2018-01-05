@@ -1,5 +1,3 @@
-/* eslint-disable no-sync */
-
 import { expect } from 'chai'
 import * as path from 'path'
 
@@ -28,6 +26,7 @@ describe('git/submodule', () => {
       const submoduleRepository = new Repository(submodulePath, -1, null, false)
 
       await checkoutBranch(submoduleRepository, null, 'feature-branch')
+
       const result = await listSubmodules(repository)
       expect(result.length).to.equal(1)
       expect(result[0].sha).to.equal('14425bb2a4ee361af7f789a81b971f8466ae521d')
