@@ -1,5 +1,3 @@
-'use strict'
-
 const PUBLISH_CHANNELS = ['production', 'test', 'beta']
 import * as distInfo from './dist-info'
 import * as gitInfo from '../app/git-info'

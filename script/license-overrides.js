@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = {
   'cycle@1.0.3': {
     repository: 'git+ssh://git@github.com/dscape/cycle',

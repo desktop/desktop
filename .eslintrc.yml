@@ -65,6 +65,9 @@ rules:
   eqeqeq:
     - error
     - smart
+  strict:
+    - error
+    - global
 
   ###########
   # SPECIAL #
@@ -80,6 +83,13 @@ rules:
     # no-default-export
     - selector: ExportDefaultDeclaration
       message: Use of default exports is forbidden
+
+overrides:
+  - files: '*.d.ts'
+    rules:
+      strict:
+        - error
+        - never
 
 parserOptions:
   sourceType: module

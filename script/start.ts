@@ -1,5 +1,3 @@
-'use strict'
-
 import * as express from 'express'
 import * as webpack from 'webpack'
 import * as devMiddleware from 'webpack-dev-middleware'
