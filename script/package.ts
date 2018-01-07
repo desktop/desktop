@@ -1,5 +1,7 @@
 /* eslint-disable no-sync */
 
+///<reference path="./globals.d.ts"/>
+
 import * as fs from 'fs-extra'
 import * as cp from 'child_process'
 import * as path from 'path'

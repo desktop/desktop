@@ -62,3 +62,12 @@ type AppImageOptions = {
 type ElectronInstallerAppImage = {
   default: (options: AppImageOptions) => Promise<void>
 }
+
+// process.env type declarations
+declare namespace NodeJS {
+  interface Process {
+    env: {
+      [variable: string]: string
+    }
+  }
+}

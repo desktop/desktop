@@ -6643,14 +6643,14 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 
-typescript-eslint-parser@^10.0.0:
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/typescript-eslint-parser/-/typescript-eslint-parser-10.0.0.tgz#82b550253659c311c2e4a4d18311b94dd08a36d7"
+typescript-eslint-parser@j-f1/forked-typescript-eslint-parser#add-parser-services:
+  version "11.0.0"
+  resolved "https://codeload.github.com/j-f1/forked-typescript-eslint-parser/tar.gz/e77984789ed91359d8cfe30b971e0b33354ff6a9"
   dependencies:
     lodash.unescape "4.0.1"
     semver "5.4.1"
 
-typescript@2.6.2:
+typescript@^2.6.2:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.6.2.tgz#3c5b6fd7f6de0914269027f03c0946758f7673a4"
 
