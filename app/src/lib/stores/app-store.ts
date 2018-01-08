@@ -1606,7 +1606,7 @@ export class AppStore {
     const kind = 'checkout'
 
     const foundBranch =
-      branch instanceof String
+      typeof branch === 'string'
         ? this.getLocalBranch(repository, branch)
         : branch
 
