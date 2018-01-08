@@ -33,13 +33,13 @@ mistake.
 #### Examples
 
 Our
-[assertNever](https://github.com/desktop/desktop/blob/d26fd1ee/app/src/lib/fatal-error.ts#L6-L21)
+[`assertNever`](https://github.com/desktop/desktop/blob/d26fd1ee/app/src/lib/fatal-error.ts#L6-L21)
 helper lets us leverage the type system to verify exhaustiveness and get
 [compile-time errors](https://github.com/desktop/desktop/blob/8fc8e6f5/app/src/ui/branches/ci-status.tsx#L36-L47)
 when that assertion fails.
 
 Our
-[react-readonly-props-and-state](https://github.com/desktop/desktop/blob/d26fd1ee/tslint-rules/reactReadonlyPropsAndStateRule.ts)
+[`react-readonly-props-and-state`](https://github.com/desktop/desktop/blob/d26fd1ee/tslint-rules/reactReadonlyPropsAndStateRule.ts)
 static analysis ensures that we don't accidentally mutate state which React
 prohibits being mutated but isn't able to enforce due to the dynamic runtime.
 
@@ -112,7 +112,7 @@ to instance fields or shared variables the function has closed over).
 #### Examples
 
 In app-menu-bar we've extracted a method called
-[createState](https://github.com/desktop/desktop/blob/d26fd1ee/app/src/ui/app-menu/app-menu-bar.tsx#L50-L75)
+[`createState`](https://github.com/desktop/desktop/blob/d26fd1ee/app/src/ui/app-menu/app-menu-bar.tsx#L50-L75)
 from the component to live outside of the class such that we can be sure that
 the only thing that matters to the outcome of that function is the props object
 that's passed to it. By doing this we can avoid a very common example of using
