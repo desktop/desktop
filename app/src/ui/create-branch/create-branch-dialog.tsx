@@ -29,11 +29,13 @@ interface ICreateBranchProps {
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly initialName: string
+  readonly initialBranch: Branch | null
 }
 
 enum StartPoint {
   CurrentBranch,
   DefaultBranch,
+  InitialBranch,
   Head,
 }
 
@@ -81,6 +83,10 @@ function getStartPoint(
   props: ICreateBranchProps,
   preferred: StartPoint
 ): StartPoint {
+  if (props.initialBranch !== null) {
+    return StartPoint.InitialBranch
+  }
+
   if (preferred === StartPoint.DefaultBranch && props.defaultBranch) {
     return preferred
   }
@@ -144,6 +150,18 @@ export class CreateBranch extends React.Component<
   }
 
   private renderBranchSelection() {
+    if (
+      this.state.startPoint === StartPoint.InitialBranch &&
+      this.props.initialBranch !== null
+    ) {
+      const initialBranch = this.props.initialBranch
+      return (
+        <p>
+          Your new branch will be based on <Ref>{initialBranch.name}</Ref>.
+        </p>
+      )
+    }
+
     const tip = this.state.isCreatingBranch
       ? this.state.tipAtCreateStart
       : this.props.tip
@@ -309,6 +327,11 @@ export class CreateBranch extends React.Component<
       }
 
       startPoint = this.props.defaultBranch.name
+    } else if (
+      this.state.startPoint === StartPoint.InitialBranch &&
+      this.props.initialBranch !== null
+    ) {
+      startPoint = this.props.initialBranch.name
     }
 
     if (name.length > 0) {

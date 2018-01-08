@@ -210,12 +210,7 @@ export enum PopupType {
 
 export type Popup =
   | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
-  | {
-      type: PopupType.DeleteBranch
-      repository: Repository
-      branch: Branch
-      existsOnRemote: boolean
-    }
+  | { type: PopupType.DeleteBranch; repository: Repository; branch: Branch }
   | {
       type: PopupType.ConfirmDiscardChanges
       repository: Repository
@@ -234,6 +229,7 @@ export type Popup =
       type: PopupType.CreateBranch
       repository: Repository
       initialName?: string
+      initialBranch?: Branch
     }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }

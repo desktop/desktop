@@ -411,7 +411,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const tip = state.state.branchesState.tip
-    const existsOnRemote = state.state.aheadBehind !== null
 
     if (tip.kind === TipState.Valid) {
       const currentPullRequest = state.state.branchesState.currentPullRequest
@@ -426,7 +425,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           type: PopupType.DeleteBranch,
           repository: state.repository,
           branch: tip.branch,
-          existsOnRemote: existsOnRemote,
         })
       }
     }
@@ -911,7 +909,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
-            existsOnRemote={popup.existsOnRemote}
             onDismissed={this.onPopupDismissed}
           />
         )
@@ -1043,6 +1040,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             dispatcher={this.props.dispatcher}
             initialName={popup.initialName || ''}
+            initialBranch={popup.initialBranch || null}
           />
         )
       }
