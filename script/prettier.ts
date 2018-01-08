@@ -4,12 +4,22 @@ import * as Path from 'path'
 import chalk from 'chalk'
 import { spawnSync } from 'child_process'
 
+const shouldFix = process.argv.indexOf('--fix') > -1
+
 const root = Path.dirname(__dirname)
 
 const prettier = process.platform === 'win32' ? 'prettier.cmd' : 'prettier'
 const prettierPath = Path.join(root, 'node_modules', '.bin', prettier)
 
-const result = spawnSync(prettierPath, ['**/*.{md,scss}', '--list-different'], {
+const args = ['**/*.{md,scss}']
+
+if (shouldFix) {
+  args.push('--write')
+} else {
+  args.push('--list-different')
+}
+
+const result = spawnSync(prettierPath, args, {
   cwd: root,
 })
 
@@ -20,7 +30,7 @@ if (result.status > 0) {
   console.log(result.stdout.toString())
 
   console.error(
-    chalk`{bold.green → To fix these errors, run {underline yarn lint:fix}}`
+    chalk`{bold.green → To fix these errors, run {underline yarn lint:prettier --write}}`
   )
 } else if (result.status < 0) {
   process.exitCode = result.status
