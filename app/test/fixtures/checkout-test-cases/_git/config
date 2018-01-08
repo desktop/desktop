@@ -1,0 +1,16 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+[remote "first-remote"]
+	url = https://github.com/shiftkey/checkout-test-cases
+	fetch = +refs/heads/*:refs/remotes/first-remote/*
+[branch "master"]
+	remote = first-remote
+	merge = refs/heads/master
+[remote "second-remote"]
+	url = https://github.com/shiftkey/checkout-test-cases.git
+	fetch = +refs/heads/*:refs/remotes/second-remote/*
