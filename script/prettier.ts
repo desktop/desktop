@@ -35,7 +35,7 @@ if (result.status > 0) {
 } else if (result.status < 0) {
   process.exitCode = result.status
 
-  console.log(`prettier returned an unexpected exit code: ${result.status}.`)
+  console.log('prettier returned an unexpected exit code')
   console.log(`stdout: '${result.stdout.toString()}'`)
   console.log(`stderr: '${result.stderr.toString()}'`)
 }
