@@ -6,9 +6,10 @@ import { spawnSync } from 'child_process'
 
 const root = Path.dirname(__dirname)
 
-const prettier = Path.join(root, 'node_modules', '.bin', 'prettier')
+const prettier = process.platform === 'win32' ? 'prettier.cmd' : 'prettier'
+const prettierPath = Path.join(root, 'node_modules', '.bin', prettier)
 
-const result = spawnSync(prettier, ['**/*.{md,scss}', '--list-different'], {
+const result = spawnSync(prettierPath, ['**/*.{md,scss}', '--list-different'], {
   cwd: root,
 })
 
