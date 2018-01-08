@@ -86,7 +86,7 @@
   - [ ] Publish Repository modal present if repo is unpublished and user clicks `Publish repository` button
     - [ ] GitHub tab is default; Enterprise tab is also present
       - [ ] User must be signed in to publish, else `Sign In` button present on tab
-    - [ ] Modal fields are Name, Description (optional), `Keep this code private` checkbox, Organization list (alpha order, tab-specific), `Cancel` button, `Publish Repository` button
+    - [ ] Modal fields are Name, Description (optional), `Keep this code private` checkbox, Organization list (alpha order, tab-specific, if orgs exist), `Cancel` button, `Publish Repository` button
       - [ ] Clicking `Publish Repository` button pushes repo to GitHub.com or Enterprise; `Cancel` button closes modal
         - [ ] Repository is present on GitHub.com or Enterprise if published 
 	- [ ] 'Visibility can't be private error' shown, if user's plan is not sufficient
