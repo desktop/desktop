@@ -8,14 +8,12 @@ are constrained to within the dialog itself.
 ## General structure
 
 ```jsx
-<Dialog title='Title'>
+<Dialog title="Title">
   <TabBar>...</TabBar>
-  <DialogContent>
-    ...
-  </DialogContent>
+  <DialogContent>...</DialogContent>
   <DialogFooter>
     <ButtonGroup>
-      <Button type='submit'>Ok</Button>
+      <Button type="submit">Ok</Button>
       <Button>Cancel</Button>
     </ButtonGroup>
   </DialogFooter>
@@ -34,15 +32,15 @@ The `DialogError` component, if used, must be the first child element of the
 Dialog itself.
 
 ```jsx
-<Dialog title='Preferences'>
-  <DialogError>Could not save ignore file. EPERM Something something</DialogError>
+<Dialog title="Preferences">
+  <DialogError>
+    Could not save ignore file. EPERM Something something
+  </DialogError>
   <TabBar>...</TabBar>
-  <DialogContent>
-    ...
-  </DialogContent>
+  <DialogContent>...</DialogContent>
   <DialogFooter>
     <ButtonGroup>
-      <Button type='submit'>Ok</Button>
+      <Button type="submit">Ok</Button>
       <Button>Cancel</Button>
     </ButtonGroup>
   </DialogFooter>
@@ -57,52 +55,50 @@ on the styling of the `DialogError` component.
 
 ### DO: Let children render the `DialogContent` component
 
-If you're using a one-child-per-tab approach you should render the `DialogContent`
-the `DialogContent` element. This avoid needless nesting and lets us leverage
-generic dialog/form/row styles in a more straightforward way.
+If you're using a one-child-per-tab approach you should render the
+`DialogContent` the `DialogContent` element. This avoid needless nesting and
+lets us leverage generic dialog/form/row styles in a more straightforward way.
 
 #### Example (good)
 
 ```jsx
 // SomeComponent.tsx
-<Dialog title='Title'>
+<Dialog title="Title">
   <TabBar>...</TabBar>
   {this.renderActiveTab()}
   <DialogFooter>
     <ButtonGroup>
-      <Button type='submit'>Ok</Button>
+      <Button type="submit">Ok</Button>
       <Button>Cancel</Button>
     </ButtonGroup>
   </DialogFooter>
 </Dialog>
+```
 
+```jsx
 // ChildComponent.tsx
-<DialogContent>
-  my fancy content
-</DialogContent>
+<DialogContent>my fancy content</DialogContent>
 ```
 
 #### Example (bad)
 
 ```jsx
 // SomeComponent.tsx
-<Dialog title='Title'>
+<Dialog title="Title">
   <TabBar>...</TabBar>
-  <DialogContent>
-    {this.renderActiveTab()}
-  </DialogContent>
+  <DialogContent>{this.renderActiveTab()}</DialogContent>
   <DialogFooter>
     <ButtonGroup>
-      <Button type='submit'>Ok</Button>
+      <Button type="submit">Ok</Button>
       <Button>Cancel</Button>
     </ButtonGroup>
   </DialogFooter>
 </Dialog>
+```
 
+```jsx
 // ChildComponent.tsx
-<div>
-  my fancy content
-</div>
+<div>my fancy content</div>
 ```
 
 ### DO: Use Row components to lay out content
