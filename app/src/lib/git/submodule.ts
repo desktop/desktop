@@ -14,6 +14,8 @@ export async function listSubmodules(
     'listSubmodules'
   )
 
+  // TODO: can we make git describe crash in here _somehow_???
+
   const submodules = new Array<SubmoduleEntry>()
 
   for (const entry of result.stdout.split('\n')) {
@@ -37,19 +39,16 @@ export async function listSubmodules(
     //
     // then the path to the submodule
     //
-    // then the output of `git describe` for the submodule in braces:
-    //   - (tag) if the current commit is associated with a tag
-    //   - ({tag}-{count}-{short-sha}) if the current commit is near a tag
-    //     {count} is the number of commits ahead of the tag
-    //     {shortsha} is the abbreviated SHA of the current commit
-    //   - (heads/{branch}) if the current commit is on a known branch
+    // then the output of `git describe` for the submodule in braces
+    // we're not leveraging this in the app, so go and read the docs
+    // about it if you want to learn more:
     //
-    // TODO: can we make git describe crash in here _somehow_???
+    // https://git-scm.com/docs/git-describe
 
-    const [path, tagInBraces] = rest
+    const [path, describeOutput] = rest
 
-    const nearestTag = tagInBraces.substr(1, tagInBraces.length - 2)
-    submodules.push(new SubmoduleEntry(sha, path, nearestTag))
+    const describe = describeOutput.substr(1, describeOutput.length - 2)
+    submodules.push(new SubmoduleEntry(sha, path, describe))
   }
 
   return submodules

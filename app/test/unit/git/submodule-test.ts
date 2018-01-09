@@ -18,7 +18,7 @@ describe('git/submodule', () => {
       expect(result.length).to.equal(1)
       expect(result[0].sha).to.equal('c59617b65080863c4ca72c1f191fa1b423b92223')
       expect(result[0].path).to.equal('foo/submodule')
-      expect(result[0].nearestTag).to.equal('first-tag~2')
+      expect(result[0].describe).to.equal('first-tag~2')
     })
 
     it('returns the expected tag', async () => {
@@ -43,7 +43,7 @@ describe('git/submodule', () => {
       expect(result.length).to.equal(1)
       expect(result[0].sha).to.equal('14425bb2a4ee361af7f789a81b971f8466ae521d')
       expect(result[0].path).to.equal('foo/submodule')
-      expect(result[0].nearestTag).to.equal('heads/feature-branch')
+      expect(result[0].describe).to.equal('heads/feature-branch')
     })
   })
 
@@ -67,12 +67,12 @@ describe('git/submodule', () => {
       await checkoutBranch(submoduleRepository, null, branches[0])
 
       let result = await listSubmodules(repository)
-      expect(result[0].nearestTag).to.equal('heads/feature-branch')
+      expect(result[0].describe).to.equal('heads/feature-branch')
 
       await resetSubmodulePaths(repository, ['foo/submodule'])
 
       result = await listSubmodules(repository)
-      expect(result[0].nearestTag).to.equal('first-tag~2')
+      expect(result[0].describe).to.equal('first-tag~2')
     })
   })
 })
