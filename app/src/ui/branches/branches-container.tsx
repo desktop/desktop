@@ -55,18 +55,19 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private onItemClick = (item: Branch) => {
-    this.checkoutBranch(item.nameWithoutRemote)
-  }
-
-  private checkoutBranch(branch: string) {
+  private onItemClick = (branch: Branch) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
     const currentBranch = this.props.currentBranch
 
-    if (!currentBranch || currentBranch.name !== branch) {
+    if (currentBranch != null && currentBranch.name !== branch.name) {
       this.props.dispatcher.checkoutBranch(this.props.repository, branch)
     }
+  }
+
+  private checkoutRef(ref: string) {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.checkoutBranch(this.props.repository, ref)
   }
 
   private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -246,7 +247,7 @@ export class BranchesContainer extends React.Component<
       head.gitHubRepository &&
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
     if (isRefInThisRepo) {
-      this.checkoutBranch(head.ref)
+      this.checkoutRef(head.ref)
     } else {
       log.debug(
         `onPullRequestClicked, but we can't checkout the branch: '${

@@ -277,9 +277,9 @@ export class Dispatcher {
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
-    name: string
+    branch: Branch | string
   ): Promise<Repository> {
-    return this.appStore._checkoutBranch(repository, name)
+    return this.appStore._checkoutBranch(repository, branch)
   }
 
   /** Push the current branch. */
