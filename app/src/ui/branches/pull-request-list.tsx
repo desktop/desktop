@@ -28,12 +28,6 @@ interface IPullRequestListProps {
   /** The pull requests to display. */
   readonly pullRequests: ReadonlyArray<PullRequest>
 
-  /**
-   * The pull request associated with the current branch. This is used to
-   * pre-select the currently checked out PR in the list of pull requests.
-   */
-  readonly currentPullRequest: PullRequest | null
-
   /** Called when the user clicks on a pull request. */
   readonly onItemClick: (pullRequest: PullRequest) => void
 
@@ -54,6 +48,27 @@ interface IPullRequestListState {
   readonly selectedItem: IPullRequestListItem | null
 }
 
+function resolveSelectedItem(
+  group: IFilterListGroup<IPullRequestListItem>,
+  props: IPullRequestListProps,
+  currentlySelectedItem: IPullRequestListItem | null
+): IPullRequestListItem | null {
+  let selectedItem: IPullRequestListItem | null = null
+
+  if (props.selectedPullRequest != null) {
+    selectedItem = findItemForPullRequest(group, props.selectedPullRequest)
+  }
+
+  if (selectedItem == null && currentlySelectedItem != null) {
+    selectedItem = findItemForPullRequest(
+      group,
+      currentlySelectedItem.pullRequest
+    )
+  }
+
+  return selectedItem
+}
+
 /** The list of open pull requests. */
 export class PullRequestList extends React.Component<
   IPullRequestListProps,
@@ -63,16 +78,7 @@ export class PullRequestList extends React.Component<
     super(props)
 
     const group = createListItems(props.pullRequests)
-    const selectedPullRequest = props.selectedPullRequest
-
-    let selectedItem: IPullRequestListItem | null =
-      props.currentPullRequest != null
-        ? findItemForPullRequest(group, props.currentPullRequest)
-        : null
-
-    if (selectedPullRequest != null) {
-      selectedItem = findItemForPullRequest(group, selectedPullRequest)
-    }
+    const selectedItem = resolveSelectedItem(group, props, null)
 
     this.state = {
       groupedItems: [group],
@@ -82,27 +88,12 @@ export class PullRequestList extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: IPullRequestListProps) {
-    if (nextProps.pullRequests === this.props.pullRequests) {
-      return
-    }
-
     const group = createListItems(nextProps.pullRequests)
-    const currentlySelectedItem = this.state.selectedItem
-
-    let selectedItem: IPullRequestListItem | null = null
-
-    if (currentlySelectedItem == null) {
-      selectedItem =
-        this.props.currentPullRequest != null
-          ? findItemForPullRequest(group, this.props.currentPullRequest)
-          : null
-    } else {
-      selectedItem = findItemForPullRequest(
-        group,
-        currentlySelectedItem.pullRequest
-      )
-    }
-
+    const selectedItem = resolveSelectedItem(
+      group,
+      nextProps,
+      this.state.selectedItem
+    )
     this.setState({ groupedItems: [group], selectedItem })
   }
 

@@ -99,7 +99,11 @@ export class PublishRepository extends React.Component<
     }
   }
 
-  private renderOrgs() {
+  private renderOrgs(): JSX.Element | null {
+    if (this.state.orgs.length === 0) {
+      return null
+    }
+
     const options = new Array<JSX.Element>()
     options.push(
       <option value={-1} key={-1}>
