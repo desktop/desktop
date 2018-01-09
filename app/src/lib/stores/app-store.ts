@@ -1485,6 +1485,14 @@ export class AppStore {
    * This will be called automatically when appropriate.
    */
   private async refreshHistorySection(repository: Repository): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    const state = this.getRepositoryState(repository)
+    const tip = state.branchesState.tip
+
+    if (tip.kind === TipState.Valid) {
+      await gitStore.loadLocalCommits(tip.branch)
+    }
+
     return this._loadHistory(repository)
   }
 
