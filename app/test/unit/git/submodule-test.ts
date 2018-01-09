@@ -6,7 +6,7 @@ import {
   listSubmodules,
   resetSubmodulePaths,
 } from '../../../src/lib/git/submodule'
-import { checkoutBranch } from '../../../src/lib/git/checkout'
+import { checkoutBranch, getBranches } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 
 describe('git/submodule', () => {
@@ -28,7 +28,16 @@ describe('git/submodule', () => {
       const submodulePath = path.join(testRepoPath, 'foo', 'submodule')
       const submoduleRepository = new Repository(submodulePath, -1, null, false)
 
-      await checkoutBranch(submoduleRepository, null, 'feature-branch')
+      const branches = await getBranches(
+        submoduleRepository,
+        'refs/remotes/origin/feature-branch'
+      )
+
+      if (branches.length === 0) {
+        throw new Error(`Could not find branch: feature-branch`)
+      }
+
+      await checkoutBranch(submoduleRepository, null, branches[0])
 
       const result = await listSubmodules(repository)
       expect(result.length).to.equal(1)
@@ -46,7 +55,16 @@ describe('git/submodule', () => {
       const submodulePath = path.join(testRepoPath, 'foo', 'submodule')
       const submoduleRepository = new Repository(submodulePath, -1, null, false)
 
-      await checkoutBranch(submoduleRepository, null, 'feature-branch')
+      const branches = await getBranches(
+        submoduleRepository,
+        'refs/remotes/origin/feature-branch'
+      )
+
+      if (branches.length === 0) {
+        throw new Error(`Could not find branch: feature-branch`)
+      }
+
+      await checkoutBranch(submoduleRepository, null, branches[0])
 
       let result = await listSubmodules(repository)
       expect(result[0].nearestTag).to.equal('heads/feature-branch')
