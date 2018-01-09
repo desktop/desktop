@@ -3,13 +3,20 @@
 const fs = require('fs')
 const path = require('path')
 
-function packedRefsParse(gitDir, ref) {
+/**
+ * Attempt to find a ref in the .git/packed-refs file, which is often
+ * created by Git as part of cleaning up loose refs in the repository.
+ *
+ * Will return null if the packed-refs file is missing.
+ * Will throw an error if the entry is not found in the packed-refs file
+ *
+ * @param {string} gitDir The path to the Git repository's .git directory
+ * @param {string} ref    A qualified git ref such as 'refs/heads/master'
+ */
+function readPackedRefsFile(gitDir, ref) {
   const packedRefsPath = path.join(gitDir, 'packed-refs')
 
   try {
-    // by performing a `stat` before reading the file contents,
-    // we can confirm the file exists on disk or try something else
-
     // eslint-disable-next-line no-sync
     fs.statSync(packedRefsPath)
   } catch (err) {
@@ -44,13 +51,10 @@ function revParse(gitDir, ref) {
   const refPath = path.join(gitDir, ref)
 
   try {
-    // by performing a `stat` before reading the file contents,
-    // we can confirm the file exists on disk or try something else
-
     // eslint-disable-next-line no-sync
     fs.statSync(refPath)
   } catch (err) {
-    const packedRefMatch = packedRefsParse(gitDir, ref)
+    const packedRefMatch = readPackedRefsFile(gitDir, ref)
     if (packedRefMatch) {
       return packedRefMatch
     }
