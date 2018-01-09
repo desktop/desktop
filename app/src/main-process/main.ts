@@ -74,7 +74,7 @@ if (__WIN32__ && process.argv.length > 1) {
 }
 
 function handleAppURL(url: string) {
-  log.info(`Received protocol argument: ${url}`)
+  log.info('Processing protocol url')
   const action = parseAppURL(url)
   onDidLoad(window => {
     // This manual focus call _shouldn't_ be necessary, but is for Chrome on
@@ -132,9 +132,7 @@ app.on('will-finish-launching', () => {
  *             path
  */
 function handlePossibleProtocolLauncherArgs(args: ReadonlyArray<string>) {
-  log.info(
-    `Received possible protocol arguments: ${args.length} ${args.join(' ')}`
-  )
+  log.info(`Received possible protocol arguments: ${args.length}`)
 
   if (__WIN32__) {
     // We register our protocol handler callback on Windows as
