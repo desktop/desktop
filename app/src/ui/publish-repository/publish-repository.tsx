@@ -65,7 +65,7 @@ export class PublishRepository extends React.Component<
 
   private async fetchOrgs(account: Account) {
     const api = API.fromAccount(account)
-    const orgs = [...(await api.fetchOrgs())]
+    const orgs = await api.fetchOrgs() as Array<IAPIUser>
     orgs.sort((a, b) => compare(a.login, b.login))
     this.setState({ orgs })
   }
