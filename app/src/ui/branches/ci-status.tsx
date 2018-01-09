@@ -35,10 +35,15 @@ export class CIStatus extends React.Component<ICIStatusProps, {}> {
 }
 
 function generateStatusHistory(prStatus: PullRequestStatus): string {
-  return prStatus.statuses.reduce(
-    (prev, curr) => `${prev}\n${curr.description}`,
-    `Commit status: ${prStatus.state}`
-  )
+  const statusCount = prStatus.statuses.length || 0
+
+  if (statusCount === 0) {
+    return prStatus.state.toUpperCase()
+  } else {
+    const successCount = prStatus.statuses.filter(x => x.state === 'success')
+
+    return `${successCount.length}/${statusCount} checks OK`
+  }
 }
 
 function getSymbolForState(state: APIRefState): OcticonSymbol {
