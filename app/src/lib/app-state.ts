@@ -206,6 +206,7 @@ export enum PopupType {
   InitializeLFS,
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
+  DeletePullRequest,
 }
 
 export type Popup =
@@ -272,6 +273,12 @@ export type Popup =
       type: PopupType.UpstreamAlreadyExists
       repository: Repository
       existingRemote: IRemote
+    }
+  | {
+      type: PopupType.DeletePullRequest
+      repository: Repository
+      branch: Branch
+      pullRequest: PullRequest
     }
 
 export enum FoldoutType {
