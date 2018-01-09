@@ -2,7 +2,10 @@ import { expect } from 'chai'
 import * as path from 'path'
 
 import { Repository } from '../../../src/models/repository'
-import { listSubmodules } from '../../../src/lib/git/submodule'
+import {
+  listSubmodules,
+  resetSubmodulePaths,
+} from '../../../src/lib/git/submodule'
 import { checkoutBranch } from '../../../src/lib/git/checkout'
 import { setupFixtureRepository } from '../../helpers/repositories'
 
@@ -32,6 +35,26 @@ describe('git/submodule', () => {
       expect(result[0].sha).to.equal('14425bb2a4ee361af7f789a81b971f8466ae521d')
       expect(result[0].path).to.equal('foo/submodule')
       expect(result[0].nearestTag).to.equal('heads/feature-branch')
+    })
+  })
+
+  describe('resetSubmodulePaths', () => {
+    it('update submodule to original commit', async () => {
+      const testRepoPath = setupFixtureRepository('submodule-basic-setup')
+      const repository = new Repository(testRepoPath, -1, null, false)
+
+      const submodulePath = path.join(testRepoPath, 'foo', 'submodule')
+      const submoduleRepository = new Repository(submodulePath, -1, null, false)
+
+      await checkoutBranch(submoduleRepository, null, 'feature-branch')
+
+      let result = await listSubmodules(repository)
+      expect(result[0].nearestTag).to.equal('heads/feature-branch')
+
+      await resetSubmodulePaths(repository, ['foo/submodule'])
+
+      result = await listSubmodules(repository)
+      expect(result[0].nearestTag).to.equal('first-tag~2')
     })
   })
 })
