@@ -31,8 +31,9 @@ programming language don't forget to:
 
 1. Submit a PR with a sample file for the language to
    [desktop/highlighter-tests](https://github.com/desktop/highlighter-tests).
-2. Add the language that the highlighter going to support to the `Supported Languages` list above.
 2. Add the language that the highlighter going to support to the
+   `Supported Languages` list above.
+3. Add the language that the highlighter going to support to the
    `Supported Languages` list above.
 
 ## Why do the diffs on GitHub.com and Desktop look different
