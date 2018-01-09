@@ -1,6 +1,10 @@
 import { fatalError } from '../../lib/fatal-error'
 
 export function disallowedCharacters(values: string): string | null {
+  if (values.length === 0) {
+    return null
+  }
+
   for (const value of values) {
     if (disallowedCharacter(value) === false) {
       return null
