@@ -44,6 +44,11 @@ function revParse(gitDir, ref) {
     // eslint-disable-next-line no-sync
     fs.statSync(refPath)
   } catch (err) {
+    const packedRefMatch = packedRefsParse(gitDir, ref)
+    if (packedRefMatch) {
+      return packedRefMatch
+    }
+
     throw new Error(
       `Could not de-reference HEAD to SHA, ref does not exist on disk: ${refPath}`
     )
