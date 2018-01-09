@@ -65,11 +65,6 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private checkoutRef(ref: string) {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.checkoutBranch(this.props.repository, ref)
-  }
-
   private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       if (this.state.filterText.length === 0) {
