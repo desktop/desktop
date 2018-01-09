@@ -301,6 +301,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private checkForUpdates(inBackground: boolean) {
+    if (__LINUX__) {
+      return
+    }
+
     if (
       __RELEASE_CHANNEL__ === 'development' ||
       __RELEASE_CHANNEL__ === 'test'
