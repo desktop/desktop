@@ -399,7 +399,7 @@ export class CreateRepository extends React.Component<
     )
   }
 
-  private renderInvalidPathWarning() {
+  private renderInvalidPathError() {
     const isValidPath = this.state.isValidPath
     const pathSet = isValidPath !== null
 
@@ -462,6 +462,8 @@ export class CreateRepository extends React.Component<
         onSubmit={this.createRepository}
         onDismissed={this.props.onDismissed}
       >
+        {this.renderInvalidPathError()}
+
         <DialogContent>
           <Row>
             <TextBox
@@ -495,8 +497,6 @@ export class CreateRepository extends React.Component<
               Choose…
             </Button>
           </Row>
-
-          {this.renderInvalidPathWarning()}
 
           {this.renderGitRepositoryWarning()}
 
