@@ -25,6 +25,7 @@ export class PullRequestRef {
   }
 }
 
+/** The commit status and metadata for a given ref */
 export class CombinedRefStatus {
   public readonly created_at: string
   public readonly updated_at: string
