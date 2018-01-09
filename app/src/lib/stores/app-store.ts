@@ -3011,10 +3011,7 @@ export class AppStore {
     }
 
     await this.pullRequestStore.refreshPullRequests(repository, account)
-    const gitStore = this.getGitStore(repository)
 
-    await gitStore.loadStatus()
-    await gitStore.loadCurrentRemote()
     this.updateMenuItemLabels(repository)
   }
 
