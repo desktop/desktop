@@ -15,6 +15,15 @@ const path = require('path')
  */
 function revParse(gitDir, ref) {
   const refPath = path.join(gitDir, ref)
+
+  try {
+    // eslint-disable-next-line no-sync
+    fs.statSync(refPath)
+  } catch (err) {
+    throw new Error(
+      `Could not de-reference HEAD to SHA, ref does not exist on disk: ${refPath}`
+    )
+  }
   // eslint-disable-next-line no-sync
   const refContents = fs.readFileSync(refPath)
   const refRe = /^([a-f0-9]{40})|(?:ref: (refs\/.*))$/m
