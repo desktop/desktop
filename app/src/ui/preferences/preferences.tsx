@@ -159,12 +159,12 @@ export class Preferences extends React.Component<
 
   private disallowedCharacterErrorMessage(name: string, email: string) {
     const disallowedNameCharacters = disallowedCharacters(name)
-    if (disallowedNameCharacters !== null) {
+    if (disallowedNameCharacters != null) {
       return `Git name field cannot be a disallowed character "${disallowedNameCharacters}"`
     }
 
     const disallowedEmailCharacters = disallowedCharacters(email)
-    if (disallowedEmailCharacters !== null) {
+    if (disallowedEmailCharacters != null) {
       return `Git email field cannot be a disallowed character "${disallowedEmailCharacters}"`
     }
 
@@ -173,7 +173,7 @@ export class Preferences extends React.Component<
 
   private renderDisallowedCharactersError() {
     const message = this.state.disallowedCharactersMessage
-    if (message !== null) {
+    if (message != null) {
       return <DialogError>{message}</DialogError>
     } else {
       return null
@@ -270,7 +270,7 @@ export class Preferences extends React.Component<
   }
 
   private renderFooter() {
-    const hasDisabledError = this.state.disallowedCharactersMessage !== null
+    const hasDisabledError = this.state.disallowedCharactersMessage != null
 
     const index = this.state.selectedIndex
     switch (index) {
