@@ -45,7 +45,10 @@ export class PullRequestUpdater {
 
   /** Starts the updater */
   public start() {
-    const githubRepo = forceUnwrap('', this.repository.gitHubRepository)
+    const githubRepo = forceUnwrap(
+      'Can only fetch pull requests for GitHub repositories',
+      this.repository.gitHubRepository
+    )
 
     if (!this.isStopped) {
       fatalError(
@@ -104,7 +107,10 @@ export class PullRequestUpdater {
   }
 
   private async refreshPullRequestStatus(repository: Repository) {
-    const githubRepo = forceUnwrap('', repository.gitHubRepository)
+    const githubRepo = forceUnwrap(
+      'Can only fetch pull requests for GitHub repositories',
+      repository.gitHubRepository
+    )
 
     await this.store.refreshPullRequestStatuses(githubRepo, this.account)
     const prs = await this.store.getPullRequests(githubRepo)
