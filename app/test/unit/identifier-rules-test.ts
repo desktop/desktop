@@ -15,6 +15,10 @@ describe('Identifier rules', () => {
     expect(disallowedCharacters(' ')).to.equal(' ')
   })
 
+  it('returns null when it receives an empty string', () => {
+    expect(disallowedCharacters('')).to.be.null
+  })
+
   it('returns values that are for ascii character codes 0-32 inclusive', () => {
     for (let i = 0; i <= 32; i++) {
       const char = String.fromCharCode(i)
