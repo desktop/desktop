@@ -3,6 +3,30 @@
 const fs = require('fs')
 const path = require('path')
 
+function packedRefsParse(gitDir, ref) {
+  const refPath = path.join(gitDir, 'packed-refs')
+
+  try {
+    // eslint-disable-next-line no-sync
+    fs.statSync(refPath)
+  } catch (err) {
+    // fail quietly if no packed-refs file exists
+    return null
+  }
+
+  // eslint-disable-next-line no-sync
+  const packedRefsContents = fs.readFileSync(refPath)
+
+  // we need to build up the regex on the fly using the ref
+  const refRe = new RegExp('([a-f0-9]{40}) ' + ref)
+  const packedRefMatch = refRe.exec(packedRefsContents)
+
+  if (!packedRefMatch) {
+    throw new Error(`Could not find ref entry in .git/packed-refs file: ${ref}`)
+  }
+  return packedRefMatch[1]
+}
+
 /**
  * Attempt to dereference the given ref without requiring a Git environment
  * to be present. Note that this method will not be able to dereference packed
