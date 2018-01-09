@@ -90,8 +90,9 @@ export class PullRequestStore {
     const remotesOfPullRequests = new Set<string>()
     openPullRequests.forEach(openPullRequest => {
       const { gitHubRepository } = openPullRequest.head
-      if (gitHubRepository != null && gitHubRepository.cloneURL != null)
+      if (gitHubRepository != null && gitHubRepository.cloneURL != null) {
         remotesOfPullRequests.add(gitHubRepository.cloneURL)
+      }
     })
     const forkedRemotesToDelete = forkedRemotes.filter(
       forkedRemote => !remotesOfPullRequests.has(forkedRemote.url)
