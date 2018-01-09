@@ -7,6 +7,9 @@ function packedRefsParse(gitDir, ref) {
   const packedRefsPath = path.join(gitDir, 'packed-refs')
 
   try {
+    // by performing a `stat` before reading the file contents,
+    // we can confirm the file exists on disk or try something else
+
     // eslint-disable-next-line no-sync
     fs.statSync(packedRefsPath)
   } catch (err) {
@@ -41,6 +44,9 @@ function revParse(gitDir, ref) {
   const refPath = path.join(gitDir, ref)
 
   try {
+    // by performing a `stat` before reading the file contents,
+    // we can confirm the file exists on disk or try something else
+
     // eslint-disable-next-line no-sync
     fs.statSync(refPath)
   } catch (err) {
