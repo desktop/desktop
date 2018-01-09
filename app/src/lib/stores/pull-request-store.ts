@@ -18,6 +18,11 @@ import { Repository } from '../../models/repository'
 import { getRemotes, removeRemote } from '../git'
 import { IRemote } from '../../models/remote'
 
+/**
+ * This is the magix remote name prefix
+ * for when we add a remote on behalf of
+ * the user.
+ */
 export const ForkedRemotePrefix = 'github-desktop-'
 
 /** The store for GitHub Pull Requests. */
@@ -41,7 +46,10 @@ export class PullRequestStore {
     repository: Repository,
     account: Account
   ): Promise<void> {
-    const githubRepo = forceUnwrap('', repository.gitHubRepository)
+    const githubRepo = forceUnwrap(
+      'Can only fetch pull requests for GitHub repositories',
+      repository.gitHubRepository
+    )
     const api = API.fromAccount(account)
 
     this.changeActiveFetchCount(githubRepo, c => c + 1)
