@@ -1,5 +1,29 @@
 {
   "releases": {
+    "1.0.12": [
+      "[New] Syntax highlighting for Rust files - #3666. Thanks @subnomo!",
+      "[New] Syntax highlighting for Clojure cljc, cljs, and edn files - #3610. Thanks @mtkp!",
+      "[Improved] Prevent creating a branch in the middle of a merge - #3733",
+      "[Improved] Truncate long repo names in panes and modals to fit into a single line - #3598. Thanks @http-request!",
+      "[Improved] Keyboard navigation support in pull request list - #3607",
+      "[Fixed] Inconsistent caret behavior in text boxes when using certain keyboard layouts - #3354",
+      "[Fixed] Only render the organizations list when it has orgs - #1414",
+      "[Fixed] Checkout now handles situations where a ref exists on multiple remotes - #3281",
+      "[Fixed] Retain accounts on desktop when losing connectivity - #3641",
+      "[Fixed] Missing argument in FullScreenInfo that could prevent app from launching - #3727. Thanks @OiYouYeahYou!"
+    ],
+    "1.0.12-beta1": [
+      "[New] Syntax highlighting for Rust files - #3666. Thanks @subnomo!",
+      "[New] Syntax highlighting for Clojure cljc, cljs, and edn files - #3610. Thanks @mtkp!",
+      "[Improved] Prevent creating a branch in the middle of a merge - #3733",
+      "[Improved] Truncate long repo names in panes and modals to fit into a single line - #3598. Thanks @http-request!",
+      "[Improved] Keyboard navigation support in pull request list - #3607",
+      "[Fixed] Inconsistent caret behavior in text boxes when using certain keyboard layouts - #3354",
+      "[Fixed] Only render the organizations list when it has orgs - #1414",
+      "[Fixed] Checkout now handles situations where a ref exists on multiple remotes - #3281",
+      "[Fixed] Retain accounts on desktop when losing connectivity - #3641",
+      "[Fixed] Missing argument in FullScreenInfo that could prevent app from launching - #3727. Thanks @OiYouYeahYou!"
+    ],
     "1.0.12-beta0": [
       "[New] Highlight substring matches in the \"Branches\" and \"Repositories\" list when filtering - #910. Thanks @JordanMussi!",
       "[New] Add preview for ico files - #3531. Thanks @serhiivinichuk!",
