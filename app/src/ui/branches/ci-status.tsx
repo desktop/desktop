@@ -41,8 +41,9 @@ function generateStatusHistory(prStatus: PullRequestStatus): string {
     return prStatus.state.toUpperCase()
   } else {
     const successCount = prStatus.statuses.filter(x => x.state === 'success')
+      .length
 
-    return `${successCount.length}/${statusCount} checks OK`
+    return `${successCount}/${statusCount} checks OK`
   }
 }
 
