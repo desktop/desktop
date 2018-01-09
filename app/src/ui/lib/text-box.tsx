@@ -88,53 +88,20 @@ interface ITextBoxState {
    * component is mounted and then released once the component unmounts.
    */
   readonly inputId?: string
+
+  /**
+   * Text to display in the underlying input element
+   */
+  readonly value?: string
 }
 
 /** An input element with app-standard styles. */
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
-  private instance: HTMLInputElement | null = null
-
-  private caretPosition = -1
-  private cachedString = ''
-
   public componentWillMount() {
     const friendlyName = this.props.label || this.props.placeholder
     const inputId = createUniqueId(`TextBox_${friendlyName}`)
 
-    this.setState({ inputId })
-  }
-
-  /*
-   * Store the selection end and previous string between updates so that the
-   * caret position can be reapplied to the input element.
-   */
-  private storeCaretPosition = (target: HTMLInputElement) => {
-    this.caretPosition = target.selectionEnd
-    this.cachedString = target.value
-  }
-
-  /*
-   * Update the caret position of the input element if it can be reapplied.
-   *
-   * References:
-   *  - upstream issue: https://github.com/facebook/react/issues/955
-   *  - example workaround: https://gist.github.com/shiftkey/a713712182288b0870952fd5a1bfcebe
-   */
-  private updateCaretPosition = () => {
-    if (this.instance === null || this.props.value === undefined) {
-      return
-    }
-
-    const before = this.cachedString.substr(0, this.caretPosition)
-    const index = this.props.value.indexOf(before) + this.caretPosition
-
-    if (index !== -1) {
-      this.instance.selectionStart = this.instance.selectionEnd = index
-    }
-  }
-
-  public componentDidUpdate() {
-    this.updateCaretPosition()
+    this.setState({ inputId, value: this.props.value })
   }
 
   public componentWillUnmount() {
@@ -143,21 +110,29 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
+  public componentWillReceiveProps(nextProps: ITextBoxProps) {
+    if (this.state.value !== nextProps.value) {
+      this.setState({ value: nextProps.value })
+    }
+  }
+
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.storeCaretPosition(event.currentTarget)
+    const value = event.currentTarget.value
 
     if (this.props.onChange) {
       this.props.onChange(event)
     }
 
-    if (this.props.onValueChanged && !event.defaultPrevented) {
-      this.props.onValueChanged(event.currentTarget.value)
-    }
+    const defaultPrevented = event.defaultPrevented
+
+    this.setState({ value }, () => {
+      if (this.props.onValueChanged && !defaultPrevented) {
+        this.props.onValueChanged(value)
+      }
+    })
   }
 
   private onRef = (instance: HTMLInputElement | null) => {
-    this.instance = instance
-
     if (this.props.onInputRef) {
       this.props.onInputRef(instance)
     }
@@ -206,7 +181,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           disabled={this.props.disabled}
           type={this.props.type}
           placeholder={this.props.placeholder}
-          value={this.props.value}
+          value={this.state.value}
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
           ref={this.onRef}

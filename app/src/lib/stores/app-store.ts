@@ -1486,6 +1486,14 @@ export class AppStore {
    * This will be called automatically when appropriate.
    */
   private async refreshHistorySection(repository: Repository): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    const state = this.getRepositoryState(repository)
+    const tip = state.branchesState.tip
+
+    if (tip.kind === TipState.Valid) {
+      await gitStore.loadLocalCommits(tip.branch)
+    }
+
     return this._loadHistory(repository)
   }
 
@@ -1566,15 +1574,15 @@ export class AppStore {
     startPoint?: string
   ): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
-    const createResult = await gitStore.performFailableOperation(() =>
+    const branch = await gitStore.performFailableOperation(() =>
       createBranch(repository, name, startPoint)
     )
 
-    if (createResult !== true) {
+    if (branch == null) {
       return repository
     }
 
-    return await this._checkoutBranch(repository, name)
+    return await this._checkoutBranch(repository, branch)
   }
 
   private updateCheckoutProgress(
@@ -1588,17 +1596,36 @@ export class AppStore {
     }
   }
 
+  private getLocalBranch(
+    repository: Repository,
+    branch: string
+  ): Branch | null {
+    const gitStore = this.getGitStore(repository)
+    return (
+      gitStore.allBranches.find(b => b.nameWithoutRemote === branch) || null
+    )
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(
     repository: Repository,
-    name: string
+    branch: Branch | string
   ): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
     const kind = 'checkout'
 
+    const foundBranch =
+      typeof branch === 'string'
+        ? this.getLocalBranch(repository, branch)
+        : branch
+
+    if (foundBranch == null) {
+      return repository
+    }
+
     await this.withAuthenticatingUser(repository, (repository, account) =>
       gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, name, progress => {
+        checkoutBranch(repository, account, foundBranch, progress => {
           this.updateCheckoutProgress(repository, progress)
         })
       )
@@ -1759,7 +1786,7 @@ export class AppStore {
       const gitStore = this.getGitStore(repository)
 
       await gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, defaultBranch.name)
+        checkoutBranch(repository, account, defaultBranch)
       )
       await gitStore.performFailableOperation(() =>
         deleteBranch(repository, branch, account, includeRemote)

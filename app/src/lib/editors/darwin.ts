@@ -9,6 +9,7 @@ export enum ExternalEditor {
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
+  PhpStorm = 'PhpStorm',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -26,6 +27,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.BBEdit) {
     return ExternalEditor.BBEdit
+  }
+  if (label === ExternalEditor.PhpStorm) {
+    return ExternalEditor.PhpStorm
   }
 
   return null
@@ -48,6 +52,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.sublimetext.3']
     case ExternalEditor.BBEdit:
       return ['com.barebones.bbedit']
+    case ExternalEditor.PhpStorm:
+      return ['com.jetbrains.PhpStorm']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -74,6 +80,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'SharedSupport', 'bin', 'subl')
     case ExternalEditor.BBEdit:
       return Path.join(installPath, 'Contents', 'Helpers', 'bbedit_tool')
+    case ExternalEditor.PhpStorm:
+      return Path.join(installPath, 'Contents', 'MacOS', 'phpstorm')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -114,12 +122,14 @@ export async function getAvailableEditors(): Promise<
     codeInsidersPath,
     sublimePath,
     bbeditPath,
+    phpStormPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.VisualStudioCodeInsiders),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.BBEdit),
+    findApplication(ExternalEditor.PhpStorm),
   ])
 
   if (atomPath) {
@@ -143,6 +153,10 @@ export async function getAvailableEditors(): Promise<
 
   if (bbeditPath) {
     results.push({ editor: ExternalEditor.BBEdit, path: bbeditPath })
+  }
+
+  if (phpStormPath) {
+    results.push({ editor: ExternalEditor.PhpStorm, path: phpStormPath })
   }
 
   return results
