@@ -7,7 +7,7 @@ are constrained to within the dialog itself.
 
 ## General structure
 
-```html
+```jsx
 <Dialog title='Title'>
   <TabBar>...</TabBar>
   <DialogContent>
@@ -26,14 +26,14 @@ are constrained to within the dialog itself.
 
 Dialogs should, when practical, render errors caused by its actions inline as
 opposed to opening an error dialog. An example of this is the Preferences dialog.
-If the dialog fails to write to the .gitignore or git config files as part of
+If the dialog fails to write to the `.gitignore` or git config files as part of
 persisting changes it renders a short error message inline in the dialog using
 the `DialogError` component.
 
 The `DialogError` component, if used, must be the first child element of the
 Dialog itself.
 
-```html
+```jsx
 <Dialog title='Preferences'>
   <DialogError>Could not save ignore file. EPERM Something something</DialogError>
   <TabBar>...</TabBar>
@@ -49,24 +49,24 @@ Dialog itself.
 </Dialog>
 ```
 
-The content inside of the DialogError should be primarily text based. Avoid using
+The content inside of the `DialogError` should be primarily text based. Avoid using
 the term 'Error' inside the text as that should be evident already based on the
 styling of the `DialogError` component.
 
 ## Best practices
 
-### DO: Let children render the DialogContent component
+### DO: Let children render the `DialogContent` component
 
-If you're using a one-child-per-tab approach you should render the DialogContent
+If you're using a one-child-per-tab approach you should render the `DialogContent`
 as the top-level element in those children instead of wrapping children inside the
-DialogContent element. This avoid needless nesting and lets us leverage generic
+`DialogContent` element. This avoid needless nesting and lets us leverage generic
 dialog/form/row styles in a more straightforward way.
 
 #### Example (good)
 
 
-```html
-<!-- SomeComponent.tsx -->
+```jsx
+// SomeComponent.tsx
 <Dialog title='Title'>
   <TabBar>...</TabBar>
   {this.renderActiveTab()}
@@ -77,7 +77,8 @@ dialog/form/row styles in a more straightforward way.
     </ButtonGroup>
   </DialogFooter>
 </Dialog>
-<!-- ChildComponent.tsx -->
+
+// ChildComponent.tsx
 <DialogContent>
   my fancy content
 </DialogContent>
@@ -86,8 +87,8 @@ dialog/form/row styles in a more straightforward way.
 #### Example (bad)
 
 
-```html
-<!-- SomeComponent.tsx -->
+```jsx
+// SomeComponent.tsx
 <Dialog title='Title'>
   <TabBar>...</TabBar>
   <DialogContent>
@@ -100,7 +101,8 @@ dialog/form/row styles in a more straightforward way.
     </ButtonGroup>
   </DialogFooter>
 </Dialog>
-<!-- ChildComponent.tsx -->
+
+// ChildComponent.tsx
 <div>
   my fancy content
 </div>
