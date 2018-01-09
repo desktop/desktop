@@ -19,7 +19,7 @@ import { getRemotes, removeRemote } from '../git'
 import { IRemote } from '../../models/remote'
 
 /**
- * This is the magix remote name prefix
+ * This is the magic remote name prefix
  * for when we add a remote on behalf of
  * the user.
  */
