@@ -17,8 +17,9 @@ interface ICIStatusProps {
 export class CIStatus extends React.Component<ICIStatusProps, {}> {
   public render() {
     const status = this.props.status
+    const ciTitle = generateStatusHistory(status)
     const state = status.state
-    const ciTitle = `Commit status: ${state}`
+
     return (
       <Octicon
         className={classNames(
@@ -31,6 +32,13 @@ export class CIStatus extends React.Component<ICIStatusProps, {}> {
       />
     )
   }
+}
+
+function generateStatusHistory(prStatus: PullRequestStatus): string {
+  return prStatus.statuses.reduce(
+    (prev, curr) => `${prev}\n${curr.description}`,
+    `Commit status: ${prStatus.state}`
+  )
 }
 
 function getSymbolForState(state: APIRefState): OcticonSymbol {
