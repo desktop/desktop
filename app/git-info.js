@@ -4,18 +4,18 @@ const fs = require('fs')
 const path = require('path')
 
 function packedRefsParse(gitDir, ref) {
-  const refPath = path.join(gitDir, 'packed-refs')
+  const packedRefsPath = path.join(gitDir, 'packed-refs')
 
   try {
     // eslint-disable-next-line no-sync
-    fs.statSync(refPath)
+    fs.statSync(packedRefsPath)
   } catch (err) {
-    // fail quietly if no packed-refs file exists
+    // fail quietly if packed-refs not found
     return null
   }
 
   // eslint-disable-next-line no-sync
-  const packedRefsContents = fs.readFileSync(refPath)
+  const packedRefsContents = fs.readFileSync(packedRefsPath)
 
   // we need to build up the regex on the fly using the ref
   const refRe = new RegExp('([a-f0-9]{40}) ' + ref)
