@@ -14,8 +14,6 @@ export async function listSubmodules(
     'listSubmodules'
   )
 
-  // TODO: can we make git describe crash in here _somehow_???
-
   const submodules = new Array<SubmoduleEntry>()
 
   for (const entry of result.stdout.split('\n')) {
