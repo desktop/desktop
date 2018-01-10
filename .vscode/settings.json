@@ -26,4 +26,5 @@
   "[markdown]": {
     "editor.formatOnSave": false
   }
+  "prettier.ignorePath": ".prettierignore"
 }
