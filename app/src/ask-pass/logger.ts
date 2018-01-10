@@ -16,5 +16,6 @@ export function appendToAskPassLog(message: string) {
   }
 
   const file = Path.join(getLogDirectoryPath(), askPassLogFile)
+  // eslint-disable-next-line no-sync
   Fs.appendFileSync(file, `${message}\n`)
 }
