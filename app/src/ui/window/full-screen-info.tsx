@@ -85,11 +85,7 @@ export class FullScreenInfo extends React.Component<
     this.setState({ renderTransitionGroup: false })
   }
 
-  private renderFullScreenNotification() {
-    if (!this.state.renderInfo) {
-      return null
-    }
-
+  private renderFullScreenNotification(): JSX.Element {
     const kbdShortcut = __DARWIN__ ? '⌃⌘F' : 'F11'
 
     return (
@@ -101,6 +97,10 @@ export class FullScreenInfo extends React.Component<
 
   public render() {
     if (!this.state.renderTransitionGroup) {
+      return null
+    }
+
+    if (!this.state.renderInfo) {
       return null
     }
 

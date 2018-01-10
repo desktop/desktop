@@ -221,18 +221,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private renderMostRecentLocalCommit() {
+  private renderMostRecentLocalCommit(): JSX.Element | null {
     const commit = this.props.mostRecentLocalCommit
-    let child: JSX.Element | null = null
-    if (commit) {
-      child = (
-        <UndoCommit
-          isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
-          commit={commit}
-          onUndo={this.onUndo}
-          emoji={this.props.emoji}
-        />
-      )
+    if (commit == null) {
+      return null
     }
 
     return (
@@ -243,7 +235,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         transitionEnterTimeout={UndoCommitAnimationTimeout}
         transitionLeaveTimeout={UndoCommitAnimationTimeout}
       >
-        {child}
+        <UndoCommit
+          isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
+          commit={commit}
+          onUndo={this.onUndo}
+          emoji={this.props.emoji}
+        />
       </CSSTransitionGroup>
     )
   }
