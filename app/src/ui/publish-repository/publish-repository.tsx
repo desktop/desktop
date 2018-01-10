@@ -6,7 +6,7 @@ import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
 import { Row } from '../lib/row'
 import { merge } from '../../lib/merge'
-import { compare } from '../../lib/compare'
+import { caseInsensitiveCompare } from '../../lib/compare'
 
 interface IPublishRepositoryProps {
   /** The user to use for publishing. */
@@ -66,7 +66,7 @@ export class PublishRepository extends React.Component<
   private async fetchOrgs(account: Account) {
     const api = API.fromAccount(account)
     const orgs = (await api.fetchOrgs()) as Array<IAPIUser>
-    orgs.sort((a, b) => compare(a.login, b.login))
+    orgs.sort((a, b) => caseInsensitiveCompare(a.login, b.login))
     this.setState({ orgs })
   }
 
