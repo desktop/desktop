@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "1.0.11-beta0",
+  "version": "1.0.12",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -56,7 +56,7 @@
   "devDependencies": {
     "devtron": "^1.4.0",
     "electron-debug": "^1.1.0",
-    "electron-devtools-installer": "^2.1.0",
+    "electron-devtools-installer": "^2.2.1",
     "react-addons-perf": "15.4.2",
     "react-addons-test-utils": "^15.6.2",
     "style-loader": "^0.13.2",

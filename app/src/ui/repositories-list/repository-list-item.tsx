@@ -31,6 +31,9 @@ interface IRepositoryListItemProps {
 
   /** The label for the user's preferred shell. */
   readonly shellLabel: string
+
+  /** The text entered by the user to filter their repository list */
+  readonly filterText: string
 }
 
 /** A repository item. */
@@ -38,6 +41,24 @@ export class RepositoryListItem extends React.Component<
   IRepositoryListItemProps,
   {}
 > {
+  private renderHighlightedName(name: string) {
+    const filterText = this.props.filterText
+    const matchStart = name.indexOf(filterText)
+    const matchLength = filterText.length
+
+    if (matchStart === -1) {
+      return <span>{name}</span>
+    }
+
+    return (
+      <span>
+        {name.substr(0, matchStart)}
+        <mark>{name.substr(matchStart, matchLength)}</mark>
+        {name.substr(matchStart + matchLength)}
+      </span>
+    )
+  }
+
   public render() {
     const repository = this.props.repository
     const path = repository.path
@@ -62,7 +83,7 @@ export class RepositoryListItem extends React.Component<
 
         <div className="name">
           {prefix ? <span className="prefix">{prefix}</span> : null}
-          <span>{repository.name}</span>
+          {this.renderHighlightedName(repository.name)}
         </div>
       </div>
     )
@@ -73,7 +94,10 @@ export class RepositoryListItem extends React.Component<
       nextProps.repository instanceof Repository &&
       this.props.repository instanceof Repository
     ) {
-      return nextProps.repository.id !== this.props.repository.id
+      return (
+        nextProps.repository.id !== this.props.repository.id ||
+        nextProps.filterText !== this.props.filterText
+      )
     } else {
       return true
     }

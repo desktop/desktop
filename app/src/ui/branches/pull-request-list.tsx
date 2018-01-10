@@ -3,6 +3,7 @@ import {
   FilterList,
   IFilterListGroup,
   IFilterListItem,
+  SelectionSource,
 } from '../lib/filter-list'
 import { PullRequestListItem } from './pull-request-list-item'
 import { PullRequest } from '../../models/pull-request'
@@ -27,23 +28,45 @@ interface IPullRequestListProps {
   /** The pull requests to display. */
   readonly pullRequests: ReadonlyArray<PullRequest>
 
-  /**
-   * The pull request associated with the current branch. This is used to
-   * pre-select the currently checked out PR in the list of pull requests.
-   */
-  readonly currentPullRequest: PullRequest | null
-
   /** Called when the user clicks on a pull request. */
-  readonly onPullRequestClicked: (pullRequest: PullRequest) => void
+  readonly onItemClick: (pullRequest: PullRequest) => void
 
   /** Called when the user wants to dismiss the foldout. */
   readonly onDismiss: () => void
+
+  readonly selectedPullRequest: PullRequest | null
+
+  readonly onSelectionChanged?: (
+    pullRequest: PullRequest | null,
+    source: SelectionSource
+  ) => void
 }
 
 interface IPullRequestListState {
   readonly groupedItems: ReadonlyArray<IFilterListGroup<IPullRequestListItem>>
   readonly filterText: string
   readonly selectedItem: IPullRequestListItem | null
+}
+
+function resolveSelectedItem(
+  group: IFilterListGroup<IPullRequestListItem>,
+  props: IPullRequestListProps,
+  currentlySelectedItem: IPullRequestListItem | null
+): IPullRequestListItem | null {
+  let selectedItem: IPullRequestListItem | null = null
+
+  if (props.selectedPullRequest != null) {
+    selectedItem = findItemForPullRequest(group, props.selectedPullRequest)
+  }
+
+  if (selectedItem == null && currentlySelectedItem != null) {
+    selectedItem = findItemForPullRequest(
+      group,
+      currentlySelectedItem.pullRequest
+    )
+  }
+
+  return selectedItem
 }
 
 /** The list of open pull requests. */
@@ -55,10 +78,7 @@ export class PullRequestList extends React.Component<
     super(props)
 
     const group = createListItems(props.pullRequests)
-    const pullRequest = props.currentPullRequest
-    const selectedItem = pullRequest
-      ? findItemForPullRequest(group, pullRequest)
-      : null
+    const selectedItem = resolveSelectedItem(group, props, null)
 
     this.state = {
       groupedItems: [group],
@@ -68,17 +88,12 @@ export class PullRequestList extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: IPullRequestListProps) {
-    if (nextProps.pullRequests === this.props.pullRequests) {
-      return
-    }
-
     const group = createListItems(nextProps.pullRequests)
-
-    const currentlySelectedItem = this.state.selectedItem
-    const selectedItem = currentlySelectedItem
-      ? findItemForPullRequest(group, currentlySelectedItem.pullRequest)
-      : null
-
+    const selectedItem = resolveSelectedItem(
+      group,
+      nextProps,
+      this.state.selectedItem
+    )
     this.setState({ groupedItems: [group], selectedItem })
   }
 
@@ -117,13 +132,22 @@ export class PullRequestList extends React.Component<
     this.setState({ filterText })
   }
 
-  private onItemClick = (selectedItem: IPullRequestListItem) => {
-    const pr = selectedItem.pullRequest
-    this.props.onPullRequestClicked(pr)
+  private onItemClick = (item: IPullRequestListItem) => {
+    if (this.props.onItemClick) {
+      this.props.onItemClick(item.pullRequest)
+    }
   }
 
-  private onSelectionChanged = (selectedItem: IPullRequestListItem | null) => {
-    this.setState({ selectedItem })
+  private onSelectionChanged = (
+    selectedItem: IPullRequestListItem | null,
+    source: SelectionSource
+  ) => {
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(
+        selectedItem != null ? selectedItem.pullRequest : null,
+        source
+      )
+    }
   }
 
   private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -155,5 +179,7 @@ function findItemForPullRequest(
   group: IFilterListGroup<IPullRequestListItem>,
   pullRequest: PullRequest
 ): IPullRequestListItem | null {
-  return group.items.find(i => i.pullRequest.id === pullRequest.id) || null
+  return (
+    group.items.find(i => i.pullRequest.number === pullRequest.number) || null
+  )
 }

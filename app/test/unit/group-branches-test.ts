@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 
-import { groupBranches } from '../../src/ui/branches/group-branches'
+import { groupBranches } from '../../src/ui/branches'
 import { Branch, BranchType } from '../../src/models/branch'
 import { Commit } from '../../src/models/commit'
 import { CommitIdentity } from '../../src/models/commit-identity'

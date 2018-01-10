@@ -5,12 +5,11 @@ import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
 import { IRepositoryState } from '../../lib/app-state'
-import { Branches } from '../branches'
+import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
 import { enablePRIntegration } from '../../lib/feature-flag'
 import { PullRequest } from '../../models/pull-request'
-import { PullRequestBadge } from '../branches/pull-request-badge'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -57,7 +56,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
     return (
-      <Branches
+      <BranchesContainer
         allBranches={branchesState.allBranches}
         recentBranches={branchesState.recentBranches}
         currentBranch={currentBranch}

@@ -79,6 +79,7 @@ import {
   checkoutBranch,
   getDefaultRemote,
   formatAsLocalRef,
+  getMergeBase,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -795,7 +796,6 @@ export class AppStore {
       this._updateIssues(gitHubRepository)
     }
 
-    this._refreshPullRequests(repository)
     await this._refreshRepository(repository)
 
     // The selected repository could have changed while we were refreshing.
@@ -814,6 +814,7 @@ export class AppStore {
     this.refreshMentionables(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
+    this._refreshPullRequests(repository)
 
     return this._repositoryWithRefreshedGitHubRepository(repository)
   }
@@ -908,9 +909,7 @@ export class AppStore {
       const timeInSeconds = Math.floor(timeSinceFetch / 1000)
 
       log.debug(
-        `skipping background fetch as repository was fetched ${
-          timeInSeconds
-        }s ago`
+        `skipping background fetch as repository was fetched ${timeInSeconds}s ago`
       )
       return false
     }
@@ -1431,6 +1430,7 @@ export class AppStore {
 
     const section = state.selectedSection
     let refreshSectionPromise: Promise<void>
+
     if (section === RepositorySection.History) {
       refreshSectionPromise = this.refreshHistorySection(repository)
     } else if (section === RepositorySection.Changes) {
@@ -1450,6 +1450,9 @@ export class AppStore {
       refreshSectionPromise,
       gitStore.loadUpstreamRemote(),
     ])
+
+    this._updateCurrentPullRequest(repository)
+    this.updateMenuItemLabels(repository)
   }
 
   /**
@@ -1482,6 +1485,14 @@ export class AppStore {
    * This will be called automatically when appropriate.
    */
   private async refreshHistorySection(repository: Repository): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    const state = this.getRepositoryState(repository)
+    const tip = state.branchesState.tip
+
+    if (tip.kind === TipState.Valid) {
+      await gitStore.loadLocalCommits(tip.branch)
+    }
+
     return this._loadHistory(repository)
   }
 
@@ -1511,7 +1522,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(): Promise<void> {
     const currentPopup = this.currentPopup
-    if (!currentPopup) {
+    if (currentPopup == null) {
       return Promise.resolve()
     }
 
@@ -1532,8 +1543,18 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _closeCurrentFoldout(): Promise<void> {
+    if (this.currentFoldout == null) {
+      return
+    }
+
+    this.currentFoldout = null
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _closeFoldout(foldout: FoldoutType): Promise<void> {
-    if (!this.currentFoldout) {
+    if (this.currentFoldout == null) {
       return
     }
 
@@ -1552,15 +1573,15 @@ export class AppStore {
     startPoint?: string
   ): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
-    const createResult = await gitStore.performFailableOperation(() =>
+    const branch = await gitStore.performFailableOperation(() =>
       createBranch(repository, name, startPoint)
     )
 
-    if (createResult !== true) {
+    if (branch == null) {
       return repository
     }
 
-    return await this._checkoutBranch(repository, name)
+    return await this._checkoutBranch(repository, branch)
   }
 
   private updateCheckoutProgress(
@@ -1574,17 +1595,36 @@ export class AppStore {
     }
   }
 
+  private getLocalBranch(
+    repository: Repository,
+    branch: string
+  ): Branch | null {
+    const gitStore = this.getGitStore(repository)
+    return (
+      gitStore.allBranches.find(b => b.nameWithoutRemote === branch) || null
+    )
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(
     repository: Repository,
-    name: string
+    branch: Branch | string
   ): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
     const kind = 'checkout'
 
+    const foundBranch =
+      typeof branch === 'string'
+        ? this.getLocalBranch(repository, branch)
+        : branch
+
+    if (foundBranch == null) {
+      return repository
+    }
+
     await this.withAuthenticatingUser(repository, (repository, account) =>
       gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, name, progress => {
+        checkoutBranch(repository, account, foundBranch, progress => {
           this.updateCheckoutProgress(repository, progress)
         })
       )
@@ -1745,7 +1785,7 @@ export class AppStore {
       const gitStore = this.getGitStore(repository)
 
       await gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, defaultBranch.name)
+        checkoutBranch(repository, account, defaultBranch)
       )
       await gitStore.performFailableOperation(() =>
         deleteBranch(repository, branch, account, includeRemote)
@@ -1961,16 +2001,26 @@ export class AppStore {
       }
 
       const state = this.getRepositoryState(repository)
+      const tip = state.branchesState.tip
 
-      if (state.branchesState.tip.kind === TipState.Unborn) {
+      if (tip.kind === TipState.Unborn) {
         throw new Error('The current branch is unborn.')
       }
 
-      if (state.branchesState.tip.kind === TipState.Detached) {
+      if (tip.kind === TipState.Detached) {
         throw new Error('The current repository is in a detached HEAD state.')
       }
 
-      if (state.branchesState.tip.kind === TipState.Valid) {
+      if (tip.kind === TipState.Valid) {
+        let mergeBase: string | null = null
+        if (tip.branch.upstream) {
+          mergeBase = await getMergeBase(
+            repository,
+            tip.branch.name,
+            tip.branch.upstream
+          )
+        }
+
         const title = `Pulling ${remote.name}`
         const kind = 'pull'
         this.updatePushPullFetchProgress(repository, {
@@ -2020,6 +2070,10 @@ export class AppStore {
             title: refreshTitle,
             value: refreshStartProgress,
           })
+
+          if (mergeBase) {
+            await gitStore.reconcileHistory(mergeBase)
+          }
 
           await this._refreshRepository(repository)
 
@@ -2126,9 +2180,9 @@ export class AppStore {
         const hasValidToken =
           account.token.length > 0 ? 'has token' : 'empty token'
         log.info(
-          `[AppStore.getAccountForRemoteURL] account found for remote: ${
-            remote
-          } - ${account.login} (${hasValidToken})`
+          `[AppStore.getAccountForRemoteURL] account found for remote: ${remote} - ${
+            account.login
+          } (${hasValidToken})`
         )
         return account
       }
@@ -2138,17 +2192,13 @@ export class AppStore {
     const username = getGenericUsername(hostname)
     if (username != null) {
       log.info(
-        `[AppStore.getAccountForRemoteURL] found generic credentials for '${
-          hostname
-        }' and '${username}'`
+        `[AppStore.getAccountForRemoteURL] found generic credentials for '${hostname}' and '${username}'`
       )
       return { login: username, endpoint: hostname }
     }
 
     log.info(
-      `[AppStore.getAccountForRemoteURL] no generic credentials found for '${
-        remote
-      }'`
+      `[AppStore.getAccountForRemoteURL] no generic credentials found for '${remote}'`
     )
 
     return null
@@ -2905,7 +2955,7 @@ export class AppStore {
     const branch = tip.branch
     const aheadBehind = state.aheadBehind
 
-    if (!aheadBehind) {
+    if (aheadBehind == null) {
       this._showPopup({
         type: PopupType.PushBranchCommits,
         repository,
@@ -2919,10 +2969,8 @@ export class AppStore {
         unPushedCommits: aheadBehind.ahead,
       })
     } else {
-      await this._openCreatePullRequestInBrowser(repository)
+      await this._openCreatePullRequestInBrowser(repository, branch)
     }
-
-    this.updateMenuItemLabels(repository)
   }
 
   public async _showPullRequest(repository: Repository): Promise<void> {
@@ -3025,26 +3073,45 @@ export class AppStore {
     return null
   }
 
+  private _updateCurrentPullRequest(repository: Repository) {
+    const gitHubRepository = repository.gitHubRepository
+
+    if (!gitHubRepository) {
+      return
+    }
+
+    this.updateBranchesState(repository, state => {
+      let currentPullRequest: PullRequest | null = null
+
+      if (state.tip.kind === TipState.Valid) {
+        currentPullRequest = this.findAssociatedPullRequest(
+          state.tip.branch,
+          state.openPullRequests,
+          gitHubRepository
+        )
+      }
+
+      return {
+        currentPullRequest,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
   public async _openCreatePullRequestInBrowser(
-    repository: Repository
+    repository: Repository,
+    branch: Branch
   ): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
     }
 
-    const state = this.getRepositoryState(repository)
-    const tip = state.branchesState.tip
-
-    if (tip.kind !== TipState.Valid) {
-      return
-    }
-
-    const branch = tip.branch
     const urlEncodedBranchName = QueryString.escape(branch.nameWithoutRemote)
-    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${
-      urlEncodedBranchName
-    }`
+    const baseURL = `${
+      gitHubRepository.htmlURL
+    }/pull/new/${urlEncodedBranchName}`
 
     await this._openInBrowser(baseURL)
   }

@@ -36,32 +36,38 @@ interface IBranchesProps {
 
 interface IBranchesState {
   readonly selectedBranch: Branch | null
+  readonly selectedPullRequest: PullRequest | null
   readonly filterText: string
 }
 
-/** The Branches list component. */
-export class Branches extends React.Component<IBranchesProps, IBranchesState> {
+/** The unified Branches and Pull Requests component. */
+export class BranchesContainer extends React.Component<
+  IBranchesProps,
+  IBranchesState
+> {
   public constructor(props: IBranchesProps) {
     super(props)
 
     this.state = {
       selectedBranch: props.currentBranch,
+      selectedPullRequest: props.currentPullRequest,
       filterText: '',
     }
   }
 
-  private onItemClick = (item: Branch) => {
-    this.checkoutBranch(item.nameWithoutRemote)
-  }
-
-  private checkoutBranch(branch: string) {
+  private onItemClick = (branch: Branch) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
 
     const currentBranch = this.props.currentBranch
 
-    if (!currentBranch || currentBranch.name !== branch) {
+    if (currentBranch != null && currentBranch.name !== branch.name) {
       this.props.dispatcher.checkoutBranch(this.props.repository, branch)
     }
+  }
+
+  private checkoutRef(ref: string) {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.checkoutBranch(this.props.repository, ref)
   }
 
   private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -77,8 +83,14 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.setState({ filterText })
   }
 
-  private onSelectionChanged = (selectedBranch: Branch | null) => {
+  private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
     this.setState({ selectedBranch })
+  }
+
+  private onPullRequestSelectionChanged = (
+    selectedPullRequest: PullRequest | null
+  ) => {
+    this.setState({ selectedPullRequest })
   }
 
   private renderTabBar() {
@@ -131,7 +143,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
             onFilterKeyDown={this.onFilterKeyDown}
             onFilterTextChanged={this.onFilterTextChanged}
             selectedBranch={this.state.selectedBranch}
-            onSelectionChanged={this.onSelectionChanged}
+            onSelectionChanged={this.onBranchSelectionChanged}
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
           />
@@ -162,8 +174,9 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
         <PullRequestList
           key="pr-list"
           pullRequests={pullRequests}
-          currentPullRequest={this.props.currentPullRequest}
-          onPullRequestClicked={this.onPullRequestClicked}
+          onSelectionChanged={this.onPullRequestSelectionChanged}
+          selectedPullRequest={this.state.selectedPullRequest}
+          onItemClick={this.onPullRequestClicked}
           onDismiss={this.onDismiss}
         />
       )
@@ -234,10 +247,17 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       head.gitHubRepository &&
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
     if (isRefInThisRepo) {
-      this.checkoutBranch(head.ref)
+      this.checkoutRef(head.ref)
     } else {
+      log.debug(
+        `onPullRequestClicked, but we can't checkout the branch: '${
+          head.ref
+        }' belongs to fork '${pullRequest.author}'`
+      )
       // TODO: It's in a fork so we'll need to do ... something.
     }
+
+    this.onPullRequestSelectionChanged(pullRequest)
   }
 
   private onDismiss = () => {
