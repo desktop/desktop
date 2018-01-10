@@ -8,7 +8,12 @@ import { appendToAskPassLog } from './logger'
 const prompt = process.argv[2]
 
 appendToAskPassLog(`received arguments: ${JSON.stringify(process.argv)}`)
-appendToAskPassLog(`environment variables: ${JSON.stringify(process.env)}`)
+appendToAskPassLog(
+  `process.env.DESKTOP_USERNAME: '${process.env.DESKTOP_USERNAME}'`
+)
+appendToAskPassLog(
+  `process.env.DESKTOP_ENDPOINT: '${process.env.DESKTOP_ENDPOINT}'`
+)
 appendToAskPassLog(`received prompt: '${prompt}'`)
 
 responseForPrompt(prompt)
