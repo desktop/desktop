@@ -26,26 +26,9 @@ export class PullRequestRef {
 }
 
 /** The commit status and metadata for a given ref */
-export class CombinedRefStatus {
-  public readonly id: number
-  public readonly state: APIRefState
-  public readonly targetUrl: string
-  public readonly description: string
-  public readonly context: string
-
-  public constructor(
-    id: number,
-    state: APIRefState,
-    targerUrl: string,
-    description: string,
-    context: string
-  ) {
-    this.id = id
-    this.state = state
-    this.targetUrl = targerUrl
-    this.description = description
-    this.context = context
-  }
+export interface ICombinedRefStatus {
+  readonly id: number
+  readonly state: APIRefState
 }
 
 export class PullRequestStatus {
@@ -62,14 +45,14 @@ export class PullRequestStatus {
   public readonly sha: string
 
   /** The list of all statuses for a specific ref. */
-  public readonly statuses: ReadonlyArray<CombinedRefStatus>
+  public readonly statuses: ReadonlyArray<ICombinedRefStatus>
 
   public constructor(
     pullRequestNumber: number,
     state: APIRefState,
     totalCount: number,
     sha: string,
-    statuses: ReadonlyArray<CombinedRefStatus>
+    statuses: ReadonlyArray<ICombinedRefStatus>
   ) {
     this.pullRequestNumber = pullRequestNumber
     this.state = state

@@ -12,7 +12,6 @@ import {
   PullRequest,
   PullRequestRef,
   PullRequestStatus,
-  CombinedRefStatus,
 } from '../../models/pull-request'
 import { Emitter, Disposable } from 'event-kit'
 
@@ -121,16 +120,12 @@ export class PullRequestStore {
         pr.head.sha
       )
 
-      const combinedRefStatuses = apiStatus.statuses.map(
-        x =>
-          new CombinedRefStatus(
-            x.id,
-            x.state,
-            x.target_url,
-            x.description,
-            x.context
-          )
-      )
+      const combinedRefStatuses = apiStatus.statuses.map(x => {
+        return {
+          id: x.id,
+          state: x.state,
+        }
+      })
 
       const status = new PullRequestStatus(
         pr.number,
@@ -180,16 +175,12 @@ export class PullRequestStore {
       return null
     }
 
-    const combinedRefStatuses = result.statuses.map(
-      x =>
-        new CombinedRefStatus(
-          x.id,
-          x.state,
-          x.target_url,
-          x.description,
-          x.context
-        )
-    )
+    const combinedRefStatuses = result.statuses.map(x => {
+      return {
+        id: x.id,
+        state: x.state,
+      }
+    })
 
     return new PullRequestStatus(
       result.pullRequestId,
