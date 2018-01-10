@@ -131,7 +131,7 @@ interface IAPIRefStatus {
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
 }
 
-export interface IAPIPullRequestRef {
+interface IAPIPullRequestRef {
   readonly ref: string
   readonly sha: string
 
