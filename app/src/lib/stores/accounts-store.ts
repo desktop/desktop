@@ -2,10 +2,7 @@ import { Emitter, Disposable } from 'event-kit'
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
-import {
-  EmailVisibility,
-  fetchUser,
-} from '../api'
+import { EmailVisibility, fetchUser } from '../api'
 import { fatalError } from '../fatal-error'
 
 /** The data-only interface for storage. */
