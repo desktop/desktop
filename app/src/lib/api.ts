@@ -117,8 +117,6 @@ export type APIRefState = 'failure' | 'pending' | 'success'
  * status for a given ref
  */
 export interface IAPIRefStatusItem {
-  readonly created_at: string
-  readonly updated_at: string
   readonly state: APIRefState
   readonly target_url: string
   readonly description: string
