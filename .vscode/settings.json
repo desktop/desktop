@@ -22,9 +22,5 @@
   "prettier.singleQuote": true,
   "prettier.trailingComma": "es5",
   "editor.formatOnSave": true,
-
-  "[markdown]": {
-    "editor.formatOnSave": false
-  }
   "prettier.ignorePath": ".prettierignore"
 }
