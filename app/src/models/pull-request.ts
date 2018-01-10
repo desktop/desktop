@@ -27,13 +27,25 @@ export class PullRequestRef {
 
 /** The commit status and metadata for a given ref */
 export class CombinedRefStatus {
-  public readonly created_at: string
-  public readonly updated_at: string
+  public readonly id: number
   public readonly state: APIRefState
-  public readonly target_url: string
+  public readonly targetUrl: string
   public readonly description: string
   public readonly context: string
-  public readonly id: number
+
+  public constructor(
+    id: number,
+    state: APIRefState,
+    targerUrl: string,
+    description: string,
+    context: string
+  ) {
+    this.id = id
+    this.state = state
+    this.targetUrl = targerUrl
+    this.description = description
+    this.context = context
+  }
 }
 
 export class PullRequestStatus {
