@@ -5,7 +5,6 @@ import {
   IPullRequestListItemProps,
 } from './pull-request-list-item'
 import { RowHeight } from './pull-request-list'
-import { CombinedRefStatus } from '../../models/pull-request'
 
 const FacadeCount = 6
 
@@ -28,7 +27,7 @@ const prLoadingItemProps: IPullRequestListItemProps = {
     totalCount: 1,
     state: 'pending',
     pullRequestNumber: 0,
-    statuses: [] as ReadonlyArray<CombinedRefStatus>,
+    statuses: [],
   },
 }
 
