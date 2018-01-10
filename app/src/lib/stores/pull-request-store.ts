@@ -12,6 +12,7 @@ import {
   PullRequest,
   PullRequestRef,
   PullRequestStatus,
+  CombinedRefStatus,
 } from '../../models/pull-request'
 import { Emitter, Disposable } from 'event-kit'
 
@@ -110,7 +111,6 @@ export class PullRequestStore {
     account: Account
   ): Promise<void> {
     const api = API.fromAccount(account)
-
     const statuses: Array<IPullRequestStatus> = []
     const prs: Array<PullRequest> = []
 
@@ -121,13 +121,24 @@ export class PullRequestStore {
         pr.head.sha
       )
 
-      const status = {
-        pullRequestNumber: pr.number,
-        state: apiStatus.state,
-        totalCount: apiStatus.total_count,
-        sha: pr.head.sha,
-        statuses: apiStatus.statuses,
-      }
+      const combinedRefStatuses = apiStatus.statuses.map(
+        x =>
+          new CombinedRefStatus(
+            x.id,
+            x.state,
+            x.target_url,
+            x.description,
+            x.context
+          )
+      )
+
+      const status = new PullRequestStatus(
+        pr.number,
+        apiStatus.state,
+        apiStatus.total_count,
+        pr.head.sha,
+        combinedRefStatuses
+      )
 
       statuses.push({
         pullRequestId: pr.id,
@@ -169,12 +180,23 @@ export class PullRequestStore {
       return null
     }
 
+    const combinedRefStatuses = result.statuses.map(
+      x =>
+        new CombinedRefStatus(
+          x.id,
+          x.state,
+          x.target_url,
+          x.description,
+          x.context
+        )
+    )
+
     return new PullRequestStatus(
       result.pullRequestId,
       result.state,
       result.totalCount,
       result.sha,
-      result.statuses
+      combinedRefStatuses
     )
   }
 
