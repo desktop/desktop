@@ -125,7 +125,7 @@ export interface IAPIRefStatusItem {
 }
 
 /** The API response to a ref status request. */
-export interface IAPIRefStatus {
+interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
   readonly statuses: ReadonlyArray<IAPIRefStatusItem>
