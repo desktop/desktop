@@ -15,20 +15,24 @@ interface IBlankSlateProps {
   readonly onAdd: () => void
 }
 
+const BlankSlateImageUrl = encodePathAsUrl(
+  __dirname,
+  'static/empty-no-repo.svg'
+)
+
+const ImageStyle: React.CSSProperties = {
+  backgroundImage: `url(${BlankSlateImageUrl})`,
+}
+
 /**
  * The blank slate view. This is shown when the user hasn't added any
  * repositories to the app.
  */
 export class BlankSlateView extends React.Component<IBlankSlateProps, {}> {
   public render() {
-    const BlankSlateImage = encodePathAsUrl(
-      __dirname,
-      'static/empty-no-repo.svg'
-    )
-
     return (
       <UiView id="blank-slate">
-        <img src={BlankSlateImage} className="blankslate-image" />
+        <div className="blankslate-image" style={ImageStyle} />
 
         <div className="content">
           <div className="title">

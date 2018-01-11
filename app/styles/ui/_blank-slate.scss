@@ -1,7 +1,6 @@
 #blank-slate {
   display: flex;
   padding: var(--spacing);
-  justify-content: center;
   align-items: center;
 
   .header {
@@ -23,20 +22,16 @@
     display: flex;
     flex-direction: column;
     align-self: center;
+    flex-shrink: 0;
   }
 
   .content {
-    flex-grow: 0.5;
-    justify-content: flex-start;
-    flex-shrink: 0;
-    margin-bottom: var(--spacing);
+    margin: var(--spacing-double) 0;
     min-width: 80%;
-    margin-top: var(--spacing);
   }
 
   .footer {
-    flex-grow: 0.1;
-    justify-content: flex-end;
+    margin: 0;
   }
 
   .callouts {
@@ -90,10 +85,13 @@
 }
 
 .blankslate-image {
-  width: 50%;
-  flex-grow: 0.4;
-  min-height: 0;
-  min-width: 0;
+  width: 80%;
+  flex-grow: 0.6;
+  // Background image url is set in react since we need to
+  // calculate it at runtime.
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
 }
 
 @media (max-height: 350px) {
