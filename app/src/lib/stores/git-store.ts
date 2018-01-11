@@ -948,10 +948,9 @@ export class GitStore {
     const submodules = await listSubmodules(this.repository)
 
     await queueWorkHigh(files, async file => {
-      const foundSubmodule = submodules.find(s => s.path === file.path)
-      const submoduleExists = foundSubmodule != null
+      const foundSubmodule = submodules.some(s => s.path === file.path)
 
-      if (file.status !== AppFileStatus.Deleted && !submoduleExists) {
+      if (file.status !== AppFileStatus.Deleted && !foundSubmodule) {
         // N.B. moveItemToTrash is synchronous can take a fair bit of time
         // which is why we're running it inside this work queue that spreads
         // out the calls across as many animation frames as it needs to.

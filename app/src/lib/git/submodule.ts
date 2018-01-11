@@ -33,7 +33,6 @@ export async function listSubmodules(
     // then the 40-character SHA represents the current commit
     const sha = entry.substr(1, 40)
 
-    const rest = entry.substr(42).split(/\s+/)
     //
     // then the path to the submodule
     //
@@ -43,7 +42,7 @@ export async function listSubmodules(
     //
     // https://git-scm.com/docs/git-describe
 
-    const [path, describeOutput] = rest
+    const [path, describeOutput] = entry.substr(42).split(/\s+/)
 
     const describe = describeOutput.substr(1, describeOutput.length - 2)
     submodules.push(new SubmoduleEntry(sha, path, describe))
