@@ -1,5 +1,8 @@
 #blank-slate {
   display: flex;
+  padding: var(--spacing);
+  justify-content: center;
+  align-items: center;
 
   .header {
     max-width: 400px;
@@ -17,24 +20,52 @@
   .content,
   .footer {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-self: center;
   }
 
   .content {
-    margin: var(--spacing-double) var(--spacing-double) var(--spacing-quad);
+    flex-grow: 0.5;
+    justify-content: flex-start;
+    flex-shrink: 0;
+    margin-bottom: var(--spacing);
+    min-width: 80%;
+    margin-top: var(--spacing);
+  }
+
+  .footer {
+    flex-grow: 0.1;
+    justify-content: flex-end;
+  }
+
+  .callouts {
+    display: flex;
+    flex-shrink: 0;
+    min-width: 0;
+    min-height: 0;
+    justify-content: center;
   }
 
   .callout {
+    &:last-child {
+      padding-right: 0;
+    }
+
+    &:first-child {
+      padding-left: 0;
+    }
+
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 
-    max-width: 370px;
+    width: 33%;
+    max-width: 300px;
     align-items: center;
 
     text-align: center;
 
-    padding: 0 var(--spacing-quad);
+    padding: 0 var(--spacing);
 
     div {
       margin: var(--spacing) 0;
@@ -47,6 +78,9 @@
 
     button {
       flex-grow: 0;
+      flex-shrink: 0;
+      min-height: var(--button-height);
+      height: auto;
     }
   }
 
@@ -56,10 +90,10 @@
 }
 
 .blankslate-image {
-  margin: var(--spacing-double) auto;
-  min-width: 400px;
-  max-width: 800px;
   width: 50%;
+  flex-grow: 0.4;
+  min-height: 0;
+  min-width: 0;
 }
 
 @media (max-height: 350px) {
