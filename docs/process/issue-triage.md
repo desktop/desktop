@@ -34,7 +34,7 @@ choice is clear.
 * Reduce the amount of time and back-and-forth needed to take an issue from
   being first-opened to `triaged` or closed
 * Accept input from the community that helps us deliver meaningful results to
-  GitHub Desktop and it's users
+  GitHub Desktop and its users
 
 ## The Issues List Is Our Backlog
 
