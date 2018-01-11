@@ -182,6 +182,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private renderUpdateDetails() {
+    if (__LINUX__) {
+      return null
+    }
+
     if (
       __RELEASE_CHANNEL__ === 'development' ||
       __RELEASE_CHANNEL__ === 'test'
@@ -214,6 +218,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private renderUpdateErrors() {
+    if (__LINUX__) {
+      return null
+    }
+
     if (
       __RELEASE_CHANNEL__ === 'development' ||
       __RELEASE_CHANNEL__ === 'test'

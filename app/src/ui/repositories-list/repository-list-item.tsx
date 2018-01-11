@@ -14,7 +14,7 @@ interface IRepositoryListItemProps {
   /** Called when the repository should be removed. */
   readonly onRemoveRepository: (repository: Repositoryish) => void
 
-  /** Called when the repository should be shown in Finder/Explorer. */
+  /** Called when the repository should be shown in Finder/Explorer/File Manager. */
   readonly onShowRepository: (repository: Repositoryish) => void
 
   /** Called when the repository should be shown in the shell. */
@@ -112,6 +112,10 @@ export class RepositoryListItem extends React.Component<
       ? `Open in ${this.props.externalEditorLabel}`
       : defaultEditorLabel
 
+    const showRepositoryLabel = __DARWIN__
+      ? 'Show in Finder'
+      : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
+
     const items: ReadonlyArray<IMenuItem> = [
       {
         label: `Open in ${this.props.shellLabel}`,
@@ -119,7 +123,7 @@ export class RepositoryListItem extends React.Component<
         enabled: !missing,
       },
       {
-        label: __DARWIN__ ? 'Show in Finder' : 'Show in Explorer',
+        label: showRepositoryLabel,
         action: this.showRepository,
         enabled: !missing,
       },
