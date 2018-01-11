@@ -33,8 +33,8 @@ choice is clear.
   that issues that don't meet the bar can be closed
 * Reduce the amount of time and back-and-forth needed to take an issue from
   being first-opened to `triaged` or closed
-* Accept input from the community that helps us deliver meaningful results back
-  to the Atom community
+* Accept input from the community that helps us deliver meaningful results to
+  GitHub Desktop and it's users
 
 ## The Issues List Is Our Backlog
 
