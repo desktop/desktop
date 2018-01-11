@@ -15,6 +15,7 @@ interface ICommitSummaryProps {
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
   readonly gitHubUser: IGitHubUser | null
+  readonly onViewCommitOnGitHub: (sha: string) => void
 
   /**
    * Whether or not the commit body container should
@@ -187,6 +188,10 @@ export class CommitSummary extends React.Component<
     this.props.onExpandChanged(false)
   }
 
+  private onViewCommitOnGitHubClicked = () => {
+    this.props.onViewCommitOnGitHub(this.props.commit.sha)
+  }
+
   private updateOverflow() {
     const scrollView = this.descriptionScrollViewRef
     if (scrollView) {
@@ -301,11 +306,15 @@ export class CommitSummary extends React.Component<
               {author.name}
             </li>
 
-            <li className="commit-summary-meta-item" aria-label="SHA">
+            <li
+              className="commit-summary-meta-item"
+              onClick={this.onViewCommitOnGitHubClicked}
+              aria-label="SHA"
+            >
               <span aria-hidden="true">
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
-              <span className="sha">{shortSHA}</span>
+              <span className="sha link-button-component">{shortSHA}</span>
             </li>
 
             <li className="commit-summary-meta-item" title={filesDescription}>

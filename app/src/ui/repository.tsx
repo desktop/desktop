@@ -191,6 +191,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
           imageDiffType={this.props.imageDiffType}
+          onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         />
       )
     } else {
