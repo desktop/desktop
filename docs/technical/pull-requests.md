@@ -1,5 +1,5 @@
 # Checking out pull requests from a forked repository
-PR #3602 introduced the ability to checkout a branch from a forked repository. In order to accomplish this, we needed a way to manage remotes on your behalf. This document is intended to detail the process we developed to make checking out PRs as frictionless as possible.
+PR [#3602](https://github.com/desktop/desktop/pull/3602) introduced the ability to checkout a branch from a forked repository. In order to accomplish this, we needed a way to manage remotes on your behalf. This document is intended to detail the process we developed to make checking out PRs as frictionless as possible.
 
 ## Magic Remote Prefix
 One of the main problems we needed to solve was determining which remotes are no longer needed and can be cleaned. We decided to go with prefixing the remotes we add on your behalf with a magic string: `github-desktop-`
