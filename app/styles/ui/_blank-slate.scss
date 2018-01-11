@@ -61,3 +61,13 @@
   max-width: 800px;
   width: 50%;
 }
+
+@media (max-height: 350px) {
+  .blankslate-image {
+    display: none;
+  }
+
+  #blank-slate .content {
+    margin-top: 0;
+  }
+}
