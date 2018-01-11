@@ -94,12 +94,20 @@
   background-size: contain;
 }
 
-@media (max-height: 350px) {
-  .blankslate-image {
-    display: none;
-  }
+// When there's not enough space to show the blankslate
+// image any more (due to zooming or having DevTools docked
+// in the app window)
+@media (max-height: 400px) {
+  #blank-slate {
+    // Vertically center everything
+    justify-content: center;
 
-  #blank-slate .content {
-    margin-top: 0;
+    .blankslate-image {
+      display: none;
+    }
+
+    .content {
+      margin-top: 0;
+    }
   }
 }
