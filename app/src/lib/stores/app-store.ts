@@ -3170,7 +3170,7 @@ export class AppStore {
       head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
 
     if (isRefInThisRepo) {
-      //We need to fetch FIRST because someone may have created a PR since the last fetch
+      // We need to fetch FIRST because someone may have created a PR since the last fetch
       await this._fetch(repository, FetchType.UserInitiatedTask)
       await this._checkoutBranch(repository, head.ref)
     } else if (head.gitHubRepository != null) {
