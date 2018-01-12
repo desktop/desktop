@@ -3175,7 +3175,7 @@ export class AppStore {
       await this._checkoutBranch(repository, head.ref)
     } else if (head.gitHubRepository != null) {
       const cloneURL = forceUnwrap(
-        "This pull request's head is not populated but should be",
+        "This pull request's clone URL is not populated but should be",
         head.gitHubRepository.cloneURL
       )
       const remoteName = this.forkPullRequestRemoteName(
