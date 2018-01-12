@@ -208,6 +208,7 @@ export enum PopupType {
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
   ReleaseNotes,
+  DeletePullRequest,
 }
 
 export type Popup =
@@ -278,6 +279,11 @@ export type Popup =
   | {
       type: PopupType.ReleaseNotes
       newRelease: ReleaseSummary
+  } | {
+       type: PopupType.DeletePullRequest
+      repository: Repository
+      branch: Branch
+      pullRequest: PullRequest
     }
 
 export enum FoldoutType {

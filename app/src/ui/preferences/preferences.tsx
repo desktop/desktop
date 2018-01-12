@@ -39,6 +39,7 @@ interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
   readonly committerName: string
   readonly committerEmail: string
+  readonly disallowedCharactersMessage: string | null
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
@@ -61,6 +62,7 @@ export class Preferences extends React.Component<
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
+      disallowedCharactersMessage: null,
       availableEditors: [],
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
@@ -118,12 +120,6 @@ export class Preferences extends React.Component<
   }
 
   public render() {
-    const disallowedCharactersError = this.disallowedCharacterErrorMessage(
-      this.state.committerName,
-      this.state.committerEmail
-    )
-    const hasDisallowedCharacter = disallowedCharactersError !== null
-
     return (
       <Dialog
         id="preferences"
@@ -131,7 +127,7 @@ export class Preferences extends React.Component<
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSave}
       >
-        {this.renderDisallowedCharactersError(disallowedCharactersError)}
+        {this.renderDisallowedCharactersError()}
         <TabBar
           onTabClicked={this.onTabClicked}
           selectedIndex={this.state.selectedIndex}
@@ -142,7 +138,7 @@ export class Preferences extends React.Component<
         </TabBar>
 
         {this.renderActiveTab()}
-        {this.renderFooter(hasDisallowedCharacter)}
+        {this.renderFooter()}
       </Dialog>
     )
   }
@@ -163,19 +159,21 @@ export class Preferences extends React.Component<
 
   private disallowedCharacterErrorMessage(name: string, email: string) {
     const disallowedNameCharacters = disallowedCharacters(name)
-    const disallowedEmailCharacters = disallowedCharacters(email)
-
-    if (disallowedNameCharacters !== null) {
+    if (disallowedNameCharacters != null) {
       return `Git name field cannot be a disallowed character "${disallowedNameCharacters}"`
-    } else if (disallowedEmailCharacters !== null) {
-      return `Git email field cannot be a disallowed character "${disallowedEmailCharacters}"`
-    } else {
-      return null
     }
+
+    const disallowedEmailCharacters = disallowedCharacters(email)
+    if (disallowedEmailCharacters != null) {
+      return `Git email field cannot be a disallowed character "${disallowedEmailCharacters}"`
+    }
+
+    return null
   }
 
-  private renderDisallowedCharactersError(message: string | null) {
-    if (message !== null) {
+  private renderDisallowedCharactersError() {
+    const message = this.state.disallowedCharactersMessage
+    if (message != null) {
       return <DialogError>{message}</DialogError>
     } else {
       return null
@@ -246,11 +244,21 @@ export class Preferences extends React.Component<
   }
 
   private onCommitterNameChanged = (committerName: string) => {
-    this.setState({ committerName })
+    const disallowedCharactersMessage = this.disallowedCharacterErrorMessage(
+      committerName,
+      this.state.committerEmail
+    )
+
+    this.setState({ committerName, disallowedCharactersMessage })
   }
 
   private onCommitterEmailChanged = (committerEmail: string) => {
-    this.setState({ committerEmail })
+    const disallowedCharactersMessage = this.disallowedCharacterErrorMessage(
+      this.state.committerName,
+      committerEmail
+    )
+
+    this.setState({ committerEmail, disallowedCharactersMessage })
   }
 
   private onSelectedEditorChanged = (editor: ExternalEditor) => {
@@ -261,7 +269,9 @@ export class Preferences extends React.Component<
     this.setState({ selectedShell: shell })
   }
 
-  private renderFooter(hasDisabledError: boolean) {
+  private renderFooter() {
+    const hasDisabledError = this.state.disallowedCharactersMessage != null
+
     const index = this.state.selectedIndex
     switch (index) {
       case PreferencesTab.Accounts:

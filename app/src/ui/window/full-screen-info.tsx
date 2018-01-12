@@ -28,8 +28,8 @@ export class FullScreenInfo extends React.Component<
   private infoDisappearTimeoutId: number | null = null
   private transitionGroupDisappearTimeoutId: number | null = null
 
-  public constructor() {
-    super()
+  public constructor(props: IFullScreenInfoProps) {
+    super(props)
 
     this.state = {
       renderInfo: false,

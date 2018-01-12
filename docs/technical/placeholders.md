@@ -55,7 +55,7 @@ function getReplacements() {
 ```
 
 This means we can embed values at build time based on the current platform.
-Note the values we are embeddeding for `__DARWIN__` and `__WIN32__`:
+Note the values we are embedding for `__DARWIN__` and `__WIN32__`:
 
 ```ts
 __DARWIN__: process.platform === 'darwin',
