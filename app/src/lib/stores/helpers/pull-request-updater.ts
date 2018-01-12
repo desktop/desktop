@@ -85,7 +85,7 @@ export class PullRequestUpdater {
   }
 
   /** Starts fetching the statuses of PRs at an accelerated rate */
-  public didPushPullRequest(repository: Repository, pullRequest: PullRequest) {
+  public didPushPullRequest(pullRequest: PullRequest) {
     if (this.currentPullRequests.find(p => p.id === pullRequest.id)) {
       return
     }
