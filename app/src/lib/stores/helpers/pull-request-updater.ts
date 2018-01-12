@@ -100,16 +100,16 @@ export class PullRequestUpdater {
     }
 
     const handle = window.setTimeout(
-      () => this.refreshPullRequestStatus(repository),
+      () => this.refreshPullRequestStatus(),
       PostPushInterval
     )
     this.timeoutHandles.set(TimeoutHandles.PushedPullRequest, handle)
   }
 
-  private async refreshPullRequestStatus(repository: Repository) {
+  private async refreshPullRequestStatus() {
     const githubRepo = forceUnwrap(
       'Can only fetch pull requests for GitHub repositories',
-      repository.gitHubRepository
+      this.repository.gitHubRepository
     )
 
     await this.store.refreshPullRequestStatuses(githubRepo, this.account)

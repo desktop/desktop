@@ -3152,10 +3152,6 @@ export class AppStore {
     return gitStore.addUpstreamRemoteIfNeeded()
   }
 
-  private forkPullRequestRemoteName(remoteName: string) {
-    return `${ForkedRemotePrefix}${remoteName}`
-  }
-
   public async _checkoutPullRequest(
     repository: Repository,
     pullRequest: PullRequest
@@ -3175,10 +3171,10 @@ export class AppStore {
       await this._checkoutBranch(repository, head.ref)
     } else if (head.gitHubRepository != null) {
       const cloneURL = forceUnwrap(
-        "This pull request's head is not populated but should be",
+        "This pull request's clone URL is not populated but should be",
         head.gitHubRepository.cloneURL
       )
-      const remoteName = this.forkPullRequestRemoteName(
+      const remoteName = forkPullRequestRemoteName(
         head.gitHubRepository.owner.login
       )
       const remotes = await getRemotes(repository)
@@ -3216,4 +3212,8 @@ export class AppStore {
       await this._checkoutBranch(repository, localBranchName)
     }
   }
+}
+
+function forkPullRequestRemoteName(remoteName: string) {
+  return `${ForkedRemotePrefix}${remoteName}`
 }
