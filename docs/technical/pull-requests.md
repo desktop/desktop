@@ -9,7 +9,7 @@ export const ForkedRemotePrefix = 'github-desktop-'
 ```
 [Code](https://github.com/desktop/desktop/blob/34a05b155ff69bb19cc4da5b2caa89856e3e63fb/app/src/lib/stores/pull-request-store.ts#L26)
 
-## Cleaning Remotes
+## Removing Remotes
 One of the goals of our design was to ensure that we don’t cause your remotes — `.git/refs/remotes` — to grow unbounded. We prevent this by cleaning up after ourselves. We determined that a remote is a candidate for removal when it meets the following conditions.
 
 * Start with our prefix
