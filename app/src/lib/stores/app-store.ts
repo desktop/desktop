@@ -1635,7 +1635,7 @@ export class AppStore {
         kind,
         title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
         value: 1,
-        targetBranch: name,
+        targetBranch: foundBranch.name,
       })
 
       await this._refreshRepository(repository)
