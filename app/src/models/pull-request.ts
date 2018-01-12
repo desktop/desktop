@@ -26,7 +26,7 @@ export class PullRequestRef {
 }
 
 /** The commit status and metadata for a given ref */
-export interface ICombinedRefStatus {
+export interface ICommitStatus {
   readonly id: number
   readonly state: APIRefState
 }
@@ -45,14 +45,14 @@ export class PullRequestStatus {
   public readonly sha: string
 
   /** The list of all statuses for a specific ref. */
-  public readonly statuses: ReadonlyArray<ICombinedRefStatus>
+  public readonly statuses: ReadonlyArray<ICommitStatus>
 
   public constructor(
     pullRequestNumber: number,
     state: APIRefState,
     totalCount: number,
     sha: string,
-    statuses: ReadonlyArray<ICombinedRefStatus>
+    statuses: ReadonlyArray<ICommitStatus>
   ) {
     this.pullRequestNumber = pullRequestNumber
     this.state = state
