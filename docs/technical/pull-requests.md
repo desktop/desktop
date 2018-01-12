@@ -10,16 +10,17 @@ export const ForkedRemotePrefix = 'github-desktop-'
 [Code](https://github.com/desktop/desktop/blob/34a05b155ff69bb19cc4da5b2caa89856e3e63fb/app/src/lib/stores/pull-request-store.ts#L26)
 
 ## Removing Remotes
-One of the goals of our design was to ensure that we don’t cause your remotes — `.git/refs/remotes` — to grow unbounded. We prevent this by cleaning up after ourselves. We determined that a remote is a candidate for removal when it meets the following conditions.
-
+One of the goals of our design was to ensure that we don’t cause your remotes — `.git/refs/remotes` — to grow unbounded. We prevent this by cleaning up after ourselves. We determined that a remote is a candidate for removal when it meets the certain conditions:
 * Start with our prefix
 * The PR associated with the remote is closed
 
+The implementation of the function that does this work can be found [here](https://github.com/desktop/desktop/blob/34a05b155ff69bb19cc4da5b2caa89856e3e63fb/app/src/lib/stores/pull-request-store.ts#L91-L110).
+
 ```ts
-private forkedRemotesToDelete(
-    remotes: ReadonlyArray<IRemote>,
-    openPullRequests: ReadonlyArray<PullRequest>
-  ): ReadonlyArray<IRemote> {
+forkedRemotesToDelete(
+  remotes: ReadonlyArray<IRemote>,
+  openPullRequests: ReadonlyArray<PullRequest>
+): ReadonlyArray<IRemote> {
     const forkedRemotes = remotes.filter(remote =>
       remote.name.startsWith(ForkedRemotePrefix)
     )
@@ -37,8 +38,6 @@ private forkedRemotesToDelete(
     return forkedRemotesToDelete
 }
 ```
-
-[Code](https://github.com/desktop/desktop/blob/34a05b155ff69bb19cc4da5b2caa89856e3e63fb/app/src/lib/stores/pull-request-store.ts#L91-L110)
 
 ## What does this mean for me?
 Doing this essentially gives us a namespace that we can safely work in. We chose the prefix `github-desktop-` because we are confident that your own remote names will never start with this prefix. This means that in order for GitHub Desktop to work as expected, you should never add a remote that starts with our prefix. We feel that this is an acceptable compromise.
