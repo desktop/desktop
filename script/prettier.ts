@@ -24,12 +24,20 @@ const result = spawnSync(prettierPath, args, {
 if (!shouldFix && result.status > 0) {
   process.exitCode = result.status
 
-  console.log('These files are not formatted correctly:\n')
-  console.log(result.stdout.toString())
+  const fileList = result.stdout.toString().trim()
 
-  console.error(
-    chalk`{bold.green → To fix these errors, run {underline yarn lint:prettier --fix}}`
-  )
+  if (fileList.length > 0) {
+    console.log('These files are not formatted correctly:\n')
+
+    console.log(result.stdout.toString())
+
+    console.error(
+      chalk`{bold.green → To fix these errors, run {underline yarn lint:prettier --fix}}`
+    )
+  } else {
+    console.log('Something went wrong with invoking prettier:')
+    console.log(result.stderr.toString())
+  }
 } else if (result.status < 0) {
   process.exitCode = result.status
 
