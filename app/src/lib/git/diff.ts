@@ -42,7 +42,7 @@ const MaxReasonableDiffSize = 3000000
  * The longest line length we should try to display. If a diff has a line longer
  * than this, we probably shouldn't attempt it.
  */
-const MaxLineLength = 500000
+const MaxLineLength = 5000
 
 /**
  * Utility function to check whether parsing this buffer is going to cause
