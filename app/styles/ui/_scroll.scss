@@ -1,4 +1,4 @@
-@import "../mixins";
+@import '../mixins';
 
 @include win32-context {
   // Windows native scrollbars are just too outdated to look at so we'll

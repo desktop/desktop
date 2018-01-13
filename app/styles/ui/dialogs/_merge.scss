@@ -1,4 +1,4 @@
-@import "../../mixins";
+@import '../../mixins';
 
 dialog#merge {
   width: 450px;
@@ -38,7 +38,7 @@ dialog#merge {
   }
 
   .dialog-footer {
-    button[type="submit"] {
+    button[type='submit'] {
       height: auto;
       width: 100%;
       padding: var(--spacing-half);

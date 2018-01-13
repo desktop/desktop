@@ -1,7 +1,7 @@
-@import "../mixins";
-@import "dialogs/merge";
-@import "dialogs/publish-repository";
-@import "dialogs/repository-settings";
+@import '../mixins';
+@import 'dialogs/merge';
+@import 'dialogs/publish-repository';
+@import 'dialogs/repository-settings';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -180,7 +180,7 @@ dialog {
       //
       // https://codepen.io/noahblon/post/coloring-svgs-in-css-background-images
       &::before {
-        content: "";
+        content: '';
         display: block;
         position: absolute;
         left: 0;
