@@ -1930,7 +1930,7 @@ export class AppStore {
           const gitHubRepository = repository.gitHubRepository
 
           if (currentPR && gitHubRepository) {
-            prUpdater.didPushPullRequest(repository, currentPR)
+            prUpdater.didPushPullRequest(currentPR)
           }
         }
       }
