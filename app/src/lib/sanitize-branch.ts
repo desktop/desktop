@@ -8,7 +8,6 @@ const invalidCharacterRegex = /[\x00-\x20\x7F~^:?*\[\\|""<>]|@{|\.\.+|^\.|\.$|\.
 export function sanitizedBranchName(name: string): string {
   return name
     .replace(invalidCharacterRegex, '-')
-    .replace(/--+/g, '-')
     .replace(/^-/g, '')
 }
 

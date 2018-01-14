@@ -44,4 +44,10 @@ describe('sanitizedBranchName', () => {
     const result = sanitizedBranchName(branchName)
     expect(result).to.equal('branch-name')
   })
+
+  it('allows double dashes after first character', () => {
+    const branchName = 'branch--name'
+    const result = sanitizedBranchName(branchName)
+    expect(result).to.equal(branchName)
+  })
 })
