@@ -3183,11 +3183,14 @@ export class AppStore {
       if (remote == null) {
         await addRemote(repository, remoteName, cloneURL)
       } else if (remote.url !== cloneURL) {
-        log.error(
+        const error = new Error(
           `Expected PR remote ${remoteName} url to be ${cloneURL} got ${
             remote.url
           }.`
         )
+
+        log.error(error.message)
+        this.emitError(error)
       }
 
       const gitStore = this.getGitStore(repository)
