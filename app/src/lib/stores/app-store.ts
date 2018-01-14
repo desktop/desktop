@@ -1,4 +1,3 @@
-import { Emitter, Disposable } from 'event-kit'
 import { ipcRenderer, remote } from 'electron'
 import {
   IRepositoryState,
@@ -110,6 +109,8 @@ import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
+import { BaseStore } from './store'
+import { Disposable } from 'event-kit'
 
 /**
  * Enum used by fetch to determine if
@@ -143,9 +144,7 @@ const shellKey = 'shell'
 // background fetching should not occur more than once every two minutes
 const BackgroundFetchMinimumInterval = 2 * 60 * 1000
 
-export class AppStore {
-  private emitter = new Emitter()
-
+export class AppStore extends BaseStore {
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
 
@@ -248,6 +247,8 @@ export class AppStore {
     repositoriesStore: RepositoriesStore,
     pullRequestStore: PullRequestStore
   ) {
+    super()
+
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
@@ -327,7 +328,7 @@ export class AppStore {
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
   }
 
-  private emitUpdate() {
+  protected emitUpdate() {
     // If the window is hidden then we won't get an animation frame, but there
     // may still be work we wanna do in response to the state change. So
     // immediately emit the update.
@@ -351,21 +352,12 @@ export class AppStore {
     this.emitQueued = false
     const state = this.getState()
 
-    this.emitter.emit('did-update', state)
+    this._emitter.emit('did-update', state)
     updateMenuState(state, this.appMenu)
   }
 
   public onDidUpdate(fn: (state: IAppState) => void): Disposable {
-    return this.emitter.on('did-update', fn)
-  }
-
-  private emitError(error: Error) {
-    this.emitter.emit('did-error', error)
-  }
-
-  /** Register a listener for when an error occurs. */
-  public onDidError(fn: (error: Error) => void): Disposable {
-    return this.emitter.on('did-error', fn)
+    return this._emitter.on('did-update', fn)
   }
 
   /**

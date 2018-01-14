@@ -13,11 +13,11 @@ import {
   PullRequestRef,
   PullRequestStatus,
 } from '../../models/pull-request'
-import { Emitter, Disposable } from 'event-kit'
+import { BaseStore } from './store'
+import { Disposable } from 'event-kit'
 
 /** The store for GitHub Pull Requests. */
-export class PullRequestStore {
-  private readonly emitter = new Emitter()
+export class PullRequestStore extends BaseStore {
   private readonly pullRequestDatabase: PullRequestDatabase
   private readonly repositoriesStore: RepositoriesStore
 
@@ -27,8 +27,15 @@ export class PullRequestStore {
     db: PullRequestDatabase,
     repositoriesStore: RepositoriesStore
   ) {
+    super()
+
     this.pullRequestDatabase = db
     this.repositoriesStore = repositoriesStore
+  }
+
+  /** Overrides base onDidUpdate so that delegate accepts a repository. */
+  public onDidUpdate(fn: (repository: GitHubRepository) => void): Disposable {
+    return this._emitter.on('did-update', fn)
   }
 
   /** Loads all pull requests against the given repository. */
@@ -332,23 +339,5 @@ export class PullRequestStore {
     }
 
     return pullRequests
-  }
-
-  private emitUpdate(repository: GitHubRepository) {
-    this.emitter.emit('did-update', repository)
-  }
-
-  private emitError(error: Error) {
-    this.emitter.emit('did-error', error)
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: (repository: GitHubRepository) => void): Disposable {
-    return this.emitter.on('did-update', fn)
-  }
-
-  /** Register a function to be called when an error occurs. */
-  public onDidError(fn: (error: Error) => void): Disposable {
-    return this.emitter.on('did-error', fn)
   }
 }

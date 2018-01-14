@@ -1,6 +1,6 @@
 import * as Fs from 'fs'
 import * as Path from 'path'
-import { Emitter, Disposable } from 'event-kit'
+import { Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
 import { Branch, BranchType } from '../../models/branch'
@@ -54,6 +54,7 @@ import {
   findUpstreamRemote,
   UpstreamRemoteName,
 } from './helpers/find-upstream-remote'
+import { BaseStore } from './store'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -70,9 +71,7 @@ export interface ICommitMessage {
 }
 
 /** The store for a repository's git data. */
-export class GitStore {
-  private readonly emitter = new Emitter()
-
+export class GitStore extends BaseStore {
   private readonly shell: IAppShell
 
   /** The commits keyed by their SHA. */
@@ -107,37 +106,21 @@ export class GitStore {
   private _lastFetched: Date | null = null
 
   public constructor(repository: Repository, shell: IAppShell) {
+    super()
+
     this.repository = repository
     this.shell = shell
   }
 
-  private emitUpdate() {
-    this.emitter.emit('did-update', {})
-  }
-
   private emitNewCommitsLoaded(commits: ReadonlyArray<Commit>) {
-    this.emitter.emit('did-load-new-commits', commits)
-  }
-
-  private emitError(error: Error) {
-    this.emitter.emit('did-error', error)
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: () => void): Disposable {
-    return this.emitter.on('did-update', fn)
+    this._emitter.emit('did-load-new-commits', commits)
   }
 
   /** Register a function to be called when the store loads new commits. */
   public onDidLoadNewCommits(
     fn: (commits: ReadonlyArray<Commit>) => void
   ): Disposable {
-    return this.emitter.on('did-load-new-commits', fn)
-  }
-
-  /** Register a function to be called when an error occurs. */
-  public onDidError(fn: (error: Error) => void): Disposable {
-    return this.emitter.on('did-error', fn)
+    return this._emitter.on('did-load-new-commits', fn)
   }
 
   /**
