@@ -8,6 +8,12 @@ import { getConfigValue } from '../git'
 export class RepositorySettingsStore extends BaseStore {
   private readonly _repository: Repository
 
+  public constructor(repository: Repository) {
+    super()
+
+    this._repository = repository
+  }
+
   /**
    * Read the contents of the repository .gitignore.
    *
