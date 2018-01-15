@@ -261,6 +261,16 @@ export class AppStore extends BaseStore {
     const window = remote.getCurrentWindow()
     this._windowState = getWindowState(window)
 
+    window.webContents.getZoomFactor(factor => {
+      this.onWindowZoomFactorChanged(factor)
+    })
+
+    this.wireupIpcEventHandlers(window)
+    this.wireupStoreEventHandlers()
+    getAppMenu()
+  }
+
+  private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
     ipcRenderer.on(
       'window-state-changed',
       (event: Electron.IpcMessageEvent, args: any[]) => {
@@ -268,10 +278,6 @@ export class AppStore extends BaseStore {
         this.emitUpdate()
       }
     )
-
-    window.webContents.getZoomFactor(factor => {
-      this.onWindowZoomFactorChanged(factor)
-    })
 
     ipcRenderer.on('zoom-factor-changed', (event: any, zoomFactor: number) => {
       this.onWindowZoomFactorChanged(zoomFactor)
@@ -283,10 +289,9 @@ export class AppStore extends BaseStore {
         this.setAppMenu(menu)
       }
     )
-
-    getAppMenu()
-
-    this.gitHubUserStore.onDidUpdate(() => {
+  }
+  private wireupStoreEventHandlers() {
+    this._gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
     })
 
