@@ -5,7 +5,7 @@ import { BaseStore } from './store'
 import { Repository } from '../../models/repository'
 import { getConfigValue } from '../git'
 
-class RepositorySettingsStore extends BaseStore {
+export class RepositorySettingsStore extends BaseStore {
   private readonly _repository: Repository
 
   /**
