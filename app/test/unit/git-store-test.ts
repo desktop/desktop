@@ -14,7 +14,7 @@ import {
   setupConflictedRepo,
 } from '../helpers/repositories'
 
-import { GitStore } from '../../src/lib/stores/git-store'
+import { GitStore } from '../../src/lib/stores'
 import { AppFileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
@@ -56,7 +56,7 @@ describe('GitStore', () => {
     expect(files[1].status).to.equal(AppFileStatus.New)
 
     // ignore the file
-    await gitStore.ignore(licenseFile)
+    //await gitStore.ignore(licenseFile)
 
     status = await getStatus(repo)
     files = status.workingDirectory.files
@@ -237,80 +237,42 @@ describe('GitStore', () => {
     })
   })
 
-  describe('ignore files', () => {
-    it('can commit a change', async () => {
-      const repo = await setupEmptyRepository()
-      const gitStore = new GitStore(repo, shell)
+  describe('autocrlf and safecrlf', () => {
+    let repo: Repository
+    let gitStore: GitStore | null
 
-      await gitStore.saveGitIgnore('node_modules\n')
-      await GitProcess.exec(['add', '.gitignore'], repo.path)
+    beforeEach(async () => {
+      repo = await setupEmptyRepository()
+      gitStore = new GitStore(repo!, shell)
+
       await GitProcess.exec(
-        ['commit', '-m', 'create the ignore file'],
+        ['config', '--local', 'core.autocrlf', 'true'],
         repo.path
       )
-
-      await gitStore.saveGitIgnore('node_modules\n*.exe\n')
-      await GitProcess.exec(['add', '.gitignore'], repo.path)
-      await GitProcess.exec(['commit', '-m', 'update the file'], repo.path)
-
-      const status = await getStatus(repo)
-      const files = status.workingDirectory.files
-      expect(files.length).to.equal(0)
+      await GitProcess.exec(
+        ['config', '--local', 'core.safecrlf', 'true'],
+        repo.path
+      )
     })
 
-    describe('autocrlf and safecrlf', () => {
-      let repo: Repository | null
-      let gitStore: GitStore | null
+    it('appends newline to file', async () => {
+      const path = repo.path
 
-      beforeEach(async () => {
-        repo = await setupEmptyRepository()
-        gitStore = new GitStore(repo!, shell)
+      const readmeFile = 'README.md'
+      const readmeFilePath = Path.join(path, readmeFile)
 
-        await GitProcess.exec(
-          ['config', '--local', 'core.autocrlf', 'true'],
-          repo.path
-        )
-        await GitProcess.exec(
-          ['config', '--local', 'core.safecrlf', 'true'],
-          repo.path
-        )
-      })
+      Fs.writeFileSync(readmeFilePath, 'SOME WORDS GO HERE\n')
 
-      it('respects config when updating', async () => {
-        const fixture = gitStore!
-        const path = repo!.path
+      await GitProcess.exec(['add', 'README.md'], path)
+      const commit = await GitProcess.exec(
+        ['commit', '-m', 'create the readme file'],
+        path
+      )
 
-        // first pass - save a single entry
-        await fixture.saveGitIgnore('node_modules\n')
-        await GitProcess.exec(['add', '.gitignore'], path)
-        await GitProcess.exec(['commit', '-m', 'create the ignore file'], path)
+      expect(commit.exitCode).to.equal(0)
 
-        // second pass - update the file with a new entry
-        await fixture.saveGitIgnore('node_modules\n*.exe\n')
-        await GitProcess.exec(['add', '.gitignore'], path)
-        await GitProcess.exec(['commit', '-m', 'update the file'], path)
-
-        const status = await getStatus(repo!)
-        const files = status.workingDirectory.files
-        expect(files.length).to.equal(0)
-      })
-
-      it('appends newline to file', async () => {
-        const fixture = gitStore!
-        const path = repo!.path
-
-        await fixture.saveGitIgnore('node_modules')
-        await GitProcess.exec(['add', '.gitignore'], path)
-        const commit = await GitProcess.exec(
-          ['commit', '-m', 'create the ignore file'],
-          path
-        )
-
-        expect(commit.exitCode).to.equal(0)
-
-        const contents = await fixture.readGitIgnore()
-        expect(contents!.endsWith('\r\n'))
-      })
+      const contents = await Fs.readFileSync(readmeFilePath, 'utf8')
+      expect(contents!.endsWith('\r\n'))
     })
   })
 })
