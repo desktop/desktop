@@ -599,6 +599,30 @@ export class AppStore extends BaseStore {
     return gitStore
   }
 
+  private removeRepositorySettingsStore(repository: Repository) {
+    const key = repository.hash
+
+    if (this._repositorySettingsStores.has(key)) {
+      this._repositorySettingsStores.delete(key)
+    }
+  }
+
+  private getRepositorySettingsStore(
+    repository: Repository
+  ): RepositorySettingsStore {
+    let store = this._repositorySettingsStores.get(repository.hash)
+
+    if (store == null) {
+      store = new RepositorySettingsStore(repository)
+
+      store.onDidError(error => this.emitError(error))
+
+      this._repositorySettingsStores.set(repository.hash, store)
+    }
+
+    return store
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadHistory(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
