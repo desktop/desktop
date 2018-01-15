@@ -37,14 +37,9 @@ import { TipState } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
 import { ExternalEditor, getAvailableEditors, parse } from '../editors'
-import { CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from '../databases/github-user-database'
-import { GitHubUserStore } from './github-user-store'
 import { shell } from '../app-shell'
-import { EmojiStore } from './emoji-store'
-import { GitStore, ICommitMessage } from './git-store'
 import { assertNever } from '../fatal-error'
-import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -55,7 +50,6 @@ import {
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
-import { SignInStore } from './sign-in-store'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 import { fatalError } from '../fatal-error'
@@ -82,8 +76,20 @@ import {
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
-import { AccountsStore } from './accounts-store'
-import { RepositoriesStore } from './repositories-store'
+import { BaseStore } from './store'
+import {
+  AccountsStore,
+  RepositoriesStore,
+  RepositorySettingsStore,
+  PullRequestStore,
+  SignInStore,
+  IssuesStore,
+  GitStore,
+  ICommitMessage,
+  EmojiStore,
+  GitHubUserStore,
+  CloningRepositoriesStore,
+} from '../stores'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
@@ -104,12 +110,10 @@ import {
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { getAccountForRepository } from '../get-account-for-repository'
 import { BranchesTab } from '../../models/branches-tab'
-import { PullRequestStore } from './pull-request-store'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
-import { BaseStore } from './store'
 import { Disposable } from 'event-kit'
 
 /**
