@@ -227,6 +227,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.checkForUpdates(true)
 
     log.info(`launching: ${getVersion()} (${getOS()})`)
+    log.info(`execPath: '${process.execPath}'`)
   }
 
   private onMenuEvent(name: MenuEvent): any {

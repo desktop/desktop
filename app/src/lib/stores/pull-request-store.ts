@@ -169,7 +169,6 @@ export class PullRequestStore {
     account: Account
   ): Promise<void> {
     const api = API.fromAccount(account)
-
     const statuses: Array<IPullRequestStatus> = []
     const prs: Array<PullRequest> = []
 
@@ -180,18 +179,27 @@ export class PullRequestStore {
         pr.head.sha
       )
 
-      const status = {
-        pullRequestNumber: pr.number,
-        state: apiStatus.state,
-        totalCount: apiStatus.total_count,
-        sha: pr.head.sha,
-      }
+      const combinedRefStatuses = apiStatus.statuses.map(x => {
+        return {
+          id: x.id,
+          state: x.state,
+        }
+      })
+
+      const status = new PullRequestStatus(
+        pr.number,
+        apiStatus.state,
+        apiStatus.total_count,
+        pr.head.sha,
+        combinedRefStatuses
+      )
 
       statuses.push({
         pullRequestId: pr.id,
         state: apiStatus.state,
         totalCount: apiStatus.total_count,
         sha: pr.head.sha,
+        statuses: apiStatus.statuses,
       })
 
       prs.push(
@@ -226,11 +234,19 @@ export class PullRequestStore {
       return null
     }
 
+    const combinedRefStatuses = result.statuses.map(x => {
+      return {
+        id: x.id,
+        state: x.state,
+      }
+    })
+
     return new PullRequestStatus(
       result.pullRequestId,
       result.state,
       result.totalCount,
-      result.sha
+      result.sha,
+      combinedRefStatuses
     )
   }
 
