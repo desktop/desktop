@@ -1,5 +1,3 @@
-'use strict'
-
 ///<reference types="node" />
 
 import { readdirSync } from 'fs'
