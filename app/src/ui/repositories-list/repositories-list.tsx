@@ -28,7 +28,7 @@ interface IRepositoriesListProps {
   /** Called when the repository should be removed. */
   readonly onRemoveRepository: (repository: Repositoryish) => void
 
-  /** Called when the repository should be shown in Finder/Explorer. */
+  /** Called when the repository should be shown in Finder/Explorer/File Manager. */
   readonly onShowRepository: (repository: Repositoryish) => void
 
   /** Called when the repository should be shown in the shell. */

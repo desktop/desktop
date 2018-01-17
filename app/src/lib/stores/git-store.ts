@@ -43,6 +43,8 @@ import {
   unstageAllFiles,
   openMergeTool,
   addRemote,
+  listSubmodules,
+  resetSubmodulePaths,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -943,8 +945,12 @@ export class GitStore {
     const pathsToCheckout = new Array<string>()
     const pathsToReset = new Array<string>()
 
+    const submodules = await listSubmodules(this.repository)
+
     await queueWorkHigh(files, async file => {
-      if (file.status !== AppFileStatus.Deleted) {
+      const foundSubmodule = submodules.some(s => s.path === file.path)
+
+      if (file.status !== AppFileStatus.Deleted && !foundSubmodule) {
         // N.B. moveItemToTrash is synchronous can take a fair bit of time
         // which is why we're running it inside this work queue that spreads
         // out the calls across as many animation frames as it needs to.
@@ -981,9 +987,15 @@ export class GitStore {
       changedFilesInIndex.has(x)
     )
 
-    // Don't attempt to checkout files that doesn't exist in the index after our reset.
+    const submodulePaths = pathsToCheckout.filter(p =>
+      submodules.find(s => s.path === p)
+    )
+
+    // Don't attempt to checkout files that are submodules or don't exist in the index after our reset
     const necessaryPathsToCheckout = pathsToCheckout.filter(
-      x => changedFilesInIndex.get(x) !== IndexStatus.Added
+      x =>
+        submodulePaths.indexOf(x) === -1 ||
+        changedFilesInIndex.get(x) !== IndexStatus.Added
     )
 
     // We're trying to not invoke git linearly with the number of files to discard
@@ -1000,6 +1012,7 @@ export class GitStore {
     // 3. Checkout all the files that we've discarded that existed in the previous
     //    commit from the index.
     await this.performFailableOperation(async () => {
+      await resetSubmodulePaths(this.repository, submodulePaths)
       await resetPaths(
         this.repository,
         GitResetMode.Mixed,

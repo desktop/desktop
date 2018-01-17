@@ -84,6 +84,7 @@ import { GenericGitAuthentication } from './generic-git-auth'
 import { ShellError } from './shell'
 import { InitializeLFS, AttributeMismatch } from './lfs'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
+import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -226,6 +227,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.checkForUpdates(true)
 
     log.info(`launching: ${getVersion()} (${getOS()})`)
+    log.info(`execPath: '${process.execPath}'`)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -300,6 +302,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private checkForUpdates(inBackground: boolean) {
+    if (__LINUX__) {
+      return
+    }
+
     if (
       __RELEASE_CHANNEL__ === 'development' ||
       __RELEASE_CHANNEL__ === 'test'
@@ -411,17 +417,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const tip = state.state.branchesState.tip
-    const existsOnRemote = state.state.aheadBehind !== null
 
     if (tip.kind === TipState.Valid) {
       const currentPullRequest = state.state.branchesState.currentPullRequest
       if (currentPullRequest) {
-        this.props.dispatcher.postError(
-          new Error(
-            `You can't delete this branch because it has an open pull request.`
-          )
-        )
+        this.props.dispatcher.showPopup({
+          type: PopupType.DeletePullRequest,
+          repository: state.repository,
+          branch: tip.branch,
+          pullRequest: currentPullRequest,
+        })
       } else {
+        const existsOnRemote = state.state.aheadBehind !== null
+
         this.props.dispatcher.showPopup({
           type: PopupType.DeleteBranch,
           repository: state.repository,
@@ -1173,6 +1181,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
             onUpdate={this.onUpdateExistingUpstreamRemote}
             onIgnore={this.onIgnoreExistingUpstreamRemote}
+          />
+        )
+
+      case PopupType.DeletePullRequest:
+        return (
+          <DeletePullRequest
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            branch={popup.branch}
+            onDismissed={this.onPopupDismissed}
+            pullRequest={popup.pullRequest}
           />
         )
       default:

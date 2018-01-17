@@ -20,9 +20,9 @@ We believe in strongly typed programming languages that help us avoid mistakes t
 
 #### Examples
 
-Our [assertNever](https://github.com/desktop/desktop/blob/d26fd1ee670dfa7f16ded74b7a4108d2bfe68c79/app/src/lib/fatal-error.ts#L6-L21) helper lets us leverage the type system to verify exhaustiveness and get [compile-time errors](https://github.com/desktop/desktop/blob/8fc8e6f5d1a8153cc92bb0e324b9c26602211646/app/src/ui/branches/ci-status.tsx#L36-L47) when that assertion fails.
+Our [`assertNever`](https://github.com/desktop/desktop/blob/d26fd1ee670dfa7f16ded74b7a4108d2bfe68c79/app/src/lib/fatal-error.ts#L6-L21) helper lets us leverage the type system to verify exhaustiveness and get [compile-time errors](https://github.com/desktop/desktop/blob/8fc8e6f5d1a8153cc92bb0e324b9c26602211646/app/src/ui/branches/ci-status.tsx#L36-L47) when that assertion fails.
 
-Our [react-readonly-props-and-state](https://github.com/desktop/desktop/blob/d26fd1ee670dfa7f16ded74b7a4108d2bfe68c79/tslint-rules/reactReadonlyPropsAndStateRule.ts) static analysis ensures that we don't accidentally mutate state which React prohibits being mutated but isn't able to enforce due to the dynamic runtime.
+Our [`react-readonly-props-and-state`](https://github.com/desktop/desktop/blob/d26fd1ee670dfa7f16ded74b7a4108d2bfe68c79/tslint-rules/reactReadonlyPropsAndStateRule.ts) static analysis ensures that we don't accidentally mutate state which React prohibits being mutated but isn't able to enforce due to the dynamic runtime.
 
 We [write our own type definitions](https://github.com/desktop/desktop/blob/eee92a96943afbc39057b1aae66c642e23dbf136/app/src/lib/globals.d.ts#L94-L112) when none exist.
 
@@ -63,7 +63,7 @@ At times we move methods out of classes or even out into their own file to reinf
 
 #### Examples
 
-In app-menu-bar we've extracted a method called [createState](https://github.com/desktop/desktop/blob/d26fd1ee670dfa7f16ded74b7a4108d2bfe68c79/app/src/ui/app-menu/app-menu-bar.tsx#L50-L75) from the component to live outside of the class such that we can be sure that the only thing that matters to the outcome of that function is the props object that's passed to it. By doing this we can avoid a very common example of using `this.props` inside of the method when, in fact, we might want to create a state object from `nextProps` or even `prevProps` that was given to us from one of the [React lifecycle methods](https://reactjs.org/docs/react-component.html#the-component-lifecycle).
+In app-menu-bar we've extracted a method called [`createState`](https://github.com/desktop/desktop/blob/d26fd1ee670dfa7f16ded74b7a4108d2bfe68c79/app/src/ui/app-menu/app-menu-bar.tsx#L50-L75) from the component to live outside of the class such that we can be sure that the only thing that matters to the outcome of that function is the props object that's passed to it. By doing this we can avoid a very common example of using `this.props` inside of the method when, in fact, we might want to create a state object from `nextProps` or even `prevProps` that was given to us from one of the [React lifecycle methods](https://reactjs.org/docs/react-component.html#the-component-lifecycle).
 
 ## Recommended resources
 

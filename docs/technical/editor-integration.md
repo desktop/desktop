@@ -205,6 +205,7 @@ These editors are currently supported:
  - [Visual Studio Code](https://code.visualstudio.com/)
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
+ - [PhpStorm](https://www.jetbrains.com/phpstorm/)
 
 These are defined in an enum at the top of the file:
 
