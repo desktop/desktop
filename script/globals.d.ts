@@ -6,29 +6,6 @@ type Package = {
   devDependencies: PackageLookup
 }
 
-// type declarations for legal-eagle
-type LicenseLookup = {
-  [key: string]: LicenseEntry
-}
-
-type LegalEagleOptions = {
-  path: string
-  overrides: LicenseLookup
-  omitPermissive?: boolean
-}
-
-type LicenseEntry = {
-  license: string
-  source: string
-  repository: string
-  sourceText: string
-}
-
-type LegalEagle = (
-  options: LegalEagleOptions,
-  callback: (error: Error | null, summary: LicenseLookup) => void
-) => void
-
 // type declarations for electron-installer-redhat
 type RedhatOptions = {
   src: string

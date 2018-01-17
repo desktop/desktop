@@ -114,6 +114,7 @@
     "@types/fs-extra": "2.1.0",
     "@types/html-webpack-plugin": "^2.28.0",
     "@types/keytar": "^4.0.0",
+    "@types/legal-eagle": "^0.15.0",
     "@types/mocha": "^2.2.29",
     "@types/mri": "^1.1.0",
     "@types/node": "^7.0.18",
