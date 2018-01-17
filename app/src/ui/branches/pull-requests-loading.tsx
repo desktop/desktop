@@ -27,6 +27,7 @@ const prLoadingItemProps: IPullRequestListItemProps = {
     totalCount: 1,
     state: 'pending',
     pullRequestNumber: 0,
+    statuses: [],
   },
 }
 
