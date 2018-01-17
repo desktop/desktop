@@ -60,7 +60,7 @@ export class BranchesContainer extends React.Component<
 
     const currentBranch = this.props.currentBranch
 
-    if (currentBranch != null && currentBranch.name !== branch.name) {
+    if (currentBranch == null || currentBranch.name !== branch.name) {
       this.props.dispatcher.checkoutBranch(this.props.repository, branch)
     }
   }
