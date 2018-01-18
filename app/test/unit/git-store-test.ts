@@ -45,8 +45,8 @@ describe('GitStore', () => {
     // setup requires knowing about the current tip
     await gitStore.loadStatus()
 
-    let status = await getStatus(repo)
-    let files = status.workingDirectory.files
+    const status = await getStatus(repo)
+    const files = status.workingDirectory.files
 
     expect(files.length).to.equal(2)
     expect(files[0].path).to.equal('README.md')
