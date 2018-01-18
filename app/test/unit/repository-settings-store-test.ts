@@ -8,6 +8,7 @@ import { expect } from 'chai'
 import { RepositorySettingsStore } from '../../src/lib/stores'
 import { setupEmptyRepository } from '../helpers/repositories'
 import { getStatus } from '../../src/lib/git'
+import { Repository } from '../../src/models/repository'
 
 describe('RepositorySettingsStore', () => {
   it('can create a gitignore file', async () => {
@@ -72,5 +73,40 @@ describe('RepositorySettingsStore', () => {
     // commit the readme and gitignore file but leave the license
     await GitProcess.exec(['add', '.'], repo.path)
     await GitProcess.exec(['commit', '-m', 'add readme'], repo.path)
+  })
+})
+
+describe('autocrlf and safecrlf', () => {
+  let repo: Repository
+  let sut: RepositorySettingsStore
+
+  beforeEach(async () => {
+    repo = await setupEmptyRepository()
+    sut = new RepositorySettingsStore(repo)
+
+    await GitProcess.exec(
+      ['config', '--local', 'core.autocrlf', 'true'],
+      repo.path
+    )
+    await GitProcess.exec(
+      ['config', '--local', 'core.safecrlf', 'true'],
+      repo.path
+    )
+  })
+
+  it('appends newline to file', async () => {
+    const path = repo.path
+
+    await sut.saveGitIgnore('node_modules')
+    await GitProcess.exec(['add', '.gitignore'], path)
+
+    const commit = await GitProcess.exec(
+      ['commit', '-m', 'create the ignore file'],
+      path
+    )
+    const contents = await sut.readGitIgnore()
+
+    expect(commit.exitCode).to.equal(0)
+    expect(contents!.endsWith('\r\n'))
   })
 })

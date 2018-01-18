@@ -237,42 +237,42 @@ describe('GitStore', () => {
     })
   })
 
-  describe('autocrlf and safecrlf', () => {
-    let repo: Repository
-    let gitStore: GitStore | null
+  // describe('autocrlf and safecrlf', () => {
+  //   let repo: Repository
+  //   let gitStore: GitStore | null
 
-    beforeEach(async () => {
-      repo = await setupEmptyRepository()
-      gitStore = new GitStore(repo!, shell)
+  //   beforeEach(async () => {
+  //     repo = await setupEmptyRepository()
+  //     gitStore = new GitStore(repo!, shell)
 
-      await GitProcess.exec(
-        ['config', '--local', 'core.autocrlf', 'true'],
-        repo.path
-      )
-      await GitProcess.exec(
-        ['config', '--local', 'core.safecrlf', 'true'],
-        repo.path
-      )
-    })
+  //     await GitProcess.exec(
+  //       ['config', '--local', 'core.autocrlf', 'true'],
+  //       repo.path
+  //     )
+  //     await GitProcess.exec(
+  //       ['config', '--local', 'core.safecrlf', 'true'],
+  //       repo.path
+  //     )
+  //   })
 
-    it('appends newline to file', async () => {
-      const path = repo.path
+  //   it('appends newline to file', async () => {
+  //     const path = repo.path
 
-      const readmeFile = 'README.md'
-      const readmeFilePath = Path.join(path, readmeFile)
+  //     const readmeFile = 'README.md'
+  //     const readmeFilePath = Path.join(path, readmeFile)
 
-      Fs.writeFileSync(readmeFilePath, 'SOME WORDS GO HERE\n')
+  //     Fs.writeFileSync(readmeFilePath, 'SOME WORDS GO HERE\n')
 
-      await GitProcess.exec(['add', 'README.md'], path)
-      const commit = await GitProcess.exec(
-        ['commit', '-m', 'create the readme file'],
-        path
-      )
+  //     await GitProcess.exec(['add', 'README.md'], path)
+  //     const commit = await GitProcess.exec(
+  //       ['commit', '-m', 'create the readme file'],
+  //       path
+  //     )
 
-      expect(commit.exitCode).to.equal(0)
+  //     expect(commit.exitCode).to.equal(0)
 
-      const contents = await Fs.readFileSync(readmeFilePath, 'utf8')
-      expect(contents!.endsWith('\r\n'))
-    })
-  })
+  //     const contents = await Fs.readFileSync(readmeFilePath, 'utf8')
+  //     expect(contents!.endsWith('\r\n'))
+  //   })
+  // })
 })
