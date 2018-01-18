@@ -42,7 +42,6 @@ describe('GitStore', () => {
     await GitProcess.exec(['commit', '-m', 'added readme file'], repo.path)
 
     Fs.writeFileSync(readmeFilePath, 'WRITING SOME NEW WORDS\n')
-
     // setup requires knowing about the current tip
     await gitStore.loadStatus()
 
@@ -52,33 +51,13 @@ describe('GitStore', () => {
     expect(files.length).to.equal(2)
     expect(files[0].path).to.equal('README.md')
     expect(files[0].status).to.equal(AppFileStatus.Modified)
-    expect(files[1].path).to.equal('LICENSE.md')
-    expect(files[1].status).to.equal(AppFileStatus.New)
-
-    // ignore the file
-    //await gitStore.ignore(licenseFile)
-
-    status = await getStatus(repo)
-    files = status.workingDirectory.files
-
-    expect(files.length).to.equal(2)
-    expect(files[0].path).to.equal('README.md')
-    expect(files[0].status).to.equal(AppFileStatus.Modified)
-    expect(files[1].path).to.equal('.gitignore')
-    expect(files[1].status).to.equal(AppFileStatus.New)
 
     // discard the .gitignore change
     await gitStore.discardChanges([files[1]])
 
-    // we should see the original file, modified
-    status = await getStatus(repo)
-    files = status.workingDirectory.files
-
-    expect(files.length).to.equal(2)
-    expect(files[0].path).to.equal('README.md')
-    expect(files[0].status).to.equal(AppFileStatus.Modified)
-    expect(files[1].path).to.equal('LICENSE.md')
-    expect(files[1].status).to.equal(AppFileStatus.New)
+    // Make changes to the file
+    // Discard said changes
+    // Assert that file is equal to it's state before making changes
   })
 
   it('can discard a renamed file', async () => {
@@ -236,43 +215,4 @@ describe('GitStore', () => {
       expect(files.length).to.equal(0)
     })
   })
-
-  // describe('autocrlf and safecrlf', () => {
-  //   let repo: Repository
-  //   let gitStore: GitStore | null
-
-  //   beforeEach(async () => {
-  //     repo = await setupEmptyRepository()
-  //     gitStore = new GitStore(repo!, shell)
-
-  //     await GitProcess.exec(
-  //       ['config', '--local', 'core.autocrlf', 'true'],
-  //       repo.path
-  //     )
-  //     await GitProcess.exec(
-  //       ['config', '--local', 'core.safecrlf', 'true'],
-  //       repo.path
-  //     )
-  //   })
-
-  //   it('appends newline to file', async () => {
-  //     const path = repo.path
-
-  //     const readmeFile = 'README.md'
-  //     const readmeFilePath = Path.join(path, readmeFile)
-
-  //     Fs.writeFileSync(readmeFilePath, 'SOME WORDS GO HERE\n')
-
-  //     await GitProcess.exec(['add', 'README.md'], path)
-  //     const commit = await GitProcess.exec(
-  //       ['commit', '-m', 'create the readme file'],
-  //       path
-  //     )
-
-  //     expect(commit.exitCode).to.equal(0)
-
-  //     const contents = await Fs.readFileSync(readmeFilePath, 'utf8')
-  //     expect(contents!.endsWith('\r\n'))
-  //   })
-  // })
 })
