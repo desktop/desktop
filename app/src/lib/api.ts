@@ -112,10 +112,23 @@ export interface IAPIIssue {
 /** The combined state of a ref. */
 export type APIRefState = 'failure' | 'pending' | 'success'
 
+/**
+ * The API response for a combined view of a commit
+ * status for a given ref
+ */
+export interface IAPIRefStatusItem {
+  readonly state: APIRefState
+  readonly target_url: string
+  readonly description: string
+  readonly context: string
+  readonly id: number
+}
+
 /** The API response to a ref status request. */
-export interface IAPIRefStatus {
+interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
+  readonly statuses: ReadonlyArray<IAPIRefStatusItem>
 }
 
 interface IAPIPullRequestRef {

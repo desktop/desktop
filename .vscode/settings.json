@@ -15,15 +15,13 @@
     "**/dist": true,
     "**/out": true,
     "tslint-rules/**/*.js": true,
-    ".awcache": true
+    ".awcache": true,
+    ".eslintcache": true
   },
   "editor.tabSize": 2,
   "prettier.semi": false,
   "prettier.singleQuote": true,
   "prettier.trailingComma": "es5",
   "editor.formatOnSave": true,
-
-  "[markdown]": {
-    "editor.formatOnSave": false
-  }
+  "prettier.ignorePath": ".prettierignore"
 }
