@@ -1,8 +1,44 @@
-@import "../../mixins";
+@import '../../mixins';
+
+.CodeMirror-hints {
+  position: absolute;
+  z-index: 10;
+  overflow: hidden;
+  list-style: none;
+
+  margin: 0;
+  padding: 2px;
+
+  -webkit-box-shadow: 2px 3px 5px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 2px 3px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 2px 3px 5px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  border: 1px solid silver;
+
+  background: white;
+  font-size: 90%;
+  font-family: monospace;
+
+  max-height: 20em;
+  overflow-y: auto;
+}
+
+.CodeMirror-hint {
+  margin: 0;
+  padding: 0 4px;
+  border-radius: 2px;
+  white-space: pre;
+  color: black;
+  cursor: pointer;
+}
+
+li.CodeMirror-hint-active {
+  background: #08f;
+  color: white;
+}
 
 /** A React component holding the commit message entry */
 #commit-message {
-
   border-top: 1px solid var(--box-border-color);
   flex-direction: column;
   flex-shrink: 0;
@@ -20,16 +56,54 @@
       flex: 1;
       margin-bottom: var(--spacing);
 
-      input { width: 100%; }
+      input {
+        width: 100%;
+      }
     }
 
     .avatar {
       flex-shrink: 0;
       width: var(--text-field-height);
-      height:var(--text-field-height);
+      height: var(--text-field-height);
       border: var(--base-border);
       margin-right: var(--spacing-half);
     }
+  }
+
+  .description-field textarea {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .CodeMirror {
+    border: 1px solid var(--box-border-color);
+    border-radius: var(--border-radius);
+    font-size: var(--font-size);
+    font-family: var(--font-family-sans-serif);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: 0;
+    height: auto;
+
+    .preText {
+      color: var(--text-secondary-color);
+    }
+
+    .handle {
+      border-radius: 3px;
+      border: 1px solid #c3e1ff;
+      background: #f0f8ff;
+      padding: 1px 2px;
+    }
+
+    .handle:after {
+      content: '×';
+      margin-left: 3px;
+    }
+  }
+
+  .CodeMirror-scroll {
+    max-height: 80px;
   }
 
   .commit-button {
@@ -52,6 +126,8 @@
      * the contents of the button in a block element and put
      * ellipsis on that instead. See commit 67fad24ed
      */
-    > span { @include ellipsis }
+    > span {
+      @include ellipsis;
+    }
   }
 }

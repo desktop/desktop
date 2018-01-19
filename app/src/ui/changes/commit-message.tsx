@@ -14,6 +14,7 @@ import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
 import { structuralEquals } from '../../lib/equality'
 import { generateGravatarUrl } from '../../lib/gravatar'
+import { CodeMirrorHost } from '../diff/code-mirror-host'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
@@ -27,6 +28,7 @@ interface ICommitMessageProps {
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
+  readonly availableWidth: number
 }
 
 interface ICommitMessageState {
@@ -35,6 +37,49 @@ interface ICommitMessageState {
 
   /** The last contextual commit message we've received. */
   readonly lastContextualCommitMessage: ICommitMessage | null
+  readonly editor: CodeMirror.Editor | null
+}
+
+const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
+  hintOptions: any
+} = {
+  mode: null,
+  lineWrapping: true,
+  extraKeys: {
+    Tab: false,
+    'Shift-Tab': false,
+    'Ctrl-Space': 'autocomplete',
+  },
+  hintOptions: {
+    completeOnSingleClick: true,
+    closeOnUnfocus: false,
+    hint: (cm: CodeMirror.Editor) => {
+      const doc = cm.getDoc()
+      const cursor = doc.getCursor()
+      const line = doc.getLine(cursor.line)
+
+      var start = cursor.ch,
+        end = cursor.ch
+      while (start && /[\w@]/.test(line.charAt(start - 1))) --start
+      while (end < line.length && /\w/.test(line.charAt(end))) ++end
+
+      var word = line.slice(start, end).toLowerCase()
+
+      console.log(cursor)
+      return {
+        list: [
+          '@donokuda',
+          '@niik',
+          '@joshaber',
+          '@iamwillshepherd',
+          '@shiftkey',
+          '@nerdneha',
+        ].filter(x => x.indexOf(word) !== -1),
+        from: { line: cursor.line, ch: start },
+        to: cursor,
+      }
+    },
+  },
 }
 
 export class CommitMessage extends React.Component<
@@ -48,6 +93,7 @@ export class CommitMessage extends React.Component<
       summary: '',
       description: '',
       lastContextualCommitMessage: null,
+      editor: null,
     }
   }
 
@@ -136,6 +182,14 @@ export class CommitMessage extends React.Component<
       this.setState({
         lastContextualCommitMessage: nextContextualCommitMessage,
       })
+    }
+  }
+
+  public componentDidUpdate(prevProps: ICommitMessageProps) {
+    if (this.props.availableWidth !== prevProps.availableWidth) {
+      if (this.state.editor) {
+        this.state.editor.refresh()
+      }
     }
   }
 
@@ -239,6 +293,12 @@ export class CommitMessage extends React.Component<
           autocompletionProviders={this.props.autocompletionProviders}
         />
 
+        <CodeMirrorHost
+          value={''}
+          options={CodeMirrorOptions}
+          ref={this.onCodeMirrorHostRef}
+        />
+
         <Button
           type="submit"
           className="commit-button"
@@ -252,5 +312,41 @@ export class CommitMessage extends React.Component<
         </Button>
       </div>
     )
+  }
+
+  private onCodeMirrorHostRef = (host: CodeMirrorHost) => {
+    if (host) {
+      const cm = host.getEditor()
+
+      if (cm) {
+        this.setState({ editor: cm })
+        const doc = cm.getDoc()
+        cm.setValue('Co-Authored-By: @iamwillshepherd')
+        doc.markText(
+          { line: 0, ch: 0 },
+          { line: 0, ch: 16 },
+          {
+            atomic: true,
+            inclusiveLeft: true,
+            className: 'preText',
+            readOnly: true,
+          }
+        )
+
+        doc.markText(
+          { line: 0, ch: 16 },
+          { line: 0, ch: 32 },
+          {
+            atomic: true,
+            className: 'handle',
+            readOnly: true,
+          }
+        )
+
+        // cm.on('focus', editor => (cm as any).execCommand('autocomplete'))
+      }
+    } else {
+      this.setState({ editor: null })
+    }
   }
 }
