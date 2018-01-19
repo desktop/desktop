@@ -65,11 +65,6 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private checkoutRef(ref: string) {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-    this.props.dispatcher.checkoutBranch(this.props.repository, ref)
-  }
-
   private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       if (this.state.filterText.length === 0) {
@@ -235,27 +230,11 @@ export class BranchesContainer extends React.Component<
   }
 
   private onPullRequestClicked = (pullRequest: PullRequest) => {
-    const gitHubRepository = this.props.repository.gitHubRepository
-    if (!gitHubRepository) {
-      return log.error(
-        `We shouldn't be checking out a PR on a repository that doesn't have a GitHub repository.`
-      )
-    }
-
-    const head = pullRequest.head
-    const isRefInThisRepo =
-      head.gitHubRepository &&
-      head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
-    if (isRefInThisRepo) {
-      this.checkoutRef(head.ref)
-    } else {
-      log.debug(
-        `onPullRequestClicked, but we can't checkout the branch: '${
-          head.ref
-        }' belongs to fork '${pullRequest.author}'`
-      )
-      // TODO: It's in a fork so we'll need to do ... something.
-    }
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.checkoutPullRequest(
+      this.props.repository,
+      pullRequest
+    )
 
     this.onPullRequestSelectionChanged(pullRequest)
   }
