@@ -23,7 +23,7 @@ import { TipState, IValidBranch } from '../../src/models/tip'
 import { getCommit, getStatus } from '../../src/lib/git'
 
 describe('GitStore', () => {
-  it.only('can discard changes from a repository', async () => {
+  it('can discard changes from a repository', async () => {
     const repo = await setupEmptyRepository()
     const gitStore = new GitStore(repo, shell)
 
