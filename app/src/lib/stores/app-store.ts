@@ -39,7 +39,7 @@ import { Commit } from '../../models/commit'
 import { ExternalEditor, getAvailableEditors, parse } from '../editors'
 import { IGitHubUser } from '../databases/github-user-database'
 import { shell } from '../app-shell'
-import { assertNever } from '../fatal-error'
+import { assertNever, forceUnwrap } from '../fatal-error'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -73,6 +73,7 @@ import {
   getDefaultRemote,
   formatAsLocalRef,
   getMergeBase,
+  getRemotes,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -89,6 +90,7 @@ import {
   EmojiStore,
   GitHubUserStore,
   CloningRepositoriesStore,
+  ForkedRemotePrefix,
 } from '../stores'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { IGitAccount } from '../git/authentication'
@@ -115,6 +117,7 @@ import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
 import { Disposable } from 'event-kit'
+import { IRemote } from '../../models/remote'
 
 /**
  * Enum used by fetch to determine if
@@ -896,7 +899,7 @@ export class AppStore extends BaseStore {
     }
 
     const updater = new PullRequestUpdater(
-      repository.gitHubRepository,
+      repository,
       account,
       this._pullRequestStore
     )
@@ -1947,8 +1950,9 @@ export class AppStore extends BaseStore {
           const state = this.getRepositoryState(repository)
           const currentPR = state.branchesState.currentPullRequest
           const gitHubRepository = repository.gitHubRepository
+
           if (currentPR && gitHubRepository) {
-            prUpdater.didPushPullRequest(gitHubRepository, currentPR)
+            prUpdater.didPushPullRequest(currentPR)
           }
         }
       }
@@ -3017,7 +3021,8 @@ export class AppStore extends BaseStore {
 
   public async _refreshPullRequests(repository: Repository): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) {
+
+    if (gitHubRepository == null) {
       return
     }
 
@@ -3025,11 +3030,12 @@ export class AppStore extends BaseStore {
       this.accounts,
       gitHubRepository.endpoint
     )
-    if (!account) {
+
+    if (account == null) {
       return
     }
 
-    await this._pullRequestStore.refreshPullRequests(gitHubRepository, account)
+    await this._pullRequestStore.refreshPullRequests(repository, account)
     return this.updateMenuItemLabels(repository)
   }
 
@@ -3051,21 +3057,13 @@ export class AppStore extends BaseStore {
     }
 
     this.updateBranchesState(repository, state => {
-      let currentPullRequest = null
-      if (state.tip.kind === TipState.Valid) {
-        currentPullRequest = this.findAssociatedPullRequest(
-          state.tip.branch,
-          pullRequests,
-          gitHubRepository
-        )
-      }
-
       return {
         openPullRequests: pullRequests,
-        currentPullRequest,
         isLoadingPullRequests: isLoading,
       }
     })
+
+    this._updateCurrentPullRequest(repository)
 
     this.emitUpdate()
   }
@@ -3073,7 +3071,8 @@ export class AppStore extends BaseStore {
   private findAssociatedPullRequest(
     branch: Branch,
     pullRequests: ReadonlyArray<PullRequest>,
-    gitHubRepository: GitHubRepository
+    gitHubRepository: GitHubRepository,
+    remote: IRemote
   ): PullRequest | null {
     const upstream = branch.upstreamWithoutRemote
     if (!upstream) {
@@ -3084,8 +3083,7 @@ export class AppStore extends BaseStore {
       if (
         pr.head.ref === upstream &&
         pr.head.gitHubRepository &&
-        // TODO: This doesn't work for when I've checked out a PR from a fork.
-        pr.head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
+        pr.head.gitHubRepository.cloneURL === remote.url
       ) {
         return pr
       }
@@ -3104,11 +3102,14 @@ export class AppStore extends BaseStore {
     this.updateBranchesState(repository, state => {
       let currentPullRequest: PullRequest | null = null
 
-      if (state.tip.kind === TipState.Valid) {
+      const remote = this.getRepositoryState(repository).remote
+
+      if (state.tip.kind === TipState.Valid && remote) {
         currentPullRequest = this.findAssociatedPullRequest(
           state.tip.branch,
           state.openPullRequests,
-          gitHubRepository
+          gitHubRepository,
+          remote
         )
       }
 
@@ -3174,4 +3175,72 @@ export class AppStore extends BaseStore {
 
     return gitStore.addUpstreamRemoteIfNeeded()
   }
+
+  public async _checkoutPullRequest(
+    repository: Repository,
+    pullRequest: PullRequest
+  ): Promise<void> {
+    const gitHubRepository = forceUnwrap(
+      `Cannot checkout a PR if the repository doesn't have a GitHub repository`,
+      repository.gitHubRepository
+    )
+    const head = pullRequest.head
+    const isRefInThisRepo =
+      head.gitHubRepository &&
+      head.gitHubRepository.cloneURL === gitHubRepository.cloneURL
+
+    if (isRefInThisRepo) {
+      // We need to fetch FIRST because someone may have created a PR since the last fetch
+      await this._fetch(repository, FetchType.UserInitiatedTask)
+      await this._checkoutBranch(repository, head.ref)
+    } else if (head.gitHubRepository != null) {
+      const cloneURL = forceUnwrap(
+        "This pull request's clone URL is not populated but should be",
+        head.gitHubRepository.cloneURL
+      )
+      const remoteName = forkPullRequestRemoteName(
+        head.gitHubRepository.owner.login
+      )
+      const remotes = await getRemotes(repository)
+      const remote = remotes.find(r => r.name === remoteName)
+
+      if (remote == null) {
+        await addRemote(repository, remoteName, cloneURL)
+      } else if (remote.url !== cloneURL) {
+        const error = new Error(
+          `Expected PR remote ${remoteName} url to be ${cloneURL} got ${
+            remote.url
+          }.`
+        )
+
+        log.error(error.message)
+        this.emitError(error)
+      }
+
+      const gitStore = this.getGitStore(repository)
+
+      await this.withAuthenticatingUser(repository, async (repo, account) => {
+        await gitStore.fetchRemote(account, remoteName, false)
+      })
+
+      const localBranchName = `pr/${pullRequest.number}`
+      const doesBranchExist =
+        gitStore.allBranches.find(branch => branch.name === localBranchName) !=
+        null
+
+      if (!doesBranchExist) {
+        await this._createBranch(
+          repository,
+          localBranchName,
+          `${remoteName}/${head.ref}`
+        )
+      }
+
+      await this._checkoutBranch(repository, localBranchName)
+    }
+  }
+}
+
+function forkPullRequestRemoteName(remoteName: string) {
+  return `${ForkedRemotePrefix}${remoteName}`
 }

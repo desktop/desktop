@@ -19,7 +19,7 @@ review.
 
 ## Windows
 
-The source for the Windows shell integration is found in [`app/src/lib/shells/win32.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shell/win32.ts).
+The source for the Windows shell integration is found in [`app/src/lib/shells/win32.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/shells/win32.ts).
 
 These shells are currently supported:
 

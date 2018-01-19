@@ -716,18 +716,21 @@ export class GitStore extends BaseStore {
    */
   public async loadCurrentRemote(): Promise<void> {
     const tip = this.tip
+
     if (tip.kind === TipState.Valid) {
       const branch = tip.branch
-      if (branch.remote) {
+
+      if (branch.remote != null) {
         const allRemotes = await getRemotes(this.repository)
         const foundRemote = allRemotes.find(r => r.name === branch.remote)
+
         if (foundRemote) {
           this._remote = foundRemote
         }
       }
     }
 
-    if (!this._remote) {
+    if (this._remote == null) {
       this._remote = await getDefaultRemote(this.repository)
     }
 
