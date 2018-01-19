@@ -182,7 +182,6 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
           contextualCommitMessage={this.props.contextualCommitMessage}
           autocompletionProviders={this.props.autocompletionProviders}
           isCommitting={this.props.isCommitting}
-          availableWidth={this.props.availableWidth}
         />
       </div>
     )
