@@ -1,25 +1,21 @@
 /* eslint-disable no-sync */
 
 import { expect } from 'chai'
-
 import * as Fs from 'fs'
 import * as Path from 'path'
 import { GitProcess } from 'dugite'
 
 import { shell } from '../helpers/test-app-shell'
-
 import {
   setupEmptyRepository,
   setupFixtureRepository,
   setupConflictedRepo,
 } from '../helpers/repositories'
-
 import { GitStore } from '../../src/lib/stores'
 import { AppFileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { TipState, IValidBranch } from '../../src/models/tip'
-
 import { getCommit, getStatus } from '../../src/lib/git'
 
 describe('GitStore', () => {
