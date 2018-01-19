@@ -47,7 +47,7 @@ export class PullRequestStore {
     account: Account
   ): Promise<void> {
     const githubRepo = forceUnwrap(
-      'Can only fetch pull requests for GitHub repositories',
+      'Can only refresh pull requests for GitHub repositories',
       repository.gitHubRepository
     )
     const api = API.fromAccount(account)

@@ -46,7 +46,7 @@ export class PullRequestUpdater {
   /** Starts the updater */
   public start() {
     const githubRepo = forceUnwrap(
-      'Can only fetch pull requests for GitHub repositories',
+      'Can only refresh pull requests for GitHub repositories',
       this.repository.gitHubRepository
     )
 
@@ -108,7 +108,7 @@ export class PullRequestUpdater {
 
   private async refreshPullRequestStatus() {
     const githubRepo = forceUnwrap(
-      'Can only fetch pull requests for GitHub repositories',
+      'Can only refresh pull requests for GitHub repositories',
       this.repository.gitHubRepository
     )
 
