@@ -6,7 +6,7 @@
   min-width: 0;
 }
 
-.CodeMirror {
+.diff-code-mirror .CodeMirror {
   height: 100%;
   color: var(--diff-text-color);
   font-size: var(--font-size-sm);
