@@ -23,7 +23,7 @@ import { TipState, IValidBranch } from '../../src/models/tip'
 import { getCommit, getStatus } from '../../src/lib/git'
 
 describe('GitStore', () => {
-  it('can discard changes from a repository', async () => {
+  it.only('can discard changes from a repository', async () => {
     const repo = await setupEmptyRepository()
     const gitStore = new GitStore(repo, shell)
 
@@ -45,19 +45,20 @@ describe('GitStore', () => {
     // setup requires knowing about the current tip
     await gitStore.loadStatus()
 
-    const status = await getStatus(repo)
-    const files = status.workingDirectory.files
+    let status = await getStatus(repo)
+    let files = status.workingDirectory.files
 
     expect(files.length).to.equal(2)
     expect(files[0].path).to.equal('README.md')
     expect(files[0].status).to.equal(AppFileStatus.Modified)
 
-    // discard the .gitignore change
+    // discard the LICENSE.md file
     await gitStore.discardChanges([files[1]])
 
-    // Make changes to the file
-    // Discard said changes
-    // Assert that file is equal to it's state before making changes
+    status = await getStatus(repo)
+    files = status.workingDirectory.files
+
+    expect(files.length).to.equal(1)
   })
 
   it('can discard a renamed file', async () => {
