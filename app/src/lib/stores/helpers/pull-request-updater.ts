@@ -113,7 +113,7 @@ export class PullRequestUpdater {
     )
 
     await this.store.fetchPullRequestStatuses(githubRepo, this.account)
-    const prs = await this.store.loadPullRequestsFromCache(githubRepo)
+    const prs = await this.store.fetchPullRequestsFromCache(githubRepo)
 
     for (const pr of prs) {
       const status = pr.status
