@@ -61,7 +61,7 @@ export class PullRequestStore {
         'open'
       )
 
-      await this.writePRs(apiResult, githubRepo)
+      await this.clearAndInsertPullRequests(apiResult, githubRepo)
 
       const prs = await this.loadPullRequestsFromCache(githubRepo)
 
@@ -170,7 +170,6 @@ export class PullRequestStore {
   ): Promise<void> {
     const api = API.fromAccount(account)
     const prStatuses: Array<IPullRequestStatus> = []
-    //const prs: Array<PullRequest> = []
 
     for (const pr of pullRequests) {
       const combinedRefStatus = await api.fetchCombinedRefStatus(
@@ -222,52 +221,58 @@ export class PullRequestStore {
     )
   }
 
-  private async writePRs(
+  private async clearAndInsertPullRequests(
     pullRequests: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
   ): Promise<void> {
-    const repoId = repository.dbID
+    const repoDbId = repository.dbID
 
-    if (!repoId) {
-      fatalError(
+    if (repoDbId == null) {
+      return fatalError(
         "Cannot store pull requests for a repository that hasn't been inserted into the database!"
       )
-
-      return
     }
 
     const table = this._pullRequestDb.pullRequests
+    const prsToInsert = new Array<IPullRequest>()
 
-    const insertablePRs = new Array<IPullRequest>()
     for (const pr of pullRequests) {
-      let headRepo: GitHubRepository | null = null
-        headRepo = await this._repositoryStore.findOrPutGitHubRepository(
+      let githubRepo: GitHubRepository | null = null
+
       if (pr.head.repository != null) {
+        githubRepo = await this._repositoryStore.upsertGitHubRepository(
           repository.endpoint,
-          pr.head.repo
+          pr.head.repository
         )
       }
 
       // We know the base repo isn't null since that's where we got the PR from
       // in the first place.
-      const baseRepo = await this._repositoryStore.findOrPutGitHubRepository(
+      const parentRepo = forceUnwrap(
+        'PR cannot have a null base repo',
+        pr.base.repository
+      )
+      const parentGitHubRepo = await this._repositoryStore.upsertGitHubRepository(
         repository.endpoint,
-        forceUnwrap('PR cannot have a null base repo', pr.base.repo)
+        parentRepo
       )
 
-      insertablePRs.push({
+      prsToInsert.push({
         number: pr.number,
         title: pr.title,
         createdAt: pr.created_at,
         head: {
           ref: pr.head.ref,
           sha: pr.head.sha,
-          repoId: headRepo ? headRepo.dbID! : null,
+          repoId: githubRepo ? githubRepo.dbID! : null,
         },
         base: {
           ref: pr.base.ref,
           sha: pr.base.sha,
-          repoId: forceUnwrap('PR cannot have a null base repo', baseRepo.dbID),
+          repoId: forceUnwrap(
+            'PR cannot have a null base repo',
+            parentGitHubRepo.dbID
+          ),
         },
         author: pr.user.login,
       })
@@ -275,7 +280,7 @@ export class PullRequestStore {
 
     await this._pullRequestDb.transaction('rw', table, async () => {
       await table.clear()
-      return await table.bulkAdd(insertablePRs)
+      return await table.bulkAdd(prsToInsert)
     })
   }
 
