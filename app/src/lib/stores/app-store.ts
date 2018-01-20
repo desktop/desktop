@@ -3010,13 +3010,13 @@ export class AppStore {
       return
     }
 
-    await this.pullRequestStore.refreshPullRequests(repository, account)
+    await this.pullRequestStore.fetchPullRequests(repository, account)
 
     this.updateMenuItemLabels(repository)
   }
 
   private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {
-    const pullRequests = await this.pullRequestStore.getPullRequests(
+    const pullRequests = await this.pullRequestStore.loadPullRequestsFromCache(
       gitHubRepository
     )
     const isLoading = this.pullRequestStore.isFetchingPullRequests(
