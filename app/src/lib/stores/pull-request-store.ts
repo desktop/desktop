@@ -241,8 +241,8 @@ export class PullRequestStore {
     const insertablePRs = new Array<IPullRequest>()
     for (const pr of pullRequests) {
       let headRepo: GitHubRepository | null = null
-      if (pr.head.repo) {
         headRepo = await this._repositoryStore.findOrPutGitHubRepository(
+      if (pr.head.repository != null) {
           repository.endpoint,
           pr.head.repo
         )
