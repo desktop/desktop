@@ -25,13 +25,15 @@ import { IRemote } from '../../models/remote'
  */
 export const ForkedRemotePrefix = 'github-desktop-'
 
+const Decrement = (n: number) => n - 1
+const Increment = (n: number) => n + 1
+
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore {
   private readonly emitter = new Emitter()
   private readonly _pullRequestDb: PullRequestDatabase
   private readonly _repositoryStore: RepositoriesStore
-
-  private activeFetchCountPerRepository = new Map<number, number>()
+  private readonly _activeFetchCountPerRepository = new Map<number, number>()
 
   public constructor(
     db: PullRequestDatabase,
@@ -50,12 +52,12 @@ export class PullRequestStore {
       'Can only refresh pull requests for GitHub repositories',
       repository.gitHubRepository
     )
-    const api = API.fromAccount(account)
+    const apiClient = API.fromAccount(account)
 
-    this.changeActiveFetchCount(githubRepo, c => c + 1)
+    this.UpdateActiveFetchCount(githubRepo, Increment)
 
     try {
-      const apiResult = await api.fetchPullRequests(
+      const apiResult = await apiClient.fetchPullRequests(
         githubRepo.owner.login,
         githubRepo.name,
         'open'
@@ -63,7 +65,7 @@ export class PullRequestStore {
 
       await this.clearAndInsertPullRequests(apiResult, githubRepo)
 
-      const prs = await this.loadPullRequestsFromCache(githubRepo)
+      const prs = await this.fetchPullRequestsFromCache(githubRepo)
 
       await this.refreshStatusForPRs(prs, githubRepo, account)
       await this.pruneForkedRemotes(repository, prs)
@@ -71,7 +73,7 @@ export class PullRequestStore {
       log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
       this.emitError(error)
     } finally {
-      this.changeActiveFetchCount(githubRepo, c => c - 1)
+      this.UpdateActiveFetchCount(githubRepo, Decrement)
     }
   }
 
@@ -118,34 +120,34 @@ export class PullRequestStore {
     }
   }
 
-  private changeActiveFetchCount(
+  private UpdateActiveFetchCount(
     repository: GitHubRepository,
-    fn: (count: number) => number
+    update: (count: number) => number
   ) {
-    const key = forceUnwrap(
+    const repoDbId = forceUnwrap(
       'Cannot fetch PRs for a repository which is not in the database',
       repository.dbID
     )
-    const currentCount = this.activeFetchCountPerRepository.get(key) || 0
-    const newCount = fn(currentCount)
-    this.activeFetchCountPerRepository.set(key, newCount)
+    const currentCount = this._activeFetchCountPerRepository.get(repoDbId) || 0
+    const newCount = update(currentCount)
 
+    this._activeFetchCountPerRepository.set(repoDbId, newCount)
     this.emitUpdate(repository)
   }
 
   /** Is the store currently fetching the list of open pull requests? */
   public isFetchingPullRequests(repository: GitHubRepository): boolean {
-    const key = forceUnwrap(
+    const repoDbId = forceUnwrap(
       'Cannot fetch PRs for a repository which is not in the database',
       repository.dbID
     )
+    const currentCount = this._activeFetchCountPerRepository.get(repoDbId) || 0
 
-    const currentCount = this.activeFetchCountPerRepository.get(key) || 0
     return currentCount > 0
   }
 
   /** Loads the status for the given pull request. */
-  public async refreshSinglePullRequestStatus(
+  public async _fetchPullRequestStatus(
     repository: GitHubRepository,
     account: Account,
     pullRequest: PullRequest
@@ -158,7 +160,7 @@ export class PullRequestStore {
     repository: GitHubRepository,
     account: Account
   ): Promise<void> {
-    const prs = await this.loadPullRequestsFromCache(repository)
+    const prs = await this.fetchPullRequestsFromCache(repository)
 
     await this.refreshStatusForPRs(prs, repository, account)
   }
@@ -168,17 +170,17 @@ export class PullRequestStore {
     repository: GitHubRepository,
     account: Account
   ): Promise<void> {
-    const api = API.fromAccount(account)
-    const prStatuses: Array<IPullRequestStatus> = []
+    const apiClient = API.fromAccount(account)
+    const statuses: Array<IPullRequestStatus> = []
 
     for (const pr of pullRequests) {
-      const combinedRefStatus = await api.fetchCombinedRefStatus(
+      const combinedRefStatus = await apiClient.fetchCombinedRefStatus(
         repository.owner.login,
         repository.name,
         pr.head.sha
       )
 
-      prStatuses.push({
+      statuses.push({
         pullRequestId: pr.id,
         state: combinedRefStatus.state,
         totalCount: combinedRefStatus.total_count,
@@ -187,7 +189,7 @@ export class PullRequestStore {
       })
     }
 
-    await this.cachePullRequestStatuses(prStatuses)
+    await this.cachePullRequestStatuses(statuses)
     this.emitUpdate(repository)
   }
 
@@ -306,7 +308,7 @@ export class PullRequestStore {
   }
 
   /** Gets the pull requests against the given repository. */
-  public async loadPullRequestsFromCache(
+  public async fetchPullRequestsFromCache(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<PullRequest>> {
     const gitHubRepositoryID = repository.dbID
