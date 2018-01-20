@@ -82,15 +82,12 @@ export class PullRequestStore {
     pullRequests: ReadonlyArray<PullRequest>
   ) {
     const remotes = await getRemotes(repository)
-    const forkedRemotesToDelete = this.forkedRemotesToDelete(
-      remotes,
-      pullRequests
-    )
+    const forkedRemotesToDelete = this.getRemotesToDelete(remotes, pullRequests)
 
-    await this.deleteForkedRemotes(repository, forkedRemotesToDelete)
+    await this.deleteRemotes(repository, forkedRemotesToDelete)
   }
 
-  private forkedRemotesToDelete(
+  private getRemotesToDelete(
     remotes: ReadonlyArray<IRemote>,
     openPullRequests: ReadonlyArray<PullRequest>
   ): ReadonlyArray<IRemote> {
@@ -98,20 +95,23 @@ export class PullRequestStore {
       remote.name.startsWith(ForkedRemotePrefix)
     )
     const remotesOfPullRequests = new Set<string>()
-    openPullRequests.forEach(openPullRequest => {
-      const { gitHubRepository } = openPullRequest.head
+
+    openPullRequests.forEach(pr => {
+      const { gitHubRepository } = pr.head
+
       if (gitHubRepository != null && gitHubRepository.cloneURL != null) {
         remotesOfPullRequests.add(gitHubRepository.cloneURL)
       }
     })
-    const forkedRemotesToDelete = forkedRemotes.filter(
+
+    const result = forkedRemotes.filter(
       forkedRemote => !remotesOfPullRequests.has(forkedRemote.url)
     )
 
-    return forkedRemotesToDelete
+    return result
   }
 
-  private async deleteForkedRemotes(
+  private async deleteRemotes(
     repository: Repository,
     remotes: ReadonlyArray<IRemote>
   ) {
