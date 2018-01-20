@@ -9,9 +9,7 @@ interface IAuthorInputProps {
   readonly className?: string
 }
 
-interface IAuthorInputState {
-  readonly editor: CodeMirror.Editor | null
-}
+interface IAuthorInputState {}
 
 const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
   hintOptions: any
@@ -59,16 +57,41 @@ export class AuthorInput extends React.Component<
   IAuthorInputProps,
   IAuthorInputState
 > {
+  private editor: CodeMirror.Editor | null = null
+  private readonly resizeObserver: ResizeObserver
+  private resizeDebounceId: number | null = null
+
   public constructor(props: IAuthorInputProps) {
     super(props)
 
-    this.state = { editor: null }
+    this.resizeObserver = new ResizeObserver(entries => {
+      if (entries.length >= 1 && this.editor) {
+        if (this.resizeDebounceId !== null) {
+          cancelAnimationFrame(this.resizeDebounceId)
+          this.resizeDebounceId = null
+        }
+        requestAnimationFrame(this.onResized)
+      }
+    })
+
+    this.state = {}
+  }
+
+  private onResized = () => {
+    this.resizeDebounceId = null
+    if (this.editor) {
+      this.editor.refresh()
+    }
   }
 
   private onContainerRef = (elem: HTMLDivElement) => {
-    this.setState({
-      editor: elem ? this.initializeCodeMirror(elem) : null,
-    })
+    this.editor = elem ? this.initializeCodeMirror(elem) : null
+
+    if (elem) {
+      this.resizeObserver.observe(elem)
+    } else {
+      this.resizeObserver.disconnect()
+    }
   }
 
   private initializeCodeMirror(host: HTMLDivElement) {
