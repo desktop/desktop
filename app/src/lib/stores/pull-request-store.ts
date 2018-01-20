@@ -115,9 +115,10 @@ export class PullRequestStore {
     repository: Repository,
     remotes: ReadonlyArray<IRemote>
   ) {
-    for (const remote of remotes) {
-      await removeRemote(repository, remote.name)
-    }
+    const promises: Array<Promise<void>> = []
+
+    remotes.forEach(r => promises.push(removeRemote(repository, r.name)))
+    await Promise.all(promises)
   }
 
   private UpdateActiveFetchCount(
