@@ -226,15 +226,6 @@ export abstract class AutocompletingTextInput<
     const item = items[row]
 
     this.insertCompletion(item)
-
-    // This is pretty gross. Clicking on the list moves focus off the text area.
-    // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
-    window.setTimeout(() => {
-      const element = this.element
-      if (element) {
-        element.focus()
-      }
-    }, 0)
   }
 
   /**
@@ -295,16 +286,27 @@ export abstract class AutocompletingTextInput<
     const autoCompleteText = autocompletionState.provider.getCompletionText(
       item
     )
+
+    const textWithAutoCompleteText =
+      originalText.substr(0, range.start - 1) + autoCompleteText + ' '
+
     const newText =
-      originalText.substr(0, range.start - 1) +
-      autoCompleteText +
-      originalText.substr(range.start + range.length) +
-      ' '
+      textWithAutoCompleteText + originalText.substr(range.start + range.length)
+
     element.value = newText
 
     if (this.props.onValueChanged) {
       this.props.onValueChanged(newText)
     }
+
+    // This is pretty gross. Clicking on the list moves focus off the text area.
+    // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
+    window.setTimeout(() => {
+      element.focus()
+      const newCaretPosition = textWithAutoCompleteText.length
+      element.selectionStart = newCaretPosition
+      element.selectionEnd = newCaretPosition
+    }, 0)
 
     this.close()
   }
