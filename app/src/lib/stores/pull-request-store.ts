@@ -363,22 +363,26 @@ export class PullRequestStore {
         pullRequestDbId
       )
 
-      const pullRequest = new PullRequest(
-        pullRequestDbId,
-        new Date(record.createdAt),
-        pullRequestStatus,
-        record.title,
-        record.number,
-        new PullRequestRef(record.head.ref, record.head.sha, githubRepository),
-        new PullRequestRef(
-          record.base.ref,
-          record.base.sha,
-          parentGitHubRepository
-        ),
-        record.author
+      result.push(
+        new PullRequest(
+          pullRequestDbId,
+          new Date(record.createdAt),
+          pullRequestStatus,
+          record.title,
+          record.number,
+          new PullRequestRef(
+            record.head.ref,
+            record.head.sha,
+            githubRepository
+          ),
+          new PullRequestRef(
+            record.base.ref,
+            record.base.sha,
+            parentGitHubRepository
+          ),
+          record.author
+        )
       )
-
-      result.push(pullRequest)
     }
 
     return result
