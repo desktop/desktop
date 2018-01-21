@@ -11,6 +11,10 @@
   }
 }
 
+.CodeMirror-lines * {
+  cursor: text;
+}
+
 // If the editor isn't focused then we should hide
 // any trace of the selection to match native input
 // control behavior.
