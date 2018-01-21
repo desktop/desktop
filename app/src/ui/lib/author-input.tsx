@@ -23,7 +23,8 @@ const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
   },
   hintOptions: {
     completeOnSingleClick: true,
-    closeOnUnfocus: false,
+    completeSingle: false,
+    closeOnUnfocus: true,
     hint: (cm: CodeMirror.Editor) => {
       const doc = cm.getDoc()
       const cursor = doc.getCursor()
@@ -60,6 +61,7 @@ export class AuthorInput extends React.Component<
   private editor: CodeMirror.Editor | null = null
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
+  private hintActive: boolean = false
 
   public constructor(props: IAuthorInputProps) {
     super(props)
@@ -125,6 +127,15 @@ export class AuthorInput extends React.Component<
         handleMouseEvents: true,
       }
     )
+
+    cm.on('startCompletion', () => (this.hintActive = true))
+    cm.on('endCompletion', () => (this.hintActive = false))
+
+    cm.on('focus', () => {
+      if (!this.hintActive) {
+        ;(cm as any).showHint()
+      }
+    })
 
     return cm
   }
