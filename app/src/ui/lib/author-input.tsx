@@ -110,14 +110,19 @@ function applyCompletion(doc: CodeMirror.Doc, data: any, completion: any) {
   const to: CodeMirror.Position = completion.to || data.to
   const text: string = completion.text
 
-  doc.replaceRange(`${text} `, from, to, 'complete')
+  doc.replaceRange(`${text}`, from, to, 'complete')
 
   const end = doc.posFromIndex(doc.indexFromPos(from) + text.length)
+
+  const elem = document.createElement('span')
+  elem.classList.add('handle')
+  elem.innerText = text
 
   doc.markText(from, end, {
     atomic: true,
     className: 'handle',
     readOnly: false,
+    replacedWith: elem,
   })
 }
 
