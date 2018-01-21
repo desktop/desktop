@@ -85,8 +85,13 @@ li.CodeMirror-hint-active {
     border-top: 0;
     height: auto;
 
-    .preText {
+    .label {
       color: var(--text-secondary-color);
+    }
+
+    .placeholder {
+      color: var(--text-secondary-color);
+      cursor: text;
     }
 
     .handle {

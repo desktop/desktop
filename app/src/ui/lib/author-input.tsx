@@ -54,6 +54,25 @@ const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
   },
 }
 
+// The types for CodeMirror.TextMarker is all wrong, this is what it
+// actually looks like
+interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
+  /** Remove the mark. */
+  clear(): void
+
+  /**
+   * Returns a {from, to} object (both holding document positions), indicating
+   * the current position of the marked range, or undefined if the marker is
+   * no longer in the document.
+   */
+  find(): {
+    from: CodeMirror.Position
+    to: CodeMirror.Position
+  }
+
+  changed(): void
+}
+
 export class AuthorInput extends React.Component<
   IAuthorInputProps,
   IAuthorInputState
@@ -62,6 +81,8 @@ export class AuthorInput extends React.Component<
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
   private hintActive: boolean = false
+  private label: ActualTextMarker | null = null
+  private placeholder: ActualTextMarker | null = null
 
   public constructor(props: IAuthorInputProps) {
     super(props)
@@ -96,45 +117,86 @@ export class AuthorInput extends React.Component<
     }
   }
 
+  private appendTextMarker(
+    cm: CodeMirror.Editor,
+    text: string,
+    options: CodeMirror.TextMarkerOptions
+  ): ActualTextMarker {
+    const doc = cm.getDoc()
+    const from = doc.posFromIndex(Infinity)
+
+    doc.replaceRange(text, from)
+    const to = doc.posFromIndex(Infinity)
+
+    return (doc.markText(from, to, options) as any) as ActualTextMarker
+  }
+
+  private appendPlaceholder(cm: CodeMirror.Editor) {
+    return this.appendTextMarker(cm, '@username', {
+      atomic: true,
+      inclusiveRight: true,
+      className: 'placeholder',
+      readOnly: true,
+    })
+  }
+
   private initializeCodeMirror(host: HTMLDivElement) {
     const cm = CodeMirror(host, CodeMirrorOptions)
-    const doc = cm.getDoc()
 
-    cm.setValue('Co-Authored-By: @iamwillshepherd')
-    doc.markText(
-      { line: 0, ch: 0 },
-      { line: 0, ch: 16 },
-      {
-        atomic: true,
-        inclusiveLeft: true,
-        className: 'preText',
-        readOnly: true,
-      }
-    )
+    this.label = this.appendTextMarker(cm, 'Co-Authors ', {
+      atomic: true,
+      inclusiveLeft: true,
+      className: 'label',
+      readOnly: true,
+    })
 
-    const elem = document.createElement('span')
-    elem.classList.add('handle')
-    elem.innerText = '@iamwillshepherd'
+    this.placeholder = this.appendPlaceholder(cm)
 
-    doc.markText(
-      { line: 0, ch: 16 },
-      { line: 0, ch: 32 },
-      {
-        atomic: true,
-        className: 'handle',
-        readOnly: false,
-        replacedWith: elem,
-        handleMouseEvents: true,
-      }
-    )
+    // const elem = document.createElement('span')
+    // elem.classList.add('handle')
+    // elem.innerText = '@iamwillshepherd'
+
+    // doc.markText(
+    //   { line: 0, ch: 16 },
+    //   { line: 0, ch: 32 },
+    //   {
+    //     atomic: true,
+    //     className: 'handle',
+    //     readOnly: false,
+    //     replacedWith: elem,
+    //     handleMouseEvents: true,
+    //   }
+    // )
 
     cm.on('startCompletion', () => (this.hintActive = true))
     cm.on('endCompletion', () => (this.hintActive = false))
+    cm.on('cursorActivity', () => {
+      if (this.label && this.placeholder) {
+        const labelRange = this.label.find()
+        const placeholderRange = this.placeholder.find()
 
-    cm.on('focus', () => {
-      if (!this.hintActive) {
-        ;(cm as any).showHint()
+        const doc = cm.getDoc()
+
+        const collapse =
+          doc.indexFromPos(labelRange.to) !==
+          doc.indexFromPos(placeholderRange.from)
+
+        if (this.placeholder.collapsed !== collapse) {
+          this.placeholder.collapsed = collapse
+          this.placeholder.changed()
+        }
       }
+    })
+
+    cm.on('blur', () => {
+      // const atomicMarkRange = cm.getDoc()
+      //   .getAllMarks()
+      //   .filter(m => m.getOptions().atomic === true)
+      //   .reduce((prev, cur) => {
+      //     return {
+      //       from: prev.find()
+      //     }
+      //   }, { from: CodeMirror.Pos(0, 0), to: CodeMirror.Pos(0, 0) })
     })
 
     return cm
