@@ -103,6 +103,24 @@ function renderUserAutocompleteItem(elem: HTMLElement, self: any, data: any) {
   elem.appendChild(user)
 }
 
+function applyCompletion(doc: CodeMirror.Doc, data: any, completion: any) {
+  console.log(`applyCompletion`, data, completion)
+
+  const from: CodeMirror.Position = completion.from || data.from
+  const to: CodeMirror.Position = completion.to || data.to
+  const text: string = completion.text
+
+  doc.replaceRange(`${text} `, from, to, 'complete')
+
+  const end = doc.posFromIndex(doc.indexFromPos(from) + text.length)
+
+  doc.markText(from, end, {
+    atomic: true,
+    className: 'handle',
+    readOnly: false,
+  })
+}
+
 export class AuthorInput extends React.Component<
   IAuthorInputProps,
   IAuthorInputState
@@ -213,12 +231,12 @@ export class AuthorInput extends React.Component<
 
             return {
               list: hits.map(h => ({
-                text: `@${h.username} `,
-                // displayText: `${h.username} ${h.name}`,
+                text: `@${h.username}`,
                 username: h.username,
                 name: h.name,
                 render: renderUserAutocompleteItem,
                 className: 'autocompletion-item',
+                hint: applyCompletion,
               })),
               from,
               to,
