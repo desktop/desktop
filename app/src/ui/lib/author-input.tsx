@@ -1,5 +1,9 @@
 import * as React from 'react'
 import * as CodeMirror from 'codemirror'
+import {
+  IAutocompletionProvider,
+  UserAutocompletionProvider,
+} from '../autocompletion'
 
 interface IAuthorInputProps {
   /**
@@ -7,6 +11,8 @@ interface IAuthorInputProps {
    * author input component
    */
   readonly className?: string
+  // tslint:disable-next-line:react-unused-props-and-state
+  readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 }
 
 interface IAuthorInputState {}
@@ -60,52 +66,6 @@ function getHintRangeFromCursor(
   return { from, to }
 }
 
-const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
-  hintOptions: any
-} = {
-  mode: null,
-  lineWrapping: true,
-  extraKeys: {
-    Tab: false,
-    'Shift-Tab': false,
-    'Ctrl-Space': 'autocomplete',
-  },
-  hintOptions: {
-    completeOnSingleClick: true,
-    completeSingle: false,
-    closeOnUnfocus: true,
-    hint: (cm: CodeMirror.Editor) => {
-      const doc = cm.getDoc()
-      const cursor = doc.getCursor() as Readonly<CodeMirror.Position>
-
-      console.log(`hint cursor: ${cursor.line} ${cursor.ch}`)
-
-      // let from = scanUntilMarkOrWhitespace(cm, cursor, 'backward')
-      // let to = scanUntilMarkOrWhitespace(cm, cursor, 'forward')
-
-      const { from, to } = getHintRangeFromCursor(doc, cursor)
-
-      var word = doc.getRange(from, to)
-      console.log(
-        `word: "${word}" from: ${from.ch} to: ${to.ch} len: ${to.ch - from.ch}`
-      )
-
-      return {
-        list: [
-          '@donokuda',
-          '@niik',
-          '@joshaber',
-          '@iamwillshepherd',
-          '@shiftkey',
-          '@nerdneha',
-        ].filter(x => x.indexOf(word) !== -1),
-        from,
-        to,
-      }
-    },
-  },
-}
-
 // The types for CodeMirror.TextMarker is all wrong, this is what it
 // actually looks like
 interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
@@ -123,6 +83,18 @@ interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
   }
 
   changed(): void
+}
+
+function renderUserAutocompleteItem(elem: HTMLElement, self: any, data: any) {
+  const username = document.createElement('span')
+  username.className = 'username'
+  username.innerText = data.username
+  const name = document.createElement('span')
+  username.className = 'name'
+  name.innerText = data.name
+
+  elem.appendChild(username)
+  elem.appendChild(name)
 }
 
 export class AuthorInput extends React.Component<
@@ -193,6 +165,74 @@ export class AuthorInput extends React.Component<
   }
 
   private initializeCodeMirror(host: HTMLDivElement) {
+    const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
+      hintOptions: any
+    } = {
+      mode: null,
+      lineWrapping: true,
+      extraKeys: {
+        Tab: false,
+        'Shift-Tab': false,
+        'Ctrl-Space': 'autocomplete',
+      },
+      hintOptions: {
+        completeOnSingleClick: true,
+        completeSingle: false,
+        closeOnUnfocus: true,
+        hint: async (cm: CodeMirror.Editor) => {
+          const doc = cm.getDoc()
+          const cursor = doc.getCursor() as Readonly<CodeMirror.Position>
+
+          console.log(`hint cursor: ${cursor.line} ${cursor.ch}`)
+
+          // let from = scanUntilMarkOrWhitespace(cm, cursor, 'backward')
+          // let to = scanUntilMarkOrWhitespace(cm, cursor, 'forward')
+
+          const { from, to } = getHintRangeFromCursor(doc, cursor)
+
+          var word = doc.getRange(from, to)
+          console.log(
+            `word: "${word}" from: ${from.ch} to: ${to.ch} len: ${to.ch -
+              from.ch}`
+          )
+
+          const provider = this.props.autocompletionProviders.find(
+            p => p.kind === 'user'
+          )
+
+          if (provider && provider instanceof UserAutocompletionProvider) {
+            const needle = word.replace(/^@/, '')
+            const hits = await provider.getAutocompletionItems(needle)
+
+            return {
+              list: hits.map(h => ({
+                text: `${h.username} `,
+                // displayText: `${h.username} ${h.name}`,
+                username: h.username,
+                name: h.name,
+                render: renderUserAutocompleteItem,
+              })),
+              from,
+              to,
+            }
+          }
+
+          return {
+            list: [
+              '@donokuda',
+              '@niik',
+              '@joshaber',
+              '@iamwillshepherd',
+              '@shiftkey',
+              '@nerdneha',
+            ].filter(x => x.indexOf(word) !== -1),
+            from,
+            to,
+          }
+        },
+      },
+    }
+
     const cm = CodeMirror(host, CodeMirrorOptions)
 
     this.label = this.appendTextMarker(cm, 'Co-Authors ', {

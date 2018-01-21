@@ -240,7 +240,9 @@ export class CommitMessage extends React.Component<
           autocompletionProviders={this.props.autocompletionProviders}
         />
 
-        <AuthorInput />
+        <AuthorInput
+          autocompletionProviders={this.props.autocompletionProviders}
+        />
 
         <Button
           type="submit"
