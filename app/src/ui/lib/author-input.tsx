@@ -207,7 +207,7 @@ export class AuthorInput extends React.Component<
       hintOptions: {
         completeOnSingleClick: true,
         completeSingle: false,
-        closeOnUnfocus: false,
+        closeOnUnfocus: true,
 
         hint: async (cm: CodeMirror.Editor) => {
           const doc = cm.getDoc()
