@@ -1193,8 +1193,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           <ReleaseNotes
             newRelease={popup.newRelease}
             onDismissed={this.onPopupDismissed}
-            />
-          )
+          />
+        )
       case PopupType.DeletePullRequest:
         return (
           <DeletePullRequest

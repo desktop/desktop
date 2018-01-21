@@ -279,8 +279,9 @@ export type Popup =
   | {
       type: PopupType.ReleaseNotes
       newRelease: ReleaseSummary
-  } | {
-       type: PopupType.DeletePullRequest
+    }
+  | {
+      type: PopupType.DeletePullRequest
       repository: Repository
       branch: Branch
       pullRequest: PullRequest
