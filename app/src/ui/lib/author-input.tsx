@@ -11,6 +11,55 @@ interface IAuthorInputProps {
 
 interface IAuthorInputState {}
 
+function previousPosition(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
+  return doc.posFromIndex(doc.indexFromPos(pos) - 1)
+}
+
+function nextPosition(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
+  return doc.posFromIndex(doc.indexFromPos(pos) + 1)
+}
+
+function isMarkOrWhitespace(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
+  const line = doc.getLine(pos.line)
+  if (/\s/.test(line.charAt(pos.ch))) {
+    return true
+  }
+
+  const marks = (doc.findMarksAt(pos) as any) as ActualTextMarker[]
+  const ix = doc.indexFromPos(pos)
+
+  for (const mark of marks) {
+    const markPos = mark.find()
+    let from = doc.indexFromPos(markPos.from)
+    let to = doc.indexFromPos(markPos.to)
+
+    if (ix > from && ix < to) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function getHintRangeFromCursor(
+  doc: CodeMirror.Doc,
+  cursor: CodeMirror.Position
+) {
+  let from = cursor
+
+  while (!isMarkOrWhitespace(doc, previousPosition(doc, from))) {
+    from = previousPosition(doc, from)
+  }
+
+  let to = cursor
+
+  while (!isMarkOrWhitespace(doc, nextPosition(doc, to))) {
+    to = nextPosition(doc, to)
+  }
+
+  return { from, to }
+}
+
 const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
   hintOptions: any
 } = {
@@ -27,17 +76,20 @@ const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
     closeOnUnfocus: true,
     hint: (cm: CodeMirror.Editor) => {
       const doc = cm.getDoc()
-      const cursor = doc.getCursor()
-      const line = doc.getLine(cursor.line)
+      const cursor = doc.getCursor() as Readonly<CodeMirror.Position>
 
-      var start = cursor.ch,
-        end = cursor.ch
-      while (start && /[\w@]/.test(line.charAt(start - 1))) --start
-      while (end < line.length && /\w/.test(line.charAt(end))) ++end
+      console.log(`hint cursor: ${cursor.line} ${cursor.ch}`)
 
-      var word = line.slice(start, end).toLowerCase()
+      // let from = scanUntilMarkOrWhitespace(cm, cursor, 'backward')
+      // let to = scanUntilMarkOrWhitespace(cm, cursor, 'forward')
 
-      console.log(cursor)
+      const { from, to } = getHintRangeFromCursor(doc, cursor)
+
+      var word = doc.getRange(from, to)
+      console.log(
+        `word: "${word}" from: ${from.ch} to: ${to.ch} len: ${to.ch - from.ch}`
+      )
+
       return {
         list: [
           '@donokuda',
@@ -47,8 +99,8 @@ const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
           '@shiftkey',
           '@nerdneha',
         ].filter(x => x.indexOf(word) !== -1),
-        from: { line: cursor.line, ch: start },
-        to: cursor,
+        from,
+        to,
       }
     },
   },
@@ -168,8 +220,14 @@ export class AuthorInput extends React.Component<
     //   }
     // )
 
-    cm.on('startCompletion', () => (this.hintActive = true))
-    cm.on('endCompletion', () => (this.hintActive = false))
+    cm.on('startCompletion', () => {
+      this.hintActive = true
+      console.log('startCompletion')
+    })
+    cm.on('endCompletion', () => {
+      this.hintActive = false
+      console.log('endCompletion')
+    })
     cm.on('cursorActivity', () => {
       if (this.label && this.placeholder) {
         const labelRange = this.label.find()
@@ -185,6 +243,16 @@ export class AuthorInput extends React.Component<
           this.placeholder.collapsed = collapse
           this.placeholder.changed()
         }
+      }
+
+      if (!this.hintActive) {
+        ;(cm as any).showHint()
+      }
+    })
+
+    cm.on('focus', () => {
+      if (!this.hintActive) {
+        ;(cm as any).showHint()
       }
     })
 
