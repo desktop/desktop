@@ -1,4 +1,4 @@
-@import "../mixins";
+@import '../mixins';
 
 .autocompletion-container {
   position: relative;
@@ -6,7 +6,24 @@
   flex-direction: column;
 }
 
-.autocompletion-popup {
+.CodeMirror-hints {
+  list-style: none;
+  flex-direction: column;
+  padding: 0;
+  max-height: 100px;
+
+  // hack
+  transform: translate(0, -15px);
+  overflow-y: auto !important;
+
+  li {
+    height: 29px;
+    padding: 0 var(--spacing);
+  }
+}
+
+.autocompletion-popup,
+.CodeMirror-hints {
   display: flex;
   position: absolute;
   z-index: var(--popup-z-index);
@@ -15,23 +32,30 @@
   border-radius: var(--border-radius);
   overflow: hidden; // To get those sweet rounded corners
 
-  &.emoji { width: 200px; }
-  &.user { width: 220px; }
-  &.issue { width: 300px; }
+  &.emoji {
+    width: 200px;
+  }
+  &.user {
+    width: 220px;
+  }
+  &.issue {
+    width: 300px;
+  }
 
   background-color: var(--background-color);
 
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
 
-  .list-item
-  {
+  .list-item,
+  li {
     border-bottom: none;
 
     &:not(:first-child) {
       border-top: var(--base-border);
     }
 
-    &.selected {
+    &.selected,
+    &.CodeMirror-hint-active {
       --text-color: var(--box-selected-active-text-color);
       --text-secondary-color: var(--box-selected-active-text-color);
 
@@ -39,15 +63,15 @@
       background-color: var(--box-selected-active-background-color);
       border-top-color: var(--box-selected-active-background-color);
 
-      & + .list-item {
-        border-top-color: var(--box-selected-active-background-color);      
+      & + .list-item,
+      & + .CodeMirror-hint-active {
+        border-top-color: var(--box-selected-active-background-color);
       }
     }
   }
 }
 
 .autocompletion-item {
-
   flex-grow: 1;
   height: 100%;
   min-width: 0;
@@ -61,7 +85,6 @@
   }
 
   .emoji {
-
     display: flex;
     flex-grow: 1;
 

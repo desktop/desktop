@@ -86,15 +86,21 @@ interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
 }
 
 function renderUserAutocompleteItem(elem: HTMLElement, self: any, data: any) {
+  const user = document.createElement('div')
+  user.className = 'user'
+
   const username = document.createElement('span')
   username.className = 'username'
   username.innerText = data.username
+
   const name = document.createElement('span')
-  username.className = 'name'
+  name.className = 'name'
   name.innerText = data.name
 
-  elem.appendChild(username)
-  elem.appendChild(name)
+  user.appendChild(username)
+  user.appendChild(name)
+
+  elem.appendChild(user)
 }
 
 export class AuthorInput extends React.Component<
@@ -178,7 +184,8 @@ export class AuthorInput extends React.Component<
       hintOptions: {
         completeOnSingleClick: true,
         completeSingle: false,
-        closeOnUnfocus: true,
+        closeOnUnfocus: false,
+
         hint: async (cm: CodeMirror.Editor) => {
           const doc = cm.getDoc()
           const cursor = doc.getCursor() as Readonly<CodeMirror.Position>
@@ -206,11 +213,12 @@ export class AuthorInput extends React.Component<
 
             return {
               list: hits.map(h => ({
-                text: `${h.username} `,
+                text: `@${h.username} `,
                 // displayText: `${h.username} ${h.name}`,
                 username: h.username,
                 name: h.name,
                 render: renderUserAutocompleteItem,
+                className: 'autocompletion-item',
               })),
               from,
               to,
@@ -264,10 +272,12 @@ export class AuthorInput extends React.Component<
       this.hintActive = true
       console.log('startCompletion')
     })
+
     cm.on('endCompletion', () => {
       this.hintActive = false
       console.log('endCompletion')
     })
+
     cm.on('cursorActivity', () => {
       if (this.label && this.placeholder) {
         const labelRange = this.label.find()
@@ -288,23 +298,6 @@ export class AuthorInput extends React.Component<
       if (!this.hintActive) {
         ;(cm as any).showHint()
       }
-    })
-
-    cm.on('focus', () => {
-      if (!this.hintActive) {
-        ;(cm as any).showHint()
-      }
-    })
-
-    cm.on('blur', () => {
-      // const atomicMarkRange = cm.getDoc()
-      //   .getAllMarks()
-      //   .filter(m => m.getOptions().atomic === true)
-      //   .reduce((prev, cur) => {
-      //     return {
-      //       from: prev.find()
-      //     }
-      //   }, { from: CodeMirror.Pos(0, 0), to: CodeMirror.Pos(0, 0) })
     })
 
     return cm
