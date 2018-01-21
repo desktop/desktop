@@ -213,18 +213,9 @@ export class AuthorInput extends React.Component<
           const doc = cm.getDoc()
           const cursor = doc.getCursor() as Readonly<CodeMirror.Position>
 
-          console.log(`hint cursor: ${cursor.line} ${cursor.ch}`)
-
-          // let from = scanUntilMarkOrWhitespace(cm, cursor, 'backward')
-          // let to = scanUntilMarkOrWhitespace(cm, cursor, 'forward')
-
           const { from, to } = getHintRangeFromCursor(doc, cursor)
 
           var word = doc.getRange(from, to)
-          console.log(
-            `word: "${word}" from: ${from.ch} to: ${to.ch} len: ${to.ch -
-              from.ch}`
-          )
 
           const provider = this.props.autocompletionProviders.find(
             p => p.kind === 'user'
@@ -248,18 +239,7 @@ export class AuthorInput extends React.Component<
             }
           }
 
-          return {
-            list: [
-              '@donokuda',
-              '@niik',
-              '@joshaber',
-              '@iamwillshepherd',
-              '@shiftkey',
-              '@nerdneha',
-            ].filter(x => x.indexOf(word) !== -1),
-            from,
-            to,
-          }
+          return { list: [], from, to }
         },
       },
     }
