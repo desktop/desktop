@@ -73,6 +73,12 @@ li.CodeMirror-hint-active {
   .description-field textarea {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
+
+    // Hack for when co-authors field is merged
+    // with description text area.
+    &:focus {
+      z-index: 1;
+    }
   }
 
   .CodeMirror {
@@ -105,6 +111,15 @@ li.CodeMirror-hint-active {
       content: '×';
       margin-left: 3px;
     }
+  }
+
+  .CodeMirror-focused {
+    outline: none;
+    border-color: var(--focus-color);
+    box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+    border-top-width: 1px;
+    border-top-style: solid;
+    margin-top: -1px;
   }
 
   .CodeMirror-scroll {
