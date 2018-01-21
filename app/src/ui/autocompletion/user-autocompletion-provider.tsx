@@ -11,6 +11,13 @@ export interface IUserHit {
 
   /** The user's name. */
   readonly name: string
+
+  /**
+   * The user's public email address. If the user
+   * hasn't selected a public email address this
+   * field will be an empty string.
+   */
+  readonly email: string
 }
 
 /** The autocompletion provider for user mentions in a GitHub repository. */
@@ -40,7 +47,7 @@ export class UserAutocompletionProvider
       this.repository,
       text
     )
-    return users.map(u => ({ username: u.login, name: u.name }))
+    return users.map(u => ({ username: u.login, name: u.name, email: u.email }))
   }
 
   public renderItem(item: IUserHit): JSX.Element {
