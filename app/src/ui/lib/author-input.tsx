@@ -208,7 +208,7 @@ export class AuthorInput extends React.Component<
         completeOnSingleClick: true,
         completeSingle: false,
         closeOnUnfocus: true,
-
+        closeCharacters: /\s/,
         hint: async (cm: CodeMirror.Editor) => {
           const doc = cm.getDoc()
           const cursor = doc.getCursor() as Readonly<CodeMirror.Position>
