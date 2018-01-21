@@ -43,7 +43,7 @@ export async function checkoutBranch(
   if (progressCallback) {
     const title = `Checking out branch ${branch.name}`
     const kind = 'checkout'
-    const targetBranch = name
+    const targetBranch = branch.name
 
     opts = await executionOptionsWithProgress(
       { ...opts, trackLFSProgress: true },
