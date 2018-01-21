@@ -54,15 +54,6 @@
     // Add a border to the end of the diff
     border-bottom: var(--base-border);
   }
-
-  &-focused &-selected,
-  &-selected {
-    background: var(--diff-selected-background-color);
-  }
-
-  &-selectedtext {
-    color: var(--diff-selected-text-color) !important;
-  }
 }
 
 // The container element which holds the before and after

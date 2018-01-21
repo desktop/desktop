@@ -1,3 +1,26 @@
+// Use the platform default background color for text
+// selection when the editor has a selection _and_ is
+// focused.
+.CodeMirror-focused {
+  .CodeMirror-selected {
+    background: Highlight;
+  }
+
+  .CodeMirror-selectedtext {
+    color: HighlightText !important;
+  }
+}
+
+// If the editor isn't focused then we should hide
+// any trace of the selection to match native input
+// control behavior.
+.CodeMirror-selectedtext {
+  color: inherit;
+}
+.CodeMirror-selected {
+  background: inherit;
+}
+
 // Windows has custom scroll bars, see _scroll.scss
 @include win32-context {
   .CodeMirror {
