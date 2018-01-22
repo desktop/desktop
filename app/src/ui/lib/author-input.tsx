@@ -49,6 +49,10 @@ function isMarkOrWhitespace(doc: Doc, pos: Position) {
   return posIsInsideMarkedText(doc, pos)
 }
 
+function posEquals(x: Position, y: Position) {
+  return x.line === y.line && x.ch === y.ch
+}
+
 function scanWhile(
   doc: Doc,
   start: Position,
@@ -56,9 +60,12 @@ function scanWhile(
   iter: (doc: Doc, pos: Position) => Position
 ) {
   let pos = start
-  let next = iter(doc, start)
 
-  for (; predicate(doc, next); next = iter(doc, next)) {
+  for (
+    let next = iter(doc, start);
+    predicate(doc, next) && !posEquals(pos, next);
+    next = iter(doc, next)
+  ) {
     pos = next
   }
 
