@@ -129,7 +129,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     const result = new Array<PullRequest>()
 
     for (const record of records) {
-      const repositoryDbId = record.head.repoId
+      const repositoryDbId = record.head.repositoryDbId
       let githubRepository: GitHubRepository | null = null
 
       if (repositoryDbId != null) {
@@ -141,8 +141,8 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       // We know the base repo ID can't be null since it's the repository we
       // fetched the PR from in the first place.
       const parentRepositoryDbId = forceUnwrap(
-        'PR cannot have a null base repo id',
-        record.base.repoId
+        'A pull request cannot have a null base repo id',
+        record.base.repositoryDbId
       )
       const parentGitHubRepository = forceUnwrap(
         'PR cannot have a null base repo',
@@ -348,12 +348,12 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         head: {
           ref: pr.head.ref,
           sha: pr.head.sha,
-          repoId: githubRepo ? githubRepo.dbID! : null,
+          repositoryDbId: githubRepo ? githubRepo.dbID! : null,
         },
         base: {
           ref: pr.base.ref,
           sha: pr.base.sha,
-          repoId: forceUnwrap(
+          repositoryDbId: forceUnwrap(
             'PR cannot have a null base repo',
             parentGitHubRepo.dbID
           ),

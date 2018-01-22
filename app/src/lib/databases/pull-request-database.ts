@@ -6,7 +6,7 @@ export interface IPullRequestRef {
    * The database ID of the GitHub repository in which this ref lives. It could
    * be null if the repository was deleted on the site after the PR was opened.
    */
-  readonly repoId: number | null
+  readonly repositoryDbId: number | null
 
   /** The name of the ref. */
   readonly ref: string
