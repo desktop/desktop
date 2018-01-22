@@ -123,6 +123,7 @@ function applyCompletion(doc: CodeMirror.Doc, data: any, completion: any) {
     className: 'handle',
     readOnly: false,
     replacedWith: elem,
+    handleMouseEvents: true,
   })
 }
 
