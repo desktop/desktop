@@ -64,6 +64,12 @@ interface IChangesListProps {
 
   /** Called when the given pattern should be ignored. */
   readonly onIgnore: (pattern: string) => void
+
+  /**
+   * Whether or not to show a field for adding co-authors to
+   * a commit (currently only supported for GH/GHE repositories)
+   */
+  readonly showCoAuthoredBy: boolean
 }
 
 export class ChangesList extends React.Component<IChangesListProps, {}> {
@@ -182,6 +188,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
           contextualCommitMessage={this.props.contextualCommitMessage}
           autocompletionProviders={this.props.autocompletionProviders}
           isCommitting={this.props.isCommitting}
+          showCoAuthoredBy={this.props.showCoAuthoredBy}
         />
       </div>
     )

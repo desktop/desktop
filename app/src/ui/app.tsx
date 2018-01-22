@@ -1601,6 +1601,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           askForConfirmationOnDiscardChanges={
             this.state.askForConfirmationOnDiscardChanges
           }
+          showCoAuthoredBy={this.state.showCoAuthoredBy}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

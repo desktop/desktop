@@ -33,6 +33,12 @@ interface IRepositoryProps {
   readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
   readonly askForConfirmationOnDiscardChanges: boolean
+
+  /**
+   * Whether or not to show a field for adding co-authors to
+   * a commit (currently only supported for GH/GHE repositories)
+   */
+  readonly showCoAuthoredBy: boolean
 }
 
 const enum Tab {
@@ -98,6 +104,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
         }
+        showCoAuthoredBy={this.props.showCoAuthoredBy}
       />
     )
   }

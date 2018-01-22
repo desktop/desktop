@@ -134,6 +134,8 @@ const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
+const showCoAuthoredByDefault: boolean = false
+const showCoAuthoredByKey: string = 'showCoAuthoredBy'
 
 const externalEditorKey: string = 'externalEditor'
 
@@ -237,6 +239,7 @@ export class AppStore {
   private selectedBranchesTab = BranchesTab.Branches
 
   private pullRequestStore: PullRequestStore
+  private showCoAuthoredBy: boolean
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -552,6 +555,7 @@ export class AppStore {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
+      showCoAuthoredBy: this.showCoAuthoredBy
     }
   }
 
@@ -1031,6 +1035,18 @@ export class AppStore {
         : parseInt(imageDiffTypeValue)
 
     this.emitUpdateNow()
+
+    parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) ||
+    defaultCommitSummaryWidth
+
+    const showCoAuthoredByValue = localStorage.getItem(
+      showCoAuthoredByKey
+    )
+
+    this.showCoAuthoredBy =
+      showCoAuthoredByValue === null
+          ? showCoAuthoredByDefault
+          : showCoAuthoredByValue === '1'
 
     this.accountsStore.refresh()
   }

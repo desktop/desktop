@@ -45,6 +45,12 @@ interface IChangesSidebarProps {
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
   readonly askForConfirmationOnDiscardChanges: boolean
+
+  /**
+   * Whether or not to show a field for adding co-authors to
+   * a commit (currently only supported for GH/GHE repositories)
+   */
+  readonly showCoAuthoredBy: boolean
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -287,6 +293,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}
           isCommitting={this.props.isCommitting}
+          showCoAuthoredBy={this.props.showCoAuthoredBy}
         />
         {this.renderMostRecentLocalCommit()}
       </div>

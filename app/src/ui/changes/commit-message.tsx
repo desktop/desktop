@@ -28,6 +28,12 @@ interface ICommitMessageProps {
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
+
+  /**
+   * Whether or not to show a field for adding co-authors to
+   * a commit (currently only supported for GH/GHE repositories)
+   */
+  readonly showCoAuthoredBy: boolean
 }
 
 interface ICommitMessageState {
@@ -210,6 +216,21 @@ export class CommitMessage extends React.Component<
     return <Avatar user={avatarUser} title={avatarTitle} />
   }
 
+  private renderCoAuthorInput() {
+    if (
+      !this.props.showCoAuthoredBy ||
+      !this.props.repository.gitHubRepository
+    ) {
+      return null
+    }
+
+    return (
+      <AuthorInput
+        autocompletionProviders={this.props.autocompletionProviders}
+      />
+    )
+  }
+
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
     const buttonEnabled = this.canCommit() && !this.props.isCommitting
@@ -240,9 +261,7 @@ export class CommitMessage extends React.Component<
           autocompletionProviders={this.props.autocompletionProviders}
         />
 
-        <AuthorInput
-          autocompletionProviders={this.props.autocompletionProviders}
-        />
+        {this.renderCoAuthorInput}
 
         <Button
           type="submit"
