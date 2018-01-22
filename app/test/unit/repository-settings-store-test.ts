@@ -9,6 +9,7 @@ import { RepositorySettingsStore } from '../../src/lib/stores'
 import { setupEmptyRepository } from '../helpers/repositories'
 import { getStatus } from '../../src/lib/git'
 import { Repository } from '../../src/models/repository'
+import { pathExists } from '../../src/lib/file-system'
 
 describe('RepositorySettingsStore', () => {
   it('can create a gitignore file', async () => {
@@ -34,19 +35,13 @@ describe('RepositorySettingsStore', () => {
     const path = repo.path
     const sut = new RepositorySettingsStore(repo)
 
-    // first pass - save a single entry
+    // Create git ignore file
     await sut.saveGitIgnore('node_modules\n')
-    await GitProcess.exec(['add', '.gitignore'], path)
-    await GitProcess.exec(['commit', '-m', 'create the ignore file'], path)
 
-    // second pass - update the file with a new entry
-    await sut.saveGitIgnore('node_modules\n*.exe\n')
-    await GitProcess.exec(['add', '.gitignore'], path)
-    await GitProcess.exec(['commit', '-m', 'update the file'], path)
+    // Make sure file exists on FS
+    const exists = await pathExists(`${path}/.gitignore`)
 
-    const status = await getStatus(repo)
-    const files = status.workingDirectory.files
-    expect(files.length).to.equal(0)
+    expect(exists).to.equal(true)
   })
 
   it('can ignore a file in a repository', async () => {
