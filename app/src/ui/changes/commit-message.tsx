@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 import {
   AutocompletingTextArea,
   AutocompletingInput,
@@ -269,12 +270,16 @@ export class CommitMessage extends React.Component<
     const buttonEnabled = this.canCommit() && !this.props.isCommitting
 
     const loading = this.props.isCommitting ? <Loading /> : undefined
+    const className = classNames({
+      'with-co-authors': this.isCoAuthorInputEnabled,
+    })
 
     return (
       <div
         id="commit-message"
         role="group"
         aria-label="Create commit"
+        className={className}
         onContextMenu={this.onContextMenu}
       >
         <div className="summary">
