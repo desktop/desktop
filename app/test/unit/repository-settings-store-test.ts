@@ -44,7 +44,7 @@ describe('RepositorySettingsStore', () => {
     await GitProcess.exec(['add', '.gitignore'], path)
     await GitProcess.exec(['commit', '-m', 'update the file'], path)
 
-    const status = await getStatus(repo!)
+    const status = await getStatus(repo)
     const files = status.workingDirectory.files
     expect(files.length).to.equal(0)
   })
