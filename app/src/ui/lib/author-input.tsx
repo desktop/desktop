@@ -26,21 +26,18 @@ function nextPosition(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
   return doc.posFromIndex(doc.indexFromPos(pos) + 1)
 }
 
+// mark ranges are inclusive, this checks exclusive
 function posIsInsideMarkedText(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
   const marks = (doc.findMarksAt(pos) as any) as ActualTextMarker[]
   const ix = doc.indexFromPos(pos)
 
-  for (const mark of marks) {
-    const markPos = mark.find()
-    let from = doc.indexFromPos(markPos.from)
-    let to = doc.indexFromPos(markPos.to)
+  return marks.some(mark => {
+    const pos = mark.find()
+    const from = doc.indexFromPos(pos.from)
+    const to = doc.indexFromPos(pos.from)
 
-    if (ix > from && ix < to) {
-      return true
-    }
-  }
-
-  return false
+    return ix > from && ix < to
+  })
 }
 
 function isMarkOrWhitespace(doc: Doc, pos: Position) {
