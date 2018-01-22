@@ -1595,7 +1595,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           sidebarWidth={this.state.sidebarWidth}
           commitSummaryWidth={this.state.commitSummaryWidth}
           issuesStore={this.props.appStore.issuesStore}
-          gitHubUserStore={this.props.appStore.gitHubUserStore}
+          gitHubUserStore={this.props.appStore._gitHubUserStore}
           onViewCommitOnGitHub={this.onViewCommitOnGitHub}
           imageDiffType={this.state.imageDiffType}
           askForConfirmationOnDiscardChanges={

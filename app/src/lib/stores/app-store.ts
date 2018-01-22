@@ -1,4 +1,3 @@
-import { Emitter, Disposable } from 'event-kit'
 import { ipcRenderer, remote } from 'electron'
 import {
   IRepositoryState,
@@ -38,14 +37,9 @@ import { TipState } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'
 import { ExternalEditor, getAvailableEditors, parse } from '../editors'
-import { CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from '../databases/github-user-database'
-import { GitHubUserStore } from './github-user-store'
 import { shell } from '../app-shell'
-import { EmojiStore } from './emoji-store'
-import { GitStore, ICommitMessage } from './git-store'
 import { assertNever, forceUnwrap } from '../fatal-error'
-import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -56,7 +50,6 @@ import {
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
-import { SignInStore } from './sign-in-store'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 import { fatalError } from '../fatal-error'
@@ -84,8 +77,21 @@ import {
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
-import { AccountsStore } from './accounts-store'
-import { RepositoriesStore } from './repositories-store'
+import { TypedBaseStore } from './base-store'
+import {
+  AccountsStore,
+  RepositoriesStore,
+  RepositorySettingsStore,
+  PullRequestStore,
+  SignInStore,
+  IssuesStore,
+  GitStore,
+  ICommitMessage,
+  EmojiStore,
+  GitHubUserStore,
+  CloningRepositoriesStore,
+  ForkedRemotePrefix,
+} from '../stores'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { IGitAccount } from '../git/authentication'
 import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
@@ -106,7 +112,6 @@ import {
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { getAccountForRepository } from '../get-account-for-repository'
 import { BranchesTab } from '../../models/branches-tab'
-import { PullRequestStore, ForkedRemotePrefix } from './pull-request-store'
 import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
@@ -144,9 +149,8 @@ const shellKey = 'shell'
 
 // background fetching should not occur more than once every two minutes
 const BackgroundFetchMinimumInterval = 2 * 60 * 1000
-export class AppStore {
-  private emitter = new Emitter()
 
+export class AppStore extends TypedBaseStore<IAppState> {
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
 
@@ -159,35 +163,32 @@ export class AppStore {
   private currentPullRequestUpdater: PullRequestUpdater | null = null
 
   private repositoryState = new Map<string, IRepositoryState>()
-  private showWelcomeFlow = false
-
+  private _showWelcomeFlow = false
   private currentPopup: Popup | null = null
   private currentFoldout: Foldout | null = null
-
   private errors: ReadonlyArray<Error> = new Array<Error>()
-
   private emitQueued = false
 
-  public readonly gitHubUserStore: GitHubUserStore
-
-  private readonly cloningRepositoriesStore: CloningRepositoriesStore
-
-  private readonly emojiStore: EmojiStore
-
+  /** GitStores keyed by their hash. */
+  private readonly _gitStores = new Map<string, GitStore>()
+  private readonly _repositorySettingsStores = new Map<
+    string,
+    RepositorySettingsStore
+  >()
+  public readonly _gitHubUserStore: GitHubUserStore
+  private readonly _cloningRepositoriesStore: CloningRepositoriesStore
+  private readonly _emojiStore: EmojiStore
   private readonly _issuesStore: IssuesStore
+  private readonly _signInStore: SignInStore
+  private readonly _accountsStore: AccountsStore
+  private readonly _repositoriesStore: RepositoriesStore
+  private readonly _statsStore: StatsStore
+  private readonly _pullRequestStore: PullRequestStore
 
   /** The issues store for all repositories. */
   public get issuesStore(): IssuesStore {
     return this._issuesStore
   }
-
-  /** GitStores keyed by their hash. */
-  private readonly gitStores = new Map<string, GitStore>()
-
-  private readonly signInStore: SignInStore
-
-  private readonly accountsStore: AccountsStore
-  private readonly repositoriesStore: RepositoriesStore
 
   /**
    * The Application menu as an AppMenu instance or null if
@@ -210,7 +211,7 @@ export class AppStore {
 
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
-  private windowState: WindowState
+  private _windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
@@ -225,8 +226,6 @@ export class AppStore {
   /** The current repository filter text */
   private repositoryFilterText: string = ''
 
-  private readonly statsStore: StatsStore
-
   /** The function to resolve the current Open in Desktop flow. */
   private resolveOpenInDesktop:
     | ((repository: Repository | null) => void)
@@ -235,8 +234,6 @@ export class AppStore {
   private selectedCloneRepositoryTab: CloneRepositoryTab = CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
-
-  private pullRequestStore: PullRequestStore
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -249,31 +246,40 @@ export class AppStore {
     repositoriesStore: RepositoriesStore,
     pullRequestStore: PullRequestStore
   ) {
-    this.gitHubUserStore = gitHubUserStore
-    this.cloningRepositoriesStore = cloningRepositoriesStore
-    this.emojiStore = emojiStore
+    super()
+
+    this._gitHubUserStore = gitHubUserStore
+    this._cloningRepositoriesStore = cloningRepositoriesStore
+    this._emojiStore = emojiStore
     this._issuesStore = issuesStore
-    this.statsStore = statsStore
-    this.signInStore = signInStore
-    this.accountsStore = accountsStore
-    this.repositoriesStore = repositoriesStore
-    this.pullRequestStore = pullRequestStore
-    this.showWelcomeFlow = !hasShownWelcomeFlow()
+    this._statsStore = statsStore
+    this._signInStore = signInStore
+    this._accountsStore = accountsStore
+    this._repositoriesStore = repositoriesStore
+    this._pullRequestStore = pullRequestStore
+    this._repositoriesStore = repositoriesStore
+    this._showWelcomeFlow = !hasShownWelcomeFlow()
 
     const window = remote.getCurrentWindow()
-    this.windowState = getWindowState(window)
-
-    ipcRenderer.on(
-      'window-state-changed',
-      (event: Electron.IpcMessageEvent, args: any[]) => {
-        this.windowState = getWindowState(window)
-        this.emitUpdate()
-      }
-    )
+    this._windowState = getWindowState(window)
 
     window.webContents.getZoomFactor(factor => {
       this.onWindowZoomFactorChanged(factor)
     })
+
+    this.wireupIpcEventHandlers(window)
+    this.wireupStoreEventHandlers()
+    getAppMenu()
+  }
+
+  private wireupIpcEventHandlers(window: Electron.BrowserWindow) {
+    ipcRenderer.on(
+      'window-state-changed',
+      (event: Electron.IpcMessageEvent, args: any[]) => {
+        this._windowState = getWindowState(window)
+        this.emitUpdate()
+      }
+    )
 
     ipcRenderer.on('zoom-factor-changed', (event: any, zoomFactor: number) => {
       this.onWindowZoomFactorChanged(zoomFactor)
@@ -285,39 +291,38 @@ export class AppStore {
         this.setAppMenu(menu)
       }
     )
-
-    getAppMenu()
-
-    this.gitHubUserStore.onDidUpdate(() => {
+  }
+  private wireupStoreEventHandlers() {
+    this._gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
     })
 
-    this.cloningRepositoriesStore.onDidUpdate(() => {
+    this._cloningRepositoriesStore.onDidUpdate(() => {
       this.emitUpdate()
     })
 
-    this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
+    this._cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
-    this.signInStore.onDidAuthenticate(account => this._addAccount(account))
-    this.signInStore.onDidUpdate(() => this.emitUpdate())
-    this.signInStore.onDidError(error => this.emitError(error))
+    this._signInStore.onDidAuthenticate(account => this._addAccount(account))
+    this._signInStore.onDidUpdate(() => this.emitUpdate())
+    this._signInStore.onDidError(error => this.emitError(error))
 
-    accountsStore.onDidUpdate(async () => {
-      const accounts = await this.accountsStore.getAll()
+    this._accountsStore.onDidUpdate(async () => {
+      const accounts = await this._accountsStore.getAll()
       this.accounts = accounts
       this.emitUpdate()
     })
-    accountsStore.onDidError(error => this.emitError(error))
+    this._accountsStore.onDidError(error => this.emitError(error))
 
-    repositoriesStore.onDidUpdate(async () => {
-      const repositories = await this.repositoriesStore.getAll()
+    this._repositoriesStore.onDidUpdate(async () => {
+      const repositories = await this._repositoriesStore.getAll()
       this.repositories = repositories
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
 
-    pullRequestStore.onDidError(error => this.emitError(error))
-    pullRequestStore.onDidUpdate(gitHubRepository =>
+    this._pullRequestStore.onDidError(error => this.emitError(error))
+    this._pullRequestStore.onDidUpdate(gitHubRepository =>
       this.onPullRequestStoreUpdated(gitHubRepository)
     )
   }
@@ -325,14 +330,14 @@ export class AppStore {
   /** Load the emoji from disk. */
   public loadEmoji() {
     const rootDir = getAppPath()
-    this.emojiStore.read(rootDir).then(() => this.emitUpdate())
+    this._emojiStore.read(rootDir).then(() => this.emitUpdate())
   }
 
-  private emitUpdate() {
+  protected emitUpdate() {
     // If the window is hidden then we won't get an animation frame, but there
     // may still be work we wanna do in response to the state change. So
     // immediately emit the update.
-    if (this.windowState === 'hidden') {
+    if (this._windowState === 'hidden') {
       this.emitUpdateNow()
       return
     }
@@ -352,21 +357,8 @@ export class AppStore {
     this.emitQueued = false
     const state = this.getState()
 
-    this.emitter.emit('did-update', state)
+    this._emitter.emit('did-update', state)
     updateMenuState(state, this.appMenu)
-  }
-
-  public onDidUpdate(fn: (state: IAppState) => void): Disposable {
-    return this.emitter.on('did-update', fn)
-  }
-
-  private emitError(error: Error) {
-    this.emitter.emit('did-error', error)
-  }
-
-  /** Register a listener for when an error occurs. */
-  public onDidError(fn: (error: Error) => void): Disposable {
-    return this.emitter.on('did-error', fn)
   }
 
   /**
@@ -434,7 +426,7 @@ export class AppStore {
     let state = this.repositoryState.get(repository.hash)
     if (state) {
       const gitHubUsers =
-        this.gitHubUserStore.getUsersForRepository(repository) ||
+        this._gitHubUserStore.getUsersForRepository(repository) ||
         new Map<string, IGitHubUser>()
       return merge(state, { gitHubUsers })
     }
@@ -493,7 +485,7 @@ export class AppStore {
     }
 
     if (repository instanceof CloningRepository) {
-      const progress = this.cloningRepositoriesStore.getRepositoryState(
+      const progress = this._cloningRepositoriesStore.getRepositoryState(
         repository
       )
       if (!progress) {
@@ -526,22 +518,22 @@ export class AppStore {
       accounts: this.accounts,
       repositories: [
         ...this.repositories,
-        ...this.cloningRepositoriesStore.repositories,
+        ...this._cloningRepositoriesStore.repositories,
       ],
-      windowState: this.windowState,
+      windowState: this._windowState,
       windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
-      signInState: this.signInStore.getState(),
+      signInState: this._signInStore.getState(),
       currentPopup: this.currentPopup,
       currentFoldout: this.currentFoldout,
       errors: this.errors,
-      showWelcomeFlow: this.showWelcomeFlow,
-      emoji: this.emojiStore.emoji,
+      showWelcomeFlow: this._showWelcomeFlow,
+      emoji: this._emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
-      titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
+      titleBarStyle: this._showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       askForConfirmationOnRepositoryRemoval: this.confirmRepoRemoval,
@@ -584,13 +576,13 @@ export class AppStore {
   }
 
   private removeGitStore(repository: Repository) {
-    if (this.gitStores.has(repository.hash)) {
-      this.gitStores.delete(repository.hash)
+    if (this._gitStores.has(repository.hash)) {
+      this._gitStores.delete(repository.hash)
     }
   }
 
   private getGitStore(repository: Repository): GitStore {
-    let gitStore = this.gitStores.get(repository.hash)
+    let gitStore = this._gitStores.get(repository.hash)
     if (!gitStore) {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
@@ -599,10 +591,34 @@ export class AppStore {
       )
       gitStore.onDidError(error => this.emitError(error))
 
-      this.gitStores.set(repository.hash, gitStore)
+      this._gitStores.set(repository.hash, gitStore)
     }
 
     return gitStore
+  }
+
+  private removeRepositorySettingsStore(repository: Repository) {
+    const key = repository.hash
+
+    if (this._repositorySettingsStores.has(key)) {
+      this._repositorySettingsStores.delete(key)
+    }
+  }
+
+  private getRepositorySettingsStore(
+    repository: Repository
+  ): RepositorySettingsStore {
+    let store = this._repositorySettingsStores.get(repository.hash)
+
+    if (store == null) {
+      store = new RepositorySettingsStore(repository)
+
+      store.onDidError(error => this.emitError(error))
+
+      this._repositorySettingsStores.set(repository.hash, store)
+    }
+
+    return store
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -789,6 +805,7 @@ export class AppStore {
       // ensures we don't accidentally run any Git operations against the
       // wrong location if the user then relocates the `.git` folder elsewhere
       this.removeGitStore(repository)
+      this.removeRepositorySettingsStore(repository)
       return Promise.resolve(null)
     }
 
@@ -852,7 +869,7 @@ export class AppStore {
       return
     }
 
-    this.gitHubUserStore.updateMentionables(gitHubRepository, account)
+    this._gitHubUserStore.updateMentionables(gitHubRepository, account)
   }
 
   private startPullRequestUpdater(repository: Repository) {
@@ -879,7 +896,7 @@ export class AppStore {
     const updater = new PullRequestUpdater(
       repository,
       account,
-      this.pullRequestStore
+      this._pullRequestStore
     )
     this.currentPullRequestUpdater = updater
 
@@ -953,8 +970,8 @@ export class AppStore {
   /** Load the initial state for the app. */
   public async loadInitialState() {
     const [accounts, repositories] = await Promise.all([
-      this.accountsStore.getAll(),
-      this.repositoriesStore.getAll(),
+      this._accountsStore.getAll(),
+      this._repositoriesStore.getAll(),
     ])
 
     log.info(
@@ -983,7 +1000,7 @@ export class AppStore {
       )
 
       for (const user of userAssociations) {
-        this.gitHubUserStore.cacheUser(user)
+        this._gitHubUserStore.cacheUser(user)
       }
     }
 
@@ -1032,7 +1049,7 @@ export class AppStore {
 
     this.emitUpdateNow()
 
-    this.accountsStore.refresh()
+    this._accountsStore.refresh()
   }
 
   private async getSelectedExternalEditor(): Promise<ExternalEditor | null> {
@@ -1334,13 +1351,13 @@ export class AppStore {
     })
 
     if (result) {
-      this.statsStore.recordCommit()
+      this._statsStore.recordCommit()
 
       const includedPartialSelections = files.some(
         file => file.selection.getSelectionType() === DiffSelectionType.Partial
       )
       if (includedPartialSelections) {
-        this.statsStore.recordPartialCommit()
+        this._statsStore.recordPartialCommit()
       }
 
       await this._refreshRepository(repository)
@@ -1724,7 +1741,7 @@ export class AppStore {
     }
 
     const endpoint = matchedGitHubRepository.endpoint
-    return this.repositoriesStore.updateGitHubRepository(
+    return this._repositoriesStore.updateGitHubRepository(
       repository,
       endpoint,
       apiRepo
@@ -2213,11 +2230,11 @@ export class AppStore {
     options?: { branch?: string }
   ): { promise: Promise<boolean>; repository: CloningRepository } {
     const account = this.getAccountForRemoteURL(url)
-    const promise = this.cloningRepositoriesStore.clone(url, path, {
+    const promise = this._cloningRepositoriesStore.clone(url, path, {
       ...options,
       account,
     })
-    const repository = this.cloningRepositoriesStore.repositories.find(
+    const repository = this._cloningRepositoriesStore.repositories.find(
       r => r.url === url && r.path === path
     )!
 
@@ -2225,7 +2242,7 @@ export class AppStore {
   }
 
   public _removeCloningRepository(repository: CloningRepository) {
-    this.cloningRepositoriesStore.remove(repository)
+    this._cloningRepositoriesStore.remove(repository)
   }
 
   public async _discardChanges(
@@ -2342,7 +2359,7 @@ export class AppStore {
   }
 
   public _endWelcomeFlow(): Promise<void> {
-    this.showWelcomeFlow = false
+    this._showWelcomeFlow = false
 
     this.emitUpdate()
 
@@ -2454,7 +2471,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _openShell(path: string) {
-    this.statsStore.recordOpenShell()
+    this._statsStore.recordOpenShell()
 
     try {
       const match = await findShellOrDefault(this.selectedShell)
@@ -2487,24 +2504,24 @@ export class AppStore {
     repository: Repository,
     text: string
   ): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    return gitStore.saveGitIgnore(text)
+    const repositorySettingsStore = this.getRepositorySettingsStore(repository)
+    return repositorySettingsStore.saveGitIgnore(text)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _readGitIgnore(repository: Repository): Promise<string | null> {
-    const gitStore = this.getGitStore(repository)
-    return gitStore.readGitIgnore()
+    const repositorySettingsStore = this.getRepositorySettingsStore(repository)
+    return repositorySettingsStore.readGitIgnore()
   }
 
   /** Has the user opted out of stats reporting? */
   public getStatsOptOut(): boolean {
-    return this.statsStore.getOptOut()
+    return this._statsStore.getOptOut()
   }
 
   /** Set whether the user has opted out of stats reporting. */
   public async setStatsOptOut(optOut: boolean): Promise<void> {
-    await this.statsStore.setOptOut(optOut)
+    await this._statsStore.setOptOut(optOut)
 
     this.emitUpdate()
   }
@@ -2563,52 +2580,53 @@ export class AppStore {
   }
 
   public _reportStats() {
-    return this.statsStore.reportStats(this.accounts, this.repositories)
+    return this._statsStore.reportStats(this.accounts, this.repositories)
   }
 
   public _recordLaunchStats(stats: ILaunchStats): Promise<void> {
-    return this.statsStore.recordLaunchStats(stats)
+    return this._statsStore.recordLaunchStats(stats)
   }
 
   public async _ignore(repository: Repository, pattern: string): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    await gitStore.ignore(pattern)
+    const repoSettingsStore = this.getRepositorySettingsStore(repository)
+
+    await repoSettingsStore.ignore(pattern)
 
     return this._refreshRepository(repository)
   }
 
   public _resetSignInState(): Promise<void> {
-    this.signInStore.reset()
+    this._signInStore.reset()
     return Promise.resolve()
   }
 
   public _beginDotComSignIn(): Promise<void> {
-    this.signInStore.beginDotComSignIn()
+    this._signInStore.beginDotComSignIn()
     return Promise.resolve()
   }
 
   public _beginEnterpriseSignIn(): Promise<void> {
-    this.signInStore.beginEnterpriseSignIn()
+    this._signInStore.beginEnterpriseSignIn()
     return Promise.resolve()
   }
 
   public _setSignInEndpoint(url: string): Promise<void> {
-    return this.signInStore.setEndpoint(url)
+    return this._signInStore.setEndpoint(url)
   }
 
   public _setSignInCredentials(
     username: string,
     password: string
   ): Promise<void> {
-    return this.signInStore.authenticateWithBasicAuth(username, password)
+    return this._signInStore.authenticateWithBasicAuth(username, password)
   }
 
   public _requestBrowserAuthentication(): Promise<void> {
-    return this.signInStore.authenticateWithBrowser()
+    return this._signInStore.authenticateWithBrowser()
   }
 
   public _setSignInOTP(otp: string): Promise<void> {
-    return this.signInStore.setTwoFactorOTP(otp)
+    return this._signInStore.setTwoFactorOTP(otp)
   }
 
   public _setAppFocusState(isFocused: boolean): Promise<void> {
@@ -2657,7 +2675,7 @@ export class AppStore {
     repository: Repository,
     path: string
   ): Promise<Repository> {
-    return this.repositoriesStore.updateRepositoryPath(repository, path)
+    return this._repositoriesStore.updateRepositoryPath(repository, path)
   }
 
   public _removeAccount(account: Account): Promise<void> {
@@ -2666,21 +2684,21 @@ export class AppStore {
         account.name
       }) from store`
     )
-    return this.accountsStore.removeAccount(account)
+    return this._accountsStore.removeAccount(account)
   }
 
   public async _addAccount(account: Account): Promise<void> {
     log.info(
       `[AppStore] adding account ${account.login} (${account.name}) to store`
     )
-    await this.accountsStore.addAccount(account)
+    await this._accountsStore.addAccount(account)
     const selectedState = this.getState().selectedState
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
       // ensuring we have the latest set of accounts here, rather than waiting
       // and doing stuff when the account store emits an update and we refresh
       // the accounts field
-      const accounts = await this.accountsStore.getAll()
+      const accounts = await this._accountsStore.getAll()
       const repoState = selectedState.state
       const commits = repoState.commits.values()
       this.loadAndCacheUsers(selectedState.repository, accounts, commits)
@@ -2693,7 +2711,7 @@ export class AppStore {
     commits: Iterable<Commit>
   ) {
     for (const commit of commits) {
-      this.gitHubUserStore._loadAndCacheUser(
+      this._gitHubUserStore._loadAndCacheUser(
         accounts,
         repository,
         commit.sha,
@@ -2706,7 +2724,7 @@ export class AppStore {
     repository: Repository,
     missing: boolean
   ): Promise<Repository> {
-    return this.repositoriesStore.updateRepositoryMissing(repository, missing)
+    return this._repositoriesStore.updateRepositoryMissing(repository, missing)
   }
 
   public async _addRepositories(
@@ -2719,7 +2737,7 @@ export class AppStore {
       if (validatedPath) {
         log.info(`[AppStore] adding repository at ${validatedPath} to store`)
 
-        const addedRepo = await this.repositoriesStore.addRepository(
+        const addedRepo = await this._repositoriesStore.addRepository(
           validatedPath
         )
         const [refreshedRepo, usingLFS] = await Promise.all([
@@ -2762,7 +2780,7 @@ export class AppStore {
 
     const repositoryIDs = localRepositories.map(r => r.id)
     for (const id of repositoryIDs) {
-      await this.repositoriesStore.removeRepository(id)
+      await this._repositoriesStore.removeRepository(id)
     }
 
     this._showFoldout({ type: FoldoutType.Repository })
@@ -2998,7 +3016,8 @@ export class AppStore {
 
   public async _refreshPullRequests(repository: Repository): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) {
+
+    if (gitHubRepository == null) {
       return
     }
 
@@ -3006,20 +3025,21 @@ export class AppStore {
       this.accounts,
       gitHubRepository.endpoint
     )
-    if (!account) {
+
+    if (account == null) {
       return
     }
 
-    await this.pullRequestStore.fetchPullRequests(repository, account)
+    await this._pullRequestStore.fetchPullRequests(repository, account)
 
     this.updateMenuItemLabels(repository)
   }
 
   private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {
-    const pullRequests = await this.pullRequestStore.fetchPullRequestsFromCache(
+    const pullRequests = await this._pullRequestStore.fetchPullRequestsFromCache(
       gitHubRepository
     )
-    const isLoading = this.pullRequestStore.isFetchingPullRequests(
+    const isLoading = this._pullRequestStore.isFetchingPullRequests(
       gitHubRepository
     )
 

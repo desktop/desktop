@@ -1,4 +1,4 @@
-import { Emitter, Disposable } from 'event-kit'
+import { Disposable } from 'event-kit'
 import { Account } from '../../models/account'
 import { assertNever, fatalError } from '../fatal-error'
 import { askUserToOAuth } from '../../lib/oauth'
@@ -22,6 +22,7 @@ import {
 import { AuthenticationMode } from '../../lib/2fa'
 
 import { minimumSupportedEnterpriseVersion } from '../../lib/enterprise'
+import { TypedBaseStore } from './base-store'
 
 function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
@@ -167,25 +168,11 @@ export interface ISuccessState {
  * A store encapsulating all logic related to signing in a user
  * to GitHub.com, or a GitHub Enterprise instance.
  */
-export class SignInStore {
-  private readonly emitter = new Emitter()
+export class SignInStore extends TypedBaseStore<SignInState> {
   private state: SignInState | null = null
 
-  private emitUpdate() {
-    this.emitter.emit('did-update', this.getState())
-  }
-
   private emitAuthenticate(account: Account) {
-    this.emitter.emit('did-authenticate', account)
-  }
-
-  private emitError(error: Error) {
-    this.emitter.emit('did-error', error)
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: (state: ISignInState) => void): Disposable {
-    return this.emitter.on('did-update', fn)
+    this._emitter.emit('did-authenticate', account)
   }
 
   /**
@@ -193,17 +180,7 @@ export class SignInStore {
    * a user has successfully completed a sign-in process.
    */
   public onDidAuthenticate(fn: (account: Account) => void): Disposable {
-    return this.emitter.on('did-authenticate', fn)
-  }
-
-  /**
-   * Register an even handler which will be invoked whenever
-   * an unexpected error occurs during the sign-in process. Note
-   * that some error are handled in the flow and passed along in
-   * the sign in state for inline presentation to the user.
-   */
-  public onDidError(fn: (error: Error) => void): Disposable {
-    return this.emitter.on('did-error', fn)
+    return this._emitter.on('did-authenticate', fn)
   }
 
   /**
@@ -220,7 +197,7 @@ export class SignInStore {
    */
   private setState(state: SignInState | null) {
     this.state = state
-    this.emitUpdate()
+    this.emitUpdate(this.getState())
   }
 
   private async endpointSupportsBasicAuth(endpoint: string): Promise<boolean> {
