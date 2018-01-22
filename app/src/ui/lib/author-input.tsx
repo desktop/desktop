@@ -25,12 +25,7 @@ function nextPosition(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
   return doc.posFromIndex(doc.indexFromPos(pos) + 1)
 }
 
-function isMarkOrWhitespace(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
-  const line = doc.getLine(pos.line)
-  if (/\s/.test(line.charAt(pos.ch))) {
-    return true
-  }
-
+function posIsInsideMarkedText(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
   const marks = (doc.findMarksAt(pos) as any) as ActualTextMarker[]
   const ix = doc.indexFromPos(pos)
 
@@ -45,6 +40,15 @@ function isMarkOrWhitespace(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
   }
 
   return false
+}
+
+function isMarkOrWhitespace(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
+  const line = doc.getLine(pos.line)
+  if (/\s/.test(line.charAt(pos.ch))) {
+    return true
+  }
+
+  return posIsInsideMarkedText(doc, pos)
 }
 
 function getHintRangeFromCursor(
@@ -185,15 +189,6 @@ export class AuthorInput extends React.Component<
     return (doc.markText(from, to, options) as any) as ActualTextMarker
   }
 
-  private appendPlaceholder(cm: CodeMirror.Editor) {
-    return this.appendTextMarker(cm, '@username', {
-      atomic: true,
-      inclusiveRight: true,
-      className: 'placeholder',
-      readOnly: true,
-    })
-  }
-
   private initializeCodeMirror(host: HTMLDivElement) {
     const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
       hintOptions: any
@@ -254,23 +249,12 @@ export class AuthorInput extends React.Component<
       readOnly: true,
     })
 
-    this.placeholder = this.appendPlaceholder(cm)
-
-    // const elem = document.createElement('span')
-    // elem.classList.add('handle')
-    // elem.innerText = '@iamwillshepherd'
-
-    // doc.markText(
-    //   { line: 0, ch: 16 },
-    //   { line: 0, ch: 32 },
-    //   {
-    //     atomic: true,
-    //     className: 'handle',
-    //     readOnly: false,
-    //     replacedWith: elem,
-    //     handleMouseEvents: true,
-    //   }
-    // )
+    this.placeholder = this.appendTextMarker(cm, '@username', {
+      atomic: true,
+      inclusiveRight: true,
+      className: 'placeholder',
+      readOnly: true,
+    })
 
     cm.on('startCompletion', () => {
       this.hintActive = true
@@ -298,9 +282,28 @@ export class AuthorInput extends React.Component<
           this.placeholder.changed()
         }
       }
+    })
 
+    cm.on('changes', () => {
       if (!this.hintActive) {
-        ;(cm as any).showHint()
+        const doc = cm.getDoc()
+
+        if (doc.somethingSelected()) {
+          return
+        }
+
+        const cursor = doc.getCursor()
+        const previousPos = previousPosition(doc, cursor)
+
+        if (posIsInsideMarkedText(doc, previousPos)) {
+          return
+        }
+
+        const char = doc.getRange(previousPos, cursor)
+
+        if (char === '@') {
+          ;(cm as any).showHint()
+        }
       }
     })
 
