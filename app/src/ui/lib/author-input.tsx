@@ -58,7 +58,7 @@ function scanWhile(
   let pos = start
   let next = iter(doc, start)
 
-  for (; predicate(doc, next); pos = next, next = iter(doc, next)) {
+  for (; predicate(doc, next); next = iter(doc, next)) {
     pos = next
   }
 
