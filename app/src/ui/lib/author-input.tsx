@@ -18,7 +18,7 @@ interface IAuthorInputProps {
 
 interface IAuthorInputState {}
 
-function previousPosition(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
+function prevPosition(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
   return doc.posFromIndex(doc.indexFromPos(pos) - 1)
 }
 
@@ -78,7 +78,7 @@ function getHintRangeFromCursor(
   doc: CodeMirror.Doc,
   cursor: CodeMirror.Position
 ) {
-  const from = scanUntil(doc, cursor, isMarkOrWhitespace, previousPosition)
+  const from = scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition)
   const to = scanUntil(doc, cursor, isMarkOrWhitespace, nextPosition)
 
   return { from, to }
@@ -320,7 +320,7 @@ export class AuthorInput extends React.Component<
         }
 
         const cursor = doc.getCursor()
-        const previousPos = previousPosition(doc, cursor)
+        const previousPos = prevPosition(doc, cursor)
 
         if (posIsInsideMarkedText(doc, previousPos)) {
           return
