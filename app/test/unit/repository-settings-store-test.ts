@@ -14,24 +14,6 @@ import { pathExists } from '../../src/lib/file-system'
 describe('RepositorySettingsStore', () => {
   it('can create a gitignore file', async () => {
     const repo = await setupEmptyRepository()
-    const sut = new RepositorySettingsStore(repo)
-    const path = repo.path
-
-    await sut.saveGitIgnore('node_modules\n')
-    await GitProcess.exec(['add', '.gitignore'], path)
-    await GitProcess.exec(['commit', '-m', 'create the ignore file'], path)
-
-    await sut.saveGitIgnore('node_modules\n*.exe\n')
-    await GitProcess.exec(['add', '.gitignore'], path)
-    await GitProcess.exec(['commit', '-m', 'update the file'], path)
-
-    const status = await getStatus(repo)
-    const files = status.workingDirectory.files
-    expect(files.length).to.equal(0)
-  })
-
-  it('respects config when updating', async () => {
-    const repo = await setupEmptyRepository()
     const path = repo.path
     const sut = new RepositorySettingsStore(repo)
 
@@ -42,6 +24,28 @@ describe('RepositorySettingsStore', () => {
     const exists = await pathExists(`${path}/.gitignore`)
 
     expect(exists).to.equal(true)
+  })
+
+  it('respects config when updating', async () => {
+    const repo = await setupEmptyRepository()
+    const sut = new RepositorySettingsStore(repo)
+    const path = repo.path
+
+    // Ignore txt files
+    await sut.saveGitIgnore('*.txt\n')
+    await GitProcess.exec(['add', '.gitignore'], path)
+    await GitProcess.exec(['commit', '-m', 'create the ignore file'], path)
+
+    // Create a txt file
+    const file = Path.join(repo.path, 'a.txt')
+
+    FS.writeFileSync(file, 'thrvbnmerkl;,iuw')
+
+    // Check status of repo
+    const status = await getStatus(repo)
+    const files = status.workingDirectory.files
+
+    expect(files.length).to.equal(0)
   })
 
   it('can ignore a file in a repository', async () => {
