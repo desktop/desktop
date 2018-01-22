@@ -15,6 +15,7 @@ import { Loading } from '../lib/loading'
 import { structuralEquals } from '../../lib/equality'
 import { generateGravatarUrl } from '../../lib/gravatar'
 import { AuthorInput } from '../lib/author-input'
+import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
@@ -34,6 +35,12 @@ interface ICommitMessageProps {
    * a commit (currently only supported for GH/GHE repositories)
    */
   readonly showCoAuthoredBy: boolean
+
+  /**
+   * Callback for when the user has chosen to hide or show the
+   * co-authors field
+   */
+  readonly onShowCoAuthoredByChanged: (showCoAuthoredBy: boolean) => void
 }
 
 interface ICommitMessageState {
@@ -216,11 +223,20 @@ export class CommitMessage extends React.Component<
     return <Avatar user={avatarUser} title={avatarTitle} />
   }
 
+  private get isCoAuthorInputEnabled() {
+    return (
+      this.props.showCoAuthoredBy &&
+      this.props.repository.gitHubRepository !== null
+    )
+  }
+
   private renderCoAuthorInput() {
-    if (
-      !this.props.showCoAuthoredBy ||
-      !this.props.repository.gitHubRepository
-    ) {
+    console.log(
+      'renderCoAuthorInput',
+      this.props.showCoAuthoredBy,
+      this.props.repository.gitHubRepository
+    )
+    if (!this.isCoAuthorInputEnabled) {
       return null
     }
 
@@ -231,6 +247,23 @@ export class CommitMessage extends React.Component<
     )
   }
 
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    const items: IMenuItem[] = [
+      {
+        label: this.props.showCoAuthoredBy
+          ? __DARWIN__ ? 'Hide Co-Authors' : 'Hide co-authors'
+          : __DARWIN__ ? 'Show Co-Authors' : 'Show co-authors',
+        action: () => {
+          this.props.onShowCoAuthoredByChanged(!this.props.showCoAuthoredBy)
+        },
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
     const buttonEnabled = this.canCommit() && !this.props.isCommitting
@@ -238,7 +271,12 @@ export class CommitMessage extends React.Component<
     const loading = this.props.isCommitting ? <Loading /> : undefined
 
     return (
-      <div id="commit-message" role="group" aria-label="Create commit">
+      <div
+        id="commit-message"
+        role="group"
+        aria-label="Create commit"
+        onContextMenu={this.onContextMenu}
+      >
         <div className="summary">
           {this.renderAvatar()}
 
@@ -261,7 +299,7 @@ export class CommitMessage extends React.Component<
           autocompletionProviders={this.props.autocompletionProviders}
         />
 
-        {this.renderCoAuthorInput}
+        {this.renderCoAuthorInput()}
 
         <Button
           type="submit"

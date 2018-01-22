@@ -1105,4 +1105,12 @@ export class Dispatcher {
   ): Promise<void> {
     return this.appStore._checkoutPullRequest(repository, pullRequest)
   }
+
+  /**
+   * Set whether the user has chosen to hide or show the
+   * co-authors field in the commit message component
+   */
+  public setShowCoAuthoredBy(showCoAuthoredBy: boolean) {
+    return this.appStore._setShowCoAuthoredBy(showCoAuthoredBy)
+  }
 }

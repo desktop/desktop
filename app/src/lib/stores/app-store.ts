@@ -3231,6 +3231,19 @@ export class AppStore {
       await this._checkoutBranch(repository, localBranchName)
     }
   }
+
+  /**
+   * Set whether the user has chosen to hide or show the
+   * co-authors field in the commit message component
+   */
+  public _setShowCoAuthoredBy(showCoAuthoredBy: boolean) {
+
+    this.showCoAuthoredBy = showCoAuthoredBy
+    localStorage.setItem(showCoAuthoredByKey, showCoAuthoredBy ? '1' : '0')
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
 }
 
 function forkPullRequestRemoteName(remoteName: string) {
