@@ -17,7 +17,7 @@ export abstract class BaseStore {
   }
 
   /**
-   * Register an even handler which will be invoked whenever
+   * Register an event handler which will be invoked whenever
    * an unexpected error occurs during the sign-in process. Note
    * that some error are handled in the flow and passed along in
    * the sign in state for inline presentation to the user.
@@ -44,7 +44,7 @@ export class TypedBaseStore<T> {
   }
 
   /**
-   * Register an even handler which will be invoked whenever
+   * Register an event handler which will be invoked whenever
    * an unexpected error occurs during the sign-in process. Note
    * that some error are handled in the flow and passed along in
    * the sign in state for inline presentation to the user.
