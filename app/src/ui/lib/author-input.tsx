@@ -3,6 +3,7 @@ import * as CodeMirror from 'codemirror'
 import {
   IAutocompletionProvider,
   UserAutocompletionProvider,
+  IUserHit,
 } from '../autocompletion'
 import { Doc, Position } from 'codemirror'
 
@@ -112,16 +113,17 @@ interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
 }
 
 function renderUserAutocompleteItem(elem: HTMLElement, self: any, data: any) {
+  const hit = data.hit as IUserHit
   const user = document.createElement('div')
   user.className = 'user'
 
   const username = document.createElement('span')
   username.className = 'username'
-  username.innerText = data.username
+  username.innerText = hit.username
 
   const name = document.createElement('span')
   name.className = 'name'
-  name.innerText = data.name
+  name.innerText = hit.name
 
   user.appendChild(username)
   user.appendChild(name)
@@ -134,28 +136,35 @@ function applyCompletion(doc: CodeMirror.Doc, data: any, completion: any) {
 
   const from: CodeMirror.Position = completion.from || data.from
   const to: CodeMirror.Position = completion.to || data.to
-  const text: string = completion.text
+  const hit: IUserHit = completion.hit
+  const text = `@${hit.username}`
 
   doc.replaceRange(text, from, to, 'complete')
 
   const end = doc.posFromIndex(doc.indexFromPos(from) + text.length)
 
-  return markRangeAsHandle(doc, from, end, text)
+  return markRangeAsHandle(doc, from, end, hit)
+}
+
+function getEmailAddressForUser(user: IUserHit) {
+  if (user.email && user.email.length > 0) {
+    return user.email
+  }
+
+  // TODO: assumes github.com, we need a hostname here
+  return `${user.username}@users.noreply.github.com`
 }
 
 function markRangeAsHandle(
   doc: CodeMirror.Doc,
   from: CodeMirror.Position,
   to: CodeMirror.Position,
-  text?: string
+  user: IUserHit
 ) {
-  if (text === undefined) {
-    text = doc.getRange(from, to)
-  }
-
   const elem = document.createElement('span')
   elem.classList.add('handle')
-  elem.innerText = text
+  elem.title = `${user.name} <${getEmailAddressForUser(user)}>`
+  elem.innerText = `@${user.username}`
 
   return doc.markText(from, to, {
     atomic: true,
@@ -259,8 +268,7 @@ export class AuthorInput extends React.Component<
             return {
               list: hits.map(h => ({
                 text: `@${h.username}`,
-                username: h.username,
-                name: h.name,
+                hit: h,
                 render: renderUserAutocompleteItem,
                 className: 'autocompletion-item',
                 hint: applyCompletion,
