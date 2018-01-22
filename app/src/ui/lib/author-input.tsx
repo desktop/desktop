@@ -32,9 +32,9 @@ function posIsInsideMarkedText(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
   const ix = doc.indexFromPos(pos)
 
   return marks.some(mark => {
-    const pos = mark.find()
-    const from = doc.indexFromPos(pos.from)
-    const to = doc.indexFromPos(pos.from)
+    const markPos = mark.find()
+    const from = doc.indexFromPos(markPos.from)
+    const to = doc.indexFromPos(markPos.to)
 
     return ix > from && ix < to
   })
@@ -78,6 +78,7 @@ function scanUntil(
   predicate: (doc: Doc, pos: Position) => boolean,
   iter: (doc: Doc, pos: Position) => Position
 ): Position {
+  console.log('scanUntil', start)
   return scanWhile(doc, start, (doc, pos) => !predicate(doc, pos), iter)
 }
 
