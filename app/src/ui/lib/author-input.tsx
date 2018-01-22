@@ -78,10 +78,10 @@ function getHintRangeFromCursor(
   doc: CodeMirror.Doc,
   cursor: CodeMirror.Position
 ) {
-  const from = scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition)
-  const to = scanUntil(doc, cursor, isMarkOrWhitespace, nextPosition)
-
-  return { from, to }
+  return {
+    from: scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition),
+    to: scanUntil(doc, cursor, isMarkOrWhitespace, nextPosition),
+  }
 }
 
 // The types for CodeMirror.TextMarker is all wrong, this is what it
