@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import * as FS from 'fs'
 
-import { BaseStore } from './store'
+import { BaseStore } from './base-store'
 import { Repository } from '../../models/repository'
 import { getConfigValue } from '../git'
 

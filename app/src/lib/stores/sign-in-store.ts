@@ -22,7 +22,7 @@ import {
 import { AuthenticationMode } from '../../lib/2fa'
 
 import { minimumSupportedEnterpriseVersion } from '../../lib/enterprise'
-import { BaseStore } from './store'
+import { TypedBaseStore } from './base-store'
 
 function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
@@ -168,20 +168,11 @@ export interface ISuccessState {
  * A store encapsulating all logic related to signing in a user
  * to GitHub.com, or a GitHub Enterprise instance.
  */
-export class SignInStore extends BaseStore {
+export class SignInStore extends TypedBaseStore<SignInState> {
   private state: SignInState | null = null
-
-  protected emitUpdate() {
-    this._emitter.emit('did-update', this.getState())
-  }
 
   private emitAuthenticate(account: Account) {
     this._emitter.emit('did-authenticate', account)
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: (state: ISignInState) => void): Disposable {
-    return this._emitter.on('did-update', fn)
   }
 
   /**
@@ -206,7 +197,7 @@ export class SignInStore extends BaseStore {
    */
   private setState(state: SignInState | null) {
     this.state = state
-    this.emitUpdate()
+    this.emitUpdate(this.getState())
   }
 
   private async endpointSupportsBasicAuth(endpoint: string): Promise<boolean> {

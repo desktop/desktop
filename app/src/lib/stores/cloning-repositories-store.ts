@@ -3,7 +3,7 @@ import { clone as cloneRepo, CloneOptions } from '../git'
 import { ICloneProgress } from '../app-state'
 import { RetryAction, RetryActionType } from '../retry-actions'
 import { ErrorWithMetadata } from '../error-with-metadata'
-import { BaseStore } from './store'
+import { BaseStore } from './base-store'
 
 /** The store in charge of repository currently being cloned. */
 export class CloningRepositoriesStore extends BaseStore {

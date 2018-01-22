@@ -9,7 +9,7 @@ import {
 import { getAvatarWithEnterpriseFallback } from '../gravatar'
 
 import { fatalError } from '../fatal-error'
-import { BaseStore } from './store'
+import { BaseStore } from './base-store'
 
 /**
  * The store for GitHub users. This is used to match commit authors to GitHub

@@ -8,7 +8,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 import { IAPIRepository } from '../api'
-import { BaseStore } from './store'
+import { BaseStore } from './base-store'
 
 /** The store for local repositories. */
 export class RepositoriesStore extends BaseStore {

@@ -53,7 +53,7 @@ import {
   findUpstreamRemote,
   UpstreamRemoteName,
 } from './helpers/find-upstream-remote'
-import { BaseStore } from './store'
+import { BaseStore } from './base-store'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100

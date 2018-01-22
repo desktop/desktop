@@ -3,7 +3,7 @@ import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
 import { fetchUser, EmailVisibility } from '../api'
 import { fatalError } from '../fatal-error'
-import { BaseStore } from './store'
+import { BaseStore } from './base-store'
 
 /** The data-only interface for storage. */
 interface IEmail {

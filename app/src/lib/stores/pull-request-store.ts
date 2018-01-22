@@ -13,8 +13,7 @@ import {
   PullRequestRef,
   PullRequestStatus,
 } from '../../models/pull-request'
-import { BaseStore } from './store'
-import { Disposable } from 'event-kit'
+import { TypedBaseStore } from './base-store'
 import { Repository } from '../../models/repository'
 import { getRemotes, removeRemote } from '../git/index'
 import { IRemote } from '../../models/remote'
@@ -27,7 +26,7 @@ import { IRemote } from '../../models/remote'
 export const ForkedRemotePrefix = 'github-desktop-'
 
 /** The store for GitHub Pull Requests. */
-export class PullRequestStore extends BaseStore {
+export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   private readonly pullRequestDatabase: PullRequestDatabase
   private readonly repositoriesStore: RepositoriesStore
 
@@ -41,11 +40,6 @@ export class PullRequestStore extends BaseStore {
 
     this.pullRequestDatabase = db
     this.repositoriesStore = repositoriesStore
-  }
-
-  /** Overrides base onDidUpdate so that delegate accepts a repository. */
-  public onDidUpdate(fn: (repository: GitHubRepository) => void): Disposable {
-    return this._emitter.on('did-update', fn)
   }
 
   /** Loads all pull requests against the given repository. */

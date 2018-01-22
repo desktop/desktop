@@ -77,7 +77,7 @@ import {
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
-import { BaseStore } from './store'
+import { TypedBaseStore } from './base-store'
 import {
   AccountsStore,
   RepositoriesStore,
@@ -116,7 +116,6 @@ import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
-import { Disposable } from 'event-kit'
 import { IRemote } from '../../models/remote'
 
 /**
@@ -151,7 +150,7 @@ const shellKey = 'shell'
 // background fetching should not occur more than once every two minutes
 const BackgroundFetchMinimumInterval = 2 * 60 * 1000
 
-export class AppStore extends BaseStore {
+export class AppStore extends TypedBaseStore<IAppState> {
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
 
@@ -360,10 +359,6 @@ export class AppStore extends BaseStore {
 
     this._emitter.emit('did-update', state)
     updateMenuState(state, this.appMenu)
-  }
-
-  public onDidUpdate(fn: (state: IAppState) => void): Disposable {
-    return this._emitter.on('did-update', fn)
   }
 
   /**
