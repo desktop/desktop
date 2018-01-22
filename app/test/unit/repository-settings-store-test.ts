@@ -26,7 +26,7 @@ describe('RepositorySettingsStore', () => {
     expect(exists).to.equal(true)
   })
 
-  it('respects config when updating', async () => {
+  it('can ignore a file in a repository', async () => {
     const repo = await setupEmptyRepository()
     const sut = new RepositorySettingsStore(repo)
     const path = repo.path
@@ -48,64 +48,38 @@ describe('RepositorySettingsStore', () => {
     expect(files.length).to.equal(0)
   })
 
-  it('can ignore a file in a repository', async () => {
-    const repo = await setupEmptyRepository()
-    const sut = new RepositorySettingsStore(repo)
+  describe('autocrlf and safecrlf', () => {
+    let repo: Repository
+    let sut: RepositorySettingsStore
 
-    // ignore files
-    await sut.ignore('*.ignore')
-    await GitProcess.exec(['add', '.gitignore'], repo.path)
-    await GitProcess.exec(['commit', '-m', 'add gitignore file'], repo.path)
+    beforeEach(async () => {
+      repo = await setupEmptyRepository()
+      sut = new RepositorySettingsStore(repo)
 
-    // commit the gitignore file
+      await GitProcess.exec(
+        ['config', '--local', 'core.autocrlf', 'true'],
+        repo.path
+      )
+      await GitProcess.exec(
+        ['config', '--local', 'core.safecrlf', 'true'],
+        repo.path
+      )
+    })
 
-    const readmeFile = 'README.md'
-    const readmeFilePath = Path.join(repo.path, readmeFile)
+    it('appends newline to file', async () => {
+      const path = repo.path
 
-    FS.writeFileSync(readmeFilePath, 'SOME WORDS GO HERE\n')
+      await sut.saveGitIgnore('node_modules')
+      await GitProcess.exec(['add', '.gitignore'], path)
 
-    const fileToIgnore = 'GitJiggyWithIt.ignore'
-    const fileToIgnorePath = Path.join(repo.path, fileToIgnore)
+      const commit = await GitProcess.exec(
+        ['commit', '-m', 'create the ignore file'],
+        path
+      )
+      const contents = await sut.readGitIgnore()
 
-    FS.writeFileSync(fileToIgnorePath, 'Should be ignored\n')
-
-    // commit the readme and gitignore file but leave the license
-    await GitProcess.exec(['add', '.'], repo.path)
-    await GitProcess.exec(['commit', '-m', 'add readme'], repo.path)
-  })
-})
-
-describe('autocrlf and safecrlf', () => {
-  let repo: Repository
-  let sut: RepositorySettingsStore
-
-  beforeEach(async () => {
-    repo = await setupEmptyRepository()
-    sut = new RepositorySettingsStore(repo)
-
-    await GitProcess.exec(
-      ['config', '--local', 'core.autocrlf', 'true'],
-      repo.path
-    )
-    await GitProcess.exec(
-      ['config', '--local', 'core.safecrlf', 'true'],
-      repo.path
-    )
-  })
-
-  it('appends newline to file', async () => {
-    const path = repo.path
-
-    await sut.saveGitIgnore('node_modules')
-    await GitProcess.exec(['add', '.gitignore'], path)
-
-    const commit = await GitProcess.exec(
-      ['commit', '-m', 'create the ignore file'],
-      path
-    )
-    const contents = await sut.readGitIgnore()
-
-    expect(commit.exitCode).to.equal(0)
-    expect(contents!.endsWith('\r\n'))
+      expect(commit.exitCode).to.equal(0)
+      expect(contents!.endsWith('\r\n'))
+    })
   })
 })
