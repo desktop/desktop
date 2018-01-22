@@ -33,14 +33,74 @@
     }
   }
 
-  &.with-co-authors .description-field textarea {
+  &.with-co-authors .description-focus-container {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 
     // Hack for when co-authors field is merged
     // with description text area.
-    &:focus {
+    &.focus-inside {
       z-index: 1;
+    }
+  }
+
+  .co-authors-toggle {
+    color: $gray-500;
+
+    &:hover {
+      color: $gray-900;
+    }
+  }
+
+  &.with-co-authors .co-authors-toggle {
+    color: $gray-900;
+
+    &:hover {
+      color: $gray-500;
+    }
+  }
+
+  .description-focus-container {
+    border: 1px solid var(--box-border-color);
+    border-radius: var(--border-radius);
+    background: var(--background-color);
+
+    &.focus-inside {
+      outline: none;
+      border-color: var(--focus-color);
+      box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+    }
+
+    textarea {
+      border: none;
+      border-radius: 0;
+      color: currentColor;
+      font-size: var(--font-size);
+      font-family: var(--font-family-sans-serif);
+      padding: var(--spacing-half);
+      resize: none;
+      min-height: 80px;
+
+      &:focus {
+        outline: 0;
+        border: none;
+        box-shadow: none;
+      }
+    }
+
+    .action-bar {
+      padding: var(--spacing-half);
+    }
+
+    .co-authors-toggle {
+      height: 16px;
+      width: 16px;
+      cursor: pointer;
+
+      svg {
+        height: 7px;
+        pointer-events: none;
+      }
     }
   }
 
