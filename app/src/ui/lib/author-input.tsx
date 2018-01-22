@@ -4,6 +4,7 @@ import {
   IAutocompletionProvider,
   UserAutocompletionProvider,
 } from '../autocompletion'
+import { Doc, Position } from 'codemirror'
 
 interface IAuthorInputProps {
   /**
@@ -42,7 +43,7 @@ function posIsInsideMarkedText(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
   return false
 }
 
-function isMarkOrWhitespace(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
+function isMarkOrWhitespace(doc: Doc, pos: Position) {
   const line = doc.getLine(pos.line)
   if (/\s/.test(line.charAt(pos.ch))) {
     return true
@@ -51,21 +52,37 @@ function isMarkOrWhitespace(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
   return posIsInsideMarkedText(doc, pos)
 }
 
+function scanWhile(
+  doc: Doc,
+  start: Position,
+  predicate: (doc: Doc, pos: Position) => boolean,
+  iter: (doc: Doc, pos: Position) => Position
+) {
+  let pos = start
+  let next = iter(doc, start)
+
+  for (; predicate(doc, next); pos = next, next = iter(doc, next)) {
+    pos = next
+  }
+
+  return pos
+}
+
+function scanUntil(
+  doc: Doc,
+  start: Position,
+  predicate: (doc: Doc, pos: Position) => boolean,
+  iter: (doc: Doc, pos: Position) => Position
+): Position {
+  return scanWhile(doc, start, (doc, pos) => !predicate(doc, pos), iter)
+}
+
 function getHintRangeFromCursor(
   doc: CodeMirror.Doc,
   cursor: CodeMirror.Position
 ) {
-  let from = cursor
-
-  while (!isMarkOrWhitespace(doc, previousPosition(doc, from))) {
-    from = previousPosition(doc, from)
-  }
-
-  let to = cursor
-
-  while (!isMarkOrWhitespace(doc, nextPosition(doc, to))) {
-    to = nextPosition(doc, to)
-  }
+  const from = scanUntil(doc, cursor, isMarkOrWhitespace, previousPosition)
+  const to = scanUntil(doc, cursor, isMarkOrWhitespace, nextPosition)
 
   return { from, to }
 }
