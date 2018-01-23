@@ -64,6 +64,8 @@
     border: 1px solid var(--box-border-color);
     border-radius: var(--border-radius);
     background: var(--background-color);
+    // Fake that we're a text-box
+    cursor: text;
 
     &.focus-inside {
       outline: none;
@@ -90,6 +92,10 @@
 
     .action-bar {
       padding: var(--spacing-half);
+      display: inline-block;
+
+      // We're not faking being a textbox any more
+      cursor: default;
 
       // This gets rid of the padding for the action bar
       // when there's no buttons showing.

@@ -67,6 +67,8 @@ export class CommitMessage extends React.Component<
   ICommitMessageProps,
   ICommitMessageState
 > {
+  private descriptionComponent: AutocompletingTextArea | null = null
+
   public constructor(props: ICommitMessageProps) {
     super(props)
 
@@ -278,6 +280,13 @@ export class CommitMessage extends React.Component<
     showContextualMenu(items)
   }
 
+  private onCoAuthorToggleButtonClick = (
+    e: React.MouseEvent<HTMLDivElement>
+  ) => {
+    e.preventDefault()
+    this.onToggleCoAuthors()
+  }
+
   private renderCoAuthorToggleButton() {
     if (this.props.repository.gitHubRepository === null) {
       return null
@@ -287,13 +296,25 @@ export class CommitMessage extends React.Component<
       <div
         role="button"
         className="co-authors-toggle"
-        onClick={this.onToggleCoAuthors}
+        onClick={this.onCoAuthorToggleButtonClick}
         tabIndex={-1}
         aria-label={this.toggleCoAuthorsText}
       >
         <Octicon symbol={authorIcon} />
       </div>
     )
+  }
+
+  private onDescriptionFieldRef = (
+    component: AutocompletingTextArea | null
+  ) => {
+    this.descriptionComponent = component
+  }
+
+  private onFocusContainerClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (this.descriptionComponent) {
+      this.descriptionComponent.focus()
+    }
   }
 
   public render() {
@@ -326,7 +347,10 @@ export class CommitMessage extends React.Component<
           />
         </div>
 
-        <FocusContainer className="description-focus-container">
+        <FocusContainer
+          className="description-focus-container"
+          onClick={this.onFocusContainerClick}
+        >
           <AutocompletingTextArea
             className="description-field"
             placeholder="Description"
@@ -334,6 +358,7 @@ export class CommitMessage extends React.Component<
             onValueChanged={this.onDescriptionChanged}
             onKeyDown={this.onKeyDown}
             autocompletionProviders={this.props.autocompletionProviders}
+            ref={this.onDescriptionFieldRef}
           />
           <div className="action-bar">{this.renderCoAuthorToggleButton()}</div>
         </FocusContainer>
