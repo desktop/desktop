@@ -21,7 +21,9 @@ export class PullRequestBadge extends React.Component<
     return (
       <div className="pr-badge">
         <span className="number">#{this.props.number}</span>
-        {status && status.totalCount ? <CIStatus status={status} /> : null}
+        {status != null && status.totalCount > 0 ? (
+          <CIStatus status={status} />
+        ) : null}
       </div>
     )
   }
