@@ -64,7 +64,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         'open'
       )
 
-      await this.clearAndInsertPullRequests(apiResult, githubRepo)
+      await this.cachePullRequests(apiResult, githubRepo)
 
       const prs = await this.fetchPullRequestsFromCache(githubRepo)
 
@@ -305,8 +305,8 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     )
   }
 
-  private async clearAndInsertPullRequests(
-    pullRequests: ReadonlyArray<IAPIPullRequest>,
+  private async cachePullRequests(
+    apiuPullRequestsFrom: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
   ): Promise<void> {
     const repoDbId = repository.dbID
