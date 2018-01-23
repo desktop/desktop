@@ -1,11 +1,13 @@
 import * as React from 'react'
 import * as CodeMirror from 'codemirror'
+import * as URL from 'url'
 import {
   IAutocompletionProvider,
   UserAutocompletionProvider,
   IUserHit,
 } from '../autocompletion'
 import { Doc, Position } from 'codemirror'
+import { isDotComApiEndpoint } from '../../lib/api'
 
 interface IAuthorInputProps {
   /**
@@ -151,8 +153,13 @@ function getEmailAddressForUser(user: IUserHit) {
     return user.email
   }
 
-  // TODO: assumes github.com, we need a hostname here
-  return `${user.username}@users.noreply.github.com`
+  const url = URL.parse(user.endpoint)
+  const host =
+    url.hostname && !isDotComApiEndpoint(user.endpoint)
+      ? url.hostname
+      : 'github.com'
+
+  return `${user.username}@users.noreply.${host}`
 }
 
 function markRangeAsHandle(
