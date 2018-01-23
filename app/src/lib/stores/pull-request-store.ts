@@ -144,11 +144,12 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         'A pull request cannot have a null base repo id',
         record.base.repositoryDbId
       )
+      const parentGitGubRepository: GitHubRepository | null = await this._repositoryStore.findGitHubRepositoryByID(
+        parentRepositoryDbId
+      )
       const parentGitHubRepository = forceUnwrap(
         'PR cannot have a null base repo',
-        await this._repositoryStore.findGitHubRepositoryByID(
-          parentRepositoryDbId
-        )
+        parentGitGubRepository
       )
 
       // We can be certain the PR ID is valid since we just got it from the
