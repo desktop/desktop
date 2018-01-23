@@ -375,7 +375,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       })
     }
 
-    await this._pullRequestDatabase.transaction('rw', table, async () => {
+    return this._pullRequestDatabase.transaction('rw', table, async () => {
       await table.clear()
       return await table.bulkAdd(prsToInsert)
     })
