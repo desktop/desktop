@@ -810,6 +810,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return Promise.resolve(null)
     }
 
+    this._refreshRepository(repository)
+
     const gitHubRepository = repository.gitHubRepository
     if (gitHubRepository) {
       this._updateIssues(gitHubRepository)
