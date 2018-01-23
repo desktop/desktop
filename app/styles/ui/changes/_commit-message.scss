@@ -91,6 +91,8 @@
     .action-bar {
       padding: var(--spacing-half);
 
+      // This gets rid of the padding for the action bar
+      // when there's no buttons showing.
       &:empty {
         display: none;
       }
