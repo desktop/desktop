@@ -331,15 +331,30 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         )
       }
 
+      if (githubRepo == null) {
+        return fatalError(
+          "The PR doesn't seem to be associated with a GitHub repository"
+        )
+      }
+
+      const githubRepoDbId = forceUnwrap(
+        'PR cannot have non-existent repo',
+        githubRepo.dbID
+      )
+
       // We know the base repo isn't null since that's where we got the PR from
       // in the first place.
       const parentRepo = forceUnwrap(
         'PR cannot have a null base repo',
-        pr.base.repository
+        pr.base.repo
       )
       const parentGitHubRepo = await this._repositoryStore.upsertGitHubRepository(
         repository.endpoint,
         parentRepo
+      )
+      const parentGitHubRepoDbId = forceUnwrap(
+        'PR cannot have a null parent database id',
+        parentGitHubRepo.dbID
       )
 
       prsToInsert.push({
@@ -349,15 +364,12 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         head: {
           ref: pr.head.ref,
           sha: pr.head.sha,
-          repositoryDbId: githubRepo ? githubRepo.dbID! : null,
+          repositoryDbId: githubRepoDbId,
         },
         base: {
           ref: pr.base.ref,
           sha: pr.base.sha,
-          repositoryDbId: forceUnwrap(
-            'PR cannot have a null base repo',
-            parentGitHubRepo.dbID
-          ),
+          repositoryDbId: parentGitHubRepoDbId,
         },
         author: pr.user.login,
       })
