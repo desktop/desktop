@@ -139,7 +139,7 @@ interface IAPIPullRequestRef {
    * The repository in which this ref lives. It could be null if the repository
    * has been deleted since the PR was opened.
    */
-  readonly repository: IAPIRepository | null
+  readonly repo: IAPIRepository | null
 }
 
 /** Information about a pull request as returned by the GitHub API. */
