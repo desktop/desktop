@@ -130,26 +130,27 @@ export class RepositoriesStore extends BaseStore {
       this.db.owners,
       async () => {
         const repos = await this.db.repositories.toArray()
-        const existing = repos.find(r => r.path === path)
-        let id: number
+        const record = repos.find(r => r.path === path)
+        let recordId: number
         let gitHubRepo: GitHubRepository | null = null
-        if (existing) {
-          id = existing.id!
 
-          if (existing.gitHubRepositoryID) {
+        if (record != null) {
+          recordId = record.id!
+
+          if (record.gitHubRepositoryID != null) {
             gitHubRepo = await this.findGitHubRepositoryByID(
-              existing.gitHubRepositoryID
+              record.gitHubRepositoryID
             )
           }
         } else {
-          id = await this.db.repositories.add({
+          recordId = await this.db.repositories.add({
             path,
             gitHubRepositoryID: null,
             missing: false,
           })
         }
 
-        return new Repository(path, id, gitHubRepo, false)
+        return new Repository(path, recordId, gitHubRepo, false)
       }
     )
 
