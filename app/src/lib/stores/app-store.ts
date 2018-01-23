@@ -3017,7 +3017,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this._openInBrowser(baseURL)
   }
 
-  public async _refreshPullRequests(repository: Repository): Promise<void> {
+  private async _loadPullRequests(
+    repository: Repository,
+    loader: (account: Account) => void
+  ) {
     const gitHubRepository = repository.gitHubRepository
 
     if (gitHubRepository == null) {
@@ -3033,9 +3036,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    await this._pullRequestStore.fetchPullRequests(repository, account)
+    await loader(account)
+  }
 
-    this.updateMenuItemLabels(repository)
+  public async _refreshPullRequests(repository: Repository): Promise<void> {
+    return this._loadPullRequests(repository, async account => {
+      await this._pullRequestStore.fetchPullRequests(repository, account)
+      this.updateMenuItemLabels(repository)
+    })
   }
 
   private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {
