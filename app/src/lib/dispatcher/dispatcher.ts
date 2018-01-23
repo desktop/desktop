@@ -1081,11 +1081,6 @@ export class Dispatcher {
     return this.appStore._openCreatePullRequestInBrowser(repository, branch)
   }
 
-  /** Refresh the list of open pull requests for the repository. */
-  public refreshPullRequests(repository: Repository): Promise<void> {
-    return this.appStore._refreshPullRequests(repository)
-  }
-
   /**
    * Update the existing `upstream` remote to point to the repository's parent.
    */
