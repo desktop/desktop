@@ -4,7 +4,7 @@
       "[New] PhpStorm is now a supported external editor on macOS - #3749. Thanks @hubgit!",
       "[Improved] Blank slate view is now more responsive when zoomed - #3777",
       "[Improved] Documentation fix for Open in Shell resource - #3799. Thanks @saschanaz!",
-      "[Improved] Some tweaks for Linux - #3732",
+      "[Improved] Improved error handling for Linux - #3732",
       "[Improved] Allow links in unexpanded summary to be clickable - #3719. Thanks @koenpunt!",
       "[Fixed] Sort the organization list - #3657. Thanks @j-f1!",
       "[Fixed] Check out PRs from a fork - #3395",
