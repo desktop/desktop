@@ -813,9 +813,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._refreshRepository(repository)
 
     const gitHubRepository = repository.gitHubRepository
-    if (gitHubRepository) {
+
+    if (gitHubRepository != null) {
       this._updateIssues(gitHubRepository)
-    }
 
     await this._refreshRepository(repository)
 
@@ -3074,7 +3074,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     remote: IRemote
   ): PullRequest | null {
     const upstream = branch.upstreamWithoutRemote
-    if (!upstream) {
+
+    if (upstream == null) {
       return null
     }
 
