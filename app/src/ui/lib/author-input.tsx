@@ -8,6 +8,26 @@ import {
 } from '../autocompletion'
 import { Doc, Position } from 'codemirror'
 import { isDotComApiEndpoint } from '../../lib/api'
+import { compare } from '../../lib/compare'
+
+export interface IAuthor {
+  readonly name: string
+  readonly email: string
+  readonly username: string | null
+}
+
+interface IInternalAuthor {
+  author: IAuthor
+  marker: ActualTextMarker
+}
+
+function authorFromUserHit(user: IUserHit): IAuthor {
+  return {
+    name: user.name,
+    email: getEmailAddressForUser(user),
+    username: user.username,
+  }
+}
 
 interface IAuthorInputProps {
   /**
@@ -17,6 +37,9 @@ interface IAuthorInputProps {
   readonly className?: string
   // tslint:disable-next-line:react-unused-props-and-state
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
+
+  // readonly authors: ReadonlyArray<IAuthor>
+  // readonly onAuthorsUpdated: (authors: ReadonlyArray<IAuthor>) => void
 }
 
 interface IAuthorInputState {}
@@ -95,6 +118,27 @@ function getHintRangeFromCursor(
   }
 }
 
+function appendTextMarker(
+  cm: CodeMirror.Editor,
+  text: string,
+  options: CodeMirror.TextMarkerOptions
+): ActualTextMarker {
+  const doc = cm.getDoc()
+  const from = doc.posFromIndex(Infinity)
+
+  doc.replaceRange(text, from)
+  const to = doc.posFromIndex(Infinity)
+
+  return (doc.markText(from, to, options) as any) as ActualTextMarker
+}
+
+function orderByPosition(x: IInternalAuthor, y: IInternalAuthor) {
+  const xPos = x.marker.find()
+  const yPos = y.marker.find()
+
+  return compare(xPos.from, yPos.from)
+}
+
 // The types for CodeMirror.TextMarker is all wrong, this is what it
 // actually looks like
 interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
@@ -115,37 +159,25 @@ interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
 }
 
 function renderUserAutocompleteItem(elem: HTMLElement, self: any, data: any) {
-  const hit = data.hit as IUserHit
+  const author = data.author as IAuthor
   const user = document.createElement('div')
   user.className = 'user'
 
-  const username = document.createElement('span')
-  username.className = 'username'
-  username.innerText = hit.username
+  // This will always be non-null when we get it from the
+  // autocompletion provider but let's be extra cautious
+  if (author.username) {
+    const username = document.createElement('span')
+    username.className = 'username'
+    username.innerText = author.username
+    user.appendChild(username)
+  }
 
   const name = document.createElement('span')
   name.className = 'name'
-  name.innerText = hit.name
+  name.innerText = author.name
 
-  user.appendChild(username)
   user.appendChild(name)
-
   elem.appendChild(user)
-}
-
-function applyCompletion(doc: CodeMirror.Doc, data: any, completion: any) {
-  console.log(`applyCompletion`, data, completion)
-
-  const from: CodeMirror.Position = completion.from || data.from
-  const to: CodeMirror.Position = completion.to || data.to
-  const hit: IUserHit = completion.hit
-  const text = `@${hit.username}`
-
-  doc.replaceRange(text, from, to, 'complete')
-
-  const end = doc.posFromIndex(doc.indexFromPos(from) + text.length)
-
-  return markRangeAsHandle(doc, from, end, hit)
 }
 
 function getEmailAddressForUser(user: IUserHit) {
@@ -162,24 +194,34 @@ function getEmailAddressForUser(user: IUserHit) {
   return `${user.username}@users.noreply.${host}`
 }
 
+function getDisplayTextForAuthor(author: IAuthor) {
+  return author.username === null ? author.name : `@${author.username}`
+}
+
+function renderHandleMarkReplacementElement(author: IAuthor) {
+  const elem = document.createElement('span')
+  elem.classList.add('handle')
+  elem.title = `${author.name} <${author.email}>`
+  elem.innerText = getDisplayTextForAuthor(author)
+
+  return elem
+}
+
 function markRangeAsHandle(
   doc: CodeMirror.Doc,
   from: CodeMirror.Position,
   to: CodeMirror.Position,
-  user: IUserHit
-) {
-  const elem = document.createElement('span')
-  elem.classList.add('handle')
-  elem.title = `${user.name} <${getEmailAddressForUser(user)}>`
-  elem.innerText = `@${user.username}`
+  author: IAuthor
+): ActualTextMarker {
+  const elem = renderHandleMarkReplacementElement(author)
 
-  return doc.markText(from, to, {
+  return (doc.markText(from, to, {
     atomic: true,
     className: 'handle',
     readOnly: false,
     replacedWith: elem,
     handleMouseEvents: true,
-  })
+  }) as any) as ActualTextMarker
 }
 
 export class AuthorInput extends React.Component<
@@ -192,6 +234,8 @@ export class AuthorInput extends React.Component<
   private hintActive: boolean = false
   private label: ActualTextMarker | null = null
   private placeholder: ActualTextMarker | null = null
+
+  private authors: ReadonlyArray<IInternalAuthor> = []
 
   public constructor(props: IAuthorInputProps) {
     super(props)
@@ -226,18 +270,61 @@ export class AuthorInput extends React.Component<
     }
   }
 
-  private appendTextMarker(
-    cm: CodeMirror.Editor,
-    text: string,
-    options: CodeMirror.TextMarkerOptions
-  ): ActualTextMarker {
+  private applyCompletion = (
+    doc: CodeMirror.Doc,
+    data: any,
+    completion: any
+  ) => {
+    const from: CodeMirror.Position = completion.from || data.from
+    const to: CodeMirror.Position = completion.to || data.to
+    const author: IAuthor = completion.author
+    const text = getDisplayTextForAuthor(author)
+
+    doc.replaceRange(text, from, to, 'complete')
+
+    const end = doc.posFromIndex(doc.indexFromPos(from) + text.length)
+    const marker = markRangeAsHandle(doc, from, end, author)
+
+    // todo yuck !
+    const cm = this.editor as any
+    console.log('new marker', marker)
+    cm.on('clear', marker, () => {
+      console.log('cleared!', arguments)
+    })
+
+    this.authors = [...this.authors, { author, marker }].sort(orderByPosition)
+  }
+
+  private onAutocompleteUser = async (cm: CodeMirror.Editor) => {
     const doc = cm.getDoc()
-    const from = doc.posFromIndex(Infinity)
+    const cursor = doc.getCursor() as Readonly<CodeMirror.Position>
 
-    doc.replaceRange(text, from)
-    const to = doc.posFromIndex(Infinity)
+    const { from, to } = getHintRangeFromCursor(doc, cursor)
 
-    return (doc.markText(from, to, options) as any) as ActualTextMarker
+    var word = doc.getRange(from, to)
+
+    const provider = this.props.autocompletionProviders.find(
+      p => p.kind === 'user'
+    )
+
+    if (provider && provider instanceof UserAutocompletionProvider) {
+      const needle = word.replace(/^@/, '')
+      const hits = await provider.getAutocompletionItems(needle)
+
+      return {
+        list: hits.map(authorFromUserHit).map(author => ({
+          author,
+          text: getDisplayTextForAuthor(author),
+          render: renderUserAutocompleteItem,
+          className: 'autocompletion-item',
+          hint: this.applyCompletion,
+        })),
+        from,
+        to,
+      }
+    }
+
+    return { list: [], from, to }
   }
 
   private initializeCodeMirror(host: HTMLDivElement) {
@@ -256,50 +343,20 @@ export class AuthorInput extends React.Component<
         completeSingle: false,
         closeOnUnfocus: true,
         closeCharacters: /\s/,
-        hint: async (cm: CodeMirror.Editor) => {
-          const doc = cm.getDoc()
-          const cursor = doc.getCursor() as Readonly<CodeMirror.Position>
-
-          const { from, to } = getHintRangeFromCursor(doc, cursor)
-
-          var word = doc.getRange(from, to)
-
-          const provider = this.props.autocompletionProviders.find(
-            p => p.kind === 'user'
-          )
-
-          if (provider && provider instanceof UserAutocompletionProvider) {
-            const needle = word.replace(/^@/, '')
-            const hits = await provider.getAutocompletionItems(needle)
-
-            return {
-              list: hits.map(h => ({
-                text: `@${h.username}`,
-                hit: h,
-                render: renderUserAutocompleteItem,
-                className: 'autocompletion-item',
-                hint: applyCompletion,
-              })),
-              from,
-              to,
-            }
-          }
-
-          return { list: [], from, to }
-        },
+        hint: this.onAutocompleteUser,
       },
     }
 
     const cm = CodeMirror(host, CodeMirrorOptions)
 
-    this.label = this.appendTextMarker(cm, 'Co-Authors ', {
+    this.label = appendTextMarker(cm, 'Co-Authors ', {
       atomic: true,
       inclusiveLeft: true,
       className: 'label',
       readOnly: true,
     })
 
-    this.placeholder = this.appendTextMarker(cm, '@username', {
+    this.placeholder = appendTextMarker(cm, '@username', {
       atomic: true,
       inclusiveRight: true,
       className: 'placeholder',
