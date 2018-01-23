@@ -799,7 +799,7 @@ export function getDotComAPIEndpoint(): string {
   return 'https://api.github.com'
 }
 
-// TODO: niik: Doc this, explain that it's about hostname
+// TODO: niik: Doc this
 export function isDotComApiEndpoint(endpoint: string) {
   return getDotComAPIEndpoint().toLowerCase() === endpoint.toLowerCase()
 }
