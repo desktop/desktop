@@ -327,7 +327,7 @@ export class CommitMessage extends React.Component<
               className="co-authors-toggle"
               onClick={this.onToggleCoAuthors}
               tabIndex={-1}
-              title={this.toggleCoAuthorsText}
+              aria-label={this.toggleCoAuthorsText}
             >
               <Octicon symbol={authorIcon} />
             </div>

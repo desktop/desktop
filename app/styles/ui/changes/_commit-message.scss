@@ -53,10 +53,10 @@
   }
 
   &.with-co-authors .co-authors-toggle {
-    color: $gray-900;
+    color: $blue-400;
 
     &:hover {
-      color: $gray-500;
+      color: $blue-600;
     }
   }
 
@@ -97,8 +97,27 @@
       width: 16px;
       cursor: pointer;
 
+      &:after {
+        content: attr(aria-label);
+        position: absolute;
+        margin-left: 3px;
+        margin-top: 1px;
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary-color);
+        opacity: 0;
+        transition: 150ms all ease-in-out;
+        pointer-events: none;
+      }
+
+      &:hover {
+        &:after {
+          opacity: 1;
+        }
+      }
+
       svg {
         height: 7px;
+        width: 12px;
         pointer-events: none;
       }
     }
