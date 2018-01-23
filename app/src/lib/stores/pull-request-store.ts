@@ -320,14 +320,14 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
     const table = this._pullRequestDatabase.pullRequests
     const prsToInsert = new Array<IPullRequest>()
+    let githubRepo: GitHubRepository | null = null
 
-    for (const pr of pullRequests) {
-      let githubRepo: GitHubRepository | null = null
-
-      if (pr.head.repository != null) {
+    for (const pr of apiuPullRequestsFrom) {
+      // Once the repo is found on first try, no need to keep looking
+      if (githubRepo == null && pr.head.repo != null) {
         githubRepo = await this._repositoryStore.upsertGitHubRepository(
           repository.endpoint,
-          pr.head.repository
+          pr.head.repo
         )
       }
 
