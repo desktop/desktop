@@ -786,14 +786,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const previouslySelectedRepository = this.selectedRepository
 
     this.selectedRepository = repository
-    this.emitUpdate()
 
+    this.emitUpdate()
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
 
-    if (!repository) {
+    if (repository == null) {
       return Promise.resolve(null)
     }
+
     if (!(repository instanceof Repository)) {
       return Promise.resolve(null)
     }
