@@ -127,6 +127,7 @@
     "@types/temp": "^0.8.29",
     "@types/to-camel-case": "^1.0.0",
     "@types/ua-parser-js": "^0.7.30",
+    "@types/untildify": "^3.0.0",
     "@types/uuid": "^3.4.0",
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
