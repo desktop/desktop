@@ -18,6 +18,8 @@ export interface IUserHit {
    * field will be an empty string.
    */
   readonly email: string
+
+  readonly endpoint: string
 }
 
 /** The autocompletion provider for user mentions in a GitHub repository. */
@@ -47,7 +49,12 @@ export class UserAutocompletionProvider
       this.repository,
       text
     )
-    return users.map(u => ({ username: u.login, name: u.name, email: u.email }))
+    return users.map(u => ({
+      username: u.login,
+      name: u.name,
+      email: u.email,
+      endpoint: u.endpoint,
+    }))
   }
 
   public renderItem(item: IUserHit): JSX.Element {
