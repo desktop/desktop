@@ -82,5 +82,9 @@ export class PullRequestDatabase extends Dexie {
     this.version(3).stores({
       pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
     })
+
+    this.version(4).stores({
+      pullRequests: 'id++, base.repositoryDbId',
+    })
   }
 }
