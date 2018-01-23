@@ -36,7 +36,8 @@ export class RepositoriesStore extends BaseStore {
           .equals(apiRepository.clone_url)
           .limit(1)
           .first()
-        if (!gitHubRepository) {
+
+        if (gitHubRepository == null) {
           return this.putGitHubRepository(endpoint, apiRepository)
         } else {
           return this.buildGitHubRepository(gitHubRepository)
@@ -49,7 +50,8 @@ export class RepositoriesStore extends BaseStore {
     dbRepo: IDatabaseGitHubRepository
   ): Promise<GitHubRepository> {
     const owner = await this.db.owners.get(dbRepo.ownerID)
-    if (!owner) {
+
+    if (owner == null) {
       throw new Error(`Couldn't find the owner for ${dbRepo.name}`)
     }
 
