@@ -799,6 +799,10 @@ export function getDotComAPIEndpoint(): string {
   return 'https://api.github.com'
 }
 
+export function isDotComApiEndpoint(endpoint: string) {
+  return getDotComAPIEndpoint().toLowerCase() === endpoint.toLowerCase()
+}
+
 /** Get the account for the endpoint. */
 export function getAccountForEndpoint(
   accounts: ReadonlyArray<Account>,
