@@ -268,6 +268,12 @@ export abstract class AutocompletingTextInput<
     this.element = ref
   }
 
+  public focus() {
+    if (this.element) {
+      this.element.focus()
+    }
+  }
+
   public render() {
     const tagName = this.getElementTagName()
     const className = classNames(
