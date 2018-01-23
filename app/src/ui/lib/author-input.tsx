@@ -104,7 +104,6 @@ function scanUntil(
   predicate: (doc: Doc, pos: Position) => boolean,
   iter: (doc: Doc, pos: Position) => Position
 ): Position {
-  console.log('scanUntil', start)
   return scanWhile(doc, start, (doc, pos) => !predicate(doc, pos), iter)
 }
 
@@ -132,9 +131,13 @@ function appendTextMarker(
   return (doc.markText(from, to, options) as any) as ActualTextMarker
 }
 
-function orderByPosition(x: IInternalAuthor, y: IInternalAuthor) {
-  const xPos = x.marker.find()
-  const yPos = y.marker.find()
+function orderByPosition(x: ActualTextMarker, y: ActualTextMarker) {
+  const xPos = x.find()
+  const yPos = y.find()
+
+  if (xPos === undefined || yPos === undefined) {
+    return compare(xPos, yPos)
+  }
 
   return compare(xPos.from, yPos.from)
 }
@@ -224,6 +227,27 @@ function markRangeAsHandle(
   }) as any) as ActualTextMarker
 }
 
+function triggerAutoCompleteBasedOnCursorPosition(cm: CodeMirror.Editor) {
+  const doc = cm.getDoc()
+
+  if (doc.somethingSelected()) {
+    return
+  }
+
+  const cursor = doc.getCursor()
+  const previousPos = prevPosition(doc, cursor)
+
+  if (posIsInsideMarkedText(doc, previousPos)) {
+    return
+  }
+
+  const char = doc.getRange(previousPos, cursor)
+
+  if (char === '@') {
+    ;(cm as any).showHint()
+  }
+}
+
 export class AuthorInput extends React.Component<
   IAuthorInputProps,
   IAuthorInputState
@@ -236,6 +260,8 @@ export class AuthorInput extends React.Component<
   private placeholder: ActualTextMarker | null = null
 
   private authors: ReadonlyArray<IInternalAuthor> = []
+  // For undo association
+  private readonly markAuthorMap = new Map<ActualTextMarker, IAuthor>()
 
   public constructor(props: IAuthorInputProps) {
     super(props)
@@ -285,14 +311,8 @@ export class AuthorInput extends React.Component<
     const end = doc.posFromIndex(doc.indexFromPos(from) + text.length)
     const marker = markRangeAsHandle(doc, from, end, author)
 
-    // todo yuck !
-    const cm = this.editor as any
-    console.log('new marker', marker)
-    cm.on('clear', marker, () => {
-      console.log('cleared!', arguments)
-    })
-
-    this.authors = [...this.authors, { author, marker }].sort(orderByPosition)
+    this.markAuthorMap.set(marker, author)
+    this.authors = [...this.authors, { author, marker }] //.sort(orderByPosition)
   }
 
   private onAutocompleteUser = async (cm: CodeMirror.Editor) => {
@@ -392,26 +412,33 @@ export class AuthorInput extends React.Component<
     })
 
     cm.on('changes', () => {
+      console.log(cm.getDoc().getAllMarks())
+
       if (!this.hintActive) {
-        const doc = cm.getDoc()
-
-        if (doc.somethingSelected()) {
-          return
-        }
-
-        const cursor = doc.getCursor()
-        const previousPos = prevPosition(doc, cursor)
-
-        if (posIsInsideMarkedText(doc, previousPos)) {
-          return
-        }
-
-        const char = doc.getRange(previousPos, cursor)
-
-        if (char === '@') {
-          ;(cm as any).showHint()
-        }
+        triggerAutoCompleteBasedOnCursorPosition(cm)
       }
+
+      const doc = cm.getDoc()
+      const markers = (doc.getAllMarks() as any) as ActualTextMarker[]
+
+      const authors = new Array<IInternalAuthor>()
+
+      for (const marker of markers.sort(orderByPosition)) {
+        if (marker.className !== 'handle') {
+          continue
+        }
+
+        const author = this.markAuthorMap.get(marker)
+
+        // shouldn't happen lol
+        if (!author) {
+          break
+        }
+
+        authors.push({ marker, author })
+      }
+
+      console.log(authors)
     })
 
     return cm
