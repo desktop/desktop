@@ -817,7 +817,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (gitHubRepository != null) {
       this._updateIssues(gitHubRepository)
 
-    await this._refreshRepository(repository)
+      this._loadPullRequests(repository, async () => {
+        this._pullRequestStore.fetchPullRequestsFromCache(gitHubRepository)
+      })
+    }
 
     // The selected repository could have changed while we were refreshing.
     if (this.selectedRepository !== repository) {
@@ -832,10 +835,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
+
     this.refreshMentionables(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
-    this._refreshPullRequests(repository)
 
     return this._repositoryWithRefreshedGitHubRepository(repository)
   }
