@@ -243,11 +243,6 @@ export class CommitMessage extends React.Component<
   }
 
   private renderCoAuthorInput() {
-    console.log(
-      'renderCoAuthorInput',
-      this.props.showCoAuthoredBy,
-      this.props.repository.gitHubRepository
-    )
     if (!this.isCoAuthorInputEnabled) {
       return null
     }
