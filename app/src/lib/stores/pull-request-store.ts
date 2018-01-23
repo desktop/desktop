@@ -121,7 +121,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     }
 
     const records = await this._pullRequestDatabase.pullRequests
-      .where('base.repoId')
+      .where('base.repositoryDbId')
       .equals(gitHubRepositoryID)
       .reverse()
       .sortBy('number')
