@@ -90,6 +90,10 @@
 
     .action-bar {
       padding: var(--spacing-half);
+
+      &:empty {
+        display: none;
+      }
     }
 
     .co-authors-toggle {

@@ -276,10 +276,29 @@ export class CommitMessage extends React.Component<
       {
         label: this.toggleCoAuthorsText,
         action: this.onToggleCoAuthors,
+        enabled: this.props.repository.gitHubRepository !== null,
       },
     ]
 
     showContextualMenu(items)
+  }
+
+  private renderCoAuthorToggleButton() {
+    if (this.props.repository.gitHubRepository === null) {
+      return null
+    }
+
+    return (
+      <div
+        role="button"
+        className="co-authors-toggle"
+        onClick={this.onToggleCoAuthors}
+        tabIndex={-1}
+        aria-label={this.toggleCoAuthorsText}
+      >
+        <Octicon symbol={authorIcon} />
+      </div>
+    )
   }
 
   public render() {
@@ -321,17 +340,7 @@ export class CommitMessage extends React.Component<
             onKeyDown={this.onKeyDown}
             autocompletionProviders={this.props.autocompletionProviders}
           />
-          <div className="action-bar">
-            <div
-              role="button"
-              className="co-authors-toggle"
-              onClick={this.onToggleCoAuthors}
-              tabIndex={-1}
-              aria-label={this.toggleCoAuthorsText}
-            >
-              <Octicon symbol={authorIcon} />
-            </div>
-          </div>
+          <div className="action-bar">{this.renderCoAuthorToggleButton()}</div>
         </FocusContainer>
 
         {this.renderCoAuthorInput()}
