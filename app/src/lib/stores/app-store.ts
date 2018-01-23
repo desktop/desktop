@@ -2354,8 +2354,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       } finally {
         this.updatePushPullFetchProgress(repository, null)
 
-        if (fetchType !== FetchType.BackgroundTask) {
-          this._refreshPullRequests(repository)
+        if (fetchType === FetchType.UserInitiatedTask) {
+          this._loadPullRequests(repository, async account => {
+            await this._pullRequestStore.fetchPullRequests(repository, account)
+            this.updateMenuItemLabels(repository)
+          })
         }
       }
     })
