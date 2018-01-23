@@ -3079,17 +3079,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return null
     }
 
-    for (const pr of pullRequests) {
-      if (
+    const pr = pullRequests.find(
+      pr =>
         pr.head.ref === upstream &&
-        pr.head.gitHubRepository &&
+        pr.head.gitHubRepository != null &&
         pr.head.gitHubRepository.cloneURL === remote.url
-      ) {
-        return pr
-      }
-    }
+    )
 
-    return null
+    return pr || null
   }
 
   private _updateCurrentPullRequest(repository: Repository) {
