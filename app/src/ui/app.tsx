@@ -1601,8 +1601,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           askForConfirmationOnDiscardChanges={
             this.state.askForConfirmationOnDiscardChanges
           }
-          showCoAuthoredBy={this.state.showCoAuthoredBy}
-          onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
@@ -1651,10 +1649,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderFullScreenInfo()}
       </div>
     )
-  }
-
-  private onShowCoAuthoredByChanged = (showCoAuthoredBy: boolean) => {
-    this.props.dispatcher.setShowCoAuthoredBy(showCoAuthoredBy)
   }
 
   private onRepositoryFilterTextChanged = (text: string) => {

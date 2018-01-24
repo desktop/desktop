@@ -48,12 +48,7 @@ interface ICommitMessageProps {
    * a commit (currently only supported for GH/GHE repositories)
    */
   readonly showCoAuthoredBy: boolean
-
-  /**
-   * Callback for when the user has chosen to hide or show the
-   * co-authors field
-   */
-  readonly onShowCoAuthoredByChanged: (showCoAuthoredBy: boolean) => void
+  readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
 interface ICommitMessageState {
@@ -62,8 +57,6 @@ interface ICommitMessageState {
 
   /** The last contextual commit message we've received. */
   readonly lastContextualCommitMessage: ICommitMessage | null
-
-  readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
 export class CommitMessage extends React.Component<
@@ -79,7 +72,6 @@ export class CommitMessage extends React.Component<
       summary: '',
       description: '',
       lastContextualCommitMessage: null,
-      coAuthors: [],
     }
   }
 
@@ -194,8 +186,8 @@ export class CommitMessage extends React.Component<
 
     let description = this.state.description
 
-    if (this.isCoAuthorInputEnabled && this.state.coAuthors.length > 0) {
-      const trailers = this.state.coAuthors.map(a => ({
+    if (this.isCoAuthorInputEnabled && this.props.coAuthors.length > 0) {
+      const trailers = this.props.coAuthors.map(a => ({
         key: 'Co-Authored-By',
         value: `${a.name} <${a.email}>`,
       }))
@@ -268,9 +260,8 @@ export class CommitMessage extends React.Component<
     )
   }
 
-  private onAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) => {
-    console.log('authors updated', coAuthors.map(a => a.username))
-    this.setState({ coAuthors })
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) => {
+    this.props.dispatcher.setCoAuthors(this.props.repository, coAuthors)
   }
 
   private renderCoAuthorInput() {
@@ -281,14 +272,17 @@ export class CommitMessage extends React.Component<
     return (
       <AuthorInput
         autocompletionProviders={this.props.autocompletionProviders}
-        onAuthorsUpdated={this.onAuthorsUpdated}
-        authors={this.state.coAuthors}
+        onAuthorsUpdated={this.onCoAuthorsUpdated}
+        authors={this.props.coAuthors}
       />
     )
   }
 
   private onToggleCoAuthors = () => {
-    this.props.onShowCoAuthoredByChanged(!this.props.showCoAuthoredBy)
+    this.props.dispatcher.setShowCoAuthoredBy(
+      this.props.repository,
+      !this.props.showCoAuthoredBy
+    )
   }
 
   private get toggleCoAuthorsText(): string {

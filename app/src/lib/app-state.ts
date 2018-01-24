@@ -25,6 +25,7 @@ import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
+import { IAuthor } from '../ui/lib/author-input'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -177,12 +178,6 @@ export interface IAppState {
 
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab
-
-  /**
-   * Whether or not to show a field for adding co-authors to
-   * a commit (currently only supported for GH/GHE repositories)
-   */
-  readonly showCoAuthoredBy: boolean
 }
 
 export enum PopupType {
@@ -579,4 +574,12 @@ export interface IChangesState {
 
   /** The commit message for a work-in-progress commit in the changes view. */
   readonly commitMessage: ICommitMessage | null
+
+  /**
+   * Whether or not to show a field for adding co-authors to
+   * a commit (currently only supported for GH/GHE repositories)
+   */
+  readonly showCoAuthoredBy: boolean
+
+  readonly coAuthors: ReadonlyArray<IAuthor>
 }

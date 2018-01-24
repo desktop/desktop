@@ -52,6 +52,7 @@ import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repo
 import { BranchesTab } from '../../models/branches-tab'
 import { FetchType } from '../../lib/stores'
 import { PullRequest } from '../../models/pull-request'
+import { IAuthor } from '../../ui/lib/author-input'
 
 /**
  * An error handler function.
@@ -1110,7 +1111,17 @@ export class Dispatcher {
    * Set whether the user has chosen to hide or show the
    * co-authors field in the commit message component
    */
-  public setShowCoAuthoredBy(showCoAuthoredBy: boolean) {
-    return this.appStore._setShowCoAuthoredBy(showCoAuthoredBy)
+  public setShowCoAuthoredBy(
+    repository: Repository,
+    showCoAuthoredBy: boolean
+  ) {
+    return this.appStore._setShowCoAuthoredBy(repository, showCoAuthoredBy)
+  }
+
+  public setCoAuthors(
+    repository: Repository,
+    coAuthors: ReadonlyArray<IAuthor>
+  ) {
+    return this.appStore._setCoAuthors(repository, coAuthors)
   }
 }

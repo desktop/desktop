@@ -112,6 +112,7 @@ import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
 import { IRemote } from '../../models/remote'
+import { IAuthor } from '../../ui/lib/author-input';
 
 /**
  * Enum used by fetch to determine if
@@ -134,8 +135,6 @@ const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
-const showCoAuthoredByDefault: boolean = false
-const showCoAuthoredByKey: string = 'showCoAuthoredBy'
 
 const externalEditorKey: string = 'externalEditor'
 
@@ -239,7 +238,6 @@ export class AppStore {
   private selectedBranchesTab = BranchesTab.Branches
 
   private pullRequestStore: PullRequestStore
-  private showCoAuthoredBy: boolean
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
@@ -406,6 +404,8 @@ export class AppStore {
         diff: null,
         contextualCommitMessage: null,
         commitMessage: null,
+        coAuthors: [],
+        showCoAuthoredBy: false,
       },
       selectedSection: RepositorySection.Changes,
       branchesState: {
@@ -555,7 +555,6 @@ export class AppStore {
       repositoryFilterText: this.repositoryFilterText,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
-      showCoAuthoredBy: this.showCoAuthoredBy
     }
   }
 
@@ -1038,15 +1037,6 @@ export class AppStore {
 
     parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) ||
     defaultCommitSummaryWidth
-
-    const showCoAuthoredByValue = localStorage.getItem(
-      showCoAuthoredByKey
-    )
-
-    this.showCoAuthoredBy =
-      showCoAuthoredByValue === null
-          ? showCoAuthoredByDefault
-          : showCoAuthoredByValue === '1'
 
     this.accountsStore.refresh()
   }
@@ -3236,10 +3226,16 @@ export class AppStore {
    * Set whether the user has chosen to hide or show the
    * co-authors field in the commit message component
    */
-  public _setShowCoAuthoredBy(showCoAuthoredBy: boolean) {
+  public _setShowCoAuthoredBy(repository: Repository, showCoAuthoredBy: boolean) {
 
-    this.showCoAuthoredBy = showCoAuthoredBy
-    localStorage.setItem(showCoAuthoredByKey, showCoAuthoredBy ? '1' : '0')
+    this.updateChangesState(repository, (state) => ({ showCoAuthoredBy }))
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setCoAuthors(repository: Repository, coAuthors: ReadonlyArray<IAuthor>) {
+    this.updateChangesState(repository, (state) => ({ coAuthors }))
     this.emitUpdate()
 
     return Promise.resolve()
