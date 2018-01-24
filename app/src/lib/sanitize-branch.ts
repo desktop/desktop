@@ -2,14 +2,11 @@
 // ASCII Control chars and space, DEL, ~ ^ : ? * [ \
 // | " < and > is technically a valid refname but not on Windows
 // the magic sequence @{, consecutive dots, leading and trailing dot, ref ending in .lock
-const invalidCharacterRegex = /[\x00-\x20\x7F~^:?*\[\\|""<>]|@{|\.\.+|^\.|\.$|\.lock$|\/$/g
+const invalidCharacterRegex = /[\x00-\x20\x7F~^:?*\[\\|""<>]+|@{|\.\.+|^\.|\.$|\.lock$|\/$/g
 
 /** Sanitize a proposed branch name by replacing illegal characters. */
 export function sanitizedBranchName(name: string): string {
-  return name
-    .replace(invalidCharacterRegex, '-')
-    .replace(/--+/g, '-')
-    .replace(/^-/g, '')
+  return name.replace(invalidCharacterRegex, '-').replace(/^-/g, '')
 }
 
 /** Validate a branch does not contain any invalid characters */
