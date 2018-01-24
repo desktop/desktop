@@ -362,15 +362,8 @@ export class AuthorInput extends React.Component<
     return marker
   }
 
-  private insertAuthorAfter(
-    doc: Doc,
-    author: IAuthor,
-    after: ActualTextMarker
-  ) {
-    const range = after.find()
-    const from = range ? range.to : CodeMirror.Pos(Infinity)
-
-    return this.insertAuthor(doc, author, from)
+  private appendAuthor(doc: Doc, author: IAuthor) {
+    return this.insertAuthor(doc, author, doc.posFromIndex(Infinity))
   }
 
   private onAutocompleteUser = async (cm: Editor) => {
@@ -511,10 +504,8 @@ export class AuthorInput extends React.Component<
       readOnly: true,
     })
 
-    let after = this.label
-
     for (const author of authors) {
-      after = this.insertAuthorAfter(doc, author, after)
+      this.appendAuthor(doc, author)
     }
 
     this.authors = this.props.authors
