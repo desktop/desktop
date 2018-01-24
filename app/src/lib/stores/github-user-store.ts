@@ -10,6 +10,7 @@ import {
 import { getAvatarWithEnterpriseFallback } from '../gravatar'
 
 import { fatalError } from '../fatal-error'
+import { compare } from '../compare'
 
 /**
  * The store for GitHub users. This is used to match commit authors to GitHub
@@ -411,30 +412,33 @@ export class GitHubUserStore {
   /** Get the mentionable users which match the text in some way. */
   public async getMentionableUsersMatching(
     repository: GitHubRepository,
-    text: string
+    text: string,
+    maxHits: number = 100
   ): Promise<ReadonlyArray<IGitHubUser>> {
     const users = await this.getMentionableUsers(repository)
 
-    const MaxScore = 1
-    const score = (u: IGitHubUser) => {
-      const login = u.login
-      if (login && login.toLowerCase().startsWith(text.toLowerCase())) {
-        return MaxScore
-      }
+    const hits = []
+    const needle = text.toLowerCase()
 
-      // `name` shouldn't even be `undefined` going forward, but older versions
-      // of the user cache didn't persist `name`. The `GitHubUserStore` will fix
-      // that, but autocompletions could be requested before that happens. So we
-      // need to check here even though the type says its superfluous.
-      const name = u.name
-      if (name && name.toLowerCase().includes(text.toLowerCase())) {
-        return MaxScore - 0.1
-      }
+    // Simple substring comparison on login and real name
+    for (let i = 0; i < users.length && hits.length < maxHits; i++) {
+      const user = users[i]
+      const ix = `${user.login} ${user.name}`
+        .trim()
+        .toLowerCase()
+        .indexOf(needle)
 
-      return 0
+      if (ix >= 0) {
+        hits.push({ user, ix })
+      }
     }
 
-    return users.filter(u => score(u) > 0).sort((a, b) => score(b) - score(a))
+    // Sort hits primarily based on how early in the text the match
+    // was found and then secondarily using the user id (this matches
+    // the dotcom behavior except they do fuzzy searching)
+    return hits
+      .sort((x, y) => compare(x.ix, y.ix) || compare(x.user.id, y.user.id))
+      .map(h => h.user)
   }
 }
 
