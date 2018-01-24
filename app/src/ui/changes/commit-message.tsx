@@ -61,6 +61,8 @@ interface ICommitMessageState {
 
   /** The last contextual commit message we've received. */
   readonly lastContextualCommitMessage: ICommitMessage | null
+
+  readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
 export class CommitMessage extends React.Component<
@@ -76,6 +78,7 @@ export class CommitMessage extends React.Component<
       summary: '',
       description: '',
       lastContextualCommitMessage: null,
+      coAuthors: [],
     }
   }
 
@@ -248,8 +251,9 @@ export class CommitMessage extends React.Component<
     )
   }
 
-  private onAuthorsUpdated = (authors: ReadonlyArray<IAuthor>) => {
-    console.log('authors updated', authors.map(a => a.username))
+  private onAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) => {
+    console.log('authors updated', coAuthors.map(a => a.username))
+    this.setState({ coAuthors })
   }
 
   private renderCoAuthorInput() {
@@ -261,18 +265,7 @@ export class CommitMessage extends React.Component<
       <AuthorInput
         autocompletionProviders={this.props.autocompletionProviders}
         onAuthorsUpdated={this.onAuthorsUpdated}
-        authors={[
-          {
-            name: 'Markus Olsson',
-            email: 'niik@github.com',
-            username: 'niik',
-          },
-          {
-            name: 'Don Okuda',
-            email: 'donokuda@github.com',
-            username: 'donokuda',
-          },
-        ]}
+        authors={this.state.coAuthors}
       />
     )
   }

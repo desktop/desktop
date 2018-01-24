@@ -286,6 +286,17 @@ export class AuthorInput extends React.Component<
     this.state = {}
   }
 
+  public componentWillReceiveProps(nextProps: IAuthorInputProps) {
+    if (!arrayEquals(this.authors, nextProps.authors)) {
+      const cm = this.editor
+      if (cm) {
+        cm.operation(() => {
+          this.reset(cm, nextProps.authors)
+        })
+      }
+    }
+  }
+
   private onResized = () => {
     this.resizeDebounceId = null
     if (this.editor) {
@@ -391,6 +402,11 @@ export class AuthorInput extends React.Component<
     }
   }
 
+  private getAllHandleMarks(cm: Editor): Array<ActualTextMarker> {
+    // todo: yuck!
+    return (cm.getDoc().getAllMarks() as any) as ActualTextMarker[]
+  }
+
   private initializeCodeMirror(host: HTMLDivElement) {
     const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
       hintOptions: any
@@ -414,32 +430,10 @@ export class AuthorInput extends React.Component<
     }
 
     const cm = CodeMirror(host, CodeMirrorOptions)
-    const doc = cm.getDoc()
 
-    this.label = appendTextMarker(cm, 'Co-Authors ', {
-      atomic: true,
-      inclusiveLeft: true,
-      className: 'label',
-      readOnly: true,
+    cm.operation(() => {
+      this.reset(cm, this.props.authors)
     })
-
-    let after = this.label
-
-    for (const author of this.props.authors) {
-      after = this.insertAuthorAfter(doc, author, after)
-    }
-
-    this.placeholder = appendTextMarker(cm, '@username', {
-      atomic: true,
-      inclusiveRight: true,
-      className: 'placeholder',
-      readOnly: true,
-      collapsed: this.props.authors.length > 0,
-    })
-
-    doc.setCursor(this.placeholder.find().from)
-
-    this.authors = this.props.authors
 
     cm.on('startCompletion', () => {
       this.hintActive = true
@@ -458,24 +452,16 @@ export class AuthorInput extends React.Component<
     })
 
     cm.on('changes', () => {
-      const doc = cm.getDoc()
-      const markers = (doc.getAllMarks() as any) as ActualTextMarker[]
-
+      const markers = this.getAllHandleMarks(cm).sort(orderByPosition)
       const authors = new Array<IAuthor>()
 
-      for (const marker of markers.sort(orderByPosition)) {
-        if (marker.className !== 'handle') {
-          continue
-        }
-
+      for (const marker of markers) {
         const author = this.markAuthorMap.get(marker)
 
-        // shouldn't happen lol
-        if (!author) {
-          break
+        // undefined authors shouldn't happen lol
+        if (author) {
+          authors.push(author)
         }
-
-        authors.push(author)
       }
 
       if (!arrayEquals(this.authors, authors)) {
@@ -485,6 +471,42 @@ export class AuthorInput extends React.Component<
     })
 
     return cm
+  }
+
+  private reset(cm: Editor, authors: ReadonlyArray<IAuthor>) {
+    const doc = cm.getDoc()
+
+    cm.setValue('')
+    doc.clearHistory()
+
+    this.authors = []
+    this.authorMarkMap.clear()
+    this.markAuthorMap.clear()
+
+    this.label = appendTextMarker(cm, 'Co-Authors ', {
+      atomic: true,
+      inclusiveLeft: true,
+      className: 'label',
+      readOnly: true,
+    })
+
+    let after = this.label
+
+    for (const author of authors) {
+      after = this.insertAuthorAfter(doc, author, after)
+    }
+
+    this.authors = this.props.authors
+
+    this.placeholder = appendTextMarker(cm, '@username', {
+      atomic: true,
+      inclusiveRight: true,
+      className: 'placeholder',
+      readOnly: true,
+      collapsed: authors.length > 0,
+    })
+
+    doc.setCursor(this.placeholder.find().from)
   }
 
   public render() {
