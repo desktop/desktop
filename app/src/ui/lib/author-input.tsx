@@ -264,6 +264,7 @@ export class AuthorInput extends React.Component<
   private hintActive: boolean = false
   private label: ActualTextMarker | null = null
   private placeholder: ActualTextMarker | null = null
+  private lastKnownWidth: number | null = null
 
   private authors: ReadonlyArray<IAuthor> = []
   // For undo association
@@ -274,12 +275,32 @@ export class AuthorInput extends React.Component<
     super(props)
 
     this.resizeObserver = new ResizeObserver(entries => {
-      if (entries.length >= 1 && this.editor) {
-        if (this.resizeDebounceId !== null) {
-          cancelAnimationFrame(this.resizeDebounceId)
-          this.resizeDebounceId = null
+      if (entries.length === 1 && this.editor) {
+        const newWidth = entries[0].contentRect.width
+
+        // We don't care about the first resize, let's just
+        // store what we've got
+        if (!this.lastKnownWidth) {
+          console.log('donut care about first resize')
+          this.lastKnownWidth = newWidth
+          return
         }
-        requestAnimationFrame(this.onResized)
+
+        // Codemirror already does a good job of height changes,
+        // we just need to care about when the width changes and
+        // do a relayout
+        if (this.lastKnownWidth !== newWidth) {
+          console.log('resized!', this.lastKnownWidth, newWidth)
+          this.lastKnownWidth = newWidth
+
+          if (this.resizeDebounceId !== null) {
+            cancelAnimationFrame(this.resizeDebounceId)
+            this.resizeDebounceId = null
+          }
+          requestAnimationFrame(this.onResized)
+        } else {
+          console.log('avoided resize on height only')
+        }
       }
     })
 
