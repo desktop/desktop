@@ -15,7 +15,7 @@ import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
 import { structuralEquals } from '../../lib/equality'
 import { generateGravatarUrl } from '../../lib/gravatar'
-import { AuthorInput } from '../lib/author-input'
+import { AuthorInput, IAuthor } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -244,6 +244,10 @@ export class CommitMessage extends React.Component<
     )
   }
 
+  private onAuthorsUpdated = (authors: ReadonlyArray<IAuthor>) => {
+    console.log('authors updated', authors.map(a => a.username))
+  }
+
   private renderCoAuthorInput() {
     if (!this.isCoAuthorInputEnabled) {
       return null
@@ -252,6 +256,19 @@ export class CommitMessage extends React.Component<
     return (
       <AuthorInput
         autocompletionProviders={this.props.autocompletionProviders}
+        onAuthorsUpdated={this.onAuthorsUpdated}
+        authors={[
+          {
+            name: 'Markus Olsson',
+            email: 'niik@github.com',
+            username: 'niik',
+          },
+          {
+            name: 'Don Okuda',
+            email: 'donokuda@github.com',
+            username: 'donokuda',
+          },
+        ]}
       />
     )
   }

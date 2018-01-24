@@ -16,11 +16,6 @@ export interface IAuthor {
   readonly username: string | null
 }
 
-interface IInternalAuthor {
-  author: IAuthor
-  marker: ActualTextMarker
-}
-
 function authorFromUserHit(user: IUserHit): IAuthor {
   return {
     name: user.name,
@@ -38,8 +33,8 @@ interface IAuthorInputProps {
   // tslint:disable-next-line:react-unused-props-and-state
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 
-  // readonly authors: ReadonlyArray<IAuthor>
-  // readonly onAuthorsUpdated: (authors: ReadonlyArray<IAuthor>) => void
+  readonly authors: ReadonlyArray<IAuthor>
+  readonly onAuthorsUpdated: (authors: ReadonlyArray<IAuthor>) => void
 }
 
 interface IAuthorInputState {}
@@ -140,6 +135,20 @@ function orderByPosition(x: ActualTextMarker, y: ActualTextMarker) {
   }
 
   return compare(xPos.from, yPos.from)
+}
+
+function arrayEquals<T>(x: ReadonlyArray<T>, y: ReadonlyArray<T>) {
+  if (x.length !== y.length) {
+    return false
+  }
+
+  for (let i = 0; i < x.length; i++) {
+    if (x[i] !== y[i]) {
+      return false
+    }
+  }
+
+  return true
 }
 
 // The types for CodeMirror.TextMarker is all wrong, this is what it
@@ -259,9 +268,10 @@ export class AuthorInput extends React.Component<
   private label: ActualTextMarker | null = null
   private placeholder: ActualTextMarker | null = null
 
-  private authors: ReadonlyArray<IInternalAuthor> = []
+  private authors: ReadonlyArray<IAuthor> = []
   // For undo association
   private readonly markAuthorMap = new Map<ActualTextMarker, IAuthor>()
+  private readonly authorMarkMap = new Map<IAuthor, ActualTextMarker>()
 
   public constructor(props: IAuthorInputProps) {
     super(props)
@@ -312,7 +322,7 @@ export class AuthorInput extends React.Component<
     const marker = markRangeAsHandle(doc, from, end, author)
 
     this.markAuthorMap.set(marker, author)
-    this.authors = [...this.authors, { author, marker }] //.sort(orderByPosition)
+    this.authorMarkMap.set(author, marker)
   }
 
   private onAutocompleteUser = async (cm: CodeMirror.Editor) => {
@@ -368,6 +378,7 @@ export class AuthorInput extends React.Component<
     }
 
     const cm = CodeMirror(host, CodeMirrorOptions)
+    const doc = cm.getDoc()
 
     this.label = appendTextMarker(cm, 'Co-Authors ', {
       atomic: true,
@@ -376,12 +387,30 @@ export class AuthorInput extends React.Component<
       readOnly: true,
     })
 
+    let from = this.label.find().to
+
+    for (const author of this.props.authors) {
+      const text = getDisplayTextForAuthor(author)
+      const to = { ...from, ch: from.ch + text.length }
+
+      doc.replaceRange(text, from, to)
+      const marker = markRangeAsHandle(doc, from, to, author)
+
+      this.markAuthorMap.set(marker, author)
+      this.authorMarkMap.set(author, marker)
+
+      from = to
+    }
+
     this.placeholder = appendTextMarker(cm, '@username', {
       atomic: true,
       inclusiveRight: true,
       className: 'placeholder',
       readOnly: true,
+      collapsed: this.props.authors.length > 0,
     })
+
+    this.authors = this.props.authors
 
     cm.on('startCompletion', () => {
       this.hintActive = true
@@ -412,8 +441,6 @@ export class AuthorInput extends React.Component<
     })
 
     cm.on('changes', () => {
-      console.log(cm.getDoc().getAllMarks())
-
       if (!this.hintActive) {
         triggerAutoCompleteBasedOnCursorPosition(cm)
       }
@@ -421,7 +448,7 @@ export class AuthorInput extends React.Component<
       const doc = cm.getDoc()
       const markers = (doc.getAllMarks() as any) as ActualTextMarker[]
 
-      const authors = new Array<IInternalAuthor>()
+      const authors = new Array<IAuthor>()
 
       for (const marker of markers.sort(orderByPosition)) {
         if (marker.className !== 'handle') {
@@ -435,10 +462,13 @@ export class AuthorInput extends React.Component<
           break
         }
 
-        authors.push({ marker, author })
+        authors.push(author)
       }
 
-      console.log(authors)
+      if (!arrayEquals(this.authors, authors)) {
+        this.authors = authors
+        this.props.onAuthorsUpdated(authors)
+      }
     })
 
     return cm
