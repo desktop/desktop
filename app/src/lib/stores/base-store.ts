@@ -30,8 +30,8 @@ export abstract class BaseStore {
 export class TypedBaseStore<T> {
   protected readonly _emitter = new Emitter()
 
-  protected emitUpdate(data: T | null) {
-    this._emitter.emit('did-update', data || ({} as T))
+  protected emitUpdate(data: T) {
+    this._emitter.emit('did-update', data)
   }
 
   protected emitError(error: Error) {
