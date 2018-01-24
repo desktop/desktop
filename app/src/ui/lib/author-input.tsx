@@ -308,7 +308,10 @@ export class AuthorInput extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: IAuthorInputProps) {
-    if (!arrayEquals(this.authors, nextProps.authors)) {
+    if (
+      nextProps.authors !== this.props.authors &&
+      !arrayEquals(this.authors, nextProps.authors)
+    ) {
       const cm = this.editor
       if (cm) {
         cm.operation(() => {
