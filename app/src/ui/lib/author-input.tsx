@@ -428,12 +428,10 @@ export class AuthorInput extends React.Component<
 
     cm.on('startCompletion', () => {
       this.hintActive = true
-      console.log('startCompletion')
     })
 
     cm.on('endCompletion', () => {
       this.hintActive = false
-      console.log('endCompletion')
     })
 
     cm.on('cursorActivity', () => {
