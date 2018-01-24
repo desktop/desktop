@@ -314,6 +314,16 @@ export class AuthorInput extends React.Component<
     const from: CodeMirror.Position = completion.from || data.from
     const to: CodeMirror.Position = completion.to || data.to
     const author: IAuthor = completion.author
+
+    this.insertAuthor(doc, author, from, to)
+  }
+
+  private insertAuthor(
+    doc: Doc,
+    author: IAuthor,
+    from: Position,
+    to?: Position
+  ) {
     const text = getDisplayTextForAuthor(author)
 
     doc.replaceRange(text, from, to, 'complete')
@@ -323,6 +333,19 @@ export class AuthorInput extends React.Component<
 
     this.markAuthorMap.set(marker, author)
     this.authorMarkMap.set(author, marker)
+
+    return marker
+  }
+
+  private insertAuthorAfter(
+    doc: Doc,
+    author: IAuthor,
+    after: ActualTextMarker
+  ) {
+    const range = after.find()
+    const from = range ? range.to : CodeMirror.Pos(Infinity)
+
+    return this.insertAuthor(doc, author, from)
   }
 
   private onAutocompleteUser = async (cm: CodeMirror.Editor) => {
@@ -387,19 +410,10 @@ export class AuthorInput extends React.Component<
       readOnly: true,
     })
 
-    let from = this.label.find().to
+    let after = this.label
 
     for (const author of this.props.authors) {
-      const text = getDisplayTextForAuthor(author)
-      const to = { ...from, ch: from.ch + text.length }
-
-      doc.replaceRange(text, from, to)
-      const marker = markRangeAsHandle(doc, from, to, author)
-
-      this.markAuthorMap.set(marker, author)
-      this.authorMarkMap.set(author, marker)
-
-      from = to
+      after = this.insertAuthorAfter(doc, author, after)
     }
 
     this.placeholder = appendTextMarker(cm, '@username', {
