@@ -292,6 +292,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     )
   }
+
   private wireupStoreEventHandlers() {
     this.gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
