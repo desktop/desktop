@@ -208,6 +208,10 @@ export class CommitMessage extends React.Component<
   }
 
   private onKeyDown = (event: React.KeyboardEvent<Element>) => {
+    if (event.defaultPrevented) {
+      return
+    }
+
     const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
     if (isShortcutKey && event.key === 'Enter' && this.canCommit()) {
       this.createCommit()
@@ -350,6 +354,7 @@ export class CommitMessage extends React.Component<
         aria-label="Create commit"
         className={className}
         onContextMenu={this.onContextMenu}
+        onKeyDown={this.onKeyDown}
       >
         <div className="summary">
           {this.renderAvatar()}
@@ -359,7 +364,6 @@ export class CommitMessage extends React.Component<
             placeholder="Summary"
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
-            onKeyDown={this.onKeyDown}
             autocompletionProviders={this.props.autocompletionProviders}
           />
         </div>
@@ -373,7 +377,6 @@ export class CommitMessage extends React.Component<
             placeholder="Description"
             value={this.state.description || ''}
             onValueChanged={this.onDescriptionChanged}
-            onKeyDown={this.onKeyDown}
             autocompletionProviders={this.props.autocompletionProviders}
             ref={this.onDescriptionFieldRef}
           />

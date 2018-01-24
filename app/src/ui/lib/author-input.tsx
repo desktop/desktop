@@ -408,6 +408,8 @@ export class AuthorInput extends React.Component<
         Tab: false,
         'Shift-Tab': false,
         'Ctrl-Space': 'autocomplete',
+        'Ctrl-Enter': false,
+        'Cmd-Enter': false,
       },
       hintOptions: {
         completeOnSingleClick: true,
