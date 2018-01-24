@@ -19,6 +19,7 @@ import { AuthorInput, IAuthor } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { addTrailers } from '../../lib/git/interpret-trailers'
 
 const authorIcon = new OcticonSymbol(
   12,
@@ -191,10 +192,26 @@ export class CommitMessage extends React.Component<
       return
     }
 
+    let description = this.state.description
+
+    if (this.isCoAuthorInputEnabled && this.state.coAuthors.length > 0) {
+      const trailers = this.state.coAuthors.map(a => ({
+        key: 'Co-Authored-By',
+        value: `${a.name} <${a.email}>`,
+      }))
+
+      description = await addTrailers(
+        this.props.repository,
+        // TODO: is this right?
+        (description || '').trim() + '\n\n',
+        trailers
+      )
+    }
+
     const success = await this.props.onCreateCommit({
       // We know that summary is non-null thanks to canCommit
       summary: this.state.summary!,
-      description: this.state.description,
+      description,
     })
 
     if (success) {
