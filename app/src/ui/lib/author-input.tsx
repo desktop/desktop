@@ -6,7 +6,7 @@ import {
   UserAutocompletionProvider,
   IUserHit,
 } from '../autocompletion'
-import { Doc, Position } from 'codemirror'
+import { Editor, Doc, Position } from 'codemirror'
 import { isDotComApiEndpoint } from '../../lib/api'
 import { compare } from '../../lib/compare'
 
@@ -39,16 +39,16 @@ interface IAuthorInputProps {
 
 interface IAuthorInputState {}
 
-function prevPosition(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
+function prevPosition(doc: Doc, pos: Position) {
   return doc.posFromIndex(doc.indexFromPos(pos) - 1)
 }
 
-function nextPosition(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
+function nextPosition(doc: Doc, pos: Position) {
   return doc.posFromIndex(doc.indexFromPos(pos) + 1)
 }
 
 // mark ranges are inclusive, this checks exclusive
-function posIsInsideMarkedText(doc: CodeMirror.Doc, pos: CodeMirror.Position) {
+function posIsInsideMarkedText(doc: Doc, pos: Position) {
   const marks = (doc.findMarksAt(pos) as any) as ActualTextMarker[]
   const ix = doc.indexFromPos(pos)
 
@@ -102,10 +102,7 @@ function scanUntil(
   return scanWhile(doc, start, (doc, pos) => !predicate(doc, pos), iter)
 }
 
-function getHintRangeFromCursor(
-  doc: CodeMirror.Doc,
-  cursor: CodeMirror.Position
-) {
+function getHintRangeFromCursor(doc: Doc, cursor: Position) {
   return {
     from: scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition),
     to: scanUntil(doc, cursor, isMarkOrWhitespace, nextPosition),
@@ -113,7 +110,7 @@ function getHintRangeFromCursor(
 }
 
 function appendTextMarker(
-  cm: CodeMirror.Editor,
+  cm: Editor,
   text: string,
   options: CodeMirror.TextMarkerOptions
 ): ActualTextMarker {
@@ -163,8 +160,8 @@ interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
    * no longer in the document.
    */
   find(): {
-    from: CodeMirror.Position
-    to: CodeMirror.Position
+    from: Position
+    to: Position
   }
 
   changed(): void
@@ -220,9 +217,9 @@ function renderHandleMarkReplacementElement(author: IAuthor) {
 }
 
 function markRangeAsHandle(
-  doc: CodeMirror.Doc,
-  from: CodeMirror.Position,
-  to: CodeMirror.Position,
+  doc: Doc,
+  from: Position,
+  to: Position,
   author: IAuthor
 ): ActualTextMarker {
   const elem = renderHandleMarkReplacementElement(author)
@@ -236,7 +233,7 @@ function markRangeAsHandle(
   }) as any) as ActualTextMarker
 }
 
-function triggerAutoCompleteBasedOnCursorPosition(cm: CodeMirror.Editor) {
+function triggerAutoCompleteBasedOnCursorPosition(cm: Editor) {
   const doc = cm.getDoc()
 
   if (doc.somethingSelected()) {
@@ -261,7 +258,7 @@ export class AuthorInput extends React.Component<
   IAuthorInputProps,
   IAuthorInputState
 > {
-  private editor: CodeMirror.Editor | null = null
+  private editor: Editor | null = null
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
   private hintActive: boolean = false
@@ -306,13 +303,9 @@ export class AuthorInput extends React.Component<
     }
   }
 
-  private applyCompletion = (
-    doc: CodeMirror.Doc,
-    data: any,
-    completion: any
-  ) => {
-    const from: CodeMirror.Position = completion.from || data.from
-    const to: CodeMirror.Position = completion.to || data.to
+  private applyCompletion = (doc: Doc, data: any, completion: any) => {
+    const from: Position = completion.from || data.from
+    const to: Position = completion.to || data.to
     const author: IAuthor = completion.author
 
     this.insertAuthor(doc, author, from, to)
@@ -348,9 +341,9 @@ export class AuthorInput extends React.Component<
     return this.insertAuthor(doc, author, from)
   }
 
-  private onAutocompleteUser = async (cm: CodeMirror.Editor) => {
+  private onAutocompleteUser = async (cm: Editor) => {
     const doc = cm.getDoc()
-    const cursor = doc.getCursor() as Readonly<CodeMirror.Position>
+    const cursor = doc.getCursor() as Readonly<Position>
 
     const { from, to } = getHintRangeFromCursor(doc, cursor)
 
@@ -380,7 +373,7 @@ export class AuthorInput extends React.Component<
     return { list: [], from, to }
   }
 
-  private updatePlaceholderVisibility(cm: CodeMirror.Editor) {
+  private updatePlaceholderVisibility(cm: Editor) {
     if (this.label && this.placeholder) {
       const labelRange = this.label.find()
       const placeholderRange = this.placeholder.find()
