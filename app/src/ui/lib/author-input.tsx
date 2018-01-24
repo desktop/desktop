@@ -380,6 +380,24 @@ export class AuthorInput extends React.Component<
     return { list: [], from, to }
   }
 
+  private updatePlaceholderVisibility(cm: CodeMirror.Editor) {
+    if (this.label && this.placeholder) {
+      const labelRange = this.label.find()
+      const placeholderRange = this.placeholder.find()
+
+      const doc = cm.getDoc()
+
+      const collapse =
+        doc.indexFromPos(labelRange.to) !==
+        doc.indexFromPos(placeholderRange.from)
+
+      if (this.placeholder.collapsed !== collapse) {
+        this.placeholder.collapsed = collapse
+        this.placeholder.changed()
+      }
+    }
+  }
+
   private initializeCodeMirror(host: HTMLDivElement) {
     const CodeMirrorOptions: CodeMirror.EditorConfiguration & {
       hintOptions: any
@@ -424,6 +442,8 @@ export class AuthorInput extends React.Component<
       collapsed: this.props.authors.length > 0,
     })
 
+    doc.setCursor(this.placeholder.find().from)
+
     this.authors = this.props.authors
 
     cm.on('startCompletion', () => {
@@ -434,29 +454,15 @@ export class AuthorInput extends React.Component<
       this.hintActive = false
     })
 
-    cm.on('cursorActivity', () => {
-      if (this.label && this.placeholder) {
-        const labelRange = this.label.find()
-        const placeholderRange = this.placeholder.find()
+    cm.on('change', () => {
+      this.updatePlaceholderVisibility(cm)
 
-        const doc = cm.getDoc()
-
-        const collapse =
-          doc.indexFromPos(labelRange.to) !==
-          doc.indexFromPos(placeholderRange.from)
-
-        if (this.placeholder.collapsed !== collapse) {
-          this.placeholder.collapsed = collapse
-          this.placeholder.changed()
-        }
+      if (!this.hintActive) {
+        triggerAutoCompleteBasedOnCursorPosition(cm)
       }
     })
 
     cm.on('changes', () => {
-      if (!this.hintActive) {
-        triggerAutoCompleteBasedOnCursorPosition(cm)
-      }
-
       const doc = cm.getDoc()
       const markers = (doc.getAllMarks() as any) as ActualTextMarker[]
 
