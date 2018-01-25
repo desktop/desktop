@@ -7,9 +7,20 @@ interface IFocusContainerProps {
 }
 
 interface IFocusContainerState {
-  readonly focusInside: boolean
+  readonly focusWithin: boolean
 }
 
+/**
+ * A helper component which appends a classname to a wrapper
+ * element if any of its descendant nodes currently has
+ * keyboard focus.
+ *
+ * In other words it's a little workaround that lets use
+ * use `:focus-within`
+ *   https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-within
+ * even though it's not supported in our current version
+ * of chromium (it'll be in 60 or 61 depending on who you trust)
+ */
 export class FocusContainer extends React.Component<
   IFocusContainerProps,
   IFocusContainerState
@@ -18,17 +29,17 @@ export class FocusContainer extends React.Component<
 
   public constructor(props: IFocusContainerProps) {
     super(props)
-    this.state = { focusInside: false }
+    this.state = { focusWithin: false }
   }
 
   private onWrapperRef = (elem: HTMLDivElement) => {
     if (elem) {
       elem.addEventListener('focusin', () => {
-        this.setState({ focusInside: true })
+        this.setState({ focusWithin: true })
       })
 
       elem.addEventListener('focusout', () => {
-        this.setState({ focusInside: false })
+        this.setState({ focusWithin: false })
       })
     }
 
@@ -52,7 +63,7 @@ export class FocusContainer extends React.Component<
 
   public render() {
     const className = classNames('focus-container', this.props.className, {
-      'focus-inside': this.state.focusInside,
+      'focus-within': this.state.focusWithin,
     })
 
     return (

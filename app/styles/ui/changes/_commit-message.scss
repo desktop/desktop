@@ -39,7 +39,7 @@
 
     // Hack for when co-authors field is merged
     // with description text area.
-    &.focus-inside {
+    &.focus-within {
       z-index: 1;
     }
   }
@@ -67,7 +67,7 @@
     // Fake that we're a text-box
     cursor: text;
 
-    &.focus-inside {
+    &.focus-within {
       outline: none;
       border-color: var(--focus-color);
       box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
