@@ -53,6 +53,7 @@ import { BranchesTab } from '../../models/branches-tab'
 import { FetchType } from '../../lib/stores'
 import { PullRequest } from '../../models/pull-request'
 import { IAuthor } from '../../ui/lib/author-input'
+import { ITrailer } from '../git/interpret-trailers'
 
 /**
  * An error handler function.
@@ -195,9 +196,16 @@ export class Dispatcher {
    */
   public async commitIncludedChanges(
     repository: Repository,
-    message: ICommitMessage
+    summary: string,
+    description: string | null,
+    trailers?: ReadonlyArray<ITrailer>
   ): Promise<boolean> {
-    return this.appStore._commitIncludedChanges(repository, message)
+    return this.appStore._commitIncludedChanges(
+      repository,
+      summary,
+      description,
+      trailers
+    )
   }
 
   /** Change the file's includedness. */

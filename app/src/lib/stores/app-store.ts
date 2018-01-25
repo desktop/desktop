@@ -81,6 +81,7 @@ import {
   formatAsLocalRef,
   getMergeBase,
   getRemotes,
+  ITrailer,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -1322,7 +1323,9 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _commitIncludedChanges(
     repository: Repository,
-    message: ICommitMessage
+    summary: string,
+    description: string | null,
+    trailers?: ReadonlyArray<ITrailer>
   ): Promise<boolean> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files
@@ -1333,9 +1336,9 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
 
     const result = await this.isCommitting(repository, () => {
-      return gitStore.performFailableOperation(() => {
-        const commitMessage = formatCommitMessage(message)
-        return createCommit(repository, commitMessage, selectedFiles)
+      return gitStore.performFailableOperation(async () => {
+        const message = await formatCommitMessage(repository, summary, description, trailers)
+        return createCommit(repository, message, selectedFiles)
       })
     })
 

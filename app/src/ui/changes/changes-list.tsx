@@ -17,6 +17,7 @@ import { IAutocompletionProvider } from '../autocompletion'
 import { Repository } from '../../models/repository'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { IAuthor } from '../lib/author-input'
+import { ITrailer } from '../../lib/git/interpret-trailers'
 
 const RowHeight = 29
 
@@ -27,7 +28,11 @@ interface IChangesListProps {
   readonly onFileSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
-  readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
+  readonly onCreateCommit: (
+    summary: string,
+    description: string | null,
+    trailers?: ReadonlyArray<ITrailer>
+  ) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly onDiscardAllChanges: (
     files: ReadonlyArray<WorkingDirectoryFileChange>

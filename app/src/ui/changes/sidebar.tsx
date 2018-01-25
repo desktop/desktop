@@ -3,7 +3,7 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { ICommitMessage, IChangesState, PopupType } from '../../lib/app-state'
+import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IGitHubUser } from '../../lib/databases'
@@ -21,6 +21,7 @@ import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
+import { ITrailer } from '../../lib/git/interpret-trailers'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -93,10 +94,16 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private onCreateCommit = (message: ICommitMessage): Promise<boolean> => {
+  private onCreateCommit = (
+    summary: string,
+    description: string | null,
+    trailers?: ReadonlyArray<ITrailer>
+  ): Promise<boolean> => {
     return this.props.dispatcher.commitIncludedChanges(
       this.props.repository,
-      message
+      summary,
+      description,
+      trailers
     )
   }
 

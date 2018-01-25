@@ -19,7 +19,7 @@ import { AuthorInput, IAuthor } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { addTrailers } from '../../lib/git/interpret-trailers'
+import { ITrailer } from '../../lib/git/interpret-trailers'
 
 const authorIcon = new OcticonSymbol(
   12,
@@ -31,7 +31,11 @@ const authorIcon = new OcticonSymbol(
 )
 
 interface ICommitMessageProps {
-  readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
+  readonly onCreateCommit: (
+    summary: string,
+    description: string | null,
+    trailers?: ReadonlyArray<ITrailer>
+  ) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
@@ -179,34 +183,30 @@ export class CommitMessage extends React.Component<
     this.createCommit()
   }
 
+  private getCoAuthorTrailers() {
+    if (!this.isCoAuthorInputEnabled) {
+      return []
+    }
+
+    return this.props.coAuthors.map(a => ({
+      key: 'Co-Authored-By',
+      value: `${a.name} <${a.email}>`,
+    }))
+  }
+
   private async createCommit() {
-    if (!this.canCommit()) {
+    if (!this.canCommit() || this.props.commitMessage === null) {
       return
     }
 
-    let description = this.state.description
-
-    if (this.isCoAuthorInputEnabled && this.props.coAuthors.length > 0) {
-      const trailers = this.props.coAuthors.map(a => ({
-        key: 'Co-Authored-By',
-        value: `${a.name} <${a.email}>`,
-      }))
-
-      description = await addTrailers(
-        this.props.repository,
-        // TODO: is this right?
-        (description || '').trim() + '\n\n',
-        trailers
-      )
+    if (this.props.commitMessage.summary === null) {
+      return
     }
 
-    const success = await this.props.onCreateCommit({
-      // We know that summary is non-null thanks to canCommit
-      summary: this.state.summary!,
-      description,
-    })
+    const { summary, description } = this.props.commitMessage
+    const trailers = this.getCoAuthorTrailers()
 
-    if (success) {
+    if (await this.props.onCreateCommit(summary, description, trailers)) {
       this.clearCommitMessage()
     }
   }
