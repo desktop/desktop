@@ -192,7 +192,8 @@ export class Dispatcher {
 
   /**
    * Commit the changes which were marked for inclusion, using the given commit
-   * summary and description.
+   * summary and description and optionally any number of commit message trailers
+   * which will be merged into the final commit message.
    */
   public async commitIncludedChanges(
     repository: Repository,
