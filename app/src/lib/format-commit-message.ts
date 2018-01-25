@@ -6,6 +6,12 @@ import { Repository } from '../models/repository'
  * commit message where the summary and (optional) description
  * is separated by a blank line.
  *
+ * Also accepts an optional array of commit message trailers,
+ * see git-interpret-trailers which, if present, will be merged
+ * into the commit message.
+ *
+ * Always returns commit message with a trailing newline
+ *
  * See https://git-scm.com/docs/git-commit#_discussion
  */
 export async function formatCommitMessage(
