@@ -29,4 +29,30 @@ describe('formatCommitMessage', () => {
       'foo\n\nbar\n'
     )
   })
+
+  it('appends trailers to a summary-only message', async () => {
+    const repo = await setupEmptyRepository()
+    const trailers = [
+      { key: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>' },
+      { key: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
+    ]
+    expect(await formatCommitMessage(repo, 'foo', null, trailers)).to.equal(
+      'foo\n\n' +
+        'Co-Authored-By: Markus Olsson <niik@github.com>\n' +
+        'Signed-Off-By: nerdneha <nerdneha@github.com>\n'
+    )
+  })
+
+  it('appends trailers to a regular message', async () => {
+    const repo = await setupEmptyRepository()
+    const trailers = [
+      { key: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>' },
+      { key: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
+    ]
+    expect(await formatCommitMessage(repo, 'foo', 'bar', trailers)).to.equal(
+      'foo\n\nbar\n\n' +
+        'Co-Authored-By: Markus Olsson <niik@github.com>\n' +
+        'Signed-Off-By: nerdneha <nerdneha@github.com>\n'
+    )
+  })
 })
