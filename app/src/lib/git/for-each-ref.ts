@@ -74,10 +74,34 @@ export async function getBranches(
       continue
     }
 
+    const existsOnRemote =
+      upstream !== ''
+        ? await checkBranchExistsOnRemote(upstream, repository)
+        : false
+
     branches.push(
-      new Branch(name, upstream.length > 0 ? upstream : null, tip, type)
+      new Branch(
+        name,
+        upstream.length > 0 ? upstream : null,
+        tip,
+        type,
+        existsOnRemote
+      )
     )
   }
 
   return branches
+}
+
+async function checkBranchExistsOnRemote(
+  upstream: string,
+  repository: Repository
+): Promise<boolean> {
+  const result = await git(
+    ['show-ref', '--verify', 'refs/remotes/' + upstream],
+    repository.path,
+    'getBranches'
+  )
+
+  return result.gitError !== null
 }

@@ -711,7 +711,8 @@ export class GitStore {
           currentBranch,
           status.currentUpstreamBranch || null,
           branchTipCommit,
-          BranchType.Local
+          BranchType.Local,
+          status.branchAheadBehind !== null
         )
         this._tip = { kind: TipState.Valid, branch }
       } else if (currentTip) {

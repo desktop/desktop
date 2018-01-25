@@ -22,16 +22,22 @@ export class Branch {
   /** The commit associated with this branch */
   public readonly tip: Commit
 
+  /** If the upstream branch exists on the remote. */
+  public readonly existsOnRemote: boolean
+
   public constructor(
     name: string,
     upstream: string | null,
     tip: Commit,
-    type: BranchType
+    type: BranchType,
+    existsOnRemote: boolean
   ) {
     this.name = name
     this.upstream = upstream
     this.tip = tip
     this.type = type
+    this.existsOnRemote =
+      upstream !== null && upstream !== '' ? existsOnRemote : false
   }
 
   /** The name of the upstream's remote. */

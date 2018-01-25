@@ -434,7 +434,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           type: PopupType.DeleteBranch,
           repository: state.repository,
           branch: tip.branch,
-          existsOnRemote: existsOnRemote,
         })
       }
     }
@@ -919,7 +918,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             branch={popup.branch}
-            existsOnRemote={popup.existsOnRemote}
             onDismissed={this.onPopupDismissed}
           />
         )
