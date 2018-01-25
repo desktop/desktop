@@ -55,4 +55,47 @@ describe('formatCommitMessage', () => {
         'Signed-Off-By: nerdneha <nerdneha@github.com>\n'
     )
   })
+
+  // note, this relies on the default git config
+  it('merges duplicate trailers', async () => {
+    const repo = await setupEmptyRepository()
+    const trailers = [
+      { key: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>' },
+      { key: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
+    ]
+    expect(
+      await formatCommitMessage(
+        repo,
+        'foo',
+        'Co-Authored-By: Markus Olsson <niik@github.com>',
+        trailers
+      )
+    ).to.equal(
+      'foo\n\n' +
+        'Co-Authored-By: Markus Olsson <niik@github.com>\n' +
+        'Signed-Off-By: nerdneha <nerdneha@github.com>\n'
+    )
+  })
+
+  // note, this relies on the default git config
+  it('fixes up malformed trailers when trailers are given', async () => {
+    const repo = await setupEmptyRepository()
+    const trailers = [
+      { key: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
+    ]
+
+    expect(
+      await formatCommitMessage(
+        repo,
+        'foo',
+        // note the lack of space after :
+        'Co-Authored-By:Markus Olsson <niik@github.com>',
+        trailers
+      )
+    ).to.equal(
+      'foo\n\n' +
+        'Co-Authored-By: Markus Olsson <niik@github.com>\n' +
+        'Signed-Off-By: nerdneha <nerdneha@github.com>\n'
+    )
+  })
 })
