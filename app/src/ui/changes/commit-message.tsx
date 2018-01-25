@@ -180,7 +180,7 @@ export class CommitMessage extends React.Component<
   }
 
   private async createCommit() {
-    if (!this.canCommit) {
+    if (!this.canCommit()) {
       return
     }
 
