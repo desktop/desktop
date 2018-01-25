@@ -77,7 +77,7 @@ export async function parseTrailers(
  *                      configuration settings for trailers in the provided
  *                      repository.
  */
-export async function addTrailers(
+export async function mergeTrailers(
   repository: Repository,
   commitMessage: string,
   trailers: ReadonlyArray<ITrailer>
