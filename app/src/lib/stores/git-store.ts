@@ -94,7 +94,7 @@ export class GitStore {
 
   private _localCommitSHAs: ReadonlyArray<string> = []
 
-  private _commitMessage: ICommitMessage | null
+  private _commitMessage: ICommitMessage | null = null
 
   private _contextualCommitMessage: ICommitMessage | null
 
