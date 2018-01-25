@@ -9,6 +9,7 @@ import {
 import { Editor, Doc, Position } from 'codemirror'
 import { isDotComApiEndpoint } from '../../lib/api'
 import { compare } from '../../lib/compare'
+import { arrayEquals } from '../../lib/equality'
 
 export interface IAuthor {
   readonly name: string
@@ -132,20 +133,6 @@ function orderByPosition(x: ActualTextMarker, y: ActualTextMarker) {
   }
 
   return compare(xPos.from, yPos.from)
-}
-
-function arrayEquals<T>(x: ReadonlyArray<T>, y: ReadonlyArray<T>) {
-  if (x.length !== y.length) {
-    return false
-  }
-
-  for (let i = 0; i < x.length; i++) {
-    if (x[i] !== y[i]) {
-      return false
-    }
-  }
-
-  return true
 }
 
 // The types for CodeMirror.TextMarker is all wrong, this is what it
