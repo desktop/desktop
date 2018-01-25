@@ -3228,7 +3228,11 @@ export class AppStore {
    */
   public _setShowCoAuthoredBy(repository: Repository, showCoAuthoredBy: boolean) {
 
-    this.updateChangesState(repository, (state) => ({ showCoAuthoredBy }))
+    this.updateChangesState(repository, (state) => ({
+      showCoAuthoredBy,
+      // Clear co-authors when hiding
+      coAuthors: showCoAuthoredBy ? state.coAuthors : []
+    }))
     this.emitUpdate()
 
     return Promise.resolve()

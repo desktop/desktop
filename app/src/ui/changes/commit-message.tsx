@@ -288,8 +288,8 @@ export class CommitMessage extends React.Component<
 
   private get toggleCoAuthorsText(): string {
     return this.props.showCoAuthoredBy
-      ? __DARWIN__ ? 'Hide Co-Authors' : 'Hide co-authors'
-      : __DARWIN__ ? 'Show Co-Authors' : 'Show co-authors'
+      ? __DARWIN__ ? 'Remove Co-Authors' : 'Remove co-authors'
+      : __DARWIN__ ? 'Add Co-Authors' : 'Add co-authors'
   }
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
