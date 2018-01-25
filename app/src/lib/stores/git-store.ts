@@ -96,7 +96,7 @@ export class GitStore {
 
   private _commitMessage: ICommitMessage | null = null
 
-  private _contextualCommitMessage: ICommitMessage | null
+  private _contextualCommitMessage: ICommitMessage | null = null
 
   private _aheadBehind: IAheadBehind | null = null
 
