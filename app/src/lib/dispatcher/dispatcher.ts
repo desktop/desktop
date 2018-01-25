@@ -1119,6 +1119,8 @@ export class Dispatcher {
   /**
    * Set whether the user has chosen to hide or show the
    * co-authors field in the commit message component
+   *
+   * @param repository Co-author settings are per-repository
    */
   public setShowCoAuthoredBy(
     repository: Repository,
@@ -1127,6 +1129,12 @@ export class Dispatcher {
     return this.appStore._setShowCoAuthoredBy(repository, showCoAuthoredBy)
   }
 
+  /**
+   * Update the per-repository co-authors list
+   *
+   * @param repository Co-author settings are per-repository
+   * @param coAuthors  Zero or more authors
+   */
   public setCoAuthors(
     repository: Repository,
     coAuthors: ReadonlyArray<IAuthor>
