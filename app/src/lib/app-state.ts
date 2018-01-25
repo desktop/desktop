@@ -581,5 +581,12 @@ export interface IChangesState {
    */
   readonly showCoAuthoredBy: boolean
 
+  /**
+   * A list of authors (name, email pairs) which have been
+   * entered into the co-authors input box in the commit form
+   * and which _may_ be used in the subsequent commit to add
+   * Co-Authored-By commit message trailers depending on whether
+   * the user has chosen to do so.
+   */
   readonly coAuthors: ReadonlyArray<IAuthor>
 }
