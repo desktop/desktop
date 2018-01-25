@@ -48,6 +48,35 @@ export async function parseTrailers(
   })
 }
 
+/**
+ * Merge one or more commit message trailers into a commit message.
+ *
+ * If no trailers are given this method will simply try to ensure that
+ * any trailers that happen to be part of the rawa message are formatted
+ * in accordance with the configuration options set for trailers in
+ * the given repository.
+ *
+ * Note that configuration may be set so that duplicate trailers are
+ * kept or discarded.
+ *
+ * @param repository    The repository in which to run the interpret-
+ *                      trailers command. Although not intuitive this
+ *                      does matter as there are configuration options
+ *                      available for the format, position, etc of commit
+ *                      message trailers. See the manpage for
+ *                      git-interpret-trailers for more information.
+ *
+ * @param commitMessage A commit message with or withot existing commit
+ *                      message trailers into which to merge the trailers
+ *                      given in the trailers parameter
+ *
+ * @param trailers      Zero or more trailers to merge into the commit message
+ *
+ * @returns             A commit message string where the provided trailers (if)
+ *                      any have been merged into the commit message using the
+ *                      configuration settings for trailers in the provided
+ *                      repository.
+ */
 export async function addTrailers(
   repository: Repository,
   commitMessage: string,
