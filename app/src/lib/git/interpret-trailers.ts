@@ -6,6 +6,21 @@ export interface ITrailer {
   value: string
 }
 
+/**
+ * Extract commit message trailers from a commit message
+ *
+ * @param repository    The repository in which to run the interpret-
+ *                      trailers command. Although not intuitive this
+ *                      does matter as there are configuration options
+ *                      available for the format, position, etc of commit
+ *                      message trailers. See the manpage for
+ *                      git-interpret-trailers for more information.
+ *
+ * @param commitMessage A commit message from where to attempt to extract
+ *                      commit message trailers.
+ *
+ * @returns An array of zero or more parsed trailers
+ */
 export async function parseTrailers(
   repository: Repository,
   commitMessage: string
