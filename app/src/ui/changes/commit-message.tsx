@@ -195,15 +195,12 @@ export class CommitMessage extends React.Component<
   }
 
   private async createCommit() {
-    if (!this.canCommit() || this.props.commitMessage === null) {
+    const { summary, description } = this.state
+
+    if (!this.canCommit()) {
       return
     }
 
-    if (this.props.commitMessage.summary === null) {
-      return
-    }
-
-    const { summary, description } = this.props.commitMessage
     const trailers = this.getCoAuthorTrailers()
 
     if (await this.props.onCreateCommit(summary, description, trailers)) {
@@ -212,11 +209,7 @@ export class CommitMessage extends React.Component<
   }
 
   private canCommit(): boolean {
-    return (
-      this.props.anyFilesSelected &&
-      this.state.summary !== null &&
-      this.state.summary.length > 0
-    )
+    return this.props.anyFilesSelected && this.state.summary.length > 0
   }
 
   private onKeyDown = (event: React.KeyboardEvent<Element>) => {
