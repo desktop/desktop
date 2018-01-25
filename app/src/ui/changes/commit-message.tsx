@@ -21,7 +21,7 @@ import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 
-const authorIcon = new OcticonSymbol(
+const addAuthorIcon = new OcticonSymbol(
   12,
   7,
   'M9.875 2.125H12v1.75H9.875V6h-1.75V3.875H6v-1.75h2.125V0h1.75v2.125zM6 ' +
@@ -318,7 +318,7 @@ export class CommitMessage extends React.Component<
         tabIndex={-1}
         aria-label={this.toggleCoAuthorsText}
       >
-        <Octicon symbol={authorIcon} />
+        <Octicon symbol={addAuthorIcon} />
       </div>
     )
   }
