@@ -233,10 +233,7 @@ function triggerAutoCompleteBasedOnCursorPosition(cm: Editor) {
   if (posEquals(cursor, p)) {
     return
   }
-
-  if (doc.getRange(p, cursor).startsWith('@')) {
-    ;(cm as any).showHint()
-  }
+  ;(cm as any).showHint()
 }
 
 export class AuthorInput extends React.Component<
