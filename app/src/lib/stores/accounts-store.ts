@@ -2,7 +2,7 @@ import { Emitter, Disposable } from 'event-kit'
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
-import { fetchUser, EmailVisibility } from '../api'
+import { EmailVisibility, fetchUser } from '../api'
 import { fatalError } from '../fatal-error'
 
 /** The data-only interface for storage. */
@@ -29,6 +29,7 @@ interface IAccount {
   readonly token: string
   readonly login: string
   readonly endpoint: string
+  readonly endpointVersion?: string
   readonly emails: ReadonlyArray<IEmail>
   readonly avatarURL: string
   readonly id: number
@@ -181,7 +182,8 @@ export class AccountsStore {
         account.emails,
         account.avatarURL,
         account.id,
-        account.name
+        account.name,
+        account.endpointVersion
       )
 
       const key = getKeyForAccount(accountWithoutToken)

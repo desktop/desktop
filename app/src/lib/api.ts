@@ -159,6 +159,11 @@ export interface IServerMetadata {
    * must go through the OAuth flow to authenticate.
    */
   readonly verifiable_password_authentication: boolean
+
+  /**
+   * The current version of the GitHub Enterprise instance (may not be available)
+   */
+  readonly installed_version?: string
 }
 
 /** The server response when handling the OAuth callback (with code) to obtain an access token */
@@ -679,12 +684,22 @@ export async function fetchUser(
   try {
     const user = await api.fetchAccount()
     const emails = await api.fetchEmails()
+
+    let endpointVersion: string | undefined = undefined
+    if (endpoint !== getDotComAPIEndpoint()) {
+      const meta = await fetchMetadata(endpoint)
+      if (meta) {
+        endpointVersion = meta.installed_version
+      }
+    }
+
     const defaultEmail = emails[0].email || ''
     const avatarURL = getAvatarWithEnterpriseFallback(
       user.avatar_url,
       defaultEmail,
       endpoint
     )
+
     return new Account(
       user.login,
       endpoint,
@@ -692,7 +707,8 @@ export async function fetchUser(
       emails,
       avatarURL,
       user.id,
-      user.name
+      user.name,
+      endpointVersion
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)

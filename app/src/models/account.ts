@@ -12,6 +12,8 @@ export class Account {
   public readonly login: string
   /** The server for this account - GitHub or a GitHub Enterprise instance */
   public readonly endpoint: string
+  /** The current version of the endpoint associated with this account - may be undefined */
+  public readonly endpointVersion?: string
   /** The current list of email addresses associated with the account */
   public readonly emails: ReadonlyArray<IAPIEmail>
   /** The profile URL to render for this account */
@@ -33,7 +35,8 @@ export class Account {
     emails: ReadonlyArray<IAPIEmail>,
     avatarURL: string,
     id: number,
-    name: string
+    name: string,
+    endpointVersion?: string
   ) {
     this.login = login
     this.endpoint = endpoint
@@ -42,6 +45,7 @@ export class Account {
     this.avatarURL = avatarURL
     this.id = id
     this.name = name
+    this.endpointVersion = endpointVersion
   }
 
   public withToken(token: string): Account {
@@ -52,7 +56,8 @@ export class Account {
       this.emails,
       this.avatarURL,
       this.id,
-      this.name
+      this.name,
+      this.endpointVersion
     )
   }
 }
