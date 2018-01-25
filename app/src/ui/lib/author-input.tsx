@@ -241,15 +241,13 @@ function triggerAutoCompleteBasedOnCursorPosition(cm: Editor) {
   }
 
   const cursor = doc.getCursor()
-  const previousPos = prevPosition(doc, cursor)
+  const p = scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition)
 
-  if (posIsInsideMarkedText(doc, previousPos)) {
+  if (posEquals(cursor, p)) {
     return
   }
 
-  const char = doc.getRange(previousPos, cursor)
-
-  if (char === '@') {
+  if (doc.getRange(p, cursor).startsWith('@')) {
     ;(cm as any).showHint()
   }
 }
@@ -463,6 +461,12 @@ export class AuthorInput extends React.Component<
     cm.on('change', () => {
       this.updatePlaceholderVisibility(cm)
 
+      if (!this.hintActive) {
+        triggerAutoCompleteBasedOnCursorPosition(cm)
+      }
+    })
+
+    cm.on('focus', () => {
       if (!this.hintActive) {
         triggerAutoCompleteBasedOnCursorPosition(cm)
       }
