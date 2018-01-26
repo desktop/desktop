@@ -6,6 +6,7 @@ import { Editor, Doc, Position } from 'codemirror'
 import { isDotComApiEndpoint } from '../../lib/api'
 import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
+import { OcticonSymbol } from '../octicons'
 
 /**
  * A representation of an 'author'. In reality we're
@@ -176,6 +177,28 @@ interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
   changed(): void
 }
 
+function renderUnknownUserAutocompleteItem(
+  elem: HTMLElement,
+  self: any,
+  data: any
+) {
+  const text = data.username as string
+  const user = document.createElement('div')
+  user.classList.add('user', 'unknown')
+
+  const username = document.createElement('span')
+  username.className = 'username'
+  username.innerText = text
+  user.appendChild(username)
+
+  const description = document.createElement('span')
+  description.className = 'description'
+  description.innerText = `Search for user`
+  user.appendChild(description)
+
+  elem.appendChild(user)
+}
+
 function renderUserAutocompleteItem(elem: HTMLElement, self: any, data: any) {
   const author = data.author as IAuthor
   const user = document.createElement('div')
@@ -225,6 +248,40 @@ function renderHandleMarkReplacementElement(author: IAuthor) {
   return elem
 }
 
+function renderUnknownHandleMarkReplacementElement(
+  username: string,
+  isError: boolean
+) {
+  const elem = document.createElement('span')
+
+  elem.classList.add('handle', isError ? 'error' : 'progress')
+  elem.title = isError
+    ? `Could not find user with username ${username}`
+    : `Searching for @${username}`
+
+  const symbol = isError ? OcticonSymbol.stop : OcticonSymbol.sync
+
+  const spinner = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  spinner.classList.add('icon')
+
+  if (!isError) {
+    spinner.classList.add('spin')
+  }
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+
+  spinner.viewBox.baseVal.width = symbol.w
+  spinner.viewBox.baseVal.height = symbol.h
+
+  path.setAttribute('d', symbol.d)
+  spinner.appendChild(path)
+
+  elem.appendChild(document.createTextNode(`@${username}`))
+  elem.appendChild(spinner)
+
+  return elem
+}
+
 function markRangeAsHandle(
   doc: Doc,
   from: Position,
@@ -255,6 +312,7 @@ function triggerAutoCompleteBasedOnCursorPosition(cm: Editor) {
   if (posEquals(cursor, p)) {
     return
   }
+
   ;(cm as any).showHint()
 }
 
@@ -367,64 +425,84 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       const cm = this.initializeCodeMirror(elem)
       this.editor = cm
       this.resizeObserver.observe(elem)
-      elem.addEventListener('keydown', async (e: KeyboardEvent) => {
-        console.log(e.key, e.defaultPrevented)
-        if (e.defaultPrevented) {
-          return
-        }
-
-        if (
-          (e.key === 'Tab' || e.key === 'Enter') &&
-          !(e.metaKey || e.shiftKey || e.altKey || e.ctrlKey)
-        ) {
-          e.preventDefault()
-
-          const doc = cm.getDoc()
-          const cursor = doc.getCursor()
-          const prev = scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition)
-
-          if (!posEquals(cursor, prev)) {
-            const word = doc.getRange(prev, cursor)
-            const needle = word.replace(/^@/, '')
-            const hit = await this.props.autoCompleteProvider.exactMatch(needle)
-
-            if (hit) {
-              const author = authorFromUserHit(hit)
-
-              if (
-                cm.state.completionActive &&
-                cm.state.completionActive.close
-              ) {
-                cm.state.completionActive.close()
-              }
-
-              this.insertAuthor(doc, author, prev, cursor)
-              this.updateAuthors(cm)
-            }
-          }
-        }
-      })
     } else {
       this.editor = null
       this.resizeObserver.disconnect()
     }
   }
 
-  private applyCompletion = (doc: Doc, data: any, completion: any) => {
+  private applyCompletion = (cm: Editor, data: any, completion: any) => {
     const from: Position = completion.from || data.from
     const to: Position = completion.to || data.to
     const author: IAuthor = completion.author
 
-    this.insertAuthor(doc, author, from, to)
+    this.insertAuthor(cm, author, from, to)
+  }
+
+  private applyUnknownUserCompletion = (
+    cm: Editor,
+    data: any,
+    completion: any
+  ) => {
+    const from: Position = completion.from || data.from
+    const to: Position = completion.to || data.to
+    const username: string = completion.username
+    const text = `@${username}`
+    const doc = cm.getDoc()
+
+    doc.replaceRange(text, from, to, 'complete')
+    const end = doc.posFromIndex(doc.indexFromPos(from) + text.length)
+
+    const tmpMark = (doc.markText(from, end, {
+      atomic: true,
+      className: 'handle progress',
+      readOnly: false,
+      replacedWith: renderUnknownHandleMarkReplacementElement(username, false),
+      handleMouseEvents: true,
+    }) as any) as ActualTextMarker
+
+    setTimeout(() => {
+      // Note that it's important that this method isn't async up until
+      // this point since show-hint expects a synchronous method
+      return this.props.autoCompleteProvider.exactMatch(username).then(hit => {
+        cm.operation(() => {
+          const tmpPos = tmpMark.find()
+
+          if (!tmpPos) {
+            return
+          }
+
+          tmpMark.clear()
+
+          if (!hit) {
+            doc.markText(tmpPos.from, tmpPos.to, {
+              atomic: true,
+              className: 'handle error',
+              readOnly: false,
+              replacedWith: renderUnknownHandleMarkReplacementElement(
+                username,
+                true
+              ),
+              handleMouseEvents: true,
+            })
+
+            return
+          }
+
+          this.insertAuthor(cm, authorFromUserHit(hit), tmpPos.from, tmpPos.to)
+        })
+      })
+    }, 1500)
   }
 
   private insertAuthor(
-    doc: Doc,
+    cm: Editor,
     author: IAuthor,
     from: Position,
     to?: Position
   ) {
     const text = getDisplayTextForAuthor(author)
+    const doc = cm.getDoc()
 
     doc.replaceRange(text, from, to, 'complete')
 
@@ -437,8 +515,9 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     return marker
   }
 
-  private appendAuthor(doc: Doc, author: IAuthor) {
-    return this.insertAuthor(doc, author, doc.posFromIndex(Infinity))
+  private appendAuthor(cm: Editor, author: IAuthor) {
+    const doc = cm.getDoc()
+    return this.insertAuthor(cm, author, doc.posFromIndex(Infinity))
   }
 
   private onAutocompleteUser = async (cm: Editor, x?: any, y?: any) => {
@@ -466,6 +545,16 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         className: 'autocompletion-item',
         hint: this.applyCompletion,
       }))
+
+    if (needle.length > 0) {
+      list.push({
+        text: `@${needle}`,
+        username: needle,
+        render: renderUnknownUserAutocompleteItem,
+        className: 'autocompletion-item',
+        hint: this.applyUnknownUserCompletion,
+      })
+    }
 
     return { list, from, to }
   }
@@ -510,7 +599,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       hintOptions: {
         completeOnSingleClick: true,
         completeSingle: false,
-        closeOnUnfocus: true,
+        closeOnUnfocus: false,
         closeCharacters: /\s/,
         hint: this.onAutocompleteUser,
       },
@@ -524,13 +613,17 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
 
     cm.on('startCompletion', () => {
       this.hintActive = true
+      console.log('startCompletion')
     })
 
     cm.on('endCompletion', () => {
       this.hintActive = false
+      console.log('endCompletion')
     })
 
     cm.on('change', () => {
+      console.log('change')
+
       this.updatePlaceholderVisibility(cm)
 
       if (!this.hintActive) {
@@ -590,7 +683,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     })
 
     for (const author of authors) {
-      this.appendAuthor(doc, author)
+      this.appendAuthor(cm, author)
     }
 
     this.authors = this.props.authors
