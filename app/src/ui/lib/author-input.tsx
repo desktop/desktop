@@ -323,7 +323,6 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         // We don't care about the first resize, let's just
         // store what we've got
         if (!this.lastKnownWidth) {
-          console.log('donut care about first resize')
           this.lastKnownWidth = newWidth
           return
         }
@@ -332,7 +331,6 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         // we just need to care about when the width changes and
         // do a relayout
         if (this.lastKnownWidth !== newWidth) {
-          console.log('resized!', this.lastKnownWidth, newWidth)
           this.lastKnownWidth = newWidth
 
           if (this.resizeDebounceId !== null) {
@@ -340,8 +338,6 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
             this.resizeDebounceId = null
           }
           requestAnimationFrame(this.onResized)
-        } else {
-          console.log('avoided resize on height only')
         }
       }
     })
