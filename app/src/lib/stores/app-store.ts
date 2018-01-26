@@ -996,6 +996,9 @@ export class AppStore {
     this.sidebarWidth =
       parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) ||
       defaultSidebarWidth
+    this.commitSummaryWidth =
+       parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) ||
+       defaultCommitSummaryWidth
 
     const confirmRepositoryRemovalValue = localStorage.getItem(
       confirmRepoRemovalKey
@@ -1032,9 +1035,6 @@ export class AppStore {
         : parseInt(imageDiffTypeValue)
 
     this.emitUpdateNow()
-
-    parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) ||
-    defaultCommitSummaryWidth
 
     this.accountsStore.refresh()
   }
