@@ -7,7 +7,7 @@ import {
 import { Owner } from '../../models/owner'
 import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
-import { fatalError } from '../fatal-error'
+import { fatalError, forceUnwrap } from '../fatal-error'
 import { IAPIRepository } from '../api'
 
 /** The store for local repositories. */
@@ -40,15 +40,16 @@ export class RepositoriesStore {
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
-        const gitHubRepository = await this.db.gitHubRepositories
+        const record = await this.db.gitHubRepositories
           .where('cloneURL')
           .equals(apiRepository.clone_url)
           .limit(1)
           .first()
-        if (!gitHubRepository) {
+
+        if (record == null) {
           return this.putGitHubRepository(endpoint, apiRepository)
         } else {
-          return this.buildGitHubRepository(gitHubRepository)
+          return this.buildGitHubRepository(record)
         }
       }
     )
@@ -58,12 +59,13 @@ export class RepositoriesStore {
     dbRepo: IDatabaseGitHubRepository
   ): Promise<GitHubRepository> {
     const owner = await this.db.owners.get(dbRepo.ownerID)
+
     if (!owner) {
       throw new Error(`Couldn't find the owner for ${dbRepo.name}`)
     }
 
     let parent: GitHubRepository | null = null
-    if (dbRepo.parentID) {
+    if (dbRepo.parentID != null) {
       parent = await this.findGitHubRepositoryByID(dbRepo.parentID)
     }
 
@@ -259,14 +261,19 @@ export class RepositoriesStore {
     endpoint: string,
     gitHubRepository: IAPIRepository
   ): Promise<GitHubRepository> {
-    let parent: GitHubRepository | null = null
-    if (gitHubRepository.parent) {
-      parent = await this.putGitHubRepository(endpoint, gitHubRepository.parent)
+    let parentRepo: GitHubRepository | null = null
+
+    if (gitHubRepository.fork) {
+      const parent = forceUnwrap(
+        'A forked repository must have a parent',
+        gitHubRepository.parent
+      )
+
+      parentRepo = await this.putGitHubRepository(endpoint, parent)
     }
 
     const login = gitHubRepository.owner.login.toLowerCase()
     const owner = await this.putOwner(endpoint, login)
-
     const existingRepo = await this.db.gitHubRepositories
       .where('[ownerID+name]')
       .equals([owner.id!, gitHubRepository.name])
@@ -279,13 +286,15 @@ export class RepositoriesStore {
       htmlURL: gitHubRepository.html_url,
       defaultBranch: gitHubRepository.default_branch,
       cloneURL: gitHubRepository.clone_url,
-      parentID: parent ? parent.dbID : null,
+      parentID: parentRepo ? parentRepo.dbID : null,
     }
+
     if (existingRepo) {
       updatedGitHubRepo = { ...updatedGitHubRepo, id: existingRepo.id }
     }
 
     const id = await this.db.gitHubRepositories.put(updatedGitHubRepo)
+
     return new GitHubRepository(
       updatedGitHubRepo.name,
       owner,
@@ -294,7 +303,7 @@ export class RepositoriesStore {
       updatedGitHubRepo.htmlURL,
       updatedGitHubRepo.defaultBranch,
       updatedGitHubRepo.cloneURL,
-      parent
+      parentRepo
     )
   }
 
