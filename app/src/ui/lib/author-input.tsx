@@ -39,6 +39,13 @@ export interface IAuthor {
   readonly username: string | null
 }
 
+/**
+ * Convert a IUserHit object which is returned from
+ * user-autocomplete-provider into an IAuthor object.
+ *
+ * If the IUserHit object lacks an email address we'll
+ * attempt to create a stealth email address.
+ */
 function authorFromUserHit(user: IUserHit): IAuthor {
   return {
     name: user.name,
