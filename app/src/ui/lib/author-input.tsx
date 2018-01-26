@@ -3,7 +3,7 @@ import * as CodeMirror from 'codemirror'
 import * as URL from 'url'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
 import { Editor, Doc, Position } from 'codemirror'
-import { isDotComApiEndpoint } from '../../lib/api'
+import { isDotComApiEndpoint, validLoginExpression } from '../../lib/api'
 import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
 import { OcticonSymbol } from '../octicons'
@@ -557,7 +557,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         hint: this.applyCompletion,
       }))
 
-    if (needle.length > 0) {
+    if (needle.length > 0 && validLoginExpression.test(needle)) {
       list.push({
         text: `@${needle}`,
         username: needle,

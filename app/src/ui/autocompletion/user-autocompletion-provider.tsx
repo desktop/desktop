@@ -5,6 +5,7 @@ import { GitHubUserStore } from '../../lib/stores'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { IGitHubUser } from '../../lib/databases/index'
+import { validLoginExpression } from '../../lib/api'
 
 /** An autocompletion hit for a user. */
 export interface IUserHit {
@@ -101,6 +102,15 @@ export class UserAutocompletionProvider
    */
   public async exactMatch(login: string): Promise<IUserHit | null> {
     if (this.account === null) {
+      return null
+    }
+
+    // Since we might be looking up stuff in the API it's
+    // important we sanitize this input or someone could lead with
+    // ../ and then start GETing random resources in the API.
+    // Not that they should be able to do any harm with just GET
+    // but still, it aint cool
+    if (!validLoginExpression.test(login)) {
       return null
     }
 
