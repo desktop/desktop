@@ -461,38 +461,36 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       handleMouseEvents: true,
     }) as any) as ActualTextMarker
 
-    setTimeout(() => {
-      // Note that it's important that this method isn't async up until
-      // this point since show-hint expects a synchronous method
-      return this.props.autoCompleteProvider.exactMatch(username).then(hit => {
-        cm.operation(() => {
-          const tmpPos = tmpMark.find()
+    // Note that it's important that this method isn't async up until
+    // this point since show-hint expects a synchronous method
+    return this.props.autoCompleteProvider.exactMatch(username).then(hit => {
+      cm.operation(() => {
+        const tmpPos = tmpMark.find()
 
-          if (!tmpPos) {
-            return
-          }
+        if (!tmpPos) {
+          return
+        }
 
-          tmpMark.clear()
+        tmpMark.clear()
 
-          if (!hit) {
-            doc.markText(tmpPos.from, tmpPos.to, {
-              atomic: true,
-              className: 'handle error',
-              readOnly: false,
-              replacedWith: renderUnknownHandleMarkReplacementElement(
-                username,
-                true
-              ),
-              handleMouseEvents: true,
-            })
+        if (!hit) {
+          doc.markText(tmpPos.from, tmpPos.to, {
+            atomic: true,
+            className: 'handle error',
+            readOnly: false,
+            replacedWith: renderUnknownHandleMarkReplacementElement(
+              username,
+              true
+            ),
+            handleMouseEvents: true,
+          })
 
-            return
-          }
+          return
+        }
 
-          this.insertAuthor(cm, authorFromUserHit(hit), tmpPos.from, tmpPos.to)
-        })
+        this.insertAuthor(cm, authorFromUserHit(hit), tmpPos.from, tmpPos.to)
       })
-    }, 1500)
+    })
   }
 
   private insertAuthor(
