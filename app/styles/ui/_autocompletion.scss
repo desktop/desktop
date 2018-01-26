@@ -131,14 +131,27 @@
     height: 100%;
     width: 100%;
 
+    &.unknown {
+      .username {
+        font-style: italic;
+      }
+
+      .description {
+        @include ellipsis;
+        color: var(--text-secondary-color);
+        font-style: italic;
+        font-size: var(--font-size-sm);
+      }
+    }
+
     .username {
+      @include ellipsis;
       font-weight: var(--font-weight-semibold);
       margin-right: var(--spacing-half);
     }
 
     .name {
       @include ellipsis;
-
       color: var(--text-secondary-color);
     }
   }
