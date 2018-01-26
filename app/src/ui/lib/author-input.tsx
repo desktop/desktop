@@ -60,7 +60,6 @@ interface IAuthorInputProps {
    * author input component
    */
   readonly className?: string
-  // tslint:disable-next-line:react-unused-props-and-state
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 
   readonly authors: ReadonlyArray<IAuthor>
