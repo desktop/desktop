@@ -3238,6 +3238,12 @@ export class AppStore {
     return Promise.resolve()
   }
 
+  /**
+   * Update the per-repository co-authors list
+   *
+   * @param repository Co-author settings are per-repository
+   * @param coAuthors  Zero or more authors
+   */
   public _setCoAuthors(repository: Repository, coAuthors: ReadonlyArray<IAuthor>) {
     this.updateChangesState(repository, (state) => ({ coAuthors }))
     this.emitUpdate()
