@@ -1,11 +1,7 @@
 import * as React from 'react'
 import * as CodeMirror from 'codemirror'
 import * as URL from 'url'
-import {
-  IAutocompletionProvider,
-  UserAutocompletionProvider,
-  IUserHit,
-} from '../autocompletion'
+import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
 import { Editor, Doc, Position } from 'codemirror'
 import { isDotComApiEndpoint } from '../../lib/api'
 import { compare } from '../../lib/compare'
@@ -60,7 +56,7 @@ interface IAuthorInputProps {
    * author input component
    */
   readonly className?: string
-  readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
+  readonly autoCompleteProvider: UserAutocompletionProvider
 
   readonly authors: ReadonlyArray<IAuthor>
   readonly onAuthorsUpdated: (authors: ReadonlyArray<IAuthor>) => void
@@ -415,28 +411,20 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
 
     var word = doc.getRange(from, to)
 
-    const provider = this.props.autocompletionProviders.find(
-      p => p.kind === 'user'
+    const needle = word.replace(/^@/, '')
+    const hits = await this.props.autoCompleteProvider.getAutocompletionItems(
+      needle
     )
 
-    if (provider && provider instanceof UserAutocompletionProvider) {
-      const needle = word.replace(/^@/, '')
-      const hits = await provider.getAutocompletionItems(needle)
+    const list: any[] = hits.map(authorFromUserHit).map(author => ({
+      author,
+      text: getDisplayTextForAuthor(author),
+      render: renderUserAutocompleteItem,
+      className: 'autocompletion-item',
+      hint: this.applyCompletion,
+    }))
 
-      return {
-        list: hits.map(authorFromUserHit).map(author => ({
-          author,
-          text: getDisplayTextForAuthor(author),
-          render: renderUserAutocompleteItem,
-          className: 'autocompletion-item',
-          hint: this.applyCompletion,
-        })),
-        from,
-        to,
-      }
-    }
-
-    return { list: [], from, to }
+    return { list, from, to }
   }
 
   private updatePlaceholderVisibility(cm: Editor) {

@@ -4,6 +4,7 @@ import {
   AutocompletingTextArea,
   AutocompletingInput,
   IAutocompletionProvider,
+  UserAutocompletionProvider,
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../lib/app-state'
@@ -69,6 +70,20 @@ interface ICommitMessageState {
 
   /** The last contextual commit message we've received. */
   readonly lastContextualCommitMessage: ICommitMessage | null
+
+  readonly userAutocompletionProvider: UserAutocompletionProvider | null
+}
+
+function findUserAutoCompleteProvider(
+  providers: ReadonlyArray<IAutocompletionProvider<any>>
+): UserAutocompletionProvider | null {
+  for (const provider of providers) {
+    if (provider instanceof UserAutocompletionProvider) {
+      return provider
+    }
+  }
+
+  return null
 }
 
 export class CommitMessage extends React.Component<
@@ -84,6 +99,9 @@ export class CommitMessage extends React.Component<
       summary: '',
       description: '',
       lastContextualCommitMessage: null,
+      userAutocompletionProvider: findUserAutoCompleteProvider(
+        props.autocompletionProviders
+      ),
     }
   }
 
@@ -106,6 +124,16 @@ export class CommitMessage extends React.Component<
     // our commit message in the dispatcher.
     if (nextProps.repository.id !== this.props.repository.id) {
       this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
+    }
+
+    if (
+      nextProps.autocompletionProviders !== this.props.autocompletionProviders
+    ) {
+      this.setState({
+        userAutocompletionProvider: findUserAutoCompleteProvider(
+          nextProps.autocompletionProviders
+        ),
+      })
     }
 
     // This is rather gnarly. We want to persist the commit message (summary,
@@ -270,11 +298,17 @@ export class CommitMessage extends React.Component<
       return null
     }
 
+    const autocompletionProvider = this.state.userAutocompletionProvider
+
+    if (!autocompletionProvider) {
+      return null
+    }
+
     return (
       <AuthorInput
-        autocompletionProviders={this.props.autocompletionProviders}
         onAuthorsUpdated={this.onCoAuthorsUpdated}
         authors={this.props.coAuthors}
+        autoCompleteProvider={autocompletionProvider}
       />
     )
   }
