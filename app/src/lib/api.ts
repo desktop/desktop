@@ -65,7 +65,12 @@ export interface IAPIUser {
   readonly url: string
   readonly login: string
   readonly avatar_url: string
-  readonly name: string
+
+  /**
+   * The user's real name or null if the user hasn't provided
+   * a real name for their public profile.
+   */
+  readonly name: string | null
 
   /**
    * The email address for this user or null if the user has not
@@ -717,7 +722,7 @@ export async function fetchUser(
       emails,
       avatarURL,
       user.id,
-      user.name
+      user.name || user.login
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)

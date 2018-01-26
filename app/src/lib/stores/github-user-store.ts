@@ -106,7 +106,7 @@ export class GitHubUserStore {
       avatarURL,
       email: apiUser.email || '',
       endpoint: account.endpoint,
-      name: apiUser.name,
+      name: apiUser.name || apiUser.login,
       login: apiUser.login,
     }
 
@@ -272,7 +272,7 @@ export class GitHubUserStore {
           avatarURL,
           login: apiCommit.author.login,
           endpoint: account.endpoint,
-          name: apiCommit.author.name,
+          name: apiCommit.author.name || apiCommit.author.login,
         }
       }
     }
@@ -289,7 +289,7 @@ export class GitHubUserStore {
         login: matchingUser.login,
         avatarURL,
         endpoint: account.endpoint,
-        name: matchingUser.name,
+        name: matchingUser.name || matchingUser.login,
       }
     }
 

@@ -13,7 +13,12 @@ export interface IGitHubUser {
   readonly email: string
   readonly login: string
   readonly avatarURL: string
-  readonly name: string
+
+  /**
+   * The user's real name or null if the user hasn't provided a real
+   * name yet.
+   */
+  readonly name: string | null
 }
 
 export interface IMentionableAssociation {
