@@ -407,7 +407,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     return this.insertAuthor(doc, author, doc.posFromIndex(Infinity))
   }
 
-  private onAutocompleteUser = async (cm: Editor) => {
+  private onAutocompleteUser = async (cm: Editor, x?: any, y?: any) => {
     const doc = cm.getDoc()
     const cursor = doc.getCursor() as Readonly<Position>
 
