@@ -240,15 +240,50 @@ export class AuthorInput extends React.Component<
   IAuthorInputProps,
   IAuthorInputState
 > {
+  /**
+   * The codemirror instance if mounted, otherwise null
+   */
   private editor: Editor | null = null
+
+  /**
+   * Resize observer used for tracking width changes and
+   * refreshing the internal codemirror instance when
+   * they occur
+   */
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
-  private hintActive: boolean = false
-  private label: ActualTextMarker | null = null
-  private placeholder: ActualTextMarker | null = null
   private lastKnownWidth: number | null = null
 
+  /**
+   * Whether or not the hint (i.e. autocompleter)
+   * is currently active.
+   */
+  private hintActive: boolean = false
+
+  /**
+   * A reference to the label mark (the persistent
+   * part of the placeholder text)
+   */
+  private label: ActualTextMarker | null = null
+
+  /**
+   * A reference to the placeholder mark (the second
+   * part of the placeholder text which is collapsed
+   * when there's user input)
+   */
+  private placeholder: ActualTextMarker | null = null
+
+  /**
+   * The internal list of authors. Note that codemirror
+   * ultimately is the source of truth for what authors
+   * are in here but we synchronize that into this field
+   * whenever codemirror reports a change. We also use
+   * this array to detect whether the author props have
+   * change, in which case we blow away everything and
+   * start from scratch.
+   */
   private authors: ReadonlyArray<IAuthor> = []
+
   // For undo association
   private readonly markAuthorMap = new Map<ActualTextMarker, IAuthor>()
   private readonly authorMarkMap = new Map<IAuthor, ActualTextMarker>()
