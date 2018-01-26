@@ -4,6 +4,10 @@ import Dexie from 'dexie'
 const DatabaseVersion = 2
 
 export interface IGitHubUser {
+  /**
+   * The internal (to desktop) database id for this user or undefined
+   * if not yet inserted into the database.
+   */
   readonly id?: number
   readonly endpoint: string
   readonly email: string
@@ -13,6 +17,10 @@ export interface IGitHubUser {
 }
 
 export interface IMentionableAssociation {
+  /**
+   * The internal (to desktop) database id for this association
+   *  or undefined if not yet inserted into the database.
+   */
   readonly id?: number
   readonly userID: number
   readonly repositoryID: number
