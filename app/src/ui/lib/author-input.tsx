@@ -3,7 +3,7 @@ import * as CodeMirror from 'codemirror'
 import * as URL from 'url'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
 import { Editor, Doc, Position } from 'codemirror'
-import { isDotComApiEndpoint, validLoginExpression } from '../../lib/api'
+import { isDotComApiEndpoint, validLoginExpression, getDotComAPIEndpoint } from '../../lib/api'
 import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
 import { OcticonSymbol } from '../octicons'
@@ -228,7 +228,7 @@ function getEmailAddressForUser(user: IUserHit) {
 
   const url = URL.parse(user.endpoint)
   const host =
-    url.hostname && !isDotComApiEndpoint(user.endpoint)
+    url.hostname && getDotComAPIEndpoint() !== user.endpoint
       ? url.hostname
       : 'github.com'
 
