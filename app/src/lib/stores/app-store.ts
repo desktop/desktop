@@ -2780,9 +2780,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     const repositoryIDs = localRepositories.map(r => r.id)
+    const promises: Promise<void>[] = []
+
     for (const id of repositoryIDs) {
-      await this.repositoriesStore.removeRepository(id)
+      promises.push(this.repositoriesStore.removeRepository(id))
     }
+
+    await Promise.all(promises)
 
     this._showFoldout({ type: FoldoutType.Repository })
   }
