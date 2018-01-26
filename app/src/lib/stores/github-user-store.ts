@@ -92,7 +92,7 @@ export class GitHubUserStore {
     const api = API.fromAccount(account)
     const apiUser = await api.fetchUser(login).catch(e => null)
 
-    if (!apiUser) {
+    if (!apiUser || apiUser.type !== 'User') {
       return null
     }
 
