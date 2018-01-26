@@ -89,6 +89,16 @@ export class UserAutocompletionProvider
     return `@${item.username}`
   }
 
+  /**
+   * Retrieve a user based on the user login.
+   *
+   * If the user is already cached no additional API requests
+   * will be made. If the user isn't in the cache but found in
+   * the API it will be persisted to the database and the
+   * intermediate cache.
+   *
+   * @param login   The login (i.e. handle) of the user
+   */
   public async exactMatch(login: string): Promise<IUserHit | null> {
     if (this.account === null) {
       return null
