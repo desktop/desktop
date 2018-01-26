@@ -66,8 +66,6 @@ interface IAuthorInputProps {
   readonly onAuthorsUpdated: (authors: ReadonlyArray<IAuthor>) => void
 }
 
-interface IAuthorInputState {}
-
 function prevPosition(doc: Doc, pos: Position) {
   return doc.posFromIndex(doc.indexFromPos(pos) - 1)
 }
@@ -264,10 +262,7 @@ function triggerAutoCompleteBasedOnCursorPosition(cm: Editor) {
   ;(cm as any).showHint()
 }
 
-export class AuthorInput extends React.Component<
-  IAuthorInputProps,
-  IAuthorInputState
-> {
+export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   /**
    * The codemirror instance if mounted, otherwise null
    */
