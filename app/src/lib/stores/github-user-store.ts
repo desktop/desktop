@@ -257,7 +257,12 @@ export class GitHubUserStore {
       this.usersByEndpoint.set(user.endpoint, userMap)
     }
 
-    userMap.set(user.email, user)
+    // We still store unknown emails as empty strings,
+    // inserting that into cache would just create a
+    // race condition of whoever gets added last
+    if (user.email.length > 0) {
+      userMap.set(user.email, user)
+    }
 
     const addedUser = await this.database.transaction(
       'rw',
