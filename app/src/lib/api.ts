@@ -556,7 +556,7 @@ export class API {
    */
   public async fetchUser(login: string): Promise<IAPIUser> {
     try {
-      const response = await this.request('GET', `user/${login}`)
+      const response = await this.request('GET', `users/${login}`)
       return await parsedResponse<IAPIUser>(response)
     } catch (e) {
       log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
