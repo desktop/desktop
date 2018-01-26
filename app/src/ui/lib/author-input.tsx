@@ -399,6 +399,19 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     this.state = {}
   }
 
+  public componentWillUnmount() {
+    // Sometimes the completion box seems to fail to register
+    // the blur event and close. It's hard to reproduce so
+    // we'll just make doubly sure it's closed when we're
+    // about to go away.
+    if (this.editor) {
+      const state = this.editor.state
+      if (state.completionActive && state.completionActive.close) {
+        state.completionActive.close()
+      }
+    }
+  }
+
   public componentWillReceiveProps(nextProps: IAuthorInputProps) {
     if (
       nextProps.authors !== this.props.authors &&
