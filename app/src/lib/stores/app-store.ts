@@ -997,8 +997,8 @@ export class AppStore {
       parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) ||
       defaultSidebarWidth
     this.commitSummaryWidth =
-       parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) ||
-       defaultCommitSummaryWidth
+      parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) ||
+      defaultCommitSummaryWidth
 
     const confirmRepositoryRemovalValue = localStorage.getItem(
       confirmRepoRemovalKey
