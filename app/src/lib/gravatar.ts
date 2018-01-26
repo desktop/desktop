@@ -32,10 +32,10 @@ export function generateGravatarUrl(email: string, size: number = 200): string {
  */
 export function getAvatarWithEnterpriseFallback(
   avatar_url: string,
-  email: string,
+  email: string | null,
   endpoint: string
 ): string {
-  if (endpoint === getDotComAPIEndpoint()) {
+  if (endpoint === getDotComAPIEndpoint() || email === null) {
     return avatar_url
   }
 
