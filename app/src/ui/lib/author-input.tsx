@@ -611,17 +611,13 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
 
     cm.on('startCompletion', () => {
       this.hintActive = true
-      console.log('startCompletion')
     })
 
     cm.on('endCompletion', () => {
       this.hintActive = false
-      console.log('endCompletion')
     })
 
     cm.on('change', () => {
-      console.log('change')
-
       this.updatePlaceholderVisibility(cm)
 
       if (!this.hintActive) {
@@ -663,8 +659,6 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         authors.push(author)
       }
     }
-
-    console.log('authors', authors)
 
     if (!arrayEquals(this.authors, authors)) {
       this.authors = authors
