@@ -554,9 +554,14 @@ export class API {
    * Retrieve the public profile information of a user with
    * a given username.
    */
-  public async fetchUser(login: string): Promise<IAPIUser> {
+  public async fetchUser(login: string): Promise<IAPIUser | null> {
     try {
       const response = await this.request('GET', `users/${login}`)
+
+      if (response.status === 404) {
+        return null
+      }
+
       return await parsedResponse<IAPIUser>(response)
     } catch (e) {
       log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
