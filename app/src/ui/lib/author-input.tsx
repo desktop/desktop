@@ -44,7 +44,7 @@ export interface IAuthor {
  */
 function authorFromUserHit(user: IUserHit): IAuthor {
   return {
-    name: user.name,
+    name: user.name || user.username,
     email: getEmailAddressForUser(user),
     username: user.username,
   }

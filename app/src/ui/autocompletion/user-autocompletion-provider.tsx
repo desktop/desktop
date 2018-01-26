@@ -11,8 +11,11 @@ export interface IUserHit {
   /** The username. */
   readonly username: string
 
-  /** The user's name. */
-  readonly name: string
+  /**
+   * The user's name or null if the user
+   * hasn't entered a name in their profile
+   */
+  readonly name: string | null
 
   /**
    * The user's public email address. If the user
