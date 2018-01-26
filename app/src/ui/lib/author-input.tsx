@@ -314,6 +314,8 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   public constructor(props: IAuthorInputProps) {
     super(props)
 
+    // Observe size changes and let codemirror know
+    // when it needs to refresh.
     this.resizeObserver = new ResizeObserver(entries => {
       if (entries.length === 1 && this.editor) {
         const newWidth = entries[0].contentRect.width
