@@ -2784,6 +2784,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     for (const id of repositoryIDs) {
       promises.push(this.repositoriesStore.removeRepository(id))
+      promises.push(this.repositoriesStore.removeGitHubRepository(id))
     }
 
     await Promise.all(promises)
