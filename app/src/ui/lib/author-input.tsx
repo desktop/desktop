@@ -363,11 +363,49 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   private onContainerRef = (elem: HTMLDivElement) => {
-    this.editor = elem ? this.initializeCodeMirror(elem) : null
-
     if (elem) {
+      const cm = this.initializeCodeMirror(elem)
+      this.editor = cm
       this.resizeObserver.observe(elem)
+      elem.addEventListener('keydown', async (e: KeyboardEvent) => {
+        console.log(e.key, e.defaultPrevented)
+        if (e.defaultPrevented) {
+          return
+        }
+
+        if (
+          (e.key === 'Tab' || e.key === 'Enter') &&
+          !(e.metaKey || e.shiftKey || e.altKey || e.ctrlKey)
+        ) {
+          e.preventDefault()
+
+          const doc = cm.getDoc()
+          const cursor = doc.getCursor()
+          const prev = scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition)
+
+          if (!posEquals(cursor, prev)) {
+            const word = doc.getRange(prev, cursor)
+            const needle = word.replace(/^@/, '')
+            const hit = await this.props.autoCompleteProvider.exactMatch(needle)
+
+            if (hit) {
+              const author = authorFromUserHit(hit)
+
+              if (
+                cm.state.completionActive &&
+                cm.state.completionActive.close
+              ) {
+                cm.state.completionActive.close()
+              }
+
+              this.insertAuthor(doc, author, prev, cursor)
+              this.updateAuthors(cm)
+            }
+          }
+        }
+      })
     } else {
+      this.editor = null
       this.resizeObserver.disconnect()
     }
   }
@@ -458,6 +496,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       lineWrapping: true,
       extraKeys: {
         Tab: false,
+        Enter: false,
         'Shift-Tab': false,
         'Ctrl-Space': 'autocomplete',
         'Ctrl-Enter': false,
@@ -501,25 +540,31 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     })
 
     cm.on('changes', () => {
-      const markers = this.getAllHandleMarks(cm).sort(orderByPosition)
-      const authors = new Array<IAuthor>()
-
-      for (const marker of markers) {
-        const author = this.markAuthorMap.get(marker)
-
-        // undefined authors shouldn't happen lol
-        if (author) {
-          authors.push(author)
-        }
-      }
-
-      if (!arrayEquals(this.authors, authors)) {
-        this.authors = authors
-        this.props.onAuthorsUpdated(authors)
-      }
+      this.updateAuthors(cm)
     })
 
     return cm
+  }
+
+  private updateAuthors(cm: Editor) {
+    const markers = this.getAllHandleMarks(cm).sort(orderByPosition)
+    const authors = new Array<IAuthor>()
+
+    for (const marker of markers) {
+      const author = this.markAuthorMap.get(marker)
+
+      // undefined authors shouldn't happen lol
+      if (author) {
+        authors.push(author)
+      }
+    }
+
+    console.log('authors', authors)
+
+    if (!arrayEquals(this.authors, authors)) {
+      this.authors = authors
+      this.props.onAuthorsUpdated(authors)
+    }
   }
 
   private reset(cm: Editor, authors: ReadonlyArray<IAuthor>) {
