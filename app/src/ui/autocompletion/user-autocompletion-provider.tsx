@@ -3,6 +3,8 @@ import * as React from 'react'
 import { IAutocompletionProvider } from './index'
 import { GitHubUserStore } from '../../lib/stores'
 import { GitHubRepository } from '../../models/github-repository'
+import { Account } from '../../models/account'
+import { IGitHubUser } from '../../lib/databases/index'
 
 /** An autocompletion hit for a user. */
 export interface IUserHit {
@@ -22,6 +24,15 @@ export interface IUserHit {
   readonly endpoint: string
 }
 
+function userToHit(user: IGitHubUser): IUserHit {
+  return {
+    username: user.login,
+    name: user.name,
+    email: user.email,
+    endpoint: user.endpoint,
+  }
+}
+
 /** The autocompletion provider for user mentions in a GitHub repository. */
 export class UserAutocompletionProvider
   implements IAutocompletionProvider<IUserHit> {
@@ -29,13 +40,16 @@ export class UserAutocompletionProvider
 
   private readonly gitHubUserStore: GitHubUserStore
   private readonly repository: GitHubRepository
+  private readonly account: Account | null
 
   public constructor(
     gitHubUserStore: GitHubUserStore,
-    repository: GitHubRepository
+    repository: GitHubRepository,
+    account?: Account
   ) {
     this.gitHubUserStore = gitHubUserStore
     this.repository = repository
+    this.account = account || null
   }
 
   public getRegExp(): RegExp {
@@ -49,12 +63,7 @@ export class UserAutocompletionProvider
       this.repository,
       text
     )
-    return users.map(u => ({
-      username: u.login,
-      name: u.name,
-      email: u.email,
-      endpoint: u.endpoint,
-    }))
+    return users.map(userToHit)
   }
 
   public renderItem(item: IUserHit): JSX.Element {
@@ -68,5 +77,19 @@ export class UserAutocompletionProvider
 
   public getCompletionText(item: IUserHit): string {
     return `@${item.username}`
+  }
+
+  public async exactMatch(login: string): Promise<IUserHit | null> {
+    if (this.account === null) {
+      return null
+    }
+
+    const user = await this.gitHubUserStore.getByLogin(this.account, login)
+
+    if (!user) {
+      return null
+    }
+
+    return userToHit(user)
   }
 }
