@@ -639,6 +639,15 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       this.updateAuthors(cm)
     })
 
+    // Do the very least we can do to pretend that we're a
+    // single line textbox. Users can still paste newlines
+    // though and if the do we don't care.
+    cm.getWrapperElement().addEventListener('keypress', (e: KeyboardEvent) => {
+      if (!e.defaultPrevented && e.key === 'Enter') {
+        e.preventDefault()
+      }
+    })
+
     return cm
   }
 
