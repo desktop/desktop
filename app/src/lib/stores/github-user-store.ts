@@ -64,6 +64,58 @@ export class GitHubUserStore {
     return this.getUsersForEndpoint(endpoint)
   }
 
+  /**
+   * Retrieve a public user profile based on the user login.
+   *
+   * If the user is already cached no additional API requests
+   * will be made. If the user isn't in the cache but found in
+   * the API it will be persisted to the database and the
+   * intermediate cache.
+   *
+   * @param account The account to use when querying the API
+   *                for information about the user
+   * @param login   The login (i.e. handle) of the user
+   */
+  public async getByLogin(
+    account: Account,
+    login: string
+  ): Promise<IGitHubUser | null> {
+    const existing = await this.database.users
+      .where('[endpoint+login]')
+      .equals([account.endpoint, login])
+      .first()
+
+    if (existing) {
+      return existing
+    }
+
+    const api = API.fromAccount(account)
+    const apiUser = await api.fetchUser(login).catch(e => null)
+
+    if (!apiUser) {
+      return null
+    }
+
+    const avatarURL = getAvatarWithEnterpriseFallback(
+      apiUser.avatar_url,
+      apiUser.email,
+      account.endpoint
+    )
+
+    const user: IGitHubUser = {
+      avatarURL,
+      email: apiUser.email || '',
+      endpoint: account.endpoint,
+      name: apiUser.name,
+      login: apiUser.login,
+    }
+
+    // We don't overwrite email addresses since we might not get one from this
+    // endpoint, but we could already have one from looking up a commit
+    // specifically.
+    return await this.cacheUser(user, false)
+  }
+
   /** Update the mentionable users for the repository. */
   public async updateMentionables(
     repository: GitHubRepository,
