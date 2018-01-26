@@ -163,6 +163,30 @@ export class RepositoriesStore extends BaseStore {
     this.emitUpdate()
   }
 
+  /** Remove the GitHub repository with the given ID */
+  public async removeGitHubRepository(key: number): Promise<void> {
+    const githubRepoDbId = await this.findGitHubRepoDbId(key)
+
+    if (githubRepoDbId == null) {
+      return
+    }
+
+    await this.db.gitHubRepositories.delete(githubRepoDbId)
+    this.emitUpdate()
+  }
+
+  private async findGitHubRepoDbId(
+    repositoryId: number
+  ): Promise<number | null> {
+    const repo = await this.db.repositories.get(repositoryId)
+
+    if (repo == null) {
+      return null
+    }
+
+    return repo.gitHubRepositoryID
+  }
+
   /** Update the repository's `missing` flag. */
   public async updateRepositoryMissing(
     repository: Repository,
