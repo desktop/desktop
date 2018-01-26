@@ -66,6 +66,12 @@ export interface IAPIUser {
   readonly login: string
   readonly avatar_url: string
   readonly name: string
+
+  /**
+   * The email address for this user or null if the user has not
+   * specified a public email address in their profile.
+   */
+  readonly email: string | null
   readonly type: 'User' | 'Organization'
 }
 
