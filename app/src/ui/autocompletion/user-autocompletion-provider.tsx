@@ -63,7 +63,14 @@ export class UserAutocompletionProvider
       this.repository,
       text
     )
-    return users.map(userToHit)
+
+    // dotcom doesn't let you autocomplete on your own handle
+    const account = this.account
+    const filtered = account
+      ? users.filter(x => x.login !== account.login)
+      : users
+
+    return filtered.map(userToHit)
   }
 
   public renderItem(item: IUserHit): JSX.Element {
