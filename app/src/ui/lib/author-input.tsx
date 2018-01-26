@@ -599,7 +599,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       hintOptions: {
         completeOnSingleClick: true,
         completeSingle: false,
-        closeOnUnfocus: false,
+        closeOnUnfocus: true,
         closeCharacters: /\s/,
         hint: this.onAutocompleteUser,
       },
