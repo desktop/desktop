@@ -454,13 +454,18 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       needle
     )
 
-    const list: any[] = hits.map(authorFromUserHit).map(author => ({
-      author,
-      text: getDisplayTextForAuthor(author),
-      render: renderUserAutocompleteItem,
-      className: 'autocompletion-item',
-      hint: this.applyCompletion,
-    }))
+    const existingUsernames = new Set(this.authors.map(x => x.username))
+
+    const list: any[] = hits
+      .map(authorFromUserHit)
+      .filter(x => x.username === null || !existingUsernames.has(x.username))
+      .map(author => ({
+        author,
+        text: getDisplayTextForAuthor(author),
+        render: renderUserAutocompleteItem,
+        className: 'autocompletion-item',
+        hint: this.applyCompletion,
+      }))
 
     return { list, from, to }
   }
