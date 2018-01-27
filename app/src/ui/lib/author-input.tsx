@@ -98,6 +98,29 @@ function posEquals(x: Position, y: Position) {
   return x.line === y.line && x.ch === y.ch
 }
 
+/**
+ * Scan through the doc, starting at the given start position and
+ * moving using the iter function for as long as the predicate is
+ * true or the iterator function fails to update the position (i.e
+ * at the start or end of the document)
+ *
+ * @param doc       The codemirror document to scan through
+ *
+ * @param start     The initial position, note that this position is
+ *                  not inclusive, i.e. the predicate will not be
+ *                  called for the initial position
+ *
+ * @param predicate A function called with each position returned
+ *                  from the iter function that determines whether
+ *                  or not to keep scanning through the document.
+ *
+ *                  If the predicate returns true this function will
+ *                  keep iterating.
+ *
+ * @param iter      A function that, given either the start position
+ *                  or a position returned from the previous iter
+ *                  call, returns the next position to scan.
+ */
 function scanWhile(
   doc: Doc,
   start: Position,
@@ -117,6 +140,29 @@ function scanWhile(
   return pos
 }
 
+/**
+ * Scan through the doc, starting at the given start position and
+ * moving using the iter function until the predicate returns
+ * true or the iterator function fails to update the position (i.e
+ * at the start or end of the document)
+ *
+ * @param doc       The codemirror document to scan through
+ *
+ * @param start     The initial position, note that this position is
+ *                  not inclusive, i.e. the predicate will not be
+ *                  called for the initial position
+ *
+ * @param predicate A function called with each position returned
+ *                  from the iter function that determines whether
+ *                  or not to keep scanning through the document.
+ *
+ *                  If the predicate returns false this function will
+ *                  keep iterating.
+ *
+ * @param iter      A function that, given either the start position
+ *                  or a position returned from the previous iter
+ *                  call, returns the next position to scan.
+ */
 function scanUntil(
   doc: Doc,
   start: Position,
