@@ -234,7 +234,7 @@ export class PullRequestStore {
       return null
     }
 
-    const combinedRefStatuses = result.statuses.map(x => {
+    const combinedRefStatuses = (result.statuses || []).map(x => {
       return {
         id: x.id,
         state: x.state,
