@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as CodeMirror from 'codemirror'
 import * as URL from 'url'
+import * as classNames from 'classnames'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
 import { Editor, Doc, Position } from 'codemirror'
 import { validLoginExpression, getDotComAPIEndpoint } from '../../lib/api'
@@ -725,7 +726,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       hintOptions: {
         completeOnSingleClick: true,
         completeSingle: false,
-        closeOnUnfocus: true,
+        closeOnUnfocus: false,
         closeCharacters: /\s/,
         hint: this.onAutocompleteUser,
       },
@@ -831,6 +832,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   public render() {
-    return <div className={this.props.className} ref={this.onContainerRef} />
+    const className = classNames('author-input-component', this.props.className)
+    return <div className={className} ref={this.onContainerRef} />
   }
 }
