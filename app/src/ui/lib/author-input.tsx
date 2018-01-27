@@ -57,21 +57,49 @@ interface IAuthorInputProps {
    * author input component
    */
   readonly className?: string
+
+  /**
+   * The user autocomplete provider to use when searching for substring
+   * matches while autocompleting.
+   */
   readonly autoCompleteProvider: UserAutocompletionProvider
 
+  /**
+   * The list of authors to fill the input with initially. If this
+   * prop changes from what's propagated through onAuthorsUpdated
+   * while the component is mounted it will reset, loosing
+   * any text that has not yet been resolved to an author.
+   */
   readonly authors: ReadonlyArray<IAuthor>
+
+  /**
+   * A method called when authors has been added or removed from the
+   * input field.
+   */
   readonly onAuthorsUpdated: (authors: ReadonlyArray<IAuthor>) => void
 }
 
+/**
+ * Return the position previous to (i.e before) the given
+ * position in a codemirror doc
+ */
 function prevPosition(doc: Doc, pos: Position) {
   return doc.posFromIndex(doc.indexFromPos(pos) - 1)
 }
 
+/**
+ * Return the position next to (i.e after) the given
+ * position in a codemirror doc
+ */
 function nextPosition(doc: Doc, pos: Position) {
   return doc.posFromIndex(doc.indexFromPos(pos) + 1)
 }
 
-// mark ranges are inclusive, this checks exclusive
+/**
+ * Gets a value indicating whether the given position is
+ * _inside_ of an existing marker. Note that marker ranges
+ * are inclusive and this method takes that into account.
+ */
 function posIsInsideMarkedText(doc: Doc, pos: Position) {
   const marks = (doc.findMarksAt(pos) as any) as ActualTextMarker[]
   const ix = doc.indexFromPos(pos)
@@ -378,6 +406,12 @@ function triggerAutoCompleteBasedOnCursorPosition(cm: Editor) {
   ;(cm as any).showHint()
 }
 
+/**
+ * Autocompletable input field for possible authors of a commit.
+ *
+ * Intended primarily for co-authors but written in a general enough
+ * fashion to deal only with authors in general.
+ */
 export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   /**
    * The codemirror instance if mounted, otherwise null
