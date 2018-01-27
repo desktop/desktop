@@ -491,10 +491,14 @@ export class GitHubUserStore {
     }
 
     // Sort hits primarily based on how early in the text the match
-    // was found and then secondarily using the user id (this matches
-    // the dotcom behavior except they do fuzzy searching)
+    // was found and then secondarily using alphabetic order. Ideally
+    // we'd use the GitHub user id in order to match dotcom behavior
+    // but sadly we don't have it handy here. The id property on IGitHubUser
+    // refers to our internal database id.
     return hits
-      .sort((x, y) => compare(x.ix, y.ix) || compare(x.user.id, y.user.id))
+      .sort(
+        (x, y) => compare(x.ix, y.ix) || compare(x.user.login, y.user.login)
+      )
       .map(h => h.user)
   }
 }
