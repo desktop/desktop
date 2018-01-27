@@ -275,6 +275,14 @@ function renderUserAutocompleteItem(elem: HTMLElement, self: any, data: any) {
   elem.appendChild(user)
 }
 
+/**
+ * Returns an email address which can be used on the host side to
+ * look up the user which is to be given attribution.
+ *
+ * If the user has a public email address specified in their profile
+ * that's used and if they don't then we'll generate a stealth email
+ * address.
+ */
 function getEmailAddressForUser(user: IUserHit) {
   if (user.email && user.email.length > 0) {
     return user.email
