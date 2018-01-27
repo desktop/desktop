@@ -509,6 +509,9 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   public componentWillReceiveProps(nextProps: IAuthorInputProps) {
+    // If the authors prop have changed from our internal representation
+    // we'll throw up our hands and reset the input to whatever we're
+    // given.
     if (
       nextProps.authors !== this.props.authors &&
       !arrayEquals(this.authors, nextProps.authors)
