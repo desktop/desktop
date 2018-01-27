@@ -106,6 +106,13 @@ function posIsInsideMarkedText(doc: Doc, pos: Position) {
 
   return marks.some(mark => {
     const markPos = mark.find()
+
+    // This shouldn't ever happen since we just pulled them
+    // from the doc
+    if (!markPos) {
+      return false
+    }
+
     const from = doc.indexFromPos(markPos.from)
     const to = doc.indexFromPos(markPos.to)
 
@@ -251,10 +258,7 @@ interface ActualTextMarker extends CodeMirror.TextMarkerOptions {
    * the current position of the marked range, or undefined if the marker is
    * no longer in the document.
    */
-  find(): {
-    from: Position
-    to: Position
-  }
+  find(): { from: Position; to: Position } | undefined
 
   changed(): void
 }
@@ -680,6 +684,13 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       const labelRange = this.label.find()
       const placeholderRange = this.placeholder.find()
 
+      // If this happen then codemirror has done something
+      // weird. It shouldn't be possible to remove these
+      // markers from the document.
+      if (!labelRange || !placeholderRange) {
+        return
+      }
+
       const doc = cm.getDoc()
 
       const collapse =
@@ -814,7 +825,9 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       collapsed: authors.length > 0,
     })
 
-    doc.setCursor(this.placeholder.find().from)
+    // We know that find won't returned undefined here because we
+    // _just_ put the placeholder in there
+    doc.setCursor(this.placeholder.find()!.from)
   }
 
   public render() {
