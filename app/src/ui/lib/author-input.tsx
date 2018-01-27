@@ -197,6 +197,10 @@ function appendTextMarker(
   return (doc.markText(from, to, options) as any) as ActualTextMarker
 }
 
+/**
+ * Comparison method for use in sorting lists of markers in ascending
+ * order of start positions.
+ */
 function orderByPosition(x: ActualTextMarker, y: ActualTextMarker) {
   const xPos = x.find()
   const yPos = y.find()
