@@ -109,7 +109,7 @@ export class UserAutocompletionProvider
     // important we sanitize this input or someone could lead with
     // ../ and then start GETing random resources in the API.
     // Not that they should be able to do any harm with just GET
-    // but still, it aint cool
+    // but still, it ain't cool
     if (!validLoginExpression.test(login)) {
       return null
     }

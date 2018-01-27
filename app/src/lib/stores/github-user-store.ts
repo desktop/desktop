@@ -386,7 +386,7 @@ export class GitHubUserStore {
   }
 
   /**
-   * Pune the mentionable associations by removing any association that isn't in
+   * Prune the mentionable associations by removing any association that isn't in
    * the given array of users.
    */
   private async pruneRemovedMentionables(

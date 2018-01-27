@@ -483,7 +483,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
 
         // Codemirror already does a good job of height changes,
         // we just need to care about when the width changes and
-        // do a relayout
+        // do a re-layout
         if (this.lastKnownWidth !== newWidth) {
           this.lastKnownWidth = newWidth
 
