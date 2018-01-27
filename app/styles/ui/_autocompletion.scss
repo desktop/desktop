@@ -12,7 +12,8 @@
   padding: 0;
   max-height: 100px;
 
-  // hack
+  // hack to position the dialog a little better than the
+  // default codemirror position.
   transform: translate(0, -15px);
   overflow-y: auto;
 
