@@ -172,6 +172,10 @@ function scanUntil(
   return scanWhile(doc, start, (doc, pos) => !predicate(doc, pos), iter)
 }
 
+/**
+ * Given a cursor position, expand it into a range covering as
+ * long of an autocompletable string as possible.
+ */
 function getHintRangeFromCursor(doc: Doc, cursor: Position) {
   return {
     from: scanUntil(doc, cursor, isMarkOrWhitespace, prevPosition),
