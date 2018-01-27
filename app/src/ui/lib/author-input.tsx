@@ -534,8 +534,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
 
   private onContainerRef = (elem: HTMLDivElement) => {
     if (elem) {
-      const cm = this.initializeCodeMirror(elem)
-      this.editor = cm
+      this.editor = this.initializeCodeMirror(elem)
       this.resizeObserver.observe(elem)
     } else {
       this.editor = null
@@ -565,6 +564,9 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     doc.replaceRange(text, from, to, 'complete')
     const end = doc.posFromIndex(doc.indexFromPos(from) + text.length)
 
+    // Create a temporary, atomic, marker so that the text can't be modified.
+    // This marker will be styled in such a way as to indicate that it's
+    // processing.
     const tmpMark = (doc.markText(from, end, {
       atomic: true,
       className: 'handle progress',
@@ -579,10 +581,14 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       cm.operation(() => {
         const tmpPos = tmpMark.find()
 
+        // Since we're async here it's possible that the user has deleted
+        // the temporary mark already, in which case we just bail.
         if (!tmpPos) {
           return
         }
 
+        // Clear out the temporary mark and get ready to either replace
+        // it with a proper handle marker or an error marker.
         tmpMark.clear()
 
         if (!hit) {
@@ -688,7 +694,6 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   private getAllHandleMarks(cm: Editor): Array<ActualTextMarker> {
-    // todo: yuck!
     return (cm.getDoc().getAllMarks() as any) as ActualTextMarker[]
   }
 
