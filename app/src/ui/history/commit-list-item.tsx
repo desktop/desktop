@@ -60,7 +60,6 @@ export class CommitListItem extends React.Component<
 
     return (
       <div className="commit" onContextMenu={this.onContextMenu}>
-        {/* <Avatar user={this.props.user || undefined} /> */}
         <div className="info">
           <RichText
             className="summary"
