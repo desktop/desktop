@@ -82,11 +82,5 @@ export class Commit {
     this.authoredByCommitter =
       this.author.name === this.committer.name &&
       this.author.email == this.committer.email
-
-    if (this.coAuthors.length) {
-      console.log(
-        `${this.sha}: ${this.coAuthors.map(a => a.toString()).join(', ')}`
-      )
-    }
   }
 }
