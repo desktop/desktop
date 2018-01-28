@@ -34,7 +34,7 @@ function getFallbackAvatarUrlForAuthor(
   return generateGravatarUrl(author.email)
 }
 
-export function getAvatarUserFromAuthor(
+function getAvatarUserFromAuthor(
   gitHubRepository: GitHubRepository | null,
   gitHubUsers: Map<string, IGitHubUser> | null,
   author: CommitIdentity | GitAuthor
@@ -55,6 +55,18 @@ export function getAvatarUserFromAuthor(
   }
 }
 
+/**
+ * Attempt to look up avatars for all authors (and committer)
+ * of a particular commit.
+ *
+ * Avatars are returned ordered, starting with the author, followed
+ * by all co-authors and finally the committer (if different from
+ * author).
+ *
+ * @param gitHubRepository
+ * @param gitHubUsers
+ * @param commit
+ */
 export function getAvatarUsersForCommit(
   gitHubRepository: GitHubRepository | null,
   gitHubUsers: Map<string, IGitHubUser> | null,

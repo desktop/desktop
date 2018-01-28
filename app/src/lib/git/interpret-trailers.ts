@@ -2,6 +2,11 @@ import { git } from './core'
 import { Repository } from '../../models/repository'
 import { getConfigValue } from './config'
 
+/**
+ * A representation of a Git commit message trailer.
+ *
+ * See git-interpret-trailers for more information.
+ */
 export interface ITrailer {
   token: string
   value: string

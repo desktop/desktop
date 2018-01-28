@@ -466,7 +466,19 @@ export class GitHubUserStore {
     return users
   }
 
-  /** Get the mentionable users which match the text in some way. */
+  /**
+   * Get the mentionable users which match the text in some way.
+   *
+   * Hit results are ordered by how close in the search string
+   * they matched. Search strings start with username and are followed
+   * by real name. Only the first substring hit is considered
+   *
+   * @param text    A string to use when looking for a matching
+   *                user. A user is considered a hit if this text
+   *                matches any subtext of the username or real name
+   *
+   * @param maxHits The maximum number of hits to return.
+   */
   public async getMentionableUsersMatching(
     repository: GitHubRepository,
     text: string,
