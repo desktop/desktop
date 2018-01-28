@@ -3,6 +3,8 @@ import { Commit } from './commit'
 import { CommitIdentity } from './commit-identity'
 import { GitAuthor } from './git-author'
 import { generateGravatarUrl } from '../lib/gravatar'
+import { getDotComAPIEndpoint } from '../lib/api'
+import { GitHubRepository } from './github-repository'
 
 /** The minimum properties we need in order to display a user's avatar. */
 export interface IAvatarUser {
@@ -16,7 +18,24 @@ export interface IAvatarUser {
   readonly name: string
 }
 
+function getFallbackAvatarUrlForAuthor(
+  gitHubRepository: GitHubRepository | null,
+  author: CommitIdentity | GitAuthor
+) {
+  if (
+    gitHubRepository &&
+    gitHubRepository.endpoint === getDotComAPIEndpoint()
+  ) {
+    return `https://avatars.githubusercontent.com/u/e?email=${encodeURIComponent(
+      author.email
+    )}`
+  }
+
+  return generateGravatarUrl(author.email)
+}
+
 export function getAvatarUserFromAuthor(
+  gitHubRepository: GitHubRepository | null,
   gitHubUsers: Map<string, IGitHubUser> | null,
   author: CommitIdentity | GitAuthor
 ) {
@@ -27,7 +46,7 @@ export function getAvatarUserFromAuthor(
 
   const avatarURL = gitHubUser
     ? gitHubUser.avatarURL
-    : generateGravatarUrl(author.email)
+    : getFallbackAvatarUrlForAuthor(gitHubRepository, author)
 
   return {
     email: author.email,
@@ -37,18 +56,25 @@ export function getAvatarUserFromAuthor(
 }
 
 export function getAvatarUsersForCommit(
+  gitHubRepository: GitHubRepository | null,
   gitHubUsers: Map<string, IGitHubUser> | null,
   commit: Commit
 ) {
   const avatarUsers = []
 
-  avatarUsers.push(getAvatarUserFromAuthor(gitHubUsers, commit.author))
   avatarUsers.push(
-    ...commit.coAuthors.map(x => getAvatarUserFromAuthor(gitHubUsers, x))
+    getAvatarUserFromAuthor(gitHubRepository, gitHubUsers, commit.author)
+  )
+  avatarUsers.push(
+    ...commit.coAuthors.map(x =>
+      getAvatarUserFromAuthor(gitHubRepository, gitHubUsers, x)
+    )
   )
 
   if (!commit.authoredByCommitter) {
-    avatarUsers.push(getAvatarUserFromAuthor(gitHubUsers, commit.committer))
+    avatarUsers.push(
+      getAvatarUserFromAuthor(gitHubRepository, gitHubUsers, commit.committer)
+    )
   }
 
   return avatarUsers

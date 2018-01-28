@@ -92,7 +92,11 @@ function createState(isOverflowed: boolean, props: ICommitSummaryProps) {
     summary = `${summary.substr(0, truncateLength)}…`
   }
 
-  const avatarUsers = getAvatarUsersForCommit(props.gitHubUsers, props.commit)
+  const avatarUsers = getAvatarUsersForCommit(
+    props.repository.gitHubRepository,
+    props.gitHubUsers,
+    props.commit
+  )
 
   return { isOverflowed, summary, body, avatarUsers }
 }

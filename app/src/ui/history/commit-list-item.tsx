@@ -34,7 +34,11 @@ export class CommitListItem extends React.Component<
     super(props)
 
     this.state = {
-      avatarUsers: getAvatarUsersForCommit(props.gitHubUsers, props.commit),
+      avatarUsers: getAvatarUsersForCommit(
+        props.gitHubRepository,
+        props.gitHubUsers,
+        props.commit
+      ),
     }
   }
 
@@ -42,6 +46,7 @@ export class CommitListItem extends React.Component<
     if (nextProps.commit !== this.props.commit) {
       this.setState({
         avatarUsers: getAvatarUsersForCommit(
+          nextProps.gitHubRepository,
           nextProps.gitHubUsers,
           nextProps.commit
         ),
