@@ -32,7 +32,13 @@ export class CommitAttribution extends React.Component<
         </span>
       )
     } else {
-      return <span className="authors">{authors.length} people</span>
+      const title = authors.map(a => a.name).join(', ')
+
+      return (
+        <span className="authors" title={title}>
+          {authors.length} people
+        </span>
+      )
     }
   }
 

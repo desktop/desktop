@@ -11,6 +11,8 @@ interface IAvatarProps {
 
   /** The title of the avatar. Defaults to the name and email. */
   readonly title?: string
+
+  readonly skipTitle?: boolean
 }
 
 interface IAvatarState {
@@ -61,7 +63,11 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     this.setState({ dataUrl })
   }
 
-  private getTitle(): string {
+  private getTitle(): string | undefined {
+    if (this.props.skipTitle === true) {
+      return undefined
+    }
+
     if (this.props.title) {
       return this.props.title
     }
@@ -85,15 +91,23 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       ? `Avatar for ${this.props.user.name || this.props.user.email}`
       : `Avatar for unknown user`
 
+    const img = (
+      <img
+        className="avatar"
+        title={title}
+        src={this.state.dataUrl}
+        alt={title}
+        aria-label={ariaLabel}
+      />
+    )
+
+    if (this.props.skipTitle === true) {
+      return img
+    }
+
     return (
       <span title={title} className="avatar-container">
-        <img
-          className="avatar"
-          title={title}
-          src={this.state.dataUrl}
-          alt={title}
-          aria-label={ariaLabel}
-        />
+        {img}
       </span>
     )
   }
