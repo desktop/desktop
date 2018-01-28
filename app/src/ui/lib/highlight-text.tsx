@@ -26,9 +26,7 @@ export const HighlightText: React.SFC<IHighlightTextProps> = ({
               state.str += ch
             } else {
               const Component = state.matched ? 'mark' : 'span'
-              state.result.push(
-                <Component key={i}>{state.str}</Component>
-              )
+              state.result.push(<Component key={i}>{state.str}</Component>)
               state.str = ch
               state.matched = matched
             }
