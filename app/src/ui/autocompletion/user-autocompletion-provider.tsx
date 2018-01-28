@@ -91,7 +91,7 @@ export class UserAutocompletionProvider
   }
 
   /**
-   * Retrieve a user based on the user login.
+   * Retrieve a user based on the user login name, i.e their handle.
    *
    * If the user is already cached no additional API requests
    * will be made. If the user isn't in the cache but found in
