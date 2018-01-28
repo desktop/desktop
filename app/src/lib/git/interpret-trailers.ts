@@ -53,7 +53,7 @@ export async function parseTrailers(
  * Merge one or more commit message trailers into a commit message.
  *
  * If no trailers are given this method will simply try to ensure that
- * any trailers that happen to be part of the rawa message are formatted
+ * any trailers that happen to be part of the raw message are formatted
  * in accordance with the configuration options set for trailers in
  * the given repository.
  *
