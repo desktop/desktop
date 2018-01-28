@@ -34,6 +34,12 @@ export class Commit {
    */
   public readonly author: CommitIdentity
 
+  /**
+   * Information about the committer of this commit.
+   * includes name, email and date.
+   */
+  public readonly committer: CommitIdentity
+
   /** The SHAs for the parents of the commit. */
   public readonly parentSHAs: ReadonlyArray<string>
 
@@ -49,11 +55,18 @@ export class Commit {
    */
   public readonly coAuthors: ReadonlyArray<GitAuthor>
 
+  /**
+   * A value indicating whether the author and the committer
+   * are the same person.
+   */
+  public readonly authoredByCommitter: boolean
+
   public constructor(
     sha: string,
     summary: string,
     body: string,
     author: CommitIdentity,
+    committer: CommitIdentity,
     parentSHAs: ReadonlyArray<string>,
     trailers: ReadonlyArray<ITrailer>
   ) {
@@ -61,9 +74,14 @@ export class Commit {
     this.summary = summary
     this.body = body
     this.author = author
+    this.committer = committer
     this.parentSHAs = parentSHAs
     this.trailers = trailers
     this.coAuthors = extractCoAuthors(trailers)
+
+    this.authoredByCommitter =
+      this.author.name === this.committer.name &&
+      this.author.email == this.committer.email
 
     if (this.coAuthors.length) {
       console.log(

@@ -22,6 +22,7 @@ export async function getBranches(
     '%(upstream:short)',
     '%(objectname)', // SHA
     '%(author)',
+    '%(committer)',
     '%(parent)', // parent SHAs
     '%(symref)',
     '%(subject)',
@@ -69,13 +70,28 @@ export async function getBranches(
       throw new Error(`Couldn't parse author identity ${authorIdentity}`)
     }
 
-    const parentSHAs = pieces[5].split(' ')
-    const symref = pieces[6]
-    const summary = pieces[7]
-    const body = pieces[8]
-    const trailers = parseRawUnfoldedTrailers(pieces[9], trailerSeparators)
+    const committerIdentity = pieces[5]
+    const committer = CommitIdentity.parseIdentity(committerIdentity)
 
-    const tip = new Commit(sha, summary, body, author, parentSHAs, trailers)
+    if (!committer) {
+      throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
+    }
+
+    const parentSHAs = pieces[6].split(' ')
+    const symref = pieces[7]
+    const summary = pieces[8]
+    const body = pieces[9]
+    const trailers = parseRawUnfoldedTrailers(pieces[10], trailerSeparators)
+
+    const tip = new Commit(
+      sha,
+      summary,
+      body,
+      author,
+      committer,
+      parentSHAs,
+      trailers
+    )
 
     const type = ref.startsWith('refs/head')
       ? BranchType.Local

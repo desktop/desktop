@@ -57,6 +57,7 @@ describe('git/reflog', () => {
             '',
             '',
             new CommitIdentity('', '', new Date()),
+            new CommitIdentity('', '', new Date()),
             [],
             []
           ),
