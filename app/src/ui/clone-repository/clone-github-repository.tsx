@@ -209,7 +209,7 @@ export class CloneGithubRepository extends React.Component<
     return (
       <div className="clone-repository-list-item">
         <Octicon className="icon" symbol={item.icon} />
-        <div className="name" title={name}>
+        <div className="name" title={item.text}>
           {item.text}
         </div>
       </div>
