@@ -7,6 +7,19 @@ export interface ITrailer {
   value: string
 }
 
+/**
+ * Parse a string containing only unfolded trailers produced by
+ * git-interpret-trailers --only-input --only-trailers --unfold or
+ * a derivative such as git log --format="%(trailers:only,unfold)"
+ *
+ * @param trailers   A string containing one well formed trailer per
+ *                   line
+ *
+ * @param separators A string containing all characters to use when
+ *                   attempting to find the separator between token
+ *                   and value in a trailer. See the configuration
+ *                   option trailer.separators for more information
+ */
 export function parseRawUnfoldedTrailers(trailers: string, separators: string) {
   const lines = trailers.split('\n')
   const parsedTrailers = new Array<ITrailer>()
