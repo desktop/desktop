@@ -86,7 +86,7 @@ export async function mergeTrailers(
   const trailerArgs = []
 
   for (const trailer of trailers) {
-    trailerArgs.push('--trailer', `${trailer.key}:${trailer.value}`)
+    trailerArgs.push('--trailer', `${trailer.key}=${trailer.value}`)
   }
 
   const result = await git(
