@@ -28,6 +28,7 @@ export function match<T, _K extends keyof T>(
   items: ReadonlyArray<T>,
   getKey: _K | ((item: T) => string)
 ): ReadonlyArray<IMatch<T>> {
+  // matching `query` against itself is a perfect match.
   const maxScore = score(query, query, 1)
   return items
     .map((item): IMatch<T> => {
