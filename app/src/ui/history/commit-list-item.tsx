@@ -8,6 +8,7 @@ import { RelativeTime } from '../relative-time'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { clipboard } from 'electron'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { CommitAttribution } from '../lib/commit-attribution'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -36,7 +37,8 @@ export class CommitListItem extends React.Component<ICommitProps, {}> {
             renderUrlsAsLinks={false}
           />
           <div className="byline">
-            <RelativeTime date={author.date} /> by {author.name}
+            <CommitAttribution commit={commit} />{' '}
+            <RelativeTime date={author.date} />
           </div>
         </div>
       </div>
