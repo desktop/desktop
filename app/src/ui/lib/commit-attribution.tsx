@@ -61,7 +61,7 @@ export class CommitAttribution extends React.Component<
     const committerAttribution = !commit.authoredByCommitter
 
     return (
-      <span>
+      <span className="commit-attribution-component">
         {this.renderAuthors(authors, committerAttribution)}
         {committerAttribution ? ' authored' : ' committed'}
         {committerAttribution ? this.renderCommitter(committer) : null}
