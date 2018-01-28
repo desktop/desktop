@@ -31,6 +31,7 @@
     "file-url": "^2.0.2",
     "front-matter": "^2.1.2",
     "fs-extra": "^2.1.2",
+    "fuzzaldrin-plus": "^0.6.0",
     "keytar": "^4.0.4",
     "moment": "^2.17.1",
     "mri": "^1.1.0",

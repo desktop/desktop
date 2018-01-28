@@ -15,6 +15,7 @@ import {
   groupRepositories,
   YourRepositoriesIdentifier,
 } from './group-repositories'
+import { HighlightText } from '../lib/highlight-text'
 
 interface ICloneGithubRepositoryProps {
   /** The account to clone from. */
@@ -205,12 +206,15 @@ export class CloneGithubRepository extends React.Component<
     )
   }
 
-  private renderItem = (item: IClonableRepositoryListItem) => {
+  private renderItem = (
+    item: IClonableRepositoryListItem,
+    matches: ReadonlyArray<number>
+  ) => {
     return (
       <div className="clone-repository-list-item">
         <Octicon className="icon" symbol={item.icon} />
         <div className="name" title={item.text}>
-          {item.text}
+          <HighlightText text={item.text} highlight={matches} />
         </div>
       </div>
     )
