@@ -19,6 +19,8 @@ export interface ITrailer {
  *                   attempting to find the separator between token
  *                   and value in a trailer. See the configuration
  *                   option trailer.separators for more information
+ *
+ *                   Also see getTrailerSeparatorCharacters.
  */
 export function parseRawUnfoldedTrailers(trailers: string, separators: string) {
   const lines = trailers.split('\n')
