@@ -52,7 +52,7 @@ import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repo
 import { BranchesTab } from '../../models/branches-tab'
 import { FetchType } from '../../lib/stores'
 import { PullRequest } from '../../models/pull-request'
-import { IAuthor } from '../../ui/lib/author-input'
+import { IAuthor } from '../../models/author'
 import { ITrailer } from '../git/interpret-trailers'
 
 /**

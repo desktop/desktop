@@ -16,11 +16,12 @@ import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
 import { structuralEquals } from '../../lib/equality'
 import { generateGravatarUrl } from '../../lib/gravatar'
-import { AuthorInput, IAuthor } from '../lib/author-input'
+import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { ITrailer } from '../../lib/git/interpret-trailers'
+import { IAuthor } from '../../models/author'
 
 const addAuthorIcon = new OcticonSymbol(
   12,

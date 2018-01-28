@@ -16,7 +16,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { IAutocompletionProvider } from '../autocompletion'
 import { Repository } from '../../models/repository'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
-import { IAuthor } from '../lib/author-input'
+import { IAuthor } from '../../models/author'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 
 const RowHeight = 29

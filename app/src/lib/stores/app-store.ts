@@ -113,7 +113,7 @@ import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
 import { IRemote } from '../../models/remote'
-import { IAuthor } from '../../ui/lib/author-input';
+import { IAuthor } from '../../models/author';
 
 /**
  * Enum used by fetch to determine if

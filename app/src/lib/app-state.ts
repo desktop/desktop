@@ -25,7 +25,7 @@ import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import { PullRequest } from '../models/pull-request'
-import { IAuthor } from '../ui/lib/author-input'
+import { IAuthor } from '../models/author'
 
 export { ICommitMessage }
 export { IAheadBehind }
