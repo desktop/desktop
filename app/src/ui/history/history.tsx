@@ -91,16 +91,13 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
   }
 
   private renderCommitSummary(commit: Commit) {
-    const gitHubUser =
-      this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
-
     return (
       <CommitSummary
         commit={commit}
         files={this.props.history.changedFiles}
         emoji={this.props.emoji}
         repository={this.props.repository}
-        gitHubUser={gitHubUser}
+        gitHubUsers={this.props.gitHubUsers}
         onExpandChanged={this.onExpandChanged}
         isExpanded={this.state.isExpanded}
       />
