@@ -21,6 +21,8 @@ interface IAvatarState {
 
 /** A component for displaying a user avatar. */
 export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
+  private cancelFetchingAvatar = false
+
   public constructor(props: IAvatarProps) {
     super(props)
 
@@ -55,12 +57,28 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
 
   public async componentWillMount() {
     const dataUrl = await fetchAvatarUrl(DefaultAvatarURL, this.props.user)
-    this.setState({ dataUrl })
+
+    // https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
+    // We're basically doing isMounted here. Let's look at better ways
+    // in the future
+    if (!this.cancelFetchingAvatar) {
+      this.setState({ dataUrl })
+    }
   }
 
   public async componentWillReceiveProps(nextProps: IAvatarProps) {
     const dataUrl = await fetchAvatarUrl(DefaultAvatarURL, nextProps.user)
-    this.setState({ dataUrl })
+
+    // https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
+    // We're basically doing isMounted here. Let's look at better ways
+    // in the future
+    if (!this.cancelFetchingAvatar) {
+      this.setState({ dataUrl })
+    }
+  }
+
+  public componentWillUnmount() {
+    this.cancelFetchingAvatar = true
   }
 
   private getTitle(): string | undefined {
