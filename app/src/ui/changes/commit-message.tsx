@@ -239,7 +239,13 @@ export class CommitMessage extends React.Component<
 
     const trailers = this.getCoAuthorTrailers()
 
-    if (await this.props.onCreateCommit(summary, description, trailers)) {
+    const commitCreated = await this.props.onCreateCommit(
+      summary,
+      description,
+      trailers
+    )
+
+    if (commitCreated) {
       this.clearCommitMessage()
     }
   }
