@@ -7,7 +7,7 @@ import { CommitIdentity } from '../../src/models/commit-identity'
 
 describe('Branches grouping', () => {
   const author = new CommitIdentity('Hubot', 'hubot@github.com', new Date())
-  const commit = new Commit('300acef', 'summary', 'body', author, [])
+  const commit = new Commit('300acef', 'summary', 'body', author, [], [])
 
   const currentBranch = new Branch('master', null, commit, BranchType.Local)
   const defaultBranch = new Branch('master', null, commit, BranchType.Local)

@@ -32,6 +32,8 @@ describe('git/checkout', () => {
           tzOffset: 0,
         },
         parentSHAs: [],
+        trailers: [],
+        coAuthors: [],
       },
       remote: null,
     }

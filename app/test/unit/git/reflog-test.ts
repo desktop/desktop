@@ -52,7 +52,14 @@ describe('git/reflog', () => {
         new Branch(
           'branch-1',
           null,
-          new Commit('', '', '', new CommitIdentity('', '', new Date()), []),
+          new Commit(
+            '',
+            '',
+            '',
+            new CommitIdentity('', '', new Date()),
+            [],
+            []
+          ),
           BranchType.Local
         ),
         'branch-1-test'

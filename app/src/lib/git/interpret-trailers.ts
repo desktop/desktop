@@ -1,13 +1,49 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
+import { getConfigValue } from './config'
 
 export interface ITrailer {
-  key: string
+  token: string
   value: string
 }
 
+export function parseRawUnfoldedTrailers(trailers: string, separators: string) {
+  const lines = trailers.split('\n')
+  const parsedTrailers = new Array<ITrailer>()
+
+  for (const line of lines) {
+    for (const separator of separators) {
+      const ix = line.indexOf(separator)
+      if (ix > 0) {
+        parsedTrailers.push({
+          token: line.substring(0, ix).trim(),
+          value: line.substring(ix + 1).trim(),
+        })
+        break
+      }
+    }
+  }
+
+  return parsedTrailers
+}
+
 /**
- * Extract commit message trailers from a commit message
+ * Get a string containing the characters that may be used in this repository
+ * separate tokens from values in commit message trailers. If no specific
+ * trailer separator is configured the default separator (:) will be returned.
+ */
+export async function getTrailerSeparatorCharacters(
+  repository: Repository
+): Promise<string> {
+  return (await getConfigValue(repository, 'trailer.separators')) || ':'
+}
+
+/**
+ * Extract commit message trailers from a commit message.
+ *
+ * The trailers returned here are unfolded, i.e. they've had their
+ * whitespace continuation removed and are all on one line. See the
+ * documentation for --unfold in the help for `git interpret-trailers`
  *
  * @param repository    The repository in which to run the interpret-
  *                      trailers command. Although not intuitive this
@@ -40,13 +76,14 @@ export async function parseTrailers(
     }
   )
 
-  return result.stdout.split('\n').map(l => {
-    const parts = l.split(': ', 2)
-    return {
-      key: parts[0],
-      value: parts[1],
-    }
-  })
+  const trailers = result.stdout
+
+  if (trailers.length === 0) {
+    return []
+  }
+
+  const separators = await getTrailerSeparatorCharacters(repository)
+  return parseRawUnfoldedTrailers(result.stdout, separators)
 }
 
 /**
@@ -86,7 +123,7 @@ export async function mergeTrailers(
   const trailerArgs = []
 
   for (const trailer of trailers) {
-    trailerArgs.push('--trailer', `${trailer.key}=${trailer.value}`)
+    trailerArgs.push('--trailer', `${trailer.token}=${trailer.value}`)
   }
 
   const result = await git(

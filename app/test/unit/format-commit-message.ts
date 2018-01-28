@@ -33,8 +33,8 @@ describe('formatCommitMessage', () => {
   it('appends trailers to a summary-only message', async () => {
     const repo = await setupEmptyRepository()
     const trailers = [
-      { key: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>' },
-      { key: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
+      { token: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>' },
+      { token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
     ]
     expect(await formatCommitMessage(repo, 'foo', null, trailers)).to.equal(
       'foo\n\n' +
@@ -46,8 +46,8 @@ describe('formatCommitMessage', () => {
   it('appends trailers to a regular message', async () => {
     const repo = await setupEmptyRepository()
     const trailers = [
-      { key: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>' },
-      { key: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
+      { token: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>' },
+      { token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
     ]
     expect(await formatCommitMessage(repo, 'foo', 'bar', trailers)).to.equal(
       'foo\n\nbar\n\n' +
@@ -60,8 +60,8 @@ describe('formatCommitMessage', () => {
   it('merges duplicate trailers', async () => {
     const repo = await setupEmptyRepository()
     const trailers = [
-      { key: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>' },
-      { key: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
+      { token: 'Co-Authored-By', value: 'Markus Olsson <niik@github.com>' },
+      { token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
     ]
     expect(
       await formatCommitMessage(
@@ -81,7 +81,7 @@ describe('formatCommitMessage', () => {
   it('fixes up malformed trailers when trailers are given', async () => {
     const repo = await setupEmptyRepository()
     const trailers = [
-      { key: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
+      { token: 'Signed-Off-By', value: 'nerdneha <nerdneha@github.com>' },
     ]
 
     expect(

@@ -3,6 +3,10 @@ import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { Branch, BranchType } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
+import {
+  getTrailerSeparatorCharacters,
+  parseRawUnfoldedTrailers,
+} from './interpret-trailers'
 
 /** Get all the branches. */
 export async function getBranches(
@@ -22,6 +26,7 @@ export async function getBranches(
     '%(symref)',
     '%(subject)',
     '%(body)',
+    '%(trailers:unfold,only)',
     `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
   ].join('%00')
 
@@ -39,6 +44,12 @@ export async function getBranches(
 
   // Remove the trailing newline
   lines.splice(-1, 1)
+
+  if (lines.length === 0) {
+    return []
+  }
+
+  const trailerSeparators = await getTrailerSeparatorCharacters(repository)
 
   const branches = []
 
@@ -62,8 +73,9 @@ export async function getBranches(
     const symref = pieces[6]
     const summary = pieces[7]
     const body = pieces[8]
+    const trailers = parseRawUnfoldedTrailers(pieces[9], trailerSeparators)
 
-    const tip = new Commit(sha, summary, body, author, parentSHAs)
+    const tip = new Commit(sha, summary, body, author, parentSHAs, trailers)
 
     const type = ref.startsWith('refs/head')
       ? BranchType.Local
