@@ -621,7 +621,8 @@ export class GitStore {
         continue
       }
 
-      extractedTrailers.push(coAuthorTrailers[foundTrailerIx])
+      // We're running backwards
+      extractedTrailers.unshift(coAuthorTrailers[foundTrailerIx])
 
       // Remove the trailer that matched so that we can be sure
       // we're not picking it up again
