@@ -360,7 +360,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitQueued = false
     const state = this.getState()
 
-    this._emitter.emit('did-update', state)
+    super.emitUpdate(state)
     updateMenuState(state, this.appMenu)
   }
 
