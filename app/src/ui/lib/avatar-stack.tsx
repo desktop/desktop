@@ -3,7 +3,12 @@ import * as classNames from 'classnames'
 import { Avatar } from './avatar'
 import { IAvatarUser } from '../../models/avatar'
 
-const MAX_DISPLAYED_COMMIT_AVATARS = 3
+/**
+ * The maximum number of avatars to stack before hiding
+ * the rest behind the hover action. Note that changing this
+ * means that the css needs to change as well.
+ */
+const MaxDisplayedAvatars = 3
 
 interface IAvatarStackProps {
   readonly users: ReadonlyArray<IAvatarUser>
@@ -17,10 +22,7 @@ export class AvatarStack extends React.Component<IAvatarStackProps, {}> {
     for (let i = 0; i < this.props.users.length; i++) {
       const user = users[i]
 
-      if (
-        users.length > MAX_DISPLAYED_COMMIT_AVATARS &&
-        i === MAX_DISPLAYED_COMMIT_AVATARS - 1
-      ) {
+      if (users.length > MaxDisplayedAvatars && i === MaxDisplayedAvatars - 1) {
         elems.push(<div key="more" className="avatar-more avatar" />)
       }
 
@@ -32,7 +34,7 @@ export class AvatarStack extends React.Component<IAvatarStackProps, {}> {
     const className = classNames('AvatarStack', {
       'AvatarStack--small': true,
       'AvatarStack--two': users.length === 2,
-      'AvatarStack--three-plus': users.length >= MAX_DISPLAYED_COMMIT_AVATARS,
+      'AvatarStack--three-plus': users.length >= MaxDisplayedAvatars,
     })
 
     return (
