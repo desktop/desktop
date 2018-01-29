@@ -30,13 +30,13 @@ export class Commit {
 
   /**
    * Information about the author of this commit.
-   * includes name, email and date.
+   * Includes name, email and date.
    */
   public readonly author: CommitIdentity
 
   /**
    * Information about the committer of this commit.
-   * includes name, email and date.
+   * Includes name, email and date.
    */
   public readonly committer: CommitIdentity
 
