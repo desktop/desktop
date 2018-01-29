@@ -17,6 +17,7 @@ import { Dispatcher } from '../lib/dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Octicon, OcticonSymbol } from './octicons'
+import { Account } from '../models/account'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -33,6 +34,7 @@ interface IRepositoryProps {
   readonly onViewCommitOnGitHub: (SHA: string) => void
   readonly imageDiffType: ImageDiffType
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly accounts: ReadonlyArray<Account>
 }
 
 const enum Tab {
@@ -98,6 +100,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
         }
+        accounts={this.props.accounts}
       />
     )
   }

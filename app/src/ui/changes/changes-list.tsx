@@ -16,6 +16,8 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { IAutocompletionProvider } from '../autocompletion'
 import { Repository } from '../../models/repository'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { IAuthor } from '../../models/author'
+import { ITrailer } from '../../lib/git/interpret-trailers'
 
 const RowHeight = 29
 
@@ -26,7 +28,11 @@ interface IChangesListProps {
   readonly onFileSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
-  readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
+  readonly onCreateCommit: (
+    summary: string,
+    description: string | null,
+    trailers?: ReadonlyArray<ITrailer>
+  ) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly onDiscardAllChanges: (
     files: ReadonlyArray<WorkingDirectoryFileChange>
@@ -64,6 +70,21 @@ interface IChangesListProps {
 
   /** Called when the given pattern should be ignored. */
   readonly onIgnore: (pattern: string) => void
+
+  /**
+   * Whether or not to show a field for adding co-authors to
+   * a commit (currently only supported for GH/GHE repositories)
+   */
+  readonly showCoAuthoredBy: boolean
+
+  /**
+   * A list of authors (name, email pairs) which have been
+   * entered into the co-authors input box in the commit form
+   * and which _may_ be used in the subsequent commit to add
+   * Co-Authored-By commit message trailers depending on whether
+   * the user has chosen to do so.
+   */
+  readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
 export class ChangesList extends React.Component<IChangesListProps, {}> {
@@ -182,6 +203,8 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
           contextualCommitMessage={this.props.contextualCommitMessage}
           autocompletionProviders={this.props.autocompletionProviders}
           isCommitting={this.props.isCommitting}
+          showCoAuthoredBy={this.props.showCoAuthoredBy}
+          coAuthors={this.props.coAuthors}
         />
       </div>
     )

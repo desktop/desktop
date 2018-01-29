@@ -31,7 +31,17 @@ describe('git/checkout', () => {
           date: new Date(),
           tzOffset: 0,
         },
+        committer: {
+          name: '',
+          email: '',
+          date: new Date(),
+          tzOffset: 0,
+        },
+        authoredByCommitter: true,
         parentSHAs: [],
+        trailers: [],
+        coAuthors: [],
+        isWebFlowCommitter: () => false,
       },
       remote: null,
     }

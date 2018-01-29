@@ -3,6 +3,10 @@ import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { Branch, BranchType } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
+import {
+  getTrailerSeparatorCharacters,
+  parseRawUnfoldedTrailers,
+} from './interpret-trailers'
 
 /** Get all the branches. */
 export async function getBranches(
@@ -18,10 +22,12 @@ export async function getBranches(
     '%(upstream:short)',
     '%(objectname)', // SHA
     '%(author)',
+    '%(committer)',
     '%(parent)', // parent SHAs
     '%(symref)',
     '%(subject)',
     '%(body)',
+    '%(trailers:unfold,only)',
     `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
   ].join('%00')
 
@@ -39,6 +45,12 @@ export async function getBranches(
 
   // Remove the trailing newline
   lines.splice(-1, 1)
+
+  if (lines.length === 0) {
+    return []
+  }
+
+  const trailerSeparators = await getTrailerSeparatorCharacters(repository)
 
   const branches = []
 
@@ -58,12 +70,28 @@ export async function getBranches(
       throw new Error(`Couldn't parse author identity ${authorIdentity}`)
     }
 
-    const parentSHAs = pieces[5].split(' ')
-    const symref = pieces[6]
-    const summary = pieces[7]
-    const body = pieces[8]
+    const committerIdentity = pieces[5]
+    const committer = CommitIdentity.parseIdentity(committerIdentity)
 
-    const tip = new Commit(sha, summary, body, author, parentSHAs)
+    if (!committer) {
+      throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
+    }
+
+    const parentSHAs = pieces[6].split(' ')
+    const symref = pieces[7]
+    const summary = pieces[8]
+    const body = pieces[9]
+    const trailers = parseRawUnfoldedTrailers(pieces[10], trailerSeparators)
+
+    const tip = new Commit(
+      sha,
+      summary,
+      body,
+      author,
+      committer,
+      parentSHAs,
+      trailers
+    )
 
     const type = ref.startsWith('refs/head')
       ? BranchType.Local
