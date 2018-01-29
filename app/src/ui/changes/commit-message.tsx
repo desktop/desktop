@@ -73,6 +73,13 @@ interface ICommitMessageState {
   readonly lastContextualCommitMessage: ICommitMessage | null
 
   readonly userAutocompletionProvider: UserAutocompletionProvider | null
+
+  /**
+   * Whether or not the description text area has more text that's
+   * obscured by the action bar. Note that this will always be
+   * false when there's no action bar.
+   */
+  readonly descriptionObscured: boolean
 }
 
 function findUserAutoCompleteProvider(
@@ -93,6 +100,9 @@ export class CommitMessage extends React.Component<
 > {
   private descriptionComponent: AutocompletingTextArea | null = null
 
+  private descriptionTextArea: HTMLTextAreaElement | null = null
+  private descriptionTextAreaScrollDebounceId: number | null = null
+
   public constructor(props: ICommitMessageProps) {
     super(props)
 
@@ -103,6 +113,7 @@ export class CommitMessage extends React.Component<
       userAutocompletionProvider: findUserAutoCompleteProvider(
         props.autocompletionProviders
       ),
+      descriptionObscured: false,
     }
   }
 
@@ -379,6 +390,38 @@ export class CommitMessage extends React.Component<
     this.descriptionComponent = component
   }
 
+  private onDescriptionTextAreaScroll = () => {
+    this.descriptionTextAreaScrollDebounceId = null
+
+    const elem = this.descriptionTextArea
+    const descriptionObscured =
+      elem !== null && elem.scrollTop + elem.offsetHeight < elem.scrollHeight
+
+    if (elem) {
+      console.log(elem.scrollTop, elem.scrollHeight, elem.offsetHeight)
+    }
+
+    if (this.state.descriptionObscured !== descriptionObscured) {
+      this.setState({ descriptionObscured })
+    }
+  }
+
+  private onDescriptionTextAreaRef = (elem: HTMLTextAreaElement | null) => {
+    if (elem) {
+      elem.addEventListener('scroll', () => {
+        if (this.descriptionTextAreaScrollDebounceId !== null) {
+          cancelAnimationFrame(this.descriptionTextAreaScrollDebounceId)
+          this.descriptionTextAreaScrollDebounceId = null
+        }
+        this.descriptionTextAreaScrollDebounceId = requestAnimationFrame(
+          this.onDescriptionTextAreaScroll
+        )
+      })
+    }
+
+    this.descriptionTextArea = elem
+  }
+
   private onFocusContainerClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.descriptionComponent) {
       this.descriptionComponent.focus()
@@ -410,6 +453,10 @@ export class CommitMessage extends React.Component<
       'with-co-authors': this.isCoAuthorInputEnabled,
     })
 
+    const descriptionClassName = classNames('description-field', {
+      'with-overflow': this.state.descriptionObscured,
+    })
+
     return (
       <div
         id="commit-message"
@@ -436,12 +483,13 @@ export class CommitMessage extends React.Component<
           onClick={this.onFocusContainerClick}
         >
           <AutocompletingTextArea
-            className="description-field"
+            className={descriptionClassName}
             placeholder="Description"
             value={this.state.description || ''}
             onValueChanged={this.onDescriptionChanged}
             autocompletionProviders={this.props.autocompletionProviders}
             ref={this.onDescriptionFieldRef}
+            onElementRef={this.onDescriptionTextAreaRef}
           />
           {this.renderActionBar()}
         </FocusContainer>
