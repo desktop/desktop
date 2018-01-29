@@ -172,8 +172,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private emitQueued = false
 
   /** GitStores keyed by their hash. */
-  private readonly _gitStores = new Map<string, GitStore>()
-  private readonly _repositorySettingsStores = new Map<
+  private readonly gitStores = new Map<string, GitStore>()
+  private readonly repositorySettingsStores = new Map<
     string,
     RepositorySettingsStore
   >()
@@ -213,7 +213,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
-  private _windowState: WindowState
+  private windowState: WindowState
   private windowZoomFactor: number = 1
   private isUpdateAvailableBannerVisible: boolean = false
   private confirmRepoRemoval: boolean = confirmRepoRemovalDefault
@@ -259,11 +259,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore = accountsStore
     this.repositoriesStore = repositoriesStore
     this.pullRequestStore = pullRequestStore
-    this.repositoriesStore = repositoriesStore
     this.showWelcomeFlow = !hasShownWelcomeFlow()
 
     const window = remote.getCurrentWindow()
-    this._windowState = getWindowState(window)
+    this.windowState = getWindowState(window)
 
     window.webContents.getZoomFactor(factor => {
       this.onWindowZoomFactorChanged(factor)
@@ -278,7 +277,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ipcRenderer.on(
       'window-state-changed',
       (event: Electron.IpcMessageEvent, args: any[]) => {
-        this._windowState = getWindowState(window)
+        this.windowState = getWindowState(window)
         this.emitUpdate()
       }
     )
@@ -340,7 +339,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // If the window is hidden then we won't get an animation frame, but there
     // may still be work we wanna do in response to the state change. So
     // immediately emit the update.
-    if (this._windowState === 'hidden') {
+    if (this.windowState === 'hidden') {
       this.emitUpdateNow()
       return
     }
@@ -525,7 +524,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ...this.repositories,
         ...this.cloningRepositoriesStore.repositories,
       ],
-      windowState: this._windowState,
+      windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
@@ -583,13 +582,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private removeGitStore(repository: Repository) {
-    if (this._gitStores.has(repository.hash)) {
-      this._gitStores.delete(repository.hash)
+    if (this.gitStores.has(repository.hash)) {
+      this.gitStores.delete(repository.hash)
     }
   }
 
   private getGitStore(repository: Repository): GitStore {
-    let gitStore = this._gitStores.get(repository.hash)
+    let gitStore = this.gitStores.get(repository.hash)
     if (!gitStore) {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
@@ -598,7 +597,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
       gitStore.onDidError(error => this.emitError(error))
 
-      this._gitStores.set(repository.hash, gitStore)
+      this.gitStores.set(repository.hash, gitStore)
     }
 
     return gitStore
@@ -607,22 +606,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private removeRepositorySettingsStore(repository: Repository) {
     const key = repository.hash
 
-    if (this._repositorySettingsStores.has(key)) {
-      this._repositorySettingsStores.delete(key)
+    if (this.repositorySettingsStores.has(key)) {
+      this.repositorySettingsStores.delete(key)
     }
   }
 
   private getRepositorySettingsStore(
     repository: Repository
   ): RepositorySettingsStore {
-    let store = this._repositorySettingsStores.get(repository.hash)
+    let store = this.repositorySettingsStores.get(repository.hash)
 
     if (store == null) {
       store = new RepositorySettingsStore(repository)
 
       store.onDidError(error => this.emitError(error))
 
-      this._repositorySettingsStores.set(repository.hash, store)
+      this.repositorySettingsStores.set(repository.hash, store)
     }
 
     return store
@@ -3045,7 +3044,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await this.pullRequestStore.refreshPullRequests(repository, account)
-    return this.updateMenuItemLabels(repository)
+    this.updateMenuItemLabels(repository)
   }
 
   private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {
