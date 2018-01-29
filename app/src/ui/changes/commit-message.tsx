@@ -450,7 +450,7 @@ export class CommitMessage extends React.Component<
     const loading = this.props.isCommitting ? <Loading /> : undefined
     const className = classNames({
       'with-action-bar': this.isActionBarEnabled,
-      'with-co-authors': this.isCoAuthorInputEnabled,
+      'with-co-authors': this.isCoAuthorInputVisible,
     })
 
     const descriptionClassName = classNames('description-field', {
