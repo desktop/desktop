@@ -144,22 +144,22 @@ export async function parseTrailers(
 export async function mergeTrailers(
   repository: Repository,
   commitMessage: string,
-  trailers: ReadonlyArray<ITrailer>
+  trailers: ReadonlyArray<ITrailer>,
+  unfold: boolean = false
 ) {
-  const trailerArgs = []
+  const args = ['interpret-trailers']
 
-  for (const trailer of trailers) {
-    trailerArgs.push('--trailer', `${trailer.token}=${trailer.value}`)
+  if (unfold) {
+    args.push('--unfold')
   }
 
-  const result = await git(
-    ['interpret-trailers', ...trailerArgs],
-    repository.path,
-    'mergeTrailers',
-    {
-      stdin: commitMessage,
-    }
-  )
+  for (const trailer of trailers) {
+    args.push('--trailer', `${trailer.token}=${trailer.value}`)
+  }
+
+  const result = await git(args, repository.path, 'mergeTrailers', {
+    stdin: commitMessage,
+  })
 
   return result.stdout
 }
