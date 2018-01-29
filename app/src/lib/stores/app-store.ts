@@ -2712,10 +2712,12 @@ export class AppStore {
   public async _addRepositories(
     paths: ReadonlyArray<string>
   ): Promise<ReadonlyArray<Repository>> {
-    const addedRepositories = new Array<Repository>()
-    const lfsRepositories = new Array<Repository>()
+    const addedRepositories: Array<Repository> = []
+    const lfsRepositories: Array<Repository> = []
+
     for (const path of paths) {
       const validatedPath = await validatedRepositoryPath(path)
+
       if (validatedPath) {
         log.info(`[AppStore] adding repository at ${validatedPath} to store`)
 
