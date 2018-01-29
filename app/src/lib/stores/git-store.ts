@@ -44,6 +44,10 @@ import {
   addRemote,
   listSubmodules,
   resetSubmodulePaths,
+  parseTrailers,
+  mergeTrailers,
+  getTrailerSeparatorCharacters,
+  parseSingleUnfoldedTrailer,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -53,6 +57,9 @@ import {
   findUpstreamRemote,
   UpstreamRemoteName,
 } from './helpers/find-upstream-remote'
+import { IAuthor } from '../../models/author'
+import { formatCommitMessage } from '../format-commit-message'
+import { GitAuthor } from '../../models/git-author'
 import { BaseStore } from './base-store'
 
 /** The number of commits to load from history per batch. */
@@ -92,9 +99,13 @@ export class GitStore extends BaseStore {
 
   private _localCommitSHAs: ReadonlyArray<string> = []
 
-  private _commitMessage: ICommitMessage | null
+  private _commitMessage: ICommitMessage | null = null
 
-  private _contextualCommitMessage: ICommitMessage | null
+  private _contextualCommitMessage: ICommitMessage | null = null
+
+  private _showCoAuthoredBy: boolean = false
+
+  private _coAuthors: ReadonlyArray<IAuthor> = []
 
   private _aheadBehind: IAheadBehind | null = null
 
@@ -476,25 +487,175 @@ export class GitStore extends BaseStore {
   public async undoCommit(commit: Commit): Promise<void> {
     // For an initial commit, just delete the reference but leave HEAD. This
     // will make the branch unborn again.
-    let success: true | undefined = undefined
-    if (commit.parentSHAs.length === 0) {
-      success = await this.performFailableOperation(() =>
-        this.undoFirstCommit(this.repository)
-      )
-    } else {
-      success = await this.performFailableOperation(() =>
-        reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0])
-      )
+    const success = await this.performFailableOperation(
+      () =>
+        commit.parentSHAs.length === 0
+          ? this.undoFirstCommit(this.repository)
+          : reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0])
+    )
+
+    if (success === undefined) {
+      return
     }
 
-    if (success) {
+    // Let's be safe about this since it's untried waters.
+    // If we can restore co-authors then that's fantastic
+    // but if we can't we shouldn't be throwing an error,
+    // let's just fall back to the old way of restoring the
+    // entire message
+    if (this.repository.gitHubRepository) {
+      try {
+        await this.loadCommitAndCoAuthors(commit)
+        this.emitUpdate()
+        return
+      } catch (e) {
+        log.error('Failed to restore commit and co-authors, falling back', e)
+      }
+    }
+
+    this._contextualCommitMessage = {
+      summary: commit.summary,
+      description: commit.body,
+    }
+    this.emitUpdate()
+  }
+
+  /**
+   * Attempt to restore both the commit message and any co-authors
+   * in it after an undo operation.
+   *
+   * This is a deceivingly simple task which complicated by the
+   * us wanting to follow the heuristics of Git when finding, and
+   * parsing trailers.
+   */
+  private async loadCommitAndCoAuthors(commit: Commit) {
+    const repository = this.repository
+
+    // git-interpret-trailers is really only made for working
+    // with full commit messages so let's start with that
+    const message = await formatCommitMessage(
+      repository,
+      commit.summary,
+      commit.body,
+      []
+    )
+
+    // Next we extract any co-authored-by trailers we
+    // can find. We use interpret-trailers for this
+    const foundTrailers = await parseTrailers(repository, message)
+    const coAuthorTrailers = foundTrailers.filter(
+      t => t.token.toLowerCase() === 'co-authored-by'
+    )
+
+    // This is the happy path, nothing more for us to do
+    if (coAuthorTrailers.length === 0) {
       this._contextualCommitMessage = {
         summary: commit.summary,
         description: commit.body,
       }
+
+      return
     }
 
-    this.emitUpdate()
+    // call interpret-trailers --unfold so that we can be sure each
+    // trailer sits on a single line
+    const unfolded = await mergeTrailers(repository, message, [], true)
+    const lines = unfolded.split('\n')
+
+    // We don't know (I mean, we're fairly sure) what the separator character
+    // used for the trailer is so we call out to git to get all possible
+    // characters. We'll need them in a bit
+    const separators = await getTrailerSeparatorCharacters(this.repository)
+
+    // We know that what we've got now is well formed so we can capture the leading
+    // token, followed by the separator char and a single space, followed by the
+    // value
+    const coAuthorRe = /^co-authored-by(.)\s(.*)/i
+    const extractedTrailers = []
+
+    // Iterate backwards from the unfolded message and look for trailers that we've
+    // already seen when calling parseTrailers earlier.
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i]
+      const match = coAuthorRe.exec(line)
+
+      // Not a trailer line, we're sure of that
+      if (!match || separators.indexOf(match[1]) === -1) {
+        continue
+      }
+
+      const trailer = parseSingleUnfoldedTrailer(line, match[1])
+
+      if (!trailer) {
+        continue
+      }
+
+      // We already know that the key is Co-Authored-By so we only
+      // need to compare by value. Let's see if we can find the thing
+      // that we believe to be a trailer among what interpret-trailers
+      // --parse told us was a trailer. This step is a bit redundant
+      // but it ensure we match exactly with what Git thinks is a trailer
+      const foundTrailerIx = coAuthorTrailers.findIndex(
+        t => t.value === trailer.value
+      )
+
+      if (foundTrailerIx === -1) {
+        continue
+      }
+
+      // We're running backwards
+      extractedTrailers.unshift(coAuthorTrailers[foundTrailerIx])
+
+      // Remove the trailer that matched so that we can be sure
+      // we're not picking it up again
+      coAuthorTrailers.splice(foundTrailerIx, 1)
+
+      // This line was a co-author trailer so we'll remove it to
+      // make sure it doesn't end up in the restored commit body
+      lines.splice(i, 1)
+    }
+
+    // Get rid of the summary/title
+    lines.splice(0, 2)
+
+    const newBody = lines.join('\n').trim()
+
+    this._contextualCommitMessage = {
+      summary: commit.summary,
+      description: newBody,
+    }
+
+    const extractedAuthors = extractedTrailers.map(t =>
+      GitAuthor.parse(t.value)
+    )
+    const newAuthors = new Array<IAuthor>()
+
+    // Last step, phew! The most likely scenario where we
+    // get called is when someone has just made a commit and
+    // either forgot to add a co-author or forgot to remove
+    // someone so chances are high that we already have a
+    // co-author which includes a username. If we don't we'll
+    // add it without a username which is fine as well
+    for (let i = 0; i < extractedAuthors.length; i++) {
+      const extractedAuthor = extractedAuthors[i]
+
+      // If GitAuthor failed to parse
+      if (extractedAuthor === null) {
+        continue
+      }
+
+      const { name, email } = extractedAuthor
+      const existing = this.coAuthors.find(
+        a => a.name === name && a.email === email && a.username !== null
+      )
+      newAuthors.push(existing || { name, email, username: null })
+    }
+
+    this._coAuthors = newAuthors
+
+    if (this._coAuthors.length > 0 && this._showCoAuthoredBy === false) {
+      this._showCoAuthoredBy = true
+    }
   }
 
   /**
@@ -533,6 +694,23 @@ export class GitStore extends BaseStore {
    */
   public get contextualCommitMessage(): ICommitMessage | null {
     return this._contextualCommitMessage
+  }
+
+  /**
+   * Gets a value indicating whether the user has chosen to
+   * hide or show the co-authors field in the commit message
+   * component
+   */
+  public get showCoAuthoredBy(): boolean {
+    return this._showCoAuthoredBy
+  }
+
+  /**
+   * Gets a list of co-authors to use when crafting the next
+   * commit.
+   */
+  public get coAuthors(): ReadonlyArray<IAuthor> {
+    return this._coAuthors
   }
 
   /**
@@ -815,6 +993,29 @@ export class GitStore extends BaseStore {
    */
   public get upstream(): IRemote | null {
     return this._upstream
+  }
+
+  /**
+   * Set whether the user has chosen to hide or show the
+   * co-authors field in the commit message component
+   */
+  public setShowCoAuthoredBy(showCoAuthoredBy: boolean) {
+    this._showCoAuthoredBy = showCoAuthoredBy
+    // Clear co-authors when hiding
+    if (!showCoAuthoredBy) {
+      this._coAuthors = []
+    }
+    this.emitUpdate()
+  }
+
+  /**
+   * Update co-authors list
+   *
+   * @param coAuthors  Zero or more authors
+   */
+  public setCoAuthors(coAuthors: ReadonlyArray<IAuthor>) {
+    this._coAuthors = coAuthors
+    this.emitUpdate()
   }
 
   public setCommitMessage(message: ICommitMessage | null): Promise<void> {

@@ -9,6 +9,7 @@ import {
 import { getAvatarWithEnterpriseFallback } from '../gravatar'
 
 import { fatalError } from '../fatal-error'
+import { compare } from '../compare'
 import { BaseStore } from './base-store'
 
 /**
@@ -52,6 +53,58 @@ export class GitHubUserStore extends BaseStore {
       ? repository.gitHubRepository.endpoint
       : getDotComAPIEndpoint()
     return this.getUsersForEndpoint(endpoint)
+  }
+
+  /**
+   * Retrieve a public user profile based on the user login.
+   *
+   * If the user is already cached no additional API requests
+   * will be made. If the user isn't in the cache but found in
+   * the API it will be persisted to the database and the
+   * intermediate cache.
+   *
+   * @param account The account to use when querying the API
+   *                for information about the user
+   * @param login   The login (i.e. handle) of the user
+   */
+  public async getByLogin(
+    account: Account,
+    login: string
+  ): Promise<IGitHubUser | null> {
+    const existing = await this.database.users
+      .where('[endpoint+login]')
+      .equals([account.endpoint, login])
+      .first()
+
+    if (existing) {
+      return existing
+    }
+
+    const api = API.fromAccount(account)
+    const apiUser = await api.fetchUser(login).catch(e => null)
+
+    if (!apiUser || apiUser.type !== 'User') {
+      return null
+    }
+
+    const avatarURL = getAvatarWithEnterpriseFallback(
+      apiUser.avatar_url,
+      apiUser.email,
+      account.endpoint
+    )
+
+    const user: IGitHubUser = {
+      avatarURL,
+      email: apiUser.email || '',
+      endpoint: account.endpoint,
+      name: apiUser.name || apiUser.login,
+      login: apiUser.login,
+    }
+
+    // We don't overwrite email addresses since we might not get one from this
+    // endpoint, but we could already have one from looking up a commit
+    // specifically.
+    return await this.cacheUser(user, false)
   }
 
   /** Update the mentionable users for the repository. */
@@ -210,7 +263,7 @@ export class GitHubUserStore extends BaseStore {
           avatarURL,
           login: apiCommit.author.login,
           endpoint: account.endpoint,
-          name: apiCommit.author.name,
+          name: apiCommit.author.name || apiCommit.author.login,
         }
       }
     }
@@ -227,7 +280,7 @@ export class GitHubUserStore extends BaseStore {
         login: matchingUser.login,
         avatarURL,
         endpoint: account.endpoint,
-        name: matchingUser.name,
+        name: matchingUser.name || matchingUser.login,
       }
     }
 
@@ -247,7 +300,12 @@ export class GitHubUserStore extends BaseStore {
       this.usersByEndpoint.set(user.endpoint, userMap)
     }
 
-    userMap.set(user.email, user)
+    // We still store unknown emails as empty strings,
+    // inserting that into cache would just create a
+    // race condition of whoever gets added last
+    if (user.email.length > 0) {
+      userMap.set(user.email, user)
+    }
 
     const addedUser = await this.database.transaction(
       'rw',
@@ -319,7 +377,7 @@ export class GitHubUserStore extends BaseStore {
   }
 
   /**
-   * Pune the mentionable associations by removing any association that isn't in
+   * Prune the mentionable associations by removing any association that isn't in
    * the given array of users.
    */
   private async pruneRemovedMentionables(
@@ -399,33 +457,52 @@ export class GitHubUserStore extends BaseStore {
     return users
   }
 
-  /** Get the mentionable users which match the text in some way. */
+  /**
+   * Get the mentionable users which match the text in some way.
+   *
+   * Hit results are ordered by how close in the search string
+   * they matched. Search strings start with username and are followed
+   * by real name. Only the first substring hit is considered
+   *
+   * @param text    A string to use when looking for a matching
+   *                user. A user is considered a hit if this text
+   *                matches any subtext of the username or real name
+   *
+   * @param maxHits The maximum number of hits to return.
+   */
   public async getMentionableUsersMatching(
     repository: GitHubRepository,
-    text: string
+    text: string,
+    maxHits: number = 100
   ): Promise<ReadonlyArray<IGitHubUser>> {
     const users = await this.getMentionableUsers(repository)
 
-    const MaxScore = 1
-    const score = (u: IGitHubUser) => {
-      const login = u.login
-      if (login && login.toLowerCase().startsWith(text.toLowerCase())) {
-        return MaxScore
-      }
+    const hits = []
+    const needle = text.toLowerCase()
 
-      // `name` shouldn't even be `undefined` going forward, but older versions
-      // of the user cache didn't persist `name`. The `GitHubUserStore` will fix
-      // that, but autocompletions could be requested before that happens. So we
-      // need to check here even though the type says its superfluous.
-      const name = u.name
-      if (name && name.toLowerCase().includes(text.toLowerCase())) {
-        return MaxScore - 0.1
-      }
+    // Simple substring comparison on login and real name
+    for (let i = 0; i < users.length && hits.length < maxHits; i++) {
+      const user = users[i]
+      const ix = `${user.login} ${user.name}`
+        .trim()
+        .toLowerCase()
+        .indexOf(needle)
 
-      return 0
+      if (ix >= 0) {
+        hits.push({ user, ix })
+      }
     }
 
-    return users.filter(u => score(u) > 0).sort((a, b) => score(b) - score(a))
+    // Sort hits primarily based on how early in the text the match
+    // was found and then secondarily using alphabetic order. Ideally
+    // we'd use the GitHub user id in order to match dotcom behavior
+    // but sadly we don't have it handy here. The id property on IGitHubUser
+    // refers to our internal database id.
+    return hits
+      .sort(
+        (x, y) => compare(x.ix, y.ix) || compare(x.user.login, y.user.login)
+      )
+      .map(h => h.user)
   }
 }
 

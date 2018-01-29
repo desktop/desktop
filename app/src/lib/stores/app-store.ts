@@ -74,6 +74,7 @@ import {
   formatAsLocalRef,
   getMergeBase,
   getRemotes,
+  ITrailer,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -117,6 +118,7 @@ import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
 import { IRemote } from '../../models/remote'
+import { IAuthor } from '../../models/author'
 
 /**
  * Enum used by fetch to determine if
@@ -396,6 +398,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         diff: null,
         contextualCommitMessage: null,
         commitMessage: null,
+        coAuthors: [],
+        showCoAuthoredBy: false,
       },
       selectedSection: RepositorySection.Changes,
       branchesState: {
@@ -563,6 +567,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateChangesState(repository, state => ({
       commitMessage: gitStore.commitMessage,
       contextualCommitMessage: gitStore.contextualCommitMessage,
+      showCoAuthoredBy: gitStore.showCoAuthoredBy,
+      coAuthors: gitStore.coAuthors,
     }))
 
     this.updateRepositoryState(repository, state => ({
@@ -1334,7 +1340,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _commitIncludedChanges(
     repository: Repository,
-    message: ICommitMessage
+    summary: string,
+    description: string | null,
+    trailers?: ReadonlyArray<ITrailer>
   ): Promise<boolean> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files
@@ -1345,9 +1353,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.getGitStore(repository)
 
     const result = await this.isCommitting(repository, () => {
-      return gitStore.performFailableOperation(() => {
-        const commitMessage = formatCommitMessage(message)
-        return createCommit(repository, commitMessage, selectedFiles)
+      return gitStore.performFailableOperation(async () => {
+        const message = await formatCommitMessage(
+          repository,
+          summary,
+          description,
+          trailers
+        )
+        return createCommit(repository, message, selectedFiles)
       })
     })
 
@@ -3234,6 +3247,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       await this._checkoutBranch(repository, localBranchName)
     }
+  }
+
+  /**
+   * Set whether the user has chosen to hide or show the
+   * co-authors field in the commit message component
+   */
+  public _setShowCoAuthoredBy(
+    repository: Repository,
+    showCoAuthoredBy: boolean
+  ) {
+    this.getGitStore(repository).setShowCoAuthoredBy(showCoAuthoredBy)
+    return Promise.resolve()
+  }
+
+  /**
+   * Update the per-repository co-authors list
+   *
+   * @param repository Co-author settings are per-repository
+   * @param coAuthors  Zero or more authors
+   */
+  public _setCoAuthors(
+    repository: Repository,
+    coAuthors: ReadonlyArray<IAuthor>
+  ) {
+    this.getGitStore(repository).setCoAuthors(coAuthors)
+    return Promise.resolve()
   }
 }
 

@@ -235,7 +235,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       return null
     }
 
-    const combinedRefStatuses = result.statuses.map(x => {
+    const combinedRefStatuses = (result.statuses || []).map(x => {
       return {
         id: x.id,
         state: x.state,

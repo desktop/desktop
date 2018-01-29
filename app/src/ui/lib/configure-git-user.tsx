@@ -88,6 +88,8 @@ export class ConfigureGitUser extends React.Component<
       'Fix all the things',
       '',
       author,
+      author,
+      [],
       []
     )
     const emoji = new Map()
@@ -120,24 +122,13 @@ export class ConfigureGitUser extends React.Component<
           <CommitListItem
             commit={dummyCommit}
             emoji={emoji}
-            user={this.getAvatarUser()}
+            gitHubUsers={null}
             gitHubRepository={null}
             isLocal={false}
           />
         </div>
       </div>
     )
-  }
-
-  private getAvatarUser() {
-    const email = this.state.email
-    const avatarURL = this.state.avatarURL
-    const name = this.state.name
-    if (email && avatarURL && name) {
-      return { email, avatarURL, name }
-    } else {
-      return null
-    }
   }
 
   private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {
