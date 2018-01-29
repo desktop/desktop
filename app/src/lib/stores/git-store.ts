@@ -538,20 +538,34 @@ export class GitStore {
     this.emitUpdate()
   }
 
+  /**
+   * Attempt to restore both the commit message and any co-authors
+   * in it after an undo operation.
+   *
+   * This is a deceivingly simple task which complicated by the
+   * us wanting to follow the heuristics of Git when finding, and
+   * parsing trailers.
+   */
   private async loadCommitAndCoAuthors(commit: Commit) {
     const repository = this.repository
 
+    // git-interpret-trailers is really only made for working
+    // with full commit messages so let's start with that
     const message = await formatCommitMessage(
       repository,
       commit.summary,
       commit.body,
       []
     )
-    const trailers = await parseTrailers(repository, message)
-    const coAuthorTrailers = trailers.filter(
+
+    // Next we extract any co-authored-by trailers we
+    // can find. We use interpret-trailers for this
+    const foundTrailers = await parseTrailers(repository, message)
+    const coAuthorTrailers = foundTrailers.filter(
       t => t.token.toLowerCase() === 'co-authored-by'
     )
 
+    // This is the happy path, nothing more for us to do
     if (coAuthorTrailers.length === 0) {
       this._contextualCommitMessage = {
         summary: commit.summary,
@@ -561,33 +575,44 @@ export class GitStore {
       return
     }
 
+    // call interpret-trailers --unfold so that we can be sure each
+    // trailer sits on a single line
     const unfolded = await mergeTrailers(repository, message, [], true)
     const lines = unfolded.split('\n')
 
+    // We don't know (I mean, we're fairly sure) what the separator character
+    // used for the trailer is so we call out to git to get all possible
+    // characters. We'll need them in a bit
     const separators = await getTrailerSeparatorCharacters(this.repository)
-    const coAuthorRe = /^co-authored-by(.)\s*(.*)/i
+
+    // We know that what we've got now is well formed so we can capture the leading
+    // token, followed by the separator char and a single space, followed by the
+    // value
+    const coAuthorRe = /^co-authored-by(.)\s(.*)/i
     const extractedTrailers = []
 
+    // Iterate backwards from the unfolded message and look for trailers that we've
+    // already seen when calling parseTrailers earlier.
     for (let i = lines.length - 1; i >= 0; i--) {
       const line = lines[i]
       const match = coAuthorRe.exec(line)
 
-      if (!match) {
+      // Not a trailer line, we're sure of that
+      if (!match || separators.indexOf(match[1]) === -1) {
         continue
       }
 
-      const separator = match[1]
-
-      if (separators.indexOf(separator) === -1) {
-        continue
-      }
-
-      const trailer = parseSingleUnfoldedTrailer(line, separator)
+      const trailer = parseSingleUnfoldedTrailer(line, match[1])
 
       if (!trailer) {
         continue
       }
 
+      // We already know that the key is Co-Authored-By so we only
+      // need to compare by value. Let's see if we can find the thing
+      // that we believe to be a trailer among what interpret-trailers
+      // --parse told us was a trailer. This step is a bit redundant
+      // but it ensure we match exactly with what Git thinks is a trailer
       const foundTrailerIx = coAuthorTrailers.findIndex(
         t => t.value === trailer.value
       )
@@ -597,7 +622,13 @@ export class GitStore {
       }
 
       extractedTrailers.push(coAuthorTrailers[foundTrailerIx])
+
+      // Remove the trailer that matched so that we can be sure
+      // we're not picking it up again
       coAuthorTrailers.splice(foundTrailerIx, 1)
+
+      // This line was a co-author trailer so we'll remove it to
+      // make sure it doesn't end up in the restored commit body
       lines.splice(i, 1)
     }
 
@@ -616,6 +647,12 @@ export class GitStore {
     )
     const newAuthors = new Array<IAuthor>()
 
+    // Last step, phew! The most likely scenario where we
+    // get called is when someone has just made a commit and
+    // either forgot to add a co-author or forgot to remove
+    // someone so chances are high that we already have a
+    // co-author which includes a username. If we don't we'll
+    // add it without a username which is fine as well
     for (let i = 0; i < extractedAuthors.length; i++) {
       const extractedAuthor = extractedAuthors[i]
 
