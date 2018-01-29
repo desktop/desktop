@@ -81,6 +81,6 @@ export class Commit {
 
     this.authoredByCommitter =
       this.author.name === this.committer.name &&
-      this.author.email == this.committer.email
+      this.author.email === this.committer.email
   }
 }
