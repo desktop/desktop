@@ -527,6 +527,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     const author: IAuthor = completion.author
 
     this.insertAuthor(cm, author, from, to)
+    this.updateAuthors(cm)
   }
 
   private applyUnknownUserCompletion = (
