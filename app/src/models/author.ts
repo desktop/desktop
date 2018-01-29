@@ -12,10 +12,10 @@
  * solely for presentation purposes inside AuthorInput
  */
 export interface IAuthor {
-  /** The author real name */
+  /** The real name of the author */
   readonly name: string
 
-  /** The author email address */
+  /** The email address of the author */
   readonly email: string
 
   /**
