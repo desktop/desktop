@@ -37,6 +37,12 @@ interface IAutocompletingTextInputProps<ElementType> {
    * input.
    */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
+
+  /**
+   * A method that's called when the internal input or textarea element
+   * is mounted or unmounted.
+   */
+  readonly onElementRef?: (elem: ElementType | null) => void
 }
 
 interface IAutocompletionState<T> {
@@ -266,6 +272,9 @@ export abstract class AutocompletingTextInput<
 
   private onRef = (ref: ElementType | null) => {
     this.element = ref
+    if (this.props.onElementRef) {
+      this.props.onElementRef(ref)
+    }
   }
 
   public focus() {
