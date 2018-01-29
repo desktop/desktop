@@ -567,7 +567,7 @@ export interface IChangesState {
   readonly diff: IDiff | null
 
   /**
-   * The commit message to use based on the contex of the repository, e.g., the
+   * The commit message to use based on the context of the repository, e.g., the
    * message from a recently undone commit.
    */
   readonly contextualCommitMessage: ICommitMessage | null
