@@ -397,10 +397,6 @@ export class CommitMessage extends React.Component<
     const descriptionObscured =
       elem !== null && elem.scrollTop + elem.offsetHeight < elem.scrollHeight
 
-    if (elem) {
-      console.log(elem.scrollTop, elem.scrollHeight, elem.offsetHeight)
-    }
-
     if (this.state.descriptionObscured !== descriptionObscured) {
       this.setState({ descriptionObscured })
     }
