@@ -10,21 +10,6 @@ import { arrayEquals } from '../../lib/equality'
 import { OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
 
-/**
- * Convert a IUserHit object which is returned from
- * user-autocomplete-provider into an IAuthor object.
- *
- * If the IUserHit object lacks an email address we'll
- * attempt to create a stealth email address.
- */
-function authorFromUserHit(user: IUserHit): IAuthor {
-  return {
-    name: user.name || user.username,
-    email: getEmailAddressForUser(user),
-    username: user.username,
-  }
-}
-
 interface IAuthorInputProps {
   /**
    * An optional class name for the wrapper element around the
@@ -383,6 +368,21 @@ function triggerAutoCompleteBasedOnCursorPosition(cm: Editor) {
   }
 
   ;(cm as any).showHint()
+}
+
+/**
+ * Convert a IUserHit object which is returned from
+ * user-autocomplete-provider into an IAuthor object.
+ *
+ * If the IUserHit object lacks an email address we'll
+ * attempt to create a stealth email address.
+ */
+function authorFromUserHit(user: IUserHit): IAuthor {
+  return {
+    name: user.name || user.username,
+    email: getEmailAddressForUser(user),
+    username: user.username,
+  }
 }
 
 /**
