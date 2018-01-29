@@ -83,7 +83,10 @@ export function getAvatarUsersForCommit(
     )
   )
 
-  if (!commit.authoredByCommitter) {
+  const isWebFlowCommitter =
+    gitHubRepository !== null && commit.isWebFlowCommitter(gitHubRepository)
+
+  if (!commit.authoredByCommitter && !isWebFlowCommitter) {
     avatarUsers.push(
       getAvatarUserFromAuthor(gitHubRepository, gitHubUsers, commit.committer)
     )

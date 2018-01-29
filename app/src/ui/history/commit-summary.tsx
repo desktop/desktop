@@ -291,7 +291,10 @@ export class CommitSummary extends React.Component<
           <ul className="commit-summary-meta">
             <li className="commit-summary-meta-item" aria-label="Author">
               <AvatarStack users={this.state.avatarUsers} />
-              <CommitAttribution commit={this.props.commit} />
+              <CommitAttribution
+                gitHubRepository={this.props.repository.gitHubRepository}
+                commit={this.props.commit}
+              />
             </li>
 
             <li className="commit-summary-meta-item" aria-label="SHA">

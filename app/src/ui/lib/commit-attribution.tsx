@@ -2,9 +2,11 @@ import { Commit } from '../../models/commit'
 import * as React from 'react'
 import { CommitIdentity } from '../../models/commit-identity'
 import { GitAuthor } from '../../models/git-author'
+import { GitHubRepository } from '../../models/github-repository'
 
 interface ICommitAttributionProps {
   readonly commit: Commit
+  readonly gitHubRepository: GitHubRepository | null
 }
 
 export class CommitAttribution extends React.Component<
@@ -58,7 +60,12 @@ export class CommitAttribution extends React.Component<
 
     const authors: Array<CommitIdentity | GitAuthor> = [author, ...coAuthors]
 
-    const committerAttribution = !commit.authoredByCommitter
+    const committerAttribution =
+      !commit.authoredByCommitter &&
+      !(
+        this.props.gitHubRepository !== null &&
+        commit.isWebFlowCommitter(this.props.gitHubRepository)
+      )
 
     return (
       <span className="commit-attribution-component">

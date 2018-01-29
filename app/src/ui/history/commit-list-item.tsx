@@ -70,7 +70,10 @@ export class CommitListItem extends React.Component<
           <div className="description">
             <AvatarStack users={this.state.avatarUsers} />
             <div className="byline">
-              <CommitAttribution commit={commit} />{' '}
+              <CommitAttribution
+                gitHubRepository={this.props.gitHubRepository}
+                commit={commit}
+              />{' '}
               <RelativeTime date={author.date} />
             </div>
           </div>
