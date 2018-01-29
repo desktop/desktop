@@ -54,6 +54,7 @@ import {
   findUpstreamRemote,
   UpstreamRemoteName,
 } from './helpers/find-upstream-remote'
+import { IAuthor } from '../../models/author'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -97,6 +98,10 @@ export class GitStore {
   private _commitMessage: ICommitMessage | null = null
 
   private _contextualCommitMessage: ICommitMessage | null = null
+
+  private _showCoAuthoredBy: boolean = false
+
+  private _coAuthors: ReadonlyArray<IAuthor> = []
 
   private _aheadBehind: IAheadBehind | null = null
 
@@ -554,6 +559,23 @@ export class GitStore {
   }
 
   /**
+   * Gets a value indicating whether the user has chosen to
+   * hide or show the co-authors field in the commit message
+   * component
+   */
+  public get showCoAuthoredBy(): boolean {
+    return this._showCoAuthoredBy
+  }
+
+  /**
+   * Gets a list of co-authors to use when crafting the next
+   * commit.
+   */
+  public get coAuthors(): ReadonlyArray<IAuthor> {
+    return this._coAuthors
+  }
+
+  /**
    * Fetch the default and upstream remote, using the given account for
    * authentication.
    *
@@ -833,6 +855,29 @@ export class GitStore {
    */
   public get upstream(): IRemote | null {
     return this._upstream
+  }
+
+  /**
+   * Set whether the user has chosen to hide or show the
+   * co-authors field in the commit message component
+   */
+  public setShowCoAuthoredBy(showCoAuthoredBy: boolean) {
+    this._showCoAuthoredBy = showCoAuthoredBy
+    // Clear co-authors when hiding
+    if (!showCoAuthoredBy) {
+      this._coAuthors = []
+    }
+    this.emitUpdate()
+  }
+
+  /**
+   * Update co-authors list
+   *
+   * @param coAuthors  Zero or more authors
+   */
+  public setCoAuthors(coAuthors: ReadonlyArray<IAuthor>) {
+    this._coAuthors = coAuthors
+    this.emitUpdate()
   }
 
   public setCommitMessage(message: ICommitMessage | null): Promise<void> {

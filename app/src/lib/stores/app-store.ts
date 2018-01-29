@@ -574,6 +574,8 @@ export class AppStore {
     this.updateChangesState(repository, state => ({
       commitMessage: gitStore.commitMessage,
       contextualCommitMessage: gitStore.contextualCommitMessage,
+      showCoAuthoredBy: gitStore.showCoAuthoredBy,
+      coAuthors: gitStore.coAuthors,
     }))
 
     this.updateRepositoryState(repository, state => ({
@@ -3235,13 +3237,7 @@ export class AppStore {
     repository: Repository,
     showCoAuthoredBy: boolean
   ) {
-    this.updateChangesState(repository, state => ({
-      showCoAuthoredBy,
-      // Clear co-authors when hiding
-      coAuthors: showCoAuthoredBy ? state.coAuthors : [],
-    }))
-    this.emitUpdate()
-
+    this.getGitStore(repository).setShowCoAuthoredBy(showCoAuthoredBy)
     return Promise.resolve()
   }
 
@@ -3255,9 +3251,7 @@ export class AppStore {
     repository: Repository,
     coAuthors: ReadonlyArray<IAuthor>
   ) {
-    this.updateChangesState(repository, state => ({ coAuthors }))
-    this.emitUpdate()
-
+    this.getGitStore(repository).setCoAuthors(coAuthors)
     return Promise.resolve()
   }
 }
