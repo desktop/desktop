@@ -8,8 +8,8 @@ import { getConfigValue } from './config'
  * See git-interpret-trailers for more information.
  */
 export interface ITrailer {
-  token: string
-  value: string
+  readonly token: string
+  readonly value: string
 }
 
 /**
