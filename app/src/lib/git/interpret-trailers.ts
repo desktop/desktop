@@ -32,19 +32,31 @@ export function parseRawUnfoldedTrailers(trailers: string, separators: string) {
   const parsedTrailers = new Array<ITrailer>()
 
   for (const line of lines) {
-    for (const separator of separators) {
-      const ix = line.indexOf(separator)
-      if (ix > 0) {
-        parsedTrailers.push({
-          token: line.substring(0, ix).trim(),
-          value: line.substring(ix + 1).trim(),
-        })
-        break
-      }
+    const trailer = parseSingleUnfoldedTrailer(line, separators)
+
+    if (trailer) {
+      parsedTrailers.push(trailer)
     }
   }
 
   return parsedTrailers
+}
+
+export function parseSingleUnfoldedTrailer(
+  line: string,
+  separators: string
+): ITrailer | null {
+  for (const separator of separators) {
+    const ix = line.indexOf(separator)
+    if (ix > 0) {
+      return {
+        token: line.substring(0, ix).trim(),
+        value: line.substring(ix + 1).trim(),
+      }
+    }
+  }
+
+  return null
 }
 
 /**
