@@ -32,7 +32,7 @@ export class AvatarStack extends React.Component<IAvatarStackProps, {}> {
       }
 
       elems.push(
-        <Avatar key={`${i}${user.avatarURL}`} user={user} skipTitle={true} />
+        <Avatar key={`${i}${user.avatarURL}`} user={user} title={null} />
       )
     }
 

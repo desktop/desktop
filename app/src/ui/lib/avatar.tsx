@@ -9,10 +9,12 @@ interface IAvatarProps {
   /** The user whose avatar should be displayed. */
   readonly user?: IAvatarUser
 
-  /** The title of the avatar. Defaults to the name and email. */
-  readonly title?: string
-
-  readonly skipTitle?: boolean
+  /**
+   * The title of the avatar.
+   * Defaults to the name and email if undefined and is
+   * skipped completely if title is null
+   */
+  readonly title?: string | null
 }
 
 interface IAvatarState {
@@ -82,11 +84,11 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   private getTitle(): string | undefined {
-    if (this.props.skipTitle === true) {
+    if (this.props.title === null) {
       return undefined
     }
 
-    if (this.props.title) {
+    if (this.props.title === undefined) {
       return this.props.title
     }
 
@@ -119,7 +121,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       />
     )
 
-    if (this.props.skipTitle === true) {
+    if (this.props.title === undefined) {
       return img
     }
 
