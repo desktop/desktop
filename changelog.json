@@ -1,5 +1,13 @@
 {
   "releases": {
+    "1.0.13": [
+      "[New] Commit together with co-authors - #3879",
+      "[Improved] Update embedded Git to 2.16.1 - #3617 #3828 #3871",
+      "[Fixed] Update Electron to 1.7.11 to address security issue - #3846",
+      "[Fixed] Allows double dashes in branch name - #3599. Thanks @JQuinnie!",
+      "[Fixed] Pull Request store may not have status defined - #3869",
+      "[Fixed] Render the Pull Request badge when no commit statuses found - #3608"
+    ],
     "1.0.13-test1": [
       "[Improved] Update embedded Git to 2.16.1 - #3617 #3828 #3871",
       "[Fixed] Update Electron to 1.7.11 to address security issue - #3846",
