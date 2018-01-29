@@ -52,6 +52,10 @@ interface ICommitSummaryState {
    */
   readonly isOverflowed: boolean
 
+  /**
+   * The avatars associated with this commit. Used when rendering
+   * the avatar stack and calculated whenever the commit prop changes.
+   */
   readonly avatarUsers: ReadonlyArray<IAvatarUser>
 }
 
