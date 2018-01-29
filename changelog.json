@@ -1,10 +1,7 @@
 {
   "releases": {
     "1.0.14-beta1": [
-      "[New] Commit together with co-authors - #3879",
-      "[Improved] Update embedded Git to 2.16.1 - #3617 #3828 #3871",
-      "[Fixed] Update Electron to 1.7.11 to address security issue - #3846",
-      "[Fixed] Allow double dashes in branch name - #3599. Thanks @JQuinnie!"
+      "[New] Commit together with co-authors - #3879"
     ],
     "1.0.13": [
       "[New] Commit together with co-authors - #3879",
