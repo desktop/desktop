@@ -5,10 +5,26 @@ import { GitAuthor } from '../../models/git-author'
 import { GitHubRepository } from '../../models/github-repository'
 
 interface ICommitAttributionProps {
+  /**
+   * The commit from where to extract the author, commiter
+   * and co-authors from.
+   */
   readonly commit: Commit
+
+  /**
+   * The GitHub hosted repository that the given commit is
+   * associated with or null if repository is local or
+   * not associated with a GitHub account. Used to determine
+   * whether a commit is a special GitHub web flow user.
+   */
   readonly gitHubRepository: GitHubRepository | null
 }
 
+/**
+ * A component used for listing the authors involved in
+ * a commit, formatting the content as close to what
+ * GitHub.com does as possible.
+ */
 export class CommitAttribution extends React.Component<
   ICommitAttributionProps,
   {}
