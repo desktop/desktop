@@ -143,7 +143,7 @@ export async function mergeTrailers(
   const result = await git(
     ['interpret-trailers', ...trailerArgs],
     repository.path,
-    'addTrailers',
+    'mergeTrailers',
     {
       stdin: commitMessage,
     }
