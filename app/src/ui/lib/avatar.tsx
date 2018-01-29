@@ -121,7 +121,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       />
     )
 
-    if (this.props.title === undefined) {
+    if (title === undefined) {
       return img
     }
 
