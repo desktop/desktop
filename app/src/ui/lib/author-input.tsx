@@ -620,7 +620,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
 
     const { from, to } = getHintRangeFromCursor(doc, cursor)
 
-    var word = doc.getRange(from, to)
+    const word = doc.getRange(from, to)
 
     const needle = word.replace(/^@/, '')
     const hits = await this.props.autoCompleteProvider.getAutocompletionItems(

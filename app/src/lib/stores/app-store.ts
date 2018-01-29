@@ -113,7 +113,7 @@ import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
 import { IRemote } from '../../models/remote'
-import { IAuthor } from '../../models/author';
+import { IAuthor } from '../../models/author'
 
 /**
  * Enum used by fetch to determine if
@@ -1334,7 +1334,12 @@ export class AppStore {
 
     const result = await this.isCommitting(repository, () => {
       return gitStore.performFailableOperation(async () => {
-        const message = await formatCommitMessage(repository, summary, description, trailers)
+        const message = await formatCommitMessage(
+          repository,
+          summary,
+          description,
+          trailers
+        )
         return createCommit(repository, message, selectedFiles)
       })
     })
@@ -3226,12 +3231,14 @@ export class AppStore {
    * Set whether the user has chosen to hide or show the
    * co-authors field in the commit message component
    */
-  public _setShowCoAuthoredBy(repository: Repository, showCoAuthoredBy: boolean) {
-
-    this.updateChangesState(repository, (state) => ({
+  public _setShowCoAuthoredBy(
+    repository: Repository,
+    showCoAuthoredBy: boolean
+  ) {
+    this.updateChangesState(repository, state => ({
       showCoAuthoredBy,
       // Clear co-authors when hiding
-      coAuthors: showCoAuthoredBy ? state.coAuthors : []
+      coAuthors: showCoAuthoredBy ? state.coAuthors : [],
     }))
     this.emitUpdate()
 
@@ -3244,8 +3251,11 @@ export class AppStore {
    * @param repository Co-author settings are per-repository
    * @param coAuthors  Zero or more authors
    */
-  public _setCoAuthors(repository: Repository, coAuthors: ReadonlyArray<IAuthor>) {
-    this.updateChangesState(repository, (state) => ({ coAuthors }))
+  public _setCoAuthors(
+    repository: Repository,
+    coAuthors: ReadonlyArray<IAuthor>
+  ) {
+    this.updateChangesState(repository, state => ({ coAuthors }))
     this.emitUpdate()
 
     return Promise.resolve()
