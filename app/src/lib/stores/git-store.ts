@@ -505,28 +505,36 @@ export class GitStore {
   public async undoCommit(commit: Commit): Promise<void> {
     // For an initial commit, just delete the reference but leave HEAD. This
     // will make the branch unborn again.
-    let success: true | undefined = undefined
-    if (commit.parentSHAs.length === 0) {
-      success = await this.performFailableOperation(() =>
-        this.undoFirstCommit(this.repository)
-      )
-    } else {
-      success = await this.performFailableOperation(() =>
-        reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0])
-      )
+    const success = await this.performFailableOperation(
+      () =>
+        commit.parentSHAs.length === 0
+          ? this.undoFirstCommit(this.repository)
+          : reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0])
+    )
+
+    if (success === undefined) {
+      return
     }
 
-    if (success) {
-      if (this.repository.gitHubRepository) {
+    // Let's be safe about this since it's untried waters.
+    // If we can restore co-authors then that's fantastic
+    // but if we can't we shouldn't be throwing an error,
+    // let's just fall back to the old way of restoring the
+    // entire message
+    if (this.repository.gitHubRepository) {
+      try {
         await this.loadCommitAndCoAuthors(commit)
-      } else {
-        this._contextualCommitMessage = {
-          summary: commit.summary,
-          description: commit.body,
-        }
+        this.emitUpdate()
+        return
+      } catch (e) {
+        log.error('Failed to restore commit and co-authors, falling back', e)
       }
     }
 
+    this._contextualCommitMessage = {
+      summary: commit.summary,
+      description: commit.body,
+    }
     this.emitUpdate()
   }
 
