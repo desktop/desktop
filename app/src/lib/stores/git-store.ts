@@ -664,7 +664,7 @@ export class GitStore {
 
       const { name, email } = extractedAuthor
       const existing = this.coAuthors.find(
-        a => a.name === name && a.email === email
+        a => a.name === name && a.email === email && a.username !== null
       )
       newAuthors.push(existing || { name, email, username: null })
     }
