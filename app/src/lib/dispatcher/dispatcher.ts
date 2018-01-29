@@ -52,6 +52,8 @@ import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repo
 import { BranchesTab } from '../../models/branches-tab'
 import { FetchType } from '../../lib/stores'
 import { PullRequest } from '../../models/pull-request'
+import { IAuthor } from '../../models/author'
+import { ITrailer } from '../git/interpret-trailers'
 
 /**
  * An error handler function.
@@ -190,13 +192,21 @@ export class Dispatcher {
 
   /**
    * Commit the changes which were marked for inclusion, using the given commit
-   * summary and description.
+   * summary and description and optionally any number of commit message trailers
+   * which will be merged into the final commit message.
    */
   public async commitIncludedChanges(
     repository: Repository,
-    message: ICommitMessage
+    summary: string,
+    description: string | null,
+    trailers?: ReadonlyArray<ITrailer>
   ): Promise<boolean> {
-    return this.appStore._commitIncludedChanges(repository, message)
+    return this.appStore._commitIncludedChanges(
+      repository,
+      summary,
+      description,
+      trailers
+    )
   }
 
   /** Change the file's includedness. */
@@ -1104,5 +1114,31 @@ export class Dispatcher {
     pullRequest: PullRequest
   ): Promise<void> {
     return this.appStore._checkoutPullRequest(repository, pullRequest)
+  }
+
+  /**
+   * Set whether the user has chosen to hide or show the
+   * co-authors field in the commit message component
+   *
+   * @param repository Co-author settings are per-repository
+   */
+  public setShowCoAuthoredBy(
+    repository: Repository,
+    showCoAuthoredBy: boolean
+  ) {
+    return this.appStore._setShowCoAuthoredBy(repository, showCoAuthoredBy)
+  }
+
+  /**
+   * Update the per-repository co-authors list
+   *
+   * @param repository Co-author settings are per-repository
+   * @param coAuthors  Zero or more authors
+   */
+  public setCoAuthors(
+    repository: Repository,
+    coAuthors: ReadonlyArray<IAuthor>
+  ) {
+    return this.appStore._setCoAuthors(repository, coAuthors)
   }
 }

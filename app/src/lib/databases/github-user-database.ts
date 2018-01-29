@@ -4,15 +4,28 @@ import Dexie from 'dexie'
 const DatabaseVersion = 2
 
 export interface IGitHubUser {
+  /**
+   * The internal (to desktop) database id for this user or undefined
+   * if not yet inserted into the database.
+   */
   readonly id?: number
   readonly endpoint: string
   readonly email: string
   readonly login: string
   readonly avatarURL: string
-  readonly name: string
+
+  /**
+   * The user's real name or null if the user hasn't provided a real
+   * name yet.
+   */
+  readonly name: string | null
 }
 
 export interface IMentionableAssociation {
+  /**
+   * The internal (to desktop) database id for this association
+   *  or undefined if not yet inserted into the database.
+   */
   readonly id?: number
   readonly userID: number
   readonly repositoryID: number

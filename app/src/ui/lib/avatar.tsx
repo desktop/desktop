@@ -9,8 +9,12 @@ interface IAvatarProps {
   /** The user whose avatar should be displayed. */
   readonly user?: IAvatarUser
 
-  /** The title of the avatar. Defaults to the name and email. */
-  readonly title?: string
+  /**
+   * The title of the avatar.
+   * Defaults to the name and email if undefined and is
+   * skipped completely if title is null
+   */
+  readonly title?: string | null
 }
 
 interface IAvatarState {
@@ -19,6 +23,8 @@ interface IAvatarState {
 
 /** A component for displaying a user avatar. */
 export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
+  private cancelFetchingAvatar = false
+
   public constructor(props: IAvatarProps) {
     super(props)
 
@@ -53,16 +59,36 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
 
   public async componentWillMount() {
     const dataUrl = await fetchAvatarUrl(DefaultAvatarURL, this.props.user)
-    this.setState({ dataUrl })
+
+    // https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
+    // We're basically doing isMounted here. Let's look at better ways
+    // in the future
+    if (!this.cancelFetchingAvatar) {
+      this.setState({ dataUrl })
+    }
   }
 
   public async componentWillReceiveProps(nextProps: IAvatarProps) {
     const dataUrl = await fetchAvatarUrl(DefaultAvatarURL, nextProps.user)
-    this.setState({ dataUrl })
+
+    // https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
+    // We're basically doing isMounted here. Let's look at better ways
+    // in the future
+    if (!this.cancelFetchingAvatar) {
+      this.setState({ dataUrl })
+    }
   }
 
-  private getTitle(): string {
-    if (this.props.title) {
+  public componentWillUnmount() {
+    this.cancelFetchingAvatar = true
+  }
+
+  private getTitle(): string | undefined {
+    if (this.props.title === null) {
+      return undefined
+    }
+
+    if (this.props.title === undefined) {
       return this.props.title
     }
 
@@ -85,15 +111,23 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       ? `Avatar for ${this.props.user.name || this.props.user.email}`
       : `Avatar for unknown user`
 
+    const img = (
+      <img
+        className="avatar"
+        title={title}
+        src={this.state.dataUrl}
+        alt={title}
+        aria-label={ariaLabel}
+      />
+    )
+
+    if (title === undefined) {
+      return img
+    }
+
     return (
       <span title={title} className="avatar-container">
-        <img
-          className="avatar"
-          title={title}
-          src={this.state.dataUrl}
-          alt={title}
-          aria-label={ariaLabel}
-        />
+        {img}
       </span>
     )
   }
