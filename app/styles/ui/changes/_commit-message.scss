@@ -60,6 +60,15 @@
     }
   }
 
+  // When we have an action bar we steal most of that
+  // space from the description field and a little from the
+  // changes list
+  &.with-action-bar {
+    .description-field textarea {
+      min-height: 80px;
+    }
+  }
+
   .description-focus-container {
     border: 1px solid var(--box-border-color);
     border-radius: var(--border-radius);
@@ -81,7 +90,7 @@
       font-family: var(--font-family-sans-serif);
       padding: var(--spacing-half);
       resize: none;
-      min-height: 80px;
+      min-height: 100px;
 
       &:focus {
         outline: 0;

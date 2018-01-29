@@ -290,10 +290,11 @@ export class CommitMessage extends React.Component<
   }
 
   private get isCoAuthorInputEnabled() {
-    return (
-      this.props.showCoAuthoredBy &&
-      this.props.repository.gitHubRepository !== null
-    )
+    return this.props.repository.gitHubRepository !== null
+  }
+
+  private get isCoAuthorInputVisible() {
+    return this.props.showCoAuthoredBy && this.isCoAuthorInputEnabled
   }
 
   private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) => {
@@ -301,7 +302,7 @@ export class CommitMessage extends React.Component<
   }
 
   private renderCoAuthorInput() {
-    if (!this.isCoAuthorInputEnabled) {
+    if (!this.isCoAuthorInputVisible) {
       return null
     }
 
@@ -384,12 +385,28 @@ export class CommitMessage extends React.Component<
     }
   }
 
+  /**
+   * Whether or not there's anything to render in the action bar
+   */
+  private get isActionBarEnabled() {
+    return this.isCoAuthorInputEnabled
+  }
+
+  private renderActionBar() {
+    if (!this.isCoAuthorInputEnabled) {
+      return null
+    }
+
+    return <div className="action-bar">{this.renderCoAuthorToggleButton()}</div>
+  }
+
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
     const buttonEnabled = this.canCommit() && !this.props.isCommitting
 
     const loading = this.props.isCommitting ? <Loading /> : undefined
     const className = classNames({
+      'with-action-bar': this.isActionBarEnabled,
       'with-co-authors': this.isCoAuthorInputEnabled,
     })
 
@@ -426,7 +443,7 @@ export class CommitMessage extends React.Component<
             autocompletionProviders={this.props.autocompletionProviders}
             ref={this.onDescriptionFieldRef}
           />
-          <div className="action-bar">{this.renderCoAuthorToggleButton()}</div>
+          {this.renderActionBar()}
         </FocusContainer>
 
         {this.renderCoAuthorInput()}
