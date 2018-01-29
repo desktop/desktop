@@ -123,14 +123,14 @@ export class GitStore extends BaseStore {
   }
 
   private emitNewCommitsLoaded(commits: ReadonlyArray<Commit>) {
-    this._emitter.emit('did-load-new-commits', commits)
+    this.emitter.emit('did-load-new-commits', commits)
   }
 
   /** Register a function to be called when the store loads new commits. */
   public onDidLoadNewCommits(
     fn: (commits: ReadonlyArray<Commit>) => void
   ): Disposable {
-    return this._emitter.on('did-load-new-commits', fn)
+    return this.emitter.on('did-load-new-commits', fn)
   }
 
   /**
