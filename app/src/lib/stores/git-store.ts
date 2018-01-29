@@ -45,6 +45,10 @@ import {
   addRemote,
   listSubmodules,
   resetSubmodulePaths,
+  parseTrailers,
+  mergeTrailers,
+  getTrailerSeparatorCharacters,
+  parseSingleUnfoldedTrailer,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -55,6 +59,8 @@ import {
   UpstreamRemoteName,
 } from './helpers/find-upstream-remote'
 import { IAuthor } from '../../models/author'
+import { formatCommitMessage } from '../format-commit-message'
+import { GitAuthor } from '../../models/git-author'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -511,13 +517,117 @@ export class GitStore {
     }
 
     if (success) {
-      this._contextualCommitMessage = {
-        summary: commit.summary,
-        description: commit.body,
+      if (this.repository.gitHubRepository) {
+        await this.loadCommitAndCoAuthors(commit)
+      } else {
+        this._contextualCommitMessage = {
+          summary: commit.summary,
+          description: commit.body,
+        }
       }
     }
 
     this.emitUpdate()
+  }
+
+  private async loadCommitAndCoAuthors(commit: Commit) {
+    const repository = this.repository
+
+    const message = await formatCommitMessage(
+      repository,
+      commit.summary,
+      commit.body,
+      []
+    )
+    const trailers = await parseTrailers(repository, message)
+    const coAuthorTrailers = trailers.filter(
+      t => t.token.toLowerCase() === 'co-authored-by'
+    )
+
+    if (coAuthorTrailers.length === 0) {
+      this._contextualCommitMessage = {
+        summary: commit.summary,
+        description: commit.body,
+      }
+
+      return
+    }
+
+    const unfolded = await mergeTrailers(repository, message, [], true)
+    const lines = unfolded.split('\n')
+
+    const separators = await getTrailerSeparatorCharacters(this.repository)
+    const coAuthorRe = /^co-authored-by(.)\s*(.*)/i
+    const extractedTrailers = []
+
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i]
+      const match = coAuthorRe.exec(line)
+
+      if (!match) {
+        continue
+      }
+
+      const separator = match[1]
+
+      if (separators.indexOf(separator) === -1) {
+        continue
+      }
+
+      const trailer = parseSingleUnfoldedTrailer(line, separator)
+
+      if (!trailer) {
+        continue
+      }
+
+      const foundTrailerIx = coAuthorTrailers.findIndex(
+        t => t.value === trailer.value
+      )
+
+      if (foundTrailerIx === -1) {
+        continue
+      }
+
+      extractedTrailers.push(coAuthorTrailers[foundTrailerIx])
+      coAuthorTrailers.splice(foundTrailerIx, 1)
+      lines.splice(i, 1)
+    }
+
+    // Get rid of the summary/title
+    lines.splice(0, 2)
+
+    const newBody = lines.join('\n').trim()
+
+    this._contextualCommitMessage = {
+      summary: commit.summary,
+      description: newBody,
+    }
+
+    const extractedAuthors = extractedTrailers.map(t =>
+      GitAuthor.parse(t.value)
+    )
+    const newAuthors = new Array<IAuthor>()
+
+    for (let i = 0; i < extractedAuthors.length; i++) {
+      const extractedAuthor = extractedAuthors[i]
+
+      // If GitAuthor failed to parse
+      if (extractedAuthor === null) {
+        continue
+      }
+
+      const { name, email } = extractedAuthor
+      const existing = this.coAuthors.find(
+        a => a.name === name && a.email === email
+      )
+      newAuthors.push(existing || { name, email, username: null })
+    }
+
+    this._coAuthors = newAuthors
+
+    if (this._coAuthors.length > 0 && this._showCoAuthoredBy === false) {
+      this._showCoAuthoredBy = true
+    }
   }
 
   /**
