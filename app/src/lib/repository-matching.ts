@@ -45,26 +45,25 @@ function matchRemoteWithAccount(
 ): IMatchedGitHubRepository | null {
   const htmlURL = getHTMLURL(account.endpoint)
   const parsed = URL.parse(htmlURL)
-  const host = parsed.hostname
 
   const parsedRemote = parseRemote(remote)
   if (!parsedRemote) {
     return null
   }
 
+  const host = parsed.hostname
   const owner = parsedRemote.owner
   const name = parsedRemote.name
-
   if (
-    host &&
-    parsedRemote.hostname.toLowerCase() === host.toLowerCase() &&
-    owner &&
-    name
+    host == null ||
+    name == null ||
+    owner == null ||
+    parsedRemote.hostname.toLocaleLowerCase() !== host.toLocaleLowerCase()
   ) {
-    return { name, owner, endpoint: account.endpoint }
+    return null
   }
 
-  return null
+  return { name, owner, endpoint: account.endpoint }
 }
 
 /**

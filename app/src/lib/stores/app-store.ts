@@ -1652,9 +1652,9 @@ export class AppStore {
     repository: Repository
   ): Promise<Repository> {
     const oldGitHubRepository = repository.gitHubRepository
-
     const matchedGitHubRepository = await this.matchGitHubRepository(repository)
-    if (!matchedGitHubRepository) {
+
+    if (matchedGitHubRepository == null) {
       // TODO: We currently never clear GitHub repository associations (see
       // https://github.com/desktop/desktop/issues/1144). So we can bail early
       // at this point.
