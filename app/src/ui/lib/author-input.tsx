@@ -628,6 +628,10 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       needle
     )
 
+    const exactMatch =
+      hits.length === 1 &&
+      hits[0].username.toLowerCase() === needle.toLowerCase()
+
     const existingUsernames = new Set(this.authors.map(x => x.username))
 
     const list: any[] = hits
@@ -641,7 +645,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         hint: this.applyCompletion,
       }))
 
-    if (needle.length > 0 && validLoginExpression.test(needle)) {
+    if (!exactMatch && needle.length > 0 && validLoginExpression.test(needle)) {
       list.push({
         text: `@${needle}`,
         username: needle,
