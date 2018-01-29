@@ -86,13 +86,7 @@ export async function parseTrailers(
     repository.path,
     'parseTrailers',
     {
-      // This is working around a bug in dugite where
-      // you can't send empty strings over stdin using
-      // the stdin parameter.
-      // See http://github.com/desktop/dugite/pull/163
-      processCallback: p => {
-        p.stdin.end(commitMessage)
-      },
+      stdin: commitMessage,
     }
   )
 
@@ -151,13 +145,7 @@ export async function mergeTrailers(
     repository.path,
     'addTrailers',
     {
-      processCallback: p => {
-        // This is working around a bug in dugite where
-        // you can't send empty strings over stdin using
-        // the stdin parameter.
-        // See http://github.com/desktop/dugite/pull/163
-        p.stdin.end(commitMessage)
-      },
+      stdin: commitMessage,
     }
   )
 
