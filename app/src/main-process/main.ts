@@ -289,7 +289,10 @@ app.on('ready', () => {
               // We don't use styled input anywhere at the moment
               // so let's skip this for now and when/if we do we
               // can make it configurable from the callee
-              if (editItem.role === 'pasteAndMatchStyle') {
+              if (
+                editItem.role &&
+                editItem.role.toLowerCase() === 'pasteandmatchstyle'
+              ) {
                 continue
               }
 
