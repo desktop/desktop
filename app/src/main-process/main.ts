@@ -286,7 +286,7 @@ app.on('ready', () => {
 
           if (editMenu.submenu) {
             for (const editItem of editMenu.submenu.items) {
-              // We don't use styled input anywhere at the moment
+              // We don't use styled inputs anywhere at the moment
               // so let's skip this for now and when/if we do we
               // can make it configurable from the callee
               if (
