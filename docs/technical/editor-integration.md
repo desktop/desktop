@@ -206,6 +206,7 @@ These editors are currently supported:
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
  - [PhpStorm](https://www.jetbrains.com/phpstorm/)
+ - [RubyMine](https://www.jetbrains.com/rubymine/)
 
 These are defined in an enum at the top of the file:
 
