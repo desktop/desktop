@@ -121,7 +121,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     }
 
     const records = await this._pullRequestDatabase.pullRequests
-      .where('base.repositoryDbId')
+      .where('base.repoId')
       .equals(gitHubRepositoryID)
       .reverse()
       .sortBy('number')
@@ -129,7 +129,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     const result = new Array<PullRequest>()
 
     for (const record of records) {
-      const repositoryDbId = record.head.repositoryDbId
+      const repositoryDbId = record.head.repoId
       let githubRepository: GitHubRepository | null = null
 
       if (repositoryDbId != null) {
@@ -142,7 +142,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       // fetched the PR from in the first place.
       const parentRepositoryDbId = forceUnwrap(
         'A pull request cannot have a null base repo id',
-        record.base.repositoryDbId
+        record.base.repoId
       )
       const parentGitGubRepository: GitHubRepository | null = await this._repositoryStore.findGitHubRepositoryByID(
         parentRepositoryDbId
@@ -364,12 +364,12 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         head: {
           ref: pr.head.ref,
           sha: pr.head.sha,
-          repositoryDbId: githubRepoDbId,
+          repoId: githubRepoDbId,
         },
         base: {
           ref: pr.base.ref,
           sha: pr.base.sha,
-          repositoryDbId: parentGitHubRepoDbId,
+          repoId: parentGitHubRepoDbId,
         },
         author: pr.user.login,
       })

@@ -6,7 +6,7 @@ export interface IPullRequestRef {
    * The database ID of the GitHub repository in which this ref lives. It could
    * be null if the repository was deleted on the site after the PR was opened.
    */
-  readonly repositoryDbId: number | null
+  readonly repoId: number | null
 
   /** The name of the ref. */
   readonly ref: string
@@ -65,7 +65,7 @@ export interface IPullRequestStatus {
    * if the database object was created prior to status support
    * being added in #3588
    */
-  readonly statuses: ReadonlyArray<IAPIRefStatusItem> | undefined
+  readonly statuses: ReadonlyArray<IAPIRefStatusItem>
 }
 
 export class PullRequestDatabase extends Dexie {
@@ -85,10 +85,6 @@ export class PullRequestDatabase extends Dexie {
 
     this.version(3).stores({
       pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
-    })
-
-    this.version(4).stores({
-      pullRequests: 'id++, base.repositoryDbId',
     })
   }
 }
