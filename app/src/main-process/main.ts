@@ -277,6 +277,22 @@ app.on('ready', () => {
       const menu = new Menu()
 
       for (const [ix, item] of items.entries()) {
+        // Special case editMenu in context menus. What we
+        // mean by this is that we want to insert all edit
+        // related menu items into the menu at this spot, we
+        // don't want a sub menu
+        if (item.role === 'editMenu') {
+          const editMenu = Menu.buildFromTemplate([item]).items[0]
+
+          if (editMenu.submenu) {
+            for (const editItem of editMenu.submenu.items) {
+              menu.append(editItem)
+            }
+          }
+
+          continue
+        }
+
         menu.append(
           new MenuItem({
             label: item.label,
