@@ -1,4 +1,3 @@
-import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
@@ -11,14 +10,13 @@ import { getAvatarWithEnterpriseFallback } from '../gravatar'
 
 import { fatalError } from '../fatal-error'
 import { compare } from '../compare'
+import { BaseStore } from './base-store'
 
 /**
  * The store for GitHub users. This is used to match commit authors to GitHub
  * users and avatars.
  */
-export class GitHubUserStore {
-  private readonly emitter = new Emitter()
-
+export class GitHubUserStore extends BaseStore {
   private readonly requestsInFlight = new Set<string>()
 
   /** The outer map is keyed by the endpoint, the inner map is keyed by email. */
@@ -36,16 +34,9 @@ export class GitHubUserStore {
   private readonly mentionablesEtags = new Map<number, string>()
 
   public constructor(database: GitHubUserDatabase) {
+    super()
+
     this.database = database
-  }
-
-  private emitUpdate() {
-    this.emitter.emit('did-update', {})
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: () => void): Disposable {
-    return this.emitter.on('did-update', fn)
   }
 
   private getUsersForEndpoint(

@@ -13,7 +13,7 @@ import {
   PullRequestRef,
   PullRequestStatus,
 } from '../../models/pull-request'
-import { Emitter, Disposable } from 'event-kit'
+import { TypedBaseStore } from './base-store'
 import { Repository } from '../../models/repository'
 import { getRemotes, removeRemote } from '../git'
 import { IRemote } from '../../models/remote'
@@ -26,8 +26,7 @@ import { IRemote } from '../../models/remote'
 export const ForkedRemotePrefix = 'github-desktop-'
 
 /** The store for GitHub Pull Requests. */
-export class PullRequestStore {
-  private readonly emitter = new Emitter()
+export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   private readonly pullRequestDatabase: PullRequestDatabase
   private readonly repositoriesStore: RepositoriesStore
 
@@ -37,6 +36,8 @@ export class PullRequestStore {
     db: PullRequestDatabase,
     repositoriesStore: RepositoriesStore
   ) {
+    super()
+
     this.pullRequestDatabase = db
     this.repositoriesStore = repositoriesStore
   }
@@ -391,23 +392,5 @@ export class PullRequestStore {
     }
 
     return pullRequests
-  }
-
-  private emitUpdate(repository: GitHubRepository) {
-    this.emitter.emit('did-update', repository)
-  }
-
-  private emitError(error: Error) {
-    this.emitter.emit('did-error', error)
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: (repository: GitHubRepository) => void): Disposable {
-    return this.emitter.on('did-update', fn)
-  }
-
-  /** Register a function to be called when an error occurs. */
-  public onDidError(fn: (error: Error) => void): Disposable {
-    return this.emitter.on('did-error', fn)
   }
 }
