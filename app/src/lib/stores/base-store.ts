@@ -1,19 +1,19 @@
 import { Emitter, Disposable } from 'event-kit'
 
 export abstract class BaseStore {
-  protected readonly _emitter = new Emitter()
+  protected readonly emitter = new Emitter()
 
   protected emitUpdate() {
-    this._emitter.emit('did-update', {})
+    this.emitter.emit('did-update', {})
   }
 
   protected emitError(error: Error) {
-    this._emitter.emit('did-error', error)
+    this.emitter.emit('did-error', error)
   }
 
   /** Register a function to be called when the store updates. */
   public onDidUpdate(fn: () => void): Disposable {
-    return this._emitter.on('did-update', fn)
+    return this.emitter.on('did-update', fn)
   }
 
   /**
@@ -23,24 +23,24 @@ export abstract class BaseStore {
    * the sign in state for inline presentation to the user.
    */
   public onDidError(fn: (e: Error) => void): Disposable {
-    return this._emitter.on('did-error', fn)
+    return this.emitter.on('did-error', fn)
   }
 }
 
 export class TypedBaseStore<T> {
-  protected readonly _emitter = new Emitter()
+  protected readonly emitter = new Emitter()
 
-  protected emitUpdate(data: T | null) {
-    this._emitter.emit('did-update', data || ({} as T))
+  protected emitUpdate(data: T) {
+    this.emitter.emit('did-update', data)
   }
 
   protected emitError(error: Error) {
-    this._emitter.emit('did-error', error)
+    this.emitter.emit('did-error', error)
   }
 
   /** Register a function to be called when the store updates. */
   public onDidUpdate(fn: (data: T) => void): Disposable {
-    return this._emitter.on('did-update', fn)
+    return this.emitter.on('did-update', fn)
   }
 
   /**
@@ -50,6 +50,6 @@ export class TypedBaseStore<T> {
    * the sign in state for inline presentation to the user.
    */
   public onDidError(fn: (e: Error) => void): Disposable {
-    return this._emitter.on('did-error', fn)
+    return this.emitter.on('did-error', fn)
   }
 }

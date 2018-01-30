@@ -15,7 +15,7 @@ import {
 } from '../../models/pull-request'
 import { TypedBaseStore } from './base-store'
 import { Repository } from '../../models/repository'
-import { getRemotes, removeRemote } from '../git/index'
+import { getRemotes, removeRemote } from '../git'
 import { IRemote } from '../../models/remote'
 
 /**
@@ -290,7 +290,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       return null
     }
 
-    const combinedRefStatuses = result.statuses.map(x => {
+    const combinedRefStatuses = (result.statuses || []).map(x => {
       return {
         id: x.id,
         state: x.state,

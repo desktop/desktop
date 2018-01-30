@@ -168,11 +168,11 @@ export interface ISuccessState {
  * A store encapsulating all logic related to signing in a user
  * to GitHub.com, or a GitHub Enterprise instance.
  */
-export class SignInStore extends TypedBaseStore<SignInState> {
+export class SignInStore extends TypedBaseStore<SignInState | null> {
   private state: SignInState | null = null
 
   private emitAuthenticate(account: Account) {
-    this._emitter.emit('did-authenticate', account)
+    this.emitter.emit('did-authenticate', account)
   }
 
   /**
@@ -180,7 +180,7 @@ export class SignInStore extends TypedBaseStore<SignInState> {
    * a user has successfully completed a sign-in process.
    */
   public onDidAuthenticate(fn: (account: Account) => void): Disposable {
-    return this._emitter.on('did-authenticate', fn)
+    return this.emitter.on('did-authenticate', fn)
   }
 
   /**

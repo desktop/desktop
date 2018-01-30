@@ -23,7 +23,7 @@ describe('RepositorySettingsStore', () => {
     // Make sure file exists on FS
     const exists = await pathExists(`${path}/.gitignore`)
 
-    expect(exists).to.equal(true)
+    expect(exists).is.true
   })
 
   it('can ignore a file in a repository', async () => {

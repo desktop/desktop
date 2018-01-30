@@ -1,0 +1,133 @@
+.AvatarStack {
+  position: relative;
+  min-width: 26px;
+  height: 20px;
+
+  .AvatarStack-body {
+    position: absolute;
+  }
+
+  &.AvatarStack--two {
+    min-width: 36px;
+  }
+
+  &.AvatarStack--three-plus {
+    min-width: 46px;
+  }
+
+  &.AvatarStack--small {
+    height: 16px;
+    min-width: 20px;
+
+    .avatar {
+      width: 16px;
+      height: 16px;
+    }
+
+    &.AvatarStack--two {
+      min-width: 25px;
+    }
+
+    &.AvatarStack--three-plus {
+      min-width: 30px;
+    }
+
+    .avatar.avatar-more {
+      &::before,
+      &::after {
+        height: 16px;
+      }
+
+      &::before {
+        width: 13px;
+      }
+    }
+
+    &:hover {
+      .avatar {
+        margin-right: 1px;
+      }
+    }
+  }
+}
+
+.AvatarStack-body {
+  display: flex;
+  background: inherit;
+
+  .avatar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    width: 20px;
+    height: 20px;
+    box-sizing: content-box;
+    margin-right: -11px;
+    background-color: inherit;
+    box-shadow: 1px 0 0 $white;
+    border-radius: 2px;
+    transition: margin 0.1s ease-in-out;
+
+    &:first-child {
+      z-index: 3;
+    }
+
+    &:last-child {
+      z-index: 1;
+      box-shadow: none;
+    }
+
+    // stylelint-disable selector-max-type
+    img {
+      border-radius: 2px;
+    }
+    // stylelint-enable selector-max-type
+
+    // Account for 4+ avatars
+    &:nth-child(n + 4) {
+      display: none;
+      opacity: 0;
+    }
+  }
+
+  &:hover {
+    .avatar {
+      margin-right: 3px;
+    }
+
+    .avatar:nth-child(n + 4) {
+      display: flex;
+      opacity: 1;
+    }
+
+    .avatar-more {
+      display: none !important;
+    }
+  }
+}
+
+.avatar.avatar-more {
+  z-index: 1;
+  margin-right: 0;
+  background: $gray-100;
+
+  &::before,
+  &::after {
+    position: absolute;
+    display: block;
+    height: 20px;
+    content: '';
+    border-radius: 2px;
+    outline: 1px solid $white;
+  }
+
+  &::before {
+    width: 17px;
+    background: $gray-200;
+  }
+
+  &::after {
+    width: 14px;
+    background: $gray-300;
+  }
+}
