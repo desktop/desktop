@@ -21,6 +21,7 @@ import {
 } from '../lib/source-map-support'
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
+import { IMenuItem } from '../lib/menu-item'
 
 enableSourceMaps()
 
@@ -272,7 +273,7 @@ app.on('ready', () => {
 
   ipcMain.on(
     'show-contextual-menu',
-    (event: Electron.IpcMessageEvent, items: ReadonlyArray<any>) => {
+    (event: Electron.IpcMessageEvent, items: ReadonlyArray<IMenuItem>) => {
       const menu = new Menu()
       const menuItems = items.map((item, i) => {
         return new MenuItem({

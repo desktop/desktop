@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Octicon, iconForRepository } from '../octicons'
-import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { showContextualMenu } from '../main-process-proxy'
 import { Repositoryish } from './group-repositories'
+import { IMenuItem } from '../../lib/menu-item'
 
 const defaultEditorLabel = __DARWIN__
   ? 'Open in External Editor'
