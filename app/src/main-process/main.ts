@@ -275,17 +275,17 @@ app.on('ready', () => {
     'show-contextual-menu',
     (event: Electron.IpcMessageEvent, items: ReadonlyArray<IMenuItem>) => {
       const menu = new Menu()
-      const menuItems = items.map((item, i) => {
-        return new MenuItem({
-          label: item.label,
-          click: () => event.sender.send('contextual-menu-action', i),
-          type: item.type,
-          enabled: item.enabled,
-        })
-      })
 
-      for (const item of menuItems) {
-        menu.append(item)
+      for (const [ix, item] of items.entries()) {
+        menu.append(
+          new MenuItem({
+            label: item.label,
+            type: item.type,
+            enabled: item.enabled,
+            role: item.role,
+            click: () => event.sender.send('contextual-menu-action', ix),
+          })
+        )
       }
 
       const window = BrowserWindow.fromWebContents(event.sender)
