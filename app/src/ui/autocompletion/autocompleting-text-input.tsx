@@ -260,6 +260,7 @@ export abstract class AutocompletingTextInput<
     if (this.props.onContextMenu) {
       this.props.onContextMenu
     } else {
+      event.preventDefault()
       showContextualMenu([{ role: 'editMenu' }])
     }
   }
