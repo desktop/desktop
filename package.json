@@ -34,7 +34,8 @@
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && yarn",
     "rebuild-hard:dev": "yarn clean-slate && yarn build:dev",
-    "rebuild-hard:prod": "yarn clean-slate && yarn build:prod"
+    "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
+    "changelog": "ts-node script/changelog/index.ts"
   },
   "author": {
     "name": "GitHub, Inc.",
