@@ -1,47 +1,47 @@
-import * as HTTPS from "https";
+import * as HTTPS from 'https'
 
 export interface IAPIPR {
-  readonly title: string;
-  readonly body: string;
+  readonly title: string
+  readonly body: string
 }
 
 type GraphQLResponse = {
   readonly data: {
     readonly repository: {
-      readonly pullRequest: IAPIPR;
-    };
-  };
-};
+      readonly pullRequest: IAPIPR
+    }
+  }
+}
 
 export function fetchPR(id: number): Promise<IAPIPR | null> {
   return new Promise((resolve, reject) => {
     const options: HTTPS.RequestOptions = {
-      host: "api.github.com",
-      protocol: "https:",
-      path: "/graphql",
-      method: "POST",
+      host: 'api.github.com',
+      protocol: 'https:',
+      path: '/graphql',
+      method: 'POST',
       headers: {
         Authorization: `bearer ${process.env.GITHUB_ACCESS_TOKEN}`,
-        "User-Agent": "what-the-changelog"
-      }
-    };
+        'User-Agent': 'what-the-changelog',
+      },
+    }
 
     const request = HTTPS.request(options, response => {
-      let received = "";
-      response.on("data", chunk => {
-        received += chunk;
-      });
+      let received = ''
+      response.on('data', chunk => {
+        received += chunk
+      })
 
-      response.on("end", () => {
+      response.on('end', () => {
         try {
-          const json: GraphQLResponse = JSON.parse(received);
-          const pr = json.data.repository.pullRequest;
-          resolve(pr);
+          const json: GraphQLResponse = JSON.parse(received)
+          const pr = json.data.repository.pullRequest
+          resolve(pr)
         } catch (e) {
-          resolve(null);
+          resolve(null)
         }
-      });
-    });
+      })
+    })
 
     const graphql = `
 {
@@ -52,9 +52,9 @@ export function fetchPR(id: number): Promise<IAPIPR | null> {
     }
   }
 }
-`;
-    request.write(JSON.stringify({ query: graphql }));
+`
+    request.write(JSON.stringify({ query: graphql }))
 
-    request.end();
-  });
+    request.end()
+  })
 }

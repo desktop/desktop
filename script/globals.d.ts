@@ -64,6 +64,7 @@ type ElectronInstallerAppImage = {
 }
 
 declare namespace NodeJS {
+  // eslint-disable-next-line typescript/interface-name-prefix
   interface Process extends EventEmitter {
     on(event: 'unhandledRejection', listener: (error: Error) => void): this
   }
