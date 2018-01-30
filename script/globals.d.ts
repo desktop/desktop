@@ -62,3 +62,9 @@ type AppImageOptions = {
 type ElectronInstallerAppImage = {
   default: (options: AppImageOptions) => Promise<void>
 }
+
+declare namespace NodeJS {
+  interface Process extends EventEmitter {
+    on(event: 'unhandledRejection', listener: (error: Error) => void): this
+  }
+}
