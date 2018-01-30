@@ -1,4 +1,3 @@
-import { Emitter, Disposable } from 'event-kit'
 import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
@@ -9,24 +8,16 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 import { IAPIRepository } from '../api'
+import { BaseStore } from './base-store'
 
 /** The store for local repositories. */
-export class RepositoriesStore {
+export class RepositoriesStore extends BaseStore {
   private db: RepositoriesDatabase
 
-  private readonly emitter = new Emitter()
-
   public constructor(db: RepositoriesDatabase) {
+    super()
+
     this.db = db
-  }
-
-  private emitUpdate() {
-    this.emitter.emit('did-update', {})
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: () => void): Disposable {
-    return this.emitter.on('did-update', fn)
   }
 
   /** Find the matching GitHub repository or add it if it doesn't exist. */

@@ -1,5 +1,53 @@
 {
   "releases": {
+    "1.0.14-beta1": [
+      "[New] Commit together with co-authors - #3879"
+    ],
+    "1.0.13": [
+      "[New] Commit together with co-authors - #3879",
+      "[New] PhpStorm is now a supported external editor on macOS - #3749. Thanks @hubgit!",
+      "[Improved] Update embedded Git to 2.16.1 - #3617 #3828 #3871",
+      "[Improved] Blank slate view is now more responsive when zoomed - #3777",
+      "[Improved] Documentation fix for Open in Shell resource - #3799. Thanks @saschanaz!",
+      "[Improved] Improved error handling for Linux - #3732",
+      "[Improved] Allow links in unexpanded summary to be clickable - #3719. Thanks @koenpunt!",
+      "[Fixed] Update Electron to 1.7.11 to address security issue - #3846",
+      "[Fixed] Allow double dashes in branch name - #3599. Thanks @JQuinnie!",
+      "[Fixed] Sort the organization list - #3657. Thanks @j-f1!",
+      "[Fixed] Check out PRs from a fork - #3395",
+      "[Fixed] Confirm deleting branch when it has an open PR - #3615",
+      "[Fixed] Defer user/email validation in Preferences - #3722",
+      "[Fixed] Checkout progress did not include branch name - #3780",
+      "[Fixed] Don't block branch switching when in detached HEAD - #3807",
+      "[Fixed] Handle discarding submodule changes properly - #3647",
+      "[Fixed] Show tooltip with additional info about the build status - #3134",
+      "[Fixed] Update placeholders to support Linux distributions - #3150",
+      "[Fixed] Refresh local commit list when switching tabs - #3698"
+    ],
+    "1.0.13-test1": [
+      "[Improved] Update embedded Git to 2.16.1 - #3617 #3828 #3871",
+      "[Fixed] Update Electron to 1.7.11 to address security issue - #3846",
+      "[Fixed] Allows double dashes in branch name - #3599. Thanks @JQuinnie!",
+      "[Fixed] Pull Request store may not have status defined - #3869",
+      "[Fixed] Render the Pull Request badge when no commit statuses found - #3608"
+    ],
+    "1.0.13-beta1": [
+      "[New] PhpStorm is now a supported external editor on macOS - #3749. Thanks @hubgit!",
+      "[Improved] Blank slate view is now more responsive when zoomed - #3777",
+      "[Improved] Documentation fix for Open in Shell resource - #3799. Thanks @saschanaz!",
+      "[Improved] Improved error handling for Linux - #3732",
+      "[Improved] Allow links in unexpanded summary to be clickable - #3719. Thanks @koenpunt!",
+      "[Fixed] Sort the organization list - #3657. Thanks @j-f1!",
+      "[Fixed] Check out PRs from a fork - #3395",
+      "[Fixed] Confirm deleting branch when it has an open PR - #3615",
+      "[Fixed] Defer user/email validation in Preferences - #3722",
+      "[Fixed] Checkout progress did not include branch name - #3780",
+      "[Fixed] Don't block branch switching when in detached HEAD - #3807",
+      "[Fixed] Handle discarding submodule changes properly - #3647",
+      "[Fixed] Show tooltip with additional info about the build status - #3134",
+      "[Fixed] Update placeholders to support Linux distributions - #3150",
+      "[Fixed] Refresh local commit list when switching tabs - #3698"
+    ],
     "1.0.12": [
       "[New] Syntax highlighting for Rust files - #3666. Thanks @subnomo!",
       "[New] Syntax highlighting for Clojure cljc, cljs, and edn files - #3610. Thanks @mtkp!",
