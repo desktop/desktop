@@ -117,6 +117,10 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     )
   }
 
+  if (args.length === 0) {
+    throw new Error(`No tag specified to use as a starting point...`)
+  }
+
   const previousVersion = args[0]
   try {
     await spawn('git', ['rev-parse', previousVersion])
