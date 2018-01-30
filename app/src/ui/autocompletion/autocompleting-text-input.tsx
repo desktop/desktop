@@ -256,7 +256,7 @@ export abstract class AutocompletingTextInput<
    */
   protected abstract getElementTagName(): 'textarea' | 'input'
 
-  private onContextMenu? = (event: React.MouseEvent<any>) => {
+  private onContextMenu = (event: React.MouseEvent<any>) => {
     if (this.props.onContextMenu) {
       this.props.onContextMenu(event)
     } else {
