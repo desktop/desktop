@@ -303,6 +303,25 @@
   - [ ] `Undo` button disabled if user is pushing commit
   - [ ] User can publish a new repo with no commits (aka unborn repo/branch)
   - [ ] User can make new branch the default branch, by making the intial commit on the new branch. 
+  
+### Co-authoring
+  - [ ] clicking co-author icon toggles co-author field; or right-click within commit area
+    - [ ] hovering over the icon reveals add/remove 'action' text
+    - [ ] right-click includes Mac/Windows context menus
+    - [ ] user can tag other GitHub.com users only, or those within your Enterprise org
+      - [ ] tag is tied to public API name/email; email is "no-reply" if user setting is enabled
+      - [ ] mouseover tooltip reveals name and email of any entered tags
+      - [ ] tagging those outside of GitHub turns tag red
+      - [ ] you cannot tag a user more than once via the autocomplete; manually you can
+      - [ ] typing a GitHub name not part of the initial autocomplete will initiate a search
+        - [ ] found names are tagged; all others are turned red
+        - [ ] navigating away from the Changes tab will clear red tags 
+     - [ ] toggling the co-author icon clears the field
+  - [ ] All co-authors show up in History and diff view
+    - [ ] Hovering over an avatar reveals all tagged users
+    - [ ] Hovering over the "people" text reveals all names/emails of tagged users
+  - [ ] Undoing a commit re-enables the tags
+  - [ ] Reverting a commit does not re-enable the tags
 
 ### Branches list
   - [ ] Current branch always shows if repository present
