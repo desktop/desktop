@@ -366,7 +366,6 @@ export class CommitMessage extends React.Component<
   }
 
   private onAutocompletingInputContextMenu = (event: React.MouseEvent<any>) => {
-    console.log('onAutocompletingInputContextMenu')
     event.preventDefault()
 
     const items: IMenuItem[] = [
