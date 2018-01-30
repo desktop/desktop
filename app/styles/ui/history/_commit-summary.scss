@@ -122,6 +122,9 @@
   }
 
   &-meta-item {
+    display: flex;
+    flex-direction: row;
+
     @include ellipsis;
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);

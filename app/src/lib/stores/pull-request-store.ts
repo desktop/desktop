@@ -13,11 +13,20 @@ import {
   PullRequestRef,
   PullRequestStatus,
 } from '../../models/pull-request'
-import { Emitter, Disposable } from 'event-kit'
+import { TypedBaseStore } from './base-store'
+import { Repository } from '../../models/repository'
+import { getRemotes, removeRemote } from '../git'
+import { IRemote } from '../../models/remote'
+
+/**
+ * This is the magic remote name prefix
+ * for when we add a remote on behalf of
+ * the user.
+ */
+export const ForkedRemotePrefix = 'github-desktop-'
 
 /** The store for GitHub Pull Requests. */
-export class PullRequestStore {
-  private readonly emitter = new Emitter()
+export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   private readonly pullRequestDatabase: PullRequestDatabase
   private readonly repositoriesStore: RepositoriesStore
 
@@ -27,35 +36,86 @@ export class PullRequestStore {
     db: PullRequestDatabase,
     repositoriesStore: RepositoriesStore
   ) {
+    super()
+
     this.pullRequestDatabase = db
     this.repositoriesStore = repositoriesStore
   }
 
   /** Loads all pull requests against the given repository. */
   public async refreshPullRequests(
-    repository: GitHubRepository,
+    repository: Repository,
     account: Account
   ): Promise<void> {
+    const githubRepo = forceUnwrap(
+      'Can only refresh pull requests for GitHub repositories',
+      repository.gitHubRepository
+    )
     const api = API.fromAccount(account)
 
-    this.changeActiveFetchCount(repository, c => c + 1)
+    this.changeActiveFetchCount(githubRepo, c => c + 1)
 
     try {
       const raw = await api.fetchPullRequests(
-        repository.owner.login,
-        repository.name,
+        githubRepo.owner.login,
+        githubRepo.name,
         'open'
       )
 
-      await this.writePRs(raw, repository)
+      await this.writePRs(raw, githubRepo)
 
-      const prs = await this.getPullRequests(repository)
-      await this.refreshStatusForPRs(prs, repository, account)
+      const prs = await this.getPullRequests(githubRepo)
+
+      await this.refreshStatusForPRs(prs, githubRepo, account)
+      await this.pruneForkedRemotes(repository, prs)
     } catch (error) {
       log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
       this.emitError(error)
     } finally {
-      this.changeActiveFetchCount(repository, c => c - 1)
+      this.changeActiveFetchCount(githubRepo, c => c - 1)
+    }
+  }
+
+  private async pruneForkedRemotes(
+    repository: Repository,
+    pullRequests: ReadonlyArray<PullRequest>
+  ) {
+    const remotes = await getRemotes(repository)
+    const forkedRemotesToDelete = this.forkedRemotesToDelete(
+      remotes,
+      pullRequests
+    )
+
+    await this.deleteForkedRemotes(repository, forkedRemotesToDelete)
+  }
+
+  private forkedRemotesToDelete(
+    remotes: ReadonlyArray<IRemote>,
+    openPullRequests: ReadonlyArray<PullRequest>
+  ): ReadonlyArray<IRemote> {
+    const forkedRemotes = remotes.filter(remote =>
+      remote.name.startsWith(ForkedRemotePrefix)
+    )
+    const remotesOfPullRequests = new Set<string>()
+    openPullRequests.forEach(openPullRequest => {
+      const { gitHubRepository } = openPullRequest.head
+      if (gitHubRepository != null && gitHubRepository.cloneURL != null) {
+        remotesOfPullRequests.add(gitHubRepository.cloneURL)
+      }
+    })
+    const forkedRemotesToDelete = forkedRemotes.filter(
+      forkedRemote => !remotesOfPullRequests.has(forkedRemote.url)
+    )
+
+    return forkedRemotesToDelete
+  }
+
+  private async deleteForkedRemotes(
+    repository: Repository,
+    remotes: ReadonlyArray<IRemote>
+  ) {
+    for (const remote of remotes) {
+      await removeRemote(repository, remote.name)
     }
   }
 
@@ -175,7 +235,7 @@ export class PullRequestStore {
       return null
     }
 
-    const combinedRefStatuses = result.statuses.map(x => {
+    const combinedRefStatuses = (result.statuses || []).map(x => {
       return {
         id: x.id,
         state: x.state,
@@ -332,23 +392,5 @@ export class PullRequestStore {
     }
 
     return pullRequests
-  }
-
-  private emitUpdate(repository: GitHubRepository) {
-    this.emitter.emit('did-update', repository)
-  }
-
-  private emitError(error: Error) {
-    this.emitter.emit('did-error', error)
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: (repository: GitHubRepository) => void): Disposable {
-    return this.emitter.on('did-update', fn)
-  }
-
-  /** Register a function to be called when an error occurs. */
-  public onDidError(fn: (error: Error) => void): Disposable {
-    return this.emitter.on('did-error', fn)
   }
 }

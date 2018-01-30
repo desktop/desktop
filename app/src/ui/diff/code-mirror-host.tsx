@@ -4,6 +4,9 @@ import * as CodeMirror from 'codemirror'
 // Required for us to be able to customize the foreground color of selected text
 import 'codemirror/addon/selection/mark-selection'
 
+// Autocompletion plugin
+import 'codemirror/addon/hint/show-hint'
+
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
   require('codemirror/addon/scroll/simplescrollbars')
