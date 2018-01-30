@@ -258,7 +258,7 @@ export abstract class AutocompletingTextInput<
 
   private onContextMenu? = (event: React.MouseEvent<any>) => {
     if (this.props.onContextMenu) {
-      this.props.onContextMenu
+      this.props.onContextMenu(event)
     } else {
       event.preventDefault()
       showContextualMenu([{ role: 'editMenu' }])
