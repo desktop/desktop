@@ -782,8 +782,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
     menu.push({
       label: __DARWIN__ ? 'Select All' : 'Select all',
       action: () => {
-        // trust me, it's a thing :cry:
-        ;(cm as any).execCommand('selectAll')
+        cm.execCommand('selectAll')
       },
     })
 
