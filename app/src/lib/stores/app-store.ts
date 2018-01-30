@@ -3086,7 +3086,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {
-    const pullRequests = await this.pullRequestStore.fetchPullRequestsFromCache(
+    const promiseForPRs = this.pullRequestStore.fetchPullRequestsFromCache(
       gitHubRepository
     )
     const isLoading = this.pullRequestStore.isFetchingPullRequests(
@@ -3102,15 +3102,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const prs = await promiseForPRs
     this.updateBranchesState(repository, state => {
       return {
-        openPullRequests: pullRequests,
+        openPullRequests: prs,
         isLoadingPullRequests: isLoading,
       }
     })
 
     this._updateCurrentPullRequest(repository)
-
     this.emitUpdate()
   }
 
