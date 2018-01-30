@@ -70,6 +70,8 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
       await this.refreshStatusForPRs(prs, githubRepo, account)
       await this.pruneForkedRemotes(repository, prs)
+
+      this.emitUpdate(githubRepo)
     } catch (error) {
       log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
       this.emitError(error)
