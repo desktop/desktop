@@ -406,7 +406,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
-        openPullRequests: [],
+        openPullRequests: new Array<PullRequest>(),
         currentPullRequest: null,
         isLoadingPullRequests: false,
       },
