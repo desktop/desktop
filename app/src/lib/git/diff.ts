@@ -101,7 +101,7 @@ export async function getCommitDiff(
     file.path,
   ]
 
-  if (file.oldPath) {
+  if (file.oldPath != null) {
     args.push(file.oldPath)
   }
 
