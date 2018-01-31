@@ -91,7 +91,7 @@
     "tslint-config-prettier": "^1.6.0",
     "tslint-microsoft-contrib": "^5.0.1",
     "tslint-react": "~3.2.0",
-    "typescript": "2.6.2",
+    "typescript": "2.7.0",
     "typescript-eslint-parser": "^10.0.0",
     "webpack": "^3.10.0",
     "webpack-dev-middleware": "^2.0.3",
