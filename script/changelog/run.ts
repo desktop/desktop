@@ -132,7 +132,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     const latestTag = sortedTags[sortedTags.length - 1]
 
     throw new Error(
-      `No tag specified to use as a starting point. The latest tag specified is 'release-${latestTag}' - did you mean that?`
+      `No tag specified to use as a starting point.\nThe latest tag specified is 'release-${latestTag}' - did you mean that?`
     )
   }
 
