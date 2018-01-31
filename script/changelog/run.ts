@@ -1,5 +1,6 @@
 import { spawn } from './spawn'
 import { fetchPR, IAPIPR } from './api'
+import { sort as semverSort } from 'semver'
 
 const jsonStringify: (obj: any) => string = require('json-pretty')
 
@@ -118,7 +119,21 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   }
 
   if (args.length === 0) {
-    throw new Error(`No tag specified to use as a starting point...`)
+    // work out the latest tag created in the repository
+    const allTags = await spawn('git', ['tag'])
+    const releaseTags = allTags
+      .split('\n')
+      .filter(tag => tag.startsWith('release-'))
+      .filter(tag => tag.indexOf('-linux') === -1)
+      .filter(tag => tag.indexOf('-test') === -1)
+      .map(tag => tag.substr(8))
+
+    const sortedTags = semverSort(releaseTags)
+    const latestTag = sortedTags[sortedTags.length - 1]
+
+    throw new Error(
+      `No tag specified to use as a starting point. The latest tag specified is 'release-${latestTag}' - did you mean that?`
+    )
   }
 
   const previousVersion = args[0]
