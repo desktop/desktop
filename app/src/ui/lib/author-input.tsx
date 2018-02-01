@@ -629,9 +629,9 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       needle
     )
 
-    const exactMatch =
-      hits.length === 1 &&
-      hits[0].username.toLowerCase() === needle.toLowerCase()
+    const exactMatch = hits.some(hit => {
+      return hit.username.toLowerCase() === needle.toLowerCase()
+    })
 
     const existingUsernames = new Set(this.authors.map(x => x.username))
 
