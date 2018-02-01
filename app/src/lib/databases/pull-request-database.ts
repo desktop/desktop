@@ -83,8 +83,23 @@ export class PullRequestDatabase extends Dexie {
       pullRequestStatus: 'id++, &[sha+pullRequestId]',
     })
 
-    this.version(3).stores({
-      pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
-    })
+    this.version(3)
+      .stores({
+        pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
+      })
+      .upgrade(async transaction => {
+        await this.pullRequestStatus.toCollection().modify(async prStatus => {
+          if (prStatus.statuses == null) {
+            const newPrStatus = { statuses: [], ...prStatus }
+
+            await this.pullRequestStatus
+              .where('[sha+pullRequestId')
+              .equals([prStatus.sha, prStatus.pullRequestId])
+              .delete()
+
+            await this.pullRequestStatus.add(newPrStatus)
+          }
+        })
+      })
   }
 }
