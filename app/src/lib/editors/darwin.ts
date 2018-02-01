@@ -121,7 +121,7 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
  */
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<IFoundEditor<ExternalEditor>>
-  > {
+> {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
   const [
