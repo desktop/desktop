@@ -10,6 +10,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
+  TextMate = 'TextMate',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -31,6 +32,9 @@ export function parse(label: string): ExternalEditor | null {
   if (label === ExternalEditor.PhpStorm) {
     return ExternalEditor.PhpStorm
   }
+  if (label === ExternalEditor.TextMate) {
+    return ExternalEditor.TextMate
+  }
 
   return null
 }
@@ -46,6 +50,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.github.atom']
     case ExternalEditor.VisualStudioCode:
       return ['com.microsoft.VSCode']
+    case ExternalEditor.TextMate:
+      return ['com.macromates.TextMate']
     case ExternalEditor.VisualStudioCodeInsiders:
       return ['com.microsoft.VSCodeInsiders']
     case ExternalEditor.SublimeText:
@@ -82,6 +88,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'Helpers', 'bbedit_tool')
     case ExternalEditor.PhpStorm:
       return Path.join(installPath, 'Contents', 'MacOS', 'phpstorm')
+    case ExternalEditor.TextMate:
+      return Path.join(installPath, 'Contents', 'Resources', 'mate')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -123,6 +131,7 @@ export async function getAvailableEditors(): Promise<
     sublimePath,
     bbeditPath,
     phpStormPath,
+    textMatePath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
@@ -130,6 +139,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.BBEdit),
     findApplication(ExternalEditor.PhpStorm),
+    findApplication(ExternalEditor.TextMate),
   ])
 
   if (atomPath) {
@@ -157,6 +167,10 @@ export async function getAvailableEditors(): Promise<
 
   if (phpStormPath) {
     results.push({ editor: ExternalEditor.PhpStorm, path: phpStormPath })
+  }
+
+  if (textMatePath) {
+    results.push({ editor: ExternalEditor.TextMate, path: textMatePath })
   }
 
   return results
