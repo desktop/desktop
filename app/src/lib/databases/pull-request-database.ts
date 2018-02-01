@@ -65,7 +65,7 @@ export interface IPullRequestStatus {
    * if the database object was created prior to status support
    * being added in #3588
    */
-  readonly statuses: ReadonlyArray<IAPIRefStatusItem>
+  readonly statuses?: ReadonlyArray<IAPIRefStatusItem>
 }
 
 export class PullRequestDatabase extends Dexie {
