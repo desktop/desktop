@@ -76,33 +76,6 @@ export class RepositoriesDatabase extends Dexie {
       gitHubRepositories: '++id, name, &[ownerID+name], cloneURL',
     })
   }
-
-  /**
-   * Register the version of the schema only if `targetVersion` is less than
-   * `version` or is `undefined`.
-   *
-   * targetVersion - The version of the schema that is being targetted. If not
-   *                 provided, the given version will be registered.
-   * version       - The version being registered.
-   * schema        - The schema to register.
-   * upgrade       - An upgrade function to call after upgrading to the given
-   *                 version.
-   */
-  private conditionalVersion(
-    targetVersion: number | undefined,
-    version: number,
-    schema: { [key: string]: string | null },
-    upgrade?: (t: Dexie.Transaction) => void
-  ) {
-    if (targetVersion && targetVersion < version) {
-      return
-    }
-
-    const dexieVersion = this.version(version).stores(schema)
-    if (upgrade) {
-      dexieVersion.upgrade(upgrade)
-    }
-  }
 }
 
 /**
