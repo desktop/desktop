@@ -50,8 +50,6 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.github.atom']
     case ExternalEditor.VisualStudioCode:
       return ['com.microsoft.VSCode']
-    case ExternalEditor.TextMate:
-      return ['com.macromates.TextMate']
     case ExternalEditor.VisualStudioCodeInsiders:
       return ['com.microsoft.VSCodeInsiders']
     case ExternalEditor.SublimeText:
@@ -60,6 +58,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.barebones.bbedit']
     case ExternalEditor.PhpStorm:
       return ['com.jetbrains.PhpStorm']
+    case ExternalEditor.TextMate:
+      return ['com.macromates.TextMate']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -121,7 +121,7 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
  */
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<IFoundEditor<ExternalEditor>>
-> {
+  > {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
   const [
