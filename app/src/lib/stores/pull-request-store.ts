@@ -378,9 +378,11 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     }
 
     return this._pullRequestDatabase.transaction('rw', table, async () => {
+      const repoDbId = prsToInsert[0].base.repoId!
+
       await table
         .where('base.repoId')
-        .equals(prsToInsert[0].base.repoId!)
+        .equals(repoDbId)
         .delete()
 
       await table.bulkAdd(prsToInsert)
