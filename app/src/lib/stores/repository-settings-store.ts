@@ -110,17 +110,16 @@ async function formatGitIgnoreContents(
       return
     }
 
-    // fallback to Git default behaviour
     if (autocrlf == null) {
-      resolve(`${text}\n`)
-      return
-    }
-
-    const linesEndInCRLF = autocrlf === 'true'
-    if (linesEndInCRLF) {
+      // fallback to Git default behaviour
       resolve(`${text}\n`)
     } else {
-      resolve(`${text}\r\n`)
+      const linesEndInCRLF = autocrlf === 'true'
+      if (linesEndInCRLF) {
+        resolve(`${text}\n`)
+      } else {
+        resolve(`${text}\r\n`)
+      }
     }
   })
 }
