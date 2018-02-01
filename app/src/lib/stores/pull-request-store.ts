@@ -378,7 +378,11 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     }
 
     return this._pullRequestDatabase.transaction('rw', table, async () => {
-      await table.clear() //This is the problem
+      await table
+        .where('base.repoId')
+        .equals(prsToInsert[0].base.repoId!)
+        .delete()
+
       await table.bulkAdd(prsToInsert)
     })
   }
