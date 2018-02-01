@@ -8,10 +8,10 @@ on a repository in the sidebar.
 
 This is the checklist of things that it needs to support:
 
-* the editor supports opening a directory, not just a file
-* the editor is installed by the user, so there is a reliable way to find it on
-  the user's machine
-* it comes with a command-line interface that can be launched by Desktop
+ - the editor supports opening a directory, not just a file
+ - the editor is installed by the user, so there is a reliable way to find it
+   on the user's machine
+ - it comes with a command-line interface that can be launched by Desktop
 
 If you think your editor satisfies all these please read on to understand how
 Desktop integrates with each OS, and if you're still keen to integrate this
@@ -24,9 +24,9 @@ The source for the editor integration on Windows is found in
 
 These editors are currently supported:
 
-* [Atom](https://atom.io/)
-* [Visual Studio Code](https://code.visualstudio.com/)
-* [Sublime Text](https://www.sublimetext.com/)
+ - [Atom](https://atom.io/)
+ - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Sublime Text](https://www.sublimetext.com/)
 
 These are defined in an enum at the top of the file:
 
@@ -38,8 +38,8 @@ export enum ExternalEditor {
 }
 ```
 
-If you want to add another editor, add a new key to the `ExternalEditor` enum
-with a friendly name for the value. This will trigger a number of compiler
+If you want to add another editor, add a new key to the `ExternalEditor`
+enum with a friendly name for the value. This will trigger a number of compiler
 errors, which are places in the module you need to add code.
 
 The steps for resolving each editor can be found in `findApplication()` and in
@@ -60,9 +60,10 @@ entries to the registry to help the OS with cleaning up later, if the user
 wishes to uninstall. These entries are used by GitHub Desktop to identify
 relevant programs and where they can be located.
 
-The registry locations for each editor are listed in `getRegistryKeys()`. Some
-editors support multiple install locations, but are structurally the same (for
-example 64-bit or 32-bit application, or stable and developer channels).
+The registry locations for each editor are listed in `getRegistryKeys()`.
+Some editors support multiple install locations, but are structurally the
+same (for example 64-bit or 32-bit application, or stable and developer
+channels).
 
 ```ts
 function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
@@ -82,25 +83,26 @@ function getRegistryKeys(editor: ExternalEditor): ReadonlyArray<string> {
 
 If you're not sure how your editor is installed, check one of these locations:
 
-* `HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
-  uninstall information about 64-bit Windows software is found here
+ - `HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
+    uninstall information about 64-bit Windows software is found here
 
-* `HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
-  uninstall information about 32-bit Windows software is found here
+ - `HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
+    uninstall information about 32-bit Windows software is found here
 
-* `HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
-  uninstall information for software that doesn't require administrator
-  permissions is found here
+ - `HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall` -
+    uninstall information for software that doesn't require administrator
+    permissions is found here
 
-Your editor is probably hiding behind a GUID in one of these locations - this is
-the key that Desktop needs to read the registry and find the installation for
-your editor.
+
+Your editor is probably hiding behind a GUID in one of these locations - this
+is the key that Desktop needs to read the registry and find the installation for your editor.
 
 ### Step 2: Validate The Installation
 
-As part of installing to the registry, a program will insert a number of
-key-value pairs - Desktop will enumerate these to ensure it's the application it
-expects, and identify where the install location of the application.
+As part of installing to the registry, a program will insert a
+number of key-value pairs - Desktop will enumerate these to ensure it's the
+application it expects, and identify where the install location of the
+application.
 
 There's two steps to this process. The first step is reading the registry, and
 you can see this code in `extractApplicationInformation()`:
@@ -169,11 +171,11 @@ function isExpectedInstallation(
 
 ### Step 3: Launch the program
 
-Now that Desktop knows the program is the one it expects, it can use the install
-location to then find the executable to launch. Many editors provide a shim or
-standalone tool to manage this, rather than launching the executable directly.
-Whatever options there are, this should be a known location with an interface
-that doesn't change between updates.
+Now that Desktop knows the program is the one it expects, it can use the
+install location to then find the executable to launch. Many editors provide a
+shim or standalone tool to manage this, rather than launching the
+executable directly. Whatever options there are, this should be a known
+location with an interface that doesn't change between updates.
 
 ```ts
 function getExecutableShim(
@@ -189,8 +191,8 @@ function getExecutableShim(
 }
 ```
 
-Desktop will confirm this file exists on disk before launching - if it's missing
-or lost it won't let you launch the external editor.
+Desktop will confirm this file exists on disk before launching - if it's
+missing or lost it won't let you launch the external editor.
 
 ## macOS
 
@@ -199,11 +201,11 @@ The source for the editor integration on macOS is found in
 
 These editors are currently supported:
 
-* [Atom](https://atom.io/)
-* [Visual Studio Code](https://code.visualstudio.com/)
-* [Sublime Text](https://www.sublimetext.com/)
-* [BBEdit](http://www.barebones.com/products/bbedit/)
-* [PhpStorm](https://www.jetbrains.com/phpstorm/)
+ - [Atom](https://atom.io/)
+ - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Sublime Text](https://www.sublimetext.com/)
+ - [BBEdit](http://www.barebones.com/products/bbedit/)
+ - [PhpStorm](https://www.jetbrains.com/phpstorm/)
 
 These are defined in an enum at the top of the file:
 
@@ -215,8 +217,8 @@ export enum ExternalEditor {
 }
 ```
 
-If you want to add another editor, add a new key to the `ExternalEditor` enum
-with a friendly name for the value. This will trigger a number of compiler
+If you want to add another editor, add a new key to the `ExternalEditor`
+enum with a friendly name for the value. This will trigger a number of compiler
 errors, which are places in the module you need to add code.
 
 The steps for resolving each editor can be found in `findApplication()` and in
@@ -231,12 +233,12 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
 
 ### Step 1: Find installation path
 
-macOS programs are packaged as application bundles, and applications can read
-information from the OS to see if they are present.
+macOS programs are packaged as application bundles, and applications can
+read information from the OS to see if they are present.
 
-The `CFBundleIdentifier` value in the plist is what applications use to uniquely
-identify themselves, for example `com.github.GitHubClient` is the identifier for
-GitHub Desktop.
+The `CFBundleIdentifier` value in the plist is what applications use to
+uniquely identify themselves, for example `com.github.GitHubClient` is the
+identifier for GitHub Desktop.
 
 The `getBundleIdentifier()` method is the lookup method for this value:
 
@@ -251,10 +253,9 @@ function getBundleIdentifier(editor: ExternalEditor): string {
 }
 ```
 
-AppKit provides an
-[`API`](https://developer.apple.com/documentation/appkit/nsworkspace/1533086-absolutepathforappbundlewithiden?language=objc)
-for searching for an application bundle. If it finds an application bundle, it
-will return the path to the application on disk. Otherwise it will raise an
+AppKit provides an [`API`](https://developer.apple.com/documentation/appkit/nsworkspace/1533086-absolutepathforappbundlewithiden?language=objc)
+for searching for an application bundle. If it finds an application bundle,
+it will return the path to the application on disk. Otherwise it will raise an
 exception.
 
 ### Step 2: Find executable to launch
@@ -287,14 +288,15 @@ function getExecutableShim(
 
 ## Linux
 
+
 The source for the editor integration on Linux is found in
 [`app/src/lib/editors/linux.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/editors/linux.ts).
 
 These editors are currently supported:
 
-* [Atom](https://atom.io/)
-* [Visual Studio Code](https://code.visualstudio.com/)
-* [Sublime Text](https://www.sublimetext.com/)
+ - [Atom](https://atom.io/)
+ - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Sublime Text](https://www.sublimetext.com/)
 
 These are defined in an enum at the top of the file:
 
@@ -306,24 +308,24 @@ export enum ExternalEditor {
 }
 ```
 
-If you want to add another editor, add a new key to the `ExternalEditor` enum
-with a friendly name for the value. This will trigger a compiler error, and you
-need to add code to `getEditorPath()` to get the source building again.
+If you want to add another editor, add a new key to the `ExternalEditor`
+enum with a friendly name for the value. This will trigger a compiler
+error, and you need to add code to `getEditorPath()` to get the source
+building again.
 
 ### Step 1: Find executable path
 
-The `getEditorPath()` maps the editor enum to an expected path to the editor
-executable. Add a new `case` statement for your editor.
+The `getEditorPath()` maps the editor enum to an expected path to the
+editor executable. Add a new `case` statement for your editor.
 
 ```ts
 case ExternalEditor.VisualStudioCode:
   return getPathIfAvailable('/usr/bin/code')
 ```
-
 ### Step 2: Lookup executable
 
-Once you've done that, add code to `getAvailableEditors()` so that it checks for
-your new editor, following the existing patterns.
+Once you've done that, add code to `getAvailableEditors()` so that it checks
+for your new editor, following the existing patterns.
 
 ```ts
 export async function getAvailableEditors(): Promise<

@@ -1,4 +1,4 @@
-@import '../../mixins';
+@import "../../mixins";
 
 /** A React component holding the main application toolbar component. */
 #desktop-app-toolbar {
@@ -25,21 +25,17 @@
     flex-direction: row;
     flex-shrink: 0;
 
-    & > :last-child {
+    &>:last-child {
       flex-grow: 1;
     }
   }
 
   .toolbar-button {
-    &.push-pull-button {
-      width: 230px;
-    }
+    &.push-pull-button { width: 230px; }
   }
 
   .toolbar-dropdown {
-    &.branch-button {
-      width: 230px;
-    }
+    &.branch-button { width: 230px; }
   }
 
   .toolbar-button {
@@ -49,15 +45,10 @@
   }
 }
 
-@keyframes spin {
-  100% {
-    -webkit-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
-}
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
 
 .spin {
-  animation: spin 1s linear infinite;
+  animation:spin 1s linear infinite;
 }
 
 .ahead-behind {
@@ -87,9 +78,7 @@
 
     // Only add left margin if both ahead and behind are
     // showing at the same time.
-    &:nth-child(2) {
-      margin-left: var(--spacing-half);
-    }
+    &:nth-child(2) { margin-left: var(--spacing-half); }
 
     // We're using arrowSmallUp and arrowSmallDown which are
     // both exactly 6px wide. Let's use that so that spacing

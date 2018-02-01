@@ -15,6 +15,7 @@ dialog#merge {
   }
 
   .dialog-content {
+
     padding: 0;
 
     .filter-field-row {
@@ -30,15 +31,14 @@ dialog#merge {
     .list-item {
       padding: 0 var(--spacing-double);
 
-      .filter-list-group-header,
-      .branches-list-item {
+      .filter-list-group-header, .branches-list-item {
         padding: 0;
       }
     }
   }
 
   .dialog-footer {
-    button[type='submit'] {
+    button[type=submit] {
       height: auto;
       width: 100%;
       padding: var(--spacing-half);

@@ -3,7 +3,5 @@
 .path-text-component {
   @include ellipsis;
 
-  .dirname {
-    color: var(--text-secondary-color);
-  }
+  .dirname { color: var(--text-secondary-color); }
 }

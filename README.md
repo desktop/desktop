@@ -16,19 +16,16 @@ uses [React](https://facebook.github.io/react/).
 
 Download the official installer for your operating system:
 
-* [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
-* [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
-* [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
+ - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
+ - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
+ - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
 
-There are several community-supported package managers that can be used to
-install Github Desktop.
-
-* Windows users can install using [Chocolatey](https://chocolatey.org/) package
-  manager: `c:\> choco install github-desktop`
-* macOS users can install using [Homebrew](https://brew.sh/) package manager:
-  `$ brew cask install github`
-* Arch Linux users can install the latest version from the
-  [AUR](https://aur.archlinux.org/packages/github-desktop/).
+There are several community-supported package managers that can be used to install Github Desktop.
+ - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
+      `c:\> choco install github-desktop`
+ - macOS users can install using [Homebrew](https://brew.sh/) package manager:
+      `$ brew cask install github`
+ - Arch Linux users can install the latest version from the [AUR](https://aur.archlinux.org/packages/github-desktop/).
 
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
@@ -42,19 +39,18 @@ from disk onto the application to get started.
 Want to test out new features and get fixes before everyone else? Install the
 beta channel to get access to early builds of Desktop:
 
-* [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
-* [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
+ - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
+ - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
 
 ## I have a problem with GitHub Desktop
 
-First, please search the
-[open issues](https://github.com/desktop/desktop/issues?q=is%3Aopen) and
-[closed issues](https://github.com/desktop/desktop/issues?q=is%3Aclosed) to see
-if your issue hasn't already been reported (it may also be fixed).
+First, please search the [open issues](https://github.com/desktop/desktop/issues?q=is%3Aopen)
+and [closed issues](https://github.com/desktop/desktop/issues?q=is%3Aclosed)
+to see if your issue hasn't already been reported (it may also be fixed).
 
-If you can't find an issue that matches what you're seeing, open a
-[new issue](https://github.com/desktop/desktop/issues/new) and fill out the
-template to provide us with enough information to investigate further.
+If you can't find an issue that matches what you're seeing, open a [new issue](https://github.com/desktop/desktop/issues/new)
+and fill out the template to provide us with enough information to investigate
+further.
 
 ## How can I contribute to GitHub Desktop?
 
@@ -62,9 +58,7 @@ The [CONTRIBUTING.md](./CONTRIBUTING.md) document will help you get setup and
 familiar with the source. The [documentation](docs/) folder also contains more
 resources relevant to the project.
 
-If you're looking for something to work on, check out the
-[help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22)
-label.
+If you're looking for something to work on, check out the [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) label.
 
 ## More Resources
 
@@ -76,10 +70,10 @@ information about GitHub Desktop.
 **[MIT](LICENSE)**
 
 The MIT license grant is not for GitHub's trademarks, which include the logo
-designs. GitHub reserves all trademark and copyright rights in and to all GitHub
-trademarks. GitHub's logos include, for instance, the stylized Invertocat
-designs that include "logo" in the file title in the following folder:
-[logos](app/static/logos).
+designs. GitHub reserves all trademark and copyright rights in and to all
+GitHub trademarks. GitHub's logos include, for instance, the stylized
+Invertocat designs that include "logo" in the file title in the following
+folder: [logos](app/static/logos).
 
 GitHub® and its stylized versions and the Invertocat mark are GitHub's
 Trademarks or registered Trademarks. When using GitHub's logos, be sure to

@@ -1,6 +1,7 @@
-@import '../mixins';
+@import "../mixins";
 
 #desktop-app {
+
   // This is just a dummy wrapper needed because react doesn't like
   // being installed into <body>, see https://github.com/facebook/react/issues/3207
   &-container {
@@ -22,6 +23,6 @@
   &-contents {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
+    flex-grow: 1
   }
 }

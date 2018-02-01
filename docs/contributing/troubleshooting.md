@@ -5,8 +5,7 @@ while working on GitHub Desktop:
 
 ### Issues compiling node-keytar on Windows
 
-If keytar fails to build on Windows with the following error during
-`npm install`:
+If keytar fails to build on Windows with the following error during `npm install`:
 
 ```
 npm ERR! keytar@3.0.2 install: `node-gyp rebuild`
