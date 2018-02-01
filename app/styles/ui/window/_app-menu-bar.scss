@@ -2,7 +2,7 @@
   display: flex;
 
   .toolbar-button > button {
-    padding: 0  var(--spacing);
+    padding: 0 var(--spacing);
     border: 0;
 
     .access-key.highlight {
@@ -13,7 +13,8 @@
   .toolbar-dropdown:not(.open) > .toolbar-button > button {
     color: var(--toolbar-button-secondary-color);
 
-    &:hover,&:focus {
+    &:hover,
+    &:focus {
       color: var(--toolbar-button-color);
     }
   }
