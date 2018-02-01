@@ -1,10 +1,11 @@
 ## Placeholders and Replacements in Source Code
 
-As GitHub Desktop uses Webpack to transpile, minify and merge our code
-into unified scripts for each configuration we define, we use some tricks
-to manage complexity and enable some optimizations.
+As GitHub Desktop uses Webpack to transpile, minify and merge our code into
+unified scripts for each configuration we define, we use some tricks to manage
+complexity and enable some optimizations.
 
-For example, you might come across this code in [`app-window.ts`](https://github.com/desktop/desktop/blob/master/app/src/main-process/app-window.ts):
+For example, you might come across this code in
+[`app-window.ts`](https://github.com/desktop/desktop/blob/master/app/src/main-process/app-window.ts):
 
 ```ts
 if (__DARWIN__) {
@@ -29,7 +30,8 @@ we get significant benefits from doing it the first way.
 
 ### Replacements
 
-The replacements defined for Desktop are found in [`app/app-info.js`](https://github.com/desktop/desktop/blob/master/app/app-info.js)
+The replacements defined for Desktop are found in
+[`app/app-info.js`](https://github.com/desktop/desktop/blob/master/app/app-info.js)
 as a hash of key-value pairs.
 
 ```ts
@@ -54,8 +56,8 @@ function getReplacements() {
 }
 ```
 
-This means we can embed values at build time based on the current platform.
-Note the values we are embedding for `__DARWIN__` and `__WIN32__`:
+This means we can embed values at build time based on the current platform. Note
+the values we are embedding for `__DARWIN__` and `__WIN32__`:
 
 ```ts
 __DARWIN__: process.platform === 'darwin',
@@ -96,13 +98,14 @@ And this code for Windows:
 windowOptions.frame = false
 ```
 
-This means less code is emitted as part of the packaged app, and less
-JavaScript is interpreted and executed at runtime.
+This means less code is emitted as part of the packaged app, and less JavaScript
+is interpreted and executed at runtime.
 
 ### Placeholders
 
-As we are working in TypeScript, we need to define these placeholders as
-globals under [`app/src/lib/globals.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/globals.d.ts)
+As we are working in TypeScript, we need to define these placeholders as globals
+under
+[`app/src/lib/globals.ts`](https://github.com/desktop/desktop/blob/master/app/src/lib/globals.d.ts)
 to provide the appropriate type information to the source code.
 
 For example, the values for `__DARWIN__` and `__WIN32__` are declared as

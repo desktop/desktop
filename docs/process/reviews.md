@@ -4,8 +4,8 @@ This is the typical flow:
 
 1. **Contributor** opens pull request.
 1. When it's ready for review, they comment on it saying so.
-1. A member of the maintainer team will give it a quick look over and
-   add the `ready-for-review` label.
+1. A member of the maintainer team will give it a quick look over and add the
+   `ready-for-review` label.
 1. Suddenly a wild **reviewer** appears!
 1. **Reviewer** assigns the PR to themselves.
 1. **Reviewer** leaves line comments with suggestions or questions.
@@ -16,7 +16,7 @@ This is the typical flow:
    comment on the PR with an emoji, meme, pokémon or words to that effect.
 1. Goto 6 until both parties are happy with the PR.
 1. The **reviewer** hits the big green merge button and deletes the branch (if
-    applicable).
+   applicable).
 
 The rest of this document goes into more details around this flow.
 
@@ -40,17 +40,18 @@ understand quickly what's changed.
 
 ### Keep The Commit History Tidy
 
-We're not that fussy about the history, but to make reviewing easier here's
-some general tips:
+We're not that fussy about the history, but to make reviewing easier here's some
+general tips:
 
- - make small, meaningful and logical commits - these make the review process easier
- - [write good commit messages](https://chris.beams.io/posts/git-commit/) -
-   these help the reviewer to understand the changes
- - keep up to date with `master` - not only does this address potential merge
-   conflicts, it ensures you're integrating with the latest code
+* make small, meaningful and logical commits - these make the review process
+  easier
+* [write good commit messages](https://chris.beams.io/posts/git-commit/) - these
+  help the reviewer to understand the changes
+* keep up to date with `master` - not only does this address potential merge
+  conflicts, it ensures you're integrating with the latest code
 
-When merging, we prefer you merge `master` into your branch, but for small
-PRs a rebase is fine.
+When merging, we prefer you merge `master` into your branch, but for small PRs a
+rebase is fine.
 
 ### At Least One Assignee
 
@@ -64,11 +65,11 @@ reviewer.
 We're using GitHub's review tools to co-ordinate feedback, and we like to be
 methodical with our reviews, so you'll probably end up with one of two results:
 
- - **Approved**: nothing else to do; the reviewer merges
- - **Request Changes**: there are things to address; reviewer provides details
+* **Approved**: nothing else to do; the reviewer merges
+* **Request Changes**: there are things to address; reviewer provides details
 
-Reviews can take a few iterations, especially for large contributions. Don't
-be disheartened if you feel it takes time - we just want to ensure each
+Reviews can take a few iterations, especially for large contributions. Don't be
+disheartened if you feel it takes time - we just want to ensure each
 contribution is high-quality and that any outstanding questions are resolved,
 captured or documented for posterity.
 
@@ -90,4 +91,3 @@ requests.
 While everyone has their own domain expertise around the codebase, we encourage
 people to share the load of reviews and reviewing areas of the codebase that
 aren't as familiar. This spreads knowledge across the team
-
