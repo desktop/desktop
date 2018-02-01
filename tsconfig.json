@@ -9,6 +9,7 @@
     "sourceMap": true,
     "jsx": "react",
     "strict": true,
+    "strictPropertyInitialization": false,
     "outDir": "./out"
   },
   "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
