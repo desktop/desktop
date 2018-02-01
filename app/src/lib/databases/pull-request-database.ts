@@ -1,5 +1,6 @@
 import Dexie from 'dexie'
 import { APIRefState, IAPIRefStatusItem } from '../api'
+import { BaseDatabase } from './base-database'
 
 export interface IPullRequestRef {
   /**
@@ -68,12 +69,12 @@ export interface IPullRequestStatus {
   readonly statuses?: ReadonlyArray<IAPIRefStatusItem>
 }
 
-export class PullRequestDatabase extends Dexie {
+export class PullRequestDatabase extends BaseDatabase {
   public pullRequests: Dexie.Table<IPullRequest, number>
   public pullRequestStatus: Dexie.Table<IPullRequestStatus, number>
 
-  public constructor(name: string) {
-    super(name)
+  public constructor(name: string, schemaVersion?: number) {
+    super(name, schemaVersion)
 
     this.version(1).stores({
       pullRequests: 'id++, base.repoId',

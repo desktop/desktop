@@ -2,6 +2,7 @@ import Dexie from 'dexie'
 
 // NB: This _must_ be incremented whenever the DB key scheme changes.
 const DatabaseVersion = 2
+import { BaseDatabase } from './base-database'
 
 export interface IIssue {
   readonly id?: number
@@ -11,11 +12,11 @@ export interface IIssue {
   readonly updated_at?: string
 }
 
-export class IssuesDatabase extends Dexie {
+export class IssuesDatabase extends BaseDatabase {
   public issues: Dexie.Table<IIssue, number>
 
-  public constructor(name: string) {
-    super(name)
+  public constructor(name: string, schemaVersion?: number) {
+    super(name, schemaVersion)
 
     this.version(1).stores({
       issues: '++id, &[gitHubRepositoryID+number], gitHubRepositoryID, number',

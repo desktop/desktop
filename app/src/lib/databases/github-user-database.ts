@@ -2,6 +2,7 @@ import Dexie from 'dexie'
 
 // NB: This _must_ be incremented whenever the DB key scheme changes.
 const DatabaseVersion = 2
+import { BaseDatabase } from './base-database'
 
 export interface IGitHubUser {
   /**
@@ -31,12 +32,12 @@ export interface IMentionableAssociation {
   readonly repositoryID: number
 }
 
-export class GitHubUserDatabase extends Dexie {
+export class GitHubUserDatabase extends BaseDatabase {
   public users: Dexie.Table<IGitHubUser, number>
   public mentionables: Dexie.Table<IMentionableAssociation, number>
 
-  public constructor(name: string) {
-    super(name)
+  public constructor(name: string, schemaVersion?: number) {
+    super(name, schemaVersion)
 
     this.version(1).stores({
       users: '++id, &[endpoint+email]',

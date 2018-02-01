@@ -1,4 +1,5 @@
 import Dexie from 'dexie'
+import { BaseDatabase } from './base-database'
 
 export interface IDatabaseOwner {
   readonly id?: number | null
@@ -27,7 +28,7 @@ export interface IDatabaseRepository {
 }
 
 /** The repositories database. */
-export class RepositoriesDatabase extends Dexie {
+export class RepositoriesDatabase extends BaseDatabase {
   /** The local repositories table. */
   public repositories: Dexie.Table<IDatabaseRepository, number>
 
@@ -45,7 +46,7 @@ export class RepositoriesDatabase extends Dexie {
    *                 database will be created with the latest version.
    */
   public constructor(name: string, schemaVersion?: number) {
-    super(name)
+    super(name, schemaVersion)
 
     this.conditionalVersion(schemaVersion, 1, {
       repositories: '++id, &path',
