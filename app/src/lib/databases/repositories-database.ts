@@ -62,18 +62,13 @@ export class RepositoriesDatabase extends BaseDatabase {
     // version and its upgrade callback only happens *after* the schema's been
     // changed. So we need to prepare for it by removing any old data now
     // which will violate it.
-    this.conditionalVersion(
-      schemaVersion,
-      3,
-      {},
-      removeDuplicateGitHubRepositories
-    )
+    this.conditionalVersion(3, {}, removeDuplicateGitHubRepositories)
 
-    this.conditionalVersion(schemaVersion, 4, {
+    this.conditionalVersion(4, {
       gitHubRepositories: '++id, name, &[ownerID+name]',
     })
 
-    this.conditionalVersion(schemaVersion, 5, {
+    this.conditionalVersion(5, {
       gitHubRepositories: '++id, name, &[ownerID+name], cloneURL',
     })
   }
@@ -94,6 +89,7 @@ function removeDuplicateGitHubRepositories(transaction: Dexie.Transaction) {
       // We can be sure `id` isn't null since we just got it from the
       // database.
       const id = repo.id!
+
       table.delete(id)
     } else {
       seenKeys.add(key)
