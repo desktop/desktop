@@ -48,13 +48,13 @@ export class RepositoriesDatabase extends BaseDatabase {
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
 
-    this.conditionalVersion(schemaVersion, 1, {
+    this.conditionalVersion(1, {
       repositories: '++id, &path',
       gitHubRepositories: '++id, name',
       owners: '++id, login',
     })
 
-    this.conditionalVersion(schemaVersion, 2, {
+    this.conditionalVersion(2, {
       owners: '++id, &[endpoint+login]',
     })
 

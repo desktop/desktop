@@ -76,31 +76,35 @@ export class PullRequestDatabase extends BaseDatabase {
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
 
-    this.version(1).stores({
+    this.conditionalVersion(1, {
       pullRequests: 'id++, base.repoId',
     })
 
-    this.version(2).stores({
+    this.conditionalVersion(2, {
       pullRequestStatus: 'id++, &[sha+pullRequestId]',
     })
 
-    this.version(3)
-      .stores({
-        pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
-      })
-      .upgrade(async transaction => {
-        await this.pullRequestStatus.toCollection().modify(async prStatus => {
-          if (prStatus.statuses == null) {
-            const newPrStatus = { statuses: [], ...prStatus }
+    this.conditionalVersion(3, {
+      pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
+    })
 
-            await this.pullRequestStatus
-              .where('[sha+pullRequestId')
-              .equals([prStatus.sha, prStatus.pullRequestId])
-              .delete()
+    this.conditionalVersion(4, {}, this.addStatusesField)
+  }
 
-            await this.pullRequestStatus.add(newPrStatus)
-          }
-        })
-      })
+  private addStatusesField = async (transaction: Dexie.Transaction) => {
+    const table = this.pullRequestStatus
+
+    await table.toCollection().modify(async prStatus => {
+      if (prStatus.statuses == null) {
+        const newPrStatus = { statuses: [], ...prStatus }
+
+        await table
+          .where('[sha+pullRequestId]')
+          .equals([prStatus.sha, prStatus.pullRequestId])
+          .delete()
+
+        await table.add(newPrStatus)
+      }
+    })
   }
 }

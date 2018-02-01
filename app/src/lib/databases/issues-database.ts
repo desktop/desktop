@@ -1,7 +1,4 @@
 import Dexie from 'dexie'
-
-// NB: This _must_ be incremented whenever the DB key scheme changes.
-const DatabaseVersion = 2
 import { BaseDatabase } from './base-database'
 
 export interface IIssue {
@@ -18,7 +15,7 @@ export class IssuesDatabase extends BaseDatabase {
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
 
-    this.version(1).stores({
+    this.conditionalVersion(1, {
       issues: '++id, &[gitHubRepositoryID+number], gitHubRepositoryID, number',
     })
 
