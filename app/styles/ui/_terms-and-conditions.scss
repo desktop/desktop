@@ -5,12 +5,7 @@
     height: 250px;
     overflow: scroll;
 
-    p,
-    ol,
-    ul,
-    li,
-    h2,
-    h3 {
+    p, ol, ul, li, h2, h3 {
       cursor: text;
       user-select: text;
     }

@@ -1,4 +1,4 @@
-@import '../../mixins';
+@import "../../mixins";
 
 #changes-list {
   min-height: 0;
@@ -35,10 +35,10 @@
         @include ellipsis;
       }
 
-      input[type='checkbox'] {
+      input[type=checkbox] {
         flex-grow: 0;
         flex-shrink: 0;
-      }
+      }  
     }
   }
 }

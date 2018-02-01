@@ -57,7 +57,10 @@ install:
   - yarn install --force
 
 script:
-  - yarn lint && yarn build:prod && yarn test:setup && yarn test
+  - yarn lint
+  - yarn build:prod
+  - yarn test:setup
+  - yarn test
 
 after_failure:
   - yarn test:review

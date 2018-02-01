@@ -23,23 +23,23 @@
   }
 
   .close {
-    position: absolute;
-    right: var(--spacing);
-    border: 0;
-    height: 16px;
-    width: 16px;
-    margin: 0;
-    padding: 0;
-    background: transparent;
+      position: absolute;
+      right: var(--spacing);
+      border: 0;
+      height: 16px;
+      width: 16px;
+      margin: 0;
+      padding: 0;
+      background: transparent;
 
-    color: var(--text-secondary-color);
+      color: var(--text-secondary-color);
 
-    &:hover {
-      color: var(--text-color);
-    }
+      &:hover {
+        color: var(--text-color);
+      }
 
-    &:focus {
-      outline: 0;
-    }
+      &:focus {
+        outline: 0;
+      }
   }
 }

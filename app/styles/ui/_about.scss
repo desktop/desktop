@@ -1,11 +1,11 @@
 dialog#about {
+
   .dialog-content {
     .row-component {
       justify-content: center;
     }
 
-    p,
-    h2 {
+    p, h2 {
       text-align: center;
     }
 
@@ -40,6 +40,7 @@ dialog#about {
   }
 
   .update-status {
+
     .octicon.spin {
       // Make sure the spinner is aligned with the text.
       align-self: center;

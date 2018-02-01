@@ -1,6 +1,7 @@
-@import '../mixins';
+@import "../mixins";
 
 .file-list {
+
   // this value affects virtualized lists, and without it
   // you'll see react-virtualized just skip rendering
   // as the available vertical space is computed as zero
@@ -32,10 +33,7 @@
       width: 20px;
     }
 
-    input,
-    .status {
-      flex-shrink: 0;
-    }
+    input, .status { flex-shrink: 0; }
 
     .path {
       display: flex;
@@ -50,8 +48,6 @@
       flex-shrink: 0;
     }
 
-    .octicon {
-      vertical-align: text-bottom;
-    }
+    .octicon { vertical-align: text-bottom; }
   }
 }
