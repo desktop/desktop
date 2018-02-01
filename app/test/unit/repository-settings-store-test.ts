@@ -76,4 +76,34 @@ describe('RepositorySettingsStore', () => {
       expect(contents!.endsWith('\r\n'))
     })
   })
+
+  describe('autocrlf and safecrlf are unset', () => {
+    it('appends LF to file', async () => {
+      const repo = await setupEmptyRepository()
+      const sut = new RepositorySettingsStore(repo)
+
+      // ensure this repository only ever sticks to LF
+      await GitProcess.exec(['config', '--local', 'core.eol', 'lf'], repo.path)
+
+      // do not do any conversion of line endings when committing
+      await GitProcess.exec(
+        ['config', '--local', 'core.autocrlf', 'input'],
+        repo.path
+      )
+
+      const path = repo.path
+
+      await sut.saveGitIgnore('node_modules')
+      await GitProcess.exec(['add', '.gitignore'], path)
+
+      const commit = await GitProcess.exec(
+        ['commit', '-m', 'create the ignore file'],
+        path
+      )
+      const contents = await sut.readGitIgnore()
+
+      expect(commit.exitCode).to.equal(0)
+      expect(contents!.endsWith('\n'))
+    })
+  })
 })
