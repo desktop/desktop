@@ -1,25 +1,5 @@
 <!--
 
-Have you read GitHub Desktop's Code of Conduct? By filing an Issue, you are
-expected to comply with it, including treating everyone with respect:
-
-https://github.com/desktop/desktop/blob/master/CODE_OF_CONDUCT.md
-
--->
-
-<!--
-
-Are you encountering an issue where the “Minimize” tooltip stays visible
-when you click the minimize button in the window? If so, that is an issue
-with Electron, the framework the app uses. Please subscribe to the issue
-at this link for updates on the issue:
-
-https://github.com/electron/electron/issues/9943
-
--->
-
-<!--
-
 Please summarize the issue in the title, and then use the template below to
 fill out the details so we can reproduce the issue on our end.
 
