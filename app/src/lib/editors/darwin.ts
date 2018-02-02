@@ -10,6 +10,7 @@ export enum ExternalEditor {
   SublimeText = 'Sublime Text',
   BBEdit = 'BBEdit',
   PhpStorm = 'PhpStorm',
+  RubyMine = 'RubyMine',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -30,6 +31,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.PhpStorm) {
     return ExternalEditor.PhpStorm
+  }
+  if (label === ExternalEditor.RubyMine) {
+    return ExternalEditor.RubyMine
   }
 
   return null
@@ -54,6 +58,8 @@ function getBundleIdentifiers(editor: ExternalEditor): ReadonlyArray<string> {
       return ['com.barebones.bbedit']
     case ExternalEditor.PhpStorm:
       return ['com.jetbrains.PhpStorm']
+    case ExternalEditor.RubyMine:
+      return ['com.jetbrains.RubyMine']
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -82,6 +88,8 @@ function getExecutableShim(
       return Path.join(installPath, 'Contents', 'Helpers', 'bbedit_tool')
     case ExternalEditor.PhpStorm:
       return Path.join(installPath, 'Contents', 'MacOS', 'phpstorm')
+    case ExternalEditor.RubyMine:
+      return Path.join(installPath, 'Contents', 'MacOS', 'rubymine')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -123,6 +131,7 @@ export async function getAvailableEditors(): Promise<
     sublimePath,
     bbeditPath,
     phpStormPath,
+    rubyMinePath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
@@ -130,6 +139,7 @@ export async function getAvailableEditors(): Promise<
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.BBEdit),
     findApplication(ExternalEditor.PhpStorm),
+    findApplication(ExternalEditor.RubyMine),
   ])
 
   if (atomPath) {
@@ -157,6 +167,10 @@ export async function getAvailableEditors(): Promise<
 
   if (phpStormPath) {
     results.push({ editor: ExternalEditor.PhpStorm, path: phpStormPath })
+  }
+
+  if (rubyMinePath) {
+    results.push({ editor: ExternalEditor.RubyMine, path: rubyMinePath })
   }
 
   return results
