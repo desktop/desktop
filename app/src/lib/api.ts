@@ -567,7 +567,10 @@ export class API {
    */
   public async fetchUser(login: string): Promise<IAPIUser | null> {
     try {
-      const response = await this.request('GET', `users/${login}`)
+      const response = await this.request(
+        'GET',
+        `users/${encodeURIComponent(login)}`
+      )
 
       if (response.status === 404) {
         return null
