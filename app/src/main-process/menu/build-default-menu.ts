@@ -153,17 +153,17 @@ export function buildDefaultMenu(
       separator,
       {
         label: __DARWIN__ ? 'Reset Zoom' : 'Reset zoom',
-        accelerator: 'CmdOrCtrl+0',
+        role: 'resetzoom',
         click: zoom(ZoomDirection.Reset),
       },
       {
         label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
-        accelerator: 'CmdOrCtrl+=',
+        role: 'zoomin',
         click: zoom(ZoomDirection.In),
       },
       {
         label: __DARWIN__ ? 'Zoom Out' : 'Zoom out',
-        accelerator: 'CmdOrCtrl+-',
+        role: 'zoomout',
         click: zoom(ZoomDirection.Out),
       },
       separator,
