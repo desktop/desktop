@@ -105,11 +105,10 @@ export class UserAutocompletionProvider
       return null
     }
 
-    // Since we might be looking up stuff in the API it's
-    // important we sanitize this input or someone could lead with
-    // ../ and then start GETing random resources in the API.
-    // Not that they should be able to do any harm with just GET
-    // but still, it ain't cool
+    // While nothing bad can happen if we attempt to fetch a user
+    // with an invalid handle (since the request is sanitized/encoded)
+    // there's no need for us to go to the API if we already know that
+    // the username is invalid.
     if (!validLoginExpression.test(login)) {
       return null
     }
