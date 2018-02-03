@@ -53,7 +53,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     )
   } else if (channel === 'beta') {
     const latestVersion = await getLatestRelease(false)
-    const nextVersion = inc(latestVersion, 'patch')
+    const nextVersion = inc(latestVersion, 'patch', true, 'beta')
     throw new Error(
       `Drafting a release from ${latestVersion} which will be ${nextVersion}`
     )
