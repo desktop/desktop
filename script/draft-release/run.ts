@@ -55,13 +55,13 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     const latestVersion = await getLatestRelease(false)
     const isBetaRelease = latestVersion.indexOf('-beta') > -1
     if (isBetaRelease) {
-      const betaNumber = latestVersion[latestVersion.length - 2]
+      const betaNumber = latestVersion.substr(latestVersion.length - 2)
       const newBeta = parseInt(betaNumber, 10) + 1
       throw new Error(
         `Drafting a beta release from ${latestVersion} which will be a new beta ${newBeta}`
       )
     } else {
-      const betaNumber = latestVersion[latestVersion.length - 2]
+      const betaNumber = latestVersion.substr(latestVersion.length - 2)
       const newBeta = parseInt(betaNumber, 10) + 1
       throw new Error(
         `Drafting a beta release from ${latestVersion} which will be the first beta ${newBeta}`
