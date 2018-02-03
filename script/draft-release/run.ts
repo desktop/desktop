@@ -57,13 +57,19 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     if (betaTagIndex > -1) {
       const betaNumber = latestVersion.substr(betaTagIndex + 5)
       const newBeta = parseInt(betaNumber, 10) + 1
+
+      const newVersion = latestVersion.replace(
+        `-beta${betaNumber}`,
+        `-beta${newBeta}`
+      )
       throw new Error(
-        `Drafting a beta release from ${latestVersion} which will be a new beta ${newBeta}`
+        `Drafting a beta release from ${latestVersion} which will be a new beta ${newVersion}`
       )
     } else {
-      const newBeta = 1
+      const nextVersion = inc(latestVersion, 'patch')
+      const firstBeta = `${nextVersion}-beta1`
       throw new Error(
-        `Drafting a beta release from ${latestVersion} which will be the first beta ${newBeta}`
+        `Drafting a beta release from ${latestVersion} which will be the first beta ${firstBeta}`
       )
     }
   }
