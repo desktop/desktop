@@ -1,3 +1,6 @@
+import * as Path from 'path'
+import * as Fs from 'fs'
+
 import { fetchPR, IAPIPR } from './api'
 
 const PlaceholderChangeType = '???'
@@ -81,4 +84,18 @@ export async function convertToChangelogFormat(
   }
 
   return entries
+}
+
+export function getChangelogEntriesSince(previousVersion: string): string[] {
+  const root = Path.dirname(Path.dirname(__dirname))
+  const changelogPath = Path.join(root, 'changelog.json')
+
+  const buffer = Fs.readFileSync(changelogPath)
+  const changelogText = buffer.toString()
+
+  const changelogAll = JSON.parse(changelogText)
+
+  console.log(`existing changelog: ${JSON.stringify(changelogAll)}`)
+
+  return []
 }
