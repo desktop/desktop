@@ -1,5 +1,13 @@
 {
   "releases": {
+    "1.0.14-beta2": [
+      "[Added] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",
+      "[Fixed] Allow window to accept single click on focus - #3843",
+      "[Fixed] Expanded avatar list hidden behind commit details - #3884",
+      "[Fixed] Renames not detected when viewing commit diffs - #3673",
+      "[Fixed] Ignore action assumes CRLF when core.autocrlf is unset - #3514",
+      "[Improved] Use smaller default size when rendering Gravatar avatars - #3911"
+    ],
     "1.0.14-beta1": [
       "[New] Commit together with co-authors - #3879"
     ],
