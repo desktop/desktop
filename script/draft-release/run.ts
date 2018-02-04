@@ -1,11 +1,13 @@
+import { sort as semverSort, SemVer } from 'semver'
+
 import { spawn } from '../changelog/spawn'
 import { getLogLines } from '../changelog/git'
-import { Channel } from './channel'
 import {
   convertToChangelogFormat,
   getChangelogEntriesSince,
 } from '../changelog/parser'
-import { sort as semverSort, SemVer } from 'semver'
+
+import { Channel } from './channel'
 import { getNextVersionNumber } from './version'
 
 const jsonStringify: (obj: any) => string = require('json-pretty')
