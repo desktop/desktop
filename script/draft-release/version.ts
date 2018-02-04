@@ -1,8 +1,10 @@
 import { inc, parse } from 'semver'
 
+import { Channel } from './channel'
+
 export function getNextVersionNumber(
   version: string,
-  channel: 'production' | 'beta'
+  channel: Channel
 ): string {
   const parsed = parse(version)
 

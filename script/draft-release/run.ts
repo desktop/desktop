@@ -1,5 +1,6 @@
 import { spawn } from '../changelog/spawn'
 import { getLogLines } from '../changelog/git'
+import { Channel } from './channel'
 import {
   convertToChangelogFormat,
   getChangelogEntriesSince,
@@ -33,7 +34,7 @@ async function getLatestRelease(excludeBetaReleases: boolean): Promise<string> {
   return latestTag
 }
 
-function parseChannel(arg: string): 'production' | 'beta' {
+function parseChannel(arg: string): Channel {
   if (arg === 'production' || arg === 'beta') {
     return arg
   }
