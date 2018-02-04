@@ -1,4 +1,6 @@
-import { spawn } from './spawn'
+import { spawn } from '../changelog/spawn'
+import { getLogLines } from '../changelog/git'
+import { getChangelogEntries } from '../changelog/parser'
 import { sort as semverSort, SemVer } from 'semver'
 import { getNextVersionNumber } from './version'
 
@@ -51,10 +53,13 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   const channel = parseChannel(args[0])
   const excludeBetaReleases = channel === 'production'
-  const latestVersion = await getLatestRelease(excludeBetaReleases)
-  const nextVersion = getNextVersionNumber(latestVersion, channel)
+  const previousVersion = await getLatestRelease(excludeBetaReleases)
+  const nextVersion = getNextVersionNumber(previousVersion, channel)
+
+  const lines = await getLogLines(previousVersion)
+  const changelogEntries = await getChangelogEntries(lines)
 
   throw new Error(
-    `Drafting a release from ${latestVersion} which will be ${nextVersion}`
+    `Drafting a release from ${previousVersion} which will be ${nextVersion}`
   )
 }
