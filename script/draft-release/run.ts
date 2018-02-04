@@ -4,6 +4,8 @@ import { getChangelogEntries } from '../changelog/parser'
 import { sort as semverSort, SemVer } from 'semver'
 import { getNextVersionNumber } from './version'
 
+const jsonStringify: (obj: any) => string = require('json-pretty')
+
 async function getLatestRelease(excludeBetaReleases: boolean): Promise<string> {
   const allTags = await spawn('git', ['tag'])
   let releaseTags = allTags
@@ -56,10 +58,10 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   const previousVersion = await getLatestRelease(excludeBetaReleases)
   const nextVersion = getNextVersionNumber(previousVersion, channel)
 
-  const lines = await getLogLines(previousVersion)
+  const lines = await getLogLines(`release-${previousVersion}`)
   const changelogEntries = await getChangelogEntries(lines)
 
-  throw new Error(
-    `Drafting a release from ${previousVersion} which will be ${nextVersion}`
-  )
+  console.log(`The next version should be: ${nextVersion}\n`)
+  console.log('The changelog entries should be:')
+  console.log(jsonStringify(changelogEntries))
 }
