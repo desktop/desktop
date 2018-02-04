@@ -34,8 +34,7 @@ export function getNextVersionNumber(
     return nextVersion
   }
 
-  // TODO: we should be able to use semver to see if there's any
-  if (version.indexOf('-test') > -1) {
+  if (parsed.prerelease.some(p => p.startsWith('test'))) {
     throw new Error(
       `Unable to resolve production version using test release '${version}'`
     )
