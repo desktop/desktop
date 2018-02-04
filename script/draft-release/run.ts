@@ -20,7 +20,6 @@ async function getLatestRelease(excludeBetaReleases: boolean): Promise<string> {
   const latestTag = sortedTags[sortedTags.length - 1]
 
   if (latestTag instanceof SemVer) {
-    console.log('we have types!?!?!?')
     return latestTag.raw
   }
 
