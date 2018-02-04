@@ -27,6 +27,14 @@ async function getLatestRelease(excludeBetaReleases: boolean): Promise<string> {
   return latestTag
 }
 
+function parseChannel(arg: string): 'production' | 'beta' {
+  if (arg === 'production' || arg === 'beta') {
+    return arg
+  }
+
+  throw new Error(`An invalid channel ${arg} has been provided`)
+}
+
 export async function run(args: ReadonlyArray<string>): Promise<void> {
   //try {
   //  await spawn('git', ['diff-index', '--quiet', 'HEAD'])
@@ -42,10 +50,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     )
   }
 
-  //
-  // first argument should be the channel
-  const channel = args[0]
-
+  const channel = parseChannel(args[0])
   const excludeBetaReleases = channel === 'production'
   const latestVersion = await getLatestRelease(excludeBetaReleases)
   const nextVersion = getNextVersionNumber(latestVersion, channel)

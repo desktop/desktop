@@ -57,10 +57,4 @@ describe('getNextVersionNumber', () => {
       })
     })
   })
-
-  describe('other channels', () => {
-    it('rejects other channels', () => {
-      expect(() => getNextVersionNumber('1.0.1', 'foo')).to.throw()
-    })
-  })
 })

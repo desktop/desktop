@@ -1,6 +1,9 @@
 import { inc, parse } from 'semver'
 
-export function getNextVersionNumber(version: string, channel: string): string {
+export function getNextVersionNumber(
+  version: string,
+  channel: 'production' | 'beta'
+): string {
   const parsed = parse(version)
 
   if (parsed == null) {
@@ -29,30 +32,25 @@ export function getNextVersionNumber(version: string, channel: string): string {
     }
 
     return nextVersion
-  } else if (channel === 'beta') {
-    // TODO: we should be able to use semver to see if there's any
-    if (version.indexOf('-test') > -1) {
-      throw new Error(
-        `Unable to resolve production version using test release '${version}'`
-      )
-    }
+  }
 
-    const betaTagIndex = version.indexOf('-beta')
-    if (betaTagIndex > -1) {
-      const betaNumber = version.substr(betaTagIndex + 5)
-      const newBeta = parseInt(betaNumber, 10) + 1
+  // TODO: we should be able to use semver to see if there's any
+  if (version.indexOf('-test') > -1) {
+    throw new Error(
+      `Unable to resolve production version using test release '${version}'`
+    )
+  }
 
-      const newVersion = version.replace(
-        `-beta${betaNumber}`,
-        `-beta${newBeta}`
-      )
-      return newVersion
-    } else {
-      const nextVersion = inc(version, 'patch')
-      const firstBeta = `${nextVersion}-beta1`
-      return firstBeta
-    }
+  const betaTagIndex = version.indexOf('-beta')
+  if (betaTagIndex > -1) {
+    const betaNumber = version.substr(betaTagIndex + 5)
+    const newBeta = parseInt(betaNumber, 10) + 1
+
+    const newVersion = version.replace(`-beta${betaNumber}`, `-beta${newBeta}`)
+    return newVersion
   } else {
-    throw new Error(`Unsupported channel: ${channel}`)
+    const nextVersion = inc(version, 'patch')
+    const firstBeta = `${nextVersion}-beta1`
+    return firstBeta
   }
 }
