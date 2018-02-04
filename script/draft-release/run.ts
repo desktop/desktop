@@ -38,6 +38,32 @@ function parseChannel(arg: string): 'production' | 'beta' {
   throw new Error(`An invalid channel ${arg} has been provided`)
 }
 
+function printBetaInstructions(
+  nextVersion: string,
+  changelogEntries: ReadonlyArray<string>
+) {
+  console.log(
+    `1. Ensure the app/package.json 'version' is set to '${nextVersion}'`
+  )
+  console.log('2. Add this to changelog.json as a starting point:')
+
+  // I have to re-sort these entries because there's something annoying
+  // in how the JSON library stringifies the object
+  const entries = new Array<string>(...changelogEntries)
+
+  const object: any = {}
+  object[`${nextVersion}`] = entries.sort()
+  console.log(`${jsonStringify(object)}\n`)
+
+  console.log(
+    '3. Update the release notes so they make sense and only contain user-facing changes'
+  )
+  console.log('4. Commit the changes and push them to GitHub')
+  console.log(
+    '5. Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md'
+  )
+}
+
 export async function run(args: ReadonlyArray<string>): Promise<void> {
   //try {
   //  await spawn('git', ['diff-index', '--quiet', 'HEAD'])
@@ -63,24 +89,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   console.log("Here's what you should do next:\n")
 
-  console.log(
-    `1. Ensure the app/package.json 'version' is set to '${nextVersion}'`
-  )
-  console.log('2. Add this to changelog.json as a starting point:')
-
-  // I have to re-sort these entries because there's something annoying
-  // in how the JSON library stringifies the object
-  const entries = new Array<string>(...changelogEntries)
-
-  const object: any = {}
-  object[`${nextVersion}`] = entries.sort()
-  console.log(`${jsonStringify(object)}\n`)
-
-  console.log(
-    '3. Update the release notes so they make sense and only contain user-facing changes'
-  )
-  console.log('4. Commit the changes and push them to GitHub')
-  console.log(
-    '5. Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md'
-  )
+  if (channel === 'beta') {
+    printBetaInstructions(nextVersion, changelogEntries)
+  }
 }
