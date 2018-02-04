@@ -64,13 +64,13 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
 }
 
 export async function run(args: ReadonlyArray<string>): Promise<void> {
-  //try {
-  //  await spawn('git', ['diff-index', '--quiet', 'HEAD'])
-  //} catch {
-  //  throw new Error(
-  //    `There are uncommitted changes in the working directory. Aborting...`
-  //  )
-  //}
+  try {
+    await spawn('git', ['diff-index', '--quiet', 'HEAD'])
+  } catch {
+    throw new Error(
+      `There are uncommitted changes in the working directory. Aborting...`
+    )
+  }
 
   if (args.length === 0) {
     throw new Error(
