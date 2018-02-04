@@ -61,7 +61,26 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   const lines = await getLogLines(`release-${previousVersion}`)
   const changelogEntries = await getChangelogEntries(lines)
 
-  console.log(`The next version should be: ${nextVersion}\n`)
-  console.log('The draft changelog entries:')
-  console.log(jsonStringify(changelogEntries))
+  console.log("Here's what you should do next:\n")
+
+  console.log(
+    `1. Ensure the app/package.json 'version' is set to '${nextVersion}'`
+  )
+  console.log('2. Add this to changelog.json as a starting point:')
+
+  // I have to re-sort these entries because there's something annoying
+  // in how the JSON library stringifies the object
+  const entries = new Array<string>(...changelogEntries)
+
+  const object: any = {}
+  object[`${nextVersion}`] = entries.sort()
+  console.log(`${jsonStringify(object)}\n`)
+
+  console.log(
+    '3. Update the release notes so they make sense and only contain user-facing changes'
+  )
+  console.log('4. Commit the changes and push them to GitHub')
+  console.log(
+    '5. Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md'
+  )
 }
