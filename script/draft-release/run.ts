@@ -62,6 +62,6 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   const changelogEntries = await getChangelogEntries(lines)
 
   console.log(`The next version should be: ${nextVersion}\n`)
-  console.log('The changelog entries should be:')
+  console.log('The draft changelog entries:')
   console.log(jsonStringify(changelogEntries))
 }
