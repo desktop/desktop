@@ -81,16 +81,25 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   const nextVersion = getNextVersionNumber(previousVersion, channel)
 
   const lines = await getLogLines(`release-${previousVersion}`)
-  const changelogEntries = await convertToChangelogFormat(lines)
+  const noChangesFound = lines.every(l => l.trim().length === 0)
 
-  console.log("Here's what you should do next:\n")
+  if (noChangesFound) {
+    printInstructions(nextVersion, [])
+  } else {
+    const changelogEntries = await convertToChangelogFormat(lines)
 
-  if (channel === 'production') {
-    const existingChangelog = getChangelogEntriesSince(previousVersion)
-    const entries = new Array<string>(...changelogEntries, ...existingChangelog)
-    printInstructions(nextVersion, entries)
-  } else if (channel === 'beta') {
-    const entries = new Array<string>(...changelogEntries)
-    printInstructions(nextVersion, entries)
+    console.log("Here's what you should do next:\n")
+
+    if (channel === 'production') {
+      const existingChangelog = getChangelogEntriesSince(previousVersion)
+      const entries = new Array<string>(
+        ...changelogEntries,
+        ...existingChangelog
+      )
+      printInstructions(nextVersion, entries)
+    } else if (channel === 'beta') {
+      const entries = new Array<string>(...changelogEntries)
+      printInstructions(nextVersion, entries)
+    }
   }
 }
