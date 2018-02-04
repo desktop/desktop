@@ -1,5 +1,6 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
+import { gt } from 'semver'
 
 import { fetchPR, IAPIPR } from './api'
 
@@ -93,9 +94,28 @@ export function getChangelogEntriesSince(previousVersion: string): string[] {
   const buffer = Fs.readFileSync(changelogPath)
   const changelogText = buffer.toString()
 
-  const changelogAll = JSON.parse(changelogText)
+  const changelogAll: { releases: any } = JSON.parse(changelogText)
 
-  console.log(`existing changelog: ${JSON.stringify(changelogAll)}`)
+  const releases = changelogAll.releases
 
-  return []
+  const existingChangelog = []
+
+  for (const prop of Object.getOwnPropertyNames(releases)) {
+    const isAfter = gt(prop, previousVersion)
+    if (!isAfter) {
+      continue
+    }
+
+    if (prop.endsWith('-beta1')) {
+      // by convention we push the production updates out to beta
+      // to ensure both channels are up to date
+      continue
+    }
+
+    const entries: string[] = releases[prop]
+    if (entries != null) {
+      existingChangelog.push(...entries)
+    }
+  }
+  return existingChangelog
 }

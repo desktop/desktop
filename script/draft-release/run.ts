@@ -1,6 +1,9 @@
 import { spawn } from '../changelog/spawn'
 import { getLogLines } from '../changelog/git'
-import { convertToChangelogFormat } from '../changelog/parser'
+import {
+  convertToChangelogFormat,
+  getChangelogEntriesSince,
+} from '../changelog/parser'
 import { sort as semverSort, SemVer } from 'semver'
 import { getNextVersionNumber } from './version'
 
@@ -38,18 +41,11 @@ function parseChannel(arg: string): 'production' | 'beta' {
   throw new Error(`An invalid channel ${arg} has been provided`)
 }
 
-function printBetaInstructions(
-  nextVersion: string,
-  changelogEntries: ReadonlyArray<string>
-) {
+function printInstructions(nextVersion: string, entries: Array<string>) {
   console.log(
     `1. Ensure the app/package.json 'version' is set to '${nextVersion}'`
   )
   console.log('2. Add this to changelog.json as a starting point:')
-
-  // I have to re-sort these entries because there's something annoying
-  // in how the JSON library stringifies the object
-  const entries = new Array<string>(...changelogEntries)
 
   const object: any = {}
   object[`${nextVersion}`] = entries.sort()
@@ -89,7 +85,12 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   console.log("Here's what you should do next:\n")
 
-  if (channel === 'beta') {
-    printBetaInstructions(nextVersion, changelogEntries)
+  if (channel === 'production') {
+    const existingChangelog = getChangelogEntriesSince(previousVersion)
+    const entries = new Array<string>(...changelogEntries, ...existingChangelog)
+    printInstructions(nextVersion, entries)
+  } else if (channel === 'beta') {
+    const entries = new Array<string>(...changelogEntries)
+    printInstructions(nextVersion, entries)
   }
 }
