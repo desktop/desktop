@@ -28,7 +28,7 @@ function getFallbackAvatarUrlForAuthor(
   ) {
     return `https://avatars.githubusercontent.com/u/e?email=${encodeURIComponent(
       author.email
-    )}&s=40`
+    )}&s=60`
   }
 
   return generateGravatarUrl(author.email)

@@ -34,7 +34,8 @@
     "publish": "node script/publish",
     "clean-slate": "rimraf out node_modules app/node_modules && yarn",
     "rebuild-hard:dev": "yarn clean-slate && yarn build:dev",
-    "rebuild-hard:prod": "yarn clean-slate && yarn build:prod"
+    "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
+    "changelog": "ts-node script/changelog/index.ts"
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -69,6 +70,7 @@
     "extract-text-webpack-plugin": "^3.0.0",
     "fs-extra": "^2.1.2",
     "html-webpack-plugin": "^2.30.1",
+    "json-pretty": "^0.0.1",
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.15.0",
     "mocha": "^4.0.1",
@@ -80,6 +82,7 @@
     "request": "^2.72.0",
     "rimraf": "^2.5.2",
     "sass-loader": "^6.0.6",
+    "semver": "^5.5.0",
     "spectron": "^3.7.2",
     "style-loader": "^0.19.1",
     "to-camel-case": "^1.0.0",
@@ -116,6 +119,7 @@
     "@types/react-dom": "^16.0.3",
     "@types/react-transition-group": "1.1.1",
     "@types/react-virtualized": "^9.7.4",
+    "@types/semver": "^5.5.0",
     "@types/strip-ansi": "^3.0.0",
     "@types/temp": "^0.8.29",
     "@types/to-camel-case": "^1.0.0",

@@ -114,11 +114,15 @@
     padding: 0 var(--spacing) var(--spacing);
   }
 
+  &-meta-item:not(.without-truncation) {
+    @include ellipsis;
+  }
+
   &-meta-item {
     display: flex;
     flex-direction: row;
+    min-width: 0;
 
-    @include ellipsis;
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);
 
