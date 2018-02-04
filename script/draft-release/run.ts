@@ -1,6 +1,6 @@
 import { spawn } from '../changelog/spawn'
 import { getLogLines } from '../changelog/git'
-import { getChangelogEntries } from '../changelog/parser'
+import { convertToChangelogFormat } from '../changelog/parser'
 import { sort as semverSort, SemVer } from 'semver'
 import { getNextVersionNumber } from './version'
 
@@ -59,7 +59,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   const nextVersion = getNextVersionNumber(previousVersion, channel)
 
   const lines = await getLogLines(`release-${previousVersion}`)
-  const changelogEntries = await getChangelogEntries(lines)
+  const changelogEntries = await convertToChangelogFormat(lines)
 
   console.log("Here's what you should do next:\n")
 

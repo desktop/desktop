@@ -59,7 +59,7 @@ function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
   return `[${type}] ${description} -${issueRef}${attribution}`
 }
 
-export async function getChangelogEntries(
+export async function convertToChangelogFormat(
   lines: ReadonlyArray<string>
 ): Promise<ReadonlyArray<string>> {
   const entries = []

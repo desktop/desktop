@@ -1,6 +1,6 @@
 import { spawn } from './spawn'
 import { getLogLines } from './git'
-import { getChangelogEntries } from './parser'
+import { convertToChangelogFormat } from './parser'
 import { sort as semverSort } from 'semver'
 
 const jsonStringify: (obj: any) => string = require('json-pretty')
@@ -48,6 +48,6 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   }
 
   const lines = await getLogLines(previousVersion)
-  const changelogEntries = await getChangelogEntries(lines)
+  const changelogEntries = await convertToChangelogFormat(lines)
   console.log(jsonStringify(changelogEntries))
 }
