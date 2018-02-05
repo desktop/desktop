@@ -8,11 +8,7 @@ export const options: fuzzAldrin.IFilterOptions = {
   pathSeparator: '-',
 }
 
-export function score(
-  str: string,
-  query: string,
-  maxScore: number
-) {
+export function score(str: string, query: string, maxScore: number) {
   return fuzzAldrin.score(str, query, undefined, options) / maxScore
 }
 
@@ -32,7 +28,8 @@ export function match<T, _K extends keyof T>(
   const maxScore = score(query, query, 1)
   const result = items
     .map((item): IMatch<T> => {
-      let key: string = typeof getKey === 'function' ? getKey(item) : item[getKey] + ""
+      const key: string =
+        typeof getKey === 'function' ? getKey(item) : item[getKey] + ""
       return {
         score: score(key, query, maxScore),
         item,
