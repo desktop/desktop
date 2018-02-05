@@ -30,9 +30,9 @@ const Increment = (n: number) => n + 1
 
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
-  private readonly _pullRequestDatabase: PullRequestDatabase
-  private readonly _repositoryStore: RepositoriesStore
-  private readonly _activeFetchCountPerRepository = new Map<number, number>()
+  private readonly pullRequestDatabase: PullRequestDatabase
+  private readonly repositoryStore: RepositoriesStore
+  private readonly activeFetchCountPerRepository = new Map<number, number>()
 
   public constructor(
     db: PullRequestDatabase,
@@ -40,8 +40,8 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   ) {
     super()
 
-    this._pullRequestDatabase = db
-    this._repositoryStore = repositoriesStore
+    this.pullRequestDatabase = db
+    this.repositoryStore = repositoriesStore
   }
 
   /** Loads all pull requests against the given repository. */
@@ -86,7 +86,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       'Cannot fetch PRs for a repository which is not in the database',
       repository.dbID
     )
-    const currentCount = this._activeFetchCountPerRepository.get(repoDbId) || 0
+    const currentCount = this.activeFetchCountPerRepository.get(repoDbId) || 0
 
     return currentCount > 0
   }
@@ -122,7 +122,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
     }
 
-    const records = await this._pullRequestDatabase.pullRequests
+    const records = await this.pullRequestDatabase.pullRequests
       .where('base.repoId')
       .equals(gitHubRepositoryID)
       .reverse()
@@ -135,7 +135,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       let githubRepository: GitHubRepository | null = null
 
       if (repositoryDbId != null) {
-        githubRepository = await this._repositoryStore.findGitHubRepositoryByID(
+        githubRepository = await this.repositoryStore.findGitHubRepositoryByID(
           repositoryDbId
         )
       }
@@ -146,7 +146,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         'A pull request cannot have a null base repo id',
         record.base.repoId
       )
-      const parentGitGubRepository: GitHubRepository | null = await this._repositoryStore.findGitHubRepositoryByID(
+      const parentGitGubRepository: GitHubRepository | null = await this.repositoryStore.findGitHubRepositoryByID(
         parentRepositoryDbId
       )
       const parentGitHubRepository = forceUnwrap(
@@ -243,10 +243,10 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       'Cannot fetch PRs for a repository which is not in the database',
       repository.dbID
     )
-    const currentCount = this._activeFetchCountPerRepository.get(repoDbId) || 0
+    const currentCount = this.activeFetchCountPerRepository.get(repoDbId) || 0
     const newCount = update(currentCount)
 
-    this._activeFetchCountPerRepository.set(repoDbId, newCount)
+    this.activeFetchCountPerRepository.set(repoDbId, newCount)
     this.emitUpdate(repository)
   }
 
@@ -282,7 +282,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     sha: string,
     pullRequestId: number
   ): Promise<PullRequestStatus | null> {
-    const result = await this._pullRequestDatabase.pullRequestStatus
+    const result = await this.pullRequestDatabase.pullRequestStatus
       .where('[sha+pullRequestId]')
       .equals([sha, pullRequestId])
       .limit(1)
@@ -320,14 +320,14 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
     }
 
-    const table = this._pullRequestDatabase.pullRequests
+    const table = this.pullRequestDatabase.pullRequests
     const prsToInsert = new Array<IPullRequest>()
     let githubRepo: GitHubRepository | null = null
 
     for (const pr of apiuPullRequestsFrom) {
       // Once the repo is found on first try, no need to keep looking
       if (githubRepo == null && pr.head.repo != null) {
-        githubRepo = await this._repositoryStore.upsertGitHubRepository(
+        githubRepo = await this.repositoryStore.upsertGitHubRepository(
           repository.endpoint,
           pr.head.repo
         )
@@ -350,7 +350,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         'PR cannot have a null base repo',
         pr.base.repo
       )
-      const parentGitHubRepo = await this._repositoryStore.upsertGitHubRepository(
+      const parentGitHubRepo = await this.repositoryStore.upsertGitHubRepository(
         repository.endpoint,
         parentRepo
       )
@@ -377,7 +377,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       })
     }
 
-    return this._pullRequestDatabase.transaction('rw', table, async () => {
+    return this.pullRequestDatabase.transaction('rw', table, async () => {
       const repoDbId = prsToInsert[0].base.repoId!
 
       await table
@@ -392,9 +392,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   private async cachePullRequestStatuses(
     statuses: Array<IPullRequestStatus>
   ): Promise<void> {
-    const table = this._pullRequestDatabase.pullRequestStatus
+    const table = this.pullRequestDatabase.pullRequestStatus
 
-    await this._pullRequestDatabase.transaction('rw', table, async () => {
+    await this.pullRequestDatabase.transaction('rw', table, async () => {
       for (const status of statuses) {
         const record = await table
           .where('[sha+pullRequestId]')
