@@ -35,13 +35,13 @@ if (!shouldFix && result.status > 0) {
       chalk`{bold.green → To fix these errors, run {underline yarn lint:prettier --fix}}`
     )
   } else {
-    console.log('Something went wrong with invoking prettier:')
-    console.log(result.stderr.toString())
+    console.error('Something went wrong with invoking prettier:')
+    console.error(result.stderr.toString())
   }
 } else if (result.status < 0) {
   process.exitCode = result.status
 
-  console.log('prettier returned an unexpected exit code')
-  console.log(`stdout: '${result.stdout.toString()}'`)
-  console.log(`stderr: '${result.stderr.toString()}'`)
+  console.error('prettier returned an unexpected exit code')
+  console.error(`stdout: '${result.stdout.toString()}'`)
+  console.error(`stderr: '${result.stderr.toString()}'`)
 }
