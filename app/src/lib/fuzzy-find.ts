@@ -30,7 +30,7 @@ export function match<T, _K extends keyof T>(
 ): ReadonlyArray<IMatch<T>> {
   // matching `query` against itself is a perfect match.
   const maxScore = score(query, query, 1)
-  return items
+  const result = items
     .map((item): IMatch<T> => {
       let key: string = typeof getKey === 'function' ? getKey(item) : item[getKey] + ""
       return {
@@ -41,4 +41,5 @@ export function match<T, _K extends keyof T>(
     })
     .filter(({ matches }) => matches.length > 0)
     .sort(({ score: left }, { score: right }) => compareDescending(left, right))
+  return result
 }
