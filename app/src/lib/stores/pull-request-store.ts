@@ -313,7 +313,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   }
 
   private async cachePullRequests(
-    apiuPullRequestsFrom: ReadonlyArray<IAPIPullRequest>,
+    pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
   ): Promise<void> {
     const repoDbId = repository.dbID
@@ -328,7 +328,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     const prsToInsert = new Array<IPullRequest>()
     let githubRepo: GitHubRepository | null = null
 
-    for (const pr of apiuPullRequestsFrom) {
+    for (const pr of pullRequestsFromAPI) {
       // Once the repo is found on first try, no need to keep looking
       if (githubRepo == null && pr.head.repo != null) {
         githubRepo = await this.repositoryStore.upsertGitHubRepository(
