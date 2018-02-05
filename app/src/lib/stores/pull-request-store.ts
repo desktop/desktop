@@ -68,7 +68,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
       const prs = await this.fetchPullRequestsFromCache(githubRepo)
 
-      await this.refreshStatusForPRs(prs, githubRepo, account)
+      await this.fetchAndCachePullRequestStatus(prs, githubRepo, account)
       await this.pruneForkedRemotes(repository, prs)
 
       this.emitUpdate(githubRepo)
@@ -97,7 +97,11 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     account: Account,
     pullRequest: PullRequest
   ): Promise<void> {
-    await this.refreshStatusForPRs([pullRequest], repository, account)
+    await this.fetchAndCachePullRequestStatus(
+      [pullRequest],
+      repository,
+      account
+    )
   }
 
   /** Loads the status for all pull request against a given repository. */
@@ -107,7 +111,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   ): Promise<void> {
     const prs = await this.fetchPullRequestsFromCache(repository)
 
-    await this.refreshStatusForPRs(prs, repository, account)
+    await this.fetchAndCachePullRequestStatus(prs, repository, account)
   }
 
   /** Gets the pull requests against the given repository. */
@@ -250,7 +254,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     this.emitUpdate(repository)
   }
 
-  private async refreshStatusForPRs(
+  private async fetchAndCachePullRequestStatus(
     pullRequests: ReadonlyArray<PullRequest>,
     repository: GitHubRepository,
     account: Account
