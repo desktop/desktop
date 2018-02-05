@@ -381,6 +381,10 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       })
     }
 
+    if (prsToInsert.length <= 0) {
+      return
+    }
+
     return this.pullRequestDatabase.transaction('rw', table, async () => {
       // since all PRs come from the same repository
       // using the base repoId of the fist element
