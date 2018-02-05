@@ -3123,14 +3123,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return null
     }
 
-    const pr = pullRequests.find(
-      pr =>
-        pr.head.ref === upstream &&
-        pr.head.gitHubRepository != null &&
-        pr.head.gitHubRepository.cloneURL === remote.url
-    )
+    const pr =
+      pullRequests.find(
+        pr =>
+          pr.head.ref === upstream &&
+          pr.head.gitHubRepository != null &&
+          pr.head.gitHubRepository.cloneURL === remote.url
+      ) || null
 
-    return pr || null
+    return pr
   }
 
   private _updateCurrentPullRequest(repository: Repository) {
