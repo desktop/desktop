@@ -45,7 +45,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   }
 
   /** Loads all pull requests against the given repository. */
-  public async fetchPullRequests(
+  public async fetchAndCachePullRequests(
     repository: Repository,
     account: Account
   ): Promise<void> {

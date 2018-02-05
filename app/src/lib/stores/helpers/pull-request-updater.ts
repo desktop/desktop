@@ -62,7 +62,7 @@ export class PullRequestUpdater {
       TimeoutHandles.PullRequest,
 
       window.setTimeout(() => {
-        this.store.fetchPullRequests(this.repository, this.account)
+        this.store.fetchAndCachePullRequests(this.repository, this.account)
       }, PullRequestInterval)
     )
 
