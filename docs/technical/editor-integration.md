@@ -207,6 +207,7 @@ These editors are currently supported:
  - [BBEdit](http://www.barebones.com/products/bbedit/)
  - [PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [RubyMine](https://www.jetbrains.com/rubymine/)
+ - [TextMate](https://macromates.com)
 
 These are defined in an enum at the top of the file:
 
