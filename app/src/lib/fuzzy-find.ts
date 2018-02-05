@@ -31,7 +31,7 @@ export function match<T, _K extends keyof T>(
   const result = items
     .map((item): IMatch<T> => {
       const key: string =
-        typeof getKey === 'function' ? (getKey as KeyFunction<T>)(item) : item[getKey] + ""
+        typeof getKey === 'function' ? (getKey as KeyFunction<T>)(item) : String(item[getKey])
       return {
         score: score(key, query, maxScore),
         item,
