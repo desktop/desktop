@@ -382,8 +382,14 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     }
 
     return this.pullRequestDatabase.transaction('rw', table, async () => {
+      // since all PRs come from the same repository
+      // using the base repoId of the fist element
+      // is sufficient here
       const repoDbId = prsToInsert[0].base.repoId!
 
+      // we need to delete the stales PRs from the db
+      // so we remove all for a repo to avoid having to
+      // do diffing
       await table
         .where('base.repoId')
         .equals(repoDbId)
