@@ -19,17 +19,19 @@ export interface IMatch<T> {
   matches: ReadonlyArray<number>
 }
 
+export type KeyFunction<T> = (item: T) => string
+
 export function match<T, _K extends keyof T>(
   query: string,
   items: ReadonlyArray<T>,
-  getKey: _K | ((item: T) => string)
+  getKey: _K | KeyFunction<T>
 ): ReadonlyArray<IMatch<T>> {
   // matching `query` against itself is a perfect match.
   const maxScore = score(query, query, 1)
   const result = items
     .map((item): IMatch<T> => {
       const key: string =
-        typeof getKey === 'function' ? getKey(item) : item[getKey] + ""
+        typeof getKey === 'function' ? (getKey as KeyFunction<T>)(item) : item[getKey] + ""
       return {
         score: score(key, query, maxScore),
         item,
