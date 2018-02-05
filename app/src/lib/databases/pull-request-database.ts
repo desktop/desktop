@@ -88,6 +88,8 @@ export class PullRequestDatabase extends BaseDatabase {
       pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
     })
 
+    // we need to run the upgrade function to ensure we add
+    // a status field to all previous records
     this.conditionalVersion(4, {}, this.addStatusesField)
   }
 
