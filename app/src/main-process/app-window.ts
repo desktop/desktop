@@ -52,6 +52,7 @@ export class AppWindow {
         // Enable, among other things, the ResizeObserver
         experimentalFeatures: true,
       },
+      acceptFirstMouse: true,
     }
 
     if (__DARWIN__) {
