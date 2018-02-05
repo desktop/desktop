@@ -95,15 +95,12 @@ export function getBundleSizes() {
   return { rendererSize: rendererStats.size, mainSize: mainStats.size }
 }
 
-export function getReleaseBranchName() {
-  let branchName = ''
-  if (process.platform === 'darwin') {
-    branchName = process.env.CIRCLE_BRANCH
-  } else if (process.platform === 'win32') {
-    branchName = process.env.APPVEYOR_REPO_BRANCH
-  }
-
-  return branchName
+export function getReleaseBranchName(): string {
+  return (
+    process.env.CIRCLE_BRANCH || // macOS
+    process.env.APPVEYOR_REPO_BRANCH || // Windows
+    ''
+  )
 }
 
 export function getReleaseChannel() {
