@@ -28,9 +28,9 @@ interface IParsedCommit {
 
 function parseCommitTitle(line: string): IParsedCommit {
   // E.g.: Merge pull request #2424 from desktop/fix-shrinkwrap-file
-  const re = /^Merge pull request #(\d+) from (.+?)\/.*$/
+  const re = /^Merge pull request #(\d+) from .+\/.*$/
   const matches = line.match(re)
-  if (!matches || matches.length !== 3) {
+  if (!matches || matches.length !== 2) {
     throw new Error(`Unable to parse '${line}'`)
   }
 
