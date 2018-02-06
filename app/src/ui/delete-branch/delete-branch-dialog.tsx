@@ -8,16 +8,17 @@ import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
+import { checkBranchExistsOnRemote } from '../../lib/git'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
-  readonly existsOnRemote: boolean
   readonly onDismissed: () => void
 }
 
 interface IDeleteBranchState {
+  readonly existsOnRemote: boolean | null
   readonly includeRemoteBranch: boolean
 }
 
@@ -29,6 +30,7 @@ export class DeleteBranch extends React.Component<
     super(props)
 
     this.state = {
+      existsOnRemote: null,
       includeRemoteBranch: false,
     }
   }
@@ -61,7 +63,7 @@ export class DeleteBranch extends React.Component<
   }
 
   private renderDeleteOnRemote() {
-    if (this.props.branch.remote && this.props.existsOnRemote) {
+    if (this.props.branch.remote && this.state.existsOnRemote == true) {
       return (
         <div>
           <p>

@@ -216,7 +216,6 @@ export type Popup =
       type: PopupType.DeleteBranch
       repository: Repository
       branch: Branch
-      existsOnRemote: boolean
     }
   | {
       type: PopupType.ConfirmDiscardChanges
