@@ -1,8 +1,8 @@
 import { expect } from 'chai'
 
-import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
-import { TestRepositoriesDatabase } from '../helpers/databases'
-import { IAPIRepository } from '../../src/lib/api'
+import { RepositoriesStore } from '../../../src/lib/stores/repositories-store'
+import { TestRepositoriesDatabase } from '../../helpers/databases'
+import { IAPIRepository } from '../../../src/lib/api'
 
 describe('RepositoriesStore', () => {
   let repositoriesStore: RepositoriesStore | null = null

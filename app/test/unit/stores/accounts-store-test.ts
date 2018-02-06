@@ -1,8 +1,8 @@
 import { expect } from 'chai'
 
-import { Account } from '../../src/models/account'
-import { AccountsStore } from '../../src/lib/stores'
-import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+import { Account } from '../../../src/models/account'
+import { AccountsStore } from '../../../src/lib/stores'
+import { InMemoryStore, AsyncInMemoryStore } from '../../helpers/stores'
 
 describe('AccountsStore', () => {
   let accountsStore: AccountsStore | null = null

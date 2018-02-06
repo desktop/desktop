@@ -16,27 +16,27 @@ import {
   RepositoriesStore,
   AccountsStore,
   PullRequestStore,
-} from '../../src/lib/stores'
+} from '../../../src/lib/stores'
 import {
   TestGitHubUserDatabase,
   TestStatsDatabase,
   TestIssuesDatabase,
   TestRepositoriesDatabase,
   TestPullRequestDatabase,
-} from '../helpers/databases'
-import { setupEmptyRepository } from '../helpers/repositories'
-import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+} from '../../helpers/databases'
+import { setupEmptyRepository } from '../../helpers/repositories'
+import { InMemoryStore, AsyncInMemoryStore } from '../../helpers/stores'
 
-import { StatsStore } from '../../src/lib/stats'
+import { StatsStore } from '../../../src/lib/stats'
 
 import {
   RepositorySection,
   SelectionType,
   IRepositoryState,
-} from '../../src/lib/app-state'
-import { Repository } from '../../src/models/repository'
-import { Commit } from '../../src/models/commit'
-import { getCommit } from '../../src/lib/git'
+} from '../../../src/lib/app-state'
+import { Repository } from '../../../src/models/repository'
+import { Commit } from '../../../src/models/commit'
+import { getCommit } from '../../../src/lib/git'
 
 describe('AppStore', () => {
   async function createAppStore(): Promise<AppStore> {
