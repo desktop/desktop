@@ -1,6 +1,7 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
+import { Branch } from '../../models/branch'
 
 /** Get the remote names. */
 export async function getRemotes(
@@ -68,4 +69,22 @@ export async function setRemoteURL(
   url: string
 ): Promise<void> {
   await git(['remote', 'set-url', name, url], repository.path, 'setRemoteURL')
+}
+
+export async function checkBranchExistsOnRemote(
+  repository: Repository,
+  branch: Branch
+): Promise<boolean> {
+  if (branch.upstream == null) {
+    return false
+  }
+
+  const result = await git(
+    ['show-ref', '--verify', `refs/remotes/${branch.upstream}`],
+    repository.path,
+    'checkBranchExistsOnRemote',
+    { successExitCodes: new Set([0, 128]) }
+  )
+
+  return result.exitCode === 0
 }

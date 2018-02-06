@@ -91,6 +91,12 @@ interface IBranchListProps {
    * to prepopulate the new branch name field.
    */
   readonly onCreateNewBranch?: (name: string) => void
+
+  /** Can users perform operations on a branch in the list via a context menu? */
+  readonly canShowBranchContextMenu: boolean
+
+  readonly onCreateNewBranchFromStartPoint?: (branch: Branch) => void
+  readonly onDeleteBranch?: (branch: Branch) => void
 }
 
 interface IBranchListState {
@@ -152,9 +158,15 @@ export class BranchList extends React.Component<
     return (
       <BranchListItem
         name={branch.name}
+        branch={branch}
         isCurrentBranch={branch.name === currentBranchName}
         lastCommitDate={commit ? commit.author.date : null}
         filterText={this.props.filterText}
+        canShowBranchContextMenu={this.props.canShowBranchContextMenu}
+        onCreateNewBranchFromStartPoint={
+          this.props.onCreateNewBranchFromStartPoint
+        }
+        onDeleteBranch={this.props.onDeleteBranch}
       />
     )
   }
