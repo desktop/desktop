@@ -325,7 +325,7 @@ export class PullRequestStore {
 
     await this.pullRequestDatabase.transaction('rw', table, async () => {
       await table.clear()
-      return await table.bulkAdd(insertablePRs)
+      await table.bulkAdd(insertablePRs)
     })
   }
 
