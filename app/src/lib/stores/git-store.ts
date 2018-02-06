@@ -1,6 +1,6 @@
 import * as Fs from 'fs'
 import * as Path from 'path'
-import { Emitter, Disposable } from 'event-kit'
+import { Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, AppFileStatus } from '../../models/status'
 import { Branch, BranchType } from '../../models/branch'
@@ -38,7 +38,6 @@ import {
   checkoutIndex,
   checkoutPaths,
   resetPaths,
-  getConfigValue,
   revertCommit,
   unstageAllFiles,
   openMergeTool,
@@ -61,6 +60,7 @@ import {
 import { IAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
+import { BaseStore } from './base-store'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -77,9 +77,7 @@ export interface ICommitMessage {
 }
 
 /** The store for a repository's git data. */
-export class GitStore {
-  private readonly emitter = new Emitter()
-
+export class GitStore extends BaseStore {
   private readonly shell: IAppShell
 
   /** The commits keyed by their SHA. */
@@ -118,25 +116,14 @@ export class GitStore {
   private _lastFetched: Date | null = null
 
   public constructor(repository: Repository, shell: IAppShell) {
+    super()
+
     this.repository = repository
     this.shell = shell
   }
 
-  private emitUpdate() {
-    this.emitter.emit('did-update', {})
-  }
-
   private emitNewCommitsLoaded(commits: ReadonlyArray<Commit>) {
     this.emitter.emit('did-load-new-commits', commits)
-  }
-
-  private emitError(error: Error) {
-    this.emitter.emit('did-error', error)
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: () => void): Disposable {
-    return this.emitter.on('did-update', fn)
   }
 
   /** Register a function to be called when the store loads new commits. */
@@ -144,11 +131,6 @@ export class GitStore {
     fn: (commits: ReadonlyArray<Commit>) => void
   ): Disposable {
     return this.emitter.on('did-load-new-commits', fn)
-  }
-
-  /** Register a function to be called when an error occurs. */
-  public onDidError(fn: (error: Error) => void): Disposable {
-    return this.emitter.on('did-error', fn)
   }
 
   /**
@@ -1083,66 +1065,6 @@ export class GitStore {
     this.emitUpdate()
   }
 
-  /**
-   * Read the contents of the repository .gitignore.
-   *
-   * Returns a promise which will either be rejected or resolved
-   * with the contents of the file. If there's no .gitignore file
-   * in the repository root the promise will resolve with null.
-   */
-  public async readGitIgnore(): Promise<string | null> {
-    const repository = this.repository
-    const ignorePath = Path.join(repository.path, '.gitignore')
-
-    return new Promise<string | null>((resolve, reject) => {
-      Fs.readFile(ignorePath, 'utf8', (err, data) => {
-        if (err) {
-          if (err.code === 'ENOENT') {
-            resolve(null)
-          } else {
-            reject(err)
-          }
-        } else {
-          resolve(data)
-        }
-      })
-    })
-  }
-
-  /**
-   * Persist the given content to the repository root .gitignore.
-   *
-   * If the repository root doesn't contain a .gitignore file one
-   * will be created, otherwise the current file will be overwritten.
-   */
-  public async saveGitIgnore(text: string): Promise<void> {
-    const repository = this.repository
-    const ignorePath = Path.join(repository.path, '.gitignore')
-    const fileContents = await formatGitIgnoreContents(text, repository)
-
-    return new Promise<void>((resolve, reject) => {
-      Fs.writeFile(ignorePath, fileContents, err => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve()
-        }
-      })
-    })
-  }
-
-  /** Ignore the given path or pattern. */
-  public async ignore(pattern: string): Promise<void> {
-    const text = (await this.readGitIgnore()) || ''
-    const repository = this.repository
-    const currentContents = await formatGitIgnoreContents(text, repository)
-    const newText = await formatGitIgnoreContents(
-      `${currentContents}${pattern}`,
-      repository
-    )
-    await this.saveGitIgnore(newText)
-  }
-
   public async discardChanges(
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<void> {
@@ -1325,47 +1247,4 @@ export class GitStore {
       setRemoteURL(this.repository, UpstreamRemoteName, url)
     )
   }
-}
-
-/**
- * Format the gitignore text based on the current config settings.
- *
- * This setting looks at core.autocrlf to decide which line endings to use
- * when updating the .gitignore file.
- *
- * If core.safecrlf is also set, adding this file to the index may cause
- * Git to return a non-zero exit code, leaving the working directory in a
- * confusing state for the user. So we should reformat the file in that
- * case.
- *
- * @param text The text to format.
- * @param repository The repository associated with the gitignore file.
- */
-async function formatGitIgnoreContents(
-  text: string,
-  repository: Repository
-): Promise<string> {
-  const autocrlf = await getConfigValue(repository, 'core.autocrlf')
-  const safecrlf = await getConfigValue(repository, 'core.safecrlf')
-
-  return new Promise<string>((resolve, reject) => {
-    if (autocrlf === 'true' && safecrlf === 'true') {
-      // based off https://stackoverflow.com/a/141069/1363815
-      const normalizedText = text.replace(/\r\n|\n\r|\n|\r/g, '\r\n')
-      resolve(normalizedText)
-      return
-    }
-
-    if (text.endsWith('\n')) {
-      resolve(text)
-      return
-    }
-
-    const linesEndInCRLF = autocrlf === 'true'
-    if (linesEndInCRLF) {
-      resolve(`${text}\n`)
-    } else {
-      resolve(`${text}\r\n`)
-    }
-  })
 }
