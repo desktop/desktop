@@ -1,7 +1,7 @@
 import {
   PullRequestDatabase,
-  IPullRequest,
-  IPullRequestStatus,
+  IPullRequestEntity,
+  IPullRequestStatusEntity,
 } from '../databases'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
@@ -169,7 +169,7 @@ export class PullRequestStore {
     account: Account
   ): Promise<void> {
     const api = API.fromAccount(account)
-    const statuses: Array<IPullRequestStatus> = []
+    const statuses: Array<IPullRequestStatusEntity> = []
     const prs: Array<PullRequest> = []
 
     for (const pr of pullRequests) {
@@ -266,7 +266,7 @@ export class PullRequestStore {
 
     const table = this.pullRequestDatabase.pullRequests
 
-    const insertablePRs = new Array<IPullRequest>()
+    const insertablePRs = new Array<IPullRequestEntity>()
     for (const pr of pullRequests) {
       let headRepo: GitHubRepository | null = null
       if (pr.head.repo) {
@@ -308,7 +308,7 @@ export class PullRequestStore {
   }
 
   private async writePRStatus(
-    statuses: Array<IPullRequestStatus>
+    statuses: Array<IPullRequestStatusEntity>
   ): Promise<void> {
     const table = this.pullRequestDatabase.pullRequestStatus
 

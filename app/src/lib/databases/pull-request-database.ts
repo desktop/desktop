@@ -15,7 +15,7 @@ export interface IPullRequestRef {
   readonly sha: string
 }
 
-export interface IPullRequest {
+export interface IPullRequestEntity {
   /**
    * The database ID. This will be undefined if the pull request hasn't been
    * inserted into the DB.
@@ -41,7 +41,7 @@ export interface IPullRequest {
   readonly author: string
 }
 
-export interface IPullRequestStatus {
+export interface IPullRequestStatusEntity {
   /**
    * The database ID. This will be undefined if the status hasn't been inserted
    * into the DB.
