@@ -37,6 +37,10 @@ export class DeleteBranch extends React.Component<
     }
   }
 
+  private checkCompleted = () => {
+    this.checkingRemote = false
+  }
+
   public componentWillReceiveProps(nextProps: IDeleteBranchProps) {
     if (this.checkingRemote) {
       // a check is being performed, don't start another
@@ -51,9 +55,7 @@ export class DeleteBranch extends React.Component<
 
       checkBranchExistsOnRemote(this.props.repository, this.props.branch)
         .then(existsOnRemote => {
-          this.setState({ existsOnRemote }, () => {
-            this.checkingRemote = false
-          })
+          this.setState({ existsOnRemote }, this.checkCompleted)
         })
         .catch(err => {
           log.warn(
@@ -62,9 +64,7 @@ export class DeleteBranch extends React.Component<
             }'`,
             err
           )
-          this.setState({ existsOnRemote: false }, () => {
-            this.checkingRemote = false
-          })
+          this.setState({ existsOnRemote: false }, this.checkCompleted)
         })
     }
   }
