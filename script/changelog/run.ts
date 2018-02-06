@@ -75,7 +75,7 @@ function getChangelogEntry(
   let attribution = ''
 
   if (externalContributors.length > 0) {
-    // TODO: we should format this with an "and" between the last two contributors
+    // TODO: format this with an "and" between the last two contributors
     const credits = externalContributors.map(c => `@${c}`).join(', ')
     attribution = `. Thanks ${credits}!`
   }

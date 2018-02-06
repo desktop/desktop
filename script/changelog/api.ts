@@ -45,6 +45,8 @@ interface IAPITeamMember {
   readonly login: string
 }
 
+const webflowAccount = ['web-flow']
+
 export async function getCoreTeamMembers(): Promise<ReadonlyArray<string>> {
   try {
     let response = await octokit.orgs.getTeams({
@@ -68,7 +70,7 @@ export async function getCoreTeamMembers(): Promise<ReadonlyArray<string>> {
     })
     const members: ReadonlyArray<IAPITeamMember> = response.data
 
-    return members.map(m => m.login)
+    return members.map(m => m.login).concat(webflowAccount)
   } catch (err) {
     console.error('API lookup failed for getCoreTeamMembers', err)
     return []
