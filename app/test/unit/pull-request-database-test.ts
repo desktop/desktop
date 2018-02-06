@@ -6,7 +6,7 @@ import {
 } from '../../src/lib/databases'
 
 describe('PullRequestDatabase', () => {
-  it("adds statuses key to records that don't have one on upgrade", async () => {
+  it.only("adds statuses key to records that don't have one on upgrade", async () => {
     const databaseName = 'TestPullRequestDatabase'
     let database = new PullRequestDatabase(databaseName, 3)
 
@@ -22,6 +22,15 @@ describe('PullRequestDatabase', () => {
     }
 
     await database.pullRequestStatus.add(prStatus)
+
+    const pleaseDontBeUndefined = await database.pullRequestStatus
+      .where('pullRequestId')
+      .equals(prStatus.pullRequestId)
+      .limit(1)
+      .first()
+
+    expect(pleaseDontBeUndefined).to.not.be.undefined
+
     await database.pullRequestStatus.each(prStatus => {
       expect(prStatus.statuses).to.be.undefined
     })
