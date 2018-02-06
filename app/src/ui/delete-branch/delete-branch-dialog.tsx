@@ -26,6 +26,8 @@ export class DeleteBranch extends React.Component<
   IDeleteBranchProps,
   IDeleteBranchState
 > {
+  private checkingRemote = false
+
   public constructor(props: IDeleteBranchProps) {
     super(props)
 
@@ -36,20 +38,33 @@ export class DeleteBranch extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: IDeleteBranchProps) {
-    // TODO: re-run this if this.props.branch has changed
-    if (this.state.existsOnRemote == null) {
+    if (this.checkingRemote) {
+      // a check is being performed, don't start another
+      return
+    }
+
+    const upstreamChanged =
+      this.props.branch.upstream !== nextProps.branch.upstream
+
+    if (this.state.existsOnRemote == null || upstreamChanged) {
+      this.checkingRemote = true
+
       checkBranchExistsOnRemote(this.props.repository, this.props.branch)
         .then(existsOnRemote => {
-          this.setState({ existsOnRemote })
+          this.setState({ existsOnRemote }, () => {
+            this.checkingRemote = false
+          })
         })
         .catch(err => {
           log.warn(
-            `[DeleteBranch] unable to resolve remote branch: ${
-              this.props.branch.name
-            }`,
+            `[DeleteBranch] unable to resolve upstream branch: '${
+              this.props.branch.upstream
+            }'`,
             err
           )
-          this.setState({ existsOnRemote: false })
+          this.setState({ existsOnRemote: false }, () => {
+            this.checkingRemote = false
+          })
         })
     }
   }
