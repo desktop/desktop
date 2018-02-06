@@ -6,42 +6,35 @@ import {
 } from '../../src/lib/databases'
 
 describe('PullRequestDatabase', () => {
-  it.only("adds statuses key to records that don't have one on upgrade", async () => {
+  it("adds statuses key to records that don't have one on upgrade", async () => {
     const databaseName = 'TestPullRequestDatabase'
-    let database = new PullRequestDatabase(databaseName, 3)
 
+    let database = new PullRequestDatabase(databaseName, 3)
     await database.delete()
     await database.open()
 
     const prStatus: IPullRequestStatus = {
-      id: 1,
       pullRequestId: 1,
       state: 'success',
-      totalCount: 4,
+      totalCount: 1,
       sha: 'sha',
     }
-
     await database.pullRequestStatus.add(prStatus)
+    const prStatusFromDb = await database.pullRequestStatus.get(1)
+    expect(prStatusFromDb).to.not.be.undefined
+    expect(prStatusFromDb!.pullRequestId).to.equal(prStatus.pullRequestId)
 
-    const pleaseDontBeUndefined = await database.pullRequestStatus
-      .where('pullRequestId')
-      .equals(prStatus.pullRequestId)
-      .limit(1)
-      .first()
-
-    expect(pleaseDontBeUndefined).to.not.be.undefined
-
-    await database.pullRequestStatus.each(prStatus => {
-      expect(prStatus.statuses).to.be.undefined
-    })
     database.close()
-
     database = new PullRequestDatabase(databaseName, 4)
-
     await database.open()
-    await database.pullRequestStatus.each(prStatus => {
-      expect(prStatus.statuses).to.not.be.undefined
-    })
+
+    const upgradedPrStatusFromDb = await database.pullRequestStatus.get(1)
+    expect(upgradedPrStatusFromDb).is.not.undefined
+    expect(upgradedPrStatusFromDb!.pullRequestId).to.equal(
+      prStatus.pullRequestId
+    )
+    expect(upgradedPrStatusFromDb!.statuses).is.not.undefined
+
     await database.delete()
   })
 })
