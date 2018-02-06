@@ -318,6 +318,7 @@
         - [ ] navigating away from the Changes tab will clear red tags 
      - [ ] toggling the co-author icon clears the field
   - [ ] All co-authors show up in History and diff view
+    - [ ] Commits with `Co-Authored-By: Name <username@github.com>`in the decription field reveal avatar of user    
     - [ ] Hovering over an avatar reveals all tagged users
     - [ ] Hovering over the "people" text reveals all names/emails of tagged users
   - [ ] Undoing a commit re-enables the tags
