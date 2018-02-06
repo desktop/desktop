@@ -35,6 +35,25 @@ export class DeleteBranch extends React.Component<
     }
   }
 
+  public componentWillReceiveProps(nextProps: IDeleteBranchProps) {
+    // TODO: re-run this if this.props.branch has changed
+    if (this.state.existsOnRemote == null) {
+      checkBranchExistsOnRemote(this.props.repository, this.props.branch)
+        .then(existsOnRemote => {
+          this.setState({ existsOnRemote })
+        })
+        .catch(err => {
+          log.warn(
+            `[DeleteBranch] unable to resolve remote branch: ${
+              this.props.branch.name
+            }`,
+            err
+          )
+          this.setState({ existsOnRemote: false })
+        })
+    }
+  }
+
   public render() {
     return (
       <Dialog
