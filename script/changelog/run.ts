@@ -156,9 +156,6 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   }
 
   const coreMembers = await getCoreTeamMembers()
-  // TODO: this should be behind a debug flag
-  console.log(`found core members: ${coreMembers.join(', ')}`)
-
   const lines = await getLogLines(previousVersion)
   const changelogEntries = await getChangelogEntries(lines, coreMembers)
   console.log(jsonStringify(changelogEntries))
