@@ -2,13 +2,13 @@ import * as fuzzAldrin from 'fuzzaldrin-plus'
 
 import { compareDescending } from './compare'
 
-export const options: fuzzAldrin.IFilterOptions = {
+const options: fuzzAldrin.IFilterOptions = {
   allowErrors: true,
   isPath: true,
   pathSeparator: '-',
 }
 
-export function score(str: string, query: string, maxScore: number) {
+function score(str: string, query: string, maxScore: number) {
   return fuzzAldrin.score(str, query, undefined, options) / maxScore
 }
 
