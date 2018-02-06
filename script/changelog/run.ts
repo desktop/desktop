@@ -1,11 +1,10 @@
 import { spawn } from './spawn'
-import { fetchPR, IDesktopPullRequest } from './api'
+import { fetchPR, getCoreTeamMembers, IDesktopPullRequest } from './api'
 import { sort as semverSort } from 'semver'
 
 const jsonStringify: (obj: any) => string = require('json-pretty')
 
 const PlaceholderChangeType = '???'
-const OfficialOwner = 'desktop'
 
 async function getLogLines(
   previousVersion: string
@@ -25,7 +24,6 @@ async function getLogLines(
 
 interface IParsedCommit {
   readonly prID: number
-  readonly owner: string
 }
 
 function parseCommitTitle(line: string): IParsedCommit {
@@ -43,7 +41,6 @@ function parseCommitTitle(line: string): IParsedCommit {
 
   return {
     prID: id,
-    owner: matches[2],
   }
 }
 
@@ -53,7 +50,8 @@ function capitalized(str: string): string {
 
 function getChangelogEntry(
   commit: IParsedCommit,
-  pr: IDesktopPullRequest
+  pr: IDesktopPullRequest,
+  externalContributors: ReadonlyArray<string>
 ): string {
   let issueRef = ''
   let type = PlaceholderChangeType
@@ -75,15 +73,19 @@ function getChangelogEntry(
   }
 
   let attribution = ''
-  if (commit.owner !== OfficialOwner) {
-    attribution = `. Thanks @${commit.owner}!`
+
+  if (externalContributors.length > 0) {
+    // TODO: we should format this with an "and" between the last two contributors
+    const credits = externalContributors.map(c => `@${c}`).join(', ')
+    attribution = `. Thanks ${credits}!`
   }
 
   return `[${type}] ${description} -${issueRef}${attribution}`
 }
 
 async function getChangelogEntries(
-  lines: ReadonlyArray<string>
+  lines: ReadonlyArray<string>,
+  coreMembers: ReadonlyArray<string>
 ): Promise<ReadonlyArray<string>> {
   const entries = []
   for (const line of lines) {
@@ -94,7 +96,12 @@ async function getChangelogEntries(
         throw new Error(`Unable to get PR from API: ${commit.prID}`)
       }
 
-      const entry = getChangelogEntry(commit, pr)
+      const collaborators = pr.collaborators
+      const externalContributors = collaborators.filter(
+        c => coreMembers.indexOf(c) === -1
+      )
+
+      const entry = getChangelogEntry(commit, pr, externalContributors)
       entries.push(entry)
     } catch (e) {
       console.warn('Unable to parse line, using the full message.', e)
@@ -148,7 +155,11 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
     )
   }
 
+  const coreMembers = await getCoreTeamMembers()
+  // TODO: this should be behind a debug flag
+  console.log(`found core members: ${coreMembers.join(', ')}`)
+
   const lines = await getLogLines(previousVersion)
-  const changelogEntries = await getChangelogEntries(lines)
+  const changelogEntries = await getChangelogEntries(lines, coreMembers)
   console.log(jsonStringify(changelogEntries))
 }

@@ -6,6 +6,11 @@ const octokit = require('@octokit/rest')({
   },
 })
 
+octokit.authenticate({
+  type: 'token',
+  token: process.env.GITHUB_ACCESS_TOKEN,
+})
+
 export interface IDesktopPullRequest {
   readonly title: string
   readonly body: string
@@ -31,12 +36,46 @@ interface IAPICommit {
   }
 }
 
-export async function fetchPR(id: number): Promise<IDesktopPullRequest | null> {
-  octokit.authenticate({
-    type: 'token',
-    token: process.env.GITHUB_ACCESS_TOKEN,
-  })
+interface IAPITeam {
+  readonly name: string
+  readonly id: number
+}
 
+interface IAPITeamMember {
+  readonly login: string
+}
+
+export async function getCoreTeamMembers(): Promise<ReadonlyArray<string>> {
+  try {
+    let response = await octokit.orgs.getTeams({
+      org: 'desktop',
+      per_page: 100,
+    })
+    const teams: ReadonlyArray<IAPITeam> = response.data
+    const coreTeam = teams.find(t => t.name === 'Core') || null
+
+    if (coreTeam == null) {
+      console.error('Unable to find core team on API')
+      return []
+    }
+
+    const id = coreTeam.id
+
+    response = await octokit.orgs.getTeamMembers({
+      id,
+      role: 'all',
+      per_page: 100,
+    })
+    const members: ReadonlyArray<IAPITeamMember> = response.data
+
+    return members.map(m => m.login)
+  } catch (err) {
+    console.error('API lookup failed for getCoreTeamMembers', err)
+    return []
+  }
+}
+
+export async function fetchPR(id: number): Promise<IDesktopPullRequest | null> {
   try {
     const pullRequestResponse = await octokit.pullRequests.get({
       owner: 'desktop',
@@ -81,7 +120,7 @@ export async function fetchPR(id: number): Promise<IDesktopPullRequest | null> {
       commits,
     }
   } catch (err) {
-    console.error('API lookup failed', err)
+    console.error('API lookup failed for fetchPR', err)
     return null
   }
 }
