@@ -25,12 +25,34 @@ import { IRemote } from '../../models/remote'
  */
 export const ForkedRemotePrefix = 'github-desktop-'
 
+const pullRequestToIPullRequestEntity = (
+  pr: IAPIPullRequest,
+  base: GitHubRepository,
+  head: GitHubRepository | null = null
+): IPullRequestEntity => {
+  return {
+    number: pr.number,
+    title: pr.title,
+    createdAt: pr.created_at,
+    head: {
+      ref: pr.head.ref,
+      sha: pr.head.sha,
+      repoId: (head && head.dbID) || null,
+    },
+    base: {
+      ref: pr.base.ref,
+      sha: pr.base.sha,
+      repoId: base.dbID,
+    },
+    author: pr.user.login,
+  }
+}
+
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore {
   private readonly emitter = new Emitter()
   private readonly pullRequestDatabase: PullRequestDatabase
   private readonly repositoriesStore: RepositoriesStore
-
   private activeFetchCountPerRepository = new Map<number, number>()
 
   public constructor(
