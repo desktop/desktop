@@ -5,12 +5,9 @@ export interface IAPIPR {
   readonly body: string
 }
 
-type GraphQLResponse = {
-  readonly data: {
-    readonly repository: {
-      readonly pullRequest: IAPIPR
-    }
-  }
+type IAPIPullRequest = {
+  readonly title: string
+  readonly body: string
 }
 
 export function fetchPR(id: number): Promise<IAPIPR | null> {
@@ -18,10 +15,10 @@ export function fetchPR(id: number): Promise<IAPIPR | null> {
     const options: HTTPS.RequestOptions = {
       host: 'api.github.com',
       protocol: 'https:',
-      path: '/graphql',
-      method: 'POST',
+      path: `/repos/desktop/desktop/pulls/${id}`,
+      method: 'GET',
       headers: {
-        Authorization: `bearer ${process.env.GITHUB_ACCESS_TOKEN}`,
+        Authorization: `Token ${process.env.GITHUB_ACCESS_TOKEN}`,
         'User-Agent': 'what-the-changelog',
       },
     }
@@ -34,26 +31,14 @@ export function fetchPR(id: number): Promise<IAPIPR | null> {
 
       response.on('end', () => {
         try {
-          const json: GraphQLResponse = JSON.parse(received)
-          const pr = json.data.repository.pullRequest
-          resolve(pr)
+          const json: IAPIPullRequest = JSON.parse(received)
+          resolve(json)
         } catch (e) {
+          console.error('API lookup failed', e)
           resolve(null)
         }
       })
     })
-
-    const graphql = `
-{
-  repository(owner: "desktop", name: "desktop") {
-    pullRequest(number: ${id}) {
-      title
-      body
-    }
-  }
-}
-`
-    request.write(JSON.stringify({ query: graphql }))
 
     request.end()
   })
