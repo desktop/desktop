@@ -6,27 +6,55 @@ const octokit = require('@octokit/rest')({
   },
 })
 
-export interface IAPIPR {
+export interface IDesktopPullRequest {
   readonly title: string
   readonly body: string
 }
 
-export async function fetchPR(id: number): Promise<IAPIPR | null> {
+interface IAPIPullRequest {
+  readonly title: string
+  readonly body: string
+  readonly user: {
+    readonly login: string
+  }
+}
+
+interface IAPICommit {
+  commit: {
+    message: string
+  }
+}
+
+export async function fetchPR(id: number): Promise<IDesktopPullRequest | null> {
   octokit.authenticate({
     type: 'token',
     token: process.env.GITHUB_ACCESS_TOKEN,
   })
 
   try {
-    const response = await octokit.pullRequests.get({
+    const pullRequestResponse = await octokit.pullRequests.get({
       owner: 'desktop',
       repo: 'desktop',
       number: id,
     })
-    const data = response.data
+    const pullRequestData: IAPIPullRequest = pullRequestResponse.data
+
+    let commitsResponse = await octokit.pullRequests.getCommits({
+      owner: 'desktop',
+      repo: 'desktop',
+      number: id,
+      per_page: 100,
+    })
+
+    let data: Array<IAPICommit> = commitsResponse.data
+    while (octokit.hasNextPage(commitsResponse)) {
+      commitsResponse = await octokit.getNextPage(commitsResponse)
+      data = data.concat(commitsResponse.data)
+    }
+
     return {
-      title: data.title,
-      body: data.body,
+      title: pullRequestData.title,
+      body: pullRequestData.body,
     }
   } catch (err) {
     console.error('API lookup failed', err)
