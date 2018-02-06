@@ -1,5 +1,4 @@
 import Dexie from 'dexie'
-import { APIRefState, IAPIRefStatusItem } from '../api'
 
 export type RefState = 'failure' | 'pending' | 'success'
 
