@@ -1,21 +1,43 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 import {
   AutocompletingTextArea,
   AutocompletingInput,
   IAutocompletionProvider,
+  UserAutocompletionProvider,
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../lib/app-state'
 import { Dispatcher } from '../../lib/dispatcher'
-import { IGitHubUser } from '../../lib/dispatcher'
+import { IGitHubUser } from '../../lib/databases/github-user-database'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
 import { Loading } from '../lib/loading'
 import { structuralEquals } from '../../lib/equality'
+import { generateGravatarUrl } from '../../lib/gravatar'
+import { AuthorInput } from '../lib/author-input'
+import { FocusContainer } from '../lib/focus-container'
+import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { ITrailer } from '../../lib/git/interpret-trailers'
+import { IAuthor } from '../../models/author'
+
+const addAuthorIcon = new OcticonSymbol(
+  12,
+  7,
+  'M9.875 2.125H12v1.75H9.875V6h-1.75V3.875H6v-1.75h2.125V0h1.75v2.125zM6 ' +
+    '6.5a.5.5 0 0 1-.5.5h-5a.5.5 0 0 1-.5-.5V6c0-1.316 2-2 2-2s.114-.204 ' +
+    '0-.5c-.42-.31-.472-.795-.5-2C1.587.293 2.434 0 3 0s1.413.293 1.5 1.5c-.028 ' +
+    '1.205-.08 1.69-.5 2-.114.295 0 .5 0 .5s2 .684 2 2v.5z'
+)
 
 interface ICommitMessageProps {
-  readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
+  readonly onCreateCommit: (
+    summary: string,
+    description: string | null,
+    trailers?: ReadonlyArray<ITrailer>
+  ) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
@@ -26,6 +48,21 @@ interface ICommitMessageProps {
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
+
+  /**
+   * Whether or not to show a field for adding co-authors to
+   * a commit (currently only supported for GH/GHE repositories)
+   */
+  readonly showCoAuthoredBy: boolean
+
+  /**
+   * A list of authors (name, email pairs) which have been
+   * entered into the co-authors input box in the commit form
+   * and which _may_ be used in the subsequent commit to add
+   * Co-Authored-By commit message trailers depending on whether
+   * the user has chosen to do so.
+   */
+  readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
 interface ICommitMessageState {
@@ -34,13 +71,50 @@ interface ICommitMessageState {
 
   /** The last contextual commit message we've received. */
   readonly lastContextualCommitMessage: ICommitMessage | null
+
+  readonly userAutocompletionProvider: UserAutocompletionProvider | null
+
+  /**
+   * Whether or not the description text area has more text that's
+   * obscured by the action bar. Note that this will always be
+   * false when there's no action bar.
+   */
+  readonly descriptionObscured: boolean
 }
 
-export class CommitMessage extends React.Component<ICommitMessageProps, ICommitMessageState> {
+function findUserAutoCompleteProvider(
+  providers: ReadonlyArray<IAutocompletionProvider<any>>
+): UserAutocompletionProvider | null {
+  for (const provider of providers) {
+    if (provider instanceof UserAutocompletionProvider) {
+      return provider
+    }
+  }
+
+  return null
+}
+
+export class CommitMessage extends React.Component<
+  ICommitMessageProps,
+  ICommitMessageState
+> {
+  private descriptionComponent: AutocompletingTextArea | null = null
+
+  private descriptionTextArea: HTMLTextAreaElement | null = null
+  private descriptionTextAreaScrollDebounceId: number | null = null
+
   public constructor(props: ICommitMessageProps) {
     super(props)
 
-    this.state = { summary: '', description: '', lastContextualCommitMessage: null }
+    this.state = {
+      summary: '',
+      description: '',
+      lastContextualCommitMessage: null,
+      userAutocompletionProvider: findUserAutoCompleteProvider(
+        props.autocompletionProviders
+      ),
+      descriptionObscured: false,
+    }
   }
 
   public componentWillMount() {
@@ -58,11 +132,20 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   }
 
   private receiveProps(nextProps: ICommitMessageProps, initializing: boolean) {
-
     // If we're switching away from one repository to another we'll persist
     // our commit message in the dispatcher.
     if (nextProps.repository.id !== this.props.repository.id) {
       this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
+    }
+
+    if (
+      nextProps.autocompletionProviders !== this.props.autocompletionProviders
+    ) {
+      this.setState({
+        userAutocompletionProvider: findUserAutoCompleteProvider(
+          nextProps.autocompletionProviders
+        ),
+      })
     }
 
     // This is rather gnarly. We want to persist the commit message (summary,
@@ -90,14 +173,23 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     const lastContextualCommitMessage = this.state.lastContextualCommitMessage
     // If the contextual commit message changed, we'll use it as our commit
     // message.
-    if (nextContextualCommitMessage &&
-        (!lastContextualCommitMessage || !structuralEquals(nextContextualCommitMessage, lastContextualCommitMessage))) {
+    if (
+      nextContextualCommitMessage &&
+      (!lastContextualCommitMessage ||
+        !structuralEquals(
+          nextContextualCommitMessage,
+          lastContextualCommitMessage
+        ))
+    ) {
       this.setState({
         summary: nextContextualCommitMessage.summary,
         description: nextContextualCommitMessage.description,
         lastContextualCommitMessage: nextContextualCommitMessage,
       })
-    } else if (initializing || this.props.repository.id !== nextProps.repository.id) {
+    } else if (
+      initializing ||
+      this.props.repository.id !== nextProps.repository.id
+    ) {
       // We're either initializing (ie being mounted) or someone has switched
       // repositories. If we receive a message we'll take it
       if (nextProps.commitMessage) {
@@ -117,7 +209,9 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
         })
       }
     } else {
-      this.setState({ lastContextualCommitMessage: nextContextualCommitMessage })
+      this.setState({
+        lastContextualCommitMessage: nextContextualCommitMessage,
+      })
     }
   }
 
@@ -137,27 +231,46 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     this.createCommit()
   }
 
+  private getCoAuthorTrailers() {
+    if (!this.isCoAuthorInputEnabled) {
+      return []
+    }
+
+    return this.props.coAuthors.map(a => ({
+      token: 'Co-Authored-By',
+      value: `${a.name} <${a.email}>`,
+    }))
+  }
+
   private async createCommit() {
-    if (!this.canCommit) { return }
+    const { summary, description } = this.state
 
-    const success = await this.props.onCreateCommit({
-      // We know that summary is non-null thanks to canCommit
-      summary: this.state.summary!,
-      description: this.state.description,
-    })
+    if (!this.canCommit()) {
+      return
+    }
 
-    if (success) {
+    const trailers = this.getCoAuthorTrailers()
+
+    const commitCreated = await this.props.onCreateCommit(
+      summary,
+      description,
+      trailers
+    )
+
+    if (commitCreated) {
       this.clearCommitMessage()
     }
   }
 
   private canCommit(): boolean {
-    return this.props.anyFilesSelected
-      && this.state.summary !== null
-      && this.state.summary.length > 0
+    return this.props.anyFilesSelected && this.state.summary.length > 0
   }
 
   private onKeyDown = (event: React.KeyboardEvent<Element>) => {
+    if (event.defaultPrevented) {
+      return
+    }
+
     const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
     if (isShortcutKey && event.key === 'Enter' && this.canCommit()) {
       this.createCommit()
@@ -171,48 +284,217 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
       ? `Committing as ${commitAuthor.name} <${commitAuthor.email}>`
       : undefined
     let avatarUser = undefined
-    if (commitAuthor && this.props.gitHubUser) {
-      avatarUser = { ...commitAuthor, avatarURL: this.props.gitHubUser.avatarURL }
+
+    if (commitAuthor) {
+      const avatarURL = this.props.gitHubUser
+        ? this.props.gitHubUser.avatarURL
+        : generateGravatarUrl(commitAuthor.email)
+
+      avatarUser = {
+        email: commitAuthor.email,
+        name: commitAuthor.name,
+        avatarURL,
+      }
     }
 
-    return <Avatar user={avatarUser} title={avatarTitle}/>
+    return <Avatar user={avatarUser} title={avatarTitle} />
+  }
+
+  private get isCoAuthorInputEnabled() {
+    return this.props.repository.gitHubRepository !== null
+  }
+
+  private get isCoAuthorInputVisible() {
+    return this.props.showCoAuthoredBy && this.isCoAuthorInputEnabled
+  }
+
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) => {
+    this.props.dispatcher.setCoAuthors(this.props.repository, coAuthors)
+  }
+
+  private renderCoAuthorInput() {
+    if (!this.isCoAuthorInputVisible) {
+      return null
+    }
+
+    const autocompletionProvider = this.state.userAutocompletionProvider
+
+    if (!autocompletionProvider) {
+      return null
+    }
+
+    return (
+      <AuthorInput
+        onAuthorsUpdated={this.onCoAuthorsUpdated}
+        authors={this.props.coAuthors}
+        autoCompleteProvider={autocompletionProvider}
+      />
+    )
+  }
+
+  private onToggleCoAuthors = () => {
+    this.props.dispatcher.setShowCoAuthoredBy(
+      this.props.repository,
+      !this.props.showCoAuthoredBy
+    )
+  }
+
+  private get toggleCoAuthorsText(): string {
+    return this.props.showCoAuthoredBy
+      ? __DARWIN__ ? 'Remove Co-Authors' : 'Remove co-authors'
+      : __DARWIN__ ? 'Add Co-Authors' : 'Add co-authors'
+  }
+
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    const items: IMenuItem[] = [
+      {
+        label: this.toggleCoAuthorsText,
+        action: this.onToggleCoAuthors,
+        enabled: this.props.repository.gitHubRepository !== null,
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
+  private onCoAuthorToggleButtonClick = (
+    e: React.MouseEvent<HTMLDivElement>
+  ) => {
+    e.preventDefault()
+    this.onToggleCoAuthors()
+  }
+
+  private renderCoAuthorToggleButton() {
+    if (this.props.repository.gitHubRepository === null) {
+      return null
+    }
+
+    return (
+      <div
+        role="button"
+        className="co-authors-toggle"
+        onClick={this.onCoAuthorToggleButtonClick}
+        tabIndex={-1}
+        aria-label={this.toggleCoAuthorsText}
+      >
+        <Octicon symbol={addAuthorIcon} />
+      </div>
+    )
+  }
+
+  private onDescriptionFieldRef = (
+    component: AutocompletingTextArea | null
+  ) => {
+    this.descriptionComponent = component
+  }
+
+  private onDescriptionTextAreaScroll = () => {
+    this.descriptionTextAreaScrollDebounceId = null
+
+    const elem = this.descriptionTextArea
+    const descriptionObscured =
+      elem !== null && elem.scrollTop + elem.offsetHeight < elem.scrollHeight
+
+    if (this.state.descriptionObscured !== descriptionObscured) {
+      this.setState({ descriptionObscured })
+    }
+  }
+
+  private onDescriptionTextAreaRef = (elem: HTMLTextAreaElement | null) => {
+    if (elem) {
+      elem.addEventListener('scroll', () => {
+        if (this.descriptionTextAreaScrollDebounceId !== null) {
+          cancelAnimationFrame(this.descriptionTextAreaScrollDebounceId)
+          this.descriptionTextAreaScrollDebounceId = null
+        }
+        this.descriptionTextAreaScrollDebounceId = requestAnimationFrame(
+          this.onDescriptionTextAreaScroll
+        )
+      })
+    }
+
+    this.descriptionTextArea = elem
+  }
+
+  private onFocusContainerClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (this.descriptionComponent) {
+      this.descriptionComponent.focus()
+    }
+  }
+
+  /**
+   * Whether or not there's anything to render in the action bar
+   */
+  private get isActionBarEnabled() {
+    return this.isCoAuthorInputEnabled
+  }
+
+  private renderActionBar() {
+    if (!this.isCoAuthorInputEnabled) {
+      return null
+    }
+
+    return <div className="action-bar">{this.renderCoAuthorToggleButton()}</div>
   }
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
     const buttonEnabled = this.canCommit() && !this.props.isCommitting
 
-    const loading = this.props.isCommitting
-      ? <Loading />
-      : undefined
+    const loading = this.props.isCommitting ? <Loading /> : undefined
+    const className = classNames({
+      'with-action-bar': this.isActionBarEnabled,
+      'with-co-authors': this.isCoAuthorInputVisible,
+    })
+
+    const descriptionClassName = classNames('description-field', {
+      'with-overflow': this.state.descriptionObscured,
+    })
 
     return (
-      <div id='commit-message' role='group' aria-label='Create commit'>
-        <div className='summary'>
+      <div
+        id="commit-message"
+        role="group"
+        aria-label="Create commit"
+        className={className}
+        onContextMenu={this.onContextMenu}
+        onKeyDown={this.onKeyDown}
+      >
+        <div className="summary">
           {this.renderAvatar()}
 
           <AutocompletingInput
-            className='summary-field'
-            placeholder='Summary'
+            className="summary-field"
+            placeholder="Summary"
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
-            onKeyDown={this.onKeyDown}
             autocompletionProviders={this.props.autocompletionProviders}
           />
         </div>
 
-        <AutocompletingTextArea
-          className='description-field'
-          placeholder='Description'
-          value={this.state.description || ''}
-          onValueChanged={this.onDescriptionChanged}
-          onKeyDown={this.onKeyDown}
-          autocompletionProviders={this.props.autocompletionProviders}
-        />
+        <FocusContainer
+          className="description-focus-container"
+          onClick={this.onFocusContainerClick}
+        >
+          <AutocompletingTextArea
+            className={descriptionClassName}
+            placeholder="Description"
+            value={this.state.description || ''}
+            onValueChanged={this.onDescriptionChanged}
+            autocompletionProviders={this.props.autocompletionProviders}
+            ref={this.onDescriptionFieldRef}
+            onElementRef={this.onDescriptionTextAreaRef}
+          />
+          {this.renderActionBar()}
+        </FocusContainer>
+
+        {this.renderCoAuthorInput()}
 
         <Button
-          type='submit'
-          className='commit-button'
+          type="submit"
+          className="commit-button"
           onClick={this.onSubmit}
           disabled={!buttonEnabled}
         >

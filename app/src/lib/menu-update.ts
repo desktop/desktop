@@ -2,7 +2,7 @@ import { MenuIDs } from '../main-process/menu'
 import { merge } from './merge'
 import { IAppState, SelectionType } from '../lib/app-state'
 import { Repository } from '../models/repository'
-import { CloningRepository } from './dispatcher'
+import { CloningRepository } from '../models/cloning-repository'
 import { TipState } from '../models/tip'
 import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
@@ -15,8 +15,11 @@ export interface IMenuItemState {
  * Utility class for coalescing updates to menu items
  */
 class MenuStateBuilder {
+  private readonly _state: Map<MenuIDs, IMenuItemState>
 
-  private readonly _state = new Map<MenuIDs, IMenuItemState>()
+  public constructor(state: Map<MenuIDs, IMenuItemState> = new Map()) {
+    this._state = state
+  }
 
   /**
    * Returns an Map where each key is a MenuID and the values
@@ -28,8 +31,11 @@ class MenuStateBuilder {
     return new Map<MenuIDs, IMenuItemState>(this._state)
   }
 
-  private updateMenuItem<K extends keyof IMenuItemState>(id: MenuIDs, state: Pick<IMenuItemState, K>) {
-    const currentState = this._state.get(id) || { }
+  private updateMenuItem<K extends keyof IMenuItemState>(
+    id: MenuIDs,
+    state: Pick<IMenuItemState, K>
+  ) {
+    const currentState = this._state.get(id) || {}
     this._state.set(id, merge(currentState, state))
   }
 
@@ -50,10 +56,29 @@ class MenuStateBuilder {
     this.updateMenuItem(id, { enabled })
     return this
   }
+
+  /**
+   * Create a new state builder by merging the current state with the state from
+   * the other state builder. This will replace values in `this` with values
+   * from `other`.
+   */
+  public merge(other: MenuStateBuilder): MenuStateBuilder {
+    const merged = new Map<MenuIDs, IMenuItemState>(this._state)
+    for (const [key, value] of other._state) {
+      merged.set(key, value)
+    }
+    return new MenuStateBuilder(merged)
+  }
 }
 
-function isRepositoryHostedOnGitHub(repository: Repository | CloningRepository) {
-  if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
+function isRepositoryHostedOnGitHub(
+  repository: Repository | CloningRepository
+) {
+  if (
+    !repository ||
+    repository instanceof CloningRepository ||
+    !repository.gitHubRepository
+  ) {
     return false
   }
 
@@ -61,14 +86,57 @@ function isRepositoryHostedOnGitHub(repository: Repository | CloningRepository) 
 }
 
 function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
-  if (state.enabled !== undefined && menuItem.type !== 'separator' && menuItem.enabled !== state.enabled) {
+  if (
+    state.enabled !== undefined &&
+    menuItem.type !== 'separator' &&
+    menuItem.enabled !== state.enabled
+  ) {
     return false
   }
 
   return true
 }
 
-function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
+const allMenuIds: ReadonlyArray<MenuIDs> = [
+  'rename-branch',
+  'delete-branch',
+  'preferences',
+  'update-branch',
+  'merge-branch',
+  'view-repository-on-github',
+  'compare-branch',
+  'open-in-shell',
+  'push',
+  'pull',
+  'branch',
+  'repository',
+  'create-branch',
+  'show-changes',
+  'show-history',
+  'show-repository-list',
+  'show-branches-list',
+  'open-working-directory',
+  'show-repository-settings',
+  'open-external-editor',
+  'remove-repository',
+  'new-repository',
+  'add-local-repository',
+  'clone-repository',
+  'about',
+  'create-pull-request',
+]
+
+function getAllMenusDisabledBuilder(): MenuStateBuilder {
+  const menuStateBuilder = new MenuStateBuilder()
+
+  for (const menuId of allMenuIds) {
+    menuStateBuilder.disable(menuId)
+  }
+
+  return menuStateBuilder
+}
+
+function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   const selectedState = state.selectedState
   const isHostedOnGitHub = selectedState
     ? isRepositoryHostedOnGitHub(selectedState.repository)
@@ -81,6 +149,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
   let hasPublishedBranch = false
   let networkActionInProgress = false
   let tipStateIsUnknown = false
+  let branchIsUnborn = false
 
   let hasRemote = false
 
@@ -95,6 +164,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
     onBranch = tip.kind === TipState.Valid
     tipStateIsUnknown = tip.kind === TipState.Unknown
+    branchIsUnborn = tip.kind === TipState.Unborn
 
     // If we are:
     //  1. on the default branch, or
@@ -126,11 +196,10 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'open-in-shell',
     'open-working-directory',
     'show-repository-settings',
-    'create-branch',
     'show-changes',
     'show-history',
-    'show-repository-list',
     'show-branches-list',
+    'open-external-editor',
   ]
 
   const menuStateBuilder = new MenuStateBuilder()
@@ -144,32 +213,98 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
       menuStateBuilder.enable(id)
     }
 
-    menuStateBuilder.setEnabled('rename-branch', onNonDefaultBranch)
-    menuStateBuilder.setEnabled('delete-branch', onNonDefaultBranch)
-    menuStateBuilder.setEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
+    menuStateBuilder.setEnabled(
+      'rename-branch',
+      onNonDefaultBranch && !branchIsUnborn
+    )
+    menuStateBuilder.setEnabled(
+      'delete-branch',
+      onNonDefaultBranch && !branchIsUnborn
+    )
+    menuStateBuilder.setEnabled(
+      'update-branch',
+      onNonDefaultBranch && hasDefaultBranch
+    )
     menuStateBuilder.setEnabled('merge-branch', onBranch)
-    menuStateBuilder.setEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
+    menuStateBuilder.setEnabled(
+      'compare-branch',
+      isHostedOnGitHub && hasPublishedBranch
+    )
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
-    menuStateBuilder.setEnabled('push', hasRemote && !networkActionInProgress)
-    menuStateBuilder.setEnabled('pull', hasPublishedBranch && !networkActionInProgress)
-    menuStateBuilder.setEnabled('create-branch', !tipStateIsUnknown)
+    menuStateBuilder.setEnabled(
+      'create-pull-request',
+      isHostedOnGitHub && !branchIsUnborn
+    )
+    menuStateBuilder.setEnabled(
+      'push',
+      hasRemote && !branchIsUnborn && !networkActionInProgress
+    )
+    menuStateBuilder.setEnabled(
+      'pull',
+      hasPublishedBranch && !networkActionInProgress
+    )
+    menuStateBuilder.setEnabled(
+      'create-branch',
+      !tipStateIsUnknown && !branchIsUnborn
+    )
+
+    if (
+      selectedState &&
+      selectedState.type === SelectionType.MissingRepository
+    ) {
+      menuStateBuilder.disable('open-external-editor')
+    }
   } else {
     for (const id of repositoryScopedIDs) {
       menuStateBuilder.disable(id)
     }
 
+    menuStateBuilder.disable('view-repository-on-github')
+    menuStateBuilder.disable('create-pull-request')
+
+    if (
+      selectedState &&
+      selectedState.type === SelectionType.MissingRepository
+    ) {
+      if (selectedState.repository.gitHubRepository) {
+        menuStateBuilder.enable('view-repository-on-github')
+      }
+      menuStateBuilder.enable('remove-repository')
+    }
+
+    menuStateBuilder.disable('create-branch')
     menuStateBuilder.disable('rename-branch')
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('update-branch')
     menuStateBuilder.disable('merge-branch')
     menuStateBuilder.disable('compare-branch')
 
-    menuStateBuilder.disable('view-repository-on-github')
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
   }
+  return menuStateBuilder
+}
 
+function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
+  if (state.currentPopup) {
+    return getAllMenusDisabledBuilder().state
+  }
+
+  return getAllMenusEnabledBuilder()
+    .merge(getRepositoryMenuBuilder(state))
+    .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow)).state
+}
+
+function getAllMenusEnabledBuilder(): MenuStateBuilder {
+  const menuStateBuilder = new MenuStateBuilder()
+  for (const menuId of allMenuIds) {
+    menuStateBuilder.enable(menuId)
+  }
+  return menuStateBuilder
+}
+
+function getInWelcomeFlowBuilder(inWelcomeFlow: boolean): MenuStateBuilder {
   const welcomeScopedIds: ReadonlyArray<MenuIDs> = [
     'new-repository',
     'add-local-repository',
@@ -178,6 +313,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'about',
   ]
 
+  const menuStateBuilder = new MenuStateBuilder()
   if (inWelcomeFlow) {
     for (const id of welcomeScopedIds) {
       menuStateBuilder.disable(id)
@@ -188,7 +324,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     }
   }
 
-  return menuStateBuilder.state
+  return menuStateBuilder
 }
 
 /**
@@ -198,15 +334,16 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
  * in the main process based on the AppState. All changes will be
  * batched together into one ipc message.
  */
-export function updateMenuState(state: IAppState, currentAppMenu: AppMenu | null) {
+export function updateMenuState(
+  state: IAppState,
+  currentAppMenu: AppMenu | null
+) {
   const menuState = getMenuState(state)
 
   // Try to avoid updating sending the IPC message at all
   // if we have a current app menu that we can compare against.
   if (currentAppMenu) {
-
-    for (const [ id, menuItemState ] of menuState.entries()) {
-
+    for (const [id, menuItemState] of menuState.entries()) {
       const appMenuItem = currentAppMenu.getItemById(id)
 
       if (appMenuItem && menuItemStateEqual(menuItemState, appMenuItem)) {
@@ -221,7 +358,7 @@ export function updateMenuState(state: IAppState, currentAppMenu: AppMenu | null
 
   // because we can't send Map over the wire, we need to convert
   // the remaining entries into an array that can be serialized
-  const array = new Array<{id: MenuIDs, state: IMenuItemState}>()
+  const array = new Array<{ id: MenuIDs; state: IMenuItemState }>()
   menuState.forEach((value, key) => array.push({ id: key, state: value }))
   ipcUpdateMenuState(array)
 }

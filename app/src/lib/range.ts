@@ -1,7 +1,11 @@
 // extracted from underscore, which in itself comes from Python
 // https://github.com/jashkenas/underscore/blob/fc039f6a94fcf388d2b61ced4c02cd1ba116ecfd/underscore.js#L693-L710
 
-export function range(start: number, stop: number, step?: number): ReadonlyArray<number> {
+export function range(
+  start: number,
+  stop: number,
+  step?: number
+): ReadonlyArray<number> {
   if (stop === null) {
     stop = start || 0
     start = 0

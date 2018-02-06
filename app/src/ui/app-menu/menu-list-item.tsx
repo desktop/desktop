@@ -10,7 +10,7 @@ interface IMenuListItemProps {
 
   /**
    * Whether or not to highlight the access key of a menu item (if one exists).
-   * 
+   *
    * See the highlight prop of AccessText component for more details.
    */
   readonly highlightAccessKey: boolean
@@ -28,7 +28,7 @@ interface IMenuListItemProps {
    * menu item has a submenu. This can be turned off when the menu item is
    * used as a stand-alone item or when expanding the submenu doesn't follow
    * the default conventions (i.e. expanding to the right).
-   * 
+   *
    * Defaults to true if not specified (i.e. undefined)
    */
   readonly renderSubMenuArrow?: boolean
@@ -45,21 +45,28 @@ interface IMenuListItemProps {
 function getPlatformSpecificNameOrSymbolForModifier(modifier: string): string {
   switch (modifier.toLowerCase()) {
     case 'cmdorctrl':
-    case 'commandorcontrol': return __DARWIN__ ? '⌘' : 'Ctrl'
+    case 'commandorcontrol':
+      return __DARWIN__ ? '⌘' : 'Ctrl'
 
     case 'ctrl':
-    case 'control': return __DARWIN__ ? '⌃' : 'Ctrl'
+    case 'control':
+      return __DARWIN__ ? '⌃' : 'Ctrl'
 
-    case 'shift': return __DARWIN__ ? '⇧' : 'Shift'
-    case 'alt': return __DARWIN__ ? '⌥' : 'Alt'
+    case 'shift':
+      return __DARWIN__ ? '⇧' : 'Shift'
+    case 'alt':
+      return __DARWIN__ ? '⌥' : 'Alt'
 
     // Mac only
     case 'cmd':
-    case 'command': return '⌘'
-    case 'option': return '⌥'
+    case 'command':
+      return '⌘'
+    case 'option':
+      return '⌥'
 
     // Special case space because no one would be able to see it
-    case ' ': return 'Space'
+    case ' ':
+      return 'Space'
   }
 
   // Not a known modifier, likely a normal key
@@ -72,18 +79,18 @@ function getPlatformSpecificNameOrSymbolForModifier(modifier: string): string {
  * for more information.
  */
 export function friendlyAcceleratorText(accelerator: string): string {
-  return accelerator.split('+')
+  return accelerator
+    .split('+')
     .map(getPlatformSpecificNameOrSymbolForModifier)
     .join(__DARWIN__ ? '' : '+')
 }
 
-export class MenuListItem extends React.Component<IMenuListItemProps, void> {
-
+export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
   private getIcon(item: MenuItem): JSX.Element | null {
     if (item.type === 'checkbox' && item.checked) {
-      return <Octicon className='icon' symbol={OcticonSymbol.check} />
+      return <Octicon className="icon" symbol={OcticonSymbol.check} />
     } else if (item.type === 'radio' && item.checked) {
-      return <Octicon className='icon' symbol={OcticonSymbol.primitiveDot} />
+      return <Octicon className="icon" symbol={OcticonSymbol.primitiveDot} />
     }
 
     return null
@@ -96,27 +103,42 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
       return <hr />
     }
 
-    const arrow = item.type === 'submenuItem' && this.props.renderSubMenuArrow !== false
-      ? <Octicon className='submenu-arrow' symbol={OcticonSymbol.triangleRight} />
-      : null
+    const arrow =
+      item.type === 'submenuItem' && this.props.renderSubMenuArrow !== false ? (
+        <Octicon
+          className="submenu-arrow"
+          symbol={OcticonSymbol.triangleRight}
+        />
+      ) : null
 
-    const accelerator = item.type !== 'submenuItem' && item.accelerator && this.props.renderAcceleratorText !== false
-      ? <div className='accelerator'>{friendlyAcceleratorText(item.accelerator)}</div>
-      : null
+    const accelerator =
+      item.type !== 'submenuItem' &&
+      item.accelerator &&
+      this.props.renderAcceleratorText !== false ? (
+        <div className="accelerator">
+          {friendlyAcceleratorText(item.accelerator)}
+        </div>
+      ) : null
 
     const className = classNames(
       'menu-item',
-      { 'disabled': !item.enabled },
-      { 'checkbox': item.type === 'checkbox' },
-      { 'radio': item.type === 'radio' },
-      { 'checked': (item.type === 'checkbox' || item.type === 'radio') && item.checked },
+      { disabled: !item.enabled },
+      { checkbox: item.type === 'checkbox' },
+      { radio: item.type === 'radio' },
+      {
+        checked:
+          (item.type === 'checkbox' || item.type === 'radio') && item.checked,
+      }
     )
 
     return (
       <div className={className}>
         {this.getIcon(item)}
-        <div className='label'>
-          <AccessText text={item.label} highlight={this.props.highlightAccessKey} />
+        <div className="label">
+          <AccessText
+            text={item.label}
+            highlight={this.props.highlightAccessKey}
+          />
         </div>
         {accelerator}
         {arrow}

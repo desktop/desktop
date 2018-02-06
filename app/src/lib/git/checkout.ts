@@ -1,60 +1,88 @@
-import { git } from './core'
+import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
-import { ChildProcess } from 'child_process'
-import { CheckoutProgressParser, progressProcessCallback } from '../progress'
+import { Branch, BranchType } from '../../models/branch'
+import {
+  CheckoutProgressParser,
+  executionOptionsWithProgress,
+} from '../progress'
 import { ICheckoutProgress } from '../app-state'
 
-type ProcessCallback = (process: ChildProcess) => void
+import {
+  IGitAccount,
+  envForAuthentication,
+  AuthenticationErrors,
+} from './authentication'
+
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
 /**
  * Check out the given branch.
- * 
+ *
  * @param repository - The repository in which the branch checkout should
  *                     take place
- * 
- * @param name       - The branch name that should be checked out
- * 
+ *
+ * @param branch     - The branch name that should be checked out
+ *
  * @param progressCallback - An optional function which will be invoked
  *                           with information about the current progress
  *                           of the checkout operation. When provided this
  *                           enables the '--progress' command line flag for
  *                           'git checkout'.
  */
-export async function checkoutBranch(repository: Repository, name: string, progressCallback?: ProgressCallback): Promise<void> {
-
-  let processCallback: ProcessCallback | undefined = undefined
+export async function checkoutBranch(
+  repository: Repository,
+  account: IGitAccount | null,
+  branch: Branch,
+  progressCallback?: ProgressCallback
+): Promise<void> {
+  let opts: IGitExecutionOptions = {
+    env: envForAuthentication(account),
+    expectedErrors: AuthenticationErrors,
+  }
 
   if (progressCallback) {
-
-    const title = `Checking out branch ${name}`
+    const title = `Checking out branch ${branch.name}`
     const kind = 'checkout'
-    const targetBranch = name
+    const targetBranch = branch.name
 
-    processCallback = progressProcessCallback(new CheckoutProgressParser(), (progress) => {
-      if (progress.kind === 'progress') {
+    opts = await executionOptionsWithProgress(
+      { ...opts, trackLFSProgress: true },
+      new CheckoutProgressParser(),
+      progress => {
+        if (progress.kind === 'progress') {
+          const description = progress.details.text
+          const value = progress.percent
 
-        const description = progress.details.text
-        const value = progress.percent
-
-        progressCallback({ kind, title, description, value, targetBranch })
+          progressCallback({ kind, title, description, value, targetBranch })
+        }
       }
-    })
+    )
 
     // Initial progress
     progressCallback({ kind, title, value: 0, targetBranch })
   }
 
-  const args = processCallback
-    ? [ 'checkout', '--progress', name, '--' ]
-    : [ 'checkout', name, '--' ]
+  const baseArgs =
+    progressCallback != null
+      ? [...gitNetworkArguments, 'checkout', '--progress']
+      : [...gitNetworkArguments, 'checkout']
 
-  await git(args, repository.path, 'checkoutBranch', {
-    processCallback,
-  })
+  const args =
+    branch.type === BranchType.Remote
+      ? baseArgs.concat(branch.name, '-b', branch.nameWithoutRemote, '--')
+      : baseArgs.concat(branch.name, '--')
+
+  await git(args, repository.path, 'checkoutBranch', opts)
 }
 
 /** Check out the paths at HEAD. */
-export async function checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
-  await git([ 'checkout', 'HEAD', '--', ...paths ], repository.path, 'checkoutPaths')
+export async function checkoutPaths(
+  repository: Repository,
+  paths: ReadonlyArray<string>
+): Promise<void> {
+  await git(
+    ['checkout', 'HEAD', '--', ...paths],
+    repository.path,
+    'checkoutPaths'
+  )
 }

@@ -26,4 +26,18 @@
       }
     }
   }
+
+  .no-options-found {
+    label {
+      margin-bottom: 0;
+    }
+
+    span {
+      color: var(--text-secondary-color);
+    }
+  }
+}
+
+#external-editor-error {
+  width: 450px;
 }

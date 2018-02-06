@@ -5,7 +5,10 @@ const localStorageKey = 'last-clone-location'
 
 /** The path to the default directory. */
 export function getDefaultDir(): string {
-  return localStorage.getItem(localStorageKey) || Path.join(getDocumentsPath(), 'GitHub')
+  return (
+    localStorage.getItem(localStorageKey) ||
+    Path.join(getDocumentsPath(), 'GitHub')
+  )
 }
 
 export function setDefaultDir(path: string) {

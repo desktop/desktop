@@ -1,20 +1,31 @@
 import * as React from 'react'
 import { Branch } from '../../models/branch'
-import { groupBranches, IBranchListItem, BranchGroupIdentifier } from './group-branches'
+import {
+  groupBranches,
+  IBranchListItem,
+  BranchGroupIdentifier,
+} from './group-branches'
 import { BranchListItem } from './branch'
-import { FilterList, IFilterListGroup, SelectionSource } from '../lib/filter-list'
+import {
+  FilterList,
+  IFilterListGroup,
+  SelectionSource,
+} from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
+import { Button } from '../lib/button'
+import { NoBranches } from './no-branches'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
  * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
  */
-const BranchesFilterList: new() => FilterList<IBranchListItem> = FilterList as any
+const BranchesFilterList: new () => FilterList<
+  IBranchListItem
+> = FilterList as any
 
 const RowHeight = 30
 
 interface IBranchListProps {
-
   /**
    * See IBranchesState.defaultBranch
    */
@@ -44,43 +55,78 @@ interface IBranchListProps {
    * Called when a key down happens in the filter field. Users have a chance to
    * respond or cancel the default behavior by calling `preventDefault`.
    */
-  readonly onFilterKeyDown?: (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => void
+  readonly onFilterKeyDown?: (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => void
 
   /** Called when an item is clicked. */
   readonly onItemClick?: (item: Branch) => void
 
   /**
    * This function will be called when the selection changes as a result of a
-   * user keyboard or mouse action (i.e. not when props change). Note that this
-   * differs from `onRowSelected`. For example, it won't be called if an already
-   * selected row is clicked on.
+   * user keyboard or mouse action (i.e. not when props change). This function
+   * will not be invoked when an already selected row is clicked on.
    *
    * @param selectedItem - The Branch that was just selected
    * @param source       - The kind of user action that provoked the change,
    *                       either a pointer device press, or a keyboard event
    *                       (arrow up/down)
    */
-  readonly onSelectionChanged?: (selectedItem: Branch | null, source: SelectionSource) => void
+  readonly onSelectionChanged?: (
+    selectedItem: Branch | null,
+    source: SelectionSource
+  ) => void
+
+  /** The current filter text to render */
+  readonly filterText: string
+
+  /** Callback to fire when the filter text is changed */
+  readonly onFilterTextChanged: (filterText: string) => void
+
+  /** Can users create a new branch? */
+  readonly canCreateNewBranch: boolean
+
+  /**
+   * Called when the user wants to create a new branch. It will be given a name
+   * to prepopulate the new branch name field.
+   */
+  readonly onCreateNewBranch?: (name: string) => void
 }
 
 interface IBranchListState {
+  /**
+   * The grouped list of branches.
+   *
+   * Groups are currently defined as 'default branch', 'current branch',
+   * 'recent branches' and all branches.
+   */
   readonly groups: ReadonlyArray<IFilterListGroup<IBranchListItem>>
+
+  /** The selected item in the filtered list */
   readonly selectedItem: IBranchListItem | null
 }
 
 function createState(props: IBranchListProps): IBranchListState {
-  const groups = groupBranches(props.defaultBranch, props.currentBranch, props.allBranches, props.recentBranches)
+  const groups = groupBranches(
+    props.defaultBranch,
+    props.currentBranch,
+    props.allBranches,
+    props.recentBranches
+  )
 
   let selectedItem: IBranchListItem | null = null
   const selectedBranch = props.selectedBranch
   if (selectedBranch) {
     for (const group of groups) {
-      selectedItem = group.items.find(i => {
-        const branch = i.branch
-        return branch.name === selectedBranch.name
-      }) || null
+      selectedItem =
+        group.items.find(i => {
+          const branch = i.branch
+          return branch.name === selectedBranch.name
+        }) || null
 
-      if (selectedItem) { break }
+      if (selectedItem) {
+        break
+      }
     }
   }
 
@@ -88,8 +134,10 @@ function createState(props: IBranchListProps): IBranchListState {
 }
 
 /** The Branches list component. */
-export class BranchList extends React.Component<IBranchListProps, IBranchListState> {
-
+export class BranchList extends React.Component<
+  IBranchListProps,
+  IBranchListState
+> {
   public constructor(props: IBranchListProps) {
     super(props)
     this.state = createState(props)
@@ -98,11 +146,17 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
   private renderItem = (item: IBranchListItem) => {
     const branch = item.branch
     const commit = branch.tip
-    const currentBranchName = this.props.currentBranch ? this.props.currentBranch.name : null
-    return <BranchListItem
-      name={branch.name}
-      isCurrentBranch={branch.name === currentBranchName}
-      lastCommitDate={commit ? commit.author.date : null}/>
+    const currentBranchName = this.props.currentBranch
+      ? this.props.currentBranch.name
+      : null
+    return (
+      <BranchListItem
+        name={branch.name}
+        isCurrentBranch={branch.name === currentBranchName}
+        lastCommitDate={commit ? commit.author.date : null}
+        filterText={this.props.filterText}
+      />
+    )
   }
 
   private getGroupLabel(identifier: BranchGroupIdentifier) {
@@ -117,8 +171,13 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
     }
   }
 
-  private renderGroupHeader = (identifier: BranchGroupIdentifier) => {
-    return <div className='branches-list-content filter-list-group-header'>{this.getGroupLabel(identifier)}</div>
+  private renderGroupHeader = (id: string) => {
+    const identifier = id as BranchGroupIdentifier
+    return (
+      <div className="branches-list-content filter-list-group-header">
+        {this.getGroupLabel(identifier)}
+      </div>
+    )
   }
 
   private onItemClick = (item: IBranchListItem) => {
@@ -127,9 +186,15 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
     }
   }
 
-  private onSelectionChanged = (selectedItem: IBranchListItem | null, source: SelectionSource) => {
+  private onSelectionChanged = (
+    selectedItem: IBranchListItem | null,
+    source: SelectionSource
+  ) => {
     if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(selectedItem ? selectedItem.branch : null, source)
+      this.props.onSelectionChanged(
+        selectedItem ? selectedItem.branch : null,
+        source
+      )
     }
   }
 
@@ -140,8 +205,10 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
   public render() {
     return (
       <BranchesFilterList
-        className='branches-list'
+        className="branches-list"
         rowHeight={RowHeight}
+        filterText={this.props.filterText}
+        onFilterTextChanged={this.props.onFilterTextChanged}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
@@ -149,7 +216,37 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
         onFilterKeyDown={this.props.onFilterKeyDown}
         onSelectionChanged={this.onSelectionChanged}
         groups={this.state.groups}
-        invalidationProps={this.props.allBranches}/>
+        invalidationProps={this.props.allBranches}
+        renderPostFilter={this.renderNewButton}
+        renderNoItems={this.renderNoItems}
+      />
     )
+  }
+
+  private renderNoItems = () => {
+    return (
+      <NoBranches
+        onCreateNewBranch={this.onCreateNewBranch}
+        canCreateNewBranch={this.props.canCreateNewBranch}
+      />
+    )
+  }
+
+  private renderNewButton = () => {
+    if (this.props.canCreateNewBranch) {
+      return (
+        <Button className="new-branch-button" onClick={this.onCreateNewBranch}>
+          New
+        </Button>
+      )
+    } else {
+      return null
+    }
+  }
+
+  private onCreateNewBranch = () => {
+    if (this.props.onCreateNewBranch) {
+      this.props.onCreateNewBranch(this.props.filterText)
+    }
   }
 }

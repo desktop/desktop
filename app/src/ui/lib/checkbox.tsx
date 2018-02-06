@@ -9,6 +9,9 @@ export enum CheckboxValue {
 }
 
 interface ICheckboxProps {
+  /** Is the component disabled. */
+  readonly disabled?: boolean
+
   /** The current value of the component. */
   readonly value: CheckboxValue
 
@@ -33,7 +36,6 @@ interface ICheckboxState {
 
 /** A checkbox component which supports the mixed value. */
 export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
-
   private input: HTMLInputElement | null
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -68,7 +70,7 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
     }
   }
 
-  private onInputRef = (input: HTMLInputElement) => {
+  private onInputRef = (input: HTMLInputElement | null) => {
     this.input = input
     // Necessary since componentDidUpdate doesn't run on initial
     // render
@@ -79,20 +81,19 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
     const label = this.props.label
     const inputId = this.state.inputId
 
-    return !!label
-      ? <label htmlFor={inputId}>{label}</label>
-      : null
+    return label ? <label htmlFor={inputId}>{label}</label> : null
   }
 
   public render() {
     return (
-      <div className='checkbox-component'>
+      <div className="checkbox-component">
         <input
           id={this.state.inputId}
           tabIndex={this.props.tabIndex}
-          type='checkbox'
+          type="checkbox"
           onChange={this.onChange}
           ref={this.onInputRef}
+          disabled={this.props.disabled}
         />
         {this.renderLabel()}
       </div>

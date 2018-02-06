@@ -8,7 +8,7 @@ export interface IEditorConfigurationExtra extends EditorConfiguration {
   /** The scrollbar style for the text area. */
   readonly scrollbarStyle: 'native' | 'simple'
 
-  /** 
+  /**
    * This is used by the mark-selection addon and is unused if that
    * addon hasn't been loaded
    */
@@ -28,5 +28,4 @@ export interface IEditorConfigurationExtra extends EditorConfiguration {
    * and output will, by default, use that same separator.
    */
   readonly lineSeparator?: string
-
 }

@@ -1,13 +1,16 @@
 import * as React from 'react'
 import * as CodeMirror from 'codemirror'
 
+// Required for us to be able to customize the foreground color of selected text
+import 'codemirror/addon/selection/mark-selection'
+
+// Autocompletion plugin
+import 'codemirror/addon/hint/show-hint'
+
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
   require('codemirror/addon/scroll/simplescrollbars')
 }
-
-// Required for us to be able to customize the foreground color of selected text
-require('codemirror/addon/selection/mark-selection')
 
 interface ICodeMirrorHostProps {
   /**
@@ -17,7 +20,7 @@ interface ICodeMirrorHostProps {
   readonly className?: string
 
   /** The text contents for the editor */
-  readonly value: string,
+  readonly value: string
 
   /** Any CodeMirror specific settings */
   readonly options?: CodeMirror.EditorConfiguration
@@ -26,17 +29,29 @@ interface ICodeMirrorHostProps {
   readonly isSelectionEnabled?: () => boolean
 
   /** Callback for when CodeMirror renders (or re-renders) a line */
-  readonly onRenderLine?: (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void
+  readonly onRenderLine?: (
+    cm: CodeMirror.Editor,
+    line: CodeMirror.LineHandle,
+    element: HTMLElement
+  ) => void
 
   /** Callback for when CodeMirror has completed a batch of changes to the editor */
-  readonly onChanges?: (cm: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void
+  readonly onChanges?: (
+    cm: CodeMirror.Editor,
+    change: CodeMirror.EditorChangeLinkedList[]
+  ) => void
+
+  /**
+   * Called when content has been copied. The default behavior may be prevented
+   * by calling `preventDefault` on the event.
+   */
+  readonly onCopy?: (editor: CodeMirror.Editor, event: Event) => void
 }
 
 /**
  * A component hosting a CodeMirror instance
  */
-export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> {
-
+export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
   private wrapper: HTMLDivElement | null
   private codeMirror: CodeMirror.Editor | null
 
@@ -55,7 +70,17 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     this.codeMirror.on('changes', this.onChanges)
     this.codeMirror.on('beforeSelectionChange', this.beforeSelectionChanged)
 
+    // The type declaration for this is wrong.
+    // See https://github.com/DefinitelyTyped/DefinitelyTyped/pull/18824.
+    this.codeMirror.on('copy', this.onCopy as any)
+
     this.codeMirror.setValue(this.props.value)
+  }
+
+  private onCopy = (instance: CodeMirror.Editor, event: Event) => {
+    if (this.props.onCopy) {
+      this.props.onCopy(instance, event)
+    }
   }
 
   public componentWillUnmount() {
@@ -65,6 +90,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
       cm.off('changes', this.onChanges)
       cm.off('renderLine', this.onRenderLine)
       cm.off('beforeSelectionChange', this.beforeSelectionChanged)
+      cm.off('copy', this.onCopy as any)
 
       this.codeMirror = null
     }
@@ -92,31 +118,37 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
         // NOTE:
         // - `head` is the part of the selection that is moving
         // - `anchor` is the other end
-        changeObj.update([ { head: { line: 0, ch: 0 } , anchor: { line: 0, ch: 0 } } ])
+        changeObj.update([
+          { head: { line: 0, ch: 0 }, anchor: { line: 0, ch: 0 } },
+        ])
       }
     }
   }
 
-  private onChanges = (cm: CodeMirror.Editor, changes: CodeMirror.EditorChangeLinkedList[]) => {
+  private onChanges = (
+    cm: CodeMirror.Editor,
+    changes: CodeMirror.EditorChangeLinkedList[]
+  ) => {
     if (this.props.onChanges) {
       this.props.onChanges(cm, changes)
     }
   }
 
-  private onRenderLine = (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => {
+  private onRenderLine = (
+    cm: CodeMirror.Editor,
+    line: CodeMirror.LineHandle,
+    element: HTMLElement
+  ) => {
     if (this.props.onRenderLine) {
       this.props.onRenderLine(cm, line, element)
     }
   }
 
-  private onRef = (ref: HTMLDivElement) => {
+  private onRef = (ref: HTMLDivElement | null) => {
     this.wrapper = ref
   }
 
   public render() {
-    return (
-      <div className={this.props.className} ref={this.onRef}>
-      </div>
-    )
+    return <div className={this.props.className} ref={this.onRef} />
   }
 }

@@ -5,7 +5,7 @@ import { LinkButton } from './link-button'
 
 interface ITextBoxProps {
   /** The label for the input field. */
-  readonly label?: string
+  readonly label?: string | JSX.Element
 
   /**
    * An optional className to be applied to the rendered
@@ -47,13 +47,13 @@ interface ITextBoxProps {
   readonly type?: 'text' | 'search' | 'password'
 
   /** A callback to receive the underlying `input` instance. */
-  readonly onInputRef?: (instance: HTMLInputElement) => void
+  readonly onInputRef?: (instance: HTMLInputElement | null) => void
 
   /**
    * An optional text for a link label element. A link label is, for the purposes
    * of this control an anchor element that's rendered alongside (ie on the same)
-   * row as the the label element. 
-   * 
+   * row as the the label element.
+   *
    * Note that the link label will only be rendered if the textbox has a
    * label text (specified through the label prop). A link label is used for
    * presenting the user with a contextual link related to a specific text
@@ -88,16 +88,20 @@ interface ITextBoxState {
    * component is mounted and then released once the component unmounts.
    */
   readonly inputId?: string
+
+  /**
+   * Text to display in the underlying input element
+   */
+  readonly value?: string
 }
 
 /** An input element with app-standard styles. */
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
-
   public componentWillMount() {
     const friendlyName = this.props.label || this.props.placeholder
     const inputId = createUniqueId(`TextBox_${friendlyName}`)
 
-    this.setState({ inputId })
+    this.setState({ inputId, value: this.props.value })
   }
 
   public componentWillUnmount() {
@@ -106,13 +110,31 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
+  public componentWillReceiveProps(nextProps: ITextBoxProps) {
+    if (this.state.value !== nextProps.value) {
+      this.setState({ value: nextProps.value })
+    }
+  }
+
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.value
+
     if (this.props.onChange) {
       this.props.onChange(event)
     }
 
-    if (this.props.onValueChanged && !event.defaultPrevented) {
-      this.props.onValueChanged(event.currentTarget.value)
+    const defaultPrevented = event.defaultPrevented
+
+    this.setState({ value }, () => {
+      if (this.props.onValueChanged && !defaultPrevented) {
+        this.props.onValueChanged(value)
+      }
+    })
+  }
+
+  private onRef = (instance: HTMLInputElement | null) => {
+    if (this.props.onInputRef) {
+      this.props.onInputRef(instance)
     }
   }
 
@@ -125,9 +147,9 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
       <LinkButton
         uri={this.props.labelLinkUri}
         onClick={this.props.onLabelLinkClick}
-        className='link-label'
+        className="link-label"
       >
-          {this.props.labelLinkText}
+        {this.props.labelLinkText}
       </LinkButton>
     )
   }
@@ -138,7 +160,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
 
     return (
-      <div className='label-container'>
+      <div className="label-container">
         <label htmlFor={this.state.inputId}>{this.props.label}</label>
         {this.renderLabelLink()}
       </div>
@@ -159,11 +181,12 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           disabled={this.props.disabled}
           type={this.props.type}
           placeholder={this.props.placeholder}
-          value={this.props.value}
+          value={this.state.value}
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
-          ref={this.props.onInputRef}
-          tabIndex={this.props.tabIndex}/>
+          ref={this.onRef}
+          tabIndex={this.props.tabIndex}
+        />
       </div>
     )
   }

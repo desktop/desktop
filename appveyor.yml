@@ -4,11 +4,13 @@ platform:
   - x64
 
 environment:
-  nodejs_version: "7"
+  nodejs_version: "8.9.0"
 
 cache:
+  - .eslintcache
   - node_modules
   - '%USERPROFILE%\.electron'
+  - '%LOCALAPPDATA%\Yarn'
 
 branches:
   only:
@@ -20,25 +22,22 @@ skip_tags: true
 version: "{build}"
 
 install:
+  - cmd: regedit /s script\default-to-tls12-on-appveyor.reg
   - ps: Install-Product node $env:nodejs_version $env:platform
-  - npm install -g npm@4.6.1
   - git submodule update --init --recursive
-  - npm prune
-  - cd app && npm prune && cd ..
-  - npm install
+  - yarn install --force
 
 build_script:
-  - npm run lint
-  - npm run build:prod
+  - yarn lint
+  - yarn build:prod
 
 test_script:
   - node --version
-  - npm --version
-  - npm run test:setup
+  - yarn test:setup
   - ./script/test-appveyor.bat
 
 on_success:
-  - npm run publish
+  - yarn run publish
 
 on_finish:
-  - npm run test:review
+  - yarn test:review

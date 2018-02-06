@@ -1,11 +1,11 @@
-# Typescript Style Guide
+# TypeScript Style Guide
 
-Most of our preferred style when writing typescript is configured in our [tslint.json](../tslint.json) file.
+Most of our preferred style when writing typescript is configured in our [`tslint.json`](../../tslint.json) and [`.eslintrc.yml`](../../.eslintrc.yml) files.
 
 ## Do
  - Use camelCase for methods
  - Use PascalCase for class names
- - Enable [tslint](https://palantir.github.io/tslint/usage/third-party-tools/) in your editor
+ - Enable [TSLint](https://palantir.github.io/tslint/usage/third-party-tools/) and [ESLint](https://eslint.org/docs/user-guide/integrations) in your editor
 
 # Documenting your code
 
@@ -20,7 +20,7 @@ in the typescript type system such as visibility, inheritance, membership.
 For now all you need to know is that you can document classes, methods, properties and fields by using the
 following formatted comment on the line above whatever you're trying to document.
 
-```
+```ts
 /** This is a documentation string */
 ```
 
@@ -29,7 +29,7 @@ The double start `/**` opener is the key. It has to be exactly two stars for it 
 If you need multiple lines to describe the subject try to sum up the thing you're describing in a short title
 and leave a blank line before you go into detail, similar to a git commit message.
 
-```
+```ts
 /**
  * This is a title, keep it short and sweet
  *
@@ -51,10 +51,10 @@ We do this by making the methods look unappealing:
  - comment indicating that you should be looking elsewhere
 
 ```ts
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _repositoryWithRefreshedGitHubRepository(repository: Repository): Promise<Repository> {
-    ...
-  }
+/** This shouldn't be called directly. See `Dispatcher`. */
+public async _repositoryWithRefreshedGitHubRepository(repository: Repository): Promise<Repository> {
+  // ...
+}
 ```
 
 ## Asynchronous and Synchronous Node APIs
@@ -66,11 +66,10 @@ there's a compelling reason and no asynchronous alternative. In those cases the
 method should be suffixed with `Sync` to make it clear to the caller what's
 happening. We also fall back to `Sync` methods for readability in tests.
 
-For more information about this, we added a `tslint` rule in
-[#1249](https://github.com/desktop/desktop/pull/1249) to verify our usage of
-synchronous functions across the codebase.
+We use [an ESLint rule](https://eslint.org/docs/rules/no-sync) to enforce
+this standard.
 
 ### Scripts
 
-For scripts we should favour synchronous APIs as the asynchronous benefits are
+For scripts we should favor synchronous APIs as the asynchronous benefits are
 not so important there, and  it makes the code easier to read.

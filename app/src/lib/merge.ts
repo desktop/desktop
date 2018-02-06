@@ -2,7 +2,7 @@
 export function merge<T, K extends keyof T>(obj: T, subset: Pick<T, K>): T {
   const copy = Object.assign({}, obj)
   for (const k in subset) {
-      copy[k] = subset[k]
+    copy[k] = subset[k]
   }
   return copy
 }

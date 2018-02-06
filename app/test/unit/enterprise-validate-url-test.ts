@@ -1,5 +1,4 @@
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import { validateURL } from '../../src/ui/lib/enterprise-validate-url'
 

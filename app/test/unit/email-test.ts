@@ -1,29 +1,86 @@
 import { expect } from 'chai'
 
-import { IEmail } from '../../src/models/email'
 import { lookupPreferredEmail } from '../../src/lib/email'
+import { IAPIEmail } from '../../src/lib/api'
 
 describe('emails', () => {
   it('returns null for empty list', () => {
     expect(lookupPreferredEmail([])).to.equal(null)
   })
 
-  it('looks for noreply email first', () => {
-    const emails: IEmail[] = [
+  it('returns the primary if it has public visibility', () => {
+    const emails: IAPIEmail[] = [
       {
         email: 'shiftkey@example.com',
         primary: false,
         verified: true,
+        visibility: null,
       },
       {
         email: 'shiftkey@users.noreply.github.com',
         primary: false,
         verified: true,
+        visibility: null,
       },
       {
         email: 'my-primary-email@example.com',
         primary: true,
         verified: true,
+        visibility: 'public',
+      },
+    ]
+
+    const result = lookupPreferredEmail(emails)
+    expect(result).to.not.equal(null)
+    expect(result!.email).to.equal('my-primary-email@example.com')
+  })
+
+  it('returns the primary if it has null visibility', () => {
+    const emails: IAPIEmail[] = [
+      {
+        email: 'shiftkey@example.com',
+        primary: false,
+        verified: true,
+        visibility: null,
+      },
+      {
+        email: 'shiftkey@users.noreply.github.com',
+        primary: false,
+        verified: true,
+        visibility: null,
+      },
+      {
+        email: 'my-primary-email@example.com',
+        primary: true,
+        verified: true,
+        visibility: null,
+      },
+    ]
+
+    const result = lookupPreferredEmail(emails)
+    expect(result).to.not.equal(null)
+    expect(result!.email).to.equal('my-primary-email@example.com')
+  })
+
+  it('returns the noreply if there is no public address', () => {
+    const emails: IAPIEmail[] = [
+      {
+        email: 'shiftkey@example.com',
+        primary: false,
+        verified: true,
+        visibility: null,
+      },
+      {
+        email: 'shiftkey@users.noreply.github.com',
+        primary: false,
+        verified: true,
+        visibility: null,
+      },
+      {
+        email: 'my-primary-email@example.com',
+        primary: true,
+        verified: true,
+        visibility: 'private',
       },
     ]
 
@@ -32,36 +89,19 @@ describe('emails', () => {
     expect(result!.email).to.equal('shiftkey@users.noreply.github.com')
   })
 
-  it('uses primary if noreply not set', () => {
-    const emails: IEmail[] = [
-      {
-        email: 'shiftkey@example.com',
-        primary: false,
-        verified: true,
-      },
-      {
-        email: 'github-primary@example.com',
-        primary: true,
-        verified: true,
-      },
-    ]
-
-    const result = lookupPreferredEmail(emails)
-    expect(result).to.not.equal(null)
-    expect(result!.email).to.equal('github-primary@example.com')
-  })
-
   it('uses first email if nothing special found', () => {
-    const emails: IEmail[] = [
+    const emails: IAPIEmail[] = [
       {
         email: 'shiftkey@example.com',
         primary: false,
         verified: true,
+        visibility: null,
       },
       {
         email: 'github-primary@example.com',
         primary: false,
         verified: true,
+        visibility: null,
       },
     ]
 

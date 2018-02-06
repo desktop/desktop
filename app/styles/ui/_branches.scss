@@ -1,12 +1,190 @@
 @import '../mixins';
 
-.branches-list-container {
+.branches-container {
   height: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  width: 300px;
+
+  & > .tab-bar {
+    border-top: var(--base-border);
+  }
 
   .branches-list {
     width: 300px;
+  }
+}
+
+.pull-request-tab {
+  display: flex;
+  flex-direction: row;
+
+  align-items: center;
+
+  .count {
+    display: flex;
+
+    background: $gray-200;
+    color: var(--text-color);
+
+    margin-left: var(--spacing-half);
+
+    // Perfectly round semi circle ends with real tight
+    // padding on either side. Now in two flavors!
+    @include darwin {
+      height: 13px;
+      line-height: 13px;
+    }
+
+    @include win32 {
+      height: 14px;
+      line-height: 14px;
+    }
+
+    border-radius: 8px;
+    padding: 0 6px;
+
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+#pr-transition-div {
+  display: flex;
+  flex: 1;
+  position: relative;
+
+  .cross-fade-enter {
+    opacity: 0;
+  }
+
+  .cross-fade-enter.cross-fade-enter-active {
+    opacity: 1;
+    transition: opacity 300ms ease-in;
+  }
+
+  .cross-fade-leave {
+    opacity: 1;
+  }
+
+  .cross-fade-leave.cross-fade-leave-active {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+  }
+}
+
+.pull-request-list {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+
+  .filter-list-filter-field {
+    // The rows have built-in margin to their content so
+    // we only need half a spacer here
+    padding-bottom: var(--spacing-half);
+  }
+
+  .list-item.selected:focus {
+    .ci-status {
+      color: inherit;
+    }
+  }
+
+  .pull-request-item {
+    padding: 0 var(--spacing);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    flex-grow: 1;
+
+    .icon {
+      margin-left: var(--spacing-half);
+      margin-right: var(--spacing);
+      flex-shrink: 0;
+
+      // Align the icon baseline with the title text
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+
+    .info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex-grow: 1;
+      margin-right: var(--spacing);
+
+      .title {
+        @include ellipsis;
+        min-width: 0;
+        font-weight: var(--font-weight-semibold);
+      }
+
+      .subtitle {
+        @include ellipsis;
+        min-width: 0;
+        font-weight: var(--font-weight-light);
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary-color);
+      }
+    }
+
+    .ci-status {
+      margin-right: var(--spacing-half);
+    }
+
+    &.loading {
+      .icon {
+        color: var(--box-skeleton-background-color);
+      }
+
+      .info {
+        .title,
+        .subtitle {
+          background-color: var(--box-skeleton-background-color);
+          // The title with text in it is 18px (1em = 12px and with 1.5 x
+          // line height we'll get 18) but we don't want to fill the entire
+          // box because then we'll end up with one big slab of gray rather
+          // than two fake gray text lines. So we'll split the difference
+          // between 1em and 1.5em between the top and bottom margin so that
+          // it looks nicely positioned with the text that'll fade in later.
+          height: 1em;
+          margin-top: 0.2em;
+          margin-bottom: 0.3em;
+
+          border-radius: 1px;
+        }
+      }
+
+      .ci-status {
+        color: var(--box-skeleton-background-color);
+      }
+
+      &::after {
+        background: -webkit-linear-gradient(
+          left,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.5) 50%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        content: '';
+        display: block;
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        animation: loading-pulse 1.5s ease-in-out infinite;
+      }
+    }
+  }
+}
+
+@keyframes loading-pulse {
+  from {
+    transform: translate(-100%, 0);
+  }
+  to {
+    transform: translate(200%, 0);
   }
 }
 
@@ -33,6 +211,14 @@
       @include ellipsis;
       max-width: 65%;
       margin-right: var(--spacing-half);
+
+      /* Used to highlight substring matches in filtered lists */
+      mark {
+        font-weight: bold;
+        /* Reset browser defaults */
+        background-color: inherit;
+        color: currentColor;
+      }
     }
 
     .description {
@@ -43,5 +229,43 @@
       text-align: right;
       white-space: nowrap;
     }
+  }
+
+  .filter-list-filter-field {
+    padding-right: 0;
+  }
+
+  // We need to beat Row's style at the specificity game :|
+  button.new-branch-button {
+    align-self: center;
+    margin-right: var(--spacing);
+    width: 60px;
+  }
+}
+
+.no-pull-requests {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing);
+
+  .blankslate-image {
+    width: 257px;
+    min-width: 0;
+  }
+
+  .title {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .no-prs {
+    padding-bottom: var(--spacing);
+  }
+
+  .call-to-action {
+    font-size: var(--font-size-sm);
   }
 }

@@ -5,7 +5,7 @@ export interface ISelectionStrategy {
   /**
    * update the selection strategy with the row the user's cursor is over
    */
-  update: (index: number) => void,
+  update: (index: number) => void
   /**
    * repaint the current diff gutter to visualize the current state
    */

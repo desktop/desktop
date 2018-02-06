@@ -1,19 +1,27 @@
 {
-    "typescript.tsdk": "./node_modules/typescript/lib",
-    "search.exclude": {
-        "**/node_modules": true,
-        "**/dist": true,
-        "**/out": true
-    },
-    "files.exclude": {
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
-        "**/.DS_Store": true,
-        "**/node_modules": true,
-        "**/dist": true,
-        "**/out": true,
-        "tslint-rules/**/*.js": true
-    },
-    "editor.tabSize": 2
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/out": true,
+    ".awcache": true
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/out": true,
+    "tslint-rules/**/*.js": true,
+    ".awcache": true,
+    ".eslintcache": true
+  },
+  "editor.tabSize": 2,
+  "prettier.semi": false,
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "es5",
+  "editor.formatOnSave": true,
+  "prettier.ignorePath": ".prettierignore"
 }

@@ -138,3 +138,16 @@ button {
 :focus {
   outline: auto 5px var(--focus-color);
 }
+.more-dropdown {
+  color: var(--text-color) !important;
+  margin-left: var(--spacing);
+
+  .octicon {
+    margin-left: var(--spacing-third);
+    width: 8px;
+  }
+}
+
+.brutalism {
+  background: salmon;
+}

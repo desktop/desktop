@@ -1,7 +1,660 @@
 {
   "releases": {
+    "1.0.14-beta2": [
+      "[Added] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",
+      "[Fixed] Allow window to accept single click on focus - #3843",
+      "[Fixed] Expanded avatar list hidden behind commit details - #3884",
+      "[Fixed] Renames not detected when viewing commit diffs - #3673",
+      "[Fixed] Ignore action assumes CRLF when core.autocrlf is unset - #3514",
+      "[Improved] Use smaller default size when rendering Gravatar avatars - #3911"
+    ],
+    "1.0.14-beta1": [
+      "[New] Commit together with co-authors - #3879"
+    ],
+    "1.0.13": [
+      "[New] Commit together with co-authors - #3879",
+      "[New] PhpStorm is now a supported external editor on macOS - #3749. Thanks @hubgit!",
+      "[Improved] Update embedded Git to 2.16.1 - #3617 #3828 #3871",
+      "[Improved] Blank slate view is now more responsive when zoomed - #3777",
+      "[Improved] Documentation fix for Open in Shell resource - #3799. Thanks @saschanaz!",
+      "[Improved] Improved error handling for Linux - #3732",
+      "[Improved] Allow links in unexpanded summary to be clickable - #3719. Thanks @koenpunt!",
+      "[Fixed] Update Electron to 1.7.11 to address security issue - #3846",
+      "[Fixed] Allow double dashes in branch name - #3599. Thanks @JQuinnie!",
+      "[Fixed] Sort the organization list - #3657. Thanks @j-f1!",
+      "[Fixed] Check out PRs from a fork - #3395",
+      "[Fixed] Confirm deleting branch when it has an open PR - #3615",
+      "[Fixed] Defer user/email validation in Preferences - #3722",
+      "[Fixed] Checkout progress did not include branch name - #3780",
+      "[Fixed] Don't block branch switching when in detached HEAD - #3807",
+      "[Fixed] Handle discarding submodule changes properly - #3647",
+      "[Fixed] Show tooltip with additional info about the build status - #3134",
+      "[Fixed] Update placeholders to support Linux distributions - #3150",
+      "[Fixed] Refresh local commit list when switching tabs - #3698"
+    ],
+    "1.0.13-test1": [
+      "[Improved] Update embedded Git to 2.16.1 - #3617 #3828 #3871",
+      "[Fixed] Update Electron to 1.7.11 to address security issue - #3846",
+      "[Fixed] Allows double dashes in branch name - #3599. Thanks @JQuinnie!",
+      "[Fixed] Pull Request store may not have status defined - #3869",
+      "[Fixed] Render the Pull Request badge when no commit statuses found - #3608"
+    ],
+    "1.0.13-beta1": [
+      "[New] PhpStorm is now a supported external editor on macOS - #3749. Thanks @hubgit!",
+      "[Improved] Blank slate view is now more responsive when zoomed - #3777",
+      "[Improved] Documentation fix for Open in Shell resource - #3799. Thanks @saschanaz!",
+      "[Improved] Improved error handling for Linux - #3732",
+      "[Improved] Allow links in unexpanded summary to be clickable - #3719. Thanks @koenpunt!",
+      "[Fixed] Sort the organization list - #3657. Thanks @j-f1!",
+      "[Fixed] Check out PRs from a fork - #3395",
+      "[Fixed] Confirm deleting branch when it has an open PR - #3615",
+      "[Fixed] Defer user/email validation in Preferences - #3722",
+      "[Fixed] Checkout progress did not include branch name - #3780",
+      "[Fixed] Don't block branch switching when in detached HEAD - #3807",
+      "[Fixed] Handle discarding submodule changes properly - #3647",
+      "[Fixed] Show tooltip with additional info about the build status - #3134",
+      "[Fixed] Update placeholders to support Linux distributions - #3150",
+      "[Fixed] Refresh local commit list when switching tabs - #3698"
+    ],
+    "1.0.12": [
+      "[New] Syntax highlighting for Rust files - #3666. Thanks @subnomo!",
+      "[New] Syntax highlighting for Clojure cljc, cljs, and edn files - #3610. Thanks @mtkp!",
+      "[Improved] Prevent creating a branch in the middle of a merge - #3733",
+      "[Improved] Truncate long repo names in panes and modals to fit into a single line - #3598. Thanks @http-request!",
+      "[Improved] Keyboard navigation support in pull request list - #3607",
+      "[Fixed] Inconsistent caret behavior in text boxes when using certain keyboard layouts - #3354",
+      "[Fixed] Only render the organizations list when it has orgs - #1414",
+      "[Fixed] Checkout now handles situations where a ref exists on multiple remotes - #3281",
+      "[Fixed] Retain accounts on desktop when losing connectivity - #3641",
+      "[Fixed] Missing argument in FullScreenInfo that could prevent app from launching - #3727. Thanks @OiYouYeahYou!"
+    ],
+    "1.0.12-beta1": [
+      "[New] Syntax highlighting for Rust files - #3666. Thanks @subnomo!",
+      "[New] Syntax highlighting for Clojure cljc, cljs, and edn files - #3610. Thanks @mtkp!",
+      "[Improved] Prevent creating a branch in the middle of a merge - #3733",
+      "[Improved] Truncate long repo names in panes and modals to fit into a single line - #3598. Thanks @http-request!",
+      "[Improved] Keyboard navigation support in pull request list - #3607",
+      "[Fixed] Inconsistent caret behavior in text boxes when using certain keyboard layouts - #3354",
+      "[Fixed] Only render the organizations list when it has orgs - #1414",
+      "[Fixed] Checkout now handles situations where a ref exists on multiple remotes - #3281",
+      "[Fixed] Retain accounts on desktop when losing connectivity - #3641",
+      "[Fixed] Missing argument in FullScreenInfo that could prevent app from launching - #3727. Thanks @OiYouYeahYou!"
+    ],
+    "1.0.12-beta0": [
+      "[New] Highlight substring matches in the \"Branches\" and \"Repositories\" list when filtering - #910. Thanks @JordanMussi!",
+      "[New] Add preview for ico files - #3531. Thanks @serhiivinichuk!",
+      "[New] Fallback to Gravatar for loading avatars - #821",
+      "[New] Provide syntax highlighting for Visual Studio project files - #3552. Thanks @saul!",
+      "[New] Provide syntax highlighting for F# fsx and fsi files - #3544. Thanks @saul!",
+      "[New] Provide syntax highlighting for Kotlin files - #3555. Thanks @ziggy42!",
+      "[New] Provide syntax highlighting for Clojure - #3523. Thanks @mtkp!",
+      "[Improved] Toggle the \"Repository List\" from the menu - #2638. Thanks @JordanMussi!",
+      "[Improved] Prevent saving of disallowed character strings for your name and email  - #3204",
+      "[Improved] Error messages now appear at the top of the \"Create a New Repository\" dialog - #3571. Thanks @http-request!",
+      "[Improved] \"Repository List\" header is now \"Github.com\" for consistency - #3567. Thanks @iFun!",
+      "[Improved] Rename the \"Install Update\" button to \"Quit and Install Update\" - #3494. Thanks @say25!",
+      "[Fixed] Fix ordering of commit history when your branch and tracking branch have both changed  - #2737",
+      "[Fixed] Prevent creating a branch that starts with a period - #3013. Thanks @JordanMussi!",
+      "[Fixed] Branch names are properly encoded when creating a pull request - #3509",
+      "[Fixed] Re-enable all the menu items after closing a popup - #3533",
+      "[Fixed] Removes option to delete remote branch after it's been deleted - #2964. Thanks @JordanMussi!",
+      "[Fixed] Windows: Detects available editors and shells now works even when the group policy blocks write registry access - #3105 #3405",
+      "[Fixed] Windows: Menu items are no longer truncated - #3547",
+      "[Fixed] Windows: Prevent disabled menu items from being accessed - #3391 #1521",
+      "[Fixed] Preserve the selected pull request when a manual fetch is done - #3524",
+      "[Fixed] Update pull request badge after switching branches or pull requests - #3454",
+      "[Fixed] Restore keyboard arrow navigation for pull request list - #3499"
+    ],
+    "1.0.11": [
+      "[New] Highlight substring matches in the \"Branches\" and \"Repositories\" list when filtering - #910. Thanks @JordanMussi!",
+      "[New] Add preview for ico files - #3531. Thanks @serhiivinichuk!",
+      "[New] Fallback to Gravatar for loading avatars - #821",
+      "[New] Provide syntax highlighting for Visual Studio project files - #3552. Thanks @saul!",
+      "[New] Provide syntax highlighting for F# fsx and fsi files - #3544. Thanks @saul!",
+      "[New] Provide syntax highlighting for Kotlin files - #3555. Thanks @ziggy42!",
+      "[New] Provide syntax highlighting for Clojure - #3523. Thanks @mtkp!",
+      "[Improved] Toggle the \"Repository List\" from the menu - #2638. Thanks @JordanMussi!",
+      "[Improved] Prevent saving of disallowed character strings for your name and email  - #3204",
+      "[Improved] Error messages now appear at the top of the \"Create a New Repository\" dialog - #3571. Thanks @http-request!",
+      "[Improved] \"Repository List\" header is now \"Github.com\" for consistency - #3567. Thanks @iFun!",
+      "[Improved] Rename the \"Install Update\" button to \"Quit and Install Update\" - #3494. Thanks @say25!",
+      "[Fixed] Fix ordering of commit history when your branch and tracking branch have both changed  - #2737",
+      "[Fixed] Prevent creating a branch that starts with a period - #3013. Thanks @JordanMussi!",
+      "[Fixed] Branch names are properly encoded when creating a pull request - #3509",
+      "[Fixed] Re-enable all the menu items after closing a popup - #3533",
+      "[Fixed] Removes option to delete remote branch after it's been deleted - #2964. Thanks @JordanMussi!",
+      "[Fixed] Windows: Detects available editors and shells now works even when the group policy blocks write registry access - #3105 #3405",
+      "[Fixed] Windows: Menu items are no longer truncated - #3547",
+      "[Fixed] Windows: Prevent disabled menu items from being accessed - #3391 #1521"
+    ],
+    "1.0.11-test0": [
+      "[Improved] now with a new major version of electron-packager"
+    ],
+    "1.0.11-beta0": [
+      "[Improved] Refresh the pull requests list after fetching - #3503",
+      "[Improved] Rename the \"Install Update\" button to \"Quit and Install Update\" - #3494. Thanks @say25!",
+      "[Fixed] URL encode branch names when creating a pull request - #3509",
+      "[Fixed] Windows: detecting available editors and shells now works even when the group policy blocks write registry access - #3105 #3405"
+    ],
+    "1.0.10": [
+      "[New] ColdFusion Builder is now a supported external editor - #3336 #3321. Thanks @AtomicCons!",
+      "[New] VSCode Insiders build is now a supported external editor - #3441. Thanks @say25!",
+      "[New] BBEdit is now a supported external editor - #3467. Thanks @NiklasBr!",
+      "[New] Hyper is now a supported shell on Windows too - #3455. Thanks @JordanMussi!",
+      "[New] Swift is now syntax highlighted - #3305. Thanks @agisilaos!",
+      "[New] Vue.js is now syntax highlighted - #3368. Thanks @wanecek!",
+      "[New] CoffeeScript is now syntax highlighted - #3356. Thanks @agisilaos!",
+      "[New] Cypher is now syntax highlighted - #3440. Thanks @say25!",
+      "[New] .hpp is now syntax highlighted as C++ - #3420. Thanks @say25!",
+      "[New] ML-like languages are now syntax highlighted - #3401. Thanks @say25!",
+      "[New] Objective-C is now syntax highlighted - #3355. Thanks @koenpunt!",
+      "[New] SQL is now syntax highlighted - #3389. Thanks @say25!",
+      "[Improved] Better message on the 'Publish Branch' button when HEAD is unborn - #3344. Thanks @Venkat5694!",
+      "[Improved] Better error message when trying to push to an archived repository - #3084. Thanks @agisilaos!",
+      "[Improved] Avoid excessive background fetching when switching repositories - #3329",
+      "[Improved] Ignore menu events sent when a modal is shown - #3308",
+      "[Fixed] Parse changed files whose paths include a newline - #3271",
+      "[Fixed] Parse file type changes - #3334",
+      "[Fixed] Windows: 'Open without Git' would present the dialog again instead of actually opening a shell without git - #3290",
+      "[Fixed] Avoid text selection when dragging resizable dividers - #3268",
+      "[Fixed] Windows: Removed the title attribute on the Windows buttons so that they no longer leave their tooltips hanging around - #3348. Thanks @j-f1!",
+      "[Fixed] Windows: Detect VS Code when installed to non-standard locations - #3304",
+      "[Fixed] Hitting Return would select the first item in a filter list when the filter text was empty - #3447",
+      "[Fixed] Add some missing keyboard shortcuts - #3327. Thanks @say25!",
+      "[Fixed] Handle \"304 Not Modified\" responses - #3399",
+      "[Fixed] Don't overwrite an existing .gitattributes when creating a new repository - #3419. Thanks @strafe!"
+    ],
+    "1.0.10-beta3": [
+      "[New] Change \"Create Pull Request\" to \"Show Pull Request\" when there is already a pull request open for the branch - #2524",
+      "[New] VSCode Insiders build is now a supported external editor - #3441. Thanks @say25!",
+      "[New] BBEdit is now a supported external editor - #3467. Thanks @NiklasBr!",
+      "[New] Hyper is now a supported shell - #3455. Thanks @JordanMussi!",
+      "[New] Cypher is now syntax highlighted - #3440. Thanks @say25!",
+      "[New] .hpp is now syntax highlighted as C++ - #3420. Thanks @say25!",
+      "[New] ML-like languages are now syntax highlighted - #3401. Thanks @say25!",
+      "[Improved] Use the same colors in pull request dropdown as we use on GitHub.com - #3451",
+      "[Improved] Fancy pull request loading animations - #2868",
+      "[Improved] Avoid excessive background fetching when switching repositories - #3329",
+      "[Improved] Refresh the pull request list when the Push/Pull/Fetch button is clicked - #3448",
+      "[Improved] Ignore menu events sent when a modal is shown - #3308",
+      "[Fixed] Hitting Return would select the first item in a filter list when the filter text was empty - #3447",
+      "[Fixed] Add some missing keyboard shortcuts - #3327. Thanks @say25!",
+      "[Fixed] Handle \"304 Not Modified\" responses - #3399",
+      "[Fixed] Don't overwrite an existing .gitattributes when creating a new repository - #3419. Thanks @strafe!"
+    ],
+    "1.0.10-beta2": [
+      "[New] SQL is now syntax highlighted! - #3389. Thanks @say25!",
+      "[Fixed] Windows: Detect VS Code when installed to non-standard locations - #3304"
+    ],
+    "1.0.10-beta1": [
+      "[New] Vue.js code is now syntax highlighted! - #3368. Thanks @wanecek!",
+      "[New] CoffeeScript is now syntax highlighted! - #3356. Thanks @agisilaos!",
+      "[New] Highlight .m as Objective-C - #3355. Thanks @koenpunt!",
+      "[Improved] Use smarter middle truncation for branch names - #3357",
+      "[Fixed] Windows: Removed the title attribute on the Windows buttons so that they no longer leave their tooltips hanging around - #3348. Thanks @j-f1!"
+    ],
+    "1.0.10-beta0": [
+      "[New] ColdFusion Builder is now available as an option for External Editor - #3336 #3321. Thanks @AtomicCons!",
+      "[New] Swift code is now syntax highlighted - #3305. Thanks @agisilaos!",
+      "[Improved] Better message on the 'Publish Branch' button when HEAD is unborn - #3344. Thanks @Venkat5694!",
+      "[Improved] Better error message when trying to push to an archived repository - #3084. Thanks @agisilaos!",
+      "[Fixed] Parse changed files whose paths include a newline - #3271",
+      "[Fixed] Parse file type changes - #3334",
+      "[Fixed] Windows: 'Open without Git' would present the dialog again instead of actually opening a shell without git - #3290",
+      "[Fixed] Avoid text selection when dragging resizable dividers - #3268"
+    ],
+    "1.0.9": [
+      "[New] ColdFusion Builder is now available as an option for External Editor - #3336 #3321. Thanks @AtomicCons!",
+      "[New] Swift code is now syntax highlighted - #3305. Thanks @agisilaos!",
+      "[Improved] Better message on the 'Publish Branch' button when HEAD is unborn - #3344. Thanks @Venkat5694!",
+      "[Improved] Better error message when trying to push to an archived repository - #3084. Thanks @agisilaos!",
+      "[Fixed] Parse changed files whose paths include a newline - #3271",
+      "[Fixed] Parse file type changes - #3334",
+      "[Fixed] Windows: 'Open without Git' would present the dialog again instead of actually opening a shell without git - #3290",
+      "[Fixed] Avoid text selection when dragging resizable dividers - #3268"
+    ],
+    "1.0.9-beta1": [
+      "[New] ColdFusion Builder is now available as an option for External Editor - #3336 #3321. Thanks @AtomicCons!",
+      "[New] Swift code is now syntax highlighted - #3305. Thanks @agisilaos!",
+      "[Improved] Better message on the 'Publish Branch' button when HEAD is unborn - #3344. Thanks @Venkat5694!",
+      "[Improved] Better error message when trying to push to an archived repository - #3084. Thanks @agisilaos!",
+      "[Fixed] Parse changed files whose paths include a newline - #3271",
+      "[Fixed] Parse file type changes - #3334",
+      "[Fixed] Windows: 'Open without Git' would present the dialog again instead of actually opening a shell without git - #3290",
+      "[Fixed] Avoid text selection when dragging resizable dividers - #3268"
+    ],
+    "1.0.9-beta0": [
+      "[Fixed] Crash when rendering diffs for certain types of files - #3249",
+      "[Fixed] Continually being prompted to add the upstream remote, even when it already exists - #3252"
+    ],
+    "1.0.8": [
+      "[Fixed] Crash when rendering diffs for certain types of files - #3249",
+      "[Fixed] Continually being prompted to add the upstream remote, even when it already exists - #3252"
+    ],
+    "1.0.8-beta0": [
+      "[New] Syntax highlighted diffs - #3101",
+      "[New] Add upstream to forked repositories - #2364",
+      "[Fixed] Only reset scale of title bar on macOS - #3193",
+      "[Fixed] Filter symbolic refs in the branch list - #3196",
+      "[Fixed] Address path issue with invoking Git Bash - #3186",
+      "[Fixed] Update embedded Git to support repository hooks and better error messages - #3067 #3079",
+      "[Fixed] Provide credentials to LFS repositories when performing checkout - #3167",
+      "[Fixed] Assorted changelog typos - #3174 #3184 #3207. Thanks @strafe, @alanaasmaa and @jt2k!"
+    ],
+    "1.0.7": [
+      "[New] Syntax highlighted diffs - #3101",
+      "[New] Add upstream to forked repositories - #2364",
+      "[Fixed] Only reset scale of title bar on macOS - #3193",
+      "[Fixed] Filter symbolic refs in the branch list - #3196",
+      "[Fixed] Address path issue with invoking Git Bash - #3186",
+      "[Fixed] Update embedded Git to support repository hooks and better error messages - #3067 #3079",
+      "[Fixed] Provide credentials to LFS repositories when performing checkout - #3167",
+      "[Fixed] Assorted changelog typos - #3174 #3184 #3207. Thanks @strafe, @alanaasmaa and @jt2k!"
+    ],
+    "1.0.7-beta0": [
+      "[Fixed] The Branches list wouldn't display the branches for non-GitHub repositories - #3169",
+      "[Fixed] Pushing or pulling could error when the temp directory was unavailable - #3046"
+    ],
+    "1.0.6": [
+      "[Fixed] The Branches list wouldn't display the branches for non-GitHub repositories - #3169",
+      "[Fixed] Pushing or pulling could error when the temp directory was unavailable - #3046"
+    ],
+    "1.0.5": [
+      "[New] The command line interface now provides some helpful help! - #2372. Thanks @j-f1!",
+      "[New] Create new branches from the Branches foldout - #2784",
+      "[New] Add support for VSCode Insiders - #3012 #3062. Thanks @MSathieu!",
+      "[New] Linux: Add Atom and Sublime Text support - #3133. Thanks @ziggy42!",
+      "[New] Linux: Tilix support - #3117. Thanks @ziggy42!",
+      "[New] Linux: Add Visual Studio Code support - #3122. Thanks @ziggy42!",
+      "[Improved] Report errors when a problem occurs storing tokens - #3159",
+      "[Improved] Bump to Git 2.14.3 - #3146",
+      "[Improved] Don't try to display diffs that could cause the app to hang - #2596",
+      "[Fixed] Handle local user accounts with URL-hostile characters - #3107",
+      "[Fixed] Cloning a repository which uses Git LFS would leave all the files appearing modified - #3146",
+      "[Fixed] Signing in in the Welcome flow could hang - #2769",
+      "[Fixed] Properly replace old Git LFS configuration values - #2984"
+    ],
+    "1.0.5-beta1": [
+      "[New] Create new branches from the Branches foldout - #2784",
+      "[New] Add support for VSCode Insiders - #3012 #3062. Thanks @MSathieu!",
+      "[New] Linux: Add Atom and Sublime Text support - #3133. Thanks @ziggy42!",
+      "[New] Linux: Tilix support - #3117. Thanks @ziggy42!",
+      "[New] Linux: Add Visual Studio Code support - #3122. Thanks @ziggy42!",
+      "[Improved] Report errors when a problem occurs storing tokens - #3159",
+      "[Improved] Bump to Git 2.14.3 - #3146",
+      "[Improved] Don't try to display diffs that could cause the app to hang - #2596",
+      "[Fixed] Handle local user accounts with URL-hostile characters - #3107",
+      "[Fixed] Cloning a repository which uses Git LFS would leave all the files appearing modified - #3146",
+      "[Fixed] Signing in in the Welcome flow could hang - #2769",
+      "[Fixed] Properly replace old Git LFS configuration values - #2984"
+    ],
+    "1.0.5-test1": [],
+    "1.0.5-test0": [],
+    "1.0.5-beta0": [
+      "[New] The command line interface now provides some helpful help! - #2372. Thanks @j-f1!"
+    ],
+    "1.0.4": [
+      "[New] Report Git LFS progress when cloning, pushing, pulling, or reverting - #2226",
+      "[Improved] Increased diff contrast and and line gutter selection - #2586 #2181",
+      "[Improved] Clarify why publishing a branch is disabled in various scenarios - #2773",
+      "[Improved] Improved error message when installing the command Line tool fails - #2979. Thanks @agisilaos!",
+      "[Improved] Format the branch name in \"Create Branch\" like we format branch names elsewhere - #2977. Thanks @j-f1!",
+      "[Fixed] Avatars not updating after signing in - #2911",
+      "[Fixed] Lots of bugs if there was a file named \"HEAD\" in the repository - #3009 #2721 #2938",
+      "[Fixed] Handle duplicate config values when saving user.name and user.email - #2945",
+      "[Fixed] The \"Create without pushing\" button when creating a new pull request wouldn't actually do anything - #2917"
+    ],
+    "1.0.4-beta1": [
+      "[New] Report Git LFS progress when cloning, pushing, pulling, or reverting - #2226",
+      "[Improved] Increased diff contrast and and line gutter selection - #2586 #2181",
+      "[Improved] Clarify why publishing a branch is disabled in various scenarios - #2773",
+      "[Improved] Improved error message when installing the command Line tool fails - #2979. Thanks @agisilaos!",
+      "[Improved] Format the branch name in \"Create Branch\" like we format branch names elsewhere - #2977. Thanks @j-f1!",
+      "[Fixed] Avatars not updating after signing in - #2911",
+      "[Fixed] Lots of bugs if there was a file named \"HEAD\" in the repository - #3009 #2721 #2938",
+      "[Fixed] Handle duplicate config values when saving user.name and user.email - #2945",
+      "[Fixed] The \"Create without pushing\" button when creating a new pull request wouldn't actually do anything - #2917 #2917"
+    ],
+    "1.0.4-beta0": [
+      "[Improved] Increase the contrast of the modified file status octicons - #2914",
+      "[Fixed] Showing changed files in Finder/Explorer would open the file - #2909",
+      "[Fixed] macOS: Fix app icon on High Sierra - #2915",
+      "[Fixed] Cloning an empty repository would fail - #2897 #2906",
+      "[Fixed] Catch logging exceptions - #2910"
+    ],
+    "1.0.3": [
+      "[Improved] Increase the contrast of the modified file status octicons - #2914",
+      "[Fixed] Showing changed files in Finder/Explorer would open the file - #2909",
+      "[Fixed] macOS: Fix app icon on High Sierra - #2915",
+      "[Fixed] Cloning an empty repository would fail - #2897 #2906",
+      "[Fixed] Catch logging exceptions - #2910"
+    ],
+    "1.0.2": [
+      "[Improved] Better message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Improved] Clone error message now suggests networking might be involved - #2872. Thanks @agisilaos!",
+      "[Improved] Include push/pull progress information in the push/pull button tooltip - #2879",
+      "[Improved] Allow publishing a brand new, empty repository - #2773",
+      "[Improved] Make file paths in lists selectable - #2801. Thanks @artivilla!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712",
+      "[Fixed] Use the initial path provided when creating a new repository - #2883",
+      "[Fixed] Windows: Avoid long path limits when discarding changes - #2833",
+      "[Fixed] Files would get deleted when undoing the first commit - #2764",
+      "[Fixed] Find the repository root before adding it - #2832",
+      "[Fixed] Display warning about an existing folder before cloning - #2777 #2830",
+      "[Fixed] Show contents of directory when showing a repository from Show in Explorer/Finder instead of showing the parent - #2798"
+    ],
+    "1.0.2-beta1": [
+      "[Improved] Clone error message now suggests networking might be involved - #2872. Thanks @agisilaos!",
+      "[Improved] Include push/pull progress information in the push/pull button tooltip - #2879",
+      "[Improved] Allow publishing a brand new, empty repository - #2773",
+      "[Improved] Make file paths in lists selectable - #2801. Thanks @artivilla!",
+      "[Fixed] Use the initial path provided when creating a new repository - #2883",
+      "[Fixed] Windows: Avoid long path limits when discarding changes - #2833",
+      "[Fixed] Files would get deleted when undoing the first commit - #2764",
+      "[Fixed] Find the repository root before adding it - #2832",
+      "[Fixed] Display warning about an existing folder before cloning - #2777 #2830",
+      "[Fixed] Show contents of directory when showing a repository from Show in Explorer/Finder instead of showing the parent - #2798"
+    ],
+    "1.0.2-beta0": [
+      "[Improved] Message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712"
+    ],
+    "1.0.1": [
+      "[Improved] Message for GitHub Enterprise users when there is a network error - #2574. Thanks @agisilaos!",
+      "[Fixed] Disable LFS hook creation when cloning - #2809",
+      "[Fixed] Use the new URL for the \"Show User Guides\" menu item - #2792. Thanks @db6edr!",
+      "[Fixed] Make the SHA selectable when viewing commit details - #1154",
+      "[Fixed] Windows: Make `github` CLI work in Git Bash - #2712"
+    ],
+    "1.0.1-beta0": [
+      "[Fixed] Use the loading/disabled state while publishing - #1995",
+      "[Fixed] Lock down menu item states for unborn repositories - #2744 #2573",
+      "[Fixed] Windows: Detecting the available shells and editors when using a language other than English - #2735"
+    ],
+    "1.0.0": [
+      "[Fixed] Use the loading/disabled state while publishing - #1995",
+      "[Fixed] Lock down menu item states for unborn repositories - #2744 #2573",
+      "[Fixed] Windows: Detecting the available shells and editors when using a language other than English - #2735"
+    ],
+    "1.0.0-beta3": [
+      "[New] Allow users to create repositories with descriptions - #2719. Thanks @davidcelis!",
+      "[New] Use `lfs clone` for faster cloning of LFS repositories - #2679",
+      "[Improved] Prompt to override existing LFS filters - #2693",
+      "[Fixed] Don't install LFS hooks when checking if a repo uses LFS - #2732",
+      "[Fixed] Ensure nothing is staged as part of undoing the first commit - #2656",
+      "[Fixed] \"Clone with Desktop\" wouldn't include the repository name in the path - #2704"
+    ],
+    "0.9.1": [
+      "[New] Allow users to create repositories with descriptions - #2719. Thanks @davidcelis!",
+      "[New] Use `lfs clone` for faster cloning of LFS repositories - #2679",
+      "[Improved] Prompt to override existing LFS filters - #2693",
+      "[Fixed] Don't install LFS hooks when checking if a repo uses LFS - #2732",
+      "[Fixed] Ensure nothing is staged as part of undoing the first commit - #2656",
+      "[Fixed] \"Clone with Desktop\" wouldn't include the repository name in the path - #2704"
+    ],
+    "1.0.0-beta2": [
+      "[New] Allow users to create repositories with descriptions - #2719. Thanks @davidcelis!",
+      "[New] Use `lfs clone` for faster cloning of LFS repositories - #2679",
+      "[Improved] Prompt to override existing LFS filters - #2693",
+      "[Fixed] Don't install LFS hooks when checking if a repo uses LFS - #2732",
+      "[Fixed] Ensure nothing is staged as part of undoing the first commit - #2656",
+      "[Fixed] \"Clone with Desktop\" wouldn't include the repository name in the path - #2704"
+    ],
+    "0.9.0": [
+      "[New] Allow users to create repositories with descriptions - #2719. Thanks @davidcelis!",
+      "[New] Use `lfs clone` for faster cloning of LFS repositories - #2679",
+      "[Improved] Prompt to override existing LFS filters - #2693",
+      "[Fixed] Don't install LFS hooks when checking if a repo uses LFS - #2732",
+      "[Fixed] Ensure nothing is staged as part of undoing the first commit - #2656",
+      "[Fixed] \"Clone with Desktop\" wouldn't include the repository name in the path - #2704"
+    ],
+    "0.8.2": [
+      "[New] Ask to install LFS filters when an LFS repository is added - #2227",
+      "[New] Clone GitHub repositories tab - #57",
+      "[New] Option to opt-out of confirming discarding changes - #2681",
+      "[Fixed] Long commit summary truncation - #1742",
+      "[Fixed] Ensure the repository list is always enabled - #2648",
+      "[Fixed] Windows: Detecting the available shells and editors when using a non-ASCII user encoding - #2624",
+      "[Fixed] Clicking the \"Cancel\" button on the Publish Branch dialog - #2646",
+      "[Fixed] Windows: Don't rely on PATH for knowing where to find chcp - #2678",
+      "[Fixed] Relocating a repository now actually does that - #2685",
+      "[Fixed] Clicking autocompletes inserts them - #2674",
+      "[Fixed] Use shift for shortcut chord instead of alt - #2607",
+      "[Fixed] macOS: \"Open in Terminal\" works with repositories with spaces in their path - #2682"
+    ],
+    "1.0.0-beta1": [
+      "[New] Option to to opt-out of confirming discarding changes - #2681",
+      "[Fixed] Windows: Don't rely on PATH for knowing where to find chcp - #2678",
+      "[Fixed] Relocating a repository now actually does that - #2685",
+      "[Fixed] Clicking autocompletes inserts them - #2674",
+      "[Fixed] Use shift for shortcut chord instead of alt - #2607",
+      "[Fixed] macOS: \"Open in Terminal\" works with repositories with spaces in their path - #2682"
+    ],
+    "1.0.0-beta0": [
+      "[New] Ask to install LFS filters when an LFS repository is added - #2227",
+      "[New] Clone GitHub repositories tab - #57",
+      "[Fixed] Long commit summary truncation - #1742",
+      "[Fixed] Ensure the repository list is always enabled - #2648",
+      "[Fixed] Windows: Detecting the available shells and editors when using a non-ASCII user encoding - #2624",
+      "[Fixed] Clicking the \"Cancel\" button on the Publish Branch dialog - #2646"
+    ],
+    "0.8.1": [
+      "[New] 'Open in Shell' now supports multiple shells - #2473",
+      "[New] Windows: Enable adding self-signed certificates - #2581",
+      "[Improved] Enhanced image diffs - #2383",
+      "[Improved] Line diffs - #2461",
+      "[Improved] Octicons updated - #2495",
+      "[Improved] Adds ability to close repository list using shortcut - #2532",
+      "[Improved] Switch default buttons in the Publish Branch dialog - #2515",
+      "[Improved] Bring back \"Contact Support\" - #1472",
+      "[Improved] Persist repository filter text after closing repository list - #2571",
+      "[Improved] Redesigned example commit in the Welcome flow - #2141",
+      "[Improved] Tidy up initial \"external editor\" experience - #2551",
+      "[Fixed] 'Include All' checkbox not in sync with partial selection - #2493",
+      "[Fixed] Copied text from diff removed valid characters - #2499",
+      "[Fixed] Click-focus on Windows would dismiss dialog - #2488",
+      "[Fixed] Branch list not rendered in app - #2531",
+      "[Fixed] Git operations checking certificate store - #2520",
+      "[Fixed] Properly identify repositories whose remotes have a trailing slash - #2584",
+      "[Fixed] Windows: Fix launching the `github` command line tool - #2563",
+      "[Fixed] Use the primary email address if it's public - #2244",
+      "[Fixed] Local branch not checked out after clone - #2561",
+      "[Fixed] Only the most recent 30 issues would autocomplete for GitHub Enterprise repositories - #2541",
+      "[Fixed] Missing \"View on GitHub\" menu item for non-Gitub repositories - #2615",
+      "[Fixed] New tab opened when pressing \"]\" for certain keyboard layouts - #2607",
+      "[Fixed] Windows: Crash when exiting full screen - #1502",
+      "[Fixed] Windows: Detecting the available shells and editors when using a non-ASCII user encoding - #2624",
+      "[Fixed] Ensure the repository list is always accessible - #2648"
+    ],
+    "0.8.1-beta4": [
+      "[Improved] Persist repository filter text after closing repository list - #2571",
+      "[Improved] Redesigned example commit in the Welcome flow - #2141",
+      "[Improved] Tidy up initial \"external editor\" experience - #2551",
+      "[Fixed] Missing \"View on GitHub\" menu item for non-Gitub repositories - #2615",
+      "[Fixed] New tab opened when pressing \"]\" for certain keyboard layouts - #2607",
+      "[Fixed] Windows: Crash when exiting full screen - #1502"
+    ],
+    "0.8.1-beta3": [
+      "[New] Windows: Enable adding self-signed certificates - #2581",
+      "[Improved] Adds ability to close repository list using shortcut - #2532",
+      "[Improved] Switch default buttons in the Publish Branch dialog - #2515",
+      "[Improved] Bring back \"Contact Support\" - #1472",
+      "[Fixed] Properly identify repositories whose remotes have a trailing slash - #2584",
+      "[Fixed] Windows: Fix launching the `github` command line tool - #2563",
+      "[Fixed] Use the primary email address if it's public - #2244",
+      "[Fixed] Local branch not checked out after clone - #2561",
+      "[Fixed] Only the most recent 30 issues would autocomplete for GitHub Enterprise repositories - #2541"
+    ],
+    "0.8.1-beta2": [
+      "[Fixed] Branch list not rendered in app - #2531",
+      "[Fixed] Git operations checking certificate store - #2520"
+    ],
+    "0.8.1-beta1": [
+      "[New] 'Open in Shell' now supports multiple shells - #2473",
+      "[Improved] Enhanced image diffs - #2383",
+      "[Improved] Line diffs - #2461",
+      "[Improved] Octicons updated - #2495",
+      "[Fixed] 'Include All' checkbox not in sync with partial selection - #2493",
+      "[Fixed] Copied text from diff removed valid characters - #2499",
+      "[Fixed] Click-focus on Windows would dismiss dialog - #2488"
+    ],
+    "0.8.1-beta0": [],
+    "0.8.0": [
+      "[New] Added commit context menu - #2434",
+      "[New] Added 'Open in External Editor' - #2009",
+      "[New] Can choose whether a branch should be deleted on the remote as well as locally - #2136",
+      "[New] Support authenticating with non-GitHub servers - #852",
+      "[New] Added the ability to revert a commit - #752",
+      "[New] Added a keyboard shortcut for opening the repository in the shell - #2138",
+      "[Improved] Copied diff text no longer includes the line changetype markers - #1499",
+      "[Improved] Fetch if a push fails because they need to pull first - #2431",
+      "[Improved] Discard changes performance - #1889",
+      "[Fixed] Show 'Add Repository' dialog when repository is dragged onto the app - #2442",
+      "[Fixed] Dialog component did not remove event handler - #2469",
+      "[Fixed] Open in External Editor context menu - #2475",
+      "[Fixed] Update to Git 2.14.1 to fix security vulnerability - #2432",
+      "[Fixed] Recent branches disappearing after renaming a branch - #2426",
+      "[Fixed] Changing the default branch on GitHub.com is now reflected in the app - #1489",
+      "[Fixed] Swap around some callouts for no repositories - #2447",
+      "[Fixed] Darker unfocused selection color - #1669",
+      "[Fixed] Increase the max sidebar width - #1588",
+      "[Fixed] Don't say \"Publish this branch to GitHub\" for non-GitHub repositories - #1498",
+      "[Fixed] macOS: Protocol schemes not getting registered - #2429",
+      "[Fixed] Patches which contain the \"no newline\" marker would fail to apply - #2123",
+      "[Fixed] Close the autocompletion popover when it loses focus - #2358",
+      "[Fixed] Clear the selected org when switching Publish Repository tabs - #2386",
+      "[Fixed] 'Create Without Pushing' button throwing an exception while opening a pull request - #2368",
+      "[Fixed] Windows: Don't removing the running app out from under itself when there are updates pending - #2373",
+      "[Fixed] Windows: Respect `core.autocrlf` and `core.safeclrf` when modifying the .gitignore - #1535",
+      "[Fixed] Windows: Fix opening the app from the command line - #2396",
+      "[Fixed] 'Create Without Pushing' button throwing an exception while opening a pull request - #2368"
+    ],
+    "0.7.3-beta5": [],
+    "0.7.3-beta4": [],
+    "0.7.3-beta3": [],
+    "0.7.3-beta2": [],
+    "0.7.3-beta1": [],
+    "0.7.3-beta0": [],
+    "0.7.2": ["[Fixed] Issues with auto-updating to 0.7.1."],
+    "0.7.2-beta0": [],
+    "0.7.1": [
+      "[Improved] Redesigned error and warning dialogs to be clearer - #2277",
+      "[Improved] Create Pull Request dialog shows more feedback while it's working - #2265",
+      "[Improved] Version text is now copiable - #1935",
+      "[Fixed] Preserve existing GitHub API information when API requests fail - #2282",
+      "[Fixed] Pass through error messages as received from the API - #2279",
+      "[Fixed] The Pull and Create Pull Request menu items had the same shortcut - #2274",
+      "[Fixed] Launching the `github` command line tool from a Fish shell - #2299",
+      "[Fixed] Help menu items now work - #2314",
+      "[Fixed] Windows: `github` command line tool not installing after updating - #2312",
+      "[Fixed] Caret position jumping around while changing the path for adding a local repository - #2222",
+      "[Fixed] Error dialogs being closed too easily - #2211",
+      "[Fixed] Windows: Non-ASCII credentials were mangled - #189"
+    ],
+    "0.7.1-beta5": [
+      "[Improved] Redesigned error and warning dialogs to be clearer - #2277",
+      "[Improved] Create Pull Request dialog shows more feedback while it's working - #2265",
+      "[Fixed] Preserve existing GitHub API information when API requests fail - #2282",
+      "[Fixed] Pass through error messages as received from the API - #2279",
+      "[Fixed] The Pull and Create Pull Request menu items had the same shortcut - #2274",
+      "[Fixed] Launching the `github` command line tool from a Fish shell - #2299",
+      "[Fixed] Help menu items now work - #2314",
+      "[Fixed] Windows: `github` command line tool not installing after updating - #2312",
+      "[Fixed] Caret position jumping around while changing the path for adding a local repository - #2222",
+      "[Fixed] Error dialogs being closed too easily - #2211",
+      "[Fixed] Windows: Non-ASCII credentials were mangled - #189"
+    ],
+    "0.7.1-beta4": [],
+    "0.7.1-beta3": [],
+    "0.7.1-beta2": [],
+    "0.7.1-beta1": [],
+    "0.7.1-beta0": [
+      "[Improved] Redesigned error and warning dialogs to be clearer - #2277",
+      "[Fixed] Preserve existing GitHub API information when API requests fail - #2282",
+      "[Fixed] Pass through error messages as received from the API - #2279",
+      "[Fixed] The Pull and Create Pull Request menu items had the same shortcut - #2274",
+      "[Fixed] Launching the `github` command line tool from a Fish shell - #2299"
+    ],
+    "0.7.0": [
+      "[New] Added the Branch > Create Pull Request menu item - #2135",
+      "[New] Added the `github` command line tool - #696",
+      "[Improved] Better error message when publishing a repository fails - #2089",
+      "[Improved] Windows: Don't recreate the desktop shortcut if it's been deleted - #1759",
+      "[Fixed] Cloning a repository's wiki - #1624",
+      "[Fixed] Don't call GitHub Enterprise GitHub.com - #2094",
+      "[Fixed] Don't push after publishing a new repository if the branch is unborn - #2086",
+      "[Fixed] Don't close dialogs when clicking the title bar - #2056",
+      "[Fixed] Windows: Clicking 'Show in Explorer' doesn't bring Explorer to the front - #2127",
+      "[Fixed] Windows: Opening links doesn't bring the browser to the front - #1945",
+      "[Fixed] macOS: Closing the window wouldn't exit fullscreen -  #1901",
+      "[Fixed] Scale blankslate images so they look nicer on high resolution displays - #1946",
+      "[Fixed] Windows: Installer not completing or getting stuck in a loop - #1875 #1863",
+      "[Fixed] Move the 'Forgot Password' link to fix the tab order of the sign in view - #2200"
+    ],
+    "0.6.3-beta7": [],
+    "0.6.3-beta6": [],
+    "0.6.3-beta5": [],
+    "0.6.3-beta4": [],
+    "0.6.3-beta3": [],
+    "0.6.3-beta2": [],
+    "0.6.3-beta1": [],
+    "0.6.3-beta0": [],
+    "0.6.2": [
+      "[New] Link to User Guides from the Help menu - #1963",
+      "[New] Added the 'Open in External Editor' contextual menu item to changed files - #2023",
+      "[New] Added the 'Show' and 'Open Command Prompt' contextual menu items to repositories - #1554",
+      "[New] Windows: Support self-signed or untrusted certificates - #671",
+      "[New] Copy the SHA to the clipboard when clicked - #1501",
+      "[Improved] Provide the option of initializing a new repository when adding a directory that isn't already one - #969",
+      "[Improved] Link to the working directory when there are no changes - #1871",
+      "[Improved] Hitting Enter when selecting a base branch creates the new branch - #1780",
+      "[Improved] Prefix repository names with their owner if they are ambiguous - #1848",
+      "[Fixed] Sort and filter licenses like GitHub.com - #1987",
+      "[Fixed] Long branch names not getting truncated in the Rename Branch dialog - #1891",
+      "[Fixed] Prune old log files - #1540",
+      "[Fixed] Ensure the local path is valid before trying to create a new repository - #1487",
+      "[Fixed] Support cloning repository wikis - #1624",
+      "[Fixed] Disable the Select All checkbox when there are no changes - #1389",
+      "[Fixed] Changed docx files wouldn't show anything in the diff panel - #1990",
+      "[Fixed] Disable the Merge button when there are no commits to merge - #1359",
+      "[Fixed] Username/password authentication not working for GitHub Enterprise - #2064",
+      "[Fixed] Better error messages when an API call fails - #2017",
+      "[Fixed] Create the 'logs' directory if it doesn't exist - #1550",
+      "[Fixed] Enable the 'Remove' menu item for missing repositories - #1776"
+    ],
+    "0.6.1": [
+      "[Fixed] Properly log stats opt in/out - #1949",
+      "[Fixed] Source maps for exceptions in the main process - #1957",
+      "[Fixed] Styling of the exception dialog - #1956",
+      "[Fixed] Handle ambiguous references - #1947",
+      "[Fixed] Handle non-ASCII text in diffs - #1970",
+      "[Fixed] Uncaught exception when hitting the arrow keys after showing autocompletions - #1971",
+      "[Fixed] Clear the organizations list when publishing a new repository and switching between tabs - #1969",
+      "[Fixed] Push properly when a tracking branch has a different name from the local branch - #1967",
+      "[Improved] Warn when line endings will change - #1906"
+    ],
     "0.6.0": [
-
+      "[Fixed] Issue autocompletion not working for older issues - #1814",
+      "[Fixed] GitHub repository association not working for repositories with some remote URL formats - #1826 #1679",
+      "[Fixed] Don't try to delete a remote branch that no longer exists - #1829",
+      "[Fixed] Tokens created by development builds would be used in production builds but wouldn't work - #1727",
+      "[Fixed] Submodules can now be added - #708",
+      "[Fixed] Properly handle the case where a file is added to the index but removed from the working tree - #1310",
+      "[Fixed] Use a local image for the default avatar - #1621",
+      "[Fixed] Make the file path in diffs selectable - #1768",
+      "[Improved] More logging! - #1823",
+      "[Improved] Better error message when trying to add something that's not a repository - #1747",
+      "[Improved] Copy the shell environment into the app's environment - #1796",
+      "[Improved] Updated to Git 2.13.0 - #1897",
+      "[Improved] Add 'Reveal' to the contextual menu for changed files - #1566",
+      "[Improved] Better handling of large diffs - #1818 #1524",
+      "[Improved] App launch time - #1900"
     ],
     "0.5.9": [
       "[New] Added Zoom In and Zoom Out - #1217",
@@ -107,9 +760,7 @@
       "[Improved] Performance updating menu items - #1321",
       "[Improved] Windows: Dim the title bar when the app loses focus - #1189"
     ],
-    "0.0.39": [
-      "[Fixed] An uncaught exception when adding a user - #1394"
-    ],
+    "0.0.39": ["[Fixed] An uncaught exception when adding a user - #1394"],
     "0.0.38": [
       "[New] Shiny new icon! - #1221",
       "[New] More helpful blank slate view - #871",
@@ -181,9 +832,7 @@
       "[Improved] Command or control-W now closes open dialogs - #949",
       "[Improved] Less memory usage while parsing large diffs - #1235"
     ],
-    "0.0.33": [
-      "[Fixed] Update Now wouldn't update now - #1209"
-    ],
+    "0.0.33": ["[Fixed] Update Now wouldn't update now - #1209"],
     "0.0.32": [
       "[New] You can now disable stats reporting from Preferences > Advanced - #1120",
       "[New] Acknowledgements are now available from About - #810",
@@ -228,9 +877,7 @@
       "[Fixed] Protected branches show a descriptive error when the push is rejected - #1036",
       "[Fixed] 'Open in shell' on Windows opens to repository location - #1037"
     ],
-    "0.0.28": [
-      "[Fixed] Bumping release notes to test deployments again"
-    ],
+    "0.0.28": ["[Fixed] Bumping release notes to test deployments again"],
     "0.0.27": [
       "[Fixed] 2FA dialog when authenticating has information for SMS authentication - #1009",
       "[Fixed] Autocomplete for users handles accounts containing `-` - #1008"
@@ -251,9 +898,6 @@
       "[Fixed] Application creates repository path if it doesn't exist on disk - #925",
       "[Improved] Preferences sign-in flow updated to standalone dialogs - #961"
     ],
-    "0.0.24": [
-      "Changed a thing",
-      "Added another thing"
-    ]
+    "0.0.24": ["Changed a thing", "Added another thing"]
   }
 }

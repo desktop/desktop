@@ -27,4 +27,4 @@ GitHub Desktop will create directories to manage the files and data it needs to 
 
 ## Log Files
 
-GitHub Desktop will generate log files if an unhandled exception is raised, to assist with troubleshooting. They are located in the data directory that GitHub Desktop uses (see above) under a `logs` subdirectory, organized by date using the format `YYYY-MM-DD.desktop.production.log`, where `YYYY-MM-DD` is the day the log was created.
+GitHub Desktop will generate logs as part of its normal usage, to assist with troubleshooting. They are located in the data directory that GitHub Desktop uses (see above) under a `logs` subdirectory, organized by date using the format `YYYY-MM-DD.desktop.production.log`, where `YYYY-MM-DD` is the day the log was created.

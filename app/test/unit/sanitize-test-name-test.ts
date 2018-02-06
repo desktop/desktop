@@ -1,5 +1,4 @@
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
 import { sanitizedBranchName } from '../../src/lib/sanitize-branch'
 
@@ -40,9 +39,9 @@ describe('sanitizedBranchName', () => {
     expect(result).to.equal('first.dot.is.not.ok')
   })
 
-  it('collapses double dashes', () => {
-    const branchName = 'branch  ? -|name'
+  it('allows double dashes after first character', () => {
+    const branchName = 'branch--name'
     const result = sanitizedBranchName(branchName)
-    expect(result).to.equal('branch-name')
+    expect(result).to.equal(branchName)
   })
 })

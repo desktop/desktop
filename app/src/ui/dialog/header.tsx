@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { assertNever } from '../../lib/fatal-error'
 
 interface IDialogHeaderProps {
   /**
@@ -28,14 +27,6 @@ interface IDialogHeaderProps {
   readonly onDismissed?: () => void
 
   /**
-   * An optional type of dialog header. If the type is error or warning
-   * an applicable icon will be rendered top left in the dialog.
-   *
-   * Defaults to 'normal' if omitted.
-   */
-  readonly type?: 'normal' | 'warning' | 'error'
-
-  /**
    * Whether or not the dialog contents are currently involved in processing
    * data, executing an asynchronous operation or by other means working.
    * Setting this value will render a spinning progress icon in the header.
@@ -53,8 +44,7 @@ interface IDialogHeaderProps {
  * custom content needs to be rendered in a dialog and in that scenario it
  * might be necessary to use this component directly.
  */
-export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
-
+export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
   private onCloseButtonClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (this.props.onDismissed) {
       this.props.onDismissed()
@@ -72,34 +62,21 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
     // I don't know and we may want to revisit it at some point but for
     // now an anchor will have to do.
     return (
-      <a className='close' onClick={this.onCloseButtonClick}>
+      <a className="close" onClick={this.onCloseButtonClick}>
         <Octicon symbol={OcticonSymbol.x} />
       </a>
     )
   }
 
-  private renderIcon() {
-
-    if (this.props.loading === true) {
-      return <Octicon className='icon spin' symbol={OcticonSymbol.sync} />
-    }
-
-    if (this.props.type === undefined || this.props.type === 'normal') {
-      return null
-    } else if (this.props.type === 'error') {
-      return <Octicon className='icon' symbol={OcticonSymbol.stop} />
-    } else if (this.props.type === 'warning') {
-      return <Octicon className='icon' symbol={OcticonSymbol.alert} />
-    }
-
-    return assertNever(this.props.type, `Unknown dialog header type ${this.props.type}`)
-  }
-
   public render() {
+    const spinner = this.props.loading ? (
+      <Octicon className="icon spin" symbol={OcticonSymbol.sync} />
+    ) : null
+
     return (
-      <header className='dialog-header'>
-        {this.renderIcon()}
+      <header className="dialog-header">
         <h1 id={this.props.titleId}>{this.props.title}</h1>
+        {spinner}
         {this.renderCloseButton()}
       </header>
     )

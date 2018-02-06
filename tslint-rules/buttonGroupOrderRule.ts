@@ -26,18 +26,7 @@
 import * as ts from 'typescript'
 import * as Lint from 'tslint'
 
-export class Rule extends Lint.Rules.AbstractRule {
-    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
-      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
-        return this.applyWithWalker(new ButtonGroupOrderWalker(sourceFile, this.getOptions()))
-      } else {
-        return []
-      }
-    }
-}
-
 class ButtonGroupOrderWalker extends Lint.RuleWalker {
-
   /**
    * Visit the node and ensure any button children are in the correct order.
    */
@@ -93,30 +82,50 @@ class ButtonGroupOrderWalker extends Lint.RuleWalker {
     }
 
     const buttonsWithTypeAttr = buttons.map(b => {
-      const typeAttr = b.attributes.properties.find(a =>
-        a.kind === ts.SyntaxKind.JsxAttribute && a.name.getText() === 'type'
+      const typeAttr = b.attributes.properties.find(
+        a =>
+          a.kind === ts.SyntaxKind.JsxAttribute && a.name.getText() === 'type'
       ) as ts.JsxAttribute | undefined
 
       let value = undefined
 
-      if (typeAttr && typeAttr.initializer && typeAttr.initializer.kind === ts.SyntaxKind.StringLiteral) {
+      if (
+        typeAttr &&
+        typeAttr.initializer &&
+        typeAttr.initializer.kind === ts.SyntaxKind.StringLiteral
+      ) {
         value = typeAttr.initializer.text
       }
 
-      return [ b, value ]
+      return [b, value]
     })
 
-    const primaryButtonIx = buttonsWithTypeAttr.findIndex(x => x[1] === 'submit')
+    const primaryButtonIx = buttonsWithTypeAttr.findIndex(
+      x => x[1] === 'submit'
+    )
 
     if (primaryButtonIx !== -1 && primaryButtonIx !== 0) {
       const start = node.getStart()
       const width = node.getWidth()
       const error = `Wrong button order in ButtonGroup.`
-      const explanation = 'ButtonGroups should have the primary button as its first child'
+      const explanation =
+        'ButtonGroups should have the primary button as its first child'
 
       const message = `${error} ${explanation}`
 
       this.addFailure(this.createFailure(start, width, message))
+    }
+  }
+}
+
+export class Rule extends Lint.Rules.AbstractRule {
+  public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
+    if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
+      return this.applyWithWalker(
+        new ButtonGroupOrderWalker(sourceFile, this.getOptions())
+      )
+    } else {
+      return []
     }
   }
 }

@@ -3,23 +3,23 @@
 :+1: :tada: :sparkling_heart: Thanks for your interest! :sparkling_heart: :tada: :+1:
 
 The following is a set of guidelines for contributing to GitHub Desktop and its
-related projects, which are hosted in the [Desktop Organization](https://github.com/desktop)
+related projects, which are hosted in the [Desktop organization](https://github.com/desktop)
 on GitHub. These are just guidelines, not rules. Use your best judgment, and
 feel free to propose changes to this document in a pull request.
 
-Note that GitHub Desktop is currently a public beta, so everything is likely to
-change over time as we learn and refine how we work with the community.
+Note that GitHub Desktop is an evolving project, so expect things to change over
+time as the team learns, listens and refines how we work with the community.
 
 #### Table Of Contents
 
 [What should I know before I get started?](#what-should-i-know-before-i-get-started)
   * [Code of Conduct](#code-of-conduct)
-  * [The Beta Roadmap](#the-beta-roadmap)
+  * [The Roadmap](#the-roadmap)
 
 [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
   * [Suggesting Enhancements](#suggesting-enhancements)
-  * [Up for Grabs](#up-for-grabs)
+  * [Help Wanted](#help-wanted)
 
 [Additional Notes](#additional-notes)
   * [Issue and Pull Request Labels](#issue-and-pull-request-labels)
@@ -32,17 +32,19 @@ This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDU
 By participating, you are expected to uphold this code.
 Please report unacceptable behavior to [opensource+desktop@github.com](mailto:opensource+desktop@github.com).
 
-### The Beta Roadmap
+### The Roadmap
 
-Currently GitHub Desktop is in a public beta, and the team is focused on
-triaging reported issues and working towards a 1.0 milestone - where the
-application can be used in place of the classic Mac and Windows applications.
-You can follow this progress progress under the [Milestones](https://github.com/desktop/desktop/milestones)
-tab.
+GitHub Desktop recently announced its
+[1.0 release](https://github.com/blog/2437-announcing-github-desktop-1-0) and
+are working towards deprecating the classic Mac and Windows applications.
 
-We're still thinking about where we want to take GitHub Desktop after we reach
-this 1.0 milestone. If you have ideas or suggestions please read the [Suggesting Enhancements](#suggesting-enhancements)
-section below to understand how to contribute your feedback.
+Beyond that, we are working on a roadmap you can read [here](https://github.com/desktop/desktop/blob/master/docs/process/roadmap.md).
+The immediate milestones are more detailed, and the latter milestones are more
+fuzzy and subject to change.
+
+If you have ideas or suggestions please read the
+[Suggesting Enhancements](#suggesting-enhancements) section below to understand
+how to contribute your feedback.
 
 ## How Can I Contribute?
 
@@ -56,7 +58,7 @@ reports :mag_right:.
 Before creating bug reports, please check [this list](#before-submitting-a-bug-report)
 as you might find out that you don't need to create one. When you are creating
 a bug report, please [include as many details as possible](#how-do-i-submit-a-good-bug-report).
-Fill out [the required template](../../.github/ISSUE_TEMPLATE.md), the information
+Fill out [the required template](./.github/ISSUE_TEMPLATE.md), the information
 it asks for helps us resolve issues faster.
 
 #### Before Submitting A Bug Report
@@ -71,14 +73,14 @@ comment to the existing issue if there is extra information you can contribute.
 Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
 Simply create an issue on the [GitHub Desktop issue tracker](https://github.com/desktop/desktop/issues)
-and fill out the provided [issue template](../../.github/ISSUE_TEMPLATE.md).
+and fill out the provided [issue template](./.github/ISSUE_TEMPLATE.md).
 
 The information we are interested in includes:
 
  - details about your environment - which build, which operating system
  - details about reproducing the issue - what steps to take, what happens, how
    often it happens
- - other relevant information - log files, screenshots, etc
+ - other relevant information - log files, screenshots, etc.
 
 ### Suggesting Enhancements
 
@@ -91,7 +93,7 @@ community understand your suggestion :pencil: and find related suggestions
 Before creating enhancement suggestions, please check [this list](#before-submitting-an-enhancement-suggestion)
 as you might find out that you don't need to create one. When you are creating
 an enhancement suggestion, please [include as many details as possible](#how-do-i-submit-a-good-enhancement-suggestion).
-Fill in [the template](../../.github/ISSUE_TEMPLATE.md), including the steps
+Fill in [the template](./.github/ISSUE_TEMPLATE.md), including the steps
 that you imagine you would take if the feature you're requesting existed.
 
 #### Before Submitting An Enhancement Suggestion
@@ -114,26 +116,26 @@ and provide the following information:
   much detail as possible. This additional context helps the maintainers to
   understand the enhancement from your perspective
 * **Explain why this enhancement would be useful** to GitHub Desktop users.
-* **Include screenshots and animated GIFs** if relevent to help you demonstrate
+* **Include screenshots and animated GIFs** if relevant to help you demonstrate
   the steps or point out the part of GitHub Desktop which the suggestion is
   related to. You can use [this tool](http://www.cockos.com/licecap/) to record
   GIFs on macOS and Windows.
 * **List some other applications where this enhancement exists, if applicable.**
 
-### Up For Grabs
+### Help Wanted
 
-As the team is working towards the 1.0 release, we'll identify enhancements or
-bugs that can be categorised as tasks that:
+As part of building GitHub Desktop, we'll identify tasks that are good for
+external contributors to pick up. These tasks:
 
  - have low impact, or have a known workaround
- - should be fixed
+ - should be addressed
  - have a narrow scope and/or easy reproduction steps
  - can be worked on independent of other tasks
 
-These issues will be labelled as [`up-for-grabs`](https://github.com/desktop/desktop/labels/up-for-grabs)
+These issues will be labelled as [`help wanted`](https://github.com/desktop/desktop/labels/help%20wanted)
 in the repository. If you are interested in contributing to the project, please
-comment on the issue to let the maintainers (and community) know you are
-interested in picking this up.
+comment on the issue to let the core team (and the community) know you are
+interested in the issue.
 
 ## Additional Notes
 
@@ -148,20 +150,21 @@ pull requests.
 | --- | --- | --- |
 | `enhancement` | [search](https://github.com/desktop/desktop/labels/enhancement) | Feature requests. |
 | `bug` | [search](https://github.com/desktop/desktop/labels/bug)  | Confirmed bugs or reports that are very likely to be bugs. |
-| `question` | [search](https://github.com/desktop/desktop/labels/question)  | Questions more than bug reports or feature requests (e.g. how do I do X). |
 | `more-information-needed` | [search](https://github.com/desktop/desktop/labels/more-information-needed) | More information needs to be collected about these problems or feature requests (e.g. steps to reproduce). |
 | `needs-reproduction` | [search](https://github.com/desktop/desktop/labels/needs-reproduction)  | Likely bugs, but haven't been reliably reproduced. |
+| `stale` | [search](https://github.com/desktop/desktop/labels/stale) | Issues that are inactive and marked to be closed. |
 | `macOS` | [search](https://github.com/desktop/desktop/labels/macOS)  | Issues specific to macOS users. |
 | `Windows` | [search](https://github.com/desktop/desktop/labels/Windows)  | Issues specific to Windows users. |
+| `codemirror` | [search](https://github.com/desktop/desktop/labels/codemirror)  | Issues related to our use of [CodeMirror](https://codemirror.net/) that may require upstream fixes. |
+| `electron` | [search](https://github.com/desktop/desktop/labels/electron) | Issues related to our use of [Electron](https://electron.atom.io) that may require upstream fixes. |
 
 #### Topics
 
 | Label name | :mag_right: | Description |
 | --- | --- | --- |
-| `up-for-grabs` | [search](https://github.com/desktop/desktop/labels/up-for-grabs)  | Issues marked as ideal for external contributors. |
-| `polish` | [search](https://github.com/desktop/desktop/labels/polish) | Issues not critical to the application but would provide a better experience if resolved. |
+| `help wanted` | [search](https://github.com/desktop/desktop/labels/help%20wanted)  | Issues marked as ideal for external contributors. |
 | `tech-debt` | [search](https://github.com/desktop/desktop/labels/tech-debt) | Issues related to code or architecture decisions. |
-| `design` | [search](https://github.com/desktop/desktop/labels/design)  | Issues that require some design input from the maintainers as part of completing the work. |
+| `needs-design-input` | [search](https://github.com/desktop/desktop/labels/needs-design-input)  | Issues that require design input from the core team before the work can be started. |
 
 #### Workflow
 

@@ -1,15 +1,22 @@
-import * as chai from 'chai'
-const expect = chai.expect
+import { expect } from 'chai'
 
-import { groupBranches } from '../../src/ui/branches/group-branches'
+import { groupBranches } from '../../src/ui/branches'
 import { Branch, BranchType } from '../../src/models/branch'
 import { Commit } from '../../src/models/commit'
 import { CommitIdentity } from '../../src/models/commit-identity'
 
 describe('Branches grouping', () => {
-
   const author = new CommitIdentity('Hubot', 'hubot@github.com', new Date())
-  const commit = new Commit('300acef', 'summary', 'body', author, [])
+
+  const commit = new Commit(
+    '300acef',
+    'summary',
+    'body',
+    author,
+    author,
+    [],
+    []
+  )
 
   const currentBranch = new Branch('master', null, commit, BranchType.Local)
   const defaultBranch = new Branch('master', null, commit, BranchType.Local)
@@ -18,14 +25,15 @@ describe('Branches grouping', () => {
   ]
   const otherBranch = new Branch('other-branch', null, commit, BranchType.Local)
 
-  const allBranches = [
-    currentBranch,
-    ...recentBranches,
-    otherBranch,
-  ]
+  const allBranches = [currentBranch, ...recentBranches, otherBranch]
 
   it('should group branches', () => {
-    const groups = groupBranches(defaultBranch, currentBranch, allBranches, recentBranches)
+    const groups = groupBranches(
+      defaultBranch,
+      currentBranch,
+      allBranches,
+      recentBranches
+    )
     expect(groups.length).to.equal(3)
 
     expect(groups[0].identifier).to.equal('default')

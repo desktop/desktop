@@ -85,6 +85,7 @@
       position: absolute;
       height: 100%;
       width: 100%;
+      pointer-events: none;
     }
   }
 
@@ -113,12 +114,15 @@
     padding: 0 var(--spacing) var(--spacing);
   }
 
-  &-meta-item {
-    a {
-      -webkit-user-select: text;
-      user-select: text;
-    }
+  &-meta-item:not(.without-truncation) {
     @include ellipsis;
+  }
+
+  &-meta-item {
+    display: flex;
+    flex-direction: row;
+    min-width: 0;
+
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);
 
@@ -127,6 +131,10 @@
       display: inline-block;
       margin-right: var(--spacing-third);
       vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+    }
+
+    .sha {
+      user-select: text;
     }
   }
 

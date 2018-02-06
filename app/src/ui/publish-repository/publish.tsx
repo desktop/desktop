@@ -1,5 +1,8 @@
 import * as React from 'react'
-import { PublishRepository, IPublishRepositorySettings } from './publish-repository'
+import {
+  PublishRepository,
+  IPublishRepositorySettings,
+} from './publish-repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -10,6 +13,7 @@ import { TabBar } from '../tab-bar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
+import { getGitDescription } from '../../lib/git/description'
 
 enum PublishTab {
   DotCom = 0,
@@ -42,6 +46,9 @@ interface IPublishState {
    * related to the current step.
    */
   readonly error: Error | null
+
+  /** Is the repository currently being published? */
+  readonly publishing: boolean
 }
 
 /**
@@ -69,23 +76,31 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       currentTab: startingTab,
       publishSettings,
       error: null,
+      publishing: false,
     }
   }
 
   public render() {
     return (
       <Dialog
-        id='publish-repository'
-        title={ __DARWIN__ ? 'Publish Repository' : 'Publish repository'}
+        id="publish-repository"
+        title={__DARWIN__ ? 'Publish Repository' : 'Publish repository'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.publishRepository}
+        disabled={this.state.publishing}
+        loading={this.state.publishing}
       >
-        <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.currentTab}>
+        <TabBar
+          onTabClicked={this.onTabClicked}
+          selectedIndex={this.state.currentTab}
+        >
           <span>GitHub.com</span>
           <span>Enterprise</span>
         </TabBar>
 
-        {this.state.error ? <DialogError>{this.state.error.message}</DialogError> : null}
+        {this.state.error ? (
+          <DialogError>{this.state.error.message}</DialogError>
+        ) : null}
 
         {this.renderContent()}
         {this.renderFooter()}
@@ -93,20 +108,33 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     )
   }
 
+  public async componentDidMount() {
+    try {
+      const description = await getGitDescription(this.props.repository.path)
+      const settings = {
+        ...this.state.publishSettings,
+        description,
+      }
+
+      this.setState({ publishSettings: settings })
+    } catch (error) {
+      log.warn(`Couldn't get the repository's description`, error)
+    }
+  }
+
   private renderContent() {
     const tab = this.state.currentTab
     const account = this.getAccountForTab(tab)
     if (account) {
-      return <PublishRepository
-        account={account}
-        settings={this.state.publishSettings}
-        onSettingsChanged={this.onSettingsChanged}/>
-    } else {
       return (
-        <DialogContent>
-          {this.renderSignInTab(tab)}
-        </DialogContent>
+        <PublishRepository
+          account={account}
+          settings={this.state.publishSettings}
+          onSettingsChanged={this.onSettingsChanged}
+        />
       )
+    } else {
+      return <DialogContent>{this.renderSignInTab(tab)}</DialogContent>
     }
   }
 
@@ -132,13 +160,21 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       case PublishTab.DotCom:
         return (
           <CallToAction actionTitle={signInTitle} onAction={this.signInDotCom}>
-            <div>Sign in to your GitHub.com account to access your repositories.</div>
+            <div>
+              Sign in to your GitHub.com account to access your repositories.
+            </div>
           </CallToAction>
         )
       case PublishTab.Enterprise:
         return (
-          <CallToAction actionTitle={signInTitle} onAction={this.signInEnterprise}>
-            <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
+          <CallToAction
+            actionTitle={signInTitle}
+            onAction={this.signInEnterprise}
+          >
+            <div>
+              If you have a GitHub Enterprise account at work, sign in to it to
+              get access to your repositories.
+            </div>
           </CallToAction>
         )
       default:
@@ -154,7 +190,9 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       return (
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Publish Repository' : 'Publish repository'}</Button>
+            <Button type="submit" disabled={disabled}>
+              {__DARWIN__ ? 'Publish Repository' : 'Publish repository'}
+            </Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
@@ -173,8 +211,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private publishRepository = async () => {
-
-    this.setState({ error: null })
+    this.setState({ error: null, publishing: true })
 
     const tab = this.state.currentTab
     const account = this.getAccountForTab(tab)
@@ -192,15 +229,19 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         settings.description,
         settings.private,
         account,
-        settings.org)
+        settings.org
+      )
 
       this.props.onDismissed()
     } catch (e) {
-      this.setState({ error: e })
+      this.setState({ error: e, publishing: false })
     }
   }
 
   private onTabClicked = (index: PublishTab) => {
-    this.setState({ currentTab: index })
+    // Clear the selected org since dot com and Enterprise will have a different
+    // set of orgs.
+    const settings = { ...this.state.publishSettings, org: null }
+    this.setState({ currentTab: index, publishSettings: settings })
   }
 }

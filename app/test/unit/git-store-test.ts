@@ -1,69 +1,63 @@
-/* tslint:disable:no-sync-functions */
+/* eslint-disable no-sync */
 
-import * as chai from 'chai'
-const expect = chai.expect
-
-import { setupEmptyRepository, setupConflictedRepo } from '../fixture-helper'
+import { expect } from 'chai'
 import * as Fs from 'fs'
 import * as Path from 'path'
 import { GitProcess } from 'dugite'
 
-import { GitStore } from '../../src/lib/dispatcher/git-store'
-import { FileStatus } from '../../src/models/status'
+import { shell } from '../helpers/test-app-shell'
+import {
+  setupEmptyRepository,
+  setupFixtureRepository,
+  setupConflictedRepo,
+} from '../helpers/repositories'
+import { GitStore } from '../../src/lib/stores'
+import { AppFileStatus } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { TipState, IValidBranch } from '../../src/models/tip'
-
-import { shell } from '../test-app-shell'
-
 import { getCommit, getStatus } from '../../src/lib/git'
 
 describe('GitStore', () => {
   it('can discard changes from a repository', async () => {
-
     const repo = await setupEmptyRepository()
     const gitStore = new GitStore(repo, shell)
 
-    const file = 'README.md'
-    const filePath = Path.join(repo.path, file)
+    const readmeFile = 'README.md'
+    const readmeFilePath = Path.join(repo.path, readmeFile)
 
-    Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+    Fs.writeFileSync(readmeFilePath, 'SOME WORDS GO HERE\n')
 
-    // commit the file
-    await GitProcess.exec([ 'add', file ], repo.path)
-    await GitProcess.exec([ 'commit', '-m', 'added file' ], repo.path)
+    const licenseFile = 'LICENSE.md'
+    const licenseFilePath = Path.join(repo.path, licenseFile)
 
-    Fs.writeFileSync(filePath, 'WRITING SOME NEW WORDS\n')
+    Fs.writeFileSync(licenseFilePath, 'SOME WORDS GO HERE\n')
 
+    // commit the readme file but leave the license
+    await GitProcess.exec(['add', readmeFile], repo.path)
+    await GitProcess.exec(['commit', '-m', 'added readme file'], repo.path)
+
+    Fs.writeFileSync(readmeFilePath, 'WRITING SOME NEW WORDS\n')
     // setup requires knowing about the current tip
     await gitStore.loadStatus()
-
-    // ignore the file
-    await gitStore.ignore(file)
 
     let status = await getStatus(repo)
     let files = status.workingDirectory.files
 
     expect(files.length).to.equal(2)
     expect(files[0].path).to.equal('README.md')
-    expect(files[0].status).to.equal(FileStatus.Deleted)
-    expect(files[1].path).to.equal('.gitignore')
-    expect(files[1].status).to.equal(FileStatus.New)
+    expect(files[0].status).to.equal(AppFileStatus.Modified)
 
-    // discard the .gitignore change
-    await gitStore.discardChanges([ files[1] ])
+    // discard the LICENSE.md file
+    await gitStore.discardChanges([files[1]])
 
-    // we should see the original file, modified
     status = await getStatus(repo)
     files = status.workingDirectory.files
 
     expect(files.length).to.equal(1)
-    expect(files[0].path).to.equal('README.md')
-    expect(files[0].status).to.equal(FileStatus.Modified)
   })
 
   it('can discard a renamed file', async () => {
-
     const repo = await setupEmptyRepository()
     const gitStore = new GitStore(repo, shell)
 
@@ -74,9 +68,9 @@ describe('GitStore', () => {
     Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
 
     // commit the file, and then rename it
-    await GitProcess.exec([ 'add', file ], repo.path)
-    await GitProcess.exec([ 'commit', '-m', 'added file' ], repo.path)
-    await GitProcess.exec([ 'mv', file, renamedFile ], repo.path)
+    await GitProcess.exec(['add', file], repo.path)
+    await GitProcess.exec(['commit', '-m', 'added file'], repo.path)
+    await GitProcess.exec(['mv', file, renamedFile], repo.path)
 
     const statusBeforeDiscard = await getStatus(repo)
     const filesToDiscard = statusBeforeDiscard.workingDirectory.files
@@ -91,7 +85,6 @@ describe('GitStore', () => {
   })
 
   describe('undo first commit', () => {
-
     let repo: Repository | null = null
     let firstCommit: Commit | null = null
 
@@ -105,8 +98,8 @@ describe('GitStore', () => {
 
       Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
 
-      await GitProcess.exec([ 'add', file ], repo.path)
-      await GitProcess.exec([ 'commit', '-m', commitMessage ], repo.path)
+      await GitProcess.exec(['add', file], repo.path)
+      await GitProcess.exec(['commit', '-m', commitMessage], repo.path)
 
       firstCommit = await getCommit(repo!, 'master')
       expect(firstCommit).to.not.equal(null)
@@ -156,6 +149,33 @@ describe('GitStore', () => {
 
       expect(gitStore.localCommitSHAs).to.be.empty
     })
+
+    it('has no staged files', async () => {
+      const gitStore = new GitStore(repo!, shell)
+
+      await gitStore.loadStatus()
+
+      const tip = gitStore.tip as IValidBranch
+      await gitStore.loadLocalCommits(tip.branch)
+
+      expect(gitStore.localCommitSHAs.length).to.equal(1)
+
+      await gitStore.undoCommit(firstCommit!)
+
+      // compare the index state to some other tree-ish
+      // 4b825dc642cb6eb9a060e54bf8d69288fbee4904 is the magic empty tree
+      // if nothing is staged, this should return no entries
+      const result = await GitProcess.exec(
+        [
+          'diff-index',
+          '--name-status',
+          '-z',
+          '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
+        ],
+        repo!.path
+      )
+      expect(result.stdout.length).to.equal(0)
+    })
   })
 
   it('hides commented out lines from MERGE_MSG', async () => {
@@ -168,5 +188,28 @@ describe('GitStore', () => {
     expect(context).to.not.be.null
     expect(context!.summary).to.equal(`Merge branch 'master' into other-branch`)
     expect(context!.description).to.be.null
+  })
+
+  describe('repository with HEAD file', () => {
+    it('can discard modified change cleanly', async () => {
+      const path = await setupFixtureRepository('repository-with-HEAD-file')
+      const repo = new Repository(path, 1, null, false)
+      const gitStore = new GitStore(repo, shell)
+
+      const file = 'README.md'
+      const filePath = Path.join(repo.path, file)
+
+      Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
+
+      let status = await getStatus(repo!)
+      let files = status.workingDirectory.files
+      expect(files.length).to.equal(1)
+
+      await gitStore.discardChanges([files[0]])
+
+      status = await getStatus(repo)
+      files = status.workingDirectory.files
+      expect(files.length).to.equal(0)
+    })
   })
 })

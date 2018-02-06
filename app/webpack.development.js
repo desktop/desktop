@@ -11,13 +11,18 @@ const config = {
 
 const mainConfig = merge({}, common.main, config)
 const askPassConfig = merge({}, common.askPass, config)
+const cliConfig = merge({}, common.cli, config)
+const highlighterConfig = merge({}, common.highlighter, config)
 
 const rendererConfig = merge({}, common.renderer, config, {
   entry: {
-    renderer: ['webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr', common.renderer.entry.renderer]
+    renderer: [
+      'webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr',
+      common.renderer.entry.renderer,
+    ],
   },
   output: {
-    publicPath: 'http://localhost:3000/build/'
+    publicPath: 'http://localhost:3000/build/',
   },
   module: {
     rules: [
@@ -26,16 +31,12 @@ const rendererConfig = merge({}, common.renderer, config, {
       // as a blob:// uri at runtime.
       {
         test: /\.(scss|css)$/,
-        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap']
-      }
-    ]
+        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
+      },
+    ],
   },
-  plugins: [
-    new webpack.HotModuleReplacementPlugin(),
-  ]
+  plugins: [new webpack.HotModuleReplacementPlugin()],
 })
-
-const sharedConfig = merge({}, common.shared, config, { })
 
 const crashConfig = merge({}, common.crash, config, {
   module: {
@@ -45,10 +46,17 @@ const crashConfig = merge({}, common.crash, config, {
       // as a blob:// uri at runtime.
       {
         test: /\.(scss|css)$/,
-        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap']
-      }
-    ]
-  }
+        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
+      },
+    ],
+  },
 })
 
-module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig, crashConfig ]
+module.exports = [
+  mainConfig,
+  rendererConfig,
+  askPassConfig,
+  crashConfig,
+  cliConfig,
+  highlighterConfig,
+]

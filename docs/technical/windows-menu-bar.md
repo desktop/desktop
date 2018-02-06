@@ -1,9 +1,9 @@
 # Windows Menu Bar
 
-One of the design decision early on with TNG assumed a high-fidelity application
-menu. On macOS we get that for free since the application menu is detached from
-the application (visually) and anchored at the top of the screen. On Windows
-things aren't quite as simple.
+One of the design decision early on with GitHub Desktop assumed a high-fidelity
+application menu. On macOS we get that for free since the application menu is
+detached from the application (visually) and anchored at the top of the screen.
+On Windows, things aren't quite as simple.
 
 Since we wanted a "frameless" design on Windows we explored putting the
 application menu behind a hamburger icon in [#689](https://github.com/desktop/desktop/pull/689)

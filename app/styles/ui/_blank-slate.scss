@@ -1,5 +1,7 @@
 #blank-slate {
   display: flex;
+  padding: var(--spacing);
+  align-items: center;
 
   .header {
     max-width: 400px;
@@ -12,41 +14,68 @@
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
     text-align: center;
+    margin-bottom: var(--spacing-double);
   }
 
   .content,
   .footer {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-self: center;
+    flex-shrink: 0;
   }
 
   .content {
-    margin: var(--spacing-double) var(--spacing-double) var(--spacing-quad);
+    margin: var(--spacing-double) 0;
+    min-width: 80%;
+  }
+
+  .footer {
+    margin: 0;
+  }
+
+  .callouts {
+    display: flex;
+    flex-shrink: 0;
+    min-width: 0;
+    min-height: 0;
+    justify-content: center;
   }
 
   .callout {
+    &:last-child {
+      padding-right: 0;
+    }
+
+    &:first-child {
+      padding-left: 0;
+    }
+
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 
-    max-width: 370px;
+    width: 33%;
+    max-width: 300px;
     align-items: center;
 
     text-align: center;
 
-    padding: 0 var(--spacing-quad);
+    padding: 0 var(--spacing);
 
     div {
       margin: var(--spacing) 0;
     }
 
     .octicon {
-      width: 16px;
-      height: 16px;
+      flex-shrink: 0;
     }
 
     button {
       flex-grow: 0;
+      flex-shrink: 0;
+      min-height: var(--button-height);
+      height: auto;
     }
   }
 
@@ -56,6 +85,29 @@
 }
 
 .blankslate-image {
-  margin: var(--spacing-double) auto;
-  width: 400px;
+  width: 80%;
+  flex-grow: 0.6;
+  // Background image url is set in react since we need to
+  // calculate it at runtime.
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+}
+
+// When there's not enough space to show the blankslate
+// image any more (due to zooming or having DevTools docked
+// in the app window)
+@media (max-height: 400px) {
+  #blank-slate {
+    // Vertically center everything
+    justify-content: center;
+
+    .blankslate-image {
+      display: none;
+    }
+
+    .content {
+      margin-top: 0;
+    }
+  }
 }

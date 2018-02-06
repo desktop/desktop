@@ -42,7 +42,7 @@ interface IAppMenuBarButtonProps {
    * is pressed, signifying that the item is accessible by holding Alt
    * and pressing the corresponding access key. Note that this is a Windows
    * convention.
-   * 
+   *
    * See the highlight prop of the AccessText component for more details.
    */
   readonly highlightMenuAccessKey: boolean
@@ -51,20 +51,23 @@ interface IAppMenuBarButtonProps {
    * A function that's called when the menu item is closed by the user clicking
    * on the button while it is expanded. This is a specialized version
    * of the onDropdownStateChanged prop of the ToolbarDropdown component.
-   * 
+   *
    * @param menuItem - The top-level menu item rendered by this menu bar button.
    * @param source   - Whether closing the menu was caused by a keyboard or
    *                   pointer interaction, or if it was closed due to an
    *                   item being activated (executed).
    */
-  readonly onClose: (menuItem: ISubmenuItem, source: 'keyboard' | 'pointer' | 'item-executed') => void
+  readonly onClose: (
+    menuItem: ISubmenuItem,
+    source: 'keyboard' | 'pointer' | 'item-executed'
+  ) => void
 
   /**
    * A function that's called when the menu item is opened by the user clicking
    * on the button or pressing the down arrow key while it is collapsed.
    * This is a specialized version of the onDropdownStateChanged prop of the
    * ToolbarDropdown component.
-   * 
+   *
    * @param selectFirstItem - Whether or not to automatically select
    *                          the first item in the newly opened menu.
    *                          This is set when the menu is opened by the
@@ -86,13 +89,16 @@ interface IAppMenuBarButtonProps {
    * button component or any of its descendants. Note that this includes any
    * component or element within the foldout when that is open like, for
    * example, MenuItem components.
-   * 
+   *
    * This function is called before the menu bar button itself does any
    * processing of the event so consumers should make sure to call
    * event.preventDefault if they act on the event in order to make sure that
    * the menu bar button component doesn't act on the same key.
    */
-  readonly onKeyDown: (menuItem: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => void
+  readonly onKeyDown: (
+    menuItem: ISubmenuItem,
+    event: React.KeyboardEvent<HTMLDivElement>
+  ) => void
 
   /**
    * A function that's called once the component has been mounted. This, and
@@ -101,7 +107,7 @@ interface IAppMenuBarButtonProps {
    * is able to keep track of them without having to resort to closing over id's
    * in its render method which would cause the component to re-render on each
    * pass.
-   * 
+   *
    * Note that this method is unreliable if the component can receive a new
    * MenuItem during its lifetime. As such it's important that
    * consumers on this component uses a key prop that's equal to the id of
@@ -109,7 +115,10 @@ interface IAppMenuBarButtonProps {
    * consumers of this not rely on reference equality when tracking components
    * and instead use the id of the menuItem.
    */
-  readonly onDidMount?: (menuItem: ISubmenuItem, button: AppMenuBarButton) => void
+  readonly onDidMount?: (
+    menuItem: ISubmenuItem,
+    button: AppMenuBarButton
+  ) => void
 
   /**
    * A function that's called directly before the component unmounts. This, and
@@ -117,7 +126,7 @@ interface IAppMenuBarButtonProps {
    * these methods pass along the menuItem so that the parent component is able
    * to keep track of them without having to resort to closing over id's in its
    * render method which would cause the component to re-render on each pass.
-   * 
+   *
    * Note that this method is unreliable if the component can receive a new
    * MenuItem during its lifetime. As such it's important that
    * consumers on this component uses a key prop that's equal to the id of
@@ -125,7 +134,10 @@ interface IAppMenuBarButtonProps {
    * consumers of this not rely on reference equality when tracking components
    * and instead use the id of the menuItem.
    */
-  readonly onWillUnmount?: (menuItem: ISubmenuItem, button: AppMenuBarButton) => void
+  readonly onWillUnmount?: (
+    menuItem: ISubmenuItem,
+    button: AppMenuBarButton
+  ) => void
 
   readonly dispatcher: Dispatcher
 }
@@ -135,13 +147,15 @@ interface IAppMenuBarButtonProps {
  * in order to render the menu item as well as a foldout containing the item's
  * submenu (if open).
  */
-export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, void> {
-
+export class AppMenuBarButton extends React.Component<
+  IAppMenuBarButtonProps,
+  {}
+> {
   private innerDropDown: ToolbarDropdown | null = null
 
   /**
    * Gets a value indicating whether or not the menu of this
-   * particular menu item is expanded or collapsed. 
+   * particular menu item is expanded or collapsed.
    */
   private get isMenuOpen() {
     return this.props.menuState.length !== 0
@@ -169,10 +183,8 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   }
 
   public render() {
-
     const item = this.props.menuItem
     const dropDownState = this.isMenuOpen ? 'open' : 'closed'
-    const disabled = !item.enabled
 
     return (
       <ToolbarDropdown
@@ -184,9 +196,8 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         showDisclosureArrow={false}
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
-        disabled={disabled}
         tabIndex={-1}
-        role='menuitem'
+        role="menuitem"
       >
         <MenuListItem
           item={item}
@@ -207,7 +218,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-
     if (event.defaultPrevented) {
       return
     }
@@ -223,7 +233,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   }
 
   private onMenuClose = (closeSource: CloseSource) => {
-
     // If the user closes the menu by hitting escape we explicitly move focus
     // to the button so that it's highlighted and responds to Arrow keys.
     if (closeSource.type === 'keyboard' && closeSource.event.key === 'Escape') {
@@ -233,7 +242,10 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     this.props.onClose(this.props.menuItem, closeSource.type)
   }
 
-  private onDropdownStateChanged = (state: 'closed' | 'open', source: 'keyboard' | 'pointer') => {
+  private onDropdownStateChanged = (
+    state: 'closed' | 'open',
+    source: 'keyboard' | 'pointer'
+  ) => {
     if (this.isMenuOpen) {
       this.props.onClose(this.props.menuItem, source)
     } else {
@@ -248,13 +260,15 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
       return null
     }
 
-    return <AppMenu
-      dispatcher={this.props.dispatcher}
-      onClose={this.onMenuClose}
-      openedWithAccessKey={this.props.openedWithAccessKey}
-      state={menuState}
-      enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
-      autoHeight={true}
-    />
+    return (
+      <AppMenu
+        dispatcher={this.props.dispatcher}
+        onClose={this.onMenuClose}
+        openedWithAccessKey={this.props.openedWithAccessKey}
+        state={menuState}
+        enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
+        autoHeight={true}
+      />
+    )
   }
 }

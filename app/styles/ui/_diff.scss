@@ -1,4 +1,4 @@
-@import "../mixins";
+@import '../mixins';
 
 /** The container for the CodeMirror element. */
 .diff-code-mirror {
@@ -6,7 +6,7 @@
   min-width: 0;
 }
 
-.CodeMirror {
+.diff-code-mirror .CodeMirror {
   height: 100%;
   color: var(--diff-text-color);
   font-size: var(--font-size-sm);
@@ -36,7 +36,9 @@
       // Add a little bit of space to the left of code diff
       // `padding-left` here means mouse move events are not raised
       padding-left: var(--spacing-half);
-      align-self: center;      
+      padding-top: var(--diff-line-padding-y);
+      padding-bottom: var(--diff-line-padding-y);
+      display: inline-block;
     }
 
     svg.no-newline {
@@ -52,29 +54,36 @@
     // Add a border to the end of the diff
     border-bottom: var(--base-border);
   }
-
-  &-focused &-selected, &-selected {
-    background: var(--diff-selected-background-color)
-  }
-
-  &-selectedtext {
-    color: var(--diff-selected-text-color) !important;
-  }
 }
 
 // The container element which holds the before and after
 // diff-line-number spans.
 .diff-line-gutter {
-  line-height: normal;
   display: flex;
   height: 100%;
 
+  &.diff-add {
+    background: var(--diff-add-gutter-background-color);
+  }
+
+  &.diff-delete {
+    background: var(--diff-delete-gutter-background-color);
+  }
+
+  &.diff-hunk {
+    background: var(--diff-hunk-gutter-background-color);
+  }
+
   .before {
-     border-right: 1px solid var(--diff-border-color);
+    border-right: 1px solid var(--diff-border-color);
   }
 
   .after {
     border-right: 4px solid var(--diff-border-color);
+  }
+
+  &.read-only .after {
+    border-right-width: 1px;
   }
 }
 
@@ -82,7 +91,7 @@
   display: inline-block;
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
-  padding: var(--spacing-third) var(--spacing-half);
+  padding: var(--diff-line-padding-y) var(--spacing-half);
   text-align: right;
 }
 
@@ -137,8 +146,16 @@
   color: var(--diff-delete-text-color);
 }
 
+.cm-diff-delete-inner {
+  background: var(--diff-delete-inner-background-color);
+}
+
 .cm-diff-add {
   color: var(--diff-add-text-color);
+}
+
+.cm-diff-add-inner {
+  background: var(--diff-add-inner-background-color);
 }
 
 .cm-diff-context {
@@ -159,7 +176,6 @@
   }
 }
 
-
 .diff-line-selected {
   .diff-line-number {
     background: var(--diff-selected-background-color);
@@ -172,7 +188,6 @@
   }
 }
 
-
 .diff-line-hover {
   .diff-line-number {
     background: var(--diff-hover-background-color);
@@ -180,34 +195,34 @@
     color: var(--diff-hover-text-color);
 
     &:last-child {
-      border-color: var(--diff-hover-gutter-color);      
+      border-color: var(--diff-hover-gutter-color);
     }
   }
-}
 
+  &:not(.diff-line-selected) {
+    &.diff-add {
+      .diff-line-number {
+        background: var(--diff-add-hover-background-color);
+        border-color: var(--diff-add-hover-border-color);
+        color: var(--diff-add-hover-text-color);
 
-// Windows has custom scroll bars, see _scroll.scss
-@include win32-context {
-  .CodeMirror {
-    // Mirror the behavior of other scroll bars in desktop on Windows
-    // and only show them while hovering over the scroll container.
-    // We can't use display here since that's set as an inline style
-    // by CodeMirror so we'll resort to the old opacity hack.
-    &-vscrollbar,
-    &-hscrollbar {
-      opacity: 0;
-    }
-
-    &:hover {
-      .CodeMirror-vscrollbar,
-      .CodeMirror-hscrollbar {
-        opacity: 1;
+        &:last-child {
+          border-color: var(--diff-add-hover-gutter-color);
+        }
       }
     }
 
-    // This is a div that sits in the corner between the horizontal
-    // and vertical scroll bar and has an opaque background by default.
-    &-scrollbar-filler { background: transparent; }
+    &.diff-delete {
+      .diff-line-number {
+        background: var(--diff-delete-hover-background-color);
+        border-color: var(--diff-delete-hover-border-color);
+        color: var(--diff-delete-hover-text-color);
+
+        &:last-child {
+          border-color: var(--diff-delete-hover-gutter-color);
+        }
+      }
+    }
   }
 }
 
@@ -228,7 +243,7 @@
   min-width: 0;
   min-height: 0;
   object-fit: contain;
-  padding: 0 var(--spacing);
+  padding: 0;
 }
 // ***************************************************************************************************************************
 #diff a {
@@ -236,7 +251,275 @@
   margin-left: var(--spacing-half);
 }
 
-
 #diff a:link {
   color: (orange);
+}
+
+.panel.image {
+  display: flex;
+  flex: 1;
+  padding-top: 10px;
+
+  .tab-bar {
+    width: 350px;
+    margin: 10px auto 0;
+  }
+
+  .image-diff-previous {
+    color: var(--color-deleted);
+  }
+  .image-diff-current {
+    color: var(--color-new);
+  }
+
+  .image-diff-previous,
+  .image-diff-current {
+    text-align: center;
+
+    img {
+      @include checkboard-background;
+      border: 1px solid currentColor;
+    }
+  }
+
+  .image-diff-header {
+    font-weight: var(--font-weight-semibold);
+    padding-bottom: 10px;
+  }
+
+  .image-diff-footer {
+    color: var(--text-secondary-color);
+    .strong {
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+}
+
+.image-diff-two-up {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+
+  .image-diff-previous {
+    margin-right: 7.5px;
+  }
+  .image-diff-current {
+    margin-left: 7.5px;
+  }
+}
+
+.image-diff-difference {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .sizing-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .image-container {
+      position: relative;
+
+      .image-diff-previous,
+      .image-diff-current {
+        position: absolute;
+        top: 0;
+        left: 0;
+        img : {
+          border: 0;
+          background: transparent;
+        }
+      }
+    }
+  }
+}
+
+.image-diff-onion-skin {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .slider {
+    align-self: center;
+  }
+
+  .sizing-container {
+    margin: 0;
+    margin-bottom: var(--spacing-half);
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .image-diff-previous,
+    .image-diff-current {
+      position: absolute;
+      margin: 0;
+      overflow: hidden;
+
+      img {
+        border: 0;
+        background: transparent;
+      }
+    }
+
+    .image-diff-previous {
+      border: 1px solid var(--color-deleted);
+    }
+    .image-diff-current {
+      border: 1px solid var(--color-new);
+    }
+
+    .image-container {
+      @include checkboard-background;
+      position: relative;
+    }
+  }
+}
+
+.image-diff-swipe {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .slider {
+    align-self: center;
+  }
+
+  .sizing-container {
+    margin: 0;
+    margin-bottom: var(--spacing-half);
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .image-container {
+      position: relative;
+
+      .image-diff-previous,
+      .image-diff-current {
+        @include checkboard-background;
+        position: absolute;
+        margin: 0;
+        overflow: hidden;
+
+        img {
+          border: 0;
+          background: transparent;
+        }
+      }
+
+      .image-diff-previous {
+        border: 1px solid var(--color-deleted);
+        right: 0;
+      }
+      .image-diff-current {
+        border: 1px solid var(--color-new);
+      }
+
+      .swiper {
+        border-left: 1px solid var(--text-secondary-color);
+        margin: 0;
+        overflow: hidden;
+        position: absolute;
+        right: 0;
+      }
+    }
+  }
+}
+
+// Syntax higlighting. Adapted from
+// https://github.com/primer/github-syntax-light/blob/5aeffad2559647286080328436156c4904a9785b/lib/github-light.css
+.cm-s-default {
+  .cm-variable {
+    color: #6f42c1;
+  }
+
+  .cm-keyword {
+    color: #d73a49;
+  }
+
+  .cm-atom {
+    color: #005cc5;
+  }
+  .cm-number {
+    color: inherit;
+  }
+
+  .cm-def {
+    color: inherit;
+  }
+
+  .cm-variable-2,
+  .cm-variable-3 {
+    color: #24292e;
+  }
+  .cm-comment,
+  .cm-meta {
+    color: $gray-500;
+  }
+  .cm-string,
+  .cm-string-2 {
+    color: #032f62;
+
+    &.cm-property {
+      color: inherit;
+    }
+  }
+  .cm-qualifier {
+    color: #6f42c1;
+  }
+  .cm-type {
+    color: #d73a49;
+  }
+  .cm-builtin {
+    color: inherit;
+  }
+  .cm-bracket {
+    color: inherit;
+  }
+  .cm-tag {
+    color: #22863a;
+  }
+  .cm-attribute {
+    color: #6f42c1;
+  }
+  .cm-hr {
+    color: inherit;
+  }
+  .cm-link {
+    text-decoration: underline;
+    color: #032f62;
+  }
+
+  // Intra line markings takes precedence over syntax highlighting.
+  .cm-diff-delete-inner {
+    color: var(--diff-delete-text-color);
+  }
+
+  .cm-diff-add-inner {
+    color: var(--diff-add-text-color);
+  }
+
+  .cm-m-css {
+    &.cm-property {
+      color: #005cc5;
+    }
+  }
+
+  .cm-m-shell {
+    &.cm-builtin {
+      color: #005cc5;
+    }
+  }
+
+  .cm-m-javascript {
+    &.cm-type {
+      color: #6f42c1;
+    }
+  }
 }

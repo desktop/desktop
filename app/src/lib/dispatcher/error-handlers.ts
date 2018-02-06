@@ -1,8 +1,17 @@
-import { Dispatcher, AppStore, ErrorHandler } from './index'
-import { SelectionType } from '../app-state'
+import { Dispatcher } from './index'
 import { GitError } from '../git/core'
-import { GitError as GitErrorType, RepositoryDoesNotExistErrorCode } from 'dugite'
+import {
+  GitError as DugiteError,
+  RepositoryDoesNotExistErrorCode,
+} from 'dugite'
 import { ErrorWithMetadata } from '../error-with-metadata'
+import { ExternalEditorError } from '../editors/shared'
+import { AuthenticationErrors } from '../git/authentication'
+import { Repository } from '../../models/repository'
+import { PopupType } from '../../lib/app-state'
+import { ShellError } from '../shells'
+import { UpstreamAlreadyExistsError } from '../stores/upstream-already-exists-error'
+import { FetchType } from '../stores/index'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -33,56 +42,60 @@ function asErrorWithMetadata(error: Error): ErrorWithMetadata | null {
   }
 }
 
+/** Cast the error to a `GitError` if possible. Otherwise return null. */
+function asGitError(error: Error): GitError | null {
+  if (error instanceof GitError) {
+    return error
+  } else {
+    return null
+  }
+}
+
+function asEditorError(error: Error): ExternalEditorError | null {
+  if (error instanceof ExternalEditorError) {
+    return error
+  }
+  return null
+}
+
 /** Handle errors by presenting them. */
-export async function defaultErrorHandler(error: Error, dispatcher: Dispatcher): Promise<Error | null> {
-  await dispatcher.presentError(error)
+export async function defaultErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error) || error
+  await dispatcher.presentError(e)
 
   return null
 }
 
-/** Create a new missing repository error handler with the given AppStore. */
-export function createMissingRepositoryHandler(appStore: AppStore): ErrorHandler {
-  return async (error: Error, dispatcher: Dispatcher) => {
-    const appState = appStore.getState()
-    const selectedState = appState.selectedState
-    if (!selectedState) {
-      return error
-    }
-
-    if (selectedState.type !== SelectionType.MissingRepository && selectedState.type !== SelectionType.Repository) {
-      return error
-    }
-
-    const repository = selectedState.repository
-    if (repository.missing) {
-      return null
-    }
-
-    const errorWithCode = asErrorWithCode(error)
-
-    const missing =
-      error instanceof GitError && error.result.gitError === GitErrorType.NotAGitRepository ||
-      (errorWithCode && errorWithCode.code === RepositoryDoesNotExistErrorCode)
-
-    if (missing) {
-      await dispatcher.updateRepositoryMissing(selectedState.repository, true)
-      return null
-    }
-
-    return error
-  }
-}
-
-/** Trap and handle uncaught errors to ensure the app exits cleanly */
-export async function unhandledExceptionHandler(error: Error, dispatcher: Dispatcher) {
+/** Handler for when a repository disappears 😱. */
+export async function missingRepositoryHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
   const e = asErrorWithMetadata(error)
   if (!e) {
     return error
   }
 
-  const metadata = e.metadata
-  if (metadata.uncaught) {
-    await dispatcher.presentError(error)
+  const repository = e.metadata.repository
+  if (!repository || !(repository instanceof Repository)) {
+    return error
+  }
+
+  if (repository.missing) {
+    return null
+  }
+
+  const errorWithCode = asErrorWithCode(e.underlyingError)
+  const gitError = asGitError(e.underlyingError)
+  const missing =
+    (gitError && gitError.result.gitError === DugiteError.NotAGitRepository) ||
+    (errorWithCode && errorWithCode.code === RepositoryDoesNotExistErrorCode)
+
+  if (missing) {
+    await dispatcher.updateRepositoryMissing(repository, true)
     return null
   }
 
@@ -90,7 +103,10 @@ export async function unhandledExceptionHandler(error: Error, dispatcher: Dispat
 }
 
 /** Handle errors that happen as a result of a background task. */
-export async function backgroundTaskHandler(error: Error, dispatcher: Dispatcher): Promise<Error | null> {
+export async function backgroundTaskHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
   const e = asErrorWithMetadata(error)
   if (!e) {
     return error
@@ -104,4 +120,175 @@ export async function backgroundTaskHandler(error: Error, dispatcher: Dispatcher
   } else {
     return error
   }
+}
+
+/** Handle git authentication errors in a manner that seems Right And Good. */
+export async function gitAuthenticationErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (!AuthenticationErrors.has(dugiteError)) {
+    return error
+  }
+
+  const repository = e.metadata.repository
+  if (!repository) {
+    return error
+  }
+
+  // If it's a GitHub repository then it's not some generic git server
+  // authentication problem, but more likely a legit permission problem. So let
+  // the error continue to bubble up.
+  if (repository instanceof Repository && repository.gitHubRepository) {
+    return error
+  }
+
+  const retry = e.metadata.retryAction
+  if (!retry) {
+    log.error(`No retry action provided for a git authentication error.`, e)
+    return error
+  }
+
+  await dispatcher.promptForGenericGitAuthentication(repository, retry)
+
+  return null
+}
+
+export async function externalEditorErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asEditorError(error)
+  if (!e) {
+    return error
+  }
+
+  const { suggestAtom, openPreferences } = e.metadata
+
+  await dispatcher.showPopup({
+    type: PopupType.ExternalEditorFailed,
+    message: e.message,
+    suggestAtom,
+    openPreferences,
+  })
+
+  return null
+}
+
+export async function openShellErrorHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  if (!(error instanceof ShellError)) {
+    return error
+  }
+
+  await dispatcher.showPopup({
+    type: PopupType.OpenShellFailed,
+    message: error.message,
+  })
+
+  return null
+}
+
+/** Handle errors where they need to pull before pushing. */
+export async function pushNeedsPullHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.PushNotFastForward) {
+    return error
+  }
+
+  const repository = e.metadata.repository
+  if (!repository) {
+    return error
+  }
+
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  // Since they need to pull, go ahead and do a fetch for them.
+  dispatcher.fetch(repository, FetchType.UserInitiatedTask)
+
+  return error
+}
+
+/**
+ * Handler for when we attempt to install the global LFS filters and LFS throws
+ * an error.
+ */
+export async function lfsAttributeMismatchHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const gitError = asGitError(error)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (!dugiteError) {
+    return error
+  }
+
+  if (dugiteError !== DugiteError.LFSAttributeDoesNotMatch) {
+    return error
+  }
+
+  dispatcher.showPopup({ type: PopupType.LFSAttributeMismatch })
+
+  return null
+}
+
+/**
+ * Handler for when an upstream remote already exists but doesn't actually match
+ * the upstream repository.
+ */
+export async function upstreamAlreadyExistsHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  if (!(error instanceof UpstreamAlreadyExistsError)) {
+    return error
+  }
+
+  dispatcher.showPopup({
+    type: PopupType.UpstreamAlreadyExists,
+    repository: error.repository,
+    existingRemote: error.existingRemote,
+  })
+
+  return null
 }

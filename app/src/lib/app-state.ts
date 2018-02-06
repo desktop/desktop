@@ -6,12 +6,26 @@ import { IAheadBehind } from './git'
 import { Branch } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
-import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
-import { CloningRepository, IGitHubUser, SignInState } from './dispatcher'
-import { ICommitMessage } from './dispatcher/git-store'
+import {
+  CommittedFileChange,
+  WorkingDirectoryStatus,
+  WorkingDirectoryFileChange,
+} from '../models/status'
+import { CloningRepository } from '../models/cloning-repository'
+import { IGitHubUser } from './databases/github-user-database'
+import { SignInState } from './stores/sign-in-store'
+import { ICommitMessage } from './stores/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
+import { RetryAction } from './retry-actions'
+import { ExternalEditor } from '../lib/editors'
+import { PreferencesTab } from '../models/preferences'
+import { Shell } from './shells'
+import { CloneRepositoryTab } from '../models/clone-repository-tab'
+import { BranchesTab } from '../models/branches-tab'
+import { PullRequest } from '../models/pull-request'
+import { IAuthor } from '../models/author'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -22,9 +36,33 @@ export enum SelectionType {
   MissingRepository,
 }
 
-export type PossibleSelections = { type: SelectionType.Repository, repository: Repository, state: IRepositoryState } |
-                                 { type: SelectionType.CloningRepository, repository: CloningRepository, progress: ICloneProgress } |
-                                 { type: SelectionType.MissingRepository, repository: Repository }
+/** The image diff type. */
+export enum ImageDiffType {
+  /** Show the old and new images side by side. */
+  TwoUp,
+
+  /** Swipe between the old and new image. */
+  Swipe,
+
+  /** Onion skin. */
+  OnionSkin,
+
+  /** Highlight differences. */
+  Difference,
+}
+
+export type PossibleSelections =
+  | {
+      type: SelectionType.Repository
+      repository: Repository
+      state: IRepositoryState
+    }
+  | {
+      type: SelectionType.CloningRepository
+      repository: CloningRepository
+      progress: ICloneProgress
+    }
+  | { type: SelectionType.MissingRepository; repository: Repository }
 
 /** All of the shared app state. */
 export interface IAppState {
@@ -118,7 +156,28 @@ export interface IAppState {
   readonly isUpdateAvailableBannerVisible: boolean
 
   /** Whether we should show a confirmation dialog */
-  readonly confirmRepoRemoval: boolean
+  readonly askForConfirmationOnRepositoryRemoval: boolean
+
+  /** Whether we should show a confirmation dialog */
+  readonly askForConfirmationOnDiscardChanges: boolean
+
+  /** The external editor to use when opening repositories */
+  readonly selectedExternalEditor?: ExternalEditor
+
+  /** What type of visual diff mode we should use to compare images */
+  readonly imageDiffType: ImageDiffType
+
+  /** The user's preferred shell. */
+  readonly selectedShell: Shell
+
+  /** The current repository filter text. */
+  readonly repositoryFilterText: string
+
+  /** The currently selected tab for Clone Repository. */
+  readonly selectedCloneRepositoryTab: CloneRepositoryTab
+
+  /** The currently selected tab for the Branches foldout. */
+  readonly selectedBranchesTab: BranchesTab
 }
 
 export enum PopupType {
@@ -140,26 +199,88 @@ export enum PopupType {
   UntrustedCertificate,
   RemoveRepository,
   TermsAndConditions,
+  PushBranchCommits,
+  CLIInstalled,
+  GenericGitAuthentication,
+  ExternalEditorFailed,
+  OpenShellFailed,
+  InitializeLFS,
+  LFSAttributeMismatch,
+  UpstreamAlreadyExists,
+  DeletePullRequest,
 }
 
-export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
-                    { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
-                    { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
-                    { type: PopupType.Preferences } |
-                    { type: PopupType.MergeBranch, repository: Repository } |
-                    { type: PopupType.RepositorySettings, repository: Repository } |
-                    { type: PopupType.AddRepository, initialPath: string | null } |
-                    { type: PopupType.CreateRepository } |
-                    { type: PopupType.CloneRepository, initialURL: string | null } |
-                    { type: PopupType.CreateBranch, repository: Repository } |
-                    { type: PopupType.SignIn } |
-                    { type: PopupType.About } |
-                    { type: PopupType.InstallGit, path: string } |
-                    { type: PopupType.PublishRepository, repository: Repository } |
-                    { type: PopupType.Acknowledgements } |
-                    { type: PopupType.UntrustedCertificate, certificate: Electron.Certificate, url: string } |
-                    { type: PopupType.RemoveRepository, repository: Repository } |
-                    { type: PopupType.TermsAndConditions }
+export type Popup =
+  | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
+  | {
+      type: PopupType.DeleteBranch
+      repository: Repository
+      branch: Branch
+      existsOnRemote: boolean
+    }
+  | {
+      type: PopupType.ConfirmDiscardChanges
+      repository: Repository
+      files: ReadonlyArray<WorkingDirectoryFileChange>
+    }
+  | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
+  | { type: PopupType.MergeBranch; repository: Repository }
+  | { type: PopupType.RepositorySettings; repository: Repository }
+  | { type: PopupType.AddRepository; path?: string }
+  | { type: PopupType.CreateRepository; path?: string }
+  | {
+      type: PopupType.CloneRepository
+      initialURL: string | null
+    }
+  | {
+      type: PopupType.CreateBranch
+      repository: Repository
+      initialName?: string
+    }
+  | { type: PopupType.SignIn }
+  | { type: PopupType.About }
+  | { type: PopupType.InstallGit; path: string }
+  | { type: PopupType.PublishRepository; repository: Repository }
+  | { type: PopupType.Acknowledgements }
+  | {
+      type: PopupType.UntrustedCertificate
+      certificate: Electron.Certificate
+      url: string
+    }
+  | { type: PopupType.RemoveRepository; repository: Repository }
+  | { type: PopupType.TermsAndConditions }
+  | {
+      type: PopupType.PushBranchCommits
+      repository: Repository
+      branch: Branch
+      unPushedCommits?: number
+    }
+  | { type: PopupType.CLIInstalled }
+  | {
+      type: PopupType.GenericGitAuthentication
+      hostname: string
+      retryAction: RetryAction
+    }
+  | {
+      type: PopupType.ExternalEditorFailed
+      message: string
+      suggestAtom?: boolean
+      openPreferences?: boolean
+    }
+  | { type: PopupType.OpenShellFailed; message: string }
+  | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
+  | { type: PopupType.LFSAttributeMismatch }
+  | {
+      type: PopupType.UpstreamAlreadyExists
+      repository: Repository
+      existingRemote: IRemote
+    }
+  | {
+      type: PopupType.DeletePullRequest
+      repository: Repository
+      branch: Branch
+      pullRequest: PullRequest
+    }
 
 export enum FoldoutType {
   Repository,
@@ -169,14 +290,14 @@ export enum FoldoutType {
 }
 
 export type AppMenuFoldout = {
-  type: FoldoutType.AppMenu,
+  type: FoldoutType.AppMenu
 
   /**
    * Whether or not the application menu was opened with the Alt key, this
    * enables access key highlighting for applicable menu items as well as
    * keyboard navigation by pressing access keys.
    */
-  enableAccessKeyNavigation: boolean,
+  enableAccessKeyNavigation: boolean
 
   /**
    * Whether the menu was opened by pressing Alt (or Alt+X where X is an
@@ -185,14 +306,14 @@ export type AppMenuFoldout = {
    * selection and focus. Specifically it will ensure that the last opened
    * menu will receive focus.
    */
-  openedWithAccessKey?: boolean,
+  openedWithAccessKey?: boolean
 }
 
 export type Foldout =
-  { type: FoldoutType.Repository } |
-  { type: FoldoutType.Branch } |
-  { type: FoldoutType.AddMenu } |
-  AppMenuFoldout
+  | { type: FoldoutType.Repository }
+  | { type: FoldoutType.Branch }
+  | { type: FoldoutType.AddMenu }
+  | AppMenuFoldout
 
 export enum RepositorySection {
   Changes,
@@ -261,20 +382,29 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly pushPullFetchProgress: Progress | null
+
+  /**
+   * If we're currently reverting a commit and it involves LFS progress, this
+   * will contain the LFS progress.
+   *
+   * null if no such operation is in flight.
+   */
+  readonly revertProgress: IRevertProgress | null
 }
 
-export type Progress = IGenericProgress
+export type Progress =
+  | IGenericProgress
   | ICheckoutProgress
   | IFetchProgress
   | IPullProgress
   | IPushProgress
+  | IRevertProgress
 
 /**
  * Base interface containing all the properties that progress events
  * need to support.
  */
 interface IProgress {
-
   /**
    * The overall progress of the operation, represented as a fraction between
    * 0 and 1.
@@ -327,7 +457,7 @@ export interface IFetchProgress extends IProgress {
   /**
    * The remote that's being fetched
    */
-  readonly remote: string,
+  readonly remote: string
 }
 
 /**
@@ -339,7 +469,7 @@ export interface IPullProgress extends IProgress {
   /**
    * The remote that's being pulled from
    */
-  readonly remote: string,
+  readonly remote: string
 }
 
 /**
@@ -351,12 +481,12 @@ export interface IPushProgress extends IProgress {
   /**
    * The remote that's being pushed to
    */
-  readonly remote: string,
+  readonly remote: string
 
   /**
    * The branch that's being pushed
    */
-  readonly branch: string,
+  readonly branch: string
 }
 
 /**
@@ -364,6 +494,11 @@ export interface IPushProgress extends IProgress {
  */
 export interface ICloneProgress extends IProgress {
   kind: 'clone'
+}
+
+/** An object describing the progression of a revert operation. */
+export interface IRevertProgress extends IProgress {
+  kind: 'revert'
 }
 
 export interface IBranchesState {
@@ -393,11 +528,20 @@ export interface IBranchesState {
    * switches over the last couple of thousand reflog entries.
    */
   readonly recentBranches: ReadonlyArray<Branch>
+
+  /** The open pull requests in the repository. */
+  readonly openPullRequests: ReadonlyArray<PullRequest>
+
+  /** Are we currently loading pull requests? */
+  readonly isLoadingPullRequests: boolean
+
+  /** The pull request associated with the current branch. */
+  readonly currentPullRequest: PullRequest | null
 }
 
 export interface IHistorySelection {
   readonly sha: string | null
-  readonly file: FileChange | null
+  readonly file: CommittedFileChange | null
 }
 
 export interface IHistoryState {
@@ -406,7 +550,7 @@ export interface IHistoryState {
   /** The ordered SHAs. */
   readonly history: ReadonlyArray<string>
 
-  readonly changedFiles: ReadonlyArray<FileChange>
+  readonly changedFiles: ReadonlyArray<CommittedFileChange>
 
   readonly diff: IDiff | null
 }
@@ -423,11 +567,26 @@ export interface IChangesState {
   readonly diff: IDiff | null
 
   /**
-   * The commit message to use based on the contex of the repository, e.g., the
+   * The commit message to use based on the context of the repository, e.g., the
    * message from a recently undone commit.
    */
   readonly contextualCommitMessage: ICommitMessage | null
 
   /** The commit message for a work-in-progress commit in the changes view. */
   readonly commitMessage: ICommitMessage | null
+
+  /**
+   * Whether or not to show a field for adding co-authors to
+   * a commit (currently only supported for GH/GHE repositories)
+   */
+  readonly showCoAuthoredBy: boolean
+
+  /**
+   * A list of authors (name, email pairs) which have been
+   * entered into the co-authors input box in the commit form
+   * and which _may_ be used in the subsequent commit to add
+   * Co-Authored-By commit message trailers depending on whether
+   * the user has chosen to do so.
+   */
+  readonly coAuthors: ReadonlyArray<IAuthor>
 }

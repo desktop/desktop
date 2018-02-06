@@ -2,19 +2,19 @@
 //
 // This files contains CSS variables accessible to all selectors
 
-// Primer colors, see https://github.com/primer/primer-support/blob/master/lib/variables/color-system.scss
+// Primer colors, see https://github.com/primer/primer-css/blob/master/modules/primer-support/lib/variables/color-system.scss
 @import '~primer-support/lib/variables/color-system.scss';
 
 :root {
-
   --color-new: $green;
   --color-deleted: $red;
-  --color-modified: $yellow;
+  --color-modified: $yellow-700;
   --color-renamed: $blue;
   --color-conflicted: $orange;
 
   --text-color: $gray-900;
   --text-secondary-color: $gray-500;
+  --text-tertiary-color: $gray-400;
   --background-color: $white;
 
   --button-height: 25px;
@@ -86,6 +86,11 @@
   --box-alt-background-color: $gray-100;
 
   /**
+   * Background color for skeleton or "loading" boxes
+   */
+  --box-skeleton-background-color: $gray-200;
+
+  /**
    * Border color for boxes.
    */
   --box-border-color: $gray-200;
@@ -94,7 +99,7 @@
   /**
    * Background color for selected boxes without keyboard focus
    */
-  --box-selected-background-color: $gray-100;
+  --box-selected-background-color: #ebeef1;
 
   /**
    * Text color for when a user hovers over a boxe with a
@@ -136,11 +141,17 @@
    */
   --box-selected-active-border-color: $gray-400;
 
-  /** The height of the title bar area on Win32 platforms */
+  /**
+   * The height of the title bar area on Win32 platforms
+   * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
+  */
   --win32-title-bar-height: 28px;
   --win32-title-bar-background-color: $gray-900;
 
-  /** The height of the title bar area on darwin platforms */
+  /**
+   * The height of the title bar area on darwin platforms
+   * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
+  */
   --darwin-title-bar-height: 22px;
 
   --spacing: 10px;
@@ -153,7 +164,7 @@
   --border-radius: 3px;
   --base-border: 1px solid var(--box-border-color);
 
-  --shadow-color: rgba(71,83,95,0.19);
+  --shadow-color: rgba(71, 83, 95, 0.19);
   --base-box-shadow: 0 2px 7px var(--shadow-color);
 
   --toolbar-height: 50px;
@@ -204,7 +215,6 @@
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: $blue;
 
-
   /**
    * Variables for form elements
    */
@@ -214,6 +224,8 @@
   /**
    * Diff view
    */
+
+  --diff-line-padding-y: 2px;
 
   --diff-text-color: $gray-900;
   --diff-border-color: $gray-200;
@@ -227,25 +239,40 @@
   --diff-selected-gutter-color: $blue-600;
   --diff-selected-text-color: var(--background-color);
 
-  --diff-add-background-color: $green-000;
-  --diff-add-border-color: $green-200;
-  --diff-add-gutter-color: $green-200;
+  --diff-add-background-color: darken($green-000, 2%);
+  --diff-add-border-color: $green-300;
+  --diff-add-gutter-color: $green-300;
+  --diff-add-gutter-background-color: darken($green-100, 3%);
+  --diff-add-inner-background-color: #acf2bd;
   --diff-add-text-color: var(--diff-text-color);
 
   --diff-delete-background-color: $red-000;
-  --diff-delete-border-color: $red-100;
+  --diff-delete-border-color: $red-200;
   --diff-delete-gutter-color: $red-200;
+  --diff-delete-gutter-background-color: $red-100;
+  --diff-delete-inner-background-color: #fdb8c0;
   --diff-delete-text-color: var(--diff-text-color);
 
   --diff-hunk-background-color: $blue-000;
   --diff-hunk-border-color: $blue-200;
-  --diff-hunk-gutter-color: $blue-200;
+  --diff-hunk-gutter-color: darken($blue-200, 5%);
+  --diff-hunk-gutter-background-color: $blue-100;
   --diff-hunk-text-color: $gray;
 
   --diff-hover-background-color: $blue-300;
   --diff-hover-border-color: $blue-400;
   --diff-hover-gutter-color: $blue-400;
   --diff-hover-text-color: var(--background-color);
+
+  --diff-add-hover-background-color: $green-300;
+  --diff-add-hover-border-color: $green-400;
+  --diff-add-hover-gutter-color: $green-400;
+  --diff-add-hover-text-color: var(--text-color);
+
+  --diff-delete-hover-background-color: $red-200;
+  --diff-delete-hover-border-color: $red-300;
+  --diff-delete-hover-gutter-color: $red-300;
+  --diff-delete-hover-text-color: var(--text-color);
 
   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
   // specified in `changes/index.tsx`.

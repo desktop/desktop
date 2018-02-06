@@ -22,19 +22,8 @@
 import * as ts from 'typescript'
 import * as Lint from 'tslint'
 
-export class Rule extends Lint.Rules.AbstractRule {
-    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
-      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
-        return this.applyWithWalker(new ReactNoUnboundDispatcherPropsWalker(sourceFile, this.getOptions()))
-      } else {
-          return []
-      }
-    }
-}
-
 // The walker takes care of all the work.
 class ReactNoUnboundDispatcherPropsWalker extends Lint.RuleWalker {
-
   protected visitJsxElement(node: ts.JsxElement): void {
     this.visitJsxOpeningLikeElement(node.openingElement)
     super.visitJsxElement(node)
@@ -53,45 +42,66 @@ class ReactNoUnboundDispatcherPropsWalker extends Lint.RuleWalker {
   private visitJsxOpeningLikeElement(node: ts.JsxOpeningLikeElement): void {
     // create violations if the listener is a reference to a class method that was not bound to 'this' in the constructor
     node.attributes.properties.forEach(attributeLikeElement => {
-
-      if (attributeLikeElement.kind !== ts.SyntaxKind.JsxAttribute) { return }
+      if (attributeLikeElement.kind !== ts.SyntaxKind.JsxAttribute) {
+        return
+      }
 
       // This is some weak sauce, why doesn't JsxAttribute specify a literal kind
       // so that it can be narrowed automatically?
-      const attribute: ts.JsxAttribute = <ts.JsxAttribute>attributeLikeElement
+      const attribute: ts.JsxAttribute = attributeLikeElement
 
       // This means that the attribute is an inferred boolean true value. See:
       //
       // https://github.com/Microsoft/TypeScript/blob/52ec508/src/compiler/types.ts#L1483
       // https://facebook.github.io/react/docs/jsx-in-depth.html#props-default-to-true
-      if (!attribute.initializer) { return }
+      if (!attribute.initializer) {
+        return
+      }
 
       // This likely means that the attribute is a string literal
       // ie <foo className='foo' />
-      if (attribute.initializer.kind !== ts.SyntaxKind.JsxExpression) { return }
+      if (attribute.initializer.kind !== ts.SyntaxKind.JsxExpression) {
+        return
+      }
 
       const jsxExpression: ts.JsxExpression = attribute.initializer
 
       // We only care about property accesses, direct method invocation on
       // dispatcher is still okay. This excludes things like
       // <A foo={1} />, <B foo={this.method()} />, <C foo={{ foo: 'bar' }} etc.
-      if (!jsxExpression.expression || jsxExpression.expression.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+      if (
+        !jsxExpression.expression ||
+        jsxExpression.expression.kind !== ts.SyntaxKind.PropertyAccessExpression
+      ) {
         return
       }
 
-      const propAccess: ts.PropertyAccessExpression = <ts.PropertyAccessExpression>jsxExpression.expression
+      const propAccess: ts.PropertyAccessExpression = jsxExpression.expression as ts.PropertyAccessExpression
       const propAccessText = propAccess.getText()
 
       if (/^this\.props\.dispatcher\./.test(propAccessText)) {
         const start = propAccess.getStart()
         const width = propAccess.getWidth()
         const error = `Use of unbound dispatcher method: ${propAccessText}.`
-        const explanation = 'Consider extracting the method call to a bound instance method.'
+        const explanation =
+          'Consider extracting the method call to a bound instance method.'
 
         const message = `${error} ${explanation}`
 
         this.addFailure(this.createFailure(start, width, message))
       }
     })
+  }
+}
+
+export class Rule extends Lint.Rules.AbstractRule {
+  public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
+    if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
+      return this.applyWithWalker(
+        new ReactNoUnboundDispatcherPropsWalker(sourceFile, this.getOptions())
+      )
+    } else {
+      return []
+    }
   }
 }

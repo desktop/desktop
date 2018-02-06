@@ -1,31 +1,73 @@
 import * as React from 'react'
 import { PathLabel } from '../lib/path-label'
-import { FileStatus, mapStatus, iconForStatus } from '../../models/status'
-import { Octicon } from '../octicons'
+import { AppFileStatus, mapStatus, iconForStatus } from '../../models/status'
+import { IDiff, DiffType } from '../../models/diff'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { Button } from '../lib/button'
+import { enableMergeTool } from '../../lib/feature-flag'
 
 interface IChangedFileDetailsProps {
   readonly path: string
   readonly oldPath?: string
-  readonly status: FileStatus
+  readonly status: AppFileStatus
+  readonly diff: IDiff
+
+  readonly onOpenMergeTool: (path: string) => void
 }
 
 /** Displays information about a file */
-export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps, void> {
+export class ChangedFileDetails extends React.Component<
+  IChangedFileDetailsProps,
+  {}
+> {
   public render() {
-
     const status = this.props.status
     const fileStatus = mapStatus(status)
 
     return (
-      <div className='header'>
+      <div className="header">
         <PathLabel
           path={this.props.path}
           oldPath={this.props.oldPath}
-          status={this.props.status} />
-        <Octicon symbol={iconForStatus(status)}
-            className={'status status-' + fileStatus.toLowerCase()}
-            title={fileStatus} />
+          status={this.props.status}
+        />
+        {this.renderDecorator()}
+
+        <Octicon
+          symbol={iconForStatus(status)}
+          className={'status status-' + fileStatus.toLowerCase()}
+          title={fileStatus}
+        />
       </div>
     )
+  }
+
+  private renderDecorator() {
+    const status = this.props.status
+    const diff = this.props.diff
+    if (status === AppFileStatus.Conflicted && enableMergeTool()) {
+      return (
+        <Button className="open-merge-tool" onClick={this.onOpenMergeTool}>
+          {__DARWIN__ ? 'Open Merge Tool' : 'Open merge tool'}
+        </Button>
+      )
+    } else if (diff.kind === DiffType.Text && diff.lineEndingsChange) {
+      const message = `Warning: line endings have changed from '${
+        diff.lineEndingsChange.from
+      }' to '${diff.lineEndingsChange.to}'.`
+      return (
+        <Octicon
+          symbol={OcticonSymbol.alert}
+          className={'line-endings'}
+          title={message}
+        />
+      )
+    } else {
+      return null
+    }
+  }
+
+  private onOpenMergeTool = () => {
+    this.props.onOpenMergeTool(this.props.path)
   }
 }

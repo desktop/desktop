@@ -10,7 +10,12 @@ export class RangeSelection implements ISelectionStrategy {
   private readonly _desiredSelection: boolean
   private readonly _snapshot: DiffSelection
 
-  public constructor(start: number, end: number, desiredSelection: boolean, snapshot: DiffSelection) {
+  public constructor(
+    start: number,
+    end: number,
+    desiredSelection: boolean,
+    snapshot: DiffSelection
+  ) {
     this._start = start
     this._end = end
     this._desiredSelection = desiredSelection
@@ -22,7 +27,7 @@ export class RangeSelection implements ISelectionStrategy {
   }
 
   public paint(elements: Map<number, DiffLineGutter>) {
-    range(this._start, this._end).forEach(row => {
+    range(this._start, this._end + 1).forEach(row => {
       const element = elements.get(row)
 
       if (!element) {
@@ -34,20 +39,18 @@ export class RangeSelection implements ISelectionStrategy {
         return
       }
 
-      const selected = this._desiredSelection
-
-      element.setSelected(selected)
+      element.setSelected(this._desiredSelection)
     })
   }
 
   public done(): DiffSelection {
-
-    const length = (this._end - this._start) + 1
+    const length = this._end - this._start + 1
 
     const newSelection = this._snapshot.withRangeSelection(
       this._start,
       length,
-      this._desiredSelection)
+      this._desiredSelection
+    )
 
     return newSelection
   }

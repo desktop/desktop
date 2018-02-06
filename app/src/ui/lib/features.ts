@@ -1,4 +1,7 @@
-function getFeatureOverride(featureName: string, defaultValue: boolean): boolean {
+function getFeatureOverride(
+  featureName: string,
+  defaultValue: boolean
+): boolean {
   const override = localStorage.getItem(`features/${featureName}`)
 
   if (override) {
@@ -12,7 +15,11 @@ function getFeatureOverride(featureName: string, defaultValue: boolean): boolean
   return defaultValue
 }
 
-function featureFlag(featureName: string, defaultValue: boolean, memoize: boolean): () => boolean {
+function featureFlag(
+  featureName: string,
+  defaultValue: boolean,
+  memoize: boolean
+): () => boolean {
   const getter = () => getFeatureOverride(featureName, defaultValue)
 
   if (memoize) {
@@ -36,5 +43,5 @@ function featureFlag(featureName: string, defaultValue: boolean, memoize: boolea
 export const shouldRenderApplicationMenu = featureFlag(
   'should-render-application-menu',
   __DARWIN__ ? false : true,
-  true,
+  true
 )

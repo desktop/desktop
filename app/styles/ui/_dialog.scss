@@ -8,6 +8,15 @@
 // allow easy layout using generalized components and elements such as <Row>
 // and <p>.
 dialog {
+
+  // These are custom version of the alert and stop octicons that have been
+  // scaled and adjusted to render crisply at 24px.
+  //
+  // Related: https://css-tricks.com/probably-dont-base64-svg/
+  --dialog-icon-alert: url('data:image/svg+xml;utf8,<svg height="24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="m 12,1.5 c -0.5,0 -1.5,0 -2,1 L 5,11 0.33203125,19.234375 C -0.5,21 0.5,23 2.4902344,23 L 12,23 21.509766,23 C 23.5,23 24.5,21 23.667969,19.234375 L 19,11 14,2.5 c -0.5,-1 -1.5,-1 -2,-1 z m -1,5.5 2,0 0,8 -2,0 z m 0,10 2,0 0,2 -2,0 z" /></svg>');
+  --dialog-icon-stop: url('data:image/svg+xml;utf8,<svg height="24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="m 16,2 -9,0 -6,6 0,9 6,6 9,0 6,-6 0,-9 z m 4.5,14.25 -5.25,5.25 -7.5,0 -5.25,-5.25 0,-7.5 5.25,-5.25 7.5,0 5.25,5.25 z M 10,6 l 3,0 0,8 -3,0 z m 0,10 3,0 0,3 -3,0 z" /></svg>');
+  --dialog-icon-size: 24px;
+
   border: var(--base-border);
   box-shadow: var(--base-box-shadow);
   padding: 0;
@@ -92,53 +101,39 @@ dialog {
   .dialog-header {
     height: 50px;
     border-bottom: var(--base-border);
-    position: relative;
 
-    // There's at most three elements in the header,
-    //   1. The icon (optional, only for errors, warnings, etc)
-    //   2. The title, a h1 element which is always present if the
-    //      header element is visible
-    //   3. The close button (optional, hidden when dialog isn't dismissable).
-    //
-    // In order to correctly center the title in all scenarios we lay out the
-    // children in a flexbox but we position the icon and close button
-    // absolutely to the left and right side leaving the h1 all available
-    // width. We then add a 40px margin on each side of the h1 ensuring that
-    // even in the scenario where only one of the two optional elements is
-    // visible the h1 stays centered horizontally.
     display: flex;
     flex-direction: row;
-    justify-content: center;
     align-items: center;
+    padding: var(--spacing-double);
 
     svg.icon {
-      position: absolute;
-      left: var(--spacing);
+      flex-shrink: 0;
+      margin-right: var(--spacing);
     }
 
     h1 {
       font-weight: var(--font-weight-semibold);
       font-size: var(--font-size-md);
-
-      // See comment above. 40px is enough space to clear both the icon
-      // and the close button with their respective margins.
-      margin: 0 40px;
-      text-align: center;
+      margin: 0;
       padding: 0;
-      flex-grow: 1;
+      margin-right: var(--spacing);
 
       @include ellipsis;
     }
 
     .close {
-      position: absolute;
-      right: var(--spacing);
-      top: var(--spacing);
+      flex-shrink: 0;
 
       border: 0;
       height: 16px;
       width: 16px;
-      margin: 0;
+
+      // Set the left margin to auto so that flexbox positions the button
+      // on the right hand side of the dialog and add a -10px right hand
+      // side margin to put the button where it should be (we use a double
+      // margin for the header itself).
+      margin: 0 calc(var(--spacing) * -1) 0 auto;
       padding: 0;
       background: transparent;
 
@@ -157,6 +152,52 @@ dialog {
       &:focus {
         outline: 0;
       }
+    }
+  }
+
+  &.warning, &.error {
+    .dialog-content {
+      position: relative;
+      margin-left: var(--spacing-double);
+      // A zero padding would mean the icon and the text lines up so we
+      // add another double spacing plus the width of the icon to ensure
+      // we have a decently horizontally centered placement of the icon.
+      padding-left: calc(var(--spacing-double) + var(--dialog-icon-size));
+
+      // Ensure that the dialog contents always have room for the icon,
+      // account for two double spacers at top and bottom plus the 5px
+      // icon offset (margin-top) and the size of the icon itself.
+      min-height: calc(var(--spacing-double) * 2 + var(--spacing-half) + var(--dialog-icon-size));
+
+      // We're creating an opaque 24 by 24px div with the background color
+      // that we want the icon to appear in and then apply the icon path
+      // as a mask, that way we can control the color dynamically based on
+      // our variables instead of hardcoding it in the SVG.
+      //
+      // https://codepen.io/noahblon/post/coloring-svgs-in-css-background-images
+      &::before {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0;
+        height: 24px;
+        width: 24px;
+        -webkit-mask-repeat: no-repeat;
+      }
+    }
+  }
+
+  &.warning {
+    .dialog-content::before {
+      background-color: var(--dialog-warning-color);
+      -webkit-mask: var(--dialog-icon-alert);
+    }
+  }
+
+  &.error {
+    .dialog-content::before {
+      background-color: var(--dialog-error-color);
+      -webkit-mask: var(--dialog-icon-stop);
     }
   }
 
@@ -221,6 +262,7 @@ dialog {
     }
 
     button {
+      @include ellipsis;
       margin-right: var(--spacing-half);
       min-width: 120px;
 
@@ -228,25 +270,6 @@ dialog {
         margin-right: 0;
       }
     }
-  }
-
-  // Custom branding of a warning dialog. Used for dangerous actions
-  &.warning {
-    .dialog-header {
-      .icon { color: var(--dialog-warning-color); }
-      h1 { color: var(--dialog-warning-text-color); }
-    }
-
-    border-top: 3px solid var(--dialog-warning-color);
-  }
-
-  // Custom branding of an error dialog. Used for displaying errors
-  &.error {
-    .dialog-header {
-      color: var(--dialog-error-color);
-    }
-
-    border-top: 3px solid var(--dialog-error-color);
   }
 
   // Inline error component rendered at the top of the dialog just below
@@ -295,7 +318,13 @@ dialog {
 
   &#preferences { width: 450px; }
   &#about { width: 450px; }
+  &#create-repository { width: 400px; }
   &#create-branch { width: 400px; }
+  &#push-branch-commits { width: 450px; }
+  &#publish-branch { width: 450px; }
+  &#generic-git-auth {
+    width: 450px;
+  }
 
   &#confirm-remove-repository {
     width: 450px;
@@ -318,6 +347,16 @@ dialog {
       font-size: var(--font-size-sm);
       justify-content: flex-end;
     }
+  }
+
+  &#add-existing-repository { width: 400px; }
+
+  &#initialize-lfs {
+    width: 400px;
+  }
+
+  &#lfs-attribute-mismatch {
+    width: 400px;
   }
 }
 

@@ -3,7 +3,7 @@ import { formatLogMessage } from '../format-log-message'
 
 const g = global as any
 
-g.log = <IDesktopLogger>{
+g.log = {
   error(message: string, error?: Error) {
     log('error', '[main] ' + formatLogMessage(message, error))
   },
@@ -16,4 +16,4 @@ g.log = <IDesktopLogger>{
   debug(message: string, error?: Error) {
     log('debug', '[main] ' + formatLogMessage(message, error))
   },
-}
+} as IDesktopLogger

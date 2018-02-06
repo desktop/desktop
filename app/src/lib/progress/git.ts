@@ -6,14 +6,14 @@ export interface IProgressStep {
   /**
    * The title of the git progress event. By title we refer to the
    * exact value of the title field in the Git progress struct:
-   * 
+   *
    * https://github.com/git/git/blob/6a2c2f8d34fa1e8f3bb85d159d354810ed63692e/progress.c#L31-L39
-   * 
+   *
    * In essence this means anything up to (but not including) the last colon (:)
    * in a single progress line. Take this example progress line
-   * 
+   *
    *    remote: Compressing objects:  14% (159/1133)
-   * 
+   *
    * In this case the title would be 'remote: Compressing objects'.
    */
   readonly title: string
@@ -46,7 +46,7 @@ export interface IGitProgress {
    * two reasons. Fist, we calculate percent by dividing value with total
    * to produce a high precision decimal value between 0 and 1 while
    * details.percent is a rounded integer between 0 and 100.
-   * 
+   *
    * Second, the percent in this instance is scaled in relation to any
    * other steps included in the progress parser.
    */
@@ -66,65 +66,65 @@ export interface IGitProgressInfo {
   /**
    * The title of the git progress event. By title we refer to the
    * exact value of the title field in Git's progress struct:
-   * 
+   *
    * https://github.com/git/git/blob/6a2c2f8d34fa1e8f3bb85d159d354810ed63692e/progress.c#L31-L39
-   * 
+   *
    * In essence this means anything up to (but not including) the last colon (:)
    * in a single progress line. Take this example progress line
-   * 
+   *
    *    remote: Compressing objects:  14% (159/1133)
-   * 
+   *
    * In this case the title would be 'remote: Compressing objects'.
    */
   readonly title: string
 
   /**
    * The progress value as parsed from the Git progress line.
-   * 
+   *
    * We define value to mean the same as it does in the Git progress struct, i.e
    * it's the number of processed units.
-   * 
+   *
    * In the progress line 'remote: Compressing objects:  14% (159/1133)' the
    * value is 159.
-   * 
+   *
    * In the progress line 'remote: Counting objects: 123' the value is 123.
-   * 
+   *
    */
   readonly value: number
 
   /**
    * The progress total as parsed from the git progress line.
-   * 
+   *
    * We define total to mean the same as it does in the Git progress struct, i.e
    * it's the total number of units in a given process.
-   * 
+   *
    * In the progress line 'remote: Compressing objects:  14% (159/1133)' the
    * total is 1133.
-   * 
+   *
    * In the progress line 'remote: Counting objects: 123' the total is undefined.
-   * 
+   *
    */
   readonly total?: number
 
   /**
    * The progress percent as parsed from the git progress line represented as
    * an integer between 0 and 100.
-   * 
+   *
    * We define percent to mean the same as it does in the Git progress struct, i.e
    * it's the value divided by total.
-   * 
+   *
    * In the progress line 'remote: Compressing objects:  14% (159/1133)' the
    * percent is 14.
-   * 
+   *
    * In the progress line 'remote: Counting objects: 123' the percent is undefined.
-   * 
+   *
    */
   readonly percent?: number
 
   /**
    * Whether or not the parsed git progress line indicates that the operation
    * is done.
-   * 
+   *
    * This is denoted by a trailing ", done" string in the progress line.
    * Example: Checking out files:  100% (728/728), done
    */
@@ -143,7 +143,7 @@ export interface IGitProgressInfo {
  * of the an operation. An operation could be something like `git fetch`
  * which contains multiple steps, each individually reported by Git as
  * progress events between 0 and 100%.
- * 
+ *
  * A parser cannot be reused, it's mean to parse a single stderr stream
  * for Git.
  */
@@ -162,7 +162,7 @@ export class GitProgressParser {
 
   /**
    * Initialize a new instance of a Git progress parser.
-   * 
+   *
    * @param steps - A series of steps that could be present in the git
    *                output with relative weight between these steps. Note
    *                that order is significant here as once the parser sees
@@ -171,7 +171,6 @@ export class GitProgressParser {
    *                accordingly.
    */
   public constructor(steps: ReadonlyArray<IProgressStep>) {
-
     if (!steps.length) {
       throw new Error('must specify at least one step')
     }
@@ -206,7 +205,6 @@ export class GitProgressParser {
       const step = this.steps[i]
 
       if (i >= this.stepIndex && progress.title === step.title) {
-
         if (progress.total) {
           percent += step.weight * (progress.value / progress.total)
         }
@@ -229,23 +227,22 @@ const valueOnlyRe = /^\d+$/
 
 /**
  * Attempts to parse a single line of progress output from Git.
- * 
+ *
  * For details about how Git formats progress see
- * 
+ *
  *   https://github.com/git/git/blob/6a2c2f8d34fa1e8f3bb85d159d354810ed63692e/progress.c
- * 
+ *
  * Some examples:
  *  remote: Counting objects: 123
  *  remote: Counting objects: 167587, done.
- *  Receiving objects:  99% (166741/167587), 272.10 MiB | 2.39 MiB/s   
+ *  Receiving objects:  99% (166741/167587), 272.10 MiB | 2.39 MiB/s
  *  Checking out files:  100% (728/728)
  *  Checking out files:  100% (728/728), done
- * 
+ *
  * @returns An object containing well-structured information about the progress
  *          or null if the line could not be parsed as a Git progress line.
  */
 export function parse(line: string): IGitProgressInfo | null {
-
   const titleLength = line.lastIndexOf(': ')
 
   if (titleLength === 0) {
@@ -298,7 +295,7 @@ export function parse(line: string): IGitProgressInfo | null {
   let done = false
 
   // We don't parse throughput at the moment so let's just loop
-  // through the remaining 
+  // through the remaining
   for (let i = 1; i < progressParts.length; i++) {
     if (progressParts[i] === 'done.') {
       done = true

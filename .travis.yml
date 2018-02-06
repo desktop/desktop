@@ -3,8 +3,33 @@ notifications:
     on_success: never
     on_failure: change
 
-os:
-  - osx
+dist: trusty
+
+sudo: false
+
+matrix:
+  include:
+    - os: linux
+      env: CC=clang CXX=clang++ npm_config_clang=1
+      compiler: clang
+
+addons:
+  apt:
+    packages:
+      # this is required to compile keytar
+      - libsecret-1-dev
+      # this package is essential for testing Electron in a headless fashion
+      # https://github.com/electron/electron/blob/master/docs/tutorial/testing-on-headless-ci.md
+      - xvfb
+      # packages required for electron-installer-debian
+      - fakeroot
+      - dpkg
+      # packages required for electron-installer-redhat
+      - rpm
+      # packages required for electron-installer-appimage
+      - xz-utils
+      - xorriso
+      - zsync
 
 branches:
   only:
@@ -13,28 +38,29 @@ branches:
 
 language: node_js
 node_js:
-  - "7"
+  - "8.9.0"
 
 cache:
+  yarn: true
   timeout: 600
   directories:
     - node_modules
     - $HOME/.electron
+    - .eslintcache
+    - $HOME/.cache/electron-builder
+
+before_install:
+  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.2
+  - export PATH=$HOME/.yarn/bin:$PATH
 
 install:
-  - npm install -g npm@4.6.1
-  - npm prune
-  - cd app && npm prune && cd ..
-  - npm install
+  - yarn install --force
 
 script:
-  - npm run lint
-  - npm run build:prod
-  - npm run test:setup
-  - npm test
-
-after_success:
-  - npm run publish
+  - yarn lint
+  - yarn build:prod
+  - yarn test:setup
+  - yarn test
 
 after_failure:
-  - npm run test:review
+  - yarn test:review

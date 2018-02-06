@@ -2,21 +2,30 @@ import * as React from 'react'
 
 import { Row } from './row'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { Ref } from './ref'
 
-function renderWarningMessage(message: string) {
-  return (
-    <Row className='warning-helper-text'>
-      <Octicon symbol={OcticonSymbol.alert} />
-      {message}
-    </Row>
-  )
-}
-
-export function renderBranchNameWarning(proposedName: string, sanitizedName: string) {
-  if (/^\s+$/.test(proposedName)) {
-    return renderWarningMessage('Branch name cannot be empty')
+export function renderBranchNameWarning(
+  proposedName: string,
+  sanitizedName: string
+) {
+  if (proposedName.length > 0 && /^\s*$/.test(sanitizedName)) {
+    return (
+      <Row className="warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+        <p>
+          <Ref>{proposedName}</Ref> is not a valid branch name.
+        </p>
+      </Row>
+    )
   } else if (proposedName !== sanitizedName) {
-    return renderWarningMessage(`Will be created as ${sanitizedName}`)
+    return (
+      <Row className="warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+        <p>
+          Will be created as <Ref>{sanitizedName}</Ref>.
+        </p>
+      </Row>
+    )
   } else {
     return null
   }

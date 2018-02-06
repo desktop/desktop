@@ -1,0 +1,47 @@
+.toolbar-dropdown.open .pr-badge {
+  background: $gray-200;
+}
+
+.toolbar-dropdown:not(.open) .pr-badge {
+  background: $gray-700;
+}
+
+.pr-badge {
+  --height: 18px;
+
+  display: flex;
+  flex-direction: row;
+  height: var(--height);
+
+  align-items: center;
+
+  border-radius: var(--border-radius);
+  border-width: 0;
+
+  margin-right: var(--spacing);
+  padding: var(--spacing-half);
+
+  .number {
+    font-size: var(--font-size-sm);
+
+    // We're explicitly providing line-height here so that the text gets
+    // properly vertically centered.
+    line-height: var(--height);
+  }
+
+  .ci-status {
+    margin-left: var(--spacing-half);
+  }
+}
+
+.toolbar-dropdown.open .ci-status-pending {
+  color: $yellow-700;
+}
+
+.toolbar-dropdown.open .ci-status-failure {
+  color: $red-500;
+}
+
+.toolbar-dropdown.open .ci-status-success {
+  color: $green-500;
+}

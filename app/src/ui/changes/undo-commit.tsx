@@ -20,24 +20,31 @@ interface IUndoCommitProps {
 }
 
 /** The Undo Commit component. */
-export class UndoCommit extends React.Component<IUndoCommitProps, void> {
+export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
   public render() {
     const disabled = this.props.isPushPullFetchInProgress
-    const title = disabled ? 'Undo is disabled while the repository is being updated' : undefined
+    const title = disabled
+      ? 'Undo is disabled while the repository is being updated'
+      : undefined
 
     const authorDate = this.props.commit.author.date
     return (
-      <div id='undo-commit' role='group' aria-label='Undo commit'>
-        <div className='commit-info'>
-          <div className='ago'>Committed <RelativeTime date={authorDate} /></div>
+      <div id="undo-commit" role="group" aria-label="Undo commit">
+        <div className="commit-info">
+          <div className="ago">
+            Committed <RelativeTime date={authorDate} />
+          </div>
           <RichText
             emoji={this.props.emoji}
-            className='summary'
+            className="summary"
             text={this.props.commit.summary}
-            renderUrlsAsLinks={false} />
+            renderUrlsAsLinks={false}
+          />
         </div>
-        <div className='actions' title={title}>
-          <Button size='small' disabled={disabled} onClick={this.props.onUndo}>Undo</Button>
+        <div className="actions" title={title}>
+          <Button size="small" disabled={disabled} onClick={this.props.onUndo}>
+            Undo
+          </Button>
         </div>
       </div>
     )

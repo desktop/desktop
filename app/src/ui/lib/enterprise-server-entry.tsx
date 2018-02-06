@@ -37,7 +37,10 @@ interface IEnterpriseServerEntryState {
 }
 
 /** An entry form for an Enterprise server address. */
-export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntryProps, IEnterpriseServerEntryState> {
+export class EnterpriseServerEntry extends React.Component<
+  IEnterpriseServerEntryProps,
+  IEnterpriseServerEntryState
+> {
   public constructor(props: IEnterpriseServerEntryProps) {
     super(props)
     this.state = { serverAddress: '' }
@@ -45,22 +48,24 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
 
   public render() {
     const disableEntry = this.props.loading
-    const disableSubmission = this.state.serverAddress.length === 0 || this.props.loading
+    const disableSubmission =
+      this.state.serverAddress.length === 0 || this.props.loading
 
     return (
       <Form onSubmit={this.onSubmit}>
         <TextBox
-          label='Enterprise server address'
+          label="Enterprise server address"
           autoFocus={true}
           disabled={disableEntry}
           onValueChanged={this.onServerAddressChanged}
-          placeholder='https://github.example.com' />
+          placeholder="https://github.example.com"
+        />
 
         {this.props.error ? <Errors>{this.props.error.message}</Errors> : null}
 
-        <div className='actions'>
-          <Button type='submit' disabled={disableSubmission}>
-            {this.props.loading ? <Loading/> : null} Continue
+        <div className="actions">
+          <Button type="submit" disabled={disableSubmission}>
+            {this.props.loading ? <Loading /> : null} Continue
           </Button>
           {this.props.additionalButtons}
         </div>

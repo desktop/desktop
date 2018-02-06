@@ -3,7 +3,6 @@
  * info in a commit.
  */
 export class CommitIdentity {
-
   public readonly name: string
   public readonly email: string
   public readonly date: Date
@@ -27,7 +26,9 @@ export class CommitIdentity {
     //  https://github.com/git/git/blob/35f6318d4/date.c#L191
     //
     const m = identity.match(/^(.*?) <(.*?)> (\d+) (\+|-)?(\d{2})(\d{2})/)
-    if (!m) { return null }
+    if (!m) {
+      return null
+    }
 
     const name = m[1]
     const email = m[2]
@@ -49,10 +50,15 @@ export class CommitIdentity {
     return new CommitIdentity(name, email, date, tzOffset)
   }
 
-  public constructor(name: string, email: string, date: Date, tzOffset?: number) {
+  public constructor(
+    name: string,
+    email: string,
+    date: Date,
+    tzOffset?: number
+  ) {
     this.name = name
     this.email = email
     this.date = date
-    this.tzOffset = tzOffset || (new Date()).getTimezoneOffset()
+    this.tzOffset = tzOffset || new Date().getTimezoneOffset()
   }
 }

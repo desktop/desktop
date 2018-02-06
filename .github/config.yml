@@ -1,0 +1,13 @@
+# Configuration for request-info - https://github.com/behaviorbot/request-info
+
+# *Required* Comment to reply with
+requestInfoReplyComment: >
+  We require the template to be filled out on all new issues. We do this so that we can be certain we have
+  all the information we need to address your submission efficiently. This allows the maintainers to spend
+  more time fixing bugs, implementing enhancements, and reviewing and merging pull requests.
+
+requestInfoLabelToAdd: more-information-needed
+
+requestInfoOn:
+  pullRequest: false
+  issue: true

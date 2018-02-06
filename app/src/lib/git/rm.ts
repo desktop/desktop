@@ -1,13 +1,20 @@
-import { git, IGitResult } from './core'
+import { git } from './core'
 import { Repository } from '../../models/repository'
 
-/** Remove the given path from the index. */
-export async function removeFromIndex(repository: Repository, path: string): Promise<IGitResult> {
-  // exit code of 128 means the file wasn't in the index to being with.
-  // That's OK.
-  const options = { successExitCodes: new Set([ 0, 128 ]) }
-
-  // '-f' is used here in the unlikely scenario the staged file and working
-  // directory file have different content.
-  return git([ 'rm', '--cached', '-f', '--', path ], repository.path, 'removeFromIndex', options)
+/**
+ * Remove all files from the index
+ *
+ * @param repository the repository to update
+ */
+export async function unstageAllFiles(repository: Repository): Promise<void> {
+  await git(
+    // these flags are important:
+    // --cached to only remove files from the index
+    // -r       to recursively remove files, in case files are in folders
+    // -f       to ignore differences between working directory and index
+    //          which will block this
+    ['rm', '--cached', '-r', '-f', '.'],
+    repository.path,
+    'unstageAllFiles'
+  )
 }

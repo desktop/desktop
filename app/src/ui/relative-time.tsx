@@ -35,8 +35,10 @@ const MAX_INTERVAL = 2147483647
  * This component will automatically re-render when the relative time
  * changes by scheduling state changes at reasonable intervals.
  */
-export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeTimeState> {
-
+export class RelativeTime extends React.Component<
+  IRelativeTimeProps,
+  IRelativeTimeState
+> {
   private timer: number | null
 
   public constructor(props: IRelativeTimeProps) {
@@ -46,14 +48,21 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
 
   private clearTimer() {
     if (this.timer) {
-      clearTimeout(this.timer)
+      window.clearTimeout(this.timer)
       this.timer = null
     }
   }
 
-  private updateAndSchedule(absoluteText: string, relativeText: string, timeout: number) {
+  private updateAndSchedule(
+    absoluteText: string,
+    relativeText: string,
+    timeout: number
+  ) {
     this.clearTimer()
-    this.timer = window.setTimeout(this.updateFromScheduler, Math.min(timeout, MAX_INTERVAL))
+    this.timer = window.setTimeout(
+      this.updateFromScheduler,
+      Math.min(timeout, MAX_INTERVAL)
+    )
     this.setState({ absoluteText, relativeText })
   }
 
@@ -67,7 +76,7 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
     // Future date, let's just show as absolute and reschedule. If it's less
     // than a minute into the future we'll treat it as 'just now'.
     if (diff > 0 && duration > MINUTE) {
-      this.updateAndSchedule(absoluteText, then.format('LLL'), duration)
+      this.updateAndSchedule(absoluteText, then.format('lll'), duration)
     } else if (duration < MINUTE) {
       this.updateAndSchedule(absoluteText, 'just now', MINUTE - duration)
     } else if (duration < HOUR) {
@@ -77,7 +86,7 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
     } else if (duration < 7 * DAY) {
       this.updateAndSchedule(absoluteText, then.from(now), 6 * HOUR)
     } else {
-      this.setState({ absoluteText, relativeText: then.format('LL') })
+      this.setState({ absoluteText, relativeText: then.format('ll') })
     }
   }
 
@@ -99,10 +108,15 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
     this.clearTimer()
   }
 
-  public shouldComponentUpdate(nextProps: IRelativeTimeProps, nextState: IRelativeTimeState) {
-    return nextProps.date !== this.props.date
-      || nextState.absoluteText !== this.state.absoluteText
-      || nextState.relativeText !== this.state.relativeText
+  public shouldComponentUpdate(
+    nextProps: IRelativeTimeProps,
+    nextState: IRelativeTimeState
+  ) {
+    return (
+      nextProps.date !== this.props.date ||
+      nextState.absoluteText !== this.state.absoluteText ||
+      nextState.relativeText !== this.state.relativeText
+    )
   }
 
   public render() {

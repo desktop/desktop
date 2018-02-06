@@ -1,14 +1,58 @@
 import { git } from './core'
-import { FileStatus, FileChange } from '../../models/status'
+import { AppFileStatus, CommittedFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
-import { mapStatus } from './status'
+import {
+  getTrailerSeparatorCharacters,
+  parseRawUnfoldedTrailers,
+} from './interpret-trailers'
+
+/**
+ * Map the raw status text from Git to an app-friendly value
+ * shamelessly borrowed from GitHub Desktop (Windows)
+ */
+function mapStatus(rawStatus: string): AppFileStatus {
+  const status = rawStatus.trim()
+
+  if (status === 'M') {
+    return AppFileStatus.Modified
+  } // modified
+  if (status === 'A') {
+    return AppFileStatus.New
+  } // added
+  if (status === 'D') {
+    return AppFileStatus.Deleted
+  } // deleted
+  if (status === 'R') {
+    return AppFileStatus.Renamed
+  } // renamed
+  if (status === 'C') {
+    return AppFileStatus.Copied
+  } // copied
+
+  // git log -M --name-status will return a RXXX - where XXX is a percentage
+  if (status.match(/R[0-9]+/)) {
+    return AppFileStatus.Renamed
+  }
+
+  // git log -C --name-status will return a CXXX - where XXX is a percentage
+  if (status.match(/C[0-9]+/)) {
+    return AppFileStatus.Copied
+  }
+
+  return AppFileStatus.Modified
+}
 
 /**
  * Get the repository's commits using `revisionRange` and limited to `limit`
  */
-export async function getCommits(repository: Repository, revisionRange: string, limit: number, additionalArgs: ReadonlyArray<string> = []): Promise<ReadonlyArray<Commit>> {
+export async function getCommits(
+  repository: Repository,
+  revisionRange: string,
+  limit: number,
+  additionalArgs: ReadonlyArray<string> = []
+): Promise<ReadonlyArray<Commit>> {
   const delimiter = '1F'
   const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
   const prettyFormat = [
@@ -19,18 +63,27 @@ export async function getCommits(repository: Repository, revisionRange: string, 
     //   author name <author email> <author date>
     // author date format dependent on --date arg, should be raw
     '%an <%ae> %ad',
-    '%P', // parent SHAs
+    '%cn <%ce> %cd',
+    '%P', // parent SHAs,
+    '%(trailers:unfold,only)',
   ].join(`%x${delimiter}`)
 
-  const result = await git([
-    'log',
-    revisionRange,
-    `--date=raw`,
-    `--max-count=${limit}`,
-    `--pretty=${prettyFormat}`,
-    '-z',
-    '--no-color', ...additionalArgs,
-  ], repository.path, 'getCommits', { successExitCodes: new Set([ 0, 128 ]) })
+  const result = await git(
+    [
+      'log',
+      revisionRange,
+      `--date=raw`,
+      `--max-count=${limit}`,
+      `--pretty=${prettyFormat}`,
+      '-z',
+      '--no-color',
+      ...additionalArgs,
+      '--',
+    ],
+    repository.path,
+    'getCommits',
+    { successExitCodes: new Set([0, 128]) }
+  )
 
   // if the repository has an unborn HEAD, return an empty history of commits
   if (result.exitCode === 128) {
@@ -42,16 +95,23 @@ export async function getCommits(repository: Repository, revisionRange: string, 
   // Remove the trailing empty line
   lines.splice(-1, 1)
 
+  if (lines.length === 0) {
+    return []
+  }
+
+  const trailerSeparators = await getTrailerSeparatorCharacters(repository)
+
   const commits = lines.map(line => {
     const pieces = line.split(delimiterString)
     const sha = pieces[0]
     const summary = pieces[1]
     const body = pieces[2]
     const authorIdentity = pieces[3]
-    const shaList = pieces[4]
-    const parentSHAs = shaList.length
-     ? shaList.split(' ')
-     : [ ]
+    const committerIdentity = pieces[4]
+    const shaList = pieces[5]
+
+    const parentSHAs = shaList.length ? shaList.split(' ') : []
+    const trailers = parseRawUnfoldedTrailers(pieces[6], trailerSeparators)
 
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
@@ -59,18 +119,47 @@ export async function getCommits(repository: Repository, revisionRange: string, 
       throw new Error(`Couldn't parse author identity ${authorIdentity}`)
     }
 
-    return new Commit(sha, summary, body, author, parentSHAs)
+    const committer = CommitIdentity.parseIdentity(committerIdentity)
+
+    if (!committer) {
+      throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
+    }
+
+    return new Commit(
+      sha,
+      summary,
+      body,
+      author,
+      committer,
+      parentSHAs,
+      trailers
+    )
   })
 
   return commits
 }
 
 /** Get the files that were changed in the given commit. */
-export async function getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
+export async function getChangedFiles(
+  repository: Repository,
+  sha: string
+): Promise<ReadonlyArray<CommittedFileChange>> {
   // opt-in for rename detection (-M) and copies detection (-C)
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
-  const args = [ 'log', sha, '-C', '-M', '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ]
+  const args = [
+    'log',
+    sha,
+    '-C',
+    '-M',
+    '-m',
+    '-1',
+    '--first-parent',
+    '--name-status',
+    '--format=format:',
+    '-z',
+    '--',
+  ]
   const result = await git(args, repository.path, 'getChangedFiles')
 
   const out = result.stdout
@@ -78,7 +167,7 @@ export async function getChangedFiles(repository: Repository, sha: string): Prom
   // Remove the trailing empty line
   lines.splice(-1, 1)
 
-  const files: FileChange[] = []
+  const files: CommittedFileChange[] = []
   for (let i = 0; i < lines.length; i++) {
     const statusText = lines[i]
 
@@ -86,22 +175,27 @@ export async function getChangedFiles(repository: Repository, sha: string): Prom
 
     let oldPath: string | undefined = undefined
 
-    if (status === FileStatus.Renamed || status === FileStatus.Copied) {
+    if (status === AppFileStatus.Renamed || status === AppFileStatus.Copied) {
       oldPath = lines[++i]
     }
 
     const path = lines[++i]
 
-    files.push(new FileChange(path, status, oldPath))
+    files.push(new CommittedFileChange(path, status, sha, oldPath))
   }
 
   return files
 }
 
 /** Get the commit for the given ref. */
-export async function getCommit(repository: Repository, ref: string): Promise<Commit | null> {
+export async function getCommit(
+  repository: Repository,
+  ref: string
+): Promise<Commit | null> {
   const commits = await getCommits(repository, ref, 1)
-  if (commits.length < 1) { return null }
+  if (commits.length < 1) {
+    return null
+  }
 
   return commits[0]
 }

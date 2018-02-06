@@ -7,23 +7,48 @@ import * as Path from 'path'
 import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
-import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
+import {
+  Dispatcher,
+  gitAuthenticationErrorHandler,
+  externalEditorErrorHandler,
+  openShellErrorHandler,
+  lfsAttributeMismatchHandler,
+  defaultErrorHandler,
+  missingRepositoryHandler,
+  backgroundTaskHandler,
+  pushNeedsPullHandler,
+  upstreamAlreadyExistsHandler,
+} from '../lib/dispatcher'
+import {
+  AppStore,
+  GitHubUserStore,
+  CloningRepositoriesStore,
+  EmojiStore,
+  IssuesStore,
+  SignInStore,
+  RepositoriesStore,
+  TokenStore,
+  AccountsStore,
+  PullRequestStore,
+} from '../lib/stores'
+import { GitHubUserDatabase } from '../lib/databases'
 import { URLActionType } from '../lib/parse-app-url'
 import { SelectionType } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
-import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import {
-  defaultErrorHandler,
-  createMissingRepositoryHandler,
-  backgroundTaskHandler,
-  unhandledExceptionHandler,
-} from '../lib/dispatcher'
+  IssuesDatabase,
+  RepositoriesDatabase,
+  PullRequestDatabase,
+} from '../lib/databases'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { installDevGlobals } from './install-globals'
 import { reportUncaughtException, sendErrorReport } from './main-process-proxy'
 import { getOS } from '../lib/get-os'
 import { getGUID } from '../lib/stats'
-import { enableSourceMaps, withSourceMappedStack } from '../lib/source-map-support'
+import {
+  enableSourceMaps,
+  withSourceMappedStack,
+} from '../lib/source-map-support'
 
 if (__DEV__) {
   installDevGlobals()
@@ -63,7 +88,9 @@ process.once('uncaughtException', (error: Error) => {
   console.error('Uncaught exception', error)
 
   if (__DEV__ || process.env.TEST_ENV) {
-    console.error(`An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`)
+    console.error(
+      `An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`
+    )
   } else {
     sendErrorReport(error, {
       osVersion: getOS(),
@@ -74,12 +101,24 @@ process.once('uncaughtException', (error: Error) => {
   reportUncaughtException(error)
 })
 
-const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
+const gitHubUserStore = new GitHubUserStore(
+  new GitHubUserDatabase('GitHubUserDatabase')
+)
 const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
 const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
 const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
 const signInStore = new SignInStore()
+
+const accountsStore = new AccountsStore(localStorage, TokenStore)
+const repositoriesStore = new RepositoriesStore(
+  new RepositoriesDatabase('Database')
+)
+
+const pullRequestStore = new PullRequestStore(
+  new PullRequestDatabase('PullRequestDatabase'),
+  repositoriesStore
+)
 
 const appStore = new AppStore(
   gitHubUserStore,
@@ -88,14 +127,22 @@ const appStore = new AppStore(
   issuesStore,
   statsStore,
   signInStore,
+  accountsStore,
+  repositoriesStore,
+  pullRequestStore
 )
 
 const dispatcher = new Dispatcher(appStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(upstreamAlreadyExistsHandler)
+dispatcher.registerErrorHandler(externalEditorErrorHandler)
+dispatcher.registerErrorHandler(openShellErrorHandler)
+dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
+dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
+dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
-dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
-dispatcher.registerErrorHandler(unhandledExceptionHandler)
+dispatcher.registerErrorHandler(missingRepositoryHandler)
 
 document.body.classList.add(`platform-${process.platform}`)
 
@@ -103,7 +150,9 @@ dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState
-  if (!state || state.type !== SelectionType.Repository) { return }
+  if (!state || state.type !== SelectionType.Repository) {
+    return
+  }
 
   dispatcher.setAppFocusState(true)
   dispatcher.refreshRepository(state.repository)
@@ -117,11 +166,14 @@ ipcRenderer.on('blur', () => {
   dispatcher.setAppFocusState(false)
 })
 
-ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
-  dispatcher.dispatchURLAction(action)
-})
+ipcRenderer.on(
+  'url-action',
+  (event: Electron.IpcMessageEvent, { action }: { action: URLActionType }) => {
+    dispatcher.dispatchURLAction(action)
+  }
+)
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore} startTime={startTime}/>,
-  document.getElementById('desktop-app-container')!,
+  <App dispatcher={dispatcher} appStore={appStore} startTime={startTime} />,
+  document.getElementById('desktop-app-container')!
 )
