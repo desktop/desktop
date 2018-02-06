@@ -97,7 +97,7 @@ export class DeleteBranch extends React.Component<
   }
 
   private renderDeleteOnRemote() {
-    if (this.props.branch.remote && this.state.existsOnRemote == true) {
+    if (this.props.branch.remote && this.state.existsOnRemote === true) {
       return (
         <div>
           <p>
