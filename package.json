@@ -48,6 +48,7 @@
     "yarn": ">= 1.2.0"
   },
   "dependencies": {
+    "@octokit/rest": "^14.0.8",
     "awesome-typescript-loader": "^3.4.0",
     "aws-sdk": "^2.23.0",
     "babel-core": "^6.24.1",

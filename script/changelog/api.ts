@@ -1,45 +1,35 @@
-import * as HTTPS from 'https'
+const octokit = require('@octokit/rest')({
+  timeout: 0,
+  requestMedia: 'application/vnd.github.v3+json',
+  headers: {
+    'User-Agent': 'what-the-changelog',
+  },
+})
 
 export interface IAPIPR {
   readonly title: string
   readonly body: string
 }
 
-type IAPIPullRequest = {
-  readonly title: string
-  readonly body: string
-}
-
-export function fetchPR(id: number): Promise<IAPIPR | null> {
-  return new Promise((resolve, reject) => {
-    const options: HTTPS.RequestOptions = {
-      host: 'api.github.com',
-      protocol: 'https:',
-      path: `/repos/desktop/desktop/pulls/${id}`,
-      method: 'GET',
-      headers: {
-        Authorization: `Token ${process.env.GITHUB_ACCESS_TOKEN}`,
-        'User-Agent': 'what-the-changelog',
-      },
-    }
-
-    const request = HTTPS.request(options, response => {
-      let received = ''
-      response.on('data', chunk => {
-        received += chunk
-      })
-
-      response.on('end', () => {
-        try {
-          const json: IAPIPullRequest = JSON.parse(received)
-          resolve(json)
-        } catch (e) {
-          console.error('API lookup failed', e)
-          resolve(null)
-        }
-      })
-    })
-
-    request.end()
+export async function fetchPR(id: number): Promise<IAPIPR | null> {
+  octokit.authenticate({
+    type: 'token',
+    token: process.env.GITHUB_ACCESS_TOKEN,
   })
+
+  try {
+    const response = await octokit.pullRequests.get({
+      owner: 'desktop',
+      repo: 'desktop',
+      number: id,
+    })
+    const data = response.data
+    return {
+      title: data.title,
+      body: data.body,
+    }
+  } catch (err) {
+    console.error('API lookup failed', err)
+    return null
+  }
 }
