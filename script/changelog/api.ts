@@ -9,6 +9,8 @@ const octokit = require('@octokit/rest')({
 export interface IDesktopPullRequest {
   readonly title: string
   readonly body: string
+  readonly collaborators: ReadonlyArray<string>
+  readonly commits: ReadonlyArray<string>
 }
 
 interface IAPIPullRequest {
@@ -20,8 +22,12 @@ interface IAPIPullRequest {
 }
 
 interface IAPICommit {
-  commit: {
-    message: string
+  readonly sha: string
+  readonly author?: {
+    readonly login: string
+  }
+  readonly committer?: {
+    readonly login: string
   }
 }
 
@@ -37,7 +43,7 @@ export async function fetchPR(id: number): Promise<IDesktopPullRequest | null> {
       repo: 'desktop',
       number: id,
     })
-    const pullRequestData: IAPIPullRequest = pullRequestResponse.data
+    const { title, body } = pullRequestResponse.data as IAPIPullRequest
 
     let commitsResponse = await octokit.pullRequests.getCommits({
       owner: 'desktop',
@@ -52,9 +58,27 @@ export async function fetchPR(id: number): Promise<IDesktopPullRequest | null> {
       data = data.concat(commitsResponse.data)
     }
 
+    const collaborators: Array<string> = []
+    const commits: Array<string> = []
+
+    for (const commit of data) {
+      commits.push(commit.sha)
+      if (commit.author && collaborators.indexOf(commit.author.login) === -1) {
+        collaborators.push(commit.author.login)
+      }
+      if (
+        commit.committer &&
+        collaborators.indexOf(commit.committer.login) === -1
+      ) {
+        collaborators.push(commit.committer.login)
+      }
+    }
+
     return {
-      title: pullRequestData.title,
-      body: pullRequestData.body,
+      title: title,
+      body: body,
+      collaborators,
+      commits,
     }
   } catch (err) {
     console.error('API lookup failed', err)

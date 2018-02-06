@@ -1,5 +1,5 @@
 import { spawn } from './spawn'
-import { fetchPR, IAPIPR } from './api'
+import { fetchPR, IDesktopPullRequest } from './api'
 import { sort as semverSort } from 'semver'
 
 const jsonStringify: (obj: any) => string = require('json-pretty')
@@ -51,7 +51,10 @@ function capitalized(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
+function getChangelogEntry(
+  commit: IParsedCommit,
+  pr: IDesktopPullRequest
+): string {
   let issueRef = ''
   let type = PlaceholderChangeType
   const description = capitalized(pr.title)
