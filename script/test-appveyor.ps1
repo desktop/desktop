@@ -1,7 +1,7 @@
 mkdir test-reports
 
 yarn test:unit --reporter xunit --reporter-options output=test-reports\unit.xml
-if ($LASTEXITCODE != 0) {
+if ($LASTEXITCODE -ne "0") {
   set APPVEYOR_TEST_RESULT=$LASTEXITCODE
 } else {
   yarn test:integration --reporter xunit --reporter-options output=test-reports\integration.xml
