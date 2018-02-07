@@ -39,7 +39,12 @@ compile:
 test:
   override:
     - yarn test:setup
-    - yarn test
+    - yarn test:unit --reporter mocha-junit-reporter:
+        environment:
+          MOCHA_FILE: $CIRCLE_TEST_REPORTS/mocha/unit.xml
+    - yarn test:integration --reporter mocha-junit-reporter:
+        environment:
+          MOCHA_FILE: $CIRCLE_TEST_REPORTS/mocha/integration.xml
 
 deployment:
   production:
