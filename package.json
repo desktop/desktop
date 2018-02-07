@@ -129,7 +129,7 @@
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
     "electron": "1.8.2",
-    "electron-builder": "19.56.0",
+    "electron-builder": "19.48.3",
     "electron-mocha": "^5.0.0",
     "electron-packager": "^11.0.0",
     "electron-winstaller": "2.5.2"
