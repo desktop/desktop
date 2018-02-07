@@ -1,7 +1,16 @@
 import Dexie from 'dexie'
-import { APIRefState, IAPIRefStatusItem } from '../api'
 
-export interface IPullRequestRef {
+export type RefState = 'failure' | 'pending' | 'success'
+
+export interface IRefStatus {
+  readonly id: number
+  readonly state: RefState
+  readonly targetURL: string
+  readonly description: string
+  readonly context: string
+}
+
+export interface IRefEntity {
   /**
    * The database ID of the GitHub repository in which this ref lives. It could
    * be null if the repository was deleted on the site after the PR was opened.
@@ -15,7 +24,7 @@ export interface IPullRequestRef {
   readonly sha: string
 }
 
-export interface IPullRequest {
+export interface IPullRequestEntity {
   /**
    * The database ID. This will be undefined if the pull request hasn't been
    * inserted into the DB.
@@ -32,16 +41,16 @@ export interface IPullRequest {
   readonly createdAt: string
 
   /** The ref from which the pull request's changes are coming. */
-  readonly head: IPullRequestRef
+  readonly head: IRefEntity
 
   /** The ref which the pull request is targetting. */
-  readonly base: IPullRequestRef
+  readonly base: IRefEntity
 
   /** The login of the author. */
   readonly author: string
 }
 
-export interface IPullRequestStatus {
+export interface IPullRequestStatusEntity {
   /**
    * The database ID. This will be undefined if the status hasn't been inserted
    * into the DB.
@@ -52,7 +61,7 @@ export interface IPullRequestStatus {
   readonly pullRequestId: number
 
   /** The status' state. */
-  readonly state: APIRefState
+  readonly state: 'failure' | 'pending' | 'success'
 
   /** The number of statuses represented in this combined status. */
   readonly totalCount: number
@@ -65,12 +74,12 @@ export interface IPullRequestStatus {
    * if the database object was created prior to status support
    * being added in #3588
    */
-  readonly statuses: ReadonlyArray<IAPIRefStatusItem> | undefined
+  readonly statuses: ReadonlyArray<IRefStatus> | undefined
 }
 
 export class PullRequestDatabase extends Dexie {
-  public pullRequests: Dexie.Table<IPullRequest, number>
-  public pullRequestStatus: Dexie.Table<IPullRequestStatus, number>
+  public pullRequests: Dexie.Table<IPullRequestEntity, number>
+  public pullRequestStatus: Dexie.Table<IPullRequestStatusEntity, number>
 
   public constructor(name: string) {
     super(name)

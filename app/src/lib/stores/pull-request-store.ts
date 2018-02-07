@@ -1,13 +1,14 @@
 import {
   PullRequestDatabase,
-  IPullRequest,
-  IPullRequestStatus,
+  IPullRequestEntity,
+  IPullRequestStatusEntity,
+  RefState,
+  IRefStatus,
 } from '../databases'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
-import { API, IAPIPullRequest } from '../api'
+import { API, IAPIPullRequest, IAPIRefStatusItem, IAPIRepository } from '../api'
 import { fatalError, forceUnwrap } from '../fatal-error'
-import { RepositoriesStore } from './repositories-store'
 import {
   PullRequest,
   PullRequestRef,
@@ -25,21 +26,68 @@ import { IRemote } from '../../models/remote'
  */
 export const ForkedRemotePrefix = 'github-desktop-'
 
+const mapAPIToEntityPullRequestStatus = (
+  prStatus: ReadonlyArray<IAPIRefStatusItem>
+): ReadonlyArray<IRefStatus> => {
+  return prStatus.map(apiRefStatus => {
+    return {
+      id: apiRefStatus.id,
+      state: apiRefStatus.state,
+      targetURL: apiRefStatus.target_url,
+      description: apiRefStatus.description,
+      context: apiRefStatus.context,
+    }
+  })
+}
+
+const mapAPIToEntityPullRequest = (
+  pr: IAPIPullRequest,
+  base: GitHubRepository,
+  head: GitHubRepository | null = null
+): IPullRequestEntity => {
+  return {
+    number: pr.number,
+    title: pr.title,
+    createdAt: pr.created_at,
+    head: {
+      ref: pr.head.ref,
+      sha: pr.head.sha,
+      repoId: (head && head.dbID) || null,
+    },
+    base: {
+      ref: pr.base.ref,
+      sha: pr.base.sha,
+      repoId: base.dbID,
+    },
+    author: pr.user.login,
+  }
+}
+
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   private readonly pullRequestDatabase: PullRequestDatabase
-  private readonly repositoriesStore: RepositoriesStore
-
   private activeFetchCountPerRepository = new Map<number, number>()
+  private findOrAddGitHubRepository: (
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ) => Promise<GitHubRepository>
+  private findGitHubRepositoryById: (
+    id: number
+  ) => Promise<GitHubRepository | null>
 
   public constructor(
     db: PullRequestDatabase,
-    repositoriesStore: RepositoriesStore
+    findOrPutGitHubRepository: (
+      endpoint: string,
+      apiRepository: IAPIRepository
+    ) => Promise<GitHubRepository>,
+    findGitHubRepositoryById: (id: number) => Promise<GitHubRepository | null>
   ) {
     super()
 
     this.pullRequestDatabase = db
-    this.repositoriesStore = repositoriesStore
+    this.findOrAddGitHubRepository = findOrPutGitHubRepository
+    this.findGitHubRepositoryById = findGitHubRepositoryById
   }
 
   /** Loads all pull requests against the given repository. */
@@ -51,25 +99,30 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       'Can only refresh pull requests for GitHub repositories',
       repository.gitHubRepository
     )
-    const api = API.fromAccount(account)
 
     this.changeActiveFetchCount(githubRepo, c => c + 1)
 
     try {
-      const raw = await api.fetchPullRequests(
+      const api = API.fromAccount(account)
+      const apiResults = await api.fetchPullRequests(
         githubRepo.owner.login,
         githubRepo.name,
         'open'
       )
 
-      await this.writePRs(raw, githubRepo)
+      await this.writePRs(apiResults, githubRepo)
 
       const prs = await this.getPullRequests(githubRepo)
 
-      await this.refreshStatusForPRs(prs, githubRepo, account)
-      await this.pruneForkedRemotes(repository, prs)
+      await Promise.all([
+        this.refreshStatusForPRs(prs, githubRepo, account),
+        this.pruneForkedRemotes(repository, prs),
+      ])
     } catch (error) {
-      log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
+      log.error(
+        `Error refreshing pull requests for '${repository.name}'`,
+        error
+      )
       this.emitError(error)
     } finally {
       this.changeActiveFetchCount(githubRepo, c => c - 1)
@@ -170,7 +223,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     account: Account
   ): Promise<void> {
     const api = API.fromAccount(account)
-    const statuses: Array<IPullRequestStatus> = []
+    const statuses: Array<IPullRequestStatusEntity> = []
     const prs: Array<PullRequest> = []
 
     for (const pr of pullRequests) {
@@ -197,10 +250,10 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
       statuses.push({
         pullRequestId: pr.id,
-        state: apiStatus.state,
+        state: apiStatus.state as RefState,
         totalCount: apiStatus.total_count,
         sha: pr.head.sha,
-        statuses: apiStatus.statuses,
+        statuses: mapAPIToEntityPullRequestStatus(apiStatus.statuses),
       })
 
       prs.push(
@@ -255,61 +308,43 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     pullRequests: ReadonlyArray<IAPIPullRequest>,
     repository: GitHubRepository
   ): Promise<void> {
-    const repoId = repository.dbID
-
-    if (!repoId) {
-      fatalError(
+    if (repository.dbID == null) {
+      return fatalError(
         "Cannot store pull requests for a repository that hasn't been inserted into the database!"
       )
-
-      return
     }
 
     const table = this.pullRequestDatabase.pullRequests
-
-    const insertablePRs = new Array<IPullRequest>()
+    const insertablePRs = new Array<IPullRequestEntity>()
     for (const pr of pullRequests) {
-      let headRepo: GitHubRepository | null = null
-      if (pr.head.repo) {
-        headRepo = await this.repositoriesStore.findOrPutGitHubRepository(
-          repository.endpoint,
-          pr.head.repo
-        )
-      }
-
-      // We know the base repo isn't null since that's where we got the PR from
-      // in the first place.
-      const baseRepo = await this.repositoriesStore.findOrPutGitHubRepository(
-        repository.endpoint,
-        forceUnwrap('PR cannot have a null base repo', pr.base.repo)
+      // base repo isn't null since that's where we got the PR from
+      const baseRepo = forceUnwrap(
+        'A pull request must have a base repository before it can be inserted',
+        pr.base.repo
       )
-
-      insertablePRs.push({
-        number: pr.number,
-        title: pr.title,
-        createdAt: pr.created_at,
-        head: {
-          ref: pr.head.ref,
-          sha: pr.head.sha,
-          repoId: headRepo ? headRepo.dbID! : null,
-        },
-        base: {
-          ref: pr.base.ref,
-          sha: pr.base.sha,
-          repoId: forceUnwrap('PR cannot have a null base repo', baseRepo.dbID),
-        },
-        author: pr.user.login,
-      })
+      const base = await this.findOrAddGitHubRepository(
+        repository.endpoint,
+        baseRepo
+      )
+      const head =
+        (pr.head.repo &&
+          (await this.findOrAddGitHubRepository(
+            repository.endpoint,
+            pr.head.repo
+          ))) ||
+        null
+      const thingToInsert = mapAPIToEntityPullRequest(pr, base, head)
+      insertablePRs.push(thingToInsert)
     }
 
     await this.pullRequestDatabase.transaction('rw', table, async () => {
       await table.clear()
-      return await table.bulkAdd(insertablePRs)
+      await table.bulkAdd(insertablePRs)
     })
   }
 
   private async writePRStatus(
-    statuses: Array<IPullRequestStatus>
+    statuses: Array<IPullRequestStatusEntity>
   ): Promise<void> {
     const table = this.pullRequestDatabase.pullRequestStatus
 
@@ -354,7 +389,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       let head: GitHubRepository | null = null
 
       if (headId) {
-        head = await this.repositoriesStore.findGitHubRepositoryByID(headId)
+        head = await this.findGitHubRepositoryById(headId)
       }
 
       // We know the base repo ID can't be null since it's the repository we
@@ -365,7 +400,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
       const base = forceUnwrap(
         'PR cannot have a null base repo',
-        await this.repositoriesStore.findGitHubRepositoryByID(baseId)
+        await this.findGitHubRepositoryById(baseId)
       )
 
       // We can be certain the PR ID is valid since we just got it from the

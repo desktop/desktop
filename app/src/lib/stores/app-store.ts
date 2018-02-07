@@ -1682,9 +1682,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository
   ): Promise<Repository> {
     const oldGitHubRepository = repository.gitHubRepository
-
     const matchedGitHubRepository = await this.matchGitHubRepository(repository)
-    if (!matchedGitHubRepository) {
+
+    if (matchedGitHubRepository == null) {
       // TODO: We currently never clear GitHub repository associations (see
       // https://github.com/desktop/desktop/issues/1144). So we can bail early
       // at this point.
@@ -2743,10 +2743,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _addRepositories(
     paths: ReadonlyArray<string>
   ): Promise<ReadonlyArray<Repository>> {
-    const addedRepositories = new Array<Repository>()
-    const lfsRepositories = new Array<Repository>()
+    const addedRepositories: Array<Repository> = []
+    const lfsRepositories: Array<Repository> = []
+
     for (const path of paths) {
       const validatedPath = await validatedRepositoryPath(path)
+
       if (validatedPath) {
         log.info(`[AppStore] adding repository at ${validatedPath} to store`)
 

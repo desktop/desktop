@@ -117,7 +117,8 @@ const repositoriesStore = new RepositoriesStore(
 
 const pullRequestStore = new PullRequestStore(
   new PullRequestDatabase('PullRequestDatabase'),
-  repositoriesStore
+  repositoriesStore.findOrPutGitHubRepository,
+  repositoriesStore.findGitHubRepositoryByID
 )
 
 const appStore = new AppStore(

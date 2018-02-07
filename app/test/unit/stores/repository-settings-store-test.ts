@@ -5,10 +5,10 @@ import * as Path from 'path'
 import { GitProcess } from 'dugite'
 import { expect } from 'chai'
 
-import { RepositorySettingsStore } from '../../src/lib/stores'
-import { setupEmptyRepository } from '../helpers/repositories'
-import { getStatus } from '../../src/lib/git'
-import { pathExists } from '../../src/lib/file-system'
+import { RepositorySettingsStore } from '../../../src/lib/stores'
+import { setupEmptyRepository } from '../../helpers/repositories'
+import { getStatus } from '../../../src/lib/git'
+import { pathExists } from '../../../src/lib/file-system'
 
 describe('RepositorySettingsStore', () => {
   it('can create a gitignore file', async () => {
