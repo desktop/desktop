@@ -34,7 +34,7 @@ build_script:
 test_script:
   - node --version
   - yarn test:setup
-  - powershell.exe -noexit -file .\script\test-appveyor.ps1
+  - powershell.exe -file .\script\test-appveyor.ps1
 
 on_success:
   - yarn run publish
