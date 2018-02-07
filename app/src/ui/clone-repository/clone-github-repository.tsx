@@ -37,7 +37,7 @@ interface ICloneGithubRepositoryProps {
   /** Called when a repository is selected. */
   readonly onGitHubRepositorySelected: (url: string) => void
 
-  /** Should we clear the filterText on render? */
+  /** Should the component clear the filter text on render? */
   readonly shouldClearFilter: boolean
 }
 

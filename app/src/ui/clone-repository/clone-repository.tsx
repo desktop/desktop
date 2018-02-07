@@ -62,7 +62,7 @@ interface ICloneRepositoryState {
    */
   readonly lastParsedIdentifier: IRepositoryIdentifier | null
 
-  /** Should we clear the filterText on render? */
+  /** Should the component clear the filter text on render? */
   readonly shouldClearFilter: boolean
 }
 
