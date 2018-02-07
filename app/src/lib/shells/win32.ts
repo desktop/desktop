@@ -120,29 +120,30 @@ export function launch(
 ): ChildProcess {
   const shell = foundShell.shell
 
-  if (shell === Shell.PowerShell) {
-    const psCommand = `"Set-Location -LiteralPath '${path}'"`
-    return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
-      shell: true,
-      cwd: path,
-    })
-  } else if (shell === Shell.Hyper) {
-    const executable = `"${foundShell.path}"`
-    log.info(`launching ${shell} at path: ${executable}`)
-    return spawn(executable, [`"${path}"`], {
-      shell: true,
-      cwd: path,
-    })
-  } else if (shell === Shell.GitBash) {
-    const executable = `"${foundShell.path}"`
-    log.info(`launching ${shell} at path: ${executable}`)
-    return spawn(executable, [`--cd="${path}"`], {
-      shell: true,
-      cwd: path,
-    })
-  } else if (shell === Shell.Cmd) {
-    return spawn('START', ['cmd'], { shell: true, cwd: path })
-  } else {
-    return assertNever(shell, `Unknown shell: ${shell}`)
+  switch (shell) {
+    case Shell.PowerShell:
+      const psCommand = `"Set-Location -LiteralPath '${path}'"`
+      return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.Hyper:
+      const hyperPath = `"${foundShell.path}"`
+      log.info(`launching ${shell} at path: ${hyperPath}`)
+      return spawn(hyperPath, [`"${path}"`], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.GitBash:
+      const gitBashPath = `"${foundShell.path}"`
+      log.info(`launching ${shell} at path: ${gitBashPath}`)
+      return spawn(gitBashPath, [`--cd="${path}"`], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.Cmd:
+      return spawn('START', ['cmd'], { shell: true, cwd: path })
+    default:
+      return assertNever(shell, `Unknown shell: ${shell}`)
   }
 }
