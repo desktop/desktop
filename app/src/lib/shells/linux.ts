@@ -1,4 +1,4 @@
-import { spawn } from 'child_process'
+import { spawn, ChildProcess } from 'child_process'
 import { pathExists } from '../file-system'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
@@ -99,26 +99,23 @@ export async function getAvailableShells(): Promise<
   return shells
 }
 
-export async function launch(
-  shell: IFoundShell<Shell>,
-  path: string
-): Promise<void> {
+export function launch(shell: IFoundShell<Shell>, path: string): ChildProcess {
   if (shell.shell === Shell.Urxvt) {
     const commandArgs = ['-cd', path]
-    await spawn(shell.path, commandArgs)
+    return spawn(shell.path, commandArgs)
   }
 
   if (shell.shell === Shell.Konsole) {
     const commandArgs = ['--workdir', path]
-    await spawn(shell.path, commandArgs)
+    return spawn(shell.path, commandArgs)
   }
 
   if (shell.shell === Shell.Xterm) {
     const commandArgs = ['-e', '/bin/bash']
     const commandOptions = { cwd: path }
-    await spawn(shell.path, commandArgs, commandOptions)
+    return spawn(shell.path, commandArgs, commandOptions)
   }
 
   const commandArgs = ['--working-directory', path]
-  await spawn(shell.path, commandArgs)
+  return spawn(shell.path, commandArgs)
 }

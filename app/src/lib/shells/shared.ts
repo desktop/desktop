@@ -91,19 +91,26 @@ export async function launchShell(
     )
   }
 
+  let cp: ChildProcess | null = null
+
   if (__DARWIN__) {
-    return Darwin.launch(shell as IFoundShell<Darwin.Shell>, path)
+    cp = Darwin.launch(shell as IFoundShell<Darwin.Shell>, path)
   } else if (__WIN32__) {
-    const cp = Win32.launch(shell as IFoundShell<Win32.Shell>, path)
-    addErrorTracing(shell.shell, cp, onError)
-    return Promise.resolve()
+    cp = Win32.launch(shell as IFoundShell<Win32.Shell>, path)
   } else if (__LINUX__) {
-    return Linux.launch(shell as IFoundShell<Linux.Shell>, path)
+    cp = Linux.launch(shell as IFoundShell<Linux.Shell>, path)
   }
 
-  return Promise.reject(
-    `Platform not currently supported for launching shells: ${process.platform}`
-  )
+  if (cp != null) {
+    addErrorTracing(shell.shell, cp, onError)
+    return Promise.resolve()
+  } else {
+    return Promise.reject(
+      `Platform not currently supported for launching shells: ${
+        process.platform
+      }`
+    )
+  }
 }
 
 function addErrorTracing(
