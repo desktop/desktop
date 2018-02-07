@@ -127,12 +127,16 @@ export function launch(
       cwd: path,
     })
   } else if (shell === Shell.Hyper) {
-    return spawn(`"${foundShell.path}"`, [`"${path}"`], {
+    const executable = `"${foundShell.path}"`
+    log.info(`launching ${shell} at path: ${executable}`)
+    return spawn(executable, [`"${path}"`], {
       shell: true,
       cwd: path,
     })
   } else if (shell === Shell.GitBash) {
-    return spawn(`"${foundShell.path}"`, [`--cd="${path}"`], {
+    const executable = `"${foundShell.path}"`
+    log.info(`launching ${shell} at path: ${executable}`)
+    return spawn(executable, [`--cd="${path}"`], {
       shell: true,
       cwd: path,
     })
