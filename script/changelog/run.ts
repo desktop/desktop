@@ -4,6 +4,8 @@ import { sort as semverSort } from 'semver'
 
 const jsonStringify: (obj: any) => string = require('json-pretty')
 
+const listify: (values: Array<any>) => string = require('listify')
+
 const PlaceholderChangeType = '???'
 
 async function getLogLines(
@@ -75,9 +77,9 @@ function getChangelogEntry(
   let attribution = ''
 
   if (externalContributors.length > 0) {
-    // TODO: format this with an "and" between the last two contributors
-    const credits = externalContributors.map(c => `@${c}`).join(', ')
-    attribution = `. Thanks ${credits}!`
+    const mentions = externalContributors.map(c => `@${c}`)
+    const combinedMentions = listify(mentions)
+    attribution = `. Thanks ${combinedMentions}!`
   }
 
   return `[${type}] ${description} -${issueRef}${attribution}`
