@@ -114,52 +114,31 @@ export async function getAvailableShells(): Promise<
   return shells
 }
 
-function addErrorTracing(context: string, cp: ChildProcess) {
-  cp.stderr.on('data', chunk => {
-    const text = chunk instanceof Buffer ? chunk.toString() : chunk
-    log.debug(`[${context}] stderr: '${text}'`)
-  })
-
-  cp.on('exit', code => {
-    if (code !== 0) {
-      log.debug(`[${context}] exit code: ${code}`)
-    }
-  })
-}
-
-export async function launch(
+export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
-): Promise<void> {
+): ChildProcess {
   const shell = foundShell.shell
 
   if (shell === Shell.PowerShell) {
     const psCommand = `"Set-Location -LiteralPath '${path}'"`
-    const cp = spawn(
-      'START',
-      ['powershell', '-NoExit', '-Command', psCommand],
-      {
-        shell: true,
-        cwd: path,
-      }
-    )
-    addErrorTracing(`PowerShell`, cp)
+    return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
+      shell: true,
+      cwd: path,
+    })
   } else if (shell === Shell.Hyper) {
-    const cp = spawn(`"${foundShell.path}"`, [`"${path}"`], {
+    return spawn(`"${foundShell.path}"`, [`"${path}"`], {
       shell: true,
       cwd: path,
     })
-    addErrorTracing(`Hyper`, cp)
   } else if (shell === Shell.GitBash) {
-    const cp = spawn(`"${foundShell.path}"`, [`--cd="${path}"`], {
+    return spawn(`"${foundShell.path}"`, [`--cd="${path}"`], {
       shell: true,
       cwd: path,
     })
-    addErrorTracing(`Git Bash`, cp)
   } else if (shell === Shell.Cmd) {
-    const cp = spawn('START', ['cmd'], { shell: true, cwd: path })
-    addErrorTracing(`CMD`, cp)
+    return spawn('START', ['cmd'], { shell: true, cwd: path })
   } else {
-    assertNever(shell, `Unknown shell: ${shell}`)
+    return assertNever(shell, `Unknown shell: ${shell}`)
   }
 }
