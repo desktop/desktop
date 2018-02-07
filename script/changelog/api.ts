@@ -18,22 +18,20 @@ export interface IDesktopPullRequest {
   readonly commits: ReadonlyArray<string>
 }
 
+interface IAPIUser {
+  readonly login: string
+}
+
 interface IAPIPullRequest {
   readonly title: string
   readonly body: string
-  readonly user: {
-    readonly login: string
-  }
+  readonly user: IAPIUser
 }
 
 interface IAPICommit {
   readonly sha: string
-  readonly author?: {
-    readonly login: string
-  }
-  readonly committer?: {
-    readonly login: string
-  }
+  readonly author?: IAPIUser
+  readonly committer?: IAPIUser
 }
 
 interface IAPITeam {
