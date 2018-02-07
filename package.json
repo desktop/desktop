@@ -74,6 +74,7 @@
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.15.0",
     "mocha": "^4.0.1",
+    "mocha-junit-reporter": "^1.17.0",
     "node-native-loader": "^1.1.1",
     "node-sass": "^4.7.2",
     "octicons": "^7.0.1",
