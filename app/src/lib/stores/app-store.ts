@@ -406,7 +406,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
-        openPullRequests: [],
+        openPullRequests: new Array<PullRequest>(),
         currentPullRequest: null,
         isLoadingPullRequests: false,
       },
@@ -792,14 +792,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const previouslySelectedRepository = this.selectedRepository
 
     this.selectedRepository = repository
-    this.emitUpdate()
 
+    this.emitUpdate()
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
 
-    if (!repository) {
+    if (repository == null) {
       return Promise.resolve(null)
     }
+
     if (!(repository instanceof Repository)) {
       return Promise.resolve(null)
     }
@@ -815,12 +816,37 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return Promise.resolve(null)
     }
 
-    const gitHubRepository = repository.gitHubRepository
-    if (gitHubRepository) {
-      this._updateIssues(gitHubRepository)
-    }
+    this._refreshRepository(repository)
 
-    await this._refreshRepository(repository)
+    const gitHubRepository = repository.gitHubRepository
+
+    if (gitHubRepository != null) {
+      this._updateIssues(gitHubRepository)
+      this.loadPullRequests(repository, async () => {
+        const promiseForPRs = this.pullRequestStore.fetchPullRequestsFromCache(
+          gitHubRepository
+        )
+        const isLoading = this.pullRequestStore.isFetchingPullRequests(
+          gitHubRepository
+        )
+
+        const prs = await promiseForPRs
+
+        if (prs.length > 0) {
+          this.updateBranchesState(repository, state => {
+            return {
+              openPullRequests: prs,
+              isLoadingPullRequests: isLoading,
+            }
+          })
+        } else {
+          this._refreshPullRequests(repository)
+        }
+
+        this._updateCurrentPullRequest(repository)
+        this.emitUpdate()
+      })
+    }
 
     // The selected repository could have changed while we were refreshing.
     if (this.selectedRepository !== repository) {
@@ -835,10 +861,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
+
     this.refreshMentionables(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
-    this._refreshPullRequests(repository)
 
     return this._repositoryWithRefreshedGitHubRepository(repository)
   }
@@ -2364,7 +2390,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       } finally {
         this.updatePushPullFetchProgress(repository, null)
 
-        if (fetchType !== FetchType.BackgroundTask) {
+        if (fetchType === FetchType.UserInitiatedTask) {
           this._refreshPullRequests(repository)
         }
       }
@@ -3027,7 +3053,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this._openInBrowser(baseURL)
   }
 
-  public async _refreshPullRequests(repository: Repository): Promise<void> {
+  private async loadPullRequests(
+    repository: Repository,
+    loader: (account: Account) => void
+  ) {
     const gitHubRepository = repository.gitHubRepository
 
     if (gitHubRepository == null) {
@@ -3043,12 +3072,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    await this.pullRequestStore.refreshPullRequests(repository, account)
-    this.updateMenuItemLabels(repository)
+    await loader(account)
+  }
+
+  public async _refreshPullRequests(repository: Repository): Promise<void> {
+    return this.loadPullRequests(repository, async account => {
+      await this.pullRequestStore.fetchAndCachePullRequests(repository, account)
+      this.updateMenuItemLabels(repository)
+    })
   }
 
   private async onPullRequestStoreUpdated(gitHubRepository: GitHubRepository) {
-    const pullRequests = await this.pullRequestStore.getPullRequests(
+    const promiseForPRs = this.pullRequestStore.fetchPullRequestsFromCache(
       gitHubRepository
     )
     const isLoading = this.pullRequestStore.isFetchingPullRequests(
@@ -3064,15 +3099,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const prs = await promiseForPRs
     this.updateBranchesState(repository, state => {
       return {
-        openPullRequests: pullRequests,
+        openPullRequests: prs,
         isLoadingPullRequests: isLoading,
       }
     })
 
     this._updateCurrentPullRequest(repository)
-
     this.emitUpdate()
   }
 
@@ -3083,21 +3118,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     remote: IRemote
   ): PullRequest | null {
     const upstream = branch.upstreamWithoutRemote
-    if (!upstream) {
+
+    if (upstream == null) {
       return null
     }
 
-    for (const pr of pullRequests) {
-      if (
-        pr.head.ref === upstream &&
-        pr.head.gitHubRepository &&
-        pr.head.gitHubRepository.cloneURL === remote.url
-      ) {
-        return pr
-      }
-    }
+    const pr =
+      pullRequests.find(
+        pr =>
+          pr.head.ref === upstream &&
+          pr.head.gitHubRepository != null &&
+          pr.head.gitHubRepository.cloneURL === remote.url
+      ) || null
 
-    return null
+    return pr
   }
 
   private _updateCurrentPullRequest(repository: Repository) {
