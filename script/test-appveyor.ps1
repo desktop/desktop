@@ -1,11 +1,11 @@
 mkdir test-reports
 
 yarn test:unit --reporter xunit --reporter-options output=test-reports\unit.xml
-if (%ERRORLEVEL% != 0) {
-  set APPVEYOR_TEST_RESULT=%ERRORLEVEL%
+if ($LASTEXITCODE != 0) {
+  set APPVEYOR_TEST_RESULT=$LASTEXITCODE
 } else {
   yarn test:integration --reporter xunit --reporter-options output=test-reports\integration.xml
-  set APPVEYOR_TEST_RESULT=%ERRORLEVEL%
+  set APPVEYOR_TEST_RESULT=$LASTEXITCODE
 }
 
 $wc = New-Object 'System.Net.WebClient'
