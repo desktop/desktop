@@ -60,7 +60,8 @@ describe('AppStore', () => {
 
     const pullRequestStore = new PullRequestStore(
       new TestPullRequestDatabase(),
-      repositoriesStore
+      repositoriesStore.findOrPutGitHubRepository,
+      repositoriesStore.findGitHubRepositoryByID
     )
 
     return new AppStore(

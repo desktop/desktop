@@ -7,9 +7,8 @@ import {
 } from '../databases'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
-import { API, IAPIPullRequest, IAPIRefStatusItem } from '../api'
+import { API, IAPIPullRequest, IAPIRefStatusItem, IAPIRepository } from '../api'
 import { fatalError, forceUnwrap } from '../fatal-error'
-import { RepositoriesStore } from './repositories-store'
 import {
   PullRequest,
   PullRequestRef,
@@ -67,17 +66,28 @@ const mapAPIToEntityPullRequest = (
 /** The store for GitHub Pull Requests. */
 export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   private readonly pullRequestDatabase: PullRequestDatabase
-  private readonly repositoriesStore: RepositoriesStore
   private activeFetchCountPerRepository = new Map<number, number>()
+  private findOrAddGitHubRepository: (
+    endpoint: string,
+    apiRepository: IAPIRepository
+  ) => Promise<GitHubRepository>
+  private findGitHubRepositoryById: (
+    id: number
+  ) => Promise<GitHubRepository | null>
 
   public constructor(
     db: PullRequestDatabase,
-    repositoriesStore: RepositoriesStore
+    findOrPutGitHubRepository: (
+      endpoint: string,
+      apiRepository: IAPIRepository
+    ) => Promise<GitHubRepository>,
+    findGitHubRepositoryById: (id: number) => Promise<GitHubRepository | null>
   ) {
     super()
 
     this.pullRequestDatabase = db
-    this.repositoriesStore = repositoriesStore
+    this.findOrAddGitHubRepository = findOrPutGitHubRepository
+    this.findGitHubRepositoryById = findGitHubRepositoryById
   }
 
   /** Loads all pull requests against the given repository. */
@@ -312,13 +322,13 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         'A pull request must have a base repository before it can be inserted',
         pr.base.repo
       )
-      const base = await this.repositoriesStore.findOrPutGitHubRepository(
+      const base = await this.findOrAddGitHubRepository(
         repository.endpoint,
         baseRepo
       )
       const head =
         (pr.head.repo &&
-          (await this.repositoriesStore.findOrPutGitHubRepository(
+          (await this.findOrAddGitHubRepository(
             repository.endpoint,
             pr.head.repo
           ))) ||
@@ -379,7 +389,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       let head: GitHubRepository | null = null
 
       if (headId) {
-        head = await this.repositoriesStore.findGitHubRepositoryByID(headId)
+        head = await this.findGitHubRepositoryById(headId)
       }
 
       // We know the base repo ID can't be null since it's the repository we
@@ -390,7 +400,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
       const base = forceUnwrap(
         'PR cannot have a null base repo',
-        await this.repositoriesStore.findGitHubRepositoryByID(baseId)
+        await this.findGitHubRepositoryById(baseId)
       )
 
       // We can be certain the PR ID is valid since we just got it from the

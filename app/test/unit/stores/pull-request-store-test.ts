@@ -1,15 +1,50 @@
 import { expect } from 'chai'
 
-import { PullRequestStore, RepositoriesStore } from '../../../src/lib/stores'
+import { PullRequestStore } from '../../../src/lib/stores'
 import {
   TestPullRequestDatabase,
   TestRepositoriesDatabase,
 } from '../../helpers/databases'
 import { Repository } from '../../../src/models/repository'
 import { Account } from '../../../src/models/account'
-import { IAPIRepository } from '../../../src/lib/api'
 import { GitHubRepository } from '../../../src/models/github-repository'
 import { Owner } from '../../../src/models/owner'
+import { IAPIRepository } from '../../../src/lib/api'
+
+const findGitHubRepositoryByIDStub = (
+  id: number
+): Promise<GitHubRepository | null> => {
+  return Promise.resolve(
+    new GitHubRepository(
+      '',
+      new Owner('login', 'endpoint', 1),
+      1,
+      false,
+      null,
+      null,
+      null,
+      null
+    )
+  )
+}
+
+const findOrPutGitHubRepositoryStub = (
+  endpoint: string,
+  apiRepository: IAPIRepository
+): Promise<GitHubRepository> => {
+  return Promise.resolve(
+    new GitHubRepository(
+      '',
+      new Owner('login', 'endpoint', 1),
+      1,
+      false,
+      null,
+      null,
+      null,
+      null
+    )
+  )
+}
 
 describe('PullRequestStore', () => {
   const account = new Account('tester', '', 'token', [], '', 1, '')
@@ -21,35 +56,15 @@ describe('PullRequestStore', () => {
     const pullRequestDb = new TestPullRequestDatabase()
     await Promise.all([repositoriesDb.reset(), pullRequestDb.reset()])
 
-    const repositoriesStore = new RepositoriesStore(repositoriesDb)
-
-    const repoPath = '/test/path'
-    repository = await repositoriesStore.addRepository(repoPath)
-    const apiRepo: IAPIRepository = {
-      clone_url: '',
-      default_branch: 'master',
-      fork: false,
-      html_url: '',
-      name: 'test',
-      owner: {
-        id: 1,
-        avatar_url: '',
-        email: '',
-        login: '',
-        name: '',
-        type: 'User',
-        url: '',
-      },
-      parent: null,
-      private: false,
-    }
-    repositoriesStore.updateGitHubRepository(repository, '', apiRepo)
-
-    sut = new PullRequestStore(pullRequestDb, repositoriesStore)
+    sut = new PullRequestStore(
+      pullRequestDb,
+      findOrPutGitHubRepositoryStub,
+      findGitHubRepositoryByIDStub
+    )
   })
 
   describe('refreshing pull reqeusts', () => {
-    it('insers new prs', async () => {
+    it.only('insers new prs', async () => {
       await sut!.refreshPullRequests(repository!, account)
       const prs = await sut!.getPullRequests(
         new GitHubRepository(
