@@ -99,23 +99,22 @@ export async function getAvailableShells(): Promise<
   return shells
 }
 
-export function launch(shell: IFoundShell<Shell>, path: string): ChildProcess {
-  if (shell.shell === Shell.Urxvt) {
-    const commandArgs = ['-cd', path]
-    return spawn(shell.path, commandArgs)
+export function launch(
+  foundShell: IFoundShell<Shell>,
+  path: string
+): ChildProcess {
+  const shell = foundShell.shell
+  switch (shell) {
+    case Shell.Urxvt:
+      return spawn(foundShell.path, ['-cd', path])
+    case Shell.Konsole:
+      return spawn(foundShell.path, ['--workdir', path])
+    case Shell.Xterm:
+      return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
+    case Shell.Tilix:
+    case Shell.Gnome:
+      return spawn(foundShell.path, ['--working-directory', path])
+    default:
+      return assertNever(shell, `Unknown shell: ${shell}`)
   }
-
-  if (shell.shell === Shell.Konsole) {
-    const commandArgs = ['--workdir', path]
-    return spawn(shell.path, commandArgs)
-  }
-
-  if (shell.shell === Shell.Xterm) {
-    const commandArgs = ['-e', '/bin/bash']
-    const commandOptions = { cwd: path }
-    return spawn(shell.path, commandArgs, commandOptions)
-  }
-
-  const commandArgs = ['--working-directory', path]
-  return spawn(shell.path, commandArgs)
 }
