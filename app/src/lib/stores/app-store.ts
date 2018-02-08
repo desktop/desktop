@@ -3262,8 +3262,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const gitStore = this.getGitStore(repository)
 
       await this.withAuthenticatingUser(repository, async (repo, account) => {
-        await gitStore.fetchRemote(account, remoteName, false)
+        await gitStore.fetchRemote(account, remoteName, false, progress => {
+          this.updatePushPullFetchProgress(repository, {
+            ...progress,
+            value: progress.value,
+          })
+        })
       })
+
+      this.updatePushPullFetchProgress(repository, null)
 
       const localBranchName = `pr/${pullRequest.number}`
       const doesBranchExist =
