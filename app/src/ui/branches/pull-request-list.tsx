@@ -40,6 +40,15 @@ interface IPullRequestListProps {
     pullRequest: PullRequest | null,
     source: SelectionSource
   ) => void
+
+  /**
+   * Called when a key down happens in the filter field. Users have a chance to
+   * respond or cancel the default behavior by calling `preventDefault`.
+   */
+  readonly onFilterKeyDown?: (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => void
+
   /** The current filter text to render */
   readonly filterText: string
 
@@ -113,7 +122,7 @@ export class PullRequestList extends React.Component<
         invalidationProps={this.props.pullRequests}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
-        onFilterKeyDown={this.onFilterKeyDown}
+        onFilterKeyDown={this.props.onFilterKeyDown}
       />
     )
   }
@@ -158,15 +167,6 @@ export class PullRequestList extends React.Component<
         selectedItem != null ? selectedItem.pullRequest : null,
         source
       )
-    }
-  }
-
-  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      if (this.state.filterText.length === 0) {
-        this.props.onDismiss()
-        event.preventDefault()
-      }
     }
   }
 }
