@@ -43,32 +43,12 @@ export async function getAvailableShells(): Promise<
     },
   ]
 
-  const powerShell = enumerateValues(
-    HKEY.HKEY_LOCAL_MACHINE,
-    'Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
-  )
-  if (powerShell.length > 0) {
-    const first = powerShell[0]
-
-    // NOTE:
-    // on Windows 7 these are both REG_SZ, which technically isn't supposed
-    // to contain unexpanded references to environment variables. But given
-    // it's also %SystemRoot% and we do the expanding here I think this is
-    // a fine workaround to do to support the maximum number of setups.
-
-    if (
-      first.type === RegistryValueType.REG_EXPAND_SZ ||
-      first.type === RegistryValueType.REG_SZ
-    ) {
-      const path = first.data.replace(
-        /^%SystemRoot%/i,
-        process.env.SystemRoot || 'C:\\Windows'
-      )
-      shells.push({
-        shell: Shell.PowerShell,
-        path,
-      })
-    }
+  const powerShellPath = await findPowerShell()
+  if (powerShellPath != null) {
+    shells.push({
+      shell: Shell.PowerShell,
+      path: powerShellPath,
+    })
   }
 
   const hyperPath = await findHyper()
@@ -88,6 +68,38 @@ export async function getAvailableShells(): Promise<
   }
 
   return shells
+}
+
+function findPowerShell(): string | null {
+  const powerShell = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
+  )
+
+  if (powerShell.length === 0) {
+    return null
+  }
+
+  const first = powerShell[0]
+
+  // NOTE:
+  // on Windows 7 these are both REG_SZ, which technically isn't supposed
+  // to contain unexpanded references to environment variables. But given
+  // it's also %SystemRoot% and we do the expanding here I think this is
+  // a fine workaround to do to support the maximum number of setups.
+
+  if (
+    first.type === RegistryValueType.REG_EXPAND_SZ ||
+    first.type === RegistryValueType.REG_SZ
+  ) {
+    const path = first.data.replace(
+      /^%SystemRoot%/i,
+      process.env.SystemRoot || 'C:\\Windows'
+    )
+    return path
+  }
+
+  return null
 }
 
 function findHyper(): string | null {
