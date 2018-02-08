@@ -10,7 +10,6 @@ import { assertNever } from '../../lib/fatal-error'
 import { enablePRIntegration } from '../../lib/feature-flag'
 import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
-import { NoPullRequests } from './no-pull-requests'
 import { PullRequest } from '../../models/pull-request'
 import { CSSTransitionGroup } from 'react-transition-group'
 
@@ -174,40 +173,35 @@ export class BranchesContainer extends React.Component<
 
   private renderPullRequests() {
     const pullRequests = this.props.pullRequests
-    if (pullRequests.length) {
+    const repo = this.props.repository
+    const name = repo.gitHubRepository
+      ? repo.gitHubRepository.fullName
+      : repo.name
+    const isOnDefaultBranch =
+      this.props.defaultBranch &&
+      this.props.currentBranch &&
+      this.props.defaultBranch.name === this.props.currentBranch.name
+
+    if (this.props.isLoadingPullRequests) {
+      return <PullRequestsLoading key="prs-loading" />
+    } else {
       return (
         <PullRequestList
           key="pr-list"
           pullRequests={pullRequests}
+          selectedPullRequest={this.state.selectedPullRequest}
+          repositoryName={name}
+          isOnDefaultBranch={!!isOnDefaultBranch}
           onSelectionChanged={this.onPullRequestSelectionChanged}
+          onCreateBranch={this.onCreateBranch}
+          onCreatePullRequest={this.onCreatePullRequest}
           filterText={this.state.pullRequestFilterText}
+          onFilterTextChanged={this.onPullRequestFilterTextChanged}
           onFilterKeyDown={this.closeFoldoutOnEsc(
             () => this.state.pullRequestFilterText.length === 0
           )}
-          onFilterTextChanged={this.onPullRequestFilterTextChanged}
-          selectedPullRequest={this.state.selectedPullRequest}
           onItemClick={this.onPullRequestClicked}
           onDismiss={this.onDismiss}
-        />
-      )
-    } else if (this.props.isLoadingPullRequests) {
-      return <PullRequestsLoading key="prs-loading" />
-    } else {
-      const repo = this.props.repository
-      const name = repo.gitHubRepository
-        ? repo.gitHubRepository.fullName
-        : repo.name
-      const isOnDefaultBranch =
-        this.props.defaultBranch &&
-        this.props.currentBranch &&
-        this.props.defaultBranch.name === this.props.currentBranch.name
-      return (
-        <NoPullRequests
-          key="no-prs"
-          repositoryName={name}
-          isOnDefaultBranch={!!isOnDefaultBranch}
-          onCreateBranch={this.onCreateBranch}
-          onCreatePullRequest={this.onCreatePullRequest}
         />
       )
     }
