@@ -67,9 +67,11 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  private closeFoldoutOnEsc = (when: () => boolean) => (
+    event: React.KeyboardEvent<HTMLElement>
+  ) => {
     if (event.key === 'Escape') {
-      if (this.state.filterText.length === 0) {
+      if (when()) {
         this.props.dispatcher.closeFoldout(FoldoutType.Branch)
         event.preventDefault()
       }
@@ -140,8 +142,10 @@ export class BranchesContainer extends React.Component<
             allBranches={this.props.allBranches}
             recentBranches={this.props.recentBranches}
             onItemClick={this.onItemClick}
-            onFilterKeyDown={this.onFilterKeyDown}
             filterText={this.state.branchFilterText}
+            onFilterKeyDown={this.closeFoldoutOnEsc(
+              () => this.state.branchFilterText.length === 0
+            )}
             onFilterTextChanged={this.onBranchFilterTextChanged}
             selectedBranch={this.state.selectedBranch}
             onSelectionChanged={this.onBranchSelectionChanged}
@@ -177,6 +181,10 @@ export class BranchesContainer extends React.Component<
           pullRequests={pullRequests}
           onSelectionChanged={this.onPullRequestSelectionChanged}
           filterText={this.state.pullRequestFilterText}
+          onFilterKeyDown={this.closeFoldoutOnEsc(
+            () => this.state.pullRequestFilterText.length === 0
+          )}
+          onFilterTextChanged={this.onPullRequestFilterTextChanged}
           selectedPullRequest={this.state.selectedPullRequest}
           onItemClick={this.onPullRequestClicked}
           onDismiss={this.onDismiss}
