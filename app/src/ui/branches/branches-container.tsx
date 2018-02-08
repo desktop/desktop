@@ -67,7 +67,7 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private closeFoldoutOnEsc = (when: () => boolean) => (
+  private shouldCloseFoldout = (when: () => boolean) => (
     event: React.KeyboardEvent<HTMLElement>
   ) => {
     if (event.key === 'Escape') {
@@ -143,7 +143,7 @@ export class BranchesContainer extends React.Component<
             recentBranches={this.props.recentBranches}
             onItemClick={this.onItemClick}
             filterText={this.state.branchFilterText}
-            onFilterKeyDown={this.closeFoldoutOnEsc(
+            onFilterKeyDown={this.shouldCloseFoldout(
               () => this.state.branchFilterText.length === 0
             )}
             onFilterTextChanged={this.onBranchFilterTextChanged}
@@ -181,7 +181,7 @@ export class BranchesContainer extends React.Component<
           pullRequests={pullRequests}
           onSelectionChanged={this.onPullRequestSelectionChanged}
           filterText={this.state.pullRequestFilterText}
-          onFilterKeyDown={this.closeFoldoutOnEsc(
+          onFilterKeyDown={this.shouldCloseFoldout(
             () => this.state.pullRequestFilterText.length === 0
           )}
           onFilterTextChanged={this.onPullRequestFilterTextChanged}
