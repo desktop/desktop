@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.0.14-test1": [
+      "[Improved] Electron 1.8.2 upgrade"
+    ],
     "1.0.14-beta2": [
       "[Added] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",
       "[Fixed] Allow window to accept single click on focus - #3843",
