@@ -2,6 +2,7 @@ import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
 
+import { pathExists } from '../file-system'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
@@ -71,7 +72,7 @@ export async function getAvailableShells(): Promise<
   return shells
 }
 
-function findPowerShell(): string | null {
+async function findPowerShell(): Promise<string | null> {
   const powerShell = enumerateValues(
     HKEY.HKEY_LOCAL_MACHINE,
     'Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\PowerShell.exe'
@@ -97,13 +98,20 @@ function findPowerShell(): string | null {
       /^%SystemRoot%/i,
       process.env.SystemRoot || 'C:\\Windows'
     )
-    return path
+
+    if (await pathExists(path)) {
+      return path
+    } else {
+      log.debug(
+        `[PowerShell] registry entry found but does not exist at '${path}'`
+      )
+    }
   }
 
   return null
 }
 
-function findHyper(): string | null {
+async function findHyper(): Promise<string | null> {
   const hyper = enumerateValues(
     HKEY.HKEY_CURRENT_USER,
     'Software\\Classes\\Directory\\Background\\shell\\Hyper\\command'
@@ -120,15 +128,21 @@ function findHyper(): string | null {
     // This regex is designed to get the path to the version-specific Hyper.
     // commandPieces = ['"{installationPath}\app-x.x.x\Hyper.exe"', '"', '{installationPath}\app-x.x.x\Hyper.exe', ...]
     const commandPieces = first.data.match(/(["'])(.*?)\1/)
-    return commandPieces
+    const path = commandPieces
       ? commandPieces[2]
       : process.env.LocalAppData.concat('\\hyper\\Hyper.exe') // fall back to the launcher in install root
+
+    if (await pathExists(path)) {
+      return path
+    } else {
+      log.debug(`[Hyper] registry entry found but does not exist at '${path}'`)
+    }
   }
 
   return null
 }
 
-function findGitBash(): string | null {
+async function findGitBash(): Promise<string | null> {
   const registryPath = enumerateValues(
     HKEY.HKEY_LOCAL_MACHINE,
     'SOFTWARE\\GitForWindows'
@@ -140,7 +154,15 @@ function findGitBash(): string | null {
 
   const installPathEntry = registryPath.find(e => e.name === 'InstallPath')
   if (installPathEntry && installPathEntry.type === RegistryValueType.REG_SZ) {
-    return Path.join(installPathEntry.data, 'git-bash.exe')
+    const path = Path.join(installPathEntry.data, 'git-bash.exe')
+
+    if (await pathExists(path)) {
+      return path
+    } else {
+      log.debug(
+        `[Git Bash] registry entry found but does not exist at '${path}'`
+      )
+    }
   }
 
   return null
