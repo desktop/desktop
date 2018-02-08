@@ -3,6 +3,13 @@
     "1.0.14-test1": [
       "[Improved] Electron 1.8.2 upgrade"
     ],
+    "1.0.14-beta3": [
+      "[Added] Add TextMate support for macOS - #3910. Thanks @caiofbpa!",
+      "[Fixed] Handle Git errors when .gitmodules are malformed - #3912",
+      "[Fixed] Clear repository filter when switching tabs - #3787. Thanks @reyronald!",
+      "[Fixed] Prevent duplicate entries in co-author autocomplete list - #3887",
+      "[Improved] Show progress when initializing remote for fork - #3953"
+    ],
     "1.0.14-beta2": [
       "[Added] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",
       "[Fixed] Allow window to accept single click on focus - #3843",
