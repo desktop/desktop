@@ -15,6 +15,8 @@ interface INoPullRequestsProps {
   /** Is the default branch currently checked out? */
   readonly isOnDefaultBranch: boolean
 
+  readonly isSearch: boolean
+
   /* Called when the user wants to create a new branch. */
   readonly onCreateBranch: () => void
 
