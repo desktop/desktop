@@ -67,11 +67,11 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private closeFoldoutOnEsc = (when: () => boolean) => (
+  private closeFoldoutOnEsc = (shouldCloseFoldout: () => boolean) => (
     event: React.KeyboardEvent<HTMLElement>
   ) => {
     if (event.key === 'Escape') {
-      if (when()) {
+      if (shouldCloseFoldout()) {
         this.props.dispatcher.closeFoldout(FoldoutType.Branch)
         event.preventDefault()
       }
