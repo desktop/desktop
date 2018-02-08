@@ -71,47 +71,66 @@ export async function getAvailableShells(): Promise<
     }
   }
 
+  const hyperPath = await findHyper()
+  if (hyperPath != null) {
+    shells.push({
+      shell: Shell.Hyper,
+      path: hyperPath,
+    })
+  }
+
+  const gitBashPath = await findGitBash()
+  if (gitBashPath != null) {
+    shells.push({
+      shell: Shell.GitBash,
+      path: gitBashPath,
+    })
+  }
+
+  return shells
+}
+
+function findHyper(): string | null {
   const hyper = enumerateValues(
     HKEY.HKEY_CURRENT_USER,
     'Software\\Classes\\Directory\\Background\\shell\\Hyper\\command'
   )
-  if (hyper.length > 0) {
-    const first = hyper[0]
-    if (first.type === RegistryValueType.REG_SZ) {
-      // Registry key is structured as "{installationPath}\app-x.x.x\Hyper.exe" "%V"
 
-      // This regex is designed to get the path to the version-specific Hyper.
-      // commandPieces = ['"{installationPath}\app-x.x.x\Hyper.exe"', '"', '{installationPath}\app-x.x.x\Hyper.exe', ...]
-      const commandPieces = first.data.match(/(["'])(.*?)\1/)
-      const path = commandPieces
-        ? commandPieces[2]
-        : process.env.LocalAppData.concat('\\hyper\\Hyper.exe') // fall back to the launcher in install root
-      shells.push({
-        shell: Shell.Hyper,
-        path: path,
-      })
-    }
+  if (hyper.length === 0) {
+    return null
   }
 
-  const gitBash = enumerateValues(
+  const first = hyper[0]
+  if (first.type === RegistryValueType.REG_SZ) {
+    // Registry key is structured as "{installationPath}\app-x.x.x\Hyper.exe" "%V"
+
+    // This regex is designed to get the path to the version-specific Hyper.
+    // commandPieces = ['"{installationPath}\app-x.x.x\Hyper.exe"', '"', '{installationPath}\app-x.x.x\Hyper.exe', ...]
+    const commandPieces = first.data.match(/(["'])(.*?)\1/)
+    return commandPieces
+      ? commandPieces[2]
+      : process.env.LocalAppData.concat('\\hyper\\Hyper.exe') // fall back to the launcher in install root
+  }
+
+  return null
+}
+
+function findGitBash(): string | null {
+  const registryPath = enumerateValues(
     HKEY.HKEY_LOCAL_MACHINE,
     'SOFTWARE\\GitForWindows'
   )
 
-  if (gitBash.length > 0) {
-    const installPathEntry = gitBash.find(e => e.name === 'InstallPath')
-    if (
-      installPathEntry &&
-      installPathEntry.type === RegistryValueType.REG_SZ
-    ) {
-      shells.push({
-        shell: Shell.GitBash,
-        path: Path.join(installPathEntry.data, 'git-bash.exe'),
-      })
-    }
+  if (registryPath.length === 0) {
+    return null
   }
 
-  return shells
+  const installPathEntry = registryPath.find(e => e.name === 'InstallPath')
+  if (installPathEntry && installPathEntry.type === RegistryValueType.REG_SZ) {
+    return Path.join(installPathEntry.data, 'git-bash.exe')
+  }
+
+  return null
 }
 
 export function launch(
