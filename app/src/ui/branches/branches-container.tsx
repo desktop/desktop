@@ -17,7 +17,7 @@ import { CSSTransitionGroup } from 'react-transition-group'
 const PullRequestsLoadingCrossFadeInTimeout = 300
 const PullRequestsLoadingCrossFadeOutTimeout = 200
 
-interface IBranchesProps {
+interface IBranchesContainerProps {
   readonly defaultBranch: Branch | null
   readonly currentBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
@@ -34,7 +34,7 @@ interface IBranchesProps {
   readonly isLoadingPullRequests: boolean
 }
 
-interface IBranchesState {
+interface IBranchesContainerState {
   readonly selectedBranch: Branch | null
   readonly selectedPullRequest: PullRequest | null
   readonly filterText: string
@@ -42,10 +42,10 @@ interface IBranchesState {
 
 /** The unified Branches and Pull Requests component. */
 export class BranchesContainer extends React.Component<
-  IBranchesProps,
-  IBranchesState
+  IBranchesContainerProps,
+  IBranchesContainerState
 > {
-  public constructor(props: IBranchesProps) {
+  public constructor(props: IBranchesContainerProps) {
     super(props)
 
     this.state = {
