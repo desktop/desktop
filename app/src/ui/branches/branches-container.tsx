@@ -37,7 +37,7 @@ interface IBranchesContainerProps {
 interface IBranchesContainerState {
   readonly selectedBranch: Branch | null
   readonly selectedPullRequest: PullRequest | null
-  readonly filterText: string
+  readonly branchFilterText: string
 }
 
 /** The unified Branches and Pull Requests component. */
@@ -51,7 +51,7 @@ export class BranchesContainer extends React.Component<
     this.state = {
       selectedBranch: props.currentBranch,
       selectedPullRequest: props.currentPullRequest,
-      filterText: '',
+      branchFilterText: '',
     }
   }
 
@@ -74,8 +74,8 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private onFilterTextChanged = (filterText: string) => {
-    this.setState({ filterText })
+  private onBranchFilterTextChanged = (text: string) => {
+    this.setState({ branchFilterText: text })
   }
 
   private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
@@ -134,9 +134,9 @@ export class BranchesContainer extends React.Component<
             allBranches={this.props.allBranches}
             recentBranches={this.props.recentBranches}
             onItemClick={this.onItemClick}
-            filterText={this.state.filterText}
             onFilterKeyDown={this.onFilterKeyDown}
             onFilterTextChanged={this.onFilterTextChanged}
+            filterText={this.state.branchFilterText}
             selectedBranch={this.state.selectedBranch}
             onSelectionChanged={this.onBranchSelectionChanged}
             canCreateNewBranch={true}
