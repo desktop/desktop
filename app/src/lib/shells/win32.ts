@@ -1,7 +1,8 @@
 import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
-import { assertNever } from '../fatal-error'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
+
+import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
 export enum Shell {
