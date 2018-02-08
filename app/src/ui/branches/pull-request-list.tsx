@@ -27,6 +27,12 @@ export const RowHeight = 47
 interface IPullRequestListProps {
   /** The pull requests to display. */
   readonly pullRequests: ReadonlyArray<PullRequest>
+  readonly selectedPullRequest: PullRequest | null
+  readonly repositoryName: string
+  readonly isOnDefaultBranch: boolean
+
+  /** The current filter text to render */
+  readonly filterText: string
 
   /** Called when the user clicks on a pull request. */
   readonly onItemClick: (pullRequest: PullRequest) => void
@@ -34,8 +40,10 @@ interface IPullRequestListProps {
   /** Called when the user wants to dismiss the foldout. */
   readonly onDismiss: () => void
 
-  readonly selectedPullRequest: PullRequest | null
-
+  /** Callback to fire when the filter text is changed */
+  readonly onFilterTextChanged: (filterText: string) => void
+  readonly onCreateBranch: () => void
+  readonly onCreatePullRequest: () => void
   readonly onSelectionChanged?: (
     pullRequest: PullRequest | null,
     source: SelectionSource
@@ -48,12 +56,6 @@ interface IPullRequestListProps {
   readonly onFilterKeyDown?: (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => void
-
-  /** The current filter text to render */
-  readonly filterText: string
-
-  /** Callback to fire when the filter text is changed */
-  readonly onFilterTextChanged: (filterText: string) => void
 }
 
 interface IPullRequestListState {
