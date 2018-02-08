@@ -7,6 +7,7 @@ import {
 } from '../lib/filter-list'
 import { PullRequestListItem } from './pull-request-list-item'
 import { PullRequest, PullRequestStatus } from '../../models/pull-request'
+import { NoPullRequests } from './no-pull-requests'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -125,6 +126,19 @@ export class PullRequestList extends React.Component<
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
         onFilterKeyDown={this.props.onFilterKeyDown}
+        renderNoItems={this.renderNoItems}
+      />
+    )
+  }
+
+  private renderNoItems = () => {
+    return (
+      <NoPullRequests
+        isSearch={this.props.filterText.length > 0}
+        repositoryName={this.props.repositoryName}
+        isOnDefaultBranch={this.props.isOnDefaultBranch}
+        onCreateBranch={this.props.onCreateBranch}
+        onCreatePullRequest={this.props.onCreatePullRequest}
       />
     )
   }
