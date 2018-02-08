@@ -42,6 +42,9 @@ interface IPullRequestListProps {
   ) => void
   /** The current filter text to render */
   readonly filterText: string
+
+  /** Callback to fire when the filter text is changed */
+  readonly onFilterTextChanged: (filterText: string) => void
 }
 
 interface IPullRequestListState {
@@ -105,8 +108,8 @@ export class PullRequestList extends React.Component<
         groups={this.state.groupedItems}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderPullRequest}
-        onFilterTextChanged={this.onFilterTextChanged}
         filterText={this.props.filterText}
+        onFilterTextChanged={this.props.onFilterTextChanged}
         invalidationProps={this.props.pullRequests}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
@@ -138,10 +141,6 @@ export class PullRequestList extends React.Component<
         status={status}
       />
     )
-  }
-
-  private onFilterTextChanged = (filterText: string) => {
-    this.setState({ filterText })
   }
 
   private onItemClick = (item: IPullRequestListItem) => {
