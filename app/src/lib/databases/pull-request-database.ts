@@ -93,6 +93,15 @@ export class PullRequestDatabase extends BaseDatabase {
     // we need to run the upgrade function to ensure we add
     // a status field to all previous records
     this.conditionalVersion(4, {}, this.addStatusesField)
+
+    this.conditionalVersion(
+      5,
+      {
+        pullRequests: '_id++, base.repository_id',
+        pullRequestStatus: '_id++, pull_request_id, &[sha+pull_request_id]',
+      },
+      this.upgradeFieldNames
+    )
   }
 
   private addStatusesField = async (transaction: Dexie.Transaction) => {
@@ -110,5 +119,63 @@ export class PullRequestDatabase extends BaseDatabase {
         await table.add(newPrStatus)
       }
     })
+  }
+
+  private upgradeFieldNames = async (transaction: Dexie.Transaction) => {
+    console.trace('In upgrade function')
+    const oldPRRecords = await transaction
+      .table('pullRequests')
+      .toCollection()
+      .toArray()
+
+    const newPRRecords: IPullRequest[] = oldPRRecords.map(r => {
+      return {
+        _id: r.id as number,
+        number: r.pullRequestId as number,
+        title: r.title as string,
+        created_at: r.createdAt as string,
+        head: {
+          repository_id: r.head.repoId,
+          ref: r.head.ref as string,
+          sha: r.head.sha as string,
+        },
+        base: {
+          repository_id: r.base.repoId,
+          ref: r.head.ref as string,
+          sha: r.head.sha as string,
+        },
+        author: r.author,
+      }
+    })
+
+    await this.pullRequest.bulkAdd(newPRRecords)
+    await transaction
+      .table('pullRequests')
+      .toCollection()
+      .delete()
+
+    const oldPrStatusRecords = await transaction
+      .table('pullRequests')
+      .toCollection()
+      .toArray()
+
+    const newPrStatusRecords: IPullRequestStatus[] = oldPrStatusRecords.map(
+      r => {
+        return {
+          _id: r.id as number,
+          pull_request_id: r.pullRequestId as number,
+          state: r.state as APIRefState,
+          total_count: r.totalCount as number,
+          sha: r.sha as string,
+          status: r.statuses as IAPIRefStatusItem[],
+        }
+      }
+    )
+
+    await this.pullRequestStatus.bulkAdd(newPrStatusRecords)
+    await transaction
+      .table('pullRequestStatus')
+      .toCollection()
+      .delete()
   }
 }
