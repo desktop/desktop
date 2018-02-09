@@ -1,6 +1,14 @@
-import { inc, parse } from 'semver'
+import { inc, parse, SemVer } from 'semver'
 
 import { Channel } from './channel'
+
+function isBetaTag(version: SemVer) {
+  return version.prerelease.some(p => p.startsWith('beta'))
+}
+
+function isTestTag(version: SemVer) {
+  return version.prerelease.some(p => p.startsWith('test'))
+}
 
 export function getNextVersionNumber(
   version: string,
@@ -13,20 +21,19 @@ export function getNextVersionNumber(
   }
 
   if (channel === 'production') {
-    if (semanticVersion.prerelease.some(p => p.startsWith('beta'))) {
+    if (isBetaTag(semanticVersion)) {
       throw new Error(
         `Unable to draft production release using beta version '${version}'`
       )
     }
 
-    if (semanticVersion.prerelease.some(p => p.startsWith('test'))) {
+    if (isTestTag(semanticVersion)) {
       throw new Error(
         `Unable to draft production release using test version '${version}'`
       )
     }
 
     const nextVersion = inc(version, 'patch')
-
     if (nextVersion == null) {
       throw new Error(
         `Unable to increment next production version from release version '${version}'`
@@ -36,7 +43,7 @@ export function getNextVersionNumber(
     return nextVersion
   }
 
-  if (semanticVersion.prerelease.some(p => p.startsWith('test'))) {
+  if (isTestTag(semanticVersion)) {
     throw new Error(
       `Unable to resolve beta release using test version '${version}'`
     )
