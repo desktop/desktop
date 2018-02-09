@@ -1057,17 +1057,16 @@ export class Diff extends React.Component<IDiffProps, {}> {
     }
 
     if (diff.kind === DiffType.TooLarge) {
-      const BlankSlateImage = encodePathAsUrl(
-        __dirname,
-        'static/empty-no-file-selected.svg'
-      )
+      const BlankSlateImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
 
       return (
-        <div className="panel empty">
-          <img src={BlankSlateImage} className="blankslate-image" />
+        <div className="panel empty large-diff">
+          <img src={BlankSlateImage} />
           <p>
-            The diff is too larged to be displayed by default. You can try to
-            show it anyway but performance may be negatively impacted.
+            The diff is too large to be displayed by default.
+            <br />
+            You can try to show it anyway but performance may be negatively
+            impacted.
           </p>
           <Button>Show diff</Button>
         </div>
