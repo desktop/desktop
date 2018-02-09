@@ -7,7 +7,7 @@ export interface IPullRequestRef {
    * The database ID of the GitHub repository in which this ref lives. It could
    * be null if the repository was deleted on the site after the PR was opened.
    */
-  readonly repoId: number | null
+  readonly repository_id: number | null
 
   /** The name of the ref. */
   readonly ref: string
@@ -21,7 +21,7 @@ export interface IPullRequest {
    * The database ID. This will be undefined if the pull request hasn't been
    * inserted into the DB.
    */
-  readonly id?: number
+  readonly _id?: number
 
   /** The GitHub PR number. */
   readonly number: number
@@ -30,7 +30,7 @@ export interface IPullRequest {
   readonly title: string
 
   /** The string formatted date on which the PR was created. */
-  readonly createdAt: string
+  readonly created_at: string
 
   /** The ref from which the pull request's changes are coming. */
   readonly head: IPullRequestRef
@@ -47,16 +47,16 @@ export interface IPullRequestStatus {
    * The database ID. This will be undefined if the status hasn't been inserted
    * into the DB.
    */
-  readonly id?: number
+  readonly _id?: number
 
   /** The ID of the pull request in the database. */
-  readonly pullRequestId: number
+  readonly pull_request_id: number
 
   /** The status' state. */
   readonly state: APIRefState
 
   /** The number of statuses represented in this combined status. */
-  readonly totalCount: number
+  readonly total_count: number
 
   /** The SHA for which this status applies. */
   readonly sha: string
@@ -66,15 +66,17 @@ export interface IPullRequestStatus {
    * if the database object was created prior to status support
    * being added in #3588
    */
-  readonly statuses?: ReadonlyArray<IAPIRefStatusItem>
+  readonly status: ReadonlyArray<IAPIRefStatusItem>
 }
 
 export class PullRequestDatabase extends BaseDatabase {
-  public pullRequests: Dexie.Table<IPullRequest, number>
+  public pullRequest: Dexie.Table<IPullRequest, number>
   public pullRequestStatus: Dexie.Table<IPullRequestStatus, number>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
+
+    console.trace('In constructor')
 
     this.conditionalVersion(1, {
       pullRequests: 'id++, base.repoId',
@@ -97,12 +99,12 @@ export class PullRequestDatabase extends BaseDatabase {
     const table = this.pullRequestStatus
 
     await table.toCollection().modify(async prStatus => {
-      if (prStatus.statuses == null) {
+      if (prStatus.status == null) {
         const newPrStatus = { statuses: [], ...prStatus }
 
         await table
           .where('[sha+pullRequestId]')
-          .equals([prStatus.sha, prStatus.pullRequestId])
+          .equals([prStatus.sha, prStatus.pull_request_id])
           .delete()
 
         await table.add(newPrStatus)

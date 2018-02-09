@@ -126,7 +126,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
     }
 
-    const records = await this.pullRequestDatabase.pullRequests
+    const records = await this.pullRequestDatabase.pullRequest
       .where('base.repoId')
       .equals(gitHubRepositoryID)
       .reverse()
@@ -135,7 +135,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     const result = new Array<PullRequest>()
 
     for (const record of records) {
-      const repositoryDbId = record.head.repoId
+      const repositoryDbId = record.head.repository_id
       let githubRepository: GitHubRepository | null = null
 
       if (repositoryDbId != null) {
@@ -148,7 +148,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       // fetched the PR from in the first place.
       const parentRepositoryDbId = forceUnwrap(
         'A pull request cannot have a null base repo id',
-        record.base.repoId
+        record.base.repository_id
       )
       const parentGitGubRepository: GitHubRepository | null = await this.repositoryStore.findGitHubRepositoryByID(
         parentRepositoryDbId
@@ -162,7 +162,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       // database.
       const pullRequestDbId = forceUnwrap(
         'PR cannot have a null ID after being retrieved from the database',
-        record.id
+        record._id
       )
 
       const pullRequestStatus = await this.findPullRequestStatus(
@@ -173,7 +173,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       result.push(
         new PullRequest(
           pullRequestDbId,
-          new Date(record.createdAt),
+          new Date(record.created_at),
           pullRequestStatus,
           record.title,
           record.number,
@@ -270,11 +270,11 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
 
       statuses.push({
-        pullRequestId: pr.id,
+        pull_request_id: pr.id,
         state: combinedRefStatus.state,
-        totalCount: combinedRefStatus.total_count,
+        total_count: combinedRefStatus.total_count,
         sha: pr.head.sha,
-        statuses: combinedRefStatus.statuses,
+        status: combinedRefStatus.statuses,
       })
     }
 
@@ -296,7 +296,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       return null
     }
 
-    const combinedRefStatuses = (result.statuses || []).map(x => {
+    const combinedRefStatuses = (result.status || []).map(x => {
       return {
         id: x.id,
         state: x.state,
@@ -304,9 +304,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     })
 
     return new PullRequestStatus(
-      result.pullRequestId,
+      result.pull_request_id,
       result.state,
-      result.totalCount,
+      result.total_count,
       result.sha,
       combinedRefStatuses
     )
@@ -324,7 +324,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
     }
 
-    const table = this.pullRequestDatabase.pullRequests
+    const table = this.pullRequestDatabase.pullRequest
     const prsToInsert = new Array<IPullRequest>()
     let githubRepo: GitHubRepository | null = null
 
@@ -366,16 +366,16 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       prsToInsert.push({
         number: pr.number,
         title: pr.title,
-        createdAt: pr.created_at,
+        created_at: pr.created_at,
         head: {
           ref: pr.head.ref,
           sha: pr.head.sha,
-          repoId: githubRepoDbId,
+          repository_id: githubRepoDbId,
         },
         base: {
           ref: pr.base.ref,
           sha: pr.base.sha,
-          repoId: parentGitHubRepoDbId,
+          repository_id: parentGitHubRepoDbId,
         },
         author: pr.user.login,
       })
@@ -389,7 +389,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       // since all PRs come from the same repository
       // using the base repoId of the fist element
       // is sufficient here
-      const repoDbId = prsToInsert[0].base.repoId!
+      const repoDbId = prsToInsert[0].base.repository_id!
 
       // we need to delete the stales PRs from the db
       // so we remove all for a repo to avoid having to
@@ -412,13 +412,13 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       for (const status of statuses) {
         const record = await table
           .where('[sha+pullRequestId]')
-          .equals([status.sha, status.pullRequestId])
+          .equals([status.sha, status.pull_request_id])
           .first()
 
         if (record == null) {
           await table.add(status)
         } else {
-          await table.put({ id: record.id, ...status })
+          await table.put({ _id: record._id, ...status })
         }
       }
     })
