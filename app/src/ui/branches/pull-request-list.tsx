@@ -49,8 +49,14 @@ interface IPullRequestListProps {
 
   /** Callback to fire when the filter text is changed */
   readonly onFilterTextChanged: (filterText: string) => void
+
+  /** Called when the user opts to create a branch */
   readonly onCreateBranch: () => void
+
+  /** Called when the user opts to create a pull request */
   readonly onCreatePullRequest: () => void
+
+  /** Callbacked fired when user selects a new pull request */
   readonly onSelectionChanged?: (
     pullRequest: PullRequest | null,
     source: SelectionSource
