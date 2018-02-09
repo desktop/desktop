@@ -46,18 +46,17 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
   const object: any = {}
   object[`${nextVersion}`] = entries.sort()
 
-  console.log(
-    `1. Ensure the app/package.json 'version' is set to '${nextVersion}'`
-  )
-  console.log('2. Add this to changelog.json as a starting point:')
-  console.log(`${jsonStringify(object)}\n`)
-  console.log(
-    '3. Update the release notes so they make sense and only contain user-facing changes'
-  )
-  console.log('4. Commit the changes and push them to GitHub')
-  console.log(
-    '5. Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md'
-  )
+  const steps = [
+    `Ensure the app/package.json 'version' is set to '${nextVersion}'`,
+    `Add this to changelog.json as a starting point:\n${jsonStringify(
+      object
+    )}\n`,
+    'Update the release notes so they make sense and only contain user-facing changes',
+    'Commit the changes and push them to GitHub',
+    'Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md',
+  ]
+
+  console.log(steps.map((value, index) => `${index + 1}. ${value}`).join('\n'))
 }
 
 export async function run(args: ReadonlyArray<string>): Promise<void> {
