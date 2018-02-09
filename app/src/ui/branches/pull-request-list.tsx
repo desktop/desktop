@@ -28,8 +28,14 @@ export const RowHeight = 47
 interface IPullRequestListProps {
   /** The pull requests to display. */
   readonly pullRequests: ReadonlyArray<PullRequest>
+
+  /** The currently selected pull request */
   readonly selectedPullRequest: PullRequest | null
+
+  /** The name of the repository. */
   readonly repositoryName: string
+
+  /** Is the default branch currently checked out? */
   readonly isOnDefaultBranch: boolean
 
   /** The current filter text to render */
