@@ -55,7 +55,7 @@ export class DeleteBranch extends React.Component<
 
       checkBranchExistsOnRemote(this.props.repository, this.props.branch)
         .catch(err => {
-          log.info(
+          log.error(
             `[DeleteBranch] unable to resolve upstream branch: '${
               this.props.branch.upstream
             }'`,
@@ -98,7 +98,7 @@ export class DeleteBranch extends React.Component<
   }
 
   private renderDeleteOnRemote() {
-    if (this.props.branch.remote && this.state.existsOnRemote === true) {
+    if (this.props.branch.remote && this.state.existsOnRemote) {
       return (
         <div>
           <p>
