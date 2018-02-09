@@ -1,4 +1,4 @@
-import { spawn } from 'child_process'
+import { spawn, ChildProcess } from 'child_process'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 
@@ -76,11 +76,11 @@ export async function getAvailableShells(): Promise<
   return shells
 }
 
-export async function launch(
+export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
-): Promise<void> {
+): ChildProcess {
   const bundleID = getBundleID(foundShell.shell)
   const commandArgs = ['-b', bundleID, path]
-  await spawn('open', commandArgs)
+  return spawn('open', commandArgs)
 }
