@@ -10,6 +10,17 @@ function isTestTag(version: SemVer) {
   return version.prerelease.some(p => p.startsWith('test'))
 }
 
+function tryGetBetaNumber(version: SemVer): number | null {
+  if (isBetaTag(version)) {
+    const tag = version.prerelease[0]
+    const text = tag.substr(4)
+    const betaNumber = parseInt(text, 10)
+    return isNaN(betaNumber) ? null : betaNumber
+  }
+
+  return null
+}
+
 export function getNextVersionNumber(
   version: string,
   channel: Channel
@@ -50,18 +61,15 @@ export function getNextVersionNumber(
         )
       }
 
-      const betaTagIndex = version.indexOf('-beta')
-      if (betaTagIndex > -1) {
-        const betaNumber = version.substr(betaTagIndex + 5)
-        const newBeta = parseInt(betaNumber, 10) + 1
+      const betaNumber = tryGetBetaNumber(semanticVersion)
 
-        const newVersion = version.replace(
+      if (betaNumber) {
+        return semanticVersion.version.replace(
           `-beta${betaNumber}`,
-          `-beta${newBeta}`
+          `-beta${betaNumber + 1}`
         )
-        return newVersion
       } else {
-        const nextVersion = inc(version, 'patch')
+        const nextVersion = inc(semanticVersion, 'patch')
         const firstBeta = `${nextVersion}-beta1`
         return firstBeta
       }
