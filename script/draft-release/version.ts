@@ -6,22 +6,22 @@ export function getNextVersionNumber(
   version: string,
   channel: Channel
 ): string {
-  const parsed = parse(version)
+  const semanticVersion = parse(version)
 
-  if (parsed == null) {
+  if (semanticVersion == null) {
     throw new Error(`Unable to parse input '${version}' into version`)
   }
 
   if (channel === 'production') {
-    if (parsed.prerelease.some(p => p.startsWith('beta'))) {
+    if (semanticVersion.prerelease.some(p => p.startsWith('beta'))) {
       throw new Error(
-        `Unable to resolve production version using beta release '${version}'`
+        `Unable to draft production release using beta version '${version}'`
       )
     }
 
-    if (parsed.prerelease.some(p => p.startsWith('test'))) {
+    if (semanticVersion.prerelease.some(p => p.startsWith('test'))) {
       throw new Error(
-        `Unable to resolve production version using test release '${version}'`
+        `Unable to draft production release using test version '${version}'`
       )
     }
 
@@ -29,16 +29,16 @@ export function getNextVersionNumber(
 
     if (nextVersion == null) {
       throw new Error(
-        `Unable to resolve next version from release '${version}'`
+        `Unable to increment next production version from release version '${version}'`
       )
     }
 
     return nextVersion
   }
 
-  if (parsed.prerelease.some(p => p.startsWith('test'))) {
+  if (semanticVersion.prerelease.some(p => p.startsWith('test'))) {
     throw new Error(
-      `Unable to resolve production version using test release '${version}'`
+      `Unable to resolve beta release using test version '${version}'`
     )
   }
 

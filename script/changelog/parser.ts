@@ -1,6 +1,6 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
-import { gt } from 'semver'
+import { gt as greaterThan } from 'semver'
 
 import { fetchPR, IAPIPR } from './api'
 
@@ -41,7 +41,7 @@ function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
   const description = capitalized(pr.title)
 
   const re = /Fixes #(\d+)/gi
-  let match
+  let match: RegExpExecArray | null = null
   do {
     match = re.exec(pr.body)
     if (match && match.length > 1) {
@@ -101,7 +101,7 @@ export function getChangelogEntriesSince(previousVersion: string): string[] {
   const existingChangelog = []
 
   for (const prop of Object.getOwnPropertyNames(releases)) {
-    const isAfter = gt(prop, previousVersion)
+    const isAfter = greaterThan(prop, previousVersion)
     if (!isAfter) {
       continue
     }
