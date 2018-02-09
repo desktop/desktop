@@ -12,7 +12,9 @@ import { getNextVersionNumber } from './version'
 
 const jsonStringify: (obj: any) => string = require('json-pretty')
 
-async function getLatestRelease(excludeBetaReleases: boolean): Promise<string> {
+async function getLatestRelease(options: {
+  excludeBetaReleases: boolean
+}): Promise<string> {
   const allTags = await spawn('git', ['tag'])
   let releaseTags = allTags
     .split('\n')
@@ -20,7 +22,7 @@ async function getLatestRelease(excludeBetaReleases: boolean): Promise<string> {
     .filter(tag => tag.indexOf('-linux') === -1)
     .filter(tag => tag.indexOf('-test') === -1)
 
-  if (excludeBetaReleases) {
+  if (options.excludeBetaReleases) {
     releaseTags = releaseTags.filter(tag => tag.indexOf('-beta') === -1)
   }
 
@@ -33,7 +35,7 @@ async function getLatestRelease(excludeBetaReleases: boolean): Promise<string> {
 }
 
 function parseChannel(arg: string): Channel {
-  if (arg === 'production' || arg === 'beta') {
+  if (arg === 'production' || arg === 'beta' || arg === 'test') {
     return arg
   }
 
@@ -75,7 +77,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   const channel = parseChannel(args[0])
   const excludeBetaReleases = channel === 'production'
-  const previousVersion = await getLatestRelease(excludeBetaReleases)
+  const previousVersion = await getLatestRelease({ excludeBetaReleases })
   const nextVersion = getNextVersionNumber(previousVersion, channel)
 
   const lines = await getLogLines(`release-${previousVersion}`)
