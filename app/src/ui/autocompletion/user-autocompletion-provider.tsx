@@ -5,7 +5,6 @@ import { GitHubUserStore } from '../../lib/stores'
 import { GitHubRepository } from '../../models/github-repository'
 import { Account } from '../../models/account'
 import { IGitHubUser } from '../../lib/databases/index'
-import { validLoginExpression } from '../../lib/api'
 
 /** An autocompletion hit for a user. */
 export interface IUserHit {
@@ -102,14 +101,6 @@ export class UserAutocompletionProvider
    */
   public async exactMatch(login: string): Promise<IUserHit | null> {
     if (this.account === null) {
-      return null
-    }
-
-    // While nothing bad can happen if we attempt to fetch a user
-    // with an invalid handle (since the request is sanitized/encoded)
-    // there's no need for us to go to the API if we already know that
-    // the username is invalid.
-    if (!validLoginExpression.test(login)) {
       return null
     }
 
