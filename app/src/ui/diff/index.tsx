@@ -1103,7 +1103,9 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       case DiffType.Image:
         return this.renderImage(diff)
       case DiffType.TooLarge:
-        return this.renderDiffTooLarge()
+        return this.state.forceShowLargeDiff
+          ? this.renderBinaryFile()
+          : this.renderDiffTooLarge()
       default:
         return null
     }
