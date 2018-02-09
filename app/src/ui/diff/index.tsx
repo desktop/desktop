@@ -1064,8 +1064,10 @@ export class Diff extends React.Component<IDiffProps, {}> {
       return (
         <div className="panel empty">
           <img src={BlankSlateImage} className="blankslate-image" />
-          The diff returned by Git is {diffSizeMB}MB ({diff.length} bytes),
-          which is larger than what can be displayed in GitHub Desktop.
+          <p>
+            The diff is too larged to be displayed by default. You can try to
+            show it anyway but performance may be negatively impacted.
+          </p>
         </div>
       )
     }
