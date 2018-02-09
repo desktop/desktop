@@ -56,6 +56,7 @@ import { readPartialFile } from '../../lib/file-system'
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
 import { highlight } from '../../lib/highlighter/worker'
 import { ITokens } from '../../lib/highlighter/types'
+import { Button } from '../lib/button'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -1068,6 +1069,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
             The diff is too larged to be displayed by default. You can try to
             show it anyway but performance may be negatively impacted.
           </p>
+          <Button>Show diff</Button>
         </div>
       )
     }
