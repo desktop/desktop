@@ -172,6 +172,10 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderPullRequests() {
+    if (this.props.isLoadingPullRequests) {
+      return <PullRequestsLoading key="prs-loading" />
+    }
+
     const pullRequests = this.props.pullRequests
     const repo = this.props.repository
     const name = repo.gitHubRepository
@@ -182,29 +186,25 @@ export class BranchesContainer extends React.Component<
       this.props.currentBranch &&
       this.props.defaultBranch.name === this.props.currentBranch.name
 
-    if (this.props.isLoadingPullRequests) {
-      return <PullRequestsLoading key="prs-loading" />
-    } else {
-      return (
-        <PullRequestList
-          key="pr-list"
-          pullRequests={pullRequests}
-          selectedPullRequest={this.state.selectedPullRequest}
-          repositoryName={name}
-          isOnDefaultBranch={!!isOnDefaultBranch}
-          onSelectionChanged={this.onPullRequestSelectionChanged}
-          onCreateBranch={this.onCreateBranch}
-          onCreatePullRequest={this.onCreatePullRequest}
-          filterText={this.state.pullRequestFilterText}
-          onFilterTextChanged={this.onPullRequestFilterTextChanged}
-          onFilterKeyDown={this.closeFoldoutOnEsc(
-            () => this.state.pullRequestFilterText.length === 0
-          )}
-          onItemClick={this.onPullRequestClicked}
-          onDismiss={this.onDismiss}
-        />
-      )
-    }
+    return (
+      <PullRequestList
+        key="pr-list"
+        pullRequests={pullRequests}
+        selectedPullRequest={this.state.selectedPullRequest}
+        repositoryName={name}
+        isOnDefaultBranch={!!isOnDefaultBranch}
+        onSelectionChanged={this.onPullRequestSelectionChanged}
+        onCreateBranch={this.onCreateBranch}
+        onCreatePullRequest={this.onCreatePullRequest}
+        filterText={this.state.pullRequestFilterText}
+        onFilterTextChanged={this.onPullRequestFilterTextChanged}
+        onFilterKeyDown={this.closeFoldoutOnEsc(
+          () => this.state.pullRequestFilterText.length === 0
+        )}
+        onItemClick={this.onPullRequestClicked}
+        onDismiss={this.onDismiss}
+      />
+    )
   }
 
   public render() {
