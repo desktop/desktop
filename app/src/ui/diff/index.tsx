@@ -1060,7 +1060,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
         __dirname,
         'static/empty-no-file-selected.svg'
       )
-      const diffSizeMB = Math.round(diff.length / (1024 * 1024))
+
       return (
         <div className="panel empty">
           <img src={BlankSlateImage} className="blankslate-image" />
