@@ -85,6 +85,7 @@
 }
 
 .blankslate-image {
+  max-width: 400px;
   width: 80%;
   flex-grow: 0.6;
   // Background image url is set in react since we need to
