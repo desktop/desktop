@@ -29,11 +29,7 @@ async function getLatestRelease(excludeBetaReleases: boolean): Promise<string> {
   const sortedTags = semverSort(releaseVersions)
   const latestTag = sortedTags[sortedTags.length - 1]
 
-  if (latestTag instanceof SemVer) {
-    return latestTag.raw
-  }
-
-  return latestTag
+  return latestTag instanceof SemVer ? latestTag.raw : latestTag
 }
 
 function parseChannel(arg: string): Channel {
@@ -45,15 +41,14 @@ function parseChannel(arg: string): Channel {
 }
 
 function printInstructions(nextVersion: string, entries: Array<string>) {
+  const object: any = {}
+  object[`${nextVersion}`] = entries.sort()
+
   console.log(
     `1. Ensure the app/package.json 'version' is set to '${nextVersion}'`
   )
   console.log('2. Add this to changelog.json as a starting point:')
-
-  const object: any = {}
-  object[`${nextVersion}`] = entries.sort()
   console.log(`${jsonStringify(object)}\n`)
-
   console.log(
     '3. Update the release notes so they make sense and only contain user-facing changes'
   )
