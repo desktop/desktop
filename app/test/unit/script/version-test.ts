@@ -14,13 +14,13 @@ describe('getNextVersionNumber', () => {
       it('beta versions', () => {
         const version = '1.0.1-beta1'
         expect(() => getNextVersionNumber(version, channel)).to.throw(
-          `Unable to resolve production version using beta release '${version}'`
+          `Unable to draft production release using beta version '${version}'`
         )
       })
       it('test versions', () => {
         const version = '1.0.1-test42'
         expect(() => getNextVersionNumber('1.0.1-test42', channel)).to.throw(
-          `Unable to resolve production version using test release '${version}'`
+          `Unable to draft production release using test version '${version}'`
         )
       })
     })
@@ -52,7 +52,7 @@ describe('getNextVersionNumber', () => {
       it('test versions', () => {
         const version = '1.0.1-test1'
         expect(() => getNextVersionNumber(version, channel)).to.throw(
-          `Unable to resolve production version using test release '${version}'`
+          `Unable to draft beta release using test version '${version}'`
         )
       })
     })

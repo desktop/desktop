@@ -46,7 +46,7 @@ export function getNextVersionNumber(
     case 'beta':
       if (isTestTag(semanticVersion)) {
         throw new Error(
-          `Unable to resolve beta release using test version '${version}'`
+          `Unable to draft beta release using test version '${version}'`
         )
       }
 
