@@ -953,6 +953,43 @@ export class Diff extends React.Component<IDiffProps, {}> {
     return null
   }
 
+  private renderDiffTooLarge() {
+    const BlankSlateImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
+
+    return (
+      <div className="panel empty large-diff">
+        <img src={BlankSlateImage} />
+        <p>
+          The diff is too large to be displayed by default.
+          <br />
+          You can try to show it anyway but performance may be negatively
+          impacted.
+        </p>
+        <Button onClick={this.onShowDiff}>Show diff</Button>
+      </div>
+    )
+  }
+
+  private renderText(diff: ITextDiff) {
+    if (diff.hunks.length === 0) {
+      if (this.props.file.status === AppFileStatus.New) {
+        return <div className="panel empty">The file is empty</div>
+      }
+
+      if (this.props.file.status === AppFileStatus.Renamed) {
+        return (
+          <div className="panel renamed">
+            The file was renamed but not changed
+          </div>
+        )
+      }
+
+      return <div className="panel empty">No content changes found</div>
+    }
+
+    return this.renderTextDiff(diff)
+  }
+
   private renderBinaryFile() {
     return (
       <BinaryFile
@@ -1045,54 +1082,27 @@ export class Diff extends React.Component<IDiffProps, {}> {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
 
+  private renderDiff(diff: IDiff, force: boolean = false): JSX.Element | null {
+    switch (diff.kind) {
+      case DiffType.Text:
+        return this.renderText(diff)
+      case DiffType.Binary:
+        return this.renderBinaryFile()
+      case DiffType.Image:
+        return this.renderImage(diff)
+      case DiffType.TooLarge:
+        return this.renderDiffTooLarge()
+      default:
+        return null
+    }
+  }
+
   public render() {
-    const diff = this.props.diff
+    return this.renderDiff(this.props.diff)
+  }
 
-    if (diff.kind === DiffType.Image) {
-      return this.renderImage(diff)
-    }
-
-    if (diff.kind === DiffType.Binary) {
-      return this.renderBinaryFile()
-    }
-
-    if (diff.kind === DiffType.TooLarge) {
-      const BlankSlateImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
-
-      return (
-        <div className="panel empty large-diff">
-          <img src={BlankSlateImage} />
-          <p>
-            The diff is too large to be displayed by default.
-            <br />
-            You can try to show it anyway but performance may be negatively
-            impacted.
-          </p>
-          <Button>Show diff</Button>
-        </div>
-      )
-    }
-
-    if (diff.kind === DiffType.Text) {
-      if (diff.hunks.length === 0) {
-        if (this.props.file.status === AppFileStatus.New) {
-          return <div className="panel empty">The file is empty</div>
-        }
-
-        if (this.props.file.status === AppFileStatus.Renamed) {
-          return (
-            <div className="panel renamed">
-              The file was renamed but not changed
-            </div>
-          )
-        }
-
-        return <div className="panel empty">No content changes found</div>
-      }
-
-      return this.renderTextDiff(diff)
-    }
-
-    return null
+  private onShowDiff = () => {
+    console.log('Stuff')
+    this.renderDiff(this.props.diff, true)
   }
 }
