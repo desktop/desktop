@@ -7,6 +7,7 @@ import {
 } from '../lib/filter-list'
 import { PullRequestListItem } from './pull-request-list-item'
 import { PullRequest, PullRequestStatus } from '../../models/pull-request'
+import { NoPullRequests } from './no-pull-requests'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -28,14 +29,34 @@ interface IPullRequestListProps {
   /** The pull requests to display. */
   readonly pullRequests: ReadonlyArray<PullRequest>
 
+  /** The currently selected pull request */
+  readonly selectedPullRequest: PullRequest | null
+
+  /** The name of the repository. */
+  readonly repositoryName: string
+
+  /** Is the default branch currently checked out? */
+  readonly isOnDefaultBranch: boolean
+
+  /** The current filter text to render */
+  readonly filterText: string
+
   /** Called when the user clicks on a pull request. */
   readonly onItemClick: (pullRequest: PullRequest) => void
 
   /** Called when the user wants to dismiss the foldout. */
   readonly onDismiss: () => void
 
-  readonly selectedPullRequest: PullRequest | null
+  /** Callback to fire when the filter text is changed */
+  readonly onFilterTextChanged: (filterText: string) => void
 
+  /** Called when the user opts to create a branch */
+  readonly onCreateBranch: () => void
+
+  /** Called when the user opts to create a pull request */
+  readonly onCreatePullRequest: () => void
+
+  /** Callbacked fired when user selects a new pull request */
   readonly onSelectionChanged?: (
     pullRequest: PullRequest | null,
     source: SelectionSource
@@ -48,12 +69,6 @@ interface IPullRequestListProps {
   readonly onFilterKeyDown?: (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => void
-
-  /** The current filter text to render */
-  readonly filterText: string
-
-  /** Callback to fire when the filter text is changed */
-  readonly onFilterTextChanged: (filterText: string) => void
 }
 
 interface IPullRequestListState {
@@ -123,6 +138,19 @@ export class PullRequestList extends React.Component<
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
         onFilterKeyDown={this.props.onFilterKeyDown}
+        renderNoItems={this.renderNoItems}
+      />
+    )
+  }
+
+  private renderNoItems = () => {
+    return (
+      <NoPullRequests
+        isSearch={this.props.filterText.length > 0}
+        repositoryName={this.props.repositoryName}
+        isOnDefaultBranch={this.props.isOnDefaultBranch}
+        onCreateBranch={this.props.onCreateBranch}
+        onCreatePullRequest={this.props.onCreatePullRequest}
       />
     )
   }
