@@ -66,16 +66,22 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private onPullRequestFilterKeyDown = () =>
-    this.closeFoldoutOnEsc(() => this.state.pullRequestFilterText.length === 0)
-  private onBranchFilterKeyDown = () =>
-    this.closeFoldoutOnEsc(() => this.state.branchFilterText.length === 0)
-
-  private closeFoldoutOnEsc = (shouldCloseFoldout: () => boolean) => (
+  private closePullRequrstFoldoutOnEsc = (
     event: React.KeyboardEvent<HTMLElement>
   ) => {
     if (event.key === 'Escape') {
-      if (shouldCloseFoldout()) {
+      if (this.state.pullRequestFilterText.length === 0) {
+        this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+        event.preventDefault()
+      }
+    }
+  }
+
+  private closeBranchFoldoutOnEsc = (
+    event: React.KeyboardEvent<HTMLElement>
+  ) => {
+    if (event.key === 'Escape') {
+      if (this.state.branchFilterText.length === 0) {
         this.props.dispatcher.closeFoldout(FoldoutType.Branch)
         event.preventDefault()
       }
@@ -147,7 +153,7 @@ export class BranchesContainer extends React.Component<
             recentBranches={this.props.recentBranches}
             onItemClick={this.onItemClick}
             filterText={this.state.branchFilterText}
-            onFilterKeyDown={this.onBranchFilterKeyDown()}
+            onFilterKeyDown={this.closeBranchFoldoutOnEsc}
             onFilterTextChanged={this.onBranchFilterTextChanged}
             selectedBranch={this.state.selectedBranch}
             onSelectionChanged={this.onBranchSelectionChanged}
@@ -201,9 +207,7 @@ export class BranchesContainer extends React.Component<
         onCreatePullRequest={this.onCreatePullRequest}
         filterText={this.state.pullRequestFilterText}
         onFilterTextChanged={this.onPullRequestFilterTextChanged}
-        onFilterKeyDown={this.closeFoldoutOnEsc(
-          () => this.state.pullRequestFilterText.length === 0
-        )}
+        onFilterKeyDown={this.closePullRequrstFoldoutOnEsc}
         onItemClick={this.onPullRequestClicked}
         onDismiss={this.onDismiss}
       />
