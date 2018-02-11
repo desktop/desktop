@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "1.0.14-beta2",
+  "version": "1.0.14-beta3",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
     "chalk": "^2.3.0",
     "classnames": "^2.2.5",
     "codemirror": "^5.31.0",
+    "codemirror-mode-elixir": "1.1.1",
     "deep-equal": "^1.0.1",
     "dexie": "^2.0.0",
     "dugite": "1.57.0",

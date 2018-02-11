@@ -36,6 +36,9 @@ interface ICloneGithubRepositoryProps {
 
   /** Called when a repository is selected. */
   readonly onGitHubRepositorySelected: (url: string) => void
+
+  /** Should the component clear the filter text on render? */
+  readonly shouldClearFilter: boolean
 }
 
 interface ICloneGithubRepositoryState {
@@ -114,6 +117,12 @@ export class CloneGithubRepository extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
+    if (nextProps.shouldClearFilter) {
+      this.setState({
+        filterText: '',
+      })
+    }
+
     if (nextProps.account.id !== this.props.account.id) {
       this.loadRepositories(nextProps.account)
     }
