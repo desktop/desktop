@@ -321,16 +321,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    const list = this.list
-    if (!list) {
-      return
-    }
-
     if (this.props.onFilterKeyDown) {
       this.props.onFilterKeyDown(event)
     }
 
-    if (event.defaultPrevented) {
+    const list = this.list
+    if (list == null || event.defaultPrevented) {
       return
     }
 
