@@ -56,7 +56,7 @@ interface IPullRequestListProps {
   /** Called when the user opts to create a pull request */
   readonly onCreatePullRequest: () => void
 
-  /** Callbacked fired when user selects a new pull request */
+  /** Callback fired when user selects a new pull request */
   readonly onSelectionChanged?: (
     pullRequest: PullRequest | null,
     source: SelectionSource
