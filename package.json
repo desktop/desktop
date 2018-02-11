@@ -106,7 +106,7 @@
     "@types/chai-datetime": "^0.0.31",
     "@types/classnames": "^2.2.2",
     "@types/codemirror": "^0.0.49",
-    "@types/electron-packager": "^8.7.1",
+    "@types/electron-packager": "^10.1.0",
     "@types/electron-winstaller": "^2.6.0",
     "@types/event-kit": "^1.2.28",
     "@types/file-url": "^2.0.0",
@@ -128,10 +128,10 @@
     "@types/uuid": "^3.4.0",
     "@types/winston": "^2.2.0",
     "@types/xml2js": "^0.4.0",
-    "electron": "1.7.11",
+    "electron": "1.8.2",
     "electron-builder": "19.48.3",
     "electron-mocha": "^5.0.0",
-    "electron-packager": "^10.1.0",
+    "electron-packager": "^11.0.0",
     "electron-winstaller": "2.5.2"
   }
 }
