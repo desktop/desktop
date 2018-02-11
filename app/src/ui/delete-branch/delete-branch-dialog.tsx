@@ -55,6 +55,9 @@ export class DeleteBranch extends React.Component<
 
       checkBranchExistsOnRemote(this.props.repository, this.props.branch)
         .catch(err => {
+          // if we encounter an unhandled error from Git, log an error
+          // and provide 'false' as the fallback value for the callback
+
           log.error(
             `[DeleteBranch] unable to resolve upstream branch: '${
               this.props.branch.upstream
