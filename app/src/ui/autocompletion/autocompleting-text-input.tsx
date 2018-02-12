@@ -308,6 +308,10 @@ export abstract class AutocompletingTextInput<
         element.selectionStart = newCaretPosition
         element.selectionEnd = newCaretPosition
       }, 0)
+    } else {
+      const newCaretPosition = textWithAutoCompleteText.length
+      element.selectionStart = newCaretPosition
+      element.selectionEnd = newCaretPosition
     }
 
     this.close()
