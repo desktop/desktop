@@ -113,6 +113,7 @@
     "@types/event-kit": "^1.2.28",
     "@types/file-url": "^2.0.0",
     "@types/fs-extra": "2.1.0",
+    "@types/fuzzaldrin-plus": "^0.0.1",
     "@types/keytar": "^4.0.0",
     "@types/mocha": "^2.2.29",
     "@types/mri": "^1.1.0",
