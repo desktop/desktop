@@ -114,52 +114,36 @@ export async function getAvailableShells(): Promise<
   return shells
 }
 
-function addErrorTracing(context: string, cp: ChildProcess) {
-  cp.stderr.on('data', chunk => {
-    const text = chunk instanceof Buffer ? chunk.toString() : chunk
-    log.debug(`[${context}] stderr: '${text}'`)
-  })
-
-  cp.on('exit', code => {
-    if (code !== 0) {
-      log.debug(`[${context}] exit code: ${code}`)
-    }
-  })
-}
-
-export async function launch(
+export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
-): Promise<void> {
+): ChildProcess {
   const shell = foundShell.shell
 
-  if (shell === Shell.PowerShell) {
-    const psCommand = `"Set-Location -LiteralPath '${path}'"`
-    const cp = spawn(
-      'START',
-      ['powershell', '-NoExit', '-Command', psCommand],
-      {
+  switch (shell) {
+    case Shell.PowerShell:
+      const psCommand = `"Set-Location -LiteralPath '${path}'"`
+      return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
         shell: true,
         cwd: path,
-      }
-    )
-    addErrorTracing(`PowerShell`, cp)
-  } else if (shell === Shell.Hyper) {
-    const cp = spawn(`"${foundShell.path}"`, [`"${path}"`], {
-      shell: true,
-      cwd: path,
-    })
-    addErrorTracing(`Hyper`, cp)
-  } else if (shell === Shell.GitBash) {
-    const cp = spawn(`"${foundShell.path}"`, [`--cd="${path}"`], {
-      shell: true,
-      cwd: path,
-    })
-    addErrorTracing(`Git Bash`, cp)
-  } else if (shell === Shell.Cmd) {
-    const cp = spawn('START', ['cmd'], { shell: true, cwd: path })
-    addErrorTracing(`CMD`, cp)
-  } else {
-    assertNever(shell, `Unknown shell: ${shell}`)
+      })
+    case Shell.Hyper:
+      const hyperPath = `"${foundShell.path}"`
+      log.info(`launching ${shell} at path: ${hyperPath}`)
+      return spawn(hyperPath, [`"${path}"`], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.GitBash:
+      const gitBashPath = `"${foundShell.path}"`
+      log.info(`launching ${shell} at path: ${gitBashPath}`)
+      return spawn(gitBashPath, [`--cd="${path}"`], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.Cmd:
+      return spawn('START', ['cmd'], { shell: true, cwd: path })
+    default:
+      return assertNever(shell, `Unknown shell: ${shell}`)
   }
 }

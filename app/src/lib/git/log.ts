@@ -3,6 +3,10 @@ import { AppFileStatus, CommittedFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
+import {
+  getTrailerSeparatorCharacters,
+  parseRawUnfoldedTrailers,
+} from './interpret-trailers'
 
 /**
  * Map the raw status text from Git to an app-friendly value
@@ -59,7 +63,9 @@ export async function getCommits(
     //   author name <author email> <author date>
     // author date format dependent on --date arg, should be raw
     '%an <%ae> %ad',
-    '%P', // parent SHAs
+    '%cn <%ce> %cd',
+    '%P', // parent SHAs,
+    '%(trailers:unfold,only)',
   ].join(`%x${delimiter}`)
 
   const result = await git(
@@ -89,14 +95,23 @@ export async function getCommits(
   // Remove the trailing empty line
   lines.splice(-1, 1)
 
+  if (lines.length === 0) {
+    return []
+  }
+
+  const trailerSeparators = await getTrailerSeparatorCharacters(repository)
+
   const commits = lines.map(line => {
     const pieces = line.split(delimiterString)
     const sha = pieces[0]
     const summary = pieces[1]
     const body = pieces[2]
     const authorIdentity = pieces[3]
-    const shaList = pieces[4]
+    const committerIdentity = pieces[4]
+    const shaList = pieces[5]
+
     const parentSHAs = shaList.length ? shaList.split(' ') : []
+    const trailers = parseRawUnfoldedTrailers(pieces[6], trailerSeparators)
 
     const author = CommitIdentity.parseIdentity(authorIdentity)
 
@@ -104,7 +119,21 @@ export async function getCommits(
       throw new Error(`Couldn't parse author identity ${authorIdentity}`)
     }
 
-    return new Commit(sha, summary, body, author, parentSHAs)
+    const committer = CommitIdentity.parseIdentity(committerIdentity)
+
+    if (!committer) {
+      throw new Error(`Couldn't parse committer identity ${committerIdentity}`)
+    }
+
+    return new Commit(
+      sha,
+      summary,
+      body,
+      author,
+      committer,
+      parentSHAs,
+      trailers
+    )
   })
 
   return commits

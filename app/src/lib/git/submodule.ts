@@ -11,8 +11,16 @@ export async function listSubmodules(
   const result = await git(
     ['submodule', 'status', '--'],
     repository.path,
-    'listSubmodules'
+    'listSubmodules',
+    {
+      successExitCodes: new Set([0, 128]),
+    }
   )
+
+  if (result.exitCode === 128) {
+    // unable to parse submodules in repository, giving up
+    return []
+  }
 
   const submodules = new Array<SubmoduleEntry>()
 
@@ -44,8 +52,12 @@ export async function listSubmodules(
 
     const [path, describeOutput] = entry.substr(42).split(/\s+/)
 
-    const describe = describeOutput.substr(1, describeOutput.length - 2)
-    submodules.push(new SubmoduleEntry(sha, path, describe))
+    // if the submodule has not been initialized, no describe output is set
+    // this means we don't have a submodule to work with
+    if (describeOutput != null) {
+      const describe = describeOutput.substr(1, describeOutput.length - 2)
+      submodules.push(new SubmoduleEntry(sha, path, describe))
+    }
   }
 
   return submodules

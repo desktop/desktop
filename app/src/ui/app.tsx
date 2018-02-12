@@ -1512,7 +1512,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderBranchToolbarButton(): JSX.Element | null {
     const selection = this.state.selectedState
 
-    if (!selection || selection.type !== SelectionType.Repository) {
+    if (selection == null || selection.type !== SelectionType.Repository) {
       return null
     }
 
@@ -1601,6 +1601,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           askForConfirmationOnDiscardChanges={
             this.state.askForConfirmationOnDiscardChanges
           }
+          accounts={this.state.accounts}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

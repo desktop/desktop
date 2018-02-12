@@ -1,0 +1,67 @@
+.author-input-component {
+  .CodeMirror {
+    border: 1px solid var(--box-border-color);
+    border-radius: var(--border-radius);
+    font-size: var(--font-size);
+    font-family: var(--font-family-sans-serif);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: 0;
+    height: auto;
+
+    .label {
+      color: var(--text-secondary-color);
+    }
+
+    .placeholder {
+      color: var(--text-secondary-color);
+      cursor: text;
+    }
+
+    .handle {
+      border-radius: 3px;
+      border: 1px solid #c3e1ff;
+      background: #f0f8ff;
+      padding: 1px 1px;
+      margin: 0px 2px;
+
+      &.progress {
+        background: transparent;
+      }
+
+      &.error {
+        background: var(--form-error-background);
+        color: var(--form-error-text-color);
+        border-color: var(--form-error-border-color);
+
+        svg {
+          padding-bottom: 2px;
+        }
+      }
+
+      &.progress,
+      &.error {
+        svg {
+          height: 9px;
+          margin-left: 3px;
+          margin-right: 3px;
+          vertical-align: middle;
+          fill: currentColor;
+        }
+      }
+    }
+  }
+
+  .CodeMirror-focused {
+    outline: none;
+    border-color: var(--focus-color);
+    box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+    border-top-width: 1px;
+    border-top-style: solid;
+    margin-top: -1px;
+  }
+
+  .CodeMirror-scroll {
+    max-height: 80px;
+  }
+}

@@ -1,8 +1,7 @@
-@import "../../mixins";
+@import '../../mixins';
 
 /** A React component holding the selected commit's detailed information */
 #commit-summary {
-
   display: flex;
   flex-direction: column;
 
@@ -24,7 +23,6 @@
   }
 
   &.expanded {
-
     .commit-summary-description-container {
       border-bottom: none;
     }
@@ -80,8 +78,14 @@
     flex: 1;
 
     &:before {
-      content: "";
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0px, rgba(255, 255, 255, 0) 40px, rgba(255, 255, 255, 0.5) 40px, white 60px);
+      content: '';
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0) 0px,
+        rgba(255, 255, 255, 0) 40px,
+        rgba(255, 255, 255, 0.5) 40px,
+        white 60px
+      );
       position: absolute;
       height: 100%;
       width: 100%;
@@ -92,11 +96,14 @@
   // Enable text selection inside the title and description elements.
   &-title,
   &-description {
-    span, a {
+    span,
+    a {
       -webkit-user-select: text;
       user-select: text;
     }
-    span { cursor: text; }
+    span {
+      cursor: text;
+    }
   }
 
   &-description {
@@ -114,8 +121,15 @@
     padding: 0 var(--spacing) var(--spacing);
   }
 
-  &-meta-item {
+  &-meta-item:not(.without-truncation) {
     @include ellipsis;
+  }
+
+  &-meta-item {
+    display: flex;
+    flex-direction: row;
+    min-width: 0;
+
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);
 

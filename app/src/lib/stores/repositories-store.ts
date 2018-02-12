@@ -1,4 +1,3 @@
-import { Emitter, Disposable } from 'event-kit'
 import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
@@ -9,28 +8,20 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { fatalError } from '../fatal-error'
 import { IAPIRepository } from '../api'
+import { BaseStore } from './base-store'
 
 /** The store for local repositories. */
-export class RepositoriesStore {
+export class RepositoriesStore extends BaseStore {
   private db: RepositoriesDatabase
 
-  private readonly emitter = new Emitter()
-
   public constructor(db: RepositoriesDatabase) {
+    super()
+
     this.db = db
   }
 
-  private emitUpdate() {
-    this.emitter.emit('did-update', {})
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: () => void): Disposable {
-    return this.emitter.on('did-update', fn)
-  }
-
   /** Find the matching GitHub repository or add it if it doesn't exist. */
-  public async findOrPutGitHubRepository(
+  public async upsertGitHubRepository(
     endpoint: string,
     apiRepository: IAPIRepository
   ): Promise<GitHubRepository> {
@@ -45,7 +36,8 @@ export class RepositoriesStore {
           .equals(apiRepository.clone_url)
           .limit(1)
           .first()
-        if (!gitHubRepository) {
+
+        if (gitHubRepository == null) {
           return this.putGitHubRepository(endpoint, apiRepository)
         } else {
           return this.buildGitHubRepository(gitHubRepository)
@@ -58,7 +50,8 @@ export class RepositoriesStore {
     dbRepo: IDatabaseGitHubRepository
   ): Promise<GitHubRepository> {
     const owner = await this.db.owners.get(dbRepo.ownerID)
-    if (!owner) {
+
+    if (owner == null) {
       throw new Error(`Couldn't find the owner for ${dbRepo.name}`)
     }
 
@@ -137,26 +130,27 @@ export class RepositoriesStore {
       this.db.owners,
       async () => {
         const repos = await this.db.repositories.toArray()
-        const existing = repos.find(r => r.path === path)
-        let id: number
+        const record = repos.find(r => r.path === path)
+        let recordId: number
         let gitHubRepo: GitHubRepository | null = null
-        if (existing) {
-          id = existing.id!
 
-          if (existing.gitHubRepositoryID) {
+        if (record != null) {
+          recordId = record.id!
+
+          if (record.gitHubRepositoryID != null) {
             gitHubRepo = await this.findGitHubRepositoryByID(
-              existing.gitHubRepositoryID
+              record.gitHubRepositoryID
             )
           }
         } else {
-          id = await this.db.repositories.add({
+          recordId = await this.db.repositories.add({
             path,
             gitHubRepositoryID: null,
             missing: false,
           })
         }
 
-        return new Repository(path, id, gitHubRepo, false)
+        return new Repository(path, recordId, gitHubRepo, false)
       }
     )
 
