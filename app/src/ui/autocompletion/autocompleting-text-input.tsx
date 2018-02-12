@@ -278,6 +278,11 @@ export abstract class AutocompletingTextInput<
     )
   }
 
+  private setCursorPosition(element: ElementType, newCaretPosition: number) {
+    element.selectionStart = newCaretPosition
+    element.selectionEnd = newCaretPosition
+  }
+
   private insertCompletion(item: Object, source: 'mouseclick' | 'keyboard') {
     const element = this.element!
     const autocompletionState = this.state.autocompletionState!
@@ -299,19 +304,17 @@ export abstract class AutocompletingTextInput<
       this.props.onValueChanged(newText)
     }
 
+    const newCaretPosition = textWithAutoCompleteText.length
+
     if (source === 'mouseclick') {
       // This is pretty gross. Clicking on the list moves focus off the text area.
       // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
       window.setTimeout(() => {
         element.focus()
-        const newCaretPosition = textWithAutoCompleteText.length
-        element.selectionStart = newCaretPosition
-        element.selectionEnd = newCaretPosition
+        this.setCursorPosition(element, newCaretPosition)
       }, 0)
     } else {
-      const newCaretPosition = textWithAutoCompleteText.length
-      element.selectionStart = newCaretPosition
-      element.selectionEnd = newCaretPosition
+      this.setCursorPosition(element, newCaretPosition)
     }
 
     this.close()
