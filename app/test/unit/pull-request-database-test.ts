@@ -3,7 +3,6 @@ import { expect } from 'chai'
 import {
   PullRequestDatabase,
   IPullRequestStatus,
-  IPullRequest,
 } from '../../src/lib/databases'
 
 describe('PullRequestDatabase', () => {
@@ -15,27 +14,28 @@ describe('PullRequestDatabase', () => {
       await database.delete()
       await database.open()
 
-      console.dir(database)
-      console.dir(database.pullRequest)
-
-      const pr: IPullRequest = {
+      // untyped because field names have been updated
+      const pr = {
         number: 1,
         title: 'title',
-        created_at: '2018-01-01',
+        createdAt: '2018-01-01',
         head: {
-          repository_id: 1,
+          repositoryId: 1,
           ref: 'head',
           sha: 'head.sha',
         },
         base: {
-          repository_id: 10,
+          repositoryId: 10,
           ref: 'base',
           sha: 'base.sha',
         },
         author: 'me',
       }
-      await database.pullRequest.add(pr)
-      const prFromDb = await database.pullRequest.get(1)
+
+      // insert into old version of table
+      const oldSchema = database.table('pullRequests')
+      await oldSchema.add(pr)
+      const prFromDb = await oldSchema.get(1)
       expect(prFromDb).to.not.be.undefined
       expect(prFromDb!.number).to.equal(pr.number)
 
@@ -46,7 +46,7 @@ describe('PullRequestDatabase', () => {
       const upgradedPrFromDb = await database.pullRequest.get(1)
       expect(upgradedPrFromDb).is.not.undefined
       expect(upgradedPrFromDb!._id).to.equal(1)
-      expect(upgradedPrFromDb!.created_at).to.equal(pr.created_at)
+      expect(upgradedPrFromDb!.created_at).to.equal(pr.createdAt)
 
       await database.delete()
     })
@@ -67,8 +67,8 @@ describe('PullRequestDatabase', () => {
         sha: 'sha',
         status: [],
       }
-      await database.pullRequestStatus.add(prStatus)
-      const prStatusFromDb = await database.pullRequestStatus.get(1)
+      await database.pullRequestStatuses.add(prStatus)
+      const prStatusFromDb = await database.pullRequestStatuses.get(1)
       expect(prStatusFromDb).to.not.be.undefined
       expect(prStatusFromDb!.pull_request_id).to.equal(prStatus.pull_request_id)
 
@@ -76,7 +76,7 @@ describe('PullRequestDatabase', () => {
       database = new PullRequestDatabase(databaseName, 4)
       await database.open()
 
-      const upgradedPrStatusFromDb = await database.pullRequestStatus.get(1)
+      const upgradedPrStatusFromDb = await database.pullRequestStatuses.get(1)
       expect(upgradedPrStatusFromDb).is.not.undefined
       expect(upgradedPrStatusFromDb!.pull_request_id).to.equal(
         prStatus.pull_request_id

@@ -70,24 +70,26 @@ export interface IPullRequestStatus {
 }
 
 export class PullRequestDatabase extends BaseDatabase {
+  public pullRequests: Dexie.Table<IPullRequest, number>
+  public pullRequestStatuses: Dexie.Table<IPullRequestStatus, number>
+
+  //
   public pullRequest: Dexie.Table<IPullRequest, number>
   public pullRequestStatus: Dexie.Table<IPullRequestStatus, number>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
 
-    console.trace('In constructor')
-
     this.conditionalVersion(1, {
       pullRequests: 'id++, base.repoId',
     })
 
     this.conditionalVersion(2, {
-      pullRequestStatus: 'id++, &[sha+pullRequestId]',
+      pullRequestStatuses: 'id++, &[sha+pullRequestId]',
     })
 
     this.conditionalVersion(3, {
-      pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
+      pullRequestStatuses: 'id++, &[sha+pullRequestId], pullRequestId',
     })
 
     // we need to run the upgrade function to ensure we add
@@ -97,7 +99,7 @@ export class PullRequestDatabase extends BaseDatabase {
     this.conditionalVersion(
       5,
       {
-        pullRequests: '_id++, base.repository_id',
+        pullRequest: '_id++, base.repository_id',
         pullRequestStatus: '_id++, pull_request_id, &[sha+pull_request_id]',
       },
       this.upgradeFieldNames
@@ -105,7 +107,7 @@ export class PullRequestDatabase extends BaseDatabase {
   }
 
   private addStatusesField = async (transaction: Dexie.Transaction) => {
-    const table = this.pullRequestStatus
+    const table = this.pullRequestStatuses
 
     await table.toCollection().modify(async prStatus => {
       if (prStatus.status == null) {
@@ -122,12 +124,10 @@ export class PullRequestDatabase extends BaseDatabase {
   }
 
   private upgradeFieldNames = async (transaction: Dexie.Transaction) => {
-    console.trace('In upgrade function')
     const oldPRRecords = await transaction
       .table('pullRequests')
       .toCollection()
       .toArray()
-
     const newPRRecords: IPullRequest[] = oldPRRecords.map(r => {
       return {
         _id: r.id as number,
@@ -147,18 +147,16 @@ export class PullRequestDatabase extends BaseDatabase {
         author: r.author,
       }
     })
-
-    await this.pullRequest.bulkAdd(newPRRecords)
     await transaction
       .table('pullRequests')
       .toCollection()
       .delete()
+    await this.pullRequest.bulkAdd(newPRRecords)
 
     const oldPrStatusRecords = await transaction
-      .table('pullRequests')
+      .table('pullRequestStatuses')
       .toCollection()
       .toArray()
-
     const newPrStatusRecords: IPullRequestStatus[] = oldPrStatusRecords.map(
       r => {
         return {
@@ -171,11 +169,10 @@ export class PullRequestDatabase extends BaseDatabase {
         }
       }
     )
-
-    await this.pullRequestStatus.bulkAdd(newPrStatusRecords)
     await transaction
-      .table('pullRequestStatus')
+      .table('pullRequestStatuses')
       .toCollection()
       .delete()
+    this.pullRequestStatus.bulkAdd(newPrStatusRecords)
   }
 }
