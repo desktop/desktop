@@ -126,7 +126,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
     }
 
-    const records = await this.pullRequestDatabase.pullRequests
+    const records = await this.pullRequestDatabase.pullRequest
       .where('base.repoId')
       .equals(gitHubRepositoryID)
       .reverse()
@@ -286,7 +286,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
     sha: string,
     pullRequestId: number
   ): Promise<PullRequestStatus | null> {
-    const result = await this.pullRequestDatabase.pullRequestStatuses
+    const result = await this.pullRequestDatabase.pullRequestStatus
       .where('[sha+pullRequestId]')
       .equals([sha, pullRequestId])
       .limit(1)
@@ -324,7 +324,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       )
     }
 
-    const table = this.pullRequestDatabase.pullRequests
+    const table = this.pullRequestDatabase.pullRequest
     const prsToInsert = new Array<IPullRequest>()
     let githubRepo: GitHubRepository | null = null
 
@@ -406,7 +406,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
   private async cachePullRequestStatuses(
     statuses: Array<IPullRequestStatus>
   ): Promise<void> {
-    const table = this.pullRequestDatabase.pullRequestStatuses
+    const table = this.pullRequestDatabase.pullRequestStatus
 
     await this.pullRequestDatabase.transaction('rw', table, async () => {
       for (const status of statuses) {

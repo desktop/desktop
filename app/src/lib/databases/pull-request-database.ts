@@ -70,10 +70,6 @@ export interface IPullRequestStatus {
 }
 
 export class PullRequestDatabase extends BaseDatabase {
-  public pullRequests: Dexie.Table<IPullRequest, number>
-  public pullRequestStatuses: Dexie.Table<IPullRequestStatus, number>
-
-  //
   public pullRequest: Dexie.Table<IPullRequest, number>
   public pullRequestStatus: Dexie.Table<IPullRequestStatus, number>
 
@@ -107,7 +103,7 @@ export class PullRequestDatabase extends BaseDatabase {
   }
 
   private addStatusesField = async (transaction: Dexie.Transaction) => {
-    const table = this.pullRequestStatuses
+    const table = this.pullRequestStatus
 
     await table.toCollection().modify(async prStatus => {
       if (prStatus.status == null) {
@@ -131,7 +127,7 @@ export class PullRequestDatabase extends BaseDatabase {
     const newPRRecords: IPullRequest[] = oldPRRecords.map(r => {
       return {
         _id: r.id as number,
-        number: r.pullRequestId as number,
+        number: r.number as number,
         title: r.title as string,
         created_at: r.createdAt as string,
         head: {
@@ -141,8 +137,8 @@ export class PullRequestDatabase extends BaseDatabase {
         },
         base: {
           repository_id: r.base.repoId,
-          ref: r.head.ref as string,
-          sha: r.head.sha as string,
+          ref: r.base.ref as string,
+          sha: r.base.sha as string,
         },
         author: r.author,
       }
