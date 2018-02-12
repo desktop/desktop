@@ -331,10 +331,10 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       // `pr.head.repo` represents the source of the pull request. It might be
       // a branch associated with the current repository, or a fork of the
       // current repository.
+      //
       // In cases where the user has removed the fork of the repository after
-      // opening a pull request, this can be `null`.
-
-      // TODO: is there a way we _should_ be saving this PR to the store?
+      // opening a pull request, this can be `null`, and the app will not store
+      // this pull request.
 
       if (pr.head.repo == null) {
         log.debug(
