@@ -35,7 +35,8 @@
     "clean-slate": "rimraf out node_modules app/node_modules && yarn",
     "rebuild-hard:dev": "yarn clean-slate && yarn build:dev",
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
-    "changelog": "ts-node script/changelog/index.ts"
+    "changelog": "ts-node script/changelog/index.ts",
+    "draft-release": "ts-node script/draft-release/index.ts"
   },
   "author": {
     "name": "GitHub, Inc.",
