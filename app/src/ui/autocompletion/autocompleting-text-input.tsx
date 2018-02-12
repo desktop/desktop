@@ -312,8 +312,8 @@ export abstract class AutocompletingTextInput<
     const newCaretPosition = textWithAutoCompleteText.length
 
     if (source === 'mouseclick') {
-      // This is pretty gross. Clicking on the list moves focus off the text area.
-      // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
+      // we only need to re-focus on the text input when the autocomplete overlay
+      // steals focus due to the user clicking on a selection in the autocomplete list
       window.setTimeout(() => {
         element.focus()
         this.setCursorPosition(newCaretPosition)
