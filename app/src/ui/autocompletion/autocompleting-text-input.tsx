@@ -278,9 +278,14 @@ export abstract class AutocompletingTextInput<
     )
   }
 
-  private setCursorPosition(element: ElementType, newCaretPosition: number) {
-    element.selectionStart = newCaretPosition
-    element.selectionEnd = newCaretPosition
+  private setCursorPosition(newCaretPosition: number) {
+    if (this.element == null) {
+      log.warn('Unable to set cursor position when element is null')
+      return
+    }
+
+    this.element.selectionStart = newCaretPosition
+    this.element.selectionEnd = newCaretPosition
   }
 
   private insertCompletion(item: Object, source: 'mouseclick' | 'keyboard') {
@@ -311,10 +316,10 @@ export abstract class AutocompletingTextInput<
       // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
       window.setTimeout(() => {
         element.focus()
-        this.setCursorPosition(element, newCaretPosition)
+        this.setCursorPosition(newCaretPosition)
       }, 0)
     } else {
-      this.setCursorPosition(element, newCaretPosition)
+      this.setCursorPosition(newCaretPosition)
     }
 
     this.close()
