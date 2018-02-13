@@ -1110,7 +1110,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
 
-  private renderDiff(diff: IDiff, force: boolean = false): JSX.Element | null {
+  private renderDiff(diff: IDiff): JSX.Element | null {
     switch (diff.kind) {
       case DiffType.Text:
         return this.renderText(diff)
