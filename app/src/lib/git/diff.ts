@@ -112,12 +112,19 @@ export async function getCommitDiff(
     'getCommitDiff'
   )
   if (isBufferTooLarge(output)) {
-    return { kind: DiffType.TooLarge, length: output.length }
+    return { kind: DiffType.LargeText, length: output.length }
   }
 
   const diffText = diffFromRawDiffOutput(output)
   if (isDiffTooLarge(diffText)) {
-    return { kind: DiffType.TooLarge, length: output.length }
+    const largeTextDiff: ILargeTextDiff = {
+      kind: DiffType.LargeText,
+      length: output.length,
+      text: diffText.contents,
+      hunks: diffText.hunks,
+    }
+
+    return largeTextDiff
   }
 
   return convertDiff(repository, file, diffText, commitish)
@@ -197,19 +204,17 @@ export async function getWorkingDirectoryDiff(
     'getWorkingDirectoryDiff',
     successExitCodes
   )
+
   if (isBufferTooLarge(output)) {
     // we know we can't transform this process output into a diff, so let's
     // just return a placeholder for now that we can display to the user
     // to say we're at the limits of the runtime
-    return { kind: DiffType.TooLarge, length: output.length }
-  }
-
-  const diffText = diffFromRawDiffOutput(output)
-  if (isDiffTooLarge(diffText)) {
-    return { kind: DiffType.TooLarge, length: output.length }
+    return { kind: DiffType.LargeText, length: output.length }
   }
 
   const lineEndingsChange = parseLineEndingsWarning(error)
+  const diffText = diffFromRawDiffOutput(output)
+
   return convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
 }
 
@@ -289,6 +294,17 @@ export async function convertDiff(
     } else {
       return getImageDiff(repository, file, commitish)
     }
+  }
+
+  if (isDiffTooLarge(diff)) {
+    const largeTextDiff: ILargeTextDiff = {
+      kind: DiffType.LargeText,
+      text: diff.contents,
+      hunks: diff.hunks,
+      lineEndingsChange,
+    }
+
+    return largeTextDiff
   }
 
   return {
