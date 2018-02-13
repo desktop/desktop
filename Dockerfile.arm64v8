@@ -1,0 +1,42 @@
+FROM arm64v8/ubuntu:16.04
+
+RUN groupadd --gid 114 jenkins \
+  && useradd --uid 110 --gid jenkins --shell /bin/bash --create-home jenkins
+
+# Set up TEMP directory
+ENV TEMP=/tmp
+RUN chmod a+rwx /tmp
+
+RUN apt-get update && apt-get install -y\
+ curl \
+ dpkg \
+ fakeroot \
+ git \
+ gcc \
+ libasound2 \
+ libgconf-2-4 \
+ libgtk2.0-0 \
+ libgtk-3-0 \
+ libsecret-1-dev \
+ libnss3 \
+ libxss1 \
+ libxtst6 \
+ make \
+ python-setuptools \
+ rpm \
+ wget \
+ xz-utils \
+ xorriso \
+ xvfb \
+ zsync
+
+# Install node.js
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN apt-get install -y nodejs
+
+USER jenkins
+WORKDIR /home/jenkins
+
+# Install yarn
+RUN curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.2
+RUN export PATH=$HOME/.yarn/bin:$PATH
