@@ -985,17 +985,14 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     )
   }
 
+  private renderLargeText(diff: ILargeTextDiff) {
+    if (diff.hunks == null || diff.text == null) {
       return (
         <div className="panel empty large-diff">
+          <img src={NoDiffImage} />
           <p>The diff is too large to be displayed.</p>
         </div>
       )
-    }
-  }
-
-  private renderLargeText(diff: ILargeTextDiff) {
-    if (diff.hunks == null || diff.text == null) {
-      return this.renderDiffTooLarge(false)
     }
 
     const textDiff: ITextDiff = {
