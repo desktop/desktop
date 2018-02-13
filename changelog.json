@@ -4,7 +4,7 @@
       "[New] Syntax highlighting for Elixir files - #3774. Thanks @joaovitoras!",
       "[Fixed] Crash when unable to launch shell - #3954",
       "[Fixed] Support legacy usernames as co-authors - #3897",
-      "[Improved] Enable fuzzy search in the repository, branch, PR, and clone FilterLists  - #911. Thanks @j-f1!",
+      "[Improved] Enable fuzzy search in the repository, branch, PR, and clone FilterLists - #911. Thanks @j-f1!",
       "[Improved] Tidy up commit summary and description layout in commit list - #3922. Thanks @willnode!"
     ],
     "1.0.14-beta3": [
