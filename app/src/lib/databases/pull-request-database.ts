@@ -1,6 +1,8 @@
 import Dexie from 'dexie'
-import { APIRefState, IAPIRefStatusItem } from '../api'
 import { BaseDatabase } from './base-database'
+
+/** The combined state of a ref. */
+export type RefState = 'failure' | 'pending' | 'success'
 
 export interface IPullRequestRef {
   /**
@@ -14,6 +16,18 @@ export interface IPullRequestRef {
 
   /** The SHA of the ref. */
   readonly sha: string
+}
+
+export interface ICombinedRefStatus {
+  readonly id: number
+  /** The state of the status. */
+  readonly state: RefState
+  /** The target URL to associate with this status. */
+  readonly target_url: string
+  /** A short description of the status. */
+  readonly description: string
+  /** A string label to differentiate this status from the status of other systems. */
+  readonly context: string
 }
 
 export interface IPullRequest {
