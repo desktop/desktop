@@ -182,10 +182,13 @@ at the path requested by the user. You may not need to make changes here,
 unless your shell behaviour differs significantly from this.
 
 ```ts
-export async function launch(shell: Shell, path: string): Promise<void> {
-  const bundleID = getBundleID(shell)
+export function launch(
+  foundShell: IFoundShell<Shell>,
+  path: string
+): ChildProcess {
+  const bundleID = getBundleID(foundShell.shell)
   const commandArgs = ['-b', bundleID, path]
-  await spawn('open', commandArgs)
+  return spawn('open', commandArgs)
 }
 ```
 
@@ -253,33 +256,28 @@ export async function getAvailableShells(): Promise<
 
 ### Step 2: Launch the shell
 
-The `launch()` method will use the received `shell.shell` executable path and
-the path requested by the user. You may need to make changes here, if your
-shell has a different command line interface.
+The `launch()` method will use the received `foundShell` executable path and
+the path requested by the user. You will need to make changes here, to ensure
+the correct arguments are passed to the command line interface:
 
 ```ts
-export async function launch(
-  shell: IFoundShell<Shell>,
+export function launch(
+  foundShell: IFoundShell<Shell>,
   path: string
-): Promise<void> {
-  if (shell.shell === Shell.Urxvt) {
-    const commandArgs = ['-cd', path]
-    await spawn(shell.path, commandArgs)
+): ChildProcess {
+  const shell = foundShell.shell
+  switch (shell) {
+    case Shell.Urxvt:
+      return spawn(foundShell.path, ['-cd', path])
+    case Shell.Konsole:
+      return spawn(foundShell.path, ['--workdir', path])
+    case Shell.Xterm:
+      return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
+    case Shell.Tilix:
+    case Shell.Gnome:
+      return spawn(foundShell.path, ['--working-directory', path])
+    default:
+      return assertNever(shell, `Unknown shell: ${shell}`)
   }
-
-  if (shell.shell === Shell.Konsole) {
-    const commandArgs = ['--workdir', path]
-    await spawn(shell.path, commandArgs)
-  }
-
-  if (shell.shell === Shell.Xterm) {
-    const commandArgs = ['-e', '/bin/bash']
-    const commandOptions = { cwd: path }
-    await spawn(shell.path, commandArgs, commandOptions)
-  }
-
-  const commandArgs = ['--working-directory', path]
-  await spawn(shell.path, commandArgs)
 }
-
 ```
