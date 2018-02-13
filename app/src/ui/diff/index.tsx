@@ -997,10 +997,14 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       return this.renderDiffTooLarge(false)
     }
 
-      return this.renderTextDiff(textDiff)
-    } else {
-      return <div className="panel empty">Unable to render diff</div>
+    const textDiff: ITextDiff = {
+      text: diff.text,
+      hunks: diff.hunks,
+      kind: DiffType.Text,
+      lineEndingsChange: diff.lineEndingsChange,
     }
+
+    return this.renderTextDiff(textDiff)
   }
 
   private renderText(diff: ITextDiff) {
