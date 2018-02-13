@@ -46,22 +46,50 @@ use **Git Bash** as a reference for the rest of the process.
 ### Step 1: Find the shell executable
 
 The `getAvailableShells()` method is used to find each shell, as some may not
-be present on the user's machine. You will need to add some code in here.
+be present on the user's machine.
 
-For Git Bash we perform a couple of checks:
+This is the example for how we resolve if Git Bash is installed.
 
 ```ts
-const gitBash = await readRegistryKeySafe(
-  'HKEY_LOCAL_MACHINE\\SOFTWARE\\GitForWindows'
-)
-if (gitBash.length > 0) {
-  const installPathEntry = gitBash.find(e => e.name === 'InstallPath')
-  if (installPathEntry) {
+  const gitBashPath = await findGitBash()
+  if (gitBashPath != null) {
     shells.push({
       shell: Shell.GitBash,
-      path: Path.join(installPathEntry.value, 'git-bash.exe'),
+      path: gitBashPath,
     })
   }
+```
+
+You will need to add some code in here, following this pattern, to resolve a new shell.
+
+The details of this check will vary based on the how the shell is installed,
+but Git Bash is a good example of this:
+
+```ts
+async function findGitBash(): Promise<string | null> {
+  const registryPath = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'SOFTWARE\\GitForWindows'
+  )
+
+  if (registryPath.length === 0) {
+    return null
+  }
+
+  const installPathEntry = registryPath.find(e => e.name === 'InstallPath')
+  if (installPathEntry && installPathEntry.type === RegistryValueType.REG_SZ) {
+    const path = Path.join(installPathEntry.data, 'git-bash.exe')
+
+    if (await pathExists(path)) {
+      return path
+    } else {
+      log.debug(
+        `[Git Bash] registry entry found but does not exist at '${path}'`
+      )
+    }
+  }
+
+  return null
 }
 ```
 
@@ -75,14 +103,16 @@ This approximately reads as:
 
 The `launch()` function defines the arguments to pass to the shell, and each
 shell may require it's own set of command arguments. You will need to make
-changes here.
+changes here to handle a new shell.
 
 ```ts
-} else if (shell === Shell.GitBash) {
-  await spawn(foundShell.path, [`--cd="${path}"`], {
-    shell: true,
-    cwd: path,
-})
+  case Shell.GitBash:
+    const gitBashPath = `"${foundShell.path}"`
+    log.info(`launching ${shell} at path: ${gitBashPath}`)
+    return spawn(gitBashPath, [`--cd="${path}"`], {
+      shell: true,
+      cwd: path,
+    })
 ```
 
 ## macOS
