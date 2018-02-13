@@ -970,25 +970,23 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     return null
   }
 
-  private renderDiffTooLarge(offerToShow: boolean = true) {
+  private renderDiffTooLarge() {
+    return (
+      <div className="panel empty large-diff">
+        <img src={NoDiffImage} />
+        <p>
+          The diff is too large to be displayed by default.
+          <br />
+          You can try to show it anyways, but performance may be negatively
+          impacted.
+        </p>
+        <Button onClick={this.onShowDiff}>Show diff</Button>
+      </div>
+    )
+  }
 
-    if (offerToShow) {
       return (
         <div className="panel empty large-diff">
-          <img src={BlankSlateImage} />
-          <p>
-            The diff is too large to be displayed by default.
-            <br />
-            You can try to show it anyways, but performance may be negatively
-            impacted.
-          </p>
-          <Button onClick={this.onShowDiff}>Show diff</Button>
-        </div>
-      )
-    } else {
-      return (
-        <div className="panel empty large-diff">
-          <img src={BlankSlateImage} />
           <p>The diff is too large to be displayed.</p>
         </div>
       )
