@@ -966,7 +966,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     return null
   }
 
-  private renderDiffTooLarge() {
+  private renderDiffTooLarge(offerToShow: boolean = true) {
     const BlankSlateImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
 
     return (
