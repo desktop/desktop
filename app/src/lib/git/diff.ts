@@ -111,25 +111,12 @@ export async function getCommitDiff(
     repository.path,
     'getCommitDiff'
   )
-
-  if (!isValidBuffer(output)) {
-    return { kind: DiffType.LargeText, length: output.length }
-  }
-
   const diffText = diffFromRawDiffOutput(output)
+  const largeDiff = buildLargeTextDiff(output)
 
-  if (isBufferTooLarge(output)) {
-    const largeTextDiff: ILargeTextDiff = {
-      kind: DiffType.LargeText,
-      length: output.length,
-      text: diffText.contents,
-      hunks: diffText.hunks,
-    }
-
-    return largeTextDiff
-  }
-
-  return convertDiff(repository, file, diffText, commitish)
+  return largeDiff != null
+    ? largeDiff
+    : convertDiff(repository, file, diffText, commitish)
 }
 
 /**
@@ -214,10 +201,28 @@ export async function getWorkingDirectoryDiff(
     return { kind: DiffType.LargeText, length: output.length }
   }
 
-  const lineEndingsChange = parseLineEndingsWarning(error)
   const diffText = diffFromRawDiffOutput(output)
 
-  return convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
+  if (isBufferTooLarge(output)) {
+    // we don't want to render by default
+    // but we keep it as an option by
+    // passing in text and hunks
+    const largeTextDiff: ILargeTextDiff = {
+      kind: DiffType.LargeText,
+      length: output.length,
+      text: diffText.contents,
+      hunks: diffText.hunks,
+    }
+
+    return largeTextDiff
+  }
+
+  const lineEndingsChange = parseLineEndingsWarning(error)
+  const largeDiff = buildLargeTextDiff(output, lineEndingsChange)
+
+  return largeDiff != null
+    ? largeDiff
+    : convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
 }
 
 async function getImageDiff(
@@ -296,17 +301,6 @@ export async function convertDiff(
     } else {
       return getImageDiff(repository, file, commitish)
     }
-  }
-
-  if (isDiffTooLarge(diff)) {
-    const largeTextDiff: ILargeTextDiff = {
-      kind: DiffType.LargeText,
-      text: diff.contents,
-      hunks: diff.hunks,
-      lineEndingsChange,
-    }
-
-    return largeTextDiff
   }
 
   return {
@@ -427,4 +421,50 @@ export async function getWorkingDirectoryImage(
     mediaType: getMediaType(Path.extname(file.path)),
   }
   return diff
+}
+
+/**
+ * Utility function that takes a buffer and outputs
+ * either a largeTextDiff
+ */
+function buildLargeTextDiff(
+  buffer: Buffer,
+  lineEndingsChange?: LineEndingsChange
+): ILargeTextDiff | null {
+  if (!isValidBuffer(buffer)) {
+    // we know we can't transform this process output into a diff, so let's
+    // just return a placeholder for now that we can display to the user
+    // to say we're at the limits of the runtime
+    return { kind: DiffType.LargeText, length: buffer.length }
+  }
+
+  const diffText = diffFromRawDiffOutput(buffer)
+
+  if (isBufferTooLarge(buffer)) {
+    // we don't want to render by default
+    // but we keep it as an option by
+    // passing in text and hunks
+    const largeTextDiff: ILargeTextDiff = {
+      kind: DiffType.LargeText,
+      length: buffer.length,
+      text: diffText.contents,
+      hunks: diffText.hunks,
+      lineEndingsChange,
+    }
+
+    return largeTextDiff
+  }
+
+  if (isDiffTooLarge(diffText)) {
+    const largeTextDiff: ILargeTextDiff = {
+      kind: DiffType.LargeText,
+      text: diffText.contents,
+      hunks: diffText.hunks,
+      lineEndingsChange,
+    }
+
+    return largeTextDiff
+  }
+
+  return null
 }
