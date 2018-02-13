@@ -111,12 +111,14 @@ export async function getCommitDiff(
     repository.path,
     'getCommitDiff'
   )
-  if (isBufferTooLarge(output)) {
+
+  if (!isValidBuffer(output)) {
     return { kind: DiffType.LargeText, length: output.length }
   }
 
   const diffText = diffFromRawDiffOutput(output)
-  if (isDiffTooLarge(diffText)) {
+
+  if (isBufferTooLarge(output)) {
     const largeTextDiff: ILargeTextDiff = {
       kind: DiffType.LargeText,
       length: output.length,
@@ -205,7 +207,7 @@ export async function getWorkingDirectoryDiff(
     successExitCodes
   )
 
-  if (isBufferTooLarge(output)) {
+  if (!isValidBuffer(output)) {
     // we know we can't transform this process output into a diff, so let's
     // just return a placeholder for now that we can display to the user
     // to say we're at the limits of the runtime
