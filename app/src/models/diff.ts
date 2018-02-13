@@ -135,7 +135,7 @@ export interface ILargeTextDiff {
 }
 
 /** The union of diff types that can be rendered in Desktop */
-export type IDiff = ITextDiff | IImageDiff | IBinaryDiff | IDiffTooLarge
+export type IDiff = ITextDiff | IImageDiff | IBinaryDiff | ILargeTextDiff
 
 /** track details related to each line in the diff */
 export class DiffLine {
