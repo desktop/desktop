@@ -126,6 +126,12 @@ export interface ILargeTextDiff {
    * 268435441 bytes = 256MB - 15 bytes
    */
   readonly length?: number
+  /** The unified text diff - including headers and context */
+  readonly text?: string
+  /** The diff contents organized by hunk - how the git CLI outputs to the caller */
+  readonly hunks?: ReadonlyArray<DiffHunk>
+  /** A warning from Git that the line endings have changed in this file and will affect the commit */
+  readonly lineEndingsChange?: LineEndingsChange
 }
 
 /** The union of diff types that can be rendered in Desktop */
