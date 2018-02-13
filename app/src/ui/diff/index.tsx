@@ -30,6 +30,7 @@ import {
   ITextDiff,
   DiffLine,
   DiffLineType,
+  ILargeTextDiff,
 } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
