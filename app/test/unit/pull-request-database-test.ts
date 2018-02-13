@@ -3,6 +3,7 @@ import { expect } from 'chai'
 import {
   PullRequestDatabase,
   PullRequestStatusTableName,
+  PullRequestTableName,
 } from '../../src/lib/databases'
 
 const databaseName = 'TestPullRequestDatabase'
@@ -36,15 +37,15 @@ describe('PullRequestDatabase', () => {
         }
         // We need to opt-out of type checking here since
         // the old schema uses an outdated type
-        const originalTable = database.table(tmpPullRequestTable)
+        const originalTable = database.table(PullRequestTableName)
         await originalTable.add(pr)
         const prFromDb = await originalTable.get(1)
         expect(prFromDb).to.not.be.undefined
 
+        database.close()
         // we need to run this upgrade first so we can
         // clear out indexes; new data is in tmp tables
         // at this point
-        database.close()
         database = new PullRequestDatabase(databaseName, 5)
         await database.open()
 
@@ -54,6 +55,8 @@ describe('PullRequestDatabase', () => {
         expect(tmpRecord.number).to.equal(pr.number)
 
         database.close()
+        // this is the upgrade we actually care about
+        // data should be back into normal tables at this point
         database = new PullRequestDatabase(databaseName, 6)
         await database.open()
 

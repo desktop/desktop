@@ -114,9 +114,7 @@ export class PullRequestDatabase extends BaseDatabase {
     this.conditionalVersion(
       5,
       {
-        pullRequest: null,
         pullRequestTmp: '_id++, base.repositoryId',
-        pullRequestStatus: null,
         pullRequestStatusTmp: `_id++`,
       },
       this.moveDataToTmpTables
@@ -126,9 +124,7 @@ export class PullRequestDatabase extends BaseDatabase {
       6,
       {
         pullRequest: '_id++, base.repositoryId',
-        pullRequestTmp: null,
         pullRequestStatus: '_id++',
-        pullRequestStatusTmp: null,
       },
       this.upgradeFieldNames
     )
@@ -159,11 +155,13 @@ export class PullRequestDatabase extends BaseDatabase {
     console.log('moveDataToTmpTables...')
     let tmpTable: string
 
+    console.dir(transaction)
+
     try {
       tmpTable = 'pullRequestTmp'
 
       const prs = await transaction.table(PullRequestTableName).toArray()
-      console.log('mapping data')
+      console.log('mapping PR data')
       const updatedPrs = prs.map(pr => {
         return {
           _id: pr.id as number,
@@ -183,9 +181,9 @@ export class PullRequestDatabase extends BaseDatabase {
           author: pr.author,
         }
       })
-      console.log('adding mapped data')
+      console.log('adding mapped PR data')
       await transaction.table(tmpTable).bulkAdd(updatedPrs)
-      console.log(`removing data from '${PullRequestTableName}'`)
+      console.log(`removing PR data from '${PullRequestTableName}'`)
       await transaction
         .table(PullRequestTableName)
         .toCollection()
@@ -201,6 +199,7 @@ export class PullRequestDatabase extends BaseDatabase {
       const prStats = await transaction
         .table(PullRequestStatusTableName)
         .toArray()
+      console.log('mapping PR Status data')
       const updatedPrStats = prStats.map(prStat => {
         return {
           _id: prStat.id as number,
@@ -219,7 +218,11 @@ export class PullRequestDatabase extends BaseDatabase {
           }),
         }
       })
+      console.log('adding mapped PR Status data')
       await transaction.table(tmpTable).bulkAdd(updatedPrStats)
+      console.log(
+        `removing PR Status data from '${PullRequestStatusTableName}'`
+      )
       await transaction
         .table(PullRequestStatusTableName)
         .toCollection()
@@ -254,10 +257,17 @@ export class PullRequestDatabase extends BaseDatabase {
           author: r.author,
         }
       })
-      await transaction
-        .table('pullRequests')
-        .toCollection()
-        .delete()
+
+      console.log(`deleting old indexes on '${PullRequestTableName}'`)
+      await Promise.all(
+        ['id', 'base.repoId'].map(index =>
+          transaction.idbtrans
+            .objectStore(PullRequestTableName)
+            .deleteIndex(index)
+        )
+      )
+      console.log(`clearing table '${PullRequestTableName}'`)
+      await transaction.table(PullRequestTableName).clear()
       await this.pullRequest.bulkAdd(newPRRecords)
     } catch (error) {
       log.error(
