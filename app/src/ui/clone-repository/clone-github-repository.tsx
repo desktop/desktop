@@ -15,6 +15,7 @@ import {
   groupRepositories,
   YourRepositoriesIdentifier,
 } from './group-repositories'
+import { HighlightText } from '../lib/highlight-text'
 
 interface ICloneGithubRepositoryProps {
   /** The account to clone from. */
@@ -36,6 +37,9 @@ interface ICloneGithubRepositoryProps {
 
   /** Called when a repository is selected. */
   readonly onGitHubRepositorySelected: (url: string) => void
+
+  /** Should the component clear the filter text on render? */
+  readonly shouldClearFilter: boolean
 }
 
 interface ICloneGithubRepositoryState {
@@ -114,6 +118,12 @@ export class CloneGithubRepository extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
+    if (nextProps.shouldClearFilter) {
+      this.setState({
+        filterText: '',
+      })
+    }
+
     if (nextProps.account.id !== this.props.account.id) {
       this.loadRepositories(nextProps.account)
     }
@@ -205,12 +215,15 @@ export class CloneGithubRepository extends React.Component<
     )
   }
 
-  private renderItem = (item: IClonableRepositoryListItem) => {
+  private renderItem = (
+    item: IClonableRepositoryListItem,
+    matches: ReadonlyArray<number>
+  ) => {
     return (
       <div className="clone-repository-list-item">
         <Octicon className="icon" symbol={item.icon} />
-        <div className="name" title={name}>
-          {item.text}
+        <div className="name" title={item.text}>
+          <HighlightText text={item.text} highlight={matches} />
         </div>
       </div>
     )

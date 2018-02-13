@@ -1,4 +1,4 @@
-@import "../../mixins";
+@import '../../mixins';
 
 /** A React component holding the currently selected repository's history */
 #history {
@@ -30,5 +30,17 @@
     // necessary for "no files in commit" view to
     // look right alongside blank diff
     border-right: var(--base-border);
+  }
+
+  .panel {
+    display: flex;
+    flex: 1;
+
+    &.empty,
+    &.renamed,
+    &.binary {
+      justify-content: center;
+      align-items: center;
+    }
   }
 }

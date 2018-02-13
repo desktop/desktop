@@ -108,6 +108,10 @@ extensionMIMEMap.set('.edn', 'text/x-clojure')
 import 'codemirror/mode/rust/rust'
 extensionMIMEMap.set('.rs', 'text/x-rustsrc')
 
+import 'codemirror-mode-elixir'
+extensionMIMEMap.set('.ex', 'text/x-elixir')
+extensionMIMEMap.set('.exs', 'text/x-elixir')
+
 function guessMimeType(contents: string) {
   if (contents.startsWith('<?xml')) {
     return 'text/xml'
