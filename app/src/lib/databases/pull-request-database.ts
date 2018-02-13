@@ -67,7 +67,7 @@ export interface IPullRequestStatus {
   readonly pull_request_id: number
 
   /** The status' state. */
-  readonly state: APIRefState
+  readonly state: RefState
 
   /** The number of statuses represented in this combined status. */
   readonly total_count: number
@@ -80,7 +80,7 @@ export interface IPullRequestStatus {
    * if the database object was created prior to status support
    * being added in #3588
    */
-  readonly status: ReadonlyArray<IAPIRefStatusItem>
+  readonly status: ReadonlyArray<ICombinedRefStatus>
 }
 
 export class PullRequestDatabase extends BaseDatabase {
@@ -95,11 +95,11 @@ export class PullRequestDatabase extends BaseDatabase {
     })
 
     this.conditionalVersion(2, {
-      pullRequestStatuses: 'id++, &[sha+pullRequestId]',
+      pullRequestStatus: 'id++, &[sha+pullRequestId]',
     })
 
     this.conditionalVersion(3, {
-      pullRequestStatuses: 'id++, &[sha+pullRequestId], pullRequestId',
+      pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
     })
 
     // we need to run the upgrade function to ensure we add
@@ -117,20 +117,24 @@ export class PullRequestDatabase extends BaseDatabase {
   }
 
   private addStatusesField = async (transaction: Dexie.Transaction) => {
-    const table = this.pullRequestStatus
+    const tableName = 'pullRequestStatus'
 
-    await table.toCollection().modify(async prStatus => {
-      if (prStatus.status == null) {
-        const newPrStatus = { statuses: [], ...prStatus }
+    await transaction
+      .table(tableName)
+      .toCollection()
+      .modify(async prStatus => {
+        if (prStatus.status == null) {
+          const newPrStatus = { statuses: [], ...prStatus }
 
-        await table
-          .where('[sha+pullRequestId]')
-          .equals([prStatus.sha, prStatus.pull_request_id])
-          .delete()
+          await transaction
+            .table(tableName)
+            .where('[sha+pullRequestId]')
+            .equals([prStatus.sha, prStatus.pullRequestId])
+            .delete()
 
-        await table.add(newPrStatus)
-      }
-    })
+          await transaction.table(tableName).add(newPrStatus)
+        }
+      })
   }
 
   private upgradeFieldNames = async (transaction: Dexie.Transaction) => {
@@ -145,12 +149,12 @@ export class PullRequestDatabase extends BaseDatabase {
         title: r.title as string,
         created_at: r.createdAt as string,
         head: {
-          repository_id: r.head.repoId,
+          repository_id: r.head.repoId as number,
           ref: r.head.ref as string,
           sha: r.head.sha as string,
         },
         base: {
-          repository_id: r.base.repoId,
+          repository_id: r.base.repoId as number,
           ref: r.base.ref as string,
           sha: r.base.sha as string,
         },
@@ -163,8 +167,9 @@ export class PullRequestDatabase extends BaseDatabase {
       .delete()
     await this.pullRequest.bulkAdd(newPRRecords)
 
+    console.log('Upgrading PRStats')
     const oldPrStatusRecords = await transaction
-      .table('pullRequestStatuses')
+      .table('pullRequestStatus')
       .toCollection()
       .toArray()
     const newPrStatusRecords: IPullRequestStatus[] = oldPrStatusRecords.map(
@@ -172,15 +177,15 @@ export class PullRequestDatabase extends BaseDatabase {
         return {
           _id: r.id as number,
           pull_request_id: r.pullRequestId as number,
-          state: r.state as APIRefState,
+          state: r.state as RefState,
           total_count: r.totalCount as number,
           sha: r.sha as string,
-          status: r.statuses as IAPIRefStatusItem[],
+          status: r.statuses as Array<ICombinedRefStatus>,
         }
       }
     )
     await transaction
-      .table('pullRequestStatuses')
+      .table('pullRequestStatus')
       .toCollection()
       .delete()
     this.pullRequestStatus.bulkAdd(newPrStatusRecords)
