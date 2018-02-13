@@ -1,13 +1,18 @@
 import { expect } from 'chai'
 
-import { PullRequestDatabase } from '../../src/lib/databases'
+import {
+  PullRequestDatabase,
+  PullRequestStatusTableName,
+} from '../../src/lib/databases'
+
+const databaseName = 'TestPullRequestDatabase'
+const tmpPullRequestTable = 'pullRequestTmp'
+//const tmpPullRequestStatusTable = 'pullRequestStatusTmp'
 
 describe('PullRequestDatabase', () => {
   describe('Upgrade', () => {
     describe('PullRequestTable', () => {
-      it.only('renames indexes retaining original data on when upgrading to version 5', async () => {
-        const databaseName = 'TestPullRequestDatabase'
-
+      it.only('renames indexes retaining original data when upgrading to version 4 -> 5 -> 6', async () => {
         let database = new PullRequestDatabase(databaseName, 4)
         await database.delete()
         await database.open()
@@ -29,16 +34,27 @@ describe('PullRequestDatabase', () => {
           },
           author: 'me',
         }
-
         // We need to opt-out of type checking here since
         // the old schema uses an outdated type
-        const oldSchema = database.table('pullRequests')
-        await oldSchema.add(pr)
-        const prFromDb = await oldSchema.get(1)
+        const originalTable = database.table(tmpPullRequestTable)
+        await originalTable.add(pr)
+        const prFromDb = await originalTable.get(1)
         expect(prFromDb).to.not.be.undefined
 
+        // we need to run this upgrade first so we can
+        // clear out indexes; new data is in tmp tables
+        // at this point
         database.close()
         database = new PullRequestDatabase(databaseName, 5)
+        await database.open()
+
+        const tmpTable = database.table(tmpPullRequestTable)
+        const tmpRecord = await tmpTable.get(1)
+        expect(tmpRecord).is.not.undefined
+        expect(tmpRecord.number).to.equal(pr.number)
+
+        database.close()
+        database = new PullRequestDatabase(databaseName, 6)
         await database.open()
 
         // this is a major change, so make sure no data is lost
@@ -47,13 +63,14 @@ describe('PullRequestDatabase', () => {
         expect(upgradedPrFromDb!._id).to.equal(1)
         expect(upgradedPrFromDb!.number).to.equal(pr.number)
         expect(upgradedPrFromDb!.title).to.equal(pr.title)
-        expect(upgradedPrFromDb!.created_at).to.equal(pr.createdAt)
-        expect(upgradedPrFromDb!.head.repository_id).to.equal(pr.head.repoId)
-        expect(upgradedPrFromDb!.base.repository_id).to.equal(pr.base.repoId)
+        expect(upgradedPrFromDb!.createdAt).to.equal(pr.createdAt)
+        expect(upgradedPrFromDb!.head.repositoryId).to.equal(pr.head.repoId)
+        expect(upgradedPrFromDb!.base.repositoryId).to.equal(pr.base.repoId)
         expect(upgradedPrFromDb!.head.ref).to.equal(pr.head.ref)
         expect(upgradedPrFromDb!.base.sha).to.equal(pr.base.sha)
         expect(upgradedPrFromDb!.author).to.equal(pr.author)
 
+        database.close()
         await database.delete()
       })
     })
@@ -65,9 +82,6 @@ describe('PullRequestDatabase', () => {
         let database = new PullRequestDatabase(databaseName, 3)
         await database.delete()
         await database.open()
-        // Cannot use the safety of types here:
-        // the type is no longer valid with this version of the db
-        let table = database.table('pullRequestStatus')
 
         // insert record that is compatible with v3 of db
         const prStatus = {
@@ -76,8 +90,12 @@ describe('PullRequestDatabase', () => {
           totalCount: 1,
           sha: 'sha',
         }
-        await table.add(prStatus)
-        const prStatusFromDb = await table.get(1)
+        // Cannot use the safety of types here:
+        // the type is no longer valid with this version of the d
+        await database.table(PullRequestStatusTableName).add(prStatus)
+        const prStatusFromDb = await database
+          .table(PullRequestStatusTableName)
+          .get(1)
         expect(prStatusFromDb).to.not.be.undefined
         expect(prStatusFromDb!.pullRequestId).to.equal(prStatus.pullRequestId)
 
@@ -85,11 +103,12 @@ describe('PullRequestDatabase', () => {
         // update to v4 of db
         database = new PullRequestDatabase(databaseName, 4)
         await database.open()
-        table = database.table('pullRequestStatus')
 
         // get the upgraded record from the db
         // note: there is no type-safety here
-        const upgradedPrStatusFromDb = await table.get(1)
+        const upgradedPrStatusFromDb = await database
+          .table(PullRequestStatusTableName)
+          .get(1)
         expect(upgradedPrStatusFromDb).is.not.undefined
         expect(upgradedPrStatusFromDb!.pullRequestId).to.equal(
           prStatus.pullRequestId

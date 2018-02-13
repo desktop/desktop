@@ -1,6 +1,9 @@
 import Dexie from 'dexie'
 import { BaseDatabase } from './base-database'
 
+export const PullRequestTableName = 'pullRequest'
+export const PullRequestStatusTableName = 'pullRequestStatus'
+
 /** The combined state of a ref. */
 export type RefState = 'failure' | 'pending' | 'success'
 
@@ -9,7 +12,7 @@ export interface IPullRequestRef {
    * The database ID of the GitHub repository in which this ref lives. It could
    * be null if the repository was deleted on the site after the PR was opened.
    */
-  readonly repository_id: number | null
+  readonly repositoryId: number | null
 
   /** The name of the ref. */
   readonly ref: string
@@ -23,7 +26,7 @@ export interface ICombinedRefStatus {
   /** The state of the status. */
   readonly state: RefState
   /** The target URL to associate with this status. */
-  readonly target_url: string
+  readonly targetUrl: string
   /** A short description of the status. */
   readonly description: string
   /** A string label to differentiate this status from the status of other systems. */
@@ -44,7 +47,7 @@ export interface IPullRequest {
   readonly title: string
 
   /** The string formatted date on which the PR was created. */
-  readonly created_at: string
+  readonly createdAt: string
 
   /** The ref from which the pull request's changes are coming. */
   readonly head: IPullRequestRef
@@ -64,13 +67,13 @@ export interface IPullRequestStatus {
   readonly _id?: number
 
   /** The ID of the pull request in the database. */
-  readonly pull_request_id: number
+  readonly pullRequestId: number
 
   /** The status' state. */
   readonly state: RefState
 
   /** The number of statuses represented in this combined status. */
-  readonly total_count: number
+  readonly totalCount: number
 
   /** The SHA for which this status applies. */
   readonly sha: string
@@ -91,7 +94,7 @@ export class PullRequestDatabase extends BaseDatabase {
     super(name, schemaVersion)
 
     this.conditionalVersion(1, {
-      pullRequests: 'id++, base.repoId',
+      pullRequest: 'id++, base.repoId',
     })
 
     this.conditionalVersion(2, {
@@ -106,11 +109,26 @@ export class PullRequestDatabase extends BaseDatabase {
     // a status field to all previous records
     this.conditionalVersion(4, {}, this.addStatusesField)
 
+    // we need to copy data to tmp tables
+    // so we can clear all indexes
     this.conditionalVersion(
       5,
       {
-        pullRequest: '_id++, base.repository_id',
-        pullRequestStatus: '_id++, pull_request_id, &[sha+pull_request_id]',
+        pullRequest: null,
+        pullRequestTmp: '_id++, base.repositoryId',
+        pullRequestStatus: null,
+        pullRequestStatusTmp: `_id++`,
+      },
+      this.moveDataToTmpTables
+    )
+
+    this.conditionalVersion(
+      6,
+      {
+        pullRequest: '_id++, base.repositoryId',
+        pullRequestTmp: null,
+        pullRequestStatus: '_id++',
+        pullRequestStatusTmp: null,
       },
       this.upgradeFieldNames
     )
@@ -137,57 +155,145 @@ export class PullRequestDatabase extends BaseDatabase {
       })
   }
 
-  private upgradeFieldNames = async (transaction: Dexie.Transaction) => {
-    const oldPRRecords = await transaction
-      .table('pullRequests')
-      .toCollection()
-      .toArray()
-    const newPRRecords: IPullRequest[] = oldPRRecords.map(r => {
-      return {
-        _id: r.id as number,
-        number: r.number as number,
-        title: r.title as string,
-        created_at: r.createdAt as string,
-        head: {
-          repository_id: r.head.repoId as number,
-          ref: r.head.ref as string,
-          sha: r.head.sha as string,
-        },
-        base: {
-          repository_id: r.base.repoId as number,
-          ref: r.base.ref as string,
-          sha: r.base.sha as string,
-        },
-        author: r.author,
-      }
-    })
-    await transaction
-      .table('pullRequests')
-      .toCollection()
-      .delete()
-    await this.pullRequest.bulkAdd(newPRRecords)
+  private moveDataToTmpTables = async (transaction: Dexie.Transaction) => {
+    console.log('moveDataToTmpTables...')
+    let tmpTable: string
 
-    console.log('Upgrading PRStats')
-    const oldPrStatusRecords = await transaction
-      .table('pullRequestStatus')
-      .toCollection()
-      .toArray()
-    const newPrStatusRecords: IPullRequestStatus[] = oldPrStatusRecords.map(
-      r => {
+    try {
+      tmpTable = 'pullRequestTmp'
+
+      const prs = await transaction.table(PullRequestTableName).toArray()
+      console.log('mapping data')
+      const updatedPrs = prs.map(pr => {
+        return {
+          _id: pr.id as number,
+          number: pr.number as number,
+          title: pr.title as string,
+          createdAt: pr.createdAt as string,
+          head: {
+            repositoryId: pr.head.repoId,
+            ref: pr.head.ref,
+            sha: pr.head.sha,
+          },
+          base: {
+            repositoryId: pr.base.repoId,
+            ref: pr.base.ref,
+            sha: pr.base.sha,
+          },
+          author: pr.author,
+        }
+      })
+      console.log('adding mapped data')
+      await transaction.table(tmpTable).bulkAdd(updatedPrs)
+      console.log(`removing data from '${PullRequestTableName}'`)
+      await transaction
+        .table(PullRequestTableName)
+        .toCollection()
+        .delete()
+    } catch (error) {
+      console.error(`Failed to transfer 'pullRequest' data: ${error}`)
+      throw error
+    }
+
+    try {
+      tmpTable = 'pullRequestStatusTmp'
+
+      const prStats = await transaction
+        .table(PullRequestStatusTableName)
+        .toArray()
+      const updatedPrStats = prStats.map(prStat => {
+        return {
+          _id: prStat.id as number,
+          pullRequestId: prStat.pullRequestId as number,
+          state: prStat.state as RefState,
+          totalCount: prStat.totalCount,
+          sha: prStat.sha,
+          status: prStat.map((s: any) => {
+            return {
+              id: s.id as number,
+              state: s.state as RefState,
+              targetUrl: s.target_url as string,
+              description: s.description as string,
+              context: s.context as string,
+            }
+          }),
+        }
+      })
+      await transaction.table(tmpTable).bulkAdd(updatedPrStats)
+      await transaction
+        .table(PullRequestStatusTableName)
+        .toCollection()
+        .delete()
+    } catch (error) {
+      console.error(`Failed to transfer 'pullRequestStatus' data: ${error}`)
+      throw error
+    }
+    console.log('completed')
+  }
+
+  private upgradeFieldNames = async (transaction: Dexie.Transaction) => {
+    console.log('upgradeFieldNames...')
+    try {
+      const oldPRRecords = await transaction.table('pullRequests').toArray()
+      const newPRRecords: IPullRequest[] = oldPRRecords.map(r => {
         return {
           _id: r.id as number,
-          pull_request_id: r.pullRequestId as number,
-          state: r.state as RefState,
-          total_count: r.totalCount as number,
-          sha: r.sha as string,
-          status: r.statuses as Array<ICombinedRefStatus>,
+          number: r.number as number,
+          title: r.title as string,
+          createdAt: r.createdAt as string,
+          head: {
+            repositoryId: r.head.repoId as number,
+            ref: r.head.ref as string,
+            sha: r.head.sha as string,
+          },
+          base: {
+            repositoryId: r.base.repoId as number,
+            ref: r.base.ref as string,
+            sha: r.base.sha as string,
+          },
+          author: r.author,
         }
-      }
-    )
-    await transaction
-      .table('pullRequestStatus')
-      .toCollection()
-      .delete()
-    this.pullRequestStatus.bulkAdd(newPrStatusRecords)
+      })
+      await transaction
+        .table('pullRequests')
+        .toCollection()
+        .delete()
+      await this.pullRequest.bulkAdd(newPRRecords)
+    } catch (error) {
+      log.error(
+        `Failed to upgrade field names on 'pullRequest' table: ${error}`
+      )
+      throw error
+    }
+
+    try {
+      const oldPrStatusRecords = await transaction
+        .table('pullRequestStatus')
+        .toCollection()
+        .toArray()
+      const newPrStatusRecords: IPullRequestStatus[] = oldPrStatusRecords.map(
+        r => {
+          return {
+            _id: r.id as number,
+            pullRequestId: r.pullRequestId as number,
+            state: r.state as RefState,
+            totalCount: r.totalCount as number,
+            sha: r.sha as string,
+            status: r.statuses as Array<ICombinedRefStatus>,
+          }
+        }
+      )
+      await transaction
+        .table('pullRequestStatus')
+        .toCollection()
+        .delete()
+      this.pullRequestStatus.bulkAdd(newPrStatusRecords)
+    } catch (error) {
+      log.error(
+        `Failed to upgrade field names on 'pullRequestStatus' table: ${error}`
+      )
+      throw error
+    }
+    console.log('completed')
   }
 }
