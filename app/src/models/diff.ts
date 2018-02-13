@@ -118,8 +118,8 @@ export interface IBinaryDiff {
   readonly kind: DiffType.Binary
 }
 
-export interface IDiffTooLarge {
-  readonly kind: DiffType.TooLarge
+export interface ILargeTextDiff {
+  readonly kind: DiffType.LargeText
   /**
    * The length of the diff output from Git which exceeds the runtime limits:
    *
