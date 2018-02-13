@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.0.14-test2": [
+      "[Improved] Update to React 16"
+    ],
     "1.0.14-beta4": [
       "[New] Syntax highlighting for Elixir files - #3774. Thanks @joaovitoras!",
       "[Fixed] Crash when unable to launch shell - #3954",
