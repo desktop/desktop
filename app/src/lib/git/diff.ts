@@ -17,6 +17,7 @@ import {
   Image,
   LineEndingsChange,
   parseLineEndingText,
+  ILargeTextDiff,
 } from '../../models/diff'
 
 import { spawnAndComplete } from './spawn'
