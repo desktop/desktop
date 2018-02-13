@@ -13,9 +13,14 @@
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators
  *
  * This method can be chained using `||` for more complex sorting
- * logic. Ex
+ * logic. Example:
  *
- *  arr.sort((x, y) => compare(x.firstName, y.firstName) || compare(x.lastName, y.lastName))
+ * ```ts
+ * arr.sort(
+ *  (x, y) =>
+ *    compare(x.firstName, y.firstName) || compare(x.lastName, y.lastName)
+ * )
+ * ```
  *
  */
 export function compare<T>(x: T, y: T): number {

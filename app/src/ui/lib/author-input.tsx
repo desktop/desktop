@@ -4,7 +4,7 @@ import * as URL from 'url'
 import * as classNames from 'classnames'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
 import { Editor, Doc, Position } from 'codemirror'
-import { validLoginExpression, getDotComAPIEndpoint } from '../../lib/api'
+import { getDotComAPIEndpoint } from '../../lib/api'
 import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
 import { OcticonSymbol } from '../octicons'
@@ -629,9 +629,9 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       needle
     )
 
-    const exactMatch =
-      hits.length === 1 &&
-      hits[0].username.toLowerCase() === needle.toLowerCase()
+    const exactMatch = hits.some(
+      hit => hit.username.toLowerCase() === needle.toLowerCase()
+    )
 
     const existingUsernames = new Set(this.authors.map(x => x.username))
 
@@ -646,7 +646,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         hint: this.applyCompletion,
       }))
 
-    if (!exactMatch && needle.length > 0 && validLoginExpression.test(needle)) {
+    if (!exactMatch && needle.length > 0) {
       list.push({
         text: `@${needle}`,
         username: needle,

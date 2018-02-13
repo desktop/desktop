@@ -4,6 +4,7 @@ import * as classNames from 'classnames'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { CIStatus } from './ci-status'
 import { PullRequestStatus } from '../../models/pull-request'
+import { HighlightText } from '../lib/highlight-text'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -29,6 +30,9 @@ export interface IPullRequestListItemProps {
    * inside the list item.
    */
   readonly loading?: boolean
+
+  /** The characters in the PR title to highlight */
+  readonly matches: ReadonlyArray<number>
 }
 
 /** Pull requests as rendered in the Pull Requests list. */
@@ -57,7 +61,7 @@ export class PullRequestListItem extends React.Component<
         <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
         <div className="info">
           <div className="title" title={title}>
-            {title}
+            <HighlightText text={title || ''} highlight={this.props.matches} />
           </div>
           <div className="subtitle" title={subtitle}>
             {subtitle}
