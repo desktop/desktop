@@ -43,6 +43,8 @@ interface IAPITeamMember {
   readonly login: string
 }
 
+// this account is assigned by GitHub as the committer for merged pull requests
+// and should be excluded from being considered an external contributor
 const webflowAccount = ['web-flow']
 
 export async function getCoreTeamMembers(): Promise<ReadonlyArray<string>> {
