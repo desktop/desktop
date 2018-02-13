@@ -993,13 +993,9 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderLargeText(diff: ILargeTextDiff) {
-    if (diff.hunks != null && diff.text != null) {
-      const textDiff: ITextDiff = {
-        text: diff.text,
-        hunks: diff.hunks,
-        kind: DiffType.Text,
-        lineEndingsChange: diff.lineEndingsChange,
-      }
+    if (diff.hunks == null || diff.text == null) {
+      return this.renderDiffTooLarge(false)
+    }
 
       return this.renderTextDiff(textDiff)
     } else {
