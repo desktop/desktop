@@ -6,6 +6,7 @@ import {
   convertToChangelogFormat,
   getChangelogEntriesSince,
 } from '../changelog/parser'
+import { getCoreTeamMembers } from '../changelog/api'
 
 import { Channel } from './channel'
 import { getNextVersionNumber } from './version'
@@ -85,7 +86,8 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   if (noChangesFound) {
     printInstructions(nextVersion, [])
   } else {
-    const changelogEntries = await convertToChangelogFormat(lines)
+    const coreMembers = await getCoreTeamMembers()
+    const changelogEntries = await convertToChangelogFormat(lines, coreMembers)
 
     console.log("Here's what you should do next:\n")
 

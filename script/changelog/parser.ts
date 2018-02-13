@@ -83,6 +83,7 @@ export async function convertToChangelogFormat(
       if (!pr) {
         throw new Error(`Unable to get PR from API: ${commit.prID}`)
       }
+
       const collaborators = pr.collaborators
       const externalContributors = collaborators.filter(
         c => coreMembers.indexOf(c) === -1
