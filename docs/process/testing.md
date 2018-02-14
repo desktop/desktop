@@ -271,11 +271,12 @@
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers sizes
 
-### Compare tab (was History)
+### Compare tab
   - [ ] Compare (was History) tab shows commits on your current branch by default
     - [ ] All commits listed in chronological order, with avatar, date and name; list is scrollable with arrow keys enabled
       - [ ] Right clicking any commit shows options: Revert, Copy SHA, View on GitHub
       - [ ] Hover shows file name in tooltip
+    - [ ] Placing cursor in search field show all branches with number of commits behind/ahead  
     - [ ] User can search to a target branch to filter commits; `esc` key to exit; autocomplete and text prediction intact
       - [ ] User can toggle between behind/ahead, with counts shown
       - [ ] Only commits behind/ahead shown
