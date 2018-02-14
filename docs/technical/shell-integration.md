@@ -1,4 +1,4 @@
-# "Open in Shell" integration
+# "Open Shell" integration
 
 GitHub Desktop supports launching an available shell found on the user's
 machine, to work with Git repositories outside of Desktop.
