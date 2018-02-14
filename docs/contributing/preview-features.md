@@ -11,4 +11,6 @@ the Desktop app.
 
 ## Preview Features
 
-Coming Soon™
+* Enhanced branch selector that allows you to view pull requests
+
+* The [status](https://help.github.com/articles/about-statuses/) for each pull request is not surfaced in the UI
