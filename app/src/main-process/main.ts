@@ -284,23 +284,19 @@ app.on('ready', () => {
         if (item.role === 'editMenu') {
           const editMenu = Menu.buildFromTemplate([item]).items[0]
 
-          if (editMenu.submenu) {
-            for (const editItem of editMenu.submenu.items) {
-              // We don't use styled inputs anywhere at the moment
-              // so let's skip this for now and when/if we do we
-              // can make it configurable from the callee
-              if (
-                editItem.role &&
-                editItem.role.toLowerCase() === 'pasteandmatchstyle'
-              ) {
-                continue
-              }
-
-              menu.append(editItem)
-            }
+          if (!editMenu.submenu) {
+            continue
           }
-
-          continue
+          // We don't use styled inputs anywhere at the moment
+          // so let's skip this for now and when/if we do we
+          // can make it configurable from the callee
+          editMenu.submenu.items
+            .filter(
+              editItem =>
+                editItem.role &&
+                editItem.role.toLocaleLowerCase() !== 'pasteandmatchstyle'
+            )
+            .forEach(editItem => menu.append(editItem))
         }
 
         menu.append(
