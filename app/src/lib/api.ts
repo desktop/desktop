@@ -80,12 +80,6 @@ export interface IAPIUser {
   readonly type: 'User' | 'Organization'
 }
 
-/**
- * An expression that validates a GitHub.com or GitHub Enterprise
- * username
- */
-export const validLoginExpression = /^[a-z0-9]+(-[a-z0-9]+)*$/i
-
 /** The users we get from the mentionables endpoint. */
 export interface IAPIMentionableUser {
   readonly avatar_url: string
@@ -567,7 +561,10 @@ export class API {
    */
   public async fetchUser(login: string): Promise<IAPIUser | null> {
     try {
-      const response = await this.request('GET', `users/${login}`)
+      const response = await this.request(
+        'GET',
+        `users/${encodeURIComponent(login)}`
+      )
 
       if (response.status === 404) {
         return null
