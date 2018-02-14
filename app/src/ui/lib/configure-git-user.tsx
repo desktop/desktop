@@ -98,14 +98,14 @@ export class ConfigureGitUser extends React.Component<
         <Form className="sign-in-form" onSubmit={this.save}>
           <TextBox
             label="Name"
-            placeholder="Hubot"
+            placeholder="Your Name"
             value={this.state.name}
             onChange={this.onNameChange}
           />
 
           <TextBox
             label="Email"
-            placeholder="hubot@github.com"
+            placeholder="your-name@example.com"
             value={this.state.email}
             onChange={this.onEmailChange}
           />
