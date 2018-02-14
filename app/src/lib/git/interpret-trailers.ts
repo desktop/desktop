@@ -13,6 +13,14 @@ export interface ITrailer {
 }
 
 /**
+ * Gets a value indicating whether the trailer token is
+ * Co-Authored-By. Does not validate the token value.
+ */
+export function isCoAuthoredByTrailer(trailer: ITrailer) {
+  return trailer.token.toLowerCase() === 'Co-Authored-By'
+}
+
+/**
  * Parse a string containing only unfolded trailers produced by
  * git-interpret-trailers --only-input --only-trailers --unfold or
  * a derivative such as git log --format="%(trailers:only,unfold)"
