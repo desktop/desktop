@@ -4,6 +4,10 @@ import { GitAuthor } from './git-author'
 import { GitHubRepository } from './github-repository'
 import { getDotComAPIEndpoint } from '../lib/api'
 
+/**
+ * Extract any Co-Authored-By trailers from an array of arbitrary
+ * trailers.
+ */
 function extractCoAuthors(trailers: ReadonlyArray<ITrailer>) {
   const coAuthors = []
 
