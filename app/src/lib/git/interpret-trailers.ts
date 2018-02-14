@@ -17,7 +17,7 @@ export interface ITrailer {
  * Co-Authored-By. Does not validate the token value.
  */
 export function isCoAuthoredByTrailer(trailer: ITrailer) {
-  return trailer.token.toLowerCase() === 'Co-Authored-By'
+  return trailer.token.toLowerCase() === 'co-authored-by'
 }
 
 /**
