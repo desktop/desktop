@@ -271,12 +271,18 @@
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers sizes
 
-### History tab
-  - [ ] All commits listed in chronological order, with avatar, date and name; list is scrollable with arrow keys enabled
-    - [ ] Right clicking any commit shows options: Revert, Copy SHA, View on GitHub (or GitHub Enterprise)
-      - [ ] Reverting a commit does not remove the commit from the History
-    - [ ] Hover shows file name in tooltip
-
+### Compare tab (was History)
+  - [ ] Compare (was History) tab shows commits on your current branch by default
+    - [ ] All commits listed in chronological order, with avatar, date and name; list is scrollable with arrow keys enabled
+      - [ ] Right clicking any commit shows options: Revert, Copy SHA, View on GitHub
+      - [ ] Hover shows file name in tooltip
+    - [ ] User can search to a target branch to filter commits; `esc` key to exit; autocomplete and text prediction intact
+      - [ ] User can toggle between behind/ahead, with counts shown
+      - [ ] Only commits behind/ahead shown
+      - [ ] User can merge in any commits into current branch for the "behind" tab
+        - [ ] After successful merge, tab counts update and merge button is disabled
+        - [ ] Merge conflict results in dialog shown directing user to commit view
+	
 ### Diffs tab		
   - [ ] All commits have avatar, selectable SHA, # of files changed, commit message, commit description (optional)
     - [ ] Long commit descriptions can be toggled with expand/collapse icon
