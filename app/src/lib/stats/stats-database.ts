@@ -37,8 +37,11 @@ export interface IDailyMeasures {
 
   /** The number of partial commits. */
   readonly partialCommits: number
+
+  /** The number of commits created with one or more co-authors. */
+  readonly coAuthoredCommits: number
 }
-// co-authors
+
 export class StatsDatabase extends Dexie {
   public launches: Dexie.Table<ILaunchStats, number>
   public dailyMeasures: Dexie.Table<IDailyMeasures, number>

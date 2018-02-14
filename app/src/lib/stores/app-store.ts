@@ -1399,6 +1399,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordPartialCommit()
       }
 
+      if (trailers && trailers.length && trailers.some(x => x.token.toLowerCase() === 'co-authored-by')) {
+        this.statsStore.recordCoAuthoredCommit()
+      }
+
       await this._refreshRepository(repository)
       await this.refreshChangesSection(repository, {
         includingStatus: true,
