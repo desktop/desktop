@@ -17,7 +17,8 @@
     "app/node_modules",
     "dist",
     "out",
-    "app/src/highlighter"
+    "app/src/highlighter",
+    "app/cypress/**/*.ts"
   ],
   "compileOnSave": false
 }
