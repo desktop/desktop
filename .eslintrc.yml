@@ -74,10 +74,7 @@ rules:
   ###########
   prettier/prettier:
     - error
-    - singleQuote: true
-      trailingComma: es5
-      semi: false
-      parser: typescript
+    - parser: typescript
   no-restricted-syntax:
     - error
     # no-default-export

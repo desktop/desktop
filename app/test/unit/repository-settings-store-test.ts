@@ -8,7 +8,6 @@ import { expect } from 'chai'
 import { RepositorySettingsStore } from '../../src/lib/stores'
 import { setupEmptyRepository } from '../helpers/repositories'
 import { getStatus } from '../../src/lib/git'
-import { Repository } from '../../src/models/repository'
 import { pathExists } from '../../src/lib/file-system'
 
 describe('RepositorySettingsStore', () => {
@@ -48,13 +47,10 @@ describe('RepositorySettingsStore', () => {
     expect(files.length).to.equal(0)
   })
 
-  describe('autocrlf and safecrlf', () => {
-    let repo: Repository
-    let sut: RepositorySettingsStore
-
-    beforeEach(async () => {
-      repo = await setupEmptyRepository()
-      sut = new RepositorySettingsStore(repo)
+  describe('autocrlf and safecrlf are true', () => {
+    it('appends CRLF to file', async () => {
+      const repo = await setupEmptyRepository()
+      const sut = new RepositorySettingsStore(repo)
 
       await GitProcess.exec(
         ['config', '--local', 'core.autocrlf', 'true'],
@@ -64,9 +60,7 @@ describe('RepositorySettingsStore', () => {
         ['config', '--local', 'core.safecrlf', 'true'],
         repo.path
       )
-    })
 
-    it('appends newline to file', async () => {
       const path = repo.path
 
       await sut.saveGitIgnore('node_modules')
@@ -80,6 +74,36 @@ describe('RepositorySettingsStore', () => {
 
       expect(commit.exitCode).to.equal(0)
       expect(contents!.endsWith('\r\n'))
+    })
+  })
+
+  describe('autocrlf and safecrlf are unset', () => {
+    it('appends LF to file', async () => {
+      const repo = await setupEmptyRepository()
+      const sut = new RepositorySettingsStore(repo)
+
+      // ensure this repository only ever sticks to LF
+      await GitProcess.exec(['config', '--local', 'core.eol', 'lf'], repo.path)
+
+      // do not do any conversion of line endings when committing
+      await GitProcess.exec(
+        ['config', '--local', 'core.autocrlf', 'input'],
+        repo.path
+      )
+
+      const path = repo.path
+
+      await sut.saveGitIgnore('node_modules')
+      await GitProcess.exec(['add', '.gitignore'], path)
+
+      const commit = await GitProcess.exec(
+        ['commit', '-m', 'create the ignore file'],
+        path
+      )
+      const contents = await sut.readGitIgnore()
+
+      expect(commit.exitCode).to.equal(0)
+      expect(contents!.endsWith('\n'))
     })
   })
 })
