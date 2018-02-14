@@ -1,4 +1,4 @@
-# "Open in External Editor" integration
+# "Open External Editor" integration
 
 GitHub Desktop supports the user choosing an external program to open their
 local repositories, and this is available from the top-level **Repository** menu 
