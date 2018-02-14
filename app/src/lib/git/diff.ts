@@ -111,12 +111,14 @@ export async function getCommitDiff(
     repository.path,
     'getCommitDiff'
   )
-  const diffText = diffFromRawDiffOutput(output)
-  const largeDiff = buildLargeTextDiff(output)
 
-  return largeDiff != null
-    ? largeDiff
-    : convertDiff(repository, file, diffText, commitish)
+  const largeDiff = buildLargeTextDiff(output)
+  if (largeDiff != null) {
+    return largeDiff
+  }
+
+  const diffText = diffFromRawDiffOutput(output)
+  return convertDiff(repository, file, diffText, commitish)
 }
 
 /**
@@ -193,36 +195,16 @@ export async function getWorkingDirectoryDiff(
     'getWorkingDirectoryDiff',
     successExitCodes
   )
+  const lineEndingsChange = parseLineEndingsWarning(error)
 
-  if (!isValidBuffer(output)) {
-    // we know we can't transform this process output into a diff, so let's
-    // just return a placeholder for now that we can display to the user
-    // to say we're at the limits of the runtime
-    return { kind: DiffType.LargeText, length: output.length }
+  const largeDiff = buildLargeTextDiff(output, lineEndingsChange)
+  if (largeDiff != null) {
+    return largeDiff
   }
 
   const diffText = diffFromRawDiffOutput(output)
 
-  if (isBufferTooLarge(output)) {
-    // we don't want to render by default
-    // but we keep it as an option by
-    // passing in text and hunks
-    const largeTextDiff: ILargeTextDiff = {
-      kind: DiffType.LargeText,
-      length: output.length,
-      text: diffText.contents,
-      hunks: diffText.hunks,
-    }
-
-    return largeTextDiff
-  }
-
-  const lineEndingsChange = parseLineEndingsWarning(error)
-  const largeDiff = buildLargeTextDiff(output, lineEndingsChange)
-
-  return largeDiff != null
-    ? largeDiff
-    : convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
+  return convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
 }
 
 async function getImageDiff(
