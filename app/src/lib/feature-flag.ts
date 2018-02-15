@@ -28,7 +28,7 @@ function enableBetaFeatures(): boolean {
 
 /** Should PR integration be enabled? */
 export function enablePRIntegration(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should merge tool integration be enabled? */
