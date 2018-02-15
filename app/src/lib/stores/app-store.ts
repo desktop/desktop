@@ -1400,7 +1400,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordPartialCommit()
       }
 
-      if (trailers && trailers.some(isCoAuthoredByTrailer)) {
+      if (trailers != null && trailers.some(isCoAuthoredByTrailer)) {
         this.statsStore.recordCoAuthoredCommit()
       }
 
