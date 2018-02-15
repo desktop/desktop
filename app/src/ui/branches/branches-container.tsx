@@ -69,7 +69,7 @@ export class BranchesContainer extends React.Component<
   private closePullRequestFoldoutOnEsc = (
     event: React.KeyboardEvent<HTMLElement>
   ) => {
-    if (event.key === 'Escape') {
+    if (!event.defaultPrevented && event.key === 'Escape') {
       if (this.state.pullRequestFilterText.length === 0) {
         this.props.dispatcher.closeFoldout(FoldoutType.Branch)
         event.preventDefault()
@@ -80,7 +80,7 @@ export class BranchesContainer extends React.Component<
   private closeBranchFoldoutOnEsc = (
     event: React.KeyboardEvent<HTMLElement>
   ) => {
-    if (event.key === 'Escape') {
+    if (!event.defaultPrevented && event.key === 'Escape') {
       if (this.state.branchFilterText.length === 0) {
         this.props.dispatcher.closeFoldout(FoldoutType.Branch)
         event.preventDefault()
