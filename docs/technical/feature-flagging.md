@@ -50,5 +50,9 @@ feature once things are stabilized.
 ## How to test
 
 To opt-in for testing preview features, set the
-`GITHUB_DESKTOP_PREVIEW_FEATURES` environment variable to any value and launch
-the Desktop app.
+`GITHUB_DESKTOP_PREVIEW_FEATURES` environment variable to any value.
+
+
+Don't have that environment variable? No worries, simply create it. (here's a [handy guide](https://www.schrodinger.com/kb/1842) on creating environment variables on most major OSs).
+
+Note, if you want to opt-out of preview feautures, you will need to remove this variable from your environment.
