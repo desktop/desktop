@@ -5,7 +5,7 @@ import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
-import { History, HistorySidebar } from './history'
+import { History, HistorySidebar, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
@@ -18,6 +18,7 @@ import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Octicon, OcticonSymbol } from './octicons'
 import { Account } from '../models/account'
+import { enableCompareTab } from '../lib/feature-flag'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -62,7 +63,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
             />
           ) : null}
         </span>
-        <span>History</span>
+        <span>{enableCompareTab() ? 'Compare' : 'History'}</span>
       </TabBar>
     )
   }
@@ -121,13 +122,32 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
     )
   }
 
+  private renderCompareSidebar(): JSX.Element {
+    return (
+      <CompareSidebar
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        compare={this.props.state.compareState}
+        gitHubUsers={this.props.state.gitHubUsers}
+        emoji={this.props.emoji}
+        commitLookup={this.props.state.commits}
+        localCommitSHAs={this.props.state.localCommitSHAs}
+        onRevertCommit={this.onRevertCommit}
+        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        branches={this.props.state.branchesState.allBranches}
+      />
+    )
+  }
+
   private renderSidebarContents(): JSX.Element {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {
       return this.renderChangesSidebar()
     } else if (selectedSection === RepositorySection.History) {
-      return this.renderHistorySidebar()
+      return enableCompareTab()
+        ? this.renderCompareSidebar()
+        : this.renderHistorySidebar()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }

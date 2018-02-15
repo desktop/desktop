@@ -322,6 +322,7 @@ export enum RepositorySection {
 
 export interface IRepositoryState {
   readonly historyState: IHistoryState
+  readonly compareState: ICompareState
   readonly changesState: IChangesState
   readonly selectedSection: RepositorySection
 
@@ -542,6 +543,25 @@ export interface IBranchesState {
 export interface IHistorySelection {
   readonly sha: string | null
   readonly file: CommittedFileChange | null
+}
+
+export enum CompareMode {
+  Default = 'Default',
+  Ahead = 'Ahead',
+  Behind = 'Behind',
+}
+
+export interface ICompareState {
+  readonly selection: IHistorySelection
+
+  readonly commits: ReadonlyArray<string>
+
+  readonly mode: CompareMode
+
+  readonly branch: Branch | null
+
+  readonly behindCount: number
+  readonly aheadCount: number
 }
 
 export interface IHistoryState {

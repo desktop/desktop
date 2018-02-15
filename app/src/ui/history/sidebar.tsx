@@ -54,8 +54,8 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, {}> {
     return (
       <CommitList
         repository={this.props.repository}
-        commits={this.props.commits}
-        history={this.props.history.history}
+        commitLookup={this.props.commits}
+        list={this.props.history.history}
         selectedSHA={this.props.history.selection.sha}
         onCommitChanged={this.onCommitChanged}
         onScroll={this.onScroll}
@@ -64,6 +64,7 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, {}> {
         localCommitSHAs={this.props.localCommitSHAs}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        noCommitsMessage={'No history'}
       />
     )
   }

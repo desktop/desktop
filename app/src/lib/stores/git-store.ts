@@ -7,7 +7,7 @@ import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
-import { IFetchProgress, IRevertProgress } from '../app-state'
+import { IFetchProgress, IRevertProgress, CompareMode } from '../app-state'
 
 import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
@@ -26,6 +26,8 @@ import {
   getBranches,
   deleteRef,
   IAheadBehind,
+  getBranchAheadBehind,
+  getAheadBehind,
   getCommits,
   merge,
   setRemoteURL,
@@ -47,6 +49,7 @@ import {
   mergeTrailers,
   getTrailerSeparatorCharacters,
   parseSingleUnfoldedTrailer,
+  ICompareResult,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -828,6 +831,56 @@ export class GitStore extends BaseStore {
         fetchRefspec(this.repository, account, remote.name, refspec)
       )
     }
+  }
+
+  /** Calculate the ahead/behind for the current branch. */
+  public async calculateAheadBehindForCurrentBranch(): Promise<void> {
+    if (this.tip.kind === TipState.Valid) {
+      const branch = this.tip.branch
+      this._aheadBehind = await getBranchAheadBehind(this.repository, branch)
+    }
+
+    this.emitUpdate()
+  }
+
+  public async getCompareDetails(
+    branch: Branch,
+    mode: CompareMode
+  ): Promise<ICompareResult | null> {
+    if (this.tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    let compare: ICompareResult | null = null
+
+    const base = this.tip.branch
+
+    const range =
+      mode === CompareMode.Behind
+        ? `${base.name}..${branch.name}`
+        : `${branch.name}..${base.name}`
+
+    const commits = await getCommits(this.repository, range, 250)
+
+    const aheadBehind = await getAheadBehind(
+      this.repository,
+      `${base.name}...${branch.name}`
+    )
+
+    if (aheadBehind) {
+      compare = {
+        ahead: aheadBehind.ahead,
+        behind: aheadBehind.behind,
+        commits,
+      }
+    }
+
+    if (commits) {
+      this.storeCommits(commits)
+      this.emitNewCommitsLoaded(commits)
+    }
+
+    return compare
   }
 
   public async loadStatus(): Promise<IStatusResult | null> {

@@ -2,11 +2,18 @@ import { GitError } from 'dugite'
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
+import { Commit } from '../../models/commit'
 
 /** The number of commits a revision range is ahead/behind. */
 export interface IAheadBehind {
   readonly ahead: number
   readonly behind: number
+}
+
+export interface ICompareResult {
+  readonly ahead: number
+  readonly behind: number
+  readonly commits: ReadonlyArray<Commit>
 }
 
 /** Calculate the number of commits the range is ahead and behind. */

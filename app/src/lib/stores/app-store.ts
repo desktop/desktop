@@ -16,6 +16,8 @@ import {
   Progress,
   ImageDiffType,
   IRevertProgress,
+  CompareMode,
+  ICompareState,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -389,6 +391,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
         history: new Array<string>(),
         diff: null,
       },
+      compareState: {
+        selection: {
+          sha: null,
+          file: null,
+        },
+        branch: null,
+        mode: CompareMode.Default,
+        aheadCount: 0,
+        behindCount: 0,
+        commits: new Array<string>(),
+      },
       changesState: {
         workingDirectory: WorkingDirectoryStatus.fromFiles(
           new Array<WorkingDirectoryFileChange>()
@@ -447,6 +460,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const currentState = this.getRepositoryState(repository)
     const newValues = fn(currentState)
     this.repositoryState.set(repository.hash, merge(currentState, newValues))
+  }
+
+  private updateCompareState<K extends keyof ICompareState>(
+    repository: Repository,
+    fn: (compareState: ICompareState) => Pick<ICompareState, K>
+  ) {
+    this.updateRepositoryState(repository, state => {
+      const compareState = state.compareState
+      const newValues = fn(compareState)
+      return { compareState: merge(compareState, newValues) }
+    })
   }
 
   private updateHistoryState<K extends keyof IHistoryState>(
@@ -625,6 +649,51 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return store
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _loadCompareState(
+    repository: Repository,
+    branch: Branch | null,
+    mode: CompareMode
+  ): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+
+    if (mode === CompareMode.Default) {
+      await gitStore.loadHistory()
+
+      const state = this.getRepositoryState(repository).historyState
+      const commits = state.history
+
+      this.updateCompareState(repository, state => ({
+        mode: mode,
+        commits: commits,
+        branch,
+        aheadCount: 0,
+        behindCount: 0,
+      }))
+    } else {
+      if (branch == null) {
+        log.debug(`oops, we can't compare if the branch isn't selected`)
+        return
+      }
+
+      const compare = await gitStore.getCompareDetails(branch, mode)
+
+      if (compare) {
+        const commits = compare.commits.map(c => c.sha)
+
+        this.updateCompareState(repository, state => ({
+          mode,
+          commits,
+          branch,
+          aheadCount: compare.ahead,
+          behindCount: compare.behind,
+        }))
+      }
+    }
+
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
