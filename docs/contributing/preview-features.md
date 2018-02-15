@@ -1,3 +1,0 @@
-# Preview Features
-
-We are hard at work building the latest features, we will have something to show soon...
