@@ -66,7 +66,7 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private closePullRequrstFoldoutOnEsc = (
+  private closePullRequestFoldoutOnEsc = (
     event: React.KeyboardEvent<HTMLElement>
   ) => {
     if (event.key === 'Escape') {
@@ -207,7 +207,7 @@ export class BranchesContainer extends React.Component<
         onCreatePullRequest={this.onCreatePullRequest}
         filterText={this.state.pullRequestFilterText}
         onFilterTextChanged={this.onPullRequestFilterTextChanged}
-        onFilterKeyDown={this.closePullRequrstFoldoutOnEsc}
+        onFilterKeyDown={this.closePullRequestFoldoutOnEsc}
         onItemClick={this.onPullRequestClicked}
         onDismiss={this.onDismiss}
       />
