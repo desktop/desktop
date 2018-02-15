@@ -105,7 +105,7 @@ export class ConfigureGitUser extends React.Component<
 
           <TextBox
             label="Email"
-            placeholder="your-name@example.com"
+            placeholder="your-email@example.com"
             value={this.state.email}
             onChange={this.onEmailChange}
           />
