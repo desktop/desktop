@@ -313,17 +313,17 @@
   
 ### Co-authoring
   - [ ] clicking co-author icon toggles co-author field; or right-click within commit area
-    - [ ] hovering over the icon reveals add/remove 'action' text
-    - [ ] right-click includes Mac/Windows context menus
-    - [ ] user can tag other GitHub.com users only, or those within your Enterprise org
-      - [ ] tag is tied to public API name/email; email is "no-reply" if user setting is enabled
-      - [ ] mouseover tooltip reveals name and email of any entered tags
-      - [ ] tagging those outside of GitHub turns tag red
-      - [ ] you cannot tag a user more than once via the autocomplete; manually you can
-      - [ ] typing a GitHub name not part of the initial autocomplete will initiate a search
-        - [ ] found names are tagged; all others are turned red
-        - [ ] navigating away from the Changes tab will clear red tags 
-     - [ ] toggling the co-author icon clears the field
+    - [ ] Hovering over the icon reveals add/remove 'action' text
+    - [ ] Right-click includes Mac/Windows context menus; option greyed out if repo not published to Github.com
+    - [ ] User can tag other GitHub.com users only, or those within your Enterprise org
+      - [ ] Tag is tied to public API name/email; email is "no-reply" if user setting is enabled
+      - [ ] Mouseover tooltip reveals name and email of any entered tags
+      - [ ] Tagging those outside of GitHub turns tag red
+      - [ ] You cannot tag a user more than once via the autocomplete; manually you can
+      - [ ] Typing a GitHub name not part of the initial autocomplete will initiate a search
+        - [ ] Found names are tagged; all others are turned red
+        - [ ] Navigating away from the Changes tab will clear red tags 
+     - [ ] Toggling the co-author icon clears the field
   - [ ] All co-authors show up in History and diff view
     - [ ] Commits with `Co-Authored-By: Name <username@github.com>`in the decription field reveal avatar of user    
     - [ ] Hovering over an avatar reveals all tagged users
