@@ -6,7 +6,7 @@ export function protectProcessOutput(
 ) {
   childProcess.stdout.on('error', err => {
     const errWithCode = err as ErrorWithCode
-    let code = errWithCode.code
+    const code = errWithCode.code
 
     if (typeof code === 'string') {
       if (code === 'EPIPE') {
