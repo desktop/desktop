@@ -996,6 +996,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private renderLargeText(diff: ILargeTextDiff) {
     if (diff.hunks == null || diff.text == null) {
+      return fatalError('Cannot render diff withouth hunks and text')
     }
 
     const textDiff: ITextDiff = {
