@@ -17,13 +17,13 @@ const PullRequestsLoadingCrossFadeInTimeout = 300
 const PullRequestsLoadingCrossFadeOutTimeout = 200
 
 interface IBranchesContainerProps {
-  readonly defaultBranch: Branch | null
-  readonly currentBranch: Branch | null
-  readonly allBranches: ReadonlyArray<Branch>
-  readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly selectedTab: BranchesTab
+  readonly allBranches: ReadonlyArray<Branch>
+  readonly defaultBranch: Branch | null
+  readonly currentBranch: Branch | null
+  readonly recentBranches: ReadonlyArray<Branch>
   readonly pullRequests: ReadonlyArray<PullRequest>
 
   /** The pull request associated with the current branch. */
