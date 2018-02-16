@@ -3,7 +3,7 @@
 import * as ChildProcess from 'child_process'
 import * as os from 'os'
 
-import { protectProcessOutput } from './process'
+import { reportProcessOutputError } from './process'
 
 type IndexLookup = {
   [propName: string]: string
@@ -77,7 +77,7 @@ async function getRawShellEnv(): Promise<string | null> {
       buffers.push(data)
     })
 
-    protectProcessOutput(child, 'getRawShellEnv')
+    reportProcessOutputError(child, 'getRawShellEnv')
 
     child.on('close', (code: number, signal) => {
       done = true

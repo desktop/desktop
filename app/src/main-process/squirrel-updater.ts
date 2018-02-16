@@ -3,7 +3,7 @@ import * as Path from 'path'
 import * as Os from 'os'
 
 import { pathExists, mkdirIfNeeded, writeFile } from '../lib/file-system'
-import { protectProcessOutput } from '../lib/process'
+import { reportProcessOutputError } from '../lib/process'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
@@ -221,7 +221,7 @@ function spawn(
         stdout += data
       })
 
-      protectProcessOutput(child, context)
+      reportProcessOutputError(child, context)
 
       child.on('close', code => {
         if (code === 0) {

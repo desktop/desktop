@@ -1,6 +1,6 @@
 import { ChildProcess } from 'child_process'
 
-export function protectProcessOutput(
+export function reportProcessOutputError(
   childProcess: ChildProcess,
   context: string
 ) {

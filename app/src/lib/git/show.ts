@@ -2,7 +2,7 @@ import { ChildProcess } from 'child_process'
 
 import { git } from './core'
 import { spawnAndComplete } from './spawn'
-import { protectProcessOutput } from '../process'
+import { reportProcessOutputError } from '../process'
 
 import { Repository } from '../../models/repository'
 
@@ -30,7 +30,7 @@ export async function getBlobContents(
   const successExitCodes = new Set([0, 1])
   const setBinaryEncoding: (process: ChildProcess) => void = cb => {
     cb.stdout.setEncoding('binary')
-    protectProcessOutput(cb, 'getBlobContents')
+    reportProcessOutputError(cb, 'getBlobContents')
   }
 
   const args = ['show', `${commitish}:${path}`]
