@@ -122,7 +122,7 @@ export async function getCommitDiff(
     MaxBytesToRead
   )
 
-  const largeDiff = buildLargeTextDiff(output)
+  const largeDiff = buildLargeTextDiff(output, didReadAllBytes)
   if (largeDiff != null) {
     return largeDiff
   }
@@ -208,7 +208,11 @@ export async function getWorkingDirectoryDiff(
   )
   const lineEndingsChange = parseLineEndingsWarning(error)
 
-  const largeDiff = buildLargeTextDiff(output, lineEndingsChange)
+  const largeDiff = buildLargeTextDiff(
+    output,
+    didReadAllBytes,
+    lineEndingsChange
+  )
   if (largeDiff != null) {
     return largeDiff
   }
@@ -422,6 +426,7 @@ export async function getWorkingDirectoryImage(
  */
 function buildLargeTextDiff(
   buffer: Buffer,
+  didReadAllBytes: boolean,
   lineEndingsChange?: LineEndingsChange
 ): ILargeTextDiff | null {
   if (!isValidBuffer(buffer)) {
