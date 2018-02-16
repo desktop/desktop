@@ -1605,6 +1605,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             this.state.askForConfirmationOnDiscardChanges
           }
           accounts={this.state.accounts}
+          externalEditorLabel={this.state.selectedExternalEditor}
+          onOpenInExternalEditor={this.openFileInExternalEditor}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
