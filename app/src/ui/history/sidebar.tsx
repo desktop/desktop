@@ -53,7 +53,7 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, {}> {
   public render() {
     return (
       <CommitList
-        repository={this.props.repository}
+        gitHubRepository={this.props.repository.gitHubRepository}
         commitLookup={this.props.commitLookup}
         commits={this.props.history.history}
         selectedSHA={this.props.history.selection.sha}

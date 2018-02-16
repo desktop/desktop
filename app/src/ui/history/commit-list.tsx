@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Repository } from '../../models/repository'
+import { GitHubRepository } from '../../models/github-repository'
 import { Commit } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
@@ -8,7 +8,9 @@ import { IGitHubUser } from '../../lib/databases'
 const RowHeight = 50
 
 interface ICommitListProps {
-  readonly repository: Repository
+  /** The GitHub repository associated with this commit (if found) */
+  readonly gitHubRepository: GitHubRepository | null
+
   /** The list of commits to display, in order. */
   readonly commits: ReadonlyArray<string>
   /** The commits loaded, keyed by their full SHA. */
@@ -47,7 +49,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return (
       <CommitListItem
         key={commit.sha}
-        gitHubRepository={this.props.repository.gitHubRepository}
+        gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
         commit={commit}
         gitHubUsers={this.props.gitHubUsers}
