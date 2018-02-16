@@ -13,18 +13,31 @@ interface ICommitListProps {
 
   /** The list of commits to display, in order. */
   readonly commits: ReadonlyArray<string>
+
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
+
+  /** The selected commit to style distinctly in the list */
   readonly selectedSHA: string | null
+
+  /** The lookup for GitHub users related to this repository */
   readonly gitHubUsers: Map<string, IGitHubUser>
+
+  /** The emoji lookup to render images inline */
   readonly emoji: Map<string, string>
+
+  /** The list of known local commits for the current branch */
   readonly localCommitSHAs: ReadonlyArray<string>
+
   /** Callback which fires when a commit has been selected in the list */
   readonly onCommitChanged: (commit: Commit) => void
+
   /** Callback that fires when a scroll event has occurred */
   readonly onScroll: (start: number, end: number) => void
+
   /** Callback to fire to revert a given commit in the current repository */
   readonly onRevertCommit: (commit: Commit) => void
+
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
