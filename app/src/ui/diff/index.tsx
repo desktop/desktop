@@ -970,7 +970,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     return null
   }
 
-  private renderDiffTooLarge() {
+  private renderLargeTextDiff() {
     return (
       <div className="panel empty large-diff">
         <img src={NoDiffImage} />
