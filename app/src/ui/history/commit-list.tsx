@@ -13,7 +13,8 @@ interface ICommitListProps {
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly repository: Repository
-  readonly history: ReadonlyArray<string>
+  /** The list of commits to display, in order. */
+  readonly commits: ReadonlyArray<string>
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
   readonly selectedSHA: string | null
@@ -25,7 +26,7 @@ interface ICommitListProps {
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
   private renderCommit = (row: number) => {
-    const sha = this.props.history[row]
+    const sha = this.props.commits[row]
     const commit = this.props.commitLookup.get(sha)
 
     if (commit == null) {
@@ -54,7 +55,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   }
 
   private onRowChanged = (row: number) => {
-    const sha = this.props.history[row]
+    const sha = this.props.commits[row]
     const commit = this.props.commitLookup.get(sha)
     if (commit) {
       this.props.onCommitChanged(commit)
@@ -74,25 +75,25 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       return -1
     }
 
-    return this.props.history.findIndex(s => s === sha)
+    return this.props.commits.findIndex(s => s === sha)
   }
 
   public render() {
-    if (this.props.history.length === 0) {
+    if (this.props.commits.length === 0) {
       return <div className="panel blankslate">No history</div>
     }
 
     return (
       <div id="commit-list">
         <List
-          rowCount={this.props.history.length}
+          rowCount={this.props.commits.length}
           rowHeight={RowHeight}
           selectedRow={this.rowForSHA(this.props.selectedSHA)}
           rowRenderer={this.renderCommit}
           onSelectionChanged={this.onRowChanged}
           onScroll={this.onScroll}
           invalidationProps={{
-            history: this.props.history,
+            commits: this.props.commits,
             gitHubUsers: this.props.gitHubUsers,
           }}
         />
