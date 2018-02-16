@@ -1,7 +1,9 @@
 import * as ChildProcess from 'child_process'
 import * as Path from 'path'
 import * as Os from 'os'
+
 import { pathExists, mkdirIfNeeded, writeFile } from '../lib/file-system'
+import { reportProcessOutputError } from '../lib/process'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
@@ -109,7 +111,7 @@ async function writeShellScriptCLITrampoline(binPath: string): Promise<void> {
 async function spawnSquirrelUpdate(
   commands: ReadonlyArray<string>
 ): Promise<void> {
-  await spawn(updateDotExe, commands)
+  await spawn(updateDotExe, commands, 'update.exe')
 }
 
 type ShortcutLocations = ReadonlyArray<'StartMenu' | 'Desktop'>
@@ -186,7 +188,7 @@ async function getPathSegments(): Promise<ReadonlyArray<string>> {
     `,
   ]
 
-  const stdout = await spawn(powershellPath, args)
+  const stdout = await spawn(powershellPath, args, 'powershell')
   const pathOutput = stdout.replace(/^\s+|\s+$/g, '')
   return pathOutput.split(/;+/).filter(segment => segment.length)
 }
@@ -202,11 +204,15 @@ async function setPathSegments(paths: ReadonlyArray<string>): Promise<void> {
     setxPath = 'setx.exe'
   }
 
-  await spawn(setxPath, ['Path', paths.join(';')])
+  await spawn(setxPath, ['Path', paths.join(';')], 'setx')
 }
 
 /** Spawn a command with arguments and capture its output. */
-function spawn(command: string, args: ReadonlyArray<string>): Promise<string> {
+function spawn(
+  command: string,
+  args: ReadonlyArray<string>,
+  context: string
+): Promise<string> {
   try {
     const child = ChildProcess.spawn(command, args as string[])
     return new Promise<string>((resolve, reject) => {
@@ -214,6 +220,8 @@ function spawn(command: string, args: ReadonlyArray<string>): Promise<string> {
       child.stdout.on('data', data => {
         stdout += data
       })
+
+      reportProcessOutputError(child, context)
 
       child.on('close', code => {
         if (code === 0) {

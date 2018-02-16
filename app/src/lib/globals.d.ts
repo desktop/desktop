@@ -193,6 +193,10 @@ declare namespace NodeJS {
   }
 }
 
+interface ErrorWithCode extends Error {
+  code: string | number | undefined
+}
+
 declare namespace Electron {
   interface MenuItem {
     readonly accelerator?: Electron.Accelerator

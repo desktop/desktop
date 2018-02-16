@@ -1,5 +1,6 @@
 import { GitProcess } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
+import { reportProcessOutputError } from '../process'
 
 type ProcessOutput = {
   output: Buffer
@@ -51,6 +52,8 @@ export function spawnAndComplete(
             killSignalSent = true
           }
         })
+
+        reportProcessOutputError(process, 'spawnAndComplete')
 
         const stderrChunks = new Array<Buffer>()
         process.stderr.on('data', (chunk: Buffer) => {
