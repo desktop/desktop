@@ -3,6 +3,7 @@ import * as GitPerf from '../../ui/lib/git-perf'
 
 type ProcessOutput = {
   output: Buffer
+  didReadAllBytes: boolean
   error: Buffer
 }
 
