@@ -8,10 +8,6 @@ import { IGitHubUser } from '../../lib/databases'
 const RowHeight = 50
 
 interface ICommitListProps {
-  readonly onCommitChanged: (commit: Commit) => void
-  readonly onScroll: (start: number, end: number) => void
-  readonly onRevertCommit: (commit: Commit) => void
-  readonly onViewCommitOnGitHub: (sha: string) => void
   readonly repository: Repository
   /** The list of commits to display, in order. */
   readonly commits: ReadonlyArray<string>
@@ -21,6 +17,14 @@ interface ICommitListProps {
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
   readonly localCommitSHAs: ReadonlyArray<string>
+  /** Callback which fires when a commit has been selected in the list */
+  readonly onCommitChanged: (commit: Commit) => void
+  /** Callback that fires when a scroll event has occurred */
+  readonly onScroll: (start: number, end: number) => void
+  /** Callback to fire to revert a given commit in the current repository */
+  readonly onRevertCommit: (commit: Commit) => void
+  /** Callback to fire to open a given commit on GitHub */
+  readonly onViewCommitOnGitHub: (sha: string) => void
 }
 
 /** A component which displays the list of commits. */
