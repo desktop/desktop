@@ -142,7 +142,9 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
     const revealInFileManagerLabel = __DARWIN__
       ? 'Reveal in Finder'
       : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
-
+    const openInExternalEditor = this.props.externalEditorLabel
+      ? `Open in ${this.props.externalEditorLabel}`
+      : defaultEditorLabel
     items.push(
       { type: 'separator' },
       {
