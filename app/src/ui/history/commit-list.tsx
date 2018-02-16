@@ -27,7 +27,12 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const sha = this.props.history[row]
     const commit = this.props.commits.get(sha)
 
-    if (!commit) {
+    if (commit == null) {
+      if (__DEV__) {
+        log.warn(
+          `[CommitList]: the commit '${sha}' does not exist in the cache`
+        )
+      }
       return null
     }
 
