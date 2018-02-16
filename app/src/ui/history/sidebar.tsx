@@ -16,7 +16,7 @@ interface IHistorySidebarProps {
   readonly history: IHistoryState
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
-  readonly commits: Map<string, Commit>
+  readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
@@ -54,7 +54,7 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, {}> {
     return (
       <CommitList
         repository={this.props.repository}
-        commits={this.props.commits}
+        commitLookup={this.props.commitLookup}
         history={this.props.history.history}
         selectedSHA={this.props.history.selection.sha}
         onCommitChanged={this.onCommitChanged}

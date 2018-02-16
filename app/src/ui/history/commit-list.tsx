@@ -14,7 +14,8 @@ interface ICommitListProps {
   readonly onViewCommitOnGitHub: (sha: string) => void
   readonly repository: Repository
   readonly history: ReadonlyArray<string>
-  readonly commits: Map<string, Commit>
+  /** The commits loaded, keyed by their full SHA. */
+  readonly commitLookup: Map<string, Commit>
   readonly selectedSHA: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
@@ -25,7 +26,7 @@ interface ICommitListProps {
 export class CommitList extends React.Component<ICommitListProps, {}> {
   private renderCommit = (row: number) => {
     const sha = this.props.history[row]
-    const commit = this.props.commits.get(sha)
+    const commit = this.props.commitLookup.get(sha)
 
     if (commit == null) {
       if (__DEV__) {
@@ -54,7 +55,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
 
   private onRowChanged = (row: number) => {
     const sha = this.props.history[row]
-    const commit = this.props.commits.get(sha)
+    const commit = this.props.commitLookup.get(sha)
     if (commit) {
       this.props.onCommitChanged(commit)
     }

@@ -80,7 +80,7 @@ export class GitStore extends BaseStore {
   private readonly shell: IAppShell
 
   /** The commits keyed by their SHA. */
-  public readonly commits = new Map<string, Commit>()
+  public readonly commitLookup = new Map<string, Commit>()
 
   private _history: ReadonlyArray<string> = new Array()
 
@@ -279,7 +279,7 @@ export class GitStore extends BaseStore {
     const commits = this._allBranches.map(b => b.tip)
 
     for (const commit of commits) {
-      this.commits.set(commit.sha, commit)
+      this.commitLookup.set(commit.sha, commit)
     }
 
     this.emitNewCommitsLoaded(commits)
@@ -446,7 +446,7 @@ export class GitStore extends BaseStore {
   /** Store the given commits. */
   private storeCommits(commits: ReadonlyArray<Commit>) {
     for (const commit of commits) {
-      this.commits.set(commit.sha, commit)
+      this.commitLookup.set(commit.sha, commit)
     }
   }
 
@@ -845,7 +845,7 @@ export class GitStore extends BaseStore {
 
     if (currentBranch || currentTip) {
       if (currentTip && currentBranch) {
-        const cachedCommit = this.commits.get(currentTip)
+        const cachedCommit = this.commitLookup.get(currentTip)
         const branchTipCommit =
           cachedCommit ||
           (await this.performFailableOperation(() =>
