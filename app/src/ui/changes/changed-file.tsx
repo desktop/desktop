@@ -168,4 +168,8 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
 
     showContextualMenu(items)
   }
+
+  private openInExternalEditor = () => {
+    this.props.onOpenInExternalEditor(this.props.path)
+  }
 }
