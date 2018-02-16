@@ -56,54 +56,13 @@ export class BranchesContainer extends React.Component<
     }
   }
 
-  private onItemClick = (branch: Branch) => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-
-    const currentBranch = this.props.currentBranch
-
-    if (currentBranch == null || currentBranch.name !== branch.name) {
-      this.props.dispatcher.checkoutBranch(this.props.repository, branch)
-    }
-  }
-
-  private closePullRequestFoldoutOnEsc = (
-    event: React.KeyboardEvent<HTMLElement>
-  ) => {
-    if (!event.defaultPrevented && event.key === 'Escape') {
-      if (this.state.pullRequestFilterText.length === 0) {
-        this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-        event.preventDefault()
-      }
-    }
-  }
-
-  private closeBranchFoldoutOnEsc = (
-    event: React.KeyboardEvent<HTMLElement>
-  ) => {
-    if (!event.defaultPrevented && event.key === 'Escape') {
-      if (this.state.branchFilterText.length === 0) {
-        this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-        event.preventDefault()
-      }
-    }
-  }
-
-  private onBranchFilterTextChanged = (text: string) => {
-    this.setState({ branchFilterText: text })
-  }
-
-  private onPullRequestFilterTextChanged = (text: string) => {
-    this.setState({ pullRequestFilterText: text })
-  }
-
-  private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
-    this.setState({ selectedBranch })
-  }
-
-  private onPullRequestSelectionChanged = (
-    selectedPullRequest: PullRequest | null
-  ) => {
-    this.setState({ selectedPullRequest })
+  public render() {
+    return (
+      <div className="branches-container" onKeyDown={this.onKeyDown}>
+        {this.renderTabBar()}
+        {this.renderSelectedTab()}
+      </div>
+    )
   }
 
   private renderTabBar() {
@@ -151,9 +110,9 @@ export class BranchesContainer extends React.Component<
             currentBranch={this.props.currentBranch}
             allBranches={this.props.allBranches}
             recentBranches={this.props.recentBranches}
-            onItemClick={this.onItemClick}
+            onItemClick={this.onBranchItemClick}
             filterText={this.state.branchFilterText}
-            onFilterKeyDown={this.closeBranchFoldoutOnEsc}
+            onFilterKeyDown={this.onBranchFilterKeyDown}
             onFilterTextChanged={this.onBranchFilterTextChanged}
             selectedBranch={this.state.selectedBranch}
             onSelectionChanged={this.onBranchSelectionChanged}
@@ -207,20 +166,51 @@ export class BranchesContainer extends React.Component<
         onCreatePullRequest={this.onCreatePullRequest}
         filterText={this.state.pullRequestFilterText}
         onFilterTextChanged={this.onPullRequestFilterTextChanged}
-        onFilterKeyDown={this.closePullRequestFoldoutOnEsc}
         onItemClick={this.onPullRequestClicked}
         onDismiss={this.onDismiss}
       />
     )
   }
 
-  public render() {
-    return (
-      <div className="branches-container">
-        {this.renderTabBar()}
-        {this.renderSelectedTab()}
-      </div>
-    )
+  private onTabClicked = (tab: BranchesTab) => {
+    this.props.dispatcher.changeBranchesTab(tab)
+  }
+
+  private onDismiss = () => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+  }
+
+  private onKeyDown = (event: React.KeyboardEvent<any>) => {
+    if (!event.defaultPrevented && event.key === 'Escape') {
+      this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+      event.preventDefault()
+    }
+  }
+
+  private onBranchItemClick = (branch: Branch) => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+
+    const currentBranch = this.props.currentBranch
+
+    if (currentBranch == null || currentBranch.name !== branch.name) {
+      this.props.dispatcher.checkoutBranch(this.props.repository, branch)
+    }
+  }
+
+  private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
+    this.setState({ selectedBranch })
+  }
+
+  private onBranchFilterKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (this.state.branchFilterText.length === 0) {
+      this.onBranchFilterTextChanged('')
+    }
+  }
+
+  private onBranchFilterTextChanged = (text: string) => {
+    this.setState({ branchFilterText: text })
   }
 
   private onCreateBranchWithName = (name: string) => {
@@ -236,13 +226,19 @@ export class BranchesContainer extends React.Component<
     this.onCreateBranchWithName('')
   }
 
+  private onPullRequestFilterTextChanged = (text: string) => {
+    this.setState({ pullRequestFilterText: text })
+  }
+
+  private onPullRequestSelectionChanged = (
+    selectedPullRequest: PullRequest | null
+  ) => {
+    this.setState({ selectedPullRequest })
+  }
+
   private onCreatePullRequest = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     this.props.dispatcher.createPullRequest(this.props.repository)
-  }
-
-  private onTabClicked = (tab: BranchesTab) => {
-    this.props.dispatcher.changeBranchesTab(tab)
   }
 
   private onPullRequestClicked = (pullRequest: PullRequest) => {
@@ -253,9 +249,5 @@ export class BranchesContainer extends React.Component<
     )
 
     this.onPullRequestSelectionChanged(pullRequest)
-  }
-
-  private onDismiss = () => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
   }
 }
