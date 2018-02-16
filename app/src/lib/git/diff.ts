@@ -429,7 +429,7 @@ function buildLargeTextDiff(
   didReadAllBytes: boolean,
   lineEndingsChange?: LineEndingsChange
 ): ILargeTextDiff | null {
-  if (!isValidBuffer(buffer)) {
+  if (!didReadAllBytes || !isValidBuffer(buffer)) {
     // we know we can't transform this process output into a diff, so let's
     // just return a placeholder for now that we can display to the user
     // to say we're at the limits of the runtime
