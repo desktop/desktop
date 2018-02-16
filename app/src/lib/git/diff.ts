@@ -37,7 +37,7 @@ const MaxDiffBufferSize = 268435441 //~268MB
  * Where `MaxDiffBufferSize` is a hard limit, this is a suggested limit. Diffs
  * bigger than this _could_ be displayed but it might cause some slowness.
  */
-const MaxReasonableDiffSize = 3000000
+const MaxReasonableDiffSize = MaxDiffBufferSize / 64 //~4MB
 
 /**
  * The longest line length we should try to display. If a diff has a line longer
