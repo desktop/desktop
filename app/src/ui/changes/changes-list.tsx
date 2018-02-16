@@ -85,6 +85,15 @@ interface IChangesListProps {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
+
+  /** The current external editor's name selected by the user */
+  readonly externalEditorLabel?: string
+
+  /**
+   * Called to open a file using the user's configured applications
+   * * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenInExternalEditor: (path: string) => void
 }
 
 export class ChangesList extends React.Component<IChangesListProps, {}> {
@@ -115,6 +124,8 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         onOpenItem={this.props.onOpenItem}
         availableWidth={this.props.availableWidth}
         onIgnore={this.props.onIgnore}
+        externalEditorLabel={this.props.externalEditorLabel}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
       />
     )
   }
