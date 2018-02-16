@@ -11,6 +11,10 @@ const GitIgnoreFileName = '.gitignore'
 
 const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
 
+const defaultEditorLabel = __DARWIN__
+  ? 'Open in External Editor'
+  : 'Open in external editor'
+
 interface IChangedFileProps {
   readonly path: string
   readonly status: AppFileStatus
