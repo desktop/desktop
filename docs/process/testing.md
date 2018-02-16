@@ -262,12 +262,13 @@
     - [ ] Merge-conflicted files showin with hazard icon; cannot be committed until fixed
     - [ ] User can check none, or check one or more files to commit; list is scrollable
       - [ ] User can select one or more lines to commit; diff is scrollable
-      - [ ] Right-clicking any file shows menu with options
+      - [ ] Right-clicking opens context menu
         - [ ] User can discard the file; pending confirmation dialogue
 	  - [ ] `Do not show this message again`overrides the preference setting if true  
         - [ ] User can ignore single/all files, show in Finder/Explorer, reveal in external editor, or open in default program
 	  - [ ] A specific files can only be ignored once
 	  - [ ] All ignored files found in Repository Settings > Ignored Files tab
+	- User can open in finder, preferred editor, or OS default program  
   - [ ] Panes can be resized horizontally, and contents resize to take the full width
     - [ ] Quitting Desktop and relaunching remembers sizes
 
