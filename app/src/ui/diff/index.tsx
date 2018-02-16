@@ -980,7 +980,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           You can try to show it anyways, but performance may be negatively
           impacted.
         </p>
-        <Button onClick={this.onShowDiff}>Show diff</Button>
+        <Button onClick={this.onShowLargeDiff}>Show diff</Button>
       </div>
     )
   }
@@ -1148,7 +1148,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     return this.renderDiff(this.props.diff)
   }
 
-  private onShowDiff = () => {
+  private onShowLargeDiff = () => {
     this.setState({ forceShowLargeDiff: !this.state.forceShowLargeDiff })
   }
 }
