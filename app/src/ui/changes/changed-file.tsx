@@ -32,6 +32,15 @@ interface IChangedFileProps {
   readonly onOpenItem: (path: string) => void
   readonly availableWidth: number
   readonly onIgnore: (pattern: string) => void
+
+  /** The current external editor's name selected by the user */
+  readonly externalEditorLabel?: string
+
+  /**
+   * Called to open a file using the user's configured applications
+   * * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenInExternalEditor: (path: string) => void
 }
 
 /** a changed file in the working directory for a given repository */
