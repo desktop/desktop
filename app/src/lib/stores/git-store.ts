@@ -26,7 +26,6 @@ import {
   getBranches,
   deleteRef,
   IAheadBehind,
-  getBranchAheadBehind,
   getCommits,
   merge,
   setRemoteURL,
@@ -829,16 +828,6 @@ export class GitStore extends BaseStore {
         fetchRefspec(this.repository, account, remote.name, refspec)
       )
     }
-  }
-
-  /** Calculate the ahead/behind for the current branch. */
-  public async calculateAheadBehindForCurrentBranch(): Promise<void> {
-    if (this.tip.kind === TipState.Valid) {
-      const branch = this.tip.branch
-      this._aheadBehind = await getBranchAheadBehind(this.repository, branch)
-    }
-
-    this.emitUpdate()
   }
 
   public async loadStatus(): Promise<IStatusResult | null> {
