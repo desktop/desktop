@@ -1593,6 +1593,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (selectedState.type === SelectionType.Repository) {
+      const externalEditorLabel = this.state.selectedExternalEditor
+
       return (
         <RepositoryView
           repository={selectedState.repository}
@@ -1609,7 +1611,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             this.state.askForConfirmationOnDiscardChanges
           }
           accounts={this.state.accounts}
-          externalEditorLabel={this.state.selectedExternalEditor}
+          externalEditorLabel={externalEditorLabel}
           onOpenInExternalEditor={this.openFileInExternalEditor}
         />
       )
