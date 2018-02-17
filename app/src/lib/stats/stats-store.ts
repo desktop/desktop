@@ -308,7 +308,7 @@ export class StatsStore {
   private post(body: object): Promise<Response> {
     const options: RequestInit = {
       method: 'POST',
-      headers: new Headers({ 'Content-Type': 'application/json' }),
+      headers: new window.Headers({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(body),
     }
 

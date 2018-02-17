@@ -219,7 +219,7 @@ export class AppMenuBar extends React.Component<
     // check to see if it is before we yield focus to it.
     if (this.stolenFocusElement && document.contains(this.stolenFocusElement)) {
       this.stolenFocusElement.focus()
-    } else if (document.activeElement instanceof HTMLElement) {
+    } else if (document.activeElement instanceof window.HTMLElement) {
       document.activeElement.blur()
     }
 
@@ -232,7 +232,7 @@ export class AppMenuBar extends React.Component<
     if (!this.hasFocus) {
       if (
         focusEvent.relatedTarget &&
-        focusEvent.relatedTarget instanceof HTMLElement
+        focusEvent.relatedTarget instanceof window.HTMLElement
       ) {
         this.stolenFocusElement = focusEvent.relatedTarget
       } else {

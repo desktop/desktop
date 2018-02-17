@@ -23,7 +23,7 @@ const guid = require('uuid/v4') as (options?: { random?: Buffer }) => string
 function getRandomBytes(count: number): Buffer {
   if (window.crypto) {
     const rndBuf = new Uint8Array(count)
-    crypto.getRandomValues(rndBuf)
+    window.crypto.getRandomValues(rndBuf)
 
     return Buffer.from(rndBuf.buffer as ArrayBuffer)
   }

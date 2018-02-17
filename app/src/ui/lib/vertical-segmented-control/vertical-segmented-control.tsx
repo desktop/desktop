@@ -142,7 +142,7 @@ export class VerticalSegmentedControl extends React.Component<
         // NB: In order to play nicely with React's custom event dispatching,
         // we dispatch an event instead of calling `submit` directly on the
         // form.
-        form.dispatchEvent(new Event('submit'))
+        form.dispatchEvent(new window.Event('submit'))
       }
     }
   }

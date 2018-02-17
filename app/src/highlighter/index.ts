@@ -1,5 +1,8 @@
 /// <reference path="./globals.d.ts" />
 
+/* global self */
+const global = self as DedicatedWorkerGlobalScope
+
 // This doesn't import all of CodeMirror, instead it only imports
 // a small subset. This hack is brought to you by webpack and you
 // can read all about it in webpack.common.js.
@@ -213,7 +216,7 @@ function readToken(
   throw new Error(`Mode ${getModeName(mode)} failed to advance stream.`)
 }
 
-onmessage = (ev: MessageEvent) => {
+global.onmessage = ev => {
   const request = ev.data as IHighlightRequest
 
   const tabSize = request.tabSize || 4
@@ -223,7 +226,7 @@ onmessage = (ev: MessageEvent) => {
   const mode = detectMode(request)
 
   if (!mode) {
-    postMessage({})
+    global.postMessage({})
     return
   }
 
@@ -281,5 +284,5 @@ onmessage = (ev: MessageEvent) => {
     }
   }
 
-  postMessage(tokens)
+  global.postMessage(tokens)
 }
