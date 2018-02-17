@@ -112,6 +112,16 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
 
     const extension = Path.extname(this.props.path)
     const fileName = Path.basename(this.props.path)
+    const isSafeExtension = __WIN32__
+      ? RestrictedFileExtensions.indexOf(extension.toLowerCase()) === -1
+      : true
+    const revealInFileManagerLabel = __DARWIN__
+      ? 'Reveal in Finder'
+      : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
+    const openInExternalEditor = this.props.externalEditorLabel
+      ? `Open in ${this.props.externalEditorLabel}`
+      : defaultEditorLabel
+
     const items: IMenuItem[] = [
       {
         label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
@@ -135,16 +145,6 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       })
     }
 
-    const isSafeExtension = __WIN32__
-      ? RestrictedFileExtensions.indexOf(extension.toLowerCase()) === -1
-      : true
-
-    const revealInFileManagerLabel = __DARWIN__
-      ? 'Reveal in Finder'
-      : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
-    const openInExternalEditor = this.props.externalEditorLabel
-      ? `Open in ${this.props.externalEditorLabel}`
-      : defaultEditorLabel
     items.push(
       { type: 'separator' },
       {
