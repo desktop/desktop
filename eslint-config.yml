@@ -9,12 +9,16 @@ plugins:
 extends:
   - prettier
   - prettier/react
+env:
+  node: true
+  es6: true
 
 rules:
   ##########
   # CUSTOM #
   ##########
   insecure-random: error
+  no-undefined-vars: error
 
   ###########
   # PLUGINS #
