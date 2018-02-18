@@ -1,14 +1,30 @@
 import * as React from 'react'
-import { FileChange, mapStatus, iconForStatus } from '../../models/status'
+import * as Path from 'path'
+
+import { AppFileStatus, FileChange, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
 import { List } from '../lib/list'
+import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+
+const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
 
 interface IFileListProps {
   readonly files: ReadonlyArray<FileChange>
   readonly selectedFile: FileChange | null
   readonly onSelectedFileChanged: (file: FileChange) => void
   readonly availableWidth: number
+  /**
+   * Called to reveal a file in the native file manager.
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onRevealInFileManager: (path: string) => void
+
+  /**
+   * Called to open a file it its default application
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenItem: (path: string) => void  
 }
 
 export class FileList extends React.Component<IFileListProps, {}> {
@@ -32,7 +48,7 @@ export class FileList extends React.Component<IFileListProps, {}> {
       statusWidth
 
     return (
-      <div className="file">
+      <div className="file" onContextMenu={this.onContextMenu}>
         <PathLabel
           path={file.path}
           oldPath={file.oldPath}
@@ -65,5 +81,40 @@ export class FileList extends React.Component<IFileListProps, {}> {
         />
       </div>
     )
+  }
+
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+
+    if ( this.props.selectedFile !== null )
+    {
+      const filePath = this.props.selectedFile.path;
+      const extension = Path.extname(this.props.selectedFile.path)
+      const items: IMenuItem[] = []
+
+      const isSafeExtension = __WIN32__
+        ? RestrictedFileExtensions.indexOf(extension.toLowerCase()) === -1
+        : true
+
+      const revealInFileManagerLabel = __DARWIN__
+        ? 'Reveal in Finder'
+        : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
+
+      items.push(
+        {
+          label: revealInFileManagerLabel,
+          action: () => this.props.onRevealInFileManager(filePath),
+          enabled: this.props.selectedFile.status !== AppFileStatus.Deleted
+        },
+        {
+          label: __DARWIN__
+            ? 'Open with Default Program'
+            : 'Open with default program',
+          action: () => this.props.onOpenItem(filePath),
+          enabled: isSafeExtension && this.props.selectedFile.status !== AppFileStatus.Deleted,
+        }
+      )
+      showContextualMenu(items)
+    }
   }
 }

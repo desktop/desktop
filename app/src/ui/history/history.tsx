@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as Path from 'path'
+
 import { CommitSummary } from './commit-summary'
 import { Diff } from '../diff'
 import { FileList } from './file-list'
@@ -14,6 +16,7 @@ import { encodePathAsUrl } from '../../lib/path'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { IGitHubUser } from '../../lib/databases'
 import { Resizable } from '../resizable'
+import { openFile } from '../../lib/open-file'
 
 interface IHistoryProps {
   readonly repository: Repository
@@ -131,8 +134,27 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
         onSelectedFileChanged={this.onFileSelected}
         selectedFile={this.props.history.selection.file}
         availableWidth={availableWidth}
+        onRevealInFileManager={this.onRevealInFileManager}
+        onOpenItem={this.onOpenItem}
       />
     )
+  }
+
+    /**
+   * Reveals a file from a repository in the native file manager.
+   * @param path The path of the file relative to the root of the repository
+   */
+  private onRevealInFileManager = (path: string) => {
+    this.props.dispatcher.revealInFileManager(this.props.repository, path)
+  }
+
+  /**
+   * Open file with default application.
+   * @param path The path of the file relative to the root of the repository
+   */
+  private onOpenItem = (path: string) => {
+    const fullPath = Path.join(this.props.repository.path, path)
+    openFile(fullPath, this.props.dispatcher)
   }
 
   public render() {
