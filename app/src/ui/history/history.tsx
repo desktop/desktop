@@ -140,7 +140,7 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
     )
   }
 
-    /**
+  /**
    * Reveals a file from a repository in the native file manager.
    * @param path The path of the file relative to the root of the repository
    */

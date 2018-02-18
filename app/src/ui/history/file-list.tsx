@@ -1,7 +1,12 @@
 import * as React from 'react'
 import * as Path from 'path'
 
-import { AppFileStatus, FileChange, mapStatus, iconForStatus } from '../../models/status'
+import {
+  AppFileStatus,
+  FileChange,
+  mapStatus,
+  iconForStatus
+} from '../../models/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
 import { List } from '../lib/list'
@@ -86,9 +91,9 @@ export class FileList extends React.Component<IFileListProps, {}> {
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
-    if ( this.props.selectedFile !== null )
+    if (this.props.selectedFile !== null)
     {
-      const filePath = this.props.selectedFile.path;
+      const filePath = this.props.selectedFile.path
       const extension = Path.extname(this.props.selectedFile.path)
       const items: IMenuItem[] = []
 
@@ -104,14 +109,15 @@ export class FileList extends React.Component<IFileListProps, {}> {
         {
           label: revealInFileManagerLabel,
           action: () => this.props.onRevealInFileManager(filePath),
-          enabled: this.props.selectedFile.status !== AppFileStatus.Deleted
+          enabled: this.props.selectedFile.status !== AppFileStatus.Deleted,
         },
         {
           label: __DARWIN__
             ? 'Open with Default Program'
             : 'Open with default program',
           action: () => this.props.onOpenItem(filePath),
-          enabled: isSafeExtension && this.props.selectedFile.status !== AppFileStatus.Deleted,
+          enabled: isSafeExtension &&
+            this.props.selectedFile.status !== AppFileStatus.Deleted,
         }
       )
       showContextualMenu(items)
