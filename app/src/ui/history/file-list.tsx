@@ -115,7 +115,9 @@ export class FileList extends React.Component<IFileListProps, {}> {
             ? 'Open with Default Program'
             : 'Open with default program',
           action: () => this.props.onOpenItem(filePath),
-          enabled: isSafeExtension && this.props.selectedFile.status !== AppFileStatus.Deleted,
+          enabled:
+            isSafeExtension &&
+            this.props.selectedFile.status !== AppFileStatus.Deleted,
         }
       )
       showContextualMenu(items)
