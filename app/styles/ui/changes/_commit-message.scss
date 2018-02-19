@@ -132,6 +132,16 @@
     }
 
     .co-authors-toggle {
+      // button reset styles
+      border: none;
+      -webkit-appearance: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+      align-items: center;
+      display: block;
+
       height: 16px;
       width: 16px;
       cursor: pointer;

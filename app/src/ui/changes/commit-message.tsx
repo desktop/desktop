@@ -360,7 +360,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onCoAuthorToggleButtonClick = (
-    e: React.MouseEvent<HTMLDivElement>
+    e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault()
     this.onToggleCoAuthors()
@@ -372,15 +372,14 @@ export class CommitMessage extends React.Component<
     }
 
     return (
-      <div
-        role="button"
+      <button
         className="co-authors-toggle"
         onClick={this.onCoAuthorToggleButtonClick}
         tabIndex={-1}
         aria-label={this.toggleCoAuthorsText}
       >
         <Octicon symbol={addAuthorIcon} />
-      </div>
+      </button>
     )
   }
 
