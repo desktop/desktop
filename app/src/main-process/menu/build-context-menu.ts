@@ -21,6 +21,24 @@ function getEditMenuItems(): ReadonlyArray<MenuItem> {
   return editMenuItems
 }
 
+/**
+ * Create an Electron menu object for use in a context menu based on
+ * a template provided by the renderer.
+ *
+ * If the template contains a menu item with the role 'editMenu' the
+ * platform standard edit menu items will be inserted at the position
+ * of the 'editMenu' template.
+ *
+ * @param template One or more menu item templates as passed from
+ *                 the renderer.
+ * @param onClick  A callback function for when one of the menu items
+ *                 constructed from the template is clicked. Callback
+ *                 is passed the index of the menu item in the template
+ *                 as the first argument and the template item itself
+ *                 as the second argument. Note that the callback will
+ *                 not be called when expanded/automatically created
+ *                 edit menu items are clicked.
+ */
 export function buildContextMenu(
   template: ReadonlyArray<IMenuItem>,
   onClick: (ix: number, item: IMenuItem) => void
