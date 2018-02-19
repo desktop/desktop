@@ -12,7 +12,7 @@ export function isGitOnPath(): Promise<boolean> {
   // adapted from http://stackoverflow.com/a/34953561/1363815
   return new Promise<boolean>((resolve, reject) => {
     if (__WIN32__) {
-      const process = spawn('where', ['git'])
+      const process = spawn('C:\\Windows\\System32\\where.exe', ['git'])
 
       process.on('error', error => {
         log.warn('Unable to spawn where.exe', error)
