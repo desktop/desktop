@@ -46,7 +46,7 @@ export function buildContextMenu(
     // mean by this is that we want to insert all edit
     // related menu items into the menu at this spot, we
     // don't want a sub menu
-    if (item.role === 'editMenu') {
+    if (item.role && item.role.toLowerCase() === 'editmenu') {
       menuItems.push(...getEditMenuItems())
     } else {
       // TODO: We're always overriding the click function here.
