@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.0.14-test3": [
+      "[Improved] Better tracing about spawning shells on Win32 - #3975"
+    ],
     "1.0.14-beta5": [
       "[Fixed] Improve detection of pull requests associated with current branch - #3991",
       "[Fixed] Disable drag-and-drop interaction when a popup is in the foreground - #3996",
