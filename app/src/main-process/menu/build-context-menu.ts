@@ -9,6 +9,10 @@ function roleEquals(x: string | undefined, y: string | undefined) {
   return (x ? x.toLowerCase() : x) === (y ? y.toLowerCase() : y)
 }
 
+/**
+ * Get platform-specific edit menu items by leveraging Electron's
+ * built-in editMenu role.
+ */
 function getEditMenuItems(): ReadonlyArray<MenuItem> {
   const menu = Menu.buildFromTemplate([{ role: 'editMenu' }]).items[0]
 
