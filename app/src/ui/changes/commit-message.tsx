@@ -487,7 +487,7 @@ export class CommitMessage extends React.Component<
             autocompletionProviders={this.props.autocompletionProviders}
             ref={this.onDescriptionFieldRef}
             onElementRef={this.onDescriptionTextAreaRef}
-            disabled={this.props.isCommitting}        
+            disabled={this.props.isCommitting}
           />
           {this.renderActionBar()}
         </FocusContainer>
