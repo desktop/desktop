@@ -1,6 +1,14 @@
 import { IMenuItem } from '../../lib/menu-item'
 import { Menu, MenuItem } from 'electron'
 
+/**
+ * Gets a value indicating whether or not two roles are considered
+ * equal using a case-insensitive comparison.
+ */
+function roleEquals(x: string | undefined, y: string | undefined) {
+  return (x ? x.toLowerCase() : x) === (y ? y.toLowerCase() : y)
+}
+
 function getEditMenuItems(): ReadonlyArray<MenuItem> {
   const menu = Menu.buildFromTemplate([{ role: 'editMenu' }]).items[0]
 
@@ -12,9 +20,7 @@ function getEditMenuItems(): ReadonlyArray<MenuItem> {
   // We don't use styled inputs anywhere at the moment
   // so let's skip this for now and when/if we do we
   // can make it configurable from the callee
-  return items.filter(
-    x => !x.role || x.role.toLowerCase() !== 'pasteandmatchstyle'
-  )
+  return items.filter(x => !roleEquals(x.role, 'pasteandmatchstyle'))
 }
 
 /**
@@ -46,7 +52,7 @@ export function buildContextMenu(
     // mean by this is that we want to insert all edit
     // related menu items into the menu at this spot, we
     // don't want a sub menu
-    if (item.role && item.role.toLowerCase() === 'editmenu') {
+    if (roleEquals(item.role, 'editmenu')) {
       menuItems.push(...getEditMenuItems())
     } else {
       // TODO: We're always overriding the click function here.
