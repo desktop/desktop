@@ -128,6 +128,10 @@
       &:empty {
         display: none;
       }
+
+      &.disabled {
+        background: var(--box-alt-background-color);
+      }
     }
 
     .co-authors-toggle {
@@ -154,6 +158,10 @@
         color: var(--text-secondary-color);
         opacity: 0;
         transition: 150ms all ease-in-out;
+        pointer-events: none;
+      }
+
+      &:disabled {
         pointer-events: none;
       }
 

@@ -377,6 +377,7 @@ export class CommitMessage extends React.Component<
         onClick={this.onCoAuthorToggleButtonClick}
         tabIndex={-1}
         aria-label={this.toggleCoAuthorsText}
+        disabled={this.props.isCommitting}
       >
         <Octicon symbol={addAuthorIcon} />
       </button>
@@ -435,7 +436,11 @@ export class CommitMessage extends React.Component<
       return null
     }
 
-    return <div className="action-bar">{this.renderCoAuthorToggleButton()}</div>
+    const className = classNames('action-bar', {
+      disabled: this.props.isCommitting,
+    })
+
+    return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
   public render() {
