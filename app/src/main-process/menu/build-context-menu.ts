@@ -1,24 +1,20 @@
 import { IMenuItem } from '../../lib/menu-item'
 import { Menu, MenuItem } from 'electron'
 
-// Cached edit menu items
-let editMenuItems: ReadonlyArray<MenuItem> | null = null
-
 function getEditMenuItems(): ReadonlyArray<MenuItem> {
-  if (!editMenuItems) {
-    const editMenu = Menu.buildFromTemplate([{ role: 'editMenu' }]).items[0]
+  const menu = Menu.buildFromTemplate([{ role: 'editMenu' }]).items[0]
 
-    // Electron is violating its contract if there's no subMenu but
-    // we'd rather just ignore it than crash. It's not the end of
-    // the world if we don't have edit menu items.
-    editMenuItems = (editMenu && editMenu.submenu ? editMenu.submenu.items : [])
-      // We don't use styled inputs anywhere at the moment
-      // so let's skip this for now and when/if we do we
-      // can make it configurable from the callee
-      .filter(x => x.role && x.role.toLowerCase() !== 'pasteandmatchstyle')
-  }
+  // Electron is violating its contract if there's no subMenu but
+  // we'd rather just ignore it than crash. It's not the end of
+  // the world if we don't have edit menu items.
+  const items = menu && menu.submenu ? menu.submenu.items : []
 
-  return editMenuItems
+  // We don't use styled inputs anywhere at the moment
+  // so let's skip this for now and when/if we do we
+  // can make it configurable from the callee
+  return items.filter(
+    x => x.role && x.role.toLowerCase() !== 'pasteandmatchstyle'
+  )
 }
 
 /**
