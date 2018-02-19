@@ -471,6 +471,7 @@ export class CommitMessage extends React.Component<
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
             autocompletionProviders={this.props.autocompletionProviders}
+            disabled={this.props.isCommitting}
           />
         </div>
 
@@ -486,6 +487,7 @@ export class CommitMessage extends React.Component<
             autocompletionProviders={this.props.autocompletionProviders}
             ref={this.onDescriptionFieldRef}
             onElementRef={this.onDescriptionTextAreaRef}
+            disabled={this.props.isCommitting}        
           />
           {this.renderActionBar()}
         </FocusContainer>
