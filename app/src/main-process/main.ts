@@ -1,6 +1,6 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, MenuItem, ipcMain, BrowserWindow, shell } from 'electron'
+import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
 
 import { AppWindow } from './app-window'
@@ -275,9 +275,9 @@ app.on('ready', () => {
   ipcMain.on(
     'show-contextual-menu',
     (event: Electron.IpcMessageEvent, items: ReadonlyArray<IMenuItem>) => {
-      const menu = buildContextMenu(items, item => {
-        event.sender.send('contextual-menu-action', items.indexOf(item))
-      })
+      const menu = buildContextMenu(items, ix =>
+        event.sender.send('contextual-menu-action', ix)
+      )
 
       const window = BrowserWindow.fromWebContents(event.sender)
       menu.popup(window, { async: true })
