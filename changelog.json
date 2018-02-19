@@ -1,5 +1,10 @@
 {
   "releases": {
+    "1.0.14-beta5": [
+      "[Fixed] Improve detection of pull requests associated with current branch - #3991",
+      "[Fixed] Disable drag-and-drop interaction when a popup is in the foreground - #3996",
+      "[Fixed] Branch blank slate image out of position - #4011"
+    ],
     "1.0.14-beta4": [
       "[New] Syntax highlighting for Elixir files - #3774. Thanks @joaovitoras!",
       "[Fixed] Crash when unable to launch shell - #3954",
