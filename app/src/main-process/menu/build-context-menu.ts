@@ -13,7 +13,7 @@ function getEditMenuItems(): ReadonlyArray<MenuItem> {
   // so let's skip this for now and when/if we do we
   // can make it configurable from the callee
   return items.filter(
-    x => x.role && x.role.toLowerCase() !== 'pasteandmatchstyle'
+    x => !x.role || x.role.toLowerCase() !== 'pasteandmatchstyle'
   )
 }
 
