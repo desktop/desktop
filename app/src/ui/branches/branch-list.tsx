@@ -143,7 +143,10 @@ export class BranchList extends React.Component<
     this.state = createState(props)
   }
 
-  private renderItem = (item: IBranchListItem) => {
+  private renderItem = (
+    item: IBranchListItem,
+    matches: ReadonlyArray<number>
+  ) => {
     const branch = item.branch
     const commit = branch.tip
     const currentBranchName = this.props.currentBranch
@@ -154,7 +157,7 @@ export class BranchList extends React.Component<
         name={branch.name}
         isCurrentBranch={branch.name === currentBranchName}
         lastCommitDate={commit ? commit.author.date : null}
-        filterText={this.props.filterText}
+        matches={matches}
       />
     )
   }

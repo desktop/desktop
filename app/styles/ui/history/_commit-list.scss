@@ -20,13 +20,14 @@
     .info {
       display: flex;
       flex-direction: column;
-      margin-top: -5px;
+      margin-top: -4px;
       overflow: hidden;
       width: 100%;
 
       .description {
         display: flex;
         flex-direction: row;
+        margin-top: 3px;
       }
 
       .summary {
