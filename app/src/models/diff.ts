@@ -121,11 +121,9 @@ export interface IBinaryDiff {
 export interface ILargeTextDiff {
   readonly kind: DiffType.LargeText
   /**
-   * The length of the diff output from Git which exceeds the runtime limits:
-   *
-   * 268435441 bytes = 256MB - 15 bytes
+   * The length of the diff output from Git in bytes
    */
-  readonly length: number
+  readonly length?: number
 }
 
 /** The union of diff types that can be rendered in Desktop */
