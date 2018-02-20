@@ -300,8 +300,12 @@ interface IDiffProps {
   readonly imageDiffType: ImageDiffType
 }
 
+interface IDiffState {
+  readonly forceShowLargeDiff: boolean
+}
+
 /** A component which renders a diff for a file. */
-export class Diff extends React.Component<IDiffProps, {}> {
+export class Diff extends React.Component<IDiffProps, IDiffState> {
   private codeMirror: Editor | null
   private gutterWidth: number | null
 
@@ -328,6 +332,14 @@ export class Diff extends React.Component<IDiffProps, {}> {
    *  a local cache of gutter elements, keyed by the row in the diff
    */
   private cachedGutterElements = new Map<number, DiffLineGutter>()
+
+  public constructor(props: IDiffProps) {
+    super(props)
+
+    this.state = {
+      forceShowLargeDiff: false,
+    }
+  }
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
     // If we're reloading the same file, we want to save the current scroll
