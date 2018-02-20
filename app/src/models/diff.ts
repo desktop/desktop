@@ -118,7 +118,7 @@ export interface IBinaryDiff {
   readonly kind: DiffType.Binary
 }
 
-export interface IDiffTooLarge {
+export interface ILargeTextDiff {
   readonly kind: DiffType.LargeText
   /**
    * The length of the diff output from Git which exceeds the runtime limits:
@@ -129,7 +129,7 @@ export interface IDiffTooLarge {
 }
 
 /** The union of diff types that can be rendered in Desktop */
-export type IDiff = ITextDiff | IImageDiff | IBinaryDiff | IDiffTooLarge
+export type IDiff = ITextDiff | IImageDiff | IBinaryDiff | ILargeTextDiff
 
 /** track details related to each line in the diff */
 export class DiffLine {
