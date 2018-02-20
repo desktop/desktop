@@ -108,6 +108,8 @@ export class GitStore extends BaseStore {
 
   private _aheadBehind: IAheadBehind | null = null
 
+  private _defaultRemote: IRemote | null = null
+
   private _remote: IRemote | null = null
 
   private _upstream: IRemote | null = null
@@ -879,7 +881,7 @@ export class GitStore extends BaseStore {
 
   public async loadRemotes(): Promise<void> {
     const remotes = await getRemotes(this.repository)
-    const defaultRemote = findDefaultRemote(remotes)
+    this._defaultRemote = findDefaultRemote(remotes)
 
     const currentRemoteName =
       this.tip.kind === TipState.Valid && this.tip.branch.remote !== null
@@ -891,8 +893,8 @@ export class GitStore extends BaseStore {
     // been removed we'll default to the default branch.
     this._remote =
       currentRemoteName !== null
-        ? remotes.find(r => r.name === currentRemoteName) || defaultRemote
-        : defaultRemote
+        ? remotes.find(r => r.name === currentRemoteName) || this._defaultRemote
+        : this._defaultRemote
 
     const parent =
       this.repository.gitHubRepository &&
@@ -953,6 +955,11 @@ export class GitStore extends BaseStore {
    */
   public get aheadBehind(): IAheadBehind | null {
     return this._aheadBehind
+  }
+
+  /** Get the remote we're working with. */
+  public get defaultRemote(): IRemote | null {
+    return this._defaultRemote
   }
 
   /** Get the remote we're working with. */
