@@ -1500,12 +1500,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await Promise.all([
-      gitStore.loadCurrentRemote(),
+      gitStore.loadRemotes(),
       gitStore.updateLastFetched(),
       this.refreshAuthor(repository),
       gitStore.loadContextualCommitMessage(),
       refreshSectionPromise,
-      gitStore.loadUpstreamRemote(),
     ])
 
     this._updateCurrentPullRequest(repository)
@@ -2216,7 +2215,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.performFailableOperation(() =>
       addRemote(repository, 'origin', apiRepository.clone_url)
     )
-    await gitStore.loadCurrentRemote()
+    await gitStore.loadRemotes()
 
     // skip pushing if the current branch is a detached HEAD or the repository
     // is unborn

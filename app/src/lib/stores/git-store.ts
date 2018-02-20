@@ -18,7 +18,6 @@ import { queueWorkHigh } from '../../lib/queue-work'
 import {
   reset,
   GitResetMode,
-  getDefaultRemote,
   getRemotes,
   fetch as fetchRepo,
   fetchRefspec,
@@ -56,6 +55,7 @@ import {
   findUpstreamRemote,
   UpstreamRemoteName,
 } from './helpers/find-upstream-remote'
+import { findDefaultRemote } from './helpers/find-default-remote'
 import { IAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
@@ -877,45 +877,29 @@ export class GitStore extends BaseStore {
     return status
   }
 
-  /**
-   * Load the remote for the current branch, or the default remote if no
-   * tracking information found.
-   */
-  public async loadCurrentRemote(): Promise<void> {
-    const tip = this.tip
+  public async loadRemotes(): Promise<void> {
+    const remotes = await getRemotes(this.repository)
+    const defaultRemote = findDefaultRemote(remotes)
 
-    if (tip.kind === TipState.Valid) {
-      const branch = tip.branch
+    const currentRemoteName =
+      this.tip.kind === TipState.Valid && this.tip.branch.remote !== null
+        ? this.tip.branch.remote
+        : null
 
-      if (branch.remote != null) {
-        const allRemotes = await getRemotes(this.repository)
-        const foundRemote = allRemotes.find(r => r.name === branch.remote)
+    // Load the remote that the current branch is tracking. If the branch
+    // is not tracking any remote or the remote which it's tracking has
+    // been removed we'll default to the default branch.
+    this._remote =
+      currentRemoteName !== null
+        ? remotes.find(r => r.name === currentRemoteName) || defaultRemote
+        : defaultRemote
 
-        if (foundRemote) {
-          this._remote = foundRemote
-        }
-      }
-    }
-
-    if (this._remote == null) {
-      this._remote = await getDefaultRemote(this.repository)
-    }
-
-    this.emitUpdate()
-  }
-
-  /** Load the upstream remote if it exists. */
-  public async loadUpstreamRemote(): Promise<void> {
     const parent =
       this.repository.gitHubRepository &&
       this.repository.gitHubRepository.parent
-    if (!parent) {
-      return
-    }
 
-    const remotes = await getRemotes(this.repository)
-    const upstream = findUpstreamRemote(parent, remotes)
-    this._upstream = upstream
+    this._upstream = parent ? findUpstreamRemote(parent, remotes) : null
+
     this.emitUpdate()
   }
 
@@ -1049,7 +1033,7 @@ export class GitStore extends BaseStore {
     await this.performFailableOperation(() =>
       setRemoteURL(this.repository, name, url)
     )
-    await this.loadCurrentRemote()
+    await this.loadRemotes()
 
     this.emitUpdate()
   }
