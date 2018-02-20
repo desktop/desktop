@@ -17,6 +17,7 @@ import {
   Image,
   LineEndingsChange,
   parseLineEndingText,
+  ILargeTextDiff,
 } from '../../models/diff'
 
 import { spawnAndComplete } from './spawn'
@@ -37,14 +38,6 @@ const MaxDiffBufferSize = 268435441 //~268MB
  * bigger than this _could_ be displayed but it might cause some slowness.
  */
 const MaxReasonableDiffSize = MaxDiffBufferSize / 64 //~4MB
-
-/**
- * Where `MaxReasonableDiffSize` is a soft limit, and `MaxDiffBufferSize`
- * is an absolute limit, this is the MAX number of bytes to read from the
- * buffer before _assuming_ the current buffer being read is `MaxDiffBufferSize`.
- * This is done so that the UI isn't waiting for the entire buffer to be read.
- */
-const MaxBytesToRead = MaxDiffBufferSize / 8 //~32MB
 
 /**
  * The longest line length we should try to display. If a diff has a line longer
@@ -118,14 +111,13 @@ export async function getCommitDiff(
     repository.path,
     'getCommitDiff'
   )
-  if (isBufferTooLarge(output)) {
-    return { kind: DiffType.LargeText, length: output.length }
+
+  const largeDiff = buildLargeTextDiff(output)
+  if (largeDiff != null) {
+    return largeDiff
   }
 
   const diffText = diffFromRawDiffOutput(output)
-  if (isDiffTooLarge(diffText)) {
-    return { kind: DiffType.LargeText, length: output.length }
-  }
 
   return convertDiff(repository, file, diffText, commitish)
 }
@@ -204,19 +196,16 @@ export async function getWorkingDirectoryDiff(
     'getWorkingDirectoryDiff',
     successExitCodes
   )
-  if (isBufferTooLarge(output)) {
-    // we know we can't transform this process output into a diff, so let's
-    // just return a placeholder for now that we can display to the user
-    // to say we're at the limits of the runtime
-    return { kind: DiffType.LargeText, length: output.length }
+
+  const lineEndingsChange = parseLineEndingsWarning(error)
+  const largeDiff = buildLargeTextDiff(output, lineEndingsChange)
+
+  if (largeDiff != null) {
+    return largeDiff
   }
 
   const diffText = diffFromRawDiffOutput(output)
-  if (isDiffTooLarge(diffText)) {
-    return { kind: DiffType.LargeText, length: output.length }
-  }
 
-  const lineEndingsChange = parseLineEndingsWarning(error)
   return convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
 }
 
@@ -371,6 +360,52 @@ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
   const pieces = result.split('\0')
   const parser = new DiffParser()
   return parser.parse(pieces[pieces.length - 1])
+}
+
+/**
+ * Utility function that takes a buffer and outputs
+ * either a largeTextDiff
+ */
+function buildLargeTextDiff(
+  buffer: Buffer,
+  lineEndingsChange?: LineEndingsChange
+): ILargeTextDiff | null {
+  if (!isValidBuffer(buffer)) {
+    // we know we can't transform this process output into a diff, so let's
+    // just return a placeholder for now that we can display to the user
+    // to say we're at the limits of the runtime
+    return { kind: DiffType.LargeText, length: buffer.length }
+  }
+
+  const diffText = diffFromRawDiffOutput(buffer)
+
+  if (isBufferTooLarge(buffer)) {
+    // we don't want to render by default
+    // but we keep it as an option by
+    // passing in text and hunks
+    const largeTextDiff: ILargeTextDiff = {
+      kind: DiffType.LargeText,
+      length: buffer.length,
+      text: diffText.contents,
+      hunks: diffText.hunks,
+      lineEndingsChange,
+    }
+
+    return largeTextDiff
+  }
+
+  if (isDiffTooLarge(diffText)) {
+    const largeTextDiff: ILargeTextDiff = {
+      kind: DiffType.LargeText,
+      text: diffText.contents,
+      hunks: diffText.hunks,
+      lineEndingsChange,
+    }
+
+    return largeTextDiff
+  }
+
+  return null
 }
 
 /**
