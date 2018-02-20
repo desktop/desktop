@@ -3267,6 +3267,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (isRefInThisRepo) {
       // We need to fetch FIRST because someone may have created a PR since the last fetch
       const defaultRemote = await getDefaultRemote(repository)
+      // TODO: I think we could skip this fetch if we know that we have the branch locally
+      // already. That way we'd match the behavior of checking out a branch.
       if (defaultRemote) {
         await this._fetchRemote(repository, defaultRemote, FetchType.UserInitiatedTask)
       }
