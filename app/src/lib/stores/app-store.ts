@@ -75,6 +75,7 @@ import {
   getMergeBase,
   getRemotes,
   ITrailer,
+  isCoAuthoredByTrailer,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -1397,6 +1398,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
       if (includedPartialSelections) {
         this.statsStore.recordPartialCommit()
+      }
+
+      if (trailers != null && trailers.some(isCoAuthoredByTrailer)) {
+        this.statsStore.recordCoAuthoredCommit()
       }
 
       await this._refreshRepository(repository)

@@ -47,6 +47,7 @@ import {
   mergeTrailers,
   getTrailerSeparatorCharacters,
   parseSingleUnfoldedTrailer,
+  isCoAuthoredByTrailer,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -542,9 +543,7 @@ export class GitStore extends BaseStore {
     // Next we extract any co-authored-by trailers we
     // can find. We use interpret-trailers for this
     const foundTrailers = await parseTrailers(repository, message)
-    const coAuthorTrailers = foundTrailers.filter(
-      t => t.token.toLowerCase() === 'co-authored-by'
-    )
+    const coAuthorTrailers = foundTrailers.filter(isCoAuthoredByTrailer)
 
     // This is the happy path, nothing more for us to do
     if (coAuthorTrailers.length === 0) {
