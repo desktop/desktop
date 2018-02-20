@@ -96,6 +96,17 @@
   }
 }
 
+.blankslate-image {
+  max-width: 400px;
+  width: 80%;
+  flex-grow: 0.6;
+  // Background image url is set in react since we need to
+  // calculate it at runtime.
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+}
+
 // For all views other than the dedicated blank slate
 // view. Yes, this is confusing.
 .ui-view:not(#blank-slate) .blankslate-image {

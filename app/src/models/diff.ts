@@ -54,8 +54,8 @@ export enum DiffType {
   Binary,
   /** change to a repository which is included as a submodule of this repository */
   Submodule,
-  /** diff too large to render in app */
-  TooLarge,
+  /** diff is large enough to degrade ux if rendered */
+  LargeText,
 }
 
 /** indicate what a line in the diff represents */
@@ -118,18 +118,24 @@ export interface IBinaryDiff {
   readonly kind: DiffType.Binary
 }
 
-export interface IDiffTooLarge {
-  readonly kind: DiffType.TooLarge
+export interface ILargeTextDiff {
+  readonly kind: DiffType.LargeText
   /**
    * The length of the diff output from Git which exceeds the runtime limits:
    *
    * 268435441 bytes = 256MB - 15 bytes
    */
-  readonly length: number
+  readonly length?: number
+  /** The unified text diff - including headers and context */
+  readonly text?: string
+  /** The diff contents organized by hunk - how the git CLI outputs to the caller */
+  readonly hunks?: ReadonlyArray<DiffHunk>
+  /** A warning from Git that the line endings have changed in this file and will affect the commit */
+  readonly lineEndingsChange?: LineEndingsChange
 }
 
 /** The union of diff types that can be rendered in Desktop */
-export type IDiff = ITextDiff | IImageDiff | IBinaryDiff | IDiffTooLarge
+export type IDiff = ITextDiff | IImageDiff | IBinaryDiff | ILargeTextDiff
 
 /** track details related to each line in the diff */
 export class DiffLine {
