@@ -111,12 +111,12 @@ export async function getCommitDiff(
     'getCommitDiff'
   )
   if (isBufferTooLarge(output)) {
-    return { kind: DiffType.TooLarge, length: output.length }
+    return { kind: DiffType.LargeText, length: output.length }
   }
 
   const diffText = diffFromRawDiffOutput(output)
   if (isDiffTooLarge(diffText)) {
-    return { kind: DiffType.TooLarge, length: output.length }
+    return { kind: DiffType.LargeText, length: output.length }
   }
 
   return convertDiff(repository, file, diffText, commitish)
@@ -200,12 +200,12 @@ export async function getWorkingDirectoryDiff(
     // we know we can't transform this process output into a diff, so let's
     // just return a placeholder for now that we can display to the user
     // to say we're at the limits of the runtime
-    return { kind: DiffType.TooLarge, length: output.length }
+    return { kind: DiffType.LargeText, length: output.length }
   }
 
   const diffText = diffFromRawDiffOutput(output)
   if (isDiffTooLarge(diffText)) {
-    return { kind: DiffType.TooLarge, length: output.length }
+    return { kind: DiffType.LargeText, length: output.length }
   }
 
   const lineEndingsChange = parseLineEndingsWarning(error)

@@ -1055,7 +1055,7 @@ export class Diff extends React.Component<IDiffProps, {}> {
       return this.renderBinaryFile()
     }
 
-    if (diff.kind === DiffType.TooLarge) {
+    if (diff.kind === DiffType.LargeText) {
       const BlankSlateImage = encodePathAsUrl(
         __dirname,
         'static/empty-no-file-selected.svg'

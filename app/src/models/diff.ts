@@ -54,8 +54,8 @@ export enum DiffType {
   Binary,
   /** change to a repository which is included as a submodule of this repository */
   Submodule,
-  /** diff too large to render in app */
-  TooLarge,
+  /** diff is large enough to degrade ux if rendered */
+  LargeText,
 }
 
 /** indicate what a line in the diff represents */
@@ -119,7 +119,7 @@ export interface IBinaryDiff {
 }
 
 export interface IDiffTooLarge {
-  readonly kind: DiffType.TooLarge
+  readonly kind: DiffType.LargeText
   /**
    * The length of the diff output from Git which exceeds the runtime limits:
    *
