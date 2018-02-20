@@ -2360,9 +2360,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Note that this method will not perform the fetch of the specified remote
    * if _any_ fetches or pulls are currently in-progress.
    */
-  private _fetchRemote(repository: Repository, remote: IRemote, fetchType: FetchType): Promise<void> {
+  private _fetchRemote(
+    repository: Repository,
+    remote: IRemote,
+    fetchType: FetchType
+  ): Promise<void> {
     return this.withAuthenticatingUser(repository, (repository, account) => {
-      return this.performFetch(repository, account, fetchType, [ remote ])
+      return this.performFetch(repository, account, fetchType, [remote])
     })
   }
 
@@ -2397,7 +2401,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         if (remotes === undefined) {
           await gitStore.fetch(account, isBackgroundTask, progressCallback)
         } else {
-          await gitStore.fetchRemotes(account, remotes, isBackgroundTask, progressCallback)
+          await gitStore.fetchRemotes(
+            account,
+            remotes,
+            isBackgroundTask,
+            progressCallback
+          )
         }
 
         const refreshTitle = __DARWIN__
@@ -3270,7 +3279,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // TODO: I think we could skip this fetch if we know that we have the branch locally
       // already. That way we'd match the behavior of checking out a branch.
       if (defaultRemote) {
-        await this._fetchRemote(repository, defaultRemote, FetchType.UserInitiatedTask)
+        await this._fetchRemote(
+          repository,
+          defaultRemote,
+          FetchType.UserInitiatedTask
+        )
       }
       await this._checkoutBranch(repository, head.ref)
     } else if (head.gitHubRepository != null) {
@@ -3282,7 +3295,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         head.gitHubRepository.owner.login
       )
       const remotes = await getRemotes(repository)
-      const remote = remotes.find(r => r.name === remoteName)|| await addRemote(repository, remoteName, cloneURL)
+      const remote =
+        remotes.find(r => r.name === remoteName) ||
+        (await addRemote(repository, remoteName, cloneURL))
 
       if (remote.url !== cloneURL) {
         const error = new Error(
