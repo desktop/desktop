@@ -30,6 +30,7 @@ import {
   ITextDiff,
   DiffLine,
   DiffLineType,
+  ILargeTextDiff,
 } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
@@ -56,6 +57,7 @@ import { readPartialFile } from '../../lib/file-system'
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
 import { highlight } from '../../lib/highlighter/worker'
 import { ITokens } from '../../lib/highlighter/types'
+import { Button } from '../lib/button'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -440,6 +442,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     if (this.props.diff.kind === DiffType.Text) {
       this.initDiffSyntaxMode()
     }
+  }
+
+  public render() {
+    return this.renderDiff(this.props.diff)
   }
 
   public async initDiffSyntaxMode() {
@@ -968,6 +974,65 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     return null
   }
 
+  private renderLargeTextDiff() {
+    return (
+      <div className="panel empty large-diff">
+        <img src={NoDiffImage} />
+        <p>
+          The diff is too large to be displayed by default.
+          <br />
+          You can try to show it anyways, but performance may be negatively
+          impacted.
+        </p>
+        <Button onClick={this.onShowLargeDiff}>Show diff</Button>
+      </div>
+    )
+  }
+
+  private renderDiffTooLarge() {
+    return (
+      <div className="panel empty large-diff">
+        <img src={NoDiffImage} />
+        <p>The diff is too large to be displayed.</p>
+      </div>
+    )
+  }
+
+  private renderLargeText(diff: ILargeTextDiff) {
+    if (diff.hunks == null || diff.text == null) {
+      return fatalError('Cannot render diff withouth hunks and text')
+    }
+
+    const textDiff: ITextDiff = {
+      text: diff.text,
+      hunks: diff.hunks,
+      kind: DiffType.Text,
+      lineEndingsChange: diff.lineEndingsChange,
+    }
+
+    return this.renderTextDiff(textDiff)
+  }
+
+  private renderText(diff: ITextDiff) {
+    if (diff.hunks.length === 0) {
+      if (this.props.file.status === AppFileStatus.New) {
+        return <div className="panel empty">The file is empty</div>
+      }
+
+      if (this.props.file.status === AppFileStatus.Renamed) {
+        return (
+          <div className="panel renamed">
+            The file was renamed but not changed
+          </div>
+        )
+      }
+
+      return <div className="panel empty">No content changes found</div>
+    }
+
+    return this.renderTextDiff(diff)
+  }
+
   private renderBinaryFile() {
     return (
       <BinaryFile
@@ -1060,52 +1125,31 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
 
-  public render() {
-    const diff = this.props.diff
+  private renderDiff(diff: IDiff): JSX.Element | null {
+    switch (diff.kind) {
+      case DiffType.Text:
+        return this.renderText(diff)
+      case DiffType.Binary:
+        return this.renderBinaryFile()
+      case DiffType.Image:
+        return this.renderImage(diff)
+      case DiffType.LargeText: {
+        const largeTextDiff = diff as ILargeTextDiff
 
-    if (diff.kind === DiffType.Image) {
-      return this.renderImage(diff)
-    }
-
-    if (diff.kind === DiffType.Binary) {
-      return this.renderBinaryFile()
-    }
-
-    if (diff.kind === DiffType.LargeText) {
-      const BlankSlateImage = encodePathAsUrl(
-        __dirname,
-        'static/empty-no-file-selected.svg'
-      )
-      const diffSizeMB = Math.round(diff.length / (1024 * 1024))
-      return (
-        <div className="panel empty">
-          <img src={BlankSlateImage} className="blankslate-image" />
-          The diff returned by Git is {diffSizeMB}MB ({diff.length} bytes),
-          which is larger than what can be displayed in GitHub Desktop.
-        </div>
-      )
-    }
-
-    if (diff.kind === DiffType.Text) {
-      if (diff.hunks.length === 0) {
-        if (this.props.file.status === AppFileStatus.New) {
-          return <div className="panel empty">The file is empty</div>
+        if (largeTextDiff.hunks == null || largeTextDiff.text == null) {
+          return this.renderDiffTooLarge()
         }
 
-        if (this.props.file.status === AppFileStatus.Renamed) {
-          return (
-            <div className="panel renamed">
-              The file was renamed but not changed
-            </div>
-          )
-        }
-
-        return <div className="panel empty">No content changes found</div>
+        return this.state.forceShowLargeDiff
+          ? this.renderLargeText(largeTextDiff)
+          : this.renderLargeTextDiff()
       }
-
-      return this.renderTextDiff(diff)
+      default:
+        return null
     }
+  }
 
-    return null
+  private onShowLargeDiff = () => {
+    this.setState({ forceShowLargeDiff: !this.state.forceShowLargeDiff })
   }
 }
