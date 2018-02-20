@@ -30,8 +30,10 @@ export async function addRemote(
   repository: Repository,
   name: string,
   url: string
-): Promise<void> {
+): Promise<IRemote> {
   await git(['remote', 'add', name, url], repository.path, 'addRemote')
+
+  return { url, name }
 }
 
 /** Removes an existing remote, or silently errors if it doesn't exist */
