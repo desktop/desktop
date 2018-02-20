@@ -353,7 +353,9 @@ export class CommitMessage extends React.Component<
       {
         label: this.toggleCoAuthorsText,
         action: this.onToggleCoAuthors,
-        enabled: this.props.repository.gitHubRepository !== null && !this.props.isCommitting,
+        enabled:
+          this.props.repository.gitHubRepository !== null &&
+          !this.props.isCommitting,
       },
     ]
 
