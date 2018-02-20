@@ -113,12 +113,14 @@ export async function getCommitDiff(
     args.push(file.oldPath)
   }
 
-  const { output } = await spawnAndComplete(
+  const { output, didReadAllBytes } = await spawnAndComplete(
     args,
     repository.path,
-    'getCommitDiff'
+    'getCommitDiff',
+    undefined,
+    MaxBytesToRead
   )
-  if (isBufferTooLarge(output)) {
+  if (!didReadAllBytes || isBufferTooLarge(output)) {
     return { kind: DiffType.TooLarge, length: output.length }
   }
 
