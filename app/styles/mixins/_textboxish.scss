@@ -14,10 +14,14 @@
   padding: 0 var(--spacing-half);
 
   &:focus {
-    outline: none;
-    border-color: var(--focus-color);
-    box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+    @include textboxish-focus-styles;
   }
+}
+
+@mixin textboxish-focus-styles {
+  outline: none;
+  border-color: var(--focus-color);
+  box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
 }
 
 @mixin textboxish-disabled-styles {
