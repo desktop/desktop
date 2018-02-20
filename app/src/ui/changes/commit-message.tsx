@@ -328,6 +328,7 @@ export class CommitMessage extends React.Component<
         onAuthorsUpdated={this.onCoAuthorsUpdated}
         authors={this.props.coAuthors}
         autoCompleteProvider={autocompletionProvider}
+        disabled={this.props.isCommitting}
       />
     )
   }
