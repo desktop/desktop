@@ -715,7 +715,7 @@ export class GitStore extends BaseStore {
   }
 
   /**
-   * Fetch the default and upstream remote, using the given account for
+   * Fetch the default, current, and upstream remotes, using the given account for
    * authentication.
    *
    * @param account          - The account to use for authentication if needed.
@@ -728,22 +728,34 @@ export class GitStore extends BaseStore {
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
-    const remotes = []
-    const remote = this.remote
-    if (remote) {
-      remotes.push(remote)
+    // Use a map as a simple way of getting a unique set of remotes.
+    // Note that maps iterate in insertion order so the order in which
+    // we insert these will affect the order in which we fetch them
+    const remotes = new Map<string, IRemote>()
+
+    // We want to fetch the current remote first
+    if (this.remote) {
+      remotes.set(this.remote.name, this.remote)
     }
 
-    const upstream = this.upstream
-    if (upstream) {
-      remotes.push(upstream)
+    // And then the default remote if it differs from the current
+    if (this.defaultRemote) {
+      remotes.set(this.defaultRemote.name, this.defaultRemote)
     }
 
-    if (!remotes.length) {
-      return Promise.resolve()
+    // And finally the upstream if we're a fork
+    if (this.upstream) {
+      remotes.set(this.upstream.name, this.upstream)
     }
 
-    return this.fetchRemotes(account, remotes, backgroundTask, progressCallback)
+    if (remotes.size > 0) {
+      await this.fetchRemotes(
+        account,
+        [...remotes.values()],
+        backgroundTask,
+        progressCallback
+      )
+    }
   }
 
   /**
