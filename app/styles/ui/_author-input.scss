@@ -1,4 +1,10 @@
+@import '../mixins';
+
 .author-input-component {
+  &.disabled .CodeMirror {
+    @include textboxish-disabled-styles;
+  }
+
   .CodeMirror {
     border: 1px solid var(--box-border-color);
     border-radius: var(--border-radius);

@@ -20,12 +20,13 @@
   }
 }
 
-// This is kept separate from textboxish because we need to be able
-// to apply it conditionally when running on Windows, the disabled
-// styles on macOS are fine.
+@mixin textboxish-disabled-styles {
+  background: var(--box-alt-background-color);
+  color: var(--text-secondary-color);
+}
+
 @mixin textboxish-disabled {
   &:disabled {
-    background: var(--box-alt-background-color);
-    color: var(--text-secondary-color);
+    @include textboxish-disabled-styles;
   }
 }
