@@ -54,8 +54,8 @@ export enum DiffType {
   Binary,
   /** change to a repository which is included as a submodule of this repository */
   Submodule,
-  /** diff is large enough to degrade ux if rendered */
-  LargeText,
+  /** diff too large to render in app */
+  TooLarge,
 }
 
 /** indicate what a line in the diff represents */
