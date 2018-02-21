@@ -26,7 +26,7 @@ dependencies:
     - brew link --overwrite node@8 --force
     # this isn't the recommended way but some dependencies don't
     # yet have native bindings for Node 9.2.1
-    - npm install -g yarn
+    - brew install yarn
 
   override:
     - yarn install --force
