@@ -39,6 +39,27 @@ This is related to Desktop tracking the window position between launches, but no
 
  - Remove `%APPDATA%\GitHub Desktop\window-state.json` 
  - Restart Desktop
+ 
+### Certificate revocation check fails - [#3326](https://github.com/desktop/desktop/issues/3326)
+
+If you are using Desktop on a corporate network, you may encounter an error like this:
+
+```
+fatal: unable to access 'https://github.com/owner/name.git/': schannel: next InitializeSecurityContext failed: Unknown error (0x80092012) - The revocation function was unable to check revocation for the certificate.
+```
+
+GitHub Desktop by default uses the Windows Secure Channel (SChannel) APIs to validate the certificate received from a server. Some networks will block the attempts by Windows to check the revocation status of a certificate, which then causes the whole operation to error.
+
+**Workaround:**
+
+To use the classic OpenSSL behavior in Git, you'll need a PEM file containing certificates that are considered trusted. The [public list](https://curl.haxx.se/docs/caextract.html) provided by the curl project can be used if you are not connecting to a GitHub Enterprise instance which has it's own distinct certificates.
+
+Once you've downloaded that PEM file somewhere, open a shell with Git and run these commands:
+
+```shellsession
+$ git config --global http.sslBackend "openssl"
+$ git config --global http.sslCAInfo [path to .pem file]
+```
 
 ### Using a repository configured with Folder Redirection - [#2972](https://github.com/desktop/desktop/issues/2972)
 
