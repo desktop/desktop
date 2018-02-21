@@ -8,16 +8,17 @@ import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
+import { checkBranchExistsOnRemote } from '../../lib/git'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
-  readonly existsOnRemote: boolean
   readonly onDismissed: () => void
 }
 
 interface IDeleteBranchState {
+  readonly existsOnRemote: boolean | null
   readonly includeRemoteBranch: boolean
 }
 
@@ -25,11 +26,50 @@ export class DeleteBranch extends React.Component<
   IDeleteBranchProps,
   IDeleteBranchState
 > {
+  private checkingRemote = false
+
   public constructor(props: IDeleteBranchProps) {
     super(props)
 
     this.state = {
+      existsOnRemote: null,
       includeRemoteBranch: false,
+    }
+  }
+
+  private checkCompleted = () => {
+    this.checkingRemote = false
+  }
+
+  public componentWillReceiveProps(nextProps: IDeleteBranchProps) {
+    if (this.checkingRemote) {
+      // a check is being performed, don't start another
+      return
+    }
+
+    const upstreamChanged =
+      this.props.branch.upstream !== nextProps.branch.upstream
+
+    if (this.state.existsOnRemote == null || upstreamChanged) {
+      this.checkingRemote = true
+
+      checkBranchExistsOnRemote(this.props.repository, this.props.branch)
+        .catch(err => {
+          // if we encounter an unhandled error from Git, log an error
+          // and provide 'false' as the fallback value for the callback
+
+          log.error(
+            `[DeleteBranch] unable to resolve upstream branch: '${
+              this.props.branch.upstream
+            }'`,
+            err
+          )
+
+          return false
+        })
+        .then(existsOnRemote => {
+          this.setState({ existsOnRemote }, this.checkCompleted)
+        })
     }
   }
 
@@ -61,7 +101,7 @@ export class DeleteBranch extends React.Component<
   }
 
   private renderDeleteOnRemote() {
-    if (this.props.branch.remote && this.props.existsOnRemote) {
+    if (this.props.branch.remote && this.state.existsOnRemote) {
       return (
         <div>
           <p>
