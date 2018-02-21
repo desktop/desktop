@@ -422,7 +422,7 @@ export async function getWorkingDirectoryImage(
 
 /**
  * Utility function that takes a buffer and outputs
- * either a largeTextDiff
+ * either a largeTextDiff or null
  */
 function buildLargeTextDiff(
   buffer: Buffer,
