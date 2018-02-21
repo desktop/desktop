@@ -1,5 +1,9 @@
 {
   "releases": {
+    "1.0.14-beta6": [
+      "[Improved] Add 'Branch' to 'New' branch button - #4032",
+      "[Improved] Remove references to Hubot from the user setup page - #4015. Thanks @j-f1!"
+    ],
     "1.0.14-beta5": [
       "[Fixed] Improve detection of pull requests associated with current branch - #3991",
       "[Fixed] Disable drag-and-drop interaction when a popup is in the foreground - #3996",
