@@ -179,6 +179,10 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
     const filesDescription = `${fileCount} changed ${filesPlural}`
     const anyFilesSelected =
       fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
+    const invalidationProps = {
+      workingDirectory: this.props.workingDirectory,
+      externalEditorLabel: this.props.externalEditorLabel,
+    }
 
     return (
       <div className="changes-list-container file-list">
@@ -198,7 +202,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
           rowRenderer={this.renderRow}
           selectedRow={selectedRow}
           onSelectionChanged={this.props.onFileSelectionChanged}
-          invalidationProps={this.props.workingDirectory}
+          invalidationProps={invalidationProps}
           onRowClick={this.props.onRowClick}
         />
 
