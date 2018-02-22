@@ -1,6 +1,6 @@
 {
   "releases": {
-    "1.0.14-beta6": [
+    "1.1.0-beta1": [
       "[Improved] Add 'Branch' to 'New' branch button - #4032",
       "[Improved] Remove references to Hubot from the user setup page - #4015. Thanks @j-f1!"
     ],
