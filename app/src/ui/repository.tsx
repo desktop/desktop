@@ -22,6 +22,9 @@ import { Account } from '../models/account'
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
 
+/** The narrowist the sidebar can be with the minumum window size. */
+const MinSideBarWidth = 250
+
 interface IRepositoryProps {
   readonly repository: Repo
   readonly state: IRepositoryModelState
@@ -149,6 +152,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         onReset={this.handleSidebarWidthReset}
         onResize={this.handleSidebarResize}
         maximumWidth={MaxSidebarWidth}
+        minimumWidth={MinSideBarWidth}
       >
         {this.renderTabs()}
         {this.renderSidebarContents()}
