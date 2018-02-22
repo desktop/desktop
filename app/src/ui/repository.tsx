@@ -23,7 +23,7 @@ import { Account } from '../models/account'
 const MaxSidebarWidth = 495
 
 /** The narrowist the sidebar can be with the minumum window size. */
-const MinSideBarWidth = 250
+const MinSideBarWidth = 225
 
 interface IRepositoryProps {
   readonly repository: Repo
