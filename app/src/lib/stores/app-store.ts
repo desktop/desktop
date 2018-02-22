@@ -16,6 +16,7 @@ import {
   Progress,
   ImageDiffType,
   IRevertProgress,
+  IFetchProgress,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -1505,12 +1506,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await Promise.all([
-      gitStore.loadCurrentRemote(),
+      gitStore.loadRemotes(),
       gitStore.updateLastFetched(),
       this.refreshAuthor(repository),
       gitStore.loadContextualCommitMessage(),
       refreshSectionPromise,
-      gitStore.loadUpstreamRemote(),
     ])
 
     this._updateCurrentPullRequest(repository)
@@ -2221,7 +2221,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.performFailableOperation(() =>
       addRemote(repository, 'origin', apiRepository.clone_url)
     )
-    await gitStore.loadCurrentRemote()
+    await gitStore.loadRemotes()
 
     // skip pushing if the current branch is a detached HEAD or the repository
     // is unborn
@@ -2345,17 +2345,48 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
-  /** Fetch the repository. */
+  /**
+   * Fetch all relevant remotes in the the repository.
+   *
+   * See gitStore.fetch for more details.
+   *
+   * Note that this method will not perform the fetch of the specified remote
+   * if _any_ fetches or pulls are currently in-progress.
+   */
   public _fetch(repository: Repository, fetchType: FetchType): Promise<void> {
     return this.withAuthenticatingUser(repository, (repository, account) => {
       return this.performFetch(repository, account, fetchType)
     })
   }
 
+  /**
+   * Fetch a particular remote in a repository.
+   *
+   * Note that this method will not perform the fetch of the specified remote
+   * if _any_ fetches or pulls are currently in-progress.
+   */
+  private _fetchRemote(
+    repository: Repository,
+    remote: IRemote,
+    fetchType: FetchType
+  ): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repository, account) => {
+      return this.performFetch(repository, account, fetchType, [remote])
+    })
+  }
+
+  /**
+   * Fetch all relevant remotes or one or more given remotes in the repository.
+   *
+   * @param remotes Optional, one or more remotes to fetch if undefined all
+   *                relevant remotes will be fetched. See gitStore.fetch for
+   *                more detail on what constitutes a relevant remote.
+   */
   private async performFetch(
     repository: Repository,
     account: IGitAccount | null,
-    fetchType: FetchType
+    fetchType: FetchType,
+    remotes?: IRemote[]
   ): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
@@ -2365,12 +2396,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const refreshWeight = 0.1
         const isBackgroundTask = fetchType === FetchType.BackgroundTask
 
-        await gitStore.fetch(account, isBackgroundTask, progress => {
+        const progressCallback = (progress: IFetchProgress) => {
           this.updatePushPullFetchProgress(repository, {
             ...progress,
             value: progress.value * fetchWeight,
           })
-        })
+        }
+
+        if (remotes === undefined) {
+          await gitStore.fetch(account, isBackgroundTask, progressCallback)
+        } else {
+          await gitStore.fetchRemotes(
+            account,
+            remotes,
+            isBackgroundTask,
+            progressCallback
+          )
+        }
 
         const refreshTitle = __DARWIN__
           ? 'Refreshing Repository'
@@ -3238,7 +3280,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (isRefInThisRepo) {
       // We need to fetch FIRST because someone may have created a PR since the last fetch
-      await this._fetch(repository, FetchType.UserInitiatedTask)
+      const defaultRemote = await getDefaultRemote(repository)
+      // TODO: I think we could skip this fetch if we know that we have the branch locally
+      // already. That way we'd match the behavior of checking out a branch.
+      if (defaultRemote) {
+        await this._fetchRemote(
+          repository,
+          defaultRemote,
+          FetchType.UserInitiatedTask
+        )
+      }
       await this._checkoutBranch(repository, head.ref)
     } else if (head.gitHubRepository != null) {
       const cloneURL = forceUnwrap(
@@ -3249,11 +3300,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         head.gitHubRepository.owner.login
       )
       const remotes = await getRemotes(repository)
-      const remote = remotes.find(r => r.name === remoteName)
+      const remote =
+        remotes.find(r => r.name === remoteName) ||
+        (await addRemote(repository, remoteName, cloneURL))
 
-      if (remote == null) {
-        await addRemote(repository, remoteName, cloneURL)
-      } else if (remote.url !== cloneURL) {
+      if (remote.url !== cloneURL) {
         const error = new Error(
           `Expected PR remote ${remoteName} url to be ${cloneURL} got ${
             remote.url
@@ -3266,16 +3317,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const gitStore = this.getGitStore(repository)
 
-      await this.withAuthenticatingUser(repository, async (repo, account) => {
-        await gitStore.fetchRemote(account, remoteName, false, progress => {
-          this.updatePushPullFetchProgress(repository, {
-            ...progress,
-            value: progress.value,
-          })
-        })
-      })
-
-      this.updatePushPullFetchProgress(repository, null)
+      this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
 
       const localBranchName = `pr/${pullRequest.number}`
       const doesBranchExist =

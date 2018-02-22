@@ -18,7 +18,6 @@ import { queueWorkHigh } from '../../lib/queue-work'
 import {
   reset,
   GitResetMode,
-  getDefaultRemote,
   getRemotes,
   fetch as fetchRepo,
   fetchRefspec,
@@ -57,6 +56,7 @@ import {
   findUpstreamRemote,
   UpstreamRemoteName,
 } from './helpers/find-upstream-remote'
+import { findDefaultRemote } from './helpers/find-default-remote'
 import { IAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
@@ -108,6 +108,8 @@ export class GitStore extends BaseStore {
   private _coAuthors: ReadonlyArray<IAuthor> = []
 
   private _aheadBehind: IAheadBehind | null = null
+
+  private _defaultRemote: IRemote | null = null
 
   private _remote: IRemote | null = null
 
@@ -712,7 +714,7 @@ export class GitStore extends BaseStore {
   }
 
   /**
-   * Fetch the default and upstream remote, using the given account for
+   * Fetch the default, current, and upstream remotes, using the given account for
    * authentication.
    *
    * @param account          - The account to use for authentication if needed.
@@ -725,22 +727,34 @@ export class GitStore extends BaseStore {
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
-    const remotes = []
-    const remote = this.remote
-    if (remote) {
-      remotes.push(remote)
+    // Use a map as a simple way of getting a unique set of remotes.
+    // Note that maps iterate in insertion order so the order in which
+    // we insert these will affect the order in which we fetch them
+    const remotes = new Map<string, IRemote>()
+
+    // We want to fetch the current remote first
+    if (this.remote) {
+      remotes.set(this.remote.name, this.remote)
     }
 
-    const upstream = this.upstream
-    if (upstream) {
-      remotes.push(upstream)
+    // And then the default remote if it differs from the current
+    if (this.defaultRemote) {
+      remotes.set(this.defaultRemote.name, this.defaultRemote)
     }
 
-    if (!remotes.length) {
-      return Promise.resolve()
+    // And finally the upstream if we're a fork
+    if (this.upstream) {
+      remotes.set(this.upstream.name, this.upstream)
     }
 
-    return this.fetchRemotes(account, remotes, backgroundTask, progressCallback)
+    if (remotes.size > 0) {
+      await this.fetchRemotes(
+        account,
+        [...remotes.values()],
+        backgroundTask,
+        progressCallback
+      )
+    }
   }
 
   /**
@@ -876,45 +890,29 @@ export class GitStore extends BaseStore {
     return status
   }
 
-  /**
-   * Load the remote for the current branch, or the default remote if no
-   * tracking information found.
-   */
-  public async loadCurrentRemote(): Promise<void> {
-    const tip = this.tip
+  public async loadRemotes(): Promise<void> {
+    const remotes = await getRemotes(this.repository)
+    this._defaultRemote = findDefaultRemote(remotes)
 
-    if (tip.kind === TipState.Valid) {
-      const branch = tip.branch
+    const currentRemoteName =
+      this.tip.kind === TipState.Valid && this.tip.branch.remote !== null
+        ? this.tip.branch.remote
+        : null
 
-      if (branch.remote != null) {
-        const allRemotes = await getRemotes(this.repository)
-        const foundRemote = allRemotes.find(r => r.name === branch.remote)
+    // Load the remote that the current branch is tracking. If the branch
+    // is not tracking any remote or the remote which it's tracking has
+    // been removed we'll default to the default branch.
+    this._remote =
+      currentRemoteName !== null
+        ? remotes.find(r => r.name === currentRemoteName) || this._defaultRemote
+        : this._defaultRemote
 
-        if (foundRemote) {
-          this._remote = foundRemote
-        }
-      }
-    }
-
-    if (this._remote == null) {
-      this._remote = await getDefaultRemote(this.repository)
-    }
-
-    this.emitUpdate()
-  }
-
-  /** Load the upstream remote if it exists. */
-  public async loadUpstreamRemote(): Promise<void> {
     const parent =
       this.repository.gitHubRepository &&
       this.repository.gitHubRepository.parent
-    if (!parent) {
-      return
-    }
 
-    const remotes = await getRemotes(this.repository)
-    const upstream = findUpstreamRemote(parent, remotes)
-    this._upstream = upstream
+    this._upstream = parent ? findUpstreamRemote(parent, remotes) : null
+
     this.emitUpdate()
   }
 
@@ -968,6 +966,11 @@ export class GitStore extends BaseStore {
    */
   public get aheadBehind(): IAheadBehind | null {
     return this._aheadBehind
+  }
+
+  /** Get the remote we're working with. */
+  public get defaultRemote(): IRemote | null {
+    return this._defaultRemote
   }
 
   /** Get the remote we're working with. */
@@ -1048,7 +1051,7 @@ export class GitStore extends BaseStore {
     await this.performFailableOperation(() =>
       setRemoteURL(this.repository, name, url)
     )
-    await this.loadCurrentRemote()
+    await this.loadRemotes()
 
     this.emitUpdate()
   }
