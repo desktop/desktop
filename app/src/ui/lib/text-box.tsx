@@ -115,10 +115,9 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = event.currentTarget.value
-    const defaultPrevented = event.defaultPrevented
 
     this.setState({ value }, () => {
-      if (this.props.onValueChanged && !defaultPrevented) {
+      if (this.props.onValueChanged) {
         this.props.onValueChanged(value)
       }
     })
