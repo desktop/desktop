@@ -25,9 +25,6 @@ interface ITextBoxProps {
   /** Whether the input field is disabled. */
   readonly disabled?: boolean
 
-  /** Called when the user changes the value in the input field. */
-  readonly onChange?: (event: React.FormEvent<HTMLInputElement>) => void
-
   /**
    * Called when the user changes the value in the input field.
    *
@@ -118,11 +115,6 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = event.currentTarget.value
-
-    if (this.props.onChange) {
-      this.props.onChange(event)
-    }
-
     const defaultPrevented = event.defaultPrevented
 
     this.setState({ value }, () => {
