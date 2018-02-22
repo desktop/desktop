@@ -94,6 +94,8 @@ interface ITextBoxState {
 
 /** An input element with app-standard styles. */
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
+  private inputElement: HTMLInputElement | null = null
+
   public componentWillMount() {
     const friendlyName = this.props.label || this.props.placeholder
     const inputId = createUniqueId(`TextBox_${friendlyName}`)
@@ -127,6 +129,10 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         this.props.onValueChanged(value)
       }
     })
+  }
+
+  private inputRef = (element: HTMLInputElement) => {
+    this.inputElement = element
   }
 
   private renderLabelLink() {
@@ -168,6 +174,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
         <input
           id={inputId}
+          ref={this.inputRef}
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
           type={this.props.type}
