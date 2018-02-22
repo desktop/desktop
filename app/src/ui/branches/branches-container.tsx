@@ -58,7 +58,7 @@ export class BranchesContainer extends React.Component<
 
   public render() {
     return (
-      <div className="branches-container" onKeyDown={this.onKeyDown}>
+      <div className="branches-container">
         {this.renderTabBar()}
         {this.renderSelectedTab()}
       </div>
@@ -178,13 +178,6 @@ export class BranchesContainer extends React.Component<
 
   private onDismiss = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-  }
-
-  private onKeyDown = (event: React.KeyboardEvent<any>) => {
-    if (!event.defaultPrevented && event.key === 'Escape') {
-      this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-      event.preventDefault()
-    }
   }
 
   private onBranchItemClick = (branch: Branch) => {
