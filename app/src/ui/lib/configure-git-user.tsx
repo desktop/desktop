@@ -100,14 +100,14 @@ export class ConfigureGitUser extends React.Component<
             label="Name"
             placeholder="Your Name"
             value={this.state.name}
-            onChange={this.onNameChange}
+            onValueChanged={this.onNameChange}
           />
 
           <TextBox
             label="Email"
             placeholder="your-email@example.com"
             value={this.state.email}
-            onChange={this.onEmailChange}
+            onValueChanged={this.onEmailChange}
           />
 
           <Row>
@@ -131,16 +131,15 @@ export class ConfigureGitUser extends React.Component<
     )
   }
 
-  private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {
+  private onNameChange = (name: string) => {
     this.setState({
-      name: event.currentTarget.value,
+      name,
       email: this.state.email,
       avatarURL: this.state.avatarURL,
     })
   }
 
-  private onEmailChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const email = event.currentTarget.value
+  private onEmailChange = (email: string) => {
     const avatarURL = this.avatarURLForEmail(email)
 
     this.setState({
