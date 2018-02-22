@@ -301,18 +301,20 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return
     }
 
-    let focusInput = false
     const firstSelectableRow = list.nextSelectableRow('down', -1)
     const lastSelectableRow = list.nextSelectableRow('up', 0)
+    let shouldFocus = false
+
     if (event.key === 'ArrowUp' && row === firstSelectableRow) {
-      focusInput = true
+      shouldFocus = true
     } else if (event.key === 'ArrowDown' && row === lastSelectableRow) {
-      focusInput = true
+      shouldFocus = true
     }
 
-    if (focusInput) {
-      const input = this.filterInput
-      if (input) {
+    if (shouldFocus) {
+      const textBox = this.filterTextBox
+
+      if (textBox) {
         event.preventDefault()
         textBox.focus()
       }
