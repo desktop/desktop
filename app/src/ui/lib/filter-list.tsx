@@ -152,6 +152,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     this.state = createStateUpdate(props)
   }
 
+  public componentDidMount() {
+    this.filterTextBox && this.filterTextBox.selectAll()
+  }
+
   public render() {
     return (
       <div className={classnames('filter-list', this.props.className)}>
