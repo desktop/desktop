@@ -326,22 +326,29 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
 
     const table = this.pullRequestDatabase.pullRequests
     const prsToInsert = new Array<IPullRequest>()
-    let githubRepo: GitHubRepository | null = null
 
     for (const pr of pullRequestsFromAPI) {
-      // Once the repo is found on first try, no need to keep looking
-      if (githubRepo == null && pr.head.repo != null) {
-        githubRepo = await this.repositoryStore.upsertGitHubRepository(
-          repository.endpoint,
-          pr.head.repo
+      // `pr.head.repo` represents the source of the pull request. It might be
+      // a branch associated with the current repository, or a fork of the
+      // current repository.
+      //
+      // In cases where the user has removed the fork of the repository after
+      // opening a pull request, this can be `null`, and the app will not store
+      // this pull request.
+
+      if (pr.head.repo == null) {
+        log.debug(
+          `Unable to store pull request #${pr.number} for repository ${
+            repository.fullName
+          } as it has no head repository associated with it`
         )
+        continue
       }
 
-      if (githubRepo == null) {
-        return fatalError(
-          "The PR doesn't seem to be associated with a GitHub repository"
-        )
-      }
+      const githubRepo = await this.repositoryStore.upsertGitHubRepository(
+        repository.endpoint,
+        pr.head.repo
+      )
 
       const githubRepoDbId = forceUnwrap(
         'PR cannot have non-existent repo',

@@ -1,4 +1,4 @@
-@import "../mixins";
+@import '../mixins';
 
 #add-repository {
   width: 350px;
@@ -52,8 +52,8 @@
     padding: 0;
 
     .row-component:not(:last-child) {
-       margin: 0;
-     }
+      margin: 0;
+    }
   }
 
   &.clone-generic-repository-content {

@@ -5,6 +5,8 @@ import { List, SelectionSource as ListSelectionSource } from '../lib/list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
+import { match, IMatch } from '../../lib/fuzzy-find'
+
 /** An item in the filter list. */
 export interface IFilterListItem {
   /** The text which represents the item. This is used for filtering. */
@@ -31,6 +33,8 @@ interface IFlattenedGroup {
 interface IFlattenedItem<T extends IFilterListItem> {
   readonly kind: 'item'
   readonly item: T
+  /** Array of indexes in `item.text` that should be highlighted */
+  readonly matches: ReadonlyArray<number>
 }
 
 /**
@@ -55,7 +59,10 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly selectedItem: T | null
 
   /** Called to render each visible item. */
-  readonly renderItem: (item: T) => JSX.Element | null
+  readonly renderItem: (
+    item: T,
+    matches: ReadonlyArray<number>
+  ) => JSX.Element | null
 
   /** Called to render header for the group with the given identifier. */
   readonly renderGroupHeader?: (identifier: string) => JSX.Element | null
@@ -213,7 +220,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   private renderRow = (index: number) => {
     const row = this.state.rows[index]
     if (row.kind === 'item') {
-      return this.props.renderItem(row.item)
+      return this.props.renderItem(row.item, row.matches)
     } else if (this.props.renderGroupHeader) {
       return this.props.renderGroupHeader(row.identifier)
     } else {
@@ -384,9 +391,9 @@ function createStateUpdate<T extends IFilterListItem>(
   const filter = (props.filterText || '').toLowerCase()
 
   for (const group of props.groups) {
-    const items = group.items.filter(i => {
-      return i.text.toLowerCase().includes(filter)
-    })
+    const items: ReadonlyArray<IMatch<T>> = filter
+      ? match(filter, group.items, 'text')
+      : group.items.map(item => ({ score: 1, matches: [], item }))
 
     if (!items.length) {
       continue
@@ -396,8 +403,8 @@ function createStateUpdate<T extends IFilterListItem>(
       flattenedRows.push({ kind: 'group', identifier: group.identifier })
     }
 
-    for (const item of items) {
-      flattenedRows.push({ kind: 'item', item })
+    for (const { item, matches } of items) {
+      flattenedRows.push({ kind: 'item', item, matches })
     }
   }
 

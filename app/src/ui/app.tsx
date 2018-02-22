@@ -540,6 +540,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     document.body.ondrop = e => {
+      if (this.state.currentPopup != null) {
+        return
+      }
       const files = e.dataTransfer.files
       this.handleDragAndDrop(files)
       e.preventDefault()
