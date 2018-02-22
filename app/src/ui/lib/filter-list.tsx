@@ -144,7 +144,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   IFilterListState<T>
 > {
   private list: List | null = null
-  private filterInput: HTMLInputElement | null = null
+  private filterTextBox: TextBox | null = null
 
   public constructor(props: IFilterListProps<T>) {
     super(props)
@@ -309,7 +309,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       const input = this.filterInput
       if (input) {
         event.preventDefault()
-        input.focus()
+        textBox.focus()
       }
     }
   }
