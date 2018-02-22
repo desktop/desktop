@@ -159,6 +159,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
         <Row className="filter-field-row">
           <TextBox
+            ref={this.filterTextBoxRef}
             type="search"
             autoFocus={true}
             placeholder="Filter"
@@ -175,6 +176,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         <div className="filter-list-container">{this.renderContent()}</div>
       </div>
     )
+  }
+
+  private filterTextBoxRef = (component: TextBox) => {
+    this.filterTextBox = component
   }
 
   private renderContent() {
