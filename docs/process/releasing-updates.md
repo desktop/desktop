@@ -138,6 +138,6 @@ It is normal to monitor haystack closely for 15 minutes just to make sure.
 
 ### 6. Celebrate
 
-Once your app updates and you see the visible changes in your app and there are no spikes in errors (see the `Error Reporting` section below), celebrate 🎉!!! You did it!
+Once your app updates and you see the visible changes in your app and there are no spikes in errors, celebrate 🎉!!! You did it!
 
 Also it might make sense to continue to monitor haystack in the background for the next 24 hours.
