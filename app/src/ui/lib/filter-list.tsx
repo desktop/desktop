@@ -165,7 +165,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
             className="filter-list-filter-field"
             onChange={this.onFilterChanged}
             onKeyDown={this.onKeyDown}
-            onInputRef={this.onInputRef}
             value={this.props.filterText}
             disabled={this.props.disabled}
           />
@@ -230,18 +229,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
   private onListRef = (instance: List | null) => {
     this.list = instance
-  }
-
-  private onInputRef = (instance: HTMLInputElement | null) => {
-    this.filterInput = instance
-
-    if (
-      this.filterInput &&
-      this.props.filterText &&
-      this.props.filterText.length > 0
-    ) {
-      this.filterInput.select()
-    }
   }
 
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
