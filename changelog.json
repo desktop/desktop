@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.1.0-beta3": [
+      "[Fixed] Fetch default remote if it differs from the current - #4056"
+    ],
     "1.1.0-beta2": [
       "[Improved] Update embedded Git to improve error handling when using stdin - #4058"
     ],
