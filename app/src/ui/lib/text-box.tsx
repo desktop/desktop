@@ -115,6 +115,24 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
+  public selectAll() {
+    if (this.inputElement == null) {
+      return
+    }
+
+    if (this.state.value && this.state.value.length !== 0) {
+      this.inputElement.select()
+    }
+  }
+
+  public focus() {
+    if (this.inputElement == null) {
+      return
+    }
+
+    this.inputElement.focus()
+  }
+
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = event.currentTarget.value
 
