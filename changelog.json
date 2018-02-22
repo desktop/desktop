@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.1.0-beta2": [
+      "[Improved] Update embedded Git to improve error handling when using stdin - #4058"
+    ],
     "1.1.0-beta1": [
       "[Improved] Add 'Branch' to 'New' branch button - #4032",
       "[Improved] Remove references to Hubot from the user setup page - #4015. Thanks @j-f1!"
