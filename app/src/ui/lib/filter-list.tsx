@@ -153,7 +153,9 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public componentDidMount() {
-    this.filterTextBox && this.filterTextBox.selectAll()
+    if (this.filterTextBox != null) {
+      this.filterTextBox.selectAll()
+    }
   }
 
   public render() {
