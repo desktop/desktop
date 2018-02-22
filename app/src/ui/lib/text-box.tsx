@@ -46,9 +46,6 @@ interface ITextBoxProps {
   /** The type of the input. Defaults to `text`. */
   readonly type?: 'text' | 'search' | 'password'
 
-  /** A callback to receive the underlying `input` instance. */
-  readonly onInputRef?: (instance: HTMLInputElement | null) => void
-
   /**
    * An optional text for a link label element. A link label is, for the purposes
    * of this control an anchor element that's rendered alongside (ie on the same)
@@ -132,12 +129,6 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     })
   }
 
-  private onRef = (instance: HTMLInputElement | null) => {
-    if (this.props.onInputRef) {
-      this.props.onInputRef(instance)
-    }
-  }
-
   private renderLabelLink() {
     if (!this.props.labelLinkText) {
       return null
@@ -184,7 +175,6 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           value={this.state.value}
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
-          ref={this.onRef}
           tabIndex={this.props.tabIndex}
         />
       </div>
