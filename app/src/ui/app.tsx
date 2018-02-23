@@ -1295,7 +1295,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private showPopup = (popup: Popup) => this.props.dispatcher.showPopup(popup)
+  private showPopup = (popup: Popup) => {
+    this.props.dispatcher.showPopup(popup)
+  }
 
   private renderApp() {
     return (
