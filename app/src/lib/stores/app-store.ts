@@ -3175,7 +3175,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         pr =>
           pr.head.ref === upstream &&
           pr.head.gitHubRepository != null &&
-          pr.head.gitHubRepository.cloneURL === remote.url
+          (pr.head.gitHubRepository.cloneURL === remote.url ||
+            pr.head.gitHubRepository.htmlURL === remote.url)
       ) || null
 
     return pr
