@@ -381,7 +381,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const compareURL = `${htmlURL}/compare/${
       branchTip.branch.upstreamWithoutRemote
-      }`
+    }`
     this.props.dispatcher.openInBrowser(compareURL)
   }
 
@@ -536,7 +536,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   public componentDidMount() {
     document.ondragover = document.ondrop = e => e.preventDefault()
-
 
     document.body.ondrop = e => {
       if (this.state.currentPopup != null) {
@@ -886,7 +885,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onUpdateAvailableDismissed = () => this.props.dispatcher.setUpdateBannerVisibility(false)
+  private onUpdateAvailableDismissed = () =>
+    this.props.dispatcher.setUpdateBannerVisibility(false)
 
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
