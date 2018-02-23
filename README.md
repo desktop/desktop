@@ -54,7 +54,7 @@ further.
 
 ## How can I contribute to GitHub Desktop?
 
-The [CONTRIBUTING.md](./CONTRIBUTING.md) document will help you get setup and
+The [CONTRIBUTING.md](./.github/CONTRIBUTING.md) document will help you get setup and
 familiar with the source. The [documentation](docs/) folder also contains more
 resources relevant to the project.
 
