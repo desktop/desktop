@@ -11,8 +11,16 @@ export async function listSubmodules(
   const result = await git(
     ['submodule', 'status', '--'],
     repository.path,
-    'listSubmodules'
+    'listSubmodules',
+    {
+      successExitCodes: new Set([0, 128]),
+    }
   )
+
+  if (result.exitCode === 128) {
+    // unable to parse submodules in repository, giving up
+    return []
+  }
 
   const submodules = new Array<SubmoduleEntry>()
 

@@ -60,7 +60,10 @@ export class RepositoriesList extends React.Component<
   IRepositoriesListProps,
   {}
 > {
-  private renderItem = (item: IRepositoryListItem) => {
+  private renderItem = (
+    item: IRepositoryListItem,
+    matches: ReadonlyArray<number>
+  ) => {
     const repository = item.repository
     return (
       <RepositoryListItem
@@ -73,7 +76,7 @@ export class RepositoriesList extends React.Component<
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         externalEditorLabel={this.props.externalEditorLabel}
         shellLabel={this.props.shellLabel}
-        filterText={this.props.filterText}
+        matches={matches}
       />
     )
   }

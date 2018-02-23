@@ -62,14 +62,14 @@ export class PullRequestUpdater {
       TimeoutHandles.PullRequest,
 
       window.setTimeout(() => {
-        this.store.refreshPullRequests(this.repository, this.account)
+        this.store.fetchAndCachePullRequests(this.repository, this.account)
       }, PullRequestInterval)
     )
 
     this.timeoutHandles.set(
       TimeoutHandles.Status,
       window.setTimeout(() => {
-        this.store.refreshPullRequestStatuses(githubRepo, this.account)
+        this.store.fetchPullRequestStatuses(githubRepo, this.account)
       }, StatusInterval)
     )
   }
@@ -112,8 +112,8 @@ export class PullRequestUpdater {
       this.repository.gitHubRepository
     )
 
-    await this.store.refreshPullRequestStatuses(githubRepo, this.account)
-    const prs = await this.store.getPullRequests(githubRepo)
+    await this.store.fetchPullRequestStatuses(githubRepo, this.account)
+    const prs = await this.store.fetchPullRequestsFromCache(githubRepo)
 
     for (const pr of prs) {
       const status = pr.status

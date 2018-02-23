@@ -5,7 +5,7 @@ import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
 import { IGitHubUser } from '../../lib/databases'
 
-const RowHeight = 48
+const RowHeight = 50
 
 interface ICommitListProps {
   readonly onCommitChanged: (commit: Commit) => void

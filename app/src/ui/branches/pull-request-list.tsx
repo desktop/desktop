@@ -115,7 +115,10 @@ export class PullRequestList extends React.Component<
     )
   }
 
-  private renderPullRequest = (item: IPullRequestListItem) => {
+  private renderPullRequest = (
+    item: IPullRequestListItem,
+    matches: ReadonlyArray<number>
+  ) => {
     const pr = item.pullRequest
     const refStatuses = pr.status != null ? pr.status.statuses : []
     const status =
@@ -136,6 +139,7 @@ export class PullRequestList extends React.Component<
         created={pr.created}
         author={pr.author}
         status={status}
+        matches={matches}
       />
     )
   }
