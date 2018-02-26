@@ -1,6 +1,6 @@
 {
   "releases": {
-    "1.1": [
+    "1.1.0": [
       "[New] Check out pull requests from collaborators or forks from within Desktop",
       "[New] View the commit status of the branch when it has an open pull request",
       "[Added] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",
