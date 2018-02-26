@@ -6,74 +6,75 @@ import {
 } from '../../src/lib/repository-matching'
 import { Account } from '../../src/models/account'
 import { GitHubRepository } from '../../src/models/github-repository'
-import { IRemote } from '../../src/models/remote'
 
-describe('Repository matching', () => {
-  it('matches HTTPS URLs', () => {
-    const accounts = [
-      new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
-    ]
-    const repo = matchGitHubRepository(
-      accounts,
-      'https://github.com/someuser/somerepo.git'
-    )!
-    expect(repo.name).to.equal('somerepo')
-    expect(repo.owner).to.equal('someuser')
-  })
+describe('repository-matching', () => {
+  describe('matchGitHubRepository', () => {
+    it('matches HTTPS URLs', () => {
+      const accounts = [
+        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
+      ]
+      const repo = matchGitHubRepository(
+        accounts,
+        'https://github.com/someuser/somerepo.git'
+      )!
+      expect(repo.name).to.equal('somerepo')
+      expect(repo.owner).to.equal('someuser')
+    })
 
-  it('matches HTTPS URLs without the git extension', () => {
-    const accounts = [
-      new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
-    ]
-    const repo = matchGitHubRepository(
-      accounts,
-      'https://github.com/someuser/somerepo'
-    )!
-    expect(repo.name).to.equal('somerepo')
-    expect(repo.owner).to.equal('someuser')
-  })
+    it('matches HTTPS URLs without the git extension', () => {
+      const accounts = [
+        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
+      ]
+      const repo = matchGitHubRepository(
+        accounts,
+        'https://github.com/someuser/somerepo'
+      )!
+      expect(repo.name).to.equal('somerepo')
+      expect(repo.owner).to.equal('someuser')
+    })
 
-  it('matches git URLs', () => {
-    const accounts = [
-      new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
-    ]
-    const repo = matchGitHubRepository(
-      accounts,
-      'git:github.com/someuser/somerepo.git'
-    )!
-    expect(repo.name).to.equal('somerepo')
-    expect(repo.owner).to.equal('someuser')
-  })
+    it('matches git URLs', () => {
+      const accounts = [
+        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
+      ]
+      const repo = matchGitHubRepository(
+        accounts,
+        'git:github.com/someuser/somerepo.git'
+      )!
+      expect(repo.name).to.equal('somerepo')
+      expect(repo.owner).to.equal('someuser')
+    })
 
-  it('matches SSH URLs', () => {
-    const accounts = [
-      new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
-    ]
-    const repo = matchGitHubRepository(
-      accounts,
-      'git@github.com:someuser/somerepo.git'
-    )!
-    expect(repo.name).to.equal('somerepo')
-    expect(repo.owner).to.equal('someuser')
-  })
+    it('matches SSH URLs', () => {
+      const accounts = [
+        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
+      ]
+      const repo = matchGitHubRepository(
+        accounts,
+        'git@github.com:someuser/somerepo.git'
+      )!
+      expect(repo.name).to.equal('somerepo')
+      expect(repo.owner).to.equal('someuser')
+    })
 
-  it(`doesn't match if there aren't any users with that endpoint`, () => {
-    const accounts = [
-      new Account(
-        'alovelace',
-        'https://github.babbageinc.com',
-        '',
-        [],
-        '',
-        1,
-        ''
-      ),
-    ]
-    const repo = matchGitHubRepository(
-      accounts,
-      'https://github.com/someuser/somerepo.git'
-    )
-    expect(repo).to.equal(null)
+    it(`doesn't match if there aren't any users with that endpoint`, () => {
+      const accounts = [
+        new Account(
+          'alovelace',
+          'https://github.babbageinc.com',
+          '',
+          [],
+          '',
+          1,
+          ''
+        ),
+      ]
+      const repo = matchGitHubRepository(
+        accounts,
+        'https://github.com/someuser/somerepo.git'
+      )
+      expect(repo).to.equal(null)
+    })
   })
 
   describe('repositoryMatchesRemote', () => {
@@ -101,7 +102,7 @@ describe('Repository matching', () => {
     }
 
     it('matches clone url', () => {
-      const remote: IRemote = {
+      const remote = {
         name: 'origin',
         url: cloneURL,
       }
@@ -109,7 +110,7 @@ describe('Repository matching', () => {
     })
 
     it('matches clone url', () => {
-      const remote: IRemote = {
+      const remote = {
         name: 'origin',
         url: htmlURL,
       }
