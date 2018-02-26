@@ -4,8 +4,10 @@ import * as Path from 'path'
 import { CloningRepository } from '../models/cloning-repository'
 import { Repository } from '../models/repository'
 import { Account } from '../models/account'
+import { IRemote } from '../models/remote'
 import { getHTMLURL } from './api'
 import { parseRemote } from './remote-parsing'
+import { GitHubRepository } from '../models/github-repository'
 
 export interface IMatchedGitHubRepository {
   /**
@@ -90,5 +92,15 @@ export function matchExistingRepository(
         return Path.normalize(r.path) === Path.normalize(path)
       }
     }) || null
+  )
+}
+
+export function repositoryMatchesRemote(
+  gitHubRepository: GitHubRepository,
+  remote: IRemote
+): boolean {
+  return (
+    gitHubRepository.cloneURL === remote.url ||
+    gitHubRepository.htmlURL === remote.url
   )
 }

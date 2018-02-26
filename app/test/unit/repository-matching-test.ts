@@ -1,7 +1,12 @@
 import { expect } from 'chai'
 
-import { matchGitHubRepository } from '../../src/lib/repository-matching'
+import {
+  matchGitHubRepository,
+  repositoryMatchesRemote,
+} from '../../src/lib/repository-matching'
 import { Account } from '../../src/models/account'
+import { GitHubRepository } from '../../src/models/github-repository'
+import { IRemote } from '../../src/models/remote'
 
 describe('Repository matching', () => {
   it('matches HTTPS URLs', () => {
@@ -69,5 +74,46 @@ describe('Repository matching', () => {
       'https://github.com/someuser/somerepo.git'
     )
     expect(repo).to.equal(null)
+  })
+
+  describe('repositoryMatchesRemote', () => {
+    const cloneURL = 'https://github.com/shiftkey/desktop.git'
+    const htmlURL = 'https://github.com/shiftkey/desktop'
+
+    const githubRepo: GitHubRepository = {
+      dbID: -1,
+      name: 'desktop',
+      owner: {
+        login: 'shiftkey',
+        id: 1,
+        endpoint: 'https://api.github.com',
+        hash: 'something',
+      },
+      private: false,
+      defaultBranch: 'master',
+      parent: null,
+      endpoint: 'https://api.github.com',
+      fullName: 'shiftkey/desktop',
+      fork: true,
+      hash: 'whatever',
+      cloneURL,
+      htmlURL,
+    }
+
+    it('matches clone url', () => {
+      const remote: IRemote = {
+        name: 'origin',
+        url: cloneURL,
+      }
+      expect(repositoryMatchesRemote(githubRepo, remote)).to.be.true
+    })
+
+    it('matches clone url', () => {
+      const remote: IRemote = {
+        name: 'origin',
+        url: htmlURL,
+      }
+      expect(repositoryMatchesRemote(githubRepo, remote)).to.be.true
+    })
   })
 })
