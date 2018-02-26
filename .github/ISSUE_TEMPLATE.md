@@ -31,6 +31,18 @@ Include screen shots or gifs if available
 ### How often does this issue occur?
 <!-- Sometimes`, `Most of the time`, or `Every time -->
 ## Additional Information
-<!-- Replace with any additional details you feel are relevant to your issue or request -->
+<!-- 
+Replace with any additional information, configuration, or data that might be necessary to reproduce the issue.
+
+If you are dealing with a performance issue or regression, attaching a Timeline profile of the task will help the developers understand the runtime behavior of the application on your machine.
+	* https://github.com/desktop/desktop/blob/master/docs/contributing/timeline-profile.md
+ -->
 ### Logs
-<!-- Replace with your log file (You can simply drag your file here to insert it) -->
+<!-- 
+Replace with your log file (You can simply drag your file here to insert it) 
+
+macOS logs location: `~/Library/Application Support/GitHub Desktop/logs/*.desktop.production.log`
+Windows logs location: `%APPDATA%\GitHub Desktop\logs\*.desktop.production.log`
+
+The log files are organized by date, so see if anything was generated for today's date.
+-->
