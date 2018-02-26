@@ -1,6 +1,9 @@
 {
   "releases": {
     "1.1": [
+      "[Added] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",
+      "[Added] Add TextMate support for macOS - #3910. Thanks @caiofbpa!",
+      "[Added] Syntax highlighting for Elixir files - #3774. Thanks @joaovitoras!",
       "[Fixed] PRs get wiped when switching repositories - #3850",
       "[Fixed] Layout of branch blankslate image - #4011",
       "[Fixed] Expanded avatar stack in commit summary gets cut off - #3884",
@@ -29,10 +32,7 @@
       "[Improved] Error handling around ENOENT - #3954",
       "[Improved] Clear repository filter text when switching tabs - #3787. Thanks @reyronald!",
       "[Improved] Disable drag-and-drop interaction when a popup is in the foreground - #3996",
-      "[Improved] Allow window to accept single click on focus - #3843",
-      "[Added] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",
-      "[Added] Add TextMate support for macOS - #3910. Thanks @caiofbpa!",
-      "[Added] Syntax highlighting for Elixir files - #3774. Thanks @joaovitoras!"
+      "[Improved] Allow window to accept single click on focus - #3843"
     ],
     "1.1.0-beta3": [
       "[Fixed] Fetch default remote if it differs from the current - #4056"
