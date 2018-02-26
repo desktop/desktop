@@ -1,6 +1,8 @@
 {
   "releases": {
     "1.1": [
+      "[New] Checkout pull requests from collaborators or forks from within Desktop",
+      "[New] View the commit status of the branch when it has an open pull request",
       "[Added] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",
       "[Added] Add TextMate support for macOS - #3910. Thanks @caiofbpa!",
       "[Added] Syntax highlighting for Elixir files - #3774. Thanks @joaovitoras!",
