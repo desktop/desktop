@@ -26,8 +26,8 @@
       "[Improved] Remove references to Hubot from the user setup page - #4015. Thanks @j-f1!",
       "[Improved] Error handling around ENOENT - #3954",
       "[Improved] Clear repository filter text when switching tabs - #3787. Thanks @reyronald!",
-      "[Improved] Disable drag-and-drop interaction when a popup is in the foreground - #3996",
-      "[Improved] Allow window to accept single click on focus - #3843"
+      "[Improved] Allow window to accept single click on focus - #3843",
+      "[Improved] Disable drag-and-drop interaction when a popup is in the foreground - #3996"
     ],
     "1.1.0-beta3": [
       "[Fixed] Fetch default remote if it differs from the current - #4056"
