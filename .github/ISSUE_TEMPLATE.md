@@ -8,6 +8,7 @@ First and foremost, we’d like to thank you for taking the time to contribute t
 3. Make sure your issue isn’t a duplicate of another issue
 4. If you have made it to this step, go ahead and fill out the template below
 -->
+
 ## Description
 <!--
 Provide a detailed description of the behavior you're seeing or the behavior you'd like to see **below** this comment.
