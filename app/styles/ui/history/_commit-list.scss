@@ -1,8 +1,7 @@
-@import "../../mixins";
+@import '../../mixins';
 
 /** A React component holding history's commit list */
 #commit-list {
-
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -18,19 +17,27 @@
 
     padding: 0 var(--spacing);
 
-    .avatar {
-      width: 28px;
-      height: 28px;
-      flex-shrink: 0;
-    }
-
     .info {
       display: flex;
       flex-direction: column;
+      margin-top: -4px;
       overflow: hidden;
-      margin-left: var(--spacing-half);
+      width: 100%;
 
-      .summary, .byline { @include ellipsis }
+      .description {
+        display: flex;
+        flex-direction: row;
+        margin-top: 3px;
+      }
+
+      .summary {
+        font-weight: var(--font-weight-semibold);
+      }
+
+      .summary,
+      .byline {
+        @include ellipsis;
+      }
     }
   }
 }

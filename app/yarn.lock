@@ -155,9 +155,15 @@ co@^4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
 
-codemirror@^5.31.0:
-  version "5.31.0"
-  resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.31.0.tgz#ecf3d057eb74174147066bfc7c5f37b4c4e07df2"
+codemirror-mode-elixir@1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/codemirror-mode-elixir/-/codemirror-mode-elixir-1.1.1.tgz#cc5b79bf5f93b6da426e32364a673a681391416c"
+  dependencies:
+    codemirror "^5.20.2"
+
+codemirror@^5.20.2, codemirror@^5.31.0:
+  version "5.33.0"
+  resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.33.0.tgz#462ad9a6fe8d38b541a9536a3997e1ef93b40c6a"
 
 color-convert@^1.9.0:
   version "1.9.0"
@@ -268,9 +274,9 @@ dom-matches@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/dom-matches/-/dom-matches-2.0.0.tgz#d2728b416a87533980eb089b848d253cf23a758c"
 
-dugite@1.53.0:
-  version "1.53.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.53.0.tgz#2c402ca92ac34ffeb3a2b6f8b1a6774c2309a41c"
+dugite@1.58.0:
+  version "1.58.0"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-1.58.0.tgz#55e2772251a0cdac6c6dbf6331aa267517041aa1"
   dependencies:
     checksum "^0.1.1"
     mkdirp "^0.5.1"
@@ -433,6 +439,10 @@ fs-minipass@^1.2.3:
 fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
+
+fuzzaldrin-plus@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/fuzzaldrin-plus/-/fuzzaldrin-plus-0.6.0.tgz#832f6489fbe876769459599c914a670ec22947ee"
 
 getpass@^0.1.1:
   version "0.1.7"

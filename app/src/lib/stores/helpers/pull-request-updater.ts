@@ -1,8 +1,8 @@
 import { PullRequestStore } from '../pull-request-store'
 import { Account } from '../../../models/account'
-import { fatalError } from '../../fatal-error'
+import { fatalError, forceUnwrap } from '../../fatal-error'
 import { PullRequest } from '../../../models/pull-request'
-import { GitHubRepository } from '../../../models/github-repository'
+import { Repository } from '../../../models/repository'
 
 //** Interval to check for pull requests */
 const PullRequestInterval = 1000 * 60 * 10
@@ -24,7 +24,7 @@ enum TimeoutHandles {
  * and status info from GitHub.
  */
 export class PullRequestUpdater {
-  private readonly repository: GitHubRepository
+  private readonly repository: Repository
   private readonly account: Account
   private readonly store: PullRequestStore
 
@@ -34,7 +34,7 @@ export class PullRequestUpdater {
   private currentPullRequests: ReadonlyArray<PullRequest> = []
 
   public constructor(
-    repository: GitHubRepository,
+    repository: Repository,
     account: Account,
     pullRequestStore: PullRequestStore
   ) {
@@ -45,6 +45,11 @@ export class PullRequestUpdater {
 
   /** Starts the updater */
   public start() {
+    const githubRepo = forceUnwrap(
+      'Can only refresh pull requests for GitHub repositories',
+      this.repository.gitHubRepository
+    )
+
     if (!this.isStopped) {
       fatalError(
         'Cannot start the Pull Request Updater that is already running.'
@@ -57,14 +62,14 @@ export class PullRequestUpdater {
       TimeoutHandles.PullRequest,
 
       window.setTimeout(() => {
-        this.store.refreshPullRequests(this.repository, this.account)
+        this.store.fetchAndCachePullRequests(this.repository, this.account)
       }, PullRequestInterval)
     )
 
     this.timeoutHandles.set(
       TimeoutHandles.Status,
       window.setTimeout(() => {
-        this.store.refreshPullRequestStatuses(this.repository, this.account)
+        this.store.fetchPullRequestStatuses(githubRepo, this.account)
       }, StatusInterval)
     )
   }
@@ -80,10 +85,7 @@ export class PullRequestUpdater {
   }
 
   /** Starts fetching the statuses of PRs at an accelerated rate */
-  public didPushPullRequest(
-    repository: GitHubRepository,
-    pullRequest: PullRequest
-  ) {
+  public didPushPullRequest(pullRequest: PullRequest) {
     if (this.currentPullRequests.find(p => p.id === pullRequest.id)) {
       return
     }
@@ -98,15 +100,20 @@ export class PullRequestUpdater {
     }
 
     const handle = window.setTimeout(
-      () => this.refreshPullRequestStatus(repository),
+      () => this.refreshPullRequestStatus(),
       PostPushInterval
     )
     this.timeoutHandles.set(TimeoutHandles.PushedPullRequest, handle)
   }
 
-  private async refreshPullRequestStatus(repository: GitHubRepository) {
-    await this.store.refreshPullRequestStatuses(this.repository, this.account)
-    const prs = await this.store.getPullRequests(repository)
+  private async refreshPullRequestStatus() {
+    const githubRepo = forceUnwrap(
+      'Can only refresh pull requests for GitHub repositories',
+      this.repository.gitHubRepository
+    )
+
+    await this.store.fetchPullRequestStatuses(githubRepo, this.account)
+    const prs = await this.store.fetchPullRequestsFromCache(githubRepo)
 
     for (const pr of prs) {
       const status = pr.status

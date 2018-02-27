@@ -227,6 +227,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.checkForUpdates(true)
 
     log.info(`launching: ${getVersion()} (${getOS()})`)
+    log.info(`execPath: '${process.execPath}'`)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -539,6 +540,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     document.body.ondrop = e => {
+      if (this.state.currentPopup != null) {
+        return
+      }
       const files = e.dataTransfer.files
       this.handleDragAndDrop(files)
       e.preventDefault()
@@ -1511,7 +1515,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderBranchToolbarButton(): JSX.Element | null {
     const selection = this.state.selectedState
 
-    if (!selection || selection.type !== SelectionType.Repository) {
+    if (selection == null || selection.type !== SelectionType.Repository) {
       return null
     }
 
@@ -1600,6 +1604,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           askForConfirmationOnDiscardChanges={
             this.state.askForConfirmationOnDiscardChanges
           }
+          accounts={this.state.accounts}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

@@ -88,6 +88,8 @@ export class ConfigureGitUser extends React.Component<
       'Fix all the things',
       '',
       author,
+      author,
+      [],
       []
     )
     const emoji = new Map()
@@ -96,14 +98,14 @@ export class ConfigureGitUser extends React.Component<
         <Form className="sign-in-form" onSubmit={this.save}>
           <TextBox
             label="Name"
-            placeholder="Hubot"
+            placeholder="Your Name"
             value={this.state.name}
             onChange={this.onNameChange}
           />
 
           <TextBox
             label="Email"
-            placeholder="hubot@github.com"
+            placeholder="your-email@example.com"
             value={this.state.email}
             onChange={this.onEmailChange}
           />
@@ -120,24 +122,13 @@ export class ConfigureGitUser extends React.Component<
           <CommitListItem
             commit={dummyCommit}
             emoji={emoji}
-            user={this.getAvatarUser()}
+            gitHubUsers={null}
             gitHubRepository={null}
             isLocal={false}
           />
         </div>
       </div>
     )
-  }
-
-  private getAvatarUser() {
-    const email = this.state.email
-    const avatarURL = this.state.avatarURL
-    const name = this.state.name
-    if (email && avatarURL && name) {
-      return { email, avatarURL, name }
-    } else {
-      return null
-    }
   }
 
   private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {

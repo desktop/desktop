@@ -61,6 +61,9 @@ interface ICloneRepositoryState {
    * The repository identifier that was last parsed from the user-entered URL.
    */
   readonly lastParsedIdentifier: IRepositoryIdentifier | null
+
+  /** Should the component clear the filter text on render? */
+  readonly shouldClearFilter: boolean
 }
 
 /** The component for cloning a repository. */
@@ -77,7 +80,14 @@ export class CloneRepository extends React.Component<
       loading: false,
       error: null,
       lastParsedIdentifier: null,
+      shouldClearFilter: false,
     }
+  }
+
+  public componentWillReceiveProps(nextProps: ICloneRepositoryProps) {
+    this.setState({
+      shouldClearFilter: this.props.selectedTab !== nextProps.selectedTab,
+    })
   }
 
   public componentDidMount() {
@@ -176,6 +186,7 @@ export class CloneRepository extends React.Component<
               onGitHubRepositorySelected={this.updateUrl}
               onChooseDirectory={this.onChooseDirectory}
               onDismissed={this.props.onDismissed}
+              shouldClearFilter={this.state.shouldClearFilter}
             />
           )
         }

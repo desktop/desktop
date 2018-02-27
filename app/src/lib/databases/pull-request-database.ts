@@ -1,5 +1,6 @@
 import Dexie from 'dexie'
-import { APIRefState } from '../api'
+import { APIRefState, IAPIRefStatusItem } from '../api'
+import { BaseDatabase } from './base-database'
 
 export interface IPullRequestRef {
   /**
@@ -59,25 +60,53 @@ export interface IPullRequestStatus {
 
   /** The SHA for which this status applies. */
   readonly sha: string
+
+  /**
+   * The list of statuses for this specific ref or undefined
+   * if the database object was created prior to status support
+   * being added in #3588
+   */
+  readonly statuses?: ReadonlyArray<IAPIRefStatusItem>
 }
 
-export class PullRequestDatabase extends Dexie {
+export class PullRequestDatabase extends BaseDatabase {
   public pullRequests: Dexie.Table<IPullRequest, number>
   public pullRequestStatus: Dexie.Table<IPullRequestStatus, number>
 
-  public constructor(name: string) {
-    super(name)
+  public constructor(name: string, schemaVersion?: number) {
+    super(name, schemaVersion)
 
-    this.version(1).stores({
+    this.conditionalVersion(1, {
       pullRequests: 'id++, base.repoId',
     })
 
-    this.version(2).stores({
+    this.conditionalVersion(2, {
       pullRequestStatus: 'id++, &[sha+pullRequestId]',
     })
 
-    this.version(3).stores({
+    this.conditionalVersion(3, {
       pullRequestStatus: 'id++, &[sha+pullRequestId], pullRequestId',
+    })
+
+    // we need to run the upgrade function to ensure we add
+    // a status field to all previous records
+    this.conditionalVersion(4, {}, this.addStatusesField)
+  }
+
+  private addStatusesField = async (transaction: Dexie.Transaction) => {
+    const table = this.pullRequestStatus
+
+    await table.toCollection().modify(async prStatus => {
+      if (prStatus.statuses == null) {
+        const newPrStatus = { statuses: [], ...prStatus }
+
+        await table
+          .where('[sha+pullRequestId]')
+          .equals([prStatus.sha, prStatus.pullRequestId])
+          .delete()
+
+        await table.add(newPrStatus)
+      }
     })
   }
 }

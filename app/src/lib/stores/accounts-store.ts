@@ -1,9 +1,9 @@
-import { Emitter, Disposable } from 'event-kit'
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
 import { Account } from '../../models/account'
 import { fetchUser, EmailVisibility } from '../api'
 import { fatalError } from '../fatal-error'
+import { BaseStore } from './base-store'
 
 /** The data-only interface for storage. */
 interface IEmail {
@@ -36,7 +36,7 @@ interface IAccount {
 }
 
 /** The store for logged in accounts. */
-export class AccountsStore {
+export class AccountsStore extends BaseStore {
   private dataStore: IDataStore
   private secureStore: ISecureStore
 
@@ -45,30 +45,12 @@ export class AccountsStore {
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
 
-  private readonly emitter = new Emitter()
-
   public constructor(dataStore: IDataStore, secureStore: ISecureStore) {
+    super()
+
     this.dataStore = dataStore
     this.secureStore = secureStore
     this.loadingPromise = this.loadFromStore()
-  }
-
-  private emitUpdate() {
-    this.emitter.emit('did-update', {})
-  }
-
-  private emitError(error: Error) {
-    this.emitter.emit('did-error', error)
-  }
-
-  /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: () => void): Disposable {
-    return this.emitter.on('did-update', fn)
-  }
-
-  /** Register a function to be called when an error occurs. */
-  public onDidError(fn: (error: Error) => void): Disposable {
-    return this.emitter.on('did-error', fn)
   }
 
   /**
