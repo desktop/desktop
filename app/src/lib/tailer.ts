@@ -43,6 +43,9 @@ export class Tailer {
 
     try {
       const watcher = Fs.watch(this.path, this.onWatchEvent)
+      watcher.on('error', error => {
+        log.warn(`Unable to watch file at '${this.path}'`, error)
+      })
       this.state = { watcher, position: 0 }
     } catch (e) {
       log.debug(`unable to watch path: ${this.path}`, e)
