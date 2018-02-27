@@ -18,7 +18,7 @@ export enum ExternalEditor {
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
-  NotepadPlusPlus = 'Notepad++'
+  NotepadPlusPlus = 'Notepad++',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -125,7 +125,7 @@ function getRegistryKeys(
           subKey:
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Notepad++',
         },
-        // 32-bit version of Notepad++ 
+        // 32-bit version of Notepad++
         {
           key: HKEY.HKEY_LOCAL_MACHINE,
           subKey:
@@ -337,7 +337,7 @@ async function findApplication(editor: ExternalEditor): Promise<string | null> {
  */
 export async function getAvailableEditors(): Promise<
   ReadonlyArray<IFoundEditor<ExternalEditor>>
-  > {
+> {
   const results: Array<IFoundEditor<ExternalEditor>> = []
 
   const [
