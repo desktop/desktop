@@ -26,7 +26,10 @@ These editors are currently supported:
 
  - [Atom](https://atom.io/)
  - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Visual Studio Code (Insiders)](https://code.visualstudio.com/insiders/)
  - [Sublime Text](https://www.sublimetext.com/)
+ - [ColdFusion Builder](https://www.adobe.com/tr/products/coldfusion-builder.html)
+ - [Notepad++](https://notepad-plus-plus.org/)
 
 These are defined in an enum at the top of the file:
 
@@ -34,7 +37,10 @@ These are defined in an enum at the top of the file:
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
+  CFBuilder = 'ColdFusion Builder',
+  NotepadPlusPlus = 'Notepad++'
 }
 ```
 
