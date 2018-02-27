@@ -134,8 +134,6 @@ export class ConfigureGitUser extends React.Component<
   private onNameChange = (name: string) => {
     this.setState({
       name,
-      email: this.state.email,
-      avatarURL: this.state.avatarURL,
     })
   }
 
