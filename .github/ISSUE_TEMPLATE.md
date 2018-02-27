@@ -25,21 +25,21 @@ Include screen shots or gifs if available
 -->
 
 ### Expected Behavior
-<!-- Replace with what you expected to happen -->
+<!-- What you expected to happen -->
 ### Actual Behavior
-<!-- Replace with what actually happens -->
+<!-- What actually happens -->
 ### How often does this issue occur?
 <!-- `Sometimes`, `Most of the time`, or `Every time -->
 ## Additional Information
 <!-- 
-Replace with any additional information, configuration, or data that might be necessary to reproduce the issue.
+Any additional information, configuration, or data that might be necessary to reproduce the issue.
 
 If you are dealing with a performance issue or regression, attaching a Timeline profile of the task will help the developers understand the runtime behavior of the application on your machine.
 	* https://github.com/desktop/desktop/blob/master/docs/contributing/timeline-profile.md
  -->
 ### Logs
 <!-- 
-Replace with your log file (You can simply drag your file here to insert it) 
+Attach your log file (You can simply drag your file here to insert it) to this issue. Please make sure the generated link to your log file is below this comment section otherwise it will not appear when you submit your issue.
 
 macOS logs location: `~/Library/Application Support/GitHub Desktop/logs/*.desktop.production.log`
 Windows logs location: `%APPDATA%\GitHub Desktop\logs\*.desktop.production.log`
