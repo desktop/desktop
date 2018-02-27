@@ -184,7 +184,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     )
   }
 
-  private filterTextBoxRef = (component: TextBox) => {
+  private filterTextBoxRef = (component: TextBox | null) => {
     this.filterTextBox = component
   }
 
