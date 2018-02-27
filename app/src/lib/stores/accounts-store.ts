@@ -83,7 +83,27 @@ export class AccountsStore extends BaseStore {
       )
     } catch (e) {
       log.error(`Error adding account '${account.login}'`, e)
-      this.emitError(e)
+
+      if (__DARWIN__) {
+        const error = e as Error
+
+        if (
+          error.message &&
+          error.message.startsWith(
+            'The user name or passphrase you entered is not correct'
+          )
+        ) {
+          this.emitError(
+            new Error(
+              'GitHub Desktop was unable to store the account token in the keychain. Please check you have unlocked access to the keychain.'
+            )
+          )
+        } else {
+          this.emitError(e)
+        }
+      } else {
+        this.emitError(e)
+      }
       return
     }
 
