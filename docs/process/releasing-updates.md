@@ -6,33 +6,31 @@ We have three channels to which we can release: `production`, `beta`, and `test`
 
 - `production` is the channel from which the general public downloads and receives updates. It should be stable and polished.
 
-- `beta` is released more often than `production`. It may be buggy and unpolished. For example: we should be able to release at any point from the master branch.
+- `beta` is released more often than `production`. We want to ensure `master` is always in a state where it can be released to users and we will use `beta` for additional QA.
 
 - `test` is unlike the other two. It does not receive updates. Each test release is locked in time. It's used entirely for providing test releases.
 
 ## The Process
 
-For releasing to `test`, skip to the `Releasing` header (no draft release needed).
-
 ### 1. GitHub Access Token
 
 From a clean working directory, set the `GITHUB_ACCESS_TOKEN` environment variable to a valid [Personal Access Token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) 
 
-You can check if it is set on MacOS by:
+You can check that this is set on macOS by:
 ```shellsession
 $ env GITHUB_ACCESS_TOKEN
 ```
 
-You can check if it is set on Windows by:
+You can check that this is set on Windows by:
 ```shellsession
 $ echo %GITHUB_ACCESS_TOKEN%
 ```
 
 If you are creating a new Personal Access Token on GitHub:
-* a reasonable description is: `Desktop Draft Release and Changelog Generator`
-* ONLY check the `read:org` checkbox for scopes/permissions
+* make the token memorable - use a description like `Desktop Draft Release and Changelog Generator`
+* the `read:org` scope is the **only** required scope for drafting releases
 
-You can add an access token as an environment variable on MacOS by: 
+You can add an access token as an environment variable on macOS by: 
 ```shellsession
 $ export GITHUB_ACCESS_TOKEN={your token here}
 ```
@@ -44,15 +42,17 @@ $ set GITHUB_ACCESS_TOKEN={your token here}
 
 ### 2. Create Draft Release
 
-Once our access token is all set, we run a script that works out the next version from what was previously published, based on the channel.
+Once our personal access token is set, run the script that works out the next version from what was previously published, based on the desired channel.
 
-For production and beta releases, run:
+For `production` and `beta` releases, run:
 
 ```shellsession
 $ yarn draft-release (production|beta)
 ```
 
-The script will output a draft changelog, which covers everything that's been merged, and probably need some love.
+(For `test` releases, follow the directions in the steps below to update `app/package.json`'s 'version' to a higher version and add a changelog entry. The script does not support test yet.)
+
+The script will output a draft changelog, which covers everything that's been merged, and probably needs some love.
 The output will then explain the next steps:
 
 ```shellsession
@@ -114,7 +114,7 @@ If you are releasing from master, YOUR_BRANCH is unnecessary; write:
 
 We're using `.release` with a bang so that we don't have to wait for any current CI on the branch to finish. This might feel a little wrong, but it's OK since making the release itself will also run CI.
 
-If you're releasing a production update, release a beta update for the next version too, so that beta users are on the latest release.
+If you're releasing a `production` update, release a `beta` update for the next version too, so that beta users are on the latest release.
 
 ### 4. Check for Completed Release
 
@@ -127,8 +127,8 @@ it will initially specify its state as `State: pending` and will be completed wh
 You will also see this in Chat:
 `desktopbot tagged desktop/release-{YOUR_VERSION}`
   
-When it's in `State: released` for beta or production, switch to your desktop application and make sure that the corresponding (prod|beta) app auto-updates.
-If you don't have the app for beta, for example, you can always download the previous version on Central to see it update (but make sure you move it out of the Downloads folder and into the Applications folder for MacOS or it won't auto-update).
+When it's in `State: released` for `beta` or `production`, switch to your desktop application and make sure that the corresponding (prod|beta) app auto-updates.
+If you don't have the app for `beta`, for example, you can always download the previous version on Central to see it update (but make sure you move it out of the Downloads folder and into the Applications folder for macOS or it won't auto-update).
 
 ### 5. Check Error Reporting
 
