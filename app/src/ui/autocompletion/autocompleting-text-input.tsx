@@ -24,6 +24,9 @@ interface IAutocompletingTextInputProps<ElementType> {
   /** The current value of the input field. */
   readonly value?: string
 
+  /** Disabled state for input field. */
+  readonly disabled?: boolean
+
   /**
    * Called when the user changes the value in the input field.
    */
@@ -249,6 +252,7 @@ export abstract class AutocompletingTextInput<
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
       onBlur: this.onBlur,
+      disabled: this.props.disabled,
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(
