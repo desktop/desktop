@@ -116,7 +116,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   }
 
   public selectAll() {
-    if (this.inputElement == null) {
+    if (this.inputElement === null) {
       return
     }
 
@@ -126,7 +126,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   }
 
   public focus() {
-    if (this.inputElement == null) {
+    if (this.inputElement === null) {
       return
     }
 
@@ -149,7 +149,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     })
   }
 
-  private inputRef = (element: HTMLInputElement) => {
+  private inputRef = (element: HTMLInputElement | null) => {
     this.inputElement = element
   }
 
