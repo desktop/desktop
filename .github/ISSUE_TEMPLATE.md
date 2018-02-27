@@ -29,7 +29,7 @@ Include screen shots or gifs if available
 ### Actual Behavior
 <!-- What actually happens -->
 ### How often does this issue occur?
-<!-- `Sometimes`, `Most of the time`, or `Every time -->
+<!-- `Sometimes`, `Most of the time`, or `Every time` -->
 ## Additional Information
 <!-- 
 Any additional information, configuration, or data that might be necessary to reproduce the issue.
