@@ -115,6 +115,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
+  /** Selects all the text in this component */
   public selectAll() {
     if (this.inputElement === null) {
       return
@@ -125,6 +126,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
+  /** Sets focus on this component */
   public focus() {
     if (this.inputElement === null) {
       return
