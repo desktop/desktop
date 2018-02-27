@@ -48,6 +48,9 @@ First, please search the [open issues](https://github.com/desktop/desktop/issues
 and [closed issues](https://github.com/desktop/desktop/issues?q=is%3Aclosed)
 to see if your issue hasn't already been reported (it may also be fixed).
 
+There is also a list of [known issues](https://github.com/desktop/desktop/blob/master/docs/known-issues.md)
+that are being tracked against Desktop, and some of these issues have workarounds.
+
 If you can't find an issue that matches what you're seeing, open a [new issue](https://github.com/desktop/desktop/issues/new)
 and fill out the template to provide us with enough information to investigate
 further.
