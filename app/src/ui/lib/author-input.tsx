@@ -38,6 +38,12 @@ interface IAuthorInputProps {
    * input field.
    */
   readonly onAuthorsUpdated: (authors: ReadonlyArray<IAuthor>) => void
+
+  /**
+   * Whether or not the input should be read-only and styled as being
+   * disabled. When disabled the component will not accept focus.
+   */
+  readonly disabled: boolean
 }
 
 /**
@@ -490,6 +496,12 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   public componentWillReceiveProps(nextProps: IAuthorInputProps) {
+    const cm = this.editor
+
+    if (!cm) {
+      return
+    }
+
     // If the authors prop have changed from our internal representation
     // we'll throw up our hands and reset the input to whatever we're
     // given.
@@ -497,12 +509,13 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       nextProps.authors !== this.props.authors &&
       !arrayEquals(this.authors, nextProps.authors)
     ) {
-      const cm = this.editor
-      if (cm) {
-        cm.operation(() => {
-          this.reset(cm, nextProps.authors)
-        })
-      }
+      cm.operation(() => {
+        this.reset(cm, nextProps.authors)
+      })
+    }
+
+    if (nextProps.disabled !== this.props.disabled) {
+      cm.setOption('readOnly', nextProps.disabled ? 'nocursor' : false)
     }
   }
 
@@ -704,6 +717,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         'Ctrl-Enter': false,
         'Cmd-Enter': false,
       },
+      readOnly: this.props.disabled ? 'nocursor' : false,
       hintOptions: {
         completeOnSingleClick: true,
         completeSingle: false,
@@ -845,7 +859,13 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   public render() {
-    const className = classNames('author-input-component', this.props.className)
+    const className = classNames(
+      'author-input-component',
+      this.props.className,
+      {
+        disabled: this.props.disabled,
+      }
+    )
     return <div className={className} ref={this.onContainerRef} />
   }
 }

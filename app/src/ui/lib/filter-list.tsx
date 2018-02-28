@@ -163,7 +163,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
             autoFocus={true}
             placeholder="Filter"
             className="filter-list-filter-field"
-            onChange={this.onFilterChanged}
+            onValueChanged={this.onFilterChanged}
             onKeyDown={this.onKeyDown}
             onInputRef={this.onInputRef}
             value={this.props.filterText}
@@ -244,8 +244,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
   }
 
-  private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const text = event.currentTarget.value
+  private onFilterChanged = (text: string) => {
     if (this.props.onFilterTextChanged) {
       this.props.onFilterTextChanged(text)
     }
