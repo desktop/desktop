@@ -117,11 +117,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
    * automatically move keyboard focus, see the focus method for that
    */
   public selectAll() {
-    if (this.inputElement === null) {
-      return
-    }
-
-    if (this.state.value && this.state.value.length !== 0) {
+    if (this.inputElement !== null) {
       this.inputElement.select()
     }
   }
