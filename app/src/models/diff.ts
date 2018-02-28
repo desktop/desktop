@@ -56,6 +56,8 @@ export enum DiffType {
   Submodule,
   /** diff is large enough to degrade ux if rendered */
   LargeText,
+  /** Diff that will not be rendered */
+  Unrenderable,
 }
 
 /** indicate what a line in the diff represents */
