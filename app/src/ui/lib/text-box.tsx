@@ -112,7 +112,10 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
-  /** Selects all the text in this component */
+  /**
+   * Selects all text (if any) in the inner text input element. Note that this method does not
+   * automatically move keyboard focus, see the focus method for that
+   */
   public selectAll() {
     if (this.inputElement === null) {
       return
@@ -123,7 +126,10 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
   }
 
-  /** Sets focus on this component */
+  /**
+   * Programmatically moves keyboard focus to the inner text input element if it can be focused
+   * (i.e. if it's not disabled explicitly or implicitly through for example a fieldset).
+   */
   public focus() {
     if (this.inputElement === null) {
       return
