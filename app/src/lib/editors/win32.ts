@@ -160,7 +160,7 @@ function getExecutableShim(
     case ExternalEditor.CFBuilder:
       return Path.join(installLocation, 'CFBuilder.exe')
     case ExternalEditor.NotepadPlusPlus:
-      return Path.join(installLocation, '')
+      return Path.join(installLocation, 'notepad++.exe')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -286,7 +286,10 @@ function extractApplicationInformation(
   if (editor === ExternalEditor.NotepadPlusPlus) {
     const displayName = getKeyOrEmpty(keys, 'DisplayName')
     const publisher = getKeyOrEmpty(keys, 'Publisher')
-    const installLocation = getKeyOrEmpty(keys, 'DisplayIcon')
+    const installLocation = getKeyOrEmpty(keys, 'UninstallString').replace(
+      'uninstall.exe',
+      ''
+    )
     return { displayName, publisher, installLocation }
   }
 
