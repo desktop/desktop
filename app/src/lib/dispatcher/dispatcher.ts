@@ -806,6 +806,17 @@ export class Dispatcher {
         } catch (e) {
           rejectOAuthRequest(e)
         }
+
+        // maybe a workaround for macOS not focusing on the app after
+        // completing the OAuth dance?
+        const window = remote.getCurrentWindow()
+        const isFocused = window.isFocused()
+        log.debug(`OAuth dance done, isFocused: ${isFocused}`)
+
+        if (!isFocused) {
+          log.debug(`refocusing the main window`)
+          window.focus()
+        }
         break
 
       case 'open-repository-from-url':
