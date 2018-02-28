@@ -253,7 +253,7 @@ export class CreateBranch extends React.Component<
               label="Name"
               value={this.state.proposedName}
               autoFocus={true}
-              onChange={this.onBranchNameChange}
+              onValueChanged={this.onBranchNameChange}
             />
           </Row>
 
@@ -277,9 +277,8 @@ export class CreateBranch extends React.Component<
     )
   }
 
-  private onBranchNameChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const str = event.currentTarget.value
-    this.updateBranchName(str)
+  private onBranchNameChange = (name: string) => {
+    this.updateBranchName(name)
   }
 
   private updateBranchName(name: string) {
