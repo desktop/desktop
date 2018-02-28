@@ -66,4 +66,3 @@ Windows logs location: `%APPDATA%\GitHub Desktop\logs\*.desktop.production.log`
 
 The log files are organized by date, so see if anything was generated for today's date.
 -->
-
