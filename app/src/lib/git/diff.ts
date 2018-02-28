@@ -374,27 +374,15 @@ function buildLargeTextDiff(
     // we know we can't transform this process output into a diff, so let's
     // just return a placeholder for now that we can display to the user
     // to say we're at the limits of the runtime
-    return { kind: DiffType.LargeText, length: buffer.length }
+    return { kind: DiffType.LargeText }
   }
 
   const diffText = diffFromRawDiffOutput(buffer)
 
-  if (isBufferTooLarge(buffer)) {
+  if (isBufferTooLarge(buffer) || isDiffTooLarge(diffText)) {
     // we don't want to render by default
     // but we keep it as an option by
     // passing in text and hunks
-    const largeTextDiff: ILargeTextDiff = {
-      kind: DiffType.LargeText,
-      length: buffer.length,
-      text: diffText.contents,
-      hunks: diffText.hunks,
-      lineEndingsChange,
-    }
-
-    return largeTextDiff
-  }
-
-  if (isDiffTooLarge(diffText)) {
     const largeTextDiff: ILargeTextDiff = {
       kind: DiffType.LargeText,
       text: diffText.contents,
