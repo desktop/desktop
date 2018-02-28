@@ -144,7 +144,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     })
   }
 
-  private inputRef = (element: HTMLInputElement | null) => {
+  private onInputRef = (element: HTMLInputElement | null) => {
     this.inputElement = element
   }
 
@@ -187,7 +187,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
         <input
           id={inputId}
-          ref={this.inputRef}
+          ref={this.onInputRef}
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
           type={this.props.type}
