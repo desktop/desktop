@@ -18,6 +18,7 @@ import {
   LineEndingsChange,
   parseLineEndingText,
   ILargeTextDiff,
+  IUnrenderableDiff,
 } from '../../models/diff'
 
 import { spawnAndComplete } from './spawn'
@@ -112,14 +113,7 @@ export async function getCommitDiff(
     'getCommitDiff'
   )
 
-  const largeDiff = buildLargeTextDiff(output)
-  if (largeDiff != null) {
-    return largeDiff
-  }
-
-  const diffText = diffFromRawDiffOutput(output)
-
-  return convertDiff(repository, file, diffText, commitish)
+  return buildDiff(output, repository, file, commitish)
 }
 
 /**
@@ -196,17 +190,9 @@ export async function getWorkingDirectoryDiff(
     'getWorkingDirectoryDiff',
     successExitCodes
   )
-
   const lineEndingsChange = parseLineEndingsWarning(error)
-  const largeDiff = buildLargeTextDiff(output, lineEndingsChange)
 
-  if (largeDiff != null) {
-    return largeDiff
-  }
-
-  const diffText = diffFromRawDiffOutput(output)
-
-  return convertDiff(repository, file, diffText, 'HEAD', lineEndingsChange)
+  return buildDiff(output, repository, file, 'HEAD', lineEndingsChange)
 }
 
 async function getImageDiff(
@@ -362,38 +348,37 @@ function diffFromRawDiffOutput(output: Buffer): IRawDiff {
   return parser.parse(pieces[pieces.length - 1])
 }
 
-/**
- * Utility function that takes a buffer and outputs
- * either a largeTextDiff or null
- */
-function buildLargeTextDiff(
+function buildDiff(
   buffer: Buffer,
+  repository: Repository,
+  file: FileChange,
+  commitish: string,
   lineEndingsChange?: LineEndingsChange
-): ILargeTextDiff | null {
+): Promise<IDiff> {
   if (!isValidBuffer(buffer)) {
     // we know we can't transform this process output into a diff, so let's
     // just return a placeholder for now that we can display to the user
     // to say we're at the limits of the runtime
-    return { kind: DiffType.LargeText }
+    return Promise.resolve<IUnrenderableDiff>({ kind: DiffType.Unrenderable })
   }
 
-  const diffText = diffFromRawDiffOutput(buffer)
+  const diff = diffFromRawDiffOutput(buffer)
 
-  if (isBufferTooLarge(buffer) || isDiffTooLarge(diffText)) {
+  if (isBufferTooLarge(buffer) || isDiffTooLarge(diff)) {
     // we don't want to render by default
     // but we keep it as an option by
     // passing in text and hunks
     const largeTextDiff: ILargeTextDiff = {
       kind: DiffType.LargeText,
-      text: diffText.contents,
-      hunks: diffText.hunks,
+      text: diff.contents,
+      hunks: diff.hunks,
       lineEndingsChange,
     }
 
-    return largeTextDiff
+    return Promise.resolve(largeTextDiff)
   }
 
-  return null
+  return convertDiff(repository, file, diff, commitish, lineEndingsChange)
 }
 
 /**
