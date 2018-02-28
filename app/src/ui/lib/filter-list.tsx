@@ -165,12 +165,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
         <Row className="filter-field-row">
           <TextBox
-            ref={this.filterTextBoxRef}
+            ref={this.onTextBoxRef}
             type="search"
             autoFocus={true}
             placeholder="Filter"
             className="filter-list-filter-field"
-            onChange={this.onFilterChanged}
+            onValueChanged={this.onFilterChanged}
             onKeyDown={this.onKeyDown}
             value={this.props.filterText}
             disabled={this.props.disabled}
@@ -184,7 +184,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     )
   }
 
-  private filterTextBoxRef = (component: TextBox | null) => {
+  private onTextBoxRef = (component: TextBox | null) => {
     this.filterTextBox = component
   }
 
@@ -242,8 +242,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     this.list = instance
   }
 
-  private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const text = event.currentTarget.value
+  private onFilterChanged = (text: string) => {
     if (this.props.onFilterTextChanged) {
       this.props.onFilterTextChanged(text)
     }
