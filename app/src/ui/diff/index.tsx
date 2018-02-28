@@ -999,7 +999,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderLargeText(diff: ILargeTextDiff) {
-    // gauranteed to be set since this function won't be called if text or hunks are null
+    // guaranteed to be set since this function won't be called if text or hunks are null
     const textDiff: ITextDiff = {
       text: diff.text!,
       hunks: diff.hunks!,
