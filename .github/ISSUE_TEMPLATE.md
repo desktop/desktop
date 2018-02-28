@@ -21,7 +21,7 @@ Place the version of GitHub Desktop you have installed **below** this comment. W
 -->
 * GitHub Desktop:
 <!--
-Place the version of your operating system **below** this comment. The operatoring system you are tunning on may also help with reproducing the issue. If you are on macOS, launch 'About This Mac' and write down the OS version listed. If you are on Windos, open 'Command Prompt' and attach the output of this command: 'cmd /c ver'
+Place the version of your operating system **below** this comment. The operating system you are running on may also help with reproducing the issue. If you are on macOS, launch 'About This Mac' and write down the OS version listed. If you are on Windows, open 'Command Prompt' and attach the output of this command: 'cmd /c ver'
 -->
 * Operating system:
 
