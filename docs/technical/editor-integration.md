@@ -1,8 +1,8 @@
-# Editor Integration
+# "Open External Editor" integration
 
 GitHub Desktop supports the user choosing an external program to open their
-local repositories, and this is available from the main menu and right-clicking
-on a repository in the sidebar.
+local repositories, and this is available from the top-level **Repository** menu 
+or when right-clicking on a repository in the sidebar.
 
 ### My favourite editor XYZ isn't supported!
 
@@ -28,7 +28,7 @@ These editors are currently supported:
  - [Visual Studio Code](https://code.visualstudio.com/)
  - [Visual Studio Code (Insiders)](https://code.visualstudio.com/insiders/)
  - [Sublime Text](https://www.sublimetext.com/)
- - [ColdFusion Builder](https://www.adobe.com/tr/products/coldfusion-builder.html)
+ - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
  - [Notepad++](https://notepad-plus-plus.org/)
 
 These are defined in an enum at the top of the file:
@@ -208,7 +208,7 @@ The source for the editor integration on macOS is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
- - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
  - [BBEdit](http://www.barebones.com/products/bbedit/)
  - [PhpStorm](https://www.jetbrains.com/phpstorm/)
@@ -218,10 +218,16 @@ These editors are currently supported:
 These are defined in an enum at the top of the file:
 
 ```ts
+
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
+  BBEdit = 'BBEdit',
+  PhpStorm = 'PhpStorm',
+  RubyMine = 'RubyMine',
+  TextMate = 'TextMate',
 }
 ```
 
@@ -303,7 +309,7 @@ The source for the editor integration on Linux is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
- - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
 
 These are defined in an enum at the top of the file:
@@ -312,6 +318,7 @@ These are defined in an enum at the top of the file:
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
 }
 ```

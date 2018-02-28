@@ -83,14 +83,14 @@ export class AuthenticationForm extends React.Component<
           label="Username or email address"
           disabled={disabled}
           autoFocus={true}
-          onChange={this.onUsernameChange}
+          onValueChanged={this.onUsernameChange}
         />
 
         <TextBox
           label="Password"
           type="password"
           disabled={disabled}
-          onChange={this.onPasswordChange}
+          onValueChanged={this.onPasswordChange}
         />
 
         {this.renderError()}
@@ -173,12 +173,12 @@ export class AuthenticationForm extends React.Component<
     return <Errors>{error.message}</Errors>
   }
 
-  private onUsernameChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({ username: event.currentTarget.value })
+  private onUsernameChange = (username: string) => {
+    this.setState({ username })
   }
 
-  private onPasswordChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({ password: event.currentTarget.value })
+  private onPasswordChange = (password: string) => {
+    this.setState({ password })
   }
 
   private signInWithBrowser = (event?: React.MouseEvent<HTMLButtonElement>) => {
