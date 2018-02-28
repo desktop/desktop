@@ -991,7 +991,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     )
   }
 
-  private renderDiffTooLarge() {
+  private renderUnrenderableDiff() {
     return (
       <div className="panel empty large-diff">
         <img src={NoDiffImage} />
@@ -1135,14 +1135,12 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       case DiffType.LargeText: {
         const largeTextDiff = diff as ILargeTextDiff
 
-        if (largeTextDiff.hunks == null || largeTextDiff.text == null) {
-          return this.renderDiffTooLarge()
-        }
-
         return this.state.forceShowLargeDiff
           ? this.renderLargeText(largeTextDiff)
           : this.renderLargeTextDiff()
       }
+      case DiffType.Unrenderable:
+        return this.renderUnrenderableDiff()
       default:
         return assertNever(diff, `Unsupported diff type: ${diff}`)
     }
