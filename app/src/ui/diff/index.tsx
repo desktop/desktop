@@ -984,7 +984,9 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           You can try to show it anyways, but performance may be negatively
           impacted.
         </p>
-        <Button onClick={this.showLargeDiff}>Show diff</Button>
+        <Button onClick={this.showLargeDiff}>
+          {__DARWIN__ ? 'Show Diff' : 'Show diff'}
+        </Button>
       </div>
     )
   }
