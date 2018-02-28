@@ -1144,7 +1144,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           : this.renderLargeTextDiff()
       }
       default:
-        return null
+        return assertNever(diff, `Unsupported diff type: ${diff}`)
     }
   }
 
