@@ -46,15 +46,15 @@ export class DiffHunk {
 }
 
 export enum DiffType {
-  /** changes to a text file, which may be partially selected for commit */
+  /** Changes to a text file, which may be partially selected for commit */
   Text,
-  /** changes to files of a known format, which can be viewed in the app */
+  /** Changes to files of a known format, which can be viewed in the app */
   Image,
-  /** changes to an unknown file format, which Git is unable to present in a human-friendly format */
+  /** Changes to an unknown file format, which Git is unable to present in a human-friendly format */
   Binary,
-  /** change to a repository which is included as a submodule of this repository */
+  /** Change to a repository which is included as a submodule of this repository */
   Submodule,
-  /** diff is large enough to degrade ux if rendered */
+  /** Diff is large enough to degrade ux if rendered */
   LargeText,
   /** Diff that will not be rendered */
   Unrenderable,
