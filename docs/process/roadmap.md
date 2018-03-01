@@ -4,24 +4,25 @@ The following are our marketing releases, as planned to date (and we plan to rev
 
 ## 1.2 - Relationship between branches - lite
 
-- [Relationship between branches lite](https://github.com/desktop/desktop/issues/3956)
+- [Relationship between branches lite](https://github.com/desktop/desktop/issues/3956) - [#3956](https://github.com/desktop/desktop/issues/3956)
   - Compare my work to any branch
   - Merge in any other branch to my branch
   
-- [Upgrade nudge from classic to the new app](https://github.com/desktop/desktop/issues/2146)
+- [Upgrade nudge from classic to the new app](https://github.com/desktop/desktop/issues/2146) - [#2146](https://github.com/desktop/desktop/issues/2146)
 
 ## 1.3 - Detecting marge conflicts - 2.0
   
-- [Relationship between branches 2.0](https://github.com/desktop/desktop/issues/2639)
+- [Relationship between branches 2.0](https://github.com/desktop/desktop/issues/2639) - [#2639](https://github.com/desktop/desktop/issues/2639)
   - Notifications around diverging from master branch
   - Detect merge conflicts
   
 ## 1.4 - New branch, maybe?
 
-- [Move unpublished commits on master to new branch](https://github.com/desktop/desktop/issues/1021)
+- [Move unpublished commits on master to new branch](https://github.com/desktop/desktop/issues/1021) - [#1021](https://github.com/desktop/desktop/issues/1021)
   - Don't let me commit to branches I shouldn't commit to
-  - Guide me to creating my own branches
-** depending on things, this might get combined with 1.5 
+  - Guide me to creating my own branches 
+  
+**Note:** depending on things, this might get combined with 1.5 
   
 ## 1.5 - Better onboarding
 
@@ -29,14 +30,14 @@ The following are our marketing releases, as planned to date (and we plan to rev
 
 ## 1.6 - Conflict resolution lite
 
-- [Conflict resolution lite](https://github.com/desktop/desktop/issues/2640)
+- [Conflict resolution lite](https://github.com/desktop/desktop/issues/2640) - [#2640](https://github.com/desktop/desktop/issues/2640)
   - Differentiate conflicted files from other changed files
   - Let me choose my mergetool
   - Let me open my mergetool
   
 ## 1.7 - Conflict resolution - 2.0
 
-- [Conflict resolution 2.0](https://github.com/desktop/desktop/issues/2640)
+- [Conflict resolution 2.0](https://github.com/desktop/desktop/issues/2640) - [#2640](https://github.com/desktop/desktop/issues/2640)
   - Edit inline
   - Abort merge
   - How did I get here?
@@ -52,7 +53,7 @@ The following are our marketing releases, as planned to date (and we plan to rev
 
 ## Icebox
 
-- [Fork if needed](https://github.com/desktop/desktop/issues/3918)
+- [Fork if needed](https://github.com/desktop/desktop/issues/3918) - [#3918](https://github.com/desktop/desktop/issues/3918)
   - Offer to fork on clone, or push, or ?
   
 - Keep environment up-to-date
