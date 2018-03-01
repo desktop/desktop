@@ -24,6 +24,9 @@ interface IAutocompletingTextInputProps<ElementType> {
   /** The current value of the input field. */
   readonly value?: string
 
+  /** Disabled state for input field. */
+  readonly disabled?: boolean
+
   /**
    * Called when the user changes the value in the input field.
    */
@@ -197,7 +200,7 @@ export abstract class AutocompletingTextInput<
     const item = currentAutoCompletionState.items[row]
 
     if (item) {
-      this.insertCompletion(item)
+      this.insertCompletion(item, 'mouseclick')
     }
   }
 
@@ -231,16 +234,7 @@ export abstract class AutocompletingTextInput<
 
     const item = items[row]
 
-    this.insertCompletion(item)
-
-    // This is pretty gross. Clicking on the list moves focus off the text area.
-    // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
-    window.setTimeout(() => {
-      const element = this.element
-      if (element) {
-        element.focus()
-      }
-    }, 0)
+    this.insertCompletion(item, 'mouseclick')
   }
 
   /**
@@ -258,6 +252,7 @@ export abstract class AutocompletingTextInput<
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
       onBlur: this.onBlur,
+      disabled: this.props.disabled,
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(
@@ -302,7 +297,17 @@ export abstract class AutocompletingTextInput<
     )
   }
 
-  private insertCompletion(item: Object) {
+  private setCursorPosition(newCaretPosition: number) {
+    if (this.element == null) {
+      log.warn('Unable to set cursor position when element is null')
+      return
+    }
+
+    this.element.selectionStart = newCaretPosition
+    this.element.selectionEnd = newCaretPosition
+  }
+
+  private insertCompletion(item: Object, source: 'mouseclick' | 'keyboard') {
     const element = this.element!
     const autocompletionState = this.state.autocompletionState!
     const originalText = element.value
@@ -310,15 +315,30 @@ export abstract class AutocompletingTextInput<
     const autoCompleteText = autocompletionState.provider.getCompletionText(
       item
     )
+
+    const textWithAutoCompleteText =
+      originalText.substr(0, range.start - 1) + autoCompleteText + ' '
+
     const newText =
-      originalText.substr(0, range.start - 1) +
-      autoCompleteText +
-      originalText.substr(range.start + range.length) +
-      ' '
+      textWithAutoCompleteText + originalText.substr(range.start + range.length)
+
     element.value = newText
 
     if (this.props.onValueChanged) {
       this.props.onValueChanged(newText)
+    }
+
+    const newCaretPosition = textWithAutoCompleteText.length
+
+    if (source === 'mouseclick') {
+      // we only need to re-focus on the text input when the autocomplete overlay
+      // steals focus due to the user clicking on a selection in the autocomplete list
+      window.setTimeout(() => {
+        element.focus()
+        this.setCursorPosition(newCaretPosition)
+      }, 0)
+    } else {
+      this.setCursorPosition(newCaretPosition)
     }
 
     this.close()
@@ -385,7 +405,7 @@ export abstract class AutocompletingTextInput<
       if (item) {
         event.preventDefault()
 
-        this.insertCompletion(item)
+        this.insertCompletion(item, 'keyboard')
       }
     } else if (event.key === 'Escape') {
       this.close()
