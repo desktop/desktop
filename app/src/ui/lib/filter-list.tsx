@@ -144,12 +144,18 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   IFilterListState<T>
 > {
   private list: List | null = null
-  private filterInput: HTMLInputElement | null = null
+  private filterTextBox: TextBox | null = null
 
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
     this.state = createStateUpdate(props)
+  }
+
+  public componentDidMount() {
+    if (this.filterTextBox != null) {
+      this.filterTextBox.selectAll()
+    }
   }
 
   public render() {
@@ -159,13 +165,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
         <Row className="filter-field-row">
           <TextBox
+            ref={this.onTextBoxRef}
             type="search"
             autoFocus={true}
             placeholder="Filter"
             className="filter-list-filter-field"
             onValueChanged={this.onFilterChanged}
             onKeyDown={this.onKeyDown}
-            onInputRef={this.onInputRef}
             value={this.props.filterText}
             disabled={this.props.disabled}
           />
@@ -176,6 +182,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         <div className="filter-list-container">{this.renderContent()}</div>
       </div>
     )
+  }
+
+  private onTextBoxRef = (component: TextBox | null) => {
+    this.filterTextBox = component
   }
 
   private renderContent() {
@@ -230,18 +240,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
   private onListRef = (instance: List | null) => {
     this.list = instance
-  }
-
-  private onInputRef = (instance: HTMLInputElement | null) => {
-    this.filterInput = instance
-
-    if (
-      this.filterInput &&
-      this.props.filterText &&
-      this.props.filterText.length > 0
-    ) {
-      this.filterInput.select()
-    }
   }
 
   private onFilterChanged = (text: string) => {
@@ -308,20 +306,22 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return
     }
 
-    let focusInput = false
     const firstSelectableRow = list.nextSelectableRow('down', -1)
     const lastSelectableRow = list.nextSelectableRow('up', 0)
+    let shouldFocus = false
+
     if (event.key === 'ArrowUp' && row === firstSelectableRow) {
-      focusInput = true
+      shouldFocus = true
     } else if (event.key === 'ArrowDown' && row === lastSelectableRow) {
-      focusInput = true
+      shouldFocus = true
     }
 
-    if (focusInput) {
-      const input = this.filterInput
-      if (input) {
+    if (shouldFocus) {
+      const textBox = this.filterTextBox
+
+      if (textBox) {
         event.preventDefault()
-        input.focus()
+        textBox.focus()
       }
     }
   }
