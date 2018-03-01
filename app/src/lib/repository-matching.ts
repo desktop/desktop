@@ -8,6 +8,7 @@ import { IRemote } from '../models/remote'
 import { getHTMLURL } from './api'
 import { parseRemote } from './remote-parsing'
 import { GitHubRepository } from '../models/github-repository'
+import { caseInsensitiveCompare } from './compare'
 
 export interface IMatchedGitHubRepository {
   /**
@@ -108,8 +109,11 @@ export function repositoryMatchesRemote(
   gitHubRepository: GitHubRepository,
   remote: IRemote
 ): boolean {
-  return (
-    gitHubRepository.cloneURL === remote.url ||
-    gitHubRepository.htmlURL === remote.url
-  )
+  const htmlUrl = gitHubRepository.htmlURL || ''
+
+  if (caseInsensitiveCompare(htmlUrl, remote.url) === 0) {
+    return true
+  }
+
+  return gitHubRepository.cloneURL === remote.url
 }
