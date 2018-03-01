@@ -70,7 +70,7 @@ export function compareDescending<T>(x: T, y: T): number {
  * indicating whether these are equal
  */
 export function caseInsensitiveEquals(x: string, y: string): boolean {
-  return x.toLowerCase() === y.toLocaleLowerCase()
+  return x.toLowerCase() === y.toLowerCase()
 }
 
 /**
