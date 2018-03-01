@@ -548,25 +548,40 @@ describe('git/commit', () => {
       expect(commit!.summary).to.equal('commit again!')
     })
 
-    it.only('file is deleted in index', async () => {
+    it('file is deleted in index', async () => {
       const repo = await setupEmptyRepository()
-      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+      fs.writeFileSync(path.join(repo.path, 'secret'), 'contents\n')
+      fs.writeFileSync(path.join(repo.path, '.gitignore'), '')
 
-      // Commit file
-      await GitProcess.exec(['add', 'foo'], repo.path)
+      // Setup repo to reproduce bug
+      await GitProcess.exec(['add', '.'], repo.path)
       await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
 
-      // Remove from index
-      await GitProcess.exec(['rm', '--cached', 'foo'], repo.path)
+      // Make changes that should remain secret
+      fs.writeFileSync(path.join(repo.path, 'secret'), 'Somethign secret\n')
 
-      // Try to commit
+      // Ignore it
+      fs.writeFileSync(path.join(repo.path, '.gitignore'), 'secret')
+
+      // Remove from index to mark as deleted
+      await GitProcess.exec(['rm', '--cached', 'secret'], repo.path)
+
+      // Make sure that file is marked as deleted
       const beforeCommit = await getStatus(repo)
       const files = beforeCommit.workingDirectory.files
-      expect(files.length).to.equal(1)
+      expect(files.length).to.equal(2)
+      expect(files[1].status).to.equal(AppFileStatus.Deleted)
 
+      // Commit changes
       await createCommit(repo!, 'FAIL commit', files)
       const afterCommit = await getStatus(repo)
       expect(beforeCommit.currentTip).to.not.equal(afterCommit.currentTip)
+
+      // Verify the file was delete in repo
+      const changedFiles = await getChangedFiles(repo, afterCommit.currentTip!)
+      expect(changedFiles.length).to.equal(2)
+      expect(changedFiles[0].status).to.equal(AppFileStatus.Modified)
+      expect(changedFiles[1].status).to.equal(AppFileStatus.Deleted)
     })
   })
 })
