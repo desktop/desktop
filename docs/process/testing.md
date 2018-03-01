@@ -1,9 +1,9 @@
 ### Download Desktop
   - [ ] User can download latest (Mac & Windows) Desktop from https://desktop.github.com/    
     - [ ] Mac: https://central.github.com/deployments/desktop/desktop/latest/darwin
-      - [ ] Homebrew package manager: `$ brew cask install github-desktop`
+      - [ ] Homebrew package manager: `brew cask install github-desktop`
     - [ ] Windows: https://central.github.com/deployments/desktop/desktop/latest/win32
-      - [ ] Chocolatey package manager: `c:\> choco install github-desktop`
+      - [ ] Chocolatey package manager: `choco install github-desktop`
       - [ ] 64-bit and up
     - [ ] Data is retained if you download and open a fresh copy
   - [ ] Release notes page is up-to-date
@@ -116,7 +116,7 @@
       - [ ] If checking for update or download latest update, the `Check for updates` button is disabled
       - [ ] Restarting the app automatically checks for updates
     - [ ] `Close` button closes modal 
-  - [ ] Preferences/Options (Mac/Windows: `⌘,`)
+  - [ ] Preferences/Options (Mac: `⌘,` Windows: `Ctrl+,`)
     - [ ] Accounts
       - [ ] GitHub.com name, handle, avatar, `sign out` button, if user signed in
       - [ ] Enterprise handle, avatar, `sign out` button, if user signed in
@@ -178,7 +178,7 @@
     - [ ] Commits from repo pulled from .com; error message shown if conflicts
   - [ ] Remove
     - [ ] Repo is removed from Repo List; confirmation dialogue shown if Preferences option enabled
-  - [ ] View on GitHub (Mac: ⌥⌘G; Windows: Ctrl+Alt+G)
+  - [ ] View on GitHub (Mac: `⌥⌘G`; Windows: `Ctrl+Alt+G`)
     - [ ] Repo on .com is opened; must be logged in if private repo or Enterprise
   - [ ] Open in Terminal/Command prompt (Mac: `^[tilde-sign]`; Windows: )
     - [ ] Local repo is opened
