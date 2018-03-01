@@ -328,6 +328,7 @@ export class CommitMessage extends React.Component<
         onAuthorsUpdated={this.onCoAuthorsUpdated}
         authors={this.props.coAuthors}
         autoCompleteProvider={autocompletionProvider}
+        disabled={this.props.isCommitting}
       />
     )
   }
@@ -352,7 +353,9 @@ export class CommitMessage extends React.Component<
       {
         label: this.toggleCoAuthorsText,
         action: this.onToggleCoAuthors,
-        enabled: this.props.repository.gitHubRepository !== null,
+        enabled:
+          this.props.repository.gitHubRepository !== null &&
+          !this.props.isCommitting,
       },
     ]
 
@@ -360,7 +363,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onCoAuthorToggleButtonClick = (
-    e: React.MouseEvent<HTMLDivElement>
+    e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault()
     this.onToggleCoAuthors()
@@ -372,15 +375,15 @@ export class CommitMessage extends React.Component<
     }
 
     return (
-      <div
-        role="button"
+      <button
         className="co-authors-toggle"
         onClick={this.onCoAuthorToggleButtonClick}
         tabIndex={-1}
         aria-label={this.toggleCoAuthorsText}
+        disabled={this.props.isCommitting}
       >
         <Octicon symbol={addAuthorIcon} />
-      </div>
+      </button>
     )
   }
 
@@ -436,7 +439,11 @@ export class CommitMessage extends React.Component<
       return null
     }
 
-    return <div className="action-bar">{this.renderCoAuthorToggleButton()}</div>
+    const className = classNames('action-bar', {
+      disabled: this.props.isCommitting,
+    })
+
+    return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
   public render() {
@@ -471,6 +478,7 @@ export class CommitMessage extends React.Component<
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
             autocompletionProviders={this.props.autocompletionProviders}
+            disabled={this.props.isCommitting}
           />
         </div>
 
@@ -486,6 +494,7 @@ export class CommitMessage extends React.Component<
             autocompletionProviders={this.props.autocompletionProviders}
             ref={this.onDescriptionFieldRef}
             onElementRef={this.onDescriptionTextAreaRef}
+            disabled={this.props.isCommitting}
           />
           {this.renderActionBar()}
         </FocusContainer>

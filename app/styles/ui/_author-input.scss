@@ -1,9 +1,13 @@
+@import '../mixins';
+
 .author-input-component {
+  &.disabled .CodeMirror {
+    @include textboxish-disabled-styles;
+  }
+
   .CodeMirror {
-    border: 1px solid var(--box-border-color);
-    border-radius: var(--border-radius);
-    font-size: var(--font-size);
-    font-family: var(--font-family-sans-serif);
+    @include textboxish;
+
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     border-top: 0;
@@ -53,9 +57,7 @@
   }
 
   .CodeMirror-focused {
-    outline: none;
-    border-color: var(--focus-color);
-    box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+    @include textboxish-focus-styles;
     border-top-width: 1px;
     border-top-style: solid;
     margin-top: -1px;
