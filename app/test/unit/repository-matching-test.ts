@@ -2,10 +2,9 @@ import { expect } from 'chai'
 
 import {
   matchGitHubRepository,
-  repositoryMatchesRemote,
+  repositoryUrlMatchesRemote,
 } from '../../src/lib/repository-matching'
 import { Account } from '../../src/models/account'
-import { GitHubRepository } from '../../src/models/github-repository'
 
 describe('repository-matching', () => {
   describe('matchGitHubRepository', () => {
@@ -77,44 +76,59 @@ describe('repository-matching', () => {
     })
   })
 
-  describe('repositoryMatchesRemote', () => {
-    const cloneURL = 'https://github.com/shiftkey/desktop.git'
-    const htmlURL = 'https://github.com/shiftkey/desktop'
-
-    const githubRepo: GitHubRepository = {
-      dbID: -1,
-      name: 'desktop',
-      owner: {
-        login: 'shiftkey',
-        id: 1,
-        endpoint: 'https://api.github.com',
-        hash: 'something',
-      },
-      private: false,
-      defaultBranch: 'master',
-      parent: null,
-      endpoint: 'https://api.github.com',
-      fullName: 'shiftkey/desktop',
-      fork: true,
-      hash: 'whatever',
-      cloneURL,
-      htmlURL,
-    }
-
-    it('matches clone url', () => {
+  describe('repositoryUrlMatchesRemote', () => {
+    describe('with HTTPS remote', () => {
       const remote = {
         name: 'origin',
-        url: cloneURL,
+        url: 'https://github.com/shiftkey/desktop',
       }
-      expect(repositoryMatchesRemote(githubRepo, remote)).to.be.true
+      const remoteWithSuffix = {
+        name: 'origin',
+        url: 'https://github.com/shiftkey/desktop.git',
+      }
+
+      it('does not match null', () => {
+        expect(repositoryUrlMatchesRemote(null, remoteWithSuffix)).is.false
+      })
+
+      it('matches cloneURL from API', () => {
+        const cloneURL = 'https://github.com/shiftkey/desktop.git'
+        expect(repositoryUrlMatchesRemote(cloneURL, remoteWithSuffix)).is.true
+      })
+
+      it('matches cloneURL from API without suffix', () => {
+        const cloneURL = 'https://github.com/shiftkey/desktop.git'
+        expect(repositoryUrlMatchesRemote(cloneURL, remote)).is.true
+      })
+
+      it('matches htmlURL from API', () => {
+        const htmlURL = 'https://github.com/shiftkey/desktop'
+        expect(repositoryUrlMatchesRemote(htmlURL, remoteWithSuffix)).is.true
+      })
+
+      it('matches htmlURL from API without suffix', () => {
+        const htmlURL = 'https://github.com/shiftkey/desktop'
+        expect(repositoryUrlMatchesRemote(htmlURL, remote)).is.true
+      })
     })
 
-    it('matches clone url', () => {
+    describe('with SSH remote', () => {
       const remote = {
         name: 'origin',
-        url: htmlURL,
+        url: 'git@github.com:shiftkey/desktop.git',
       }
-      expect(repositoryMatchesRemote(githubRepo, remote)).to.be.true
+      it('does not match null', () => {
+        expect(repositoryUrlMatchesRemote(null, remote)).to.be.false
+      })
+
+      it('matches cloneURL from API', () => {
+        const cloneURL = 'https://github.com/shiftkey/desktop.git'
+        expect(repositoryUrlMatchesRemote(cloneURL, remote)).to.be.true
+      })
+      it('matches htmlURL from API', () => {
+        const htmlURL = 'https://github.com/shiftkey/desktop'
+        expect(repositoryUrlMatchesRemote(htmlURL, remote)).to.be.true
+      })
     })
   })
 })
