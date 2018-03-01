@@ -547,5 +547,26 @@ describe('git/commit', () => {
       expect(commit).to.not.be.null
       expect(commit!.summary).to.equal('commit again!')
     })
+
+    it.only('file is deleted in index', async () => {
+      const repo = await setupEmptyRepository()
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+
+      // Commit file
+      await GitProcess.exec(['add', 'foo'], repo.path)
+      await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
+
+      // Remove from index
+      await GitProcess.exec(['rm', '--cached', 'foo'], repo.path)
+
+      // Try to commit
+      const beforeCommit = await getStatus(repo)
+      const files = beforeCommit.workingDirectory.files
+      expect(files.length).to.equal(1)
+
+      await createCommit(repo!, 'FAIL commit', files)
+      const afterCommit = await getStatus(repo)
+      expect(beforeCommit.currentTip).to.not.equal(afterCommit.currentTip)
+    })
   })
 })
