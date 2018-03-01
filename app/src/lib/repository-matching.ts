@@ -115,5 +115,27 @@ export function repositoryMatchesRemote(
     return true
   }
 
-  return gitHubRepository.cloneURL === remote.url
+  const cloneUrl = parseRemote(gitHubRepository.cloneURL || '')
+  const remoteUrl = parseRemote(remote.url)
+
+  if (remoteUrl == null || cloneUrl == null) {
+    return false
+  }
+
+  if (caseInsensitiveCompare(remoteUrl.hostname, cloneUrl.hostname) !== 0) {
+    return false
+  }
+
+  if (remoteUrl.owner == null || cloneUrl.owner == null) {
+    return false
+  }
+
+  if (remoteUrl.name == null || cloneUrl.name == null) {
+    return false
+  }
+
+  return (
+    caseInsensitiveCompare(remoteUrl.owner, cloneUrl.owner) === 0 &&
+    caseInsensitiveCompare(remoteUrl.name, cloneUrl.name) === 0
+  )
 }
