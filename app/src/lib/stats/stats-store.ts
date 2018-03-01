@@ -28,6 +28,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   commits: 0,
   partialCommits: 0,
   openShellCount: 0,
+  coAuthoredCommits: 0,
 }
 
 interface ICalculatedStats {
@@ -276,6 +277,13 @@ export class StatsStore {
   public recordPartialCommit(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       partialCommits: m.partialCommits + 1,
+    }))
+  }
+
+  /** Record that a commit was created with one or more co-authors. */
+  public recordCoAuthoredCommit(): Promise<void> {
+    return this.updateDailyMeasures(m => ({
+      coAuthoredCommits: m.coAuthoredCommits + 1,
     }))
   }
 

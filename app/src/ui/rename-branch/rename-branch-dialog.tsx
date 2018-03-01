@@ -47,7 +47,7 @@ export class RenameBranch extends React.Component<
               label="Name"
               autoFocus={true}
               value={this.state.newName}
-              onChange={this.onNameChange}
+              onValueChanged={this.onNameChange}
               onKeyDown={this.onKeyDown}
             />
           </Row>
@@ -75,8 +75,8 @@ export class RenameBranch extends React.Component<
     }
   }
 
-  private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({ newName: event.currentTarget.value })
+  private onNameChange = (name: string) => {
+    this.setState({ newName: name })
   }
 
   private cancel = () => {

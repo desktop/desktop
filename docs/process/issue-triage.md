@@ -81,16 +81,16 @@ issues from time to time that isn't and won't be covered here.
 
 1. Person files a new issue
 1. Maintainer checks to ensure they adequately filled out the template. If not,
-   close with the [request to fill out the template](canned-messages/needs-template.md).
+   close with a request to fill out the template.
 1. Label the issue as a `bug` if the issue is a regression or behaviour that
    needs to be fixed.
 1. If the issue has already been fixed, add a comment linking to the original
    issue and close the issue.
 1. If anything is unclear but the template is adequately filled out, post what
-   questions you have and label with `more-information-needed`
+   questions you have and label with `more-information-needed`.
 1. Maintainer attempts to reproduce the problem
     1. If the problem is not reproducible, label with `needs-reproduction` and
-       ask the author of the issue for [clarification on the repro steps](canned-messages/repro-steps.md)
+       ask the author of the issue for clarification on the repro steps.
 1. Label the issue as an `enhancement` if the issue mentions new behaviour
    or functionality that the app should have.
 
@@ -101,7 +101,8 @@ issues from time to time that isn't and won't be covered here.
 Periodically we should be doing a sweep of issues that are open and labeled
 `more-information-needed`. If the original poster has not responded within
 two weeks after the last question by an official maintainer, close the issue
-with [the no response message](canned-messages/no-response.md).
+with a message saying that you're closing the issue due to inactivity but are
+happy to re-open if they can provide more details.
 
 ## Needs Reproduction
 

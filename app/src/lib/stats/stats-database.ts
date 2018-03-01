@@ -37,6 +37,9 @@ export interface IDailyMeasures {
 
   /** The number of partial commits. */
   readonly partialCommits: number
+
+  /** The number of commits created with one or more co-authors. */
+  readonly coAuthoredCommits: number
 }
 
 export class StatsDatabase extends Dexie {
