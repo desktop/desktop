@@ -327,7 +327,14 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const list = this.list
+    const key = event.key
+
     if (!list) {
+      if (key === 'Escape') {
+        event.preventDefault()
+        this.props.onFilterTextChanged && this.props.onFilterTextChanged('')
+      }
+
       return
     }
 
@@ -340,13 +347,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
 
     const filterText = this.props.filterText
-    if (event.key === 'Escape' && (filterText && filterText.length !== 0)) {
+    if (key === 'Escape' && (filterText && filterText.length !== 0)) {
       event.preventDefault()
 
       if (this.props.onFilterTextChanged) {
         this.props.onFilterTextChanged('')
       }
-    } else if (event.key === 'ArrowDown') {
+    } else if (key === 'ArrowDown') {
       if (this.state.rows.length > 0) {
         const selectedRow = list.nextSelectableRow('down', -1)
         if (selectedRow != null) {
@@ -357,7 +364,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       }
 
       event.preventDefault()
-    } else if (event.key === 'ArrowUp') {
+    } else if (key === 'ArrowUp') {
       if (this.state.rows.length > 0) {
         const selectedRow = list.nextSelectableRow('up', 0)
         if (selectedRow != null) {
@@ -368,7 +375,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       }
 
       event.preventDefault()
-    } else if (event.key === 'Enter') {
+    } else if (key === 'Enter') {
       // no repositories currently displayed, bail out
       if (!this.state.rows.length) {
         return event.preventDefault()
