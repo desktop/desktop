@@ -97,7 +97,7 @@ export function matchExistingRepository(
 }
 
 /**
- * Check a GitHub repository matches a given remote.
+ * Check whether or not a GitHub repository matches a given remote.
  *
  * The remote's URL might match the cloneURL field of the repository (with a
  * .git suffix) or it might match the htmlURL field (without a .git suffix)
