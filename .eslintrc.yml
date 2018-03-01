@@ -52,7 +52,6 @@ rules:
   ###########
   # BUILTIN #
   ###########
-  curly: error
   no-new-wrappers: error
   no-redeclare:
     - error
