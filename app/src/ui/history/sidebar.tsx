@@ -26,7 +26,7 @@ interface IHistorySidebarProps {
 export class HistorySidebar extends React.Component<IHistorySidebarProps, {}> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
-  private onCommitChanged = (commit: Commit) => {
+  private onCommitSelected = (commit: Commit) => {
     this.props.dispatcher.changeHistoryCommitSelection(
       this.props.repository,
       commit.sha
@@ -57,7 +57,7 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, {}> {
         commitLookup={this.props.commitLookup}
         commits={this.props.history.history}
         selectedSHA={this.props.history.selection.sha}
-        onCommitChanged={this.onCommitChanged}
+        onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}

@@ -11,13 +11,13 @@ interface ICommitListProps {
   /** The GitHub repository associated with this commit (if found) */
   readonly gitHubRepository: GitHubRepository | null
 
-  /** The list of commits to display, in order. */
+  /** The list of commits SHAs to display, in order. */
   readonly commits: ReadonlyArray<string>
 
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
 
-  /** The selected commit to style distinctly in the list */
+  /** The SHA of the selected commit */
   readonly selectedSHA: string | null
 
   /** The lookup for GitHub users related to this repository */
@@ -30,7 +30,7 @@ interface ICommitListProps {
   readonly localCommitSHAs: ReadonlyArray<string>
 
   /** Callback which fires when a commit has been selected in the list */
-  readonly onCommitChanged: (commit: Commit) => void
+  readonly onCommitSelected: (commit: Commit) => void
 
   /** Callback that fires when a scroll event has occurred */
   readonly onScroll: (start: number, end: number) => void
@@ -77,7 +77,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const sha = this.props.commits[row]
     const commit = this.props.commitLookup.get(sha)
     if (commit) {
-      this.props.onCommitChanged(commit)
+      this.props.onCommitSelected(commit)
     }
   }
 
