@@ -24,6 +24,7 @@ version: "{build}"
 install:
   - cmd: regedit /s script\default-to-tls12-on-appveyor.reg
   - ps: Install-Product node $env:nodejs_version $env:platform
+  - choco install yarn
   - git submodule update --init --recursive
   - yarn install --force
 
