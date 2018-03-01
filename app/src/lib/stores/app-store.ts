@@ -30,7 +30,7 @@ import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import {
   matchGitHubRepository,
   IMatchedGitHubRepository,
-  repositoryMatchesRemote,
+  repositoryUrlMatchesRemote,
 } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
@@ -3176,7 +3176,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         pr =>
           pr.head.ref === upstream &&
           pr.head.gitHubRepository != null &&
-          repositoryMatchesRemote(pr.head.gitHubRepository, remote)
+          (repositoryUrlMatchesRemote(
+            pr.head.gitHubRepository.htmlURL,
+            remote
+          ) ||
+            repositoryUrlMatchesRemote(
+              pr.head.gitHubRepository.cloneURL,
+              remote
+            ))
       ) || null
 
     return pr
