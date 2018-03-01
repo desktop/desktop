@@ -24,6 +24,16 @@ interface IEmail {
   readonly visibility: EmailVisibility
 }
 
+function isKeyChainError(e: any) {
+  const error = e as Error
+  return (
+    error.message &&
+    error.message.startsWith(
+      'The user name or passphrase you entered is not correct'
+    )
+  )
+}
+
 /** The data-only interface for storage. */
 interface IAccount {
   readonly token: string
@@ -84,23 +94,12 @@ export class AccountsStore extends BaseStore {
     } catch (e) {
       log.error(`Error adding account '${account.login}'`, e)
 
-      if (__DARWIN__) {
-        const error = e as Error
-
-        if (
-          error.message &&
-          error.message.startsWith(
-            'The user name or passphrase you entered is not correct'
+      if (__DARWIN__ && isKeyChainError(e)) {
+        this.emitError(
+          new Error(
+            `GitHub Desktop was unable to store the account token in the keychain. Please check you have unlocked access to the 'login' keychain.`
           )
-        ) {
-          this.emitError(
-            new Error(
-              'GitHub Desktop was unable to store the account token in the keychain. Please check you have unlocked access to the keychain.'
-            )
-          )
-        } else {
-          this.emitError(e)
-        }
+        )
       } else {
         this.emitError(e)
       }
