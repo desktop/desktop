@@ -7,8 +7,7 @@ import { Account } from '../models/account'
 import { IRemote } from '../models/remote'
 import { getHTMLURL } from './api'
 import { parseRemote } from './remote-parsing'
-import { GitHubRepository } from '../models/github-repository'
-import { caseInsensitiveCompare } from './compare'
+import { caseInsensitiveEquals } from './compare'
 
 export interface IMatchedGitHubRepository {
   /**
@@ -102,27 +101,25 @@ export function matchExistingRepository(
  * The remote's URL might match the cloneURL field of the repository (with a
  * .git suffix) or it might match the htmlURL field (without a .git suffix)
  *
- * @param gitHubRepository the GitHub repository details found from the GitHub API
+ * @param url a URL associated with the GitHub repository
  * @param remote the remote details found in the Git repository
  */
-export function repositoryMatchesRemote(
-  gitHubRepository: GitHubRepository,
+export function repositoryUrlMatchesRemote(
+  url: string | null,
   remote: IRemote
 ): boolean {
-  const htmlUrl = gitHubRepository.htmlURL || ''
-
-  if (caseInsensitiveCompare(htmlUrl, remote.url) === 0) {
-    return true
+  if (url == null) {
+    return false
   }
 
-  const cloneUrl = parseRemote(gitHubRepository.cloneURL || '')
+  const cloneUrl = parseRemote(url)
   const remoteUrl = parseRemote(remote.url)
 
   if (remoteUrl == null || cloneUrl == null) {
     return false
   }
 
-  if (caseInsensitiveCompare(remoteUrl.hostname, cloneUrl.hostname) !== 0) {
+  if (!caseInsensitiveEquals(remoteUrl.hostname, cloneUrl.hostname)) {
     return false
   }
 
@@ -135,7 +132,7 @@ export function repositoryMatchesRemote(
   }
 
   return (
-    caseInsensitiveCompare(remoteUrl.owner, cloneUrl.owner) === 0 &&
-    caseInsensitiveCompare(remoteUrl.name, cloneUrl.name) === 0
+    caseInsensitiveEquals(remoteUrl.owner, cloneUrl.owner) &&
+    caseInsensitiveEquals(remoteUrl.name, cloneUrl.name)
   )
 }
