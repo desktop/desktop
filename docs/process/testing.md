@@ -177,7 +177,7 @@
   - [ ] Pull (Mac: `⇧⌘P`; Windows: `Ctrl+Shirt+P`)
     - [ ] Commits from repo pulled from .com; error message shown if conflicts
   - [ ] Remove
-    - [ ] Repo is removed from Repo List; confirmation dialgue shown if Preferences option enabled
+    - [ ] Repo is removed from Repo List; confirmation dialogue shown if Preferences option enabled
   - [ ] View on GitHub (Mac: `⌥⌘G`; Windows: `Ctrl+Alt+G`)
     - [ ] Repo on .com is opened; must be logged in if private repo or Enterprise
   - [ ] Open in Terminal/Command prompt (Mac: `^[tilde-sign]`; Windows: )
