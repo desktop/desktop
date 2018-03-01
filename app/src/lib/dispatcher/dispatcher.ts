@@ -50,6 +50,10 @@ import { Shell } from '../shells'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { BranchesTab } from '../../models/branches-tab'
+import { FetchType } from '../../lib/stores'
+import { PullRequest } from '../../models/pull-request'
+import { IAuthor } from '../../models/author'
+import { ITrailer } from '../git/interpret-trailers'
 
 /**
  * An error handler function.
@@ -188,13 +192,21 @@ export class Dispatcher {
 
   /**
    * Commit the changes which were marked for inclusion, using the given commit
-   * summary and description.
+   * summary and description and optionally any number of commit message trailers
+   * which will be merged into the final commit message.
    */
   public async commitIncludedChanges(
     repository: Repository,
-    message: ICommitMessage
+    summary: string,
+    description: string | null,
+    trailers?: ReadonlyArray<ITrailer>
   ): Promise<boolean> {
-    return this.appStore._commitIncludedChanges(repository, message)
+    return this.appStore._commitIncludedChanges(
+      repository,
+      summary,
+      description,
+      trailers
+    )
   }
 
   /** Change the file's includedness. */
@@ -249,7 +261,12 @@ export class Dispatcher {
     return this.appStore._showFoldout(foldout)
   }
 
-  /** Close the current foldout. */
+  /** Close the current foldout. If opening a new foldout use closeFoldout instead. */
+  public closeCurrentFoldout(): Promise<void> {
+    return this.appStore._closeCurrentFoldout()
+  }
+
+  /** Close the specified foldout. */
   public closeFoldout(foldout: FoldoutType): Promise<void> {
     return this.appStore._closeFoldout(foldout)
   }
@@ -271,9 +288,9 @@ export class Dispatcher {
   /** Check out the given branch. */
   public checkoutBranch(
     repository: Repository,
-    name: string
+    branch: Branch | string
   ): Promise<Repository> {
-    return this.appStore._checkoutBranch(repository, name)
+    return this.appStore._checkoutBranch(repository, branch)
   }
 
   /** Push the current branch. */
@@ -295,8 +312,8 @@ export class Dispatcher {
   }
 
   /** Fetch all refs for the repository */
-  public fetch(repository: Repository): Promise<void> {
-    return this.appStore._fetch(repository)
+  public fetch(repository: Repository, fetchType: FetchType): Promise<void> {
+    return this.appStore._fetch(repository, fetchType)
   }
 
   /** Publish the repository to GitHub with the given properties. */
@@ -573,9 +590,12 @@ export class Dispatcher {
   }
 
   /** Opens a Git-enabled terminal setting the working directory to the repository path */
-  public async openShell(path: string): Promise<void> {
+  public async openShell(
+    path: string,
+    ignoreWarning: boolean = false
+  ): Promise<void> {
     const gitFound = await isGitOnPath()
-    if (gitFound) {
+    if (gitFound || ignoreWarning) {
       this.appStore._openShell(path)
     } else {
       this.appStore._showPopup({ type: PopupType.InstallGit, path })
@@ -831,9 +851,9 @@ export class Dispatcher {
       default:
         const unknownAction: IUnknownAction = action
         log.warn(
-          `Unknown URL action: ${unknownAction.name} - payload: ${JSON.stringify(
-            unknownAction
-          )}`
+          `Unknown URL action: ${
+            unknownAction.name
+          } - payload: ${JSON.stringify(unknownAction)}`
         )
     }
   }
@@ -995,7 +1015,7 @@ export class Dispatcher {
         return this.pull(retryAction.repository)
 
       case RetryActionType.Fetch:
-        return this.fetch(retryAction.repository)
+        return this.fetch(retryAction.repository, FetchType.UserInitiatedTask)
 
       case RetryActionType.Clone:
         await this.clone(retryAction.url, retryAction.path, retryAction.options)
@@ -1053,17 +1073,22 @@ export class Dispatcher {
   }
 
   /**
+   * Show the current pull request on github.com
+   */
+  public showPullRequest(repository: Repository): Promise<void> {
+    return this.appStore._showPullRequest(repository)
+  }
+
+  /**
    * Immediately open the Create Pull Request page on GitHub.
    *
    * See the createPullRequest method for more details.
    */
-  public openCreatePullRequestInBrowser(repository: Repository): Promise<void> {
-    return this.appStore._openCreatePullRequestInBrowser(repository)
-  }
-
-  /** Refresh the list of open pull requests for the repository. */
-  public refreshPullRequests(repository: Repository): Promise<void> {
-    return this.appStore._refreshPullRequests(repository)
+  public openCreatePullRequestInBrowser(
+    repository: Repository,
+    branch: Branch
+  ): Promise<void> {
+    return this.appStore._openCreatePullRequestInBrowser(repository, branch)
   }
 
   /**
@@ -1076,5 +1101,39 @@ export class Dispatcher {
   /** Ignore the existing `upstream` remote. */
   public ignoreExistingUpstreamRemote(repository: Repository): Promise<void> {
     return this.appStore._ignoreExistingUpstreamRemote(repository)
+  }
+
+  /** Checks out a PR whose ref exists locally or in a forked repo. */
+  public async checkoutPullRequest(
+    repository: Repository,
+    pullRequest: PullRequest
+  ): Promise<void> {
+    return this.appStore._checkoutPullRequest(repository, pullRequest)
+  }
+
+  /**
+   * Set whether the user has chosen to hide or show the
+   * co-authors field in the commit message component
+   *
+   * @param repository Co-author settings are per-repository
+   */
+  public setShowCoAuthoredBy(
+    repository: Repository,
+    showCoAuthoredBy: boolean
+  ) {
+    return this.appStore._setShowCoAuthoredBy(repository, showCoAuthoredBy)
+  }
+
+  /**
+   * Update the per-repository co-authors list
+   *
+   * @param repository Co-author settings are per-repository
+   * @param coAuthors  Zero or more authors
+   */
+  public setCoAuthors(
+    repository: Repository,
+    coAuthors: ReadonlyArray<IAuthor>
+  ) {
+    return this.appStore._setCoAuthors(repository, coAuthors)
   }
 }

@@ -88,6 +88,8 @@ export class ConfigureGitUser extends React.Component<
       'Fix all the things',
       '',
       author,
+      author,
+      [],
       []
     )
     const emoji = new Map()
@@ -96,16 +98,16 @@ export class ConfigureGitUser extends React.Component<
         <Form className="sign-in-form" onSubmit={this.save}>
           <TextBox
             label="Name"
-            placeholder="Hubot"
+            placeholder="Your Name"
             value={this.state.name}
-            onChange={this.onNameChange}
+            onValueChanged={this.onNameChange}
           />
 
           <TextBox
             label="Email"
-            placeholder="hubot@github.com"
+            placeholder="your-email@example.com"
             value={this.state.email}
-            onChange={this.onEmailChange}
+            onValueChanged={this.onEmailChange}
           />
 
           <Row>
@@ -120,7 +122,7 @@ export class ConfigureGitUser extends React.Component<
           <CommitListItem
             commit={dummyCommit}
             emoji={emoji}
-            user={this.getAvatarUser()}
+            gitHubUsers={null}
             gitHubRepository={null}
             isLocal={false}
           />
@@ -129,27 +131,13 @@ export class ConfigureGitUser extends React.Component<
     )
   }
 
-  private getAvatarUser() {
-    const email = this.state.email
-    const avatarURL = this.state.avatarURL
-    const name = this.state.name
-    if (email && avatarURL && name) {
-      return { email, avatarURL, name }
-    } else {
-      return null
-    }
-  }
-
-  private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {
+  private onNameChange = (name: string) => {
     this.setState({
-      name: event.currentTarget.value,
-      email: this.state.email,
-      avatarURL: this.state.avatarURL,
+      name,
     })
   }
 
-  private onEmailChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const email = event.currentTarget.value
+  private onEmailChange = (email: string) => {
     const avatarURL = this.avatarURLForEmail(email)
 
     this.setState({

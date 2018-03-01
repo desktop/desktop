@@ -1,10 +1,12 @@
 import * as React from 'react'
 import * as moment from 'moment'
+import * as classNames from 'classnames'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { CIStatus } from './ci-status'
 import { PullRequestStatus } from '../../models/pull-request'
+import { HighlightText } from '../lib/highlight-text'
 
-interface IPullRequestListItemProps {
+export interface IPullRequestListItemProps {
   /** The title. */
   readonly title: string
 
@@ -19,23 +21,47 @@ interface IPullRequestListItemProps {
 
   /** The CI status. */
   readonly status: PullRequestStatus | null
+
+  /**
+   * Whether or not this list item is a skeleton item
+   * put in place while the pull request information is
+   * being loaded. This adds a special 'loading' class
+   * to the container and prevents any text from rendering
+   * inside the list item.
+   */
+  readonly loading?: boolean
+
+  /** The characters in the PR title to highlight */
+  readonly matches: ReadonlyArray<number>
 }
 
 /** Pull requests as rendered in the Pull Requests list. */
 export class PullRequestListItem extends React.Component<
-  IPullRequestListItemProps,
-  {}
+  IPullRequestListItemProps
 > {
-  public render() {
+  private getSubtitle() {
+    if (this.props.loading === true) {
+      return undefined
+    }
+
     const timeAgo = moment(this.props.created).fromNow()
-    const { title, author } = this.props
-    const subtitle = `#${this.props.number} opened ${timeAgo} by ${author}`
+    return `#${this.props.number} opened ${timeAgo} by ${this.props.author}`
+  }
+
+  public render() {
+    const title = this.props.loading === true ? undefined : this.props.title
+    const subtitle = this.getSubtitle()
+
+    const className = classNames('pull-request-item', {
+      loading: this.props.loading === true,
+    })
+
     return (
-      <div className="pull-request-item">
+      <div className={className}>
         <Octicon className="icon" symbol={OcticonSymbol.gitPullRequest} />
         <div className="info">
           <div className="title" title={title}>
-            {title}
+            <HighlightText text={title || ''} highlight={this.props.matches} />
           </div>
           <div className="subtitle" title={subtitle}>
             {subtitle}

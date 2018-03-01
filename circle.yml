@@ -14,10 +14,18 @@ dependencies:
     - ".eslintcache"
     - "node_modules"
     - "~/.electron"
+    - "~/Library/Caches/Yarn/v1"
 
   pre:
-    - brew install node || brew upgrade node
-    - npm install -g yarn@1.3.2
+    - brew update
+    # uninstall Node 6 which is shipped by default on Circle
+    - brew uninstall node
+    # install latest Node LTS (8.9.3 as of writing)
+    - brew install node@8 --force
+    # everything is terrible, but we must march on
+    - brew link --overwrite node@8 --force
+    # workaround for yarn installation issue
+    - curl -o- -L https://yarnpkg.com/install.sh | TERM=xterm bash
 
   override:
     - yarn install --force

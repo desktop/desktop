@@ -5,6 +5,8 @@
 const TEST_PUBLISH = false
 const PUBLISH_CHANNELS = ['production', 'test', 'beta']
 const distInfo = require('./dist-info')
+const gitInfo = require('../app/git-info')
+const packageInfo = require('../app/package-info')
 
 if (PUBLISH_CHANNELS.indexOf(distInfo.getReleaseChannel()) < 0) {
   console.log('Not a publishable build. Skipping publish.')
@@ -17,7 +19,7 @@ if (!releaseSHA) {
   process.exit(0)
 }
 
-const currentTipSHA = distInfo.getSHA()
+const currentTipSHA = gitInfo.getSHA()
 if (
   !currentTipSHA ||
   !currentTipSHA.toUpperCase().startsWith(releaseSHA.toUpperCase())
@@ -112,7 +114,7 @@ function upload(assetName, assetPath) {
   const s3 = new AWS.S3(s3Info)
 
   const bucket = process.env.S3_BUCKET
-  const key = `releases/${distInfo.getVersion()}-${sha}/${assetName.replace(
+  const key = `releases/${packageInfo.getVersion()}-${sha}/${assetName.replace(
     / /g,
     ''
   )}`

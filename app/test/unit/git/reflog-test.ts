@@ -18,8 +18,11 @@ async function createAndCheckout(
   repository: Repository,
   name: string
 ): Promise<void> {
-  await createBranch(repository, name)
-  await checkoutBranch(repository, null, name)
+  const branch = await createBranch(repository, name)
+  if (branch == null) {
+    throw new Error(`Unable to create branch: ${name}`)
+  }
+  await checkoutBranch(repository, null, branch)
 }
 
 describe('git/reflog', () => {
@@ -49,7 +52,15 @@ describe('git/reflog', () => {
         new Branch(
           'branch-1',
           null,
-          new Commit('', '', '', new CommitIdentity('', '', new Date()), []),
+          new Commit(
+            '',
+            '',
+            '',
+            new CommitIdentity('', '', new Date()),
+            new CommitIdentity('', '', new Date()),
+            [],
+            []
+          ),
           BranchType.Local
         ),
         'branch-1-test'

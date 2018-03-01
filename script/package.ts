@@ -4,13 +4,11 @@ import * as fs from 'fs-extra'
 import * as cp from 'child_process'
 import * as path from 'path'
 import * as electronInstaller from 'electron-winstaller'
+import { getProductName, getCompanyName } from '../app/package-info'
 import {
-  getDistRoot,
   getDistPath,
-  getProductName,
   getOSXZipPath,
   getWindowsIdentifierName,
-  getCompanyName,
   getWindowsStandaloneName,
   getWindowsInstallerName,
   shouldMakeDelta,
@@ -105,8 +103,9 @@ function packageWindows() {
 
   if (process.env.APPVEYOR) {
     const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
-    options.signWithParams = `/f ${certificatePath} /p ${process.env
-      .WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256`
+    options.signWithParams = `/f ${certificatePath} /p ${
+      process.env.WINDOWS_CERT_PASSWORD
+    } /tr http://timestamp.digicert.com /td sha256`
   }
 
   electronInstaller
@@ -122,83 +121,25 @@ function packageWindows() {
     })
 }
 
-function packageRedhat() {
-  const installer: ElectronInstallerRedhat = require('electron-installer-redhat')
+function packageLinux() {
+  const electronBuilder = path.resolve(
+    __dirname,
+    '..',
+    'node_modules',
+    '.bin',
+    'electron-builder'
+  )
 
-  const options = {
-    src: distPath,
-    dest: outputDir,
-    arch: 'amd64',
-  }
+  const configPath = path.resolve(__dirname, 'electron-builder-linux.yml')
 
-  return new Promise((resolve, reject) => {
-    console.log('Creating .rpm package...')
-    installer(options, err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
-}
+  const args = [
+    'build',
+    '--prepackaged',
+    distPath,
+    '--x64',
+    '--config',
+    configPath,
+  ]
 
-function packageDebian() {
-  const installer: ElectronInstallerDebian = require('electron-installer-debian')
-
-  const options = {
-    src: distPath,
-    dest: outputDir,
-    arch: 'amd64',
-  }
-
-  return new Promise((resolve, reject) => {
-    console.log('Creating .deb package...')
-    installer(options, err => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
-}
-
-function packageAppImage() {
-  // Because electron-builder's CLI has some limits, we need to
-  // implement a couple of workarounds.
-  //
-  // First, it'll use `dist/make` for it's output directory, which
-  // results in this vague error when the directory doesn't exist:
-  //
-  // libburn : SORRY : Neither stdio-path nor its directory exist
-  //
-  // so let's just trash it (if already existing) and create the directory
-  const makeDir = path.join(getDistRoot(), 'make')
-  fs.removeSync(makeDir)
-  fs.mkdirSync(makeDir)
-
-  const installer: ElectronInstallerAppImage = require('electron-installer-appimage')
-
-  const options = {
-    dir: distPath,
-    targetArch: 'x64',
-  }
-
-  return installer.default(options).then(() => {
-    // Second, we need to move the relevant files from dist/make up to
-    // the installers directory so it's alongside the other packages
-    cp.execSync(`cp ${makeDir}/*.AppImage ${outputDir}`)
-  })
-}
-
-async function packageLinux(): Promise<void> {
-  try {
-    await packageRedhat()
-    await packageDebian()
-    await packageAppImage()
-    console.log(`Successfully created packages at ${outputDir}`)
-  } catch (e) {
-    console.log(`error during packaging: ${e}`)
-  }
+  cp.spawnSync(electronBuilder, args, { stdio: 'inherit' })
 }

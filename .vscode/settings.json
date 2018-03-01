@@ -3,7 +3,8 @@
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
-    "**/out": true
+    "**/out": true,
+    ".awcache": true
   },
   "files.exclude": {
     "**/.git": true,
@@ -13,11 +14,14 @@
     "**/node_modules": true,
     "**/dist": true,
     "**/out": true,
-    "tslint-rules/**/*.js": true
+    "tslint-rules/**/*.js": true,
+    ".awcache": true,
+    ".eslintcache": true
   },
   "editor.tabSize": 2,
   "prettier.semi": false,
   "prettier.singleQuote": true,
   "prettier.trailingComma": "es5",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "prettier.ignorePath": ".prettierignore"
 }

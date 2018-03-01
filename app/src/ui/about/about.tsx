@@ -114,7 +114,9 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       case UpdateStatus.UpdateReady:
         return (
           <Row>
-            <Button onClick={this.onQuitAndInstall}>Install Update</Button>
+            <Button onClick={this.onQuitAndInstall}>
+              Quit and Install Update
+            </Button>
           </Row>
         )
       case UpdateStatus.UpdateNotAvailable:
@@ -180,6 +182,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private renderUpdateDetails() {
+    if (__LINUX__) {
+      return null
+    }
+
     if (
       __RELEASE_CHANNEL__ === 'development' ||
       __RELEASE_CHANNEL__ === 'test'
@@ -212,6 +218,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private renderUpdateErrors() {
+    if (__LINUX__) {
+      return null
+    }
+
     if (
       __RELEASE_CHANNEL__ === 'development' ||
       __RELEASE_CHANNEL__ === 'test'

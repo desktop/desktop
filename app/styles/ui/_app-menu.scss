@@ -1,4 +1,4 @@
-@import "../mixins";
+@import '../mixins';
 
 #app-menu-foldout {
   height: 100%;
@@ -9,6 +9,26 @@
   height: 100%;
   width: 240px;
 
+  // Custom widths for some menus since we don't have
+  // auto-sizeable foldouts at the moment (or rather we
+  // do but our List implementation prevents them from
+  // working). See #3547 for an example.
+  &.menu-pane-branch {
+    width: 275px;
+  }
+
+  &.menu-pane-edit {
+    width: 175px;
+  }
+
+  &.menu-pane-help {
+    width: 220px;
+  }
+
+  &.menu-pane-file {
+    width: 200px;
+  }
+
   // Open panes (except the first one) should have a border on their
   // right hand side to create a divider between them and their parent
   // menu.
@@ -17,7 +37,6 @@
   }
 
   &:not(:last-child) {
-
     // We want list items in previous menus to behave as if they have focus
     // even though they don't, ie we want the selected+focus state
     // to be in effect for all parent selected menu items as well as
@@ -48,7 +67,9 @@
     width: 100%;
     min-width: 0;
 
-    &.disabled { opacity: 0.3; }
+    &.disabled {
+      opacity: 0.3;
+    }
 
     .label {
       flex-grow: 1;

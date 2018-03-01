@@ -3,7 +3,7 @@ import * as React from 'react'
 
 import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
-import { ICommitMessage, IChangesState, PopupType } from '../../lib/app-state'
+import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IGitHubUser } from '../../lib/databases'
@@ -21,6 +21,8 @@ import { ClickSource } from '../lib/list'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { CSSTransitionGroup } from 'react-transition-group'
 import { openFile } from '../../lib/open-file'
+import { ITrailer } from '../../lib/git/interpret-trailers'
+import { Account } from '../../models/account'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -45,6 +47,7 @@ interface IChangesSidebarProps {
   readonly isPushPullFetchInProgress: boolean
   readonly gitHubUserStore: GitHubUserStore
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly accounts: ReadonlyArray<Account>
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -65,7 +68,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private receiveProps(props: IChangesSidebarProps) {
     if (
       props.repository.id !== this.props.repository.id ||
-      !this.autocompletionProviders
+      !this.autocompletionProviders ||
+      props.accounts !== this.props.accounts
     ) {
       const autocompletionProviders: IAutocompletionProvider<any>[] = [
         new EmojiAutocompletionProvider(this.props.emoji),
@@ -81,10 +85,16 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
             props.dispatcher
           )
         )
+
+        const account = this.props.accounts.find(
+          a => a.endpoint === gitHubRepository.endpoint
+        )
+
         autocompletionProviders.push(
           new UserAutocompletionProvider(
             props.gitHubUserStore,
-            gitHubRepository
+            gitHubRepository,
+            account
           )
         )
       }
@@ -93,10 +103,16 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     }
   }
 
-  private onCreateCommit = (message: ICommitMessage): Promise<boolean> => {
+  private onCreateCommit = (
+    summary: string,
+    description: string | null,
+    trailers?: ReadonlyArray<ITrailer>
+  ): Promise<boolean> => {
     return this.props.dispatcher.commitIncludedChanges(
       this.props.repository,
-      message
+      summary,
+      description,
+      trailers
     )
   }
 
@@ -287,6 +303,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}
           isCommitting={this.props.isCommitting}
+          showCoAuthoredBy={this.props.changes.showCoAuthoredBy}
+          coAuthors={this.props.changes.coAuthors}
         />
         {this.renderMostRecentLocalCommit()}
       </div>

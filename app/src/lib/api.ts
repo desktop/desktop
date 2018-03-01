@@ -11,6 +11,7 @@ import {
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
+import { getAvatarWithEnterpriseFallback } from './gravatar'
 
 const username: () => Promise<string> = require('username')
 
@@ -64,7 +65,18 @@ export interface IAPIUser {
   readonly url: string
   readonly login: string
   readonly avatar_url: string
-  readonly name: string
+
+  /**
+   * The user's real name or null if the user hasn't provided
+   * a real name for their public profile.
+   */
+  readonly name: string | null
+
+  /**
+   * The email address for this user or null if the user has not
+   * specified a public email address in their profile.
+   */
+  readonly email: string | null
   readonly type: 'User' | 'Organization'
 }
 
@@ -111,10 +123,23 @@ export interface IAPIIssue {
 /** The combined state of a ref. */
 export type APIRefState = 'failure' | 'pending' | 'success'
 
+/**
+ * The API response for a combined view of a commit
+ * status for a given ref
+ */
+export interface IAPIRefStatusItem {
+  readonly state: APIRefState
+  readonly target_url: string
+  readonly description: string
+  readonly context: string
+  readonly id: number
+}
+
 /** The API response to a ref status request. */
-export interface IAPIRefStatus {
+interface IAPIRefStatus {
   readonly state: APIRefState
   readonly total_count: number
+  readonly statuses: ReadonlyArray<IAPIRefStatusItem>
 }
 
 interface IAPIPullRequestRef {
@@ -161,7 +186,7 @@ interface IAPIAuthorization {
 
 /** The response we receive from fetching mentionables. */
 interface IAPIMentionablesResponse {
-  readonly etag: string
+  readonly etag: string | null
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
@@ -444,6 +469,10 @@ export class API {
         log.warn(`fetchAll: '${path}' returned a 404`)
         return []
       }
+      if (response.status === HttpStatusCode.NotModified) {
+        log.warn(`fetchAll: '${path}' returned a 304`)
+        return []
+      }
 
       const items = await parsedResponse<ReadonlyArray<T>>(response)
       if (items) {
@@ -506,21 +535,45 @@ export class API {
     try {
       const path = `repos/${owner}/${name}/mentionables/users`
       const response = await this.request('GET', path, undefined, headers)
-      if (response.status === HttpStatusCode.NotModified) {
+
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(`fetchMentionables: '${path}' returned a 404`)
         return null
       }
-      if (response.status === HttpStatusCode.NotFound) {
-        log.warn(`fetchAll: '${path}' returned a 404`)
+
+      if (response.status === HttpStatusCode.NotModified) {
         return null
       }
       const users = await parsedResponse<ReadonlyArray<IAPIMentionableUser>>(
         response
       )
-      const responseEtag = response.headers.get('etag')
-      return { users, etag: responseEtag || '' }
+      const etag = response.headers.get('etag')
+      return { users, etag }
     } catch (e) {
       log.warn(`fetchMentionables: failed for ${owner}/${name}`, e)
       return null
+    }
+  }
+
+  /**
+   * Retrieve the public profile information of a user with
+   * a given username.
+   */
+  public async fetchUser(login: string): Promise<IAPIUser | null> {
+    try {
+      const response = await this.request(
+        'GET',
+        `users/${encodeURIComponent(login)}`
+      )
+
+      if (response.status === 404) {
+        return null
+      }
+
+      return await parsedResponse<IAPIUser>(response)
+    } catch (e) {
+      log.warn(`fetchUser: failed with endpoint ${this.endpoint}`, e)
+      throw e
     }
   }
 }
@@ -659,14 +712,20 @@ export async function fetchUser(
   try {
     const user = await api.fetchAccount()
     const emails = await api.fetchEmails()
+    const defaultEmail = emails[0].email || ''
+    const avatarURL = getAvatarWithEnterpriseFallback(
+      user.avatar_url,
+      defaultEmail,
+      endpoint
+    )
     return new Account(
       user.login,
       endpoint,
       token,
       emails,
-      user.avatar_url,
+      avatarURL,
       user.id,
-      user.name
+      user.name || user.login
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)

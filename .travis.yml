@@ -5,6 +5,8 @@ notifications:
 
 dist: trusty
 
+sudo: false
+
 matrix:
   include:
     - os: linux
@@ -14,8 +16,6 @@ matrix:
 addons:
   apt:
     packages:
-      # by default the container VMs have Git 1.9.1, ermagherd...
-      - git-all
       # this is required to compile keytar
       - libsecret-1-dev
       # this package is essential for testing Electron in a headless fashion
@@ -29,6 +29,7 @@ addons:
       # packages required for electron-installer-appimage
       - xz-utils
       - xorriso
+      - zsync
 
 branches:
   only:
@@ -37,24 +38,26 @@ branches:
 
 language: node_js
 node_js:
-  - "7"
+  - "8.9.0"
 
 cache:
+  yarn: true
   timeout: 600
   directories:
     - node_modules
     - $HOME/.electron
     - .eslintcache
+    - $HOME/.cache/electron-builder
+
+before_install:
+  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.2
+  - export PATH=$HOME/.yarn/bin:$PATH
 
 install:
-  - npm install -g yarn@1.3.2
   - yarn install --force
 
 script:
-  - yarn lint
-  - yarn build:prod
-  - yarn test:setup
-  - yarn test
+  - yarn lint && yarn build:prod && yarn test:setup && yarn test
 
 after_failure:
   - yarn test:review

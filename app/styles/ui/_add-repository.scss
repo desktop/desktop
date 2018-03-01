@@ -1,3 +1,5 @@
+@import '../mixins';
+
 #add-repository {
   width: 350px;
 
@@ -22,6 +24,10 @@
 
     &-item {
       padding: 0 var(--spacing-double);
+
+      .name {
+        @include ellipsis;
+      }
     }
 
     &-item {
@@ -46,8 +52,8 @@
     padding: 0;
 
     .row-component:not(:last-child) {
-       margin: 0;
-     }
+      margin: 0;
+    }
   }
 
   &.clone-generic-repository-content {

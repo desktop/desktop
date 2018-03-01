@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as moment from 'moment'
 
 import { Octicon, OcticonSymbol } from '../octicons'
+import { HighlightText } from '../lib/highlight-text'
 
 interface IBranchProps {
   readonly name: string
@@ -9,6 +10,9 @@ interface IBranchProps {
 
   /** The date may be null if we haven't loaded the tip commit yet. */
   readonly lastCommitDate: Date | null
+
+  /** The characters in the branch name to highlight */
+  readonly matches: ReadonlyArray<number>
 }
 
 /** The branch component. */
@@ -27,7 +31,7 @@ export class BranchListItem extends React.Component<IBranchProps, {}> {
       <div className="branches-list-item">
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={name}>
-          {name}
+          <HighlightText text={name} highlight={this.props.matches} />
         </div>
         <div className="description" title={infoTitle}>
           {date}

@@ -10,14 +10,13 @@ import * as packager from 'electron-packager'
 const legalEagle: LegalEagle = require('legal-eagle')
 
 import {
-  getReleaseChannel,
-  getDistRoot,
-  getExecutableName,
   getBundleID,
   getCompanyName,
   getProductName,
   getVersion,
-} from './dist-info'
+} from '../app/package-info'
+
+import { getReleaseChannel, getDistRoot, getExecutableName } from './dist-info'
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
@@ -90,7 +89,9 @@ function packageApp(
       return platform
     }
     throw new Error(
-      `Unable to convert to platform for electron-packager: '${process.platform}`
+      `Unable to convert to platform for electron-packager: '${
+        process.platform
+      }`
     )
   }
 
@@ -233,8 +234,8 @@ function copyDependencies() {
     Object.keys(newDependencies).length ||
     Object.keys(newDevDependencies).length
   ) {
-    console.log('  Installing npm dependencies…')
-    cp.execSync('npm install', { cwd: outRoot, env: process.env })
+    console.log('  Installing dependencies via yarn…')
+    cp.execSync('yarn install', { cwd: outRoot, env: process.env })
   }
 
   if (!isPublishableBuild) {
@@ -310,7 +311,9 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
         let licensesMessage = ''
         for (const key in summary) {
           const license = summary[key]
-          licensesMessage += `${key} (${license.repository}): ${license.license}\n`
+          licensesMessage += `${key} (${license.repository}): ${
+            license.license
+          }\n`
         }
 
         const message = `The following dependencies have unknown or non-permissive licenses. Check it out and update ${overridesPath} if appropriate:\n${licensesMessage}`

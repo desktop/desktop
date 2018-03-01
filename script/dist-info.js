@@ -1,12 +1,13 @@
 'use strict'
 
 const path = require('path')
-const os = require('os')
 const fs = require('fs')
 
+const packageInfo = require('../app/package-info')
+const productName = packageInfo.getProductName()
+const version = packageInfo.getVersion()
+
 const projectRoot = path.join(__dirname, '..')
-// eslint-disable-next-line import/no-dynamic-require
-const appPackage = require(path.join(projectRoot, 'app', 'package.json'))
 
 function getDistRoot() {
   return path.join(projectRoot, 'dist')
@@ -22,28 +23,16 @@ function getDistPath() {
 function getExecutableName() {
   const suffix = process.env.NODE_ENV === 'development' ? '-dev' : ''
 
-  return process.platform === 'win32'
-    ? `${getWindowsIdentifierName()}${suffix}`
-    : getProductName()
-}
-
-function getProductName() {
-  const productName = appPackage.productName
-  return process.env.NODE_ENV === 'development'
-    ? `${productName}-dev`
-    : productName
-}
-
-function getCompanyName() {
-  return appPackage.companyName
-}
-
-function getVersion() {
-  return appPackage.version
+  if (process.platform === 'win32') {
+    return `${getWindowsIdentifierName()}${suffix}`
+  } else if (process.platform === 'linux') {
+    return 'desktop'
+  } else {
+    return productName
+  }
 }
 
 function getOSXZipName() {
-  const productName = getProductName()
   return `${productName}.zip`
 }
 
@@ -70,7 +59,7 @@ function getWindowsStandalonePath() {
 }
 
 function getWindowsFullNugetPackageName() {
-  return `${getWindowsIdentifierName()}-${getVersion()}-full.nupkg`
+  return `${getWindowsIdentifierName()}-${version}-full.nupkg`
 }
 
 function getWindowsFullNugetPackagePath() {
@@ -83,7 +72,7 @@ function getWindowsFullNugetPackagePath() {
 }
 
 function getWindowsDeltaNugetPackageName() {
-  return `${getWindowsIdentifierName()}-${getVersion()}-delta.nupkg`
+  return `${getWindowsIdentifierName()}-${version}-delta.nupkg`
 }
 
 function getWindowsDeltaNugetPackagePath() {
@@ -93,29 +82,6 @@ function getWindowsDeltaNugetPackagePath() {
     'installer',
     getWindowsDeltaNugetPackageName()
   )
-}
-
-function getBundleID() {
-  return appPackage.bundleID
-}
-
-function getUserDataPath() {
-  if (process.platform === 'win32') {
-    return path.join(process.env.APPDATA, getExecutableName())
-  } else if (process.platform === 'darwin') {
-    const home = os.homedir()
-    return path.join(home, 'Library', 'Application Support', getProductName())
-  } else if (process.platform === 'linux') {
-    if (process.env.XDG_CONFIG_HOME) {
-      return path.join(process.env.XDG_CONFIG_HOME, getProductName())
-    }
-    const home = os.homedir()
-    return path.join(home, '.config', getProductName())
-  } else {
-    throw new Error(
-      `I dunno how to resolve the user data path for ${process.platform} ${process.arch} :(`
-    )
-  }
 }
 
 function getWindowsIdentifierName() {
@@ -162,7 +128,7 @@ function getReleaseSHA() {
 }
 
 function getUpdatesURL() {
-  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${getVersion()}&env=${getReleaseChannel()}`
+  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${version}&env=${getReleaseChannel()}`
 }
 
 function shouldMakeDelta() {
@@ -172,55 +138,9 @@ function shouldMakeDelta() {
   return channelsWithDeltas.indexOf(getReleaseChannel()) > -1
 }
 
-function getCLICommands() {
-  return fs
-    .readdirSync(path.resolve(projectRoot, 'app', 'src', 'cli', 'commands'))
-    .filter(name => name.endsWith('.ts'))
-    .map(name => name.replace(/\.ts$/, ''))
-}
-
-/**
- * Attempt to dereference the given ref without requiring a Git environment
- * to be present. Note that this method will not be able to dereference packed
- * refs but should suffice for simple refs like 'HEAD'.
- *
- * Will throw an error for unborn HEAD.
- *
- * @param {string} gitDir The path to the Git repository's .git directory
- * @param {string} ref    A qualified git ref such as 'HEAD' or 'refs/heads/master'
- */
-function revParse(gitDir, ref) {
-  const refPath = path.join(gitDir, ref)
-  const refContents = fs.readFileSync(refPath)
-  const refRe = /^([a-f0-9]{40})|(?:ref: (refs\/.*))$/m
-  const refMatch = refRe.exec(refContents)
-
-  if (!refMatch) {
-    throw new Error(
-      `Could not de-reference HEAD to SHA, invalid ref in ${refPath}: ${refContents}`
-    )
-  }
-
-  return refMatch[1] || revParse(gitDir, refMatch[2])
-}
-
-function getSHA() {
-  // CircleCI does some funny stuff where HEAD points to an packed ref, but
-  // luckily it gives us the SHA we want in the environment.
-  const circleSHA = process.env.CIRCLE_SHA1
-  if (circleSHA) {
-    return circleSHA
-  }
-
-  return revParse(path.resolve(__dirname, '../.git'), 'HEAD')
-}
-
 module.exports = {
   getDistRoot,
   getDistPath,
-  getProductName,
-  getCompanyName,
-  getVersion,
   getOSXZipName,
   getOSXZipPath,
   getWindowsInstallerName,
@@ -229,8 +149,6 @@ module.exports = {
   getWindowsStandalonePath,
   getWindowsFullNugetPackageName,
   getWindowsFullNugetPackagePath,
-  getBundleID,
-  getUserDataPath,
   getWindowsIdentifierName,
   getBundleSizes,
   getReleaseChannel,
@@ -241,6 +159,4 @@ module.exports = {
   shouldMakeDelta,
   getReleaseBranchName,
   getExecutableName,
-  getCLICommands,
-  getSHA,
 }

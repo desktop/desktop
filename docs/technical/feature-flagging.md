@@ -17,6 +17,15 @@ We're currently focused on user interface changes - new views, significant
 changes to existing views, and so on. We can revisit this list when we
 identify other cases where this sort of feature flagging needs to occur.
 
+A **beta feature** should be:
+
+- a feature that is slated for an upcoming release, and
+- is usably complete, but
+- needs more testing, or
+- needs to be used to see how it feels
+
+Beta features are a superset of preview features.
+
 ## Why not just ship it?
 
 A few reasons:
@@ -31,26 +40,25 @@ A few reasons:
 
 ## How to Feature Flag?
 
-At runtime your code should check [`enablePreviewFeatures()`](https://github.com/desktop/desktop/blob/2286edb0e1cf376ab81a1ffe02115abdde88527f/app/src/lib/feature-flag.ts#L6)
-and either display the new feature or the existing one.
+First add a new function to [feature-flag.ts](https://github.com/desktop/desktop/blob/3ee29eb1bd083a53f69fdbec2e2b10ec93404e44/app/src/lib/feature-flag.ts#L30). The function should usually check `enableDevelopmentFeatures()` or `enableBetaFeatures()`. Then, at runtime, your code should check either your feature flag function and either display the new feature or the existing one.
 
-A simple example is the new clone experience in [#2436](https://github.com/desktop/desktop/pull/2436):
-
-```ts
-public render() {
-  if (enablePreviewFeatures()) {
-    return this.renderPreviewInterface()
-  } else {
-    return this.renderClassicInterface()
-  }
-}
-```
+See pull request integration in [#3339](https://github.com/desktop/desktop/pull/3339) for an example.
 
 This separation and naming scheme makes it easier to clean up the new or old
 feature once things are stabilized.
 
 ## How to test
 
-To opt-in for testing preview features, set the
-`GITHUB_DESKTOP_PREVIEW_FEATURES` environment variable to any value and launch
-the Desktop app.
+**Opting-in for preview features**
+1. Set the `GITHUB_DESKTOP_PREVIEW_FEATURES` environment variable to any value
+1. Restart GitHub Desktop
+
+Don't have that environment variable? 
+No worries, simply create it. (here's a [handy guide](https://www.schrodinger.com/kb/1842) for doing that on most major OSs).
+
+**Opting-out for preview features**
+1. Remove the `GITHUB_DESKTOP_PREVIEW_FEATURES` environment variable
+1. Restart GitHub Desktop
+
+
+

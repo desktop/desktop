@@ -5,7 +5,7 @@ import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
 import { IGitHubUser } from '../../lib/databases'
 
-const RowHeight = 48
+const RowHeight = 50
 
 interface ICommitListProps {
   readonly onCommitChanged: (commit: Commit) => void
@@ -26,19 +26,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   private renderCommit = (row: number) => {
     const sha = this.props.history[row]
     const commit = this.props.commits.get(sha)
+
     if (!commit) {
       return null
-    }
-
-    const gitHubUser =
-      this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
-    let avatarUser = null
-    if (gitHubUser) {
-      avatarUser = {
-        email: commit.author.email,
-        name: commit.author.name,
-        avatarURL: gitHubUser.avatarURL,
-      }
     }
 
     const isLocal = this.props.localCommitSHAs.indexOf(commit.sha) > -1
@@ -49,7 +39,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         gitHubRepository={this.props.repository.gitHubRepository}
         isLocal={isLocal}
         commit={commit}
-        user={avatarUser}
+        gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
         onRevertCommit={this.props.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}

@@ -8,7 +8,7 @@ import { Select } from '../lib/select'
 import { ExternalEditor, parse as parseEditor } from '../../lib/editors'
 import { Shell, parse as parseShell } from '../../lib/shells'
 import { TextBox } from '../lib/text-box'
-import { enablePreviewFeatures } from '../../lib/feature-flag'
+import { enableMergeTool } from '../../lib/feature-flag'
 import { IMergeTool } from '../../lib/git/config'
 
 interface IAdvancedPreferencesProps {
@@ -192,7 +192,7 @@ export class Advanced extends React.Component<
   }
 
   private renderMergeTool() {
-    if (!enablePreviewFeatures()) {
+    if (!enableMergeTool()) {
       return null
     }
 

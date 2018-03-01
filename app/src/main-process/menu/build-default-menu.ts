@@ -13,10 +13,14 @@ const defaultEditorLabel = __DARWIN__
 const defaultShellLabel = __DARWIN__
   ? 'Open in Terminal'
   : 'Open in Command Prompt'
+const defaultPullRequestLabel = __DARWIN__
+  ? 'Create Pull Request'
+  : 'Create &pull request'
 
 export function buildDefaultMenu(
   editorLabel: string = defaultEditorLabel,
-  shellLabel: string = defaultShellLabel
+  shellLabel: string = defaultShellLabel,
+  pullRequestLabel: string = defaultPullRequestLabel
 ): Electron.Menu {
   const template = new Array<Electron.MenuItemConstructorOptions>()
   const separator: Electron.MenuItemConstructorOptions = { type: 'separator' }
@@ -277,6 +281,7 @@ export function buildDefaultMenu(
           ? 'Update From Default Branch'
           : '&Update from default branch',
         id: 'update-branch',
+        accelerator: 'CmdOrCtrl+Shift+U',
         click: emit('update-branch'),
       },
       {
@@ -284,6 +289,7 @@ export function buildDefaultMenu(
           ? 'Merge Into Current Branch…'
           : '&Merge into current branch…',
         id: 'merge-branch',
+        accelerator: 'CmdOrCtrl+Shift+M',
         click: emit('merge-branch'),
       },
       separator,
@@ -294,10 +300,10 @@ export function buildDefaultMenu(
         click: emit('compare-branch'),
       },
       {
-        label: __DARWIN__ ? 'Create Pull Request' : 'Create &pull request',
+        label: pullRequestLabel,
         id: 'create-pull-request',
         accelerator: 'CmdOrCtrl+R',
-        click: emit('create-pull-request'),
+        click: emit('open-pull-request'),
       },
     ],
   })
@@ -338,8 +344,12 @@ export function buildDefaultMenu(
     },
   }
 
+  const showLogsLabel = __DARWIN__
+    ? 'Show Logs in Finder'
+    : __WIN32__ ? 'S&how logs in Explorer' : 'S&how logs in your File Manager'
+
   const showLogsItem: Electron.MenuItemConstructorOptions = {
-    label: __DARWIN__ ? 'Show Logs in Finder' : 'S&how logs in Explorer',
+    label: showLogsLabel,
     click() {
       const logPath = getLogDirectoryPath()
       mkdirIfNeeded(logPath)

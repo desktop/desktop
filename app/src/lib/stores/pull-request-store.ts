@@ -13,183 +13,280 @@ import {
   PullRequestRef,
   PullRequestStatus,
 } from '../../models/pull-request'
+import { TypedBaseStore } from './base-store'
+import { Repository } from '../../models/repository'
+import { getRemotes, removeRemote } from '../git'
+import { IRemote } from '../../models/remote'
+
+/**
+ * This is the magic remote name prefix
+ * for when we add a remote on behalf of
+ * the user.
+ */
+export const ForkedRemotePrefix = 'github-desktop-'
+
+const Decrement = (n: number) => n - 1
+const Increment = (n: number) => n + 1
 
 /** The store for GitHub Pull Requests. */
-export class PullRequestStore {
-  private readonly db: PullRequestDatabase
-  private readonly repositoriesStore: RepositoriesStore
+export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
+  private readonly pullRequestDatabase: PullRequestDatabase
+  private readonly repositoryStore: RepositoriesStore
+  private readonly activeFetchCountPerRepository = new Map<number, number>()
 
   public constructor(
     db: PullRequestDatabase,
     repositoriesStore: RepositoriesStore
   ) {
-    this.db = db
-    this.repositoriesStore = repositoriesStore
+    super()
+
+    this.pullRequestDatabase = db
+    this.repositoryStore = repositoriesStore
   }
 
-  /** Update the list of open pull requests for the repository. */
-  public async refreshPullRequests(
-    repository: GitHubRepository,
+  /** Loads all pull requests against the given repository. */
+  public async fetchAndCachePullRequests(
+    repository: Repository,
     account: Account
-  ): Promise<ReadonlyArray<PullRequest>> {
-    const api = API.fromAccount(account)
-
-    const prsFromAPI = await api.fetchPullRequests(
-      repository.owner.login,
-      repository.name,
-      'open'
+  ): Promise<void> {
+    const githubRepo = forceUnwrap(
+      'Can only refresh pull requests for GitHub repositories',
+      repository.gitHubRepository
     )
+    const apiClient = API.fromAccount(account)
 
-    await this.writePullRequests(prsFromAPI, repository)
+    this.updateActiveFetchCount(githubRepo, Increment)
 
-    const prs = await this.getPullRequests(repository)
-    const pullRequestsStatuses: Array<IPullRequestStatus> = []
-
-    for (const pr of prs) {
-      const status = await api.fetchCombinedRefStatus(
-        repository.owner.login,
-        repository.name,
-        pr.head.sha
+    try {
+      const apiResult = await apiClient.fetchPullRequests(
+        githubRepo.owner.login,
+        githubRepo.name,
+        'open'
       )
 
-      pullRequestsStatuses.push({
-        state: status.state,
-        totalCount: status.total_count,
-        pullRequestId: pr.id,
-        sha: pr.head.sha,
-      })
+      await this.cachePullRequests(apiResult, githubRepo)
+
+      const prs = await this.fetchPullRequestsFromCache(githubRepo)
+
+      await this.fetchAndCachePullRequestStatus(prs, githubRepo, account)
+      await this.pruneForkedRemotes(repository, prs)
+
+      this.emitUpdate(githubRepo)
+    } catch (error) {
+      log.warn(`Error refreshing pull requests for '${repository.name}'`, error)
+      this.emitError(error)
+    } finally {
+      this.updateActiveFetchCount(githubRepo, Decrement)
     }
-
-    await this.writePullRequestStatus(pullRequestsStatuses)
-
-    return await this.getPullRequests(repository)
   }
 
-  /** Get the pull requests from the database. */
-  public async getPullRequests(
+  /** Is the store currently fetching the list of open pull requests? */
+  public isFetchingPullRequests(repository: GitHubRepository): boolean {
+    const repoDbId = forceUnwrap(
+      'Cannot fetch PRs for a repository which is not in the database',
+      repository.dbID
+    )
+    const currentCount = this.activeFetchCountPerRepository.get(repoDbId) || 0
+
+    return currentCount > 0
+  }
+
+  /** Loads the status for the given pull request. */
+  public async fetchPullRequestStatus(
+    repository: GitHubRepository,
+    account: Account,
+    pullRequest: PullRequest
+  ): Promise<void> {
+    await this.fetchAndCachePullRequestStatus(
+      [pullRequest],
+      repository,
+      account
+    )
+  }
+
+  /** Loads the status for all pull request against a given repository. */
+  public async fetchPullRequestStatuses(
+    repository: GitHubRepository,
+    account: Account
+  ): Promise<void> {
+    const prs = await this.fetchPullRequestsFromCache(repository)
+
+    await this.fetchAndCachePullRequestStatus(prs, repository, account)
+  }
+
+  /** Gets the pull requests against the given repository. */
+  public async fetchPullRequestsFromCache(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<PullRequest>> {
     const gitHubRepositoryID = repository.dbID
-    if (!gitHubRepositoryID) {
-      fatalError(
+
+    if (gitHubRepositoryID == null) {
+      return fatalError(
         "Cannot get pull requests for a repository that hasn't been inserted into the database!"
       )
-
-      return []
     }
 
-    const pullRequests = await this.db.pullRequests
+    const records = await this.pullRequestDatabase.pullRequests
       .where('base.repoId')
       .equals(gitHubRepositoryID)
       .reverse()
       .sortBy('number')
 
-    const builtPullRequests = new Array<PullRequest>()
-    for (const pr of pullRequests) {
-      const headId = pr.head.repoId
-      let head: GitHubRepository | null = null
-      if (headId) {
-        head = await this.repositoriesStore.findGitHubRepositoryByID(headId)
+    const result = new Array<PullRequest>()
+
+    for (const record of records) {
+      const repositoryDbId = record.head.repoId
+      let githubRepository: GitHubRepository | null = null
+
+      if (repositoryDbId != null) {
+        githubRepository = await this.repositoryStore.findGitHubRepositoryByID(
+          repositoryDbId
+        )
       }
 
       // We know the base repo ID can't be null since it's the repository we
       // fetched the PR from in the first place.
-      const baseId = forceUnwrap(
-        'PR cannot have a null base repo id',
-        pr.base.repoId
+      const parentRepositoryDbId = forceUnwrap(
+        'A pull request cannot have a null base repo id',
+        record.base.repoId
       )
-      const base = forceUnwrap(
+      const parentGitGubRepository: GitHubRepository | null = await this.repositoryStore.findGitHubRepositoryByID(
+        parentRepositoryDbId
+      )
+      const parentGitHubRepository = forceUnwrap(
         'PR cannot have a null base repo',
-        await this.repositoriesStore.findGitHubRepositoryByID(baseId)
+        parentGitGubRepository
       )
 
       // We can be certain the PR ID is valid since we just got it from the
       // database.
-      const prID = forceUnwrap(
+      const pullRequestDbId = forceUnwrap(
         'PR cannot have a null ID after being retrieved from the database',
-        pr.id
-      )
-      const prStatus = await this.getPullRequestStatusById(pr.head.sha, prID)
-
-      const builtPR = new PullRequest(
-        prID,
-        new Date(pr.createdAt),
-        prStatus,
-        pr.title,
-        pr.number,
-        new PullRequestRef(pr.head.ref, pr.head.sha, head),
-        new PullRequestRef(pr.base.ref, pr.base.sha, base),
-        pr.author
+        record.id
       )
 
-      builtPullRequests.push(builtPR)
+      const pullRequestStatus = await this.findPullRequestStatus(
+        record.head.sha,
+        pullRequestDbId
+      )
+
+      result.push(
+        new PullRequest(
+          pullRequestDbId,
+          new Date(record.createdAt),
+          pullRequestStatus,
+          record.title,
+          record.number,
+          new PullRequestRef(
+            record.head.ref,
+            record.head.sha,
+            githubRepository
+          ),
+          new PullRequestRef(
+            record.base.ref,
+            record.base.sha,
+            parentGitHubRepository
+          ),
+          record.author
+        )
+      )
     }
 
-    return builtPullRequests
+    return result
   }
 
-  private async writePullRequests(
-    pullRequests: ReadonlyArray<IAPIPullRequest>,
-    repository: GitHubRepository
-  ): Promise<void> {
-    const repoId = repository.dbID
+  private async pruneForkedRemotes(
+    repository: Repository,
+    pullRequests: ReadonlyArray<PullRequest>
+  ) {
+    const remotes = await getRemotes(repository)
+    const forkedRemotesToDelete = this.getRemotesToDelete(remotes, pullRequests)
 
-    if (!repoId) {
-      fatalError(
-        "Cannot store pull requests for a repository that hasn't been inserted into the database!"
-      )
+    await this.deleteRemotes(repository, forkedRemotesToDelete)
+  }
 
-      return
-    }
+  private getRemotesToDelete(
+    remotes: ReadonlyArray<IRemote>,
+    openPullRequests: ReadonlyArray<PullRequest>
+  ): ReadonlyArray<IRemote> {
+    const forkedRemotes = remotes.filter(remote =>
+      remote.name.startsWith(ForkedRemotePrefix)
+    )
+    const remotesOfPullRequests = new Set<string>()
 
-    const table = this.db.pullRequests
+    openPullRequests.forEach(pr => {
+      const { gitHubRepository } = pr.head
 
-    const insertablePRs = new Array<IPullRequest>()
-    for (const pr of pullRequests) {
-      let headRepo: GitHubRepository | null = null
-      if (pr.head.repo) {
-        headRepo = await this.repositoriesStore.findOrPutGitHubRepository(
-          repository.endpoint,
-          pr.head.repo
-        )
+      if (gitHubRepository != null && gitHubRepository.cloneURL != null) {
+        remotesOfPullRequests.add(gitHubRepository.cloneURL)
       }
+    })
 
-      // We know the base repo isn't null since that's where we got the PR from
-      // in the first place.
-      const baseRepo = await this.repositoriesStore.findOrPutGitHubRepository(
-        repository.endpoint,
-        forceUnwrap('PR cannot have a null base repo', pr.base.repo)
+    const result = forkedRemotes.filter(
+      forkedRemote => !remotesOfPullRequests.has(forkedRemote.url)
+    )
+
+    return result
+  }
+
+  private async deleteRemotes(
+    repository: Repository,
+    remotes: ReadonlyArray<IRemote>
+  ) {
+    const promises: Array<Promise<void>> = []
+
+    remotes.forEach(r => promises.push(removeRemote(repository, r.name)))
+    await Promise.all(promises)
+  }
+
+  private updateActiveFetchCount(
+    repository: GitHubRepository,
+    update: (count: number) => number
+  ) {
+    const repoDbId = forceUnwrap(
+      'Cannot fetch PRs for a repository which is not in the database',
+      repository.dbID
+    )
+    const currentCount = this.activeFetchCountPerRepository.get(repoDbId) || 0
+    const newCount = update(currentCount)
+
+    this.activeFetchCountPerRepository.set(repoDbId, newCount)
+    this.emitUpdate(repository)
+  }
+
+  private async fetchAndCachePullRequestStatus(
+    pullRequests: ReadonlyArray<PullRequest>,
+    repository: GitHubRepository,
+    account: Account
+  ): Promise<void> {
+    const apiClient = API.fromAccount(account)
+    const statuses: Array<IPullRequestStatus> = []
+
+    for (const pr of pullRequests) {
+      const combinedRefStatus = await apiClient.fetchCombinedRefStatus(
+        repository.owner.login,
+        repository.name,
+        pr.head.sha
       )
 
-      insertablePRs.push({
-        number: pr.number,
-        title: pr.title,
-        createdAt: pr.created_at,
-        head: {
-          ref: pr.head.ref,
-          sha: pr.head.sha,
-          repoId: headRepo ? headRepo.dbID! : null,
-        },
-        base: {
-          ref: pr.base.ref,
-          sha: pr.base.sha,
-          repoId: forceUnwrap('PR cannot have a null base repo', baseRepo.dbID),
-        },
-        author: pr.user.login,
+      statuses.push({
+        pullRequestId: pr.id,
+        state: combinedRefStatus.state,
+        totalCount: combinedRefStatus.total_count,
+        sha: pr.head.sha,
+        statuses: combinedRefStatus.statuses,
       })
     }
 
-    await this.db.transaction('rw', table, async () => {
-      await table.clear()
-      await table.bulkAdd(insertablePRs)
-    })
+    await this.cachePullRequestStatuses(statuses)
+    this.emitUpdate(repository)
   }
 
-  private async getPullRequestStatusById(
+  private async findPullRequestStatus(
     sha: string,
     pullRequestId: number
   ): Promise<PullRequestStatus | null> {
-    const result = await this.db.pullRequestStatus
+    const result = await this.pullRequestDatabase.pullRequestStatus
       .where('[sha+pullRequestId]')
       .equals([sha, pullRequestId])
       .limit(1)
@@ -199,12 +296,138 @@ export class PullRequestStore {
       return null
     }
 
-    return new PullRequestStatus(result.state, result.totalCount, result.sha)
+    const combinedRefStatuses = (result.statuses || []).map(x => {
+      return {
+        id: x.id,
+        state: x.state,
+      }
+    })
+
+    return new PullRequestStatus(
+      result.pullRequestId,
+      result.state,
+      result.totalCount,
+      result.sha,
+      combinedRefStatuses
+    )
   }
 
-  private async writePullRequestStatus(
+  private async cachePullRequests(
+    pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
+    repository: GitHubRepository
+  ): Promise<void> {
+    const repoDbId = repository.dbID
+
+    if (repoDbId == null) {
+      return fatalError(
+        "Cannot store pull requests for a repository that hasn't been inserted into the database!"
+      )
+    }
+
+    const table = this.pullRequestDatabase.pullRequests
+    const prsToInsert = new Array<IPullRequest>()
+
+    for (const pr of pullRequestsFromAPI) {
+      // `pr.head.repo` represents the source of the pull request. It might be
+      // a branch associated with the current repository, or a fork of the
+      // current repository.
+      //
+      // In cases where the user has removed the fork of the repository after
+      // opening a pull request, this can be `null`, and the app will not store
+      // this pull request.
+
+      if (pr.head.repo == null) {
+        log.debug(
+          `Unable to store pull request #${pr.number} for repository ${
+            repository.fullName
+          } as it has no head repository associated with it`
+        )
+        continue
+      }
+
+      const githubRepo = await this.repositoryStore.upsertGitHubRepository(
+        repository.endpoint,
+        pr.head.repo
+      )
+
+      const githubRepoDbId = forceUnwrap(
+        'PR cannot have non-existent repo',
+        githubRepo.dbID
+      )
+
+      // We know the base repo isn't null since that's where we got the PR from
+      // in the first place.
+      const parentRepo = forceUnwrap(
+        'PR cannot have a null base repo',
+        pr.base.repo
+      )
+      const parentGitHubRepo = await this.repositoryStore.upsertGitHubRepository(
+        repository.endpoint,
+        parentRepo
+      )
+      const parentGitHubRepoDbId = forceUnwrap(
+        'PR cannot have a null parent database id',
+        parentGitHubRepo.dbID
+      )
+
+      prsToInsert.push({
+        number: pr.number,
+        title: pr.title,
+        createdAt: pr.created_at,
+        head: {
+          ref: pr.head.ref,
+          sha: pr.head.sha,
+          repoId: githubRepoDbId,
+        },
+        base: {
+          ref: pr.base.ref,
+          sha: pr.base.sha,
+          repoId: parentGitHubRepoDbId,
+        },
+        author: pr.user.login,
+      })
+    }
+
+    if (prsToInsert.length <= 0) {
+      return
+    }
+
+    return this.pullRequestDatabase.transaction('rw', table, async () => {
+      // since all PRs come from the same repository
+      // using the base repoId of the fist element
+      // is sufficient here
+      const repoDbId = prsToInsert[0].base.repoId!
+
+      // we need to delete the stales PRs from the db
+      // so we remove all for a repo to avoid having to
+      // do diffing
+      await table
+        .where('base.repoId')
+        .equals(repoDbId)
+        .delete()
+
+      await table.bulkAdd(prsToInsert)
+    })
+  }
+
+  private async cachePullRequestStatuses(
     statuses: Array<IPullRequestStatus>
   ): Promise<void> {
-    await this.db.pullRequestStatus.bulkAdd(statuses)
+    const table = this.pullRequestDatabase.pullRequestStatus
+
+    await this.pullRequestDatabase.transaction('rw', table, async () => {
+      for (const status of statuses) {
+        const record = await table
+          .where('[sha+pullRequestId]')
+          .equals([status.sha, status.pullRequestId])
+          .first()
+
+        if (record == null) {
+          await table.add(status)
+        } else {
+          await table.put({ id: record.id, ...status })
+        }
+      }
+    })
   }
 }

@@ -249,9 +249,7 @@ export class TermsAndConditions extends React.Component<
 
             <li>
               Contact Us. Please send any questions about these Application
-              Terms to <LinkButton uri={contact}>
-                support@github.com
-              </LinkButton>.
+              Terms to <LinkButton uri={contact}>support@github.com</LinkButton>.
             </li>
           </ol>
         </DialogContent>

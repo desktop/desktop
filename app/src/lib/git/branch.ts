@@ -1,4 +1,5 @@
 import { git, gitNetworkArguments } from './core'
+import { getBranches } from './for-each-ref'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { IGitAccount, envForAuthentication } from './authentication'
@@ -16,11 +17,19 @@ export async function createBranch(
   repository: Repository,
   name: string,
   startPoint?: string
-): Promise<true> {
+): Promise<Branch | null> {
   const args = startPoint ? ['branch', name, startPoint] : ['branch', name]
 
-  await git(args, repository.path, 'createBranch')
-  return true
+  try {
+    await git(args, repository.path, 'createBranch')
+    const branches = await getBranches(repository, `refs/heads/${name}`)
+    if (branches.length > 0) {
+      return branches[0]
+    }
+  } catch (err) {
+    log.error('createBranch failed', err)
+  }
+  return null
 }
 
 /** Rename the given branch to a new name. */

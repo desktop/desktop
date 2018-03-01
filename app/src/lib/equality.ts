@@ -14,11 +14,11 @@ export function structuralEquals<T extends object>(
 /**
  * Performs a shallow equality comparison on the two objects, iterating over
  * their keys (non-recursively) and compares their values.
- * 
+ *
  * This method is functionally identical to that of React's shallowCompare
  * function and is intended to be used where we need to test for the same
  * kind of equality comparisons that a PureComponent performs.
- * 
+ *
  * Note that for Arrays and primitive types this method will follow the same
  * semantics as Object.is, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
  */
@@ -50,6 +50,31 @@ export function shallowEquals(x: any, y: any) {
       !Object.prototype.hasOwnProperty.call(y, key) ||
       !Object.is(x[key], y[key])
     ) {
+      return false
+    }
+  }
+
+  return true
+}
+
+/**
+ * Compares two arrays for element reference equality.
+ *
+ * Two arrays are considered equal if they either contain the
+ * exact same elements in the same order (reference equality)
+ * if they're both empty, or if they are the exact same object
+ */
+export function arrayEquals<T>(x: ReadonlyArray<T>, y: ReadonlyArray<T>) {
+  if (x === y) {
+    return true
+  }
+
+  if (x.length !== y.length) {
+    return false
+  }
+
+  for (let i = 0; i < x.length; i++) {
+    if (x[i] !== y[i]) {
       return false
     }
   }

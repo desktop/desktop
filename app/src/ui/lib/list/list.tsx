@@ -325,26 +325,35 @@ export class List extends React.Component<IListProps, IListState> {
   /**
    * Determine the next selectable row, given the direction and row. This will
    * take `canSelectRow` into account.
+   *
+   * Returns null if no row can be selected.
    */
-  public nextSelectableRow(direction: 'up' | 'down', row: number): number {
-    let newRow = row
-    if (direction === 'up') {
-      newRow = row - 1
-      if (newRow < 0) {
-        newRow = this.props.rowCount - 1
-      }
-    } else {
-      newRow = row + 1
-      if (newRow > this.props.rowCount - 1) {
-        newRow = 0
+  public nextSelectableRow(
+    direction: 'up' | 'down',
+    row: number
+  ): number | null {
+    // If the row we're starting from is outside our list, make sure we start
+    // walking from _just_ outside the list. We'll also need to walk one more
+    // row than we normally would since the first step is just getting us into
+    // the list.
+    const baseRow = Math.min(Math.max(row, -1), this.props.rowCount)
+    const startOutsideList = row < 0 || row >= this.props.rowCount
+    const rowDelta = startOutsideList
+      ? this.props.rowCount + 1
+      : this.props.rowCount
+
+    for (let i = 1; i < rowDelta; i++) {
+      const delta = direction === 'up' ? i * -1 : i
+      // Modulo accounting for negative values, see https://stackoverflow.com/a/4467559
+      const nextRow =
+        (baseRow + delta + this.props.rowCount) % this.props.rowCount
+
+      if (this.canSelectRow(nextRow)) {
+        return nextRow
       }
     }
 
-    if (this.canSelectRow(newRow)) {
-      return newRow
-    } else {
-      return this.nextSelectableRow(direction, newRow)
-    }
+    return null
   }
 
   /** Convenience method for invoking canSelectRow callback when it exists */
@@ -358,11 +367,13 @@ export class List extends React.Component<IListProps, IListState> {
   ) {
     const newRow = this.nextSelectableRow(direction, this.props.selectedRow)
 
-    if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(newRow, { kind: 'keyboard', event })
-    }
+    if (newRow != null) {
+      if (this.props.onSelectionChanged) {
+        this.props.onSelectionChanged(newRow, { kind: 'keyboard', event })
+      }
 
-    this.scrollRowToVisible(newRow)
+      this.scrollRowToVisible(newRow)
+    }
   }
 
   private scrollRowToVisible(row: number) {
@@ -492,7 +503,8 @@ export class List extends React.Component<IListProps, IListState> {
       content = (
         <AutoSizer disableWidth={true} disableHeight={true}>
           {({ width, height }: { width: number; height: number }) =>
-            this.renderContents(width, height)}
+            this.renderContents(width, height)
+          }
         </AutoSizer>
       )
     }

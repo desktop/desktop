@@ -47,6 +47,8 @@ export class Resizable extends React.Component<IResizableProps, {}> {
 
     document.addEventListener('mousemove', this.handleDragMove)
     document.addEventListener('mouseup', this.handleDragStop)
+
+    e.preventDefault()
   }
 
   /**
@@ -64,6 +66,8 @@ export class Resizable extends React.Component<IResizableProps, {}> {
     if (this.props.onResize) {
       this.props.onResize(newWidthClamped)
     }
+
+    e.preventDefault()
   }
 
   /**
@@ -73,6 +77,8 @@ export class Resizable extends React.Component<IResizableProps, {}> {
   private handleDragStop = (e: MouseEvent) => {
     document.removeEventListener('mousemove', this.handleDragMove)
     document.removeEventListener('mouseup', this.handleDragStop)
+
+    e.preventDefault()
   }
 
   /**

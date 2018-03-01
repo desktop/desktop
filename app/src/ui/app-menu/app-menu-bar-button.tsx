@@ -42,7 +42,7 @@ interface IAppMenuBarButtonProps {
    * is pressed, signifying that the item is accessible by holding Alt
    * and pressing the corresponding access key. Note that this is a Windows
    * convention.
-   * 
+   *
    * See the highlight prop of the AccessText component for more details.
    */
   readonly highlightMenuAccessKey: boolean
@@ -51,7 +51,7 @@ interface IAppMenuBarButtonProps {
    * A function that's called when the menu item is closed by the user clicking
    * on the button while it is expanded. This is a specialized version
    * of the onDropdownStateChanged prop of the ToolbarDropdown component.
-   * 
+   *
    * @param menuItem - The top-level menu item rendered by this menu bar button.
    * @param source   - Whether closing the menu was caused by a keyboard or
    *                   pointer interaction, or if it was closed due to an
@@ -67,7 +67,7 @@ interface IAppMenuBarButtonProps {
    * on the button or pressing the down arrow key while it is collapsed.
    * This is a specialized version of the onDropdownStateChanged prop of the
    * ToolbarDropdown component.
-   * 
+   *
    * @param selectFirstItem - Whether or not to automatically select
    *                          the first item in the newly opened menu.
    *                          This is set when the menu is opened by the
@@ -89,7 +89,7 @@ interface IAppMenuBarButtonProps {
    * button component or any of its descendants. Note that this includes any
    * component or element within the foldout when that is open like, for
    * example, MenuItem components.
-   * 
+   *
    * This function is called before the menu bar button itself does any
    * processing of the event so consumers should make sure to call
    * event.preventDefault if they act on the event in order to make sure that
@@ -107,7 +107,7 @@ interface IAppMenuBarButtonProps {
    * is able to keep track of them without having to resort to closing over id's
    * in its render method which would cause the component to re-render on each
    * pass.
-   * 
+   *
    * Note that this method is unreliable if the component can receive a new
    * MenuItem during its lifetime. As such it's important that
    * consumers on this component uses a key prop that's equal to the id of
@@ -126,7 +126,7 @@ interface IAppMenuBarButtonProps {
    * these methods pass along the menuItem so that the parent component is able
    * to keep track of them without having to resort to closing over id's in its
    * render method which would cause the component to re-render on each pass.
-   * 
+   *
    * Note that this method is unreliable if the component can receive a new
    * MenuItem during its lifetime. As such it's important that
    * consumers on this component uses a key prop that's equal to the id of
@@ -155,7 +155,7 @@ export class AppMenuBarButton extends React.Component<
 
   /**
    * Gets a value indicating whether or not the menu of this
-   * particular menu item is expanded or collapsed. 
+   * particular menu item is expanded or collapsed.
    */
   private get isMenuOpen() {
     return this.props.menuState.length !== 0
@@ -185,7 +185,6 @@ export class AppMenuBarButton extends React.Component<
   public render() {
     const item = this.props.menuItem
     const dropDownState = this.isMenuOpen ? 'open' : 'closed'
-    const disabled = !item.enabled
 
     return (
       <ToolbarDropdown
@@ -197,7 +196,6 @@ export class AppMenuBarButton extends React.Component<
         showDisclosureArrow={false}
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
-        disabled={disabled}
         tabIndex={-1}
         role="menuitem"
       >

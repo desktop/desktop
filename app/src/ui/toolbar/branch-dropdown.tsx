@@ -5,12 +5,11 @@ import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
 import { IRepositoryState } from '../../lib/app-state'
-import { Branches } from '../branches'
+import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
-import { enablePreviewFeatures } from '../../lib/feature-flag'
+import { enablePRIntegration } from '../../lib/feature-flag'
 import { PullRequest } from '../../models/pull-request'
-import { PullRequestBadge } from '../branches/pull-request-badge'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -36,10 +35,13 @@ interface IBranchDropdownProps {
   readonly selectedTab: BranchesTab
 
   /** The open pull requests in the repository. */
-  readonly pullRequests: ReadonlyArray<PullRequest> | null
+  readonly pullRequests: ReadonlyArray<PullRequest>
 
   /** The pull request associated with the current branch. */
   readonly currentPullRequest: PullRequest | null
+
+  /** Are we currently loading pull requests? */
+  readonly isLoadingPullRequests: boolean
 }
 
 /**
@@ -54,7 +56,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
 
     return (
-      <Branches
+      <BranchesContainer
         allBranches={branchesState.allBranches}
         recentBranches={branchesState.recentBranches}
         currentBranch={currentBranch}
@@ -63,6 +65,8 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         repository={this.props.repository}
         selectedTab={this.props.selectedTab}
         pullRequests={this.props.pullRequests}
+        currentPullRequest={this.props.currentPullRequest}
+        isLoadingPullRequests={this.props.isLoadingPullRequests}
       />
     )
   }
@@ -159,7 +163,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       return null
     }
 
-    if (!enablePreviewFeatures()) {
+    if (!enablePRIntegration()) {
       return null
     }
 

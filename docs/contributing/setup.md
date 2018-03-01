@@ -6,27 +6,33 @@ You will need to install these tools on your machine:
 
 ### macOS
 
- - [Node.js v7](https://nodejs.org/en/download/current) - this is the version embedded into Electron
+ - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
  - [Python 2.7](https://www.python.org/downloads/mac-osx/)
  - Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 
 ### Windows
 
- - [Node.js v7](https://nodejs.org/en/download/current) - this is the version embedded into Electron
+ - [Node.js v8.9.0](https://nodejs.org/dist/v8.9.0/)
     - *Make sure you allow the Node.js installer to add node to the PATH.*
  - [Python 2.7](https://www.python.org/downloads/windows/)
     - *Let Python install into the default suggested path (`c:\Python27`), otherwise you'll have
       to configure node-gyp manually with the path which is annoying.*
     - *Ensure the **Add python.exe to Path** option is selected.*
- - Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
-    - *If you already have Visual Studio 2015 installed, ensure you have the **Common Tools for Visual C++ 2015**
-      feature as that is required by Node.js for installing native modules.*
-    - *Visual Studio 2017 support has not been tested yet - see [#1766](https://github.com/desktop/desktop/issues/1766) for details*
- - *Run `npm config set msvs_version 2015` to tell node the right toolchain to use for compiling native modules.*
+ - One of Visual Studio 2015, Visual C++ Build Tools or Visual Studio 2017
+   - [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
+     - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
+   - Visual Studio 2015 
+     - *Ensure you select the **Common Tools for Visual C++ 2015** feature as that is required by Node.js
+        for installing native modules.*
+     - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
+   - [Visual Studio 2017](https://www.visualstudio.com/vs/community/)
+     - *Ensure you select the **Desktop development with C++** feature as that is required by Node.js for
+        installing native modules.*
+     - *Run `npm config set msvs_version 2017` to tell node to use this toolchain.*
 
 ### Fedora 26
 
-First, add the NodeJS package repository. As this version of Fedora doesn't support v7, you'll need to use v8:
+First, add the NodeJS package repository.
 
 ```shellsession
 $ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
@@ -73,7 +79,11 @@ After that, install the dependencies to build and test the app:
 $ sudo apt update && sudo apt install -y nodejs gcc make libsecret-1-dev
 ```
 
-If you want to package Desktop for distribution, you may need additional dependencies.
+If you want to package Desktop for distribution, install these packages:
+
+```shellsession
+$ sudo apt install -y fakeroot dpkg rpm xz-utils xorriso zsync
+```
 
 ## Verification
 
@@ -113,6 +123,16 @@ is as follows:
 * Run `yarn build:dev` to create a development build of the app.
 * Run `yarn start` to launch the application. Changes will be compiled in the
   background. The app can then be reloaded to see the changes (Ctrl/Command+R).
+  
+**Optional Tip**: On macOS and Linux, you can use `screen` to avoid filling your terminal with logging output:
+
+```shellsession
+$ screen -S "desktop" yarn start # -S sets the name of the session; you can pick anything
+$ # Your screen clears and shows logs. Press Ctrl+A then D to exit.
+[detached]
+$ screen -R "desktop" # to reopen the session, read the logs, and exit (Ctrl+C)
+[screen is terminating]
+```
 
 If you've made changes in the `main-process` folder you need to run `yarn
 build:dev` to rebuild the package, and then `yarn start` for these changes to be
@@ -162,7 +182,7 @@ require('devtron').install()
 
 You're almost there! Here's a couple of things we recommend you read next:
 
- - [Help Wanted](../../CONTRIBUTING.md#help-wanted) - we've marked some tasks in
+ - [Help Wanted](../../.github/CONTRIBUTING.md#help-wanted) - we've marked some tasks in
    the backlog that are ideal for external contributors
  - [Code Reviews](../process/reviews.md) - some notes on how the team does
    code reviews

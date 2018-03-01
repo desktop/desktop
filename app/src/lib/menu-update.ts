@@ -15,7 +15,11 @@ export interface IMenuItemState {
  * Utility class for coalescing updates to menu items
  */
 class MenuStateBuilder {
-  private readonly _state = new Map<MenuIDs, IMenuItemState>()
+  private readonly _state: Map<MenuIDs, IMenuItemState>
+
+  public constructor(state: Map<MenuIDs, IMenuItemState> = new Map()) {
+    this._state = state
+  }
 
   /**
    * Returns an Map where each key is a MenuID and the values
@@ -52,6 +56,19 @@ class MenuStateBuilder {
     this.updateMenuItem(id, { enabled })
     return this
   }
+
+  /**
+   * Create a new state builder by merging the current state with the state from
+   * the other state builder. This will replace values in `this` with values
+   * from `other`.
+   */
+  public merge(other: MenuStateBuilder): MenuStateBuilder {
+    const merged = new Map<MenuIDs, IMenuItemState>(this._state)
+    for (const [key, value] of other._state) {
+      merged.set(key, value)
+    }
+    return new MenuStateBuilder(merged)
+  }
 }
 
 function isRepositoryHostedOnGitHub(
@@ -80,7 +97,46 @@ function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
   return true
 }
 
-function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
+const allMenuIds: ReadonlyArray<MenuIDs> = [
+  'rename-branch',
+  'delete-branch',
+  'preferences',
+  'update-branch',
+  'merge-branch',
+  'view-repository-on-github',
+  'compare-branch',
+  'open-in-shell',
+  'push',
+  'pull',
+  'branch',
+  'repository',
+  'create-branch',
+  'show-changes',
+  'show-history',
+  'show-repository-list',
+  'show-branches-list',
+  'open-working-directory',
+  'show-repository-settings',
+  'open-external-editor',
+  'remove-repository',
+  'new-repository',
+  'add-local-repository',
+  'clone-repository',
+  'about',
+  'create-pull-request',
+]
+
+function getAllMenusDisabledBuilder(): MenuStateBuilder {
+  const menuStateBuilder = new MenuStateBuilder()
+
+  for (const menuId of allMenuIds) {
+    menuStateBuilder.disable(menuId)
+  }
+
+  return menuStateBuilder
+}
+
+function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   const selectedState = state.selectedState
   const isHostedOnGitHub = selectedState
     ? isRepositoryHostedOnGitHub(selectedState.repository)
@@ -217,6 +273,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
       menuStateBuilder.enable('remove-repository')
     }
 
+    menuStateBuilder.disable('create-branch')
     menuStateBuilder.disable('rename-branch')
     menuStateBuilder.disable('delete-branch')
     menuStateBuilder.disable('update-branch')
@@ -226,7 +283,28 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     menuStateBuilder.disable('push')
     menuStateBuilder.disable('pull')
   }
+  return menuStateBuilder
+}
 
+function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
+  if (state.currentPopup) {
+    return getAllMenusDisabledBuilder().state
+  }
+
+  return getAllMenusEnabledBuilder()
+    .merge(getRepositoryMenuBuilder(state))
+    .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow)).state
+}
+
+function getAllMenusEnabledBuilder(): MenuStateBuilder {
+  const menuStateBuilder = new MenuStateBuilder()
+  for (const menuId of allMenuIds) {
+    menuStateBuilder.enable(menuId)
+  }
+  return menuStateBuilder
+}
+
+function getInWelcomeFlowBuilder(inWelcomeFlow: boolean): MenuStateBuilder {
   const welcomeScopedIds: ReadonlyArray<MenuIDs> = [
     'new-repository',
     'add-local-repository',
@@ -235,6 +313,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     'about',
   ]
 
+  const menuStateBuilder = new MenuStateBuilder()
   if (inWelcomeFlow) {
     for (const id of welcomeScopedIds) {
       menuStateBuilder.disable(id)
@@ -245,7 +324,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     }
   }
 
-  return menuStateBuilder.state
+  return menuStateBuilder
 }
 
 /**

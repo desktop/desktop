@@ -1,4 +1,4 @@
-@import "../mixins";
+@import '../mixins';
 
 .text-box-component {
   display: flex;
@@ -26,10 +26,6 @@
 
   input {
     @include textboxish;
-
-    // Don't override disabled styles on darwin for text boxes.
-    @include win32 {
-      @include textboxish-disabled;
-    }
+    @include textboxish-disabled;
   }
 }

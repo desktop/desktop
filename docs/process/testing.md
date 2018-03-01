@@ -8,7 +8,7 @@
     - [ ] Data is retained if you download and open a fresh copy
   - [ ] Release notes page is up-to-date
   - [ ] Help page is accessible
-  - [ ] 'Please update' notifcation shown in Classic apps
+  - [ ] 'Please update' notification shown in Classic apps
 
 ### Welcome Flow
   - [ ] Create your account (`/join?source=github-desktop`)
@@ -49,7 +49,7 @@
   - [ ] Create New Repository (Mac: `⌘N`; Windows: `Ctrl+N`)
     - [ ] Modal opens with name, path (choose option), readme (unchecked), git ignore, license. Name and path mandatory.
       - [ ] If `Add this repository` warning message appears, clicking it adds to Repo list
-      - [ ] If repository name is over 100 characterers, warning message is surfaced in modal
+      - [ ] If repository name is over 100 characters, warning message is surfaced in modal
       - [ ] If repository contains URL-hostile characters, show error message
     - [ ] `Create Repository` button adds new repo, which is added to Repo list
     - [ ] `Cancel` button does not save any changes made; modal closed
@@ -134,7 +134,7 @@
         - [ ] Check `stats-opt-out` value in Dev Tools > Application > Local storage > file://
       - [ ] Confirmation dialogue for removing repositories is checked by default; user can toggle
           - [ ] Check `ConfirmDiscardChanges` value in Dev Tools > Application > Local storage > file://
-      - [ ] Confirmation dialogue for disgarding files is checked by default; user can toggle
+      - [ ] Confirmation dialogue for discarding files is checked by default; user can toggle
           - [ ] Check `ConfirmRepoRemoval` value in Dev Tools > Application > Local storage > file://
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
@@ -177,8 +177,13 @@
   - [ ] Pull (Mac: `⇧⌘P`; Windows: `Ctrl+Shirt+P`)
     - [ ] Commits from repo pulled from .com; error message shown if conflicts
   - [ ] Remove
+<<<<<<< HEAD
     - [ ] Repo is removed from Repo List; confirmation dialgue shown if Preferences option enabled
   - [ ] View on GitHub (Mac: `⌥⌘G`; Windows: `Ctrl+Alt+G`)
+=======
+    - [ ] Repo is removed from Repo List; confirmation dialogue shown if Preferences option enabled
+  - [ ] View on GitHub (Mac: ⌥⌘G; Windows: Ctrl+Alt+G)
+>>>>>>> master
     - [ ] Repo on .com is opened; must be logged in if private repo or Enterprise
   - [ ] Open in Terminal/Command prompt (Mac: `^[tilde-sign]`; Windows: )
     - [ ] Local repo is opened
@@ -259,7 +264,7 @@
   - [ ] Changes tab shows `•` icon if files are waiting to be committed
     - [ ] Number of changed files is always present; it can be 0
   - [ ] Any changed files appear in the list, with respective +/•/- sign; with arrow keys enabled
-    - [ ] Merge-conflicted files showin with hazard icon; cannot be committed until fixed
+    - [ ] Merge-conflicted files shown with hazard icon; cannot be committed until fixed
     - [ ] User can check none, or check one or more files to commit; list is scrollable
       - [ ] User can select one or more lines to commit; diff is scrollable
       - [ ] Right-clicking opens context menu

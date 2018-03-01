@@ -1,8 +1,8 @@
-# Editor Integration
+# "Open External Editor" integration
 
 GitHub Desktop supports the user choosing an external program to open their
-local repositories, and this is available from the main menu and right-clicking
-on a repository in the sidebar.
+local repositories, and this is available from the top-level **Repository** menu 
+or when right-clicking on a repository in the sidebar.
 
 ### My favourite editor XYZ isn't supported!
 
@@ -25,8 +25,9 @@ The source for the editor integration on Windows is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
- - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
+ - [ColdFusion Builder](https://www.adobe.com/products/coldfusion-builder.html)
 
 These are defined in an enum at the top of the file:
 
@@ -34,7 +35,9 @@ These are defined in an enum at the top of the file:
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
+  CFBuilder = 'ColdFusion Builder',
 }
 ```
 
@@ -95,7 +98,7 @@ If you're not sure how your editor is installed, check one of these locations:
 
 
 Your editor is probably hiding behind a GUID in one of these locations - this
-is the the key that Desktop needs to read the registry and find the installation for your editor.
+is the key that Desktop needs to read the registry and find the installation for your editor.
 
 ### Step 2: Validate The Installation
 
@@ -202,16 +205,26 @@ The source for the editor integration on macOS is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
- - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
+ - [BBEdit](http://www.barebones.com/products/bbedit/)
+ - [PhpStorm](https://www.jetbrains.com/phpstorm/)
+ - [RubyMine](https://www.jetbrains.com/rubymine/)
+ - [TextMate](https://macromates.com)
 
 These are defined in an enum at the top of the file:
 
 ```ts
+
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
+  BBEdit = 'BBEdit',
+  PhpStorm = 'PhpStorm',
+  RubyMine = 'RubyMine',
+  TextMate = 'TextMate',
 }
 ```
 
@@ -293,7 +306,7 @@ The source for the editor integration on Linux is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
- - [Visual Studio Code](https://code.visualstudio.com/)
+ - [Visual Studio Code](https://code.visualstudio.com/) - both stable and Insiders channel
  - [Sublime Text](https://www.sublimetext.com/)
 
 These are defined in an enum at the top of the file:
@@ -302,6 +315,7 @@ These are defined in an enum at the top of the file:
 export enum ExternalEditor {
   Atom = 'Atom',
   VisualStudioCode = 'Visual Studio Code',
+  VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
 }
 ```
