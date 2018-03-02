@@ -178,10 +178,8 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    const eventHandler = this.props.onKeyDown
-
-    if (eventHandler != null) {
-      eventHandler(event)
+    if (this.props.onKeyDown != null) {
+      this.props.onKeyDown(event)
     }
   }
 
