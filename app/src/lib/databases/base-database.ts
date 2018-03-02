@@ -10,11 +10,9 @@ export abstract class BaseDatabase extends Dexie {
   }
 
   /**
-   * Register the version of the schema only if `targetVersion` is less than
+   * Register the version of the schema only if `schemaVersion` is less than
    * `version` or is `undefined`.
    *
-   * targetVersion - The version of the schema that is being targetted. If not
-   *                 provided, the given version will be registered.
    * version       - The version being registered.
    * schema        - The schema to register.
    * upgrade       - An upgrade function to call after upgrading to the given
