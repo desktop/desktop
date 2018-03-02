@@ -979,12 +979,20 @@ export class App extends React.Component<IAppProps, IAppState> {
         const repository = popup.repository
         const state = this.props.appStore.getRepositoryState(repository)
 
+        const tip = state.branchesState.tip
+
+        const isDefaultBranch =
+          tip.kind === TipState.Valid
+            ? tip.branch === state.branchesState.defaultBranch
+            : true
+
         return (
           <RepositorySettings
             key="repository-settings"
             remote={state.remote}
             dispatcher={this.props.dispatcher}
             repository={repository}
+            isDefaultBranch={isDefaultBranch}
             onDismissed={this.onPopupDismissed}
           />
         )

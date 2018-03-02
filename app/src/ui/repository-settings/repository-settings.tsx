@@ -16,6 +16,7 @@ interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
   readonly remote: IRemote | null
   readonly repository: Repository
+  readonly isDefaultBranch: boolean
   readonly onDismissed: () => void
 }
 
@@ -141,6 +142,7 @@ export class RepositorySettings extends React.Component<
         return (
           <GitIgnore
             text={this.state.ignoreText}
+            isDefaultBranch={this.props.isDefaultBranch}
             onIgnoreTextChanged={this.onIgnoreTextChanged}
             onShowExamples={this.onShowGitIgnoreExamples}
           />

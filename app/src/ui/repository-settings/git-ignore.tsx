@@ -5,12 +5,26 @@ import { LinkButton } from '../lib/link-button'
 
 interface IGitIgnoreProps {
   readonly text: string | null
+  readonly isDefaultBranch: boolean
   readonly onIgnoreTextChanged: (text: string) => void
   readonly onShowExamples: () => void
 }
 
 /** A view for creating or modifying the repository's gitignore file */
 export class GitIgnore extends React.Component<IGitIgnoreProps, {}> {
+  private renderBranchWarning(): JSX.Element | null {
+    if (this.props.isDefaultBranch) {
+      return null
+    }
+
+    return (
+      <p>
+        You are not on the default branch, so changes here may not be applied to
+        the repository when you switch branches.
+      </p>
+    )
+  }
+
   public render() {
     return (
       <DialogContent>
@@ -23,6 +37,9 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, {}> {
           for more information about the file format, or simply ignore a file by
           right clicking on it in the uncommitted changes view.
         </p>
+
+        {this.renderBranchWarning()}
+
         <TextArea
           placeholder="Ignored files"
           value={this.props.text || ''}
