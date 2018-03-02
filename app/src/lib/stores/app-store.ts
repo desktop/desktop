@@ -93,7 +93,6 @@ import {
   EmojiStore,
   GitHubUserStore,
   CloningRepositoriesStore,
-  ForkedRemotePrefix,
 } from '../stores'
 import { validatedRepositoryPath } from './helpers/validated-repository-path'
 import { IGitAccount } from '../git/authentication'
@@ -119,7 +118,7 @@ import { Owner } from '../../models/owner'
 import { PullRequest } from '../../models/pull-request'
 import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
-import { IRemote } from '../../models/remote'
+import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
 
 /**
