@@ -102,6 +102,14 @@ export async function getBranches(
       continue
     }
 
+    if (ref.startsWith('refs/remotes/github-desktop-')) {
+      // hide refs from our known remotes as these are considered plumbing
+      // and can add noise to everywhere in the user interface where we
+      // display branches as forks will likely contain duplicates of the same
+      // ref names
+      continue
+    }
+
     branches.push(
       new Branch(name, upstream.length > 0 ? upstream : null, tip, type)
     )
