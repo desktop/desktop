@@ -19,8 +19,8 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, {}> {
 
     return (
       <p>
-        You are not on the default branch, changes here will only be stored
-        locally on this branch.
+        As you are not on the default branch, changes here may not be applied to
+        the repository when you switch branches.
       </p>
     )
   }
