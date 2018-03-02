@@ -25,7 +25,7 @@ dependencies:
     # everything is terrible, but we must march on
     - brew link --overwrite node@8 --force
     # workaround for yarn installation issue
-    - curl -o- -L https://yarnpkg.com/install.sh | TERM=xterm bash
+    - curl -o- -L https://yarnpkg.com/install.sh | TERM=xterm bash -s -- --version 1.5.1
 
   override:
     - yarn install --force

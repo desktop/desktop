@@ -18,6 +18,7 @@ export enum ExternalEditor {
   VisualStudioCodeInsiders = 'Visual Studio Code (Insiders)',
   SublimeText = 'Sublime Text',
   CFBuilder = 'ColdFusion Builder',
+  NotepadPlusPlus = 'Notepad++',
 }
 
 export function parse(label: string): ExternalEditor | null {
@@ -35,6 +36,9 @@ export function parse(label: string): ExternalEditor | null {
   }
   if (label === ExternalEditor.CFBuilder) {
     return ExternalEditor.CFBuilder
+  }
+  if (label === ExternalEditor.NotepadPlusPlus) {
+    return ExternalEditor.NotepadPlusPlus
   }
 
   return null
@@ -113,6 +117,21 @@ function getRegistryKeys(
             'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Adobe ColdFusion Builder 2016',
         },
       ]
+    case ExternalEditor.NotepadPlusPlus:
+      return [
+        //64-bit version of Notepad++
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Notepad++',
+        },
+        // 32-bit version of Notepad++
+        {
+          key: HKEY.HKEY_LOCAL_MACHINE,
+          subKey:
+            'SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Notepad++',
+        },
+      ]
 
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -140,6 +159,8 @@ function getExecutableShim(
       return Path.join(installLocation, 'subl.exe')
     case ExternalEditor.CFBuilder:
       return Path.join(installLocation, 'CFBuilder.exe')
+    case ExternalEditor.NotepadPlusPlus:
+      return Path.join(installLocation, 'notepad++.exe')
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
   }
@@ -179,6 +200,10 @@ function isExpectedInstallation(
         (displayName === 'Adobe ColdFusion Builder 3' ||
           displayName === 'Adobe ColdFusion Builder 2016') &&
         publisher === 'Adobe Systems Incorporated'
+      )
+    case ExternalEditor.NotepadPlusPlus:
+      return (
+        displayName.startsWith('Notepad++') && publisher === 'Notepad++ Team'
       )
     default:
       return assertNever(editor, `Unknown external editor: ${editor}`)
@@ -258,6 +283,16 @@ function extractApplicationInformation(
     return { displayName, publisher, installLocation }
   }
 
+  if (editor === ExternalEditor.NotepadPlusPlus) {
+    const displayName = getKeyOrEmpty(keys, 'DisplayName')
+    const publisher = getKeyOrEmpty(keys, 'Publisher')
+    const installLocation = getKeyOrEmpty(keys, 'UninstallString').replace(
+      'uninstall.exe',
+      ''
+    )
+    return { displayName, publisher, installLocation }
+  }
+
   return assertNever(editor, `Unknown external editor: ${editor}`)
 }
 
@@ -314,12 +349,14 @@ export async function getAvailableEditors(): Promise<
     codeInsidersPath,
     sublimePath,
     cfBuilderPath,
+    notepadPlusPlusPath,
   ] = await Promise.all([
     findApplication(ExternalEditor.Atom),
     findApplication(ExternalEditor.VisualStudioCode),
     findApplication(ExternalEditor.VisualStudioCodeInsiders),
     findApplication(ExternalEditor.SublimeText),
     findApplication(ExternalEditor.CFBuilder),
+    findApplication(ExternalEditor.NotepadPlusPlus),
   ])
 
   if (atomPath) {
@@ -354,6 +391,13 @@ export async function getAvailableEditors(): Promise<
     results.push({
       editor: ExternalEditor.CFBuilder,
       path: cfBuilderPath,
+    })
+  }
+
+  if (notepadPlusPlusPath) {
+    results.push({
+      editor: ExternalEditor.NotepadPlusPlus,
+      path: notepadPlusPlusPath,
     })
   }
 
