@@ -17,7 +17,7 @@ Provide a detailed description of the behavior you're seeing or the behavior you
 
 ## Version
 <!--
-Place the version of GitHub Desktop you have installed **below** this comment. What version of GitHub Desktop are you running? This is displayed under the 'About GitHub Desktop' menu ite,. If you are running from source, include the commit by running `git rev-parse HEAD` from the local repository.
+Place the version of GitHub Desktop you have installed **below** this comment. This is displayed under the 'About GitHub Desktop' menu item. If you are running from source, include the commit by running `git rev-parse HEAD` from the local repository.
 -->
 * GitHub Desktop:
 <!--
@@ -41,15 +41,12 @@ ex,
 ### Actual Behavior
 <!-- What actually happens -->
 
-### How often does this issue occur?
-<!-- `Sometimes`, `Most of the time`, or `Every time` -->
-
 
 ## Additional Information
 <!--
 Place any additional information, configuration, or data that might be necessary to reproduce the issue **below** this comment.
 
-If you have screen shots or gifs that visualize the issue please include them.
+If you have screen shots or gifs that demonstrate the issue, please include them.
 
 If the issue involves a specific public repository, including the information about it will make it easier to recreate the issue.
 
