@@ -3,10 +3,13 @@ import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { Branch, BranchType } from '../../models/branch'
 import { CommitIdentity } from '../../models/commit-identity'
+import { ForkedRemotePrefix } from '../../models/remote'
 import {
   getTrailerSeparatorCharacters,
   parseRawUnfoldedTrailers,
 } from './interpret-trailers'
+
+const ForksReferencesPrefix = `refs/remotes/${ForkedRemotePrefix}`
 
 /** Get all the branches. */
 export async function getBranches(
@@ -102,7 +105,7 @@ export async function getBranches(
       continue
     }
 
-    if (ref.startsWith('refs/remotes/github-desktop-')) {
+    if (ref.startsWith(ForksReferencesPrefix)) {
       // hide refs from our known remotes as these are considered plumbing
       // and can add noise to everywhere in the user interface where we
       // display branches as forks will likely contain duplicates of the same
