@@ -3317,7 +3317,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const gitStore = this.getGitStore(repository)
 
-      this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
+      await this._fetchRemote(repository, remote, FetchType.UserInitiatedTask)
 
       const localBranchName = `pr/${pullRequest.number}`
       const doesBranchExist =
