@@ -980,10 +980,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         const state = this.props.appStore.getRepositoryState(repository)
 
         const tip = state.branchesState.tip
+        const defaultBranch = state.branchesState.defaultBranch
+        const defaultBranchName = defaultBranch ? defaultBranch.name : ""
 
         const isDefaultBranch =
           tip.kind === TipState.Valid
-            ? tip.branch === state.branchesState.defaultBranch
+            ? tip.branch.name === defaultBranchName
             : true
 
         return (
