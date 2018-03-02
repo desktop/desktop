@@ -981,7 +981,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const tip = state.branchesState.tip
         const defaultBranch = state.branchesState.defaultBranch
-        const defaultBranchName = defaultBranch ? defaultBranch.name : ""
+        const defaultBranchName = defaultBranch ? defaultBranch.name : ''
 
         const isDefaultBranch =
           tip.kind === TipState.Valid
