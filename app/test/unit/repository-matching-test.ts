@@ -2,7 +2,7 @@ import { expect } from 'chai'
 
 import {
   matchGitHubRepository,
-  repositoryUrlMatchesRemote,
+  urlMatchesRemote,
 } from '../../src/lib/repository-matching'
 import { Account } from '../../src/models/account'
 
@@ -76,7 +76,7 @@ describe('repository-matching', () => {
     })
   })
 
-  describe('repositoryUrlMatchesRemote', () => {
+  describe('urlMatchesRemote', () => {
     describe('with HTTPS remote', () => {
       const remote = {
         name: 'origin',
@@ -88,27 +88,27 @@ describe('repository-matching', () => {
       }
 
       it('does not match null', () => {
-        expect(repositoryUrlMatchesRemote(null, remoteWithSuffix)).is.false
+        expect(urlMatchesRemote(null, remoteWithSuffix)).is.false
       })
 
       it('matches cloneURL from API', () => {
         const cloneURL = 'https://github.com/shiftkey/desktop.git'
-        expect(repositoryUrlMatchesRemote(cloneURL, remoteWithSuffix)).is.true
+        expect(urlMatchesRemote(cloneURL, remoteWithSuffix)).is.true
       })
 
       it('matches cloneURL from API without suffix', () => {
         const cloneURL = 'https://github.com/shiftkey/desktop.git'
-        expect(repositoryUrlMatchesRemote(cloneURL, remote)).is.true
+        expect(urlMatchesRemote(cloneURL, remote)).is.true
       })
 
       it('matches htmlURL from API', () => {
         const htmlURL = 'https://github.com/shiftkey/desktop'
-        expect(repositoryUrlMatchesRemote(htmlURL, remoteWithSuffix)).is.true
+        expect(urlMatchesRemote(htmlURL, remoteWithSuffix)).is.true
       })
 
       it('matches htmlURL from API without suffix', () => {
         const htmlURL = 'https://github.com/shiftkey/desktop'
-        expect(repositoryUrlMatchesRemote(htmlURL, remote)).is.true
+        expect(urlMatchesRemote(htmlURL, remote)).is.true
       })
     })
 
@@ -118,16 +118,16 @@ describe('repository-matching', () => {
         url: 'git@github.com:shiftkey/desktop.git',
       }
       it('does not match null', () => {
-        expect(repositoryUrlMatchesRemote(null, remote)).to.be.false
+        expect(urlMatchesRemote(null, remote)).to.be.false
       })
 
       it('matches cloneURL from API', () => {
         const cloneURL = 'https://github.com/shiftkey/desktop.git'
-        expect(repositoryUrlMatchesRemote(cloneURL, remote)).to.be.true
+        expect(urlMatchesRemote(cloneURL, remote)).to.be.true
       })
       it('matches htmlURL from API', () => {
         const htmlURL = 'https://github.com/shiftkey/desktop'
-        expect(repositoryUrlMatchesRemote(htmlURL, remote)).to.be.true
+        expect(urlMatchesRemote(htmlURL, remote)).to.be.true
       })
     })
   })
