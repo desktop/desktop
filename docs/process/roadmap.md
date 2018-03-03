@@ -2,17 +2,17 @@
 
 The following are our marketing releases, as planned to date (and we plan to revisit 6 months from now). They contain the broad features we're considering. The further away a release is, the less defined it is. Releases are subject to change at any time. This is not written in stone!!!
 
-## 1.2 - Relationship between branches - lite
+## 1.2 - Relationship between branches MVP
 
-- [Relationship between branches lite](https://github.com/desktop/desktop/issues/3956) - [#3956](https://github.com/desktop/desktop/issues/3956)
+- [Relationship between branches MVP](https://github.com/desktop/desktop/issues/3956) - [#3956](https://github.com/desktop/desktop/issues/3956)
   - Compare my work to any branch
   - Merge in any other branch to my branch
   
 - [Upgrade nudge from classic to the new app](https://github.com/desktop/desktop/issues/2146) - [#2146](https://github.com/desktop/desktop/issues/2146)
 
-## 1.3 - Detecting marge conflicts - 2.0
+## 1.3 - Detecting merge conflicts
   
-- [Relationship between branches 2.0](https://github.com/desktop/desktop/issues/2639) - [#2639](https://github.com/desktop/desktop/issues/2639)
+- [Relationship between branches continued](https://github.com/desktop/desktop/issues/2639) - [#2639](https://github.com/desktop/desktop/issues/2639)
   - Notifications around diverging from master branch
   - Detect merge conflicts
   
@@ -28,16 +28,16 @@ The following are our marketing releases, as planned to date (and we plan to rev
 
 - Better onboarding for new users
 
-## 1.6 - Conflict resolution lite
+## 1.6 - Conflict awareness
 
-- [Conflict resolution lite](https://github.com/desktop/desktop/issues/2640) - [#2640](https://github.com/desktop/desktop/issues/2640)
+- [Conflict resolution MVP](https://github.com/desktop/desktop/issues/2640) - [#2640](https://github.com/desktop/desktop/issues/2640)
   - Differentiate conflicted files from other changed files
   - Let me choose my mergetool
   - Let me open my mergetool
   
-## 1.7 - Conflict resolution - 2.0
+## 1.7 - Conflict resolution
 
-- [Conflict resolution 2.0](https://github.com/desktop/desktop/issues/2640) - [#2640](https://github.com/desktop/desktop/issues/2640)
+- [Conflict resolution continued](https://github.com/desktop/desktop/issues/2640) - [#2640](https://github.com/desktop/desktop/issues/2640)
   - Edit inline
   - Abort merge
   - How did I get here?
@@ -46,26 +46,12 @@ The following are our marketing releases, as planned to date (and we plan to rev
 ## 1.8 - Messaging + Tracking
   
 - End of Progress & in-app messaging
+  - End of Progress: Providing friendly update when longer running processes are complete
+  - In-app Message: providing success/failure notifications for unclear interactions (ex: login) 
 
 - App interaction tracking
+  - Adding in analytics around features we need data on
+  - (optional) Clarifying what data we collect if people opt-in, potentially adding other opt-in options for different levels of data
+  - (optional) Surfacing data collected back to user 
 
-- Human readable Table of Contents
-
-## Icebox
-
-- [Fork if needed](https://github.com/desktop/desktop/issues/3918) - [#3918](https://github.com/desktop/desktop/issues/3918)
-  - Offer to fork on clone, or push, or ?
-  
-- Keep environment up-to-date
-  - Do I need to run `npm install`? `bundle install`?
-  - Is it pluggable?
-
-- Linting
-  - TBD
-
-- Repository list info
-  - Does a repository need my attention?
-  
-- Track memory usage & garbage collection
-  - especially long running processes
-  - [Electron API endpoint for process usage](https://electronjs.org/docs/api/app#appgetappmetrics)
+- [View changes by methods and functions (for supported files)](https://blog.github.com/2017-07-26-quickly-review-changed-methods-and-functions-in-your-pull-requests/)
