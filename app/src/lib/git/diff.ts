@@ -50,7 +50,7 @@ const MaxLineLength = 500000
  * Utility function to check whether parsing this buffer is going to cause
  * issues at runtime.
  *
- * @param output A buffer of binary text from a spawned process
+ * @param buffer A buffer of binary text from a spawned process
  */
 function isValidBuffer(buffer: Buffer) {
   return buffer.length < MaxDiffBufferSize
@@ -58,7 +58,7 @@ function isValidBuffer(buffer: Buffer) {
 
 /** Is the buffer too large for us to reasonably represent? */
 function isBufferTooLarge(buffer: Buffer) {
-  return !isValidBuffer(buffer) || buffer.length >= MaxReasonableDiffSize
+  return buffer.length >= MaxReasonableDiffSize
 }
 
 /** Is the diff too large for us to reasonably represent? */
@@ -83,7 +83,7 @@ const imageFileExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.ico'])
  * Render the difference between a file in the given commit and its parent
  *
  * @param commitish A commit SHA or some other identifier that ultimately dereferences
- *                  to a commit.
+ *                  a commit.
  */
 export async function getCommitDiff(
   repository: Repository,
