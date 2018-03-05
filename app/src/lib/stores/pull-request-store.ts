@@ -381,16 +381,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       })
     }
 
-    if (prsToInsert.length <= 0) {
-      return
-    }
-
     return this.pullRequestDatabase.transaction('rw', table, async () => {
-      // since all PRs come from the same repository
-      // using the base repoId of the fist element
-      // is sufficient here
-      const repoDbId = prsToInsert[0].base.repoId!
-
       // we need to delete the stales PRs from the db
       // so we remove all for a repo to avoid having to
       // do diffing
@@ -399,7 +390,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         .equals(repoDbId)
         .delete()
 
-      await table.bulkAdd(prsToInsert)
+      if (prsToInsert.length > 0) {
+        await table.bulkAdd(prsToInsert)
+      }
     })
   }
 
