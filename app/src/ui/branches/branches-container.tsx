@@ -112,7 +112,6 @@ export class BranchesContainer extends React.Component<
             recentBranches={this.props.recentBranches}
             onItemClick={this.onBranchItemClick}
             filterText={this.state.branchFilterText}
-            onFilterKeyDown={this.onBranchFilterKeyDown}
             onFilterTextChanged={this.onBranchFilterTextChanged}
             selectedBranch={this.state.selectedBranch}
             onSelectionChanged={this.onBranchSelectionChanged}
@@ -192,14 +191,6 @@ export class BranchesContainer extends React.Component<
 
   private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
     this.setState({ selectedBranch })
-  }
-
-  private onBranchFilterKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (this.state.branchFilterText.length === 0) {
-      this.onBranchFilterTextChanged('')
-    }
   }
 
   private onBranchFilterTextChanged = (text: string) => {
