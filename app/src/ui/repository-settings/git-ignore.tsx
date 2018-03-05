@@ -2,43 +2,27 @@ import * as React from 'react'
 import { DialogContent } from '../dialog'
 import { TextArea } from '../lib/text-area'
 import { LinkButton } from '../lib/link-button'
+import { Ref } from '../lib/ref'
 
 interface IGitIgnoreProps {
   readonly text: string | null
-  readonly isDefaultBranch: boolean
   readonly onIgnoreTextChanged: (text: string) => void
   readonly onShowExamples: () => void
 }
 
 /** A view for creating or modifying the repository's gitignore file */
 export class GitIgnore extends React.Component<IGitIgnoreProps, {}> {
-  private renderBranchWarning(): JSX.Element | null {
-    if (this.props.isDefaultBranch) {
-      return null
-    }
-
-    return (
-      <p>
-        As you are not on the default branch, changes here may not be applied to
-        the repository when you switch branches.
-      </p>
-    )
-  }
-
   public render() {
     return (
       <DialogContent>
         <p>
-          The .gitignore file controls which files are tracked by Git and which
-          are ignored. Check out{' '}
+          Editing <Ref>.gitignore</Ref>. This file specifies intentionally
+          untracked files that Git should ignore. Files already tracked by Git
+          are not affected.
           <LinkButton onClick={this.props.onShowExamples}>
-            git-scm.com
-          </LinkButton>{' '}
-          for more information about the file format, or simply ignore a file by
-          right clicking on it in the uncommitted changes view.
+            Learn more
+          </LinkButton>
         </p>
-
-        {this.renderBranchWarning()}
 
         <TextArea
           placeholder="Ignored files"
