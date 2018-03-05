@@ -16,14 +16,7 @@ import {
 import { TypedBaseStore } from './base-store'
 import { Repository } from '../../models/repository'
 import { getRemotes, removeRemote } from '../git'
-import { IRemote } from '../../models/remote'
-
-/**
- * This is the magic remote name prefix
- * for when we add a remote on behalf of
- * the user.
- */
-export const ForkedRemotePrefix = 'github-desktop-'
+import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 
 const Decrement = (n: number) => n - 1
 const Increment = (n: number) => n + 1
