@@ -96,6 +96,12 @@ export function matchExistingRepository(
   )
 }
 
+/**
+ * Check whether or not a GitHub repository matches a given remote.
+ *
+ * @param gitHubRepository the repository containing information from the GitHub API
+ * @param remote the remote details found in the Git repository
+ */
 export function repositoryMatchesRemote(
   gitHubRepository: GitHubRepository,
   remote: IRemote
@@ -107,10 +113,8 @@ export function repositoryMatchesRemote(
 }
 
 /**
- * Check whether or not a GitHub repository matches a given remote.
- *
- * The remote's URL might match the cloneURL field of the repository (with a
- * .git suffix) or it might match the htmlURL field (without a .git suffix)
+ * Check whether or not a GitHub repository URL matches a given remote, by
+ * parsing and comparing the structure of the each URL.
  *
  * @param url a URL associated with the GitHub repository
  * @param remote the remote details found in the Git repository
