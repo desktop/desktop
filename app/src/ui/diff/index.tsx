@@ -1145,6 +1145,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private showLargeDiff = () => {
-    this.setState({ forceShowLargeDiff: !this.state.forceShowLargeDiff })
+    this.setState({ forceShowLargeDiff: true })
   }
 }
