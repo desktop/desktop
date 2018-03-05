@@ -142,7 +142,7 @@ export type SelectionSource = ListSelectionSource | IFilterSelectionSource
 export class FilterList<T extends IFilterListItem> extends React.Component<
   IFilterListProps<T>,
   IFilterListState<T>
-  > {
+> {
   private list: List | null = null
   private filterTextBox: TextBox | null = null
 
@@ -216,10 +216,16 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     this.setState(createStateUpdate(nextProps))
   }
 
-  private onSelectionChanged = (indexes: number | number[], source: SelectionSource) => {
-    let index: number;
-    if (indexes instanceof Array) index = indexes[indexes.length - 1]
-    else index = indexes
+  private onSelectionChanged = (
+    indexes: number | number[],
+    source: SelectionSource
+  ) => {
+    let index: number
+    if (indexes instanceof Array) {
+      index = indexes[indexes.length - 1]
+    } else {
+      index = indexes
+    }
 
     this.setState({ selectedRow: index })
 

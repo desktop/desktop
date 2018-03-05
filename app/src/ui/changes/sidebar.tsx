@@ -53,7 +53,7 @@ interface IChangesSidebarProps {
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private autocompletionProviders: ReadonlyArray<
     IAutocompletionProvider<any>
-    > | null
+  > | null
 
   public constructor(props: IChangesSidebarProps) {
     super(props)
@@ -119,7 +119,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private onFileSelectionChanged = (rows: number | number[]) => {
     if (rows instanceof Array) {
       const files: WorkingDirectoryFileChange[] = []
-      rows.forEach(row => files.push(this.props.changes.workingDirectory.files[row]))
+      rows.forEach(row =>
+        files.push(this.props.changes.workingDirectory.files[row])
+      )
       this.props.dispatcher.changeChangesSelection(this.props.repository, files)
     } else {
       const file = this.props.changes.workingDirectory.files[rows]
@@ -133,7 +135,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     if (!file) {
       console.error(
         'unable to find working directory file to apply included change: ' +
-        path
+          path
       )
       return
     }
@@ -227,7 +229,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
    * Handles click events from the List item container, note that this is
    * Not the same thing as the element returned by the row renderer in ChangesList
    */
-  private onChangedItemClick = (rows: number | number[], source: ClickSource) => {
+  private onChangedItemClick = (
+    rows: number | number[],
+    source: ClickSource
+  ) => {
     // Toggle selection when user presses the spacebar or enter while focused
     // on a list item
     if (source.kind === 'keyboard') {

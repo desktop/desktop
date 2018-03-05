@@ -7,7 +7,6 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../../models/status'
-
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
@@ -161,8 +160,8 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
 
   public render() {
     const fileList = this.props.workingDirectory.files
-    const selectedRows: number[] = [];
-    this.props.selectedFilesID.forEach((fileID) => {
+    const selectedRows: number[] = []
+    this.props.selectedFilesID.forEach(fileID => {
       selectedRows.push(fileList.findIndex(file => file.id === fileID))
     })
     const fileCount = fileList.length

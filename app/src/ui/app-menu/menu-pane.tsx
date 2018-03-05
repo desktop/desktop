@@ -180,10 +180,16 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     }
   }
 
-  private onSelectionChanged = (rows: number | number[], source: SelectionSource) => {
-    let row: number;
-    if (rows instanceof Array) row = rows[rows.length - 1]
-    else row = rows
+  private onSelectionChanged = (
+    rows: number | number[],
+    source: SelectionSource
+  ) => {
+    let row: number
+    if (rows instanceof Array) {
+      row = rows[rows.length - 1]
+    } else {
+      row = rows
+    }
 
     const item = this.state.items[row]
     this.props.onSelectionChanged(this.props.depth, item, source)

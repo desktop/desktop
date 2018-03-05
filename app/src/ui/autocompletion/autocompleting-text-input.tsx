@@ -204,10 +204,16 @@ export abstract class AutocompletingTextInput<
     }
   }
 
-  private onSelectionChanged = (rows: number | number[], source: SelectionSource) => {
-    let row: number;
-    if (rows instanceof Array) row = rows[rows.length - 1]
-    else row = rows
+  private onSelectionChanged = (
+    rows: number | number[],
+    source: SelectionSource
+  ) => {
+    let row: number
+    if (rows instanceof Array) {
+      row = rows[rows.length - 1]
+    } else {
+      row = rows
+    }
 
     const currentAutoCompletionState = this.state.autocompletionState
 
