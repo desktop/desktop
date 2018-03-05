@@ -100,7 +100,7 @@ issues from time to time that isn't and won't be covered here.
 
 Periodically we should be doing a sweep of issues that are open and labeled
 `more-information-needed`. If the original poster has not responded within
-two weeks after the last question by an official maintainer, close the issue
+7 days after the last question by an official maintainer, close the issue
 with a message saying that you're closing the issue due to inactivity but are
 happy to re-open if they can provide more details.
 
