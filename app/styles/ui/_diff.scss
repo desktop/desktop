@@ -261,7 +261,7 @@
   padding-top: 10px;
 
   .tab-bar {
-    width: 350px;
+    width: 380px;
     margin: 10px auto 0;
   }
 
@@ -293,6 +293,14 @@
       font-weight: var(--font-weight-semibold);
     }
   }
+}
+
+.new-image-diff,
+.deleted-image-diff {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
 }
 
 .image-diff-two-up {

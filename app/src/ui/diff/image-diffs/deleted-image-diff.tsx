@@ -14,7 +14,7 @@ export class DeletedImageDiff extends React.Component<
 > {
   public render() {
     return (
-      <div className="panel image" id="diff">
+      <div className="deleted-image-diff">
         <div className="image-diff-previous">
           <div className="image-diff-header">Deleted</div>
           <DiffImage image={this.props.previous} />
