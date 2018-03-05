@@ -413,7 +413,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
-      commits: new Map<string, Commit>(),
+      commitLookup: new Map<string, Commit>(),
       localCommitSHAs: [],
       aheadBehind: null,
       remote: null,
@@ -572,7 +572,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     this.updateRepositoryState(repository, state => ({
-      commits: gitStore.commits,
+      commitLookup: gitStore.commitLookup,
       localCommitSHAs: gitStore.localCommitSHAs,
       aheadBehind: gitStore.aheadBehind,
       remote: gitStore.remote,
@@ -2785,7 +2785,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // the accounts field
       const accounts = await this.accountsStore.getAll()
       const repoState = selectedState.state
-      const commits = repoState.commits.values()
+      const commits = repoState.commitLookup.values()
       this.loadAndCacheUsers(selectedState.repository, accounts, commits)
     }
   }
