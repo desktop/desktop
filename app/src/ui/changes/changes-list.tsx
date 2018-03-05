@@ -7,6 +7,7 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../../models/status'
+
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
@@ -24,8 +25,8 @@ const RowHeight = 29
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
-  readonly selectedFileID: string | null
-  readonly onFileSelectionChanged: (row: number) => void
+  readonly selectedFilesID: string[]
+  readonly onFileSelectionChanged: (row: number | number[]) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (
@@ -160,9 +161,10 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
 
   public render() {
     const fileList = this.props.workingDirectory.files
-    const selectedRow = fileList.findIndex(
-      file => file.id === this.props.selectedFileID
-    )
+    const selectedRows: number[] = [];
+    this.props.selectedFilesID.forEach((fileID) => {
+      selectedRows.push(fileList.findIndex(file => file.id === fileID))
+    })
     const fileCount = fileList.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
@@ -185,7 +187,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
           rowCount={this.props.workingDirectory.files.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderRow}
-          selectedRow={selectedRow}
+          selectedRows={selectedRows}
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}

@@ -180,7 +180,11 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     }
   }
 
-  private onSelectionChanged = (row: number, source: SelectionSource) => {
+  private onSelectionChanged = (rows: number | number[], source: SelectionSource) => {
+    let row: number;
+    if (rows instanceof Array) row = rows[rows.length - 1]
+    else row = rows
+
     const item = this.state.items[row]
     this.props.onSelectionChanged(this.props.depth, item, source)
   }
@@ -276,7 +280,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
           rowCount={this.state.items.length}
           rowHeight={this.rowHeight}
           rowRenderer={this.renderMenuItem}
-          selectedRow={this.state.selectedIndex}
+          selectedRows={[this.state.selectedIndex]}
           onRowClick={this.onRowClick}
           onSelectionChanged={this.onSelectionChanged}
           canSelectRow={this.canSelectRow}

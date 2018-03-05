@@ -185,7 +185,7 @@ export class Dispatcher {
   /** Change the currently selected file in Changes. */
   public changeChangesSelection(
     repository: Repository,
-    selectedFile: WorkingDirectoryFileChange
+    selectedFile: WorkingDirectoryFileChange | WorkingDirectoryFileChange[]
   ): Promise<void> {
     return this.appStore._changeChangesSelection(repository, selectedFile)
   }
@@ -852,7 +852,7 @@ export class Dispatcher {
         const unknownAction: IUnknownAction = action
         log.warn(
           `Unknown URL action: ${
-            unknownAction.name
+          unknownAction.name
           } - payload: ${JSON.stringify(unknownAction)}`
         )
     }

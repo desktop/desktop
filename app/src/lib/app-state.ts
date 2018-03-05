@@ -53,15 +53,15 @@ export enum ImageDiffType {
 
 export type PossibleSelections =
   | {
-      type: SelectionType.Repository
-      repository: Repository
-      state: IRepositoryState
-    }
+    type: SelectionType.Repository
+    repository: Repository
+    state: IRepositoryState
+  }
   | {
-      type: SelectionType.CloningRepository
-      repository: CloningRepository
-      progress: ICloneProgress
-    }
+    type: SelectionType.CloningRepository
+    repository: CloningRepository
+    progress: ICloneProgress
+  }
   | { type: SelectionType.MissingRepository; repository: Repository }
 
 /** All of the shared app state. */
@@ -213,74 +213,74 @@ export enum PopupType {
 export type Popup =
   | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
   | {
-      type: PopupType.DeleteBranch
-      repository: Repository
-      branch: Branch
-      existsOnRemote: boolean
-    }
+    type: PopupType.DeleteBranch
+    repository: Repository
+    branch: Branch
+    existsOnRemote: boolean
+  }
   | {
-      type: PopupType.ConfirmDiscardChanges
-      repository: Repository
-      files: ReadonlyArray<WorkingDirectoryFileChange>
-    }
+    type: PopupType.ConfirmDiscardChanges
+    repository: Repository
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | { type: PopupType.MergeBranch; repository: Repository }
   | { type: PopupType.RepositorySettings; repository: Repository }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }
   | {
-      type: PopupType.CloneRepository
-      initialURL: string | null
-    }
+    type: PopupType.CloneRepository
+    initialURL: string | null
+  }
   | {
-      type: PopupType.CreateBranch
-      repository: Repository
-      initialName?: string
-    }
+    type: PopupType.CreateBranch
+    repository: Repository
+    initialName?: string
+  }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }
   | { type: PopupType.InstallGit; path: string }
   | { type: PopupType.PublishRepository; repository: Repository }
   | { type: PopupType.Acknowledgements }
   | {
-      type: PopupType.UntrustedCertificate
-      certificate: Electron.Certificate
-      url: string
-    }
+    type: PopupType.UntrustedCertificate
+    certificate: Electron.Certificate
+    url: string
+  }
   | { type: PopupType.RemoveRepository; repository: Repository }
   | { type: PopupType.TermsAndConditions }
   | {
-      type: PopupType.PushBranchCommits
-      repository: Repository
-      branch: Branch
-      unPushedCommits?: number
-    }
+    type: PopupType.PushBranchCommits
+    repository: Repository
+    branch: Branch
+    unPushedCommits?: number
+  }
   | { type: PopupType.CLIInstalled }
   | {
-      type: PopupType.GenericGitAuthentication
-      hostname: string
-      retryAction: RetryAction
-    }
+    type: PopupType.GenericGitAuthentication
+    hostname: string
+    retryAction: RetryAction
+  }
   | {
-      type: PopupType.ExternalEditorFailed
-      message: string
-      suggestAtom?: boolean
-      openPreferences?: boolean
-    }
+    type: PopupType.ExternalEditorFailed
+    message: string
+    suggestAtom?: boolean
+    openPreferences?: boolean
+  }
   | { type: PopupType.OpenShellFailed; message: string }
   | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
   | { type: PopupType.LFSAttributeMismatch }
   | {
-      type: PopupType.UpstreamAlreadyExists
-      repository: Repository
-      existingRemote: IRemote
-    }
+    type: PopupType.UpstreamAlreadyExists
+    repository: Repository
+    existingRemote: IRemote
+  }
   | {
-      type: PopupType.DeletePullRequest
-      repository: Repository
-      branch: Branch
-      pullRequest: PullRequest
-    }
+    type: PopupType.DeletePullRequest
+    repository: Repository
+    branch: Branch
+    pullRequest: PullRequest
+  }
 
 export enum FoldoutType {
   Repository,
@@ -559,10 +559,10 @@ export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
 
   /**
-   * The ID of the selected file. The file itself can be looked up in
+   * The ID of the selected files. The files themselves can be looked up in
    * `workingDirectory`.
    */
-  readonly selectedFileID: string | null
+  readonly selectedFilesID: string[]
 
   readonly diff: IDiff | null
 

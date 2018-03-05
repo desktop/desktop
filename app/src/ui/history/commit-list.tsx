@@ -47,7 +47,11 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     )
   }
 
-  private onRowChanged = (row: number) => {
+  private onRowChanged = (rows: number | number[]) => {
+    let row: number;
+    if (rows instanceof Array) row = rows[rows.length - 1]
+    else row = rows
+
     const sha = this.props.history[row]
     const commit = this.props.commits.get(sha)
     if (commit) {
@@ -81,7 +85,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         <List
           rowCount={this.props.history.length}
           rowHeight={RowHeight}
-          selectedRow={this.rowForSHA(this.props.selectedSHA)}
+          selectedRows={[this.rowForSHA(this.props.selectedSHA)]}
           rowRenderer={this.renderCommit}
           onSelectionChanged={this.onRowChanged}
           onScroll={this.onScroll}

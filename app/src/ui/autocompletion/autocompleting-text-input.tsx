@@ -176,7 +176,7 @@ export abstract class AutocompletingTextInput<
           ref={this.storeAutocompletionListRef}
           rowCount={items.length}
           rowHeight={RowHeight}
-          selectedRow={selectedRow}
+          selectedRows={[selectedRow]}
           rowRenderer={this.renderItem}
           scrollToRow={selectedRow}
           selectOnHover={true}
@@ -204,7 +204,11 @@ export abstract class AutocompletingTextInput<
     }
   }
 
-  private onSelectionChanged = (row: number, source: SelectionSource) => {
+  private onSelectionChanged = (rows: number | number[], source: SelectionSource) => {
+    let row: number;
+    if (rows instanceof Array) row = rows[rows.length - 1]
+    else row = rows
+
     const currentAutoCompletionState = this.state.autocompletionState
 
     if (!currentAutoCompletionState) {

@@ -89,11 +89,11 @@ interface IListProps {
   readonly rowHeight: number | ((info: { index: number }) => number)
 
   /**
-   * The currently selected row index. Used to attach a special
-   * selection class on that row container as well as being used
+   * The currently selected rows indexes. Used to attach a special
+   * selection class on those row's containers as well as being used
    * for keyboard selection.
    */
-  readonly selectedRow: number
+  readonly selectedRows: number[]
 
   /**
    * This function will be called when a pointer device is pressed and then
@@ -120,7 +120,7 @@ interface IListProps {
    *                 a pointer device press, hover (if selectOnHover is set) or
    *                 a keyboard event (arrow up/down)
    */
-  readonly onSelectionChanged?: (row: number, source: SelectionSource) => void
+  readonly onSelectionChanged?: (row: number | number[], source: SelectionSource) => void
 
   /**
    * A handler called whenever a key down event is received on the
@@ -269,10 +269,9 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private handleKeyDown = (event: React.KeyboardEvent<any>) => {
-    const row = this.props.selectedRow
-    if (row >= 0 && this.props.onRowKeyDown) {
-      this.props.onRowKeyDown(row, event)
-    }
+    this.props.selectedRows.forEach((row) => {
+      if (this.props.onRowKeyDown) this.props.onRowKeyDown(row, event)
+    });
 
     // The consumer is given a change to prevent the default behavior for
     // keyboard navigation so that they can customize its behavior as needed.
@@ -281,10 +280,18 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     if (event.key === 'ArrowDown') {
-      this.moveSelection('down', event)
+      if (event.shiftKey || event.ctrlKey) {
+        this.addSelection('down', event)
+      } else {
+        this.moveSelection('down', event)
+      }
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
-      this.moveSelection('up', event)
+      if (event.shiftKey || event.ctrlKey) {
+        this.addSelection('up', event)
+      } else {
+        this.moveSelection('up', event)
+      }
       event.preventDefault()
     }
   }
@@ -310,7 +317,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   private onRowMouseOver = (row: number, event: React.MouseEvent<any>) => {
     if (this.props.selectOnHover && this.canSelectRow(row)) {
-      if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
+      if (this.props.selectedRows.indexOf(row) === -1 && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row, { kind: 'hover', event })
         // By calling scrollRowToVisible we ensure that hovering over a partially
         // visible item at the top or bottom of the list scrolls it into view but
@@ -361,11 +368,30 @@ export class List extends React.Component<IListProps, IListState> {
     return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
   }
 
+  private addSelection(
+    direction: 'up' | 'down',
+    event: React.KeyboardEvent<any>
+  ) {
+    const lastSelection = this.props.selectedRows[this.props.selectedRows.length - 1];
+    const newRow = this.nextSelectableRow(direction, lastSelection)
+
+    if (newRow != null) {
+      const newSelection = this.props.selectedRows;
+      newSelection.push(newRow);
+      if (this.props.onSelectionChanged) {
+        this.props.onSelectionChanged(newSelection, { kind: 'keyboard', event })
+      }
+
+      this.scrollRowToVisible(newRow)
+    }
+  }
+
   private moveSelection(
     direction: 'up' | 'down',
     event: React.KeyboardEvent<any>
   ) {
-    const newRow = this.nextSelectableRow(direction, this.props.selectedRow)
+    const lastSelection = this.props.selectedRows[this.props.selectedRows.length - 1];
+    const newRow = this.nextSelectableRow(direction, lastSelection)
 
     if (newRow != null) {
       if (this.props.onSelectionChanged) {
@@ -408,7 +434,11 @@ export class List extends React.Component<IListProps, IListState> {
 
       if (!gridHasUpdatedAlready) {
         const selectedRowChanged =
-          prevProps.selectedRow !== this.props.selectedRow
+          prevProps.selectedRows.length !== this.props.selectedRows.length ||
+          this.props.selectedRows.some((element, index) => {
+            return element !== prevProps.selectedRows[index];
+          })
+
         const invalidationPropsChanged = !shallowEquals(
           prevProps.invalidationProps,
           this.props.invalidationProps
@@ -452,7 +482,7 @@ export class List extends React.Component<IListProps, IListState> {
   private renderRow = (params: IRowRendererParams) => {
     const rowIndex = params.rowIndex
     const selectable = this.canSelectRow(rowIndex)
-    const selected = rowIndex === this.props.selectedRow
+    const selected = this.props.selectedRows.indexOf(rowIndex) !== -1;
     const focused = rowIndex === this.focusRow
 
     // An unselectable row shouldn't be focusable
@@ -509,9 +539,11 @@ export class List extends React.Component<IListProps, IListState> {
       )
     }
 
+    // TODO: change to adopt the new this.props.selectedRows: number[]
+    // or maybe just select the last item from the selection array for this prop
     const activeDescendant =
-      this.props.selectedRow !== -1 && this.state.rowIdPrefix
-        ? `${this.state.rowIdPrefix}-${this.props.selectedRow}`
+      this.props.selectedRows.length && this.state.rowIdPrefix
+        ? `${this.state.rowIdPrefix}-${this.props.selectedRows[this.props.selectedRows.length - 1]}`
         : undefined
 
     const role = this.props.ariaMode === 'menu' ? 'menu' : 'listbox'
@@ -572,7 +604,7 @@ export class List extends React.Component<IListProps, IListState> {
     // the list itself needs to be focusable so that you can reach
     // it with keyboard navigation and select an item.
     const tabIndex =
-      this.props.selectedRow < 0 && this.props.rowCount > 0 ? 0 : -1
+      this.props.selectedRows.length < 1 && this.props.rowCount > 0 ? 0 : -1
 
     return (
       <Grid
@@ -664,8 +696,26 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.onRowMouseDown(row, event)
       }
 
-      if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
-        this.props.onSelectionChanged(row, { kind: 'mouseclick', event })
+      if (this.props.onSelectionChanged) {
+        if (event.shiftKey) {
+          // if shift, select all inbetween first selection and current row
+          // TODO: finish that part
+        } else if (event.ctrlKey) {
+          // if ctrl, toggle the current selected state of the row
+          const newSelection = this.props.selectedRows;
+          if (newSelection.indexOf(row) !== -1) {
+            newSelection.filter((selection) => selection === row)
+          } else {
+            newSelection.push(row);
+          }
+          this.props.onSelectionChanged(newSelection, { kind: 'mouseclick', event })
+        } else if (
+          this.props.selectedRows.length !== 1 ||
+          (this.props.selectedRows.length === 1 && row !== this.props.selectedRows[0])
+        ) {
+          // if no special key is pressed, and that the selection is different, single selection occurs
+          this.props.onSelectionChanged(row, { kind: 'mouseclick', event })
+        }
       }
     }
   }
@@ -680,9 +730,9 @@ export class List extends React.Component<IListProps, IListState> {
     scrollTop,
     clientHeight,
   }: {
-    scrollTop: number
-    clientHeight: number
-  }) => {
+      scrollTop: number
+      clientHeight: number
+    }) => {
     if (this.props.onScroll) {
       this.props.onScroll(scrollTop, clientHeight)
     }
@@ -717,10 +767,10 @@ export class List extends React.Component<IListProps, IListState> {
    */
   public focus() {
     if (
-      this.props.selectedRow >= 0 &&
-      this.props.selectedRow < this.props.rowCount
+      this.props.selectedRows.length > 0 &&
+      this.props.selectedRows[this.props.selectedRows.length - 1] < this.props.rowCount
     ) {
-      this.scrollRowToVisible(this.props.selectedRow)
+      this.scrollRowToVisible(this.props.selectedRows[this.props.selectedRows.length - 1])
     } else {
       if (this.grid) {
         const element = ReactDOM.findDOMNode(this.grid) as HTMLDivElement

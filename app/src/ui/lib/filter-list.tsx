@@ -142,7 +142,7 @@ export type SelectionSource = ListSelectionSource | IFilterSelectionSource
 export class FilterList<T extends IFilterListItem> extends React.Component<
   IFilterListProps<T>,
   IFilterListState<T>
-> {
+  > {
   private list: List | null = null
   private filterTextBox: TextBox | null = null
 
@@ -197,7 +197,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           rowCount={this.state.rows.length}
           rowRenderer={this.renderRow}
           rowHeight={this.props.rowHeight}
-          selectedRow={this.state.selectedRow}
+          selectedRows={[this.state.selectedRow]}
           onSelectionChanged={this.onSelectionChanged}
           onRowClick={this.onRowClick}
           onRowKeyDown={this.onRowKeyDown}
@@ -216,7 +216,11 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     this.setState(createStateUpdate(nextProps))
   }
 
-  private onSelectionChanged = (index: number, source: SelectionSource) => {
+  private onSelectionChanged = (indexes: number | number[], source: SelectionSource) => {
+    let index: number;
+    if (indexes instanceof Array) index = indexes[indexes.length - 1]
+    else index = indexes
+
     this.setState({ selectedRow: index })
 
     if (this.props.onSelectionChanged) {

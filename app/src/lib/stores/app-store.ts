@@ -178,7 +178,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private readonly repositorySettingsStores = new Map<
     string,
     RepositorySettingsStore
-  >()
+    >()
   public readonly gitHubUserStore: GitHubUserStore
   private readonly cloningRepositoriesStore: CloningRepositoriesStore
   private readonly emojiStore: EmojiStore
@@ -395,7 +395,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         workingDirectory: WorkingDirectoryStatus.fromFiles(
           new Array<WorkingDirectoryFileChange>()
         ),
-        selectedFileID: null,
+        selectedFilesID: [],
         diff: null,
         contextualCommitMessage: null,
         commitMessage: null,
@@ -910,7 +910,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.currentPullRequestUpdater) {
       fatalError(
         `A pull request updater is already active and cannot start updating on ${
-          repository.name
+        repository.name
         }`
       )
 
@@ -976,7 +976,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.currentBackgroundFetcher) {
       fatalError(
         `We should only have on background fetcher active at once, but we're trying to start background fetching on ${
-          repository.name
+        repository.name
         } while another background fetcher is still active!`
       )
       return
@@ -1233,22 +1233,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const workingDirectory = WorkingDirectoryStatus.fromFiles(mergedFiles)
 
-      let selectedFileID = state.selectedFileID
-      const matchedFile = mergedFiles.find(x => x.id === selectedFileID)
+      let selectedFilesID = state.selectedFilesID
+      const matchedFiles = selectedFilesID.map(fileID => mergedFiles.find(x => x.id === fileID))
 
       // Select the first file if we don't have anything selected.
-      if ((!selectedFileID || !matchedFile) && mergedFiles.length) {
-        selectedFileID = mergedFiles[0].id || null
+      if ((!selectedFilesID.length || !matchedFiles.length) && mergedFiles.length) {
+        selectedFilesID = [mergedFiles[0].id] || []
       }
 
-      // The file selection could have changed if the previously selected file
-      // is no longer selectable (it was reverted or committed) but if it hasn't
+      // The file selection could have changed if the previously selected files
+      // are no longer selectable (they were reverted or committed) but if they were not
       // changed we can reuse the diff.
-      const sameSelectedFileExists = state.selectedFileID
-        ? workingDirectory.findFileWithID(state.selectedFileID)
+      const sameSelectedFileExists = state.selectedFilesID.length
+        ? state.selectedFilesID.every(fileID => workingDirectory.findFileWithID(fileID) !== null)
         : null
       const diff = sameSelectedFileExists ? state.diff : null
-      return { workingDirectory, selectedFileID, diff }
+      return { workingDirectory, selectedFilesID, diff }
     })
     this.emitUpdate()
 
@@ -1276,12 +1276,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeChangesSelection(
     repository: Repository,
-    selectedFile: WorkingDirectoryFileChange | null
+    selectedFiles: WorkingDirectoryFileChange | WorkingDirectoryFileChange[] | null
   ): Promise<void> {
-    this.updateChangesState(repository, state => ({
-      selectedFileID: selectedFile ? selectedFile.id : null,
-      diff: null,
-    }))
+    if (selectedFiles instanceof Array) {
+      this.updateChangesState(repository, state => ({
+        selectedFilesID: selectedFiles.length > 0 ? selectedFiles.map(file => file.id) : [],
+        diff: null,
+      }))
+    } else {
+      this.updateChangesState(repository, state => ({
+        selectedFilesID: selectedFiles ? [selectedFiles.id] : [],
+        diff: null,
+      }))
+    }
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
@@ -1297,38 +1304,44 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const stateBeforeLoad = this.getRepositoryState(repository)
     const changesStateBeforeLoad = stateBeforeLoad.changesState
-    const selectedFileIDBeforeLoad = changesStateBeforeLoad.selectedFileID
-    if (!selectedFileIDBeforeLoad) {
+    const selectedFilesIDBeforeLoad = changesStateBeforeLoad.selectedFilesID
+    if (!selectedFilesIDBeforeLoad.length) {
       return
     }
 
-    const selectedFileBeforeLoad = changesStateBeforeLoad.workingDirectory.findFileWithID(
-      selectedFileIDBeforeLoad
-    )
-    if (!selectedFileBeforeLoad) {
+    const selectedFilesBeforeLoad = selectedFilesIDBeforeLoad.map(fileID => {
+      return changesStateBeforeLoad.workingDirectory.findFileWithID(fileID)
+    })
+    const lastSelectedFile = selectedFilesBeforeLoad[selectedFilesBeforeLoad.length - 1]
+    if (!lastSelectedFile) {
       return
     }
 
     const diff = await getWorkingDirectoryDiff(
       repository,
-      selectedFileBeforeLoad
+      lastSelectedFile
     )
 
     const stateAfterLoad = this.getRepositoryState(repository)
     const changesState = stateAfterLoad.changesState
-    const selectedFileID = changesState.selectedFileID
+    const selectedFilesID = changesState.selectedFilesID
 
     // A different file could have been selected while we were loading the diff
     // in which case we no longer care about the diff we just loaded.
-    if (!selectedFileID) {
+    if (!selectedFilesID.length) {
       return
     }
-    if (selectedFileID !== selectedFileIDBeforeLoad) {
+    if (
+      selectedFilesID.length !== selectedFilesIDBeforeLoad.length ||
+      selectedFilesIDBeforeLoad.some((element, index) => {
+        return element !== selectedFilesID[index];
+      })
+    ) {
       return
     }
 
     const currentlySelectedFile = changesState.workingDirectory.findFileWithID(
-      selectedFileID
+      selectedFilesID[selectedFilesID.length - 1]
     )
     if (!currentlySelectedFile) {
       return
@@ -1453,7 +1466,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       const workingDirectory = WorkingDirectoryStatus.fromFiles(newFiles)
-      const diff = state.selectedFileID ? state.diff : null
+      const diff = state.selectedFilesID.length > 0 ? state.diff : null
       return { workingDirectory, diff }
     })
 
@@ -2244,7 +2257,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           account.token.length > 0 ? 'has token' : 'empty token'
         log.info(
           `[AppStore.getAccountForRemoteURL] account found for remote: ${remote} - ${
-            account.login
+          account.login
           } (${hasValidToken})`
         )
         return account
@@ -2767,7 +2780,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _removeAccount(account: Account): Promise<void> {
     log.info(
       `[AppStore] removing account ${account.login} (${
-        account.name
+      account.name
       }) from store`
     )
     return this.accountsStore.removeAccount(account)
@@ -2930,7 +2943,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         account.token.length > 0 ? 'has token' : 'empty token'
       log.info(
         `[AppStore.withAuthenticatingUser] account found for repository: ${
-          repository.name
+        repository.name
         } - ${account.login} (${hasValidToken})`
       )
     }
@@ -3095,7 +3108,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const baseURL = `${gitHubRepository.htmlURL}/pull/${
       currentPullRequest.number
-    }`
+      }`
 
     await this._openInBrowser(baseURL)
   }
@@ -3222,7 +3235,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const urlEncodedBranchName = QueryString.escape(branch.nameWithoutRemote)
     const baseURL = `${
       gitHubRepository.htmlURL
-    }/pull/new/${urlEncodedBranchName}`
+      }/pull/new/${urlEncodedBranchName}`
 
     await this._openInBrowser(baseURL)
   }
@@ -3307,7 +3320,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (remote.url !== cloneURL) {
         const error = new Error(
           `Expected PR remote ${remoteName} url to be ${cloneURL} got ${
-            remote.url
+          remote.url
           }.`
         )
 
