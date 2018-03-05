@@ -330,13 +330,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     const key = event.key
 
     if (!list) {
-      if (key === 'Escape') {
-        event.preventDefault()
-        if (this.props.onFilterTextChanged) {
-          this.props.onFilterTextChanged('')
-        }
-      }
-
       return
     }
 

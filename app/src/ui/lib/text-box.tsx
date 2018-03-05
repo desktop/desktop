@@ -178,6 +178,21 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      this.state.value !== '' &&
+      this.props.type === 'search' &&
+      event.key === 'Escape'
+    ) {
+      const value: string = ''
+
+      event.preventDefault()
+      this.setState({ value })
+
+      if (this.props.onValueChanged) {
+        this.props.onValueChanged(value)
+      }
+    }
+
     if (this.props.onKeyDown != null) {
       this.props.onKeyDown(event)
     }
