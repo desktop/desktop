@@ -1133,10 +1133,8 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       case DiffType.Image:
         return this.renderImage(diff)
       case DiffType.LargeText: {
-        const largeTextDiff = diff as ILargeTextDiff
-
         return this.state.forceShowLargeDiff
-          ? this.renderLargeText(largeTextDiff)
+          ? this.renderLargeText(diff)
           : this.renderLargeTextDiff()
       }
       case DiffType.Unrenderable:
