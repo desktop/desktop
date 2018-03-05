@@ -356,9 +356,7 @@ function buildDiff(
   lineEndingsChange?: LineEndingsChange
 ): Promise<IDiff> {
   if (!isValidBuffer(buffer)) {
-    // we know we can't transform this process output into a diff, so let's
-    // just return a placeholder for now that we can display to the user
-    // to say we're at the limits of the runtime
+    // the buffer's diff is too large to be renderable in the UI
     return Promise.resolve<IUnrenderableDiff>({ kind: DiffType.Unrenderable })
   }
 
