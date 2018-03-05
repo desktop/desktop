@@ -102,8 +102,8 @@ If we cannot understand or reproduce the issue with the information given, then 
 
 Periodically, we should be doing a sweep of issues that are open and labeled
 `more-information-needed`.
-* If the original poster has not responded within 14 days after the last question by an official maintainer, the issue will be automatically closed by Probot.
-* If the original poster did not fill out the issue template and has not responded to our request within 7 days, close the issue with the following message `I'm closing the issue due to inactivity but I'm happy to re-open if they can provide more details.`
+* If the original poster has not responded within 14 days after the last question by an official maintainer, the issue will be automatically closed by the `no-response` bot.
+* If the original poster did not fill out the issue template and has not responded to our request within 7 days, close the issue with the following message `I'm closing the issue due to inactivity but I'm happy to re-open if you can provide more details.`
 
 ## Needs Reproduction
 
