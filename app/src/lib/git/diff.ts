@@ -83,7 +83,7 @@ const imageFileExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.ico'])
  * Render the difference between a file in the given commit and its parent
  *
  * @param commitish A commit SHA or some other identifier that ultimately dereferences
- *                  a commit.
+ *                  to a commit.
  */
 export async function getCommitDiff(
   repository: Repository,
