@@ -18,7 +18,7 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, {}> {
         <p>
           Editing <Ref>.gitignore</Ref>. This per-branch file specifies
           intentionally untracked files that Git should ignore. Files already
-          tracked by Git are not affected.
+          tracked by Git are not affected.{' '}
           <LinkButton onClick={this.props.onShowExamples}>
             Learn more
           </LinkButton>
