@@ -79,7 +79,7 @@ export function caseInsensitiveEquals(x: string, y: string): boolean {
  * used in a sort operation the comparands will be sorted in ascending order.
  */
 export function caseInsensitiveCompare(x: string, y: string): number {
-  return compare(x.toLowerCase(), y.toLocaleLowerCase())
+  return compare(x.toLowerCase(), y.toLowerCase())
 }
 
 /**
@@ -88,5 +88,5 @@ export function caseInsensitiveCompare(x: string, y: string): number {
  * used in a sort operation the comparands will be sorted in descending order.
  */
 export function caseInsensitiveCompareDescending(x: string, y: string): number {
-  return compareDescending(x.toLowerCase(), y.toLocaleLowerCase())
+  return compareDescending(x.toLowerCase(), y.toLowerCase())
 }

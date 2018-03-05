@@ -76,7 +76,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
       localCommitSHAs.length > 0 ? localCommitSHAs[0] : null
     const mostRecentLocalCommit =
       (mostRecentLocalCommitSHA
-        ? this.props.state.commits.get(mostRecentLocalCommitSHA)
+        ? this.props.state.commitLookup.get(mostRecentLocalCommitSHA)
         : null) || null
 
     // -1 Because of right hand side border
@@ -113,7 +113,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
         history={this.props.state.historyState}
         gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
-        commits={this.props.state.commits}
+        commitLookup={this.props.state.commitLookup}
         localCommitSHAs={this.props.state.localCommitSHAs}
         onRevertCommit={this.onRevertCommit}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
@@ -190,7 +190,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
           dispatcher={this.props.dispatcher}
           history={this.props.state.historyState}
           emoji={this.props.emoji}
-          commits={this.props.state.commits}
+          commits={this.props.state.commitLookup}
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
           imageDiffType={this.props.imageDiffType}

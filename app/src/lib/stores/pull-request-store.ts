@@ -16,14 +16,7 @@ import {
 import { TypedBaseStore } from './base-store'
 import { Repository } from '../../models/repository'
 import { getRemotes, removeRemote } from '../git'
-import { IRemote } from '../../models/remote'
-
-/**
- * This is the magic remote name prefix
- * for when we add a remote on behalf of
- * the user.
- */
-export const ForkedRemotePrefix = 'github-desktop-'
+import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 
 const Decrement = (n: number) => n - 1
 const Increment = (n: number) => n + 1
@@ -388,16 +381,7 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
       })
     }
 
-    if (prsToInsert.length <= 0) {
-      return
-    }
-
     return this.pullRequestDatabase.transaction('rw', table, async () => {
-      // since all PRs come from the same repository
-      // using the base repoId of the fist element
-      // is sufficient here
-      const repoDbId = prsToInsert[0].base.repoId!
-
       // we need to delete the stales PRs from the db
       // so we remove all for a repo to avoid having to
       // do diffing
@@ -406,7 +390,9 @@ export class PullRequestStore extends TypedBaseStore<GitHubRepository> {
         .equals(repoDbId)
         .delete()
 
-      await table.bulkAdd(prsToInsert)
+      if (prsToInsert.length > 0) {
+        await table.bulkAdd(prsToInsert)
+      }
     })
   }
 
