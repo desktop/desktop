@@ -183,7 +183,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
       this.props.type === 'search' &&
       event.key === 'Escape'
     ) {
-      const value: string = ''
+      const value = ''
 
       event.preventDefault()
       this.setState({ value })
