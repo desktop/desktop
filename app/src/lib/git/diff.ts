@@ -26,23 +26,23 @@ import { spawnAndComplete } from './spawn'
 import { DiffParser } from '../diff-parser'
 
 /**
- * V8 has a limit on the size of string it can create, and unless we want to
+ * V8 has a limit on the size of string it can create (~256MB), and unless we want to
  * trigger an unhandled exception we need to do the encoding conversion by hand.
  *
  * This is a hard limit on how big a buffer can be and still be converted into
  * a string.
  */
-const MaxDiffBufferSize = 268435441 //~268MB
+const MaxDiffBufferSize = 7e7 // 70MB in decimal
 
 /**
  * Where `MaxDiffBufferSize` is a hard limit, this is a suggested limit. Diffs
  * bigger than this _could_ be displayed but it might cause some slowness.
  */
-const MaxReasonableDiffSize = MaxDiffBufferSize / 64 //~4MB
+const MaxReasonableDiffSize = MaxDiffBufferSize / 16 // ~4.375MB in decimal
 
 /**
  * The longest line length we should try to display. If a diff has a line longer
- * than this, we probably shouldn't attempt it.
+ * tha obably shouldn't attempt it.
  */
 const MaxLineLength = 500000
 
