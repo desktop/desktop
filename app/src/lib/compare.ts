@@ -67,6 +67,14 @@ export function compareDescending<T>(x: T, y: T): number {
 
 /**
  * Compares the two strings in a case-insensitive manner and returns a value
+ * indicating whether these are equal
+ */
+export function caseInsensitiveEquals(x: string, y: string): boolean {
+  return x.toLowerCase() === y.toLowerCase()
+}
+
+/**
+ * Compares the two strings in a case-insensitive manner and returns a value
  * indicating whether one is greater than the other. When the return value is
  * used in a sort operation the comparands will be sorted in ascending order.
  */
