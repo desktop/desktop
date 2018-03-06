@@ -63,14 +63,17 @@ export class RepositorySettingsStore extends BaseStore {
   }
 
   /** Ignore the given path or pattern. */
-  public async ignore(pattern: string): Promise<void> {
+  public async ignore(patterns: string | string[]): Promise<void> {
     const text = (await this.readGitIgnore()) || ''
     const repository = this._repository
     const currentContents = await formatGitIgnoreContents(text, repository)
-    const newText = await formatGitIgnoreContents(
-      `${currentContents}${pattern}`,
-      repository
-    )
+    let newContents = currentContents
+    if (patterns instanceof Array) {
+      patterns.forEach(pattern => (newContents += `${pattern}\n`))
+    } else {
+      newContents += `${patterns}`
+    }
+    const newText = await formatGitIgnoreContents(newContents, repository)
 
     await this.saveGitIgnore(newText)
   }

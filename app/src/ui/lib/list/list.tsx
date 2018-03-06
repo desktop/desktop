@@ -714,6 +714,11 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.onRowMouseDown(row, event)
       }
 
+      // prevent the right-click event from changing the selection if not necessary
+      if (event.button === 2 && this.props.selectedRows.includes(row)) {
+        return
+      }
+
       if (this.props.onSelectionChanged) {
         if (event.shiftKey && this.props.selectedRows.length) {
           // if shift, select all inbetween first selection and current row

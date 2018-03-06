@@ -585,7 +585,10 @@ export class Dispatcher {
   }
 
   /** Add the pattern to the repository's gitignore. */
-  public ignore(repository: Repository, pattern: string): Promise<void> {
+  public ignore(
+    repository: Repository,
+    pattern: string | string[]
+  ): Promise<void> {
     return this.appStore._ignore(repository, pattern)
   }
 

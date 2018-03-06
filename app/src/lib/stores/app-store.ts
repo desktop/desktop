@@ -2696,7 +2696,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.statsStore.recordLaunchStats(stats)
   }
 
-  public async _ignore(repository: Repository, pattern: string): Promise<void> {
+  public async _ignore(
+    repository: Repository,
+    pattern: string | string[]
+  ): Promise<void> {
     const repoSettingsStore = this.getRepositorySettingsStore(repository)
 
     await repoSettingsStore.ignore(pattern)

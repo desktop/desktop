@@ -1,9 +1,11 @@
 import * as React from 'react'
+import * as Path from 'path'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
 import { List, ClickSource } from '../lib/list'
 
 import {
+  AppFileStatus,
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../../models/status'
@@ -20,6 +22,10 @@ import { IAuthor } from '../../models/author'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 
 const RowHeight = 29
+
+const GitIgnoreFileName = '.gitignore'
+
+const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
 
 interface IChangesListProps {
   readonly repository: Repository
@@ -69,7 +75,7 @@ interface IChangesListProps {
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 
   /** Called when the given pattern should be ignored. */
-  readonly onIgnore: (pattern: string) => void
+  readonly onIgnore: (pattern: string | string[]) => void
 
   /**
    * Whether or not to show a field for adding co-authors to
@@ -109,12 +115,9 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         oldPath={file.oldPath}
         include={includeAll}
         key={file.id}
+        onContextMenu={this.onItemContextMenu}
         onIncludeChanged={this.props.onIncludeChanged}
-        onDiscardChanges={this.onDiscardChanges}
-        onRevealInFileManager={this.props.onRevealInFileManager}
-        onOpenItem={this.props.onOpenItem}
         availableWidth={this.props.availableWidth}
-        onIgnore={this.props.onIgnore}
       />
     )
   }
@@ -134,14 +137,28 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
     this.props.onDiscardAllChanges(this.props.workingDirectory.files)
   }
 
-  private onDiscardChanges = (path: string) => {
+  private onDiscardChanges = (paths: string | string[]) => {
     const workingDirectory = this.props.workingDirectory
-    const file = workingDirectory.files.find(f => f.path === path)
-    if (!file) {
-      return
-    }
 
-    this.props.onDiscardChanges(file)
+    if (paths instanceof Array) {
+      const files: WorkingDirectoryFileChange[] = []
+      paths.forEach(path => {
+        const file = workingDirectory.files.find(f => f.path === path)
+        if (file) {
+          files.push(file)
+        }
+      })
+      if (files.length) {
+        this.props.onDiscardAllChanges(files)
+      }
+    } else {
+      const file = workingDirectory.files.find(f => f.path === paths)
+      if (!file) {
+        return
+      }
+
+      this.props.onDiscardChanges(file)
+    }
   }
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
@@ -154,6 +171,106 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         enabled: this.props.workingDirectory.files.length > 0,
       },
     ]
+
+    showContextualMenu(items)
+  }
+
+  // ripped from https://stackoverflow.com/a/9229821/1964166
+  private static Uniquify(array: string[]) {
+    const seen: any = {}
+    return array.filter(function(item) {
+      return seen.hasOwnProperty(item) ? false : (seen[item] = true)
+    })
+  }
+
+  private onItemContextMenu = (
+    target: string,
+    status: AppFileStatus,
+    event: React.MouseEvent<any>
+  ) => {
+    event.preventDefault()
+
+    const fileList = this.props.workingDirectory.files
+    const selectedFiles: WorkingDirectoryFileChange[] = []
+    this.props.selectedFilesID.forEach(fileID => {
+      const newFile = fileList.find(file => file.id === fileID)
+      if (newFile) {
+        selectedFiles.push(newFile)
+      }
+    })
+
+    const paths = selectedFiles.map(file => file.path)
+    const fileName = selectedFiles.map(file => Path.basename(file.path))
+    const extensions = ChangesList.Uniquify(
+      selectedFiles.map(file => Path.extname(file.path))
+    )
+
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
+        action: () => this.onDiscardChanges(paths),
+      },
+      { type: 'separator' },
+    ]
+
+    if (fileName.length === 1) {
+      items.push({
+        label: 'Ignore',
+        action: () => this.props.onIgnore(target),
+        enabled: fileName[0] !== GitIgnoreFileName,
+      })
+    } else if (fileName.length > 1) {
+      items.push({
+        label: 'Ignore all',
+        action: () => {
+          this.props.onIgnore(paths)
+          // paths.forEach((path, index) => {
+          //   if (fileName[index] && fileName[index] !== GitIgnoreFileName) {
+          //     this.props.onIgnore(path)
+          //   }
+          // })
+        },
+        enabled: fileName[0] !== GitIgnoreFileName,
+      })
+    }
+
+    extensions.forEach(extension => {
+      if (extension) {
+        items.push({
+          label: __DARWIN__
+            ? `Ignore All ${extension} Files`
+            : `Ignore all ${extension} files`,
+          action: () => this.props.onIgnore(`*${extension}`),
+        })
+      }
+    })
+
+    const isSafeExtension = __WIN32__
+      ? extensions.every(
+          extension =>
+            !RestrictedFileExtensions.includes(extension.toLowerCase())
+        )
+      : true
+
+    const revealInFileManagerLabel = __DARWIN__
+      ? 'Reveal in Finder'
+      : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
+
+    items.push(
+      { type: 'separator' },
+      {
+        label: revealInFileManagerLabel,
+        action: () => this.props.onRevealInFileManager(target),
+        enabled: status !== AppFileStatus.Deleted,
+      },
+      {
+        label: __DARWIN__
+          ? 'Open with Default Program'
+          : 'Open with default program',
+        action: () => this.props.onOpenItem(target),
+        enabled: isSafeExtension && status !== AppFileStatus.Deleted,
+      }
+    )
 
     showContextualMenu(items)
   }
