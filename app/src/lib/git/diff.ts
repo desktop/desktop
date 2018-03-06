@@ -53,7 +53,7 @@ const MaxLineLength = 500000
  * @param buffer A buffer of binary text from a spawned process
  */
 function isValidBuffer(buffer: Buffer) {
-  return buffer.length < MaxDiffBufferSize
+  return buffer.length <= MaxDiffBufferSize
 }
 
 /** Is the buffer too large for us to reasonably represent? */
