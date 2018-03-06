@@ -13,13 +13,7 @@ interface IFileListProps {
 
 export class FileList extends React.Component<IFileListProps, {}> {
   private onSelectionChanged = (rows: number | number[]) => {
-    let row: number
-    if (rows instanceof Array) {
-      row = rows[rows.length - 1]
-    } else {
-      row = rows
-    }
-
+    const row: number = rows instanceof Array ? rows[rows.length - 1] : rows
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
   }

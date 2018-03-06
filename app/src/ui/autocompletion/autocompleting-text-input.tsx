@@ -208,13 +208,7 @@ export abstract class AutocompletingTextInput<
     rows: number | number[],
     source: SelectionSource
   ) => {
-    let row: number
-    if (rows instanceof Array) {
-      row = rows[rows.length - 1]
-    } else {
-      row = rows
-    }
-
+    const row: number = rows instanceof Array ? rows[rows.length - 1] : rows
     const currentAutoCompletionState = this.state.autocompletionState
 
     if (!currentAutoCompletionState) {

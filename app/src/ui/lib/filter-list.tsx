@@ -220,12 +220,8 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     indexes: number | number[],
     source: SelectionSource
   ) => {
-    let index: number
-    if (indexes instanceof Array) {
-      index = indexes[indexes.length - 1]
-    } else {
-      index = indexes
-    }
+    const index: number =
+      indexes instanceof Array ? indexes[indexes.length - 1] : indexes
 
     this.setState({ selectedRow: index })
 

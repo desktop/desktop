@@ -1290,8 +1290,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     if (selectedFiles instanceof Array) {
       this.updateChangesState(repository, state => ({
-        selectedFilesID:
-          selectedFiles.length > 0 ? selectedFiles.map(file => file.id) : [],
+        selectedFilesID: selectedFiles.length
+          ? selectedFiles.map(file => file.id)
+          : [],
         diff: null,
       }))
     } else {
