@@ -7,11 +7,14 @@ import * as Path from 'path'
 export async function listSubmodules(
   repository: Repository
 ): Promise<ReadonlyArray<SubmoduleEntry>> {
+  const submodulesFile = await pathExists(
+    Path.join(repository.path, '.gitmodules')
+  )
+  const submodulesDir = await pathExists(
+    Path.join(repository.path, '.git', 'modules')
+  )
 
-  const submodulesFile = await pathExists(Path.join(repository.path, '.gitmodules'))
-  const submodulesDir = await pathExists(Path.join(repository.path, '.git', 'modules'))
-
-  if(!submodulesFile && !submodulesDir) {
+  if (!submodulesFile && !submodulesDir) {
     log.info('No submodules found. Skipping "git submodule status"')
     return []
   }
