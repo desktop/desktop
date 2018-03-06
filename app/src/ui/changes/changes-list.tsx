@@ -175,14 +175,6 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
     showContextualMenu(items)
   }
 
-  // ripped from https://stackoverflow.com/a/9229821/1964166
-  private static Uniquify(array: string[]) {
-    const seen: any = {}
-    return array.filter(function(item) {
-      return seen.hasOwnProperty(item) ? false : (seen[item] = true)
-    })
-  }
-
   private onItemContextMenu = (
     target: string,
     status: AppFileStatus,
@@ -201,9 +193,11 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
 
     const paths = selectedFiles.map(file => file.path)
     const fileName = selectedFiles.map(file => Path.basename(file.path))
-    const extensions = ChangesList.Uniquify(
-      selectedFiles.map(file => Path.extname(file.path))
-    )
+    let extensions = selectedFiles.map(file => Path.extname(file.path))
+    const seen: any = {}
+    extensions = extensions.filter(function(item) {
+      return seen.hasOwnProperty(item) ? false : (seen[item] = true)
+    })
 
     const items: IMenuItem[] = [
       {
