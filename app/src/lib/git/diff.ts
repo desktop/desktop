@@ -42,7 +42,7 @@ const MaxReasonableDiffSize = MaxDiffBufferSize / 16 // ~4.375MB in decimal
 
 /**
  * The longest line length we should try to display. If a diff has a line longer
- * tha obably shouldn't attempt it.
+ * than this, we probably shouldn't attempt it
  */
 const MaxLineLength = 500000
 
