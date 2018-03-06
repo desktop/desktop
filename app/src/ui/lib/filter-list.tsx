@@ -341,14 +341,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return
     }
 
-    const filterText = this.props.filterText
-    if (key === 'Escape' && (filterText && filterText.length !== 0)) {
-      event.preventDefault()
-
-      if (this.props.onFilterTextChanged) {
-        this.props.onFilterTextChanged('')
-      }
-    } else if (key === 'ArrowDown') {
+    if (key === 'ArrowDown') {
       if (this.state.rows.length > 0) {
         const selectedRow = list.nextSelectableRow('down', -1)
         if (selectedRow != null) {
