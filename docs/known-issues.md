@@ -61,6 +61,13 @@ $ git config --global http.sslBackend "openssl"
 $ git config --global http.sslCAInfo [path to .pem file]
 ```
 
+Ensure you use forward slashes for the path when setting the `sslCAInfo` value. For example:
+
+```
+[http]
+    sslCAInfo = C:/path with spaces/to/certificate/bundle.pem
+```
+
 ### Using a repository configured with Folder Redirection - [#2972](https://github.com/desktop/desktop/issues/2972)
 
 [Folder Redirection](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc753996(v%3dws.11)) is an feature of Windows for administrators to ensure files and folders are managed on a network server, instead.
