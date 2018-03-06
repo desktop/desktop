@@ -1,10 +1,21 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { SubmoduleEntry } from '../../models/submodule'
+import { pathExists } from '../file-system'
+import * as Path from 'path'
 
 export async function listSubmodules(
   repository: Repository
 ): Promise<ReadonlyArray<SubmoduleEntry>> {
+
+	let submodulesFile = await pathExists(Path.join(repository.path, '.gitmodules'))
+	let submodulesDir = await pathExists(Path.join(repository.path, '.git', 'modules'))
+
+	if(!submodulesFile && !submodulesDir) {
+		log.info('No submodules found. Skipping "git submodule status"')
+		return []
+	}
+
   // We don't recurse when listing submodules here because we don't have a good
   // story about managing these currently. So for now we're only listing
   // changes to the top-level submodules to be consistent with `git status`
