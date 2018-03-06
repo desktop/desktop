@@ -715,14 +715,28 @@ export class List extends React.Component<IListProps, IListState> {
       }
 
       if (this.props.onSelectionChanged) {
-        if (event.shiftKey) {
+        if (event.shiftKey && this.props.selectedRows.length) {
           // if shift, select all inbetween first selection and current row
-          // TODO: finish that part
+          const selectionOrigin = this.props.selectedRows[0]
+          if (selectionOrigin === row) {
+            return
+          }
+          const difference = row - selectionOrigin
+          const polarity = difference / Math.abs(difference)
+          const newSelection = []
+          for (let i = selectionOrigin; i !== row; i += polarity) {
+            newSelection.push(i)
+          }
+          newSelection.push(row)
+          this.props.onSelectionChanged(newSelection, {
+            kind: 'mouseclick',
+            event,
+          })
         } else if (event.ctrlKey) {
           // if ctrl, toggle the current selected state of the row
-          const newSelection = this.props.selectedRows
-          if (newSelection.indexOf(row) !== -1) {
-            newSelection.filter(selection => selection === row)
+          let newSelection = this.props.selectedRows
+          if (newSelection.includes(row)) {
+            newSelection = newSelection.filter(selection => selection !== row)
           } else {
             newSelection.push(row)
           }
