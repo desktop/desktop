@@ -98,7 +98,7 @@ issues from time to time that isn't and won't be covered here.
 
 ## More Information Needed
 
-If we cannot understand or reproduce the issue with the information given, then we label it `more-information-needed`.
+If a reviewer cannot understand or reproduce the issue with the information provided, they should add a comment indicating what is not clear and add the label more-information-needed.
 
 Although we use a bot, we should still do a manual sweep of issues that are open and labeled `more-information-needed` at least once a week.
 * If the original poster has not responded within 14 days after the last question by an official maintainer, the issue will be automatically closed by the `no-response` bot.
