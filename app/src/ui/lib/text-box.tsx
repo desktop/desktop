@@ -193,7 +193,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
       }
     }
 
-    if (this.props.onKeyDown != null) {
+    if (this.props.onKeyDown !== undefined) {
       this.props.onKeyDown(event)
     }
   }
