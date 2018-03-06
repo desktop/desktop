@@ -32,7 +32,7 @@ import { DiffParser } from '../diff-parser'
  * This is a hard limit on how big a buffer can be and still be converted into
  * a string.
  */
-const MaxDiffBufferSize = 7e7 // 70MB in decimal
+const MaxDiffBufferSize = 70e6 // 70MB in decimal
 
 /**
  * Where `MaxDiffBufferSize` is a hard limit, this is a suggested limit. Diffs
