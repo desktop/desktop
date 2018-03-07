@@ -49,17 +49,29 @@ export class RepositorySettingsStore extends BaseStore {
   public async saveGitIgnore(text: string): Promise<void> {
     const repository = this._repository
     const ignorePath = Path.join(repository.path, '.gitignore')
-    const fileContents = await formatGitIgnoreContents(text, repository)
 
-    return new Promise<void>((resolve, reject) => {
-      FS.writeFile(ignorePath, fileContents, err => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve()
-        }
+    if (text === '') {
+      return new Promise<void>((resolve, reject) => {
+        FS.unlink(ignorePath, err => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve()
+          }
+        })
       })
-    })
+    } else {
+      const fileContents = await formatGitIgnoreContents(text, repository)
+      return new Promise<void>((resolve, reject) => {
+        FS.writeFile(ignorePath, fileContents, err => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve()
+          }
+        })
+      })
+    }
   }
 
   /** Ignore the given path or pattern. */
