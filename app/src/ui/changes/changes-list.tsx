@@ -298,6 +298,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
           rowHeight={RowHeight}
           rowRenderer={this.renderRow}
           selectedRows={selectedRows}
+          selectionMode="multi"
           onSelectionChanged={this.props.onFileSelectionChanged}
           invalidationProps={this.props.workingDirectory}
           onRowClick={this.props.onRowClick}

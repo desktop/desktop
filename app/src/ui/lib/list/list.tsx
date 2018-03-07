@@ -111,11 +111,48 @@ interface IListProps {
   readonly onRowClick?: (row: number, soure: ClickSource) => void
 
   /**
+   * This prop defines the behaviour of the selection of items whithin this list.
+   * 'single' selection (which should be the default),
+   * 'range' which would only allow for selecting contiguous ranges and
+   * 'multi' (for lack of a better word) which allows range and/or arbitrary selection (Cmd/Ctrl).
+   */
+  readonly selectionMode?: 'single' | 'range' | 'multi'
+
+  /**
+   * This function is called only when single row selection is made
+   * This function will be called when the selection changes as a result of a
+   * user keyboard or mouse action (i.e. not when props change). This function
+   * will not be invoked when an already selected row is clicked on.
+   * @param row    - The index of the row that was just selected
+   * @param source - The kind of user action that provoked the change, either
+   *                 a pointer device press, hover (if selectOnHover is set) or
+   *                 a keyboard event (arrow up/down)
+   */
+  readonly onSelectedRowChanged?: (row: number, source: SelectionSource) => void
+
+  /**
+   * This function is called only when selectionMode is 'range'
+   * This function will be called when the selection changes as a result of a
+   * user keyboard or mouse action (i.e. not when props change). This function
+   * will not be invoked when an already selected row is clicked on.
+   * @param start  - The index of the first selected row
+   * @param end    - The index of the last selected row
+   * @param source - The kind of user action that provoked the change, either
+   *                 a pointer device press, hover (if selectOnHover is set) or
+   *                 a keyboard event (arrow up/down)
+   */
+  readonly onSelectedRangeChanged?: (
+    start: number,
+    end: number,
+    source: SelectionSource
+  ) => void
+
+  /**
    * This function will be called when the selection changes as a result of a
    * user keyboard or mouse action (i.e. not when props change). This function
    * will not be invoked when an already selected row is clicked on.
    *
-   * @param row    - The index of the row that was just selected
+   * @param row    - The index of the row(s) that was just selected
    * @param source - The kind of user action that provoked the change, either
    *                 a pointer device press, hover (if selectOnHover is set) or
    *                 a keyboard event (arrow up/down)
@@ -285,14 +322,22 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     if (event.key === 'ArrowDown') {
-      if (event.shiftKey || event.ctrlKey) {
+      if (
+        event.shiftKey &&
+        this.props.selectionMode &&
+        this.props.selectionMode !== 'single'
+      ) {
         this.addSelection('down', event)
       } else {
         this.moveSelection('down', event)
       }
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
-      if (event.shiftKey || event.ctrlKey) {
+      if (
+        event.shiftKey &&
+        this.props.selectionMode &&
+        this.props.selectionMode !== 'single'
+      ) {
         this.addSelection('up', event)
       } else {
         this.moveSelection('up', event)
@@ -396,6 +441,16 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.onSelectionChanged(newSelection, { kind: 'keyboard', event })
       }
 
+      if (
+        this.props.selectionMode === 'range' &&
+        this.props.onSelectedRangeChanged
+      ) {
+        this.props.onSelectedRangeChanged(this.props.selectedRows[0], newRow, {
+          kind: 'keyboard',
+          event,
+        })
+      }
+
       this.scrollRowToVisible(newRow)
     }
   }
@@ -412,6 +467,13 @@ export class List extends React.Component<IListProps, IListState> {
     if (newRow != null) {
       if (this.props.onSelectionChanged) {
         this.props.onSelectionChanged(newRow, { kind: 'keyboard', event })
+      }
+
+      if (this.props.onSelectedRowChanged) {
+        this.props.onSelectedRowChanged(newRow, {
+          kind: 'keyboard',
+          event,
+        })
       }
 
       this.scrollRowToVisible(newRow)
@@ -719,43 +781,66 @@ export class List extends React.Component<IListProps, IListState> {
         return
       }
 
-      if (this.props.onSelectionChanged) {
-        if (event.shiftKey && this.props.selectedRows.length) {
-          // if shift, select all inbetween first selection and current row
-          const selectionOrigin = this.props.selectedRows[0]
-          if (selectionOrigin === row) {
-            return
-          }
-          const difference = row - selectionOrigin
-          const polarity = difference / Math.abs(difference)
-          const newSelection = []
-          for (let i = selectionOrigin; i !== row; i += polarity) {
-            newSelection.push(i)
-          }
-          newSelection.push(row)
+      if (
+        event.shiftKey &&
+        this.props.selectedRows.length &&
+        this.props.selectionMode &&
+        this.props.selectionMode !== 'single'
+      ) {
+        // if shift, select all inbetween first selection and current row
+        const selectionOrigin = this.props.selectedRows[0]
+        if (selectionOrigin === row) {
+          return
+        }
+        const difference = row - selectionOrigin
+        const polarity = difference / Math.abs(difference)
+        const newSelection = []
+        for (let i = selectionOrigin; i !== row; i += polarity) {
+          newSelection.push(i)
+        }
+        newSelection.push(row)
+
+        if (this.props.onSelectionChanged) {
           this.props.onSelectionChanged(newSelection, {
             kind: 'mouseclick',
             event,
           })
-        } else if (event.ctrlKey) {
-          // if ctrl, toggle the current selected state of the row
-          let newSelection = this.props.selectedRows
-          if (newSelection.includes(row)) {
-            newSelection = newSelection.filter(selection => selection !== row)
-          } else {
-            newSelection.push(row)
-          }
-          this.props.onSelectionChanged(newSelection, {
-            kind: 'mouseclick',
-            event,
-          })
-        } else if (
-          this.props.selectedRows.length !== 1 ||
-          (this.props.selectedRows.length === 1 &&
-            row !== this.props.selectedRows[0])
+        }
+        if (
+          this.props.selectionMode === 'range' &&
+          this.props.onSelectedRangeChanged
         ) {
-          // if no special key is pressed, and that the selection is different, single selection occurs
+          this.props.onSelectedRangeChanged(selectionOrigin, row, {
+            kind: 'mouseclick',
+            event,
+          })
+        }
+      } else if (event.ctrlKey && this.props.selectionMode === 'multi') {
+        // if ctrl, toggle the current selected state of the row
+        let newSelection = this.props.selectedRows
+        if (newSelection.includes(row)) {
+          newSelection = newSelection.filter(selection => selection !== row)
+        } else {
+          newSelection.push(row)
+        }
+        if (this.props.onSelectionChanged) {
+          this.props.onSelectionChanged(newSelection, {
+            kind: 'mouseclick',
+            event,
+          })
+        }
+      } else if (
+        this.props.selectedRows.length !== 1 ||
+        (this.props.selectedRows.length === 1 &&
+          row !== this.props.selectedRows[0])
+      ) {
+        // if no special key is pressed, and that the selection is different, single selection occurs
+
+        if (this.props.onSelectionChanged) {
           this.props.onSelectionChanged(row, { kind: 'mouseclick', event })
+        }
+        if (this.props.onSelectedRowChanged) {
+          this.props.onSelectedRowChanged(row, { kind: 'mouseclick', event })
         }
       }
     }

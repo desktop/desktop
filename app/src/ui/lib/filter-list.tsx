@@ -198,7 +198,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           rowRenderer={this.renderRow}
           rowHeight={this.props.rowHeight}
           selectedRows={[this.state.selectedRow]}
-          onSelectionChanged={this.onSelectionChanged}
+          onSelectedRowChanged={this.onSelectedRowChanged}
           onRowClick={this.onRowClick}
           onRowKeyDown={this.onRowKeyDown}
           canSelectRow={this.canSelectRow}
@@ -216,13 +216,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     this.setState(createStateUpdate(nextProps))
   }
 
-  private onSelectionChanged = (
-    indexes: number | number[],
-    source: SelectionSource
-  ) => {
-    const index: number =
-      indexes instanceof Array ? indexes[indexes.length - 1] : indexes
-
+  private onSelectedRowChanged = (index: number, source: SelectionSource) => {
     this.setState({ selectedRow: index })
 
     if (this.props.onSelectionChanged) {
