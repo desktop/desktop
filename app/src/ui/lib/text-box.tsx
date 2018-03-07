@@ -177,6 +177,27 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     )
   }
 
+  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      this.state.value !== '' &&
+      this.props.type === 'search' &&
+      event.key === 'Escape'
+    ) {
+      const value = ''
+
+      event.preventDefault()
+      this.setState({ value })
+
+      if (this.props.onValueChanged) {
+        this.props.onValueChanged(value)
+      }
+    }
+
+    if (this.props.onKeyDown !== undefined) {
+      this.props.onKeyDown(event)
+    }
+  }
+
   public render() {
     const className = classNames('text-box-component', this.props.className)
     const inputId = this.props.label ? this.state.inputId : undefined
@@ -194,7 +215,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           placeholder={this.props.placeholder}
           value={this.state.value}
           onChange={this.onChange}
-          onKeyDown={this.props.onKeyDown}
+          onKeyDown={this.onKeyDown}
           tabIndex={this.props.tabIndex}
         />
       </div>

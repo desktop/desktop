@@ -145,6 +145,10 @@ export class ToolbarDropdown extends React.Component<
     this.state = { clientRect: null }
   }
 
+  private get isOpen() {
+    return this.props.dropdownState === 'open'
+  }
+
   private dropdownIcon(state: DropdownState): OcticonSymbol {
     // @TODO: Remake triangle octicon in a 12px version,
     // right now it's scaled badly on normal dpi monitors.
@@ -249,6 +253,13 @@ export class ToolbarDropdown extends React.Component<
     }
   }
 
+  private onFoldoutKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (!event.defaultPrevented && this.isOpen && event.key === 'Escape') {
+      event.preventDefault()
+      this.props.onDropdownStateChanged('closed', 'keyboard')
+    }
+  }
+
   private renderDropdownContents = (): JSX.Element | null => {
     if (this.props.dropdownState !== 'open') {
       return null
@@ -265,7 +276,11 @@ export class ToolbarDropdown extends React.Component<
           tabIndex={-1}
           onClick={this.handleOverlayClick}
         />
-        <div className="foldout" style={this.getFoldoutStyle()}>
+        <div
+          className="foldout"
+          style={this.getFoldoutStyle()}
+          onKeyDown={this.onFoldoutKeyDown}
+        >
           {this.props.dropdownContentRenderer()}
         </div>
       </div>
