@@ -1326,7 +1326,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
         onRemoveRepository={this.removeRepository}
-        onClose={this.onCloseRepositoryList}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
         onOpenInExternalEditor={this.openInExternalEditor}
@@ -1360,10 +1359,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     shell.showItemInFolder(repository.path)
-  }
-
-  private onCloseRepositoryList = () => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
