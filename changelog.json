@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.1.1-test1": [
+      "[Improved] Forcing a focus on the window after the OAuth dance is done"
+    ],
     "1.1.1-beta1": [
 
     ]
