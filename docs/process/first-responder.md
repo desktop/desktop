@@ -12,7 +12,8 @@ Each rotation is a week long. While first responder your primary duties are:
 1. Triage issues.
     * Troubleshoot or follow up on troubleshooting started by the previous first responder. The current first responder should always bear responsibility for pushing troubleshooting forward, unless another team member has explicitly taken ownership.
     * Ensure issues are labeled accurately.
-    * Review the [`more-information-needed`](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+label%3Amore-information-needed+sort%3Aupdated-asc) and [`needs-reproduction`](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+sort%3Aupdated-asc+label%3Aneeds-reproduction) issues and close any that have gone 2 weeks with no new activity.
+    * Review issues labelled [`reviewer-needs-to-reproduce`](https://github.com/desktop/desktop/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+sort%3Aupdated-asc+label%3Areviewer-needs-to-reproduce) and close any that have gone 2 weeks with no new activity after the last question by a reviewer.
+    * Review issues labelled [`more-information-needed`](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+label%3Amore-information-needed+sort%3Aupdated-asc) and close any that have gone 7 days without an issue template being filled out. Otherwise, the `no-response` bot will close it after 2 weeks.
     * See [issue-triage.md](issue-triage.md) for more information on our issue triage process.
 1. Check community pull requests and label ones that are `ready-for-review`.
 1. Review community pull requests.

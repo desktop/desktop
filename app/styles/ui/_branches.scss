@@ -239,7 +239,6 @@
   button.new-branch-button {
     align-self: center;
     margin-right: var(--spacing);
-    width: 60px;
   }
 }
 
@@ -251,11 +250,6 @@
   align-items: center;
   text-align: center;
   padding: var(--spacing);
-
-  .blankslate-image {
-    width: 257px;
-    min-width: 0;
-  }
 
   .title {
     font-weight: var(--font-weight-semibold);

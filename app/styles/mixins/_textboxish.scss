@@ -14,18 +14,23 @@
   padding: 0 var(--spacing-half);
 
   &:focus {
-    outline: none;
-    border-color: var(--focus-color);
-    box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+    @include textboxish-focus-styles;
   }
 }
 
-// This is kept separate from textboxish because we need to be able
-// to apply it conditionally when running on Windows, the disabled
-// styles on macOS are fine.
+@mixin textboxish-focus-styles {
+  outline: none;
+  border-color: var(--focus-color);
+  box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+}
+
+@mixin textboxish-disabled-styles {
+  background: var(--box-alt-background-color);
+  color: var(--text-secondary-color);
+}
+
 @mixin textboxish-disabled {
   &:disabled {
-    background: var(--box-alt-background-color);
-    color: var(--text-secondary-color);
+    @include textboxish-disabled-styles;
   }
 }

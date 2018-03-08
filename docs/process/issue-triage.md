@@ -81,16 +81,16 @@ issues from time to time that isn't and won't be covered here.
 
 1. Person files a new issue
 1. Maintainer checks to ensure they adequately filled out the template. If not,
-   close with the [request to fill out the template](canned-messages/needs-template.md).
+   close with a request to fill out the template.
 1. Label the issue as a `bug` if the issue is a regression or behaviour that
    needs to be fixed.
 1. If the issue has already been fixed, add a comment linking to the original
    issue and close the issue.
 1. If anything is unclear but the template is adequately filled out, post what
-   questions you have and label with `more-information-needed`
+   questions you have and label with `more-information-needed`.
 1. Maintainer attempts to reproduce the problem
     1. If the problem is not reproducible, label with `needs-reproduction` and
-       ask the author of the issue for [clarification on the repro steps](canned-messages/repro-steps.md)
+       ask the author of the issue for clarification on the repro steps.
 1. Label the issue as an `enhancement` if the issue mentions new behaviour
    or functionality that the app should have.
 
@@ -98,10 +98,11 @@ issues from time to time that isn't and won't be covered here.
 
 ## More Information Needed
 
-Periodically we should be doing a sweep of issues that are open and labeled
-`more-information-needed`. If the original poster has not responded within
-two weeks after the last question by an official maintainer, close the issue
-with [the no response message](canned-messages/no-response.md).
+If a reviewer cannot understand or reproduce the issue with the information provided, they should add a comment indicating what is not clear and add the label `more-information-needed`.
+
+Although we use a bot, the first responder should also do a manual sweep of issues that are open and labeled `more-information-needed` at least once a week.
+* If a `more-information-needed` issue is stale for more than 14 days after the last comment by a reviewer, the issue will be automatically closed by the no-response bot.
+* If the original poster did not fill out the issue template and has not responded to our request within 7 days, close the issue with the following message `I'm closing the issue due to inactivity but I'm happy to re-open if you can provide more details.`
 
 ## Needs Reproduction
 
