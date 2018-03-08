@@ -60,18 +60,18 @@ export class RepositorySettingsStore extends BaseStore {
           }
         })
       })
-    } else {
-      const fileContents = await formatGitIgnoreContents(text, repository)
-      return new Promise<void>((resolve, reject) => {
-        FS.writeFile(ignorePath, fileContents, err => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve()
-          }
-        })
-      })
     }
+
+    const fileContents = await formatGitIgnoreContents(text, repository)
+    return new Promise<void>((resolve, reject) => {
+      FS.writeFile(ignorePath, fileContents, err => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve()
+        }
+      })
+    })
   }
 
   /** Ignore the given path or pattern. */
