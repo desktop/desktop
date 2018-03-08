@@ -2163,9 +2163,9 @@ electron-builder@19.48.3:
     update-notifier "^2.3.0"
     yargs "^10.0.3"
 
-electron-chromedriver@~1.7.1:
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/electron-chromedriver/-/electron-chromedriver-1.7.1.tgz#008c97976007aa4eb18491ee095e94d17ee47610"
+electron-chromedriver@~1.8.0:
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/electron-chromedriver/-/electron-chromedriver-1.8.0.tgz#901714133cf6f6093d365e1f44a52d99624d8241"
   dependencies:
     electron-download "^4.1.0"
     extract-zip "^1.6.5"
@@ -2288,9 +2288,9 @@ electron-winstaller@2.5.2:
     lodash.template "^4.2.2"
     temp "^0.8.3"
 
-electron@1.8.2:
-  version "1.8.2"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-1.8.2.tgz#a817cd733c2972b3c7cc4f777caf6e424b88014d"
+electron@1.8.3:
+  version "1.8.3"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-1.8.3.tgz#001416ea3a25ce594e317cb5531bc41eadd22f7f"
   dependencies:
     "@types/node" "^8.0.24"
     electron-download "^3.0.1"
@@ -6269,12 +6269,12 @@ spdx-license-ids@^1.0.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/spdx-license-ids/-/spdx-license-ids-1.2.2.tgz#c9df7a3424594ade6bd11900d596696dc06bac57"
 
-spectron@^3.7.2:
-  version "3.7.2"
-  resolved "https://registry.yarnpkg.com/spectron/-/spectron-3.7.2.tgz#86f41306a9b70ed6ee1500f7f7d3adc389afb446"
+spectron@^3.8.0:
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/spectron/-/spectron-3.8.0.tgz#122c3562fd7e92b7cdf6f94094aa495b150dfa51"
   dependencies:
     dev-null "^0.1.1"
-    electron-chromedriver "~1.7.1"
+    electron-chromedriver "~1.8.0"
     request "^2.81.0"
     split "^1.0.0"
     webdriverio "^4.8.0"
