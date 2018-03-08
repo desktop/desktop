@@ -18,6 +18,7 @@ import {
   IRevertProgress,
   IFetchProgress,
 } from '../app-state'
+import { arrayEquals } from '../equality'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
@@ -1341,12 +1342,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!selectedFilesID.length) {
       return
     }
-    if (
-      selectedFilesID.length !== selectedFilesIDBeforeLoad.length ||
-      selectedFilesIDBeforeLoad.some((element, index) => {
-        return element !== selectedFilesID[index]
-      })
-    ) {
+    if (!arrayEquals(selectedFilesID, selectedFilesIDBeforeLoad)) {
       return
     }
 

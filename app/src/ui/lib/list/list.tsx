@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Grid, AutoSizer } from 'react-virtualized'
-import { shallowEquals } from '../../../lib/equality'
+import { shallowEquals, arrayEquals } from '../../../lib/equality'
 import { ListRow } from './list-row'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 
@@ -114,7 +114,7 @@ interface IListProps {
    * This prop defines the behaviour of the selection of items whithin this list.
    * 'single' selection (which should be the default),
    * 'range' which would only allow for selecting contiguous ranges and
-   * 'multi' (for lack of a better word) which allows range and/or arbitrary selection (Cmd/Ctrl).
+   * 'multi' which allows range and/or arbitrary selection (Cmd/Ctrl).
    */
   readonly selectionMode?: 'single' | 'range' | 'multi'
 
@@ -135,6 +135,8 @@ interface IListProps {
    * This function will be called when the selection changes as a result of a
    * user keyboard or mouse action (i.e. not when props change). This function
    * will not be invoked when an already selected row is clicked on.
+   * Index parameters are inclusive
+   *
    * @param start  - The index of the first selected row
    * @param end    - The index of the last selected row
    * @param source - The kind of user action that provoked the change, either
@@ -157,10 +159,7 @@ interface IListProps {
    *                 a pointer device press, hover (if selectOnHover is set) or
    *                 a keyboard event (arrow up/down)
    */
-  readonly onSelectionChanged?: (
-    row: number | number[],
-    source: SelectionSource
-  ) => void
+  readonly onSelectionChanged?: (row: number[], source: SelectionSource) => void
 
   /**
    * A handler called whenever a key down event is received on the
@@ -375,7 +374,7 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectedRows.indexOf(row) === -1 &&
         this.props.onSelectionChanged
       ) {
-        this.props.onSelectionChanged(row, { kind: 'hover', event })
+        this.props.onSelectionChanged([row], { kind: 'hover', event })
         // By calling scrollRowToVisible we ensure that hovering over a partially
         // visible item at the top or bottom of the list scrolls it into view but
         // more importantly `scrollRowToVisible` automatically manages focus so
@@ -466,7 +465,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     if (newRow != null) {
       if (this.props.onSelectionChanged) {
-        this.props.onSelectionChanged(newRow, { kind: 'keyboard', event })
+        this.props.onSelectionChanged([newRow], { kind: 'keyboard', event })
       }
 
       if (this.props.onSelectedRowChanged) {
@@ -511,11 +510,10 @@ export class List extends React.Component<IListProps, IListState> {
         this.state.height !== prevState.height
 
       if (!gridHasUpdatedAlready) {
-        const selectedRowChanged =
-          prevProps.selectedRows.length !== this.props.selectedRows.length ||
-          this.props.selectedRows.some((element, index) => {
-            return element !== prevProps.selectedRows[index]
-          })
+        const selectedRowChanged = !arrayEquals(
+          prevProps.selectedRows,
+          this.props.selectedRows
+        )
 
         const invalidationPropsChanged = !shallowEquals(
           prevProps.invalidationProps,
@@ -781,6 +779,8 @@ export class List extends React.Component<IListProps, IListState> {
         return
       }
 
+      const multiSelectKey = __DARWIN__ ? event.metaKey : event.ctrlKey
+
       if (
         event.shiftKey &&
         this.props.selectedRows.length &&
@@ -815,7 +815,7 @@ export class List extends React.Component<IListProps, IListState> {
             event,
           })
         }
-      } else if (event.ctrlKey && this.props.selectionMode === 'multi') {
+      } else if (multiSelectKey && this.props.selectionMode === 'multi') {
         // if ctrl, toggle the current selected state of the row
         let newSelection = this.props.selectedRows
         if (newSelection.includes(row)) {
@@ -835,9 +835,14 @@ export class List extends React.Component<IListProps, IListState> {
           row !== this.props.selectedRows[0])
       ) {
         // if no special key is pressed, and that the selection is different, single selection occurs
-
         if (this.props.onSelectionChanged) {
-          this.props.onSelectionChanged(row, { kind: 'mouseclick', event })
+          this.props.onSelectionChanged([row], { kind: 'mouseclick', event })
+        }
+        if (this.props.onSelectedRangeChanged) {
+          this.props.onSelectedRangeChanged(row, row, {
+            kind: 'mouseclick',
+            event,
+          })
         }
         if (this.props.onSelectedRowChanged) {
           this.props.onSelectedRowChanged(row, { kind: 'mouseclick', event })
