@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Grid, AutoSizer } from 'react-virtualized'
 import { shallowEquals, arrayEquals } from '../../../lib/equality'
+import { FocusContainer } from '../../lib/focus-container'
 import { ListRow } from './list-row'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 
@@ -564,7 +565,7 @@ export class List extends React.Component<IListProps, IListState> {
     // An unselectable row shouldn't be focusable
     let tabIndex: number | undefined = undefined
     if (selectable) {
-      tabIndex = selected ? 0 : -1
+      tabIndex = selected && this.props.selectedRows[0] === rowIndex ? 0 : -1
     }
 
     // We only need to keep a reference to the focused element
@@ -685,25 +686,27 @@ export class List extends React.Component<IListProps, IListState> {
       this.props.selectedRows.length < 1 && this.props.rowCount > 0 ? 0 : -1
 
     return (
-      <Grid
-        aria-label={''}
-        key="grid"
-        role={''}
-        ref={this.onGridRef}
-        autoContainerWidth={true}
-        width={width}
-        height={height}
-        columnWidth={width}
-        columnCount={1}
-        rowCount={this.props.rowCount}
-        rowHeight={this.props.rowHeight}
-        cellRenderer={this.renderRow}
-        onScroll={this.onScroll}
-        scrollToRow={scrollToRow}
-        overscanRowCount={4}
-        style={this.gridStyle}
-        tabIndex={tabIndex}
-      />
+      <FocusContainer className="list-focus-container">
+        <Grid
+          aria-label={''}
+          key="grid"
+          role={''}
+          ref={this.onGridRef}
+          autoContainerWidth={true}
+          width={width}
+          height={height}
+          columnWidth={width}
+          columnCount={1}
+          rowCount={this.props.rowCount}
+          rowHeight={this.props.rowHeight}
+          cellRenderer={this.renderRow}
+          onScroll={this.onScroll}
+          scrollToRow={scrollToRow}
+          overscanRowCount={4}
+          style={this.gridStyle}
+          tabIndex={tabIndex}
+        />
+      </FocusContainer>
     )
   }
 
