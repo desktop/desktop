@@ -12,6 +12,7 @@ import {
   BranchAutocompletionProvider,
 } from '../autocompletion'
 import { AutocompletingTextInput } from '../autocompletion/autocompleting-text-input'
+import { Dispatcher } from '../../lib/dispatcher/index'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -21,6 +22,7 @@ interface ICompareSidebarProps {
   readonly emoji: Map<string, string>
   readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
+  readonly dispatcher: Dispatcher
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
