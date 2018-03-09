@@ -28,7 +28,7 @@ interface ICompareSidebarProps {
 }
 
 interface ICompareSidebarState {
-  readonly branchText: string | null
+  readonly textInputValue: string | null
 }
 
 export class CompareSidebar extends React.Component<
@@ -45,7 +45,7 @@ export class CompareSidebar extends React.Component<
     ]
 
     this.state = {
-      branchText: null,
+      textInputValue: null,
     }
   }
 
@@ -91,7 +91,7 @@ export class CompareSidebar extends React.Component<
   private renderAutoCompleteTextBox() {
     return (
       <AutocompletingInput
-        value={this.state.branchText || ''}
+        value={this.state.textInputValue || ''}
         placeholder="Enter branch name..."
         onValueChanged={this.onTextBoxValueChanged}
         autocompletionProviders={this.autocompletionProviders}
@@ -100,7 +100,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onTextBoxValueChanged = (value: string) => {
-    this.setState({ branchText: value })
+    this.setState({ textInputValue: value })
   }
 
   private onCommitSelected = (commit: Commit) => {}
