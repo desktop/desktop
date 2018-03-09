@@ -17,6 +17,7 @@ import {
   ImageDiffType,
   IRevertProgress,
   IFetchProgress,
+  CompareType,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -411,6 +412,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
         openPullRequests: new Array<PullRequest>(),
         currentPullRequest: null,
         isLoadingPullRequests: false,
+      },
+      compareState: {
+        branch: null,
+        compareType: CompareType.Default,
+        selection: {
+          file: null,
+          sha: null,
+        },
+        commits: new Array<string>(),
+        ahead: 0,
+        behind: 0,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
