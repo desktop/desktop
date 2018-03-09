@@ -4,7 +4,6 @@ import { Commit } from '../../models/commit'
 import { ICompareState, CompareType } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
-import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { TabBar } from '../tab-bar'
 
 interface ICompareSidebarProps {
