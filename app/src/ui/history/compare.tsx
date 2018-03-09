@@ -1,14 +1,16 @@
 import * as React from 'react'
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
-import { IHistoryState } from '../../lib/app-state'
+import { ICompareState, CompareType } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
+import { ThrottledScheduler } from '../lib/throttled-scheduler'
+import { TabBar } from '../tab-bar'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly gitHubUsers: Map<string, IGitHubUser>
-  readonly history: IHistoryState
+  readonly compare: ICompareState
   readonly emoji: Map<string, string>
   readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
@@ -25,8 +27,8 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}
           commitLookup={this.props.commitLookup}
-          commits={this.props.history.history}
-          selectedSHA={this.props.history.selection.sha}
+          commits={this.props.compare.commits}
+          selectedSHA={this.props.compare.selection.sha}
           gitHubUsers={this.props.gitHubUsers}
           localCommitSHAs={this.props.localCommitSHAs}
           emoji={this.props.emoji}
