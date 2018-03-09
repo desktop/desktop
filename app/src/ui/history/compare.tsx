@@ -7,6 +7,11 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
+import {
+  IAutocompletionProvider,
+  BranchAutocompletionProvider,
+} from '../autocompletion'
+import { AutocompletingTextInput } from '../autocompletion/autocompleting-text-input'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -20,11 +25,32 @@ interface ICompareSidebarProps {
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
 
-export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
+interface ICompareSidebarState {
+  readonly branchText: string | null
+}
+
+export class CompareSidebar extends React.Component<
+  ICompareSidebarProps,
+  ICompareSidebarState
+> {
+  private autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
+
+  public constructor(props: ICompareSidebarProps) {
+    super(props)
+
+    this.autocompletionProviders = [
+      new BranchAutocompletionProvider(this.props.branches),
+    ]
+
+    this.state = {
+      branchText: null,
+    }
+  }
+
   public render() {
     return (
       <div id="compare">
-        {this.renderSelectList()}
+        {this.renderAutoCompleteTextBox()}
         {this.renderButtonGroup()}
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}
@@ -52,38 +78,19 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
     )
   }
 
-  private renderSelectList() {
-    const options = new Array<JSX.Element>()
-    options.push(
-      <option value={-1} key={-1}>
-        None
-      </option>
-    )
-
-    let selectedIndex = -1
-    for (const [index, branch] of this.props.branches.entries()) {
-      if (
-        this.props.state.branch &&
-        this.props.state.branch.name === branch.name
-      ) {
-        selectedIndex = index
-      }
-
-      options.push(
-        <option value={index} key={branch.name}>
-          {branch.name}
-        </option>
-      )
-    }
-
+  private renderAutoCompleteTextBox() {
     return (
-      <select value={selectedIndex.toString()} onChange={this.onBranchChanged}>
-        {options}
-      </select>
+      <AutocompletingTextInput
+        value={this.state.branchText || ''}
+        onValueChanged={this.onTextBoxValueChanged}
+        autocompletionProviders={this.autocompletionProviders}
+      />
     )
   }
 
-  private onBranchChanged = (event: React.FormEvent<HTMLSelectElement>) => {}
+  private onTextBoxValueChanged = (value: string) => {
+    this.setState({ branchText: value })
+  }
 
   private onCommitSelected = (commit: Commit) => {}
 
