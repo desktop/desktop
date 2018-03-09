@@ -9,6 +9,12 @@ export interface IAheadBehind {
   readonly behind: number
 }
 
+export interface ICompareResult {
+  readonly commits: ReadonlyArray<string>
+  readonly ahead: number
+  readonly behind: number
+}
+
 /** Calculate the number of commits the range is ahead and behind. */
 export async function getAheadBehind(
   repository: Repository,
