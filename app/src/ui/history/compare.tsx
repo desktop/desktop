@@ -9,7 +9,7 @@ import { TabBar } from '../tab-bar'
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly gitHubUsers: Map<string, IGitHubUser>
-  readonly compare: ICompareState
+  readonly state: ICompareState
   readonly emoji: Map<string, string>
   readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
@@ -26,8 +26,8 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}
           commitLookup={this.props.commitLookup}
-          commitSHAs={this.props.compare.commitSHAs}
-          selectedSHA={this.props.compare.selection.sha}
+          commitSHAs={this.props.state.commitSHAs}
+          selectedSHA={this.props.state.selection.sha}
           gitHubUsers={this.props.gitHubUsers}
           localCommitSHAs={this.props.localCommitSHAs}
           emoji={this.props.emoji}
@@ -41,7 +41,7 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
   }
 
   private renderTabBar() {
-    const compare = this.props.compare
+    const compare = this.props.state
     const compareType = compare.compareType
 
     if (compareType === CompareType.Default) {
