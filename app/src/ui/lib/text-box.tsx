@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import { LinkButton } from './link-button'
+import { showContextualMenu } from '../main-process-proxy'
 
 interface ITextBoxProps {
   /** The label for the input field. */
@@ -177,6 +178,11 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     )
   }
 
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    event.preventDefault()
+    showContextualMenu([{ role: 'editMenu' }])
+  }
+
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (
       this.state.value !== '' &&
@@ -217,6 +223,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           onChange={this.onChange}
           onKeyDown={this.onKeyDown}
           tabIndex={this.props.tabIndex}
+          onContextMenu={this.onContextMenu}
         />
       </div>
     )

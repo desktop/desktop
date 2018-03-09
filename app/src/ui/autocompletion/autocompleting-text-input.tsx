@@ -10,6 +10,7 @@ interface IRange {
 }
 
 import getCaretCoordinates = require('textarea-caret')
+import { showContextualMenu } from '../main-process-proxy'
 
 interface IAutocompletingTextInputProps<ElementType> {
   /**
@@ -46,6 +47,12 @@ interface IAutocompletingTextInputProps<ElementType> {
    * is mounted or unmounted.
    */
   readonly onElementRef?: (elem: ElementType | null) => void
+
+  /**
+   * Optional callback to override the default edit context menu
+   * in the input field.
+   */
+  readonly onContextMenu?: (event: React.MouseEvent<any>) => void
 }
 
 interface IAutocompletionState<T> {
@@ -243,6 +250,15 @@ export abstract class AutocompletingTextInput<
    */
   protected abstract getElementTagName(): 'textarea' | 'input'
 
+  private onContextMenu = (event: React.MouseEvent<any>) => {
+    if (this.props.onContextMenu) {
+      this.props.onContextMenu(event)
+    } else {
+      event.preventDefault()
+      showContextualMenu([{ role: 'editMenu' }])
+    }
+  }
+
   private renderTextInput() {
     const props = {
       type: 'text',
@@ -252,6 +268,7 @@ export abstract class AutocompletingTextInput<
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
       onBlur: this.onBlur,
+      onContextMenu: this.onContextMenu,
       disabled: this.props.disabled,
     }
 
