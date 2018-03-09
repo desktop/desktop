@@ -1,11 +1,12 @@
 import * as React from 'react'
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
-import { ICompareState, CompareType } from '../../lib/app-state'
+import { ICompareState } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
-import { TabBar } from '../tab-bar'
 import { Branch } from '../../models/branch'
+import { ButtonGroup } from '../lib/button-group'
+import { Button } from '../lib/button'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -23,8 +24,8 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
   public render() {
     return (
       <div id="compare">
-        {this.renderTabBar()}
         {this.renderSelectList()}
+        {this.renderButtonGroup()}
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}
           commitLookup={this.props.commitLookup}
@@ -42,21 +43,12 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
     )
   }
 
-  private renderTabBar() {
-    const compare = this.props.state
-    const compareType = compare.compareType
-
-    if (compareType === CompareType.Default) {
-      return null
-    }
-
-    const selectedTab = compareType === CompareType.Ahead ? 0 : 1
-
+  private renderButtonGroup() {
     return (
-      <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
-        <span>Behind ({compare.behind})</span>
-        <span>Ahead ({compare.ahead})</span>
-      </TabBar>
+      <ButtonGroup>
+        <Button>{`Behind (${this.props.state.behind})`}</Button>
+        <Button>{`Ahead (${this.props.state.ahead})`}</Button>
+      </ButtonGroup>
     )
   }
 
@@ -96,6 +88,4 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
   private onCommitSelected = (commit: Commit) => {}
 
   private onScroll = (start: number, end: number) => {}
-
-  private onTabClicked = (tabIndex: number) => {}
 }
