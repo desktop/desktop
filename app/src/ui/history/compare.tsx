@@ -10,8 +10,8 @@ import { Button } from '../lib/button'
 import {
   IAutocompletionProvider,
   BranchAutocompletionProvider,
+  AutocompletingInput,
 } from '../autocompletion'
-import { AutocompletingTextInput } from '../autocompletion/autocompleting-text-input'
 import { Dispatcher } from '../../lib/dispatcher/index'
 
 interface ICompareSidebarProps {
@@ -90,8 +90,9 @@ export class CompareSidebar extends React.Component<
 
   private renderAutoCompleteTextBox() {
     return (
-      <AutocompletingTextInput
+      <AutocompletingInput
         value={this.state.branchText || ''}
+        placeholder="Enter branch name..."
         onValueChanged={this.onTextBoxValueChanged}
         autocompletionProviders={this.autocompletionProviders}
       />
