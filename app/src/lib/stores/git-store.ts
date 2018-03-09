@@ -48,6 +48,7 @@ import {
   parseSingleUnfoldedTrailer,
   isCoAuthoredByTrailer,
   ICompareResult,
+  getAheadBehind,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -1242,6 +1243,35 @@ export class GitStore extends BaseStore {
     branch: Branch,
     compareType: CompareType
   ): Promise<ICompareResult | null> {
-    return null
+    if (this.tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    const base = this.tip.branch
+    const revisionRrange =
+      compareType === CompareType.Ahead
+        ? `${branch.name}..${base.name}`
+        : `${base.name}..${branch.name}`
+    const commits = await getCommits(this.repository, revisionRrange, 250)
+
+    if (commits != null) {
+      this.storeCommits(commits, true)
+    }
+
+    const aheadBehind = await getAheadBehind(
+      this.repository,
+      `${base.name}...${branch.name}`
+    )
+
+    let result: ICompareResult | null = null
+    if (aheadBehind) {
+      result = {
+        commits,
+        ahead: aheadBehind.ahead,
+        behind: aheadBehind.behind,
+      }
+    }
+
+    return result
   }
 }
