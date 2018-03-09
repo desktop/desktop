@@ -37,7 +37,7 @@ export class BranchAutocompletionProvider
   public renderItem(item: IBranchHit): JSX.Element {
     return (
       <div className="branch" key={item.name}>
-        <span className="branch-name">item.name</span>
+        <span className="branch-name">{item.name}</span>
       </div>
     )
   }
