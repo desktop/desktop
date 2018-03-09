@@ -39,6 +39,14 @@ const MaxDiffBufferSize = 268435441
 const MaxReasonableDiffSize = 3000000
 
 /**
+ * Where `MaxReasonableDiffSize` is a soft limit, and `MaxDiffBufferSize`
+ * is an absolute limit, this is the MAX number of bytes to read from the
+ * buffer before _assuming_ the current buffer being read is `MaxDiffBufferSize`.
+ * This is done so that the UI isn't waiting for the entire buffer to be read.
+ */
+const MaxBytesToRead = MaxDiffBufferSize / 8 //~32MB
+
+/**
  * The longest line length we should try to display. If a diff has a line longer
  * than this, we probably shouldn't attempt it.
  */
@@ -112,12 +120,14 @@ export async function getCommitDiff(
     args.push(file.oldPath)
   }
 
-  const { output } = await spawnAndComplete(
+  const { output, didReadAllBytes } = await spawnAndComplete(
     args,
     repository.path,
-    'getCommitDiff'
+    'getCommitDiff',
+    undefined,
+    MaxBytesToRead
   )
-  if (isBufferTooLarge(output)) {
+  if (!didReadAllBytes || isBufferTooLarge(output)) {
     return { kind: DiffType.TooLarge, length: output.length }
   }
 
@@ -197,13 +207,14 @@ export async function getWorkingDirectoryDiff(
     ]
   }
 
-  const { output, error } = await spawnAndComplete(
+  const { output, error, didReadAllBytes } = await spawnAndComplete(
     args,
     repository.path,
     'getWorkingDirectoryDiff',
-    successExitCodes
+    successExitCodes,
+    MaxBytesToRead
   )
-  if (isBufferTooLarge(output)) {
+  if (!didReadAllBytes || isBufferTooLarge(output)) {
     // we know we can't transform this process output into a diff, so let's
     // just return a placeholder for now that we can display to the user
     // to say we're at the limits of the runtime

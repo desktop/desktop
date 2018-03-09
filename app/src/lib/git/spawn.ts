@@ -3,6 +3,7 @@ import * as GitPerf from '../../ui/lib/git-perf'
 
 type ProcessOutput = {
   output: Buffer
+  didReadAllBytes: boolean
   error: Buffer
 }
 
@@ -34,6 +35,7 @@ export function spawnAndComplete(
         const process = GitProcess.spawn(args, path)
         let totalStdoutLength = 0
         let killSignalSent = false
+        let didReadAllBytes = true
 
         const stdoutChunks = new Array<Buffer>()
         process.stdout.on('data', (chunk: Buffer) => {
@@ -49,6 +51,7 @@ export function spawnAndComplete(
           ) {
             process.kill()
             killSignalSent = true
+            didReadAllBytes = false
           }
         })
 
@@ -80,6 +83,7 @@ export function spawnAndComplete(
           if (exitCodes.has(code) || signal) {
             resolve({
               output: stdout,
+              didReadAllBytes,
               error: stderr,
             })
             return
