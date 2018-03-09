@@ -323,6 +323,7 @@ export enum RepositorySection {
 export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
+  readonly compareState: ICompareState
   readonly selectedSection: RepositorySection
 
   /**
