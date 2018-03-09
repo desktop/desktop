@@ -7,7 +7,7 @@ import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
-import { IFetchProgress, IRevertProgress } from '../app-state'
+import { IFetchProgress, IRevertProgress, CompareType } from '../app-state'
 
 import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
@@ -47,6 +47,7 @@ import {
   getTrailerSeparatorCharacters,
   parseSingleUnfoldedTrailer,
   isCoAuthoredByTrailer,
+  ICompareResult,
 } from '../git'
 import { IGitAccount } from '../git/authentication'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -1237,5 +1238,12 @@ export class GitStore extends BaseStore {
     await this.performFailableOperation(() =>
       setRemoteURL(this.repository, UpstreamRemoteName, url)
     )
+  }
+
+  public async getCompareStateDetails(
+    branch: Branch,
+    compareType: CompareType
+  ): Promise<ICompareResult | null> {
+    return null
   }
 }
