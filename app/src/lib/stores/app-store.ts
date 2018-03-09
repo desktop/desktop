@@ -715,7 +715,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.updateCompareState(repository, state => ({
           compareType,
           branch,
-          commits: compare.commits,
+          commits: compare.commits.map(commit => commit.sha),
           ahead: compare.ahead,
           behind: compare.behind,
         }))
