@@ -29,6 +29,7 @@ interface ICompareSidebarProps {
 
 interface ICompareSidebarState {
   readonly textInputValue: string | null
+  readonly branch: Branch | null
 }
 
 export class CompareSidebar extends React.Component<
@@ -46,6 +47,7 @@ export class CompareSidebar extends React.Component<
 
     this.state = {
       textInputValue: null,
+      branch: null,
     }
   }
 
