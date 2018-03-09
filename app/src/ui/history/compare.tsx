@@ -26,7 +26,7 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}
           commitLookup={this.props.commitLookup}
-          commits={this.props.compare.commits}
+          commitSHAs={this.props.compare.commitSHAs}
           selectedSHA={this.props.compare.selection.sha}
           gitHubUsers={this.props.gitHubUsers}
           localCommitSHAs={this.props.localCommitSHAs}

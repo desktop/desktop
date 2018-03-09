@@ -600,7 +600,7 @@ export enum CompareType {
 
 export interface ICompareState {
   readonly selection: IHistorySelection
-  readonly commits: ReadonlyArray<string>
+  readonly commitSHAs: ReadonlyArray<string>
   readonly branch: Branch | null
   readonly ahead: number
   readonly behind: number

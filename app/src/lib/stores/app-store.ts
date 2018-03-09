@@ -421,7 +421,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           file: null,
           sha: null,
         },
-        commits: new Array<string>(),
+        commitSHAs: new Array<string>(),
         ahead: 0,
         behind: 0,
       },

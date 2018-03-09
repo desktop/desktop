@@ -55,7 +55,7 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, {}> {
       <CommitList
         gitHubRepository={this.props.repository.gitHubRepository}
         commitLookup={this.props.commitLookup}
-        commits={this.props.history.history}
+        commitSHAs={this.props.history.history}
         selectedSHA={this.props.history.selection.sha}
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
