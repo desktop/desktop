@@ -30,6 +30,7 @@ import {
   ITextDiff,
   DiffLine,
   DiffLineType,
+  ILargeTextDiff,
 } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
@@ -56,6 +57,7 @@ import { readPartialFile } from '../../lib/file-system'
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
 import { highlight } from '../../lib/highlighter/worker'
 import { ITokens } from '../../lib/highlighter/types'
+import { Button } from '../lib/button'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -70,6 +72,10 @@ const narrowNoNewlineSymbol = new OcticonSymbol(
   8,
   'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z'
 )
+
+// image used when no diff is displayed
+const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
+
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
 interface ILineFilters {
@@ -300,8 +306,12 @@ interface IDiffProps {
   readonly imageDiffType: ImageDiffType
 }
 
+interface IDiffState {
+  readonly forceShowLargeDiff: boolean
+}
+
 /** A component which renders a diff for a file. */
-export class Diff extends React.Component<IDiffProps, {}> {
+export class Diff extends React.Component<IDiffProps, IDiffState> {
   private codeMirror: Editor | null
   private gutterWidth: number | null
 
@@ -328,6 +338,14 @@ export class Diff extends React.Component<IDiffProps, {}> {
    *  a local cache of gutter elements, keyed by the row in the diff
    */
   private cachedGutterElements = new Map<number, DiffLineGutter>()
+
+  public constructor(props: IDiffProps) {
+    super(props)
+
+    this.state = {
+      forceShowLargeDiff: false,
+    }
+  }
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
     // If we're reloading the same file, we want to save the current scroll
@@ -424,6 +442,10 @@ export class Diff extends React.Component<IDiffProps, {}> {
     if (this.props.diff.kind === DiffType.Text) {
       this.initDiffSyntaxMode()
     }
+  }
+
+  public render() {
+    return this.renderDiff(this.props.diff)
   }
 
   public async initDiffSyntaxMode() {
@@ -952,6 +974,64 @@ export class Diff extends React.Component<IDiffProps, {}> {
     return null
   }
 
+  private renderLargeTextDiff() {
+    return (
+      <div className="panel empty large-diff">
+        <img src={NoDiffImage} />
+        <p>
+          The diff is too large to be displayed by default.
+          <br />
+          You can try to show it anyways, but performance may be negatively
+          impacted.
+        </p>
+        <Button onClick={this.showLargeDiff}>
+          {__DARWIN__ ? 'Show Diff' : 'Show diff'}
+        </Button>
+      </div>
+    )
+  }
+
+  private renderUnrenderableDiff() {
+    return (
+      <div className="panel empty large-diff">
+        <img src={NoDiffImage} />
+        <p>The diff is too large to be displayed.</p>
+      </div>
+    )
+  }
+
+  private renderLargeText(diff: ILargeTextDiff) {
+    // guaranteed to be set since this function won't be called if text or hunks are null
+    const textDiff: ITextDiff = {
+      text: diff.text!,
+      hunks: diff.hunks!,
+      kind: DiffType.Text,
+      lineEndingsChange: diff.lineEndingsChange,
+    }
+
+    return this.renderTextDiff(textDiff)
+  }
+
+  private renderText(diff: ITextDiff) {
+    if (diff.hunks.length === 0) {
+      if (this.props.file.status === AppFileStatus.New) {
+        return <div className="panel empty">The file is empty</div>
+      }
+
+      if (this.props.file.status === AppFileStatus.Renamed) {
+        return (
+          <div className="panel renamed">
+            The file was renamed but not changed
+          </div>
+        )
+      }
+
+      return <div className="panel empty">No content changes found</div>
+    }
+
+    return this.renderTextDiff(diff)
+  }
+
   private renderBinaryFile() {
     return (
       <BinaryFile
@@ -1044,52 +1124,27 @@ export class Diff extends React.Component<IDiffProps, {}> {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
 
-  public render() {
-    const diff = this.props.diff
-
-    if (diff.kind === DiffType.Image) {
-      return this.renderImage(diff)
-    }
-
-    if (diff.kind === DiffType.Binary) {
-      return this.renderBinaryFile()
-    }
-
-    if (diff.kind === DiffType.TooLarge) {
-      const BlankSlateImage = encodePathAsUrl(
-        __dirname,
-        'static/empty-no-file-selected.svg'
-      )
-      const diffSizeMB = Math.round(diff.length / (1024 * 1024))
-      return (
-        <div className="panel empty">
-          <img src={BlankSlateImage} className="blankslate-image" />
-          The diff returned by Git is {diffSizeMB}MB ({diff.length} bytes),
-          which is larger than what can be displayed in GitHub Desktop.
-        </div>
-      )
-    }
-
-    if (diff.kind === DiffType.Text) {
-      if (diff.hunks.length === 0) {
-        if (this.props.file.status === AppFileStatus.New) {
-          return <div className="panel empty">The file is empty</div>
-        }
-
-        if (this.props.file.status === AppFileStatus.Renamed) {
-          return (
-            <div className="panel renamed">
-              The file was renamed but not changed
-            </div>
-          )
-        }
-
-        return <div className="panel empty">No content changes found</div>
+  private renderDiff(diff: IDiff): JSX.Element | null {
+    switch (diff.kind) {
+      case DiffType.Text:
+        return this.renderText(diff)
+      case DiffType.Binary:
+        return this.renderBinaryFile()
+      case DiffType.Image:
+        return this.renderImage(diff)
+      case DiffType.LargeText: {
+        return this.state.forceShowLargeDiff
+          ? this.renderLargeText(diff)
+          : this.renderLargeTextDiff()
       }
-
-      return this.renderTextDiff(diff)
+      case DiffType.Unrenderable:
+        return this.renderUnrenderableDiff()
+      default:
+        return assertNever(diff, `Unsupported diff type: ${diff}`)
     }
+  }
 
-    return null
+  private showLargeDiff = () => {
+    this.setState({ forceShowLargeDiff: true })
   }
 }
