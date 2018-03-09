@@ -101,7 +101,38 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  private updateBranch(branchName: string) {
+    branchName = branchName.toLowerCase()
+
+    if (this.state.branch !== null && this.state.branch.name === branchName) {
+      return
+    }
+
+    if (branchName === '') {
+      this.props.dispatcher.loadCompareState(
+        this.props.repository,
+        null,
+        CompareType.Default
+      )
+    } else {
+      const branch = this.props.branches.find(
+        branch => branch.name.toLowerCase() === branchName
+      )
+
+      if (branch == null) {
+        return log.error('Cannot find branch')
+      }
+
+      this.props.dispatcher.loadCompareState(
+        this.props.repository,
+        branch,
+        CompareType.behind
+      )
+    }
+  }
+
   private onTextBoxValueChanged = (value: string) => {
+    this.updateBranch(value)
     this.setState({ textInputValue: value })
   }
 
