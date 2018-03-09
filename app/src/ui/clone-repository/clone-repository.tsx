@@ -185,7 +185,6 @@ export class CloneRepository extends React.Component<
               onPathChanged={this.updateAndValidatePath}
               onGitHubRepositorySelected={this.updateUrl}
               onChooseDirectory={this.onChooseDirectory}
-              onDismissed={this.props.onDismissed}
               shouldClearFilter={this.state.shouldClearFilter}
             />
           )
