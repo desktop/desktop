@@ -5,11 +5,13 @@ import { ICompareState, CompareType } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
 import { TabBar } from '../tab-bar'
+import { Branch } from '../../models/branch'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly state: ICompareState
+  readonly branches: ReadonlyArray<Branch>
   readonly emoji: Map<string, string>
   readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
@@ -59,8 +61,37 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
   }
 
   private renderBranchList() {
-    return <div />
+    const options = new Array<JSX.Element>()
+    options.push(
+      <option value={-1} key={-1}>
+        None
+      </option>
+    )
+
+    let selectedIndex = -1
+    for (const [index, branch] of this.props.branches.entries()) {
+      if (
+        this.props.state.branch &&
+        this.props.state.branch.name === branch.name
+      ) {
+        selectedIndex = index
+      }
+
+      options.push(
+        <option value={index} key={branch.name}>
+          {branch.name}
+        </option>
+      )
+    }
+
+    return (
+      <select value={selectedIndex.toString()} onChange={this.onBranchChanged}>
+        {options}
+      </select>
+    )
   }
+
+  private onBranchChanged = (event: React.FormEvent<HTMLSelectElement>) => {}
 
   private onCommitSelected = (commit: Commit) => {}
 
