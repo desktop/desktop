@@ -55,7 +55,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
     return (
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span className="with-indicator">
-          <span>Changes</span>
+          <span>{enableCompareSidebar() ? 'Commit' : 'Changes'}</span>
           {hasChanges ? (
             <Octicon
               className="indicator"
@@ -63,7 +63,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
             />
           ) : null}
         </span>
-        <span>History</span>
+        <span>{enableCompareSidebar() ? 'Compare' : 'History'}</span>
       </TabBar>
     )
   }
