@@ -23,8 +23,8 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
   public render() {
     return (
       <div id="compare">
-        {this.renderBranchList()}
         {this.renderTabBar()}
+        {this.renderSelectList()}
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}
           commitLookup={this.props.commitLookup}
@@ -60,7 +60,7 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
     )
   }
 
-  private renderBranchList() {
+  private renderSelectList() {
     const options = new Array<JSX.Element>()
     options.push(
       <option value={-1} key={-1}>
