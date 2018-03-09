@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
-import { ICompareState } from '../../lib/app-state'
+import { ICompareState, CompareType } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
@@ -47,6 +47,14 @@ export class CompareSidebar extends React.Component<
     this.state = {
       branchText: null,
     }
+  }
+
+  public componentWillMount() {
+    this.props.dispatcher.loadCompareState(
+      this.props.repository,
+      null,
+      CompareType.Default
+    )
   }
 
   public render() {
