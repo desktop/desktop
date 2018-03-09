@@ -42,7 +42,21 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
   }
 
   private renderTabBar() {
-    return <div />
+    const compare = this.props.compare
+    const compareType = compare.compareType
+
+    if (compareType === CompareType.Default) {
+      return null
+    }
+
+    const selectedTab = compareType === CompareType.Ahead ? 0 : 1
+
+    return (
+      <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
+        <span>Behind ({compare.behind})</span>
+        <span>Ahead ({compare.ahead})</span>
+      </TabBar>
+    )
   }
 
   private renderBranchList() {
@@ -52,4 +66,6 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
   private onCommitSelected = (commit: Commit) => {}
 
   private onScroll = (start: number, end: number) => {}
+
+  private onTabClicked = (tabIndex: number) => {}
 }
