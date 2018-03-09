@@ -48,7 +48,6 @@ export class RenameBranch extends React.Component<
               autoFocus={true}
               value={this.state.newName}
               onValueChanged={this.onNameChange}
-              onKeyDown={this.onKeyDown}
             />
           </Row>
           {renderBranchNameWarning(
@@ -67,12 +66,6 @@ export class RenameBranch extends React.Component<
         </DialogFooter>
       </Dialog>
     )
-  }
-
-  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      this.props.dispatcher.closePopup()
-    }
   }
 
   private onNameChange = (name: string) => {
