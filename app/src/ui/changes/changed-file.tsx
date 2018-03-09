@@ -4,8 +4,9 @@ import * as Path from 'path'
 import { AppFileStatus, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
-import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { showContextualMenu } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { IMenuItem } from '../../lib/menu-item'
 
 const GitIgnoreFileName = '.gitignore'
 

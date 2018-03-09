@@ -9,6 +9,8 @@ import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
 import { OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
+import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
 
 interface IAuthorInputProps {
   /**
@@ -757,16 +759,48 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       this.updateAuthors(cm)
     })
 
+    const wrapperElem = cm.getWrapperElement()
+
     // Do the very least we can do to pretend that we're a
     // single line textbox. Users can still paste newlines
     // though and if the do we don't care.
-    cm.getWrapperElement().addEventListener('keypress', (e: KeyboardEvent) => {
+    wrapperElem.addEventListener('keypress', (e: KeyboardEvent) => {
       if (!e.defaultPrevented && e.key === 'Enter') {
         e.preventDefault()
       }
     })
 
+    wrapperElem.addEventListener('contextmenu', e => {
+      this.onContextMenu(cm, e)
+    })
+
     return cm
+  }
+
+  private onContextMenu(cm: Editor, e: PointerEvent) {
+    e.preventDefault()
+
+    const menu: IMenuItem[] = [
+      { label: 'Undo', action: () => cm.getDoc().undo() },
+      { label: 'Redo', action: () => cm.getDoc().redo() },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+    ]
+
+    if (__WIN32__) {
+      menu.push({ type: 'separator' })
+    }
+
+    menu.push({
+      label: __DARWIN__ ? 'Select All' : 'Select all',
+      action: () => {
+        cm.execCommand('selectAll')
+      },
+    })
+
+    showContextualMenu(menu)
   }
 
   private updateAuthors(cm: Editor) {
