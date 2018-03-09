@@ -18,6 +18,7 @@ import {
   IRevertProgress,
   IFetchProgress,
   CompareType,
+  ICompareState,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -474,6 +475,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  private updateCompareState<K extends keyof ICompareState>(
+    repository: Repository,
+    fn: (state: ICompareState) => Pick<ICompareState, K>
+  ) {
+    this.updateRepositoryState(repository, state => {
+      const compareState = state.compareState
+      const newValues = fn(compareState)
+
+      return { compareState: merge(compareState, newValues) }
+    })
+  }
+
   private updateChangesState<K extends keyof IChangesState>(
     repository: Repository,
     fn: (changesState: IChangesState) => Pick<IChangesState, K>
@@ -664,6 +677,49 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!newSelection.sha && history.length > 0) {
       this._changeHistoryCommitSelection(repository, history[0])
       this._loadChangedFilesForCurrentSelection(repository)
+    }
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _LoadCompareState(
+    repository: Repository,
+    branch: Branch | null,
+    compareType: CompareType
+  ): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+
+    if (compareType === CompareType.Default) {
+      await gitStore.loadHistory()
+
+      const state = this.getRepositoryState(repository).historyState
+      const commits = state.history
+
+      this.updateCompareState(repository, state => ({
+        compareType,
+        commits,
+        branch,
+        ahead: 0,
+        behind: 0,
+      }))
+    } else {
+      if (branch == null) {
+        log.debug(`oops, we can't compare if the branch isn't selected`)
+        return
+      }
+
+      const compare = await gitStore.getCompareStateDetails(branch, compareType)
+
+      if (compare != null) {
+        this.updateCompareState(repository, state => ({
+          compareType,
+          branch,
+          commits: compare.commits,
+          ahead: compare.ahead,
+          behind: compare.behind,
+        }))
+      }
     }
 
     this.emitUpdate()
