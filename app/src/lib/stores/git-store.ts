@@ -174,11 +174,8 @@ export class GitStore extends BaseStore {
       this._history = [...commits.map(c => c.sha), ...remainingHistory]
     }
 
-    this.storeCommits(commits)
-
+    this.storeCommits(commits, true)
     this.requestsInFight.delete(LoadingHistoryRequestKey)
-
-    this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
   }
 
@@ -215,11 +212,8 @@ export class GitStore extends BaseStore {
     }
 
     this._history = [...commits.map(c => c.sha), ...existingHistory]
-    this.storeCommits(commits)
-
+    this.storeCommits(commits, true)
     this.requestsInFight.delete(LoadingHistoryRequestKey)
-
-    this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
   }
 
@@ -249,11 +243,8 @@ export class GitStore extends BaseStore {
     }
 
     this._history = this._history.concat(commits.map(c => c.sha))
-    this.storeCommits(commits)
-
+    this.storeCommits(commits, true)
     this.requestsInFight.delete(requestKey)
-
-    this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
   }
 
@@ -448,9 +439,16 @@ export class GitStore extends BaseStore {
   }
 
   /** Store the given commits. */
-  private storeCommits(commits: ReadonlyArray<Commit>) {
+  private storeCommits(
+    commits: ReadonlyArray<Commit>,
+    emitUpdate: boolean = false
+  ) {
     for (const commit of commits) {
       this.commitLookup.set(commit.sha, commit)
+    }
+
+    if (emitUpdate) {
+      this.emitNewCommitsLoaded(commits)
     }
   }
 
