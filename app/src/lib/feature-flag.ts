@@ -40,3 +40,7 @@ export function enablePRIntegration(): boolean {
 export function enableMergeTool(): boolean {
   return enableDevelopmentFeatures()
 }
+
+export function enableCompareSidebar(): boolean {
+  return enableDevelopmentFeatures()
+}
