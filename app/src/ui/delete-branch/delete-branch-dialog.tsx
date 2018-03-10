@@ -8,12 +8,14 @@ import { ButtonGroup } from '../lib/button-group'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
+import { IAheadBehind } from '../../lib/app-state'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
   readonly existsOnRemote: boolean
+  readonly aheadBehind: IAheadBehind | null
   readonly onDismissed: () => void
 }
 
@@ -34,6 +36,42 @@ export class DeleteBranch extends React.Component<
   }
 
   public render() {
+    const aheadBehind = this.props.aheadBehind
+    return aheadBehind !== null && aheadBehind.ahead > 0
+      ? this.renderDeleteBranchWithUnmergedCommits()
+      : this.renderDeleteBranch()
+  }
+
+  private renderDeleteBranchWithUnmergedCommits() {
+    const unmergedCommits = this.props.aheadBehind!.ahead
+
+    return (
+      <Dialog
+        id="delete-branch"
+        title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
+        type="warning"
+        onDismissed={this.props.onDismissed}
+      >
+        <DialogContent>
+          <p>
+            <Ref>{this.props.branch.name}</Ref> has <em>{unmergedCommits}</em>{' '}
+            unmerged {unmergedCommits === 1 ? 'commit' : 'commits'}.
+            <br />
+            Would you like to merge your changes first?
+          </p>
+        </DialogContent>
+        <DialogFooter>
+          <ButtonGroup destructive={true}>
+            <Button type="submit">Cancel</Button>
+            <Button onClick={this.deleteBranch}>No, Delete</Button>
+            <Button onClick={this.mergeAndDelete}>Merge</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
+    )
+  }
+
+  private renderDeleteBranch() {
     return (
       <Dialog
         id="delete-branch"
@@ -70,6 +108,9 @@ export class DeleteBranch extends React.Component<
               there as well?
             </strong>
           </p>
+          {this.props.aheadBehind && this.props.aheadBehind.ahead > 0 ? (
+            <p>Unmerged commits</p>
+          ) : null}
           <Checkbox
             label="Yes, delete this branch on the remote"
             value={
@@ -102,5 +143,14 @@ export class DeleteBranch extends React.Component<
     )
 
     return this.props.dispatcher.closePopup()
+  }
+
+  private mergeAndDelete = async () => {
+    await this.props.dispatcher.mergeBranch(
+      this.props.repository,
+      this.props.branch.name
+    )
+
+    this.deleteBranch()
   }
 }
