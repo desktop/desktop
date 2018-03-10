@@ -428,9 +428,11 @@ export class App extends React.Component<IAppProps, IAppState> {
           pullRequest: currentPullRequest,
         })
       } else {
-        const existsOnRemote = state.state.aheadBehind !== null
+        const aheadBehind = state.state.aheadBehind
+        const existsOnRemote = aheadBehind !== null
 
         this.props.dispatcher.showPopup({
+          aheadBehind,
           type: PopupType.DeleteBranch,
           repository: state.repository,
           branch: tip.branch,
@@ -919,6 +921,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             branch={popup.branch}
             existsOnRemote={popup.existsOnRemote}
             onDismissed={this.onPopupDismissed}
+            aheadBehind={popup.aheadBehind}
           />
         )
       case PopupType.ConfirmDiscardChanges:
