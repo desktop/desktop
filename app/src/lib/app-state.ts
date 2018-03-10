@@ -217,6 +217,7 @@ export type Popup =
       repository: Repository
       branch: Branch
       existsOnRemote: boolean
+      aheadBehind: IAheadBehind | null
     }
   | {
       type: PopupType.ConfirmDiscardChanges
