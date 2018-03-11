@@ -40,9 +40,8 @@ export class Tailer {
   }
 
   private handleError(error: Error) {
-    log.warn(`Unable to watch path: ${this.path}`, error)
-    this.emitter.emit('error', error)
     this.state = null
+    this.emitter.emit('error', error)
   }
 
   /**
