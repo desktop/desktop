@@ -343,7 +343,7 @@ export interface IRepositoryState {
   readonly gitHubUsers: Map<string, IGitHubUser>
 
   /** The commits loaded, keyed by their full SHA. */
-  readonly commits: Map<string, Commit>
+  readonly commitLookup: Map<string, Commit>
 
   /**
    * The ordered local commit SHAs. The commits themselves can be looked up in

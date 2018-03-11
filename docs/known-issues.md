@@ -12,7 +12,7 @@ Some known issues have a workaround that users have reported addresses the issue
 
 Each known issue links off to an existing GitHub issue. If you have additional questions or feedback, please comment on the issue.
 
-### My issue is not listed here? 
+### My issue is not listed here?
 
 Please check the [open](https://github.com/desktop/desktop/labels/bug) and [closed](https://github.com/desktop/desktop/issues?q=is%3Aclosed+label%3Abug) bugs in the issue tracker for the details of your bug. If you can't find it, or if you're not sure, open a [new issue](https://github.com/desktop/desktop/issues/new).
 
@@ -22,7 +22,7 @@ Please check the [open](https://github.com/desktop/desktop/labels/bug) and [clos
 
 This seems to be caused by the Keychain being in an invalid state, affecting applications that try to use the keychain to store or retrieve credentials. Seems to be specific to macOS High Sierra (10.13).
 
-**Workaround:** 
+**Workaround:**
 
 - Open `Keychain Access.app`
 - Right-click on the `login` keychain and try locking it
@@ -30,16 +30,16 @@ This seems to be caused by the Keychain being in an invalid state, affecting app
 - Sign into your GitHub account again
 
 ## Windows
- 
+
 ### Window is hidden after detaching secondary monitor - [#2107](https://github.com/desktop/desktop/issues/2107)
 
 This is related to Desktop tracking the window position between launches, but not changes to your display configuration such as removing the secondary monitor where Desktop was positioned.
 
-**Workaround:** 
+**Workaround:**
 
- - Remove `%APPDATA%\GitHub Desktop\window-state.json` 
+ - Remove `%APPDATA%\GitHub Desktop\window-state.json`
  - Restart Desktop
- 
+
 ### Certificate revocation check fails - [#3326](https://github.com/desktop/desktop/issues/3326)
 
 If you are using Desktop on a corporate network, you may encounter an error like this:
@@ -58,8 +58,10 @@ Once you've downloaded that PEM file somewhere, open a shell with Git and run th
 
 ```shellsession
 $ git config --global http.sslBackend "openssl"
-$ git config --global http.sslCAInfo [path to .pem file]
+$ git config --global http.sslCAInfo "C:/path with spaces/to/directory/cacert.pem"
 ```
+
+Ensure you use forward slashes for the path when setting the `sslCAInfo` value.
 
 ### Using a repository configured with Folder Redirection - [#2972](https://github.com/desktop/desktop/issues/2972)
 
@@ -70,12 +72,12 @@ $ git config --global http.sslCAInfo [path to .pem file]
 ```shellsession
 2017-09-21T23:16:05.933Z - error: [ui] `git -c credential.helper= lfs clone --recursive --progress --progress -- https://github.com/owner/name.git \\harvest\Redirected\andrewd\My Documents\GitHub\name` exited with an unexpected code: 2.
 Cloning into '\\harvest\Redirected\andrewd\My Documents\GitHub\name'...
-remote: Counting objects: 4, done.        
-remote: Compressing objects:  33% (1/3)           
-remote: Compressing objects:  66% (2/3)           
-remote: Compressing objects: 100% (3/3)           
-remote: Compressing objects: 100% (3/3), done.        
-remote: Total 4 (delta 1), reused 4 (delta 1), pack-reused 0        
+remote: Counting objects: 4, done.
+remote: Compressing objects:  33% (1/3)
+remote: Compressing objects:  66% (2/3)
+remote: Compressing objects: 100% (3/3)
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 4 (delta 1), reused 4 (delta 1), pack-reused 0
 fatal: unable to get current working directory: No such file or directory
 warning: Clone succeeded, but checkout failed.
 You can inspect what was checked out with 'git status'
