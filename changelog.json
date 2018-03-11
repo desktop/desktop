@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.1.1-test1": [
+      "[Improved] Electron 1.8.3 upgrade"
+    ],
     "1.1.1-beta1": [
 
     ]
