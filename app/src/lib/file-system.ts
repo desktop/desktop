@@ -78,7 +78,7 @@ export function tailByLine(
   const tailer = new Tailer(path)
 
   const onErrorDisposable = tailer.onError(error => {
-    log.warn(`Unable to watch path: ${path}`, error)
+    log.warn(`Unable to tail path: ${path}`, error)
   })
 
   const onDataDisposable = tailer.onDataAvailable(stream => {
