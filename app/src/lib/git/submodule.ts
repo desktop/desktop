@@ -2,6 +2,16 @@ import { git } from './core'
 import { Repository } from '../../models/repository'
 import { SubmoduleEntry } from '../../models/submodule'
 
+export async function listActiveSubmodules(
+  repository: Repository
+): Promise<ReadonlyArray<SubmoduleEntry>> {
+  return listSubmodules(repository).then(list =>
+    list.filter(submodule => {
+      return submodule.describe
+    })
+  )
+}
+
 export async function listSubmodules(
   repository: Repository
 ): Promise<ReadonlyArray<SubmoduleEntry>> {
@@ -37,6 +47,8 @@ export async function listSubmodules(
     //   - "-" if the submodule is not initialized
     //   - "+" if the currently checked out submodule commit does not match the SHA-1 found in the index of the containing repository
     //   - "U" if the submodule has merge conflicts
+    const state = entry.substr(0, 1)
+
     //
     // then the 40-character SHA represents the current commit
     const sha = entry.substr(1, 40)
@@ -54,13 +66,58 @@ export async function listSubmodules(
 
     // if the submodule has not been initialized, no describe output is set
     // this means we don't have a submodule to work with
-    if (describeOutput != null) {
-      const describe = describeOutput.substr(1, describeOutput.length - 2)
-      submodules.push(new SubmoduleEntry(sha, path, describe))
-    }
+    const describe = describeOutput
+      ? describeOutput.substr(1, describeOutput.length - 2)
+      : ''
+    submodules.push(new SubmoduleEntry(sha, path, describe, state))
   }
 
   return submodules
+}
+
+export async function forceUpdateSubmodule(
+  repository: Repository,
+  submodule: SubmoduleEntry
+): Promise<void> {
+  await git(
+    ['submodule', 'update', '--recursive', '--force', '--', submodule.path],
+    repository.path,
+    'forceUpdateSubmodule'
+  )
+}
+
+export async function updateSubmodules(repository: Repository): Promise<void> {
+  await git(
+    ['submodule', 'update', '--recursive', '--all'],
+    repository.path,
+    'updateSubmodules'
+  )
+}
+
+export async function updateSubmodule(
+  repository: Repository,
+  submodule: SubmoduleEntry
+): Promise<void> {
+  await git(
+    ['submodule', 'update', '--recursive', '--', submodule.path],
+    repository.path,
+    'updateSubmodule'
+  )
+}
+
+export async function initSubmodules(repository: Repository): Promise<void> {
+  await git(['submodule', 'init', '--all'], repository.path, 'initSubmodules')
+}
+
+export async function initSubmodule(
+  repository: Repository,
+  submodule: SubmoduleEntry
+): Promise<void> {
+  await git(
+    ['submodule', 'init', '--', submodule.path],
+    repository.path,
+    'initSubmodule'
+  )
 }
 
 export async function resetSubmodulePaths(

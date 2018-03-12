@@ -40,7 +40,7 @@ import {
   unstageAllFiles,
   openMergeTool,
   addRemote,
-  listSubmodules,
+  listActiveSubmodules,
   resetSubmodulePaths,
   parseTrailers,
   mergeTrailers,
@@ -1062,7 +1062,7 @@ export class GitStore extends BaseStore {
     const pathsToCheckout = new Array<string>()
     const pathsToReset = new Array<string>()
 
-    const submodules = await listSubmodules(this.repository)
+    const submodules = await listActiveSubmodules(this.repository)
 
     await queueWorkHigh(files, async file => {
       const foundSubmodule = submodules.some(s => s.path === file.path)
