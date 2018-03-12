@@ -149,14 +149,15 @@ document.body.classList.add(`platform-${process.platform}`)
 dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
 ipcRenderer.on('focus', () => {
-  dispatcher.setAppFocusState(true)
-
   const state = appStore.getState().selectedState
-  if (!state || state.type !== SelectionType.Repository) {
-    return
+
+  // Refresh the currently selected repository on focus (if
+  // we have a selected repository).
+  if (state && state.type === SelectionType.Repository) {
+    dispatcher.refreshRepository(state.repository)
   }
 
-  dispatcher.refreshRepository(state.repository)
+  dispatcher.setAppFocusState(true)
 })
 
 ipcRenderer.on('blur', () => {
