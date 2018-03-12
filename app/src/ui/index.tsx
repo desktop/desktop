@@ -150,7 +150,7 @@ dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
 
 ipcRenderer.on('focus', () => {
   dispatcher.setAppFocusState(true)
-  
+
   const state = appStore.getState().selectedState
   if (!state || state.type !== SelectionType.Repository) {
     return
