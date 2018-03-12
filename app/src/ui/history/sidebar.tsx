@@ -16,7 +16,7 @@ interface IHistorySidebarProps {
   readonly history: IHistoryState
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
-  readonly commits: Map<string, Commit>
+  readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
@@ -26,7 +26,7 @@ interface IHistorySidebarProps {
 export class HistorySidebar extends React.Component<IHistorySidebarProps, {}> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
-  private onCommitChanged = (commit: Commit) => {
+  private onCommitSelected = (commit: Commit) => {
     this.props.dispatcher.changeHistoryCommitSelection(
       this.props.repository,
       commit.sha
@@ -53,11 +53,11 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, {}> {
   public render() {
     return (
       <CommitList
-        repository={this.props.repository}
-        commits={this.props.commits}
-        history={this.props.history.history}
+        gitHubRepository={this.props.repository.gitHubRepository}
+        commitLookup={this.props.commitLookup}
+        commits={this.props.history.history}
         selectedSHA={this.props.history.selection.sha}
-        onCommitChanged={this.onCommitChanged}
+        onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
