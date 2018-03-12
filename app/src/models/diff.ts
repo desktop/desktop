@@ -19,6 +19,11 @@ export class Image {
    * The data URI media type, so the browser can render the image correctly
    */
   public readonly mediaType: string
+
+  public constructor(contents: string, mediaType: string) {
+    this.contents = contents
+    this.mediaType = mediaType
+  }
 }
 
 /** each diff is made up of a number of hunks */

@@ -312,8 +312,8 @@ interface IDiffState {
 
 /** A component which renders a diff for a file. */
 export class Diff extends React.Component<IDiffProps, IDiffState> {
-  private codeMirror: Editor | null
-  private gutterWidth: number | null
+  private codeMirror: Editor | null = null
+  private gutterWidth: number | null = null
 
   /**
    * We store the scroll position before reloading the same diff so that we can
