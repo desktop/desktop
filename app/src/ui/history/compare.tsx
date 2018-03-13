@@ -25,6 +25,9 @@ interface ICompareSidebarState {
   readonly compareType: CompareType
 }
 
+/** If we're within this many rows from the bottom, load the next history batch. */
+const CloseToBottomThreshold = 10
+
 export class CompareSidebar extends React.Component<
   ICompareSidebarProps,
   ICompareSidebarState
@@ -191,5 +194,8 @@ export class CompareSidebar extends React.Component<
   private onScroll = (start: number, end: number) => {
     const commits = this.props.state.commitSHAs
 
-  private onScroll = (start: number, end: number) => {}
+    if (commits.length - end <= CloseToBottomThreshold) {
+      this.props.dispatcher.loadNextHistoryBatch(this.props.repository)
+    }
+  }
 }
