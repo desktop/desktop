@@ -22,7 +22,7 @@ interface ICompareSidebarProps {
 
 interface ICompareSidebarState {
   readonly selectedBranchIndex: number
-  readonly visibleCommits: 'ahead' | 'behind'
+  readonly compareType: CompareType
 }
 
 export class CompareSidebar extends React.Component<
@@ -34,7 +34,7 @@ export class CompareSidebar extends React.Component<
 
     this.state = {
       selectedBranchIndex: -1,
-      visibleCommits: 'behind',
+      compareType: CompareType.Default,
     }
   }
 
@@ -61,7 +61,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderRadioButtons() {
-    const commitsToShow = this.state.visibleCommits
+    const compareType = this.state.compareType
 
     return (
       <div>
