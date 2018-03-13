@@ -38,6 +38,14 @@ export class CompareSidebar extends React.Component<
     }
   }
 
+  public componentWillMount() {
+    this.props.dispatcher.loadCompareState(
+      this.props.repository,
+      null,
+      CompareType.Default
+    )
+  }
+
   public render() {
     const isBranchAheadOrBehind =
       this.props.state.ahead > 0 && this.props.state.behind > 0
