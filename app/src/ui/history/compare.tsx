@@ -98,16 +98,13 @@ export class CompareSidebar extends React.Component<
   }
 
   private onBranchChanged = (event: React.FormEvent<HTMLSelectElement>) => {
-    const branchName = event.currentTarget.value
-    const index = parseInt(branchName, 10)
-
-    if (this.state.selectedBranchIndex === index) {
-      return
-    }
+    const index = parseInt(event.currentTarget.value, 10)
+    const branchName =
+      index > 0 ? event.currentTarget.options[index].text : null
 
     this.setState({ selectedBranchIndex: index })
 
-    if (index === -1) {
+    if (branchName === null) {
       this.props.dispatcher.loadCompareState(
         this.props.repository,
         null,
