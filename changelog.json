@@ -15,7 +15,6 @@
       "[Improved] Make the keychain known issue more clear within Desktop - #4125",
       "[Improved] You can continue past the 'diff too large' message and view the diff - #4050",
       "[Improved] Repository association might not have expected prefix - #4090. Thanks @mathieudutour!",
-      "[Improved] Upgrade to React 16 - #3818",
       "[Improved] Add message to gitignore dialog when not on default branch - #3720",
       "[Improved] Hide Desktop-specific forks in Branch List - #4127"
     ],
