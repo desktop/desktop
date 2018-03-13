@@ -80,7 +80,7 @@ export class CompareSidebar extends React.Component<
           id="compare-ahead"
           type="radio"
           name="ahead-behind"
-          value="ahead"
+          value={CompareType.Ahead}
           checked={compareType === CompareType.Ahead}
           onClick={this.onRadioButtonClicked}
         />
