@@ -175,7 +175,21 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private onCommitSelected = (commit: Commit) => {}
+  private onCommitSelected = (commit: Commit) => {
+    this.props.dispatcher.changeHistoryCommitSelection(
+      this.props.repository,
+      commit.sha
+    )
+
+    this.loadChangedFilesScheduler.queue(() => {
+      this.props.dispatcher.loadChangedFilesForCurrentSelection(
+        this.props.repository
+      )
+    })
+  }
+
+  private onScroll = (start: number, end: number) => {
+    const commits = this.props.state.commitSHAs
 
   private onScroll = (start: number, end: number) => {}
 }
