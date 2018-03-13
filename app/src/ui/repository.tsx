@@ -123,12 +123,20 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
   }
 
   private renderCompareSidebar(): JSX.Element {
+    const tip = this.props.state.branchesState.tip
+    const branch = tip.kind === TipState.Valid ? tip.branch : null
+    const allBranches = this.props.state.branchesState.allBranches
+    const branches =
+      branch === null
+        ? allBranches
+        : allBranches.filter(b => b.name !== branch.name)
+
     return (
       <CompareSidebar
         repository={this.props.repository}
         gitHubUsers={this.props.state.gitHubUsers}
         state={this.props.state.compareState}
-        branches={this.props.state.branchesState.allBranches}
+        branches={branches}
         emoji={this.props.emoji}
         commitLookup={this.props.state.commitLookup}
         localCommitSHAs={this.props.state.localCommitSHAs}
