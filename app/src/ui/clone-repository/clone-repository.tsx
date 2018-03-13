@@ -20,9 +20,12 @@ import { CloneGithubRepository } from './clone-github-repository'
 import { pathExists } from '../../lib/file-system'
 import { assertNever } from '../../lib/fatal-error'
 import { CallToAction } from '../lib/call-to-action'
+import { InvalidURLErrorName } from '../lib/enterprise-validate-url'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
+const AllWhiteSpaceErrorName = 'AllWhitespaceError'
+const IsAllWhiteSpace = /^\s*$/
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -138,6 +141,7 @@ export class CloneRepository extends React.Component<
     const disabled =
       this.state.url.length === 0 ||
       this.state.path.length === 0 ||
+      IsAllWhiteSpace.test(this.state.url) ||
       this.state.loading ||
       (!!error && error.name === DestinationExistsErrorName)
 
@@ -245,17 +249,19 @@ export class CloneRepository extends React.Component<
   }
 
   private updateAndValidatePath = async (path: string) => {
-    this.setState({ path })
-
-    const doesDirectoryExist = await this.doesPathExist(path)
-
-    if (doesDirectoryExist) {
-      const error: Error = new Error('The destination already exists.')
-      error.name = DestinationExistsErrorName
-
-      this.setState({ error })
+    if (path.length === 0) {
+      this.setState({ path, error: null })
     } else {
-      this.setState({ error: null })
+      const doesDirectoryExist = await this.doesPathExist(path)
+
+      if (doesDirectoryExist) {
+        const error: Error = new Error('The destination already exists.')
+        error.name = DestinationExistsErrorName
+
+        this.setState({ path, error })
+      } else {
+        this.setState({ path, error: null })
+      }
     }
   }
 
@@ -279,25 +285,35 @@ export class CloneRepository extends React.Component<
   }
 
   private updateUrl = async (url: string) => {
-    const parsed = parseRepositoryIdentifier(url)
-    const lastParsedIdentifier = this.state.lastParsedIdentifier
-
-    let newPath: string
-
-    if (lastParsedIdentifier) {
-      if (parsed) {
-        newPath = Path.join(Path.dirname(this.state.path), parsed.name)
-      } else {
-        newPath = Path.dirname(this.state.path)
-      }
-    } else if (parsed) {
-      newPath = Path.join(this.state.path, parsed.name)
-    } else {
-      newPath = this.state.path
+    if (url.length === 0) {
+      return this.setState({ url, error: null })
     }
+
+    if (IsAllWhiteSpace.test(url)) {
+      const error: Error = new Error('The URL cannot contain only whitespace.')
+      error.name = AllWhiteSpaceErrorName
+
+      return this.setState({ url, error })
+    }
+
+    const parsed = parseRepositoryIdentifier(url.trim())
+
+    if (parsed === null) {
+      const error: Error = new Error('The clone URL is invalid.')
+      error.name = InvalidURLErrorName
+
+      return this.setState({ url, error })
+    }
+
+    const lastParsedIdentifier = this.state.lastParsedIdentifier
+    const newPath =
+      lastParsedIdentifier !== null
+        ? Path.join(Path.dirname(this.state.path), parsed.name)
+        : Path.join(this.state.path, parsed.name)
 
     this.setState({
       url,
+      error: null,
       lastParsedIdentifier: parsed,
     })
 
