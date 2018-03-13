@@ -49,3 +49,28 @@
     }
   }
 }
+
+#compare-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .tab-bar {
+    flex-grow: 0;
+
+    &-item {
+      background: blue;
+      color: white;
+
+      &.selected {
+        box-shadow: none;
+        background: white;
+        color: blue;
+      }
+    }
+  }
+
+  .select-component {
+    flex-grow: 0;
+  }
+}

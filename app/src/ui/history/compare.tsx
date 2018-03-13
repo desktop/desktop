@@ -40,7 +40,7 @@ export class CompareSidebar extends React.Component<
 
   public render() {
     return (
-      <div id="compare">
+      <div id="compare-view">
         {this.renderSelectList()}
         {this.renderButtonGroup()}
         <CommitList
