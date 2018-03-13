@@ -120,9 +120,18 @@ export class CompareSidebar extends React.Component<
   }
 
   private onRadioButtonClicked = (event: React.FormEvent<HTMLInputElement>) => {
-    const value = event.currentTarget.value
+    const compareType = event.currentTarget.value as CompareType
+    const selectedBranchIndex = this.state.selectedBranchIndex
+    const branch =
+      selectedBranchIndex > 0 ? this.props.branches[selectedBranchIndex] : null
 
-    this.setState({ visibleCommits: value === 'ahead' ? 'ahead' : 'behind' })
+    this.props.dispatcher.loadCompareState(
+      this.props.repository,
+      branch,
+      compareType
+    )
+
+    this.setState({ compareType })
   }
 
   private onBranchChanged = (event: React.FormEvent<HTMLSelectElement>) => {
