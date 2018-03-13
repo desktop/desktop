@@ -116,7 +116,7 @@ export class CompareSidebar extends React.Component<
       )
 
       if (branch == null) {
-        return log.error('Cannot find branch')
+        return log.error(`Cannot find branch: ${branchName}`)
       }
 
       this.props.dispatcher.loadCompareState(
