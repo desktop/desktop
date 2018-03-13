@@ -69,8 +69,8 @@ export class CompareSidebar extends React.Component<
           id="compare-behind"
           type="radio"
           name="ahead-behind"
-          value="behind"
-          checked={commitsToShow === 'behind'}
+          value={CompareType.Behind}
+          checked={compareType === CompareType.Behind}
           onClick={this.onRadioButtonClicked}
         />
         <label htmlFor="compare-behind">
@@ -81,7 +81,7 @@ export class CompareSidebar extends React.Component<
           type="radio"
           name="ahead-behind"
           value="ahead"
-          checked={commitsToShow === 'ahead'}
+          checked={compareType === CompareType.Ahead}
           onClick={this.onRadioButtonClicked}
         />
         <label htmlFor="compare-ahead">
