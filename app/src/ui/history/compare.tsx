@@ -39,10 +39,13 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
+    const isBranchAheadOrBehind =
+      this.props.state.ahead > 0 && this.props.state.behind > 0
+
     return (
       <div id="compare-view">
         {this.renderSelectList()}
-        {this.renderRadioButtons()}
+        {isBranchAheadOrBehind ? this.renderRadioButtons() : null}
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}
           commitLookup={this.props.commitLookup}
