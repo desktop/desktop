@@ -12,7 +12,7 @@
       "[Fixed] Ensure pull request cache is cleared after last pull request merged - #4122",
       "[Improved] Check for submodules when discarding is much faster - #4186. Thanks @kmscode!",
       "[Improved] Make the keychain known issue more clear within Desktop - #4125",
-      "[Improved] Makes the diff too large message prettier - #4050",
+      "[Improved] You can continue past the 'diff too large' message and view the diff - #4050",
       "[Improved] Repository association might not have expected prefix - #4090. Thanks @mathieudutour!",
       "[Improved] Upgrade to React 16 - #3818",
       "[Improved] Add message to gitignore dialog when not on default branch - #3720",
