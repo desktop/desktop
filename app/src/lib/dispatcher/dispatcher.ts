@@ -43,6 +43,7 @@ import {
   resolveOAuthRequest,
   rejectOAuthRequest,
 } from '../../lib/oauth'
+import { SubmoduleEntry } from '../../models/submodule'
 import { installCLI } from '../../ui/lib/install-cli'
 import { setGenericUsername, setGenericPassword } from '../generic-git-auth'
 import { RetryAction, RetryActionType } from '../retry-actions'
@@ -1041,6 +1042,25 @@ export class Dispatcher {
     repositories: ReadonlyArray<Repository>
   ): Promise<void> {
     return this.appStore._installLFSHooks(repositories)
+  }
+
+  public initSubmodules(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    return this.appStore._initSubmodules(repositories)
+  }
+
+  public updateSubmodules(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    return this.appStore._updateSubmodules(repositories)
+  }
+
+  public forceUpdateSubmodules(
+    repositories: ReadonlyArray<Repository>,
+    submodule: SubmoduleEntry
+  ): Promise<void> {
+    return this.appStore._forceUpdateSubmodules(repositories, submodule)
   }
 
   /** Change the selected Clone Repository tab. */

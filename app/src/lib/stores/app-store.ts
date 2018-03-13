@@ -112,6 +112,12 @@ import {
   isUsingLFS,
   installLFSHooks,
 } from '../git/lfs'
+import {
+  updateSubmodules,
+  forceUpdateSubmodule,
+  initSubmodules,
+  listSubmodules,
+} from '../git/submodule'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { getAccountForRepository } from '../get-account-for-repository'
 import { BranchesTab } from '../../models/branches-tab'
@@ -121,6 +127,7 @@ import { PullRequestUpdater } from './helpers/pull-request-updater'
 import * as QueryString from 'querystring'
 import { IRemote, ForkedRemotePrefix } from '../../models/remote'
 import { IAuthor } from '../../models/author'
+import { SubmoduleEntry, SubmoduleState } from '../../models/submodule'
 
 /**
  * Enum used by fetch to determine if
@@ -2818,6 +2825,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<ReadonlyArray<Repository>> {
     const addedRepositories = new Array<Repository>()
     const lfsRepositories = new Array<Repository>()
+    const repositoriesUsingSubms = new Array<Repository>()
     for (const path of paths) {
       const validatedPath = await validatedRepositoryPath(path)
       if (validatedPath) {
@@ -2826,14 +2834,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const addedRepo = await this.repositoriesStore.addRepository(
           validatedPath
         )
-        const [refreshedRepo, usingLFS] = await Promise.all([
+        const [refreshedRepo, usingLFS, submodules] = await Promise.all([
           this._repositoryWithRefreshedGitHubRepository(addedRepo),
           this.isUsingLFS(addedRepo),
+          listSubmodules(addedRepo),
         ])
         addedRepositories.push(refreshedRepo)
 
         if (usingLFS) {
           lfsRepositories.push(refreshedRepo)
+        }
+
+        if (
+          submodules &&
+          submodules.length &&
+          submodules.filter(subm => {
+            return subm.state === SubmoduleState.NOT_INIT
+          }).length
+        ) {
+          repositoriesUsingSubms.push(refreshedRepo)
         }
       } else {
         const error = new Error(`${path} isn't a git repository.`)
@@ -2845,6 +2864,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._showPopup({
         type: PopupType.InitializeLFS,
         repositories: lfsRepositories,
+      })
+    }
+
+    if (repositoriesUsingSubms.length > 0) {
+      this._showPopup({
+        type: PopupType.InitializeSubmodules,
+        repositories: repositoriesUsingSubms,
       })
     }
 
@@ -3018,6 +3044,47 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // At this point we've asked the user if we should install them, so
         // force installation.
         await installLFSHooks(repo, true)
+      } catch (error) {
+        this.emitError(error)
+      }
+    }
+  }
+
+  public async _initSubmodules(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    for (const repo of repositories) {
+      try {
+        // At this point we've asked the user if we should install them, so
+        // force installation.
+        await initSubmodules(repo)
+      } catch (error) {
+        this.emitError(error)
+      }
+    }
+  }
+
+  public async _updateSubmodules(
+    repositories: ReadonlyArray<Repository>
+  ): Promise<void> {
+    for (const repo of repositories) {
+      try {
+        await updateSubmodules(repo)
+      } catch (error) {
+        this.emitError(error)
+      }
+    }
+  }
+
+  public async _forceUpdateSubmodules(
+    repositories: ReadonlyArray<Repository>,
+    submodule: SubmoduleEntry
+  ): Promise<void> {
+    for (const repo of repositories) {
+      try {
+        // At this point we've asked the user if we should overwrite changes, so
+        // force update.
+        await forceUpdateSubmodule(repo, submodule)
       } catch (error) {
         this.emitError(error)
       }

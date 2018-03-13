@@ -205,6 +205,7 @@ export enum PopupType {
   ExternalEditorFailed,
   OpenShellFailed,
   InitializeLFS,
+  InitializeSubmodules,
   LFSAttributeMismatch,
   UpstreamAlreadyExists,
   DeletePullRequest,
@@ -269,6 +270,10 @@ export type Popup =
     }
   | { type: PopupType.OpenShellFailed; message: string }
   | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
+  | {
+      type: PopupType.InitializeSubmodules
+      repositories: ReadonlyArray<Repository>
+    }
   | { type: PopupType.LFSAttributeMismatch }
   | {
       type: PopupType.UpstreamAlreadyExists

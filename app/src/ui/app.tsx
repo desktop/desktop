@@ -83,8 +83,10 @@ import { CLIInstalled } from './cli-installed'
 import { GenericGitAuthentication } from './generic-git-auth'
 import { ShellError } from './shell'
 import { InitializeLFS, AttributeMismatch } from './lfs'
+import { InitializeSubmodules } from './submodules/initialize-submodules'
 import { UpstreamAlreadyExists } from './upstream-already-exists'
 import { DeletePullRequest } from './delete-branch/delete-pull-request-dialog'
+import { SubmoduleEntry } from '../models/submodule'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -1164,6 +1166,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             onInitialize={this.initializeLFS}
           />
         )
+      case PopupType.InitializeSubmodules:
+        return (
+          <InitializeSubmodules
+            repositories={popup.repositories}
+            onDismissed={this.onPopupDismissed}
+            onInitialize={this.initializeSubmodules}
+          />
+        )
       case PopupType.LFSAttributeMismatch:
         return (
           <AttributeMismatch
@@ -1212,6 +1222,33 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private initializeLFS = (repositories: ReadonlyArray<Repository>) => {
     this.props.dispatcher.installLFSHooks(repositories)
+    this.onPopupDismissed()
+  }
+
+  private initializeSubmodules = (repositories: ReadonlyArray<Repository>) => {
+    this.props.dispatcher.initSubmodules(repositories)
+    this.onPopupDismissed()
+
+    // unreachable code to call some functions just so it compiles
+    if (repositories.length < 0) {
+      this.updateSubmodules(repositories)
+      this.forceUpdateSubmodules(
+        repositories,
+        new SubmoduleEntry('asd', 'asd', 'asd', ' ')
+      )
+    }
+  }
+
+  private updateSubmodules = (repositories: ReadonlyArray<Repository>) => {
+    this.props.dispatcher.updateSubmodules(repositories)
+    this.onPopupDismissed()
+  }
+
+  private forceUpdateSubmodules = (
+    repositories: ReadonlyArray<Repository>,
+    submodule: SubmoduleEntry
+  ) => {
+    this.props.dispatcher.forceUpdateSubmodules(repositories, submodule)
     this.onPopupDismissed()
   }
 

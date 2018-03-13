@@ -2,9 +2,13 @@ import { expect } from 'chai'
 import * as path from 'path'
 
 import { Repository } from '../../../src/models/repository'
+import { SubmoduleState } from '../../../src/models/submodule'
 import {
   listActiveSubmodules,
   resetSubmodulePaths,
+  initSubmodule,
+  deinitSubmodule,
+  listSubmodules,
 } from '../../../src/lib/git/submodule'
 import { checkoutBranch, getBranches } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
@@ -73,6 +77,27 @@ describe('git/submodule', () => {
 
       result = await listActiveSubmodules(repository)
       expect(result[0].describe).to.equal('first-tag~2')
+    })
+  })
+
+  describe('initSubmodules', () => {
+    it('deinit and init a submodule', async () => {
+      const testRepoPath = setupFixtureRepository('submodule-basic-setup')
+      const repository = new Repository(testRepoPath, -1, null, false)
+      let submodules = await listSubmodules(repository)
+      const firstModule = submodules[0]
+
+      await deinitSubmodule(repository, firstModule)
+
+      const result = await listActiveSubmodules(repository)
+      expect(result.length).to.equal(0)
+      submodules = await listSubmodules(repository)
+      expect(submodules[0].state).to.equal(SubmoduleState.NOT_INIT)
+
+      await initSubmodule(repository, firstModule)
+
+      submodules = await listSubmodules(repository)
+      expect(submodules[0].state).to.equal(SubmoduleState.NO_CHANGE)
     })
   })
 })

@@ -106,7 +106,7 @@ export async function updateSubmodule(
 }
 
 export async function initSubmodules(repository: Repository): Promise<void> {
-  await git(['submodule', 'init', '--all'], repository.path, 'initSubmodules')
+  await git(['submodule', 'init'], repository.path, 'initSubmodules')
 }
 
 export async function initSubmodule(
@@ -117,6 +117,17 @@ export async function initSubmodule(
     ['submodule', 'init', '--', submodule.path],
     repository.path,
     'initSubmodule'
+  )
+}
+
+export async function deinitSubmodule(
+  repository: Repository,
+  submodule: SubmoduleEntry
+): Promise<void> {
+  await git(
+    ['submodule', 'deinit', '--', submodule.path],
+    repository.path,
+    'deinitSubmodule'
   )
 }
 
