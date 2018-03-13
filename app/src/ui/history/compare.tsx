@@ -150,7 +150,7 @@ export class CompareSidebar extends React.Component<
       this.props.dispatcher.loadCompareState(
         this.props.repository,
         branch,
-        CompareType.behind
+        CompareType.Behind
       )
     }
   }

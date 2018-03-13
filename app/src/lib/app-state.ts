@@ -593,9 +593,9 @@ export interface IChangesState {
 }
 
 export enum CompareType {
-  Default,
-  Ahead,
-  behind,
+  Default = 'default',
+  Ahead = 'ahead',
+  Behind = 'behind',
 }
 
 export interface ICompareState {
