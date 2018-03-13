@@ -77,7 +77,7 @@ export class CompareSidebar extends React.Component<
           {`Behind (${this.props.state.behind})`}
         </label>
         <input
-          id="compare-ahed"
+          id="compare-ahead"
           type="radio"
           name="ahead-behind"
           value="ahead"
