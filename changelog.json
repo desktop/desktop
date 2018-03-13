@@ -1,5 +1,23 @@
 {
   "releases": {
+    "1.1.1-beta2": [
+      "[New] Render WebP images in diffs - #4164. Thanks @agisilaos!",
+      "[Fixed] Edit context menus in commit form input elements - #3886",
+      "[Fixed] Escape behavior should match that of Branch List - #3972",
+      "[Fixed] Caret position always goes to end after inserting completion - #3835. Thanks @CarlRosell!",
+      "[Fixed] Handle error events when watching files used to get Git LFS output - #4117",
+      "[Fixed] Potential race condition when opening a fork pull request - #4149",
+      "[Fixed] Show placeholder image when no pull requests found - #3973",
+      "[Fixed] Disable input fields summary and description while commit in progress - #3893. Thanks @crea7or!",
+      "[Fixed] Ensure pull request cache is cleared after last pull request merged - #4122",
+      "[Improved] Check for submodules when discarding is much faster - #4186. Thanks @kmscode!",
+      "[Improved] Make the keychain known issue more clear within Desktop - #4125",
+      "[Improved] Makes the diff too large message prettier - #4050",
+      "[Improved] Repository association might not have expected prefix - #4090. Thanks @mathieudutour!",
+      "[Improved] Upgrade to React 16 - #3818",
+      "[Improved] Add message to gitignore dialog when not on default branch - #3720",
+      "[Improved] Hide Desktop-specific forks in Branch List - #4127"
+    ],
     "1.1.1-beta1": [
 
     ]
