@@ -7,6 +7,7 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
+import { Dispatcher } from '../../lib/dispatcher'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -21,7 +22,22 @@ interface ICompareSidebarProps {
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
 
-export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
+interface ICompareSidebarState {
+  readonly selectedBranchIndex: number
+}
+
+export class CompareSidebar extends React.Component<
+  ICompareSidebarProps,
+  ICompareSidebarState
+> {
+  public constructor(props: ICompareSidebarProps) {
+    super(props)
+
+    this.state = {
+      selectedBranchIndex: -1,
+    }
+  }
+
   public render() {
     return (
       <div id="compare">
@@ -63,10 +79,7 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
 
     let selectedIndex = -1
     for (const [index, branch] of this.props.branches.entries()) {
-      if (
-        this.props.state.branch &&
-        this.props.state.branch.name === branch.name
-      ) {
+      if (this.state.selectedBranchIndex === index) {
         selectedIndex = index
       }
 
@@ -84,15 +97,17 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
     )
   }
 
-  private onBranchChanged = (event: React.FormEvent<HTMLSelectElement>) => {}
-  private updateBranch(branchName: string) {
-    branchName = branchName.toLowerCase()
+  private onBranchChanged = (event: React.FormEvent<HTMLSelectElement>) => {
+    const branchName = event.currentTarget.value
+    const index = parseInt(branchName, 10)
 
-    if (this.state.branch !== null && this.state.branch.name === branchName) {
+    if (this.state.selectedBranchIndex === index) {
       return
     }
 
-    if (branchName === '') {
+    this.setState({ selectedBranchIndex: index })
+
+    if (index === -1) {
       this.props.dispatcher.loadCompareState(
         this.props.repository,
         null,
@@ -113,11 +128,6 @@ export class CompareSidebar extends React.Component<ICompareSidebarProps, {}> {
         CompareType.behind
       )
     }
-  }
-
-  private onTextBoxValueChanged = (value: string) => {
-    this.updateBranch(value)
-    this.setState({ textInputValue: value })
   }
 
   private onCommitSelected = (commit: Commit) => {}
