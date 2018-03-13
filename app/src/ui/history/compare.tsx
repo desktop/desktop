@@ -5,8 +5,6 @@ import { ICompareState, CompareType } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { ButtonGroup } from '../lib/button-group'
-import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 
 interface ICompareSidebarProps {
@@ -24,6 +22,7 @@ interface ICompareSidebarProps {
 
 interface ICompareSidebarState {
   readonly selectedBranchIndex: number
+  readonly visibleCommits: 'ahead' | 'behind'
 }
 
 export class CompareSidebar extends React.Component<
@@ -35,6 +34,7 @@ export class CompareSidebar extends React.Component<
 
     this.state = {
       selectedBranchIndex: -1,
+      visibleCommits: 'behind',
     }
   }
 
@@ -42,7 +42,7 @@ export class CompareSidebar extends React.Component<
     return (
       <div id="compare-view">
         {this.renderSelectList()}
-        {this.renderButtonGroup()}
+        {this.renderRadioButtons()}
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}
           commitLookup={this.props.commitLookup}
@@ -60,12 +60,34 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private renderButtonGroup() {
+  private renderRadioButtons() {
+    const commitsToShow = this.state.visibleCommits
+
     return (
-      <ButtonGroup>
-        <Button>{`Behind (${this.props.state.behind})`}</Button>
-        <Button>{`Ahead (${this.props.state.ahead})`}</Button>
-      </ButtonGroup>
+      <div>
+        <input
+          id="compare-behind"
+          type="radio"
+          name="ahead-behind"
+          value="behind"
+          checked={commitsToShow === 'behind'}
+          onClick={this.onRadioButtonClicked}
+        />
+        <label htmlFor="compare-behind">
+          {`Behind (${this.props.state.behind})`}
+        </label>
+        <input
+          id="compare-ahed"
+          type="radio"
+          name="ahead-behind"
+          value="ahead"
+          checked={commitsToShow === 'ahead'}
+          onClick={this.onRadioButtonClicked}
+        />
+        <label htmlFor="compare-ahead">
+          {`Ahead (${this.props.state.ahead})`}
+        </label>
+      </div>
     )
   }
 
@@ -95,6 +117,12 @@ export class CompareSidebar extends React.Component<
         {options}
       </select>
     )
+  }
+
+  private onRadioButtonClicked = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.value
+
+    this.setState({ visibleCommits: value === 'ahead' ? 'ahead' : 'behind' })
   }
 
   private onBranchChanged = (event: React.FormEvent<HTMLSelectElement>) => {
