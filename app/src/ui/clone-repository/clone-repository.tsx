@@ -365,7 +365,7 @@ export class CloneRepository extends React.Component<
   }
 
   private cloneImpl(url: string, path: string) {
-    this.props.dispatcher.clone(url, path)
+    this.props.dispatcher.clone(url.trim(), path.trim())
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))

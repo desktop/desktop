@@ -70,6 +70,6 @@ export class CloneGenericRepository extends React.Component<
   }
 
   private onUrlChanged = (url: string) => {
-    this.props.onUrlChanged(url.trim())
+    this.props.onUrlChanged(url)
   }
 }
