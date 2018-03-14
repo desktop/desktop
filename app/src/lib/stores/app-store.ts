@@ -3285,7 +3285,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         gitStore.allBranches.find(branch => branch.name === localBranchName) !=
         null
 
-      if (defaultRemote && (!doesBranchExist)) {
+      if (defaultRemote && !doesBranchExist) {
         await this._fetchRemote(
           repository,
           defaultRemote,
