@@ -42,7 +42,7 @@ $ set GITHUB_ACCESS_TOKEN={your token here}
 
 ### 2. Create Draft Release
 
-Once our personal access token is set, run the script that works out the next version from what was previously published, based on the desired channel.
+Once the personal access token is set, run the script below, which will determine the next version from what was previously published, based on the desired channel.
 
 For `production` and `beta` releases, run:
 
@@ -50,7 +50,7 @@ For `production` and `beta` releases, run:
 $ yarn draft-release (production|beta)
 ```
 
-(For `test` releases, follow the directions in the steps below to update `app/package.json`'s 'version' to a higher version and add a changelog entry. The script does not support test yet.)
+(For `test` releases, follow the directions in the steps below to update `app/package.json`'s `version` to a higher version and add a changelog entry. The script does not support test yet.)
 
 The script will output a draft changelog, which covers everything that's been merged, and probably needs some love.
 The output will then explain the next steps:
