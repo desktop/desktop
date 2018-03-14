@@ -15,9 +15,10 @@ import { IGitHubUser } from '../../lib/databases'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IAutocompletionProvider } from '../autocompletion'
 import { Repository } from '../../models/repository'
-import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { showContextualMenu } from '../main-process-proxy'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../../lib/git/interpret-trailers'
+import { IMenuItem } from '../../lib/menu-item'
 
 const RowHeight = 29
 
@@ -120,6 +121,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         key={file.id}
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.onDiscardChanges}
+        onDiscardAllChanges={this.onDiscardAllChanges}
         onRevealInFileManager={this.props.onRevealInFileManager}
         onOpenItem={this.props.onOpenItem}
         availableWidth={this.props.availableWidth}

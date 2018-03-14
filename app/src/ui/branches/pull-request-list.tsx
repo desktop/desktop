@@ -7,6 +7,7 @@ import {
 } from '../lib/filter-list'
 import { PullRequestListItem } from './pull-request-list-item'
 import { PullRequest, PullRequestStatus } from '../../models/pull-request'
+import { NoPullRequests } from './no-pull-requests'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -28,23 +29,50 @@ interface IPullRequestListProps {
   /** The pull requests to display. */
   readonly pullRequests: ReadonlyArray<PullRequest>
 
+  /** The currently selected pull request */
+  readonly selectedPullRequest: PullRequest | null
+
+  /** The name of the repository. */
+  readonly repositoryName: string
+
+  /** Is the default branch currently checked out? */
+  readonly isOnDefaultBranch: boolean
+
+  /** The current filter text to render */
+  readonly filterText: string
+
   /** Called when the user clicks on a pull request. */
   readonly onItemClick: (pullRequest: PullRequest) => void
 
   /** Called when the user wants to dismiss the foldout. */
   readonly onDismiss: () => void
 
-  readonly selectedPullRequest: PullRequest | null
+  /** Callback to fire when the filter text is changed */
+  readonly onFilterTextChanged: (filterText: string) => void
 
+  /** Called when the user opts to create a branch */
+  readonly onCreateBranch: () => void
+
+  /** Called when the user opts to create a pull request */
+  readonly onCreatePullRequest: () => void
+
+  /** Callback fired when user selects a new pull request */
   readonly onSelectionChanged?: (
     pullRequest: PullRequest | null,
     source: SelectionSource
+  ) => void
+
+  /**
+   * Called when a key down happens in the filter field. Users have a chance to
+   * respond or cancel the default behavior by calling `preventDefault`.
+   */
+  readonly onFilterKeyDown?: (
+    event: React.KeyboardEvent<HTMLInputElement>
   ) => void
 }
 
 interface IPullRequestListState {
   readonly groupedItems: ReadonlyArray<IFilterListGroup<IPullRequestListItem>>
-  readonly filterText: string
   readonly selectedItem: IPullRequestListItem | null
 }
 
@@ -82,7 +110,6 @@ export class PullRequestList extends React.Component<
 
     this.state = {
       groupedItems: [group],
-      filterText: '',
       selectedItem,
     }
   }
@@ -105,12 +132,25 @@ export class PullRequestList extends React.Component<
         groups={this.state.groupedItems}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderPullRequest}
-        filterText={this.state.filterText}
-        onFilterTextChanged={this.onFilterTextChanged}
+        filterText={this.props.filterText}
+        onFilterTextChanged={this.props.onFilterTextChanged}
         invalidationProps={this.props.pullRequests}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
-        onFilterKeyDown={this.onFilterKeyDown}
+        onFilterKeyDown={this.props.onFilterKeyDown}
+        renderNoItems={this.renderNoItems}
+      />
+    )
+  }
+
+  private renderNoItems = () => {
+    return (
+      <NoPullRequests
+        isSearch={this.props.filterText.length > 0}
+        repositoryName={this.props.repositoryName}
+        isOnDefaultBranch={this.props.isOnDefaultBranch}
+        onCreateBranch={this.props.onCreateBranch}
+        onCreatePullRequest={this.props.onCreatePullRequest}
       />
     )
   }
@@ -144,10 +184,6 @@ export class PullRequestList extends React.Component<
     )
   }
 
-  private onFilterTextChanged = (filterText: string) => {
-    this.setState({ filterText })
-  }
-
   private onItemClick = (item: IPullRequestListItem) => {
     if (this.props.onItemClick) {
       this.props.onItemClick(item.pullRequest)
@@ -163,15 +199,6 @@ export class PullRequestList extends React.Component<
         selectedItem != null ? selectedItem.pullRequest : null,
         source
       )
-    }
-  }
-
-  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      if (this.state.filterText.length === 0) {
-        this.props.onDismiss()
-        event.preventDefault()
-      }
     }
   }
 }

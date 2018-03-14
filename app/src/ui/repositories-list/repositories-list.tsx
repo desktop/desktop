@@ -40,9 +40,6 @@ interface IRepositoriesListProps {
   /** The current external editor selected by the user */
   readonly externalEditorLabel?: string
 
-  /** Called when the repositories list should be closed. */
-  readonly onClose: () => void
-
   /** The label for the user's preferred shell. */
   readonly shellLabel: string
 
@@ -107,15 +104,6 @@ export class RepositoriesList extends React.Component<
     this.props.onSelectionChanged(item.repository)
   }
 
-  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      if (this.props.filterText.length === 0) {
-        this.props.onClose()
-        event.preventDefault()
-      }
-    }
-  }
-
   public render() {
     if (this.props.repositories.length < 1) {
       return this.noRepositories()
@@ -149,7 +137,6 @@ export class RepositoriesList extends React.Component<
           renderItem={this.renderItem}
           renderGroupHeader={this.renderGroupHeader}
           onItemClick={this.onItemClick}
-          onFilterKeyDown={this.onFilterKeyDown}
           groups={groups}
           invalidationProps={{
             repositories: this.props.repositories,

@@ -61,7 +61,7 @@ interface IChangesSidebarProps {
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private autocompletionProviders: ReadonlyArray<
     IAutocompletionProvider<any>
-  > | null
+  > | null = null
 
   public constructor(props: IChangesSidebarProps) {
     super(props)

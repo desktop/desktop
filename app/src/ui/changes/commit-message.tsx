@@ -18,10 +18,11 @@ import { structuralEquals } from '../../lib/equality'
 import { generateGravatarUrl } from '../../lib/gravatar'
 import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
-import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { showContextualMenu } from '../main-process-proxy'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { ITrailer } from '../../lib/git/interpret-trailers'
 import { IAuthor } from '../../models/author'
+import { IMenuItem } from '../../lib/menu-item'
 
 const addAuthorIcon = new OcticonSymbol(
   12,
@@ -328,6 +329,7 @@ export class CommitMessage extends React.Component<
         onAuthorsUpdated={this.onCoAuthorsUpdated}
         authors={this.props.coAuthors}
         autoCompleteProvider={autocompletionProvider}
+        disabled={this.props.isCommitting}
       />
     )
   }
@@ -345,22 +347,41 @@ export class CommitMessage extends React.Component<
       : __DARWIN__ ? 'Add Co-Authors' : 'Add co-authors'
   }
 
+  private getAddRemoveCoAuthorsMenuItem(): IMenuItem {
+    return {
+      label: this.toggleCoAuthorsText,
+      action: this.onToggleCoAuthors,
+      enabled:
+        this.props.repository.gitHubRepository !== null &&
+        !this.props.isCommitting,
+    }
+  }
+
   private onContextMenu = (event: React.MouseEvent<any>) => {
+    if (event.defaultPrevented) {
+      return
+    }
+
+    event.preventDefault()
+
+    const items: IMenuItem[] = [this.getAddRemoveCoAuthorsMenuItem()]
+    showContextualMenu(items)
+  }
+
+  private onAutocompletingInputContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
     const items: IMenuItem[] = [
-      {
-        label: this.toggleCoAuthorsText,
-        action: this.onToggleCoAuthors,
-        enabled: this.props.repository.gitHubRepository !== null,
-      },
+      this.getAddRemoveCoAuthorsMenuItem(),
+      { type: 'separator' },
+      { role: 'editMenu' },
     ]
 
     showContextualMenu(items)
   }
 
   private onCoAuthorToggleButtonClick = (
-    e: React.MouseEvent<HTMLDivElement>
+    e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault()
     this.onToggleCoAuthors()
@@ -372,15 +393,15 @@ export class CommitMessage extends React.Component<
     }
 
     return (
-      <div
-        role="button"
+      <button
         className="co-authors-toggle"
         onClick={this.onCoAuthorToggleButtonClick}
         tabIndex={-1}
         aria-label={this.toggleCoAuthorsText}
+        disabled={this.props.isCommitting}
       >
         <Octicon symbol={addAuthorIcon} />
-      </div>
+      </button>
     )
   }
 
@@ -436,7 +457,11 @@ export class CommitMessage extends React.Component<
       return null
     }
 
-    return <div className="action-bar">{this.renderCoAuthorToggleButton()}</div>
+    const className = classNames('action-bar', {
+      disabled: this.props.isCommitting,
+    })
+
+    return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
   public render() {
@@ -471,6 +496,8 @@ export class CommitMessage extends React.Component<
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
             autocompletionProviders={this.props.autocompletionProviders}
+            onContextMenu={this.onAutocompletingInputContextMenu}
+            disabled={this.props.isCommitting}
           />
         </div>
 
@@ -486,6 +513,8 @@ export class CommitMessage extends React.Component<
             autocompletionProviders={this.props.autocompletionProviders}
             ref={this.onDescriptionFieldRef}
             onElementRef={this.onDescriptionTextAreaRef}
+            onContextMenu={this.onAutocompletingInputContextMenu}
+            disabled={this.props.isCommitting}
           />
           {this.renderActionBar()}
         </FocusContainer>

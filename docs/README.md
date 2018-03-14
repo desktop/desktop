@@ -8,7 +8,7 @@ documentation.
 If you are interested in contributing to the project, you should read these
 resources to get familiar with how things work:
 
- - **[How Can I Contribute?](../CONTRIBUTING.md#how-can-i-contribute)** -
+ - **[How Can I Contribute?](../.github/CONTRIBUTING.md#how-can-i-contribute)** -
     details about how you can participate
  - **[Development Environment Setup](contributing/setup.md)** - everything
     you need to know to get Desktop up and running

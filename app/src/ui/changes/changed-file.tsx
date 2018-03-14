@@ -4,8 +4,9 @@ import * as Path from 'path'
 import { AppFileStatus, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
-import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { showContextualMenu } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { IMenuItem } from '../../lib/menu-item'
 
 const GitIgnoreFileName = '.gitignore'
 
@@ -22,7 +23,7 @@ interface IChangedFileProps {
   readonly include: boolean | null
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onDiscardChanges: (path: string) => void
-
+  readonly onDiscardAllChanges: () => void
   /**
    * Called to reveal a file in the native file manager.
    * @param path The path of the file relative to the root of the repository
@@ -126,6 +127,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       {
         label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
         action: () => this.props.onDiscardChanges(this.props.path),
+      },
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        action: () => this.props.onDiscardAllChanges(),
       },
       { type: 'separator' },
       {
