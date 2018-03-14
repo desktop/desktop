@@ -2722,15 +2722,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.signInStore.setTwoFactorOTP(otp)
   }
 
-  public _setAppFocusState(isFocused: boolean): Promise<void> {
-    const changed = this.appIsFocused !== isFocused
-    this.appIsFocused = isFocused
-
-    if (changed) {
+  public async _setAppFocusState(isFocused: boolean): Promise<void> {
+    if (this.appIsFocused !== isFocused) {
+      this.appIsFocused = isFocused
       this.emitUpdate()
     }
-
-    return Promise.resolve()
   }
 
   /**
