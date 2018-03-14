@@ -5,6 +5,7 @@ import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
+import { MultipleSelection } from './changes/multiple-selection'
 import { History, HistorySidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
@@ -18,6 +19,7 @@ import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Octicon, OcticonSymbol } from './octicons'
 import { Account } from '../models/account'
+import { WorkingDirectoryFileChange } from '../models/status'
 
 /** The widest the sidebar can be with the minimum window size. */
 const MaxSidebarWidth = 495
@@ -161,28 +163,33 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
 
     if (selectedSection === RepositorySection.Changes) {
       const changesState = this.props.state.changesState
-      const selectedFileID =
-        changesState.selectedFilesID[changesState.selectedFilesID.length - 1]
-      const selectedFile = selectedFileID
-        ? changesState.workingDirectory.findFileWithID(selectedFileID)
-        : null
+      const selectedFilesID = changesState.selectedFilesID
+      const selectedFiles: WorkingDirectoryFileChange[] = []
+      selectedFilesID.forEach(fileID => {
+        const file = changesState.workingDirectory.findFileWithID(fileID)
+        if (file) {
+          selectedFiles.push(file)
+        }
+      })
       const diff = changesState.diff
       if (
         !changesState.workingDirectory.files.length ||
-        !selectedFile ||
+        !selectedFiles.length ||
         !diff
       ) {
         return <NoChanges onOpenRepository={this.openRepository} />
-      } else {
+      } else if (selectedFiles.length === 1) {
         return (
           <Changes
             repository={this.props.repository}
             dispatcher={this.props.dispatcher}
-            file={selectedFile}
+            file={selectedFiles[0]}
             diff={diff}
             imageDiffType={this.props.imageDiffType}
           />
         )
+      } else {
+        return <MultipleSelection count={selectedFiles.length} />
       }
     } else if (selectedSection === RepositorySection.History) {
       return (
