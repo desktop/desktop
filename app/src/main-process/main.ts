@@ -1,6 +1,6 @@
 import '../lib/logging/main/install'
 
-import { app, Menu, MenuItem, ipcMain, BrowserWindow, shell } from 'electron'
+import { app, Menu, ipcMain, BrowserWindow, shell } from 'electron'
 import * as Fs from 'fs'
 
 import { AppWindow } from './app-window'
@@ -21,6 +21,8 @@ import {
 } from '../lib/source-map-support'
 import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
+import { IMenuItem } from '../lib/menu-item'
+import { buildContextMenu } from './menu/build-context-menu'
 
 enableSourceMaps()
 
@@ -272,20 +274,10 @@ app.on('ready', () => {
 
   ipcMain.on(
     'show-contextual-menu',
-    (event: Electron.IpcMessageEvent, items: ReadonlyArray<any>) => {
-      const menu = new Menu()
-      const menuItems = items.map((item, i) => {
-        return new MenuItem({
-          label: item.label,
-          click: () => event.sender.send('contextual-menu-action', i),
-          type: item.type,
-          enabled: item.enabled,
-        })
-      })
-
-      for (const item of menuItems) {
-        menu.append(item)
-      }
+    (event: Electron.IpcMessageEvent, items: ReadonlyArray<IMenuItem>) => {
+      const menu = buildContextMenu(items, ix =>
+        event.sender.send('contextual-menu-action', ix)
+      )
 
       const window = BrowserWindow.fromWebContents(event.sender)
       menu.popup(window, { async: true })

@@ -8,7 +8,6 @@ import { IRepositoryState } from '../../lib/app-state'
 import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
-import { enablePRIntegration } from '../../lib/feature-flag'
 import { PullRequest } from '../../models/pull-request'
 
 interface IBranchDropdownProps {
@@ -160,10 +159,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   private renderPullRequestInfo() {
     const pr = this.props.currentPullRequest
     if (!pr) {
-      return null
-    }
-
-    if (!enablePRIntegration()) {
       return null
     }
 
