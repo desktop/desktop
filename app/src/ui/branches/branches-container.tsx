@@ -7,7 +7,6 @@ import { BranchList } from './branch-list'
 import { TabBar } from '../tab-bar'
 import { BranchesTab } from '../../models/branches-tab'
 import { assertNever } from '../../lib/fatal-error'
-import { enablePRIntegration } from '../../lib/feature-flag'
 import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
 import { PullRequest } from '../../models/pull-request'
@@ -70,10 +69,6 @@ export class BranchesContainer extends React.Component<
       return null
     }
 
-    if (!enablePRIntegration()) {
-      return null
-    }
-
     let countElement = null
     if (this.props.pullRequests) {
       countElement = (
@@ -98,7 +93,7 @@ export class BranchesContainer extends React.Component<
 
   private renderSelectedTab() {
     let tab = this.props.selectedTab
-    if (!enablePRIntegration() || !this.props.repository.gitHubRepository) {
+    if (!this.props.repository.gitHubRepository) {
       tab = BranchesTab.Branches
     }
 
