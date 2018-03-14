@@ -357,16 +357,28 @@ export class List extends React.Component<IListProps, IListState> {
     // We give consumers the power to prevent the onRowClick event by subscribing
     // to the onRowKeyDown event and calling event.preventDefault. This lets
     // consumers add their own semantics for keyboard presses.
-    if (!event.defaultPrevented) {
-      if (event.key === 'Enter' || event.key === ' ') {
-        this.props.selectedRows.forEach(row => {
-          if (this.props.onRowClick) {
-            this.props.onRowClick(row, { kind: 'keyboard', event })
-          }
-        })
-        event.preventDefault()
-      }
+    if (
+      !event.defaultPrevented &&
+      (event.key === 'Enter' || event.key === ' ')
+    ) {
+      this.toggleSelection(event)
+      event.preventDefault()
     }
+  }
+
+  private onKeyDown = (event: React.KeyboardEvent<any>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      this.toggleSelection(event)
+      event.preventDefault()
+    }
+  }
+
+  private toggleSelection = (event: React.KeyboardEvent<any>) => {
+    this.props.selectedRows.forEach(row => {
+      if (this.props.onRowClick) {
+        this.props.onRowClick(row, { kind: 'keyboard', event })
+      }
+    })
   }
 
   private onRowMouseOver = (row: number, event: React.MouseEvent<any>) => {
@@ -686,7 +698,10 @@ export class List extends React.Component<IListProps, IListState> {
       this.props.selectedRows.length < 1 && this.props.rowCount > 0 ? 0 : -1
 
     return (
-      <FocusContainer className="list-focus-container">
+      <FocusContainer
+        className="list-focus-container"
+        onKeyDown={this.onKeyDown}
+      >
         <Grid
           aria-label={''}
           key="grid"
