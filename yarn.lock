@@ -2452,6 +2452,10 @@ eslint-plugin-typescript@^0.8.1:
   dependencies:
     requireindex "~1.1.0"
 
+eslint-rule-composer@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-rule-composer/-/eslint-rule-composer-0.1.0.tgz#73ea2be1f12f615123d028b9892f0d0d80040cba"
+
 eslint-scope@^3.7.1:
   version "3.7.1"
   resolved "https://registry.yarnpkg.com/eslint-scope/-/eslint-scope-3.7.1.tgz#3d63c3edfda02e06e01a452ad88caacc7cdcb6e8"

@@ -3,7 +3,7 @@ import { IAvatarUser } from '../../models/avatar'
 
 const inMemoryCache = new Map<string, string | null>()
 
-const defaultHeaders = new Headers()
+const defaultHeaders = new window.Headers()
 
 const defaultInit: RequestInit = {
   method: 'GET',
@@ -33,7 +33,7 @@ async function fetchAndCache(requestUrl: string): Promise<string | null> {
         // we're encountering a request to sign in, let's skip this
       } else {
         const blob = await response.blob()
-        url = URL.createObjectURL(blob)
+        url = window.URL.createObjectURL(blob)
       }
     }
   } catch {

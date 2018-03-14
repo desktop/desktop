@@ -222,7 +222,7 @@ export class List extends React.Component<IListProps, IListState> {
     const ResizeObserverClass: typeof ResizeObserver = (window as any)
       .ResizeObserver
 
-    if (ResizeObserver || false) {
+    if (window.ResizeObserver || false) {
       this.resizeObserver = new ResizeObserverClass(entries => {
         for (const entry of entries) {
           if (entry.target === this.list) {

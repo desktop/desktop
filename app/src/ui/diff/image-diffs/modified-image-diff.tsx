@@ -65,7 +65,7 @@ export class ModifiedImageDiff extends React.Component<
   public constructor(props: IModifiedImageDiffProps) {
     super(props)
 
-    this.resizeObserver = new ResizeObserver(entries => {
+    this.resizeObserver = new window.ResizeObserver(entries => {
       for (const entry of entries) {
         if (entry.target === this.container) {
           // We might end up causing a recursive update by updating the state

@@ -28,7 +28,7 @@ export function findUpstreamRemote(
     'Parent repositories are fully loaded',
     parent.cloneURL
   )
-  const parentURL = new URL(cloneURL)
+  const parentURL = new window.URL(cloneURL)
   if (
     parsedUpstream.owner.toLowerCase() === parent.owner.login.toLowerCase() &&
     parsedUpstream.name.toLowerCase() === parent.name.toLowerCase() &&

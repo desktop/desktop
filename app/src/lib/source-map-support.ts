@@ -32,7 +32,7 @@ function retrieveSourceMap(source: string) {
 
   if (__DEV__ && path.startsWith('http://')) {
     try {
-      const xhr = new XMLHttpRequest()
+      const xhr = new window.XMLHttpRequest()
       xhr.open('GET', path, false)
       xhr.send(null)
       if (xhr.readyState === 4 && xhr.status === 200) {
