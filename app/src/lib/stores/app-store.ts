@@ -3279,7 +3279,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const defaultRemote = await getDefaultRemote(repository)
       // TODO: I think we could skip this fetch if we know that we have the branch locally
       // already. That way we'd match the behavior of checking out a branch.
-      if (defaultRemote) {
+      const gitStore = this.getGitStore(repository)
+      const localBranchName = `pr/${pullRequest.number}`
+      const doesBranchExist =
+        gitStore.allBranches.find(branch => branch.name === localBranchName) !=
+        null
+
+      if (defaultRemote && (!doesBranchExist)) {
         await this._fetchRemote(
           repository,
           defaultRemote,
