@@ -357,7 +357,7 @@ export class CloneRepository extends React.Component<
     }
 
     try {
-      this.cloneImpl(url, path)
+      this.cloneImpl(url.trim(), path)
     } catch (e) {
       log.error(`CloneRepostiory: clone failed to complete to ${path}`, e)
       this.setState({ loading: false, error: e })
@@ -365,7 +365,7 @@ export class CloneRepository extends React.Component<
   }
 
   private cloneImpl(url: string, path: string) {
-    this.props.dispatcher.clone(url.trim(), path)
+    this.props.dispatcher.clone(url, path)
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))
