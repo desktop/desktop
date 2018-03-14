@@ -536,7 +536,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   public componentDidMount() {
     document.ondragover = e => {
-      if (this.state.currentPopup != null) {
+      if (this.isShowingModal != null) {
         e.dataTransfer.dropEffect = 'none'
       } else {
         e.dataTransfer.dropEffect = 'copy'
@@ -550,7 +550,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     document.body.ondrop = e => {
-      if (this.state.currentPopup != null) {
+      if (this.isShowingModal != null) {
         return
       }
       const files = e.dataTransfer.files
