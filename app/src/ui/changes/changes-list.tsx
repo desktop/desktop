@@ -118,6 +118,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         key={file.id}
         onContextMenu={this.onItemContextMenu}
         onIncludeChanged={this.props.onIncludeChanged}
+        // onDiscardAllChanges={this.onDiscardAllChanges}
         availableWidth={this.props.availableWidth}
       />
     )
@@ -204,6 +205,10 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
       {
         label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
         action: () => this.onDiscardChanges(paths),
+      },
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        action: () => this.onDiscardAllChanges(),
       },
       { type: 'separator' },
     ]
