@@ -119,7 +119,6 @@
 
     .action-bar {
       padding: var(--spacing-half);
-      display: inline-block;
 
       // We're not faking being a textbox any more
       cursor: default;
@@ -129,9 +128,23 @@
       &:empty {
         display: none;
       }
+
+      &.disabled {
+        background: var(--box-alt-background-color);
+      }
     }
 
     .co-authors-toggle {
+      // button reset styles
+      border: none;
+      -webkit-appearance: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+      align-items: center;
+      display: block;
+
       height: 16px;
       width: 16px;
       cursor: pointer;
@@ -145,6 +158,10 @@
         color: var(--text-secondary-color);
         opacity: 0;
         transition: 150ms all ease-in-out;
+        pointer-events: none;
+      }
+
+      &:disabled {
         pointer-events: none;
       }
 

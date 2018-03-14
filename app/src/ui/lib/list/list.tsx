@@ -210,7 +210,7 @@ export class List extends React.Component<IListProps, IListState> {
   private lastScroll: 'grid' | 'fake' | null = null
 
   private list: HTMLDivElement | null = null
-  private grid: React.Component<any, any> | null
+  private grid: React.Component<any, any> | null = null
   private readonly resizeObserver: ResizeObserver | null = null
   private updateSizeTimeoutId: number | null = null
 

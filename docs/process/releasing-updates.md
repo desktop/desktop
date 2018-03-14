@@ -58,8 +58,8 @@ The output will then explain the next steps:
 ```shellsession
 Here's what you should do next:
 
-1. Update the app/package.json 'version' to '1.0.14-beta2'
-2. Concatenate this to the beginning of the changelog.json as a starting point:
+1. Update the app/package.json 'version' to '1.0.14-beta2' (make sure this aligns with semver format of 'major.minor.patch')
+2. Concatenate this to the beginning of the releases element in the changelog.json as a starting point:
 {
   "1.0.14-beta2": [
     "[???] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",
@@ -81,6 +81,11 @@ Here's what you should do next:
 6. Commit the changes (on master or as new branch) and push them to GitHub
 7. Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md
 ```
+
+** Note: You should ensure the `version` in `app/package.json` is set to the new version and follows the [semver format](https://semver.org/) of `major.minor.patch`. Examples:
+    - for prod, `1.1.0` -> `1.1.1` or `1.1.13` -> `1.2.0` 
+    - for beta, `1.1.0-beta1` -> `1.1.0-beta2` or `1.1.13-beta3` -> `1.2.0-beta1`
+    - for test, `1.0.14-test2` -> `1.0.14-test3` or `1.1.14-test3` -> `1.2.0-test1`
 
 Here's an example of the previous changelog draft after it has been edited:
 

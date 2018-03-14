@@ -1,28 +1,16 @@
+@import '../mixins';
+
 .text-area-component {
   display: flex;
   flex-direction: column;
   flex: 1;
 
   textarea {
-    border: 1px solid var(--box-border-color);
-    border-radius: var(--border-radius);
-    color: currentColor;
-    font-size: var(--font-size);
-    font-family: var(--font-family-sans-serif);
-    padding: var(--spacing-half);
+    @include textboxish;
+    @include textboxish-disabled;
 
+    height: auto;
     resize: none;
-
     min-height: 100px;
-
-    display: flex;
-    flex-direction: row;
-    flex: 1;
-
-    &:focus {
-      outline: none;
-      border-color: var(--focus-color);
-      box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
-    }
   }
 }

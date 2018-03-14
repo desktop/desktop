@@ -30,8 +30,8 @@ export interface IMentionableAssociation {
 }
 
 export class GitHubUserDatabase extends BaseDatabase {
-  public users: Dexie.Table<IGitHubUser, number>
-  public mentionables: Dexie.Table<IMentionableAssociation, number>
+  public users!: Dexie.Table<IGitHubUser, number>
+  public mentionables!: Dexie.Table<IMentionableAssociation, number>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)

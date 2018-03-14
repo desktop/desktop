@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron'
 import { ExecutableMenuItem } from '../models/app-menu'
 import { MenuIDs } from '../main-process/menu'
 import { IMenuItemState } from '../lib/menu-update'
+import { IMenuItem } from '../lib/menu-item'
 
 /** Set the menu item's enabledness. */
 export function updateMenuState(
@@ -50,20 +51,6 @@ export function sendWillQuitSync() {
  */
 export function getAppMenu() {
   ipcRenderer.send('get-app-menu')
-}
-
-export interface IMenuItem {
-  /** The user-facing label. */
-  readonly label?: string
-
-  /** The action to invoke when the user selects the item. */
-  readonly action?: () => void
-
-  /** The type of item. */
-  readonly type?: 'separator'
-
-  /** Is the menu item enabled? Defaults to true. */
-  readonly enabled?: boolean
 }
 
 /**
