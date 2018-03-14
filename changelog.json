@@ -17,6 +17,7 @@
       "[Improved] Repository association might not have expected prefix - #4090. Thanks @mathieudutour!",
       "[Improved] Add message to gitignore dialog when not on default branch - #3720",
       "[Improved] Hide Desktop-specific forks in Branch List - #4127"
+    ],
     "1.1.1-test2": [
       "[Improved] Electron 1.8.3 upgrade (again)"
     ],
@@ -25,8 +26,8 @@
     ],
     "1.1.1-beta1": [
 
-    ]
-    ,"1.1.0": [
+    ],
+    "1.1.0": [
       "[New] Check out pull requests from collaborators or forks from within Desktop",
       "[New] View the commit status of the branch when it has an open pull request",
       "[Added] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",
