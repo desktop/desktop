@@ -118,7 +118,6 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         key={file.id}
         onContextMenu={this.onItemContextMenu}
         onIncludeChanged={this.props.onIncludeChanged}
-        // onDiscardAllChanges={this.onDiscardAllChanges}
         availableWidth={this.props.availableWidth}
       />
     )
@@ -224,11 +223,6 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         label: 'Ignore all',
         action: () => {
           this.props.onIgnore(paths)
-          // paths.forEach((path, index) => {
-          //   if (fileName[index] && fileName[index] !== GitIgnoreFileName) {
-          //     this.props.onIgnore(path)
-          //   }
-          // })
         },
         enabled: fileName[0] !== GitIgnoreFileName,
       })
