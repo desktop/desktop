@@ -535,7 +535,19 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   public componentDidMount() {
-    document.ondragover = document.ondrop = e => e.preventDefault()
+    document.ondragover = e => {
+      if (this.state.currentPopup != null) {
+        e.dataTransfer.dropEffect = 'none'
+      } else {
+        e.dataTransfer.dropEffect = 'copy'
+      }
+
+      e.preventDefault()
+    }
+
+    document.ondrop = e => {
+      e.preventDefault()
+    }
 
     document.body.ondrop = e => {
       if (this.state.currentPopup != null) {
