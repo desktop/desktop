@@ -47,8 +47,8 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
   object[`${nextVersion}`] = entries.sort()
 
   const steps = [
-    `Update the app/package.json 'version' to '${nextVersion}'`,
-    `Concatenate this to the beginning of the changelog.json as a starting point:\n${jsonStringify(
+    `Update the app/package.json 'version' to '${nextVersion}' (make sure this aligns with semver format of 'major.minor.patch')`,
+    `Concatenate this to the beginning of the 'releases' element in the changelog.json as a starting point:\n${jsonStringify(
       object
     )}\n`,
     `Remove any entries of contributions that don't affect the end user`,
