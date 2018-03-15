@@ -7,6 +7,7 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../../lib/dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
+import { Button } from '../lib/button'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -75,6 +76,17 @@ export class CompareSidebar extends React.Component<
         {selectedBranch && compareType === CompareType.Ahead
           ? this.renderMergeCTA()
           : null}
+      </div>
+    )
+  }
+
+  private renderMergeCTA() {
+    return (
+      <div>
+        <Button type="submit" onClick={this.onMergeClicked}>
+          Merge into {this.props.state.branch!.name}
+        </Button>
+        {this.renderMergeCTAMessage()}
       </div>
     )
   }
