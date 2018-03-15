@@ -21,7 +21,7 @@ You will need to install these tools on your machine:
  - One of Visual Studio 2015, Visual C++ Build Tools or Visual Studio 2017
    - [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
      - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
-   - Visual Studio 2015 
+   - Visual Studio 2015
      - *Ensure you select the **Common Tools for Visual C++ 2015** feature as that is required by Node.js
         for installing native modules.*
      - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
@@ -85,34 +85,39 @@ If you want to package Desktop for distribution, install these packages:
 $ sudo apt install -y fakeroot dpkg rpm xz-utils xorriso zsync
 ```
 
+## Install Yarn
+
+After doing this setup, you also need to install `yarn` as Desktop uses
+this for managing packages instead of NPM. **Do not install `yarn` through
+NPM**. Refer to the [install instructions](https://yarnpkg.com/en/docs/install)
+for you OS.
+
+This is important because `yarn` uses lock files to pin dependencies. If you
+find yourself changing packages, this will prevent mismatches in versions
+between machines.
+
+If you're not familiar with `yarn`, please read [this document](./working-with-packages.md)
+to help familiarize yourself with how to do the common package tasks that are
+relevant to Desktop.
+
 ## Verification
 
-With these things installed, open a shell and install `yarn` (you might need
-to `sudo` here depending on how Node was installed):
-
-```shellsession
-$ npm install -g yarn@1.3.2
-```
-
-This is important because yarn uses lock files to pin dependencies. If you find
-yourself changing packages, this will prevent mismatches in versions between machines.
-
-Then validate you have these commands available and that the versions look similar:
+Then verify you have these commands available in your shell and that the found
+versions look similar to the below output:
 
 ```shellsession
 $ node -v
-v7.8.0
+v8.10.0
 
 $ yarn -v
-1.2.0
+1.5.1
 
 $ python --version
 Python 2.7.13
 ```
 
-There are also [additional resources](tooling.md) to
-configure your favorite editor to work nicely with the GitHub Desktop
-repository.
+There are also [additional resources](tooling.md) to configure your favorite
+editor to work nicely with the GitHub Desktop repository.
 
 ## Building Desktop
 
@@ -123,7 +128,7 @@ is as follows:
 * Run `yarn build:dev` to create a development build of the app.
 * Run `yarn start` to launch the application. Changes will be compiled in the
   background. The app can then be reloaded to see the changes (Ctrl/Command+R).
-  
+
 **Optional Tip**: On macOS and Linux, you can use `screen` to avoid filling your terminal with logging output:
 
 ```shellsession
