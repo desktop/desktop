@@ -9,7 +9,7 @@ export function iconForRepository(repository: Repository | CloningRepository) {
   if (repository instanceof CloningRepository) {
     return OcticonSymbol.desktopDownload
   }
-  
+
   if (repository.missing) {
     return OcticonSymbol.alert
   }
