@@ -74,6 +74,16 @@ interface ITextBoxProps {
 
   /** The tab index of the input element. */
   readonly tabIndex?: number
+
+  /**
+   * Called when focused.
+   */
+  readonly onFocus?: () => void
+
+  /**
+   * Called when focus is lost.
+   */
+  readonly onBlur?: () => void
 }
 
 interface ITextBoxState {
@@ -197,6 +207,10 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
       if (this.props.onValueChanged) {
         this.props.onValueChanged(value)
       }
+
+      if (this.props.onBlur) {
+        this.props.onBlur()
+      }
     }
 
     if (this.props.onKeyDown !== undefined) {
@@ -215,6 +229,8 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         <input
           id={inputId}
           ref={this.onInputRef}
+          onFocus={this.onFocus}
+          onBlur={this.onBlur}
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
           type={this.props.type}
@@ -227,5 +243,17 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         />
       </div>
     )
+  }
+
+  private onFocus = () => {
+    if (!this.props.autoFocus && this.props.onFocus !== undefined) {
+      this.props.onFocus()
+    }
+  }
+
+  private onBlur = () => {
+    if (this.props.onBlur !== undefined) {
+      this.props.onBlur()
+    }
   }
 }
