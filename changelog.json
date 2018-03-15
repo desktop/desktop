@@ -11,6 +11,7 @@
       "[Fixed] Disable input fields summary and description while commit in progress - #3893. Thanks @crea7or!",
       "[Fixed] Ensure pull request cache is cleared after last pull request merged - #4122",
       "[Fixed] Focus two-factor authentication dialog on input - #4220. Thanks @WaleedAshraf!",
+      "[Fixed] Branches button no longer disabled while on an unborn branch - #4236. Thanks @agisilaos!",
       "[Improved] Add `Discard All Changes...` to context menu on changed file list - #4197. Thanks @xamm!",
       "[Improved] Improve contrast for button labels in app toolbar - #4219",
       "[Improved] Speed up check for submodules when discarding - #4186. Thanks @kmscode!",
@@ -18,7 +19,8 @@
       "[Improved] Continue past the 'diff too large' message and view the diff - #4050",
       "[Improved] Repository association might not have expected prefix - #4090. Thanks @mathieudutour!",
       "[Improved] Add message to gitignore dialog when not on default branch - #3720",
-      "[Improved] Hide Desktop-specific forks in Branch List - #4127"
+      "[Improved] Hide Desktop-specific forks in Branch List - #4127",
+      "[Improved] Disregard accidental whitespace when cloning a repository by URL - #4216"
     ],
     "1.1.1-test2": [
       "[Improved] Electron 1.8.3 upgrade (again)"
