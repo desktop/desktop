@@ -9,7 +9,7 @@ import { History, HistorySidebar, CompareSidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
-  IRepositoryState as IRepositoryModelState,
+  IRepositoryState,
   RepositorySection,
   ImageDiffType,
 } from '../lib/app-state'
@@ -25,7 +25,7 @@ const MaxSidebarWidth = 495
 
 interface IRepositoryProps {
   readonly repository: Repo
-  readonly state: IRepositoryModelState
+  readonly state: IRepositoryState
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly sidebarWidth: number
