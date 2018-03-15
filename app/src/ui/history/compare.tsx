@@ -72,6 +72,9 @@ export class CompareSidebar extends React.Component<
           onCommitSelected={this.onCommitSelected}
           onScroll={this.onScroll}
         />
+        {selectedBranch && compareType === CompareType.Ahead
+          ? this.renderMergeCTA()
+          : null}
       </div>
     )
   }
