@@ -6,7 +6,7 @@ We have three channels to which we can release: `production`, `beta`, and `test`
 
 - `production` is the channel from which the general public downloads and receives updates. It should be stable and polished.
 
-- `beta` is released more often than `production`. We want to ensure `master` is always in a state where it can be released to users and we will use `beta` for additional QA.
+- `beta` is released more often than `production`. We want to ensure master is always in a state where it can be released to users, so it should be used as the source for beta releases as an opportunity for additional QA before releasing to production.
 
 - `test` is unlike the other two. It does not receive updates. Each test release is locked in time. It's used entirely for providing test releases.
 
@@ -16,14 +16,14 @@ We have three channels to which we can release: `production`, `beta`, and `test`
 
 From a clean working directory, set the `GITHUB_ACCESS_TOKEN` environment variable to a valid [Personal Access Token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) 
 
-You can check that this is set on macOS by:
+You can check that this is set on macOS or via Git Bash (Windows) by:
 ```shellsession
-$ env GITHUB_ACCESS_TOKEN
+$ echo $GITHUB_ACCESS_TOKEN
 ```
 
-You can check that this is set on Windows by:
+You can check that this is set on Windows (PowerShell) by:
 ```shellsession
-$ echo %GITHUB_ACCESS_TOKEN%
+$ echo $env:GITHUB_ACCESS_TOKEN
 ```
 
 If you are creating a new Personal Access Token on GitHub:
@@ -76,8 +76,8 @@ Here's what you should do next:
 
 3. Remove any entries of contributions that don't affect the end user
 3. Update the release notes to have user-friendly summary lines
-4. For issues prefixed with [???], look at the PR to update the prefix to one of: [New], [Added], [Fixed], [Improved], [Removed]
-5. Sort the entries so that the prefixes are ordered in this way: [New], [Added], [Fixed], [Improved], [Removed]
+4. For issues prefixed with [???], look at the PR and update the prefix to one of: [New], [Added], [Fixed], [Improved], [Removed]
+5. Sort the entries so that the prefixes are ordered: [New], [Added], [Fixed], [Improved], [Removed]
 6. Commit the changes (on master or as new branch) and push them to GitHub
 7. Read this to perform the release: https://github.com/desktop/desktop/blob/master/docs/process/releasing-updates.md
 ```
@@ -133,18 +133,25 @@ it will initially specify its state as `State: pending` and will be completed wh
 
 You will also see this in Chat:
 `desktopbot tagged desktop/release-{YOUR_VERSION}`
-  
-When it's in `State: released` for `beta` or `production`, switch to your desktop application and make sure that the corresponding (prod|beta) app auto-updates.
-If you don't have the app for `beta`, for example, you can always download the previous version on Central to see it update (but make sure you move it out of the Downloads folder and into the Applications folder for macOS or it won't auto-update).
 
-### 5. Check Error Reporting
+### 5. Test that your app auto-updates to new version
 
-If an error occurs during the release process, a needle will be reported to Central's [haystack](https://haystack.githubapp.com/central).
+When the release in Central is in `State: released` for `beta` or `production`, switch to your installed Desktop instance and make sure that the corresponding (prod|beta) app auto-updates.
 
-It is normal to monitor haystack closely for 15 minutes just to make sure.
+Testing that an update is detected, downloaded, and applied correctly is very important - if this is somehow broken during development then our users will not likely stay up to date!  
+
+If you don't have the app for `beta`, for example, you can always download the previous version on Central to see it update 
+
+** Make sure you move your application out of the Downloads folder and into the Applications folder for macOS or it won't auto-update.
+
+### 6. Check Error Reporting
+
+If an error occurs during the release process, a needle will be reported to Central's [Haystack](https://haystack.githubapp.com/central).
+
+It is normal to monitor Haystack closely for 15 minutes just to make sure.
 
 ### 6. Celebrate
 
 Once your app updates and you see the visible changes in your app and there are no spikes in errors, celebrate 🎉!!! You did it!
 
-Also it might make sense to continue to monitor haystack in the background for the next 24 hours.
+Also it might make sense to continue to monitor Haystack in the background for the next 24 hours.
