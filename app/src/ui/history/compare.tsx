@@ -157,30 +157,24 @@ export class CompareSidebar extends React.Component<
     const index = parseInt(event.currentTarget.value, 10)
     const branchName =
       index > 0 ? event.currentTarget.options[index].text : null
+    const branch =
+      this.props.branches.find(branch => branch.name === branchName) || null
+    const compareType =
+      branch === null
+        ? CompareType.Default
+        : this.state.compareType === CompareType.Default
+          ? CompareType.Behind
+          : CompareType.Ahead
 
-    this.setState({ selectedBranchIndex: index })
-
-    if (branchName === null) {
-      this.props.dispatcher.loadCompareState(
-        this.props.repository,
-        null,
-        CompareType.Default
-      )
-    } else {
-      const branch = this.props.branches.find(
-        branch => branch.name.toLowerCase() === branchName
-      )
-
-      if (branch == null) {
-        return log.error(`Cannot find branch: ${branchName}`)
-      }
-
-      this.props.dispatcher.loadCompareState(
-        this.props.repository,
-        branch,
-        CompareType.Behind
-      )
-    }
+    this.props.dispatcher.loadCompareState(
+      this.props.repository,
+      branch,
+      compareType
+    )
+    this.setState({
+      compareType,
+      selectedBranch: branch,
+    })
   }
 
   private onCommitSelected = (commit: Commit) => {
