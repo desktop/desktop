@@ -22,7 +22,7 @@ interface ICompareSidebarProps {
 }
 
 interface ICompareSidebarState {
-  readonly selectedBranchIndex: number
+  readonly selectedBranch: Branch | null
   readonly compareType: CompareType
 }
 
@@ -39,7 +39,7 @@ export class CompareSidebar extends React.Component<
     super(props)
 
     this.state = {
-      selectedBranchIndex: -1,
+      selectedBranch: null,
       compareType: CompareType.Default,
     }
   }
@@ -47,7 +47,7 @@ export class CompareSidebar extends React.Component<
   public componentWillMount() {
     this.props.dispatcher.loadCompareState(
       this.props.repository,
-      null,
+      this.state.selectedBranch,
       CompareType.Default
     )
   }
@@ -118,7 +118,9 @@ export class CompareSidebar extends React.Component<
 
     let selectedIndex = -1
     for (const [index, branch] of this.props.branches.entries()) {
-      if (this.state.selectedBranchIndex === index) {
+      const selectedBranch = this.state.selectedBranch
+
+      if (selectedBranch !== null && selectedBranch.name === branch.name) {
         selectedIndex = index
       }
 
