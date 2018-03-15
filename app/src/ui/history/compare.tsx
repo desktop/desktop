@@ -8,9 +8,9 @@ import { Branch } from '../../models/branch'
 import { Dispatcher } from '../../lib/dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { Button } from '../lib/button'
-
 import { BranchList } from '../branches'
 import { TextBox } from '../lib/text-box'
+import { TipState } from '../../models/tip'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -63,6 +63,13 @@ export class CompareSidebar extends React.Component<
   public componentWillUnmount() {
     this.textbox = null
   }
+
+  public componentDidMount() {
+    if (this.textbox !== null && this.state.showFilterList) {
+      // this.state.showFilterList && this.textbox.focus()
+    }
+  }
+
   public render() {
     const { showFilterList, selectedBranch } = this.state
     const defaultBranch = this.props.repositoryState.branchesState.defaultBranch
@@ -79,7 +86,7 @@ export class CompareSidebar extends React.Component<
           onFocus={this.onTextBoxFocused}
           onBlur={this.onTextBoxBlurred}
           value={this.state.filterText}
-          onValueChanged={this.onTextBoxValueChanged}
+          onValueChanged={this.onBranchFilterTextChanged}
         />
         {showFilterList ? this.renderFilterList() : this.renderCommits()}
       </div>
@@ -114,21 +121,29 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderFilterList() {
-    const repositoryState = this.props.repositoryState
-    const branchesState = repositoryState.branchesState
+    const branchesState = this.props.repositoryState.branchesState
+    const tip = branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    const allBranches = currentBranch
+      ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
+      : branchesState.allBranches
+    const recentBranches = currentBranch
+      ? branchesState.recentBranches.filter(b => b.name !== currentBranch.name)
+      : branchesState.recentBranches
 
     return (
       <BranchList
         defaultBranch={branchesState.defaultBranch}
-        currentBranch={this.state.selectedBranch}
-        allBranches={branchesState.allBranches}
-        recentBranches={branchesState.recentBranches}
-        onItemClick={this.onBranchItemClick}
+        currentBranch={currentBranch || branchesState.defaultBranch}
+        allBranches={allBranches}
+        recentBranches={recentBranches}
         filterText={this.state.filterText}
+        textbox={this.textbox!}
+        canCreateNewBranch={false}
+        onItemClick={this.onBranchItemClick}
         onFilterTextChanged={this.onBranchFilterTextChanged}
         selectedBranch={this.state.selectedBranch}
         onSelectionChanged={this.onBranchSelectionChanged}
-        canCreateNewBranch={true}
       />
     )
   }
@@ -154,7 +169,12 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderMergeCTA() {
-    const branch = this.props.repositoryState.compareState.branch
+    const tip = this.props.repositoryState.branchesState.tip
+    if (tip.kind !== TipState.Valid) {
+      return null
+    }
+
+    const branch = tip.branch
     return (
       <div>
         <Button type="submit" disabled={true} onClick={this.onMergeClicked}>
@@ -195,42 +215,6 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private renderSelectList() {
-    const options = new Array<JSX.Element>()
-    const currentBranch = this.props.repositoryState.compareState.branch
-    const branchesState = this.props.repositoryState.branchesState
-    const allBranches = currentBranch
-      ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
-      : branchesState.allBranches
-
-    options.push(
-      <option value={-1} key={-1}>
-        None
-      </option>
-    )
-
-    let selectedIndex = -1
-    for (const [index, branch] of allBranches.entries()) {
-      const selectedBranch = this.state.selectedBranch
-
-      if (selectedBranch !== null && selectedBranch.name === branch.name) {
-        selectedIndex = index
-      }
-
-      options.push(
-        <option value={index} key={branch.name}>
-          {branch.name}
-        </option>
-      )
-    }
-
-    return (
-      <select value={selectedIndex.toString()} onChange={this.onBranchChanged}>
-        {options}
-      </select>
-    )
-  }
-
   private onRadioButtonChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const compareType = event.currentTarget.value as CompareType
 
@@ -241,32 +225,6 @@ export class CompareSidebar extends React.Component<
     )
 
     this.setState({ compareType })
-  }
-
-  private onBranchChanged = (event: React.FormEvent<HTMLSelectElement>) => {
-    // options are 0-indexed, option.value is -1-indexed
-    const index = parseInt(event.currentTarget.value, 10) + 1
-    const branchName =
-      index > 0 ? event.currentTarget.options[index].text : null
-    const allBranches = this.props.repositoryState.branchesState.allBranches
-    const branch =
-      allBranches.find(branch => branch.name === branchName) || null
-    const compareType =
-      branch === null
-        ? CompareType.Default
-        : this.state.compareType === CompareType.Default
-          ? CompareType.Behind
-          : CompareType.Ahead
-
-    this.props.dispatcher.loadCompareState(
-      this.props.repository,
-      branch,
-      compareType
-    )
-    this.setState({
-      compareType,
-      selectedBranch: branch,
-    })
   }
 
   private onCommitSelected = (commit: Commit) => {
@@ -298,8 +256,23 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
-    this.setState({ selectedBranch })
+  private onBranchSelectionChanged = (branch: Branch | null) => {
+    const compareType =
+      branch === null
+        ? CompareType.Default
+        : this.state.compareType === CompareType.Default
+          ? CompareType.Behind
+          : CompareType.Ahead
+
+    this.props.dispatcher.loadCompareState(
+      this.props.repository,
+      branch,
+      compareType
+    )
+    this.setState({
+      compareType,
+      selectedBranch: branch,
+    })
   }
 
   private onBranchFilterTextChanged = (text: string) => {
@@ -322,10 +295,6 @@ export class CompareSidebar extends React.Component<
 
   private onTextBoxBlurred = () => {
     this.setState({ showFilterList: false })
-  }
-
-  private onTextBoxValueChanged = (value: string) => {
-    this.setState({ filterText: value })
   }
 
   private onTextBoxRef = (textbox: TextBox) => {
