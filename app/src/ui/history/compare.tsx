@@ -292,7 +292,11 @@ export class CompareSidebar extends React.Component<
   }
 
   private onBranchFilterTextChanged = (text: string) => {
-    this.setState({ filterText: text })
+    const branch =
+      this.getBranchState().branches.find(b => b.name === text.toLowerCase()) ||
+      null
+
+    this.setState({ filterText: text, selectedBranch: branch })
   }
 
   private onBranchItemClick = (branch: Branch) => {
