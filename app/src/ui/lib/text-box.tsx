@@ -138,11 +138,18 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
    * (i.e. if it's not disabled explicitly or implicitly through for example a fieldset).
    */
   public focus() {
-    if (this.inputElement === null) {
-      return
+    if (this.inputElement !== null) {
+      this.inputElement.focus()
     }
+  }
 
-    this.inputElement.focus()
+  /**
+   * Programmatically removes keyboard focus from the inner text input element
+   */
+  public blur() {
+    if (this.inputElement !== null) {
+      this.inputElement.blur()
+    }
   }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
