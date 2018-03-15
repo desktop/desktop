@@ -6,7 +6,7 @@ We have three channels to which we can release: `production`, `beta`, and `test`
 
 - `production` is the channel from which the general public downloads and receives updates. It should be stable and polished.
 
-- `beta` is released more often than `production`. We want to ensure master is always in a state where it can be released to users, so it should be used as the source for beta releases as an opportunity for additional QA before releasing to production.
+- `beta` is released more often than `production`. We want to ensure `master` is always in a state where it can be released to users, so it should be used as the source for `beta` releases as an opportunity for additional QA before releasing to `production`.
 
 - `test` is unlike the other two. It does not receive updates. Each test release is locked in time. It's used entirely for providing test releases.
 
