@@ -88,7 +88,7 @@ export class CompareSidebar extends React.Component<
           name="ahead-behind"
           value={CompareType.Behind}
           checked={compareType === CompareType.Behind}
-          onClick={this.onRadioButtonClicked}
+          onChange={this.onRadioButtonChanged}
         />
         <label htmlFor="compare-behind">
           {`Behind (${this.props.state.behind})`}
@@ -99,7 +99,7 @@ export class CompareSidebar extends React.Component<
           name="ahead-behind"
           value={CompareType.Ahead}
           checked={compareType === CompareType.Ahead}
-          onClick={this.onRadioButtonClicked}
+          onChange={this.onRadioButtonChanged}
         />
         <label htmlFor="compare-ahead">
           {`Ahead (${this.props.state.ahead})`}
@@ -138,7 +138,7 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private onRadioButtonClicked = (event: React.FormEvent<HTMLInputElement>) => {
+  private onRadioButtonChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const compareType = event.currentTarget.value as CompareType
     const selectedBranchIndex = this.state.selectedBranchIndex
     const branch =
