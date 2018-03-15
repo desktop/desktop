@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
-import { CompareType, IRepositoryState, FoldoutType } from '../../lib/app-state'
+import { CompareType, IRepositoryState } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
@@ -25,7 +25,8 @@ interface ICompareSidebarProps {
 }
 
 interface ICompareSidebarState {
-  readonly selectedBranch: Branch | null
+  readonly currentBranch: Branch | null
+  readonly selectedBranchListItem: Branch | null
   readonly compareType: CompareType
   readonly filterText: string
   readonly showFilterList: boolean
@@ -44,8 +45,11 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
+    const { defaultBranch } = this.getBranchState()
+
     this.state = {
-      selectedBranch: null,
+      currentBranch: defaultBranch,
+      selectedBranchListItem: defaultBranch,
       filterText: '',
       showFilterList: false,
       compareType: CompareType.Default,
@@ -55,7 +59,7 @@ export class CompareSidebar extends React.Component<
   public componentWillMount() {
     this.props.dispatcher.loadCompareState(
       this.props.repository,
-      this.state.selectedBranch,
+      this.state.selectedBranchListItem,
       CompareType.Default
     )
   }
@@ -66,14 +70,14 @@ export class CompareSidebar extends React.Component<
 
   public componentDidMount() {
     if (this.textbox !== null && this.state.showFilterList) {
-      // this.state.showFilterList && this.textbox.focus()
+      this.state.showFilterList && this.textbox.focus()
     }
   }
 
   public render() {
-    const { showFilterList, selectedBranch } = this.state
+    const { showFilterList, selectedBranchListItem } = this.state
     const defaultBranch = this.props.repositoryState.branchesState.defaultBranch
-    const placeholderBranch = selectedBranch || defaultBranch
+    const placeholderBranch = selectedBranchListItem || defaultBranch
 
     return (
       <div id="compare-view">
@@ -96,12 +100,12 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderCommits() {
-    const { compareType, selectedBranch } = this.state
+    const { compareType, selectedBranchListItem } = this.state
     const compareState = this.props.repositoryState.compareState
 
     return (
       <div>
-        {selectedBranch ? this.renderRadioButtons() : null}
+        {selectedBranchListItem ? this.renderRadioButtons() : null}
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}
           commitLookup={this.props.commitLookup}
@@ -115,7 +119,7 @@ export class CompareSidebar extends React.Component<
           onCommitSelected={this.onCommitSelected}
           onScroll={this.onScroll}
         />
-        {selectedBranch && compareType === CompareType.Ahead
+        {selectedBranchListItem && compareType === CompareType.Ahead
           ? this.renderMergeCTA()
           : null}
       </div>
@@ -123,26 +127,21 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderFilterList() {
-    const {
-      currentBranch,
-      branches,
-      recentBranches,
-      defaultBranch,
-    } = this.getBranchState()
+    const { branches, recentBranches, defaultBranch } = this.getBranchState()
 
     return (
       <BranchList
         defaultBranch={defaultBranch}
-        currentBranch={currentBranch || defaultBranch}
+        currentBranch={this.state.currentBranch}
         allBranches={branches}
         recentBranches={recentBranches}
         filterText={this.state.filterText}
         textbox={this.textbox!}
+        selectedBranch={this.state.selectedBranchListItem}
         canCreateNewBranch={false}
-        onItemClick={this.onBranchItemClick}
+        onSelectionChanged={this.onSelectionChanged}
         onFilterTextChanged={this.onBranchFilterTextChanged}
-        selectedBranch={this.state.selectedBranch}
-        onSelectionChanged={this.onBranchSelectionChanged}
+        onItemClick={this.onItemClicked}
       />
     )
   }
@@ -161,7 +160,7 @@ export class CompareSidebar extends React.Component<
         <p>{`This will merge ${count} ${pluralized}`}</p>
         <br />
         <p>
-          from <strong>{this.state.selectedBranch!.name}</strong>
+          from <strong>{this.state.selectedBranchListItem!.name}</strong>
         </p>
       </div>
     )
@@ -238,7 +237,7 @@ export class CompareSidebar extends React.Component<
 
     this.props.dispatcher.loadCompareState(
       this.props.repository,
-      this.state.selectedBranch,
+      this.state.selectedBranchListItem,
       compareType
     )
 
@@ -267,20 +266,28 @@ export class CompareSidebar extends React.Component<
   }
 
   private onMergeClicked = (event: React.MouseEvent<any>) => {
-    const branch = this.state.selectedBranch
+    const branch = this.state.selectedBranchListItem
 
     if (branch !== null) {
       this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
     }
   }
 
-  private onBranchSelectionChanged = (branch: Branch | null) => {
+  private onBranchFilterTextChanged = (text: string) => {
+    this.setState({ filterText: text })
+  }
+
+  private onSelectionChanged = (branch: Branch | null) => {
+    this.setState({
+      selectedBranchListItem: branch,
+    })
+  }
+
+  private onItemClicked = (branch: Branch) => {
     const compareType =
-      branch === null
-        ? CompareType.Default
-        : this.state.compareType === CompareType.Default
-          ? CompareType.Behind
-          : CompareType.Ahead
+      this.state.compareType === CompareType.Default
+        ? CompareType.Behind
+        : CompareType.Ahead
 
     this.props.dispatcher.loadCompareState(
       this.props.repository,
@@ -289,26 +296,9 @@ export class CompareSidebar extends React.Component<
     )
     this.setState({
       compareType,
-      selectedBranch: branch,
+      currentBranch: branch,
+      filterText: branch.name,
     })
-  }
-
-  private onBranchFilterTextChanged = (text: string) => {
-    const branch =
-      this.getBranchState().branches.find(b => b.name === text.toLowerCase()) ||
-      null
-
-    this.setState({ filterText: text, selectedBranch: branch })
-  }
-
-  private onBranchItemClick = (branch: Branch) => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
-
-    const currentBranch = this.state.selectedBranch
-
-    if (currentBranch == null || currentBranch.name !== branch.name) {
-      this.props.dispatcher.checkoutBranch(this.props.repository, branch)
-    }
   }
 
   private onTextBoxFocused = () => {
