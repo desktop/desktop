@@ -14,6 +14,7 @@ import {
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { NoBranches } from './no-branches'
+import { TextBox } from '../lib/text-box'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
@@ -91,6 +92,8 @@ interface IBranchListProps {
    * to prepopulate the new branch name field.
    */
   readonly onCreateNewBranch?: (name: string) => void
+
+  readonly textbox?: TextBox
 }
 
 interface IBranchListState {
@@ -222,6 +225,7 @@ export class BranchList extends React.Component<
         invalidationProps={this.props.allBranches}
         renderPostFilter={this.renderNewButton}
         renderNoItems={this.renderNoItems}
+        filterTextBox={this.props.textbox}
       />
     )
   }
