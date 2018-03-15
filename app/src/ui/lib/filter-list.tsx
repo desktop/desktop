@@ -117,6 +117,8 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /** Called when there are no items to render.  */
   readonly renderNoItems?: () => JSX.Element | null
+
+  readonly filterTextBox?: TextBox
 }
 
 interface IFilterListState<T extends IFilterListItem> {
@@ -194,24 +196,36 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
   }
 
+  public renderTextBox() {
+    const filterTextbox = this.props.filterTextBox
+
+    if (filterTextbox != null) {
+      this.filterTextBox = filterTextbox
+      return null
+    }
+
+    return (
+      <TextBox
+        ref={this.onTextBoxRef}
+        type="search"
+        autoFocus={true}
+        placeholder="Filter"
+        className="filter-list-filter-field"
+        onValueChanged={this.onFilterValueChanged}
+        onKeyDown={this.onKeyDown}
+        value={this.props.filterText}
+        disabled={this.props.disabled}
+      />
+    )
+  }
+
   public render() {
     return (
       <div className={classnames('filter-list', this.props.className)}>
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         <Row className="filter-field-row">
-          <TextBox
-            ref={this.onTextBoxRef}
-            type="search"
-            autoFocus={true}
-            placeholder="Filter"
-            className="filter-list-filter-field"
-            onValueChanged={this.onFilterValueChanged}
-            onKeyDown={this.onKeyDown}
-            value={this.props.filterText}
-            disabled={this.props.disabled}
-          />
-
+          {this.renderTextBox()}
           {this.props.renderPostFilter ? this.props.renderPostFilter() : null}
         </Row>
 
