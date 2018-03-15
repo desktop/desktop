@@ -38,6 +38,7 @@ export class CompareSidebar extends React.Component<
   ICompareSidebarProps,
   ICompareSidebarState
 > {
+  private textbox: TextBox | null = null
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
   public constructor(props: ICompareSidebarProps) {
@@ -59,16 +60,22 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  public componentWillUnmount() {
+    this.textbox = null
+  }
   public render() {
-    const { showFilterList } = this.state
+    const { showFilterList, selectedBranch } = this.state
     const defaultBranch = this.props.repositoryState.branchesState.defaultBranch
+    const placeholderBranch = selectedBranch || defaultBranch
 
     return (
       <div id="compare-view">
-        {this.renderSelectList()}
         <TextBox
           type="search"
-          placeholder={(defaultBranch && defaultBranch.name) || 'master'}
+          ref={this.onTextBoxRef}
+          placeholder={
+            (placeholderBranch && placeholderBranch.name) || 'master'
+          }
           onFocus={this.onTextBoxFocused}
           onBlur={this.onTextBoxBlurred}
           value={this.state.filterText}
@@ -319,5 +326,9 @@ export class CompareSidebar extends React.Component<
 
   private onTextBoxValueChanged = (value: string) => {
     this.setState({ filterText: value })
+  }
+
+  private onTextBoxRef = (textbox: TextBox) => {
+    this.textbox = textbox
   }
 }
