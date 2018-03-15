@@ -16,12 +16,19 @@ We have three channels to which we can release: `production`, `beta`, and `test`
 
 From a clean working directory, set the `GITHUB_ACCESS_TOKEN` environment variable to a valid [Personal Access Token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) 
 
-You can check that this is set on macOS or via Git Bash (Windows) by:
+To check that this environment variable is set in your shell:
+
+**Bash (macOS, Linux or Git Bash)**
 ```shellsession
 $ echo $GITHUB_ACCESS_TOKEN
 ```
 
-You can check that this is set on Windows (PowerShell) by:
+**Command Prompt**
+```shellsession
+$ echo %GITHUB_ACCESS_TOKEN%
+```
+
+**PowerShell**
 ```shellsession
 $ echo $env:GITHUB_ACCESS_TOKEN
 ```
@@ -30,14 +37,21 @@ If you are creating a new Personal Access Token on GitHub:
 * make the token memorable - use a description like `Desktop Draft Release and Changelog Generator`
 * the `read:org` scope is the **only** required scope for drafting releases
 
-You can add an access token as an environment variable on macOS by: 
+To set this access token as an environment in your shell: 
+
+**Bash (macOS, Linux or Git Bash)**
 ```shellsession
 $ export GITHUB_ACCESS_TOKEN={your token here}
 ```
 
-You can add an access token as an environment variable on Windows by: 
+**Command Prompt**
 ```shellsession
 $ set GITHUB_ACCESS_TOKEN={your token here}
+```
+
+**PowerShell**
+```shellsession
+$ $env:GITHUB_ACCESS_TOKEN="{your token here}"
 ```
 
 ### 2. Create Draft Release
