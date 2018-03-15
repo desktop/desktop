@@ -80,6 +80,26 @@ export class CompareSidebar extends React.Component<
     )
   }
 
+  private renderMergeCTAMessage() {
+    const count = this.props.state.behind
+
+    if (count === 0) {
+      return null
+    }
+
+    const pluralized = count > 1 ? 'commits' : 'commit'
+
+    return (
+      <div>
+        <p>{`This will merge ${count} ${pluralized}`}</p>
+        <br />
+        <p>
+          from <strong>{this.state.selectedBranch!.name}</strong>
+        </p>
+      </div>
+    )
+  }
+
   private renderMergeCTA() {
     return (
       <div>
