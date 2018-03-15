@@ -146,64 +146,6 @@ export class BranchList extends React.Component<
     this.state = createState(props)
   }
 
-  private renderItem = (
-    item: IBranchListItem,
-    matches: ReadonlyArray<number>
-  ) => {
-    const branch = item.branch
-    const commit = branch.tip
-    const currentBranchName = this.props.currentBranch
-      ? this.props.currentBranch.name
-      : null
-    return (
-      <BranchListItem
-        name={branch.name}
-        isCurrentBranch={branch.name === currentBranchName}
-        lastCommitDate={commit ? commit.author.date : null}
-        matches={matches}
-      />
-    )
-  }
-
-  private getGroupLabel(identifier: BranchGroupIdentifier) {
-    if (identifier === 'default') {
-      return __DARWIN__ ? 'Default Branch' : 'Default branch'
-    } else if (identifier === 'recent') {
-      return __DARWIN__ ? 'Recent Branches' : 'Recent branches'
-    } else if (identifier === 'other') {
-      return __DARWIN__ ? 'Other Branches' : 'Other branches'
-    } else {
-      return assertNever(identifier, `Unknown identifier: ${identifier}`)
-    }
-  }
-
-  private renderGroupHeader = (id: string) => {
-    const identifier = id as BranchGroupIdentifier
-    return (
-      <div className="branches-list-content filter-list-group-header">
-        {this.getGroupLabel(identifier)}
-      </div>
-    )
-  }
-
-  private onItemClick = (item: IBranchListItem) => {
-    if (this.props.onItemClick) {
-      this.props.onItemClick(item.branch)
-    }
-  }
-
-  private onSelectionChanged = (
-    selectedItem: IBranchListItem | null,
-    source: SelectionSource
-  ) => {
-    if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(
-        selectedItem ? selectedItem.branch : null,
-        source
-      )
-    }
-  }
-
   public componentWillReceiveProps(nextProps: IBranchListProps) {
     this.setState(createState(nextProps))
   }
@@ -223,14 +165,54 @@ export class BranchList extends React.Component<
         onSelectionChanged={this.onSelectionChanged}
         groups={this.state.groups}
         invalidationProps={this.props.allBranches}
-        renderPostFilter={this.renderNewButton}
-        renderNoItems={this.renderNoItems}
+        renderPostFilter={this.onRenderNewButton}
+        renderNoItems={this.onRenderNoItems}
         filterTextBox={this.props.textbox}
       />
     )
   }
 
-  private renderNoItems = () => {
+  private renderItem = (
+    item: IBranchListItem,
+    matches: ReadonlyArray<number>
+  ) => {
+    const branch = item.branch
+    const commit = branch.tip
+    const currentBranchName = this.props.currentBranch
+      ? this.props.currentBranch.name
+      : null
+    return (
+      <BranchListItem
+        name={branch.name}
+        isCurrentBranch={branch.name === currentBranchName}
+        lastCommitDate={commit ? commit.author.date : null}
+        matches={matches}
+      />
+    )
+  }
+
+  private renderGroupHeader = (id: string) => {
+    const identifier = id as BranchGroupIdentifier
+    return (
+      <div className="branches-list-content filter-list-group-header">
+        {this.getGroupLabel(identifier)}
+      </div>
+    )
+  }
+
+  private getGroupLabel(identifier: BranchGroupIdentifier) {
+    if (identifier === 'default') {
+      return __DARWIN__ ? 'Default Branch' : 'Default branch'
+    } else if (identifier === 'recent') {
+      return __DARWIN__ ? 'Recent Branches' : 'Recent branches'
+    } else if (identifier === 'other') {
+      return __DARWIN__ ? 'Other Branches' : 'Other branches'
+    } else {
+      return assertNever(identifier, `Unknown identifier: ${identifier}`)
+    }
+  }
+
+  private onRenderNoItems = () => {
     return (
       <NoBranches
         onCreateNewBranch={this.onCreateNewBranch}
@@ -239,7 +221,7 @@ export class BranchList extends React.Component<
     )
   }
 
-  private renderNewButton = () => {
+  private onRenderNewButton = () => {
     if (this.props.canCreateNewBranch) {
       return (
         <Button className="new-branch-button" onClick={this.onCreateNewBranch}>
@@ -248,6 +230,24 @@ export class BranchList extends React.Component<
       )
     } else {
       return null
+    }
+  }
+
+  private onItemClick = (item: IBranchListItem) => {
+    if (this.props.onItemClick) {
+      this.props.onItemClick(item.branch)
+    }
+  }
+
+  private onSelectionChanged = (
+    selectedItem: IBranchListItem | null,
+    source: SelectionSource
+  ) => {
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(
+        selectedItem ? selectedItem.branch : null,
+        source
+      )
     }
   }
 
