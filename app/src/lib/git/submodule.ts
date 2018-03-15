@@ -100,7 +100,7 @@ export async function forceUpdateSubmodule(
 
 export async function updateSubmodules(repository: Repository): Promise<void> {
   await git(
-    ['submodule', 'update', '--recursive', '--all'],
+    ['submodule', 'update', '--recursive'],
     repository.path,
     'updateSubmodules'
   )
