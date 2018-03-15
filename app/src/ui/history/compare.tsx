@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
-import { ICompareState, CompareType } from '../../lib/app-state'
+import { CompareType, IRepositoryState, FoldoutType } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
@@ -11,9 +11,8 @@ import { Button } from '../lib/button'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
+  readonly repositoryState: IRepositoryState
   readonly gitHubUsers: Map<string, IGitHubUser>
-  readonly state: ICompareState
-  readonly branches: ReadonlyArray<Branch>
   readonly emoji: Map<string, string>
   readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
@@ -81,7 +80,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderMergeCTAMessage() {
-    const count = this.props.state.behind
+    const count = this.props.repositoryState.compareState.behind
 
     if (count === 0) {
       return null
@@ -101,10 +100,11 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderMergeCTA() {
+    const branch = this.props.repositoryState.compareState.branch
     return (
       <div>
-        <Button type="submit" onClick={this.onMergeClicked}>
-          Merge into {this.props.state.branch!.name}
+        <Button type="submit" disabled={true} onClick={this.onMergeClicked}>
+          Merge into {branch!.name}
         </Button>
         {this.renderMergeCTAMessage()}
       </div>
@@ -113,6 +113,7 @@ export class CompareSidebar extends React.Component<
 
   private renderRadioButtons() {
     const compareType = this.state.compareType
+    const compareState = this.props.repositoryState.compareState
 
     return (
       <div>
@@ -125,7 +126,7 @@ export class CompareSidebar extends React.Component<
           onChange={this.onRadioButtonChanged}
         />
         <label htmlFor="compare-behind">
-          {`Behind (${this.props.state.behind})`}
+          {`Behind (${compareState.behind})`}
         </label>
         <input
           id="compare-ahead"
@@ -135,15 +136,19 @@ export class CompareSidebar extends React.Component<
           checked={compareType === CompareType.Ahead}
           onChange={this.onRadioButtonChanged}
         />
-        <label htmlFor="compare-ahead">
-          {`Ahead (${this.props.state.ahead})`}
-        </label>
+        <label htmlFor="compare-ahead">{`Ahead (${compareState.ahead})`}</label>
       </div>
     )
   }
 
   private renderSelectList() {
     const options = new Array<JSX.Element>()
+    const currentBranch = this.props.repositoryState.compareState.branch
+    const branchesState = this.props.repositoryState.branchesState
+    const allBranches = currentBranch
+      ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
+      : branchesState.allBranches
+
     options.push(
       <option value={-1} key={-1}>
         None
@@ -151,7 +156,7 @@ export class CompareSidebar extends React.Component<
     )
 
     let selectedIndex = -1
-    for (const [index, branch] of this.props.branches.entries()) {
+    for (const [index, branch] of allBranches.entries()) {
       const selectedBranch = this.state.selectedBranch
 
       if (selectedBranch !== null && selectedBranch.name === branch.name) {
@@ -189,8 +194,9 @@ export class CompareSidebar extends React.Component<
     const index = parseInt(event.currentTarget.value, 10) + 1
     const branchName =
       index > 0 ? event.currentTarget.options[index].text : null
+    const allBranches = this.props.repositoryState.branchesState.allBranches
     const branch =
-      this.props.branches.find(branch => branch.name === branchName) || null
+      allBranches.find(branch => branch.name === branchName) || null
     const compareType =
       branch === null
         ? CompareType.Default
@@ -223,7 +229,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onScroll = (start: number, end: number) => {
-    const commits = this.props.state.commitSHAs
+    const commits = this.props.repositoryState.compareState.commitSHAs
 
     if (commits.length - end <= CloseToBottomThreshold) {
       this.props.dispatcher.loadNextHistoryBatch(this.props.repository)
