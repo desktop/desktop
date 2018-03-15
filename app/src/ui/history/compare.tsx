@@ -9,6 +9,9 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { Button } from '../lib/button'
 
+import { BranchList } from '../branches'
+import { TextBox } from '../lib/text-box'
+
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly repositoryState: IRepositoryState
@@ -24,6 +27,8 @@ interface ICompareSidebarProps {
 interface ICompareSidebarState {
   readonly selectedBranch: Branch | null
   readonly compareType: CompareType
+  readonly filterText: string
+  readonly showFilterList: boolean
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -40,6 +45,8 @@ export class CompareSidebar extends React.Component<
 
     this.state = {
       selectedBranch: null,
+      filterText: '',
+      showFilterList: false,
       compareType: CompareType.Default,
     }
   }
@@ -53,17 +60,37 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const { compareType, selectedBranch } = this.state
+    const { showFilterList } = this.state
+    const defaultBranch = this.props.repositoryState.branchesState.defaultBranch
 
     return (
       <div id="compare-view">
         {this.renderSelectList()}
+        <TextBox
+          type="search"
+          placeholder={(defaultBranch && defaultBranch.name) || 'master'}
+          onFocus={this.onTextBoxFocused}
+          onBlur={this.onTextBoxBlurred}
+          value={this.state.filterText}
+          onValueChanged={this.onTextBoxValueChanged}
+        />
+        {showFilterList ? this.renderFilterList() : this.renderCommits()}
+      </div>
+    )
+  }
+
+  private renderCommits() {
+    const { compareType, selectedBranch } = this.state
+    const compareState = this.props.repositoryState.compareState
+
+    return (
+      <div>
         {selectedBranch ? this.renderRadioButtons() : null}
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}
           commitLookup={this.props.commitLookup}
-          commitSHAs={this.props.state.commitSHAs}
-          selectedSHA={this.props.state.selection.sha}
+          commitSHAs={compareState.commitSHAs}
+          selectedSHA={compareState.selection.sha}
           gitHubUsers={this.props.gitHubUsers}
           localCommitSHAs={this.props.localCommitSHAs}
           emoji={this.props.emoji}
@@ -76,6 +103,26 @@ export class CompareSidebar extends React.Component<
           ? this.renderMergeCTA()
           : null}
       </div>
+    )
+  }
+
+  private renderFilterList() {
+    const repositoryState = this.props.repositoryState
+    const branchesState = repositoryState.branchesState
+
+    return (
+      <BranchList
+        defaultBranch={branchesState.defaultBranch}
+        currentBranch={this.state.selectedBranch}
+        allBranches={branchesState.allBranches}
+        recentBranches={branchesState.recentBranches}
+        onItemClick={this.onBranchItemClick}
+        filterText={this.state.filterText}
+        onFilterTextChanged={this.onBranchFilterTextChanged}
+        selectedBranch={this.state.selectedBranch}
+        onSelectionChanged={this.onBranchSelectionChanged}
+        canCreateNewBranch={true}
+      />
     )
   }
 
@@ -242,5 +289,35 @@ export class CompareSidebar extends React.Component<
     if (branch !== null) {
       this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
     }
+  }
+
+  private onBranchSelectionChanged = (selectedBranch: Branch | null) => {
+    this.setState({ selectedBranch })
+  }
+
+  private onBranchFilterTextChanged = (text: string) => {
+    this.setState({ filterText: text })
+  }
+
+  private onBranchItemClick = (branch: Branch) => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+
+    const currentBranch = this.state.selectedBranch
+
+    if (currentBranch == null || currentBranch.name !== branch.name) {
+      this.props.dispatcher.checkoutBranch(this.props.repository, branch)
+    }
+  }
+
+  private onTextBoxFocused = () => {
+    this.setState({ showFilterList: true })
+  }
+
+  private onTextBoxBlurred = () => {
+    this.setState({ showFilterList: false })
+  }
+
+  private onTextBoxValueChanged = (value: string) => {
+    this.setState({ filterText: value })
   }
 }
