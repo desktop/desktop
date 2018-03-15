@@ -228,4 +228,12 @@ export class CompareSidebar extends React.Component<
       this.props.dispatcher.loadNextHistoryBatch(this.props.repository)
     }
   }
+
+  private onMergeClicked = (event: React.MouseEvent<any>) => {
+    const branch = this.state.selectedBranch
+
+    if (branch !== null) {
+      this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
+    }
+  }
 }
