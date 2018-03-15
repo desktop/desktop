@@ -185,7 +185,8 @@ export class CompareSidebar extends React.Component<
   }
 
   private onBranchChanged = (event: React.FormEvent<HTMLSelectElement>) => {
-    const index = parseInt(event.currentTarget.value, 10)
+    // options are 0-indexed, option.value is -1-indexed
+    const index = parseInt(event.currentTarget.value, 10) + 1
     const branchName =
       index > 0 ? event.currentTarget.options[index].text : null
     const branch =
