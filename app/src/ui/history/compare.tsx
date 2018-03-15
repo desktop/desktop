@@ -81,7 +81,9 @@ export class CompareSidebar extends React.Component<
           type="search"
           ref={this.onTextBoxRef}
           placeholder={
-            (placeholderBranch && placeholderBranch.name) || 'master'
+            (placeholderBranch && placeholderBranch.name) || __DARWIN__
+              ? 'Select Branch'
+              : 'Select branch'
           }
           onFocus={this.onTextBoxFocused}
           onBlur={this.onTextBoxBlurred}
