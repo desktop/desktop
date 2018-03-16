@@ -152,19 +152,19 @@ export function buildDefaultMenu(
       },
       separator,
       {
+        label: __DARWIN__ ? 'Reset Zoom' : 'Reset zoom',
+        accelerator: 'CmdOrCtrl+0',
+        click: zoom(ZoomDirection.Reset),
+      },
+      {
         label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
-        accelerator: 'CmdOrCtrl+=',
+        accelerator: 'CmdOrCtrl+Plus',
         click: zoom(ZoomDirection.In),
       },
       {
         label: __DARWIN__ ? 'Zoom Out' : 'Zoom out',
         accelerator: 'CmdOrCtrl+-',
         click: zoom(ZoomDirection.Out),
-      },
-      {
-        label: __DARWIN__ ? 'Reset Zoom' : 'Reset zoom',
-        accelerator: 'CmdOrCtrl+0',
-        click: zoom(ZoomDirection.Reset),
       },
       separator,
       {
