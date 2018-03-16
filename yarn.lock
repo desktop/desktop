@@ -144,6 +144,10 @@
   dependencies:
     "@types/node" "*"
 
+"@types/textarea-caret@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/textarea-caret/-/textarea-caret-3.0.0.tgz#4c5c5e3de5c59511f93ffe929e5383471b828896"
+
 "@types/to-camel-case@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@types/to-camel-case/-/to-camel-case-1.0.0.tgz#927ef0a7294d90b1835466c29b64b8ad2a32d8b5"
