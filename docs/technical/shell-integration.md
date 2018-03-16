@@ -25,6 +25,7 @@ These shells are currently supported:
 
  - Command Prompt (cmd)
  - PowerShell
+ - PowerShell Core
  - [Hyper](https://hyper.sh/)
  - Git Bash (from [Git for Windows](https://git-for-windows.github.io/))
 
@@ -34,6 +35,7 @@ These are defined in an enum at the top of the file:
 export enum Shell {
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
+  PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
 }
