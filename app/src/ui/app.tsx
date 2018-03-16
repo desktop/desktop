@@ -1379,9 +1379,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repository) {
       icon = iconForRepository(repository)
       title = repository.name
-    } else {
+    } else if (this.state.repositories.length > 0) {
       icon = OcticonSymbol.repo
       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
+    } else {
+      icon = OcticonSymbol.question
+      title = __DARWIN__ ? 'No Repositories' : 'No repositories'
     }
 
     const isOpen =
