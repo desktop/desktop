@@ -9,6 +9,7 @@ import { IFoundShell } from './found-shell'
 export enum Shell {
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
+  PowerShellCore = 'PowerShellCore',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
 }
@@ -22,6 +23,10 @@ export function parse(label: string): Shell {
 
   if (label === Shell.PowerShell) {
     return Shell.PowerShell
+  }
+  
+  if (label === Shell.PowerShellCore) {
+    return Shell.PowerShellCore
   }
 
   if (label === Shell.Hyper) {
@@ -50,6 +55,14 @@ export async function getAvailableShells(): Promise<
     shells.push({
       shell: Shell.PowerShell,
       path: powerShellPath,
+    })
+  }
+  
+  const powerShellCorePath = await findPowerShellCore()
+  if (powerShellCorePath != null) {
+    shells.push({
+      shell: Shell.PowerShellCore,
+      path: powerShellCorePath,
     })
   }
 
@@ -104,6 +117,30 @@ async function findPowerShell(): Promise<string | null> {
     } else {
       log.debug(
         `[PowerShell] registry entry found but does not exist at '${path}'`
+      )
+    }
+  }
+
+  return null
+}
+  
+async function findPowerShellCore(): Promise<string | null> {
+  const powerShellCore = enumerateValues(
+    HKEY.HKEY_LOCAL_MACHINE,
+    'Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pwsh.exe'
+  )
+
+  if (powerShellCore.length === 0) {
+    return null
+  }
+
+  const first = powerShellCore[0]
+  if (first.type === RegistryValueType.REG_SZ) {
+    if (await pathExists(path)) {
+      return path
+    } else {
+      log.debug(
+        `[PowerShellCore] registry entry found but does not exist at '${path}'`
       )
     }
   }
