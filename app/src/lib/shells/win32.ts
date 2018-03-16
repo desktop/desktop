@@ -136,8 +136,10 @@ async function findPowerShellCore(): Promise<string | null> {
 
   const first = powerShellCore[0]
   if (first.type === RegistryValueType.REG_SZ) {
-    if (await pathExists(first.data)) {
-      return first.data
+    const path = first.data
+
+    if (await pathExists(path)) {
+      return path
     } else {
       log.debug(
         `[PowerShellCore] registry entry found but does not exist at '${path}'`
@@ -215,6 +217,12 @@ export function launch(
     case Shell.PowerShell:
       const psCommand = `"Set-Location -LiteralPath '${path}'"`
       return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.PowerShellCore:
+      const psCommand = `"Set-Location -LiteralPath '${path}'"`
+      return spawn('START', ['pwsh', '-NoExit', '-Command', psCommand], {
         shell: true,
         cwd: path,
       })
