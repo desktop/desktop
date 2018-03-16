@@ -15,7 +15,7 @@
   // the list item doesn't have active focus. If it does we
   // fall back to using the ambient foreground color of the
   // list item.
-  .list-item:not(:focus) {
+  .list-item:not(.selected) {
     @include octicon-status;
   }
 
