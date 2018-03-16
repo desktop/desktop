@@ -221,8 +221,8 @@ export function launch(
         cwd: path,
       })
     case Shell.PowerShellCore:
-      const psCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn('START', ['pwsh', '-NoExit', '-Command', psCommand], {
+      const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
+      return spawn('START', ['pwsh', '-NoExit', '-Command', psCoreCommand], {
         shell: true,
         cwd: path,
       })
