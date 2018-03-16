@@ -24,7 +24,7 @@ export function parse(label: string): Shell {
   if (label === Shell.PowerShell) {
     return Shell.PowerShell
   }
-  
+
   if (label === Shell.PowerShellCore) {
     return Shell.PowerShellCore
   }
@@ -57,7 +57,7 @@ export async function getAvailableShells(): Promise<
       path: powerShellPath,
     })
   }
-  
+
   const powerShellCorePath = await findPowerShellCore()
   if (powerShellCorePath != null) {
     shells.push({
@@ -123,7 +123,7 @@ async function findPowerShell(): Promise<string | null> {
 
   return null
 }
-  
+
 async function findPowerShellCore(): Promise<string | null> {
   const powerShellCore = enumerateValues(
     HKEY.HKEY_LOCAL_MACHINE,
