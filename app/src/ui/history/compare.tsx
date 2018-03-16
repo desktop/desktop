@@ -142,7 +142,6 @@ export class CompareSidebar extends React.Component<
         canCreateNewBranch={false}
         onSelectionChanged={this.onSelectionChanged}
         onFilterTextChanged={this.onBranchFilterTextChanged}
-        onItemClick={this.onItemClicked}
       />
     )
   }
@@ -301,24 +300,6 @@ export class CompareSidebar extends React.Component<
 
     this.setState({
       selectedBranch,
-    })
-  }
-
-  private onItemClicked = (branch: Branch) => {
-    const compareType =
-      this.state.compareType === CompareType.Default
-        ? CompareType.Behind
-        : CompareType.Ahead
-
-    this.props.dispatcher.loadCompareState(
-      this.props.repository,
-      branch,
-      compareType
-    )
-    this.setState({
-      compareType,
-      selectedBranch: branch,
-      filterText: branch.name,
     })
   }
 
