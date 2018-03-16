@@ -25,8 +25,7 @@ interface ICompareSidebarProps {
 }
 
 interface ICompareSidebarState {
-  readonly currentBranch: Branch | null
-  readonly selectedBranchListItem: Branch | null
+  readonly selectedBranch: Branch | null
   readonly compareType: CompareType
   readonly filterText: string
   readonly showFilterList: boolean
@@ -45,11 +44,8 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
-    const { defaultBranch } = this.getBranchState()
-
     this.state = {
-      currentBranch: defaultBranch,
-      selectedBranchListItem: defaultBranch,
+      selectedBranch: null,
       filterText: '',
       showFilterList: false,
       compareType: CompareType.Default,
@@ -59,7 +55,7 @@ export class CompareSidebar extends React.Component<
   public componentWillMount() {
     this.props.dispatcher.loadCompareState(
       this.props.repository,
-      this.state.selectedBranchListItem,
+      this.state.selectedBranch,
       CompareType.Default
     )
   }
@@ -75,9 +71,8 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const { showFilterList, selectedBranchListItem } = this.state
+    const { showFilterList, selectedBranch } = this.state
     const defaultBranch = this.props.repositoryState.branchesState.defaultBranch
-    const placeholderBranch = selectedBranchListItem || defaultBranch
 
     return (
       <div id="compare-view">
@@ -100,12 +95,12 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderCommits() {
-    const { compareType, selectedBranchListItem } = this.state
+    const { compareType, selectedBranch } = this.state
     const compareState = this.props.repositoryState.compareState
 
     return (
       <div>
-        {selectedBranchListItem ? this.renderRadioButtons() : null}
+        {selectedBranch ? this.renderRadioButtons() : null}
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}
           commitLookup={this.props.commitLookup}
@@ -119,7 +114,7 @@ export class CompareSidebar extends React.Component<
           onCommitSelected={this.onCommitSelected}
           onScroll={this.onScroll}
         />
-        {selectedBranchListItem && compareType === CompareType.Ahead
+        {selectedBranch && compareType === CompareType.Ahead
           ? this.renderMergeCTA()
           : null}
       </div>
@@ -127,17 +122,22 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderFilterList() {
-    const { branches, recentBranches, defaultBranch } = this.getBranchState()
+    const {
+      branches,
+      recentBranches,
+      defaultBranch,
+      currentBranch,
+    } = this.branchState
 
     return (
       <BranchList
         defaultBranch={defaultBranch}
-        currentBranch={this.state.currentBranch}
+        currentBranch={currentBranch}
         allBranches={branches}
         recentBranches={recentBranches}
         filterText={this.state.filterText}
         textbox={this.textbox!}
-        selectedBranch={this.state.selectedBranchListItem}
+        selectedBranch={this.state.selectedBranch}
         canCreateNewBranch={false}
         onSelectionChanged={this.onSelectionChanged}
         onFilterTextChanged={this.onBranchFilterTextChanged}
@@ -160,7 +160,7 @@ export class CompareSidebar extends React.Component<
         <p>{`This will merge ${count} ${pluralized}`}</p>
         <br />
         <p>
-          from <strong>{this.state.selectedBranchListItem!.name}</strong>
+          from <strong>{this.state.selectedBranch!.name}</strong>
         </p>
       </div>
     )
@@ -237,7 +237,7 @@ export class CompareSidebar extends React.Component<
 
     this.props.dispatcher.loadCompareState(
       this.props.repository,
-      this.state.selectedBranchListItem,
+      this.state.selectedBranch,
       compareType
     )
 
@@ -266,7 +266,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onMergeClicked = (event: React.MouseEvent<any>) => {
-    const branch = this.state.selectedBranchListItem
+    const branch = this.state.selectedBranch
 
     if (branch !== null) {
       this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
@@ -279,7 +279,7 @@ export class CompareSidebar extends React.Component<
 
   private onSelectionChanged = (branch: Branch | null) => {
     this.setState({
-      selectedBranchListItem: branch,
+      selectedBranch,
     })
   }
 
@@ -296,7 +296,7 @@ export class CompareSidebar extends React.Component<
     )
     this.setState({
       compareType,
-      currentBranch: branch,
+      selectedBranch: branch,
       filterText: branch.name,
     })
   }
