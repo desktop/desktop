@@ -136,8 +136,8 @@ async function findPowerShellCore(): Promise<string | null> {
 
   const first = powerShellCore[0]
   if (first.type === RegistryValueType.REG_SZ) {
-    if (await pathExists(path)) {
-      return path
+    if (await pathExists(first.data)) {
+      return first.data
     } else {
       log.debug(
         `[PowerShellCore] registry entry found but does not exist at '${path}'`
