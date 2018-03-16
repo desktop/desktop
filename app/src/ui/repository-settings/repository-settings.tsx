@@ -190,7 +190,7 @@ export class RepositorySettings extends React.Component<
       try {
         await this.props.dispatcher.saveGitIgnore(
           this.props.repository,
-          this.state.ignoreText || ''
+          this.state.ignoreText
         )
       } catch (e) {
         log.error(
