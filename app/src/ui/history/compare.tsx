@@ -277,6 +277,26 @@ export class CompareSidebar extends React.Component<
   }
 
   private onSelectionChanged = (branch: Branch | null) => {
+    const { branches } = this.branchState
+    const compareType =
+      this.state.compareType === CompareType.Default
+        ? CompareType.Behind
+        : CompareType.Ahead
+
+    let selectedBranch: Branch | null = this.state.selectedBranch
+    if (branch !== null) {
+      const b = branches.find(b => b.name === branch.name) || null
+      if (b) {
+        selectedBranch = b
+      }
+    }
+
+    this.props.dispatcher.loadCompareState(
+      this.props.repository,
+      selectedBranch,
+      compareType
+    )
+
     this.setState({
       selectedBranch,
     })
