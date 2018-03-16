@@ -72,9 +72,7 @@ export class CompareSidebar extends React.Component<
 
   public render() {
     const { showFilterList, selectedBranch } = this.state
-    const defaultBranch = this.props.repositoryState.branchesState.defaultBranch
-    const placeholderBranch = selectedBranch || defaultBranch
-    const placeholderText = placeholderBranch && placeholderBranch.name
+    const placeholderText = selectedBranch && selectedBranch.name
     const selectBranchText = __DARWIN__ ? 'Select Branch' : 'Select branch'
 
     return (
