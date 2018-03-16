@@ -72,15 +72,17 @@ export class CompareSidebar extends React.Component<
 
   public render() {
     const { showFilterList, selectedBranch } = this.state
-    const placeholderText = selectedBranch && selectedBranch.name
-    const selectBranchText = __DARWIN__ ? 'Select Branch' : 'Select branch'
+    const placeholderText =
+      selectedBranch === null
+        ? __DARWIN__ ? 'Select Branch' : 'Select branch'
+        : undefined
 
     return (
       <div id="compare-view">
         <TextBox
           type="search"
           ref={this.onTextBoxRef}
-          placeholder={placeholderText || selectBranchText}
+          placeholder={placeholderText}
           onFocus={this.onTextBoxFocused}
           onBlur={this.onTextBoxBlurred}
           value={this.state.filterText}
