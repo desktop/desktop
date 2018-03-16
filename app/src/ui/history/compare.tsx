@@ -145,25 +145,6 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private get branchState() {
-    const branchesState = this.props.repositoryState.branchesState
-    const tip = branchesState.tip
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-    const branches = currentBranch
-      ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
-      : branchesState.allBranches
-    const recentBranches = currentBranch
-      ? branchesState.recentBranches.filter(b => b.name !== currentBranch.name)
-      : branchesState.recentBranches
-
-    return {
-      currentBranch,
-      branches,
-      recentBranches,
-      defaultBranch: branchesState.defaultBranch,
-    }
-  }
-
   private renderMergeCTAMessage() {
     const count = this.props.repositoryState.compareState.behind
 
@@ -229,6 +210,25 @@ export class CompareSidebar extends React.Component<
         <label htmlFor="compare-ahead">{`Ahead (${compareState.ahead})`}</label>
       </div>
     )
+  }
+
+  private get branchState() {
+    const branchesState = this.props.repositoryState.branchesState
+    const tip = branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    const branches = currentBranch
+      ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
+      : branchesState.allBranches
+    const recentBranches = currentBranch
+      ? branchesState.recentBranches.filter(b => b.name !== currentBranch.name)
+      : branchesState.recentBranches
+
+    return {
+      currentBranch,
+      branches,
+      recentBranches,
+      defaultBranch: branchesState.defaultBranch,
+    }
   }
 
   private onRadioButtonChanged = (event: React.FormEvent<HTMLInputElement>) => {
