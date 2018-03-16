@@ -46,6 +46,8 @@ const electronMochaArgs = [
   'app/test/unit/**/*.{ts,tsx}',
 ]
 
+let exitCode = -1
+
 if (process.platform === 'linux') {
   // xvfb-maybe wraps xvfb-run to ensure Electron tests are run within the
   // context where the DISPLAY environment variable is set. It only runs on
@@ -63,7 +65,11 @@ if (process.platform === 'linux') {
     ...electronMochaArgs,
   ]
 
-  spawnSync(xvfbMaybe, args, options)
+  const result = spawnSync(xvfbMaybe, args, options)
+  exitCode = result.status
 } else {
-  spawnSync(electronMochaPath, electronMochaArgs, options)
+  const result = spawnSync(electronMochaPath, electronMochaArgs, options)
+  exitCode = result.status
 }
+
+process.exitCode = exitCode
