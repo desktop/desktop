@@ -66,7 +66,9 @@ export class CompareSidebar extends React.Component<
 
   public componentDidMount() {
     if (this.textbox !== null && this.state.showFilterList) {
-      this.state.showFilterList && this.textbox.focus()
+      if (this.state.showFilterList) {
+        this.textbox.focus()
+      }
     }
   }
 
