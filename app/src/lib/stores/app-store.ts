@@ -2865,7 +2865,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.repositoriesStore.removeRepository(id)
     }
 
-    const allRepositories =  await this.repositoriesStore.getAll()
+    const allRepositories = await this.repositoriesStore.getAll()
     if (allRepositories.length === 0) {
       this._closeFoldout(FoldoutType.Repository)
     } else {
