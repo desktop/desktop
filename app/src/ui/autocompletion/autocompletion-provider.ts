@@ -22,6 +22,7 @@ export interface IAutocompletionProvider<T> {
    * for variable width auto completion popups depending on type.
    */
   kind: 'emoji' | 'user' | 'issue'
+  
   /**
    * Get the regex which it used to capture text for the provider. The text
    * captured in the first group will then be passed to `getAutocompletionItems`
