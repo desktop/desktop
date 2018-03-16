@@ -9,7 +9,7 @@ import { IFoundShell } from './found-shell'
 export enum Shell {
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
-  PowerShellCore = 'PowerShellCore',
+  PowerShellCore = 'PowerShell Core',
   Hyper = 'Hyper',
   GitBash = 'Git Bash',
 }
