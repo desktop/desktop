@@ -133,7 +133,7 @@ export function launch(
         'pwsh',
         '-NoExit',
         '-Command',
-        psCoreCommand
+        psCoreCommand,
       ])
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
