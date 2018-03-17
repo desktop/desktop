@@ -27,7 +27,7 @@ export function parse(label: string): Shell {
   }
 
   if (label === Shell.PowerShellCore) {
-    return Shell.iTerm2
+    return Shell.PowerShellCore
   }
 
   return Default
