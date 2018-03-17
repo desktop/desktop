@@ -129,7 +129,12 @@ export function launch(
       return spawn(foundShell.path, ['--working-directory', path])
     case Shell.PowerShellCore:
       const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn(foundShell.path, ['pwsh', '-NoExit', '-Command', psCoreCommand])
+      return spawn(foundShell.path, [
+        'pwsh',
+        '-NoExit',
+        '-Command',
+        psCoreCommand
+      ])
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }

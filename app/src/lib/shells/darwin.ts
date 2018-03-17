@@ -60,8 +60,13 @@ async function getShellPath(shell: Shell): Promise<string | null> {
 
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
-  > {
-  const [terminalPath, hyperPath, iTermPath, powerShellCorePath] = await Promise.all([
+> {
+  const [
+    terminalPath,
+    hyperPath,
+    iTermPath,
+    powerShellCorePath
+  ] = await Promise.all([
     getShellPath(Shell.Terminal),
     getShellPath(Shell.Hyper),
     getShellPath(Shell.iTerm2),
