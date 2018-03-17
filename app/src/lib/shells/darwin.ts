@@ -65,7 +65,7 @@ export async function getAvailableShells(): Promise<
     terminalPath,
     hyperPath,
     iTermPath,
-    powerShellCorePath
+    powerShellCorePath,
   ] = await Promise.all([
     getShellPath(Shell.Terminal),
     getShellPath(Shell.Hyper),
