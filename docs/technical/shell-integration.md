@@ -25,7 +25,7 @@ These shells are currently supported:
 
  - Command Prompt (cmd)
  - PowerShell
- - PowerShell Core
+ - [PowerShell Core](https://github.com/powershell/powershell/)
  - [Hyper](https://hyper.sh/)
  - Git Bash (from [Git for Windows](https://git-for-windows.github.io/))
 
@@ -126,6 +126,7 @@ These shells are currently supported:
  - Terminal
  - [Hyper](https://hyper.sh/)
  - [iTerm2](https://www.iterm2.com/)
+ - [PowerShell Core](https://github.com/powershell/powershell/)
 
 These are defined in an enum at the top of the file:
 
@@ -134,6 +135,7 @@ export enum Shell {
   Terminal = 'Terminal',
   Hyper = 'Hyper',
   iTerm2 = 'iTerm2',
+  PowerShellCore = 'PowerShell Core',
 }
 ```
 
@@ -161,10 +163,16 @@ new entry to lookup the install path for your shell.
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const [terminalPath, hyperPath, iTermPath] = await Promise.all([
+  const [
+    terminalPath,
+    hyperPath,
+    iTermPath,
+    powerShellCorePath,
+  ] = await Promise.all([
     getShellPath(Shell.Terminal),
     getShellPath(Shell.Hyper),
     getShellPath(Shell.iTerm2),
+    getShellPath(Shell.PowerShellCore),
   ])
 
   // other code
@@ -205,6 +213,7 @@ These shells are currently supported:
  - [Rxvt Unicode](http://software.schmorp.de/pkg/rxvt-unicode.html)
  - [Konsole](https://konsole.kde.org/)
  - [XTerm](http://invisible-island.net/xterm/)
+ - [PowerShell Core](https://github.com/powershell/powershell/)
 
 These are defined in an enum at the top of the file:
 
@@ -215,6 +224,7 @@ export enum Shell {
   Urxvt = 'URxvt',
   Konsole = 'Konsole',
   Xterm = 'XTerm',
+  PowerShellCore = 'PowerShell Core',
 }
 ```
 
@@ -240,12 +250,20 @@ new entry to lookup the install path for your shell.
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const [gnomeTerminalPath, tilixPath] = await Promise.all([
+  const [
+    gnomeTerminalPath,
+    tilixPath,
+    urxvtPath,
+    konsolePath,
+    xtermPath,
+    powerShellCorePath,
+  ] = await Promise.all([
     getShellPath(Shell.Gnome),
     getShellPath(Shell.Tilix),
     getShellPath(Shell.Urxvt),
     getShellPath(Shell.Konsole),
     getShellPath(Shell.Xterm),
+    getShellPath(Shell.PowerShellCore),
   ])
 
   ...
