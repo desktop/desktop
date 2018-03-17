@@ -67,7 +67,7 @@ function getShellPath(shell: Shell): Promise<string | null> {
 
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
-  > {
+> {
   const [
     gnomeTerminalPath,
     tilixPath,
