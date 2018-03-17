@@ -9,6 +9,7 @@ export enum Shell {
   Urxvt = 'URxvt',
   Konsole = 'Konsole',
   Xterm = 'XTerm',
+  PowerShellCore = 'PowerShell Core',
 }
 
 export const Default = Shell.Gnome
@@ -34,6 +35,10 @@ export function parse(label: string): Shell {
     return Shell.Xterm
   }
 
+  if (label === Shell.PowerShellCore) {
+    return Shell.PowerShellCore
+  }
+
   return Default
 }
 
@@ -53,6 +58,8 @@ function getShellPath(shell: Shell): Promise<string | null> {
       return getPathIfAvailable('/usr/bin/konsole')
     case Shell.Xterm:
       return getPathIfAvailable('/usr/bin/xterm')
+    case Shell.PowerShellCore:
+      return getPathIfAvailable('/usr/bin/pwsh')
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
@@ -60,19 +67,21 @@ function getShellPath(shell: Shell): Promise<string | null> {
 
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
-> {
+  > {
   const [
     gnomeTerminalPath,
     tilixPath,
     urxvtPath,
     konsolePath,
     xtermPath,
+    powerShellCorePath,
   ] = await Promise.all([
     getShellPath(Shell.Gnome),
     getShellPath(Shell.Tilix),
     getShellPath(Shell.Urxvt),
     getShellPath(Shell.Konsole),
     getShellPath(Shell.Xterm),
+    getShellPath(Shell.PowerShellCore),
   ])
 
   const shells: Array<IFoundShell<Shell>> = []
@@ -96,6 +105,10 @@ export async function getAvailableShells(): Promise<
     shells.push({ shell: Shell.Xterm, path: xtermPath })
   }
 
+  if (powerShellCorePath) {
+    shells.push({ shell: Shell.PowerShellCore, path: powerShellCorePath })
+  }
+
   return shells
 }
 
@@ -114,6 +127,9 @@ export function launch(
     case Shell.Tilix:
     case Shell.Gnome:
       return spawn(foundShell.path, ['--working-directory', path])
+    case Shell.PowerShellCore:
+      const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
+      return spawn(foundShell.path, ['pwsh', '-NoExit', '-Command', psCoreCommand])
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
