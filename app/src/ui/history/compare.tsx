@@ -11,6 +11,9 @@ import { Button } from '../lib/button'
 import { BranchList } from '../branches'
 import { TextBox } from '../lib/text-box'
 import { TipState } from '../../models/tip'
+import { IBranchListItem } from '../branches/group-branches'
+import { BranchListItem } from '../branches/branch'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -142,6 +145,7 @@ export class CompareSidebar extends React.Component<
         canCreateNewBranch={false}
         onSelectionChanged={this.onSelectionChanged}
         onFilterTextChanged={this.onBranchFilterTextChanged}
+        renderBranchListItem={this.renderBranchListItem}
       />
     )
   }
@@ -209,6 +213,42 @@ export class CompareSidebar extends React.Component<
           onChange={this.onRadioButtonChanged}
         />
         <label htmlFor="compare-ahead">{`Ahead (${compareState.ahead})`}</label>
+      </div>
+    )
+  }
+
+  private renderBranchListItem = (
+    item: IBranchListItem,
+    matches: ReadonlyArray<number>
+  ) => {
+    const tip = this.props.repositoryState.branchesState.tip
+    const currentBranchName =
+      tip.kind === TipState.Valid ? tip.branch.name : null
+    const branch = item.branch
+    const commit = branch.tip
+
+    return (
+      <BranchListItem
+        name={branch.name}
+        isCurrentBranch={branch.name === currentBranchName}
+        lastCommitDate={commit ? commit.author.date : null}
+        matches={matches}
+        renderDescription={this.renderBranchListItemDescription}
+      />
+    )
+  }
+
+  private renderBranchListItemDescription = () => {
+    const compareState = this.props.repositoryState.compareState
+
+    return (
+      <div>
+        <span>
+          {compareState.ahead}
+          <Octicon className="icon" symbol={OcticonSymbol.arrowUp} />
+          {compareState.ahead}
+          <Octicon className="icon" symbol={OcticonSymbol.arrowDown} />
+        </span>
       </div>
     )
   }
