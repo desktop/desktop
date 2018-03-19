@@ -234,7 +234,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     source: ClickSource
   ) => {
     // Toggle selection when user presses the spacebar or enter while focused
-    // on a list item
+    // on a list item or on the list's container
     if (source.kind === 'keyboard') {
       if (rows instanceof Array) {
         rows.forEach(row => this.onToggleInclude(row))

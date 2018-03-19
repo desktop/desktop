@@ -113,17 +113,26 @@ interface IListProps {
 
   /**
    * This prop defines the behaviour of the selection of items whithin this list.
-   * 'single' selection (which should be the default),
-   * 'range' which would only allow for selecting contiguous ranges and
-   * 'multi' which allows range and/or arbitrary selection (Cmd/Ctrl).
+   *  - 'single' : (default) single list-item selection. [shift] and [ctrl] have
+   * no effect. Use in combinaison with one of:
+   *             onSelectedRowChanged(row: number)
+   *             onSelectionChanged(rows: number[])
+   *  - 'range' : allows for selecting continuous ranges. [shift] can be used.
+   * [ctrl] has no effect. Use in combinaison with one of:
+   *             onSelectedRangeChanged(start: number, end: number)
+   *             onSelectionChanged(rows: number[])
+   *  - 'multi' : allows range and/or arbitrary selection. [shift] and [ctrl]
+   * can be used. Use in combinaison with:
+   *             onSelectionChanged(rows: number[])
    */
   readonly selectionMode?: 'single' | 'range' | 'multi'
 
   /**
-   * This function is called only when single row selection is made
    * This function will be called when the selection changes as a result of a
    * user keyboard or mouse action (i.e. not when props change). This function
    * will not be invoked when an already selected row is clicked on.
+   * Use this function when the selectionMode is 'single'
+   *
    * @param row    - The index of the row that was just selected
    * @param source - The kind of user action that provoked the change, either
    *                 a pointer device press, hover (if selectOnHover is set) or
@@ -132,11 +141,11 @@ interface IListProps {
   readonly onSelectedRowChanged?: (row: number, source: SelectionSource) => void
 
   /**
-   * This function is called only when selectionMode is 'range'
    * This function will be called when the selection changes as a result of a
    * user keyboard or mouse action (i.e. not when props change). This function
    * will not be invoked when an already selected row is clicked on.
    * Index parameters are inclusive
+   * Use this function when the selectionMode is 'range'
    *
    * @param start  - The index of the first selected row
    * @param end    - The index of the last selected row
@@ -154,13 +163,17 @@ interface IListProps {
    * This function will be called when the selection changes as a result of a
    * user keyboard or mouse action (i.e. not when props change). This function
    * will not be invoked when an already selected row is clicked on.
+   * Use this function for any selectionMode
    *
-   * @param row    - The index of the row(s) that was just selected
+   * @param rows   - The indexes of the row(s) that are part of the selection
    * @param source - The kind of user action that provoked the change, either
    *                 a pointer device press, hover (if selectOnHover is set) or
    *                 a keyboard event (arrow up/down)
    */
-  readonly onSelectionChanged?: (row: number[], source: SelectionSource) => void
+  readonly onSelectionChanged?: (
+    rows: number[],
+    source: SelectionSource
+  ) => void
 
   /**
    * A handler called whenever a key down event is received on the
@@ -628,8 +641,7 @@ export class List extends React.Component<IListProps, IListState> {
       )
     }
 
-    // TODO: change to adopt the new this.props.selectedRows: number[]
-    // or maybe just select the last item from the selection array for this prop
+    // we select the last item from the selection array for this prop
     const activeDescendant =
       this.props.selectedRows.length && this.state.rowIdPrefix
         ? `${this.state.rowIdPrefix}-${
@@ -805,7 +817,10 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectionMode &&
         this.props.selectionMode !== 'single'
       ) {
-        // if shift, select all inbetween first selection and current row
+        /* 
+         * if [shift] is pressed and selectionMode is different than 'single',
+         * select all inbetween first selection and current row
+         */
         const selectionOrigin = this.props.selectedRows[0]
         if (selectionOrigin === row) {
           return
@@ -834,7 +849,10 @@ export class List extends React.Component<IListProps, IListState> {
           })
         }
       } else if (multiSelectKey && this.props.selectionMode === 'multi') {
-        // if ctrl, toggle the current selected state of the row
+        /* 
+         * if [ctrl] is pressed and selectionMode is 'multi',
+         * toggle selection of the targetted row
+         */
         let newSelection = this.props.selectedRows
         if (newSelection.includes(row)) {
           newSelection = newSelection.filter(selection => selection !== row)
@@ -852,7 +870,10 @@ export class List extends React.Component<IListProps, IListState> {
         (this.props.selectedRows.length === 1 &&
           row !== this.props.selectedRows[0])
       ) {
-        // if no special key is pressed, and that the selection is different, single selection occurs
+        /* 
+         * if no special key is pressed, and that the selection is different, 
+         * single selection occurs
+         */
         if (this.props.onSelectionChanged) {
           this.props.onSelectionChanged([row], { kind: 'mouseclick', event })
         }
