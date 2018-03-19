@@ -19,7 +19,7 @@ interface IChangedFileProps {
   readonly include: boolean | null
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onDiscardChanges: (path: string) => void
-  readonly onDiscardAllChanges: () => void
+
   /**
    * Called to reveal a file in the native file manager.
    * @param path The path of the file relative to the root of the repository
@@ -104,10 +104,6 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       {
         label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
         action: () => this.props.onDiscardChanges(this.props.path),
-      },
-      {
-        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
-        action: () => this.props.onDiscardAllChanges(),
       },
       { type: 'separator' },
       {

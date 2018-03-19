@@ -405,7 +405,11 @@ export async function getBlobImage(
 ): Promise<Image> {
   const extension = Path.extname(path)
   const contents = await getBlobContents(repository, commitish, path)
-  return new Image(contents.toString('base64'), getMediaType(extension))
+  const diff: Image = {
+    contents: contents.toString('base64'),
+    mediaType: getMediaType(extension),
+  }
+  return diff
 }
 /**
  * Retrieve the binary contents of a blob from the working directory
@@ -423,8 +427,9 @@ export async function getWorkingDirectoryImage(
   const contents = await fileSystem.readFile(
     Path.join(repository.path, file.path)
   )
-  return new Image(
-    contents.toString('base64'),
-    getMediaType(Path.extname(file.path))
-  )
+  const diff: Image = {
+    contents: contents.toString('base64'),
+    mediaType: getMediaType(Path.extname(file.path)),
+  }
+  return diff
 }

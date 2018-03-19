@@ -357,7 +357,7 @@ export class CloneRepository extends React.Component<
     }
 
     try {
-      this.cloneImpl(url.trim(), path)
+      this.cloneImpl(url, path)
     } catch (e) {
       log.error(`CloneRepostiory: clone failed to complete to ${path}`, e)
       this.setState({ loading: false, error: e })

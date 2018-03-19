@@ -117,7 +117,7 @@ export class CommitSummary extends React.Component<
   ICommitSummaryProps,
   ICommitSummaryState
 > {
-  private descriptionScrollViewRef: HTMLDivElement | null = null
+  private descriptionScrollViewRef: HTMLDivElement | null
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: number | null = null
 

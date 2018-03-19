@@ -25,22 +25,6 @@ describe('RepositorySettingsStore', () => {
     expect(exists).is.true
   })
 
-  it('deletes gitignore file when no entries provided', async () => {
-    const repo = await setupEmptyRepository()
-    const path = repo.path
-
-    const ignoreFile = `${path}/.gitignore`
-    FS.writeFileSync(ignoreFile, 'node_modules\n')
-
-    const sut = new RepositorySettingsStore(repo)
-
-    // update gitignore file to be empty
-    await sut.saveGitIgnore('')
-
-    const exists = await pathExists(ignoreFile)
-    expect(exists).is.false
-  })
-
   it('can ignore a file in a repository', async () => {
     const repo = await setupEmptyRepository()
     const sut = new RepositorySettingsStore(repo)

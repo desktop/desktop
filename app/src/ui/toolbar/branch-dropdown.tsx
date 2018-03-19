@@ -8,6 +8,7 @@ import { IRepositoryState } from '../../lib/app-state'
 import { BranchesContainer, PullRequestBadge } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 import { BranchesTab } from '../../models/branches-tab'
+import { enablePRIntegration } from '../../lib/feature-flag'
 import { PullRequest } from '../../models/pull-request'
 
 interface IBranchDropdownProps {
@@ -103,7 +104,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     } else if (tip.kind === TipState.Unborn) {
       title = tip.ref
       tooltip = `Current branch is ${tip.ref}`
-      canOpen = branchesState.allBranches.length > 0
+      canOpen = false
     } else if (tip.kind === TipState.Detached) {
       title = `On ${tip.currentSha.substr(0, 7)}`
       tooltip = 'Currently on a detached HEAD'
@@ -159,6 +160,10 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   private renderPullRequestInfo() {
     const pr = this.props.currentPullRequest
     if (!pr) {
+      return null
+    }
+
+    if (!enablePRIntegration()) {
       return null
     }
 

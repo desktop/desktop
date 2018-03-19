@@ -76,14 +76,9 @@ export function tailByLine(
   cb: (line: string) => void
 ): Disposable {
   const tailer = new Tailer(path)
-
-  const onErrorDisposable = tailer.onError(error => {
-    log.warn(`Unable to tail path: ${path}`, error)
-  })
-
-  const onDataDisposable = tailer.onDataAvailable(stream => {
+  const disposable = tailer.onDataAvailable(stream => {
     byline(stream).on('data', (buffer: Buffer) => {
-      if (onDataDisposable.disposed) {
+      if (disposable.disposed) {
         return
       }
 
@@ -95,8 +90,7 @@ export function tailByLine(
   tailer.start()
 
   return new Disposable(() => {
-    onDataDisposable.dispose()
-    onErrorDisposable.dispose()
+    disposable.dispose()
     tailer.stop()
   })
 }

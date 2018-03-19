@@ -122,7 +122,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * modal dialog such as the preferences, or an error dialog.
    */
   private get isShowingModal() {
-    return this.state.currentPopup !== null || this.state.errors.length > 0
+    return this.state.currentPopup || this.state.errors.length
   }
 
   public constructor(props: IAppProps) {
@@ -535,22 +535,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   public componentDidMount() {
-    document.ondragover = e => {
-      if (this.isShowingModal) {
-        e.dataTransfer.dropEffect = 'none'
-      } else {
-        e.dataTransfer.dropEffect = 'copy'
-      }
-
-      e.preventDefault()
-    }
-
-    document.ondrop = e => {
-      e.preventDefault()
-    }
+    document.ondragover = document.ondrop = e => e.preventDefault()
 
     document.body.ondrop = e => {
-      if (this.isShowingModal) {
+      if (this.state.currentPopup != null) {
         return
       }
       const files = e.dataTransfer.files

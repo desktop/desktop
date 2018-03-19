@@ -51,7 +51,7 @@ type LookupResult = {
  */
 export class Tokenizer {
   private readonly emoji: Map<string, string>
-  private readonly repository: GitHubRepository | null = null
+  private readonly repository: GitHubRepository | null
 
   private _results = new Array<TokenResult>()
   private _currentString = ''

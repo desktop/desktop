@@ -1,7 +1,7 @@
 /** A utility class which allows for throttling arbitrary functions */
 export class ThrottledScheduler {
   private delay: number
-  private timeoutId: number | null = null
+  private timeoutId: number
 
   /**
    * Initialize a new instance of the ThrottledScheduler class
@@ -19,14 +19,12 @@ export class ThrottledScheduler {
    * as no other functions are queued.
    */
   public queue(func: Function) {
-    this.clear()
+    window.clearTimeout(this.timeoutId)
     this.timeoutId = window.setTimeout(func, this.delay)
   }
 
   /** Resets the scheduler and unschedules queued callback (if any) */
   public clear() {
-    if (this.timeoutId != null) {
-      window.clearTimeout(this.timeoutId)
-    }
+    window.clearTimeout(this.timeoutId)
   }
 }

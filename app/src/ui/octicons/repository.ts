@@ -10,10 +10,6 @@ export function iconForRepository(repository: Repository | CloningRepository) {
     return OcticonSymbol.desktopDownload
   }
 
-  if (repository.missing) {
-    return OcticonSymbol.alert
-  }
-
   const gitHubRepo = repository.gitHubRepository
   if (!gitHubRepo) {
     return OcticonSymbol.deviceDesktop

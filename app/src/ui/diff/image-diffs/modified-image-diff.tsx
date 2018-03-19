@@ -57,7 +57,7 @@ export class ModifiedImageDiff extends React.Component<
   IModifiedImageDiffProps,
   IModifiedImageDiffState
 > {
-  private container: HTMLElement | null = null
+  private container: HTMLElement | null
 
   private readonly resizeObserver: ResizeObserver
   private resizedTimeoutID: number | null = null

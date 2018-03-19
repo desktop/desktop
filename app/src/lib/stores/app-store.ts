@@ -2783,11 +2783,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.signInStore.setTwoFactorOTP(otp)
   }
 
-  public async _setAppFocusState(isFocused: boolean): Promise<void> {
-    if (this.appIsFocused !== isFocused) {
-      this.appIsFocused = isFocused
+  public _setAppFocusState(isFocused: boolean): Promise<void> {
+    const changed = this.appIsFocused !== isFocused
+    this.appIsFocused = isFocused
+
+    if (changed) {
       this.emitUpdate()
     }
+
+    return Promise.resolve()
   }
 
   /**
@@ -2933,12 +2937,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.repositoriesStore.removeRepository(id)
     }
 
-    const allRepositories = await this.repositoriesStore.getAll()
-    if (allRepositories.length === 0) {
-      this._closeFoldout(FoldoutType.Repository)
-    } else {
-      this._showFoldout({ type: FoldoutType.Repository })
-    }
+    this._showFoldout({ type: FoldoutType.Repository })
   }
 
   public async _cloneAgain(url: string, path: string): Promise<void> {

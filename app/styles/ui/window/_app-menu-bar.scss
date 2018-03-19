@@ -11,7 +11,7 @@
   }
 
   .toolbar-dropdown:not(.open) > .toolbar-button > button {
-    color: var(--toolbar-text-color);
+    color: var(--toolbar-button-secondary-color);
 
     &:hover,
     &:focus {
