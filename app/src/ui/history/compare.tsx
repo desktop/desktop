@@ -201,6 +201,7 @@ export class CompareSidebar extends React.Component<
         <label htmlFor="compare-behind">
           {`Behind (${compareState.behind})`}
         </label>
+
         <input
           id="compare-ahead"
           type="radio"
@@ -209,7 +210,9 @@ export class CompareSidebar extends React.Component<
           checked={compareType === CompareType.Ahead}
           onChange={this.onRadioButtonChanged}
         />
-        <label htmlFor="compare-ahead">{`Ahead (${compareState.ahead})`}</label>
+        <label htmlFor="compare-ahead">
+          {`Ahead (${compareState.ahead})`}
+        </label>
       </div>
     )
   }

@@ -80,10 +80,13 @@
   }
 
   .the-radio-buttons {
-    background: salmon;
     border-top: var(--base-border);
     border-bottom: var(--base-border);
     padding: var(--spacing-half);
+
+    input[type="radio"]:checked + label {
+      background: salmon;
+    }
   }
 
   .tab-bar {
