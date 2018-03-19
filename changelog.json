@@ -23,7 +23,7 @@
       "[Improved] Hide Desktop-specific forks in Branch List - #4127",
       "[Improved] Disregard accidental whitespace when cloning a repository by URL - #4216",
       "[Improved] Show alert icon in repository list when repository not found on disk - #4254. Thanks @gingerbeardman!",
-      "[Improved] Repository list now closes after removing last repo - #4269. Thanks @agisilaos!"
+      "[Improved] Repository list now closes after removing last repository - #4269. Thanks @agisilaos!"
     ],
     "1.1.1-test2": [
       "[Improved] Electron 1.8.3 upgrade (again)"
