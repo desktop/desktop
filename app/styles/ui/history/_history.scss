@@ -55,6 +55,11 @@
   flex-direction: column;
   flex: 1;
 
+  .the-box {
+    flex: initial;
+    padding: var(--spacing-half);
+  }
+
   .tab-bar {
     flex-grow: 0;
 

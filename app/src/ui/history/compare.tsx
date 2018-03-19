@@ -85,6 +85,7 @@ export class CompareSidebar extends React.Component<
     return (
       <div id="compare-view">
         <TextBox
+          className="the-box"
           type="search"
           ref={this.onTextBoxRef}
           placeholder={placeholderText}
