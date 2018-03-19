@@ -1395,7 +1395,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       icon = OcticonSymbol.repo
       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
     } else {
-      icon = OcticonSymbol.question
+      icon = OcticonSymbol.repo
       title = __DARWIN__ ? 'No Repositories' : 'No repositories'
     }
 
