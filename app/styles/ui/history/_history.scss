@@ -95,6 +95,14 @@
       border: var(--base-border);
       flex: 1;
       align-content: center;
+
+      &:first-of-type {
+        border-radius: var(--border-radius) 0 0 var(--border-radius);
+      }
+
+      &:last-of-type {
+        border-radius: 0 var(--border-radius) var(--border-radius) 0;
+      }
     }
 
     input[type="radio"]:checked + label {
