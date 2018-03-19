@@ -210,7 +210,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             className="forgot-password-link-sign-in"
             uri={state.forgotPasswordUrl}
           >
-            Forgot password
+            Forgot password?
           </LinkButton>
         </Row>
 
