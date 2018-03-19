@@ -203,9 +203,15 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             value={this.state.password}
             type="password"
             onValueChanged={this.onPasswordChanged}
-            labelLinkText="Forgot password?"
-            labelLinkUri={state.forgotPasswordUrl}
           />
+        </Row>
+        <Row>
+          <LinkButton
+            className="forgot-password-link-sign-in"
+            uri={state.forgotPasswordUrl}
+          >
+            Forgot password
+          </LinkButton>
         </Row>
 
         <div className="horizontal-rule">
