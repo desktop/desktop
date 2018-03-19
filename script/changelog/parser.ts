@@ -40,7 +40,7 @@ function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
   let type = PlaceholderChangeType
   const description = capitalized(pr.title)
 
-  const re = /Fixes #(\d+)/gi
+  const re = /Fixes:? #(\d+)/gi
   let match: RegExpExecArray | null = null
   do {
     match = re.exec(pr.body)
