@@ -61,10 +61,16 @@
   }
 
   .the-commits {
-    background: red;
     flex: 1;
     display: flex;
     flex-direction: column;
+  }
+
+  .merge-cta {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    padding: var(--spacing);
   }
 
   .tab-bar {

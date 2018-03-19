@@ -119,7 +119,7 @@ export class CompareSidebar extends React.Component<
           onCommitSelected={this.onCommitSelected}
           onScroll={this.onScroll}
         />
-        {selectedBranch && compareType === CompareType.Ahead
+        {selectedBranch && compareType === CompareType.Behind
           ? this.renderMergeCTA()
           : null}
       </div>
@@ -162,10 +162,8 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div>
-        <p>{`This will merge ${count} ${pluralized}`}</p>
-        <br />
         <p>
-          from <strong>{this.state.selectedBranch!.name}</strong>
+          {`This will merge ${count} ${pluralized}`} from <strong>{this.state.selectedBranch!.name}</strong>
         </p>
       </div>
     )
@@ -179,7 +177,7 @@ export class CompareSidebar extends React.Component<
 
     const branch = tip.branch
     return (
-      <div>
+      <div className="merge-cta">
         <Button type="submit" disabled={true} onClick={this.onMergeClicked}>
           Merge into {branch!.name}
         </Button>
