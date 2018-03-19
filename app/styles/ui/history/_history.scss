@@ -67,7 +67,7 @@
   }
 
   .merge-cta {
-    border-top: 1px solid var(--box-border-color);
+    border-top: var(--base-border);
     display: flex;
     flex-direction: column;
     font-size: var(--font-size-sm);
@@ -77,6 +77,13 @@
 
   .merge-message {
     margin-top: var(--spacing);
+  }
+
+  .the-radio-buttons {
+    background: salmon;
+    border-top: var(--base-border);
+    border-bottom: var(--base-border);
+    padding: var(--spacing-half);
   }
 
   .tab-bar {

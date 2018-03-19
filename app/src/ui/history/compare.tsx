@@ -189,7 +189,7 @@ export class CompareSidebar extends React.Component<
     const compareState = this.props.repositoryState.compareState
 
     return (
-      <div>
+      <div className="the-radio-buttons">
         <input
           id="compare-behind"
           type="radio"
