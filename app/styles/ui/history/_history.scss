@@ -83,6 +83,19 @@
     border-top: var(--base-border);
     border-bottom: var(--base-border);
     padding: var(--spacing-half);
+    display: flex;
+    flex-direction: row;
+    text-align: center;
+
+    input[type="radio"] {
+      display: none;
+    }
+
+    label {
+      border: var(--base-border);
+      flex: 1;
+      align-content: center;
+    }
 
     input[type="radio"]:checked + label {
       background: salmon;
