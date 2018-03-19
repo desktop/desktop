@@ -13,6 +13,8 @@ interface IBranchProps {
 
   /** The characters in the branch name to highlight */
   readonly matches: ReadonlyArray<number>
+
+  readonly renderDescription?: () => JSX.Element
 }
 
 /** The branch component. */
@@ -34,7 +36,7 @@ export class BranchListItem extends React.Component<IBranchProps, {}> {
           <HighlightText text={name} highlight={this.props.matches} />
         </div>
         <div className="description" title={infoTitle}>
-          {date}
+          {this.props.renderDescription ? this.props.renderDescription() : date}
         </div>
       </div>
     )
