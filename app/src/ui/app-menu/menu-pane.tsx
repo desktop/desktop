@@ -148,7 +148,7 @@ function createState(props: IMenuPaneProps): IMenuPaneState {
 }
 
 export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
-  private list: List | null
+  private list: List | null = null
 
   public constructor(props: IMenuPaneProps) {
     super(props)

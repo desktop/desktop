@@ -31,11 +31,6 @@ export function enableCompareBranch(): boolean {
   return enableBetaFeatures()
 }
 
-/** Should PR integration be enabled? */
-export function enablePRIntegration(): boolean {
-  return true
-}
-
 /** Should merge tool integration be enabled? */
 export function enableMergeTool(): boolean {
   return enableDevelopmentFeatures()

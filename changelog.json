@@ -1,5 +1,11 @@
 {
   "releases": {
+    "1.1.1-test2": [
+      "[Improved] Electron 1.8.3 upgrade (again)"
+    ],
+    "1.1.1-test1": [
+      "[Improved] Electron 1.8.3 upgrade"
+    ],
     "1.1.1-beta1": [
 
     ]
@@ -53,6 +59,9 @@
       "[Fixed] Support legacy usernames as co-authors - #3897",
       "[Improved] Enable fuzzy search in the repository, branch, PR, and clone FilterLists - #911. Thanks @j-f1!",
       "[Improved] Tidy up commit summary and description layout in commit list - #3922. Thanks @willnode!"
+    ],
+    "1.0.14-test1": [
+      "[Improved] Electron 1.8.2 upgrade"
     ],
     "1.0.14-beta3": [
       "[Added] Add TextMate support for macOS - #3910. Thanks @caiofbpa!",
