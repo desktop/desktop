@@ -98,7 +98,9 @@
     }
 
     input[type="radio"]:checked + label {
-      background: salmon;
+      background: var(--box-selected-active-background-color);
+      border-color: var(--box-border-accent-color);
+      color: var(--box-selected-active-text-color);
     }
   }
 
