@@ -67,10 +67,16 @@
   }
 
   .merge-cta {
+    border-top: 1px solid var(--box-border-color);
     display: flex;
     flex-direction: column;
+    font-size: var(--font-size-sm);
     text-align: center;
     padding: var(--spacing);
+  }
+
+  .merge-message {
+    margin-top: var(--spacing);
   }
 
   .tab-bar {
