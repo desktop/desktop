@@ -104,7 +104,7 @@ export class CompareSidebar extends React.Component<
     const compareState = this.props.repositoryState.compareState
 
     return (
-      <div>
+      <div className="the-commits">
         {selectedBranch ? this.renderRadioButtons() : null}
         <CommitList
           gitHubRepository={this.props.repository.gitHubRepository}

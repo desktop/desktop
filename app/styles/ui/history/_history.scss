@@ -60,6 +60,13 @@
     padding: var(--spacing-half);
   }
 
+  .the-commits {
+    background: red;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
   .tab-bar {
     flex-grow: 0;
 
