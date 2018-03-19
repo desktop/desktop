@@ -87,7 +87,7 @@
     flex-direction: row;
     text-align: center;
 
-    input[type="radio"] {
+    input[type='radio'] {
       display: none;
     }
 
@@ -105,7 +105,7 @@
       }
     }
 
-    input[type="radio"]:checked + label {
+    input[type='radio']:checked + label {
       background: var(--box-selected-active-background-color);
       border-color: var(--box-border-accent-color);
       color: var(--box-selected-active-text-color);
