@@ -110,6 +110,20 @@
       border-color: var(--box-border-accent-color);
       color: var(--box-selected-active-text-color);
     }
+
+  }
+
+  .branches-list-item .description {
+    margin-right: 0;
+  }
+
+  .branch-commit-counter {
+    display: flex;
+    justify-content: flex-end;
+
+    .octicon:last-child {
+      margin-right: 0;
+    }
   }
 
   .tab-bar {
