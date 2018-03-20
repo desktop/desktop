@@ -242,13 +242,11 @@ export class CompareSidebar extends React.Component<
     const compareState = this.props.repositoryState.compareState
 
     return (
-      <div>
-        <span>
-          {compareState.ahead}
-          <Octicon className="icon" symbol={OcticonSymbol.arrowUp} />
-          {compareState.ahead}
-          <Octicon className="icon" symbol={OcticonSymbol.arrowDown} />
-        </span>
+      <div className="branch-commit-counter">
+        {compareState.ahead}
+        <Octicon className="icon" symbol={OcticonSymbol.arrowUp} />
+        {compareState.ahead}
+        <Octicon className="icon" symbol={OcticonSymbol.arrowDown} />
       </div>
     )
   }
