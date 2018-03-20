@@ -58,6 +58,7 @@
   .the-box {
     flex: initial;
     padding: var(--spacing-half);
+    border-bottom: var(--base-border);
   }
 
   .the-commits {
@@ -80,7 +81,6 @@
   }
 
   .the-radio-buttons {
-    border-top: var(--base-border);
     border-bottom: var(--base-border);
     padding: var(--spacing-half);
     display: flex;
