@@ -93,6 +93,7 @@ export class CompareSidebar extends React.Component<
           onBlur={this.onTextBoxBlurred}
           value={this.state.filterText}
           onValueChanged={this.onBranchFilterTextChanged}
+          onKeyDown={this.onBranchFilterKeyDown}
         />
         {showFilterList ? this.renderFilterList() : this.renderCommits()}
       </div>
@@ -162,7 +163,8 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div className="merge-message">
-        {`This will merge ${count} ${pluralized}`} from <strong>{this.state.selectedBranch!.name}</strong>
+        {`This will merge ${count} ${pluralized}`} from{' '}
+        <strong>{this.state.selectedBranch!.name}</strong>
       </div>
     )
   }
@@ -210,9 +212,7 @@ export class CompareSidebar extends React.Component<
           checked={compareType === CompareType.Ahead}
           onChange={this.onRadioButtonChanged}
         />
-        <label htmlFor="compare-ahead">
-          {`Ahead (${compareState.ahead})`}
-        </label>
+        <label htmlFor="compare-ahead">{`Ahead (${compareState.ahead})`}</label>
       </div>
     )
   }
@@ -269,6 +269,19 @@ export class CompareSidebar extends React.Component<
       branches,
       recentBranches,
       defaultBranch: branchesState.defaultBranch,
+    }
+  }
+
+  private onBranchFilterKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    const key = event.key
+
+    if (key === 'Enter') {
+      if (this.state.filterText === '') {
+        this.setState({ selectedBranch: null })
+        this.textbox!.blur()
+      }
     }
   }
 
