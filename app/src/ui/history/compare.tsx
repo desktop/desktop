@@ -14,7 +14,12 @@ import { TipState } from '../../models/tip'
 import { IBranchListItem } from '../branches/group-branches'
 import { BranchListItem } from '../branches/branch'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { TabBar } from '../tab-bar'
 
+enum SelectedTab {
+  Behind,
+  Ahead,
+}
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly repositoryState: IRepositoryState
@@ -32,6 +37,7 @@ interface ICompareSidebarState {
   readonly compareType: CompareType
   readonly filterText: string
   readonly showFilterList: boolean
+  readonly selectedTab: number
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -52,6 +58,7 @@ export class CompareSidebar extends React.Component<
       filterText: '',
       showFilterList: false,
       compareType: CompareType.Default,
+      selectedTab: SelectedTab.Behind,
     }
   }
 
@@ -101,30 +108,48 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderCommits() {
-    const { compareType, selectedBranch } = this.state
-    const compareState = this.props.repositoryState.compareState
+    const { selectedBranch } = this.state
 
     return (
       <div className="the-commits">
-        {selectedBranch ? this.renderRadioButtons() : null}
-        <CommitList
-          gitHubRepository={this.props.repository.gitHubRepository}
-          commitLookup={this.props.commitLookup}
-          commitSHAs={compareState.commitSHAs}
-          selectedSHA={compareState.selection.sha}
-          gitHubUsers={this.props.gitHubUsers}
-          localCommitSHAs={this.props.localCommitSHAs}
-          emoji={this.props.emoji}
-          onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-          onRevertCommit={this.props.onRevertCommit}
-          onCommitSelected={this.onCommitSelected}
-          onScroll={this.onScroll}
-        />
-        {selectedBranch && compareType === CompareType.Behind
-          ? this.renderMergeCTA()
-          : null}
+        {selectedBranch ? this.renderTabBar() : this.renderCommitList()}
       </div>
     )
+  }
+
+  private renderCommitList() {
+    const compareState = this.props.repositoryState.compareState
+
+    return (
+      <CommitList
+        gitHubRepository={this.props.repository.gitHubRepository}
+        commitLookup={this.props.commitLookup}
+        commitSHAs={compareState.commitSHAs}
+        selectedSHA={compareState.selection.sha}
+        gitHubUsers={this.props.gitHubUsers}
+        localCommitSHAs={this.props.localCommitSHAs}
+        emoji={this.props.emoji}
+        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
+        onRevertCommit={this.props.onRevertCommit}
+        onCommitSelected={this.onCommitSelected}
+        onScroll={this.onScroll}
+      />
+    )
+  }
+
+  private renderActiveTab() {
+    if (this.state.selectedTab === SelectedTab.Behind) {
+      return (
+        <div className="the-commits">
+          {this.renderCommitList()}
+          {this.state.selectedTab === SelectedTab.Behind
+            ? this.renderMergeCTA()
+            : null}
+        </div>
+      )
+    } else {
+      return
+    }
   }
 
   private renderFilterList() {
@@ -186,33 +211,34 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private renderRadioButtons() {
-    const compareType = this.state.compareType
+  private onTabClicked = (index: number) => {
+    const compareType =
+      (index as SelectedTab) === SelectedTab.Behind
+        ? CompareType.Behind
+        : CompareType.Ahead
+
+    this.props.dispatcher.loadCompareState(
+      this.props.repository,
+      this.state.selectedBranch,
+      compareType
+    )
+
+    this.setState({ selectedTab: index })
+  }
+
+  private renderTabBar() {
     const compareState = this.props.repositoryState.compareState
 
     return (
       <div className="the-radio-buttons">
-        <input
-          id="compare-behind"
-          type="radio"
-          name="ahead-behind"
-          value={CompareType.Behind}
-          checked={compareType === CompareType.Behind}
-          onChange={this.onRadioButtonChanged}
-        />
-        <label htmlFor="compare-behind">
-          {`Behind (${compareState.behind})`}
-        </label>
-
-        <input
-          id="compare-ahead"
-          type="radio"
-          name="ahead-behind"
-          value={CompareType.Ahead}
-          checked={compareType === CompareType.Ahead}
-          onChange={this.onRadioButtonChanged}
-        />
-        <label htmlFor="compare-ahead">{`Ahead (${compareState.ahead})`}</label>
+        <TabBar
+          selectedIndex={this.state.selectedTab}
+          onTabClicked={this.onTabClicked}
+        >
+          <span>{`Behind (${compareState.behind})`}</span>
+          <span>{`Ahead (${compareState.ahead})`}</span>
+        </TabBar>
+        {this.renderActiveTab()}
       </div>
     )
   }
@@ -281,18 +307,6 @@ export class CompareSidebar extends React.Component<
         this.textbox!.blur()
       }
     }
-  }
-
-  private onRadioButtonChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const compareType = event.currentTarget.value as CompareType
-
-    this.props.dispatcher.loadCompareState(
-      this.props.repository,
-      this.state.selectedBranch,
-      compareType
-    )
-
-    this.setState({ compareType })
   }
 
   private onCommitSelected = (commit: Commit) => {
