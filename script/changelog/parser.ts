@@ -38,7 +38,7 @@ function capitalized(str: string): string {
 export function findIssueRef(body: string): string {
   let issueRef = ''
 
-  const re = /Fixes:? #(\d+)/gi
+  const re = /(close[s]?|fix(e[sd])?|resolve[sd]):?\s*#(\d+)/gi
   let match: RegExpExecArray | null = null
   do {
     match = re.exec(body)
