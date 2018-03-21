@@ -70,8 +70,8 @@ export interface IPullRequestStatus {
 }
 
 export class PullRequestDatabase extends BaseDatabase {
-  public pullRequests: Dexie.Table<IPullRequest, number>
-  public pullRequestStatus: Dexie.Table<IPullRequestStatus, number>
+  public pullRequests!: Dexie.Table<IPullRequest, number>
+  public pullRequestStatus!: Dexie.Table<IPullRequestStatus, number>
 
   public constructor(name: string, schemaVersion?: number) {
     super(name, schemaVersion)
