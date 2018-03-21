@@ -12,6 +12,8 @@ interface IChangedFileProps {
   readonly include: boolean | null
   readonly availableWidth: number
   readonly onIncludeChanged: (path: string, include: boolean) => void
+
+  /** Callback called when user right-clicks on an item */
   readonly onContextMenu: (
     path: string,
     status: AppFileStatus,
