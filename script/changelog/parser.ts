@@ -43,8 +43,7 @@ export function findIssueRef(body: string): string {
   do {
     match = re.exec(body)
     if (match && match.length > 1) {
-      const length = match.length
-      issueRef += ` #${match[length - 1]}`
+      issueRef += ` #${match[3]}`
     }
   } while (match)
 
