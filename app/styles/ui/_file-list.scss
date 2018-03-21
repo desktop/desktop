@@ -12,10 +12,10 @@
   }
 
   // Only use special colors for the change type icons when
-  // the list item is not part of the selection. If it does
-  // we fall back to using the ambient foreground color of
-  // the list item.
-  .list-item:not(.selected) {
+  // the list item doesn't have active focus. If it does we
+  // fall back to using the ambient foreground color of the
+  // list item.
+  .list-item:not(:focus) {
     @include octicon-status;
   }
 
