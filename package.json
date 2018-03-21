@@ -7,8 +7,9 @@
   "scripts": {
     "cli": "ts-node --require ./app/test/globals.ts --require ./app/src/cli/dev-commands-global.js app/src/cli/main.ts",
     "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe mocha -t 30000 --require ts-node/register app/test/integration/*.ts",
-    "test:unit": "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe electron-mocha -t 10000 --renderer --require ts-node/register --require ./app/test/globals.ts app/test/unit/*.{ts,tsx} app/test/unit/**/*.{ts,tsx}",
-    "test": "yarn test:unit && yarn test:integration",
+    "test:unit": "cross-env GIT_AUTHOR_NAME=\"Joe Bloggs\" GIT_AUTHOR_EMAIL=\"joe.bloggs@somewhere.com\" GIT_COMMITTER_NAME=\"Joe Bloggs\" GIT_COMMITTER_EMAIL=\"joe.bloggs@somewhere.com\" TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 xvfb-maybe electron-mocha -t 10000 --renderer --require ts-node/register --require ./app/test/globals.ts app/test/unit/*.{ts,tsx} app/test/unit/**/*.{ts,tsx} script/changelog/test/*.ts",
+    "test:script": "mocha -t 10000 --require ts-node/register script/changelog/test/*.ts",
+    "test": "yarn test:unit && yarn test:script && yarn test:integration",
     "test:setup": "ts-node script/test-setup.ts",
     "test:review": "ts-node script/test-review.ts",
     "postinstall": "cd app && yarn install --force && cd .. && git submodule update --recursive --init && yarn compile:tslint",

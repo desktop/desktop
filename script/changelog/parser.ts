@@ -35,19 +35,27 @@ function capitalized(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
+export function findIssueRef(body: string): string {
   let issueRef = ''
-  let type = PlaceholderChangeType
-  const description = capitalized(pr.title)
 
   const re = /Fixes:? #(\d+)/gi
   let match: RegExpExecArray | null = null
   do {
-    match = re.exec(pr.body)
+    match = re.exec(body)
     if (match && match.length > 1) {
-      issueRef += ` #${match[1]}`
+      const length = match.length
+      issueRef += ` #${match[length - 1]}`
     }
   } while (match)
+
+  return issueRef
+}
+
+function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
+  let type = PlaceholderChangeType
+  const description = capitalized(pr.title)
+
+  let issueRef = findIssueRef(pr.body)
 
   if (issueRef.length) {
     type = 'Fixed'
