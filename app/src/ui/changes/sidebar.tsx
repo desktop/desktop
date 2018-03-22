@@ -48,6 +48,14 @@ interface IChangesSidebarProps {
   readonly gitHubUserStore: GitHubUserStore
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly accounts: ReadonlyArray<Account>
+  /** The name of the currently selected external editor */
+  readonly externalEditorLabel?: string
+
+  /**
+   * Called to open a file using the user's configured applications
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenInExternalEditor: (path: string) => void
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -305,6 +313,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           isCommitting={this.props.isCommitting}
           showCoAuthoredBy={this.props.changes.showCoAuthoredBy}
           coAuthors={this.props.changes.coAuthors}
+          externalEditorLabel={this.props.externalEditorLabel}
+          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
         {this.renderMostRecentLocalCommit()}
       </div>
