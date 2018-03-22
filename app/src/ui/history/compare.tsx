@@ -96,17 +96,18 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div id="compare-view">
-        <FancyTextBox
-          className="the-box"
-          symbol={OcticonSymbol.gitBranch}
-          placeholder={placeholderText}
-          onFocus={this.onTextBoxFocused}
-          onBlur={this.onTextBoxBlurred}
-          value={this.state.filterText}
-          onRef={this.onTextBoxRef}
-          onValueChanged={this.onBranchFilterTextChanged}
-          onKeyDown={this.onBranchFilterKeyDown}
-        />
+        <div className="the-box">
+          <FancyTextBox
+            symbol={OcticonSymbol.gitBranch}
+            placeholder={placeholderText}
+            onFocus={this.onTextBoxFocused}
+            onBlur={this.onTextBoxBlurred}
+            value={this.state.filterText}
+            onRef={this.onTextBoxRef}
+            onValueChanged={this.onBranchFilterTextChanged}
+            onKeyDown={this.onBranchFilterKeyDown}
+          />
+        </div>
         {showFilterList ? this.renderFilterList() : this.renderCommits()}
       </div>
     )
