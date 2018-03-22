@@ -1248,11 +1248,11 @@ export class GitStore extends BaseStore {
     }
 
     const base = this.tip.branch
-    const revisionRrange =
+    const revisionRange =
       compareType === CompareType.Ahead
         ? `${branch.name}..${base.name}`
         : `${base.name}..${branch.name}`
-    const commits = await getCommits(this.repository, revisionRrange, 250)
+    const commits = await getCommits(this.repository, revisionRange, 250)
 
     if (commits != null) {
       this.storeCommits(commits, true)
