@@ -146,7 +146,7 @@ export class CompareSidebar extends React.Component<
         </div>
       )
     } else {
-      return
+      return <div className="the-commits">{this.renderCommitList()}</div>
     }
   }
 
