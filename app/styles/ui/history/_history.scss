@@ -80,37 +80,6 @@
     margin-top: var(--spacing);
   }
 
-  .the-radio-buttons {
-    border-bottom: var(--base-border);
-    padding: var(--spacing-half);
-    text-align: center;
-
-    input[type='radio'] {
-      display: none;
-    }
-
-    label {
-      border: var(--base-border);
-      flex: 1;
-      align-content: center;
-
-      &:first-of-type {
-        border-radius: var(--border-radius) 0 0 var(--border-radius);
-      }
-
-      &:last-of-type {
-        border-radius: 0 var(--border-radius) var(--border-radius) 0;
-      }
-    }
-
-    input[type='radio']:checked + label {
-      background: var(--box-selected-active-background-color);
-      border-color: var(--box-border-accent-color);
-      color: var(--box-selected-active-text-color);
-    }
-
-  }
-
   .branches-list-item .description {
     margin-right: 0;
   }
@@ -125,14 +94,26 @@
   }
 
   .tab-bar {
+    padding: var(--spacing-half);
+    border-bottom: var(--base-border);
+
     &-item {
       box-shadow: none;
       background: white;
-      color: blue;
+      border: var(--base-border);
+
+      &:first-of-type {
+        border-radius: var(--border-radius) 0 0 var(--border-radius);
+      }
+
+      &:last-of-type {
+        border-radius: 0 var(--border-radius) var(--border-radius) 0;
+      }
 
       &.selected {
-        background: blue;
-        color: white;
+        background: var(--box-selected-active-background-color);
+        border-color: var(--box-border-accent-color);
+        color: var(--box-selected-active-text-color);
       }
     }
   }
