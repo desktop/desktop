@@ -230,7 +230,7 @@ export class CompareSidebar extends React.Component<
     const compareState = this.props.repositoryState.compareState
 
     return (
-      <div className="the-radio-buttons">
+      <div className="compare-content">
         <TabBar
           selectedIndex={this.state.selectedTab}
           onTabClicked={this.onTabClicked}

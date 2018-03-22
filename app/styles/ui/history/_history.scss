@@ -121,4 +121,9 @@
   .select-component {
     flex-grow: 0;
   }
+
+  .compare-content {
+    display: flex;
+    flex-direction: column;
+  }
 }
