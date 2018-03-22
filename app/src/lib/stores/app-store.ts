@@ -726,9 +726,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public async _GetCompareResult(repository: Repository, branch: Branch): Promise<ICompareResult | null> {
+  public async _GetCompareResult(
+    repository: Repository,
+    branch: Branch
+  ): Promise<ICompareResult | null> {
     const gitStore = this.getGitStore(repository)
-    const compare = await gitStore.getCompareStateDetails(branch, CompareType.Behind)
+    const compare = await gitStore.getCompareStateDetails(
+      branch,
+      CompareType.Behind
+    )
 
     return compare
   }
