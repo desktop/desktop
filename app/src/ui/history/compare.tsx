@@ -38,6 +38,7 @@ interface ICompareSidebarState {
   readonly filterText: string
   readonly showFilterList: boolean
   readonly selectedTab: number
+  readonly selectedCommit: Commit | null
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -59,6 +60,7 @@ export class CompareSidebar extends React.Component<
       showFilterList: false,
       compareType: CompareType.Default,
       selectedTab: SelectedTab.Behind,
+      selectedCommit: null,
     }
   }
 
@@ -121,13 +123,14 @@ export class CompareSidebar extends React.Component<
 
   private renderCommitList() {
     const compareState = this.props.repositoryState.compareState
+    const selectedCommit = this.state.selectedCommit
 
     return (
       <CommitList
         gitHubRepository={this.props.repository.gitHubRepository}
         commitLookup={this.props.commitLookup}
         commitSHAs={compareState.commitSHAs}
-        selectedSHA={compareState.selection.sha}
+        selectedSHA={selectedCommit !== null ? selectedCommit.sha : null}
         gitHubUsers={this.props.gitHubUsers}
         localCommitSHAs={this.props.localCommitSHAs}
         emoji={this.props.emoji}
@@ -320,6 +323,8 @@ export class CompareSidebar extends React.Component<
         this.props.repository
       )
     })
+
+    this.setState({ selectedCommit: commit })
   }
 
   private onScroll = (start: number, end: number) => {
