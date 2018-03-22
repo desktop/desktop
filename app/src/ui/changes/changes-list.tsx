@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Path from 'path'
+
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
 import { List, ClickSource } from '../lib/list'
-
 import {
   AppFileStatus,
   WorkingDirectoryStatus,
@@ -92,6 +92,15 @@ interface IChangesListProps {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
+
+  /** The name of the currently selected external editor */
+  readonly externalEditorLabel?: string
+
+  /**
+   * Called to open a file using the user's configured applications
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenInExternalEditor: (path: string) => void
 }
 
 export class ChangesList extends React.Component<IChangesListProps, {}> {
@@ -177,7 +186,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
   }
 
   private onItemContextMenu = (
-    target: string,
+    path: string,
     status: AppFileStatus,
     event: React.MouseEvent<any>
   ) => {
@@ -215,7 +224,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
     if (fileName.length === 1) {
       items.push({
         label: 'Ignore',
-        action: () => this.props.onIgnore(target),
+        action: () => this.props.onIgnore(path),
         enabled: fileName[0] !== GitIgnoreFileName,
       })
     } else if (fileName.length > 1) {
@@ -250,18 +259,27 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
       ? 'Reveal in Finder'
       : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
 
+    const openInExternalEditor = this.props.externalEditorLabel
+      ? `Open in ${this.props.externalEditorLabel}`
+      : __DARWIN__ ? 'Open in External Editor' : 'Open in external editor'
+
     items.push(
       { type: 'separator' },
       {
         label: revealInFileManagerLabel,
-        action: () => this.props.onRevealInFileManager(target),
+        action: () => this.props.onRevealInFileManager(path),
         enabled: status !== AppFileStatus.Deleted,
+      },
+      {
+        label: openInExternalEditor,
+        action: () => this.props.onOpenInExternalEditor(path),
+        enabled: isSafeExtension && status !== AppFileStatus.Deleted,
       },
       {
         label: __DARWIN__
           ? 'Open with Default Program'
           : 'Open with default program',
-        action: () => this.props.onOpenItem(target),
+        action: () => this.props.onOpenItem(path),
         enabled: isSafeExtension && status !== AppFileStatus.Deleted,
       }
     )

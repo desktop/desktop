@@ -37,6 +37,15 @@ interface IRepositoryProps {
   readonly imageDiffType: ImageDiffType
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly accounts: ReadonlyArray<Account>
+
+  /** The name of the currently selected external editor */
+  readonly externalEditorLabel?: string
+
+  /**
+   * Called to open a file using the user's configured applications
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenInExternalEditor: (path: string) => void
 }
 
 const enum Tab {
@@ -103,6 +112,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
           this.props.askForConfirmationOnDiscardChanges
         }
         accounts={this.props.accounts}
+        externalEditorLabel={this.props.externalEditorLabel}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
       />
     )
   }

@@ -10,14 +10,15 @@ interface IChangedFileProps {
   readonly status: AppFileStatus
   readonly oldPath?: string
   readonly include: boolean | null
+  readonly availableWidth: number
   readonly onIncludeChanged: (path: string, include: boolean) => void
+
+  /** Callback called when user right-clicks on an item */
   readonly onContextMenu: (
-    target: string,
+    path: string,
     status: AppFileStatus,
     event: React.MouseEvent<any>
   ) => void
-
-  readonly availableWidth: number
 }
 
 /** a changed file in the working directory for a given repository */
