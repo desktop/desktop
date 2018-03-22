@@ -126,13 +126,13 @@
 
   .tab-bar {
     &-item {
-      background: blue;
-      color: white;
+      box-shadow: none;
+      background: white;
+      color: blue;
 
       &.selected {
-        box-shadow: none;
-        background: white;
-        color: blue;
+        background: blue;
+        color: white;
       }
     }
   }
