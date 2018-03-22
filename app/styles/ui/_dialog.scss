@@ -1,14 +1,13 @@
-@import "../mixins";
-@import "dialogs/merge";
-@import "dialogs/publish-repository";
-@import "dialogs/repository-settings";
+@import '../mixins';
+@import 'dialogs/merge';
+@import 'dialogs/publish-repository';
+@import 'dialogs/repository-settings';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
 // allow easy layout using generalized components and elements such as <Row>
 // and <p>.
 dialog {
-
   // These are custom version of the alert and stop octicons that have been
   // scaled and adjusted to render crisply at 24px.
   //
@@ -38,7 +37,6 @@ dialog {
   // The modal class here is the transition name for the react css transition
   // group which allows us to apply an animation when the popup appears.
   &.modal {
-
     &-enter {
       opacity: 1;
       transform: scale(0.75);
@@ -74,7 +72,7 @@ dialog {
       opacity: 0.01;
       transform: scale(0.25);
       transition: opacity 100ms ease-in,
-                  transform 100ms var(--easing-ease-in-back);
+        transform 100ms var(--easing-ease-in-back);
 
       &::backdrop {
         opacity: 0.01;
@@ -143,7 +141,9 @@ dialog {
       // Let the button deal with all mouse events.
       // Without this the octicon resets the cursor when
       // hovering over the <path>.
-      .octicon { pointer-events: none; }
+      .octicon {
+        pointer-events: none;
+      }
 
       &:hover {
         color: var(--text-color);
@@ -155,7 +155,8 @@ dialog {
     }
   }
 
-  &.warning, &.error {
+  &.warning,
+  &.error {
     .dialog-content {
       position: relative;
       margin-left: var(--spacing-double);
@@ -167,7 +168,10 @@ dialog {
       // Ensure that the dialog contents always have room for the icon,
       // account for two double spacers at top and bottom plus the 5px
       // icon offset (margin-top) and the size of the icon itself.
-      min-height: calc(var(--spacing-double) * 2 + var(--spacing-half) + var(--dialog-icon-size));
+      min-height: calc(
+        var(--spacing-double) * 2 + var(--spacing-half) +
+          var(--dialog-icon-size)
+      );
 
       // We're creating an opaque 24 by 24px div with the background color
       // that we want the icon to appear in and then apply the icon path
@@ -220,7 +224,8 @@ dialog {
       }
     }
 
-    h2, h3 {
+    h2,
+    h3 {
       font-weight: var(--font-weight-semibold);
       margin-top: 0;
       margin-bottom: var(--spacing);
@@ -230,15 +235,22 @@ dialog {
       }
     }
 
-    h2 { font-size: var(--font-size-md); }
-    h3 { font-size: var(--font-size); }
+    h2 {
+      font-size: var(--font-size-md);
+    }
+    h3 {
+      font-size: var(--font-size);
+    }
 
-    ul, ol {
+    ul,
+    ol {
       margin-top: 0;
       padding-left: var(--spacing-double);
       list-style-position: outside;
 
-      &:last-child { margin-bottom: 0; }
+      &:last-child {
+        margin-bottom: 0;
+      }
 
       li {
         margin-bottom: var(--spacing);
@@ -248,7 +260,6 @@ dialog {
   }
 
   .dialog-footer {
-
     display: flex;
     flex-direction: column;
 
@@ -316,12 +327,24 @@ dialog {
     }
   }
 
-  &#preferences { width: 450px; }
-  &#about { width: 450px; }
-  &#create-repository { width: 400px; }
-  &#create-branch { width: 400px; }
-  &#push-branch-commits { width: 450px; }
-  &#publish-branch { width: 450px; }
+  &#preferences {
+    width: 450px;
+  }
+  &#about {
+    width: 450px;
+  }
+  &#create-repository {
+    width: 400px;
+  }
+  &#create-branch {
+    width: 400px;
+  }
+  &#push-branch-commits {
+    width: 450px;
+  }
+  &#publish-branch {
+    width: 450px;
+  }
   &#generic-git-auth {
     width: 450px;
   }
@@ -343,13 +366,20 @@ dialog {
       text-align: center;
     }
 
-    .forgot-password-row, .what-is-this-row {
+    .forgot-password-row,
+    .what-is-this-row {
       font-size: var(--font-size-sm);
       justify-content: flex-end;
     }
+
+    .forgot-password-link-sign-in {
+      margin-left: auto;
+    }
   }
 
-  &#add-existing-repository { width: 400px; }
+  &#add-existing-repository {
+    width: 400px;
+  }
 
   &#initialize-lfs {
     width: 400px;

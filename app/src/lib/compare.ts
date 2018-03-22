@@ -13,9 +13,14 @@
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators
  *
  * This method can be chained using `||` for more complex sorting
- * logic. Ex
+ * logic. Example:
  *
- *  arr.sort((x, y) => compare(x.firstName, y.firstName) || compare(x.lastName, y.lastName))
+ * ```ts
+ * arr.sort(
+ *  (x, y) =>
+ *    compare(x.firstName, y.firstName) || compare(x.lastName, y.lastName)
+ * )
+ * ```
  *
  */
 export function compare<T>(x: T, y: T): number {
@@ -62,11 +67,19 @@ export function compareDescending<T>(x: T, y: T): number {
 
 /**
  * Compares the two strings in a case-insensitive manner and returns a value
+ * indicating whether these are equal
+ */
+export function caseInsensitiveEquals(x: string, y: string): boolean {
+  return x.toLowerCase() === y.toLowerCase()
+}
+
+/**
+ * Compares the two strings in a case-insensitive manner and returns a value
  * indicating whether one is greater than the other. When the return value is
  * used in a sort operation the comparands will be sorted in ascending order.
  */
 export function caseInsensitiveCompare(x: string, y: string): number {
-  return compare(x.toLowerCase(), y.toLocaleLowerCase())
+  return compare(x.toLowerCase(), y.toLowerCase())
 }
 
 /**
@@ -75,5 +88,5 @@ export function caseInsensitiveCompare(x: string, y: string): number {
  * used in a sort operation the comparands will be sorted in descending order.
  */
 export function caseInsensitiveCompareDescending(x: string, y: string): number {
-  return compareDescending(x.toLowerCase(), y.toLocaleLowerCase())
+  return compareDescending(x.toLowerCase(), y.toLowerCase())
 }

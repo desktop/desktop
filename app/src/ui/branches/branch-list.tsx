@@ -143,7 +143,10 @@ export class BranchList extends React.Component<
     this.state = createState(props)
   }
 
-  private renderItem = (item: IBranchListItem) => {
+  private renderItem = (
+    item: IBranchListItem,
+    matches: ReadonlyArray<number>
+  ) => {
     const branch = item.branch
     const commit = branch.tip
     const currentBranchName = this.props.currentBranch
@@ -154,7 +157,7 @@ export class BranchList extends React.Component<
         name={branch.name}
         isCurrentBranch={branch.name === currentBranchName}
         lastCommitDate={commit ? commit.author.date : null}
-        filterText={this.props.filterText}
+        matches={matches}
       />
     )
   }
@@ -209,11 +212,11 @@ export class BranchList extends React.Component<
         rowHeight={RowHeight}
         filterText={this.props.filterText}
         onFilterTextChanged={this.props.onFilterTextChanged}
+        onFilterKeyDown={this.props.onFilterKeyDown}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClick}
-        onFilterKeyDown={this.props.onFilterKeyDown}
         onSelectionChanged={this.onSelectionChanged}
         groups={this.state.groups}
         invalidationProps={this.props.allBranches}
@@ -236,7 +239,7 @@ export class BranchList extends React.Component<
     if (this.props.canCreateNewBranch) {
       return (
         <Button className="new-branch-button" onClick={this.onCreateNewBranch}>
-          New
+          {__DARWIN__ ? 'New Branch' : 'New branch'}
         </Button>
       )
     } else {

@@ -4,11 +4,13 @@ import * as URL from 'url'
 import * as classNames from 'classnames'
 import { UserAutocompletionProvider, IUserHit } from '../autocompletion'
 import { Editor, Doc, Position } from 'codemirror'
-import { validLoginExpression, getDotComAPIEndpoint } from '../../lib/api'
+import { getDotComAPIEndpoint } from '../../lib/api'
 import { compare } from '../../lib/compare'
 import { arrayEquals } from '../../lib/equality'
 import { OcticonSymbol } from '../octicons'
 import { IAuthor } from '../../models/author'
+import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
 
 interface IAuthorInputProps {
   /**
@@ -36,6 +38,12 @@ interface IAuthorInputProps {
    * input field.
    */
   readonly onAuthorsUpdated: (authors: ReadonlyArray<IAuthor>) => void
+
+  /**
+   * Whether or not the input should be read-only and styled as being
+   * disabled. When disabled the component will not accept focus.
+   */
+  readonly disabled: boolean
 }
 
 /**
@@ -488,6 +496,12 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   public componentWillReceiveProps(nextProps: IAuthorInputProps) {
+    const cm = this.editor
+
+    if (!cm) {
+      return
+    }
+
     // If the authors prop have changed from our internal representation
     // we'll throw up our hands and reset the input to whatever we're
     // given.
@@ -495,12 +509,13 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       nextProps.authors !== this.props.authors &&
       !arrayEquals(this.authors, nextProps.authors)
     ) {
-      const cm = this.editor
-      if (cm) {
-        cm.operation(() => {
-          this.reset(cm, nextProps.authors)
-        })
-      }
+      cm.operation(() => {
+        this.reset(cm, nextProps.authors)
+      })
+    }
+
+    if (nextProps.disabled !== this.props.disabled) {
+      cm.setOption('readOnly', nextProps.disabled ? 'nocursor' : false)
     }
   }
 
@@ -646,7 +661,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         hint: this.applyCompletion,
       }))
 
-    if (!exactMatch && needle.length > 0 && validLoginExpression.test(needle)) {
+    if (!exactMatch && needle.length > 0) {
       list.push({
         text: `@${needle}`,
         username: needle,
@@ -702,6 +717,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
         'Ctrl-Enter': false,
         'Cmd-Enter': false,
       },
+      readOnly: this.props.disabled ? 'nocursor' : false,
       hintOptions: {
         completeOnSingleClick: true,
         completeSingle: false,
@@ -743,16 +759,48 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
       this.updateAuthors(cm)
     })
 
+    const wrapperElem = cm.getWrapperElement()
+
     // Do the very least we can do to pretend that we're a
     // single line textbox. Users can still paste newlines
     // though and if the do we don't care.
-    cm.getWrapperElement().addEventListener('keypress', (e: KeyboardEvent) => {
+    wrapperElem.addEventListener('keypress', (e: KeyboardEvent) => {
       if (!e.defaultPrevented && e.key === 'Enter') {
         e.preventDefault()
       }
     })
 
+    wrapperElem.addEventListener('contextmenu', e => {
+      this.onContextMenu(cm, e)
+    })
+
     return cm
+  }
+
+  private onContextMenu(cm: Editor, e: PointerEvent) {
+    e.preventDefault()
+
+    const menu: IMenuItem[] = [
+      { label: 'Undo', action: () => cm.getDoc().undo() },
+      { label: 'Redo', action: () => cm.getDoc().redo() },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+    ]
+
+    if (__WIN32__) {
+      menu.push({ type: 'separator' })
+    }
+
+    menu.push({
+      label: __DARWIN__ ? 'Select All' : 'Select all',
+      action: () => {
+        cm.execCommand('selectAll')
+      },
+    })
+
+    showContextualMenu(menu)
   }
 
   private updateAuthors(cm: Editor) {
@@ -811,7 +859,13 @@ export class AuthorInput extends React.Component<IAuthorInputProps, {}> {
   }
 
   public render() {
-    const className = classNames('author-input-component', this.props.className)
+    const className = classNames(
+      'author-input-component',
+      this.props.className,
+      {
+        disabled: this.props.disabled,
+      }
+    )
     return <div className={className} ref={this.onContainerRef} />
   }
 }

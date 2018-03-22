@@ -15,6 +15,7 @@ import {
   groupRepositories,
   YourRepositoriesIdentifier,
 } from './group-repositories'
+import { HighlightText } from '../lib/highlight-text'
 
 interface ICloneGithubRepositoryProps {
   /** The account to clone from. */
@@ -26,9 +27,6 @@ interface ICloneGithubRepositoryProps {
   /** Called when the destination path changes. */
   readonly onPathChanged: (path: string) => void
 
-  /** Called when the dialog should be dismissed. */
-  readonly onDismissed: () => void
-
   /**
    * Called when the user should be prompted to choose a destination directory.
    */
@@ -36,6 +34,9 @@ interface ICloneGithubRepositoryProps {
 
   /** Called when a repository is selected. */
   readonly onGitHubRepositorySelected: (url: string) => void
+
+  /** Should the component clear the filter text on render? */
+  readonly shouldClearFilter: boolean
 }
 
 interface ICloneGithubRepositoryState {
@@ -114,6 +115,12 @@ export class CloneGithubRepository extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: ICloneGithubRepositoryProps) {
+    if (nextProps.shouldClearFilter) {
+      this.setState({
+        filterText: '',
+      })
+    }
+
     if (nextProps.account.id !== this.props.account.id) {
       this.loadRepositories(nextProps.account)
     }
@@ -154,7 +161,6 @@ export class CloneGithubRepository extends React.Component<
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClicked}
-        onFilterKeyDown={this.onFilterKeyDown}
         invalidationProps={this.state.repositories}
         groups={this.state.repositories}
         filterText={this.state.filterText}
@@ -165,15 +171,6 @@ export class CloneGithubRepository extends React.Component<
 
   private onFilterTextChanged = (filterText: string) => {
     this.setState({ filterText })
-  }
-
-  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      if (this.state.filterText.length === 0) {
-        this.props.onDismissed()
-        event.preventDefault()
-      }
-    }
   }
 
   private onItemClicked = (item: IClonableRepositoryListItem) => {
@@ -205,12 +202,15 @@ export class CloneGithubRepository extends React.Component<
     )
   }
 
-  private renderItem = (item: IClonableRepositoryListItem) => {
+  private renderItem = (
+    item: IClonableRepositoryListItem,
+    matches: ReadonlyArray<number>
+  ) => {
     return (
       <div className="clone-repository-list-item">
         <Octicon className="icon" symbol={item.icon} />
-        <div className="name" title={name}>
-          {item.text}
+        <div className="name" title={item.text}>
+          <HighlightText text={item.text} highlight={matches} />
         </div>
       </div>
     )

@@ -26,8 +26,8 @@ function enableBetaFeatures(): boolean {
   return enableDevelopmentFeatures() || __RELEASE_CHANNEL__ === 'beta'
 }
 
-/** Should PR integration be enabled? */
-export function enablePRIntegration(): boolean {
+/** Should the new Compare view be enabled? */
+export function enableCompareBranch(): boolean {
   return enableBetaFeatures()
 }
 

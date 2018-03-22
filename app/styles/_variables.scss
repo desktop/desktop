@@ -36,8 +36,11 @@
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.
-  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
-  --font-family-monospace: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+    'Helvetica Neue', Arial, sans-serif;
+  --font-family-monospace: Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
 
   /**
    * Font weight to use for semibold text
@@ -171,7 +174,7 @@
 
   --toolbar-background-color: $gray-900;
   --toolbar-text-color: $white;
-  --toolbar-text-secondary-color: $gray-400;
+  --toolbar-text-secondary-color: $gray-300;
 
   --toolbar-button-color: var(--toolbar-text-color);
   --toolbar-button-background-color: transparent;

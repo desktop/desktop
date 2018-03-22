@@ -39,7 +39,7 @@ export class RelativeTime extends React.Component<
   IRelativeTimeProps,
   IRelativeTimeState
 > {
-  private timer: number | null
+  private timer: number | null = null
 
   public constructor(props: IRelativeTimeProps) {
     super(props)

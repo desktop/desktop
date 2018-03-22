@@ -42,5 +42,10 @@
       justify-content: center;
       align-items: center;
     }
+    &.large-diff {
+      margin: var(--spacing-double);
+      text-align: center;
+      justify-content: initial;
+    }
   }
 }
