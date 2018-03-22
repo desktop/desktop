@@ -1145,4 +1145,8 @@ export class Dispatcher {
   ) {
     return this.appStore._LoadCompareState(repository, branch, compareType)
   }
+
+  public GetCompareResult(repository: Repository, branch: Branch) {
+    return this.appStore._GetCompareResult(repository, branch)
+  }
 }
