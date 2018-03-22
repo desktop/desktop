@@ -19,7 +19,7 @@
     "compile:prod": "cross-env NODE_ENV=production parallel-webpack --config app/webpack.production.js",
     "build:dev": "yarn compile:dev && cross-env NODE_ENV=development ts-node script/build.ts",
     "build:prod": "yarn compile:prod && cross-env NODE_ENV=production ts-node script/build.ts",
-    "package": "ts-node -P script script/package.ts",
+    "package": "ts-node -P script/tsconfig.json script/package.ts",
     "generate-octicons": "ts-node script/generate-octicons.ts",
     "clean:tslint": "rimraf tslint-rules/*.js",
     "compile:tslint": "tsc -p tslint-rules",
