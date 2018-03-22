@@ -12,8 +12,8 @@ import { BranchList } from '../branches'
 import { TextBox } from '../lib/text-box'
 import { TipState } from '../../models/tip'
 import { IBranchListItem } from '../branches/group-branches'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { TabBar } from '../tab-bar'
+import { CompareBranchListItem } from './compare-branch-list-item'
 
 enum SelectedTab {
   Behind,
@@ -174,7 +174,7 @@ export class CompareSidebar extends React.Component<
         canCreateNewBranch={false}
         onSelectionChanged={this.onSelectionChanged}
         onFilterTextChanged={this.onBranchFilterTextChanged}
-        renderBranchListItem={this.renderBranchListItem}
+        renderBranchListItem={this.renderCompareBranchListItem}
       />
     )
   }
@@ -245,7 +245,7 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private renderBranchListItem = (
+  private renderCompareBranchListItem = (
     item: IBranchListItem,
     matches: ReadonlyArray<number>
   ) => {
@@ -253,29 +253,15 @@ export class CompareSidebar extends React.Component<
     const currentBranchName =
       tip.kind === TipState.Valid ? tip.branch.name : null
     const branch = item.branch
-    const commit = branch.tip
 
     return (
-      <BranchListItem
-        name={branch.name}
+      <CompareBranchListItem
+        dispatcher={this.props.dispatcher}
+        repository={this.props.repository}
+        branch={branch}
         isCurrentBranch={branch.name === currentBranchName}
-        lastCommitDate={commit ? commit.author.date : null}
         matches={matches}
-        renderDescription={this.renderBranchListItemDescription}
       />
-    )
-  }
-
-  private renderBranchListItemDescription = () => {
-    const compareState = this.props.repositoryState.compareState
-
-    return (
-      <div className="branch-commit-counter">
-        {compareState.ahead}
-        <Octicon className="icon" symbol={OcticonSymbol.arrowUp} />
-        {compareState.ahead}
-        <Octicon className="icon" symbol={OcticonSymbol.arrowDown} />
-      </div>
     )
   }
 
