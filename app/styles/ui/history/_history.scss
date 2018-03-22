@@ -96,6 +96,7 @@
   .tab-bar {
     padding: var(--spacing-half);
     border-bottom: var(--base-border);
+    height: initial;
 
     &-item {
       box-shadow: none;
@@ -124,6 +125,7 @@
 
   .compare-content {
     display: flex;
+    height: 100%;
     flex-direction: column;
   }
 }
