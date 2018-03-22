@@ -119,8 +119,6 @@ export class GitStore extends BaseStore {
 
   private _lastFetched: Date | null = null
 
-  private _memoTable = new Map<string, ICompareResult>()
-
   public constructor(repository: Repository, shell: IAppShell) {
     super()
 
@@ -1254,15 +1252,6 @@ export class GitStore extends BaseStore {
       compareType === CompareType.Ahead
         ? `${branch.name}..${base.name}`
         : `${base.name}..${branch.name}`
-
-    const key = `${this.repository.hash}-${revisionRange}`
-    const cachedResult = this._memoTable.get(key)
-
-    if (cachedResult !== undefined) {
-      console.log(`Cache hit: ${key}`)
-      return cachedResult
-    }
-
     const commits = await getCommits(this.repository, revisionRange, 250)
 
     if (commits != null) {
@@ -1281,11 +1270,6 @@ export class GitStore extends BaseStore {
         ahead: aheadBehind.ahead,
         behind: aheadBehind.behind,
       }
-    }
-
-    if (result !== null) {
-      console.log(`Caching: ${key}`)
-      this._memoTable.set(key, result)
     }
 
     return result
