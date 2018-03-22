@@ -80,6 +80,7 @@ import {
   getRemotes,
   ITrailer,
   isCoAuthoredByTrailer,
+  ICompareResult,
 } from '../git'
 
 import { launchExternalEditor } from '../editors'
@@ -723,6 +724,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.emitUpdate()
+  }
+
+  public async _GetCompareResult(repository: Repository, branch: Branch): Promise<ICompareResult | null> {
+    const gitStore = this.getGitStore(repository)
+    const compare = await gitStore.getCompareStateDetails(branch, CompareType.Behind)
+
+    return compare
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
