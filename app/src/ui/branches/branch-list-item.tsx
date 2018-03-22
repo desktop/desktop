@@ -4,7 +4,7 @@ import * as moment from 'moment'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 
-interface IBranchProps {
+interface IBranchListItemProps {
   readonly name: string
   readonly isCurrentBranch: boolean
 
@@ -18,7 +18,7 @@ interface IBranchProps {
 }
 
 /** The branch component. */
-export class BranchListItem extends React.Component<IBranchProps, {}> {
+export class BranchListItem extends React.Component<IBranchListItemProps, {}> {
   public render() {
     const lastCommitDate = this.props.lastCommitDate
     const isCurrentBranch = this.props.isCurrentBranch
