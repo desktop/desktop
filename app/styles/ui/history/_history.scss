@@ -83,8 +83,6 @@
   .the-radio-buttons {
     border-bottom: var(--base-border);
     padding: var(--spacing-half);
-    display: flex;
-    flex-direction: row;
     text-align: center;
 
     input[type='radio'] {
@@ -127,8 +125,6 @@
   }
 
   .tab-bar {
-    flex-grow: 0;
-
     &-item {
       background: blue;
       color: white;
