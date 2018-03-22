@@ -2891,7 +2891,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.repositoriesStore.removeRepository(id)
     }
 
-    this._showFoldout({ type: FoldoutType.Repository })
+    const allRepositories = await this.repositoriesStore.getAll()
+    if (allRepositories.length === 0) {
+      this._closeFoldout(FoldoutType.Repository)
+    } else {
+      this._showFoldout({ type: FoldoutType.Repository })
+    }
   }
 
   public async _cloneAgain(url: string, path: string): Promise<void> {
