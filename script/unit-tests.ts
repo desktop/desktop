@@ -65,11 +65,17 @@ if (process.platform === 'linux') {
     ...electronMochaArgs,
   ]
 
-  const result = spawnSync(xvfbMaybe, args, options)
-  exitCode = result.status
+  console.log(`spawing xvfb-maybe with args: ${args.join(' ')}`)
+
+  const { status } = spawnSync(xvfbMaybe, args, options)
+  exitCode = status
 } else {
-  const result = spawnSync(electronMochaPath, electronMochaArgs, options)
-  exitCode = result.status
+  console.log(
+    `spawing electron-mocha with args: ${electronMochaArgs.join(' ')}`
+  )
+
+  const { status } = spawnSync(electronMochaPath, electronMochaArgs, options)
+  exitCode = status
 }
 
 process.exitCode = exitCode
