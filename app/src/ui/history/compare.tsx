@@ -142,9 +142,7 @@ export class CompareSidebar extends React.Component<
       return (
         <div className="the-commits">
           {this.renderCommitList()}
-          {this.state.selectedTab === SelectedTab.Behind
-            ? this.renderMergeCTA()
-            : null}
+          {this.renderMergeCTA()}
         </div>
       )
     } else {
