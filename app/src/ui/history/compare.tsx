@@ -306,10 +306,34 @@ export class CompareSidebar extends React.Component<
 
     if (key === 'Enter') {
       if (this.state.filterText === '') {
-        this.setState({ selectedBranch: null })
+        this.handleEscape()
+      } else {
+        const branch =
+          this.props.repositoryState.branchesState.allBranches.find(
+            branch =>
+              branch.name.toLowerCase() === this.state.filterText.toLowerCase()
+          ) || null
+        this.props.dispatcher.loadCompareState(
+          this.props.repository,
+          branch,
+          CompareType.Default
+        )
+        this.setState({ selectedBranch: branch })
         this.textbox!.blur()
       }
+    } else if (key === 'Escape') {
+      this.handleEscape()
     }
+  }
+
+  private handleEscape() {
+    this.props.dispatcher.loadCompareState(
+      this.props.repository,
+      null,
+      CompareType.Default
+    )
+    this.setState({ selectedBranch: null })
+    this.textbox!.blur()
   }
 
   private onCommitSelected = (commit: Commit) => {
