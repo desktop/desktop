@@ -14,6 +14,8 @@ import { TipState } from '../../models/tip'
 import { IBranchListItem } from '../branches/group-branches'
 import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
+import { FancyTextBox } from '../lib/fancy-text-box'
+import { OcticonSymbol } from '../octicons/index';
 
 enum SelectedTab {
   Behind,
@@ -94,14 +96,14 @@ export class CompareSidebar extends React.Component<
 
     return (
       <div id="compare-view">
-        <TextBox
+        <FancyTextBox
           className="the-box"
-          type="search"
-          ref={this.onTextBoxRef}
+          symbol={OcticonSymbol.gitBranch}
           placeholder={placeholderText}
           onFocus={this.onTextBoxFocused}
           onBlur={this.onTextBoxBlurred}
           value={this.state.filterText}
+          onRef={this.onTextBoxRef}
           onValueChanged={this.onBranchFilterTextChanged}
           onKeyDown={this.onBranchFilterKeyDown}
         />
