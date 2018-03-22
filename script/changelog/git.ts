@@ -13,5 +13,9 @@ export async function getLogLines(
     '--',
   ])
 
-  return log.split('\0')
+  const entries = log.split('\0')
+
+  // this ensures empty entries are ignored - git log might just
+  // return a `\0` to indicate that there are no new merged PRs
+  return entries.filter(e => e.trim().length > 0)
 }
