@@ -12,7 +12,6 @@ import { BranchList } from '../branches'
 import { TextBox } from '../lib/text-box'
 import { TipState } from '../../models/tip'
 import { IBranchListItem } from '../branches/group-branches'
-import { BranchListItem } from '../branches/branch'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { TabBar } from '../tab-bar'
 

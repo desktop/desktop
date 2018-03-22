@@ -5,7 +5,7 @@ import {
   IBranchListItem,
   BranchGroupIdentifier,
 } from './group-branches'
-import { BranchListItem } from './branch'
+import { BranchListItem } from './branch-list-item'
 import {
   FilterList,
   IFilterListGroup,
