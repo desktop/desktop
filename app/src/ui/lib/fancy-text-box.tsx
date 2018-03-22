@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { TextBox } from './text-box';
+import * as classNames from 'classnames'
 
 interface IFancyTextBoxProps {
   readonly symbol: OcticonSymbol
@@ -58,19 +59,29 @@ interface IFancyTextBoxProps {
 }
 
 interface IFancyTextBoxState {
-
+  readonly isFocused:boolean
 }
 
 export class FancyTextBox extends React.Component<IFancyTextBoxProps, IFancyTextBoxState> {
+  public constructor(props: IFancyTextBoxProps) {
+    super(props)
+
+    this.state = {isFocused: false}
+  }
 
   public render() {
+    const fancyTextBoxClassNames = classNames('fancy-text-box-component', this.props.className, {focused: this.state.isFocused})
+    // const octiconClassNames = classNames('fancy-octicon', {focused: this.state.isFocused})
+    const octiconClassNames = classNames('fancy-octicon')
+
     return(
-      <span>
+      <div className={fancyTextBoxClassNames}>
+        <Octicon className={octiconClassNames} symbol={this.props.symbol} />
+
         <TextBox
-          className={this.props.className}
           value={this.props.value}
-          onFocus={this.props.onFocus}
-          onBlur={this.props.onBlur}
+          onFocus={this.onFocus}
+          onBlur={this.onBlur}
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
           type={this.props.type}
@@ -80,8 +91,23 @@ export class FancyTextBox extends React.Component<IFancyTextBoxProps, IFancyText
           tabIndex={this.props.tabIndex}
           ref={this.props.onRef}
         />
-        <Octicon symbol={this.props.symbol} />
-      </span>
+      </div>
     )
+  }
+
+  private onFocus=() => {
+    if (this.props.onFocus !== undefined) {
+      this.props.onFocus()
+    }
+
+    this.setState({isFocused: true})
+  }
+
+  private onBlur=() => {
+    if (this.props.onBlur !== undefined) {
+      this.props.onBlur()
+    }
+
+    this.setState({isFocused: false})
   }
 }
