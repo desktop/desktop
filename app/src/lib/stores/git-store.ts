@@ -119,10 +119,7 @@ export class GitStore extends BaseStore {
 
   private _lastFetched: Date | null = null
 
-  private _memoTable = new Map<
-    { repoHash: string; revisionRange: string },
-    ICompareResult
-  >()
+  private _memoTable = new Map<string, ICompareResult>()
 
   public constructor(repository: Repository, shell: IAppShell) {
     super()
@@ -1258,13 +1255,11 @@ export class GitStore extends BaseStore {
         ? `${branch.name}..${base.name}`
         : `${base.name}..${branch.name}`
 
-    const cachedResult = this._memoTable.get({
-      repoHash: this.repository.hash,
-      revisionRange,
-    })
+    const key = `${this.repository.hash}-${revisionRange}`
+    const cachedResult = this._memoTable.get(key)
 
     if (cachedResult !== undefined) {
-      this.storeCommits(cachedResult.commits, true)
+      console.log(`Cache hit: ${key}`)
       return cachedResult
     }
 
@@ -1289,10 +1284,8 @@ export class GitStore extends BaseStore {
     }
 
     if (result !== null) {
-      this._memoTable.set(
-        { repoHash: this.repository.hash, revisionRange },
-        result
-      )
+      console.log(`Caching: ${key}`)
+      this._memoTable.set(key, result)
     }
 
     return result
