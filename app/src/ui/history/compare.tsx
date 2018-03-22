@@ -86,7 +86,7 @@ export class CompareSidebar extends React.Component<
     const { showFilterList, selectedBranch } = this.state
     const placeholderText =
       selectedBranch === null
-        ? __DARWIN__ ? 'Select Branch' : 'Select branch'
+        ? __DARWIN__ ? 'Select Branch To Compare...' : 'Select branch to compare...'
         : undefined
 
     return (
