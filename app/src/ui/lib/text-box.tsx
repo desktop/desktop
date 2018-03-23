@@ -4,7 +4,7 @@ import { createUniqueId, releaseUniqueId } from './id-pool'
 import { LinkButton } from './link-button'
 import { showContextualMenu } from '../main-process-proxy'
 
-interface ITextBoxProps {
+export interface ITextBoxProps {
   /** The label for the input field. */
   readonly label?: string | JSX.Element
 
