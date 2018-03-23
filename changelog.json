@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.1.1-beta4": [
+      "[Improved] Context menu in Changes tab now supports opening file in your preferred editor - #4030"
+    ],
     "1.1.1-beta3": [
 
     ],
