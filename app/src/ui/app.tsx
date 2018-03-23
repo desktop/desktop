@@ -122,7 +122,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    * modal dialog such as the preferences, or an error dialog.
    */
   private get isShowingModal() {
-    return this.state.currentPopup || this.state.errors.length
+    return this.state.currentPopup !== null || this.state.errors.length > 0
   }
 
   public constructor(props: IAppProps) {
@@ -535,11 +535,24 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   public componentDidMount() {
-    document.ondragover = document.ondrop = e => {
+    document.ondragover = e => {
+      if (this.isShowingModal) {
+        e.dataTransfer.dropEffect = 'none'
+      } else {
+        e.dataTransfer.dropEffect = 'copy'
+      }
+
+      e.preventDefault()
+    }
+
+    document.ondrop = e => {
       e.preventDefault()
     }
 
     document.body.ondrop = e => {
+      if (this.isShowingModal) {
+        return
+      }
       const files = e.dataTransfer.files
       this.handleDragAndDrop(files)
       e.preventDefault()
@@ -867,9 +880,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onPopupDismissed = () => {
-    this.props.dispatcher.closePopup()
-  }
+  private onPopupDismissed = () => this.props.dispatcher.closePopup()
 
   private onSignInDialogDismissed = () => {
     this.props.dispatcher.resetSignInState()
@@ -886,9 +897,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onUpdateAvailableDismissed = () => {
+  private onUpdateAvailableDismissed = () =>
     this.props.dispatcher.setUpdateBannerVisibility(false)
-  }
 
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
@@ -1250,9 +1260,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.performRetry(retryAction)
   }
 
-  private onCheckForUpdates = () => {
-    this.checkForUpdates(false)
-  }
+  private onCheckForUpdates = () => this.checkForUpdates(false)
 
   private showAcknowledgements = () => {
     this.props.dispatcher.showPopup({ type: PopupType.Acknowledgements })
@@ -1283,9 +1291,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <FullScreenInfo windowState={this.state.windowState} />
   }
 
-  private clearError = (error: Error) => {
-    this.props.dispatcher.clearError(error)
-  }
+  private clearError = (error: Error) => this.props.dispatcher.clearError(error)
 
   private onConfirmDiscardChangesChanged = (value: boolean) => {
     this.props.dispatcher.setConfirmDiscardChangesSetting(value)
@@ -1332,7 +1338,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
         onRemoveRepository={this.removeRepository}
-        onClose={this.onCloseRepositoryList}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
         onOpenInExternalEditor={this.openInExternalEditor}
@@ -1348,6 +1353,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.openShell(repository.path)
+  }
+
+  private openFileInExternalEditor = (path: string) => {
+    this.props.dispatcher.openInExternalEditor(path)
   }
 
   private openInExternalEditor = (
@@ -1368,10 +1377,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     shell.showItemInFolder(repository.path)
   }
 
-  private onCloseRepositoryList = () => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
-  }
-
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
     if (newState === 'open') {
       this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
@@ -1390,9 +1395,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repository) {
       icon = iconForRepository(repository)
       title = repository.name
-    } else {
+    } else if (this.state.repositories.length > 0) {
       icon = OcticonSymbol.repo
       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
+    } else {
+      icon = OcticonSymbol.repo
+      title = __DARWIN__ ? 'No Repositories' : 'No repositories'
     }
 
     const isOpen =
@@ -1586,6 +1594,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (selectedState.type === SelectionType.Repository) {
+      const externalEditorLabel = this.state.selectedExternalEditor
+
       return (
         <RepositoryView
           repository={selectedState.repository}
@@ -1602,6 +1612,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             this.state.askForConfirmationOnDiscardChanges
           }
           accounts={this.state.accounts}
+          externalEditorLabel={externalEditorLabel}
+          onOpenInExternalEditor={this.openFileInExternalEditor}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
