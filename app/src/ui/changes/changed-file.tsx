@@ -17,7 +17,7 @@ interface IChangedFileProps {
   readonly onContextMenu: (
     path: string,
     status: AppFileStatus,
-    event: React.MouseEvent<any>
+    event: React.MouseEvent<HTMLDivElement>
   ) => void
 }
 
@@ -26,12 +26,6 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
     this.props.onIncludeChanged(this.props.path, include)
-  }
-
-  private onContextMenu = (event: React.MouseEvent<any>) => {
-    if (this.props.onContextMenu) {
-      this.props.onContextMenu(this.props.path, this.props.status, event)
-    }
   }
 
   private get checkboxValue(): CheckboxValue {
@@ -85,5 +79,9 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
         />
       </div>
     )
+  }
+
+  private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onContextMenu(this.props.path, this.props.status, event)
   }
 }
