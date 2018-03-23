@@ -1,11 +1,13 @@
 import * as React from 'react'
+import * as Path from 'path'
+
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
 import { List, ClickSource } from '../lib/list'
-
 import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
+  AppFileStatus,
 } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -15,11 +17,17 @@ import { IGitHubUser } from '../../lib/databases'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IAutocompletionProvider } from '../autocompletion'
 import { Repository } from '../../models/repository'
-import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { showContextualMenu } from '../main-process-proxy'
 import { IAuthor } from '../../models/author'
 import { ITrailer } from '../../lib/git/interpret-trailers'
+import { IMenuItem } from '../../lib/menu-item'
 
 const RowHeight = 29
+const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
+const defaultEditorLabel = __DARWIN__
+  ? 'Open in External Editor'
+  : 'Open in external editor'
+const GitIgnoreFileName = '.gitignore'
 
 interface IChangesListProps {
   readonly repository: Repository
@@ -85,6 +93,15 @@ interface IChangesListProps {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
+
+  /** The name of the currently selected external editor */
+  readonly externalEditorLabel?: string
+
+  /**
+   * Called to open a file using the user's configured applications
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenInExternalEditor: (path: string) => void
 }
 
 export class ChangesList extends React.Component<IChangesListProps, {}> {
@@ -110,11 +127,8 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         include={includeAll}
         key={file.id}
         onIncludeChanged={this.props.onIncludeChanged}
-        onDiscardChanges={this.onDiscardChanges}
-        onRevealInFileManager={this.props.onRevealInFileManager}
-        onOpenItem={this.props.onOpenItem}
         availableWidth={this.props.availableWidth}
-        onIgnore={this.props.onIgnore}
+        onContextMenu={this.onItemContextMenu}
       />
     )
   }
@@ -154,6 +168,75 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
         enabled: this.props.workingDirectory.files.length > 0,
       },
     ]
+
+    showContextualMenu(items)
+  }
+
+  private onItemContextMenu = (
+    path: string,
+    status: AppFileStatus,
+    event: React.MouseEvent<any>
+  ) => {
+    event.preventDefault()
+
+    const extension = Path.extname(path)
+    const fileName = Path.basename(path)
+    const isSafeExtension = __WIN32__
+      ? RestrictedFileExtensions.indexOf(extension.toLowerCase()) === -1
+      : true
+    const revealInFileManagerLabel = __DARWIN__
+      ? 'Reveal in Finder'
+      : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
+    const openInExternalEditor = this.props.externalEditorLabel
+      ? `Open in ${this.props.externalEditorLabel}`
+      : defaultEditorLabel
+    const items: IMenuItem[] = [
+      {
+        label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
+        action: () => this.onDiscardChanges(path),
+      },
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        action: () => this.onDiscardAllChanges(),
+      },
+      { type: 'separator' },
+      {
+        label: 'Ignore',
+        action: () => this.props.onIgnore(path),
+        enabled: fileName !== GitIgnoreFileName,
+      },
+    ]
+
+    if (extension.length) {
+      items.push({
+        label: __DARWIN__
+          ? `Ignore All ${extension} Files`
+          : `Ignore all ${extension} files`,
+        action: () => this.props.onIgnore(`*${extension}`),
+        enabled: fileName !== GitIgnoreFileName,
+      })
+    }
+
+    items.push(
+      { type: 'separator' },
+      {
+        label: revealInFileManagerLabel,
+        action: () => this.props.onRevealInFileManager(path),
+        enabled: status !== AppFileStatus.Deleted,
+      },
+      {
+        label: openInExternalEditor,
+        action: () => this.props.onOpenInExternalEditor(path),
+        enabled: isSafeExtension && status !== AppFileStatus.Deleted,
+      },
+      {
+        label: __DARWIN__
+          ? 'Open with Default Program'
+          : 'Open with default program',
+        action: () => this.props.onOpenItem(path),
+        enabled: isSafeExtension && status !== AppFileStatus.Deleted,
+      }
+    )
 
     showContextualMenu(items)
   }

@@ -185,7 +185,6 @@ export class CloneRepository extends React.Component<
               onPathChanged={this.updateAndValidatePath}
               onGitHubRepositorySelected={this.updateUrl}
               onChooseDirectory={this.onChooseDirectory}
-              onDismissed={this.props.onDismissed}
               shouldClearFilter={this.state.shouldClearFilter}
             />
           )
@@ -358,7 +357,7 @@ export class CloneRepository extends React.Component<
     }
 
     try {
-      this.cloneImpl(url, path)
+      this.cloneImpl(url.trim(), path)
     } catch (e) {
       log.error(`CloneRepostiory: clone failed to complete to ${path}`, e)
       this.setState({ loading: false, error: e })
