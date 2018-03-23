@@ -1355,6 +1355,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.openShell(repository.path)
   }
 
+  private openFileInExternalEditor = (path: string) => {
+    this.props.dispatcher.openInExternalEditor(path)
+  }
+
   private openInExternalEditor = (
     repository: Repository | CloningRepository
   ) => {
@@ -1590,6 +1594,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (selectedState.type === SelectionType.Repository) {
+      const externalEditorLabel = this.state.selectedExternalEditor
+
       return (
         <RepositoryView
           repository={selectedState.repository}
@@ -1606,6 +1612,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             this.state.askForConfirmationOnDiscardChanges
           }
           accounts={this.state.accounts}
+          externalEditorLabel={externalEditorLabel}
+          onOpenInExternalEditor={this.openFileInExternalEditor}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
