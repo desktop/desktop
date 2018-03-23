@@ -15,7 +15,7 @@ import { IBranchListItem } from '../branches/group-branches'
 import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
-import { OcticonSymbol } from '../octicons/index';
+import { OcticonSymbol } from '../octicons'
 
 enum SelectedTab {
   Behind,
@@ -320,7 +320,7 @@ export class CompareSidebar extends React.Component<
       null,
       CompareType.Default
     )
-    this.setState({ selectedBranch: null })
+    this.setState({ selectedBranch: null, filterText: '' })
     this.textbox!.blur()
   }
 
