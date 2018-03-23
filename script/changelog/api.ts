@@ -14,7 +14,7 @@ octokit.authenticate({
 export interface IDesktopPullRequest {
   readonly title: string
   readonly body: string
-  readonly collaborators: ReadonlyArray<string>
+  readonly collaborators: ReadonlySet<string>
   readonly commits: ReadonlyArray<string>
 }
 
@@ -99,19 +99,18 @@ export async function fetchPR(id: number): Promise<IDesktopPullRequest | null> {
       data = data.concat(commitsResponse.data)
     }
 
-    const collaborators: Array<string> = []
-    const commits: Array<string> = []
+    const collaborators = new Set<string>()
+    const commits = new Array<string>()
 
     for (const commit of data) {
-      commits.push(commit.sha)
-      if (commit.author && collaborators.indexOf(commit.author.login) === -1) {
-        collaborators.push(commit.author.login)
+      const { sha, author, committer } = commit
+
+      commits.push(sha)
+      if (author != null && !collaborators.has(author.login)) {
+        collaborators.add(author.login)
       }
-      if (
-        commit.committer &&
-        collaborators.indexOf(commit.committer.login) === -1
-      ) {
-        collaborators.push(commit.committer.login)
+      if (committer != null && !collaborators.has(committer.login)) {
+        collaborators.add(committer.login)
       }
     }
 
