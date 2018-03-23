@@ -45,7 +45,7 @@ export function findIssueRef(body: string): string {
     if (match && match.length === 4) {
       // a match should always have four elements - the matching text
       // as well as the three groups within the match. We're only
-      // interested in the last match - the issue reference number
+      // interested in the last group - the issue reference number
       issueRef += ` #${match[3]}`
     }
   } while (match)
