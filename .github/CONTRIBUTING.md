@@ -170,4 +170,5 @@ pull requests.
 
 | Label name | :mag_right: | Description |
 | --- | --- | --- |
+| `infrastructure` | [search](https://github.com/desktop/desktop/labels/infrastructure) | Pull requests not related to the core application - documentation, dependencies, tooling, etc. |
 | `ready-for-review` | [search](https://github.com/desktop/desktop/labels/ready-for-review)  | Pull Requests that are ready to be reviewed by the maintainers. |
