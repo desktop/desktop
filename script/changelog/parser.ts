@@ -42,7 +42,10 @@ export function findIssueRef(body: string): string {
   let match: RegExpExecArray | null = null
   do {
     match = re.exec(body)
-    if (match && match.length > 1) {
+    if (match && match.length === 4) {
+      // a match should always have four elements - the matching text
+      // as well as the three groups within the match. We're only
+      // interested in the last match - the issue reference number
       issueRef += ` #${match[3]}`
     }
   } while (match)
