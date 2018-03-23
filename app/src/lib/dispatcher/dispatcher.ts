@@ -807,15 +807,16 @@ export class Dispatcher {
           rejectOAuthRequest(e)
         }
 
-        // maybe a workaround for macOS not focusing on the app after
-        // completing the OAuth dance?
-        const window = remote.getCurrentWindow()
-        const isFocused = window.isFocused()
-        log.debug(`OAuth dance done, isFocused: ${isFocused}`)
-
-        if (!isFocused) {
-          log.debug(`refocusing the main window`)
-          window.focus()
+        if (__DARWIN__) {
+          // workaround for user reports that the application doesn't receive focus
+          // after completing the OAuth signin in the browser
+          const window = remote.getCurrentWindow()
+          if (!window.isFocused()) {
+            log.info(
+              `refocusing the main window after the OAuth flow is completed`
+            )
+            window.focus()
+          }
         }
         break
 
