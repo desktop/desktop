@@ -487,8 +487,8 @@ export class Dispatcher {
   }
 
   /** Update the repository's issues from GitHub. */
-  public updateIssues(repository: GitHubRepository): Promise<void> {
-    return this.appStore._updateIssues(repository)
+  public refreshIssues(repository: GitHubRepository): Promise<void> {
+    return this.appStore._refreshIssues(repository)
   }
 
   /** End the Welcome flow. */
