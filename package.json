@@ -50,7 +50,6 @@
     "yarn": ">= 1.2.0"
   },
   "dependencies": {
-    "@octokit/rest": "^14.0.8",
     "awesome-typescript-loader": "^3.4.0",
     "aws-sdk": "^2.23.0",
     "babel-core": "^6.24.1",
@@ -76,7 +75,6 @@
     "json-pretty": "^0.0.1",
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.15.0",
-    "listify": "^1.0.0",
     "mocha": "^4.0.1",
     "node-native-loader": "^1.1.1",
     "node-sass": "^4.7.2",
