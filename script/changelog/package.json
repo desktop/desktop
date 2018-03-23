@@ -12,8 +12,8 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">= 8",
-    "yarn": ">= 1.5.0"
+    "node": ">= 7",
+    "yarn": ">= 1.2.0"
   },
   "dependencies": {
     "@octokit/rest": "^14.0.8",
