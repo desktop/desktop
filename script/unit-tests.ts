@@ -17,6 +17,7 @@ const environmentVariables = {
 
 const env = { ...process.env, ...environmentVariables }
 
+// ensure commands are executed from the root of the repository
 const repositoryRoot = Path.dirname(__dirname)
 
 const options: SpawnSyncOptions = {
