@@ -15,12 +15,12 @@ const environmentVariables = {
   ELECTRON_NO_ATTACH_CONSOLE: '1',
 }
 
-const env = Object.assign({}, process.env, environmentVariables)
+const env = { ...process.env, ...environmentVariables }
 
-const root = Path.dirname(__dirname)
+const repositoryRoot = Path.dirname(__dirname)
 
 const options: SpawnSyncOptions = {
-  cwd: root,
+  cwd: repositoryRoot,
   env,
   // ensure stdout/stderr is propagated to the parent process so the test results
   // are displayed to the user
@@ -30,7 +30,12 @@ const options: SpawnSyncOptions = {
 const electronMocha =
   process.platform === 'win32' ? 'electron-mocha.cmd' : 'electron-mocha'
 
-const electronMochaPath = Path.join(root, 'node_modules', '.bin', electronMocha)
+const electronMochaPath = Path.join(
+  repositoryRoot,
+  'node_modules',
+  '.bin',
+  electronMocha
+)
 
 const electronMochaArgs = [
   // timeout for 10s
@@ -53,7 +58,12 @@ if (process.platform === 'linux') {
   // context where the DISPLAY environment variable is set. It only runs on
   // Linux and is designed for CI scenarios, but this is making the whole
   // thing more explicit than the previous inline usage in package.json
-  const xvfbMaybe = Path.join(root, 'node_modules', '.bin', 'xvfb-maybe')
+  const xvfbMaybe = Path.join(
+    repositoryRoot,
+    'node_modules',
+    '.bin',
+    'xvfb-maybe'
+  )
 
   const args = [
     // on Travis there may be a problem with the default display being
