@@ -371,6 +371,10 @@ dialog {
       font-size: var(--font-size-sm);
       justify-content: flex-end;
     }
+
+    .forgot-password-link-sign-in {
+      margin-left: auto;
+    }
   }
 
   &#add-existing-repository {

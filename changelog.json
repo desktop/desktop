@@ -1,5 +1,39 @@
 {
   "releases": {
+    "1.1.1-beta4": [
+      "[Improved] Context menu in Changes tab now supports opening file in your preferred editor - #4030"
+    ],
+    "1.1.1-beta3": [
+
+    ],
+    "1.1.1-beta2": [
+      "[New] Render WebP images in diffs - #4164. Thanks @agisilaos!",
+      "[Fixed] Edit context menus in commit form input elements - #3886",
+      "[Fixed] Escape behavior should match that of Branch List - #3972",
+      "[Fixed] Keep caret position after inserting completion - #3835. Thanks @CarlRosell!",
+      "[Fixed] Handle error events when watching files used to get Git LFS output - #4117",
+      "[Fixed] Potential race condition when opening a fork pull request - #4149",
+      "[Fixed] Show placeholder image when no pull requests found - #3973",
+      "[Fixed] Disable input fields summary and description while commit in progress - #3893. Thanks @crea7or!",
+      "[Fixed] Ensure pull request cache is cleared after last pull request merged - #4122",
+      "[Fixed] Focus two-factor authentication dialog on input - #4220. Thanks @WaleedAshraf!",
+      "[Fixed] Branches button no longer disabled while on an unborn branch - #4236. Thanks @agisilaos!",
+      "[Fixed] Delete gitignore file when entries cleared in Repository Settings - #1896",
+      "[Fixed] Add visual indicator that a folder can be dropped on Desktop - #4004. Thanks @agisilaos!",
+      "[Improved] Add `Discard All Changes...` to context menu on changed file list - #4197. Thanks @xamm!",
+      "[Improved] Improve contrast for button labels in app toolbar - #4219",
+      "[Improved] Speed up check for submodules when discarding - #4186. Thanks @kmscode!",
+      "[Improved] Make the keychain known issue more clear within Desktop - #4125",
+      "[Improved] Continue past the 'diff too large' message and view the diff - #4050",
+      "[Improved] Repository association might not have expected prefix - #4090. Thanks @mathieudutour!",
+      "[Improved] Add message to gitignore dialog when not on default branch - #3720",
+      "[Improved] Hide Desktop-specific forks in Branch List - #4127",
+      "[Improved] Disregard accidental whitespace when cloning a repository by URL - #4216",
+      "[Improved] Show alert icon in repository list when repository not found on disk - #4254. Thanks @gingerbeardman!",
+      "[Improved] Repository list now closes after removing last repository - #4269. Thanks @agisilaos!",
+      "[Improved] Move forget password link to after the password dialog to maintain expected tab order - #4283. Thanks @iamnapo!",
+      "[Improved] More descriptive text in repository toolbar button when no repositories are tracked - #4268. Thanks @agisilaos!"
+    ],
     "1.1.1-test2": [
       "[Improved] Electron 1.8.3 upgrade (again)"
     ],
@@ -8,8 +42,8 @@
     ],
     "1.1.1-beta1": [
 
-    ]
-    ,"1.1.0": [
+    ],
+    "1.1.0": [
       "[New] Check out pull requests from collaborators or forks from within Desktop",
       "[New] View the commit status of the branch when it has an open pull request",
       "[Added] Add RubyMine support for macOS - #3883. Thanks @gssbzn!",

@@ -13,5 +13,9 @@ export async function getLogLines(
     '--',
   ])
 
+  if (log.length === 0) {
+    return []
+  }
+
   return log.split('\0')
 }
