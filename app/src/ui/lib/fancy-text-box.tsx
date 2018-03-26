@@ -26,16 +26,16 @@ export class FancyTextBox extends React.Component<
   }
 
   public render() {
-    const fancyTextBoxClassNames = classNames(
+    const componentCSS = classNames(
       'fancy-text-box-component',
       this.props.className,
       { focused: this.state.isFocused }
     )
-    const octiconClassNames = classNames('fancy-octicon')
+    const octiconCSS = classNames('fancy-octicon')
 
     return (
-      <div className={fancyTextBoxClassNames}>
-        <Octicon className={octiconClassNames} symbol={this.props.symbol} />
+      <div className={componentCSS}>
+        <Octicon className={octiconCSS} symbol={this.props.symbol} />
         <TextBox
           value={this.props.value}
           onFocus={this.onFocus}
