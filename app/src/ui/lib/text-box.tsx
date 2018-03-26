@@ -76,12 +76,12 @@ export interface ITextBoxProps {
   readonly tabIndex?: number
 
   /**
-   * Called when focused.
+   * Callback used when the component is focused.
    */
   readonly onFocus?: () => void
 
   /**
-   * Called when focus is lost.
+   * Callback used when the component loses focus.
    */
   readonly onBlur?: () => void
 }
