@@ -1239,6 +1239,9 @@ export class GitStore extends BaseStore {
     )
   }
 
+  /**
+   * Returns the commits associated with `branch` and ahead/behind info;
+   */
   public async getCompareStateDetails(
     branch: Branch,
     compareType: CompareType
