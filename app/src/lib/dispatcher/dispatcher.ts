@@ -1138,6 +1138,9 @@ export class Dispatcher {
     return this.appStore._setCoAuthors(repository, coAuthors)
   }
 
+  /**
+   * Load the state for comparing `branch` to the base branch
+   */
   public loadCompareState(
     repository: Repository,
     branch: Branch | null,
@@ -1146,6 +1149,9 @@ export class Dispatcher {
     return this.appStore._LoadCompareState(repository, branch, compareType)
   }
 
+  /**
+   * Get ahead/behind info for `branch`
+   */
   public GetCompareResult(repository: Repository, branch: Branch) {
     return this.appStore._GetCompareResult(repository, branch)
   }
