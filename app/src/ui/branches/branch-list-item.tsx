@@ -5,7 +5,10 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
 
 interface IBranchListItemProps {
+  /** The name of the branch */
   readonly name: string
+
+  /** Specifies whether this item is currently selected */
   readonly isCurrentBranch: boolean
 
   /** The date may be null if we haven't loaded the tip commit yet. */

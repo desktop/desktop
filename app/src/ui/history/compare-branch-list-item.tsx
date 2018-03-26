@@ -11,6 +11,8 @@ interface ICompareBranchListItemProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
+
+  /** Specifies whether this item is currently selected */
   readonly isCurrentBranch: boolean
 
   /** The characters in the branch name to highlight */
