@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 
 import { APIRefState } from '../../src/lib/api'
-import { getSummary } from '../../src/ui/branches/pull-request-status'
+import { getPRStatusSummary } from '../../src/ui/branches/pull-request-status'
 
 const failure: APIRefState = 'failure'
 const pending: APIRefState = 'pending'
@@ -16,7 +16,7 @@ describe('pull request status', () => {
       sha: '',
       statuses: [],
     }
-    expect(getSummary(prStatus)).to.equal('success')
+    expect(getPRStatusSummary(prStatus)).to.equal('success')
   })
 
   it('changes the failure message to something more friendly', () => {
@@ -27,7 +27,7 @@ describe('pull request status', () => {
       sha: '',
       statuses: [],
     }
-    expect(getSummary(prStatus)).to.equal('failed')
+    expect(getPRStatusSummary(prStatus)).to.equal('failed')
   })
 
   it('reads the statuses when they are populated', () => {
@@ -38,7 +38,7 @@ describe('pull request status', () => {
       sha: '',
       statuses: [{ id: 1, state: success }, { id: 2, state: success }],
     }
-    expect(getSummary(prStatus)).to.equal('2/2 checks OK')
+    expect(getPRStatusSummary(prStatus)).to.equal('2/2 checks OK')
   })
 
   it('only counts the successful statuses', () => {
@@ -53,6 +53,6 @@ describe('pull request status', () => {
         { id: 2, state: pending },
       ],
     }
-    expect(getSummary(prStatus)).to.equal('1/3 checks OK')
+    expect(getPRStatusSummary(prStatus)).to.equal('1/3 checks OK')
   })
 })

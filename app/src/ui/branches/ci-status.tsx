@@ -4,7 +4,7 @@ import { APIRefState } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
 import { PullRequestStatus } from '../../models/pull-request'
-import { getSummary } from './pull-request-status'
+import { getPRStatusSummary } from './pull-request-status'
 
 interface ICIStatusProps {
   /** The classname for the underlying element. */
@@ -18,7 +18,7 @@ interface ICIStatusProps {
 export class CIStatus extends React.Component<ICIStatusProps, {}> {
   public render() {
     const status = this.props.status
-    const ciTitle = getSummary(status)
+    const title = getPRStatusSummary(status)
     const state = status.state
 
     return (
@@ -29,7 +29,7 @@ export class CIStatus extends React.Component<ICIStatusProps, {}> {
           this.props.className
         )}
         symbol={getSymbolForState(state)}
-        title={ciTitle}
+        title={title}
       />
     )
   }
