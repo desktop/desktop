@@ -806,6 +806,18 @@ export class Dispatcher {
         } catch (e) {
           rejectOAuthRequest(e)
         }
+
+        if (__DARWIN__) {
+          // workaround for user reports that the application doesn't receive focus
+          // after completing the OAuth signin in the browser
+          const window = remote.getCurrentWindow()
+          if (!window.isFocused()) {
+            log.info(
+              `refocusing the main window after the OAuth flow is completed`
+            )
+            window.focus()
+          }
+        }
         break
 
       case 'open-repository-from-url':
