@@ -20,7 +20,7 @@ interface ICompareBranchListItemProps {
 }
 
 interface ICompareBranchListItemState {
-  readonly compareState: ICompareResult | null
+  readonly compareResult: ICompareResult | null
 }
 
 export class CompareBranchListItem extends React.Component<
@@ -31,24 +31,24 @@ export class CompareBranchListItem extends React.Component<
     super(props)
 
     this.state = {
-      compareState: null,
+      compareResult: null,
     }
   }
 
   public async componentWillMount() {
-    const compareState = await this.props.dispatcher.GetCompareResult(
+    const compareResult = await this.props.dispatcher.GetCompareResult(
       this.props.repository,
       this.props.branch
     )
 
-    this.setState({ compareState })
+    this.setState({ compareResult })
   }
 
   public render() {
     const isCurrentBranch = this.props.isCurrentBranch
     const branch = this.props.branch
     const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
-    const compareState = this.state.compareState
+    const compareState = this.state.compareResult
 
     if (compareState === null) {
       return null
