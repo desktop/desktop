@@ -2,7 +2,7 @@ import { PullRequestStatus } from '../../models/pull-request'
 import { APIRefState } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 
-export function toFriendlyText(state: APIRefState): string {
+function toFriendlyText(state: APIRefState): string {
   switch (state) {
     case 'failure':
       return 'failed'
@@ -15,7 +15,7 @@ export function toFriendlyText(state: APIRefState): string {
   }
 }
 
-export function getSummary(prStatus: PullRequestStatus): string {
+export function getPRStatusSummary(prStatus: PullRequestStatus): string {
   const statusCount = prStatus.statuses.length || 0
 
   if (statusCount === 0) {
