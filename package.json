@@ -37,7 +37,8 @@
     "rebuild-hard:dev": "yarn clean-slate && yarn build:dev",
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
     "changelog": "ts-node script/changelog/index.ts",
-    "draft-release": "ts-node script/draft-release/index.ts"
+    "draft-release": "ts-node script/draft-release/index.ts",
+    "validate-changelog": "ts-node script/validate-changelog.ts"
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -50,6 +51,7 @@
     "yarn": ">= 1.2.0"
   },
   "dependencies": {
+    "ajv": "^6.4.0",
     "awesome-typescript-loader": "^3.4.0",
     "aws-sdk": "^2.23.0",
     "babel-core": "^6.24.1",
