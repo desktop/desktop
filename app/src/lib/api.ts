@@ -80,6 +80,12 @@ export interface IAPIUser {
   readonly type: 'User' | 'Organization'
 }
 
+export interface IAPITeam {
+  readonly id: number
+  /** The identifier for the team */
+  readonly name: string
+}
+
 /** The users we get from the mentionables endpoint. */
 export interface IAPIMentionableUser {
   readonly avatar_url: string
@@ -355,19 +361,34 @@ export class API {
     }
   }
 
+  public async fetchTeams(org: IAPIUser): Promise<ReadonlyArray<IAPITeam>> {
+    const url = `orgs/${org.login}/teams`
+    try {
+      return this.fetchAll<IAPITeam>(url)
+    } catch (e) {
+      log.warn(`fetchTeams: failed with endpoint ${this.endpoint}${url}`, e)
+      return []
+    }
+  }
+
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(
     org: IAPIUser | null,
+    team: IAPITeam | null,
     name: string,
     description: string,
     private_: boolean
   ): Promise<IAPIRepository> {
     try {
       const apiPath = org ? `orgs/${org.login}/repos` : 'user/repos'
+
+      const team_id = team != null ? team.id : undefined
+
       const response = await this.request('POST', apiPath, {
         name,
         description,
         private: private_,
+        team_id,
       })
 
       return await parsedResponse<IAPIRepository>(response)

@@ -70,6 +70,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       description: '',
       private: true,
       org: null,
+      team: null,
     }
 
     this.state = {
@@ -229,7 +230,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         settings.description,
         settings.private,
         account,
-        settings.org
+        settings.org,
+        settings.team
       )
 
       this.props.onDismissed()
