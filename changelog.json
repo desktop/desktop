@@ -15,6 +15,7 @@
       "[Fixed] Delete gitignore file when all entries cleared in Repository Settings - #1896",
       "[Fixed] Add visual indicator that a folder can be dropped on Desktop - #4004. Thanks @agisilaos!",
       "[Fixed] Attempt to focus the application window on macOS after signing in via the browser - #4126",
+      "[Fixed] Refresh issues when user manually fetches - #4076"
       "[Improved] Add `Discard All Changes...` to context menu on changed file list - #4197. Thanks @xamm!",
       "[Improved] Improve contrast for button labels in app toolbar - #4219",
       "[Improved] Speed up check for submodules when discarding - #4186. Thanks @kmscode!",
