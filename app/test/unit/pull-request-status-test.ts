@@ -12,7 +12,18 @@ describe('pull request status', () => {
       sha: '',
       statuses: [],
     }
-    expect(getSummary(prStatus)).to.equal('SUCCESS')
+    expect(getSummary(prStatus)).to.equal('success')
+  })
+
+  it('changes the failure message to something more friendly', () => {
+    const prStatus = {
+      pullRequestNumber: 23,
+      state: <APIRefState>'failure',
+      totalCount: 0,
+      sha: '',
+      statuses: [],
+    }
+    expect(getSummary(prStatus)).to.equal('failed')
   })
 
   it('reads the statuses when they are populated', () => {
@@ -27,5 +38,20 @@ describe('pull request status', () => {
       ],
     }
     expect(getSummary(prStatus)).to.equal('2/2 checks OK')
+  })
+
+  it('only counts the successful statuses', () => {
+    const prStatus = {
+      pullRequestNumber: 23,
+      state: <APIRefState>'success',
+      totalCount: 0,
+      sha: '',
+      statuses: [
+        { id: 1, state: <APIRefState>'success' },
+        { id: 2, state: <APIRefState>'pending' },
+        { id: 2, state: <APIRefState>'pending' },
+      ],
+    }
+    expect(getSummary(prStatus)).to.equal('1/3 checks OK')
   })
 })
