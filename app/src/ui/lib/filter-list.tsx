@@ -198,7 +198,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public componentDidMount() {
-    if (this.filterTextBox != null) {
+    if (this.filterTextBox !== null) {
       this.filterTextBox.selectAll()
     }
   }
