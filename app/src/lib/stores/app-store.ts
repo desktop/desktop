@@ -722,6 +722,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _GetCompareResult(
     repository: Repository,
     branch: Branch
