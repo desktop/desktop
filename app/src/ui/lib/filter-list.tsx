@@ -154,6 +154,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     this.state = createStateUpdate(props)
   }
 
+  public componentWillMount() {
+    if (this.props.filterTextBox !== undefined) {
+      this.filterTextBox = this.props.filterTextBox
+    }
+  }
+
   public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
     this.setState(createStateUpdate(nextProps))
   }
