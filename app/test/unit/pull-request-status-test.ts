@@ -34,7 +34,7 @@ describe('pull request status', () => {
     const prStatus = {
       pullRequestNumber: 23,
       state: success,
-      totalCount: 0,
+      totalCount: 2,
       sha: '',
       statuses: [{ id: 1, state: success }, { id: 2, state: success }],
     }
@@ -45,7 +45,7 @@ describe('pull request status', () => {
     const prStatus = {
       pullRequestNumber: 23,
       state: success,
-      totalCount: 0,
+      totalCount: 3,
       sha: '',
       statuses: [
         { id: 1, state: success },
