@@ -231,15 +231,11 @@ export class BranchList extends React.Component<
   }
 
   private onRenderNewButton = () => {
-    if (this.props.canCreateNewBranch) {
-      return (
-        <Button className="new-branch-button" onClick={this.onCreateNewBranch}>
-          {__DARWIN__ ? 'New Branch' : 'New branch'}
-        </Button>
-      )
-    } else {
-      return null
-    }
+    return this.props.canCreateNewBranch ? (
+      <Button className="new-branch-button" onClick={this.onCreateNewBranch}>
+        {__DARWIN__ ? 'New Branch' : 'New branch'}
+      </Button>
+    ) : null
   }
 
   private onItemClick = (item: IBranchListItem) => {
