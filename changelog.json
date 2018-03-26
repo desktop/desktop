@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.1.2-beta1": [
+
+    ],
     "1.1.1": [
       "[New] Render WebP images in diffs - #4164. Thanks @agisilaos!",
       "[Fixed] Edit context menus in commit form input elements - #3886",
