@@ -18,6 +18,7 @@ import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
 
 enum SelectedTab {
+  None = -1,
   Behind,
   Ahead,
 }
@@ -60,7 +61,7 @@ export class CompareSidebar extends React.Component<
       filterText: '',
       showFilterList: false,
       compareType: CompareType.None,
-      selectedTab: SelectedTab.Behind,
+      selectedTab: SelectedTab.None,
       selectedCommit: null,
     }
   }
