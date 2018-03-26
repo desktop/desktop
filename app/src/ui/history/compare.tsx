@@ -200,15 +200,23 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderMergeCTA() {
-    const tip = this.props.repositoryState.branchesState.tip
-    if (tip.kind !== TipState.Valid) {
+    const { compareState, branchesState } = this.props.repositoryState
+    const tip = branchesState.tip
+    const branch = tip.kind === TipState.Valid ? tip.branch : null
+
+    if (branch === null) {
       return null
     }
 
-    const branch = tip.branch
+    const isDisabled = compareState.behind <= 0
+
     return (
       <div className="merge-cta">
-        <Button type="submit" disabled={true} onClick={this.onMergeClicked}>
+        <Button
+          type="submit"
+          disabled={isDisabled}
+          onClick={this.onMergeClicked}
+        >
           Merge into {branch!.name}
         </Button>
         {this.renderMergeCTAMessage()}
