@@ -599,10 +599,8 @@ export interface IChangesState {
 }
 
 export interface ICompareState {
-  readonly selection: IHistorySelection
   readonly commitSHAs: ReadonlyArray<string>
   readonly branch: Branch | null
   readonly ahead: number
   readonly behind: number
-  readonly compareType: CompareType
 }

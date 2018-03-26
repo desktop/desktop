@@ -417,11 +417,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
       compareState: {
         branch: null,
-        compareType: CompareType.Default,
-        selection: {
-          file: null,
-          sha: null,
-        },
         commitSHAs: new Array<string>(),
         ahead: 0,
         behind: 0,
