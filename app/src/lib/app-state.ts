@@ -51,6 +51,12 @@ export enum ImageDiffType {
   Difference,
 }
 
+export enum CompareType {
+  Default = 'default',
+  Ahead = 'ahead',
+  Behind = 'behind',
+}
+
 export type PossibleSelections =
   | {
       type: SelectionType.Repository
@@ -590,12 +596,6 @@ export interface IChangesState {
    * the user has chosen to do so.
    */
   readonly coAuthors: ReadonlyArray<IAuthor>
-}
-
-export enum CompareType {
-  Default = 'default',
-  Ahead = 'ahead',
-  Behind = 'behind',
 }
 
 export interface ICompareState {
