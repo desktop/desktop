@@ -38,7 +38,7 @@ interface ICompareSidebarState {
   readonly selectedBranch: Branch | null
   readonly compareType: CompareType
   readonly filterText: string
-  readonly showFilterList: boolean
+  readonly showBranchList: boolean
   readonly selectedTab: number
   readonly selectedCommit: Commit | null
 }
@@ -59,7 +59,7 @@ export class CompareSidebar extends React.Component<
     this.state = {
       selectedBranch: null,
       filterText: '',
-      showFilterList: false,
+      showBranchList: false,
       compareType: CompareType.None,
       selectedTab: SelectedTab.None,
       selectedCommit: null,
@@ -79,15 +79,15 @@ export class CompareSidebar extends React.Component<
   }
 
   public componentDidMount() {
-    if (this.textbox !== null && this.state.showFilterList) {
-      if (this.state.showFilterList) {
+    if (this.textbox !== null && this.state.showBranchList) {
+      if (this.state.showBranchList) {
         this.textbox.focus()
       }
     }
   }
 
   public render() {
-    const { showFilterList, selectedBranch } = this.state
+    const { showBranchList, selectedBranch } = this.state
     const placeholderText =
       selectedBranch === null
         ? __DARWIN__
@@ -109,7 +109,7 @@ export class CompareSidebar extends React.Component<
             onKeyDown={this.onBranchFilterKeyDown}
           />
         </div>
-        {showFilterList ? this.renderFilterList() : this.renderCommits()}
+        {showBranchList ? this.renderFilterList() : this.renderCommits()}
       </div>
     )
   }
@@ -396,11 +396,11 @@ export class CompareSidebar extends React.Component<
   }
 
   private onTextBoxFocused = () => {
-    this.setState({ showFilterList: true })
+    this.setState({ showBranchList: true })
   }
 
   private onTextBoxBlurred = () => {
-    this.setState({ showFilterList: false })
+    this.setState({ showBranchList: false })
   }
 
   private onTextBoxRef = (textbox: TextBox) => {
