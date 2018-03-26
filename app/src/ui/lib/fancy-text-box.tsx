@@ -4,7 +4,10 @@ import { TextBox, ITextBoxProps } from './text-box'
 import * as classNames from 'classnames'
 
 interface IFancyTextBoxProps extends ITextBoxProps {
+  /** Icon to render */
   readonly symbol: OcticonSymbol
+
+  /** Callback used to get a reference to internal TextBox */
   readonly onRef: (textbox: TextBox) => void
 }
 
