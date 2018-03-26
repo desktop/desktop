@@ -15,6 +15,13 @@ function toFriendlyText(state: APIRefState): string {
   }
 }
 
+/**
+ * Convert the Pull Request status to an app-friendly string.
+ *
+ * If the pull request contains commit statuses, this method will compute
+ * the number of successful statuses. Oteherwise, it will fall back
+ * to the `state` value reported by the GitHub API.
+ */
 export function getPRStatusSummary(prStatus: PullRequestStatus): string {
   const statusCount = prStatus.statuses.length || 0
 
