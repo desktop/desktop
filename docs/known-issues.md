@@ -29,7 +29,7 @@ This seems to be caused by the Keychain being in an invalid state, affecting app
 - Right-click on the `login` keychain and try unlocking it
 - Sign into your GitHub account again
 
-### Checking for updates triggers a 'Could not create temporary directory: Permission denied' message = [#4115](https://github.com/desktop/desktop/issues/4115)
+### Checking for updates triggers a 'Could not create temporary directory: Permission denied' message - [#4115](https://github.com/desktop/desktop/issues/4115)
 
 This issue seems to be caused by missing permissions for the `~/Library/Caches/com.github.GitHubClient.ShipIt` folder. This is a directory that Desktop uses to create and unpack temporary files as part of updating the application.
 
