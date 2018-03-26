@@ -204,13 +204,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public renderTextBox() {
-    const filterTextbox = this.props.filterTextBox
-
-    if (filterTextbox != null) {
-      this.filterTextBox = filterTextbox
-      return null
-    }
-
     return (
       <TextBox
         ref={this.onTextBoxRef}
@@ -232,7 +225,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         <Row className="filter-field-row">
-          {this.renderTextBox()}
+          {this.props.filterTextBox === undefined ? this.renderTextBox() : null}
           {this.props.renderPostFilter ? this.props.renderPostFilter() : null}
         </Row>
 
