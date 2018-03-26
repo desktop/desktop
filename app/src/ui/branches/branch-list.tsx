@@ -95,7 +95,7 @@ interface IBranchListProps {
 
   readonly textbox?: TextBox
 
-  readonly renderBranchListItem?: (
+  readonly onRenderItem?: (
     item: IBranchListItem,
     matches: ReadonlyArray<number>
   ) => JSX.Element
@@ -164,7 +164,7 @@ export class BranchList extends React.Component<
         onFilterTextChanged={this.props.onFilterTextChanged}
         onFilterKeyDown={this.props.onFilterKeyDown}
         selectedItem={this.state.selectedItem}
-        renderItem={this.props.renderBranchListItem || this.renderItem}
+        renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
@@ -181,6 +181,10 @@ export class BranchList extends React.Component<
     item: IBranchListItem,
     matches: ReadonlyArray<number>
   ) => {
+    if (this.props.onRenderItem !== undefined) {
+      return this.props.onRenderItem(item, matches)
+    }
+
     const branch = item.branch
     const commit = branch.tip
     const currentBranchName = this.props.currentBranch
