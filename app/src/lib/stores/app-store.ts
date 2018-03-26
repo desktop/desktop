@@ -686,7 +686,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
-    if (compareType === CompareType.Default) {
+    if (compareType === CompareType.None) {
       await gitStore.loadHistory()
 
       const state = this.getRepositoryState(repository).historyState

@@ -59,7 +59,7 @@ export class CompareSidebar extends React.Component<
       selectedBranch: null,
       filterText: '',
       showFilterList: false,
-      compareType: CompareType.Default,
+      compareType: CompareType.None,
       selectedTab: SelectedTab.Behind,
       selectedCommit: null,
     }
@@ -69,7 +69,7 @@ export class CompareSidebar extends React.Component<
     this.props.dispatcher.loadCompareState(
       this.props.repository,
       this.state.selectedBranch,
-      CompareType.Default
+      CompareType.None
     )
   }
 
@@ -312,7 +312,7 @@ export class CompareSidebar extends React.Component<
         this.props.dispatcher.loadCompareState(
           this.props.repository,
           branch,
-          CompareType.Default
+          CompareType.None
         )
         this.setState({ selectedBranch: branch })
         this.textbox!.blur()
@@ -326,7 +326,7 @@ export class CompareSidebar extends React.Component<
     this.props.dispatcher.loadCompareState(
       this.props.repository,
       null,
-      CompareType.Default
+      CompareType.None
     )
     this.setState({ selectedBranch: null, filterText: '' })
     this.textbox!.blur()
@@ -370,7 +370,7 @@ export class CompareSidebar extends React.Component<
   private onSelectionChanged = (branch: Branch | null) => {
     const { branches } = this.branchState
     const compareType =
-      this.state.compareType === CompareType.Default
+      this.state.compareType === CompareType.None
         ? CompareType.Behind
         : CompareType.Ahead
 
