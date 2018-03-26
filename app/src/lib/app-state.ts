@@ -599,8 +599,23 @@ export interface IChangesState {
 }
 
 export interface ICompareState {
+  /**
+   * The ordered local commit SHAs.
+   */
   readonly commitSHAs: ReadonlyArray<string>
+
+  /**
+   * The branch to compare against the base branch
+   */
   readonly branch: Branch | null
+
+  /**
+   * The number of commits in `branch` not contained in the base branch
+   */
   readonly ahead: number
+
+  /**
+   * The number of commits contained in the base branch not in `branch`
+   */
   readonly behind: number
 }
