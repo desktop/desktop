@@ -699,26 +699,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ahead: 0,
         behind: 0,
       }))
-    } else {
-      if (branch == null) {
-        log.debug(`oops, we can't compare if the branch isn't selected`)
-        return
-      }
-
-      const compare = await gitStore.getCompareStateDetails(branch, compareType)
-
-      if (compare != null) {
-        this.updateCompareState(repository, state => ({
-          compareType,
-          branch,
-          commitSHAs: compare.commits.map(commit => commit.sha),
-          ahead: compare.ahead,
-          behind: compare.behind,
-        }))
-      }
+      return
     }
 
-    this.emitUpdate()
+    if (branch == null) {
+      log.debug(`oops, we can't compare if the branch isn't selected`)
+      return
+    }
+
+    const compare = await gitStore.getCompareStateDetails(branch, compareType)
+
+    if (compare != null) {
+      this.updateCompareState(repository, state => ({
+        compareType,
+        branch,
+        commitSHAs: compare.commits.map(commit => commit.sha),
+        ahead: compare.ahead,
+        behind: compare.behind,
+      }))
+
+      this.emitUpdate()
+    }
   }
 
   public async _GetCompareResult(
