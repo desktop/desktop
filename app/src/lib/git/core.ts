@@ -245,6 +245,8 @@ function getDescriptionForError(error: DugiteError): string {
       return 'This branch cannot be deleted from the remote repository because it is marked as protected.'
     case DugiteError.ProtectedBranchRequiredStatus:
       return 'The push was rejected by the remote server because a required status check has not been satisfied.'
+    case DugiteError.BranchRenameFailed:
+      return 'The branch could not be renamed.'
     default:
       return assertNever(error, `Unknown error: ${error}`)
   }
