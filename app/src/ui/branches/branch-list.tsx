@@ -99,7 +99,10 @@ interface IBranchListProps {
 
   readonly textbox?: TextBox
 
-  readonly onRenderItem?: (
+  /**
+   * Render function to apply to each branch in the list
+   */
+  readonly renderBranch?: (
     item: IBranchListItem,
     matches: ReadonlyArray<number>
   ) => JSX.Element
@@ -185,8 +188,8 @@ export class BranchList extends React.Component<
     item: IBranchListItem,
     matches: ReadonlyArray<number>
   ) => {
-    if (this.props.onRenderItem !== undefined) {
-      return this.props.onRenderItem(item, matches)
+    if (this.props.renderBranch !== undefined) {
+      return this.props.renderBranch(item, matches)
     }
 
     const branch = item.branch
