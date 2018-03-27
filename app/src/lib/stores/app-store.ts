@@ -415,7 +415,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         currentPullRequest: null,
         isLoadingPullRequests: false,
       },
-      compareState: {kind: CompareType.None},
+      compareState: { kind: CompareType.None },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
       commitLookup: new Map<string, Commit>(),
