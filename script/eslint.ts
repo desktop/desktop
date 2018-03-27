@@ -18,6 +18,7 @@ const report = eslint.executeOnFiles([
   './tslint-rules/**/*.ts',
   './app/*.js',
   './app/{src,typings,test}/**/*.{j,t}s?(x)',
+  './changelog.json',
 ])
 
 if (shouldFix) {
