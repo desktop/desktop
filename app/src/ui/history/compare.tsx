@@ -364,6 +364,15 @@ export class CompareSidebar extends React.Component<
       fatalError(`Cannot merge null branch`)
       return
     }
+
+    this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
+    this.props.dispatcher.loadCompareState(
+      this.props.repository,
+      branch,
+      this.state.compareType
+    )
+
+    this.setState({ selectedBranch: null, filterText: '' })
   }
 
   private onBranchFilterTextChanged = (text: string) => {
