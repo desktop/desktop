@@ -1,20 +1,24 @@
 import * as React from 'react'
+
 import { Branch } from '../../models/branch'
-import {
-  groupBranches,
-  IBranchListItem,
-  BranchGroupIdentifier,
-} from './group-branches'
-import { BranchListItem } from './branch-list-item'
+
+import { assertNever } from '../../lib/fatal-error'
+
 import {
   FilterList,
   IFilterListGroup,
   SelectionSource,
 } from '../lib/filter-list'
-import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
-import { NoBranches } from './no-branches'
 import { TextBox } from '../lib/text-box'
+
+import {
+  groupBranches,
+  IBranchListItem,
+  BranchGroupIdentifier,
+} from './group-branches'
+import { NoBranches } from './no-branches'
+import { BranchListItem } from './branch-list-item'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
