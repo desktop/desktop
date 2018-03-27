@@ -10,6 +10,29 @@ function handleError(error: any) {
   process.exit(-1)
 }
 
+function formatErrors(errors: Ajv.ErrorObject[]): string {
+  return errors
+    .map(error => {
+      const { dataPath, message } = error
+      const additionalProperties = error.params as any
+      const additionalProperty = additionalProperties.additionalProperty as string
+
+      let additionalPropertyText = ''
+
+      if (additionalProperty != null) {
+        additionalPropertyText = `, found: '${
+          additionalProperties.additionalProperty
+        }'`
+      }
+
+      // dataPath starts with a leading "."," which is a bit confusing
+      const element = dataPath.substr(1)
+
+      return `Error: ${element} - ${message}${additionalPropertyText}`
+    })
+    .join('\n')
+}
+
 const repositoryRoot = Path.dirname(__dirname)
 const changelogPath = Path.join(repositoryRoot, 'changelog.json')
 
@@ -45,14 +68,13 @@ const schema = {
   },
 }
 
-const ajv = new Ajv({ allErrors: true })
+const ajv = new Ajv({ allErrors: true, uniqueItems: true })
 const validate = ajv.compile(schema)
 
-const valid = validate(changelog)
+const valid = validate(changelogObj)
 
-console.log(`got: ${JSON.stringify(valid)}`)
-if (!valid) {
-  handleError(validate.errors)
+if (!valid && validate.errors != null) {
+  handleError(formatErrors(validate.errors))
 }
 
 console.log('The changelog is totally fine')
