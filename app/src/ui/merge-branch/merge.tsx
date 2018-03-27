@@ -10,7 +10,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { BranchList, IBranchListItem, BranchListItem } from '../branches'
+import { BranchList, IBranchListItem, renderDefaultBranch } from '../branches'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -136,19 +136,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     item: IBranchListItem,
     matches: ReadonlyArray<number>
   ) => {
-    const branch = item.branch
-    const commit = branch.tip
-    const currentBranchName = this.props.currentBranch
-      ? this.props.currentBranch.name
-      : null
-    return (
-      <BranchListItem
-        name={branch.name}
-        isCurrentBranch={branch.name === currentBranchName}
-        lastCommitDate={commit ? commit.author.date : null}
-        matches={matches}
-      />
-    )
+    return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 
   public render() {
