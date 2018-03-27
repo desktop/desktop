@@ -34,6 +34,7 @@ compile:
   override:
     - yarn lint
     - yarn build:prod
+    - yarn validate-changelog
 
 test:
   override:
