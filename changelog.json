@@ -671,7 +671,6 @@
       "[Fixed] Windows: Don't removing the running app out from under itself when there are updates pending - #2373",
       "[Fixed] Windows: Respect `core.autocrlf` and `core.safeclrf` when modifying the .gitignore - #1535",
       "[Fixed] Windows: Fix opening the app from the command line - #2396",
-      "[Fixed] 'Create Without Pushing' button throwing an exception while opening a pull request - #2368"
     ],
     "0.7.3-beta5": [],
     "0.7.3-beta4": [],
