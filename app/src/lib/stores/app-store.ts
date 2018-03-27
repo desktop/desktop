@@ -679,7 +679,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _LoadCompareState(
+  public async _loadCompareState(
     repository: Repository,
     branch: Branch | null,
     compareType: CompareType
@@ -723,7 +723,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _GetCompareResult(
+  public async _getCompareResult(
     repository: Repository,
     branch: Branch
   ): Promise<ICompareResult | null> {
