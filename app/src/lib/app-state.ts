@@ -599,10 +599,12 @@ export interface IChangesState {
 }
 
 export interface IDisplayHistory {
+  /** Specifies the way `branch` is compared to another branch */
   readonly kind: CompareType.None
 }
 
 export interface ICompareBranch {
+  /** Specifies the way `branch` is compared to another branch */
   readonly kind: CompareType.Ahead | CompareType.Behind
 
   /**
