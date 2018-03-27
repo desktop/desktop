@@ -116,11 +116,13 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderCommits() {
-    const { selectedBranch } = this.state
+    const compareState = this.props.repositoryState.compareState
 
     return (
       <div className="the-commits">
-        {selectedBranch ? this.renderTabBar() : this.renderCommitList()}
+        {compareState.kind === CompareType.None
+          ? this.renderCommitList()
+          : this.renderTabBar()}
       </div>
     )
   }
@@ -128,12 +130,14 @@ export class CompareSidebar extends React.Component<
   private renderCommitList() {
     const compareState = this.props.repositoryState.compareState
     const selectedCommit = this.state.selectedCommit
+    const commitSHAs =
+      compareState.kind !== CompareType.None ? compareState.commitSHAs : []
 
     return (
       <CommitList
         gitHubRepository={this.props.repository.gitHubRepository}
         commitLookup={this.props.commitLookup}
-        commitSHAs={compareState.commitSHAs}
+        commitSHAs={commitSHAs}
         selectedSHA={selectedCommit !== null ? selectedCommit.sha : null}
         gitHubUsers={this.props.gitHubUsers}
         localCommitSHAs={this.props.localCommitSHAs}
@@ -185,14 +189,17 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderMergeCTAMessage() {
-    const count = this.props.repositoryState.compareState.behind
+    const compareState = this.props.repositoryState.compareState
+    if (compareState.kind === CompareType.None) {
+      return null
+    }
 
+    const count = compareState.behind
     if (count === 0) {
       return null
     }
 
     const pluralized = count > 1 ? 'commits' : 'commit'
-
     return (
       <div className="merge-message">
         {`This will merge ${count} ${pluralized}`} from{' '}
@@ -203,9 +210,12 @@ export class CompareSidebar extends React.Component<
 
   private renderMergeCTA() {
     const { compareState, branchesState } = this.props.repositoryState
+    if (compareState.kind === CompareType.None) {
+      return null
+    }
+
     const tip = branchesState.tip
     const branch = tip.kind === TipState.Valid ? tip.branch : null
-
     if (branch === null) {
       return null
     }
@@ -243,6 +253,10 @@ export class CompareSidebar extends React.Component<
 
   private renderTabBar() {
     const compareState = this.props.repositoryState.compareState
+
+    if (compareState.kind === CompareType.None) {
+      return null
+    }
 
     return (
       <div className="compare-content">
@@ -350,8 +364,13 @@ export class CompareSidebar extends React.Component<
   }
 
   private onScroll = (start: number, end: number) => {
-    const commits = this.props.repositoryState.compareState.commitSHAs
+    const compareState = this.props.repositoryState.compareState
 
+    if (compareState.kind === CompareType.None) {
+      return
+    }
+
+    const commits = compareState.commitSHAs
     if (commits.length - end <= CloseToBottomThreshold) {
       this.props.dispatcher.loadNextHistoryBatch(this.props.repository)
     }

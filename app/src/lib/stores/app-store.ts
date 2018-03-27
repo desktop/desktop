@@ -18,7 +18,7 @@ import {
   IRevertProgress,
   IFetchProgress,
   CompareType,
-  ICompareState,
+  CompareState,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -415,12 +415,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         currentPullRequest: null,
         isLoadingPullRequests: false,
       },
-      compareState: {
-        branch: null,
-        commitSHAs: new Array<string>(),
-        ahead: 0,
-        behind: 0,
-      },
+      compareState: {kind: CompareType.None},
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
       commitLookup: new Map<string, Commit>(),
@@ -471,9 +466,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  private updateCompareState<K extends keyof ICompareState>(
+  private updateCompareState<K extends keyof CompareState>(
     repository: Repository,
-    fn: (state: ICompareState) => Pick<ICompareState, K>
+    fn: (state: CompareState) => Pick<CompareState, K>
   ) {
     this.updateRepositoryState(repository, state => {
       const compareState = state.compareState
@@ -693,9 +688,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const commits = state.history
 
       this.updateCompareState(repository, state => ({
-        compareType,
-        commitSHAs: commits,
         branch,
+        kind: compareType,
+        commitSHAs: commits,
         ahead: 0,
         behind: 0,
       }))
@@ -711,8 +706,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (compare != null) {
       this.updateCompareState(repository, state => ({
-        compareType,
         branch,
+        kind: compareType,
         commitSHAs: compare.commits.map(commit => commit.sha),
         ahead: compare.ahead,
         behind: compare.behind,

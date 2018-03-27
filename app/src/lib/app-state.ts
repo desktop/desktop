@@ -329,7 +329,7 @@ export enum RepositorySection {
 export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
-  readonly compareState: ICompareState
+  readonly compareState: CompareState
   readonly selectedSection: RepositorySection
 
   /**
@@ -598,16 +598,22 @@ export interface IChangesState {
   readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
-export interface ICompareState {
-  /**
-   * The SHAs of commits to render in the compare list
-   */
-  readonly commitSHAs: ReadonlyArray<string>
+export interface IDisplayHistory {
+  readonly kind: CompareType.None
+}
+
+export interface ICompareBranch {
+  readonly kind: CompareType.Ahead | CompareType.Behind
 
   /**
    * The branch to compare against the base branch
    */
-  readonly branch: Branch | null
+  readonly branch: Branch
+
+  /**
+   * The SHAs of commits to render in the compare list
+   */
+  readonly commitSHAs: ReadonlyArray<string>
 
   /**
    * The number of commits in `branch` not contained in the base branch
@@ -619,3 +625,5 @@ export interface ICompareState {
    */
   readonly behind: number
 }
+
+export type CompareState = IDisplayHistory | ICompareBranch
