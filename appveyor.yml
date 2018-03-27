@@ -28,8 +28,8 @@ install:
   - yarn install --force
 
 build_script:
-  - yarn validate-changelog
   - yarn lint
+  - yarn validate-changelog
   - yarn build:prod
 
 test_script:

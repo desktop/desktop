@@ -32,8 +32,8 @@ dependencies:
 
 compile:
   override:
-    - yarn validate-changelog
     - yarn lint
+    - yarn validate-changelog
     - yarn build:prod
 
 
