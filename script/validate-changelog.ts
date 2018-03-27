@@ -5,7 +5,7 @@ import * as Fs from 'fs'
 
 import * as Ajv from 'ajv'
 
-function handleError(error: any) {
+function handleError(error: string) {
   console.error(error)
   process.exit(-1)
 }
