@@ -124,17 +124,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
   }
 
-  private onFileSelectionChanged = (rows: number | number[]) => {
-    if (rows instanceof Array) {
-      const files: WorkingDirectoryFileChange[] = []
-      rows.forEach(row =>
-        files.push(this.props.changes.workingDirectory.files[row])
-      )
-      this.props.dispatcher.changeChangesSelection(this.props.repository, files)
-    } else {
-      const file = this.props.changes.workingDirectory.files[rows]
-      this.props.dispatcher.changeChangesSelection(this.props.repository, file)
-    }
+  private onFileSelectionChanged = (rows: number[]) => {
+    const files = rows.map(i => this.props.changes.workingDirectory.files[i])
+    this.props.dispatcher.changeChangesSelection(this.props.repository, files)
   }
 
   private onIncludeChanged = (path: string, include: boolean) => {
@@ -289,7 +281,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
   public render() {
     const changesState = this.props.changes
-    const selectedFilesID = changesState.selectedFilesID
+    const selectedFileIDs = changesState.selectedFileIDs
 
     // TODO: I think user will expect the avatar to match that which
     // they have configured in GitHub.com as well as GHE so when we add
@@ -307,7 +299,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           workingDirectory={changesState.workingDirectory}
-          selectedFilesID={selectedFilesID}
+          selectedFileIDs={selectedFileIDs}
           onFileSelectionChanged={this.onFileSelectionChanged}
           onCreateCommit={this.onCreateCommit}
           onIncludeChanged={this.onIncludeChanged}

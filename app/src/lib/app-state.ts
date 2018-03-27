@@ -562,7 +562,7 @@ export interface IChangesState {
    * The ID of the selected files. The files themselves can be looked up in
    * `workingDirectory`.
    */
-  readonly selectedFilesID: string[]
+  readonly selectedFileIDs: string[]
 
   readonly diff: IDiff | null
 

@@ -31,8 +31,8 @@ const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
-  readonly selectedFilesID: string[]
-  readonly onFileSelectionChanged: (row: number | number[]) => void
+  readonly selectedFileIDs: string[]
+  readonly onFileSelectionChanged: (row: number[]) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (
@@ -194,7 +194,7 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
 
     const fileList = this.props.workingDirectory.files
     const selectedFiles: WorkingDirectoryFileChange[] = []
-    this.props.selectedFilesID.forEach(fileID => {
+    this.props.selectedFileIDs.forEach(fileID => {
       const newFile = fileList.find(file => file.id === fileID)
       if (newFile) {
         selectedFiles.push(newFile)
@@ -202,12 +202,10 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
     })
 
     const paths = selectedFiles.map(file => file.path)
-    const fileName = selectedFiles.map(file => Path.basename(file.path))
-    let extensions = selectedFiles.map(file => Path.extname(file.path))
-    const seen: any = {}
-    extensions = extensions.filter(function(item) {
-      return seen.hasOwnProperty(item) ? false : (seen[item] = true)
-    })
+    const filenames = selectedFiles.map(file => Path.basename(file.path))
+    const extensions = [
+      ...new Set(selectedFiles.map(x => Path.extname(x.path))),
+    ]
 
     const items: IMenuItem[] = [
       {
@@ -221,19 +219,19 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
       { type: 'separator' },
     ]
 
-    if (fileName.length === 1) {
+    if (filenames.length === 1) {
       items.push({
         label: 'Ignore',
         action: () => this.props.onIgnore(path),
-        enabled: fileName[0] !== GitIgnoreFileName,
+        enabled: filenames[0] !== GitIgnoreFileName,
       })
-    } else if (fileName.length > 1) {
+    } else if (filenames.length > 1) {
       items.push({
         label: 'Ignore all',
         action: () => {
           this.props.onIgnore(paths)
         },
-        enabled: fileName[0] !== GitIgnoreFileName,
+        enabled: filenames[0] !== GitIgnoreFileName,
       })
     }
 
@@ -289,10 +287,9 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
 
   public render() {
     const fileList = this.props.workingDirectory.files
-    const selectedRows: number[] = []
-    this.props.selectedFilesID.forEach(fileID => {
-      selectedRows.push(fileList.findIndex(file => file.id === fileID))
-    })
+    const selectedRows = this.props.selectedFileIDs.map(id =>
+      fileList.findIndex(file => file.id === id)
+    )
     const fileCount = fileList.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`

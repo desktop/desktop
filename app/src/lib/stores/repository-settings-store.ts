@@ -79,13 +79,13 @@ export class RepositorySettingsStore extends BaseStore {
     const text = (await this.readGitIgnore()) || ''
     const repository = this._repository
     const currentContents = await formatGitIgnoreContents(text, repository)
-    let newContents = currentContents
-    if (patterns instanceof Array) {
-      patterns.forEach(pattern => (newContents += `${pattern}\n`))
-    } else {
-      newContents += `${patterns}`
-    }
-    const newText = await formatGitIgnoreContents(newContents, repository)
+
+    const newPatternText =
+      patterns instanceof Array ? patterns.join('\n') : patterns
+    const newText = await formatGitIgnoreContents(
+      `${currentContents}${newPatternText}`,
+      repository
+    )
 
     await this.saveGitIgnore(newText)
   }

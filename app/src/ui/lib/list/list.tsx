@@ -819,7 +819,7 @@ export class List extends React.Component<IListProps, IListState> {
       ) {
         /* 
          * if [shift] is pressed and selectionMode is different than 'single',
-         * select all inbetween first selection and current row
+         * select all in-between first selection and current row
          */
         const selectionOrigin = this.props.selectedRows[0]
         if (selectionOrigin === row) {
@@ -851,7 +851,7 @@ export class List extends React.Component<IListProps, IListState> {
       } else if (multiSelectKey && this.props.selectionMode === 'multi') {
         /* 
          * if [ctrl] is pressed and selectionMode is 'multi',
-         * toggle selection of the targetted row
+         * toggle selection of the targeted row
          */
         let newSelection = this.props.selectedRows
         if (newSelection.includes(row)) {

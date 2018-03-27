@@ -174,9 +174,9 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
 
     if (selectedSection === RepositorySection.Changes) {
       const changesState = this.props.state.changesState
-      const selectedFilesID = changesState.selectedFilesID
+      const selectedFileIDs = changesState.selectedFileIDs
       const selectedFiles: WorkingDirectoryFileChange[] = []
-      selectedFilesID.forEach(fileID => {
+      selectedFileIDs.forEach(fileID => {
         const file = changesState.workingDirectory.findFileWithID(fileID)
         if (file) {
           selectedFiles.push(file)

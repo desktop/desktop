@@ -396,7 +396,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         workingDirectory: WorkingDirectoryStatus.fromFiles(
           new Array<WorkingDirectoryFileChange>()
         ),
-        selectedFilesID: [],
+        selectedFileIDs: [],
         diff: null,
         contextualCommitMessage: null,
         commitMessage: null,
@@ -1234,29 +1234,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const workingDirectory = WorkingDirectoryStatus.fromFiles(mergedFiles)
 
-      let selectedFilesID = state.selectedFilesID
-      const matchedFiles = selectedFilesID.map(fileID =>
+      let selectedFileIDs = state.selectedFileIDs
+      const matchedFiles = selectedFileIDs.map(fileID =>
         mergedFiles.find(x => x.id === fileID)
       )
 
       // Select the first file if we don't have anything selected.
       if (
-        (!selectedFilesID.length || !matchedFiles.length) &&
+        (!selectedFileIDs.length || !matchedFiles.length) &&
         mergedFiles.length
       ) {
-        selectedFilesID = [mergedFiles[0].id] || []
+        selectedFileIDs = [mergedFiles[0].id] || []
       }
 
       // The file selection could have changed if the previously selected files
       // are no longer selectable (they were reverted or committed) but if they were not
       // changed we can reuse the diff.
-      const sameSelectedFileExists = state.selectedFilesID.length
-        ? state.selectedFilesID.every(
+      const sameSelectedFileExists = state.selectedFileIDs.length
+        ? state.selectedFileIDs.every(
             fileID => workingDirectory.findFileWithID(fileID) !== null
           )
         : null
       const diff = sameSelectedFileExists ? state.diff : null
-      return { workingDirectory, selectedFilesID, diff }
+      return { workingDirectory, selectedFileIDs, diff }
     })
     this.emitUpdate()
 
@@ -1284,24 +1284,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeChangesSelection(
     repository: Repository,
-    selectedFiles:
-      | WorkingDirectoryFileChange
-      | WorkingDirectoryFileChange[]
-      | null
+    selectedFiles: WorkingDirectoryFileChange[] | null
   ): Promise<void> {
-    if (selectedFiles instanceof Array) {
-      this.updateChangesState(repository, state => ({
-        selectedFilesID: selectedFiles.length
+    this.updateChangesState(repository, state => ({
+      selectedFileIDs:
+        selectedFiles && selectedFiles.length
           ? selectedFiles.map(file => file.id)
           : [],
-        diff: null,
-      }))
-    } else {
-      this.updateChangesState(repository, state => ({
-        selectedFilesID: selectedFiles ? [selectedFiles.id] : [],
-        diff: null,
-      }))
-    }
+      diff: null,
+    }))
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
@@ -1317,12 +1308,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const stateBeforeLoad = this.getRepositoryState(repository)
     const changesStateBeforeLoad = stateBeforeLoad.changesState
-    const selectedFilesIDBeforeLoad = changesStateBeforeLoad.selectedFilesID
-    if (!selectedFilesIDBeforeLoad.length) {
+    const selectedFileIDsBeforeLoad = changesStateBeforeLoad.selectedFileIDs
+    if (!selectedFileIDsBeforeLoad.length) {
       return
     }
 
-    const selectedFilesBeforeLoad = selectedFilesIDBeforeLoad.map(fileID => {
+    const selectedFilesBeforeLoad = selectedFileIDsBeforeLoad.map(fileID => {
       return changesStateBeforeLoad.workingDirectory.findFileWithID(fileID)
     })
     const lastSelectedFile =
@@ -1335,19 +1326,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const stateAfterLoad = this.getRepositoryState(repository)
     const changesState = stateAfterLoad.changesState
-    const selectedFilesID = changesState.selectedFilesID
+    const selectedFileIDs = changesState.selectedFileIDs
 
     // A different file could have been selected while we were loading the diff
     // in which case we no longer care about the diff we just loaded.
-    if (!selectedFilesID.length) {
+    if (!selectedFileIDs.length) {
       return
     }
-    if (!arrayEquals(selectedFilesID, selectedFilesIDBeforeLoad)) {
+    if (!arrayEquals(selectedFileIDs, selectedFileIDsBeforeLoad)) {
       return
     }
 
     const currentlySelectedFile = changesState.workingDirectory.findFileWithID(
-      selectedFilesID[selectedFilesID.length - 1]
+      selectedFileIDs[selectedFileIDs.length - 1]
     )
     if (!currentlySelectedFile) {
       return
@@ -1472,7 +1463,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       const workingDirectory = WorkingDirectoryStatus.fromFiles(newFiles)
-      const diff = state.selectedFilesID.length > 0 ? state.diff : null
+      const diff = state.selectedFileIDs.length > 0 ? state.diff : null
       return { workingDirectory, diff }
     })
 
