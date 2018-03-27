@@ -44,7 +44,7 @@ try {
   changelogObj = JSON.parse(changelog)
 } catch {
   handleError(
-    'The contents of changelog.json are not valid JSON. Please check the file contents and address this.'
+    'Unable to parse the contents of changelog.json into a JSON object. Please review the file contents.'
   )
 }
 
