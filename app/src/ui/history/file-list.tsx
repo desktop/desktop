@@ -10,7 +10,8 @@ import {
 import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
 import { List } from '../lib/list'
-import { showContextualMenu, IMenuItem } from '../main-process-proxy'
+import { showContextualMenu } from '../main-process-proxy'
+import { IMenuItem } from '../../lib/menu-item'
 
 const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
 
