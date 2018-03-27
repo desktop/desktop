@@ -1,8 +1,9 @@
 import * as React from 'react'
 
+import { Branch } from '../../models/branch'
+
 import { IBranchListItem } from './group-branches'
 import { BranchListItem } from './branch-list-item'
-import { Branch } from '../../models/branch'
 
 export function renderDefaultBranch(
   item: IBranchListItem,
