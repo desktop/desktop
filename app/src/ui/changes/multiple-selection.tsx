@@ -3,7 +3,7 @@ import { encodePathAsUrl } from '../../lib/path'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
-  'static/empty-no-file-selected.svg'
+  'static/multiple-files-selected.svg'
 )
 
 interface IMultipleSelectionProps {
