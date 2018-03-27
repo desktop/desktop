@@ -1152,7 +1152,7 @@ export class Dispatcher {
   /**
    * Gets the `ICompareResult` of the given `branch`
    */
-  public GetCompareResult(repository: Repository, branch: Branch) {
     return this.appStore._GetCompareResult(repository, branch)
+  public getCompareResult(repository: Repository, branch: Branch) {
   }
 }

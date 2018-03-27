@@ -36,7 +36,7 @@ export class CompareBranchListItem extends React.Component<
   }
 
   public async componentWillMount() {
-    const compareResult = await this.props.dispatcher.GetCompareResult(
+    const compareResult = await this.props.dispatcher.getCompareResult(
       this.props.repository,
       this.props.branch
     )
