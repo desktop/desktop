@@ -1,54 +1,20 @@
 import { assertNever } from '../lib/fatal-error'
+import { DiffHunk, Image } from './diff/index'
+export {
+  DiffHunk,
+  DiffHunkHeader,
+  DiffLine,
+  DiffLineType,
+  Image,
+  FileSummary,
+  IRawDiff,
+} from './diff/index'
 
 /**
  * V8 has a limit on the size of string it can create, and unless we want to
  * trigger an unhandled exception we need to do the encoding conversion by hand
  */
 export const maximumDiffStringSize = 268435441
-
-/**
- * A container for holding an image for display in the application
- */
-export class Image {
-  /**
-   * The base64 encoded contents of the image
-   */
-  public readonly contents: string
-
-  /**
-   * The data URI media type, so the browser can render the image correctly
-   */
-  public readonly mediaType: string
-
-  public constructor(contents: string, mediaType: string) {
-    this.contents = contents
-    this.mediaType = mediaType
-  }
-}
-
-/** each diff is made up of a number of hunks */
-export class DiffHunk {
-  /** details from the diff hunk header about the line start and patch length */
-  public readonly header: DiffHunkHeader
-  /** the contents - context and changes - of the diff setion */
-  public readonly lines: ReadonlyArray<DiffLine>
-  /** the diff hunk's start position in the overall file diff */
-  public readonly unifiedDiffStart: number
-  /** the diff hunk's end position in the overall file diff */
-  public readonly unifiedDiffEnd: number
-
-  public constructor(
-    header: DiffHunkHeader,
-    lines: ReadonlyArray<DiffLine>,
-    unifiedDiffStart: number,
-    unifiedDiffEnd: number
-  ) {
-    this.header = header
-    this.unifiedDiffStart = unifiedDiffStart
-    this.unifiedDiffEnd = unifiedDiffEnd
-    this.lines = lines
-  }
-}
 
 export enum DiffType {
   /** Changes to a text file, which may be partially selected for commit */
@@ -65,14 +31,6 @@ export enum DiffType {
   LargeText,
   /** Diff that will not be rendered */
   Unrenderable,
-}
-
-/** indicate what a line in the diff represents */
-export enum DiffLineType {
-  Context,
-  Add,
-  Delete,
-  Hunk,
 }
 
 type LineEnding = 'CR' | 'LF' | 'CRLF'
@@ -148,145 +106,6 @@ export type IDiff =
   | IBinaryDiff
   | ILargeTextDiff
   | IUnrenderableDiff
-
-/** track details related to each line in the diff */
-export class DiffLine {
-  public readonly text: string
-  public readonly type: DiffLineType
-  public readonly oldLineNumber: number | null
-  public readonly newLineNumber: number | null
-  public readonly noTrailingNewLine: boolean
-
-  public constructor(
-    text: string,
-    type: DiffLineType,
-    oldLineNumber: number | null,
-    newLineNuber: number | null,
-    noTrailingNewLine: boolean = false
-  ) {
-    this.text = text
-    this.type = type
-    this.oldLineNumber = oldLineNumber
-    this.newLineNumber = newLineNuber
-    this.noTrailingNewLine = noTrailingNewLine
-  }
-
-  public withNoTrailingNewLine(noTrailingNewLine: boolean): DiffLine {
-    return new DiffLine(
-      this.text,
-      this.type,
-      this.oldLineNumber,
-      this.newLineNumber,
-      noTrailingNewLine
-    )
-  }
-
-  public isIncludeableLine() {
-    return this.type === DiffLineType.Add || this.type === DiffLineType.Delete
-  }
-
-  /** The content of the line, i.e., without the line type marker. */
-  public get content(): string {
-    return this.text.substr(1)
-  }
-}
-
-/** details about the start and end of a diff hunk */
-export class DiffHunkHeader {
-  /** The line in the old (or original) file where this diff hunk starts */
-  public readonly oldStartLine: number
-
-  /** The number of lines in the old (or original) file that this diff hunk covers */
-  public readonly oldLineCount: number
-
-  /** The line in the new file where this diff hunk starts */
-  public readonly newStartLine: number
-
-  /** The number of lines in the new file that this diff hunk covers */
-  public readonly newLineCount: number
-
-  public constructor(
-    oldStartLine: number,
-    oldLineCount: number,
-    newStartLine: number,
-    newLineCount: number,
-    sectionHeading?: string | null
-  ) {
-    this.oldStartLine = oldStartLine
-    this.oldLineCount = oldLineCount
-    this.newStartLine = newStartLine
-    this.newLineCount = newLineCount
-  }
-}
-
-export class FileSummary {
-  /**
-   * The number of lines added as part of this change.
-   *
-   * If the file is a binary change, this value is undefined.
-   */
-  public readonly added?: number
-  /**
-   * The number of lines removed as part of this change.
-   *
-   * If the file is a binary change, this value is undefined.
-   */
-  public readonly removed?: number
-
-  /**
-   * The path to this change, relative to the submodule root
-   */
-  public readonly path: string
-
-  public constructor(
-    path: string,
-    added: number | undefined,
-    removed: number | undefined
-  ) {
-    this.path = path
-    this.added = added
-    this.removed = removed
-  }
-
-  /** An ID for the file change. */
-  public get id(): string {
-    return `${this.added}+${this.removed}+${this.path}`
-  }
-}
-
-/** the contents of a diff generated by Git */
-export interface IRawDiff {
-  /**
-   * The plain text contents of the diff header. This contains
-   * everything from the start of the diff up until the first
-   * hunk header starts. Note that this does not include a trailing
-   * newline.
-   */
-  readonly header: string
-
-  /**
-   * The plain text contents of the diff. This contains everything
-   * after the diff header until the last character in the diff.
-   *
-   * Note that this does not include a trailing newline nor does
-   * it include diff 'no newline at end of file' comments. For
-   * no-newline information, consult the DiffLine noTrailingNewLine
-   * property.
-   */
-  readonly contents: string
-
-  /**
-   * Each hunk in the diff with information about start, and end
-   * positions, lines and line statuses.
-   */
-  readonly hunks: ReadonlyArray<DiffHunk>
-
-  /**
-   * Whether or not the unified diff indicates that the contents
-   * could not be diffed due to one of the versions being binary.
-   */
-  readonly isBinary: boolean
-}
 
 export enum DiffSelectionType {
   All,
