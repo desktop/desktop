@@ -190,13 +190,25 @@ export class BranchList extends React.Component<
     return this.props.renderBranch(item, matches)
   }
 
-  private renderGroupHeader = (id: string) => {
-    const identifier = id as BranchGroupIdentifier
-    return (
+  private parseHeader(label: string): BranchGroupIdentifier | null {
+    switch (label) {
+      case 'default':
+      case 'recent':
+      case 'other':
+        return label
+      default:
+        return null
+    }
+  }
+
+  private renderGroupHeader = (label: string) => {
+    const identifier = this.parseHeader(label)
+
+    return identifier !== null ? (
       <div className="branches-list-content filter-list-group-header">
         {this.getGroupLabel(identifier)}
       </div>
-    )
+    ) : null
   }
 
   private getGroupLabel(identifier: BranchGroupIdentifier) {
