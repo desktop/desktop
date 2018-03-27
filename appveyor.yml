@@ -28,9 +28,9 @@ install:
   - yarn install --force
 
 build_script:
+  - yarn validate-changelog
   - yarn lint
   - yarn build:prod
-  - yarn validate-changelog
 
 test_script:
   - node --version

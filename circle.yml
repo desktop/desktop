@@ -32,9 +32,10 @@ dependencies:
 
 compile:
   override:
+    - yarn validate-changelog
     - yarn lint
     - yarn build:prod
-    - yarn validate-changelog
+
 
 test:
   override:
