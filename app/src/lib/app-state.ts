@@ -52,7 +52,7 @@ export enum ImageDiffType {
 }
 
 export enum CompareType {
-  None = 'default',
+  None = 'none',
   Ahead = 'ahead',
   Behind = 'behind',
 }
