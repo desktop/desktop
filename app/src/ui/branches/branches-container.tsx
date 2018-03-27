@@ -1,16 +1,20 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher'
-import { FoldoutType, PopupType } from '../../lib/app-state'
+import { CSSTransitionGroup } from 'react-transition-group'
+
+import { PullRequest } from '../../models/pull-request'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { BranchList } from './branch-list'
-import { TabBar } from '../tab-bar'
 import { BranchesTab } from '../../models/branches-tab'
+
+import { Dispatcher } from '../../lib/dispatcher'
+import { FoldoutType, PopupType } from '../../lib/app-state'
 import { assertNever } from '../../lib/fatal-error'
+
+import { TabBar } from '../tab-bar'
+
+import { BranchList } from './branch-list'
 import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
-import { PullRequest } from '../../models/pull-request'
-import { CSSTransitionGroup } from 'react-transition-group'
 
 const PullRequestsLoadingCrossFadeInTimeout = 300
 const PullRequestsLoadingCrossFadeOutTimeout = 200
