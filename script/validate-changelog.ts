@@ -28,7 +28,7 @@ function formatErrors(errors: Ajv.ErrorObject[]): string {
       // dataPath starts with a leading "."," which is a bit confusing
       const element = dataPath.substr(1)
 
-      return `Error: ${element} - ${message}${additionalPropertyText}`
+      return ` - ${element} - ${message}${additionalPropertyText}`
     })
     .join('\n')
 }
@@ -74,7 +74,7 @@ const validate = ajv.compile(schema)
 const valid = validate(changelogObj)
 
 if (!valid && validate.errors != null) {
-  handleError(formatErrors(validate.errors))
+  handleError(`Errors: \n${formatErrors(validate.errors)}`)
 }
 
 console.log('The changelog is totally fine')
