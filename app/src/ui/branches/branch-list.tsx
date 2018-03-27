@@ -102,7 +102,7 @@ interface IBranchListProps {
   /**
    * Render function to apply to each branch in the list
    */
-  readonly renderBranch?: (
+  readonly renderBranch: (
     item: IBranchListItem,
     matches: ReadonlyArray<number>
   ) => JSX.Element
@@ -188,23 +188,7 @@ export class BranchList extends React.Component<
     item: IBranchListItem,
     matches: ReadonlyArray<number>
   ) => {
-    if (this.props.renderBranch !== undefined) {
-      return this.props.renderBranch(item, matches)
-    }
-
-    const branch = item.branch
-    const commit = branch.tip
-    const currentBranchName = this.props.currentBranch
-      ? this.props.currentBranch.name
-      : null
-    return (
-      <BranchListItem
-        name={branch.name}
-        isCurrentBranch={branch.name === currentBranchName}
-        lastCommitDate={commit ? commit.author.date : null}
-        matches={matches}
-      />
-    )
+    return this.props.renderBranch(item, matches)
   }
 
   private renderGroupHeader = (id: string) => {

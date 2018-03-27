@@ -15,6 +15,8 @@ import { TabBar } from '../tab-bar'
 import { BranchList } from './branch-list'
 import { PullRequestList } from './pull-request-list'
 import { PullRequestsLoading } from './pull-requests-loading'
+import { IBranchListItem } from './group-branches'
+import { BranchListItem } from './branch-list-item'
 
 const PullRequestsLoadingCrossFadeInTimeout = 300
 const PullRequestsLoadingCrossFadeOutTimeout = 200
@@ -95,6 +97,25 @@ export class BranchesContainer extends React.Component<
     )
   }
 
+  private renderBranch = (
+    item: IBranchListItem,
+    matches: ReadonlyArray<number>
+  ) => {
+    const branch = item.branch
+    const commit = branch.tip
+    const currentBranchName = this.props.currentBranch
+      ? this.props.currentBranch.name
+      : null
+    return (
+      <BranchListItem
+        name={branch.name}
+        isCurrentBranch={branch.name === currentBranchName}
+        lastCommitDate={commit ? commit.author.date : null}
+        matches={matches}
+      />
+    )
+  }
+
   private renderSelectedTab() {
     let tab = this.props.selectedTab
     if (!this.props.repository.gitHubRepository) {
@@ -116,6 +137,7 @@ export class BranchesContainer extends React.Component<
             onSelectionChanged={this.onBranchSelectionChanged}
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
+            renderBranch={this.renderBranch}
           />
         )
 
