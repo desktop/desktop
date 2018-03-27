@@ -27,6 +27,14 @@ interface IHistoryProps {
   readonly commitSummaryWidth: number
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly imageDiffType: ImageDiffType
+  /** The name of the currently selected external editor */
+  readonly externalEditorLabel?: string
+
+  /**
+   * Called to open a file using the user's configured applications
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenInExternalEditor: (path: string) => void
 }
 
 interface IHistoryState {
@@ -136,6 +144,8 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
         availableWidth={availableWidth}
         onRevealInFileManager={this.onRevealInFileManager}
         onOpenItem={this.onOpenItem}
+        externalEditorLabel={this.props.externalEditorLabel}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
       />
     )
   }

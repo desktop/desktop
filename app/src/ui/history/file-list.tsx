@@ -14,6 +14,9 @@ import { showContextualMenu } from '../main-process-proxy'
 import { IMenuItem } from '../../lib/menu-item'
 
 const RestrictedFileExtensions = ['.cmd', '.exe', '.bat', '.sh']
+const defaultEditorLabel = __DARWIN__
+  ? 'Open in External Editor'
+  : 'Open in external editor'
 
 interface IFileListProps {
   readonly files: ReadonlyArray<FileChange>
@@ -31,6 +34,15 @@ interface IFileListProps {
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenItem: (path: string) => void
+
+  /** The name of the currently selected external editor */
+  readonly externalEditorLabel?: string
+
+  /**
+   * Called to open a file using the user's configured applications
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenInExternalEditor: (path: string) => void
 }
 
 export class FileList extends React.Component<IFileListProps, {}> {
@@ -105,11 +117,20 @@ export class FileList extends React.Component<IFileListProps, {}> {
         ? 'Reveal in Finder'
         : __WIN32__ ? 'Show in Explorer' : 'Show in your File Manager'
 
+      const openInExternalEditor = this.props.externalEditorLabel
+        ? `Open in ${this.props.externalEditorLabel}`
+        : defaultEditorLabel
+
       items.push(
         {
           label: revealInFileManagerLabel,
           action: () => this.props.onRevealInFileManager(filePath),
           enabled: this.props.selectedFile.status !== AppFileStatus.Deleted,
+        },
+        {
+          label: openInExternalEditor,
+          action: () => this.props.onOpenInExternalEditor(filePath),
+          enabled: isSafeExtension && this.props.selectedFile.status !== AppFileStatus.Deleted,
         },
         {
           label: __DARWIN__

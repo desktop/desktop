@@ -205,6 +205,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
           commitSummaryWidth={this.props.commitSummaryWidth}
           gitHubUsers={this.props.state.gitHubUsers}
           imageDiffType={this.props.imageDiffType}
+          externalEditorLabel={this.props.externalEditorLabel}
+          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
       )
     } else {
