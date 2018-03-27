@@ -13,10 +13,12 @@ function handleError(error: any) {
 const repositoryRoot = Path.dirname(__dirname)
 const changelogPath = Path.join(repositoryRoot, 'changelog.json')
 
-const changelog = Fs.readFileSync(changelogPath)
+const changelog = Fs.readFileSync(changelogPath, 'utf8')
+
+let changelogObj = null
 
 try {
-  JSON.parse(changelog.toString())
+  changelogObj = JSON.parse(changelog)
 } catch {
   handleError(
     'The contents of changelog.json are not valid JSON. Please check the file contents and address this.'
