@@ -5,10 +5,23 @@ import * as Fs from 'fs'
 
 import * as Ajv from 'ajv'
 
+function handleError(error: any) {
+  console.error(error)
+  process.exit(-1)
+}
+
 const repositoryRoot = Path.dirname(__dirname)
 const changelogPath = Path.join(repositoryRoot, 'changelog.json')
 
 const changelog = Fs.readFileSync(changelogPath)
+
+try {
+  JSON.parse(changelog.toString())
+} catch {
+  handleError(
+    'The contents of changelog.json are not valid JSON. Please check the file contents and address this.'
+  )
+}
 
 const schema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
@@ -36,8 +49,7 @@ const valid = validate(changelog)
 
 console.log(`got: ${JSON.stringify(valid)}`)
 if (!valid) {
-  console.log(validate.errors)
-  process.exitCode = -1
-} else {
-  console.log('The changelog is totally fine')
+  handleError(validate.errors)
 }
+
+console.log('The changelog is totally fine')
