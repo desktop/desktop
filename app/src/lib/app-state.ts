@@ -600,7 +600,7 @@ export interface IChangesState {
 
 export interface ICompareState {
   /**
-   * The ordered local commit SHAs.
+   * The SHAs of commits to render in the compare list
    */
   readonly commitSHAs: ReadonlyArray<string>
 
