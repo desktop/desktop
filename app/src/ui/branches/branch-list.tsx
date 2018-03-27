@@ -18,7 +18,6 @@ import {
   BranchGroupIdentifier,
 } from './group-branches'
 import { NoBranches } from './no-branches'
-import { BranchListItem } from './branch-list-item'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
