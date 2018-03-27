@@ -178,7 +178,7 @@ export class CompareSidebar extends React.Component<
         canCreateNewBranch={false}
         onSelectionChanged={this.onSelectionChanged}
         onFilterTextChanged={this.onBranchFilterTextChanged}
-        onRenderItem={this.renderCompareBranchListItem}
+        renderBranch={this.renderCompareBranchListItem}
       />
     )
   }

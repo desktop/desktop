@@ -1,20 +1,23 @@
 import * as React from 'react'
+
 import { Branch } from '../../models/branch'
-import {
-  groupBranches,
-  IBranchListItem,
-  BranchGroupIdentifier,
-} from './group-branches'
-import { BranchListItem } from './branch-list-item'
+
+import { assertNever } from '../../lib/fatal-error'
+
 import {
   FilterList,
   IFilterListGroup,
   SelectionSource,
 } from '../lib/filter-list'
-import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
-import { NoBranches } from './no-branches'
 import { TextBox } from '../lib/text-box'
+
+import {
+  groupBranches,
+  IBranchListItem,
+  BranchGroupIdentifier,
+} from './group-branches'
+import { NoBranches } from './no-branches'
 
 /**
  * TS can't parse generic specialization in JSX, so we have to alias it here
@@ -95,7 +98,10 @@ interface IBranchListProps {
 
   readonly textbox?: TextBox
 
-  readonly onRenderItem?: (
+  /**
+   * Render function to apply to each branch in the list
+   */
+  readonly renderBranch: (
     item: IBranchListItem,
     matches: ReadonlyArray<number>
   ) => JSX.Element
@@ -181,23 +187,7 @@ export class BranchList extends React.Component<
     item: IBranchListItem,
     matches: ReadonlyArray<number>
   ) => {
-    if (this.props.onRenderItem !== undefined) {
-      return this.props.onRenderItem(item, matches)
-    }
-
-    const branch = item.branch
-    const commit = branch.tip
-    const currentBranchName = this.props.currentBranch
-      ? this.props.currentBranch.name
-      : null
-    return (
-      <BranchListItem
-        name={branch.name}
-        isCurrentBranch={branch.name === currentBranchName}
-        lastCommitDate={commit ? commit.author.date : null}
-        matches={matches}
-      />
-    )
+    return this.props.renderBranch(item, matches)
   }
 
   private renderGroupHeader = (id: string) => {
