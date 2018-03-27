@@ -16,6 +16,7 @@ import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
+import { fatalError } from '../../lib/fatal-error'
 
 enum SelectedTab {
   None = -1,
@@ -359,8 +360,9 @@ export class CompareSidebar extends React.Component<
   private onMergeClicked = (event: React.MouseEvent<any>) => {
     const branch = this.state.selectedBranch
 
-    if (branch !== null) {
-      this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
+    if (branch === null) {
+      fatalError(`Cannot merge null branch`)
+      return
     }
   }
 
