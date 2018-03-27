@@ -1,10 +1,14 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
+
+import { getAheadBehind } from '../../lib/git'
 import { Dispatcher } from '../../lib/dispatcher'
+
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
-import { getAheadBehind } from '../../lib/git'
+
+import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
+
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { BranchList } from '../branches'
 
