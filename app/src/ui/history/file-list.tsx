@@ -130,7 +130,9 @@ export class FileList extends React.Component<IFileListProps, {}> {
         {
           label: openInExternalEditor,
           action: () => this.props.onOpenInExternalEditor(filePath),
-          enabled: isSafeExtension && this.props.selectedFile.status !== AppFileStatus.Deleted,
+          enabled:
+            isSafeExtension &&
+            this.props.selectedFile.status !== AppFileStatus.Deleted,
         },
         {
           label: __DARWIN__
