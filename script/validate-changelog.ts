@@ -35,6 +35,7 @@ const schema = {
           items: {
             type: 'string',
           },
+          uniqueItems: true,
         },
       },
       additionalProperties: false,
