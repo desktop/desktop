@@ -186,6 +186,10 @@ export class ModifiedImageDiff extends React.Component<
       case ImageDiffType.Difference:
         return <DifferenceBlend {...this.getCommonProps(maxSize)} />
 
+      case ImageDiffType.Text:
+        // TODO: implement this
+        return null
+
       default:
         return assertNever(type, `Unknown diff type: ${type}`)
     }
