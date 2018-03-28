@@ -279,7 +279,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     // operations that makes our data stale or useless.
     const propsSnapshot = this.props
 
-    const lineFilters = getLineFilters(diff)
+    const lineFilters = getLineFilters(diff.hunks)
     const contents = await getFileContents(repo, file, lineFilters)
 
     if (!highlightParametersEqual(this.props, propsSnapshot)) {
@@ -297,7 +297,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     const spec: IDiffSyntaxModeSpec = {
       name: DiffSyntaxMode.ModeName,
-      diff,
+      hunks: diff.hunks,
       oldTokens: tokens.oldTokens,
       newTokens: tokens.newTokens,
     }

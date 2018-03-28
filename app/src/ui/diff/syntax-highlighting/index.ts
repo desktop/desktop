@@ -13,7 +13,7 @@ import {
   AppFileStatus,
 } from '../../../models/status'
 import { Repository } from '../../../models/repository'
-import { ITextDiff, DiffLineType, DiffLine } from '../../../models/diff'
+import { DiffHunk, DiffLineType, DiffLine } from '../../../models/diff'
 
 /** The maximum number of bytes we'll process for highlighting. */
 const MaxHighlightContentLength = 256 * 1024
@@ -123,7 +123,7 @@ export async function getFileContents(
  * Figure out which lines we need to have tokenized in
  * both the old and new version of the file.
  */
-export function getLineFilters(diff: ITextDiff): ILineFilters {
+export function getLineFilters(hunks: ReadonlyArray<DiffHunk>): ILineFilters {
   const oldLineFilter = new Array<number>()
   const newLineFilter = new Array<number>()
 
@@ -132,7 +132,7 @@ export function getLineFilters(diff: ITextDiff): ILineFilters {
   let anyAdded = false
   let anyDeleted = false
 
-  for (const hunk of diff.hunks) {
+  for (const hunk of hunks) {
     for (const line of hunk.lines) {
       anyAdded = anyAdded || line.type === DiffLineType.Add
       anyDeleted = anyDeleted || line.type === DiffLineType.Delete
