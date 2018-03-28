@@ -83,10 +83,6 @@ export interface IImageDiff extends IImageDiffData {
   readonly kind: DiffType.Image
 }
 
-export interface IVisualTextDiff extends ITextDiffData, IImageDiffData {
-  readonly kind: DiffType.VisualOrText
-}
-
 export interface IBinaryDiff {
   readonly kind: DiffType.Binary
 }
