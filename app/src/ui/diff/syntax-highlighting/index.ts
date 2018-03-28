@@ -2,20 +2,18 @@ import * as Path from 'path'
 
 import { assertNever } from '../../../lib/fatal-error'
 
+import { getPartialBlobContents } from '../../../lib/git/show'
+import { readPartialFile } from '../../../lib/file-system'
+import { highlight } from '../../../lib/highlighter/worker'
+import { ITokens } from '../../../lib/highlighter/types'
+
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
   AppFileStatus,
 } from '../../../models/status'
-
 import { Repository } from '../../../models/repository'
-
 import { ITextDiff, DiffLineType, DiffLine } from '../../../models/diff'
-
-import { getPartialBlobContents } from '../../../lib/git/show'
-import { readPartialFile } from '../../../lib/file-system'
-import { highlight } from '../../../lib/highlighter/worker'
-import { ITokens } from '../../../lib/highlighter/types'
 
 /** The maximum number of bytes we'll process for highlighting. */
 const MaxHighlightContentLength = 256 * 1024
