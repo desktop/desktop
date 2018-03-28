@@ -2,20 +2,15 @@ import { clipboard } from 'electron'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Disposable } from 'event-kit'
+import { Editor } from 'codemirror'
 
 import { assertNever } from '../../lib/fatal-error'
-import {
-  NewImageDiff,
-  ModifiedImageDiff,
-  DeletedImageDiff,
-} from './image-diffs'
-import { BinaryFile } from './binary-file'
-
-import { Editor } from 'codemirror'
-import { CodeMirrorHost } from './code-mirror-host'
-import { Repository } from '../../models/repository'
+import { fatalError } from '../../lib/fatal-error'
 import { encodePathAsUrl } from '../../lib/path'
 import { ImageDiffType } from '../../lib/app-state'
+import { Dispatcher } from '../../lib/dispatcher/dispatcher'
+
+import { Repository } from '../../models/repository'
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
@@ -31,8 +26,17 @@ import {
   DiffLineType,
   ILargeTextDiff,
 } from '../../models/diff'
-import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
+import { Octicon, OcticonSymbol } from '../octicons'
+import { Button } from '../lib/button'
+
+import {
+  NewImageDiff,
+  ModifiedImageDiff,
+  DeletedImageDiff,
+} from './image-diffs'
+import { BinaryFile } from './binary-file'
+import { CodeMirrorHost } from './code-mirror-host'
 import {
   diffLineForIndex,
   diffHunkForIndex,
@@ -41,25 +45,18 @@ import {
 } from './diff-explorer'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
-import { ISelectionStrategy } from './selection/selection-strategy'
-import { DragDropSelection } from './selection/drag-drop-selection-strategy'
-import { RangeSelection } from './selection/range-selection-strategy'
-import { Octicon, OcticonSymbol } from '../octicons'
-
-import { fatalError } from '../../lib/fatal-error'
-
 import { RangeSelectionSizePixels } from './edge-detection'
 import { relativeChanges } from './changed-range'
-
 import { DiffSyntaxMode, IDiffSyntaxModeSpec } from './diff-syntax-mode'
-
 import {
   getLineFilters,
   getFileContents,
   highlightContents,
 } from './syntax-highlighting'
 
-import { Button } from '../lib/button'
+import { ISelectionStrategy } from './selection/selection-strategy'
+import { DragDropSelection } from './selection/drag-drop-selection-strategy'
+import { RangeSelection } from './selection/range-selection-strategy'
 
 /** The longest line for which we'd try to calculate a line diff. */
 const MaxIntraLineDiffStringLength = 4096
@@ -915,7 +912,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     )
   }
 
-  private onCopy = (editor: CodeMirror.Editor, event: Event) => {
+  private onCopy = (editor: Editor, event: Event) => {
     event.preventDefault()
 
     // Remove the diff line markers from the copied text. The beginning of the
