@@ -261,13 +261,13 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     )
   }
 
-  private onFocus = (event: React.FocusEvent<any>) => {
+  private onFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     if (!this.props.autoFocus && this.props.onFocus !== undefined) {
       this.props.onFocus()
     }
   }
 
-  private onBlur = (event: React.FocusEvent<any>) => {
+  private onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     if (this.props.onBlur !== undefined) {
       this.props.onBlur()
     }
