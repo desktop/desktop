@@ -11,8 +11,6 @@ export enum DiffType {
   Text,
   /** Changes to a file with a known extension, which can be viewed in the app */
   Image,
-  /** changes to a file with a known extension, which can be viewed as images or text in the app */
-  VisualOrText,
   /** Changes to an unknown file format, which Git is unable to present in a human-friendly format */
   Binary,
   /** Change to a repository which is included as a submodule of this repository */
