@@ -45,8 +45,10 @@ export function parseLineEndingText(text: string): LineEnding | null {
   }
 }
 
-export interface ITextDiff {
-  readonly kind: DiffType.Text
+/**
+ * Data returned as part of a textual diff from Desktop
+ */
+interface ITextDiffData {
   /** The unified text diff - including headers and context */
   readonly text: string
   /** The diff contents organized by hunk - how the git CLI outputs to the caller */
@@ -55,8 +57,10 @@ export interface ITextDiff {
   readonly lineEndingsChange?: LineEndingsChange
 }
 
-export interface IImageDiff {
-  readonly kind: DiffType.Image
+/**
+ * Data returned as part of an image diff in Desktop
+ */
+interface IImageDiffData {
   /**
    * The previous image, if the file was modified or deleted
    *
@@ -71,18 +75,24 @@ export interface IImageDiff {
   readonly current?: Image
 }
 
+export interface ITextDiff extends ITextDiffData {
+  readonly kind: DiffType.Text
+}
+
+export interface IImageDiff extends IImageDiffData {
+  readonly kind: DiffType.Image
+}
+
+export interface IVisualTextDiff extends ITextDiffData, IImageDiffData {
+  readonly kind: DiffType.VisualOrText
+}
+
 export interface IBinaryDiff {
   readonly kind: DiffType.Binary
 }
 
-export interface ILargeTextDiff {
+export interface ILargeTextDiff extends ITextDiffData {
   readonly kind: DiffType.LargeText
-  /** The unified text diff - including headers and context */
-  readonly text: string
-  /** The diff contents organized by hunk - how the git CLI outputs to the caller */
-  readonly hunks: ReadonlyArray<DiffHunk>
-  /** A warning from Git that the line endings have changed in this file and will affect the commit */
-  readonly lineEndingsChange?: LineEndingsChange
 }
 
 export interface IUnrenderableDiff {
