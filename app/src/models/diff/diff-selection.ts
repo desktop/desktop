@@ -1,8 +1,14 @@
 import { assertNever } from '../../lib/fatal-error'
 
+/**
+ * The state of a file's diff selection
+ */
 export enum DiffSelectionType {
+  /** The entire file should be committed */
   All,
+  /** A subset of lines in the file have been selected for committing */
   Partial,
+  /** The file should be excluded from committing */
   None,
 }
 
