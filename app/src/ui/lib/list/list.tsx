@@ -855,6 +855,10 @@ export class List extends React.Component<IListProps, IListState> {
          */
         let newSelection = this.props.selectedRows
         if (newSelection.includes(row)) {
+          // remove the ability to deselect the last item
+          if (newSelection.length === 1) {
+            return
+          }
           newSelection = newSelection.filter(selection => selection !== row)
         } else {
           newSelection.push(row)
