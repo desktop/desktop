@@ -111,7 +111,7 @@ export class TextDiff extends React.Component<ITextDiffProps, {}> {
    */
   private selection: ISelectionStrategy | null = null
 
-  public async initDiffSyntaxMode() {
+  private async initDiffSyntaxMode() {
     const cm = this.codeMirror
     const file = this.props.file
     const hunks = this.props.hunks
