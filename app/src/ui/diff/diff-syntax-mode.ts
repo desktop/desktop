@@ -129,7 +129,7 @@ export class DiffSyntaxMode {
       return skipLine(stream, state)
     }
 
-    const diffLine = diffLineForIndex(this.diff, state.diffLineIndex)
+    const diffLine = diffLineForIndex(this.diff.hunks, state.diffLineIndex)
 
     if (!diffLine) {
       return skipLine(stream, state)

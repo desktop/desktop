@@ -25,6 +25,7 @@ import {
 import {
   DiffSelection,
   DiffType,
+  DiffHunk,
   IDiff,
   IImageDiff,
   ITextDiff,
@@ -404,7 +405,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         }
 
         if (diff.kind === DiffType.Text) {
-          const line = diffLineForIndex(diff, index)
+          const line = diffLineForIndex(diff.hunks, index)
           const isIncludable = line ? line.isIncludeableLine() : false
           const isSelected = selection.isSelected(index) && isIncludable
           element.setSelected(isSelected)
@@ -559,7 +560,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
    */
   private startSelection = (
     file: WorkingDirectoryFileChange,
-    diff: ITextDiff,
+    hunks: ReadonlyArray<DiffHunk>,
     index: number,
     isRangeSelection: boolean
   ) => {
@@ -568,7 +569,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     const desiredSelection = !selected
 
     if (isRangeSelection) {
-      const range = findInteractiveDiffRange(diff, index)
+      const range = findInteractiveDiffRange(hunks, index)
       if (!range) {
         console.error('unable to find range for given line in diff')
         return
@@ -620,7 +621,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private onGutterMouseDown = (
     index: number,
-    diff: ITextDiff,
+    hunks: ReadonlyArray<DiffHunk>,
     isRangeSelection: boolean
   ) => {
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
@@ -631,12 +632,12 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     }
 
     if (isRangeSelection) {
-      const hunk = diffHunkForIndex(diff, index)
+      const hunk = diffHunkForIndex(hunks, index)
       if (!hunk) {
         console.error('unable to find hunk for given line in diff')
       }
     }
-    this.startSelection(this.props.file, diff, index, isRangeSelection)
+    this.startSelection(this.props.file, hunks, index, isRangeSelection)
   }
 
   private onGutterMouseMove = (index: number) => {
@@ -650,7 +651,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private onDiffTextMouseMove = (
     ev: MouseEvent,
-    diff: ITextDiff,
+    hunks: ReadonlyArray<DiffHunk>,
     index: number
   ) => {
     const isActive = this.isMouseCursorNearGutter(ev)
@@ -658,7 +659,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       return
     }
 
-    const diffLine = diffLineForIndex(diff, index)
+    const diffLine = diffLineForIndex(hunks, index)
     if (!diffLine) {
       return
     }
@@ -667,7 +668,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       return
     }
 
-    const range = findInteractiveDiffRange(diff, index)
+    const range = findInteractiveDiffRange(hunks, index)
     if (!range) {
       console.error('unable to find range for given index in diff')
       return
@@ -678,7 +679,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private onDiffTextMouseDown = (
     ev: MouseEvent,
-    diff: ITextDiff,
+    hunks: ReadonlyArray<DiffHunk>,
     index: number
   ) => {
     const isActive = this.isMouseCursorNearGutter(ev)
@@ -697,16 +698,16 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         return
       }
 
-      this.startSelection(this.props.file, diff, index, true)
+      this.startSelection(this.props.file, hunks, index, true)
     }
   }
 
   private onDiffTextMouseLeave = (
     ev: MouseEvent,
-    diff: ITextDiff,
+    hunks: ReadonlyArray<DiffHunk>,
     index: number
   ) => {
-    const range = findInteractiveDiffRange(diff, index)
+    const range = findInteractiveDiffRange(hunks, index)
     if (!range) {
       console.error('unable to find range for given index in diff')
       return
@@ -745,7 +746,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     const index = instance.getLineNumber(line) as number
 
-    const diffLine = diffLineForIndex(diff, index)
+    const diffLine = diffLineForIndex(diff.hunks, index)
     if (diffLine) {
       const diffLineElement = element.children[0] as HTMLSpanElement
 
@@ -773,13 +774,15 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
       const cache = this.cachedGutterElements
 
+      const hunks = diff.hunks
+
       ReactDOM.render(
         <DiffLineGutter
           line={diffLine}
           isIncluded={isIncluded}
           index={index}
           readOnly={this.props.readOnly}
-          diff={diff}
+          hunks={hunks}
           updateRangeHoverState={this.updateRangeHoverState}
           isSelectionEnabled={this.isSelectionEnabled}
           onMouseDown={this.onGutterMouseDown}
@@ -794,15 +797,15 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       )
 
       const onMouseMoveLine: (ev: MouseEvent) => void = ev => {
-        this.onDiffTextMouseMove(ev, diff, index)
+        this.onDiffTextMouseMove(ev, hunks, index)
       }
 
       const onMouseDownLine: (ev: MouseEvent) => void = ev => {
-        this.onDiffTextMouseDown(ev, diff, index)
+        this.onDiffTextMouseDown(ev, hunks, index)
       }
 
       const onMouseLeaveLine: (ev: MouseEvent) => void = ev => {
-        this.onDiffTextMouseLeave(ev, diff, index)
+        this.onDiffTextMouseLeave(ev, hunks, index)
       }
 
       if (!this.props.readOnly) {
@@ -874,8 +877,11 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     }
   }
 
-  private markIntraLineChanges(codeMirror: Editor, diff: ITextDiff) {
-    for (const hunk of diff.hunks) {
+  private markIntraLineChanges(
+    codeMirror: Editor,
+    hunks: ReadonlyArray<DiffHunk>
+  ) {
+    for (const hunk of hunks) {
       const additions = hunk.lines.filter(l => l.type === DiffLineType.Add)
       const deletions = hunk.lines.filter(l => l.type === DiffLineType.Delete)
       if (additions.length !== deletions.length) {
@@ -898,7 +904,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         )
         const addRange = changeRanges.stringARange
         if (addRange.length > 0) {
-          const addLineNumber = lineNumberForDiffLine(addLine, diff)
+          const addLineNumber = lineNumberForDiffLine(addLine, hunks)
           if (addLineNumber > -1) {
             const addFrom = {
               line: addLineNumber,
@@ -916,7 +922,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
         const deleteRange = changeRanges.stringBRange
         if (deleteRange.length > 0) {
-          const deleteLineNumber = lineNumberForDiffLine(deleteLine, diff)
+          const deleteLineNumber = lineNumberForDiffLine(deleteLine, hunks)
           if (deleteLineNumber > -1) {
             const deleteFrom = {
               line: deleteLineNumber,
@@ -940,7 +946,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     const diff = this.props.diff
     if (diff.kind === DiffType.Text) {
-      this.markIntraLineChanges(cm, diff)
+      this.markIntraLineChanges(cm, diff.hunks)
     }
   }
 
