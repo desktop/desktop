@@ -1,6 +1,5 @@
 export * from './diff-data'
 export * from './diff-line'
 export * from './diff-selection'
-export * from './file-summary'
 export * from './image'
 export * from './raw-diff'
