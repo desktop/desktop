@@ -36,7 +36,6 @@ compile:
     - yarn validate-changelog
     - yarn build:prod
 
-
 test:
   override:
     - yarn test:setup
