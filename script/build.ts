@@ -22,16 +22,9 @@ interface IChooseALicense {
 }
 
 export interface ILicense {
-  /** The human-readable name. */
   readonly name: string
-
-  /** Is the license featured? */
   readonly featured: boolean
-
-  /** The actual text of the license. */
   readonly body: string
-
-  /** Whether to hide the license from the standard list */
   readonly hidden: boolean
 }
 

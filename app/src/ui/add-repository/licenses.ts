@@ -1,23 +1,13 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
 
-interface ILicenseWithMetadata {
-  readonly name: string
-  readonly featured?: boolean
-  readonly hidden?: boolean
-  readonly body: string
-}
-
 export interface ILicense {
   /** The human-readable name. */
   readonly name: string
-
   /** Is the license featured? */
   readonly featured: boolean
-
   /** The actual text of the license. */
   readonly body: string
-
   /** Whether to hide the license from the standard list */
   readonly hidden: boolean
 }
@@ -43,33 +33,26 @@ export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
         'static',
         'available-licenses.json'
       )
-      const json = Fs.readFileSync(licensesMetadataPath, 'utf8')
-      const licensesMetadata: ReadonlyArray<ILicenseWithMetadata> = JSON.parse(
-        json
-      )
+      Fs.readFile(licensesMetadataPath, 'utf8', (err, json) => {
+        if (err) {
+          reject(err)
+          return
+        }
 
-      const licenses = new Array<ILicense>()
+        const licenses: Array<ILicense> = JSON.parse(json)
 
-      for (const license of licensesMetadata) {
-        licenses.push({
-          name: license.name,
-          featured: license.featured || false,
-          hidden: license.hidden === undefined || license.hidden,
-          body: license.body.trim(),
+        cachedLicenses = licenses.sort((a, b) => {
+          if (a.featured) {
+            return -1
+          }
+          if (b.featured) {
+            return 1
+          }
+          return a.name.localeCompare(b.name)
         })
-      }
 
-      cachedLicenses = licenses.sort((a, b) => {
-        if (a.featured) {
-          return -1
-        }
-        if (b.featured) {
-          return 1
-        }
-        return a.name.localeCompare(b.name)
+        resolve(cachedLicenses)
       })
-
-      resolve(cachedLicenses)
     })
   }
 }
