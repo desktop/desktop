@@ -9,6 +9,36 @@ import * as packager from 'electron-packager'
 
 const legalEagle: LegalEagle = require('legal-eagle')
 
+interface IFrontMatterResult<T> {
+  readonly attributes: T
+  readonly body: string
+}
+
+interface IChooseALicense {
+  readonly title: string
+  readonly nickname?: string
+  readonly featured?: boolean
+  readonly hidden?: boolean
+}
+
+export interface ILicense {
+  /** The human-readable name. */
+  readonly name: string
+
+  /** Is the license featured? */
+  readonly featured: boolean
+
+  /** The actual text of the license. */
+  readonly body: string
+
+  /** Whether to hide the license from the standard list */
+  readonly hidden: boolean
+}
+
+const frontMatter: <T>(
+  path: string
+) => IFrontMatterResult<T> = require('front-matter')
+
 import {
   getBundleID,
   getCompanyName,
@@ -36,6 +66,9 @@ copyEmoji()
 
 console.log('Copying static resources…')
 copyStaticResources()
+
+console.log('Parsing license metadata…')
+parseLicenseMetadata(outRoot)
 
 const isFork = process.env.CIRCLE_PR_USERNAME
 if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
@@ -352,4 +385,39 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
       }
     }
   )
+}
+
+function parseLicenseMetadata(outRoot: string) {
+  const chooseALicense = path.join(outRoot, 'static', 'choosealicense.com')
+  const licensesDir = path.join(chooseALicense, '_licenses')
+
+  const files = fs.readdirSync(licensesDir)
+
+  const licenses = new Array<ILicense>()
+  for (const file of files) {
+    const fullPath = path.join(licensesDir, file)
+    const contents = fs.readFileSync(fullPath, 'utf8')
+    const result = frontMatter<IChooseALicense>(contents)
+    const license: ILicense = {
+      name: result.attributes.nickname || result.attributes.title,
+      featured: result.attributes.featured || false,
+      hidden:
+        result.attributes.hidden === undefined || result.attributes.hidden,
+      body: result.body.trim(),
+    }
+
+    if (!license.hidden) {
+      licenses.push(license)
+    }
+  }
+
+  const destination = path.join(outRoot, 'static', 'available-licenses.json')
+  const text = JSON.stringify(licenses)
+  fs.writeFileSync(destination, text, 'utf8')
+
+  // TODO: embed a README file in here for the choose-a-license metadata
+  // because we still need to attribute this work that we're consuming
+
+  // sweep up the ChooseALicense directory, it's no longer needed here
+  fs.removeSync(chooseALicense)
 }
