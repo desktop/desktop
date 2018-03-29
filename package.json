@@ -38,7 +38,8 @@
     "rebuild-hard:dev": "yarn clean-slate && yarn build:dev",
     "rebuild-hard:prod": "yarn clean-slate && yarn build:prod",
     "changelog": "ts-node script/changelog/index.ts",
-    "draft-release": "ts-node script/draft-release/index.ts"
+    "draft-release": "ts-node script/draft-release/index.ts",
+    "validate-changelog": "ts-node script/validate-changelog.ts"
   },
   "author": {
     "name": "GitHub, Inc.",
@@ -51,6 +52,7 @@
     "yarn": ">= 1.2.0"
   },
   "dependencies": {
+    "ajv": "^6.4.0",
     "awesome-typescript-loader": "^3.4.0",
     "aws-sdk": "^2.23.0",
     "babel-core": "^6.24.1",
@@ -66,6 +68,7 @@
     "eslint": "^4.19.1",
     "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-babel": "^4.1.2",
+    "eslint-plugin-json": "^1.2.0",
     "eslint-plugin-prettier": "^2.6.0",
     "eslint-plugin-react": "^7.7.0",
     "eslint-plugin-typescript": "^0.10.0",
