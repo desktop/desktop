@@ -49,6 +49,12 @@ describe('findAccountForRemoteURL', () => {
     expect(account!).to.eql(Account.anonymous())
   })
 
+  it('finds the anonymous account for public repository on GitHub endpoint', async () => {
+    const account = await findAccountForRemoteURL('https://github.com/inkscape/inkscape', [])
+    expect(account).not.to.equal(null)
+    expect(account!).to.eql(Account.anonymous())
+  })
+
   // TODO check authenticated account is used
   /* it('finds the account for GitHub owner/name repository', async () => {
     const account = await findAccountForRemoteURL('desktop/repo-fixture', accounts)
