@@ -50,7 +50,10 @@ describe('findAccountForRemoteURL', () => {
   })
 
   it('finds the anonymous account for public repository on GitHub endpoint', async () => {
-    const account = await findAccountForRemoteURL('https://github.com/inkscape/inkscape', [])
+    const account = await findAccountForRemoteURL(
+      'https://github.com/inkscape/inkscape',
+      []
+    )
     expect(account).not.to.equal(null)
     expect(account!).to.eql(Account.anonymous())
   })
