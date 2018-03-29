@@ -2917,6 +2917,12 @@ fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
 
+front-matter@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/front-matter/-/front-matter-2.3.0.tgz#7203af896ce357ee04e2aa45169ea91ed7f67504"
+  dependencies:
+    js-yaml "^3.10.0"
+
 fs-extra-p@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/fs-extra-p/-/fs-extra-p-4.5.0.tgz#b79f3f3fcc0b5e57b7e7caeb06159f958ef15fe8"
