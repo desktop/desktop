@@ -676,44 +676,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadCompareState(
     repository: Repository,
-    branch: Branch | null,
-    compareType: CompareType
+    state: CompareState
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
-    if (compareType === CompareType.None) {
+    if (state.kind === CompareType.None) {
       await gitStore.loadHistory()
 
-      const state = this.getRepositoryState(repository).historyState
-      const commits = state.history
+      const repoState = this.getRepositoryState(repository).historyState
+      const commits = repoState.history
 
       this.updateCompareState(repository, state => ({
-        branch,
-        kind: compareType,
+        branch: null,
+        kind: CompareType.None,
         commitSHAs: commits,
         ahead: 0,
         behind: 0,
       }))
-      return
+      return this.emitUpdate()
     }
 
-    if (branch == null) {
-      log.debug(`oops, we can't compare if the branch isn't selected`)
-      return
-    }
-
-    const compare = await gitStore.getCompareStateDetails(branch, compareType)
+    const { branch } = state
+    const compare = await gitStore.getCompareStateDetails(branch, state.kind)
 
     if (compare != null) {
-      this.updateCompareState(repository, state => ({
-        branch,
-        kind: compareType,
+      this.updateCompareState(repository, s => ({
+        kind: state.kind,
+        branch: branch,
         commitSHAs: compare.commits.map(commit => commit.sha),
         ahead: compare.ahead,
         behind: compare.behind,
       }))
 
-      this.emitUpdate()
+      return this.emitUpdate()
     }
   }
 

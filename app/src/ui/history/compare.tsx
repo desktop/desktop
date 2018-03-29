@@ -1,7 +1,12 @@
 import * as React from 'react'
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
-import { CompareType, IRepositoryState } from '../../lib/app-state'
+import {
+  CompareType,
+  IRepositoryState,
+  IDisplayHistory,
+  ICompareBranch,
+} from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
@@ -16,7 +21,8 @@ import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
-import { fatalError } from '../../lib/fatal-error'
+
+const DisplayHistory: IDisplayHistory = { kind: CompareType.None }
 
 enum SelectedTab {
   None = -1,
@@ -70,8 +76,7 @@ export class CompareSidebar extends React.Component<
   public componentWillMount() {
     this.props.dispatcher.loadCompareState(
       this.props.repository,
-      this.state.selectedBranch,
-      CompareType.None
+      DisplayHistory
     )
   }
 
@@ -131,7 +136,9 @@ export class CompareSidebar extends React.Component<
     const compareState = this.props.repositoryState.compareState
     const selectedCommit = this.state.selectedCommit
     const commitSHAs =
-      compareState.kind !== CompareType.None ? compareState.commitSHAs : []
+      compareState.kind === CompareType.None
+        ? this.props.localCommitSHAs
+        : compareState.commitSHAs
 
     return (
       <CommitList
@@ -237,17 +244,20 @@ export class CompareSidebar extends React.Component<
   }
 
   private onTabClicked = (index: number) => {
-    const compareType =
+    const kind =
       (index as SelectedTab) === SelectedTab.Behind
         ? CompareType.Behind
         : CompareType.Ahead
 
-    this.props.dispatcher.loadCompareState(
-      this.props.repository,
-      this.state.selectedBranch,
-      compareType
-    )
+    const compareState: ICompareBranch = {
+      kind,
+      branch: this.state.selectedBranch!,
+      commitSHAs: [],
+      ahead: 0,
+      behind: 0,
+    }
 
+    this.props.dispatcher.loadCompareState(this.props.repository, compareState)
     this.setState({ selectedTab: index })
   }
 
@@ -325,10 +335,10 @@ export class CompareSidebar extends React.Component<
             branch =>
               branch.name.toLowerCase() === this.state.filterText.toLowerCase()
           ) || null
+
         this.props.dispatcher.loadCompareState(
           this.props.repository,
-          branch,
-          CompareType.None
+          DisplayHistory
         )
         this.setState({ selectedBranch: branch })
         this.textbox!.blur()
@@ -341,8 +351,7 @@ export class CompareSidebar extends React.Component<
   private handleEscape() {
     this.props.dispatcher.loadCompareState(
       this.props.repository,
-      null,
-      CompareType.None
+      DisplayHistory
     )
     this.setState({ selectedBranch: null, filterText: '' })
     this.textbox!.blur()
@@ -379,16 +388,11 @@ export class CompareSidebar extends React.Component<
   private onMergeClicked = (event: React.MouseEvent<any>) => {
     const branch = this.state.selectedBranch
 
-    if (branch === null) {
-      fatalError(`Cannot merge null branch`)
-      return
-    }
-
-    this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
+    // branch is guaranteed to be not null
+    this.props.dispatcher.mergeBranch(this.props.repository, branch!.name)
     this.props.dispatcher.loadCompareState(
       this.props.repository,
-      branch,
-      this.state.compareType
+      DisplayHistory
     )
 
     this.setState({ selectedBranch: null, filterText: '' })
@@ -399,26 +403,18 @@ export class CompareSidebar extends React.Component<
   }
 
   private onSelectionChanged = (branch: Branch | null) => {
-    const { branches } = this.branchState
-    const compareType =
-      this.state.compareType === CompareType.None
-        ? CompareType.Behind
-        : CompareType.Ahead
-
-    let selectedBranch: Branch | null = this.state.selectedBranch
-    if (branch !== null) {
-      const b = branches.find(b => b.name === branch.name) || null
-      if (b) {
-        selectedBranch = b
-      }
+    if (branch === null) {
+      this.setState({ selectedBranch: null, filterText: '' })
+      return
     }
+
+    const { branches } = this.branchState
+    const selectedBranch = branches.find(b => b.name === branch.name) || null
 
     this.props.dispatcher.loadCompareState(
       this.props.repository,
-      selectedBranch,
-      compareType
+      DisplayHistory
     )
-
     this.setState({
       selectedBranch,
       filterText: selectedBranch !== null ? selectedBranch.name : '',
