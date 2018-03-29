@@ -1,6 +1,10 @@
 import * as URL from 'url'
-import { getHTMLURL, API, getDotComAPIEndpoint } from './api'
-import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
+import { getHTMLURL, API, getDotComAPIEndpoint, getDotComHostname } from './api'
+import {
+  parseRemote,
+  parseRepositoryIdentifier,
+  IRepositoryIdentifier,
+} from './remote-parsing'
 import { Account } from '../models/account'
 
 /**
@@ -27,12 +31,19 @@ async function canAccessRepository(
  */
 async function findRepositoryAccount(
   accounts: ReadonlyArray<Account>,
-  owner: string,
-  name: string
+  repositoryIdentifier: IRepositoryIdentifier
 ): Promise<Account | null> {
+  const { hostname, owner, name } = repositoryIdentifier
+
+  // If hostname is not dotcom hostname then filter out accounts using the dotcom endpoint
+  const filteredAccounts =
+    hostname !== getDotComHostname()
+      ? Array.from(accounts).filter(a => a.endpoint !== getDotComAPIEndpoint())
+      : accounts
+
   // Prefer an authenticated dot com account, then Enterprise accounts, and
   // finally the unauthenticated dot com account.
-  const sortedAccounts = Array.from(accounts).sort((a1, a2) => {
+  const sortedAccounts = Array.from(filteredAccounts).sort((a1, a2) => {
     if (a1.endpoint === getDotComAPIEndpoint()) {
       return a1.token.length ? -1 : 1
     } else if (a2.endpoint === getDotComAPIEndpoint()) {
@@ -94,8 +105,10 @@ export async function findAccountForRemoteURL(
 
   const repositoryIdentifier = parseRepositoryIdentifier(urlOrRepositoryAlias)
   if (repositoryIdentifier) {
-    const { owner, name } = repositoryIdentifier
-    const account = await findRepositoryAccount(allAccounts, owner, name)
+    const account = await findRepositoryAccount(
+      allAccounts,
+      repositoryIdentifier
+    )
     if (account) {
       return account
     }
