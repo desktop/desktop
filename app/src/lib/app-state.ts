@@ -610,7 +610,7 @@ export interface ICompareBranch {
   /**
    * The branch to compare against the base branch
    */
-  readonly branch: Branch
+  readonly comparisonBranch: Branch
 
   /**
    * The SHAs of commits to render in the compare list

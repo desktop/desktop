@@ -251,7 +251,7 @@ export class CompareSidebar extends React.Component<
 
     const compareState: ICompareBranch = {
       kind,
-      branch: this.state.selectedBranch!,
+      comparisonBranch: this.state.selectedBranch!,
       commitSHAs: [],
       ahead: 0,
       behind: 0,
