@@ -415,7 +415,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         currentPullRequest: null,
         isLoadingPullRequests: false,
       },
-      compareState: { kind: CompareType.None },
+      compareState: { kind: CompareType.None, comparisonBranch: null, commitSHAs: [] },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
       commitLookup: new Map<string, Commit>(),
@@ -676,11 +676,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadCompareState(
     repository: Repository,
-    state: CompareState
+    compareState: CompareState
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
-    if (state.kind === CompareType.None) {
+    if (compareState.kind === CompareType.None) {
       await gitStore.loadHistory()
 
       const repoState = this.getRepositoryState(repository).historyState
@@ -701,8 +701,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (compare != null) {
       this.updateCompareState(repository, s => ({
-        kind: state.kind,
         comparisonBranch,
+        kind: compareState.kind,
         commitSHAs: compare.commits.map(commit => commit.sha),
         ahead: compare.ahead,
         behind: compare.behind,

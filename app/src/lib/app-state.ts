@@ -601,6 +601,16 @@ export interface IChangesState {
 export interface IDisplayHistory {
   /** Specifies the way `branch` is compared to another branch */
   readonly kind: CompareType.None
+
+  /**
+   * The branch to compare against the base branch
+   */
+  readonly comparisonBranch: null
+
+  /**
+   * The SHAs of commits to render in the compare list
+   */
+  readonly commitSHAs: ReadonlyArray<string>
 }
 
 export interface ICompareBranch {

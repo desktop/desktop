@@ -22,7 +22,11 @@ import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
 
-const DisplayHistory: IDisplayHistory = { kind: CompareType.None }
+const DisplayHistory: IDisplayHistory = {
+  kind: CompareType.None,
+  comparisonBranch: null,
+  commitSHAs: [],
+}
 
 enum SelectedTab {
   None = -1,
@@ -135,10 +139,7 @@ export class CompareSidebar extends React.Component<
   private renderCommitList() {
     const compareState = this.props.repositoryState.compareState
     const selectedCommit = this.state.selectedCommit
-    const commitSHAs =
-      compareState.kind === CompareType.None
-        ? this.props.localCommitSHAs
-        : compareState.commitSHAs
+    const commitSHAs = compareState.commitSHAs
 
     return (
       <CommitList
