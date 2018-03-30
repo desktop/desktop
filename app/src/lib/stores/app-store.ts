@@ -56,6 +56,7 @@ import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 import { fatalError } from '../fatal-error'
 import { updateMenuState } from '../menu-update'
+import { Language } from '../../models/language'
 
 import {
   getAuthorIdentity,
@@ -155,6 +156,11 @@ const shellKey = 'shell'
 const BackgroundFetchMinimumInterval = 2 * 60 * 1000
 
 export class AppStore extends TypedBaseStore<IAppState> {
+
+
+  private selectedLanguage: Language = new Language("en_us");
+
+
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
 
