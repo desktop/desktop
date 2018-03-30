@@ -61,10 +61,10 @@ export class CompareBranchListItem extends React.Component<
           <HighlightText text={branch.name} highlight={this.props.matches} />
         </div>
         <div className="branch-commit-counter">
-          {compareState.ahead}
-          <Octicon className="icon" symbol={OcticonSymbol.arrowUp} />
           {compareState.behind}
           <Octicon className="icon" symbol={OcticonSymbol.arrowDown} />
+          {compareState.ahead}
+          <Octicon className="icon" symbol={OcticonSymbol.arrowUp} />
         </div>
       </div>
     )
