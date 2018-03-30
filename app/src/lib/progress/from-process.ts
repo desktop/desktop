@@ -27,7 +27,7 @@ export async function executionOptionsWithProgress(
       lfsProgressPath = await createLFSProgressFile()
       env = { GIT_LFS_PROGRESS: lfsProgressPath }
     } catch (e) {
-      console.log('Error writen LFS log: ' + e)
+      log.error('Error writing LFS progress file:', e)
       env = { GIT_LFS_PROGRESS: null }
     }
   }
