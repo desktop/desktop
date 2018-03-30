@@ -92,7 +92,7 @@ export class CloneRepository extends React.Component<
       error: null,
       lastParsedIdentifier: null,
       shouldClearFilter: false,
-      cloneData: {url: this.props.initialURL || '', remoteName: ''}
+      cloneData: { url: this.props.initialURL || '', remoteName: '' },
     }
   }
 
