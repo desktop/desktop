@@ -2271,10 +2271,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _clone(
     url: string,
     path: string,
+    remoteName: string,
     options?: { branch?: string }
   ): { promise: Promise<boolean>; repository: CloningRepository } {
     const account = this.getAccountForRemoteURL(url)
-    const promise = this.cloningRepositoriesStore.clone(url, path, {
+    const promise = this.cloningRepositoriesStore.clone(url, path, remoteName, {
       ...options,
       account,
     })
@@ -2876,8 +2877,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  public async _cloneAgain(url: string, path: string): Promise<void> {
-    const { promise, repository } = this._clone(url, path)
+  public async _cloneAgain(url: string, path: string, remoteName: string): Promise<void> {
+    const { promise, repository } = this._clone(url, path, remoteName)
     await this._selectRepository(repository)
     const success = await promise
     if (!success) {
