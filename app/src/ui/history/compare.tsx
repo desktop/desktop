@@ -262,6 +262,17 @@ export class CompareSidebar extends React.Component<
     this.setState({ selectedTab: index })
   }
 
+  private getSelectedTabIndex(compareType: CompareType) {
+    switch (compareType) {
+      case CompareType.None:
+        return SelectedTab.None
+      case CompareType.Ahead:
+        return SelectedTab.Ahead
+      case CompareType.Behind:
+        return SelectedTab.Behind
+    }
+  }
+
   private renderTabBar() {
     const compareState = this.props.repositoryState.compareState
 
@@ -269,12 +280,11 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
+    const selectedTab = this.getSelectedTabIndex(compareState.kind)
+
     return (
       <div className="compare-content">
-        <TabBar
-          selectedIndex={this.state.selectedTab}
-          onTabClicked={this.onTabClicked}
-        >
+        <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
           <span>{`Behind (${compareState.behind})`}</span>
           <span>{`Ahead (${compareState.ahead})`}</span>
         </TabBar>
@@ -405,21 +415,41 @@ export class CompareSidebar extends React.Component<
 
   private onSelectionChanged = (branch: Branch | null) => {
     if (branch === null) {
-      this.setState({ selectedBranch: null, filterText: '' })
+      this.setState({
+        selectedBranch: null,
+        filterText: '',
+        compareType: CompareType.None,
+      })
+
+      this.props.dispatcher.loadCompareState(
+        this.props.repository,
+        DisplayHistory
+      )
+
       return
+    } else {
+      const { branches } = this.branchState
+      const selectedBranch = branches.find(b => b.name === branch.name) || null
+
+      if (selectedBranch === null) {
+        this.onSelectionChanged(selectedBranch)
+        return
+      }
+
+      this.props.dispatcher.loadCompareState(this.props.repository, {
+        kind: CompareType.Behind,
+        comparisonBranch: selectedBranch,
+        ahead: 0,
+        behind: 0,
+        commitSHAs: [],
+      })
+
+      this.setState({
+        selectedBranch,
+        filterText: selectedBranch.name,
+        compareType: CompareType.Behind,
+      })
     }
-
-    const { branches } = this.branchState
-    const selectedBranch = branches.find(b => b.name === branch.name) || null
-
-    this.props.dispatcher.loadCompareState(
-      this.props.repository,
-      DisplayHistory
-    )
-    this.setState({
-      selectedBranch,
-      filterText: selectedBranch !== null ? selectedBranch.name : '',
-    })
   }
 
   private onTextBoxFocused = () => {
