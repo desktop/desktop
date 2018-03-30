@@ -67,8 +67,6 @@ interface ICloneRepositoryState {
   /** Should the component clear the filter text on render? */
   readonly shouldClearFilter: boolean
 
-  /** Save the ICloneData in state */
-  cloneData: ICloneData
 }
 
 interface ICloneData {
@@ -81,6 +79,8 @@ export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
   ICloneRepositoryState
 > {
+
+
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
@@ -91,9 +91,10 @@ export class CloneRepository extends React.Component<
       loading: false,
       error: null,
       lastParsedIdentifier: null,
-      shouldClearFilter: false,
-      cloneData: { url: this.props.initialURL || '', remoteName: '' },
+      shouldClearFilter: false
     }
+
+    this.cloneData: ICloneData = {url: this.state.url, remoteName: this.state.remoteName}
   }
 
   public componentWillReceiveProps(nextProps: ICloneRepositoryProps) {
@@ -356,12 +357,15 @@ export class CloneRepository extends React.Component<
       }
     }
 
-    this.state.cloneData = cloneData
+    this.cloneData = cloneData
     return cloneData
   }
 
   private async resolveCloneURL(): Promise<string | null> {
-    return this.state.cloneData.url
+    if(!this.cloneData) {
+      return this.state.url
+    }
+    return this.cloneData.url
   }
 
   private clone = async () => {
