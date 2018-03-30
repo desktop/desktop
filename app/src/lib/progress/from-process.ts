@@ -26,11 +26,10 @@ export async function executionOptionsWithProgress(
     try {
       lfsProgressPath = await createLFSProgressFile()
       env = { GIT_LFS_PROGRESS: lfsProgressPath }
-    } catch(e) {
-      console.log("Error writen LFS log: "+e)
+    } catch (e) {
+      console.log('Error writen LFS log: ' + e)
       env = { GIT_LFS_PROGRESS: null }
     }
-
   }
 
   return merge(options, {
