@@ -16,11 +16,19 @@ export class CloningRepository {
   }
 
   public get name(): string {
-    if (this.remoteName === '') {
-      return Path.basename(this.path)
-    } else {
+    if (this.hasRemoteName()) {
       return this.remoteName
     }
+
+    return Path.basename(this.path)
+  }
+
+  public get basename(): string {
+    return Path.basename(this.path)
+  }
+
+  public hasRemoteName(): boolean {
+    return this.remoteName !== null && this.remoteName !== ''
   }
 
   /**

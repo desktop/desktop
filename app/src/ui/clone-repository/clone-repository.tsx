@@ -9,6 +9,7 @@ import { Account } from '../../models/account'
 import {
   IRepositoryIdentifier,
   parseRepositoryIdentifier,
+  parseRemote,
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API } from '../../lib/api'
@@ -349,6 +350,12 @@ export class CloneRepository extends React.Component<
       if (repo) {
         cloneData.url = repo.clone_url
         cloneData.remoteName = repo.name
+      }
+    } else {
+      const parsed = parseRemote(cloneData.url)
+
+      if (parsed != null && parsed.name != null) {
+        cloneData.remoteName = parsed.name
       }
     }
 
