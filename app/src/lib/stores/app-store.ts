@@ -415,7 +415,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         currentPullRequest: null,
         isLoadingPullRequests: false,
       },
-      compareState: { kind: CompareType.None, comparisonBranch: null, commitSHAs: [] },
+      compareState: {
+        kind: CompareType.None,
+        comparisonBranch: null,
+        commitSHAs: [],
+      },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
       commitLookup: new Map<string, Commit>(),
@@ -697,7 +701,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { comparisonBranch } = compareState
-    const compare = await gitStore.getCompareStateDetails(comparisonBranch, compareState.kind)
+    const compare = await gitStore.getCompareStateDetails(
+      comparisonBranch,
+      compareState.kind
+    )
 
     if (compare != null) {
       this.updateCompareState(repository, s => ({
