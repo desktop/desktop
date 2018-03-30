@@ -16,7 +16,7 @@ export class CloningRepository {
   }
 
   public get name(): string {
-    if(this.remoteName == "") {
+    if (this.remoteName === '') {
       return Path.basename(this.path)
     } else {
       return this.remoteName

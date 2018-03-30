@@ -2877,7 +2877,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  public async _cloneAgain(url: string, path: string, remoteName: string): Promise<void> {
+  public async _cloneAgain(
+    url: string,
+    path: string,
+    remoteName: string
+  ): Promise<void> {
     const { promise, repository } = this._clone(url, path, remoteName)
     await this._selectRepository(repository)
     const success = await promise

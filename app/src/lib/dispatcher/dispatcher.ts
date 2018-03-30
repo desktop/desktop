@@ -375,7 +375,11 @@ export class Dispatcher {
    * Clone a missing repository to the previous path, and update it's
    * state in the repository list if the clone completes without error.
    */
-  public cloneAgain(url: string, path: string, remoteName: string): Promise<void> {
+  public cloneAgain(
+    url: string,
+    path: string,
+    remoteName: string
+  ): Promise<void> {
     return this.appStore._cloneAgain(url, path, remoteName)
   }
 
@@ -387,7 +391,12 @@ export class Dispatcher {
     options?: { branch?: string }
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
-      const { promise, repository } = this.appStore._clone(url, path, remoteName, options)
+      const { promise, repository } = this.appStore._clone(
+        url,
+        path,
+        remoteName,
+        options
+      )
       await this.selectRepository(repository)
       const success = await promise
       // TODO: this exit condition is not great, bob
@@ -1031,7 +1040,12 @@ export class Dispatcher {
         return this.fetch(retryAction.repository, FetchType.UserInitiatedTask)
 
       case RetryActionType.Clone:
-        await this.clone(retryAction.url, retryAction.path, retryAction.remoteName, retryAction.options)
+        await this.clone(
+          retryAction.url,
+          retryAction.path,
+          retryAction.remoteName,
+          retryAction.options
+        )
         break
 
       default:

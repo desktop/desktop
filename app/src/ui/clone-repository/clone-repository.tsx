@@ -56,8 +56,6 @@ interface ICloneRepositoryState {
   /** Are we currently trying to load the entered repository? */
   readonly loading: boolean
 
-
-
   /** The current error if one occurred. */
   readonly error: Error | null
 
@@ -330,7 +328,10 @@ export class CloneRepository extends React.Component<
    */
   private async resolveCloneData(): Promise<ICloneData | null> {
     const identifier = this.state.lastParsedIdentifier
-    let cloneData: ICloneData = {url: this.state.url, remoteName: this.state.remoteName}
+    const cloneData: ICloneData = {
+      url: this.state.url,
+      remoteName: this.state.remoteName,
+    }
     const accounts: Array<Account> = []
     if (this.props.dotComAccount) {
       accounts.push(this.props.dotComAccount)
@@ -363,10 +364,10 @@ export class CloneRepository extends React.Component<
     let remoteName = this.state.remoteName
     let path = this.state.path
 
-    if(cloneData) {
-      url        = cloneData.url
+    if (cloneData) {
+      url = cloneData.url
       remoteName = cloneData.remoteName
-      path       = this.state.path
+      path = this.state.path
     }
 
     if (!url) {

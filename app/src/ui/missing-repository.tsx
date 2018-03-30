@@ -78,8 +78,8 @@ export class MissingRepository extends React.Component<
       return
     }
 
-    let remoteName = gitHubRepository.name
-    if(!remoteName) {
+    const remoteName = gitHubRepository.name
+    if (!remoteName) {
       return
     }
 
