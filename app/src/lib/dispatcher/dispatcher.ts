@@ -488,8 +488,8 @@ export class Dispatcher {
   }
 
   /** Update the repository's issues from GitHub. */
-  public updateIssues(repository: GitHubRepository): Promise<void> {
-    return this.appStore._updateIssues(repository)
+  public refreshIssues(repository: GitHubRepository): Promise<void> {
+    return this.appStore._refreshIssues(repository)
   }
 
   /** End the Welcome flow. */
@@ -806,6 +806,18 @@ export class Dispatcher {
           }
         } catch (e) {
           rejectOAuthRequest(e)
+        }
+
+        if (__DARWIN__) {
+          // workaround for user reports that the application doesn't receive focus
+          // after completing the OAuth signin in the browser
+          const window = remote.getCurrentWindow()
+          if (!window.isFocused()) {
+            log.info(
+              `refocusing the main window after the OAuth flow is completed`
+            )
+            window.focus()
+          }
         }
         break
 

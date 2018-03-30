@@ -2,6 +2,7 @@
 
 const path = require('path')
 const fs = require('fs')
+const os = require('os')
 
 const packageInfo = require('../app/package-info')
 const productName = packageInfo.getProductName()
@@ -16,7 +17,7 @@ function getDistRoot() {
 function getDistPath() {
   return path.join(
     getDistRoot(),
-    `${getExecutableName()}-${process.platform}-x64`
+    `${getExecutableName()}-${process.platform}-${os.arch()}`
   )
 }
 

@@ -5,6 +5,7 @@ plugins:
   - babel
   - react
   - prettier
+  - json
 
 extends:
   - prettier
