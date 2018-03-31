@@ -85,6 +85,17 @@ If you want to package Desktop for distribution, install these packages:
 $ sudo apt install -y fakeroot dpkg rpm xz-utils xorriso zsync
 ```
 
+### arm64 builds
+
+Desktop can be built and run on arm64 (aarch64) hardware such as a Raspberry Pi 3.
+In order to build for arm64, you will need the following:
+
+* A computer with a 64-bit ARMv8 processor.
+* A 64-bit OS.  You can use [Ubuntu 16.04](#ubuntu-1604) and then follow the instructions
+on setup there.
+* Instead of running `yarn` to get all required dependencies on your machine, you will
+instead need to run `script/install-arm64-deps.sh`.
+
 ## Install Yarn
 
 After doing this setup, you also need to install `yarn` as Desktop uses
