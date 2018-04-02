@@ -378,23 +378,23 @@ export class Dispatcher {
   public cloneAgain(
     url: string,
     path: string,
-    remoteName: string
+    friendlyName: string
   ): Promise<void> {
-    return this.appStore._cloneAgain(url, path, remoteName)
+    return this.appStore._cloneAgain(url, path, friendlyName)
   }
 
   /** Clone the repository to the path. */
   public async clone(
     url: string,
     path: string,
-    remoteName: string,
+    friendlyName: string,
     options?: { branch?: string }
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
       const { promise, repository } = this.appStore._clone(
         url,
         path,
-        remoteName,
+        friendlyName,
         options
       )
       await this.selectRepository(repository)
@@ -1043,7 +1043,7 @@ export class Dispatcher {
         await this.clone(
           retryAction.url,
           retryAction.path,
-          retryAction.remoteName,
+          retryAction.friendlyName,
           retryAction.options
         )
         break

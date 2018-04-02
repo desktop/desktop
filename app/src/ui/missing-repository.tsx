@@ -78,8 +78,8 @@ export class MissingRepository extends React.Component<
       return
     }
 
-    const remoteName = gitHubRepository.name
-    if (!remoteName) {
+    const friendlyName = gitHubRepository.name
+    if (!friendlyName) {
       return
     }
 
@@ -87,7 +87,7 @@ export class MissingRepository extends React.Component<
       await this.props.dispatcher.cloneAgain(
         cloneURL,
         this.props.repository.path,
-        remoteName
+        friendlyName
       )
     } catch (error) {
       this.props.dispatcher.postError(error)
