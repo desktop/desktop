@@ -97,9 +97,19 @@
     flex: 1;
     font-size: var(--font-size-sm);
 
+    &-item {
+      display: flex;
+      align-items: center;
+
+      &:first-child {
+        margin-right: var(--spacing-half);
+      }
+    }
+
     .octicon {
       fill: var(--text-secondary-color);
       width: 8px;
+      margin-left: 1px;
 
       &:last-child {
         margin-right: 0;
