@@ -87,9 +87,14 @@
   .branch-commit-counter {
     display: flex;
     justify-content: flex-end;
+    font-size: var(--font-size-sm);
 
-    .octicon:last-child {
-      margin-right: 0;
+    .octicon {
+      width: 8px;
+      
+      &:last-child {
+        margin-right: 0;
+      }
     }
   }
 
