@@ -122,16 +122,16 @@ export function buildDefaultMenu(
     label: __DARWIN__ ? 'View' : '&View',
     submenu: [
       {
-        label: __DARWIN__ ? 'Show Changes' : '&Changes',
-        id: 'show-changes',
+        label: __DARWIN__ ? 'Create Commit' : '&Create commit',
+        id: 'create-commit',
         accelerator: 'CmdOrCtrl+1',
-        click: emit('select-changes'),
+        click: emit('create-commit'),
       },
       {
-        label: __DARWIN__ ? 'Show History' : '&History',
-        id: 'show-history',
+        label: __DARWIN__ ? 'Compare Branches' : '&Compare branches',
+        id: 'compare-branch',
         accelerator: 'CmdOrCtrl+2',
-        click: emit('select-history'),
+        click: emit('compare-branch'),
       },
       {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
