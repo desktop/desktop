@@ -413,26 +413,29 @@ export class CompareSidebar extends React.Component<
     this.setState({ filterText: text })
   }
 
+  private clearFilterState = () => {
+    this.setState({
+      selectedBranch: null,
+      filterText: '',
+      compareType: CompareType.None,
+    })
+
+    this.props.dispatcher.loadCompareState(
+      this.props.repository,
+      DisplayHistory
+    )
+  }
+
   private onSelectionChanged = (branch: Branch | null) => {
     if (branch === null) {
-      this.setState({
-        selectedBranch: null,
-        filterText: '',
-        compareType: CompareType.None,
-      })
-
-      this.props.dispatcher.loadCompareState(
-        this.props.repository,
-        DisplayHistory
-      )
-
+      this.clearFilterState()
       return
     } else {
       const { branches } = this.branchState
       const selectedBranch = branches.find(b => b.name === branch.name) || null
 
       if (selectedBranch === null) {
-        this.onSelectionChanged(null)
+        this.clearFilterState()
         return
       }
 
