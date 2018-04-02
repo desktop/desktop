@@ -446,7 +446,6 @@ export class CompareSidebar extends React.Component<
 
       this.setState({
         selectedBranch,
-        filterText: selectedBranch.name,
         compareType: CompareType.Behind,
       })
     }
