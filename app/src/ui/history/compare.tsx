@@ -211,7 +211,9 @@ export class CompareSidebar extends React.Component<
     const pluralized = count > 1 ? 'commits' : 'commit'
     return (
       <div className="merge-message">
-        {`This will merge ${count} ${pluralized}`} from{' '}
+        This will merge{` `}
+        <strong>{`${count} ${pluralized}`}</strong>
+        {` `}from{` `}
         <strong>{this.state.selectedBranch!.name}</strong>
       </div>
     )
