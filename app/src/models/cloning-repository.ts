@@ -7,28 +7,28 @@ export class CloningRepository {
   public readonly id = CloningRepositoryID++
   public readonly path: string
   public readonly url: string
-  public readonly remoteName: string
+  public readonly friendlyName: string
 
-  public constructor(path: string, url: string, remoteName: string) {
+  public constructor(path: string, url: string, friendlyName: string) {
     this.path = path
     this.url = url
-    this.remoteName = remoteName
+    this.friendlyName = friendlyName
   }
 
   public get name(): string {
-    if (this.hasRemoteName()) {
-      return this.remoteName
+    if (this.hasFriendlyName()) {
+      return this.friendlyName
     }
 
-    return Path.basename(this.path)
+    return this.basename
   }
 
   public get basename(): string {
     return Path.basename(this.path)
   }
 
-  public hasRemoteName(): boolean {
-    return this.remoteName !== null && this.remoteName !== ''
+  public hasFriendlyName(): boolean {
+    return this.remoteName !== ''
   }
 
   /**
@@ -37,6 +37,6 @@ export class CloningRepository {
    * Objects with the same hash are guaranteed to be structurally equal.
    */
   public get hash(): string {
-    return `${this.id}+${this.path}+${this.url}+${this.remoteName}`
+    return `${this.id}+${this.path}+${this.url}+${this.friendlyName}`
   }
 }
