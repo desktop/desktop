@@ -28,7 +28,7 @@ export class CloningRepository {
   }
 
   public hasFriendlyName(): boolean {
-    return this.remoteName !== ''
+    return this.friendlyName !== ''
   }
 
   /**
