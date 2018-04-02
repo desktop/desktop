@@ -35,19 +35,29 @@ function capitalized(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
+export function findIssueRef(body: string): string {
   let issueRef = ''
+
+  const re = /(close[s]?|fix(e[sd])?|resolve[sd]):?\s*#(\d+)/gi
+  let match: RegExpExecArray | null = null
+  do {
+    match = re.exec(body)
+    if (match && match.length === 4) {
+      // a match should always have four elements - the matching text
+      // as well as the three groups within the match. We're only
+      // interested in the last group - the issue reference number
+      issueRef += ` #${match[3]}`
+    }
+  } while (match)
+
+  return issueRef
+}
+
+function getChangelogEntry(commit: IParsedCommit, pr: IAPIPR): string {
   let type = PlaceholderChangeType
   const description = capitalized(pr.title)
 
-  const re = /Fixes #(\d+)/gi
-  let match: RegExpExecArray | null = null
-  do {
-    match = re.exec(pr.body)
-    if (match && match.length > 1) {
-      issueRef += ` #${match[1]}`
-    }
-  } while (match)
+  let issueRef = findIssueRef(pr.body)
 
   if (issueRef.length) {
     type = 'Fixed'

@@ -21,7 +21,7 @@ You will need to install these tools on your machine:
  - One of Visual Studio 2015, Visual C++ Build Tools or Visual Studio 2017
    - [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
      - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
-   - Visual Studio 2015 
+   - Visual Studio 2015
      - *Ensure you select the **Common Tools for Visual C++ 2015** feature as that is required by Node.js
         for installing native modules.*
      - *Run `npm config set msvs_version 2015` to tell node to use this toolchain.*
@@ -85,6 +85,17 @@ If you want to package Desktop for distribution, install these packages:
 $ sudo apt install -y fakeroot dpkg rpm xz-utils xorriso zsync
 ```
 
+### arm64 builds
+
+Desktop can be built and run on arm64 (aarch64) hardware such as a Raspberry Pi 3.
+In order to build for arm64, you will need the following:
+
+* A computer with a 64-bit ARMv8 processor.
+* A 64-bit OS.  You can use [Ubuntu 16.04](#ubuntu-1604) and then follow the instructions
+on setup there.
+* Instead of running `yarn` to get all required dependencies on your machine, you will
+instead need to run `script/install-arm64-deps.sh`.
+
 ## Verification
 
 With these things installed, open a shell and install `yarn` (you might need
@@ -123,7 +134,7 @@ is as follows:
 * Run `yarn build:dev` to create a development build of the app.
 * Run `yarn start` to launch the application. Changes will be compiled in the
   background. The app can then be reloaded to see the changes (Ctrl/Command+R).
-  
+
 **Optional Tip**: On macOS and Linux, you can use `screen` to avoid filling your terminal with logging output:
 
 ```shellsession
@@ -182,7 +193,7 @@ require('devtron').install()
 
 You're almost there! Here's a couple of things we recommend you read next:
 
- - [Help Wanted](../../CONTRIBUTING.md#help-wanted) - we've marked some tasks in
+ - [Help Wanted](../../.github/CONTRIBUTING.md#help-wanted) - we've marked some tasks in
    the backlog that are ideal for external contributors
  - [Code Reviews](../process/reviews.md) - some notes on how the team does
    code reviews

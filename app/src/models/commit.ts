@@ -1,14 +1,18 @@
 import { CommitIdentity } from './commit-identity'
-import { ITrailer } from '../lib/git/interpret-trailers'
+import { ITrailer, isCoAuthoredByTrailer } from '../lib/git/interpret-trailers'
 import { GitAuthor } from './git-author'
 import { GitHubRepository } from './github-repository'
 import { getDotComAPIEndpoint } from '../lib/api'
 
+/**
+ * Extract any Co-Authored-By trailers from an array of arbitrary
+ * trailers.
+ */
 function extractCoAuthors(trailers: ReadonlyArray<ITrailer>) {
   const coAuthors = []
 
   for (const trailer of trailers) {
-    if (trailer.token.toLowerCase() === 'co-authored-by') {
+    if (isCoAuthoredByTrailer(trailer)) {
       const author = GitAuthor.parse(trailer.value)
       if (author) {
         coAuthors.push(author)

@@ -13,8 +13,8 @@ export class Resizable extends React.Component<IResizableProps, {}> {
     maximumWidth: 350,
   }
 
-  private startWidth: number | null
-  private startX: number
+  private startWidth: number | null = null
+  private startX: number | null = null
 
   /**
    * Returns the current width as determined by props.
@@ -55,7 +55,7 @@ export class Resizable extends React.Component<IResizableProps, {}> {
    * Handler for when the user moves the mouse while dragging
    */
   private handleDragMove = (e: MouseEvent) => {
-    if (!this.startWidth) {
+    if (this.startWidth == null || this.startX == null) {
       return
     }
 

@@ -212,11 +212,11 @@ export class BranchList extends React.Component<
         rowHeight={RowHeight}
         filterText={this.props.filterText}
         onFilterTextChanged={this.props.onFilterTextChanged}
+        onFilterKeyDown={this.props.onFilterKeyDown}
         selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClick}
-        onFilterKeyDown={this.props.onFilterKeyDown}
         onSelectionChanged={this.onSelectionChanged}
         groups={this.state.groups}
         invalidationProps={this.props.allBranches}
@@ -239,7 +239,7 @@ export class BranchList extends React.Component<
     if (this.props.canCreateNewBranch) {
       return (
         <Button className="new-branch-button" onClick={this.onCreateNewBranch}>
-          New
+          {__DARWIN__ ? 'New Branch' : 'New branch'}
         </Button>
       )
     } else {

@@ -27,9 +27,6 @@ interface ICloneGithubRepositoryProps {
   /** Called when the destination path changes. */
   readonly onPathChanged: (path: string) => void
 
-  /** Called when the dialog should be dismissed. */
-  readonly onDismissed: () => void
-
   /**
    * Called when the user should be prompted to choose a destination directory.
    */
@@ -164,7 +161,6 @@ export class CloneGithubRepository extends React.Component<
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClicked}
-        onFilterKeyDown={this.onFilterKeyDown}
         invalidationProps={this.state.repositories}
         groups={this.state.repositories}
         filterText={this.state.filterText}
@@ -175,15 +171,6 @@ export class CloneGithubRepository extends React.Component<
 
   private onFilterTextChanged = (filterText: string) => {
     this.setState({ filterText })
-  }
-
-  private onFilterKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      if (this.state.filterText.length === 0) {
-        this.props.onDismissed()
-        event.preventDefault()
-      }
-    }
   }
 
   private onItemClicked = (item: IClonableRepositoryListItem) => {
