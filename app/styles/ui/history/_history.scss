@@ -80,18 +80,25 @@
     margin-top: var(--spacing);
   }
 
-  .branches-list-item .description {
-    margin-right: 0;
+  .branches-list-item {
+    .description {
+      margin-right: 0;
+    }
+
+    .name {
+      max-width: 60%;
+    }
   }
 
   .branch-commit-counter {
-    background: salmon;
+    color: var(--text-secondary-color);
     display: flex;
     justify-content: flex-end;
     flex: 1;
     font-size: var(--font-size-sm);
 
     .octicon {
+      fill: var(--text-secondary-color);
       width: 8px;
 
       &:last-child {
