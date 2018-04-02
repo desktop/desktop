@@ -432,7 +432,7 @@ export class CompareSidebar extends React.Component<
       const selectedBranch = branches.find(b => b.name === branch.name) || null
 
       if (selectedBranch === null) {
-        this.onSelectionChanged(selectedBranch)
+        this.onSelectionChanged(null)
         return
       }
 
