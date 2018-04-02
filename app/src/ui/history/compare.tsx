@@ -430,28 +430,28 @@ export class CompareSidebar extends React.Component<
     if (branch === null) {
       this.clearFilterState()
       return
-    } else {
-      const { branches } = this.branchState
-      const selectedBranch = branches.find(b => b.name === branch.name) || null
-
-      if (selectedBranch === null) {
-        this.clearFilterState()
-        return
-      }
-
-      this.props.dispatcher.loadCompareState(this.props.repository, {
-        kind: CompareType.Behind,
-        comparisonBranch: selectedBranch,
-        ahead: 0,
-        behind: 0,
-        commitSHAs: [],
-      })
-
-      this.setState({
-        selectedBranch,
-        compareType: CompareType.Behind,
-      })
     }
+
+    const { branches } = this.branchState
+    const selectedBranch = branches.find(b => b.name === branch.name) || null
+
+    if (selectedBranch === null) {
+      this.clearFilterState()
+      return
+    }
+
+    this.props.dispatcher.loadCompareState(this.props.repository, {
+      kind: CompareType.Behind,
+      comparisonBranch: selectedBranch,
+      ahead: 0,
+      behind: 0,
+      commitSHAs: [],
+    })
+
+    this.setState({
+      selectedBranch,
+      compareType: CompareType.Behind,
+    })
   }
 
   private onTextBoxFocused = () => {
