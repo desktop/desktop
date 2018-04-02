@@ -33,8 +33,8 @@ export class CloningRepositoryView extends React.Component<
   }
 
   private renderTitle() {
-    const title = this.props.repository.hasRemoteName()
-      ? this.props.repository.remoteName
+    const title = this.props.repository.hasFriendlyName()
+      ? this.props.repository.friendlyName
       : `into ${this.props.repository.basename}`
 
     return <span>Cloning {title}</span>
