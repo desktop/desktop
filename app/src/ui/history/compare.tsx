@@ -110,6 +110,7 @@ export class CompareSidebar extends React.Component<
         <div className="the-box">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
+            type="search"
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             onBlur={this.onTextBoxBlurred}
