@@ -17,7 +17,7 @@ import {
   Foldout,
   FoldoutType,
   ImageDiffType,
-  CompareState,
+  CompareAction,
 } from '../app-state'
 import { AppStore } from '../stores/app-store'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -1153,8 +1153,8 @@ export class Dispatcher {
   /**
    * Load the state for comparing `branch` to the base branch
    */
-  public loadCompareState(repository: Repository, state: CompareState) {
-    return this.appStore._loadCompareState(repository, state)
+  public loadCompareState(repository: Repository, action: CompareAction) {
+    return this.appStore._loadCompareState(repository, action)
   }
 
   /**

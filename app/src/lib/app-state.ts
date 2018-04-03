@@ -51,12 +51,6 @@ export enum ImageDiffType {
   Difference,
 }
 
-export enum CompareType {
-  None = 'none',
-  Ahead = 'ahead',
-  Behind = 'behind',
-}
-
 export type PossibleSelections =
   | {
       type: SelectionType.Repository
@@ -598,44 +592,50 @@ export interface IChangesState {
   readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
-export interface IDisplayHistory {
-  /** Specifies the way `branch` is compared to another branch */
-  readonly kind: CompareType.None
-
-  /**
-   * The branch to compare against the base branch
-   */
-  readonly comparisonBranch: null
-
-  /**
-   * The SHAs of commits to render in the compare list
-   */
-  readonly commitSHAs: ReadonlyArray<string>
+export enum CompareViewMode {
+  None = 'none',
+  Ahead = 'ahead',
+  Behind = 'behind',
 }
 
-export interface ICompareBranch {
+interface IDisplayHistory {
   /** Specifies the way `branch` is compared to another branch */
-  readonly kind: CompareType.Ahead | CompareType.Behind
+  readonly kind: CompareViewMode.None
+}
 
-  /**
-   * The branch to compare against the base branch
-   */
+interface ICompareBranch {
+  /** Specifies the way `branch` is compared to another branch */
+  readonly kind: CompareViewMode.Ahead | CompareViewMode.Behind
+
+  /** The branch to compare against the base branch */
   readonly comparisonBranch: Branch
 
-  /**
-   * The SHAs of commits to render in the compare list
-   */
-  readonly commitSHAs: ReadonlyArray<string>
-
-  /**
-   * The number of commits in `branch` not contained in the base branch
-   */
   readonly ahead: number
 
-  /**
-   * The number of commits contained in the base branch not in `branch`
-   */
   readonly behind: number
 }
 
-export type CompareState = IDisplayHistory | ICompareBranch
+export interface CompareState {
+  // the current state of the compare form
+  readonly compareFormState: IDisplayHistory | ICompareBranch
+
+  /**
+   * The SHAs of commits to render in the compare list
+   */
+  readonly commitSHAs: ReadonlyArray<string>
+}
+
+export enum CompareActionType {
+  ViewHistory = 'ViewHistory',
+  CompareToBranch = 'CompareToBranch',
+}
+
+export type CompareAction =
+  | {
+      readonly kind: CompareActionType.ViewHistory
+    }
+  | {
+      readonly kind: CompareActionType.CompareToBranch
+      readonly branch: Branch
+      readonly mode: CompareViewMode.Ahead | CompareViewMode.Behind
+    }

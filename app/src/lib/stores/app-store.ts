@@ -17,8 +17,10 @@ import {
   ImageDiffType,
   IRevertProgress,
   IFetchProgress,
-  CompareType,
   CompareState,
+  CompareViewMode,
+  CompareAction,
+  CompareActionType,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -416,8 +418,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         isLoadingPullRequests: false,
       },
       compareState: {
-        kind: CompareType.None,
-        comparisonBranch: null,
+        compareFormState: { kind: CompareViewMode.None },
         commitSHAs: [],
       },
       commitAuthor: null,
@@ -680,7 +681,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadCompareState(
     repository: Repository,
-    compareState: CompareState
+    action: CompareAction
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
@@ -688,35 +689,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     gitStore.computeAheadBehindForAllBranches()
 
-    if (compareState.kind === CompareType.None) {
+    if (action.kind === CompareActionType.ViewHistory) {
       await gitStore.loadHistory()
 
       const repoState = this.getRepositoryState(repository).historyState
       const commits = repoState.history
 
       this.updateCompareState(repository, state => ({
-        comparisonBranch: null,
-        kind: CompareType.None,
+        compareFormState: {
+          kind: CompareViewMode.None,
+        },
         commitSHAs: commits,
-        ahead: 0,
-        behind: 0,
       }))
       return this.emitUpdate()
     }
 
-    const { comparisonBranch } = compareState
-    const compare = await gitStore.getCompareCommits(
-      comparisonBranch,
-      compareState.kind
-    )
+    const { branch } = action
+    const compare = await gitStore.getCompareCommits(branch, action.mode)
+
+    const comparisonBranch = action.branch
 
     if (compare != null) {
       this.updateCompareState(repository, s => ({
-        comparisonBranch,
-        kind: compareState.kind,
+        compareFormState: {
+          kind: action.mode,
+          comparisonBranch,
+          ahead: compare.ahead,
+          behind: compare.behind,
+        },
         commitSHAs: compare.commits.map(commit => commit.sha),
-        ahead: compare.ahead,
-        behind: compare.behind,
       }))
 
       return this.emitUpdate()
@@ -729,7 +730,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch
   ): Promise<ICompareResult | null> {
     const gitStore = this.getGitStore(repository)
-    const compare = await gitStore.getCompareCommits(branch, CompareType.Behind)
+    const compare = await gitStore.getCompareCommits(
+      branch,
+      CompareViewMode.Behind
+    )
 
     return compare
   }

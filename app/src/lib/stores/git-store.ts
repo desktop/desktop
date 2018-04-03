@@ -7,7 +7,7 @@ import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
-import { IFetchProgress, IRevertProgress, CompareType } from '../app-state'
+import { IFetchProgress, IRevertProgress, CompareViewMode } from '../app-state'
 
 import { IAppShell } from '../app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
@@ -1273,7 +1273,7 @@ export class GitStore extends BaseStore {
    */
   public async getCompareCommits(
     branch: Branch,
-    compareType: CompareType
+    compareType: CompareViewMode.Ahead | CompareViewMode.Behind
   ): Promise<ICompareResult | null> {
     if (this.tip.kind !== TipState.Valid) {
       return null
@@ -1297,7 +1297,7 @@ export class GitStore extends BaseStore {
     }
 
     const revisionRange =
-      compareType === CompareType.Ahead
+      compareType === CompareViewMode.Ahead
         ? `${branch.name}..${base.name}`
         : `${base.name}..${branch.name}`
     const commits = await getCommits(this.repository, revisionRange, 250)
