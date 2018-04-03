@@ -16,7 +16,7 @@ describe('pull request status', () => {
       sha: '',
       statuses: [],
     }
-    expect(getPRStatusSummary(prStatus)).to.equal('success')
+    expect(getPRStatusSummary(prStatus)).to.equal('Commit status: success')
   })
 
   it('changes the failure message to something more friendly', () => {
@@ -27,7 +27,7 @@ describe('pull request status', () => {
       sha: '',
       statuses: [],
     }
-    expect(getPRStatusSummary(prStatus)).to.equal('failed')
+    expect(getPRStatusSummary(prStatus)).to.equal('Commit status: failed')
   })
 
   it('reads the statuses when they are populated', () => {
