@@ -6,11 +6,6 @@ const octokit = require('@octokit/rest')({
   },
 })
 
-octokit.authenticate({
-  type: 'token',
-  token: process.env.GITHUB_ACCESS_TOKEN,
-})
-
 export interface IDesktopPullRequest {
   readonly title: string
   readonly body: string
@@ -46,6 +41,13 @@ interface IAPITeamMember {
 // this account is assigned by GitHub as the committer for merged pull requests
 // and should be excluded from being considered an external contributor
 const webflowAccount = ['web-flow']
+
+export function initialize(token: string) {
+  octokit.authenticate({
+    type: 'token',
+    token,
+  })
+}
 
 export async function getCoreTeamMembers(): Promise<ReadonlySet<string>> {
   try {

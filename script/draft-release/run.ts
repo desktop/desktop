@@ -6,7 +6,7 @@ import {
   convertToChangelogFormat,
   getChangelogEntriesSince,
 } from '../changelog/parser'
-import { getCoreTeamMembers } from '../changelog/api'
+import { getCoreTeamMembers, initialize } from '../changelog/api'
 
 import { Channel } from './channel'
 import { getNextVersionNumber } from './version'
@@ -89,6 +89,8 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   if (noChangesFound) {
     printInstructions(nextVersion, [])
   } else {
+    initialize(process.env.GITHUB_ACCESS_TOKEN)
+
     const coreMembers = await getCoreTeamMembers()
     const changelogEntries = await convertToChangelogFormat(lines, coreMembers)
 
