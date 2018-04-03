@@ -1,4 +1,4 @@
-import { PullRequestStatus } from '../../models/pull-request'
+import { PullRequestStatus, ICommitStatus } from '../../models/pull-request'
 import { APIRefState } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 
@@ -15,6 +15,14 @@ function toFriendlyText(state: APIRefState): string {
   }
 }
 
+function toSingleStatus(status: ICommitStatus) {
+  const word = status.state
+  const sentenceCaseWord =
+    word.charAt(0).toUpperCase() + word.substring(1, word.length)
+
+  return `${sentenceCaseWord}: ${status.description}`
+}
+
 /**
  * Convert the Pull Request status to an app-friendly string.
  *
@@ -27,10 +35,14 @@ export function getPRStatusSummary(prStatus: PullRequestStatus): string {
 
   if (statusCount === 0) {
     return toFriendlyText(prStatus.state)
-  } else {
-    const successCount = prStatus.statuses.filter(x => x.state === 'success')
-      .length
-
-    return `${successCount}/${statusCount} checks OK`
   }
+
+  if (statusCount === 1) {
+    return toSingleStatus(prStatus.statuses[0])
+  }
+
+  const successCount = prStatus.statuses.filter(x => x.state === 'success')
+    .length
+
+  return `${successCount}/${statusCount} checks OK`
 }
