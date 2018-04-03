@@ -21,6 +21,7 @@ import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
+import { SelectionSource } from '../lib/filter-list'
 
 const DisplayHistory: IDisplayHistory = {
   kind: CompareType.None,
@@ -426,7 +427,10 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private onSelectionChanged = (branch: Branch | null) => {
+  private onSelectionChanged = (
+    branch: Branch | null,
+    source: SelectionSource
+  ) => {
     if (branch === null) {
       this.clearFilterState()
       return
