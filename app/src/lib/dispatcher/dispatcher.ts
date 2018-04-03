@@ -603,11 +603,10 @@ export class Dispatcher {
   }
 
   /**
-   * Opens a path (can either be a folder representing a repository or the
-   * path to a file) in the external editor selected by the user.
+   * Opens a path in the external editor selected by the user.
    */
-  public async openInExternalEditor(path: string): Promise<void> {
-    return this.appStore._openInExternalEditor(path)
+  public async openInExternalEditor(fullPath: string): Promise<void> {
+    return this.appStore._openInExternalEditor(fullPath)
   }
 
   /**
