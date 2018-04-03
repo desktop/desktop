@@ -36,9 +36,42 @@ describe('pull request status', () => {
       state: success,
       totalCount: 2,
       sha: '',
-      statuses: [{ id: 1, state: success }, { id: 2, state: success }],
+      statuses: [
+        { id: 1, state: success, description: 'first' },
+        { id: 2, state: success, description: 'second' },
+      ],
     }
     expect(getPRStatusSummary(prStatus)).to.equal('2/2 checks OK')
+  })
+
+  it('a successful status shows the description', () => {
+    const prStatus = {
+      pullRequestNumber: 23,
+      state: success,
+      totalCount: 2,
+      sha: '',
+      statuses: [
+        { id: 1, state: success, description: 'The Travis CI build passed' },
+      ],
+    }
+    expect(getPRStatusSummary(prStatus)).to.equal(
+      'Success: The Travis CI build passed'
+    )
+  })
+
+  it('an error status shows the description', () => {
+    const prStatus = {
+      pullRequestNumber: 23,
+      state: success,
+      totalCount: 2,
+      sha: '',
+      statuses: [
+        { id: 1, state: failure, description: 'The Travis CI build failed' },
+      ],
+    }
+    expect(getPRStatusSummary(prStatus)).to.equal(
+      'Failure: The Travis CI build failed'
+    )
   })
 
   it('only counts the successful statuses', () => {
@@ -48,9 +81,9 @@ describe('pull request status', () => {
       totalCount: 3,
       sha: '',
       statuses: [
-        { id: 1, state: success },
-        { id: 2, state: pending },
-        { id: 2, state: pending },
+        { id: 1, state: success, description: 'first' },
+        { id: 2, state: pending, description: 'second' },
+        { id: 2, state: pending, description: 'third' },
       ],
     }
     expect(getPRStatusSummary(prStatus)).to.equal('1/3 checks OK')
