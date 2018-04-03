@@ -1,5 +1,8 @@
 {
   "releases": {
+    "1.1.2-test2": [
+      "Refactoring the diff internals to potentially land some SVG improvements"
+    ],
     "1.1.2-test1": [
       "Refactoring the diff internals to potentially land some SVG improvements"
     ],
