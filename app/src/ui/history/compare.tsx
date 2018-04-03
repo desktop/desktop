@@ -339,20 +339,25 @@ export class CompareSidebar extends React.Component<
     const key = event.key
 
     if (key === 'Enter') {
-      if (this.state.filterText === '') {
+      if (this.state.filterText.length === 0) {
         this.handleEscape()
       } else {
-        const branch =
-          this.props.repositoryState.branchesState.allBranches.find(
-            branch =>
-              branch.name.toLowerCase() === this.state.filterText.toLowerCase()
-          ) || null
+        if (this.state.selectedBranch == null) {
+          this.props.dispatcher.loadCompareState(
+            this.props.repository,
+            DisplayHistory
+          )
+        } else {
+          this.props.dispatcher.loadCompareState(this.props.repository, {
+            kind: CompareType.Behind,
+            comparisonBranch: this.state.selectedBranch,
+            ahead: 0,
+            behind: 0,
+            commitSHAs: [],
+          })
 
-        this.props.dispatcher.loadCompareState(
-          this.props.repository,
-          DisplayHistory
-        )
-        this.setState({ selectedBranch: branch })
+          this.setState({ filterText: this.state.selectedBranch.name })
+        }
         this.textbox!.blur()
       }
     } else if (key === 'Escape') {
