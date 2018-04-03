@@ -329,10 +329,6 @@ export class CloneRepository extends React.Component<
    */
   private async resolveCloneData(): Promise<ICloneData | null> {
     const identifier = this.state.lastParsedIdentifier
-    const cloneData: ICloneData = {
-      url: this.state.url,
-      friendlyName: this.state.friendlyName,
-    }
     const accounts: Array<Account> = []
     if (this.props.dotComAccount) {
       accounts.push(this.props.dotComAccount)
@@ -348,18 +344,26 @@ export class CloneRepository extends React.Component<
       const api = API.fromAccount(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
-        cloneData.url = repo.clone_url
-        cloneData.friendlyName = repo.name
+        return {
+          url: (repo.clone_url) ? repo.clone_url : this.state.url,
+          friendlyName: (repo.name) ? repo.name : this.state.friendlyName,
+        }
       }
     } else {
-      const parsed = parseRemote(cloneData.url)
+      const parsed = parseRemote(this.state.url)
 
       if (parsed != null && parsed.name != null) {
-        cloneData.friendlyName = parsed.name
+        return {
+          url: this.state.url,
+          friendlyName: parsed.name
+        }
       }
     }
 
-    return cloneData
+    return {
+      url: this.state.url,
+      friendlyName: this.state.friendlyName
+    }
   }
 
   private clone = async () => {
