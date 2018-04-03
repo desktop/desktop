@@ -226,7 +226,10 @@ export class ChangesList extends React.Component<IChangesListProps, {}> {
       },
       {
         label: openInExternalEditor,
-        action: () => this.props.onOpenInExternalEditor(path),
+        action: () => {
+          const fullPath = Path.join(this.props.repository.path, path)
+          this.props.onOpenInExternalEditor(fullPath)
+        },
         enabled: isSafeExtension && status !== AppFileStatus.Deleted,
       },
       {
