@@ -23,6 +23,7 @@ import {
   fetchRefspec,
   getRecentBranches,
   getBranches,
+  getBranchShas,
   deleteRef,
   IAheadBehind,
   getCommits,
@@ -372,6 +373,32 @@ export class GitStore extends BaseStore {
     }
 
     this._recentBranches = recentBranches
+  }
+
+  public async computeAheadBehindForAllBranches(): Promise<void> {
+    const tip = this._tip
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const branchShas = await getBranchShas(this.repository)
+
+    for (const branch of branchShas) {
+      if (this._compareDetails.has(branch.sha)) {
+        continue
+      }
+
+      const aheadBehind = await getAheadBehind(
+        this.repository,
+        `${tip.branch.name}...${branch.sha}`
+      )
+
+      if (aheadBehind != null) {
+        this._compareDetails.set(branch.ref, aheadBehind)
+      }
+    }
+
+    this.emitUpdate()
   }
 
   /** The current branch. */

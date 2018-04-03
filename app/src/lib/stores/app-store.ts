@@ -684,6 +684,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
+    // TODO: when the tip changes, invalidate the set of compares
+
+    gitStore.computeAheadBehindForAllBranches()
+
     if (compareState.kind === CompareType.None) {
       await gitStore.loadHistory()
 
@@ -725,10 +729,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch
   ): Promise<ICompareResult | null> {
     const gitStore = this.getGitStore(repository)
-    const compare = await gitStore.getCompareCommits(
-      branch,
-      CompareType.Behind
-    )
+    const compare = await gitStore.getCompareCommits(branch, CompareType.Behind)
 
     return compare
   }

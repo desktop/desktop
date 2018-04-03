@@ -11,6 +11,50 @@ import {
 
 const ForksReferencesPrefix = `refs/remotes/${ForkedRemotePrefix}`
 
+export async function getBranchShas(
+  repository: Repository
+): Promise<ReadonlyArray<{ ref: string; sha: string }>> {
+  const delimiter = '1F'
+  const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
+
+  const format = [
+    '%(refname)',
+    '%(objectname)', // SHA
+    `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
+  ].join('%00')
+
+  const prefixes = ['refs/heads', 'refs/remotes']
+
+  const result = await git(
+    ['for-each-ref', `--format=${format}`, ...prefixes],
+    repository.path,
+    'getBranchShas'
+  )
+
+  // TODO: error handling?
+
+  const names = result.stdout
+  const lines = names.split(delimiterString)
+
+  // Remove the trailing newline
+  lines.splice(-1, 1)
+
+  if (lines.length === 0) {
+    return []
+  }
+
+  const branches = new Array<{ ref: string; sha: string }>()
+
+  for (const [ix, line] of lines.entries()) {
+    // preceding newline character after first row
+    const pieces = (ix > 0 ? line.substr(1) : line).split('\0')
+
+    branches.push({ ref: pieces[0], sha: pieces[1] })
+  }
+
+  return branches
+}
+
 /** Get all the branches. */
 export async function getBranches(
   repository: Repository,
