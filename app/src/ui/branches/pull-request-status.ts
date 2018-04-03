@@ -2,7 +2,7 @@ import { PullRequestStatus, ICommitStatus } from '../../models/pull-request'
 import { APIRefState } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 
-function toFriendlyText(state: APIRefState): string {
+function formatState(state: APIRefState): string {
   switch (state) {
     case 'failure':
       return 'failed'
@@ -15,7 +15,7 @@ function toFriendlyText(state: APIRefState): string {
   }
 }
 
-function toSingleStatus(status: ICommitStatus) {
+function formatSingleStatus(status: ICommitStatus) {
   const word = status.state
   const sentenceCaseWord =
     word.charAt(0).toUpperCase() + word.substring(1, word.length)
@@ -34,11 +34,11 @@ export function getPRStatusSummary(prStatus: PullRequestStatus): string {
   const statusCount = prStatus.statuses.length || 0
 
   if (statusCount === 0) {
-    return toFriendlyText(prStatus.state)
+    return formatState(prStatus.state)
   }
 
   if (statusCount === 1) {
-    return toSingleStatus(prStatus.statuses[0])
+    return formatSingleStatus(prStatus.statuses[0])
   }
 
   const successCount = prStatus.statuses.filter(x => x.state === 'success')
