@@ -21,6 +21,7 @@ import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
+import { SelectionSource } from '../lib/filter-list'
 
 const DisplayHistory: IDisplayHistory = {
   kind: CompareType.None,
@@ -338,20 +339,25 @@ export class CompareSidebar extends React.Component<
     const key = event.key
 
     if (key === 'Enter') {
-      if (this.state.filterText === '') {
+      if (this.state.filterText.length === 0) {
         this.handleEscape()
       } else {
-        const branch =
-          this.props.repositoryState.branchesState.allBranches.find(
-            branch =>
-              branch.name.toLowerCase() === this.state.filterText.toLowerCase()
-          ) || null
+        if (this.state.selectedBranch == null) {
+          this.props.dispatcher.loadCompareState(
+            this.props.repository,
+            DisplayHistory
+          )
+        } else {
+          this.props.dispatcher.loadCompareState(this.props.repository, {
+            kind: CompareType.Behind,
+            comparisonBranch: this.state.selectedBranch,
+            ahead: 0,
+            behind: 0,
+            commitSHAs: [],
+          })
 
-        this.props.dispatcher.loadCompareState(
-          this.props.repository,
-          DisplayHistory
-        )
-        this.setState({ selectedBranch: branch })
+          this.setState({ filterText: this.state.selectedBranch.name })
+        }
         this.textbox!.blur()
       }
     } else if (key === 'Escape') {
@@ -360,11 +366,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private handleEscape() {
-    this.props.dispatcher.loadCompareState(
-      this.props.repository,
-      DisplayHistory
-    )
-    this.setState({ selectedBranch: null, filterText: '' })
+    this.clearFilterState()
     this.textbox!.blur()
   }
 
@@ -413,41 +415,51 @@ export class CompareSidebar extends React.Component<
     this.setState({ filterText: text })
   }
 
-  private onSelectionChanged = (branch: Branch | null) => {
+  private clearFilterState = () => {
+    this.setState({
+      selectedBranch: null,
+      filterText: '',
+      compareType: CompareType.None,
+    })
+
+    this.props.dispatcher.loadCompareState(
+      this.props.repository,
+      DisplayHistory
+    )
+  }
+
+  private onSelectionChanged = (
+    branch: Branch | null,
+    source: SelectionSource
+  ) => {
     if (branch === null) {
-      this.setState({
-        selectedBranch: null,
-        filterText: '',
-        compareType: CompareType.None,
-      })
-
-      this.props.dispatcher.loadCompareState(
-        this.props.repository,
-        DisplayHistory
-      )
-
+      this.clearFilterState()
       return
-    } else {
-      const { branches } = this.branchState
-      const selectedBranch = branches.find(b => b.name === branch.name) || null
+    }
 
-      if (selectedBranch === null) {
-        this.onSelectionChanged(selectedBranch)
-        return
-      }
+    if (source.kind === 'filter') {
+      // don't load the comparison state until a selection has been made
+      this.setState({
+        selectedBranch: branch,
+      })
+      return
+    }
+
+    if (source.kind === 'mouseclick') {
+      const kind = CompareType.Behind
 
       this.props.dispatcher.loadCompareState(this.props.repository, {
-        kind: CompareType.Behind,
-        comparisonBranch: selectedBranch,
+        kind,
+        comparisonBranch: branch,
         ahead: 0,
         behind: 0,
         commitSHAs: [],
       })
 
       this.setState({
-        selectedBranch,
-        filterText: selectedBranch.name,
-        compareType: CompareType.Behind,
+        selectedBranch: branch,
+        filterText: branch.name,
+        compareType: kind,
       })
     }
   }
