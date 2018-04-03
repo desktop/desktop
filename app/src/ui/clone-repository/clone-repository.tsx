@@ -345,8 +345,8 @@ export class CloneRepository extends React.Component<
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
         return {
-          url: (repo.clone_url) ? repo.clone_url : this.state.url,
-          friendlyName: (repo.name) ? repo.name : this.state.friendlyName,
+          url: repo.clone_url ? repo.clone_url : this.state.url,
+          friendlyName: repo.name ? repo.name : this.state.friendlyName,
         }
       }
     } else {
@@ -355,14 +355,14 @@ export class CloneRepository extends React.Component<
       if (parsed != null && parsed.name != null) {
         return {
           url: this.state.url,
-          friendlyName: parsed.name
+          friendlyName: parsed.name,
         }
       }
     }
 
     return {
       url: this.state.url,
-      friendlyName: this.state.friendlyName
+      friendlyName: this.state.friendlyName,
     }
   }
 
