@@ -55,10 +55,16 @@ interface ITextDiffData {
   readonly lineEndingsChange?: LineEndingsChange
 }
 
+export interface ITextDiff extends ITextDiffData {
+  readonly kind: DiffType.Text
+}
+
 /**
  * Data returned as part of an image diff in Desktop
  */
-interface IImageDiffData {
+export interface IImageDiff {
+  readonly kind: DiffType.Image
+
   /**
    * The previous image, if the file was modified or deleted
    *
@@ -71,14 +77,6 @@ interface IImageDiffData {
    * Will be undefined for a deleted image
    */
   readonly current?: Image
-}
-
-export interface ITextDiff extends ITextDiffData {
-  readonly kind: DiffType.Text
-}
-
-export interface IImageDiff extends IImageDiffData {
-  readonly kind: DiffType.Image
 }
 
 export interface IBinaryDiff {
