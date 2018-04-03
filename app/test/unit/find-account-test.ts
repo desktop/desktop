@@ -5,27 +5,26 @@ import { findAccountForRemoteURL } from '../../src/lib/find-account'
 import { getDotComAPIEndpoint, getEnterpriseAPIURL } from '../../src/lib/api'
 
 describe('findAccountForRemoteURL', () => {
-  let accounts: ReadonlyArray<Account> = []
-  before(() => {
-    const newAccounts = [
-      {
-        login: 'joan',
-        endpoint: getDotComAPIEndpoint(),
-        name: 'GitHub',
-      },
-      {
-        login: 'joel',
-        endpoint: getEnterpriseAPIURL('https://github.mycompany.com'),
-        name: 'My Company',
-      },
-    ]
-
-    newAccounts.forEach(newAccount => {
-      const { login, endpoint, name } = newAccount
-      const account = new Account(login, endpoint, 'deadbeef', [], '', 1, name)
-      accounts = [...accounts, account]
-    })
-  })
+  const accounts: ReadonlyArray<Account> = [
+    new Account(
+      'joan',
+      getDotComAPIEndpoint(),
+      'deadbeef',
+      [],
+      '',
+      1,
+      'GitHub'
+    ),
+    new Account(
+      'joel',
+      getEnterpriseAPIURL('https://github.mycompany.com'),
+      'deadbeef',
+      [],
+      '',
+      2,
+      'My Company'
+    ),
+  ]
 
   it('gives no account for non-GitHub endpoint', async () => {
     const account = await findAccountForRemoteURL(
