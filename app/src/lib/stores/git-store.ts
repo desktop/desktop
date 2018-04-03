@@ -119,6 +119,8 @@ export class GitStore extends BaseStore {
 
   private _lastFetched: Date | null = null
 
+  private _compareDetails = new Map<string, IAheadBehind>()
+
   public constructor(repository: Repository, shell: IAppShell) {
     super()
 
@@ -1242,7 +1244,7 @@ export class GitStore extends BaseStore {
   /**
    * Returns the commits associated with `branch` and ahead/behind info;
    */
-  public async getCompareStateDetails(
+  public async getCompareCommits(
     branch: Branch,
     compareType: CompareType
   ): Promise<ICompareResult | null> {
@@ -1251,6 +1253,22 @@ export class GitStore extends BaseStore {
     }
 
     const base = this.tip.branch
+
+    let aheadBehind = this._compareDetails.get(branch.tip.sha) || null
+
+    if (aheadBehind == null) {
+      aheadBehind = await getAheadBehind(
+        this.repository,
+        `${base.name}...${branch.name}`
+      )
+
+      if (aheadBehind != null) {
+        this._compareDetails.set(branch.tip.sha, aheadBehind)
+      } else {
+        log.warn(`we're in a bad place`)
+      }
+    }
+
     const revisionRange =
       compareType === CompareType.Ahead
         ? `${branch.name}..${base.name}`
@@ -1260,11 +1278,6 @@ export class GitStore extends BaseStore {
     if (commits != null) {
       this.storeCommits(commits, true)
     }
-
-    const aheadBehind = await getAheadBehind(
-      this.repository,
-      `${base.name}...${branch.name}`
-    )
 
     let result: ICompareResult | null = null
     if (aheadBehind) {

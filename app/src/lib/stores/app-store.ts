@@ -701,7 +701,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { comparisonBranch } = compareState
-    const compare = await gitStore.getCompareStateDetails(
+    const compare = await gitStore.getCompareCommits(
       comparisonBranch,
       compareState.kind
     )
@@ -725,7 +725,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch
   ): Promise<ICompareResult | null> {
     const gitStore = this.getGitStore(repository)
-    const compare = await gitStore.getCompareStateDetails(
+    const compare = await gitStore.getCompareCommits(
       branch,
       CompareType.Behind
     )
