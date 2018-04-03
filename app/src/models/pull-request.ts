@@ -29,6 +29,7 @@ export class PullRequestRef {
 export interface ICommitStatus {
   readonly id: number
   readonly state: APIRefState
+  readonly description: string
 }
 
 export class PullRequestStatus {
