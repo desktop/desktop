@@ -1,11 +1,9 @@
-app/node_modules/
 app/static/common
 app/test/fixtures
 dist/
 gemoji
 node_modules/
 out/
-script/changelog/node_modules/
 
 npm-debug.log
 yarn-error.log
