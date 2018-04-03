@@ -213,7 +213,6 @@ These shells are currently supported:
  - [Rxvt Unicode](http://software.schmorp.de/pkg/rxvt-unicode.html)
  - [Konsole](https://konsole.kde.org/)
  - [XTerm](http://invisible-island.net/xterm/)
- - [PowerShell Core](https://github.com/powershell/powershell/)
 
 These are defined in an enum at the top of the file:
 
@@ -224,7 +223,6 @@ export enum Shell {
   Urxvt = 'URxvt',
   Konsole = 'Konsole',
   Xterm = 'XTerm',
-  PowerShellCore = 'PowerShell Core',
 }
 ```
 
@@ -256,14 +254,12 @@ export async function getAvailableShells(): Promise<
     urxvtPath,
     konsolePath,
     xtermPath,
-    powerShellCorePath,
   ] = await Promise.all([
     getShellPath(Shell.Gnome),
     getShellPath(Shell.Tilix),
     getShellPath(Shell.Urxvt),
     getShellPath(Shell.Konsole),
     getShellPath(Shell.Xterm),
-    getShellPath(Shell.PowerShellCore),
   ])
 
   ...
