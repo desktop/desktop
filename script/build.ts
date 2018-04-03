@@ -61,7 +61,7 @@ console.log('Copying static resources…')
 copyStaticResources()
 
 console.log('Parsing license metadata…')
-parseLicenseMetadata(outRoot)
+generateLicenseMetadata(outRoot)
 
 const isFork = process.env.CIRCLE_PR_USERNAME
 if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
@@ -380,7 +380,7 @@ function updateLicenseDump(callback: (err: Error | null) => void) {
   )
 }
 
-function parseLicenseMetadata(outRoot: string) {
+function generateLicenseMetadata(outRoot: string) {
   const chooseALicense = path.join(outRoot, 'static', 'choosealicense.com')
   const licensesDir = path.join(chooseALicense, '_licenses')
 
@@ -404,13 +404,29 @@ function parseLicenseMetadata(outRoot: string) {
     }
   }
 
-  const destination = path.join(outRoot, 'static', 'available-licenses.json')
+  const licensePayload = path.join(outRoot, 'static', 'available-licenses.json')
   const text = JSON.stringify(licenses)
-  fs.writeFileSync(destination, text, 'utf8')
+  fs.writeFileSync(licensePayload, text, 'utf8')
 
-  // TODO: embed a README file in here for the choose-a-license metadata
-  // because we still need to attribute this work that we're consuming
+  // embed the license alongside the generated license payload
+  const chooseALicenseLicense = path.join(chooseALicense, 'LICENSE.md')
+  const licenseDestination = path.join(
+    outRoot,
+    'static',
+    'LICENSE.choosealicense.md'
+  )
 
-  // sweep up the ChooseALicense directory, it's no longer needed here
+  const licenseText = fs.readFileSync(chooseALicenseLicense, 'utf8')
+  const licenseWithHeader = `GitHub Desktop uses licensing information provided by choosealicense.com.
+
+The bundle in available-licenses.json has been generated from a source list provided at https://github.com/github/choosealicense.com, which is made available under the below license:
+
+------------
+
+${licenseText}`
+
+  fs.writeFileSync(licenseDestination, licenseWithHeader, 'utf8')
+
+  // sweep up the choosealicense directory as the important bits have been bundled in the app
   fs.removeSync(chooseALicense)
 }
