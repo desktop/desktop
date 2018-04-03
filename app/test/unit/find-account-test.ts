@@ -42,12 +42,6 @@ describe('findAccountForRemoteURL', () => {
     expect(account).to.equal(null)
   })
 
-  it('finds the account for GitHub owner/name repository', async () => {
-    const account = await findAccountForRemoteURL('inkscape/inkscape', accounts)
-    expect(account).not.to.equal(null)
-    expect(account!.login).to.equal('joan')
-  })
-
   it('finds the anonymous account for public GitHub owner/name repository', async () => {
     const account = await findAccountForRemoteURL('inkscape/inkscape', [])
     expect(account).not.to.equal(null)
@@ -69,6 +63,12 @@ describe('findAccountForRemoteURL', () => {
     expect(account).not.to.equal(null)
     expect(account!.login).to.equal('joan')
   }) */
+
+  it('finds the account for GitHub owner/name repository', async () => {
+    const account = await findAccountForRemoteURL('inkscape/inkscape', accounts)
+    expect(account).not.to.equal(null)
+    expect(account!.login).to.equal('joan')
+  })
 
   it('finds the account for GitHub endpoint', async () => {
     const account = await findAccountForRemoteURL(
