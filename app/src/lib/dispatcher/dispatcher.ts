@@ -602,7 +602,10 @@ export class Dispatcher {
     }
   }
 
-  /** Opens a Git repository in the user provided program */
+  /**
+   * Opens a path (can either be a folder representing a repository or the
+   * path to a file) in the external editor selected by the user.
+   */
   public async openInExternalEditor(path: string): Promise<void> {
     return this.appStore._openInExternalEditor(path)
   }
