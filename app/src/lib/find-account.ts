@@ -37,7 +37,7 @@ async function findRepositoryAccount(
 
   // If hostname is not dotcom hostname then filter out accounts using the dotcom endpoint
   const filteredAccounts =
-    hostname !== getDotComHostname()
+    hostname.toLowerCase() !== getDotComHostname()
       ? Array.from(accounts).filter(a => a.endpoint !== getDotComAPIEndpoint())
       : accounts
 
