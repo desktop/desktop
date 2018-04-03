@@ -36,23 +36,33 @@ function capitalized(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+export function findIssueRef(body: string): string {
+  let issueRef = ''
+
+  const re = /(close[s]?|fix(e[sd])?|resolve[sd]):?\s*#(\d+)/gi
+  let match: RegExpExecArray | null = null
+  do {
+    match = re.exec(body)
+    if (match && match.length === 4) {
+      // a match should always have four elements - the matching text
+      // as well as the three groups within the match. We're only
+      // interested in the last group - the issue reference number
+      issueRef += ` #${match[3]}`
+    }
+  } while (match)
+
+  return issueRef
+}
+
 function getChangelogEntry(
   commit: IParsedCommit,
   pr: IDesktopPullRequest,
-  externalContributors: ReadonlyArray<string>
+  externalContributors: ReadonlySet<string>
 ): string {
-  let issueRef = ''
   let type = PlaceholderChangeType
   const description = capitalized(pr.title)
 
-  const re = /Fixes #(\d+)/gi
-  let match
-  do {
-    match = re.exec(pr.body)
-    if (match && match.length > 1) {
-      issueRef += ` #${match[1]}`
-    }
-  } while (match)
+  let issueRef = findIssueRef(pr.body)
 
   if (issueRef.length) {
     type = 'Fixed'
@@ -62,8 +72,8 @@ function getChangelogEntry(
 
   let attribution = ''
 
-  if (externalContributors.length > 0) {
-    const mentions = externalContributors.map(c => `@${c}`)
+  if (externalContributors.size > 0) {
+    const mentions = [...externalContributors].map(c => `@${c}`)
     const combinedMentions = listify(mentions)
     attribution = `. Thanks ${combinedMentions}!`
   }
@@ -73,7 +83,7 @@ function getChangelogEntry(
 
 export async function convertToChangelogFormat(
   lines: ReadonlyArray<string>,
-  coreMembers: ReadonlyArray<string>
+  coreMembers: ReadonlySet<string>
 ): Promise<ReadonlyArray<string>> {
   const entries = []
   for (const line of lines) {
@@ -85,8 +95,9 @@ export async function convertToChangelogFormat(
       }
 
       const collaborators = pr.collaborators
-      const externalContributors = collaborators.filter(
-        c => coreMembers.indexOf(c) === -1
+
+      const externalContributors = new Set(
+        [...collaborators].filter(c => !coreMembers.has(c))
       )
 
       const entry = getChangelogEntry(commit, pr, externalContributors)

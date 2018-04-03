@@ -52,7 +52,7 @@ export class IssuesAutocompletionProvider
     text: string
   ): Promise<ReadonlyArray<IIssueHit>> {
     this.updateIssuesScheduler.queue(() => {
-      this.dispatcher.updateIssues(this.repository)
+      this.dispatcher.refreshIssues(this.repository)
     })
 
     return this.issuesStore.getIssuesMatching(this.repository, text)

@@ -47,7 +47,7 @@ interface IAPITeamMember {
 // and should be excluded from being considered an external contributor
 const webflowAccount = ['web-flow']
 
-export async function getCoreTeamMembers(): Promise<ReadonlyArray<string>> {
+export async function getCoreTeamMembers(): Promise<ReadonlySet<string>> {
   try {
     let response = await octokit.orgs.getTeams({
       org: 'desktop',
@@ -58,7 +58,7 @@ export async function getCoreTeamMembers(): Promise<ReadonlyArray<string>> {
 
     if (coreTeam == null) {
       console.error('Unable to find core team on API')
-      return []
+      return new Set<string>()
     }
 
     const id = coreTeam.id
@@ -70,10 +70,10 @@ export async function getCoreTeamMembers(): Promise<ReadonlyArray<string>> {
     })
     const members: ReadonlyArray<IAPITeamMember> = response.data
 
-    return members.map(m => m.login).concat(webflowAccount)
+    return new Set(members.map(m => m.login).concat(webflowAccount))
   } catch (err) {
     console.error('API lookup failed for getCoreTeamMembers', err)
-    return []
+    return new Set<string>()
   }
 }
 
