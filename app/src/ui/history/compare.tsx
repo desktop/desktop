@@ -366,11 +366,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private handleEscape() {
-    this.props.dispatcher.loadCompareState(
-      this.props.repository,
-      DisplayHistory
-    )
-    this.setState({ selectedBranch: null, filterText: '' })
+    this.clearFilterState()
     this.textbox!.blur()
   }
 
