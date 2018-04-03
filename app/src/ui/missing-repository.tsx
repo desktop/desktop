@@ -74,7 +74,9 @@ export class MissingRepository extends React.Component<
     }
 
     const cloneURL = gitHubRepository.cloneURL
-    if(!cloneURL) return;
+    if (!cloneURL) {
+      return
+    }
     const friendlyName = gitHubRepository.name
 
     try {
