@@ -756,20 +756,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     log.debug('[AppStore] loading first history for compare')
 
-    await this._loadHistory(repository)
+    const cachedState = compareState.formState
 
-    const repoState = this.getRepositoryState(repository).historyState
-    const commits = repoState.history
-
-    this.updateCompareState(repository, state => ({
-      baseSha: currentBranch ? currentBranch.tip.sha : null,
-      formState: {
-        kind: ComparisonView.None,
-      },
-      commitSHAs: commits,
-    }))
-
-    this.emitUpdate()
+    if (cachedState.kind === ComparisonView.None) {
+      this._updateCompareState(repository, {
+        kind: CompareActionKind.History,
+      })
+    } else {
+      this._updateCompareState(repository, {
+        kind: CompareActionKind.Branch,
+        branch: cachedState.comparisonBranch,
+        mode: cachedState.kind,
+      })
+    }
 
     if (currentBranch != null && aheadBehindCache.size === 0) {
       log.debug('[AppStore] computing ahead/behind counts')
