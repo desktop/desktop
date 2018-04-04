@@ -695,10 +695,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const state = this.getRepositoryState(repository)
       const cache = state.compareState.aheadBehindCache
 
+      if (cache.has(sha)) {
+        log.debug(
+          `[AppStore] skipping work for ${sha} as a value has been found`
+        )
+        continue
+      }
+
       const aheadBehind = await gitStore.getAheadBehind(currentBranch.name, sha)
 
       if (aheadBehind != null) {
+        log.debug(
+          `[AppStore] adding value for ${
+            currentBranch.name
+          } to cache: ${JSON.stringify(aheadBehind)}`
+        )
         cache.set(sha, aheadBehind)
+      } else {
+        log.debug(
+          `[AppStore] unable to cache ${
+            currentBranch.name
+          } as no result returned`
+        )
       }
 
       this.updateCompareState(repository, state => ({
@@ -745,13 +763,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const compareState = state.compareState
     const { aheadBehindCache, baseSha } = compareState
-    if (
-      baseSha != null &&
-      currentBranch != null &&
-      baseSha !== currentBranch.tip.sha
-    ) {
-      log.debug('[AppStore] clearing cache')
+
+    const newSha = currentBranch ? currentBranch.tip.sha : ''
+
+    if (baseSha !== newSha) {
+      log.debug('[AppStore] clearing cache as the base branch SHA has changed')
       aheadBehindCache.clear()
+
+      this.updateCompareState(repository, state => ({
+        aheadBehindCache,
+        baseSha: newSha,
+      }))
     }
 
     log.debug('[AppStore] loading first history for compare')
