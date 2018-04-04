@@ -21,6 +21,7 @@ import {
   CompareViewMode,
   CompareAction,
   CompareActionType,
+  IAheadBehind,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -420,6 +421,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       compareState: {
         compareFormState: { kind: CompareViewMode.None },
         commitSHAs: [],
+        aheadBehindCache: new Map<string, IAheadBehind>(),
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -685,9 +687,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
-    // TODO: when the tip changes, invalidate the set of compares
+    // TODO: better cache invalidation when the tip changes
 
-    gitStore.computeAheadBehindForAllBranches()
+    const aheadBehindCache = this.getRepositoryState(repository).compareState
+      .aheadBehindCache
+
+    if (aheadBehindCache.size === 0) {
+      gitStore.computeAheadBehindForAllBranches().then(aheadBehindCache => {
+        this.updateCompareState(repository, state => ({
+          aheadBehindCache,
+        }))
+
+        this.emitUpdate()
+      })
+    }
 
     if (action.kind === CompareActionType.ViewHistory) {
       await gitStore.loadHistory()

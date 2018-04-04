@@ -120,8 +120,6 @@ export class GitStore extends BaseStore {
 
   private _lastFetched: Date | null = null
 
-  private _compareDetails = new Map<string, IAheadBehind>()
-
   public constructor(repository: Repository, shell: IAppShell) {
     super()
 
@@ -375,16 +373,19 @@ export class GitStore extends BaseStore {
     this._recentBranches = recentBranches
   }
 
-  public async computeAheadBehindForAllBranches(): Promise<void> {
+  public async computeAheadBehindForAllBranches(): Promise<
+    Map<string, IAheadBehind>
+  > {
+    const result = new Map<string, IAheadBehind>()
     const tip = this._tip
     if (tip.kind !== TipState.Valid) {
-      return
+      return result
     }
 
     const branchShas = await getBranchShas(this.repository)
 
     for (const branch of branchShas) {
-      if (this._compareDetails.has(branch.sha)) {
+      if (result.has(branch.sha)) {
         continue
       }
 
@@ -394,11 +395,11 @@ export class GitStore extends BaseStore {
       )
 
       if (aheadBehind != null) {
-        this._compareDetails.set(branch.ref, aheadBehind)
+        result.set(branch.sha, aheadBehind)
       }
     }
 
-    this.emitUpdate()
+    return result
   }
 
   /** The current branch. */
@@ -1281,19 +1282,15 @@ export class GitStore extends BaseStore {
 
     const base = this.tip.branch
 
-    let aheadBehind = this._compareDetails.get(branch.tip.sha) || null
+    // TODO: do we need to compute this at all?
+
+    const aheadBehind = await getAheadBehind(
+      this.repository,
+      `${base.name}...${branch.name}`
+    )
 
     if (aheadBehind == null) {
-      aheadBehind = await getAheadBehind(
-        this.repository,
-        `${base.name}...${branch.name}`
-      )
-
-      if (aheadBehind != null) {
-        this._compareDetails.set(branch.tip.sha, aheadBehind)
-      } else {
-        log.warn(`we're in a bad place`)
-      }
+      return null
     }
 
     const revisionRange =

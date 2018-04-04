@@ -306,13 +306,20 @@ export class CompareSidebar extends React.Component<
       tip.kind === TipState.Valid ? tip.branch.name : null
     const branch = item.branch
 
+    const {
+      ahead,
+      behind,
+    } = this.props.repositoryState.compareState.aheadBehindCache.get(
+      branch.tip.sha
+    ) || { ahead: 0, behind: 0 }
+
     return (
       <CompareBranchListItem
-        dispatcher={this.props.dispatcher}
-        repository={this.props.repository}
         branch={branch}
         isCurrentBranch={branch.name === currentBranchName}
         matches={matches}
+        ahead={ahead}
+        behind={behind}
       />
     )
   }

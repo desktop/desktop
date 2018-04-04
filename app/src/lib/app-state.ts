@@ -619,10 +619,17 @@ export interface CompareState {
   // the current state of the compare form
   readonly compareFormState: IDisplayHistory | ICompareBranch
 
+  // TODO: we need to track when the compare is no longer valid
+  // if you make a new commit the ahead/behinds are likely accurate
+  // but if you switch branches they will all likely need to be recomputed
+  // readonly branch: Branch
+
   /**
    * The SHAs of commits to render in the compare list
    */
   readonly commitSHAs: ReadonlyArray<string>
+
+  readonly aheadBehindCache: Map<string, { ahead: number; behind: number }>
 }
 
 export enum CompareActionType {
