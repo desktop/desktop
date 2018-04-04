@@ -1151,10 +1151,10 @@ export class Dispatcher {
   }
 
   /**
-   * Load the state for comparing `branch` to the base branch
+   * Update the compare state for the current repository
    */
-  public loadCompareState(repository: Repository, action: CompareAction) {
-    return this.appStore._loadCompareState(repository, action)
+  public updateCompareState(repository: Repository, action: CompareAction) {
+    return this.appStore._updateCompareState(repository, action)
   }
 
   /**

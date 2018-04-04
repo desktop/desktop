@@ -5,7 +5,6 @@ import {
   CompareViewMode,
   IRepositoryState,
   CompareActionType,
-  CompareAction,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
@@ -22,10 +21,6 @@ import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import { OcticonSymbol } from '../octicons'
 import { SelectionSource } from '../lib/filter-list'
-
-const ViewHistory: CompareAction = {
-  kind: CompareActionType.ViewHistory,
-}
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -74,7 +69,7 @@ export class CompareSidebar extends React.Component<
   }
 
   public componentWillMount() {
-    this.props.dispatcher.loadCompareState(this.props.repository, ViewHistory)
+    this.viewHistoryForBranch()
   }
 
   public componentWillUnmount() {
@@ -128,6 +123,12 @@ export class CompareSidebar extends React.Component<
           : this.renderTabBar()}
       </div>
     )
+  }
+
+  private viewHistoryForBranch = () => {
+    this.props.dispatcher.updateCompareState(this.props.repository, {
+      kind: CompareActionType.ViewHistory,
+    })
   }
 
   private renderCommitList() {
@@ -256,7 +257,7 @@ export class CompareSidebar extends React.Component<
 
     const branch = formState.comparisonBranch
 
-    this.props.dispatcher.loadCompareState(this.props.repository, {
+    this.props.dispatcher.updateCompareState(this.props.repository, {
       kind: CompareActionType.CompareToBranch,
       branch,
       mode,
@@ -341,14 +342,11 @@ export class CompareSidebar extends React.Component<
         this.handleEscape()
       } else {
         if (this.state.focusedBranch == null) {
-          this.props.dispatcher.loadCompareState(
-            this.props.repository,
-            ViewHistory
-          )
+          this.viewHistoryForBranch()
         } else {
           const branch = this.state.focusedBranch
 
-          this.props.dispatcher.loadCompareState(this.props.repository, {
+          this.props.dispatcher.updateCompareState(this.props.repository, {
             kind: CompareActionType.CompareToBranch,
             branch,
             mode: CompareViewMode.Behind,
@@ -397,7 +395,7 @@ export class CompareSidebar extends React.Component<
     }
   }
 
-  private onMergeClicked = (event: React.MouseEvent<any>) => {
+  private onMergeClicked = async (event: React.MouseEvent<any>) => {
     const formState = this.props.repositoryState.compareState.compareFormState
 
     if (formState.kind === CompareViewMode.None) {
@@ -406,12 +404,12 @@ export class CompareSidebar extends React.Component<
       return
     }
 
-    this.props.dispatcher.mergeBranch(
+    await this.props.dispatcher.mergeBranch(
       this.props.repository,
       formState.comparisonBranch.name
     )
-    this.props.dispatcher.loadCompareState(this.props.repository, ViewHistory)
 
+    await this.viewHistoryForBranch()
     this.setState({ filterText: '' })
   }
 
@@ -425,7 +423,7 @@ export class CompareSidebar extends React.Component<
       filterText: '',
     })
 
-    this.props.dispatcher.loadCompareState(this.props.repository, ViewHistory)
+    this.viewHistoryForBranch()
   }
 
   private onSelectionChanged = (
@@ -445,7 +443,7 @@ export class CompareSidebar extends React.Component<
     }
 
     if (source.kind === 'mouseclick') {
-      this.props.dispatcher.loadCompareState(this.props.repository, {
+      this.props.dispatcher.updateCompareState(this.props.repository, {
         kind: CompareActionType.CompareToBranch,
         branch,
         mode: CompareViewMode.Behind,

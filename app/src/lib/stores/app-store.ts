@@ -681,7 +681,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadCompareState(
+  public async _updateCompareState(
     repository: Repository,
     action: CompareAction
   ): Promise<void> {
