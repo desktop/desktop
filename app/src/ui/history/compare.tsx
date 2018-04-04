@@ -285,7 +285,10 @@ export class CompareSidebar extends React.Component<
 
           this.setState({ filterText: branch.name })
         }
-        this.textbox!.blur()
+
+        if (this.textbox) {
+          this.textbox.blur()
+        }
       }
     } else if (key === 'Escape') {
       this.handleEscape()
@@ -294,7 +297,9 @@ export class CompareSidebar extends React.Component<
 
   private handleEscape() {
     this.clearFilterState()
-    this.textbox!.blur()
+    if (this.textbox) {
+      this.textbox.blur()
+    }
   }
 
   private onCommitSelected = (commit: Commit) => {
