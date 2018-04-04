@@ -35,6 +35,7 @@ interface ICompareSidebarProps {
   readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly dispatcher: Dispatcher
+  readonly currentBranch: Branch | null
   readonly onRevertCommit: (commit: Commit) => void
   readonly onViewCommitOnGitHub: (sha: string) => void
 }
@@ -87,7 +88,6 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const { showBranchList } = this.state
     const formState = this.props.repositoryState.compareState.compareFormState
 
     const placeholderText =
@@ -111,7 +111,9 @@ export class CompareSidebar extends React.Component<
             onKeyDown={this.onBranchFilterKeyDown}
           />
         </div>
-        {showBranchList ? this.renderFilterList() : this.renderCommits()}
+        {this.state.showBranchList
+          ? this.renderFilterList()
+          : this.renderCommits()}
       </div>
     )
   }
@@ -195,8 +197,6 @@ export class CompareSidebar extends React.Component<
     if (formState.kind === CompareViewMode.None) {
       return null
     }
-
-    // TODO: where are we getting this from?
 
     const count = formState.behind
     if (count === 0) {
@@ -315,8 +315,7 @@ export class CompareSidebar extends React.Component<
     // TODO: move this into compare state
 
     const branchesState = this.props.repositoryState.branchesState
-    const tip = branchesState.tip
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    const currentBranch = this.props.currentBranch
     const branches = currentBranch
       ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
       : branchesState.allBranches
