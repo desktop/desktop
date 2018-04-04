@@ -323,7 +323,7 @@ export enum RepositorySection {
 export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
-  readonly compareState: CompareState
+  readonly compareState: ICompareState
   readonly selectedSection: RepositorySection
 
   /**
@@ -615,7 +615,7 @@ interface ICompareBranch {
   readonly behind: number
 }
 
-export interface CompareState {
+export interface ICompareState {
   // the current state of the compare form
   readonly compareFormState: IDisplayHistory | ICompareBranch
 

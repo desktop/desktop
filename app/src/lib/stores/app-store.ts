@@ -17,7 +17,7 @@ import {
   ImageDiffType,
   IRevertProgress,
   IFetchProgress,
-  CompareState,
+  ICompareState,
   CompareViewMode,
   CompareAction,
   CompareActionType,
@@ -473,9 +473,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  private updateCompareState<K extends keyof CompareState>(
+  private updateCompareState<K extends keyof ICompareState>(
     repository: Repository,
-    fn: (state: CompareState) => Pick<CompareState, K>
+    fn: (state: ICompareState) => Pick<ICompareState, K>
   ) {
     this.updateRepositoryState(repository, state => {
       const compareState = state.compareState
