@@ -97,6 +97,7 @@ export class CompareSidebar extends React.Component<
         <div className="the-box">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
+            type="search"
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             onBlur={this.onTextBoxBlurred}
@@ -201,7 +202,9 @@ export class CompareSidebar extends React.Component<
           Merge into {this.props.currentBranch.name}
         </Button>
         <div className="merge-message">
-          {`This will merge ${count} ${pluralized}`} from{' '}
+          This will merge{` `}
+          <strong>{`${count} ${pluralized}`}</strong>
+          {` `}from{` `}
           <strong>{branch.name}</strong>
         </div>
       </div>

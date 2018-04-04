@@ -37,10 +37,15 @@ export class CompareBranchListItem extends React.Component<
 
     const aheadBehindElement = aheadBehind ? (
       <div className="branch-commit-counter">
-        {aheadBehind.behind}
-        <Octicon className="icon" symbol={OcticonSymbol.arrowDown} />
-        {aheadBehind.ahead}
-        <Octicon className="icon" symbol={OcticonSymbol.arrowUp} />
+        <span className="branch-commit-counter-item">
+          {aheadBehind.behind}
+          <Octicon className="icon" symbol={OcticonSymbol.arrowDown} />
+        </span>
+
+        <span className="branch-commit-counter-item">
+          {aheadBehind.ahead}
+          <Octicon className="icon" symbol={OcticonSymbol.arrowUp} />
+        </span>
       </div>
     ) : null
 
