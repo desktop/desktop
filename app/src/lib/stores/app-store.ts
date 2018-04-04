@@ -709,6 +709,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _initializeCompareState(repository: Repository) {
     log.debug('[AppStore] initializing compare state')
 
