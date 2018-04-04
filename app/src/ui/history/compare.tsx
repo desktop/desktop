@@ -372,7 +372,7 @@ export class CompareSidebar extends React.Component<
     source: SelectionSource
   ) => {
     if (branch === null) {
-      this.clearFilterState()
+      this.setState({ focusedBranch: null })
       return
     }
 
