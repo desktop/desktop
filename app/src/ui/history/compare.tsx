@@ -2,9 +2,9 @@ import * as React from 'react'
 import { IGitHubUser } from '../../lib/databases'
 import { Commit } from '../../models/commit'
 import {
-  CompareViewMode,
+  ComparisonView,
   ICompareState,
-  CompareActionType,
+  CompareActionKind,
   ICompareBranch,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
@@ -86,7 +86,7 @@ export class CompareSidebar extends React.Component<
     const formState = this.props.compareState.formState
 
     const placeholderText =
-      formState.kind === CompareViewMode.None
+      formState.kind === ComparisonView.None
         ? __DARWIN__
           ? 'Select Branch To Compare...'
           : 'Select branch to compare...'
@@ -117,7 +117,7 @@ export class CompareSidebar extends React.Component<
     const formState = this.props.compareState.formState
     return (
       <div className="the-commits">
-        {formState.kind === CompareViewMode.None
+        {formState.kind === ComparisonView.None
           ? this.renderCommitList()
           : this.renderTabBar(formState)}
       </div>
@@ -126,7 +126,7 @@ export class CompareSidebar extends React.Component<
 
   private viewHistoryForBranch = () => {
     this.props.dispatcher.updateCompareState(this.props.repository, {
-      kind: CompareActionType.ViewHistory,
+      kind: CompareActionKind.History,
     })
   }
 
@@ -157,7 +157,7 @@ export class CompareSidebar extends React.Component<
     return (
       <div className="the-commits">
         {this.renderCommitList()}
-        {formState.kind === CompareViewMode.Behind
+        {formState.kind === ComparisonView.Behind
           ? this.renderMergeCallToAction(formState)
           : null}
       </div>
@@ -211,24 +211,24 @@ export class CompareSidebar extends React.Component<
   private onTabClicked = (index: number) => {
     const formState = this.props.compareState.formState
 
-    if (formState.kind === CompareViewMode.None) {
+    if (formState.kind === ComparisonView.None) {
       // the tab control should never be shown in this case
       // TODO: can we enforce this with TYPES?
       return
     }
 
-    const mode = index === 0 ? CompareViewMode.Behind : CompareViewMode.Ahead
+    const mode = index === 0 ? ComparisonView.Behind : ComparisonView.Ahead
     const branch = formState.comparisonBranch
 
     this.props.dispatcher.updateCompareState(this.props.repository, {
-      kind: CompareActionType.CompareToBranch,
+      kind: CompareActionKind.Branch,
       branch,
       mode,
     })
   }
 
   private renderTabBar(formState: ICompareBranch) {
-    const selectedTab = formState.kind === CompareViewMode.Behind ? 0 : 1
+    const selectedTab = formState.kind === ComparisonView.Behind ? 0 : 1
 
     return (
       <div className="compare-content">
@@ -278,9 +278,9 @@ export class CompareSidebar extends React.Component<
           const branch = this.state.focusedBranch
 
           this.props.dispatcher.updateCompareState(this.props.repository, {
-            kind: CompareActionType.CompareToBranch,
+            kind: CompareActionKind.Branch,
             branch,
-            mode: CompareViewMode.Behind,
+            mode: ComparisonView.Behind,
           })
 
           this.setState({ filterText: branch.name })
@@ -316,7 +316,7 @@ export class CompareSidebar extends React.Component<
     const compareState = this.props.compareState
     const formState = compareState.formState
 
-    if (formState.kind !== CompareViewMode.None) {
+    if (formState.kind !== ComparisonView.None) {
       // TODO: we're not loading in more history because we're comparing
       // our branch to some other branch, and should have everything loaded
       return
@@ -331,7 +331,7 @@ export class CompareSidebar extends React.Component<
   private onMergeClicked = async (event: React.MouseEvent<any>) => {
     const formState = this.props.compareState.formState
 
-    if (formState.kind === CompareViewMode.None) {
+    if (formState.kind === ComparisonView.None) {
       // we have not selected a branch, thus the form should never be shown
       // TODO: can we enforce this with T Y P E S?
       return
@@ -377,9 +377,9 @@ export class CompareSidebar extends React.Component<
 
     if (source.kind === 'mouseclick') {
       this.props.dispatcher.updateCompareState(this.props.repository, {
-        kind: CompareActionType.CompareToBranch,
+        kind: CompareActionKind.Branch,
         branch,
-        mode: CompareViewMode.Behind,
+        mode: ComparisonView.Behind,
       })
 
       this.setState({

@@ -592,7 +592,7 @@ export interface IChangesState {
   readonly coAuthors: ReadonlyArray<IAuthor>
 }
 
-export enum CompareViewMode {
+export enum ComparisonView {
   None = 'none',
   Ahead = 'ahead',
   Behind = 'behind',
@@ -600,12 +600,12 @@ export enum CompareViewMode {
 
 interface IDisplayHistory {
   /** Specifies the way `branch` is compared to another branch */
-  readonly kind: CompareViewMode.None
+  readonly kind: ComparisonView.None
 }
 
 export interface ICompareBranch {
   /** Specifies the way `branch` is compared to another branch */
-  readonly kind: CompareViewMode.Ahead | CompareViewMode.Behind
+  readonly kind: ComparisonView.Ahead | ComparisonView.Behind
 
   /** The branch to compare against the base branch */
   readonly comparisonBranch: Branch
@@ -662,17 +662,17 @@ export interface ICompareState {
   readonly aheadBehindCache: Map<string, { ahead: number; behind: number }>
 }
 
-export enum CompareActionType {
-  ViewHistory = 'ViewHistory',
-  CompareToBranch = 'CompareToBranch',
+export enum CompareActionKind {
+  History = 'History',
+  Branch = 'Branch',
 }
 
 export type CompareAction =
   | {
-      readonly kind: CompareActionType.ViewHistory
+      readonly kind: CompareActionKind.History
     }
   | {
-      readonly kind: CompareActionType.CompareToBranch
+      readonly kind: CompareActionKind.Branch
       readonly branch: Branch
-      readonly mode: CompareViewMode.Ahead | CompareViewMode.Behind
+      readonly mode: ComparisonView.Ahead | ComparisonView.Behind
     }

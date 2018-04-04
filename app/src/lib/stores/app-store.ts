@@ -18,9 +18,9 @@ import {
   IRevertProgress,
   IFetchProgress,
   ICompareState,
-  CompareViewMode,
+  ComparisonView,
   CompareAction,
-  CompareActionType,
+  CompareActionKind,
   IAheadBehind,
 } from '../app-state'
 import { Account } from '../../models/account'
@@ -419,7 +419,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         isLoadingPullRequests: false,
       },
       compareState: {
-        formState: { kind: CompareViewMode.None },
+        formState: { kind: ComparisonView.None },
         commitSHAs: [],
         aheadBehindCache: new Map<string, IAheadBehind>(),
         allBranches: [],
@@ -760,7 +760,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateCompareState(repository, state => ({
       baseSha: currentBranch ? currentBranch.tip.sha : null,
       formState: {
-        kind: CompareViewMode.None,
+        kind: ComparisonView.None,
       },
     }))
 
@@ -773,7 +773,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateCompareState(repository, state => ({
       formState: {
-        kind: CompareViewMode.None,
+        kind: ComparisonView.None,
       },
       commitSHAs: commits,
     }))
@@ -800,7 +800,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
-    if (action.kind === CompareActionType.ViewHistory) {
+    if (action.kind === CompareActionKind.History) {
       await gitStore.loadHistory()
 
       const repoState = this.getRepositoryState(repository).historyState
@@ -808,7 +808,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.updateCompareState(repository, state => ({
         formState: {
-          kind: CompareViewMode.None,
+          kind: ComparisonView.None,
         },
         commitSHAs: commits,
       }))
@@ -843,7 +843,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.getGitStore(repository)
     const compare = await gitStore.getCompareCommits(
       branch,
-      CompareViewMode.Behind
+      ComparisonView.Behind
     )
 
     return compare
