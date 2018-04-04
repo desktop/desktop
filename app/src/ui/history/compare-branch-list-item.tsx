@@ -13,9 +13,7 @@ interface ICompareBranchListItemProps {
   /** The characters in the branch name to highlight */
   readonly matches: ReadonlyArray<number>
 
-  readonly ahead: number
-
-  readonly behind: number
+  readonly aheadBehind?: { ahead: number; behind: number }
 }
 
 export class CompareBranchListItem extends React.Component<
@@ -35,18 +33,24 @@ export class CompareBranchListItem extends React.Component<
     const branch = this.props.branch
     const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
 
+    const aheadBehind = this.props.aheadBehind
+
+    const aheadBehindElement = aheadBehind ? (
+      <div className="branch-commit-counter">
+        {aheadBehind.behind}
+        <Octicon className="icon" symbol={OcticonSymbol.arrowDown} />
+        {aheadBehind.ahead}
+        <Octicon className="icon" symbol={OcticonSymbol.arrowUp} />
+      </div>
+    ) : null
+
     return (
       <div className="branches-list-item">
         <Octicon className="icon" symbol={icon} />
         <div className="name" title={branch.name}>
           <HighlightText text={branch.name} highlight={this.props.matches} />
         </div>
-        <div className="branch-commit-counter">
-          {this.props.behind}
-          <Octicon className="icon" symbol={OcticonSymbol.arrowDown} />
-          {this.props.ahead}
-          <Octicon className="icon" symbol={OcticonSymbol.arrowUp} />
-        </div>
+        {aheadBehindElement}
       </div>
     )
   }

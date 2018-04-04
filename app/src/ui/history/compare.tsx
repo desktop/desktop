@@ -245,17 +245,16 @@ export class CompareSidebar extends React.Component<
       this.props.currentBranch != null ? this.props.currentBranch.name : null
     const branch = item.branch
 
-    const { ahead, behind } = this.props.compareState.aheadBehindCache.get(
+    const aheadBehind = this.props.compareState.aheadBehindCache.get(
       branch.tip.sha
-    ) || { ahead: 0, behind: 0 }
+    )
 
     return (
       <CompareBranchListItem
         branch={branch}
         isCurrentBranch={branch.name === currentBranchName}
         matches={matches}
-        ahead={ahead}
-        behind={behind}
+        aheadBehind={aheadBehind}
       />
     )
   }
