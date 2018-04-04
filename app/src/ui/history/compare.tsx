@@ -158,7 +158,7 @@ export class CompareSidebar extends React.Component<
       <div className="the-commits">
         {this.renderCommitList()}
         {formState.kind === CompareViewMode.Behind
-          ? this.renderMergeCallToAction()
+          ? this.renderMergeCallToAction(formState)
           : null}
       </div>
     )
@@ -183,17 +183,8 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private renderMergeCallToAction() {
-    const formState = this.props.compareState.formState
-    if (formState.kind === CompareViewMode.None) {
-      return null
-    }
-
-    const branch = this.props.currentBranch
-    if (branch === null) {
-      return null
-    }
-
+  private renderMergeCallToAction(formState: ICompareBranch) {
+    const branch = formState.comparisonBranch
     const count = formState.behind
     const pluralized = count > 1 ? 'commits' : 'commit'
     return (
@@ -203,7 +194,7 @@ export class CompareSidebar extends React.Component<
           disabled={count <= 0}
           onClick={this.onMergeClicked}
         >
-          Merge into {branch!.name}
+          Merge into {branch.name}
         </Button>
         <div className="merge-message">
           {`This will merge ${count} ${pluralized}`} from{' '}
