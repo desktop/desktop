@@ -425,6 +425,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: [],
         recentBranches: [],
         defaultBranch: null,
+        baseBranch: null,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -710,12 +711,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _updateCompareState(
-    repository: Repository,
-    action: CompareAction
-  ): Promise<void> {
-    const gitStore = this.getGitStore(repository)
+  public async _initializeCompareState(repository: Repository) {
+    log.info('[AppStore] initializing compare state')
 
     const state = this.getRepositoryState(repository)
 
@@ -732,21 +729,51 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const defaultBranch = branchesState.defaultBranch
 
-    // TODO: better cache invalidation when the tip changes
+    this.updateCompareState(repository, state => ({
+      allBranches,
+      recentBranches,
+      defaultBranch,
+    }))
 
-    if (currentBranch != null) {
-      const aheadBehindCache = state.compareState.aheadBehindCache
-
-      if (aheadBehindCache.size === 0) {
-        let allOtherBranches = [...recentBranches, ...allBranches]
-
-        if (defaultBranch != null) {
-          allOtherBranches = [defaultBranch, ...allOtherBranches]
-        }
-
-        this.refreshAheadBehind(repository, currentBranch, allOtherBranches)
-      }
+    const compareState = state.compareState
+    const { aheadBehindCache, baseBranch } = compareState
+    if (
+      baseBranch != null &&
+      currentBranch != null &&
+      baseBranch.name !== currentBranch.name
+    ) {
+      log.debug('[AppStore] clearing cache')
+      aheadBehindCache.clear()
     }
+
+    this.updateCompareState(repository, state => ({
+      baseBranch: currentBranch,
+      formState: {
+        kind: CompareViewMode.None,
+      },
+    }))
+
+    if (currentBranch != null && aheadBehindCache.size === 0) {
+      let allOtherBranches = [...recentBranches, ...allBranches]
+
+      if (defaultBranch != null) {
+        allOtherBranches = [defaultBranch, ...allOtherBranches]
+      }
+
+      this.refreshAheadBehind(repository, currentBranch, allOtherBranches)
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _updateCompareState(
+    repository: Repository,
+    action: CompareAction
+  ): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+
+    // TODO:
+
+    this._initializeCompareState(repository)
 
     if (action.kind === CompareActionType.ViewHistory) {
       await gitStore.loadHistory()
@@ -759,9 +786,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           kind: CompareViewMode.None,
         },
         commitSHAs: commits,
-        allBranches,
-        recentBranches,
-        defaultBranch,
       }))
       return this.emitUpdate()
     }
@@ -780,9 +804,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           behind: compare.behind,
         },
         commitSHAs: compare.commits.map(commit => commit.sha),
-        allBranches,
-        recentBranches,
-        defaultBranch,
       }))
 
       return this.emitUpdate()
@@ -1849,6 +1870,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._refreshRepository(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
+      this._initializeCompareState(repository)
     }
 
     return repository

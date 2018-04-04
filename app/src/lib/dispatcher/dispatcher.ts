@@ -1150,6 +1150,11 @@ export class Dispatcher {
     return this.appStore._setCoAuthors(repository, coAuthors)
   }
 
+  // TODO: docs
+  public initializeCompareState(repository: Repository) {
+    return this.appStore._initializeCompareState(repository)
+  }
+
   /**
    * Update the compare state for the current repository
    */

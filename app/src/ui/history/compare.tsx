@@ -69,7 +69,7 @@ export class CompareSidebar extends React.Component<
   }
 
   public componentWillMount() {
-    this.viewHistoryForBranch()
+    this.props.dispatcher.initializeCompareState(this.props.repository)
   }
 
   public componentWillUnmount() {

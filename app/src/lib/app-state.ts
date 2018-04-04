@@ -652,6 +652,13 @@ export interface ICompareState {
    */
   readonly defaultBranch: Branch | null
 
+  /**
+   * The base branch associated with the current ahead/behind cache.
+   *
+   * When this changes, the cache needs to be invalidated.
+   */
+  readonly baseBranch: Branch | null
+
   readonly aheadBehindCache: Map<string, { ahead: number; behind: number }>
 }
 
