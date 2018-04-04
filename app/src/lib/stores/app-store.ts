@@ -683,6 +683,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  private async refreshAheadBehind(
+    repository: Repository,
+    currentBranch: Branch,
+    branches: ReadonlyArray<Branch>
+  ): Promise<void> {
+    const uniqueBranchSha = new Set<string>(branches.map(b => b.tip.sha))
+
+    const gitStore = this.getGitStore(repository)
+
+    for (const sha of uniqueBranchSha) {
+      const state = this.getRepositoryState(repository)
+      const cache = state.compareState.aheadBehindCache
+
+      const aheadBehind = await gitStore.getAheadBehind(currentBranch.name, sha)
+
+      if (aheadBehind != null) {
+        cache.set(sha, aheadBehind)
+      }
+
+      this.updateCompareState(repository, state => ({
+        aheadBehindCache: cache,
+      }))
+
+      this.emitUpdate()
+    }
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _updateCompareState(
     repository: Repository,
@@ -707,16 +734,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // TODO: better cache invalidation when the tip changes
 
-    const aheadBehindCache = state.compareState.aheadBehindCache
+    if (currentBranch != null) {
+      const aheadBehindCache = state.compareState.aheadBehindCache
 
-    if (aheadBehindCache.size === 0) {
-      gitStore.computeAheadBehindForAllBranches().then(aheadBehindCache => {
-        this.updateCompareState(repository, state => ({
-          aheadBehindCache,
-        }))
+      if (aheadBehindCache.size === 0) {
+        let allOtherBranches = [...recentBranches, ...allBranches]
 
-        this.emitUpdate()
-      })
+        if (defaultBranch != null) {
+          allOtherBranches = [defaultBranch, ...allOtherBranches]
+        }
+
+        this.refreshAheadBehind(repository, currentBranch, allOtherBranches)
+      }
     }
 
     if (action.kind === CompareActionType.ViewHistory) {
