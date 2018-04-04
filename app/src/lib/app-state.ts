@@ -2,8 +2,8 @@ import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
-import { IAheadBehind } from './git'
-import { Branch } from '../models/branch'
+
+import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import {
@@ -28,7 +28,6 @@ import { PullRequest } from '../models/pull-request'
 import { IAuthor } from '../models/author'
 
 export { ICommitMessage }
-export { IAheadBehind }
 
 export enum SelectionType {
   Repository,
@@ -659,7 +658,10 @@ export interface ICompareState {
    */
   readonly baseSha: string | null
 
-  readonly aheadBehindCache: Map<string, { ahead: number; behind: number }>
+  /**
+   * A local cache of ahead/behind computations to compare other refs to the current branch
+   */
+  readonly aheadBehindCache: Map<string, IAheadBehind>
 }
 
 export enum CompareActionKind {

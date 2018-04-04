@@ -21,7 +21,6 @@ import {
   ComparisonView,
   CompareAction,
   CompareActionKind,
-  IAheadBehind,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -39,7 +38,7 @@ import {
 } from '../../lib/repository-matching'
 import { API, getAccountForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsensitiveCompare } from '../compare'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, BranchType, IAheadBehind } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit } from '../../models/commit'

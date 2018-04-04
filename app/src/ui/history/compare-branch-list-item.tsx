@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 import { HighlightText } from '../lib/highlight-text'
-import { Branch } from '../../models/branch'
+import { Branch, IAheadBehind } from '../../models/branch'
 
 interface ICompareBranchListItemProps {
   readonly branch: Branch
@@ -13,7 +13,7 @@ interface ICompareBranchListItemProps {
   /** The characters in the branch name to highlight */
   readonly matches: ReadonlyArray<number>
 
-  readonly aheadBehind?: { ahead: number; behind: number }
+  readonly aheadBehind?: IAheadBehind
 }
 
 export class CompareBranchListItem extends React.Component<
