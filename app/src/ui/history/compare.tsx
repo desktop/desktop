@@ -45,7 +45,7 @@ interface ICompareSidebarState {
    *
    * For all other cases, use the prop
    */
-  readonly activeBranch: Branch | null
+  readonly focusedBranch: Branch | null
   readonly filterText: string
   readonly showBranchList: boolean
   readonly selectedCommit: Commit | null
@@ -65,7 +65,7 @@ export class CompareSidebar extends React.Component<
     super(props)
 
     this.state = {
-      activeBranch: null,
+      focusedBranch: null,
       filterText: '',
       showBranchList: false,
       selectedCommit: null,
@@ -82,9 +82,7 @@ export class CompareSidebar extends React.Component<
 
   public componentDidMount() {
     if (this.textbox !== null && this.state.showBranchList) {
-      if (this.state.showBranchList) {
-        this.textbox.focus()
-      }
+      this.textbox.focus()
     }
   }
 
@@ -182,7 +180,7 @@ export class CompareSidebar extends React.Component<
         recentBranches={recentBranches}
         filterText={this.state.filterText}
         textbox={this.textbox!}
-        selectedBranch={this.state.activeBranch}
+        selectedBranch={this.state.focusedBranch}
         canCreateNewBranch={false}
         onSelectionChanged={this.onSelectionChanged}
         onFilterTextChanged={this.onBranchFilterTextChanged}
@@ -343,13 +341,13 @@ export class CompareSidebar extends React.Component<
       if (this.state.filterText.length === 0) {
         this.handleEscape()
       } else {
-        if (this.state.activeBranch == null) {
+        if (this.state.focusedBranch == null) {
           this.props.dispatcher.loadCompareState(
             this.props.repository,
             ViewHistory
           )
         } else {
-          const branch = this.state.activeBranch
+          const branch = this.state.focusedBranch
 
           this.props.dispatcher.loadCompareState(this.props.repository, {
             kind: CompareActionType.CompareToBranch,
@@ -424,7 +422,7 @@ export class CompareSidebar extends React.Component<
 
   private clearFilterState = () => {
     this.setState({
-      activeBranch: null,
+      focusedBranch: null,
       filterText: '',
     })
 
@@ -441,10 +439,8 @@ export class CompareSidebar extends React.Component<
     }
 
     if (source.kind === 'filter') {
-      // don't load the comparison state until a selection has been made
-      // but we _can_
       this.setState({
-        activeBranch: branch,
+        focusedBranch: branch,
       })
       return
     }
