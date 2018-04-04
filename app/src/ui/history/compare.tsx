@@ -154,16 +154,14 @@ export class CompareSidebar extends React.Component<
 
   private renderActiveTab() {
     const formState = this.props.compareState.compareFormState
-    if (formState.kind === CompareViewMode.Behind) {
-      return (
-        <div className="the-commits">
-          {this.renderCommitList()}
-          {this.renderMergeCallToAction()}
-        </div>
-      )
-    } else {
-      return <div className="the-commits">{this.renderCommitList()}</div>
-    }
+    return (
+      <div className="the-commits">
+        {this.renderCommitList()}
+        {formState.kind === CompareViewMode.Behind
+          ? this.renderMergeCallToAction()
+          : null}
+      </div>
+    )
   }
 
   private renderFilterList() {
