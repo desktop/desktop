@@ -800,10 +800,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
-    // TODO: can we obsolete this in favour of other things?
-
-    this._initializeCompareState(repository)
-
     if (action.kind === CompareActionType.ViewHistory) {
       await gitStore.loadHistory()
 
