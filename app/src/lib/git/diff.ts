@@ -84,6 +84,7 @@ const imageFileExtensions = new Set([
   '.gif',
   '.ico',
   '.webp',
+  '.bmp',
 ])
 
 /**
@@ -306,6 +307,9 @@ function getMediaType(extension: string) {
   }
   if (extension === '.webp') {
     return 'image/webp'
+  }
+  if (extension === '.bmp') {
+    return 'image/bmp'
   }
 
   // fallback value as per the spec
