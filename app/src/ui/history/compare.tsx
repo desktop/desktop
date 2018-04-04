@@ -136,6 +136,11 @@ export class CompareSidebar extends React.Component<
     const selectedCommit = this.state.selectedCommit
     const commitSHAs = compareState.commitSHAs
 
+    const emptyListMessage =
+      compareState.formState.kind === ComparisonView.None
+        ? 'No history'
+        : 'No commits'
+
     return (
       <CommitList
         gitHubRepository={this.props.repository.gitHubRepository}
@@ -149,6 +154,7 @@ export class CompareSidebar extends React.Component<
         onRevertCommit={this.props.onRevertCommit}
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
+        emptyListMessage={emptyListMessage}
       />
     )
   }
