@@ -597,43 +597,40 @@ export enum ComparisonView {
   Behind = 'behind',
 }
 
+/**
+ * The default comparison state is to display the history for the current
+ * branch.
+ */
 interface IDisplayHistory {
-  /** Specifies the way `branch` is compared to another branch */
   readonly kind: ComparisonView.None
 }
 
+/**
+ * When the user has chosen another branch to compare, using their current
+ * branch as the base branch.
+ */
 export interface ICompareBranch {
-  /** Specifies the way `branch` is compared to another branch */
+  /** The chosen comparison mode determines which commits to show */
   readonly kind: ComparisonView.Ahead | ComparisonView.Behind
 
   /** The branch to compare against the base branch */
   readonly comparisonBranch: Branch
 
+  /** The number of commits the selected branch is ahead of the current branch */
   readonly ahead: number
 
+  /** The number of commits the selected branch is behind the current branch */
   readonly behind: number
 }
 
 export interface ICompareState {
-  /**
-   * Represents the current state of the compare form, based on user input
-   */
+  /** The current state of the compare form, based on user input */
   readonly formState: IDisplayHistory | ICompareBranch
 
-  // TODO: we need to track when the compare is no longer valid
-  // if you make a new commit the ahead/behinds are likely accurate
-  // but if you switch branches they will all likely need to be recomputed
-  // readonly branch: Branch
-
-  /**
-   * The SHAs of commits to render in the compare list
-   */
+  /** The SHAs of commits to render in the compare list */
   readonly commitSHAs: ReadonlyArray<string>
 
-  /**
-   * A list of all branches (remote and local) that's currently in
-   * the repository.
-   */
+  /** A list of all branches (remote and local) currently in the repository. */
   readonly allBranches: ReadonlyArray<Branch>
 
   /**
@@ -669,6 +666,9 @@ export enum CompareActionKind {
   Branch = 'Branch',
 }
 
+/**
+ * An action to send to the application store to update the compare state
+ */
 export type CompareAction =
   | {
       readonly kind: CompareActionKind.History
