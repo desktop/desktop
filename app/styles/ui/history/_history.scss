@@ -56,6 +56,7 @@
   flex: 1;
 
   .the-box {
+    background: var(--box-alt-background-color);
     flex: initial;
     padding: var(--spacing-half);
     border-bottom: var(--base-border);
@@ -80,16 +81,30 @@
     margin-top: var(--spacing);
   }
 
-  .branches-list-item .description {
-    margin-right: 0;
-  }
-
   .branch-commit-counter {
+    color: var(--text-secondary-color);
     display: flex;
     justify-content: flex-end;
+    flex: 1;
+    font-size: var(--font-size-sm);
 
-    .octicon:last-child {
-      margin-right: 0;
+    &-item {
+      display: flex;
+      align-items: center;
+
+      &:first-child {
+        margin-right: var(--spacing-half);
+      }
+    }
+
+    .octicon {
+      fill: var(--text-secondary-color);
+      width: 8px;
+      margin-left: 1px;
+
+      &:last-child {
+        margin-right: 0;
+      }
     }
   }
 

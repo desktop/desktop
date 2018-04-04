@@ -111,6 +111,7 @@ export class CompareSidebar extends React.Component<
         <div className="the-box">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
+            type="search"
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             onBlur={this.onTextBoxBlurred}
@@ -211,7 +212,9 @@ export class CompareSidebar extends React.Component<
     const pluralized = count > 1 ? 'commits' : 'commit'
     return (
       <div className="merge-message">
-        {`This will merge ${count} ${pluralized}`} from{' '}
+        This will merge{` `}
+        <strong>{`${count} ${pluralized}`}</strong>
+        {` `}from{` `}
         <strong>{this.state.selectedBranch!.name}</strong>
       </div>
     )
