@@ -1258,9 +1258,6 @@ export class GitStore extends BaseStore {
     }
 
     const base = this.tip.branch
-
-    // TODO: do we need to compute this at all?
-
     const aheadBehind = await getAheadBehind(
       this.repository,
       `${base.name}...${branch.name}`
@@ -1274,21 +1271,24 @@ export class GitStore extends BaseStore {
       compareType === ComparisonView.Ahead
         ? `${branch.name}..${base.name}`
         : `${base.name}..${branch.name}`
-    const commits = await getCommits(this.repository, revisionRange, 250)
+    const commitsToLoad =
+      compareType === ComparisonView.Ahead
+        ? aheadBehind.ahead
+        : aheadBehind.behind
+    const commits = await getCommits(
+      this.repository,
+      revisionRange,
+      commitsToLoad
+    )
 
-    if (commits != null) {
+    if (commits.length > 0) {
       this.storeCommits(commits, true)
     }
 
-    let result: ICompareResult | null = null
-    if (aheadBehind) {
-      result = {
-        commits,
-        ahead: aheadBehind.ahead,
-        behind: aheadBehind.behind,
-      }
+    return {
+      commits,
+      ahead: aheadBehind.ahead,
+      behind: aheadBehind.behind,
     }
-
-    return result
   }
 }
