@@ -603,7 +603,7 @@ interface IDisplayHistory {
   readonly kind: CompareViewMode.None
 }
 
-interface ICompareBranch {
+export interface ICompareBranch {
   /** Specifies the way `branch` is compared to another branch */
   readonly kind: CompareViewMode.Ahead | CompareViewMode.Behind
 
@@ -616,8 +616,10 @@ interface ICompareBranch {
 }
 
 export interface ICompareState {
-  // the current state of the compare form
-  readonly compareFormState: IDisplayHistory | ICompareBranch
+  /**
+   * Represents the current state of the compare form, based on user input
+   */
+  readonly formState: IDisplayHistory | ICompareBranch
 
   // TODO: we need to track when the compare is no longer valid
   // if you make a new commit the ahead/behinds are likely accurate

@@ -5,6 +5,7 @@ import {
   CompareViewMode,
   ICompareState,
   CompareActionType,
+  ICompareBranch,
 } from '../../lib/app-state'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
@@ -82,7 +83,7 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const formState = this.props.compareState.compareFormState
+    const formState = this.props.compareState.formState
 
     const placeholderText =
       formState.kind === CompareViewMode.None
@@ -113,13 +114,12 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderCommits() {
-    const compareState = this.props.compareState
-
+    const formState = this.props.compareState.formState
     return (
       <div className="the-commits">
-        {compareState.compareFormState.kind === CompareViewMode.None
+        {formState.kind === CompareViewMode.None
           ? this.renderCommitList()
-          : this.renderTabBar()}
+          : this.renderTabBar(formState)}
       </div>
     )
   }
@@ -153,7 +153,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderActiveTab() {
-    const formState = this.props.compareState.compareFormState
+    const formState = this.props.compareState.formState
     return (
       <div className="the-commits">
         {this.renderCommitList()}
@@ -166,13 +166,10 @@ export class CompareSidebar extends React.Component<
 
   private renderFilterList() {
     const compareState = this.props.compareState
-
-    const currentBranch = this.props.currentBranch
-
     return (
       <BranchList
         defaultBranch={compareState.defaultBranch}
-        currentBranch={currentBranch}
+        currentBranch={this.props.currentBranch}
         allBranches={compareState.allBranches}
         recentBranches={compareState.recentBranches}
         filterText={this.state.filterText}
@@ -187,7 +184,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderMergeCallToAction() {
-    const formState = this.props.compareState.compareFormState
+    const formState = this.props.compareState.formState
     if (formState.kind === CompareViewMode.None) {
       return null
     }
@@ -217,7 +214,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onTabClicked = (index: number) => {
-    const formState = this.props.compareState.compareFormState
+    const formState = this.props.compareState.formState
 
     if (formState.kind === CompareViewMode.None) {
       // the tab control should never be shown in this case
@@ -226,7 +223,6 @@ export class CompareSidebar extends React.Component<
     }
 
     const mode = index === 0 ? CompareViewMode.Behind : CompareViewMode.Ahead
-
     const branch = formState.comparisonBranch
 
     this.props.dispatcher.updateCompareState(this.props.repository, {
@@ -236,14 +232,7 @@ export class CompareSidebar extends React.Component<
     })
   }
 
-  private renderTabBar() {
-    const compareState = this.props.compareState
-    const formState = compareState.compareFormState
-
-    if (formState.kind === CompareViewMode.None) {
-      return null
-    }
-
+  private renderTabBar(formState: ICompareBranch) {
     const selectedTab = formState.kind === CompareViewMode.Behind ? 0 : 1
 
     return (
@@ -331,9 +320,11 @@ export class CompareSidebar extends React.Component<
 
   private onScroll = (start: number, end: number) => {
     const compareState = this.props.compareState
-    const formState = compareState.compareFormState
+    const formState = compareState.formState
 
-    if (formState.kind === CompareViewMode.None) {
+    if (formState.kind !== CompareViewMode.None) {
+      // TODO: we're not loading in more history because we're comparing
+      // our branch to some other branch, and should have everything loaded
       return
     }
 
@@ -344,7 +335,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onMergeClicked = async (event: React.MouseEvent<any>) => {
-    const formState = this.props.compareState.compareFormState
+    const formState = this.props.compareState.formState
 
     if (formState.kind === CompareViewMode.None) {
       // we have not selected a branch, thus the form should never be shown

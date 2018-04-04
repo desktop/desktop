@@ -419,7 +419,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         isLoadingPullRequests: false,
       },
       compareState: {
-        compareFormState: { kind: CompareViewMode.None },
+        formState: { kind: CompareViewMode.None },
         commitSHAs: [],
         aheadBehindCache: new Map<string, IAheadBehind>(),
         allBranches: [],
@@ -726,7 +726,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const commits = repoState.history
 
       this.updateCompareState(repository, state => ({
-        compareFormState: {
+        formState: {
           kind: CompareViewMode.None,
         },
         commitSHAs: commits,
@@ -744,7 +744,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (compare != null) {
       this.updateCompareState(repository, s => ({
-        compareFormState: {
+        formState: {
           kind: action.mode,
           comparisonBranch,
           ahead: compare.ahead,
