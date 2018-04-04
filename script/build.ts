@@ -63,6 +63,8 @@ copyStaticResources()
 console.log('Parsing license metadata…')
 generateLicenseMetadata(outRoot)
 
+moveAnalysisFiles()
+
 const isFork = process.env.CIRCLE_PR_USERNAME
 if (process.platform === 'darwin' && process.env.CIRCLECI && !isFork) {
   console.log('Setting up keychain…')
@@ -202,6 +204,22 @@ function copyStaticResources() {
     fs.copySync(platformSpecific, destination)
   }
   fs.copySync(common, destination, { clobber: false })
+}
+
+function moveAnalysisFiles() {
+  const rendererReport = 'renderer.report.html'
+  const analysisSource = path.join(outRoot, rendererReport)
+  if (fs.existsSync(analysisSource)) {
+    const distRoot = getDistRoot()
+    const destination = path.join(distRoot, rendererReport)
+    fs.mkdirpSync(distRoot)
+    // there's no moveSync API here, so let's do it the old fashioned way
+    //
+    // unlinkSync below ensures that the analysis file isn't bundled into
+    // the app by accident
+    fs.copySync(analysisSource, destination, { clobber: true })
+    fs.unlinkSync(analysisSource)
+  }
 }
 
 function copyDependencies() {
