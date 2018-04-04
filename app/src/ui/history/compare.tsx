@@ -164,7 +164,7 @@ export class CompareSidebar extends React.Component<
       return (
         <div className="the-commits">
           {this.renderCommitList()}
-          {this.renderMergeCTA()}
+          {this.renderMergeSummary()}
         </div>
       )
     } else {
@@ -197,7 +197,7 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private renderMergeCTAMessage() {
+  private renderMergeMessage() {
     const compareState = this.props.repositoryState.compareState
     if (compareState.kind === CompareType.None) {
       return null
@@ -217,7 +217,7 @@ export class CompareSidebar extends React.Component<
     )
   }
 
-  private renderMergeCTA() {
+  private renderMergeSummary() {
     const { compareState, branchesState } = this.props.repositoryState
     if (compareState.kind === CompareType.None) {
       return null
@@ -240,7 +240,7 @@ export class CompareSidebar extends React.Component<
         >
           Merge into {branch!.name}
         </Button>
-        {this.renderMergeCTAMessage()}
+        {this.renderMergeMessage()}
       </div>
     )
   }
