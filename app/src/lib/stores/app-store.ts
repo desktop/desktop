@@ -743,8 +743,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       defaultBranch,
     }))
 
-    this.emitUpdate()
-
     const compareState = state.compareState
     const { aheadBehindCache, baseSha } = compareState
     if (
@@ -756,13 +754,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       aheadBehindCache.clear()
     }
 
-    this.updateCompareState(repository, state => ({
-      baseSha: currentBranch ? currentBranch.tip.sha : null,
-      formState: {
-        kind: ComparisonView.None,
-      },
-    }))
-
     log.debug('[AppStore] loading first history for compare')
 
     await this._loadHistory(repository)
@@ -771,6 +762,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const commits = repoState.history
 
     this.updateCompareState(repository, state => ({
+      baseSha: currentBranch ? currentBranch.tip.sha : null,
       formState: {
         kind: ComparisonView.None,
       },
