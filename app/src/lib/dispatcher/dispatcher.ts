@@ -1161,11 +1161,4 @@ export class Dispatcher {
   public updateCompareState(repository: Repository, action: CompareAction) {
     return this.appStore._updateCompareState(repository, action)
   }
-
-  /**
-   * Gets the `ICompareResult` of the given `branch`
-   */
-  public getCompareResult(repository: Repository, branch: Branch) {
-    return this.appStore._getCompareResult(repository, branch)
-  }
 }
