@@ -422,6 +422,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         compareFormState: { kind: CompareViewMode.None },
         commitSHAs: [],
         aheadBehindCache: new Map<string, IAheadBehind>(),
+        allBranches: [],
+        recentBranches: [],
+        defaultBranch: null,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -687,10 +690,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
+    const state = this.getRepositoryState(repository)
+
+    const branchesState = state.branchesState
+    const tip = branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    const allBranches = currentBranch
+      ? branchesState.allBranches.filter(b => b.name !== currentBranch.name)
+      : branchesState.allBranches
+    const recentBranches = currentBranch
+      ? branchesState.recentBranches.filter(b => b.name !== currentBranch.name)
+      : branchesState.recentBranches
+
+    const defaultBranch = branchesState.defaultBranch
+
     // TODO: better cache invalidation when the tip changes
 
-    const aheadBehindCache = this.getRepositoryState(repository).compareState
-      .aheadBehindCache
+    const aheadBehindCache = state.compareState.aheadBehindCache
 
     if (aheadBehindCache.size === 0) {
       gitStore.computeAheadBehindForAllBranches().then(aheadBehindCache => {
@@ -713,6 +730,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           kind: CompareViewMode.None,
         },
         commitSHAs: commits,
+        allBranches,
+        recentBranches,
+        defaultBranch,
       }))
       return this.emitUpdate()
     }
@@ -731,6 +751,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           behind: compare.behind,
         },
         commitSHAs: compare.commits.map(commit => commit.sha),
+        allBranches,
+        recentBranches,
+        defaultBranch,
       }))
 
       return this.emitUpdate()

@@ -140,7 +140,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, {}> {
     return (
       <CompareSidebar
         repository={this.props.repository}
-        repositoryState={this.props.state}
+        compareState={this.props.state.compareState}
         currentBranch={currentBranch}
         gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}

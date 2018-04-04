@@ -629,6 +629,27 @@ export interface ICompareState {
    */
   readonly commitSHAs: ReadonlyArray<string>
 
+  /**
+   * A list of all branches (remote and local) that's currently in
+   * the repository.
+   */
+  readonly allBranches: ReadonlyArray<Branch>
+
+  /**
+   * A list of zero to a few (at time of writing 5 but check loadRecentBranches
+   * in git-store for definitive answer) branches that have been checked out
+   * recently. This list is compiled by reading the reflog and tracking branch
+   * switches over the last couple of thousand reflog entries.
+   */
+  readonly recentBranches: ReadonlyArray<Branch>
+
+  /**
+   * The default branch for a given repository. Most commonly this
+   * will be the 'master' branch but GitHub users are able to change
+   * their default branch in the web UI.
+   */
+  readonly defaultBranch: Branch | null
+
   readonly aheadBehindCache: Map<string, { ahead: number; behind: number }>
 }
 
