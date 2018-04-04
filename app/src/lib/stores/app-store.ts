@@ -712,7 +712,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _initializeCompareState(repository: Repository) {
-    log.info('[AppStore] initializing compare state')
+    log.debug('[AppStore] initializing compare state')
 
     const state = this.getRepositoryState(repository)
 
@@ -753,7 +753,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
 
+    log.debug('[AppStore] loading first history for compare')
+
+    await this._loadHistory(repository)
+
+    const repoState = this.getRepositoryState(repository).historyState
+    const commits = repoState.history
+
+    this.updateCompareState(repository, state => ({
+      formState: {
+        kind: CompareViewMode.None,
+      },
+      commitSHAs: commits,
+    }))
+
+    this.emitUpdate()
+
     if (currentBranch != null && aheadBehindCache.size === 0) {
+      log.debug('[AppStore] computing ahead/behind counts')
+
       let allOtherBranches = [...recentBranches, ...allBranches]
 
       if (defaultBranch != null) {
@@ -771,7 +789,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.getGitStore(repository)
 
-    // TODO:
+    // TODO: can we obsolete this in favour of other things?
 
     this._initializeCompareState(repository)
 
