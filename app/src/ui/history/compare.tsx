@@ -27,11 +27,6 @@ const ViewHistory: CompareAction = {
   kind: CompareActionType.ViewHistory,
 }
 
-enum SelectedTab {
-  None = -1,
-  Behind,
-  Ahead,
-}
 interface ICompareSidebarProps {
   readonly repository: Repository
   readonly repositoryState: IRepositoryState
@@ -49,7 +44,6 @@ interface ICompareSidebarState {
   readonly compareType: CompareViewMode
   readonly filterText: string
   readonly showBranchList: boolean
-  readonly selectedTab: number
   readonly selectedCommit: Commit | null
 }
 
@@ -71,7 +65,6 @@ export class CompareSidebar extends React.Component<
       filterText: '',
       showBranchList: false,
       compareType: CompareViewMode.None,
-      selectedTab: SelectedTab.None,
       selectedCommit: null,
     }
   }
@@ -155,7 +148,8 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderActiveTab() {
-    if (this.state.selectedTab === SelectedTab.Behind) {
+    const formState = this.props.repositoryState.compareState.compareFormState
+    if (formState.kind === CompareViewMode.Behind) {
       return (
         <div className="the-commits">
           {this.renderCommitList()}
@@ -247,10 +241,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onTabClicked = (index: number) => {
-    const mode =
-      (index as SelectedTab) === SelectedTab.Behind
-        ? CompareViewMode.Behind
-        : CompareViewMode.Ahead
+    const mode = index === 0 ? CompareViewMode.Behind : CompareViewMode.Ahead
 
     const compareToBranch: CompareAction = {
       kind: CompareActionType.CompareToBranch,
@@ -262,18 +253,6 @@ export class CompareSidebar extends React.Component<
       this.props.repository,
       compareToBranch
     )
-    this.setState({ selectedTab: index })
-  }
-
-  private getSelectedTabIndex(compareType: CompareViewMode) {
-    switch (compareType) {
-      case CompareViewMode.None:
-        return SelectedTab.None
-      case CompareViewMode.Ahead:
-        return SelectedTab.Ahead
-      case CompareViewMode.Behind:
-        return SelectedTab.Behind
-    }
   }
 
   private renderTabBar() {
@@ -284,7 +263,7 @@ export class CompareSidebar extends React.Component<
       return null
     }
 
-    const selectedTab = this.getSelectedTabIndex(formState.kind)
+    const selectedTab = formState.kind === CompareViewMode.Behind ? 0 : 1
 
     return (
       <div className="compare-content">
