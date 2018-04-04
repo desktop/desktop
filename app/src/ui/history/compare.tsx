@@ -41,7 +41,6 @@ interface ICompareSidebarProps {
 
 interface ICompareSidebarState {
   readonly selectedBranch: Branch | null
-  readonly compareType: CompareViewMode
   readonly filterText: string
   readonly showBranchList: boolean
   readonly selectedCommit: Commit | null
@@ -64,7 +63,6 @@ export class CompareSidebar extends React.Component<
       selectedBranch: null,
       filterText: '',
       showBranchList: false,
-      compareType: CompareViewMode.None,
       selectedCommit: null,
     }
   }
@@ -406,7 +404,6 @@ export class CompareSidebar extends React.Component<
     this.setState({
       selectedBranch: null,
       filterText: '',
-      compareType: CompareViewMode.None,
     })
 
     this.props.dispatcher.loadCompareState(this.props.repository, ViewHistory)
@@ -430,8 +427,6 @@ export class CompareSidebar extends React.Component<
     }
 
     if (source.kind === 'mouseclick') {
-      const kind = CompareViewMode.Behind
-
       this.props.dispatcher.loadCompareState(this.props.repository, {
         kind: CompareActionType.CompareToBranch,
         branch,
@@ -441,7 +436,6 @@ export class CompareSidebar extends React.Component<
       this.setState({
         selectedBranch: branch,
         filterText: branch.name,
-        compareType: kind,
       })
     }
   }
