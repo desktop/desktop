@@ -425,7 +425,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         allBranches: [],
         recentBranches: [],
         defaultBranch: null,
-        baseBranch: null,
+        baseSha: null,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -736,18 +736,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
 
     const compareState = state.compareState
-    const { aheadBehindCache, baseBranch } = compareState
+    const { aheadBehindCache, baseSha } = compareState
     if (
-      baseBranch != null &&
+      baseSha != null &&
       currentBranch != null &&
-      baseBranch.name !== currentBranch.name
+      baseSha !== currentBranch.tip.sha
     ) {
       log.debug('[AppStore] clearing cache')
       aheadBehindCache.clear()
     }
 
     this.updateCompareState(repository, state => ({
-      baseBranch: currentBranch,
+      baseSha: currentBranch ? currentBranch.tip.sha : null,
       formState: {
         kind: CompareViewMode.None,
       },
