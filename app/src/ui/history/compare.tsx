@@ -69,7 +69,7 @@ export class CompareSidebar extends React.Component<
   }
 
   public componentWillMount() {
-    this.props.dispatcher.initializeCompareState(this.props.repository)
+    this.props.dispatcher.initializeCompare(this.props.repository)
   }
 
   public componentWillUnmount() {
@@ -126,7 +126,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private viewHistoryForBranch = () => {
-    this.props.dispatcher.updateCompareState(this.props.repository, {
+    this.props.dispatcher.executeCompare(this.props.repository, {
       kind: CompareActionKind.History,
     })
   }
@@ -223,7 +223,7 @@ export class CompareSidebar extends React.Component<
     const mode = index === 0 ? ComparisonView.Behind : ComparisonView.Ahead
     const branch = formState.comparisonBranch
 
-    this.props.dispatcher.updateCompareState(this.props.repository, {
+    this.props.dispatcher.executeCompare(this.props.repository, {
       kind: CompareActionKind.Branch,
       branch,
       mode,
@@ -280,7 +280,7 @@ export class CompareSidebar extends React.Component<
         } else {
           const branch = this.state.focusedBranch
 
-          this.props.dispatcher.updateCompareState(this.props.repository, {
+          this.props.dispatcher.executeCompare(this.props.repository, {
             kind: CompareActionKind.Branch,
             branch,
             mode: ComparisonView.Behind,
@@ -384,7 +384,7 @@ export class CompareSidebar extends React.Component<
     }
 
     if (source.kind === 'mouseclick') {
-      this.props.dispatcher.updateCompareState(this.props.repository, {
+      this.props.dispatcher.executeCompare(this.props.repository, {
         kind: CompareActionKind.Branch,
         branch,
         mode: ComparisonView.Behind,

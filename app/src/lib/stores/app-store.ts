@@ -710,7 +710,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _initializeCompareState(repository: Repository) {
+  public async _initializeCompare(repository: Repository) {
     log.debug('[AppStore] initializing compare state')
 
     const state = this.getRepositoryState(repository)
@@ -759,11 +759,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const cachedState = compareState.formState
 
     if (cachedState.kind === ComparisonView.None) {
-      this._updateCompareState(repository, {
+      this._executeCompare(repository, {
         kind: CompareActionKind.History,
       })
     } else {
-      this._updateCompareState(repository, {
+      this._executeCompare(repository, {
         kind: CompareActionKind.Branch,
         branch: cachedState.comparisonBranch,
         mode: cachedState.kind,
@@ -784,7 +784,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _updateCompareState(
+  public async _executeCompare(
     repository: Repository,
     action: CompareAction
   ): Promise<void> {
@@ -1871,7 +1871,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._refreshRepository(repository)
     } finally {
       this.updateCheckoutProgress(repository, null)
-      this._initializeCompareState(repository)
+      this._initializeCompare(repository)
     }
 
     return repository
