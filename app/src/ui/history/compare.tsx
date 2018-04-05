@@ -216,7 +216,7 @@ export class CompareSidebar extends React.Component<
 
     const branch = formState.comparisonBranch
     const count = formState.behind
-    const pluralized = count > 1 ? 'commits' : 'commit'
+    const pluralized = count === 1 ? 'commit' : 'commits'
     return (
       <div className="merge-cta">
         <Button
