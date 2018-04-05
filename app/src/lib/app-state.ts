@@ -601,7 +601,7 @@ export enum ComparisonView {
  * The default comparison state is to display the history for the current
  * branch.
  */
-interface IDisplayHistory {
+export interface IDisplayHistory {
   readonly kind: ComparisonView.None
 }
 

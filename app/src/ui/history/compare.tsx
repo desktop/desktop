@@ -68,6 +68,25 @@ export class CompareSidebar extends React.Component<
     }
   }
 
+  public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
+    const hasFormStateChanged =
+      nextProps.compareState.formState.kind !==
+      this.props.compareState.formState.kind
+
+    const newFormState = nextProps.compareState.formState
+
+    if (hasFormStateChanged && newFormState.kind === ComparisonView.None) {
+      // the comparison form should be reset to its default state
+      this.setState({ filterText: '', focusedBranch: null })
+      return
+    }
+
+    if (!hasFormStateChanged && newFormState.kind !== ComparisonView.None) {
+      // ensure the filter text is in sync with the comparison branch
+      this.setState({ filterText: newFormState.comparisonBranch.name })
+    }
+  }
+
   public componentWillMount() {
     this.props.dispatcher.initializeCompare(this.props.repository)
   }
@@ -136,6 +155,11 @@ export class CompareSidebar extends React.Component<
     const selectedCommit = this.state.selectedCommit
     const commitSHAs = compareState.commitSHAs
 
+    const emptyListMessage =
+      compareState.formState.kind === ComparisonView.None
+        ? 'No history'
+        : 'No commits'
+
     return (
       <CommitList
         gitHubRepository={this.props.repository.gitHubRepository}
@@ -149,6 +173,7 @@ export class CompareSidebar extends React.Component<
         onRevertCommit={this.props.onRevertCommit}
         onCommitSelected={this.onCommitSelected}
         onScroll={this.onScroll}
+        emptyListMessage={emptyListMessage}
       />
     )
   }
