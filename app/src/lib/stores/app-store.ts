@@ -731,7 +731,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         continue
       }
 
-      const aheadBehind = await gitStore.getAheadBehind(currentBranch.name, sha)
+      const aheadBehind = await gitStore.getAheadBehind(from, sha)
 
       if (aheadBehind != null) {
         cache.set(from, sha, aheadBehind)
