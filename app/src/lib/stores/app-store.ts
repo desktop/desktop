@@ -773,8 +773,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (baseSha !== newSha) {
       log.debug('[AppStore] clearing cache as the base branch SHA has changed')
+
+      aheadBehindCache.clear()
+
       this.updateCompareState(repository, state => ({
-        aheadBehindCache: new Map<string, IAheadBehind>(),
+        aheadBehindCache,
         baseSha: newSha,
       }))
     }
